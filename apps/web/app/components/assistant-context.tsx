@@ -1,7 +1,13 @@
 "use client";
 
 import type React from "react";
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+} from "react";
 import type { AssistantResponse } from "../api/assistant/chat/route";
 
 export interface ChatMessage {
@@ -56,16 +62,20 @@ export type AssistantAction =
       payload: { conversations: ChatConversation[]; activeId?: string };
     };
 
-function getStorageKey(portalSlug?: string, ano?: string): string {
+function getStorageKey(portalSlug?: string): string {
   const slug = portalSlug || "porciuncula_prefeitura";
-  const year = ano || "2025";
-  return `transparenciaweb_assistant_conversations_${slug}_${year}`;
+  return `transparenciaweb_assistant_conversations_${slug}`;
 }
 
-function getLegacyStorageKey(portalSlug?: string, ano?: string): string {
+function getLegacyStorageKeys(portalSlug?: string): string[] {
   const slug = portalSlug || "porciuncula_prefeitura";
-  const year = ano || "2025";
-  return `transparenciaweb_assistant_chat_${slug}_${year}`;
+  return [
+    `transparenciaweb_assistant_conversations_${slug}_2026`,
+    `transparenciaweb_assistant_conversations_${slug}_2025`,
+    `transparenciaweb_assistant_chat_${slug}_2026`,
+    `transparenciaweb_assistant_chat_${slug}_2025`,
+    `transparenciaweb_assistant_chat_${slug}`,
+  ];
 }
 
 function createWelcomeMessage(custom?: ChatMessage): ChatMessage {
@@ -79,7 +89,95 @@ function createWelcomeMessage(custom?: ChatMessage): ChatMessage {
   );
 }
 
-function createInitialState(welcomeMessage?: ChatMessage): AssistantState {
+function generateConversationTitle(userMessageText: string): string {
+  const clean = userMessageText.trim().replace(/\s+/g, " ");
+  if (!clean) return "Nova conversa";
+  return clean.length > 32 ? `${clean.slice(0, 30)}...` : clean;
+}
+
+function sanitizeChatMessage(raw: unknown): ChatMessage | null {
+  if (!raw || typeof raw !== "object") return null;
+  const m = raw as Record<string, unknown>;
+
+  if (
+    typeof m.id === "string" &&
+    (m.sender === "user" || m.sender === "assistant") &&
+    typeof m.text === "string"
+  ) {
+    const responseObjRaw = m.responseObj as Record<string, unknown> | undefined;
+    return {
+      id: m.id,
+      sender: m.sender as "user" | "assistant",
+      text: m.text,
+      timestamp: typeof m.timestamp === "string" ? m.timestamp : "agora",
+      responseObj:
+        responseObjRaw && typeof responseObjRaw === "object"
+          ? {
+              answer:
+                typeof responseObjRaw.answer === "string"
+                  ? responseObjRaw.answer
+                  : m.text,
+              metrics: Array.isArray(responseObjRaw.metrics)
+                ? responseObjRaw.metrics
+                : undefined,
+              chartData: Array.isArray(responseObjRaw.chartData)
+                ? responseObjRaw.chartData
+                : undefined,
+              chartType: responseObjRaw.chartType as
+                | "bar"
+                | "donut"
+                | "metric"
+                | undefined,
+              sqlQuery:
+                typeof responseObjRaw.sqlQuery === "string"
+                  ? responseObjRaw.sqlQuery
+                  : undefined,
+            }
+          : undefined,
+    };
+  }
+  return null;
+}
+
+function filterValidConversations(parsedConvs: unknown[]): ChatConversation[] {
+  const validConvs: ChatConversation[] = [];
+  for (const conv of parsedConvs) {
+    if (
+      conv &&
+      typeof conv === "object" &&
+      typeof (conv as Record<string, unknown>).id === "string" &&
+      Array.isArray((conv as Record<string, unknown>).messages)
+    ) {
+      const c = conv as Record<string, unknown>;
+      const validMsgs: ChatMessage[] = [];
+      for (const msg of c.messages as unknown[]) {
+        const s = sanitizeChatMessage(msg);
+        if (s) validMsgs.push(s);
+      }
+      if (validMsgs.length > 0) {
+        validConvs.push({
+          id: c.id as string,
+          title: typeof c.title === "string" ? c.title : "Conversa",
+          createdAt:
+            typeof c.createdAt === "string"
+              ? c.createdAt
+              : new Date().toISOString(),
+          updatedAt:
+            typeof c.updatedAt === "string"
+              ? c.updatedAt
+              : new Date().toISOString(),
+          messages: validMsgs,
+        });
+      }
+    }
+  }
+  return validConvs;
+}
+
+function getInitialState(
+  portalSlug?: string,
+  welcomeMessage?: ChatMessage,
+): AssistantState {
   const welcome = createWelcomeMessage(welcomeMessage);
   const now = new Date().toISOString();
   const defaultConv: ChatConversation = {
@@ -90,7 +188,7 @@ function createInitialState(welcomeMessage?: ChatMessage): AssistantState {
     messages: [welcome],
   };
 
-  return {
+  const defaultState: AssistantState = {
     isOpen: false,
     inputMessage: "",
     isLoading: false,
@@ -102,12 +200,143 @@ function createInitialState(welcomeMessage?: ChatMessage): AssistantState {
     hasInteracted: false,
     suggestionsExpanded: true,
   };
+
+  if (typeof window === "undefined") return defaultState;
+
+  try {
+    const storageKey = getStorageKey(portalSlug);
+    const savedNew = localStorage.getItem(storageKey);
+    if (savedNew) {
+      const parsedConvs = JSON.parse(savedNew) as unknown[];
+      if (Array.isArray(parsedConvs) && parsedConvs.length > 0) {
+        const validConvs = filterValidConversations(parsedConvs);
+        if (validConvs.length > 0) {
+          const activeConv = validConvs[0];
+          return {
+            ...defaultState,
+            conversations: validConvs,
+            activeConversationId: activeConv.id,
+            messages: activeConv.messages,
+            hasInteracted: activeConv.messages.some((m) => m.sender === "user"),
+            suggestionsExpanded: !activeConv.messages.some(
+              (m) => m.sender === "user",
+            ),
+          };
+        }
+      }
+    }
+
+    // Tentar ler das chaves legadas e migrar
+    const legacyKeys = getLegacyStorageKeys(portalSlug);
+    for (const legKey of legacyKeys) {
+      const savedLegacy = localStorage.getItem(legKey);
+      if (!savedLegacy) continue;
+
+      const parsedLegacy = JSON.parse(savedLegacy) as unknown[];
+      if (!Array.isArray(parsedLegacy) || parsedLegacy.length === 0) continue;
+
+      // Se for array de ChatConversation
+      if (
+        typeof parsedLegacy[0] === "object" &&
+        parsedLegacy[0] !== null &&
+        "messages" in (parsedLegacy[0] as Record<string, unknown>)
+      ) {
+        const validConvs = filterValidConversations(parsedLegacy);
+        if (validConvs.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(validConvs));
+          localStorage.removeItem(legKey);
+          const activeConv = validConvs[0];
+          return {
+            ...defaultState,
+            conversations: validConvs,
+            activeConversationId: activeConv.id,
+            messages: activeConv.messages,
+            hasInteracted: activeConv.messages.some((m) => m.sender === "user"),
+            suggestionsExpanded: !activeConv.messages.some(
+              (m) => m.sender === "user",
+            ),
+          };
+        }
+      }
+
+      // Se for array simples de ChatMessage[]
+      const validLegacyMsgs: ChatMessage[] = [];
+      for (const msg of parsedLegacy) {
+        const s = sanitizeChatMessage(msg);
+        if (s) validLegacyMsgs.push(s);
+      }
+      if (validLegacyMsgs.length > 0) {
+        const firstUserMsg = validLegacyMsgs.find((m) => m.sender === "user");
+        const title = firstUserMsg
+          ? generateConversationTitle(firstUserMsg.text)
+          : "Conversa anterior";
+        const migratedConv: ChatConversation = {
+          id: `conv-legacy-${Date.now()}`,
+          title,
+          createdAt: now,
+          updatedAt: now,
+          messages: validLegacyMsgs,
+        };
+
+        localStorage.setItem(storageKey, JSON.stringify([migratedConv]));
+        localStorage.removeItem(legKey);
+        return {
+          ...defaultState,
+          conversations: [migratedConv],
+          activeConversationId: migratedConv.id,
+          messages: migratedConv.messages,
+          hasInteracted: migratedConv.messages.some((m) => m.sender === "user"),
+          suggestionsExpanded: !migratedConv.messages.some(
+            (m) => m.sender === "user",
+          ),
+        };
+      }
+    }
+  } catch (_e) {}
+
+  return defaultState;
 }
 
-function generateConversationTitle(userMessageText: string): string {
-  const clean = userMessageText.trim().replace(/\s+/g, " ");
-  if (!clean) return "Nova conversa";
-  return clean.length > 32 ? `${clean.slice(0, 30)}...` : clean;
+function saveConversationsToStorage(
+  portalSlug: string | undefined,
+  conversations: ChatConversation[],
+) {
+  if (typeof window === "undefined") return;
+  if (conversations.length === 0) return;
+
+  try {
+    const storageKey = getStorageKey(portalSlug);
+    const cleanConvs = conversations.map((c) => ({
+      id: c.id,
+      title: c.title,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      messages: c.messages.map((m) => ({
+        id: m.id,
+        sender: m.sender,
+        text: m.text,
+        timestamp: m.timestamp,
+        responseObj: m.responseObj
+          ? {
+              answer: m.responseObj.answer,
+              metrics: Array.isArray(m.responseObj.metrics)
+                ? m.responseObj.metrics
+                : undefined,
+              chartData: Array.isArray(m.responseObj.chartData)
+                ? m.responseObj.chartData
+                : undefined,
+              chartType: m.responseObj.chartType,
+              sqlQuery:
+                typeof m.responseObj.sqlQuery === "string"
+                  ? m.responseObj.sqlQuery
+                  : undefined,
+            }
+          : undefined,
+      })),
+    }));
+
+    localStorage.setItem(storageKey, JSON.stringify(cleanConvs));
+  } catch (_e) {}
 }
 
 function assistantReducer(
@@ -127,8 +356,26 @@ function assistantReducer(
     case "ADD_MESSAGE": {
       const activeId = state.activeConversationId;
       const now = new Date().toISOString();
-      const updatedConversations = state.conversations.map((conv) => {
-        if (conv.id !== activeId) return conv;
+      const targetExists = state.conversations.some((c) => c.id === activeId);
+
+      let conversationsToProcess = state.conversations;
+      let effectiveActiveId = activeId;
+
+      if (!targetExists || conversationsToProcess.length === 0) {
+        const welcome = createWelcomeMessage();
+        const fallbackConv: ChatConversation = {
+          id: activeId || `conv-${Date.now()}`,
+          title: "Nova conversa",
+          createdAt: now,
+          updatedAt: now,
+          messages: [welcome],
+        };
+        conversationsToProcess = [fallbackConv, ...state.conversations];
+        effectiveActiveId = fallbackConv.id;
+      }
+
+      const updatedConversations = conversationsToProcess.map((conv) => {
+        if (conv.id !== effectiveActiveId) return conv;
 
         const nextMessages = [...conv.messages, action.payload];
         let nextTitle = conv.title;
@@ -147,7 +394,9 @@ function assistantReducer(
         };
       });
 
-      const activeConv = updatedConversations.find((c) => c.id === activeId);
+      const activeConv = updatedConversations.find(
+        (c) => c.id === effectiveActiveId,
+      );
       const currentMessages = activeConv
         ? activeConv.messages
         : [...state.messages, action.payload];
@@ -157,6 +406,7 @@ function assistantReducer(
       return {
         ...state,
         conversations: updatedConversations,
+        activeConversationId: effectiveActiveId,
         messages: currentMessages,
         hasInteracted: state.hasInteracted || action.payload.sender === "user",
         suggestionsExpanded: isFirstUserMessage
@@ -254,7 +504,7 @@ function assistantReducer(
       const remaining = state.conversations.filter((c) => c.id !== idToDelete);
 
       if (remaining.length === 0) {
-        const fresh = createInitialState();
+        const fresh = getInitialState(undefined, undefined);
         return {
           ...fresh,
           isOpen: state.isOpen,
@@ -295,7 +545,7 @@ function assistantReducer(
     }
 
     case "CLEAR_ALL_CONVERSATIONS": {
-      const fresh = createInitialState(action.payload?.welcomeMessage);
+      const fresh = getInitialState(undefined, action.payload?.welcomeMessage);
       return {
         ...fresh,
         isOpen: state.isOpen,
@@ -373,187 +623,24 @@ export interface AssistantProviderProps {
   ano?: string;
 }
 
-function sanitizeChatMessage(raw: unknown): ChatMessage | null {
-  if (!raw || typeof raw !== "object") return null;
-  const m = raw as Record<string, unknown>;
-
-  if (
-    typeof m.id === "string" &&
-    (m.sender === "user" || m.sender === "assistant") &&
-    typeof m.text === "string"
-  ) {
-    const responseObjRaw = m.responseObj as Record<string, unknown> | undefined;
-    return {
-      id: m.id,
-      sender: m.sender as "user" | "assistant",
-      text: m.text,
-      timestamp: typeof m.timestamp === "string" ? m.timestamp : "agora",
-      responseObj:
-        responseObjRaw && typeof responseObjRaw === "object"
-          ? {
-              answer:
-                typeof responseObjRaw.answer === "string"
-                  ? responseObjRaw.answer
-                  : m.text,
-              metrics: Array.isArray(responseObjRaw.metrics)
-                ? responseObjRaw.metrics
-                : undefined,
-              chartData: Array.isArray(responseObjRaw.chartData)
-                ? responseObjRaw.chartData
-                : undefined,
-              chartType: responseObjRaw.chartType as
-                | "bar"
-                | "donut"
-                | "metric"
-                | undefined,
-              sqlQuery:
-                typeof responseObjRaw.sqlQuery === "string"
-                  ? responseObjRaw.sqlQuery
-                  : undefined,
-            }
-          : undefined,
-    };
-  }
-  return null;
-}
-
 export function AssistantProvider({
   children,
   portalSlug,
-  ano,
 }: AssistantProviderProps) {
   const [state, dispatch] = useReducer(assistantReducer, undefined, () =>
-    createInitialState(),
+    getInitialState(portalSlug),
   );
-  const storageKey = getStorageKey(portalSlug, ano);
-  const legacyKey = getLegacyStorageKey(portalSlug, ano);
+  const isMountedRef = useRef(false);
 
-  // Restaurar do localStorage ao montar (com fallback de migração do formato legado)
+  // Persistir conversas ativas no localStorage sempre que houver alteração
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try {
-      const savedNew = localStorage.getItem(storageKey);
-      if (savedNew) {
-        const parsedConvs = JSON.parse(savedNew) as ChatConversation[];
-        if (Array.isArray(parsedConvs) && parsedConvs.length > 0) {
-          const validConvs: ChatConversation[] = [];
-          for (const conv of parsedConvs) {
-            if (
-              conv &&
-              typeof conv.id === "string" &&
-              Array.isArray(conv.messages)
-            ) {
-              const validMsgs: ChatMessage[] = [];
-              for (const msg of conv.messages) {
-                const s = sanitizeChatMessage(msg);
-                if (s) validMsgs.push(s);
-              }
-              if (validMsgs.length > 0) {
-                validConvs.push({
-                  id: conv.id,
-                  title:
-                    typeof conv.title === "string" ? conv.title : "Conversa",
-                  createdAt:
-                    typeof conv.createdAt === "string"
-                      ? conv.createdAt
-                      : new Date().toISOString(),
-                  updatedAt:
-                    typeof conv.updatedAt === "string"
-                      ? conv.updatedAt
-                      : new Date().toISOString(),
-                  messages: validMsgs,
-                });
-              }
-            }
-          }
-          if (validConvs.length > 0) {
-            dispatch({
-              type: "SET_CONVERSATIONS",
-              payload: { conversations: validConvs },
-            });
-            return;
-          }
-        }
-      }
-
-      // Fallback: Migrar formato legado `transparenciaweb_assistant_chat_${slug}_${year}`
-      const savedLegacy = localStorage.getItem(legacyKey);
-      if (savedLegacy) {
-        const parsedLegacy = JSON.parse(savedLegacy) as unknown[];
-        if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
-          const validLegacyMsgs: ChatMessage[] = [];
-          for (const msg of parsedLegacy) {
-            const s = sanitizeChatMessage(msg);
-            if (s) validLegacyMsgs.push(s);
-          }
-          if (validLegacyMsgs.length > 0) {
-            const firstUserMsg = validLegacyMsgs.find(
-              (m) => m.sender === "user",
-            );
-            const title = firstUserMsg
-              ? generateConversationTitle(firstUserMsg.text)
-              : "Conversa anterior";
-            const now = new Date().toISOString();
-            const migratedConv: ChatConversation = {
-              id: `conv-legacy-${Date.now()}`,
-              title,
-              createdAt: now,
-              updatedAt: now,
-              messages: validLegacyMsgs,
-            };
-
-            dispatch({
-              type: "SET_CONVERSATIONS",
-              payload: { conversations: [migratedConv] },
-            });
-
-            // Persistir imediatamente no novo formato e remover a chave antiga
-            localStorage.setItem(storageKey, JSON.stringify([migratedConv]));
-            localStorage.removeItem(legacyKey);
-          }
-        }
-      }
-    } catch (_e) {}
-  }, [storageKey, legacyKey]);
-
-  // Persistir conversas ativas no localStorage a cada atualização
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (state.conversations.length === 0) return;
-
-    try {
-      const cleanConvs = state.conversations.map((c) => ({
-        id: c.id,
-        title: c.title,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
-        messages: c.messages.map((m) => ({
-          id: m.id,
-          sender: m.sender,
-          text: m.text,
-          timestamp: m.timestamp,
-          responseObj: m.responseObj
-            ? {
-                answer: m.responseObj.answer,
-                metrics: Array.isArray(m.responseObj.metrics)
-                  ? m.responseObj.metrics
-                  : undefined,
-                chartData: Array.isArray(m.responseObj.chartData)
-                  ? m.responseObj.chartData
-                  : undefined,
-                chartType: m.responseObj.chartType,
-                sqlQuery:
-                  typeof m.responseObj.sqlQuery === "string"
-                    ? m.responseObj.sqlQuery
-                    : undefined,
-              }
-            : undefined,
-        })),
-      }));
-
-      localStorage.setItem(storageKey, JSON.stringify(cleanConvs));
-    } catch (_e) {}
-  }, [state.conversations, storageKey]);
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    saveConversationsToStorage(portalSlug, state.conversations);
+  }, [state.conversations, portalSlug]);
 
   const resetConversation = (welcomeMessage: ChatMessage) => {
     dispatch({ type: "RESET_CONVERSATION", payload: { welcomeMessage } });
@@ -578,8 +665,12 @@ export function AssistantProvider({
   const clearAllConversations = (welcomeMessage?: ChatMessage) => {
     try {
       if (typeof window !== "undefined") {
+        const storageKey = getStorageKey(portalSlug);
+        const legacyKeys = getLegacyStorageKeys(portalSlug);
         localStorage.removeItem(storageKey);
-        localStorage.removeItem(legacyKey);
+        for (const k of legacyKeys) {
+          localStorage.removeItem(k);
+        }
       }
     } catch (_e) {}
     dispatch({ type: "CLEAR_ALL_CONVERSATIONS", payload: { welcomeMessage } });
