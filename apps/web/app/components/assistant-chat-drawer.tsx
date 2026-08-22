@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  Bot,
   ChevronDown,
   ChevronRight,
   ChevronUp,
@@ -10,7 +9,7 @@ import {
   Download,
   Info,
   Loader2,
-  RotateCcw,
+  PlusIcon,
   Send,
   Sparkles,
   Square,
@@ -30,6 +29,8 @@ import {
   type ChatMessage,
   useAssistantContext,
 } from "./assistant-context";
+import { AuthModal } from "./auth-modal";
+import { TransparenciaLogo } from "./transparencia-logo";
 
 export const ROUTE_SUGGESTED_QUESTIONS: Record<string, string[]> = {
   "/saude": [
@@ -75,12 +76,18 @@ export const ROUTE_SUGGESTED_QUESTIONS: Record<string, string[]> = {
   ],
 };
 
-function HeroWelcomeCard({ ano }: { ano: string }) {
+function HeroWelcomeCard({
+  ano,
+  onOpenAuthModal,
+}: {
+  ano: string;
+  onOpenAuthModal?: () => void;
+}) {
   return (
     <div className="mb-3 rounded-2xl border border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white p-4 text-slate-800 shadow-xs">
       <div className="flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
-          <Sparkles className="h-5 w-5" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-xs">
+          <TransparenciaLogo className="h-9 w-9" />
         </div>
         <div>
           <h3 className="font-bold text-slate-900 text-xs">
@@ -111,13 +118,17 @@ function HeroWelcomeCard({ ano }: { ano: string }) {
             Gráficos e Exportação: Visualização de indicadores e download em CSV
           </span>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-indigo-100/80 bg-indigo-50/40 p-2 font-medium text-indigo-900">
-          <UserPlus className="h-4 w-4 shrink-0 text-indigo-600" />
+        <button
+          type="button"
+          onClick={onOpenAuthModal}
+          className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[#5a72a8]/30 bg-[#5a72a8]/10 p-2 text-left font-medium text-slate-900 transition-all hover:border-[#5a72a8]/50 hover:bg-[#5a72a8]/20"
+        >
+          <UserPlus className="h-4 w-4 shrink-0 text-[#5a72a8]" />
           <span>
             Cota Expandida e Histórico Salvo: Crie sua conta para sincronizar
             conversas na nuvem e ter mais limites diários
           </span>
-        </div>
+        </button>
       </div>
     </div>
   );
@@ -159,6 +170,7 @@ function AssistantChatDrawerContent({
 }: AssistantChatDrawerProps) {
   const { state, dispatch, resetConversation } = useAssistantContext();
   const [mounted, setMounted] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const pathname = usePathname();
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -370,10 +382,10 @@ function AssistantChatDrawerContent({
       {/* Painel da Gaveta (Right Drawer) */}
       <div className="relative z-[10000] flex h-full w-full max-w-md flex-col border-borderLine border-l bg-white shadow-2xl transition-all">
         {/* Cabeçalho do Chat */}
-        <div className="flex shrink-0 items-center justify-between border-borderLine border-b bg-slate-900 px-4 py-3.5 text-white">
+        <div className="flex shrink-0 items-center justify-between border-borderLine border-b bg-slate-900 px-2 py-3.5 text-white">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300">
-              <Bot className="h-5 w-5" />
+            <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-xs">
+              <TransparenciaLogo className="size-8" />
             </div>
             <div>
               <h2 className="font-bold text-sm leading-none">
@@ -387,18 +399,28 @@ function AssistantChatDrawerContent({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={handleReset}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
-              title="Nova Conversa / Limpar Histórico"
-              aria-label="Nova Conversa"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="mr-1 flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#5a72a8] px-2.5 py-1 font-semibold text-[11px] text-white shadow-xs transition-colors hover:bg-[#4a5f8c]"
+              title="Entrar ou Criar Conta"
+              aria-label="Entrar ou Criar Conta"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Nova Conversa</span>
+              <UserPlus className="size-3.5" />
+              <span>Entrar</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
+              title="Nova Conversa / Limpar Histórico"
+              aria-label="Novo Chat"
+            >
+              <PlusIcon className="size-3.5" />
+              <span>Novo Chat</span>
             </button>
             <button
               type="button"
               onClick={() => dispatch({ type: "SET_IS_OPEN", payload: false })}
-              className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
               aria-label="Fechar"
             >
               <X className="h-5 w-5" />
@@ -408,7 +430,12 @@ function AssistantChatDrawerContent({
 
         {/* Mensagens do Chat */}
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
-          {!state.hasInteracted && <HeroWelcomeCard ano={ano} />}
+          {!state.hasInteracted && (
+            <HeroWelcomeCard
+              ano={ano}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            />
+          )}
           {state.messages.map((msg) => (
             <div
               key={msg.id}
@@ -609,7 +636,7 @@ function AssistantChatDrawerContent({
         <div className="shrink-0 space-y-2 border-borderLine border-t bg-slate-50/50 p-3">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1 font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-              <Sparkles className="h-3 w-3 text-indigo-500" />
+              <Sparkles className="h-3 w-3 text-[#5a72a8]" />
               Sugestões Rápidas
             </p>
             <button
@@ -620,7 +647,7 @@ function AssistantChatDrawerContent({
                   payload: !state.suggestionsExpanded,
                 })
               }
-              className="flex items-center gap-0.5 text-[10px] text-indigo-600 hover:underline"
+              className="flex cursor-pointer items-center gap-0.5 font-medium text-[#5a72a8] text-[10px] hover:underline"
             >
               <span>{state.suggestionsExpanded ? "Recolher" : "Expandir"}</span>
               {state.suggestionsExpanded ? (
@@ -639,10 +666,10 @@ function AssistantChatDrawerContent({
                   type="button"
                   onClick={() => handleSendMessage(q)}
                   disabled={state.isLoading}
-                  className="flex items-center gap-1 rounded-full border border-indigo-100 bg-white px-2.5 py-1 text-[11px] text-indigo-900 shadow-2xs transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 disabled:opacity-50"
+                  className="flex cursor-pointer items-center gap-1 rounded-full border border-[#5a72a8]/20 bg-white px-2.5 py-1 text-[11px] text-slate-800 shadow-2xs transition-colors hover:border-[#5a72a8]/40 hover:bg-[#5a72a8]/10 disabled:opacity-50"
                 >
                   <span>{q}</span>
-                  <ChevronRight className="h-3 w-3 text-indigo-400" />
+                  <ChevronRight className="h-3 w-3 text-[#5a72a8]" />
                 </button>
               ))}
             </div>
@@ -650,15 +677,20 @@ function AssistantChatDrawerContent({
         </div>
 
         {/* Disclaimer Legal Estático */}
-        <div className="shrink-0 border-slate-100 border-t bg-slate-50/80 px-3 py-1.5 text-center text-[10px] text-slate-400">
-          <p className="flex items-center justify-center gap-1">
+        <div className="shrink-0 border-slate-100 border-t bg-slate-50/80 px-3 py-1 text-center text-[10px] text-slate-400">
+          <p className="flex items-center justify-center gap-1 truncate">
             <Info className="h-3 w-3 shrink-0 text-slate-400" />
-            <span>
-              Dados informativos. Consulte os demonstrativos oficiais em Diário
-              Oficial para fins jurídicos.
+            <span className="truncate">
+              Uso informativo. Consulte o Portal Oficial para fins jurídicos.
             </span>
           </p>
         </div>
+
+        {/* Modal de Autenticação Supabase */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
 
         {/* Input de Envio de Mensagem */}
         <div className="shrink-0 border-borderLine border-t bg-white p-3">
@@ -680,7 +712,7 @@ function AssistantChatDrawerContent({
               }
               placeholder="Pergunte sobre receitas, despesas, saúde..."
               disabled={state.isLoading}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none"
+              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
             />
             {state.isLoading ? (
               <button
@@ -696,7 +728,7 @@ function AssistantChatDrawerContent({
               <button
                 type="submit"
                 disabled={!state.inputMessage.trim()}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-[#5a72a8] text-white shadow-xs transition-colors hover:bg-[#4a5f8c] disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Enviar"
               >
                 <Send className="h-4 w-4" />
@@ -714,10 +746,10 @@ function AssistantChatDrawerContent({
       <button
         type="button"
         onClick={() => dispatch({ type: "SET_IS_OPEN", payload: true })}
-        className="flex min-h-11 w-full cursor-pointer items-center justify-between rounded-lg border border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 px-3 py-2.5 font-semibold text-indigo-900 text-xs shadow-xs transition-all hover:border-indigo-300 hover:bg-indigo-100/50 active:scale-[0.99] sm:min-h-0"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-between rounded-lg border border-[#5a72a8]/30 bg-gradient-to-r from-[#5a72a8]/10 to-slate-50 px-3 py-2.5 font-semibold text-slate-900 text-xs shadow-xs transition-all hover:border-[#5a72a8]/50 hover:bg-[#5a72a8]/20 active:scale-[0.99] sm:min-h-0"
       >
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 shrink-0 text-indigo-600" />
+          <Sparkles className="h-4 w-4 shrink-0 text-[#5a72a8]" />
           <span>Perguntar aos Dados</span>
         </div>
       </button>
