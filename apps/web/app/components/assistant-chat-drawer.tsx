@@ -163,7 +163,7 @@ function AssistantChatDrawerContent({
       payload: {
         id: `cancel-${Date.now()}`,
         sender: "assistant",
-        text: "🛑 **Consulta cancelada por você.**",
+        text: "**Consulta cancelada por você.**",
         timestamp: new Date().toLocaleTimeString("pt-BR", {
           hour: "2-digit",
           minute: "2-digit",
@@ -240,7 +240,37 @@ function AssistantChatDrawerContent({
         }),
       });
 
-      if (!res.ok) throw new Error("Falha na consulta do assistente.");
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => null);
+          const limitMsg =
+            errData?.message ||
+            "Você atingiu o limite de perguntas gratuitas de hoje.";
+          try {
+            posthog.capture("ai_rate_limit_reached", {
+              user_type: "anonymous",
+              limit_count: errData?.limit || 5,
+              reset_at: errData?.resetAt || 0,
+              portal_slug: portalSlug,
+              current_route: pathname || "/visao-geral",
+            });
+          } catch (_err) {}
+
+          const assistantMsg: ChatMessage = {
+            id: `rate-limit-${Date.now()}`,
+            sender: "assistant",
+            text: `**Limite de Consultas Atingido**\n\n${limitMsg}\n\nCrie sua conta gratuita em segundos para continuar consultando sem restrições, salvar seu histórico e exportar relatórios!`,
+            timestamp: new Date().toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+
+          dispatch({ type: "ADD_MESSAGE", payload: assistantMsg });
+          return;
+        }
+        throw new Error("Falha na consulta do assistente.");
+      }
 
       const data: AssistantResponse = await res.json();
       const assistantMsg: ChatMessage = {
