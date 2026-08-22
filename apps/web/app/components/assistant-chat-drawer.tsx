@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BarChart3,
   Bot,
   ChevronDown,
   ChevronRight,
@@ -15,7 +16,9 @@ import {
   Square,
   ThumbsDown,
   ThumbsUp,
+  UserPlus,
   X,
+  Zap,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
@@ -71,6 +74,54 @@ export const ROUTE_SUGGESTED_QUESTIONS: Record<string, string[]> = {
     "Qual o total em dispensas de licitação?",
   ],
 };
+
+function HeroWelcomeCard({ ano }: { ano: string }) {
+  return (
+    <div className="mb-3 rounded-2xl border border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white p-4 text-slate-800 shadow-xs">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+          <Sparkles className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="font-bold text-slate-900 text-xs">
+            Assistente Fiscal Inteligente
+          </h3>
+          <p className="text-[11px] text-slate-500">
+            Exercício Orçamentário de {ano}
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-2.5 text-slate-600 text-xs leading-relaxed">
+        Faça consultas em linguagem natural sobre a Lei de Responsabilidade
+        Fiscal, Saúde, Pessoal, Licitações e Previdência.
+      </p>
+
+      <div className="mt-3 grid grid-cols-1 gap-2 text-[11px]">
+        <div className="flex items-center gap-2 rounded-lg border border-slate-100 bg-white p-2 text-slate-700">
+          <Zap className="h-4 w-4 shrink-0 text-amber-500" />
+          <span>
+            Consultas Fiscais Instantâneas: Respostas diretas baseadas em dados
+            oficiais
+          </span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-slate-100 bg-white p-2 text-slate-700">
+          <BarChart3 className="h-4 w-4 shrink-0 text-emerald-500" />
+          <span>
+            Gráficos e Exportação: Visualização de indicadores e download em CSV
+          </span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-indigo-100/80 bg-indigo-50/40 p-2 font-medium text-indigo-900">
+          <UserPlus className="h-4 w-4 shrink-0 text-indigo-600" />
+          <span>
+            Cota Expandida e Histórico Salvo: Crie sua conta para sincronizar
+            conversas na nuvem e ter mais limites diários
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface AssistantChatDrawerProps {
   portalSlug?: string;
@@ -357,6 +408,7 @@ function AssistantChatDrawerContent({
 
         {/* Mensagens do Chat */}
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          {!state.hasInteracted && <HeroWelcomeCard ano={ano} />}
           {state.messages.map((msg) => (
             <div
               key={msg.id}
