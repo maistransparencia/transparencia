@@ -13,6 +13,8 @@
     "@ai-sdk/google": "1.1.12",
     "@google/generative-ai": "0.22.0",
     "@modelcontextprotocol/sdk": "1.6.0",
+    "@supabase/ssr": "0.12.4",
+    "@supabase/supabase-js": "2.112.3",
     "@transparencia/db": "workspace:*",
     "@transparencia/ui": "workspace:*",
     "@vercel/analytics": "2.0.1",
