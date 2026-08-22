@@ -50,6 +50,9 @@ self.addEventListener("fetch", (event) => {
   // Ignore non-http(s) requests (e.g. chrome-extension://, moz-extension://)
   if (!url.protocol.startsWith("http")) return;
 
+  // Ignore localhost / 127.0.0.1 to prevent dev environment cache corruption
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return;
+
   // Ignore Next.js Dev Server HMR & WebSockets
   if (
     url.pathname.includes("webpack-hmr") ||
@@ -59,31 +62,28 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for static assets (Next.js static files, images, icons, fonts)
+  // Network-first for static assets with cache fallback when offline (prevents stale CSS/JS)
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico|woff2?)$/)
   ) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-        return fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseClone).catch(() => {
-                  // Ignore caching errors
-                });
-              });
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Return empty 404 response for missing uncached static assets when offline
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone).catch(() => {});
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) return cachedResponse;
             return new Response(null, { status: 404 });
           });
-      })
+        })
     );
     return;
   }

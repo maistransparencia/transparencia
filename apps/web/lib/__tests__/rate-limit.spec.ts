@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { checkAnonymousRateLimit, resetRateLimitStore } from "../rate-limit";
 
 describe("rate-limit utility", () => {
   beforeEach(() => {
     resetRateLimitStore();
+    vi.unstubAllEnvs();
   });
 
   it("permite requisições de usuários anônimos até o limite máximo de 5", () => {
@@ -61,7 +62,7 @@ describe("rate-limit utility", () => {
   });
 
   it("respeita o limite configurado via variável de ambiente AI_ANONYMOUS_DAILY_LIMIT", () => {
-    process.env.AI_ANONYMOUS_DAILY_LIMIT = "2";
+    vi.stubEnv("AI_ANONYMOUS_DAILY_LIMIT", "2");
     const req = new Request("http://localhost:3000/api/assistant/chat", {
       headers: { "x-forwarded-for": "203.0.113.10" },
     });
@@ -69,7 +70,62 @@ describe("rate-limit utility", () => {
     expect(checkAnonymousRateLimit(req).success).toBe(true);
     expect(checkAnonymousRateLimit(req).success).toBe(true);
     expect(checkAnonymousRateLimit(req).success).toBe(false);
+  });
 
-    delete process.env.AI_ANONYMOUS_DAILY_LIMIT;
+  it("permite bypass ilimitado no modo superadmin estritamente em localhost / dev", () => {
+    vi.stubEnv("NODE_ENV", "development");
+
+    const reqDevSuperadmin = new Request(
+      "http://localhost:3000/api/assistant/chat",
+      {
+        headers: {
+          "x-forwarded-for": "203.0.113.100",
+          "x-superadmin-key": "superadmin",
+        },
+      },
+    );
+
+    const result = checkAnonymousRateLimit(reqDevSuperadmin, 1);
+    expect(result.success).toBe(true);
+    expect(result.isAuth).toBe(true);
+    expect(result.limit).toBe(Infinity);
+  });
+
+  it("ignora o cabeçalho superadmin quando em ambiente de produção sem host localhost", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    const reqProdSuperadmin = new Request(
+      "https://transparencia.porciuncula.rj.gov.br/api/assistant/chat",
+      {
+        headers: {
+          "x-forwarded-for": "203.0.113.101",
+          "x-superadmin-key": "superadmin",
+        },
+      },
+    );
+
+    const result = checkAnonymousRateLimit(reqProdSuperadmin, 1);
+    expect(result.success).toBe(true);
+    expect(result.isAuth).toBe(false);
+
+    // Segunda chamada deve ser bloqueada pois em prod superadmin via header solto é ignorado
+    const blockedResult = checkAnonymousRateLimit(reqProdSuperadmin, 1);
+    expect(blockedResult.success).toBe(false);
+  });
+  it("concede cota expandida para usuários autenticados via cookie do Supabase Auth", () => {
+    const reqWithSupabaseCookie = new Request(
+      "http://localhost:3000/api/assistant/chat",
+      {
+        headers: {
+          "x-forwarded-for": "203.0.113.200",
+          cookie: "sb-projectref-auth-token=token_value_abc_123;",
+        },
+      },
+    );
+
+    const result = checkAnonymousRateLimit(reqWithSupabaseCookie);
+    expect(result.success).toBe(true);
+    expect(result.isAuth).toBe(true);
+    expect(result.limit).toBe(50);
   });
 });
