@@ -1,3 +1,4 @@
+import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { checkAnonymousRateLimit } from "@/lib/rate-limit";
 
@@ -10,7 +11,7 @@ const RESERVED_STATIC_PATHS = new Set([
   "/sitemap.xml",
 ]);
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Interceptar e aplicar Rate Limiting anônimo centralizado nas APIs do assistente e MCP
@@ -47,7 +48,37 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // Atualizar sessão e cookies do Supabase Auth no middleware/proxy se as envs estiverem presentes
+  let response = NextResponse.next({ request });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            for (const { name, value } of cookiesToSet) {
+              request.cookies.set(name, value);
+            }
+            response = NextResponse.next({ request });
+            for (const { name, value, options } of cookiesToSet) {
+              response.cookies.set(name, value, options);
+            }
+          },
+        },
+      });
+
+      await supabase.auth.getUser();
+    } catch (_err) {
+      // Ignorar erros de middleware de auth para não travar navegação estática
+    }
+  }
+
+  return response;
 }
 
 export const config = {
