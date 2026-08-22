@@ -1,5 +1,6 @@
 "use client";
 
+import type { User } from "@supabase/supabase-js";
 import {
   BarChart3,
   ChevronDown,
@@ -11,10 +12,12 @@ import {
   Loader2,
   PlusIcon,
   Send,
+  ShieldCheck,
   Sparkles,
   Square,
   ThumbsDown,
   ThumbsUp,
+  UserCheck,
   UserPlus,
   X,
   Zap,
@@ -23,6 +26,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { createClient } from "@/lib/supabase/client";
 import type { AssistantResponse } from "../api/assistant/chat/route";
 import {
   AssistantProvider,
@@ -79,9 +83,11 @@ export const ROUTE_SUGGESTED_QUESTIONS: Record<string, string[]> = {
 function HeroWelcomeCard({
   ano,
   onOpenAuthModal,
+  isLoggedIn,
 }: {
   ano: string;
   onOpenAuthModal?: () => void;
+  isLoggedIn?: boolean;
 }) {
   return (
     <div className="mb-3 rounded-2xl border border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white p-4 text-slate-800 shadow-xs">
@@ -118,17 +124,27 @@ function HeroWelcomeCard({
             Gráficos e Exportação: Visualização de indicadores e download em CSV
           </span>
         </div>
-        <button
-          type="button"
-          onClick={onOpenAuthModal}
-          className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[#5a72a8]/30 bg-[#5a72a8]/10 p-2 text-left font-medium text-slate-900 transition-all hover:border-[#5a72a8]/50 hover:bg-[#5a72a8]/20"
-        >
-          <UserPlus className="h-4 w-4 shrink-0 text-[#5a72a8]" />
-          <span>
-            Cota Expandida e Histórico Salvo: Crie sua conta para sincronizar
-            conversas na nuvem e ter mais limites diários
-          </span>
-        </button>
+        {isLoggedIn ? (
+          <div className="flex w-full items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 text-left font-medium text-emerald-900">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+            <span>
+              Conta Ativa: Histórico sincronizado na nuvem e cota diária
+              expandida
+            </span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenAuthModal}
+            className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[#5a72a8]/30 bg-[#5a72a8]/10 p-2 text-left font-medium text-slate-900 transition-all hover:border-[#5a72a8]/50 hover:bg-[#5a72a8]/20"
+          >
+            <UserPlus className="h-4 w-4 shrink-0 text-[#5a72a8]" />
+            <span>
+              Cota Expandida e Histórico Salvo: Crie sua conta para sincronizar
+              conversas na nuvem e ter mais limites diários
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -171,6 +187,18 @@ function AssistantChatDrawerContent({
   const { state, dispatch, resetConversation } = useAssistantContext();
   const [mounted, setMounted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
   const pathname = usePathname();
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -380,7 +408,7 @@ function AssistantChatDrawerContent({
       />
 
       {/* Painel da Gaveta (Right Drawer) */}
-      <div className="relative z-[10000] flex h-full w-full max-w-md flex-col border-borderLine border-l bg-white shadow-2xl transition-all">
+      <div className="relative z-[10000] flex h-full w-full max-w-lg flex-col border-borderLine border-l bg-white shadow-2xl transition-all">
         {/* Cabeçalho do Chat */}
         <div className="flex shrink-0 items-center justify-between border-borderLine border-b bg-slate-900 px-2 py-3.5 text-white">
           <div className="flex items-center gap-2.5">
@@ -397,16 +425,37 @@ function AssistantChatDrawerContent({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsAuthModalOpen(true)}
-              className="mr-1 flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#5a72a8] px-2.5 py-1 font-semibold text-[11px] text-white shadow-xs transition-colors hover:bg-[#4a5f8c]"
-              title="Entrar ou Criar Conta"
-              aria-label="Entrar ou Criar Conta"
-            >
-              <UserPlus className="size-3.5" />
-              <span>Entrar</span>
-            </button>
+            {user ? (
+              <div className="mr-1 flex items-center gap-1.5 rounded-lg border border-[#5a72a8]/40 bg-[#5a72a8]/20 px-2 py-1 text-[11px] text-slate-200 shadow-xs">
+                <UserCheck className="size-3.5 shrink-0 text-emerald-400" />
+                <span className="max-w-[90px] truncate font-medium">
+                  {user.email?.split("@")[0]}
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                    setUser(null);
+                  }}
+                  className="ml-0.5 cursor-pointer text-[10px] text-slate-300 underline hover:text-white"
+                  title="Sair da conta"
+                >
+                  Sair
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="mr-1 flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#5a72a8] px-2.5 py-1 font-semibold text-[11px] text-white shadow-xs transition-colors hover:bg-[#4a5f8c]"
+                title="Entrar ou Criar Conta"
+                aria-label="Entrar ou Criar Conta"
+              >
+                <UserPlus className="size-3.5" />
+                <span>Entrar</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={handleReset}
@@ -434,6 +483,7 @@ function AssistantChatDrawerContent({
             <HeroWelcomeCard
               ano={ano}
               onOpenAuthModal={() => setIsAuthModalOpen(true)}
+              isLoggedIn={Boolean(user)}
             />
           )}
           {state.messages.map((msg) => (
@@ -651,9 +701,9 @@ function AssistantChatDrawerContent({
             >
               <span>{state.suggestionsExpanded ? "Recolher" : "Expandir"}</span>
               {state.suggestionsExpanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
                 <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronUp className="h-3 w-3" />
               )}
             </button>
           </div>

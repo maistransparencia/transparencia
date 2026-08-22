@@ -112,4 +112,20 @@ describe("rate-limit utility", () => {
     const blockedResult = checkAnonymousRateLimit(reqProdSuperadmin, 1);
     expect(blockedResult.success).toBe(false);
   });
+  it("concede cota expandida para usuários autenticados via cookie do Supabase Auth", () => {
+    const reqWithSupabaseCookie = new Request(
+      "http://localhost:3000/api/assistant/chat",
+      {
+        headers: {
+          "x-forwarded-for": "203.0.113.200",
+          cookie: "sb-projectref-auth-token=token_value_abc_123;",
+        },
+      },
+    );
+
+    const result = checkAnonymousRateLimit(reqWithSupabaseCookie);
+    expect(result.success).toBe(true);
+    expect(result.isAuth).toBe(true);
+    expect(result.limit).toBe(50);
+  });
 });

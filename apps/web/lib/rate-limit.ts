@@ -21,13 +21,19 @@ function getAnonymousLimit(): number {
   return 5;
 }
 
+function getAuthenticatedLimit(): number {
+  const envVal = process.env.AI_AUTH_USER_DAILY_LIMIT;
+  if (envVal != null && !Number.isNaN(Number(envVal))) {
+    return Number(envVal);
+  }
+  return 50;
+}
+
 export function checkAnonymousRateLimit(
   req: Request,
   overrideMaxRequests?: number,
 ): RateLimitResult {
-  const maxRequests = overrideMaxRequests ?? getAnonymousLimit();
-
-  // 1. Verificar modo Superadmin (estritamente em ambiente de desenvolvimento / localhost)
+  // 1. Verificar modo Superadmin (estritamente em ambiente de desenvolvimento / localhost) ou chaves API/Bearer
   const isDevOrLocalhost =
     process.env.NODE_ENV === "development" ||
     req.url.includes("localhost") ||
@@ -56,17 +62,28 @@ export function checkAnonymousRateLimit(
     };
   }
 
-  // 2. Extrair IP do cliente a partir dos cabeçalhos Vercel / Proxy
+  // 2. Verificar se o usuário possui sessão de autenticação ativa no Supabase (Cookie sb-*-auth-token)
+  const cookieHeader = req.headers.get("cookie") || "";
+  const hasSupabaseCookie =
+    cookieHeader.includes("sb-") && cookieHeader.includes("-auth-token");
+
+  const isAuthUser = Boolean(hasSupabaseCookie);
+  const maxRequests =
+    overrideMaxRequests ??
+    (isAuthUser ? getAuthenticatedLimit() : getAnonymousLimit());
+
+  // Extrair identificador único para o rate limit (cookie hash para auth, IP para anônimo)
   const forwardedFor = req.headers.get("x-forwarded-for");
   const clientIp =
     forwardedFor?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
     "127.0.0.1";
 
-  const key = `anon:${clientIp}`;
-  const now = Date.now();
+  const key = isAuthUser
+    ? `auth:${cookieHeader.slice(0, 32)}`
+    : `anon:${clientIp}`;
 
-  // 3. Fallback gracioso para Map<string, RateLimitEntry> em memória caso o KV não esteja configurado
+  const now = Date.now();
   const entry = rateLimitStore.get(key) || { timestamps: [] };
 
   // Filtrar apenas timestamps dentro da janela de 24h
@@ -81,7 +98,7 @@ export function checkAnonymousRateLimit(
       limit: maxRequests,
       remaining: 0,
       resetAt,
-      isAuth: false,
+      isAuth: isAuthUser,
     };
   }
 
@@ -97,7 +114,7 @@ export function checkAnonymousRateLimit(
     limit: maxRequests,
     remaining,
     resetAt,
-    isAuth: false,
+    isAuth: isAuthUser,
   };
 }
 
