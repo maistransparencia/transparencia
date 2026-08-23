@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject, jsonSchema } from "ai";
+import type { FallbackChip } from "@/app/components/assistant-fallback-chips";
 import { logger } from "../logger";
 import { FISCAL_TAXONOMY, trackMcpToolCall } from "../mcp/transparencia-mcp";
 import { buildLayeredContext } from "../skills/context-builder";
@@ -25,6 +26,7 @@ export interface ReActResult {
   chartData?: Array<{ label: string; valor: number; formattedValue?: string }>;
   chartType?: "bar" | "donut" | "metric";
   sqlQuery?: string;
+  fallbackChips?: FallbackChip[];
   stepsCount: number;
   autoCorrected: boolean;
 }
@@ -57,6 +59,7 @@ const finalAnswerSchema = jsonSchema<{
   }>;
   chartData?: Array<{ label: string; valor: number; formattedValue?: string }>;
   chartType?: "bar" | "donut" | "metric";
+  fallbackChips?: FallbackChip[];
 }>({
   type: "object",
   properties: {
@@ -98,6 +101,36 @@ const finalAnswerSchema = jsonSchema<{
     chartType: {
       type: "string",
       enum: ["bar", "donut", "metric"],
+    },
+    fallbackChips: {
+      type: "array",
+      description:
+        "Chips de navegação ou refinamento caso o cidadão precise de orientação ou atalhos para páginas do portal",
+      items: {
+        type: "object",
+        properties: {
+          type: { type: "string", enum: ["prompt", "link"] },
+          label: {
+            type: "string",
+            description:
+              "Texto legível do chip (ex: 'Ver folha de pessoal', 'Abrir Painel de Pessoal')",
+          },
+          prompt: {
+            type: "string",
+            description: "Texto da pergunta caso seja tipo prompt",
+          },
+          href: {
+            type: "string",
+            description:
+              "Rota pública do portal caso seja tipo link (ex: '/pessoal', '/despesas', '/licitacoes', '/saude', '/caprem')",
+          },
+          icon: {
+            type: "string",
+            enum: ["Search", "Sparkles", "ExternalLink", "ArrowUpRight"],
+          },
+        },
+        required: ["type", "label"],
+      },
     },
   },
   required: ["answer"],
@@ -283,6 +316,7 @@ export async function executeReActAgent(
       }>;
       chartData?: Array<{ label: string; valor: number }>;
       chartType?: "bar" | "donut" | "metric";
+      fallbackChips?: FallbackChip[];
     }>({
       schema: finalAnswerSchema,
       system: systemContext,
@@ -313,6 +347,7 @@ export async function executeReActAgent(
       metrics: stepFinal.object.metrics,
       chartData: stepFinal.object.chartData,
       chartType: stepFinal.object.chartType,
+      fallbackChips: stepFinal.object.fallbackChips,
       sqlQuery: executedSql,
       stepsCount,
       autoCorrected,
