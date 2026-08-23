@@ -41,6 +41,7 @@ import {
   type ChatMessage,
   useAssistantContext,
 } from "./assistant-context";
+import { AssistantFallbackChips } from "./assistant-fallback-chips";
 import { AuthModal } from "./auth-modal";
 import { TransparenciaLogo } from "./transparencia-logo";
 
@@ -913,6 +914,16 @@ function AssistantChatDrawerContent({
                     </div>
                   )}
 
+                  {/* Chips de Fallback e Navegação */}
+                  {Array.isArray(msg.responseObj?.fallbackChips) &&
+                    msg.responseObj.fallbackChips.length > 0 && (
+                      <AssistantFallbackChips
+                        chips={msg.responseObj.fallbackChips}
+                        onSelectPrompt={(p) => handleSendMessage(p)}
+                        portalSlug={portalSlug}
+                      />
+                    )}
+
                   {/* Rodapé da Mensagem do Usuário */}
                   {msg.sender === "user" && (
                     <span className="mt-1 block text-right font-medium text-[#dbe3f0] text-[9px]">
@@ -1034,40 +1045,60 @@ function AssistantChatDrawerContent({
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-center gap-2"
+              className="flex flex-col gap-1.5"
             >
-              <input
-                type="text"
-                value={state.inputMessage}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_INPUT_MESSAGE",
-                    payload: e.target.value,
-                  })
-                }
-                placeholder="Pergunte sobre receitas, despesas, saúde..."
-                disabled={state.isLoading}
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
-              />
-              {state.isLoading ? (
-                <button
-                  type="button"
-                  onClick={handleCancelRequest}
-                  className="flex h-9 items-center gap-1 rounded-xl bg-red-600 px-3 font-semibold text-white text-xs shadow-xs hover:bg-red-700"
-                  aria-label="Cancelar consulta"
-                >
-                  <Square className="h-3.5 w-3.5 fill-white" />
-                  <span>Parar</span>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!state.inputMessage.trim()}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-[#5a72a8] text-white shadow-xs transition-colors hover:bg-[#4a5f8c] disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label="Enviar"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
+              <div className="relative flex items-center gap-2">
+                <input
+                  type="text"
+                  value={state.inputMessage}
+                  maxLength={300}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_INPUT_MESSAGE",
+                      payload: e.target.value,
+                    })
+                  }
+                  placeholder="Ex: Quanto foi gasto com merenda escolar em 2024?"
+                  disabled={state.isLoading}
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
+                />
+                {state.isLoading ? (
+                  <button
+                    type="button"
+                    onClick={handleCancelRequest}
+                    className="flex h-9 items-center gap-1 rounded-xl bg-red-600 px-3 font-semibold text-white text-xs shadow-xs hover:bg-red-700"
+                    aria-label="Cancelar consulta"
+                  >
+                    <Square className="h-3.5 w-3.5 fill-white" />
+                    <span>Parar</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!state.inputMessage.trim()}
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-[#5a72a8] text-white shadow-xs transition-colors hover:bg-[#4a5f8c] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Enviar"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Micro-interação: Contador de Caracteres a partir de 70% (210) */}
+              {state.inputMessage.length >= 210 && (
+                <div className="flex justify-end text-[10px]">
+                  <span
+                    className={
+                      state.inputMessage.length >= 270
+                        ? "font-semibold text-amber-600"
+                        : "text-slate-400"
+                    }
+                  >
+                    {state.inputMessage.length}/300
+                    {state.inputMessage.length >= 270 &&
+                      " (perguntas diretas ajudam na precisão)"}
+                  </span>
+                </div>
               )}
             </form>
           </div>

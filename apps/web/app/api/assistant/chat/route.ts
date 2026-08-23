@@ -16,15 +16,19 @@ export interface AssistantChartPoint {
   formattedValue?: string;
 }
 
+import type { FallbackChip } from "@/app/components/assistant-fallback-chips";
+
 export interface AssistantResponse {
   answer: string;
   metrics?: AssistantMetricCard[];
   chartData?: AssistantChartPoint[];
   chartType?: "bar" | "donut" | "metric";
   sqlQuery?: string;
+  fallbackChips?: FallbackChip[];
 }
 
 let posthogClient: PostHog | null = null;
+
 function trackTokenUsage(data: {
   promptTokens: number;
   completionTokens: number;
@@ -46,7 +50,7 @@ function trackTokenUsage(data: {
       });
     }
 
-    // Telemetria anônima de consumo e acurácia (preparação para LLM-as-a-Judge)
+    // Telemetria anônima e desvinculada de identidade para consumo e futuras avaliações (PostHog MCP Analytics)
     const anonymousEvalId = `anon_eval_${crypto.randomUUID()}`;
 
     posthogClient.capture({
@@ -154,6 +158,7 @@ export async function POST(req: NextRequest) {
       chartType: reactResult.chartType || "metric",
       sqlQuery: sanitizedQuery,
       chartData: reactResult.chartData,
+      fallbackChips: reactResult.fallbackChips,
     });
   } catch (error) {
     // biome-ignore lint/suspicious/noConsole: server error logging
