@@ -33,6 +33,8 @@ function trackTokenUsage(data: {
   portalSlug: string;
   ano: number;
   traceId?: string;
+  hasSql?: boolean;
+  currentRoute?: string;
 }) {
   try {
     const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -43,16 +45,24 @@ function trackTokenUsage(data: {
           process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
       });
     }
+
+    // Telemetria anônima de consumo e acurácia (preparação para LLM-as-a-Judge)
+    const anonymousEvalId = `anon_eval_${crypto.randomUUID()}`;
+
     posthogClient.capture({
-      distinctId: data.traceId || data.portalSlug || "anonymous_user",
+      distinctId: anonymousEvalId,
       event: "ai_token_usage",
       properties: {
+        eval_id: anonymousEvalId,
         prompt_tokens: data.promptTokens,
         completion_tokens: data.completionTokens,
         total_tokens: data.totalTokens,
         model: data.model,
         portal_slug: data.portalSlug,
         ano: data.ano,
+        current_route: data.currentRoute || "/visao-geral",
+        has_sql: Boolean(data.hasSql),
+        is_anonymous_eval: true,
       },
     });
   } catch (_err) {}
@@ -125,7 +135,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Telemetria silenciosa de consumo de tokens
+    // Telemetria anônima e desvinculada de identidade para consumo e futuras avaliações
     trackTokenUsage({
       promptTokens: 150, // Estimativa do ReAct pipeline
       completionTokens: 250,
@@ -134,6 +144,8 @@ export async function POST(req: NextRequest) {
       portalSlug,
       ano: year,
       traceId,
+      hasSql: Boolean(sanitizedQuery),
+      currentRoute,
     });
 
     return NextResponse.json({
