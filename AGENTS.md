@@ -96,7 +96,16 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Sincronização Obrigatória da Taxonomia MCP**: Sempre que houver inclusão, alteração ou remoção de modelos dbt marts (`elt/transform/models/marts/**/*.yml`) ou adição/alteração de colunas em marts, é **obrigatório** executar o script de geração de código `pnpm codegen:taxonomy` (ou `python3 scripts/codegen-taxonomy.py`). Isso recompila e atualiza a constante `FISCAL_TAXONOMY` em `apps/web/lib/mcp/transparencia-mcp.ts` automaticamente a partir das definições YAML do dbt.
 - **Manutenção de Benchmark & Evals**: Sempre que novos marts ou indicadores forem criados, adicione 2 a 3 perguntas de teste correspondentes no arquivo `apps/web/lib/evals/benchmark-questions.ts` e verifique a aprovação da suíte de evals executando `pnpm test`.
 
+---
 
+## 14. ARQUITETURA SERVERLESS 100% STATELESS NAS ROTAS DE API (`apps/web`)
 
+- **Proibido Estado em Memória**: É estritamente proibido utilizar variáveis mutáveis em escopo de módulo (`let count = 0`, `let dailyLimit = 0`, `const inMemoryCache = {}`) em rotas de API do Next.js (`apps/web/app/api/`). As funções serverless (Vercel/lambdas) são efêmeras, isoladas e distribuídas.
+- **Telemetria e Agregação via Serviços Externos**: Toda contagem de cota, rate-limiting global ou telemetria agregada deve ser delegada exclusivamente a ferramentas de observabilidade externas (PostHog) ou bancos chave-valor distribuídos (Vercel KV / Redis). A rota da API deve emitir apenas eventos *stateless*.
 
+---
 
+## 15. CLASSIFICAÇÃO DE INTENÇÃO E PRIVACIDADE VIA SYSTEM PROMPT (PROIBIDO STRING MATCHING FRÁGIL)
+
+- **Proibido IFs de String para Intenção de IA**: É estritamente proibido utilizar `String.includes()`, `indexOf()` ou expressões regulares manuais em código TypeScript para tentar adivinhar a intenção do usuário ou aplicar restrições de escopo e privacidade de dados (ex: busca por salários de pessoas físicas).
+- **Intenção no System Prompt e Evals**: Toda classificação de escopo, contexto e privacidade pertence exclusivamente às diretrizes do **System Prompt** (`context-builder.ts` / `react-engine.ts`) e aos esquemas de resposta estruturada do LLM. O comportamento deve ser validado via suíte de Evals em `apps/web/lib/evals/benchmark-questions.ts`.

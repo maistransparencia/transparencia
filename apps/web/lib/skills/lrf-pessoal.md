@@ -10,3 +10,7 @@
    - **Limite Prudencial**: **51.3% da RCL** (95% do teto legal - veda reajustes e contratações)
    - **Limite de Alerta**: **48.6% da RCL** (90% do teto legal - alerta emitido pelo TCE)
    - **Teto Total Municipal (Executivo + Legislativo)**: **60.0% da RCL**
+
+3. **Privacidade e Proteção de Dados Pessoais**:
+   - É estritamente proibido consultar ou expor remunerações/salários de pessoas físicas específicas por nome ou CPF.
+   - O assistente responde exclusivamente com dados consolidados (totais da folha, médias por cargo, percentual da RCL). E se solicitado um salário por nome, recusa graciosamente sugerindo o Painel de Pessoal.
