@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  Copy,
   Database,
   Download,
   Edit3,
@@ -33,6 +34,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { formatQuoteForSharing } from "@/lib/social-share";
 import { createClient } from "@/lib/supabase/client";
 import type { AssistantResponse } from "../api/assistant/chat/route";
 import {
@@ -201,6 +203,7 @@ function HeroWelcomeCard({
 interface AssistantChatDrawerProps {
   portalSlug?: string;
   ano?: string;
+  portalName?: string;
 }
 
 function FormattedMarkdown({ text }: { text?: string }) {
@@ -231,6 +234,7 @@ function FormattedMarkdown({ text }: { text?: string }) {
 function AssistantChatDrawerContent({
   portalSlug = "porciuncula_prefeitura",
   ano = "2025",
+  portalName,
 }: AssistantChatDrawerProps) {
   const {
     state,
@@ -244,7 +248,9 @@ function AssistantChatDrawerContent({
 
   const [mounted, setMounted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -254,7 +260,7 @@ function AssistantChatDrawerContent({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 80)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
     }
   }, []);
 
@@ -293,6 +299,24 @@ function AssistantChatDrawerContent({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [state.messages.length, state.isLoading, state.isOpen, showHistoryPanel]);
+
+  const handleCopyQuote = async (msg: ChatMessage) => {
+    const { formattedQuote } = formatQuoteForSharing({
+      text: msg.text,
+      metrics: msg.responseObj?.metrics,
+      portalUrl:
+        typeof window !== "undefined" ? window.location.href : undefined,
+      portalDisplayName: portalName,
+    });
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(formattedQuote);
+        setCopiedMsgId(msg.id);
+        setTimeout(() => setCopiedMsgId(null), 2000);
+      }
+    } catch (_err) {}
+  };
 
   const handleFeedback = (msgId: string, _text: string, score: 1 | -1) => {
     dispatch({
@@ -953,7 +977,7 @@ function AssistantChatDrawerContent({
                               onClick={() =>
                                 handleFeedback(msg.id, msg.text, 1)
                               }
-                              className={`rounded-xs p-1 hover:bg-slate-200 ${
+                              className={`cursor-pointer rounded-xs p-1 hover:bg-slate-200 ${
                                 state.feedbackFor[msg.id] === 1
                                   ? "text-emerald-600"
                                   : "text-slate-400"
@@ -967,7 +991,7 @@ function AssistantChatDrawerContent({
                               onClick={() =>
                                 handleFeedback(msg.id, msg.text, -1)
                               }
-                              className={`rounded-xs p-1 hover:bg-slate-200 ${
+                              className={`cursor-pointer rounded-xs p-1 hover:bg-slate-200 ${
                                 state.feedbackFor[msg.id] === -1
                                   ? "text-red-600"
                                   : "text-slate-400"
@@ -975,6 +999,26 @@ function AssistantChatDrawerContent({
                               title="Resposta Imprecisa"
                             >
                               <ThumbsDown className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyQuote(msg)}
+                              className={`cursor-pointer rounded-xs p-1 transition-colors ${
+                                copiedMsgId === msg.id
+                                  ? "font-semibold text-emerald-600"
+                                  : "text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                              }`}
+                              title={
+                                copiedMsgId === msg.id
+                                  ? "Citação Copiada!"
+                                  : "Copiar Citação Formatada"
+                              }
+                            >
+                              {copiedMsgId === msg.id ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
                             </button>
                           </div>
                         )}

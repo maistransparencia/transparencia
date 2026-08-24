@@ -79,7 +79,11 @@ export function SidebarWrapper({
       selectedEntidades={selectedEntidades}
       onEntidadesChange={handleEntidadesChange}
       assistantAction={
-        <AssistantChatDrawer portalSlug={portalSlug} ano={ano} />
+        <AssistantChatDrawer
+          portalSlug={portalSlug}
+          ano={ano}
+          portalName={portalName}
+        />
       }
     />
   );
