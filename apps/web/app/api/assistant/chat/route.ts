@@ -91,6 +91,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (message.trim().length > 300) {
+      return NextResponse.json(
+        { error: "A pergunta não pode exceder 300 caracteres." },
+        { status: 400 },
+      );
+    }
+
     const year = Number(yearParam) || 2025;
 
     const history = Array.isArray(messagesHistory)

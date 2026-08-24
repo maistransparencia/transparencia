@@ -28,6 +28,19 @@ describe("POST /api/assistant/chat", () => {
     expect(json.error).toBeDefined();
   });
 
+  it("deve retornar erro 400 se a mensagem exceder 300 caracteres", async () => {
+    const longMessage = "a".repeat(301);
+    const req = new Request("http://localhost/api/assistant/chat", {
+      method: "POST",
+      body: JSON.stringify({ message: longMessage }),
+    });
+
+    const res = await POST(req as unknown as NextRequest);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toBe("A pergunta não pode exceder 300 caracteres.");
+  });
+
   it("deve executar via ReAct agent e retornar resposta estruturada", async () => {
     const req = new Request("http://localhost/api/assistant/chat", {
       method: "POST",
