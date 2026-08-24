@@ -1047,9 +1047,9 @@ function AssistantChatDrawerContent({
               }}
               className="flex flex-col gap-1.5"
             >
-              <div className="relative flex items-center gap-2">
-                <input
-                  type="text"
+              <div className="relative flex items-end gap-2">
+                <textarea
+                  rows={1}
                   value={state.inputMessage}
                   maxLength={300}
                   onChange={(e) =>
@@ -1058,9 +1058,15 @@ function AssistantChatDrawerContent({
                       payload: e.target.value,
                     })
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
                   placeholder="Ex: Quanto foi gasto com merenda escolar em 2024?"
                   disabled={state.isLoading}
-                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
+                  className="max-h-20 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs leading-relaxed placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
                 />
                 {state.isLoading ? (
                   <button
