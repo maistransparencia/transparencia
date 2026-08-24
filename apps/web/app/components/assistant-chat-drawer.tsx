@@ -249,6 +249,14 @@ function AssistantChatDrawerContent({
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 80)}px`;
+    }
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -1049,6 +1057,7 @@ function AssistantChatDrawerContent({
             >
               <div className="relative flex items-end gap-2">
                 <textarea
+                  ref={textareaRef}
                   rows={1}
                   value={state.inputMessage}
                   maxLength={300}
@@ -1059,14 +1068,14 @@ function AssistantChatDrawerContent({
                     })
                   }
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
                   placeholder="Ex: Quanto foi gasto com merenda escolar em 2024?"
                   disabled={state.isLoading}
-                  className="max-h-20 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs leading-relaxed placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
+                  className="max-h-20 flex-1 resize-none overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs leading-relaxed transition-all duration-100 placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
                 />
                 {state.isLoading ? (
                   <button
