@@ -109,3 +109,11 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 - **Proibido IFs de String para Intenção de IA**: É estritamente proibido utilizar `String.includes()`, `indexOf()` ou expressões regulares manuais em código TypeScript para tentar adivinhar a intenção do usuário ou aplicar restrições de escopo e privacidade de dados (ex: busca por salários de pessoas físicas).
 - **Intenção no System Prompt e Evals**: Toda classificação de escopo, contexto e privacidade pertence exclusivamente às diretrizes do **System Prompt** (`context-builder.ts` / `react-engine.ts`) e aos esquemas de resposta estruturada do LLM. O comportamento deve ser validado via suíte de Evals em `apps/web/lib/evals/benchmark-questions.ts`.
+
+---
+
+## 16. DEFESA EM PROFUNDIDADE E VALIDAÇÃO ESTRITA NO BACKEND (API ROUTES)
+
+- **Proibida Confiança Exclusiva no Frontend**: É estritamente proibido confiar apenas em travas, limites ou validações de interface do cliente (como `maxLength` em `<input>` ou `<textarea>`).
+- **Validação de Entrada Inviolável no Servidor**: Todas as rotas de API em `apps/web/app/api/` devem validar no servidor os limites de tamanho, formato e tipo dos parâmetros recebidos. Se existe uma restrição na UI (ex: limite de 300 caracteres), a rota da API deve obrigatoriamente reforçar essa validação retornando HTTP 400 antes de executar qualquer lógica de negócios, consulta ao banco ou consumo de tokens de IA.
+
