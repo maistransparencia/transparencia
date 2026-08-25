@@ -19,7 +19,7 @@
      - Subfunção Oficial STN: `subfuncao_codigo = '303'` (Suporte Profilático e Terapêutico).
      - Busca textual no histórico: `unaccent(lower(historico))` contendo `'medicamento'` ou `'farmacia'`.
 
-4. **Regras Mandatórias de Lógica Booleana (`AND` vs `OR`) e `unaccent`**:
+   - ⚠️ **PROIBIDO USAR `OR` ENTRE TERMOS TEXTUAIS LIVRES EM AGREGAÇÕES (`SUM`)**: Nunca encadeie `OR` entre termos de texto livre (ex: `WHERE (descricao LIKE '%termoA%' OR descricao LIKE '%termoB%')`) ao calcular `SUM(empenhado)` ou `SUM(pago)` na `fct_despesas`. Isso captura despesas de manutenção física, reformas e compras operacionais secundárias que citam os locais/contextos, inflando indevidamente os totais. Para contratações de serviços, projetos ou bens específicos, consulte a mart `fct_licitacoes`.
    - ⚠️ **PROIBIDO USAR `OR` ENTRE TERMO ESPECÍFICO E NOME DE FUNÇÃO BRUTA**: Nunca escreva `WHERE (historico LIKE '%merenda%' OR funcao_nome LIKE '%Educação%')`. Isso inflacionará a consulta trazendo todas as despesas da Educação (folha de pagamento, obras, transporte).
    - ✅ **CORRETO**: Escreva filtros de área como restrição `AND`:
      `WHERE portal_slug = '...' AND ano IN (2025, 2026) AND (unaccent(lower(historico)) LIKE '%merenda%' OR unaccent(lower(historico)) LIKE '%alimentacao%escolar%' OR subfuncao_codigo = '306')`

@@ -12,3 +12,6 @@
 ## Status de Execução Contratual
 - Status em `fct_contratos_servicos_vigentes`: `em_execucao`, `concluido` ou `inexecutado`.
 - Contratos vencidos com liquidação zerada (`total_liquidado = 0`) são classificados como `inexecutado`.
+
+## Consulta a Objetos e Contratações Específicas (`fct_licitacoes`)
+- Para responder sobre valores contratados, objetos de contratos, fornecedores contratados, contratações diretas (dispensas/inexigibilidades) ou montantes homologados de serviços, projetos, obras, eventos ou aquisições, a consulta SQL DEVE consultar a mart `fct_licitacoes` (colunas `objeto`, `modalidade`, `valor`) ou `fct_contratos_servicos_vigentes`, que possuem os objetos homologados e valores formais dos contratos.
