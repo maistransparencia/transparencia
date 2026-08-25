@@ -260,7 +260,15 @@ function AssistantChatDrawerContent({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const maxHeight = 140;
+      if (scrollHeight > maxHeight) {
+        textareaRef.current.style.height = `${maxHeight}px`;
+        textareaRef.current.style.overflowY = "auto";
+      } else {
+        textareaRef.current.style.height = `${scrollHeight}px`;
+        textareaRef.current.style.overflowY = "hidden";
+      }
     }
   }, []);
 
@@ -662,7 +670,7 @@ function AssistantChatDrawerContent({
                       key={conv.id}
                       className={`group flex items-center justify-between rounded-xl border p-3 transition-all ${
                         isActive
-                          ? "border-[#5a72a8] bg-white shadow-xs ring-1 ring-[#5a72a8]"
+                          ? "border-[#5a72a8] bg-[#5a72a8]/5 font-medium shadow-xs"
                           : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
@@ -1119,7 +1127,7 @@ function AssistantChatDrawerContent({
                   }}
                   placeholder="Ex: Quanto foi gasto com merenda escolar em 2024?"
                   disabled={state.isLoading}
-                  className="max-h-20 flex-1 resize-none overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs leading-relaxed transition-all duration-100 placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
+                  className="flex-1 resize-none overflow-hidden rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-slate-900 text-xs leading-relaxed transition-all duration-100 placeholder:text-slate-400 focus:border-[#5a72a8] focus:bg-white focus:outline-none"
                 />
                 {state.isLoading ? (
                   <button
