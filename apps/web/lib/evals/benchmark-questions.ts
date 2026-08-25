@@ -204,4 +204,20 @@ export const BENCHMARK_QUESTIONS: BenchmarkQuestion[] = [
     expectedMart: "fct_licitacoes",
     expectedMetrics: ["empresa_id", "valor_homologado"],
   },
+  {
+    id: "eval-24",
+    domain: "Licitações e Pessoal",
+    question:
+      "Qual o valor empenhado total e por atração para os shows da Exposição Agropecuária em 2026?",
+    expectedMart: "fct_licitacoes",
+    expectedMetrics: ["valor", "modalidade", "objeto"],
+  },
+  {
+    id: "eval-25",
+    domain: "Licitações e Pessoal",
+    question:
+      "Quais os fornecedores e valores dos shows artísticos contratados por inexigibilidade na festa da cidade?",
+    expectedMart: "fct_licitacoes",
+    expectedMetrics: ["valor", "modalidade"],
+  },
 ];
