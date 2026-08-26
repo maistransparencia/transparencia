@@ -67,6 +67,8 @@ describe("buildVisaoGeralViewModel - despesasCardData", () => {
 
     expect(vm.despesasCardData.title).toBe("Despesas");
     expect(vm.despesasCardData.totalRestosPagarFormatted).toBeDefined();
+    expect(vm.despesasCardData.totalEmpenhadoFormatted).toBeDefined();
+    expect(vm.despesasCardData.totalLiquidadoFormatted).toBeDefined();
     expect(vm.despesasCardData.secondaryTextFormatted).toBeDefined();
     expect(vm.despesasCardData.secondaryTextFormatted).toContain("liquidados");
     expect(vm.despesasCardData.subtext).toContain("12 fornecedores");
@@ -81,10 +83,14 @@ describe("buildVisaoGeralViewModel - despesasCardData", () => {
 
     const bar2023 = bars.find((b) => b.year === "2023");
     expect(bar2023).toBeDefined();
+    expect(bar2023?.isCurrentYear).toBe(false);
     expect(bar2023?.percentageLiquidado).toBeGreaterThan(0);
     expect(bar2023?.percentageEmpenhado).toBeGreaterThanOrEqual(0);
     expect(
       (bar2023?.percentageLiquidado ?? 0) + (bar2023?.percentageEmpenhado ?? 0),
     ).toBe(bar2023?.percentage);
+
+    const bar2024 = bars.find((b) => b.year === "2024");
+    expect(bar2024?.isCurrentYear).toBe(true);
   });
 });

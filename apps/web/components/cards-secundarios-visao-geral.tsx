@@ -68,11 +68,19 @@ export function CardsSecundariosVisaoGeral({
   const despesasLinkText = despesas?.linkText ?? "Restos a pagar →";
   const despesasLinkHref = despesas?.linkHref ?? "/despesas";
   const despesasTotal = despesas?.totalRestosPagarFormatted;
-  const despesasSecondaryText =
-    despesas?.secondaryTextFormatted ||
-    (despesas?.totalLiquidadoFormatted
-      ? `${despesas.totalLiquidadoFormatted} liquidados`
-      : undefined);
+  const totalEmpenhado = despesas?.totalEmpenhadoFormatted ?? despesasTotal;
+  const totalLiquidado = despesas?.totalLiquidadoFormatted;
+  const despesasSecondaryText = despesas?.secondaryTextFormatted;
+
+  const heroDisplay = (() => {
+    if (totalEmpenhado && totalLiquidado) {
+      return `${totalEmpenhado} / ${totalLiquidado} liquidados`;
+    }
+    if (despesasTotal && despesasSecondaryText) {
+      return `${despesasTotal} / ${despesasSecondaryText}`;
+    }
+    return despesasTotal;
+  })();
 
   const despesasSubtext = despesas?.subtext;
   const despesasBars = despesas?.antiguidadeBars ?? [];
@@ -116,16 +124,9 @@ export function CardsSecundariosVisaoGeral({
 
           {/* Destaque Numérico */}
           <div className="my-4">
-            {despesasTotal ? (
-              <div>
-                <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
-                  {despesasTotal}
-                </div>
-                {despesasSecondaryText && (
-                  <div className="mt-1 font-medium text-[11px] text-subtleText">
-                    {despesasSecondaryText}
-                  </div>
-                )}
+            {heroDisplay ? (
+              <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
+                {heroDisplay}
               </div>
             ) : (
               <div className="text-subtleText text-xs italic">
@@ -189,7 +190,10 @@ export function CardsSecundariosVisaoGeral({
                   totalVal > 0
                     ? ((bar.percentageLiquidado ?? 0) / totalVal) * 100
                     : 0;
-                const empRatio = 100 - liqRatio;
+                const empRatio =
+                  totalVal > 0
+                    ? ((bar.percentageEmpenhado ?? 0) / totalVal) * 100
+                    : 0;
 
                 return (
                   <div

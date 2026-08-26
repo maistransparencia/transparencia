@@ -76,9 +76,11 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const totalLiquidado = execSummary.totalLiquidado;
   const totalPago = execSummary.totalPago;
 
-  const empPct = totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
-  const liqPct = totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
-  const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
+  const empPctDotacao =
+    totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
+  const liqPctDotacao =
+    totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
+  const pagPctDotacao = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
   const pipelineStages = [
     {
@@ -91,22 +93,22 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     {
       name: "Empenhado",
       formattedValue: fmtCompact(totalEmpenhado),
-      percentage: Number(empPct.toFixed(1)),
-      label: `${fmtPercent(empPct)} da dotação`,
+      percentage: Number(empPctDotacao.toFixed(1)),
+      label: `${fmtPercent(empPctDotacao)} da dotação`,
       color: "bg-indigo-600",
     },
     {
       name: "Liquidado",
       formattedValue: fmtCompact(totalLiquidado),
-      percentage: Number(liqPct.toFixed(1)),
-      label: `${fmtPercent(liqPct)} da dotação`,
+      percentage: Number(liqPctDotacao.toFixed(1)),
+      label: `${fmtPercent(liqPctDotacao)} da dotação`,
       color: "bg-sky-600",
     },
     {
       name: "Pago",
       formattedValue: fmtCompact(totalPago),
-      percentage: Number(pagPct.toFixed(1)),
-      label: `${fmtPercent(pagPct)} da dotação`,
+      percentage: Number(pagPctDotacao.toFixed(1)),
+      label: `${fmtPercent(pagPctDotacao)} da dotação`,
       color: "bg-emerald-600",
     },
   ];
@@ -134,23 +136,28 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       liquidadoPendenteAnoAtual > 0
         ? `${fmtCompact(liquidadoPendenteAnoAtual)} liquidados`
         : undefined,
+    totalEmpenhadoFormatted: fmtCompact(posicao.restosPendentesTotal),
+    totalLiquidadoFormatted:
+      liquidadoPendenteAnoAtual > 0
+        ? fmtCompact(liquidadoPendenteAnoAtual)
+        : undefined,
     subtext: `pendentes a ${posicao.totalCredoresAdmAtual || 0} fornecedores`,
-    antiguidadeBars: posicao.restosPendentes.map((r, idx, arr) => {
+    antiguidadeBars: posicao.restosPendentes.map((r) => {
       const totalPct = Math.round((r.pendente / maxPendente) * 100);
       const pendenteTotal = r.pendente || 1;
       const liquidadoPendente = Math.max(0, (r.liquidado || 0) - (r.pago || 0));
-      const liqPct = Math.min(
+      const percentualLiquidado = Math.min(
         totalPct,
         Math.round((liquidadoPendente / pendenteTotal) * totalPct),
       );
-      const empPct = Math.max(0, totalPct - liqPct);
+      const percentualEmpenhado = Math.max(0, totalPct - percentualLiquidado);
       return {
         year: String(r.ano),
         amountFormatted: fmtCompact(r.pendente),
         percentage: totalPct,
-        percentageLiquidado: liqPct,
-        percentageEmpenhado: empPct,
-        isCurrentYear: idx === arr.length - 1,
+        percentageLiquidado: percentualLiquidado,
+        percentageEmpenhado: percentualEmpenhado,
+        isCurrentYear: r.ano === selectedYear,
       };
     }),
     footerText:
