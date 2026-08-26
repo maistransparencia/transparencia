@@ -5,7 +5,10 @@ with restos as (
         portal_slug,
         empresa_id,
         ano,
-        trim(regexp_replace(coalesce(descricao, 'Sem identificação'), '^\d{2}\.\d{3}\.\d{3}\s+', '')) as fornecedor_nome,
+        trim(regexp_replace(coalesce({{ target.schema }}.unaccent(lower(descricao)), 'sem identificacao'), '^\d{2}\.\d{3}\.\d{3}\s+', '')) as fornecedor_nome,
+        coalesce(empenhado, 0) as valor_empenhado,
+        coalesce(liquidado, 0) as valor_liquidado,
+        coalesce(pago, 0) as valor_pago,
         coalesce(empenhado, 0) - coalesce(pago, 0) as valor_pendente
     from {{ ref('fct_despesas') }}
     where fonte = 'restos_a_pagar'
@@ -19,6 +22,9 @@ with_ano_atual as (
         empresa_id,
         ano,
         fornecedor_nome,
+        valor_empenhado,
+        valor_liquidado,
+        valor_pago,
         valor_pendente,
         max(ano) over (
             partition by portal_slug, empresa_id
@@ -31,6 +37,9 @@ indices_mandato as (
         empresa_id,
         ano,
         fornecedor_nome,
+        valor_empenhado,
+        valor_liquidado,
+        valor_pago,
         valor_pendente,
         ano_atual,
         floor((coalesce(ano, 0) - {{ var('administracao_reference_year', 2025) }}) / 4) as indice_mandato_ano,
@@ -47,6 +56,9 @@ classified as (
             else 'Adm. Anterior'
         end as administracao,
         fornecedor_nome,
+        valor_empenhado,
+        valor_liquidado,
+        valor_pago,
         valor_pendente
     from indices_mandato
 ),
@@ -57,6 +69,9 @@ aggregated as (
         ano,
         administracao,
         fornecedor_nome,
+        sum(coalesce(valor_empenhado, 0)) as valor_empenhado,
+        sum(coalesce(valor_liquidado, 0)) as valor_liquidado,
+        sum(coalesce(valor_pago, 0)) as valor_pago,
         sum(coalesce(valor_pendente, 0)) as valor_pendente
     from classified
     group by
@@ -73,7 +88,10 @@ select
     empresa_id,
     ano,
     administracao,
+    coalesce(valor_empenhado, 0) as valor_empenhado,
+    coalesce(valor_liquidado, 0) as valor_liquidado,
+    coalesce(valor_pago, 0) as valor_pago,
     coalesce(valor_pendente, 0) as valor_pendente,
     fornecedor_nome
 from aggregated
-where coalesce(valor_pendente, 0) > 0
+where coalesce(valor_pendente, 0) > 0 or coalesce(valor_liquidado, 0) > coalesce(valor_pago, 0)

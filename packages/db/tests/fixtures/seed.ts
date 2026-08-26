@@ -24,6 +24,7 @@ export interface PosicaoFiscalRow {
   ano: number;
   totalArrecadado?: number;
   despesasPagas?: number;
+  restosLiquidadosNoAno?: number;
   restosPagosNoAno?: number;
   restosPendentesAdmAnterior?: number;
   restosPendentesAdmAtual?: number;
@@ -40,6 +41,7 @@ export async function seedPosicaoFiscal(row: PosicaoFiscalRow): Promise<void> {
       ano: row.ano,
       total_arrecadado: row.totalArrecadado ?? 0,
       despesas_pagas: row.despesasPagas ?? 0,
+      restos_liquidados_no_ano: row.restosLiquidadosNoAno ?? 0,
       restos_pagos_no_ano: row.restosPagosNoAno ?? 0,
       restos_pendentes_adm_anterior: row.restosPendentesAdmAnterior ?? 0,
       restos_pendentes_adm_atual: row.restosPendentesAdmAtual ?? 0,

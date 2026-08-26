@@ -88,6 +88,21 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Sincronização Obrigatória**: Sempre que houver inclusão, alteração ou remoção de rotas públicas (`apps/web/app/[portalSlug]/`), adição de novos indicadores/métricas públicas (Posição Fiscal, Despesas, Receitas, Licitações, Pessoal, CAPREM, Saúde) ou mudanças nas convenções contábeis exibidas aos usuários, é **obrigatório** atualizar os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`.
 - **Foco no Domínio do Usuário/Cidadão**: O conteúdo destes arquivos deve focar exclusivamente no entendimento das rotas, dicionário de campos públicos, conceitos contábeis (STN/MCASP) e orientações de consulta para assistentes de IA, sem poluição com detalhes internos de código ou infraestrutura.
 
+---
+
+## 13. ESTRUTURAÇÃO DE CONDICIONAIS COMPLEXAS (PROIBIDO TERNÁRIOS ANINHADOS)
+
+- **Zero Ternários Aninhados:** É estritamente proibido encadear ou aninhar operadores ternários (`a ? b : c ? d : e`).
+- **Padrão IIFE ou Helper Function:** Para qualquer atribuição de variável ou propriedade UI com 2 ou mais verificações condicionais, utilize uma IIFE autoexecutável `(() => { if (...) return ...; return ...; })()` ou função auxiliar com retornos antecipados (`return`).
+
+---
+
+## 14. AUDITORIA DE REPETIÇÃO UPSTREAM (dbt SQL ↔ Kysely `@transparencia/db`)
+
+- **Sem Duplicação de Sanitização:** Não aplique regexes de limpeza, `trim` ou formatação de strings em TypeScript (`@transparencia/db`) se a coluna já for sanitizada e entregue pronta pelo modelo dbt mart upstream.
+- **Zero Ternários Tautológicos:** Evite condicionais defensivas de atribuição do tipo `x === 'A' ? 'A' : 'B'`. Prefira type assertions diretas (`(x ?? 'B') as Type`).
+
+
 
 
 

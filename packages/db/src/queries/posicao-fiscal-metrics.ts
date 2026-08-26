@@ -13,6 +13,7 @@ export interface PosicaoFiscalMetricsDTO {
   ano: number;
   totalArrecadado: number;
   despesasPagas: number;
+  restosLiquidadosNoAno: number;
   restosPagosNoAno: number;
   restosPendentesAdmAnterior: number;
   restosPendentesAdmAtual: number;
@@ -41,6 +42,9 @@ export async function getPosicaoFiscalMetrics(
       "ano",
       eb.fn.sum<string>("total_arrecadado").as("total_arrecadado"),
       eb.fn.sum<string>("despesas_pagas").as("despesas_pagas"),
+      eb.fn
+        .sum<string>("restos_liquidados_no_ano")
+        .as("restos_liquidados_no_ano"),
       eb.fn.sum<string>("restos_pagos_no_ano").as("restos_pagos_no_ano"),
       eb.fn
         .sum<string>("restos_pendentes_adm_anterior")
@@ -63,6 +67,7 @@ export async function getPosicaoFiscalMetrics(
     ano: Number(result.ano),
     totalArrecadado: Number(result.total_arrecadado ?? 0),
     despesasPagas: Number(result.despesas_pagas ?? 0),
+    restosLiquidadosNoAno: Number(result.restos_liquidados_no_ano ?? 0),
     restosPagosNoAno: Number(result.restos_pagos_no_ano ?? 0),
     restosPendentesAdmAnterior: Number(
       result.restos_pendentes_adm_anterior ?? 0,

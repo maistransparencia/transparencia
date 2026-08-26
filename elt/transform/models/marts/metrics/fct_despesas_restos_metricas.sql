@@ -10,6 +10,7 @@ with restos_com_origem as (
             f.ano
         ) as ano_origem,
         coalesce(f.empenhado, 0) as empenhado,
+        coalesce(f.liquidado, 0) as liquidado,
         coalesce(f.pago, 0) as pago,
         coalesce(f.valor_anulacoes, 0) as valor_anulacoes
     from {{ ref('fct_despesas') }} f
@@ -27,6 +28,7 @@ restos_agregados as (
         empresa_id,
         ano,
         sum(empenhado) as restos_inscritos,
+        sum(liquidado) as restos_liquidados,
         sum(pago) as restos_pagos,
         sum(valor_anulacoes) as restos_cancelados,
         min(case when (empenhado - pago) > 0 then ano_origem else ano end) as divida_mais_antiga_ano
@@ -43,6 +45,7 @@ select
     empresa_id,
     ano,
     restos_inscritos::numeric(15, 2) as restos_inscritos,
+    restos_liquidados::numeric(15, 2) as restos_liquidados,
     restos_pagos::numeric(15, 2) as restos_pagos,
     restos_cancelados::numeric(15, 2) as restos_cancelados,
     (restos_inscritos - restos_pagos)::numeric(15, 2) as saldo_restos,

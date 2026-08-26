@@ -1,12 +1,16 @@
-import { cn, Tooltip } from "@transparencia/ui";
-import { CircleQuestionMarkIcon } from "lucide-react";
+import { cn } from "@transparencia/ui";
 import Link from "next/link";
 
 export interface AntiguidadeBarItem {
   year: string;
   amountFormatted?: string;
   percentage: number;
+  percentageLiquidado?: number;
+  percentageEmpenhado?: number;
+  isCurrentYear?: boolean;
   colorClass?: string;
+  liquidadoColorClass?: string;
+  empenhadoColorClass?: string;
 }
 
 export interface DespesasCardData {
@@ -14,6 +18,9 @@ export interface DespesasCardData {
   linkText?: string;
   linkHref?: string;
   totalRestosPagarFormatted?: string;
+  secondaryTextFormatted?: string;
+  totalEmpenhadoFormatted?: string;
+  totalLiquidadoFormatted?: string;
   subtext?: string;
   antiguidadeBars?: AntiguidadeBarItem[];
   footerText?: string;
@@ -61,6 +68,20 @@ export function CardsSecundariosVisaoGeral({
   const despesasLinkText = despesas?.linkText ?? "Restos a pagar →";
   const despesasLinkHref = despesas?.linkHref ?? "/despesas";
   const despesasTotal = despesas?.totalRestosPagarFormatted;
+  const totalEmpenhado = despesas?.totalEmpenhadoFormatted ?? despesasTotal;
+  const totalLiquidado = despesas?.totalLiquidadoFormatted;
+  const despesasSecondaryText = despesas?.secondaryTextFormatted;
+
+  const heroDisplay = (() => {
+    if (totalEmpenhado && totalLiquidado) {
+      return `${totalEmpenhado} / ${totalLiquidado} liquidados`;
+    }
+    if (despesasTotal && despesasSecondaryText) {
+      return `${despesasTotal} / ${despesasSecondaryText}`;
+    }
+    return despesasTotal;
+  })();
+
   const despesasSubtext = despesas?.subtext;
   const despesasBars = despesas?.antiguidadeBars ?? [];
   const despesasFooter = despesas?.footerText;
@@ -88,32 +109,9 @@ export function CardsSecundariosVisaoGeral({
         <div>
           {/* Cabeçalho */}
           <div className="flex items-center justify-between border-[#f4f5f7] border-b pb-3">
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold font-serif text-base text-ink">
-                {despesasTitle}
-              </span>
-              <Tooltip
-                ariaLabel="Informações sobre Restos a Pagar Processados e Não Processados"
-                position="bottom"
-                content={
-                  <div>
-                    <span className="mb-1.5 block font-semibold text-sky-400 text-xs">
-                      Restos a Pagar (Norma STN/MCASP)
-                    </span>
-                    <p className="mb-1 text-[11px] text-slate-300 leading-snug">
-                      • <strong>Processados:</strong> Dívidas de serviços já
-                      prestados e liquidados com direito adquirido do credor.
-                    </p>
-                    <p className="text-[11px] text-slate-300 leading-snug">
-                      • <strong>Não Processados:</strong> Obras ou contratos em
-                      andamento pendentes de medição e liquidação.
-                    </p>
-                  </div>
-                }
-              >
-                <CircleQuestionMarkIcon className="h-4 w-4 text-slate-400" />
-              </Tooltip>
-            </div>
+            <span className="font-bold font-serif text-base text-ink">
+              {despesasTitle}
+            </span>
             {despesasLinkHref && (
               <Link
                 href={despesasLinkHref}
@@ -126,9 +124,9 @@ export function CardsSecundariosVisaoGeral({
 
           {/* Destaque Numérico */}
           <div className="my-4">
-            {despesasTotal ? (
+            {heroDisplay ? (
               <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
-                {despesasTotal}
+                {heroDisplay}
               </div>
             ) : (
               <div className="text-subtleText text-xs italic">
@@ -142,29 +140,93 @@ export function CardsSecundariosVisaoGeral({
             )}
           </div>
 
-          {/* Antiguidade Bars */}
+          {/* Antiguidade Bars (Stacked Bipartida: Base Liquidado real, Topo Empenhado pendente; h-14 altura ampliada) */}
           {despesasBars.length > 0 && (
-            <div className="my-3 flex h-10 items-end gap-1.5">
+            <div className="my-3 flex h-14 items-end gap-1.5">
               {despesasBars.map((bar, idx) => {
-                const colorClass =
+                const isHighlight =
+                  bar.isCurrentYear ?? idx === despesasBars.length - 1;
+
+                const isBipartite =
+                  bar.percentageLiquidado !== undefined &&
+                  bar.percentageEmpenhado !== undefined;
+
+                const liquidadoColor =
+                  bar.liquidadoColorClass ||
+                  (isHighlight ? "bg-[oklch(0.55_0.11_25)]" : "bg-[#c57983]");
+                const empenhadoColor =
+                  bar.empenhadoColorClass ||
+                  (isHighlight ? "bg-[#f0dadd]" : "bg-slate-200");
+                const fallbackColor =
                   bar.colorClass ||
-                  (idx === despesasBars.length - 1
-                    ? "bg-[oklch(0.55_0.11_25)]"
-                    : "bg-[#f0dadd]");
+                  (isHighlight ? "bg-[oklch(0.55_0.11_25)]" : "bg-slate-200");
+
+                const totalPct = Math.min(100, Math.max(10, bar.percentage));
+
+                if (!isBipartite) {
+                  return (
+                    <div
+                      key={bar.year}
+                      className="group relative flex h-full flex-1 flex-col items-center justify-end"
+                    >
+                      <div
+                        className={cn(
+                          "w-full rounded-sm transition-all duration-300",
+                          fallbackColor,
+                        )}
+                        style={{ height: `${totalPct}%` }}
+                      />
+                      <span className="mt-1 font-mono text-[9px] text-mutedText">
+                        {bar.year}
+                      </span>
+                    </div>
+                  );
+                }
+
+                const totalVal =
+                  (bar.percentageLiquidado ?? 0) +
+                  (bar.percentageEmpenhado ?? 0);
+                const liqRatio =
+                  totalVal > 0
+                    ? ((bar.percentageLiquidado ?? 0) / totalVal) * 100
+                    : 0;
+                const empRatio =
+                  totalVal > 0
+                    ? ((bar.percentageEmpenhado ?? 0) / totalVal) * 100
+                    : 0;
+
                 return (
                   <div
                     key={bar.year}
                     className="group relative flex h-full flex-1 flex-col items-center justify-end"
                   >
                     <div
-                      className={cn(
-                        "w-full rounded-sm transition-all duration-300",
-                        colorClass,
+                      className="flex w-full flex-col overflow-hidden rounded-sm transition-all duration-300"
+                      style={{ height: `${totalPct}%` }}
+                    >
+                      {/* Topo: Empenhado residual (tom muted) */}
+                      {empRatio > 0 && (
+                        <div
+                          className={cn(
+                            "w-full transition-all",
+                            empenhadoColor,
+                          )}
+                          style={{ height: `${empRatio}%` }}
+                          title={`Empenhado pendente (${bar.year})`}
+                        />
                       )}
-                      style={{
-                        height: `${Math.min(100, Math.max(10, bar.percentage))}%`,
-                      }}
-                    />
+                      {/* Base: Liquidado real (cor viva) */}
+                      {liqRatio > 0 && (
+                        <div
+                          className={cn(
+                            "w-full transition-all",
+                            liquidadoColor,
+                          )}
+                          style={{ height: `${liqRatio}%` }}
+                          title={`Liquidado (${bar.year})`}
+                        />
+                      )}
+                    </div>
                     <span className="mt-1 font-mono text-[9px] text-mutedText">
                       {bar.year}
                     </span>

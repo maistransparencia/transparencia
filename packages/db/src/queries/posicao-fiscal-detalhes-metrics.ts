@@ -9,6 +9,7 @@ export interface PosicaoFiscalDetalhesMetricsDTO {
     ano: number;
     administracao: "Adm. Anterior" | "Adm. Atual";
     empenhado: number;
+    liquidado: number;
     pago: number;
     pendente: number;
   }>;
@@ -42,6 +43,9 @@ export async function getPosicaoFiscalDetalhesMetrics(
       "portal_slug",
       "ano",
       "fornecedor_nome",
+      "valor_empenhado",
+      "valor_liquidado",
+      "valor_pago",
       "valor_pendente",
       "administracao",
     ])
@@ -50,46 +54,65 @@ export async function getPosicaoFiscalDetalhesMetrics(
     .where("empresa_id", "in", empresaIds)
     .execute();
 
-  const byYear = new Map<
-    number,
+  type RestosEntry = {
+    ano: number;
+    administracao: "Adm. Anterior" | "Adm. Atual";
+    empenhado: number;
+    liquidado: number;
+    pago: number;
+    pendente: number;
+  };
+
+  const { byYearMap, creditorMap } = results.reduce(
+    (acc, row) => {
+      const rowAno = Number(row.ano);
+      const empenhado = Number(row.valor_empenhado ?? 0);
+      const liquidado = Number(row.valor_liquidado ?? 0);
+      const pago = Number(row.valor_pago ?? 0);
+      const pendente = Number(row.valor_pendente ?? 0);
+      const administracao = (row.administracao ?? "Adm. Atual") as
+        | "Adm. Anterior"
+        | "Adm. Atual";
+
+      const current = acc.byYearMap.get(rowAno) ?? {
+        ano: rowAno,
+        administracao,
+        empenhado: 0,
+        liquidado: 0,
+        pago: 0,
+        pendente: 0,
+      };
+
+      acc.byYearMap.set(rowAno, {
+        ...current,
+        empenhado: current.empenhado + empenhado,
+        liquidado: current.liquidado + liquidado,
+        pago: current.pago + pago,
+        pendente: current.pendente + pendente,
+      });
+
+      if (rowAno === ano) {
+        const supplier = String(row.fornecedor_nome ?? "Sem identificação");
+        const prevPendente = acc.creditorMap.get(supplier) ?? 0;
+        acc.creditorMap.set(supplier, prevPendente + pendente);
+      }
+
+      return acc;
+    },
     {
-      ano: number;
-      administracao: "Adm. Anterior" | "Adm. Atual";
-      pendente: number;
-    }
-  >();
+      byYearMap: new Map<number, RestosEntry>(),
+      creditorMap: new Map<string, number>(),
+    },
+  );
 
-  const creditorMap = new Map<string, number>();
-
-  for (const row of results) {
-    const rowAno = Number(row.ano);
-    const pendente = Number(row.valor_pendente ?? 0);
-    const administracao =
-      row.administracao === "Adm. Anterior" ? "Adm. Anterior" : "Adm. Atual";
-
-    const currentYearEntry = byYear.get(rowAno) ?? {
-      ano: rowAno,
-      administracao,
-      pendente: 0,
-    };
-    currentYearEntry.pendente += pendente;
-    byYear.set(rowAno, currentYearEntry);
-
-    if (rowAno === ano) {
-      const supplier = String(row.fornecedor_nome ?? "Sem identificação")
-        .trim()
-        .replace(/^\d{2}\.\d{3}\.\d{3}\s+/, "");
-      creditorMap.set(supplier, (creditorMap.get(supplier) ?? 0) + pendente);
-    }
-  }
-
-  const restosPendentes = Array.from(byYear.values())
+  const restosPendentes = Array.from(byYearMap.values())
     .sort((a, b) => a.ano - b.ano)
     .map((item) => ({
       ano: item.ano,
       administracao: item.administracao,
-      empenhado: 0,
-      pago: 0,
+      empenhado: item.empenhado,
+      liquidado: item.liquidado,
+      pago: item.pago,
       pendente: item.pendente,
     }));
 

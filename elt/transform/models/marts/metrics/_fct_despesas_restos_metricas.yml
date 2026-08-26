@@ -30,9 +30,12 @@ models:
       - name: restos_inscritos
         data_type: numeric
         description: "Total de restos a pagar inscritos"
+      - name: restos_liquidados
+        data_type: numeric
+        description: "Total de restos a pagar liquidados"
       - name: restos_pagos
         data_type: numeric
-        description: "Total de restos a pagar liquidados e pagos"
+        description: "Total de restos a pagar pagos"
       - name: restos_cancelados
         data_type: numeric
         description: "Total de restos a pagar anulados ou cancelados"
@@ -55,11 +58,11 @@ unit_tests:
       - input: ref('fct_despesas')
         rows:
           # Dívida de 2021 pendente em 2025
-          - { empenho_id: "E1", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", empenhado: 1000.00, pago: 200.00, valor_anulacoes: 100.00 }
-          - { empenho_id: "E1", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2021, fonte: "exercicio", empenhado: 1000.00, pago: 0.00, valor_anulacoes: 0.00 }
+          - { empenho_id: "E1", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", empenhado: 1000.00, liquidado: 300.00, pago: 200.00, valor_anulacoes: 100.00 }
+          - { empenho_id: "E1", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2021, fonte: "exercicio", empenhado: 1000.00, liquidado: 0.00, pago: 0.00, valor_anulacoes: 0.00 }
           # Dívida de 2022 quitada em 2025
-          - { empenho_id: "E2", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", empenhado: 500.00, pago: 500.00, valor_anulacoes: 0.00 }
-          - { empenho_id: "E2", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2022, fonte: "exercicio", empenhado: 500.00, pago: 500.00, valor_anulacoes: 0.00 }
+          - { empenho_id: "E2", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", empenhado: 500.00, liquidado: 500.00, pago: 500.00, valor_anulacoes: 0.00 }
+          - { empenho_id: "E2", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2022, fonte: "exercicio", empenhado: 500.00, liquidado: 500.00, pago: 500.00, valor_anulacoes: 0.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, restos_inscritos: 1500.00, restos_pagos: 700.00, restos_cancelados: 100.00, saldo_restos: 800.00, divida_mais_antiga_ano: 2021 }
+        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, restos_inscritos: 1500.00, restos_liquidados: 800.00, restos_pagos: 700.00, restos_cancelados: 100.00, saldo_restos: 800.00, divida_mais_antiga_ano: 2021 }
