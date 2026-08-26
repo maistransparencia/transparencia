@@ -19,7 +19,6 @@ function makeRawVisaoGeral(overrides: Record<string, unknown> = {}): RawData {
       restosPagosNoAno: 15000,
       restosPendentesAnteriores: 50000,
       totalCredoresAdmAtual: 12,
-      topCredoresAdmAtual: [],
       restosPendentes: [
         {
           ano: 2023,
@@ -55,7 +54,6 @@ function makeRawVisaoGeral(overrides: Record<string, unknown> = {}): RawData {
     folha: {
       percentualFolha: 45.5,
     },
-    sanitizedCredores: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -92,5 +90,16 @@ describe("buildVisaoGeralViewModel - despesasCardData", () => {
 
     const bar2024 = bars.find((b) => b.year === "2024");
     expect(bar2024?.isCurrentYear).toBe(true);
+  });
+
+  it("não expõe sanitizedCredores e credoresCols no ViewModel retornado", () => {
+    const raw = makeRawVisaoGeral();
+    const vm = buildVisaoGeralViewModel(raw) as unknown as Record<
+      string,
+      unknown
+    >;
+
+    expect(vm.sanitizedCredores).toBeUndefined();
+    expect(vm.credoresCols).toBeUndefined();
   });
 });

@@ -205,7 +205,6 @@ export async function loadVisaoGeralData(
     restosPendentes: posicaoDetalhada.restosPendentes,
     restosPendentesTotal: posicaoDetalhada.restosPendentesTotal,
     restosPendentesAnteriores: posicaoDetalhada.restosPendentesAnteriores,
-    topCredoresAdmAtual: posicaoDetalhada.topCredoresAdmAtual,
     totalCredoresAdmAtual: posicaoDetalhada.totalCredoresAdmAtual,
   };
 
