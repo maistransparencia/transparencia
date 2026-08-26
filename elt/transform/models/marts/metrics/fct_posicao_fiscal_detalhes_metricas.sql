@@ -5,7 +5,7 @@ with restos as (
         portal_slug,
         empresa_id,
         ano,
-        trim(regexp_replace(coalesce(descricao, 'Sem identificação'), '^\d{2}\.\d{3}\.\d{3}\s+', '')) as fornecedor_nome,
+        trim(regexp_replace(coalesce({{ target.schema }}.unaccent(lower(descricao)), 'sem identificacao'), '^\d{2}\.\d{3}\.\d{3}\s+', '')) as fornecedor_nome,
         coalesce(empenhado, 0) as valor_empenhado,
         coalesce(liquidado, 0) as valor_liquidado,
         coalesce(pago, 0) as valor_pago,
@@ -94,4 +94,4 @@ select
     coalesce(valor_pendente, 0) as valor_pendente,
     fornecedor_nome
 from aggregated
-where coalesce(valor_pendente, 0) > 0
+where coalesce(valor_pendente, 0) > 0 or coalesce(valor_liquidado, 0) > coalesce(valor_pago, 0)
