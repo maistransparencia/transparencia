@@ -70,17 +70,6 @@ export function CardsSecundariosVisaoGeral({
   const despesasTotal = despesas?.totalRestosPagarFormatted;
   const totalEmpenhado = despesas?.totalEmpenhadoFormatted ?? despesasTotal;
   const totalLiquidado = despesas?.totalLiquidadoFormatted;
-  const despesasSecondaryText = despesas?.secondaryTextFormatted;
-
-  const heroDisplay = (() => {
-    if (totalEmpenhado && totalLiquidado) {
-      return `${totalEmpenhado} / ${totalLiquidado} liquidados`;
-    }
-    if (despesasTotal && despesasSecondaryText) {
-      return `${despesasTotal} / ${despesasSecondaryText}`;
-    }
-    return despesasTotal;
-  })();
 
   const despesasSubtext = despesas?.subtext;
   const despesasBars = despesas?.antiguidadeBars ?? [];
@@ -124,9 +113,16 @@ export function CardsSecundariosVisaoGeral({
 
           {/* Destaque Numérico */}
           <div className="my-4">
-            {heroDisplay ? (
-              <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
-                {heroDisplay}
+            {totalEmpenhado ? (
+              <div>
+                <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
+                  {totalEmpenhado}
+                </div>
+                {totalLiquidado && (
+                  <div className="mt-1 font-medium text-[11px] text-subtleText">
+                    {totalLiquidado} liquidados
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-subtleText text-xs italic">
