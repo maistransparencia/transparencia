@@ -1,4 +1,3 @@
-import { DenseTable } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
@@ -65,23 +64,6 @@ export default async function VisaoGeralPage({
         licitacoes={viewModel.licitacoesCardData}
         pessoal={viewModel.pessoalCardData}
       />
-
-      {viewModel.sanitizedCredores.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-baseline justify-between border-[#1a1d21] border-t-2 pt-3">
-            <h3 className="font-bold font-serif text-ink text-xl">
-              Maiores Credores da Gestão Atual
-            </h3>
-            <span className="font-medium text-subtleText text-xs">
-              Restos a pagar acumulados até {viewModel.selectedYear}
-            </span>
-          </div>
-          <DenseTable
-            data={viewModel.sanitizedCredores}
-            columns={viewModel.credoresCols}
-          />
-        </div>
-      )}
     </div>
   );
 }

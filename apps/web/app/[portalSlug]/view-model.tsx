@@ -3,7 +3,6 @@ import {
   fmtCompact,
   fmtPercent,
   getPartialYearPeriod,
-  toTitleCase,
 } from "@transparencia/ui";
 import type { loadVisaoGeralData } from "./loader";
 
@@ -217,23 +216,6 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         : "Sem dados de ocupação de chefias no período",
   };
 
-  const credoresCols = [
-    { header: "Fornecedor", accessorKey: "fornecedor" as const },
-    {
-      header: "Pendente",
-      accessorKey: "pendente" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-  ];
-
-  const sanitizedCredores = (posicao.topCredoresAdmAtual || []).map(
-    (credor) => ({
-      ...credor,
-      fornecedor: toTitleCase(credor.fornecedor),
-    }),
-  );
-
   const partialPeriod = getPartialYearPeriod();
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
     isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""
@@ -281,8 +263,6 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     despesasCardData,
     licitacoesCardData,
     pessoalCardData,
-    sanitizedCredores,
-    credoresCols,
     orcamentoDetailUrl: routeUrl("/orcamento"),
   };
 }
