@@ -9,6 +9,7 @@ export interface PosicaoFiscalDetalhesMetricsDTO {
     ano: number;
     administracao: "Adm. Anterior" | "Adm. Atual";
     empenhado: number;
+    liquidado: number;
     pago: number;
     pendente: number;
   }>;
@@ -42,6 +43,9 @@ export async function getPosicaoFiscalDetalhesMetrics(
       "portal_slug",
       "ano",
       "fornecedor_nome",
+      "valor_empenhado",
+      "valor_liquidado",
+      "valor_pago",
       "valor_pendente",
       "administracao",
     ])
@@ -55,6 +59,9 @@ export async function getPosicaoFiscalDetalhesMetrics(
     {
       ano: number;
       administracao: "Adm. Anterior" | "Adm. Atual";
+      empenhado: number;
+      liquidado: number;
+      pago: number;
       pendente: number;
     }
   >();
@@ -63,6 +70,9 @@ export async function getPosicaoFiscalDetalhesMetrics(
 
   for (const row of results) {
     const rowAno = Number(row.ano);
+    const empenhado = Number(row.valor_empenhado ?? 0);
+    const liquidado = Number(row.valor_liquidado ?? 0);
+    const pago = Number(row.valor_pago ?? 0);
     const pendente = Number(row.valor_pendente ?? 0);
     const administracao =
       row.administracao === "Adm. Anterior" ? "Adm. Anterior" : "Adm. Atual";
@@ -70,8 +80,14 @@ export async function getPosicaoFiscalDetalhesMetrics(
     const currentYearEntry = byYear.get(rowAno) ?? {
       ano: rowAno,
       administracao,
+      empenhado: 0,
+      liquidado: 0,
+      pago: 0,
       pendente: 0,
     };
+    currentYearEntry.empenhado += empenhado;
+    currentYearEntry.liquidado += liquidado;
+    currentYearEntry.pago += pago;
     currentYearEntry.pendente += pendente;
     byYear.set(rowAno, currentYearEntry);
 
@@ -88,8 +104,9 @@ export async function getPosicaoFiscalDetalhesMetrics(
     .map((item) => ({
       ano: item.ano,
       administracao: item.administracao,
-      empenhado: 0,
-      pago: 0,
+      empenhado: item.empenhado,
+      liquidado: item.liquidado,
+      pago: item.pago,
       pendente: item.pendente,
     }));
 
