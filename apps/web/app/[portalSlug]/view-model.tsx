@@ -118,17 +118,41 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     1,
   );
 
+  const restosAnoAtual = posicao.restosPendentes.find(
+    (r) => r.ano === selectedYear,
+  );
+  const liquidadoPendenteAnoAtual = restosAnoAtual
+    ? Math.max(0, (restosAnoAtual.liquidado || 0) - (restosAnoAtual.pago || 0))
+    : 0;
+
   const despesasCardData = {
     title: "Despesas",
     linkText: "Restos a pagar →",
     linkHref: routeUrl("/despesas"),
     totalRestosPagarFormatted: fmtCompact(posicao.restosPendentesTotal),
+    secondaryTextFormatted:
+      liquidadoPendenteAnoAtual > 0
+        ? `${fmtCompact(liquidadoPendenteAnoAtual)} liquidados`
+        : undefined,
     subtext: `pendentes a ${posicao.totalCredoresAdmAtual || 0} fornecedores`,
-    antiguidadeBars: posicao.restosPendentes.map((r) => ({
-      year: String(r.ano),
-      amountFormatted: fmtCompact(r.pendente),
-      percentage: Math.round((r.pendente / maxPendente) * 100),
-    })),
+    antiguidadeBars: posicao.restosPendentes.map((r, idx, arr) => {
+      const totalPct = Math.round((r.pendente / maxPendente) * 100);
+      const pendenteTotal = r.pendente || 1;
+      const liquidadoPendente = Math.max(0, (r.liquidado || 0) - (r.pago || 0));
+      const liqPct = Math.min(
+        totalPct,
+        Math.round((liquidadoPendente / pendenteTotal) * totalPct),
+      );
+      const empPct = Math.max(0, totalPct - liqPct);
+      return {
+        year: String(r.ano),
+        amountFormatted: fmtCompact(r.pendente),
+        percentage: totalPct,
+        percentageLiquidado: liqPct,
+        percentageEmpenhado: empPct,
+        isCurrentYear: idx === arr.length - 1,
+      };
+    }),
     footerText:
       posicao.restosPendentesAnteriores > 0
         ? `Passivo anterior: ${fmtCompact(posicao.restosPendentesAnteriores)}`
@@ -196,10 +220,12 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     },
   ];
 
-  const sanitizedCredores = posicao.topCredoresAdmAtual.map((credor) => ({
-    ...credor,
-    fornecedor: toTitleCase(credor.fornecedor),
-  }));
+  const sanitizedCredores = (posicao.topCredoresAdmAtual || []).map(
+    (credor) => ({
+      ...credor,
+      fornecedor: toTitleCase(credor.fornecedor),
+    }),
+  );
 
   const partialPeriod = getPartialYearPeriod();
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
