@@ -40,15 +40,25 @@ export interface ConcentracaoFornecedoresMetricsDTO {
   totalAll: number;
 }
 
+export interface RestosAPagarVendorItemDTO {
+  fornecedor: string;
+  valorTotal: number;
+  liquidado: number;
+  empenhadoALiquidar: number;
+  valor: number; // para compatibilidade retroativa
+}
+
 export interface RestosAPagarResumoMetricsDTO {
   restosInscritos: number;
+  restosLiquidados: number;
+  totalLiquidadoPendente: number;
   restosPagos: number;
   restosCancelados: number;
   saldoRestos: number;
   totalPendente: number;
   fornecedoresAguardando: number;
   dividaMaisAntigaAno: number;
-  topFornecedores: Array<{ fornecedor: string; valor: number }>;
+  topFornecedores: RestosAPagarVendorItemDTO[];
 }
 
 export interface DespesaUnidadeMetricsDTO {
@@ -57,6 +67,66 @@ export interface DespesaUnidadeMetricsDTO {
   liquidado: number;
   pago: number;
   dotacaoAtualizada: number;
+  totalPendente: number;
+  liquidadoPendente: number;
+  empenhadoALiquidar: number;
+}
+
+export const CATEGORIAS_GASTOS_SENSIVEIS = [
+  "combustivel_frota",
+  "locacao_maquinas_veiculos",
+  "eventos_festas",
+  "diarias_viagens",
+  "obras_infraestrutura",
+] as const;
+
+export type CategoriaGastoSensivel =
+  (typeof CATEGORIAS_GASTOS_SENSIVEIS)[number];
+
+export interface ItemGastoSensivelDTO {
+  categoria: CategoriaGastoSensivel;
+  valorPagoAnoAtual: number;
+  valorPagoAnoAnterior: number;
+  valorLiquidadoAnoAtual: number;
+  valorEmpenhadoAnoAtual: number;
+  valorLiquidadoPendente: number;
+  dividaRealAcumulada: number;
+  dividaRestosAcumulada: number;
+  variacaoPercentual: number | null;
+  tendencia: "aumento" | "economia" | "estavel" | "sem_historico";
+}
+
+export interface RadarGastosSensiveisDTO {
+  itens: ItemGastoSensivelDTO[];
+  anoAtual: number;
+  anoAnterior: number;
+}
+
+export interface FornecedorExecucaoItemDTO {
+  fornecedorNome: string;
+  fornecedorCpfCnpj: string | null;
+  totalPago: number;
+  totalEmpenhado: number;
+  percentualPago: number;
+}
+
+export interface DespesaFuncaoItemDTO {
+  funcaoCodigo: string;
+  funcaoNome: string;
+  totalEmpenhado: number;
+  totalLiquidado: number;
+  totalPago: number;
+  percentualPago: number;
+}
+
+export interface GargaloNaturezaItemDTO {
+  categoriaDescricao: string;
+  empenhado: number;
+  liquidado: number;
+  pago: number;
+  totalPendente: number;
+  liquidadoPendente: number;
+  empenhadoALiquidar: number;
 }
 
 export async function getResumoDiariasMetrics(
@@ -192,20 +262,18 @@ export async function getImpactoGastosLocaisMetrics({
       .groupBy("fornecedor_cidade_clean")
       .execute();
 
-    let localPago = 0;
-    let externoPago = 0;
-
-    for (const r of currentYearRows) {
-      const val = Number(r.total_pago ?? 0);
-      if (
-        r.fornecedor_cidade_clean === normalizedCidade ||
-        (normalizedCidade === "PORCIUNCULA" && !r.fornecedor_cidade_clean)
-      ) {
-        localPago += val;
-      } else {
-        externoPago += val;
-      }
-    }
+    const { localPago, externoPago } = currentYearRows.reduce(
+      (acc, r) => {
+        const val = Number(r.total_pago ?? 0);
+        if (r.fornecedor_cidade_clean === normalizedCidade) {
+          acc.localPago += val;
+        } else {
+          acc.externoPago += val;
+        }
+        return acc;
+      },
+      { localPago: 0, externoPago: 0 },
+    );
 
     const totalPago = localPago + externoPago;
     const pctLocal = totalPago > 0 ? (localPago / totalPago) * 100 : 0;
@@ -222,20 +290,18 @@ export async function getImpactoGastosLocaisMetrics({
       .groupBy("fornecedor_cidade_clean")
       .execute();
 
-    let historicoLocalPago = 0;
-    let historicoExternoPago = 0;
-
-    for (const r of histRows) {
-      const val = Number(r.total_pago ?? 0);
-      if (
-        r.fornecedor_cidade_clean === normalizedCidade ||
-        (normalizedCidade === "PORCIUNCULA" && !r.fornecedor_cidade_clean)
-      ) {
-        historicoLocalPago += val;
-      } else {
-        historicoExternoPago += val;
-      }
-    }
+    const { historicoLocalPago, historicoExternoPago } = histRows.reduce(
+      (acc, r) => {
+        const val = Number(r.total_pago ?? 0);
+        if (r.fornecedor_cidade_clean === normalizedCidade) {
+          acc.historicoLocalPago += val;
+        } else {
+          acc.historicoExternoPago += val;
+        }
+        return acc;
+      },
+      { historicoLocalPago: 0, historicoExternoPago: 0 },
+    );
 
     const historicoTotalPago = historicoLocalPago + historicoExternoPago;
     const historicoPctLocal =
@@ -328,6 +394,8 @@ export async function getRestosAPagarResumoMetrics(
 ): Promise<RestosAPagarResumoMetricsDTO> {
   const emptyResult: RestosAPagarResumoMetricsDTO = {
     restosInscritos: 0,
+    restosLiquidados: 0,
+    totalLiquidadoPendente: 0,
     restosPagos: 0,
     restosCancelados: 0,
     saldoRestos: 0,
@@ -344,6 +412,7 @@ export async function getRestosAPagarResumoMetrics(
       .selectFrom("fct_despesas_restos_metricas")
       .select((eb) => [
         eb.fn.sum<string>("restos_inscritos").as("restos_inscritos"),
+        eb.fn.sum<string>("restos_liquidados").as("restos_liquidados"),
         eb.fn.sum<string>("restos_pagos").as("restos_pagos"),
         eb.fn.sum<string>("restos_cancelados").as("restos_cancelados"),
         eb.fn.sum<string>("saldo_restos").as("saldo_restos"),
@@ -358,48 +427,99 @@ export async function getRestosAPagarResumoMetrics(
 
     const rows = await db
       .selectFrom("fct_despesas")
-      .select(["ano", "fornecedor_nome", "descricao", "empenhado", "pago"])
+      .select([
+        "ano",
+        "fornecedor_nome",
+        "descricao",
+        "empenhado",
+        "liquidado",
+        "pago",
+      ])
       .where("portal_slug", "=", portalSlug)
       .where("fonte", "=", "restos_a_pagar")
       .where("ano", "=", year)
       .where("empresa_id", "in", empresaIds)
       .execute();
 
-    let totalPendente = 0;
-    let dividaMaisAntigaAno = Number(result?.divida_mais_antiga_ano ?? year);
-    const fornecedoresSet = new Set<string>();
-    const mapFornecedores: Record<string, number> = {};
+    const initialDividaMaisAntigaAno = Number(
+      result?.divida_mais_antiga_ano ?? year,
+    );
 
-    for (const r of rows) {
-      const emp = Number(r.empenhado ?? 0);
-      const pag = Number(r.pago ?? 0);
-      const pend = emp - pag;
-      if (pend > 0) {
-        totalPendente += pend;
-        const a = Number(r.ano);
-        if (a > 0 && a < dividaMaisAntigaAno) {
-          dividaMaisAntigaAno = a;
+    const {
+      totalPendente,
+      totalLiquidadoPendente,
+      dividaMaisAntigaAno,
+      fornecedoresSet,
+      mapFornecedores,
+    } = rows.reduce(
+      (acc, r) => {
+        const emp = Number(r.empenhado ?? 0);
+        const liq = Number(r.liquidado ?? 0);
+        const pag = Number(r.pago ?? 0);
+        const pend = emp - pag;
+        if (pend > 0) {
+          const liqPend = Math.max(0, liq - pag);
+          const empALiq = Math.max(0, pend - liqPend);
+
+          acc.totalPendente += pend;
+          acc.totalLiquidadoPendente += liqPend;
+
+          const a = Number(r.ano);
+          if (a > 0 && a < acc.dividaMaisAntigaAno) {
+            acc.dividaMaisAntigaAno = a;
+          }
+          const nome = String(
+            r.fornecedor_nome || r.descricao || "Não identificado",
+          ).trim();
+          acc.fornecedoresSet.add(nome);
+          if (!acc.mapFornecedores[nome]) {
+            acc.mapFornecedores[nome] = {
+              valorTotal: 0,
+              liquidado: 0,
+              empenhadoALiquidar: 0,
+            };
+          }
+          acc.mapFornecedores[nome].valorTotal += pend;
+          acc.mapFornecedores[nome].liquidado += liqPend;
+          acc.mapFornecedores[nome].empenhadoALiquidar += empALiq;
         }
-        const nome = String(
-          r.fornecedor_nome || r.descricao || "Não identificado",
-        ).trim();
-        fornecedoresSet.add(nome);
-        mapFornecedores[nome] = (mapFornecedores[nome] || 0) + pend;
-      }
-    }
+        return acc;
+      },
+      {
+        totalPendente: 0,
+        totalLiquidadoPendente: 0,
+        dividaMaisAntigaAno: initialDividaMaisAntigaAno,
+        fornecedoresSet: new Set<string>(),
+        mapFornecedores: {} as Record<
+          string,
+          { valorTotal: number; liquidado: number; empenhadoALiquidar: number }
+        >,
+      },
+    );
 
     const restosInscritos = Number(result?.restos_inscritos ?? 0);
+    const restosLiquidados = Number(result?.restos_liquidados ?? 0);
     const restosPagos = Number(result?.restos_pagos ?? 0);
     const restosCancelados = Number(result?.restos_cancelados ?? 0);
     const saldoRestos = Number(result?.saldo_restos ?? 0);
 
-    const topFornecedores = Object.entries(mapFornecedores)
-      .map(([fornecedor, valor]) => ({ fornecedor, valor }))
-      .sort((a, b) => b.valor - a.valor)
+    const topFornecedores: RestosAPagarVendorItemDTO[] = Object.entries(
+      mapFornecedores,
+    )
+      .map(([fornecedor, data]) => ({
+        fornecedor,
+        valorTotal: data.valorTotal,
+        liquidado: data.liquidado,
+        empenhadoALiquidar: data.empenhadoALiquidar,
+        valor: data.valorTotal,
+      }))
+      .sort((a, b) => b.valorTotal - a.valorTotal)
       .slice(0, 5);
 
     return {
       restosInscritos,
+      restosLiquidados,
+      totalLiquidadoPendente,
       restosPagos,
       restosCancelados,
       saldoRestos,
@@ -437,13 +557,353 @@ export async function getDespesasPorUnidadeMetrics(
       .orderBy("empenhado", "desc")
       .execute();
 
-    return results.map((r) => ({
-      descricao: String(r.descricao ?? ""),
-      empenhado: Number(r.empenhado ?? 0),
-      liquidado: Number(r.liquidado ?? 0),
-      pago: Number(r.pago ?? 0),
-      dotacaoAtualizada: Number(r.dotacao_atualizada ?? 0),
-    }));
+    return results.map((r) => {
+      const empenhado = Number(r.empenhado ?? 0);
+      const liquidado = Number(r.liquidado ?? 0);
+      const pago = Number(r.pago ?? 0);
+      const totalPendente = Math.max(0, empenhado - pago);
+      const liquidadoPendente = Math.max(0, liquidado - pago);
+      const empenhadoALiquidar = Math.max(
+        0,
+        empenhado - Math.max(liquidado, pago),
+      );
+
+      return {
+        descricao: String(r.descricao ?? ""),
+        empenhado,
+        liquidado,
+        pago,
+        dotacaoAtualizada: Number(r.dotacao_atualizada ?? 0),
+        totalPendente,
+        liquidadoPendente,
+        empenhadoALiquidar,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getRadarGastosSensiveisMetrics(
+  portalSlug: string,
+  year: number,
+  empresaIds: string[],
+): Promise<RadarGastosSensiveisDTO> {
+  const previousYear = year - 1;
+
+  const buildEmptyItem = (
+    categoria: CategoriaGastoSensivel,
+  ): ItemGastoSensivelDTO => ({
+    categoria,
+    valorPagoAnoAtual: 0,
+    valorPagoAnoAnterior: 0,
+    valorLiquidadoAnoAtual: 0,
+    valorEmpenhadoAnoAtual: 0,
+    valorLiquidadoPendente: 0,
+    dividaRealAcumulada: 0,
+    dividaRestosAcumulada: 0,
+    variacaoPercentual: null,
+    tendencia: "sem_historico",
+  });
+
+  const emptyResult: RadarGastosSensiveisDTO = {
+    itens: CATEGORIAS_GASTOS_SENSIVEIS.map(buildEmptyItem),
+    anoAtual: year,
+    anoAnterior: previousYear,
+  };
+
+  if (empresaIds.length === 0) return emptyResult;
+
+  try {
+    const rows = await db
+      .selectFrom("fct_despesas")
+      .select((eb) => [
+        "ano",
+        "fonte",
+        "categoria_gasto_sensivel",
+        eb.fn.sum<string>("pago").as("pago"),
+        eb.fn.sum<string>("liquidado").as("liquidado"),
+        eb.fn.sum<string>("empenhado").as("empenhado"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "<=", year)
+      .where("empresa_id", "in", empresaIds)
+      .where("categoria_gasto_sensivel", "is not", null)
+      .groupBy(["ano", "fonte", "categoria_gasto_sensivel"])
+      .execute();
+
+    const dataMap = rows.reduce(
+      (acc, r) => {
+        const cat = r.categoria_gasto_sensivel as CategoriaGastoSensivel;
+        if (!cat || !acc[cat]) return acc;
+        const rowAno = Number(r.ano);
+        const pago = Number(r.pago ?? 0);
+        const liquidado = Number(r.liquidado ?? 0);
+        const empenhado = Number(r.empenhado ?? 0);
+        const pendente = Math.max(0, liquidado - pago);
+
+        if (r.fonte === "exercicio") {
+          if (rowAno === year) {
+            acc[cat].pagoAtual += pago;
+            acc[cat].liquidadoAtual += liquidado;
+            acc[cat].empenhadoAtual += empenhado;
+            acc[cat].dividaExercicio += pendente;
+          } else if (rowAno === previousYear) {
+            acc[cat].pagoAnterior += pago;
+          }
+        } else if (r.fonte === "restos_a_pagar") {
+          acc[cat].dividaRestos += pendente;
+        }
+        return acc;
+      },
+      CATEGORIAS_GASTOS_SENSIVEIS.reduce(
+        (acc, cat) => {
+          acc[cat] = {
+            pagoAtual: 0,
+            pagoAnterior: 0,
+            liquidadoAtual: 0,
+            empenhadoAtual: 0,
+            dividaExercicio: 0,
+            dividaRestos: 0,
+          };
+          return acc;
+        },
+        {} as Record<
+          CategoriaGastoSensivel,
+          {
+            pagoAtual: number;
+            pagoAnterior: number;
+            liquidadoAtual: number;
+            empenhadoAtual: number;
+            dividaExercicio: number;
+            dividaRestos: number;
+          }
+        >,
+      ),
+    );
+
+    const itens = CATEGORIAS_GASTOS_SENSIVEIS.map((categoria) => {
+      const data = dataMap[categoria];
+      const atual = data.pagoAtual;
+      const anterior = data.pagoAnterior;
+      const liquidadoPendente = data.dividaExercicio;
+      const dividaRestosAcumulada = data.dividaRestos;
+      const dividaRealAcumulada = liquidadoPendente + dividaRestosAcumulada;
+      const variacaoPercentual =
+        anterior > 0
+          ? Number((((atual - anterior) / anterior) * 100).toFixed(1))
+          : null;
+
+      const tendencia: ItemGastoSensivelDTO["tendencia"] = (() => {
+        if (variacaoPercentual === null) return "sem_historico";
+        if (variacaoPercentual > 2) return "aumento";
+        if (variacaoPercentual < -2) return "economia";
+        return "estavel";
+      })();
+
+      return {
+        categoria,
+        valorPagoAnoAtual: atual,
+        valorPagoAnoAnterior: anterior,
+        valorLiquidadoAnoAtual: data.liquidadoAtual,
+        valorEmpenhadoAnoAtual: data.empenhadoAtual,
+        valorLiquidadoPendente: liquidadoPendente,
+        dividaRealAcumulada,
+        dividaRestosAcumulada,
+        variacaoPercentual,
+        tendencia,
+      };
+    });
+
+    return {
+      itens,
+      anoAtual: year,
+      anoAnterior: previousYear,
+    };
+  } catch {
+    return emptyResult;
+  }
+}
+
+export async function getDespesasPorFuncaoMetrics(
+  portalSlug: string,
+  year: number,
+  empresaIds: string[],
+): Promise<DespesaFuncaoItemDTO[]> {
+  if (empresaIds.length === 0) return [];
+
+  try {
+    const results = await db
+      .selectFrom("fct_despesas")
+      .select((eb) => [
+        "funcao",
+        "funcao_nome",
+        eb.fn.sum<string>("empenhado").as("empenhado"),
+        eb.fn.sum<string>("liquidado").as("liquidado"),
+        eb.fn.sum<string>("pago").as("pago"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", year)
+      .where("fonte", "=", "exercicio")
+      .where("empresa_id", "in", empresaIds)
+      .groupBy(["funcao", "funcao_nome"])
+      .execute();
+
+    const totalGeralPago = results.reduce(
+      (acc, r) => acc + Number(r.pago ?? 0),
+      0,
+    );
+
+    return results
+      .map((r) => {
+        const totalEmpenhado = Number(r.empenhado ?? 0);
+        const totalLiquidado = Number(r.liquidado ?? 0);
+        const totalPago = Number(r.pago ?? 0);
+        const percentualPago =
+          totalGeralPago > 0 ? (totalPago / totalGeralPago) * 100 : 0;
+
+        return {
+          funcaoCodigo: String(r.funcao ?? "00"),
+          funcaoNome: String(r.funcao_nome ?? "Outras Funções"),
+          totalEmpenhado,
+          totalLiquidado,
+          totalPago,
+          percentualPago: Number(percentualPago.toFixed(1)),
+        };
+      })
+      .filter((i) => i.totalPago > 0 || i.totalEmpenhado > 0)
+      .sort((a, b) => b.totalPago - a.totalPago);
+  } catch {
+    return [];
+  }
+}
+
+export async function getGargalosNaturezaMetrics(
+  portalSlug: string,
+  year: number,
+  empresaIds: string[],
+): Promise<GargaloNaturezaItemDTO[]> {
+  if (empresaIds.length === 0) return [];
+
+  try {
+    const results = await db
+      .selectFrom("fct_despesas")
+      .select((eb) => [
+        "natureza_despesa",
+        "grupo_natureza",
+        "elemento",
+        "descricao",
+        eb.fn.sum<string>("empenhado").as("empenhado"),
+        eb.fn.sum<string>("liquidado").as("liquidado"),
+        eb.fn.sum<string>("pago").as("pago"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", year)
+      .where("empresa_id", "in", empresaIds)
+      .groupBy(["natureza_despesa", "grupo_natureza", "elemento", "descricao"])
+      .execute();
+
+    const mapNaturezas = results.reduce(
+      (acc, r) => {
+        const emp = Number(r.empenhado ?? 0);
+        const liq = Number(r.liquidado ?? 0);
+        const pag = Number(r.pago ?? 0);
+
+        const cat = String(
+          r.natureza_despesa ||
+            r.grupo_natureza ||
+            r.descricao ||
+            "Outras Despesas",
+        ).trim();
+
+        if (!acc[cat]) {
+          acc[cat] = { empenhado: 0, liquidado: 0, pago: 0 };
+        }
+        acc[cat].empenhado += emp;
+        acc[cat].liquidado += liq;
+        acc[cat].pago += pag;
+        return acc;
+      },
+      {} as Record<
+        string,
+        { empenhado: number; liquidado: number; pago: number }
+      >,
+    );
+
+    return Object.entries(mapNaturezas)
+      .map(([categoriaDescricao, vals]) => {
+        const totalPendente = Math.max(0, vals.empenhado - vals.pago);
+        const liquidadoPendente = Math.max(0, vals.liquidado - vals.pago);
+        const empenhadoALiquidar = Math.max(
+          0,
+          vals.empenhado - Math.max(vals.liquidado, vals.pago),
+        );
+        return {
+          categoriaDescricao,
+          empenhado: vals.empenhado,
+          liquidado: vals.liquidado,
+          pago: vals.pago,
+          totalPendente,
+          liquidadoPendente,
+          empenhadoALiquidar,
+        };
+      })
+      .filter((i) => i.totalPendente > 0 || i.empenhado > 0)
+      .sort((a, b) => b.totalPendente - a.totalPendente)
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+export async function getTopFornecedoresExecucaoMetrics(options: {
+  portalSlug: string;
+  year: number;
+  empresaIds: string[];
+  limit?: number;
+}): Promise<FornecedorExecucaoItemDTO[]> {
+  const { portalSlug, year, empresaIds, limit = 5 } = options;
+  if (empresaIds.length === 0) return [];
+
+  try {
+    const results = await db
+      .selectFrom("fct_despesas")
+      .select((eb) => [
+        "fornecedor_nome",
+        "fornecedor_cpf_cnpj",
+        eb.fn.sum<string>("pago").as("total_pago"),
+        eb.fn.sum<string>("empenhado").as("total_empenhado"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", year)
+      .where("fonte", "=", "exercicio")
+      .where("empresa_id", "in", empresaIds)
+      .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj"])
+      .orderBy("total_pago", "desc")
+      .limit(limit)
+      .execute();
+
+    const totalGeralPago = results.reduce(
+      (acc, r) => acc + Number(r.total_pago ?? 0),
+      0,
+    );
+
+    return results.map((r) => {
+      const totalPago = Number(r.total_pago ?? 0);
+      const totalEmpenhado = Number(r.total_empenhado ?? 0);
+      const percentualPago =
+        totalGeralPago > 0 ? (totalPago / totalGeralPago) * 100 : 0;
+
+      return {
+        fornecedorNome: String(r.fornecedor_nome ?? "Sem identificação").trim(),
+        fornecedorCpfCnpj: r.fornecedor_cpf_cnpj
+          ? String(r.fornecedor_cpf_cnpj)
+          : null,
+        totalPago,
+        totalEmpenhado,
+        percentualPago: Number(percentualPago.toFixed(1)),
+      };
+    });
   } catch {
     return [];
   }
