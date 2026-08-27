@@ -8,14 +8,10 @@ interface MetricasDespesas {
 
 import {
   getAnaliseDespesasMetrics,
-  getConcentracaoFornecedoresMetrics,
-  getDespesasPorUnidadeMetrics,
   getEntidades,
-  getImpactoGastosLocaisMetrics,
-  getPortalConfig,
-  getPrincipaisBeneficiariosDiariasMetrics,
+  getPosicaoFiscalDetalhesMetrics,
+  getRadarGastosSensiveisMetrics,
   getRestosAPagarResumoMetrics,
-  getResumoDiariasMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
@@ -116,53 +112,47 @@ async function fetchRawDespesasData(
     await resolveEmpresaIds(tenantSlug, entidadesIds),
   );
 
-  const portalConfig = await getPortalConfig(tenantSlug);
-
   const [
     analiseDespesasMetrics,
-    impactoLocais,
-    concentracao,
+    radarGastosSensiveis,
     restosResumo,
-    despesasUnidades,
-    diariasResumo,
-    diariasBeneficiarios,
+    posicaoDetalhes,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
-    getImpactoGastosLocaisMetrics({
-      portalSlug: tenantSlug,
-      year: selectedYear,
-      empresaIds,
-      cidadeClean: portalConfig?.cidadeClean || "",
-    }),
-    getConcentracaoFornecedoresMetrics(tenantSlug, selectedYear, empresaIds),
+    getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
     getRestosAPagarResumoMetrics(tenantSlug, selectedYear, empresaIds),
-    getDespesasPorUnidadeMetrics(tenantSlug, selectedYear, empresaIds),
-    getResumoDiariasMetrics(tenantSlug, selectedYear, empresaIds),
-    getPrincipaisBeneficiariosDiariasMetrics({
-      portalSlug: tenantSlug,
-      year: selectedYear,
-      limit: 10,
-      empresaIds,
-    }),
+    getPosicaoFiscalDetalhesMetrics(tenantSlug, selectedYear, empresaIds),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
     analiseDespesasMetrics,
   );
 
+  const restosAnoAtual = posicaoDetalhes.restosPendentes.find(
+    (r) => r.ano === selectedYear,
+  );
+  const liquidadoPendenteAnoAtual = restosAnoAtual
+    ? Math.max(0, (restosAnoAtual.liquidado || 0) - (restosAnoAtual.pago || 0))
+    : 0;
+
+  const restosResumoEnriquecido = {
+    ...restosResumo,
+    totalPendente: posicaoDetalhes.restosPendentesTotal,
+    totalLiquidadoPendente: liquidadoPendenteAnoAtual,
+    fornecedoresAguardando:
+      posicaoDetalhes.totalCredoresAdmAtual ??
+      restosResumo.fornecedoresAguardando,
+  };
+
   return {
     context,
     metricasGerais,
-    impactoLocais,
-    concentracao,
-    restosResumo,
-    despesasUnidades,
-    diariasResumo,
-    diariasBeneficiarios,
+    radarGastosSensiveis,
+    restosResumo: restosResumoEnriquecido,
   };
 }
 
 export const loadDespesasData = createCachedDataLoader(
   fetchRawDespesasData,
-  "despesas",
+  "despesas-v6",
 );
