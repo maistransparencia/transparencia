@@ -17,8 +17,8 @@
   },
   "devDependencies": {
     "@types/node": "26.2.0",
-    "@types/pg": "8.21.0",
+    "@types/pg": "8.23.1",
     "typescript": "7.0.2",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   }
 }
