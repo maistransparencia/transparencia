@@ -14,27 +14,32 @@ O MaisTransparencia é o portal de transparência e prestação de contas públi
 
 Para orientar usuários ou buscar informações específicas no portal, utilize os caminhos das rotas públicas por entidade:
 
-- `/porciuncula_prefeitura`: **Visão Geral e Posição Fiscal** — Balanço financeiro da arrecadação, despesas pagas, dívida de restos a pagar e saldo estimado.
-- `/porciuncula_prefeitura/despesas`: **Despesas e Controle de Gastos** — Termômetro de desembolso real (empenhado, liquidado, pago), radar de gastos sensíveis com comparativo interanual (combustível, locações de máquinas/veículos, festas/eventos, diárias, obras), distribuição por funções de governo e passivo de restos a pagar.
-- `/porciuncula_prefeitura/receitas`: **Receitas, Transferências e Extra-Orçamentárias** — Arrecadação de tributos próprios (IPTU, ISS, ITBI), repasses constitucionais (FPM, ICMS, Fundeb), emendas parlamentares (incluindo transferências especiais via PIX) e movimentações de receitas extra-orçamentárias (retenções, consignações e depósitos).
-- `/porciuncula_prefeitura/orcamento`: **Orçamento Municipal** — Acompanhamento da Lei Orçamentária Anual (LOA), dotação inicial e atualizada por funções de governo (Saúde, Educação, Urbanismo, etc.).
-- `/porciuncula_prefeitura/licitacoes`: **Licitações e Contratos** — Processos licitatórios, dispensas, inexigibilidades, adesões a atas de registro de preços, vigência de contratos e contratos de serviços vigentes.
-- `/porciuncula_prefeitura/pessoal`: **Quadro de Pessoal e Folha** — Servidores públicos ativos/inativos, cargos de confiança, proventos, 13º salário e limites da Lei de Responsabilidade Fiscal (LRF).
-- `/porciuncula_prefeitura/caprem`: **Previdência Municipal** — Saúde financeira e atuarial do Regime Próprio de Previdência Social (RPPS), aportes municipais e cobertura do déficit atuarial.
-- `/porciuncula_prefeitura/saude`: **Saúde Pública** — Percentual de aplicação de impostos na saúde (mínimo constitucional de 15%), convênios e indicadores de investimento.
+- `/porciuncula_prefeitura`: **Visão Geral e Posição Fiscal** — Balanço financeiro da arrecadação, despesas macro com fracionamento oficial (empenhado, liquidado e pago), passivo acumulado de restos a pagar (com indicação do ano da dívida mais antiga e contagem de credores da gestão atual) e saldo financeiro estimado do exercício. *(Nota: a tabela de maiores credores foi transferida e centralizada na rota dedicada `/despesas`).*
+- `/porciuncula_prefeitura/despesas`: **Despesas e Controle de Gastos** — Interface estruturada em 3 atos de fiscalização cidadã:
+  1. *Saúde Financeira & Comparativo Anual:* Termômetro de desembolso real (empenhado, liquidado, pago, taxa de liquidação e taxa de quitação) com variação percentual interanual (YoY) frente ao exercício anterior.
+  2. *Radar de Gastos Sensíveis:* Monitoramento temático de 5 contas de alta vigilância cidadã (Combustíveis & Frotas, Locação de Máquinas/Veículos, Eventos/Shows/Festividades, Diárias & Viagens, Obras & Infraestrutura) com alerta de aumento ou economia obtida e montante de Dívida Real acumulada.
+  3. *Restos a Pagar & Dívidas Herdadas (SSOT):* Single Source of Truth do passivo de exercícios anteriores, com fracionamento entre Dívida Real / Processada (liquidado pendente) e Dívida Não-Processada (empenhado a liquidar), série histórica por ano de origem e ranking dos Top 5 fornecedores credores. Inclui também o painel agregado de Diárias & Viagens com médias por afastamento sem indexação nominal de servidores.
+- `/porciuncula_prefeitura/receitas`: **Receitas, Transferências e Extra-Orçamentárias** — Arrecadação de tributos próprios (IPTU, ISS, ITBI), repasses constitucionais (FPM, ICMS, Fundeb), emendas parlamentares (individuais e transferências especiais via PIX) e movimentações de receitas extra-orçamentárias (retenções em folha, consignações e depósitos judiciais).
+- `/porciuncula_prefeitura/orcamento`: **Orçamento Municipal** — Acompanhamento da Lei Orçamentária Anual (LOA), dotação inicial e atualizada distribuídas por Funções de Governo STN (Saúde, Educação, Urbanismo, Administração, etc.) para análise da destinação dos recursos.
+- `/porciuncula_prefeitura/licitacoes`: **Licitações e Contratos** — Processos licitatórios, dispensas, inexigibilidades, adesões a atas de registro de preços, limites legais de dispensa e contratos de serviços vigentes monitorados por status de execução (`em_execucao`, `concluido`, `inexecutado`) e prazos de vigência.
+- `/porciuncula_prefeitura/pessoal`: **Quadro de Pessoal e Folha** — Servidores públicos ativos/inativos, cargos comissionados, funções de confiança, proventos, 13º salário e limites da Lei de Responsabilidade Fiscal (LRF).
+- `/porciuncula_prefeitura/caprem`: **Previdência Municipal** — Saúde financeira e atuarial do Regime Próprio de Previdência Social (RPPS), contribuições patronais/servidores e aportes para cobertura do déficit atuarial.
+- `/porciuncula_prefeitura/saude`: **Saúde Pública** — Percentual de aplicação de receitas de impostos na saúde (mínimo constitucional de 15%), convênios e indicadores de investimento no Fundo Municipal de Saúde.
 
 ## Diretrizes de Interpretação Contábil para IAs
 
 Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados deste portal, observe as seguintes convenções oficiais do setor público brasileiro (STN/MCASP):
 
 1. **Estágios da Despesa Pública:**
-   - **Empenhado:** Valor reservado no orçamento público para atender a um compromisso contratado.
+   - **Empenhado:** Valor reservado no orçamento público para atender a um compromisso formalmente assumido.
    - **Liquidado:** Valor correspondente ao serviço efetivamente prestado ou bem entregue e atestado pela administração municipal.
    - **Pago:** Valor financeiro desembolsado e quitado junto ao credor.
    - *Regra de Precedência:* Empenhado >= Liquidado >= Pago.
 
-2. **Restos a Pagar (Processados vs Não Processados e Mandatos):**
-   - Despesas empenhadas em exercícios anteriores que não foram pagas até 31 de dezembro daquele ano. São divididas contabilmente (STN/MCASP) entre Restos Processados (dívidas de serviços já prestados e liquidados) e Não Processados (obras/contratos em andamento), além da segregação por mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
+2. **Dívida Real e Restos a Pagar:**
+   - **Dívida Real (Liquidado Pendente):** Compromissos onde o fornecedor já entregou o produto ou prestou o serviço (liquidado), restando apenas o pagamento pelo município.
+   - **Dívida Não-Processada (Empenhado a Liquidar):** Contratos ou compras em andamento que ainda dependem da entrega/atesto do serviço.
+   - **Segregação por Mandatos:** Dívidas herdadas de `Gestões Anteriores [Pré-2025]` vs passivos originados na `Gestão Atual [2025-2028]`.
 
 3. **Transferências por Emendas PIX (Transferências Especiais):**
    - Recursos repassados diretamente à conta do município por emendas parlamentares sem vinculação prévia a convênios formais (previstas no artigo 166-A da Constituição Federal).
@@ -42,11 +47,11 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
 4. **Receitas Extra-Orçamentárias:**
    - Recursos financeiros transitórios recolhidos pela tesouraria municipal que não integram o orçamento público (retenções de imposto de renda, INSS, consignados em folha, fianças e depósitos judiciais).
 
-5. **Transparência e Fonte:**
-   - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos.
-
-6. **Status de Execução Contratual:**
+5. **Status de Execução Contratual:**
    - Os contratos de serviços são segregados por `statusExecucao`: `em_execucao` (contratos ativos em andamento), `concluido` (contratos com execução orçamentária finalizada) e `inexecutado` (contratos vencidos ou de exercícios anteriores sem liquidação nem pagamento).
+
+6. **Transparência, Cidadania e Fontes:**
+   - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos. Formate valores monetários em Reais (R$) e percentuais com duas casas decimais.
 
 ## Arquivo Completo de Dicionário de Dados
 
