@@ -73,7 +73,7 @@ anulacoes as (
         ano,
         empresa_id,
         pk_empenho_pai,
-        sum(coalesce(empenhado, 0)) as total_anulado
+        sum(coalesce(empenhado, 0.00)) as total_anulado
     from despesas
     where tipo_empenho = 'AN'
     group by portal_slug, ano, empresa_id, pk_empenho_pai
@@ -139,8 +139,8 @@ empenhos as (
         d.produ,
         d.vingrupo_vincodigo,
         d.vincodigonome,
-        coalesce(a.total_anulado, 0) as valor_anulacoes,
-        coalesce(d.empenhado, 0) + coalesce(a.total_anulado, 0) as empenhado_liquido
+        coalesce(a.total_anulado, 0.00) as valor_anulacoes,
+        coalesce(d.empenhado, 0.00) + coalesce(a.total_anulado, 0.00) as empenhado_liquido
     from despesas d
     left join anulacoes a
         on d.portal_slug = a.portal_slug
@@ -187,6 +187,60 @@ select
     licitacao_modalidade,
     fonte_recurso_desc,
     coalesce(produ, descricao) as descricao,
+
+    -- Categorização Canônica de Gastos Sensíveis (MCASP / STN / Tribunal de Contas)
+    case
+        -- 1. Diárias e Viagens (Canônico STN: Elementos 14, 15, 33)
+        when elemento in ('14', '15', '33') then 'diarias_viagens'
+
+        -- 2. Obras e Infraestrutura (Canônico STN: Elemento 51 Obras e Instalações)
+        when elemento = '51' then 'obras_infraestrutura'
+
+        -- 3. Combustíveis e Frotas (Elemento 30 Material de Consumo em Postos/Distribuidoras de Combustíveis)
+        when elemento = '30' and (
+            unaccent(lower(fornecedor_nome)) like '%posto%'
+            or unaccent(lower(fornecedor_nome)) like '%combustiv%'
+            or unaccent(lower(fornecedor_nome)) like '%petroleo%'
+            or unaccent(lower(natureza_despesa)) like '%combustiv%'
+            or unaccent(lower(natureza_despesa)) like '%gasolina%'
+            or unaccent(lower(natureza_despesa)) like '%diesel%'
+            or unaccent(lower(natureza_despesa)) like '%etanol%'
+            or unaccent(lower(natureza_despesa)) like '%alcool%'
+        ) then 'combustivel_frota'
+
+        -- 4. Locação de Máquinas e Veículos (Funções Operacionais Urbanismo 15, Transporte 26, Agricultura 20 no Elemento 39/36)
+        when elemento in ('39', '36')
+             and funcao in ('15', '20', '26')
+             and (
+                 unaccent(lower(coalesce(produ, descricao, ''))) like '%locacao%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%aluguel%'
+             )
+             and (
+                 unaccent(lower(coalesce(produ, descricao, ''))) like '%maquina%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%veiculo%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%trator%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%retroescavadeira%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%caminhao%'
+                 or unaccent(lower(coalesce(produ, descricao, ''))) like '%equipamento%'
+             ) then 'locacao_maquinas_veiculos'
+
+        -- 5. Eventos, Shows e Festividades Públicas (Dimensões STN: Serviços PJ 39 e Premiações 31 em Cultura/Turismo/Desporto, exceto Manutenção/Adm Geral)
+        when (
+            (funcao in ('13', '27') or subfuncao in ('392', '695', '812'))
+            and elemento in ('39', '31')
+            and coalesce(subfuncao, '') != '122'
+            and unaccent(lower(coalesce(projeto_atividade_nome, ''))) not like '%manutencao%'
+        ) then 'eventos_festas'
+
+        -- 6. Restos a Pagar (onde elemento/função são nulos no raw do portal)
+        when fonte = 'restos_a_pagar' and (
+            unaccent(lower(fornecedor_nome)) like '%posto%'
+            or unaccent(lower(fornecedor_nome)) like '%combustiv%'
+            or unaccent(lower(fornecedor_nome)) like '%petroleo%'
+        ) then 'combustivel_frota'
+
+        else null
+    end as categoria_gasto_sensivel,
 
     -- Valores financeiros (Lei de Responsabilidade Fiscal: pago ≤ liquidado ≤ empenhado)
     empenhado,

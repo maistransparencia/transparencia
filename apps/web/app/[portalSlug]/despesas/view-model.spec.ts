@@ -18,49 +18,30 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       taxaLiquidacao: 80,
       taxaPagamento: 70,
     },
-    impactoLocais: {
-      localPago: 600,
-      externoPago: 100,
-      pctLocal: 85.7,
-      historicoPctLocal: 80,
+    radarGastosSensiveis: {
+      itens: [],
+      anoAtual: 2024,
+      anoAnterior: 2023,
     },
-    concentracao: { hhi: 900 },
     restosResumo: {
       totalPendente: 200,
+      totalLiquidadoPendente: 50,
       fornecedoresAguardando: 5,
       dividaMaisAntigaAno: 2021,
       topFornecedores: [],
     },
-    despesasUnidades: [],
-    diariasResumo: { totalValor: 0, totalViajantes: 0, mediaReembolso: 0 },
-    diariasBeneficiarios: [],
     ...overrides,
   } as unknown as RawData;
 }
 
 describe("buildDespesasViewModel", () => {
-  it("classifica HHI baixo (<= 1500) como 'baixa'", () => {
-    const vm = buildDespesasViewModel(makeRaw({ concentracao: { hhi: 900 } }));
-    expect(vm.hhiVal).toBe(900);
-    expect(vm.hhiStatusText).toContain("baixa");
-  });
-
-  it("classifica HHI moderado (1500 < hhi <= 2500) como 'moderada'", () => {
-    const vm = buildDespesasViewModel(makeRaw({ concentracao: { hhi: 2000 } }));
-    expect(vm.hhiStatusText).toContain("moderada");
-  });
-
-  it("classifica HHI alto (> 2500) como 'alta'", () => {
-    const vm = buildDespesasViewModel(makeRaw({ concentracao: { hhi: 3000 } }));
-    expect(vm.hhiStatusText).toContain("alta");
-  });
-
   it("repassa os dados brutos para o shape final sem perder informação", () => {
     const raw = makeRaw();
     const vm = buildDespesasViewModel(raw);
     expect(vm.selectedYear).toBe(raw.context.selectedYear);
     expect(vm.isCurrentYear).toBe(raw.context.isCurrentYear);
     expect(vm.metricasGerais).toEqual(raw.metricasGerais);
+    expect(vm.radarGastosSensiveis).toEqual(raw.radarGastosSensiveis);
     expect(vm.restosResumo).toEqual(raw.restosResumo);
   });
 });

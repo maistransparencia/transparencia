@@ -1,17 +1,9 @@
-import {
-  fmtCompact,
-  fmtCurrency,
-  fmtPercent,
-  KPICard,
-  toTitleCase,
-} from "@transparencia/ui";
+import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
 import type { Metadata } from "next";
-import { BarChartH } from "@/components/bar-chart-h";
-import { DonutGastosLocais } from "@/components/donut-gastos-locais";
 import { KPIGrid } from "@/components/kpi-grid";
+import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { SectionHeader } from "@/components/section-header";
-import { UnidadesGastosChart } from "@/components/unidades-gastos-chart";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
 import { buildDespesasViewModel } from "./view-model";
@@ -29,15 +21,16 @@ export async function generateMetadata({
   const { portalSlug } = await params;
   return createPortalMetadata("Despesas", portalSlug, {
     description:
-      "Análise detalhada das despesas municipais empenhadas, liquidadas e pagas por órgãos, unidades e funções contábeis.",
+      "Auditoria cidadã das despesas municipais: contas sensíveis (combustível, locações, obras, diárias), áreas de investimento e restos a pagar.",
     path: "/despesas",
     keywords: [
       "despesas municipais",
-      "empenhado",
-      "liquidado",
-      "pago",
-      "órgãos públicos",
-      "funções contábeis",
+      "radar de gastos",
+      "combustível",
+      "obras",
+      "diárias",
+      "restos a pagar",
+      "gastos públicos",
     ],
   });
 }
@@ -56,34 +49,29 @@ export default async function DespesasPage({
     isCurrentYear,
     partialPeriod,
     metricasGerais,
-    impactoLocais,
+    radarGastosSensiveis,
     restosResumo,
-    despesasUnidades,
-    diariasResumo,
-    diariasBeneficiarios,
-    hhiVal,
-    hhiStatusText,
   } = viewModel;
 
   return (
     <div className="space-y-10">
-      {/* Header */}
+      {/* Header Principal */}
       <div>
         <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
+          FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
           {isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-ink">
-          Despesas Detalhadas
+          Despesas & Controle de Gastos
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-subtleText leading-relaxed">
-          Onde e como os recursos são aplicados: quanto fica na economia local,
-          se há concentração em poucos fornecedores e quais compromissos de anos
-          anteriores ainda não foram pagos.
+          Onde o dinheiro municipal foi aplicado: termômetro de desembolso real,
+          radar de contas sensíveis com comparativo interanual e auditoria de
+          passivos herdados.
         </p>
       </div>
 
-      {/* Grade Hero de 4 KPIs */}
+      {/* Ato 1: Termômetro Macro do Exercício (4 KPIs) */}
       <KPIGrid columns={4}>
         <KPICard
           title="Total empenhado"
@@ -91,142 +79,48 @@ export default async function DespesasPage({
           subtext={`no exercício ${selectedYear}`}
         />
         <KPICard
+          title="Total liquidado"
+          value={fmtCompact(metricasGerais.liquidado)}
+          subtext="serviços e bens atestados"
+        />
+        <KPICard
           title="Total pago"
           value={fmtCompact(metricasGerais.pago)}
-          subtext={`no exercício ${selectedYear}`}
+          subtext="desembolso efetivo de caixa"
         />
         <KPICard
           title="Taxa de quitação"
           value={fmtPercent(metricasGerais.taxaPagamento)}
-          subtext={`${fmtCompact(metricasGerais.liquidado)} liquidados`}
-        />
-        <KPICard
-          title="Restos a pagar pendentes"
-          value={
-            <span className="font-bold text-amber-900">
-              {fmtCompact(restosResumo.totalPendente)}
-            </span>
-          }
-          subtext="compromissos de anos anteriores"
+          subtext={`${fmtPercent(metricasGerais.taxaLiquidacao)} liquidado`}
         />
       </KPIGrid>
 
-      {/* Seção 1: Para onde vai o dinheiro */}
-      <section className="space-y-8">
+      {/* Ato 2: Radar de Gastos Sensíveis & Controle Fiscal */}
+      <section className="space-y-6">
         <SectionHeader
-          title="Para onde vai o dinheiro"
-          description="Distribuição das despesas por fornecedores locais e externos, além da concentração de fornecedores."
+          title="Radar de Gastos Sensíveis & Controle Fiscal"
+          description={
+            isCurrentYear
+              ? `Acompanhamento das contas mais vigiadas pelo munícipe e peso relativo no orçamento pago de ${selectedYear}.`
+              : `Acompanhamento das contas mais vigiadas pelo munícipe e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`
+          }
         />
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold font-serif text-ink text-xl">
-              Fornecedores e gastos locais
-            </h3>
-            <span className="font-medium text-subtleText text-xs">
-              apenas compras, materiais, serviços e equipamentos
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-7">
-              <DonutGastosLocais
-                localValor={impactoLocais.localPago}
-                externoValor={impactoLocais.externoPago}
-                pctLocal={impactoLocais.pctLocal}
-                className="h-full"
-              />
-            </div>
-
-            <div className="flex flex-col justify-between gap-4 lg:col-span-5">
-              <KPICard
-                title="Índice de compras locais"
-                value={fmtPercent(impactoLocais.pctLocal)}
-                subtext={
-                  impactoLocais.historicoPctLocal
-                    ? `dos recursos em ${selectedYear} (${fmtPercent(impactoLocais.historicoPctLocal)} no acumulado histórico)`
-                    : ""
-                }
-                className="flex-1 justify-center"
-              />
-
-              <KPICard
-                title="HHI — concentração de fornecedores"
-                value={hhiVal.toLocaleString("pt-BR")}
-                subtext={hhiStatusText}
-                className="flex-1 justify-center"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold font-serif text-ink text-xl">
-              Unidades Administrativas
-            </h3>
-            <span className="font-medium text-subtleText text-xs">
-              análise de despesas por unidade do governo
-            </span>
-          </div>
-
-          {despesasUnidades.length > 0 && (
-            <UnidadesGastosChart items={despesasUnidades} />
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold font-serif text-ink text-xl">
-              Diárias e Auxílios de Viagem a Serviço
-            </h3>
-            <span className="font-medium text-subtleText text-xs">
-              gastos com reembolsos de viagem e diárias a servidores
-            </span>
-          </div>
-
-          <KPIGrid columns={3}>
-            <KPICard
-              title="Total pago em diárias"
-              value={fmtCompact(diariasResumo.totalValor)}
-            />
-            <KPICard
-              title="Servidores beneficiários"
-              value={diariasResumo.totalViajantes}
-            />
-            <KPICard
-              title="Média por viagem"
-              value={fmtCurrency(diariasResumo.mediaReembolso)}
-            />
-          </KPIGrid>
-
-          {diariasBeneficiarios.length > 0 && (
-            <div className="space-y-4 rounded-2xl border border-borderLine bg-white p-6">
-              <h4 className="font-bold text-ink text-sm">
-                Principais servidores beneficiários de diárias
-              </h4>
-              <BarChartH
-                data={diariasBeneficiarios.map((b) => ({
-                  label: b.cargo
-                    ? `${toTitleCase(b.favorecido)} (${toTitleCase(b.cargo)})`
-                    : toTitleCase(b.favorecido),
-                  value: b.valor,
-                }))}
-              />
-            </div>
-          )}
-        </div>
+        <RadarGastosSensiveis
+          itens={radarGastosSensiveis?.itens ?? []}
+          anoAtual={radarGastosSensiveis?.anoAtual ?? selectedYear}
+          anoAnterior={radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}
+          isCurrentYear={isCurrentYear}
+          totalDespesasPagas={metricasGerais.pago}
+        />
       </section>
 
-      <hr className="border-[#1a1d21] border-t-2" />
-
-      {/* Seção 2: Restos a pagar */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="font-bold font-serif text-2xl text-ink">
-            Restos a pagar
-          </h2>
-        </div>
+      {/* Ato 4: Restos a Pagar & Dívidas Herdadas */}
+      <section className="space-y-6">
+        <SectionHeader
+          title="Restos a Pagar (Dívidas de Anos Anteriores)"
+          description="Despesas contratadas em exercícios passados ainda não quitadas pela prefeitura."
+        />
 
         {/* Banner Informativo Visível */}
         <div className="space-y-2.5 rounded-xl border-[#2B5278] border-l-4 bg-[#F0F6FD] p-4 text-[#1B3A5A] text-sm leading-relaxed">
@@ -262,18 +156,23 @@ export default async function DespesasPage({
                 {fmtCompact(restosResumo.totalPendente)}
               </span>
             }
+            subtext={
+              restosResumo.totalLiquidadoPendente > 0
+                ? `${fmtCompact(restosResumo.totalLiquidadoPendente)} liquidados`
+                : `pendentes a ${restosResumo.fornecedoresAguardando} fornecedores`
+            }
           />
           <KPICard
             title="Fornecedores aguardando"
             value={restosResumo.fornecedoresAguardando}
           />
           <KPICard
-            title="Dívida mais antiga desde"
+            title="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
           />
         </KPIGrid>
 
-        {/* Ranking Fornecedores com maior pendência */}
+        {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (
           <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
         )}

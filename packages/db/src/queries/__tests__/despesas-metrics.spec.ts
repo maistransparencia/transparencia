@@ -61,6 +61,7 @@ describe("despesas-metrics (smoke)", () => {
     ]);
     expect(restos).toBeDefined();
     expect(typeof restos.dividaMaisAntigaAno).toBe("number");
+    expect(typeof restos.totalLiquidadoPendente).toBe("number");
     expect(Array.isArray(restos.topFornecedores)).toBe(true);
   });
 
@@ -71,5 +72,31 @@ describe("despesas-metrics (smoke)", () => {
       ["1"],
     );
     expect(Array.isArray(unidades)).toBe(true);
+  });
+
+  it("deve buscar radar de gastos sensíveis com o shape esperado", async () => {
+    const { getRadarGastosSensiveisMetrics } = await import(
+      "../despesas-metrics"
+    );
+    const radar = await getRadarGastosSensiveisMetrics(PORTAL_SLUG, TEST_YEAR, [
+      "1",
+    ]);
+    expect(radar).toBeDefined();
+    expect(Array.isArray(radar.itens)).toBe(true);
+    expect(radar.itens.length).toBe(5);
+    expect(radar.anoAtual).toBe(TEST_YEAR);
+  });
+
+  it("deve buscar maiores fornecedores do exercício como array", async () => {
+    const { getTopFornecedoresExecucaoMetrics } = await import(
+      "../despesas-metrics"
+    );
+    const fornecedores = await getTopFornecedoresExecucaoMetrics({
+      portalSlug: PORTAL_SLUG,
+      year: TEST_YEAR,
+      empresaIds: ["1"],
+      limit: 5,
+    });
+    expect(Array.isArray(fornecedores)).toBe(true);
   });
 });

@@ -102,6 +102,15 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Sem Duplicação de Sanitização:** Não aplique regexes de limpeza, `trim` ou formatação de strings em TypeScript (`@transparencia/db`) se a coluna já for sanitizada e entregue pronta pelo modelo dbt mart upstream.
 - **Zero Ternários Tautológicos:** Evite condicionais defensivas de atribuição do tipo `x === 'A' ? 'A' : 'B'`. Prefira type assertions diretas (`(x ?? 'B') as Type`).
 
+---
+
+## 15. SEGURANÇA DE PRODUÇÃO: PROIBIÇÃO DE EXECUÇÃO EM BANCO DE PRODUÇÃO SEM PERMISSÃO EXPLÍCITA
+
+- **Ambiente de Desenvolvimento Local Obrigatório:** Todos os comandos de execução (`make dbt/run`, `make dbt/test`, scripts Python, seeds e queries Kysely) devem rodar **estritamente contra o banco de dados local do Docker** (`DATABASE_URL=postgresql://postgres:postgres@localhost:5544/postgres` ou instâncias efêmeras de teste `testing.postgresql`).
+- **Proibição Absoluta em Produção:** É **estritamente proibido** executar comandos de compilação, dbt run/build/seed ou DDL/DML diretamente contra bancos de dados de produção/remotos (como Supabase, AWS, poolers remotos ou qualquer DATABASE_URL de produção) **sem autorização prévia e explícita do usuário**.
+- **Desenvolvimento e Testes Independentes:** Toda validação, desenvolvimento de modelos e testes automatizados devem ser concluídos e validados localmente antes de qualquer interação com ambientes remotos.
+
+
 
 
 

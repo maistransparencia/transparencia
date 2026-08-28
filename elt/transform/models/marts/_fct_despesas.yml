@@ -98,6 +98,19 @@ models:
         data_type: text
       - name: descricao
         data_type: text
+      - name: categoria_gasto_sensivel
+        data_type: text
+        description: "Classificação em lowercase snake_case de centros de custos sensíveis (combustivel_frota, locacao_maquinas_veiculos, eventos_festas, diarias_viagens, obras_infraestrutura)"
+        tests:
+          - accepted_values:
+              values:
+                - combustivel_frota
+                - locacao_maquinas_veiculos
+                - eventos_festas
+                - diarias_viagens
+                - obras_infraestrutura
+              config:
+                where: "categoria_gasto_sensivel is not null"
       - name: credor_id
         data_type: text
       - name: orgao_id
@@ -144,3 +157,100 @@ models:
               row_condition: "reforco is not null"
       - name: valor_anulacoes
         data_type: numeric
+
+unit_tests:
+  - name: test_fct_despesas_categoria_gasto_sensivel_classificacao
+    description: "Valida a correta classificação das contas de gastos sensíveis segundo dimensões canônicas STN (elementos 14/33, 51, funcao 13/27, fornecedor posto, etc)"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_consolidadas')
+        rows:
+          # 1. Combustível (elemento 30 + fornecedor de combustível/posto)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '1', pk_empenho: '1', tipo_empenho: 'OR', elemento: '30', fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: 'AQUISIÇÃO DE ÓLEO DIESEL S-10 PARA VEÍCULOS', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '2', pk_empenho: '2', tipo_empenho: 'OR', elemento: '30', fornecedor_nome: 'AUTOPOSTO CENTRAL LTDA', descricao: 'GASOLINA COMUM DA FROTA', empenhado: 500.00, liquidado: 500.00, pago: 500.00}
+          # 2. Locação de Máquinas e Veículos (elemento 39/36 + função operacional 15/20/26 + máquina/veículo)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '3', pk_empenho: '3', tipo_empenho: 'OR', elemento: '39', funcao: '15', descricao: 'LOCAÇÃO DE RETROESCAVADEIRA PARA URBANISMO', empenhado: 2000.00, liquidado: 2000.00, pago: 2000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '4', pk_empenho: '4', tipo_empenho: 'OR', elemento: '39', funcao: '20', descricao: 'ALUGUEL DE TRATOR AGRICOLA', empenhado: 1500.00, liquidado: 1500.00, pago: 1500.00}
+          # 3. Eventos, Shows e Festas (elemento 39 em Cultura 13 ou Turismo 695 / difusão 392 fora de manutenção)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '5', pk_empenho: '5', tipo_empenho: 'OR', elemento: '39', funcao: '13', subfuncao: '392', projeto_atividade_nome: 'Promoção de Eventos Culturais', descricao: 'CONTRATAÇÃO DE SHOW MUSICAL', empenhado: 650000.00, liquidado: 325000.00, pago: 0.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '6', pk_empenho: '6', tipo_empenho: 'OR', elemento: '39', funcao: '04', subfuncao: '695', projeto_atividade_nome: 'Desenvolvimento do Turismo', descricao: 'ESTRUTURA DE PALCO E SOM PARA O TURISMO', empenhado: 50000.00, liquidado: 50000.00, pago: 50000.00}
+          # 4. Diárias e Viagens (elementos 14/15/33)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '7', pk_empenho: '7', tipo_empenho: 'OR', elemento: '14', descricao: 'DIÁRIAS A SERVIÇO DO MUNICÍPIO', empenhado: 800.00, liquidado: 800.00, pago: 800.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '8', pk_empenho: '8', tipo_empenho: 'OR', elemento: '33', descricao: 'PASSAGENS E DESPESAS COM LOCOMOÇÃO', empenhado: 1200.00, liquidado: 1200.00, pago: 1200.00}
+          # 5. Obras e Infraestrutura (elemento 51 canônico)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '9', pk_empenho: '9', tipo_empenho: 'OR', elemento: '51', descricao: 'PAVIMENTAÇÃO ASFÁLTICA DE RUAS', empenhado: 700000.00, liquidado: 0.00, pago: 0.00}
+          # 6. Despesas que NÃO devem cair nas categorias sensíveis (Eliminação de Ruído Predial/Custeio)
+          # Tenda para vacinação na Saúde (elemento 39, funcao 10) -> NÃO é locação de máquinas nem festa
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '10', pk_empenho: '10', tipo_empenho: 'OR', elemento: '39', funcao: '10', subfuncao: '301', descricao: 'LOCAÇÃO DE TENDA PARA CAMPANHA DE VACINAÇÃO DA SAÚDE', empenhado: 5000.00, liquidado: 5000.00, pago: 5000.00}
+          # Tenda para feira do livro na Educação (elemento 39, funcao 12) -> NÃO é locação de máquinas nem festa
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '11', pk_empenho: '11', tipo_empenho: 'OR', elemento: '39', funcao: '12', subfuncao: '361', descricao: 'LOCAÇÃO DE TENDA PARA A REALIZAÇÃO DA FEIRA DO LIVRO', empenhado: 3000.00, liquidado: 3000.00, pago: 3000.00}
+          # Gêneros alimentícios para abastecer hospital (elemento 30, fornecedor de comida) -> NÃO é combustível de frota
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '12', pk_empenho: '12', tipo_empenho: 'OR', elemento: '30', fornecedor_nome: 'PADARIA CENTRAL LTDA', descricao: 'GÊNEROS ALIMENTÍCIOS PARA ABASTECER O HOSPITAL', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          # Tintas em Cultura (elemento 30 material de consumo) -> NÃO é evento
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '13', pk_empenho: '13', tipo_empenho: 'OR', elemento: '30', funcao: '13', subfuncao: '392', fornecedor_nome: 'MARTINS E TUPINI MATERIAIS DE CONSTRUCAO LTDA', descricao: 'AQUISIÇÃO DE TINTAS PARA MANUTENÇÃO DA QUADRA', empenhado: 1500.00, liquidado: 1500.00, pago: 1500.00}
+          # Refletores de LED em Cultura (elemento 30) -> NÃO é evento
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '14', pk_empenho: '14', tipo_empenho: 'OR', elemento: '30', funcao: '13', subfuncao: '392', fornecedor_nome: 'ROCHA CARDOSO MATERIAIS DE CONSTRUCAO LTDA', descricao: 'AQUISIÇÃO DE REFLETORES DE LED DESTINADOS À ILUMINAÇÃO DO CENTRO CULTURAL', empenhado: 2000.00, liquidado: 2000.00, pago: 2000.00}
+          # Locação de imóvel para sede de Secretaria em Turismo (elemento 36 em atividade de manutenção) -> NÃO é evento
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '15', pk_empenho: '15', tipo_empenho: 'OR', elemento: '36', funcao: '04', subfuncao: '695', projeto_atividade_nome: 'Manutenção das Atividades da Sec. Mun. Turismo', fornecedor_nome: 'SÉRGIO LANNES VIEIRA', descricao: 'LOCAÇÃO DE IMÓVEL PARA FUNCIONAMENTO DA SEC. DE TURISMO', empenhado: 4000.00, liquidado: 4000.00, pago: 4000.00}
+          # Vigia de fazenda/sede em Turismo (elemento 36 em atividade de manutenção) -> NÃO é evento
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '16', pk_empenho: '16', tipo_empenho: 'OR', elemento: '36', funcao: '04', subfuncao: '695', projeto_atividade_nome: 'Manutenção das Atividades da Sec. Mun. Turismo', fornecedor_nome: 'RENATO DE JESUS CHAVES', descricao: 'CONTRATAÇÃO DE PROFISSIONAL VIGIA PARA ATUAR NA FAZENDA CAETÉ', empenhado: 2500.00, liquidado: 2500.00, pago: 2500.00}
+          # Manutenção administrativa de secretaria em elemento 39 -> NÃO é evento
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '17', pk_empenho: '17', tipo_empenho: 'OR', elemento: '39', funcao: '13', subfuncao: '392', projeto_atividade_nome: 'Manutenção das Atividades da Sec. Mun. de Cultura', fornecedor_nome: 'EMPRESA DE DEDETIZACAO LTDA', descricao: 'DEDETIZACAO DA SEDE DA SECRETARIA DE CULTURA', empenhado: 1200.00, liquidado: 1200.00, pago: 1200.00}
+    expect:
+      rows:
+        - {empenho_id: '1', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '2', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '3', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '4', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '5', categoria_gasto_sensivel: 'eventos_festas'}
+        - {empenho_id: '6', categoria_gasto_sensivel: 'eventos_festas'}
+        - {empenho_id: '7', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '8', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '9', categoria_gasto_sensivel: 'obras_infraestrutura'}
+        - {empenho_id: '10', categoria_gasto_sensivel: null}
+        - {empenho_id: '11', categoria_gasto_sensivel: null}
+        - {empenho_id: '12', categoria_gasto_sensivel: null}
+        - {empenho_id: '13', categoria_gasto_sensivel: null}
+        - {empenho_id: '14', categoria_gasto_sensivel: null}
+        - {empenho_id: '15', categoria_gasto_sensivel: null}
+        - {empenho_id: '16', categoria_gasto_sensivel: null}
+        - {empenho_id: '17', categoria_gasto_sensivel: null}
+
+  - name: test_fct_despesas_categoria_gasto_sensivel_acentuacao_e_caixa
+    description: "Garante robustez do unaccent e variações de caixa (MAIÚSCULO, minúsculo, com e sem acento)"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_consolidadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '21', pk_empenho: '21', tipo_empenho: 'OR', elemento: '30', fornecedor_nome: 'posto de combustiveis do norte', descricao: 'combustivel para ambulancia', empenhado: 100.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '22', pk_empenho: '22', tipo_empenho: 'OR', elemento: '39', funcao: '13', subfuncao: '392', descricao: 'festividade do aniversario da cidade', empenhado: 200.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '23', pk_empenho: '23', tipo_empenho: 'OR', elemento: '14', descricao: 'diaria de servidor', empenhado: 300.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '24', pk_empenho: '24', tipo_empenho: 'OR', elemento: '51', descricao: 'obras e instalacoes diversas', empenhado: 400.00}
+    expect:
+      rows:
+        - {empenho_id: '21', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '22', categoria_gasto_sensivel: 'eventos_festas'}
+        - {empenho_id: '23', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '24', categoria_gasto_sensivel: 'obras_infraestrutura'}
+
+  - name: test_fct_despesas_produ_precedence_gastos_sensiveis
+    description: "Garante que o campo produ tem precedência e que locação em função operacional é classificada"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_consolidadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '201', pk_empenho: '201', tipo_empenho: 'OR', elemento: '39', funcao: '15', descricao: 'SERVICOS DE TERCEIROS - PJ', produ: 'LOCAÇÃO DE TRATOR DE ESTEIRA COM OPERADOR', empenhado: 15000.00}
+    expect:
+      rows:
+        - {empenho_id: '201', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+
+  - name: test_fct_despesas_elemento_estrito_combustivel
+    description: "Garante que fornecedor não-posto fora do elemento 30 não é combustível de frota"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_consolidadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '301', pk_empenho: '301', tipo_empenho: 'OR', elemento: '39', fornecedor_nome: 'EMPRESA DE CARTÕES LTDA', descricao: 'TAXA ADMINISTRATIVA', empenhado: 5000.00}
+    expect:
+      rows:
+        - {empenho_id: '301', categoria_gasto_sensivel: null}
