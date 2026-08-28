@@ -30,6 +30,7 @@ export interface RestosAPagarResumoMetricsDTO {
 export const CATEGORIAS_GASTOS_SENSIVEIS = [
   "combustivel_frota",
   "locacao_maquinas_veiculos",
+  "locacao_imoveis",
   "eventos_festas",
   "diarias_viagens",
   "obras_infraestrutura",

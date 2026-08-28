@@ -42,7 +42,8 @@ describe("despesas-metrics (smoke)", () => {
     ]);
     expect(radar).toBeDefined();
     expect(Array.isArray(radar.itens)).toBe(true);
-    expect(radar.itens.length).toBe(5);
+    expect(radar.itens.length).toBe(6);
+    expect(radar.itens.map((i) => i.categoria)).toContain("locacao_imoveis");
     expect(radar.anoAtual).toBe(TEST_YEAR);
   });
 
