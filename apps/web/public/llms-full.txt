@@ -19,17 +19,14 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 
 ---
 
-### 1.2. Execução das Despesas Públicas
+### 1.2. Execução das Despesas Públicas & Controle de Gastos
 
 Esta seção detalha como o dinheiro público é aplicado e distribuído pela administração municipal:
 
-- **Órgão e Unidade Administrativa:** A identificação das Secretarias Municipais (como Secretaria de Educação, Saúde, Obras) e das unidades operacionais responsáveis por cada gasto.
-- **Função de Governo:** A classificação funcional do gasto público conforme as normas nacionais (exemplo: Saúde, Educação, Urbanismo, Assistência Social, Segurança Pública).
-- **Valores Empenhados:** O montante de recursos reservados no orçamento público para garantir o pagamento de contratos, compras ou serviços assumidos pela prefeitura.
-- **Valores Liquidados:** O valor correspondente aos serviços já executados ou produtos entregues e vistoriados pela fiscalização municipal, prontos para pagamento.
-- **Valores Pagos:** A saída efetiva de recursos financeiros da conta bancária da prefeitura para a conta do fornecedor ou prestador de serviço.
-- **Maiores Fornecedores e Credores:** A lista das empresas, instituições ou pessoas físicas que mais receberam recursos públicos municipais no período.
-- **Diárias de Viagem:** O detalhamento dos valores pagos a servidores ou agentes políticos para custeio de viagens a trabalho e a identificação dos beneficiários.
+- **Termômetro Macro de Execução:** Total empenhado, liquidado, pago e taxa de quitação do orçamento no exercício.
+- **Radar de Gastos Sensíveis & Controle Fiscal:** Acompanhamento interanual das contas mais vigiadas pelo cidadão (Combustíveis & Frotas, Locação de Máquinas/Veículos, Eventos/Shows/Festividades, Diárias & Viagens, Obras & Infraestrutura), com indicação de aumento de gastos ou economia obtida frente ao ano anterior.
+- **Distribuição por Funções de Governo:** A classificação funcional do gasto público (Saúde, Educação, Urbanismo/Infraestrutura, Assistência Social, Administração Geral).
+- **Restos a Pagar & Passivos Herdados:** O saldo devedor acumulado de exercícios anteriores, categorização contábil (Processados vs Não Processados) e ranking dos maiores credores aguardando quitação.
 
 ---
 
