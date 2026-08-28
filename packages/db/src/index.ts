@@ -9,6 +9,7 @@ export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-saude-metrics";
 export * from "./queries/licitacoes-metrics";
 export * from "./queries/metadata";
+export * from "./queries/opacidade-contabil-metrics";
 export * from "./queries/orcamento-funcional-metrics";
 export * from "./queries/pessoal-metrics";
 export * from "./queries/posicao-fiscal-detalhes-metrics";
