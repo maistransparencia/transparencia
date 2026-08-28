@@ -44,14 +44,25 @@ Esta seção detalha a execução orçamentária e financeira do município atra
   - *Comparativo de Tendência:* Variação percentual frente ao ano anterior (sinalizando economia obtida ou aumento de desembolso) ou percentual sobre o total pago no exercício (em anos correntes).
   - *Dívida Real Acumulada:* Montante liquidado dessas contas que ainda está pendente de quitação.
 
-#### Ato 2: Restos a Pagar & Dívida Real (SSOT)
+#### Ato 2: Radar de Opacidade Orçamentária & Subitens Residuais (.99)
+- **Fundamentação Legal:** Princípio da Especificação Orçamentária (Lei Federal nº 4.320/1964, Arts. 5º e 15), Lei de Responsabilidade Fiscal (LC 101/2000, Art. 48) e jurisprudência consolidada no Acórdão TCU nº 1.540/2014.
+- **Conceito de Subitem Residual (`.99`):** Rubricas de classificação contábil destinadas exclusivamente a despesas eventuais e de pequena relevância que não possuam subitem específico na codificação da STN (como `3.3.90.39.99` - Outros Serviços de Terceiros - Pessoa Jurídica e `3.3.90.30.99` - Outros Materiais de Consumo).
+- **Classificação de Risco e Limiares Fiscais:**
+  - *Normal / Esperado (`normal`):* Taxa de opacidade no desembolso <= 15,00%. Concentração residual legítima para apoio operacional.
+  - *Atenção Orçamentária (`atencao`):* Taxa de opacidade entre 15,01% e 30,00%. Uso elevado que demanda vigilância e melhoria no detalhamento contábil.
+  - *Risco Crítico / Buraco Negro Fiscal (`critico`):* Taxa de opacidade > 30,00%. Concentração abusiva com graves indícios de ocultação de contratos e potencial burla ao fracionamento de licitações.
+- **Desvios Sensíveis Comprovados:** Auditoria forense que cruza empenhos classificados sob `.99` com categorias de gastos sensíveis (como locação de veículos/máquinas, obras, combustíveis e shows), quantificando valores que deveriam ter sido classificados em rubricas próprias.
+- **Top 10 Beneficiários em Subitens Residuais:** Ranking nominal dos maiores credores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria de desvio detectada e amostra descritiva do objeto.
+
+#### Ato 3: Restos a Pagar & Dívida Real (SSOT)
 - **Single Source of Truth (SSOT):** Alinhamento contábil e matemático rigoroso com os números consolidados da visão geral do município.
 - **Dívida Real / Processada (Liquidado Pendente):** Compromissos onde o fornecedor já cumpriu integralmente o contrato e o serviço foi atestado pela fiscalização, restando exclusivamente o desembolso pelo tesouro municipal.
 - **Dívida Não-Processada (Empenhado a Liquidar):** Recursos reservados no orçamento para contratos ou obras em andamento que ainda necessitam de atesto/liquidação.
 - **Série Histórica e Ranking de Credores:** Gráfico de evolução empilhada do passivo por ano de inscrição e ranking dos Top 5 maiores fornecedores aguardando pagamento com a devida segregação (Liquidado vs Empenhado).
 
-#### Ato 3: Diárias e Viagens
+#### Ato 4: Diárias e Viagens
 - **Transparência Responsável:** Apresentação do montante total gasto com diárias no ano, média de valor por afastamento e comparativo interanual, garantindo a fiscalização do gasto sem exposição indevida ou indexação nominal de servidores.
+
 
 ---
 
@@ -121,4 +132,6 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 3. **Estágios da Despesa Pública:** Respeite rigorosamente a precedência contábil (Empenhado >= Liquidado >= Pago), explicando ao cidadão a diferença entre autorização de gasto (empenho), prestação do serviço (liquidação) e pagamento de fato.
 4. **Conceito de Dívida Real:** Sempre que questionado sobre dívidas pendentes de exercícios anteriores, destaque o valor **Liquidado (Dívida Real)**, que representa serviços efetivamente executados sem pagamento, diferenciando-o de empenhos a liquidar.
 5. **Segregação de Mandatos:** Ao tratar de restos a pagar e contratos, esclareça a competência de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
-6. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
+6. **Auditoria de Opacidade Orçamentária (.99):** Ao informar despesas classificadas sob subitens `.99`, esclareça que se tratam de rubricas de exceção. Aponte a taxa de opacidade e enquadre na faixa de risco oficial (<= 15% Normal, 15-30% Atenção, > 30% Risco Crítico), citando a fundamentação na Lei 4.320/64 (Arts. 5º e 15) e jurisprudência do TCU (Acórdão 1.540/2014) caso a concentração seja excessiva.
+7. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
+

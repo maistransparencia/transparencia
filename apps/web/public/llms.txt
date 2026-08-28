@@ -15,10 +15,12 @@ O MaisTransparencia é o portal de transparência e prestação de contas públi
 Para orientar usuários ou buscar informações específicas no portal, utilize os caminhos das rotas públicas por entidade:
 
 - `/porciuncula_prefeitura`: **Visão Geral e Posição Fiscal** — Balanço financeiro da arrecadação, despesas macro com fracionamento oficial (empenhado, liquidado e pago), passivo acumulado de restos a pagar (com indicação do ano da dívida mais antiga e contagem de credores da gestão atual) e saldo financeiro estimado do exercício. *(Nota: a tabela de maiores credores foi transferida e centralizada na rota dedicada `/despesas`).*
-- `/porciuncula_prefeitura/despesas`: **Despesas e Controle de Gastos** — Interface estruturada em 3 atos de fiscalização cidadã:
+- `/porciuncula_prefeitura/despesas`: **Despesas e Controle de Gastos** — Interface estruturada em atos de fiscalização cidadã:
   1. *Saúde Financeira & Comparativo Anual:* Termômetro de desembolso real (empenhado, liquidado, pago, taxa de liquidação e taxa de quitação) com variação percentual interanual (YoY) frente ao exercício anterior.
-  2. *Radar de Gastos Sensíveis:* Monitoramento temático de 6 contas de alta vigilância cidadã (Combustíveis & Frotas, Locação de Máquinas/Veículos, Locação de Imóveis, Eventos/Shows/Festividades, Diárias & Viagens, Obras & Infraestrutura) com alerta de aumento ou economia obtida e montante de Dívida Real acumulada.
-  3. *Restos a Pagar & Dívidas Herdadas (SSOT):* Single Source of Truth do passivo de exercícios anteriores, com fracionamento entre Dívida Real / Processada (liquidado pendente) e Dívida Não-Processada (empenhado a liquidar), série histórica por ano de origem e ranking dos Top 5 fornecedores credores. Inclui também o painel agregado de Diárias & Viagens com médias por afastamento sem indexação nominal de servidores.
+  2. *Radar de Opacidade Contábil & Auditoria de Subitens Residuais (.99):* Monitoramento da proporção do orçamento alocada sob rubricas genéricas residuais (`.99`, como *Outros Serviços PJ* e *Outros Materiais*). Classifica o risco fiscal em três faixas: **Normal** (< 15%), **Atenção** (15% a 30%) e **Risco Crítico** (> 30%, com indícios de burla ao Princípio da Especificação da Lei 4.320/64 e Acórdão TCU 1.540/2014), destacando o montante de desvios comprovados para contas sensíveis e ranking dos maiores beneficiários.
+  3. *Radar de Gastos Sensíveis:* Monitoramento temático de 6 contas de alta vigilância cidadã (Combustíveis & Frotas, Locação de Máquinas/Veículos, Locação de Imóveis, Eventos/Shows/Festividades, Diárias & Viagens, Obras & Infraestrutura) com alerta de aumento ou economia obtida e montante de Dívida Real acumulada.
+  4. *Restos a Pagar & Dívidas Herdadas (SSOT):* Single Source of Truth do passivo de exercícios anteriores, com fracionamento entre Dívida Real / Processada (liquidado pendente) e Dívida Não-Processada (empenhado a liquidar), série histórica por ano de origem e ranking dos Top 5 fornecedores credores. Inclui também o painel agregado de Diárias & Viagens com médias por afastamento sem indexação nominal de servidores.
+
 - `/porciuncula_prefeitura/receitas`: **Receitas, Transferências e Extra-Orçamentárias** — Arrecadação de tributos próprios (IPTU, ISS, ITBI), repasses constitucionais (FPM, ICMS, Fundeb), emendas parlamentares (individuais e transferências especiais via PIX) e movimentações de receitas extra-orçamentárias (retenções em folha, consignações e depósitos judiciais).
 - `/porciuncula_prefeitura/orcamento`: **Orçamento Municipal** — Acompanhamento da Lei Orçamentária Anual (LOA), dotação inicial e atualizada distribuídas por Funções de Governo STN (Saúde, Educação, Urbanismo, Administração, etc.) para análise da destinação dos recursos.
 - `/porciuncula_prefeitura/licitacoes`: **Licitações e Contratos** — Processos licitatórios, dispensas, inexigibilidades, adesões a atas de registro de preços, limites legais de dispensa e contratos de serviços vigentes monitorados por status de execução (`em_execucao`, `concluido`, `inexecutado`) e prazos de vigência.
@@ -50,9 +52,14 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
 5. **Status de Execução Contratual:**
    - Os contratos de serviços são segregados por `statusExecucao`: `em_execucao` (contratos ativos em andamento), `concluido` (contratos com execução orçamentária finalizada) e `inexecutado` (contratos vencidos ou de exercícios anteriores sem liquidação nem pagamento).
 
-6. **Transparência, Cidadania e Fontes:**
+6. **Opacidade Orçamentária e Subitens Residuais (.99):**
+   - Subitens orçamentários terminados em `.99` (ex: *3.3.90.39.99 - Outros Serviços de Terceiros - PJ*) são rubricas de exceção. A concentração excessiva de despesas nessas contas prejudica o controle social e burla o Princípio da Especificação Orçamentária (Lei Federal 4.320/1964, Arts. 5º e 15).
+   - *Limiares Fiscais:* Taxa <= 15% (Normal/Esperado), 15% a 30% (Atenção Orçamentária), > 30% (Risco Crítico / Buraco Negro Fiscal, conforme Acórdão TCU nº 1.540/2014).
+
+7. **Transparência, Cidadania e Fontes:**
    - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos. Formate valores monetários em Reais (R$) e percentuais com duas casas decimais.
 
 ## Arquivo Completo de Dicionário de Dados
+
 
 - Para o detalhamento completo dos campos públicos, conceitos e diretrizes de atendimento ao cidadão por agentes de IA, consulte o arquivo [/llms-full.txt](/llms-full.txt).

@@ -1,4 +1,5 @@
 import { db } from "../client";
+import type { CategoriaGastoSensivel } from "./despesas-metrics";
 
 export interface OpacidadeMetricasExercicioDTO {
   portalSlug: string;
@@ -21,7 +22,9 @@ export interface OpacidadeCredorDTO {
   totalEmpenhos: number;
   totalPago: number;
   pagoDesvioSensivel: number;
-  categoriaPredominante: string;
+  categoriaPredominante:
+    | CategoriaGastoSensivel
+    | "sem_classificacao_especifica";
   amostraObjeto: string;
   ranking: number;
 }
