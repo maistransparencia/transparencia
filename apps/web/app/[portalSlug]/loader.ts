@@ -11,6 +11,7 @@ import {
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
 } from "@transparencia/db";
+import { notFound } from "next/navigation";
 
 export interface PortalRouteSearchParams {
   ano?: string;
@@ -61,18 +62,6 @@ async function resolveEmpresaIds(
 
   const entidades = await getEntidades(portalSlug);
   return entidades.map((entidade) => entidade.id).filter(Boolean);
-}
-
-function requireEmpresaIdsForMetrics(
-  portalSlug: string,
-  empresaIds: string[],
-): string[] {
-  if (empresaIds.length === 0) {
-    throw new Error(
-      `Nenhuma entidade encontrada para o portal ${portalSlug}; chamada de métricas abortada.`,
-    );
-  }
-  return empresaIds;
 }
 
 function summarizeExecucaoMetrics(
@@ -155,10 +144,13 @@ export async function loadVisaoGeralData(
   const context = parsePortalRouteContext(searchParams);
   const { selectedYear, entidadesIds } = context;
 
-  const empresaIds = requireEmpresaIdsForMetrics(
-    tenantSlug,
-    await resolveEmpresaIds(tenantSlug, entidadesIds),
-  );
+  const empresaIds = await resolveEmpresaIds(tenantSlug, entidadesIds);
+  // An unknown slug (for example, a WordPress path from an automated scan)
+  // resolves to no entities. Return the framework 404 instead of aborting the
+  // metrics lookup with a handled exception.
+  if (empresaIds.length === 0) {
+    notFound();
+  }
 
   const [
     portalConfig,
