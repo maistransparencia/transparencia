@@ -54,6 +54,13 @@ function makeRawVisaoGeral(overrides: Record<string, unknown> = {}): RawData {
     folha: {
       percentualFolha: 45.5,
     },
+    lrfLimiteMaximo: 54,
+    pctChefiasEfetivas: 80,
+    contratosServicos: {
+      totalContratosVigentes: 5,
+      totalContratosComPendencia: 1,
+      totalEmpenhado: 500000,
+    },
     ...overrides,
   } as unknown as RawData;
 }
@@ -63,7 +70,7 @@ describe("buildVisaoGeralViewModel - despesasCardData", () => {
     const raw = makeRawVisaoGeral();
     const vm = buildVisaoGeralViewModel(raw);
 
-    expect(vm.despesasCardData.title).toBe("Despesas");
+    expect(vm.despesasCardData.title).toBe("Restos a pagar");
     expect(vm.despesasCardData.totalRestosPagarFormatted).toBeDefined();
     expect(vm.despesasCardData.totalEmpenhadoFormatted).toBeDefined();
     expect(vm.despesasCardData.totalLiquidadoFormatted).toBeDefined();
@@ -101,5 +108,25 @@ describe("buildVisaoGeralViewModel - despesasCardData", () => {
 
     expect(vm.sanitizedCredores).toBeUndefined();
     expect(vm.credoresCols).toBeUndefined();
+  });
+});
+
+describe("buildVisaoGeralViewModel - pessoalCardData", () => {
+  it("monta pessoalCardData com limite LRF dinâmico vindo da constante fiscal", () => {
+    const raw = makeRawVisaoGeral({ lrfLimiteMaximo: 54 });
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.pessoalCardData.title).toBe("Pessoal");
+    expect(vm.pessoalCardData.lrfLimitPercentValue).toBe(54);
+    expect(vm.pessoalCardData.lrfLimitPercentFormatted).toBe("54% LRF");
+    expect(vm.pessoalCardData.receitaFolhaPercentValue).toBe(45.5);
+  });
+
+  it("utiliza fallback para 54 quando lrfLimiteMaximo for nulo", () => {
+    const raw = makeRawVisaoGeral({ lrfLimiteMaximo: null });
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.pessoalCardData.lrfLimitPercentValue).toBe(54);
+    expect(vm.pessoalCardData.lrfLimitPercentFormatted).toBe("54% LRF");
   });
 });

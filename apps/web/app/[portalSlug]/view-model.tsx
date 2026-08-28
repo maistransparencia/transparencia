@@ -127,8 +127,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     : 0;
 
   const despesasCardData = {
-    title: "Despesas",
-    linkText: "Restos a pagar →",
+    title: "Restos a pagar",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/despesas"),
     totalRestosPagarFormatted: fmtCompact(posicao.restosPendentesTotal),
     secondaryTextFormatted:
@@ -173,7 +173,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   const licitacoesCardData = {
     title: "Licitações e Contratos",
-    linkText: "Contratos →",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/licitacoes"),
     items: [
       {
@@ -201,15 +201,17 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         : undefined,
   };
 
+  const lrfLimit = raw.lrfLimiteMaximo ?? 54;
+
   const pessoalCardData = {
     title: "Pessoal",
-    linkText: "Folha →",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/pessoal"),
     receitaFolhaPercentFormatted: fmtPercent(folhaPct),
     receitaFolhaPercentValue: folhaPct,
     subtext: "da receita comprometida com a folha",
-    lrfLimitPercentValue: 54,
-    lrfLimitPercentFormatted: "54% LRF",
+    lrfLimitPercentValue: lrfLimit,
+    lrfLimitPercentFormatted: `${lrfLimit}% LRF`,
     footerText:
       raw.pctChefiasEfetivas !== null
         ? `${raw.pctChefiasEfetivas}% das chefias com servidores efetivos`

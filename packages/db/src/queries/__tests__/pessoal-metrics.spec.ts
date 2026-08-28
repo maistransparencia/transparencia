@@ -5,6 +5,7 @@ import {
   getDistribuicaoProventosMetrics,
   getExecucaoDecimoTerceiroMetrics,
   getFolhaVsServicosMetrics,
+  getLimiteMaximoLrfPessoal,
   getPercentualChefiasEfetivasMetrics,
 } from "../pessoal-metrics";
 
@@ -41,5 +42,8 @@ describe("pessoal-metrics", () => {
 
     const dept = await getDepartmentalPayrollMetrics(PORTAL_SLUG, TEST_YEAR);
     expect(Array.isArray(dept)).toBe(true);
+
+    const limiteLrf = await getLimiteMaximoLrfPessoal(TEST_YEAR);
+    expect(limiteLrf).toBe(54);
   });
 });

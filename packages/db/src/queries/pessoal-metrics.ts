@@ -298,3 +298,24 @@ export async function getDepartmentalPayrollMetrics(
     pago: parseFloat(String(r.total_pago ?? "0")) || 0,
   }));
 }
+
+/**
+ * Retorna o limite máximo da LRF para despesa com pessoal do Poder Executivo para o ano especificado,
+ * consultando a constante fiscal cadastrada (`lrf_limite_maximo_executivo`).
+ */
+export async function getLimiteMaximoLrfPessoal(
+  year: number,
+): Promise<number | null> {
+  if (typeof year !== "number" || Number.isNaN(year)) return null;
+
+  const row = await db
+    .selectFrom("seed_constantes_fiscais")
+    .select("valor_num")
+    .where("dominio", "=", "pessoal")
+    .where("chave", "=", "lrf_limite_maximo_executivo")
+    .where("ano_inicio", "<=", year)
+    .where("ano_fim", ">=", year)
+    .executeTakeFirst();
+
+  return row?.valor_num ? parseFloat(String(row.valor_num)) : null;
+}

@@ -5,6 +5,7 @@ import {
   getFolhaVsServicosMetrics,
   getFontesReceitaMetrics,
   getLicitacaoGapsMetrics,
+  getLimiteMaximoLrfPessoal,
   getPercentualChefiasEfetivasMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
@@ -169,6 +170,7 @@ export async function loadVisaoGeralData(
     folhaData,
     pctChefiasEfetivas,
     contratosServicosVigentes,
+    lrfLimiteMaximo,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -183,6 +185,7 @@ export async function loadVisaoGeralData(
     }),
     getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear, empresaIds),
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
+    getLimiteMaximoLrfPessoal(selectedYear),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -218,6 +221,7 @@ export async function loadVisaoGeralData(
     fonte: fontesMetricas ? mapFontesMetricToLegacy(fontesMetricas) : undefined,
     folha: folhaData[0] || { percentualFolha: 0 },
     pctChefiasEfetivas,
+    lrfLimiteMaximo,
     contratosServicos: {
       totalContratosVigentes: contratosServicosVigentes.length,
       totalContratosComPendencia: contratosServicosVigentes.filter(
