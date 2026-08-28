@@ -32,12 +32,13 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 
 #### Ato 1: Saúde Financeira & Comparativo Anual (YoY)
 - **Termômetro Macro de Execução:** Total empenhado, liquidado e pago do exercício, acompanhado de taxas de liquidação e quitação, com comparação percentual direta em relação ao mesmo período do exercício anterior (YoY).
-- **Radar de Gastos Sensíveis & Controle Fiscal:** Monitoramento sistemático das 5 contas de maior interesse social e risco de conformidade:
+- **Radar de Gastos Sensíveis & Controle Fiscal:** Monitoramento sistemático das 6 contas de maior interesse social e risco de conformidade:
   1. **Combustíveis & Frotas (`combustivel_frota`):** Despesas com abastecimento de veículos públicos, óleo diesel, gasolina e manutenção da frota própria.
   2. **Locação de Máquinas & Veículos (`locacao_maquinas_veiculos`):** Aluguel de veículos leves, vans, ambulâncias terceirizadas, tratores, retroescavadeiras e caminhões-pipa.
-  3. **Eventos, Shows & Festividades (`eventos_festas`):** Contratação de artistas, locação de palcos, iluminação, sonorização e organização de eventos e celebrações locais.
-  4. **Diárias & Viagens (`diarias_viagens`):** Pagamento de diárias a servidores municipais e agentes políticos para cobertura de alimentação, hospedagem e deslocamentos a trabalho.
-  5. **Obras & Infraestrutura (`obras_infraestrutura`):** Aplicação de recursos em investimentos reais de engenharia, construção, reformas prediais, drenagem e pavimentação.
+  3. **Locação de Imóveis (`locacao_imoveis`):** Aluguel de prédios, salas, galpões e terrenos para órgãos públicos e secretarias municipais.
+  4. **Eventos, Shows & Festividades (`eventos_festas`):** Contratação de artistas, locação de palcos, iluminação, sonorização e organização de eventos e celebrações locais.
+  5. **Diárias & Viagens (`diarias_viagens`):** Pagamento de diárias a servidores municipais e agentes políticos para cobertura de alimentação, hospedagem e deslocamentos a trabalho.
+  6. **Obras & Infraestrutura (`obras_infraestrutura`):** Aplicação de recursos em investimentos reais de engenharia, construção, reformas prediais, drenagem e pavimentação.
 - **Métricas do Radar Sensível:**
   - *Total Pago no Ano:* Montante financeiro liquidado e desembolsado.
   - *Comparativo de Tendência:* Variação percentual frente ao ano anterior (sinalizando economia obtida ou aumento de desembolso) ou percentual sobre o total pago no exercício (em anos correntes).

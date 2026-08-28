@@ -2,6 +2,7 @@ import type { CATEGORIAS_GASTOS_SENSIVEIS } from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import {
   AlertCircle,
+  Building2,
   CheckCircle2,
   Fuel,
   Hammer,
@@ -25,6 +26,14 @@ export interface ItemGastoSensivel {
   tendencia: "aumento" | "economia" | "estavel" | "sem_historico";
 }
 
+export type RadarIcon =
+  | "fuel"
+  | "truck"
+  | "building"
+  | "party"
+  | "plane"
+  | "hammer";
+
 export interface RadarGastosSensiveisProps {
   itens: ItemGastoSensivel[];
   anoAtual: number;
@@ -39,7 +48,7 @@ const CATEGORIA_CONFIG: Record<
   {
     titulo: string;
     descricao: string;
-    icone: "fuel" | "truck" | "party" | "plane" | "hammer";
+    icone: RadarIcon;
   }
 > = {
   combustivel_frota: {
@@ -51,6 +60,12 @@ const CATEGORIA_CONFIG: Record<
     titulo: "Locação de Máquinas & Veículos",
     descricao: "Aluguel de automóveis e maquinários pesados de terceiros",
     icone: "truck",
+  },
+  locacao_imoveis: {
+    titulo: "Locação de Imóveis",
+    descricao:
+      "Aluguel de prédios, salas, galpões e terrenos para órgãos públicos",
+    icone: "building",
   },
   eventos_festas: {
     titulo: "Eventos, Shows & Festividades",
@@ -79,14 +94,14 @@ export function RadarGastosSensiveis({
 }: RadarGastosSensiveisProps) {
   if (!itens || itens.length === 0) return null;
 
-  const renderIcon = (
-    icone: "fuel" | "truck" | "party" | "plane" | "hammer",
-  ) => {
+  const renderIcon = (icone: RadarIcon) => {
     switch (icone) {
       case "fuel":
         return <Fuel className="h-5 w-5 text-amber-700" />;
       case "truck":
         return <Truck className="h-5 w-5 text-blue-700" />;
+      case "building":
+        return <Building2 className="h-5 w-5 text-indigo-700" />;
       case "party":
         return <PartyPopper className="h-5 w-5 text-purple-700" />;
       case "plane":
@@ -98,14 +113,14 @@ export function RadarGastosSensiveis({
     }
   };
 
-  const getIconBg = (
-    icone: "fuel" | "truck" | "party" | "plane" | "hammer",
-  ) => {
+  const getIconBg = (icone: RadarIcon) => {
     switch (icone) {
       case "fuel":
         return "bg-amber-50 border-amber-200/70";
       case "truck":
         return "bg-blue-50 border-blue-200/70";
+      case "building":
+        return "bg-indigo-50 border-indigo-200/70";
       case "party":
         return "bg-purple-50 border-purple-200/70";
       case "plane":
@@ -178,9 +193,14 @@ export function RadarGastosSensiveis({
 
                       {!isAumento && !isEconomia && (
                         <span className="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
-                          {item.variacaoPercentual !== null
-                            ? `${item.variacaoPercentual > 0 ? "+" : ""}${item.variacaoPercentual}% vs ${anoAnterior}`
-                            : "Sem histórico"}
+                          {(() => {
+                            if (item.variacaoPercentual === null) {
+                              return "Sem histórico";
+                            }
+                            const sinal =
+                              item.variacaoPercentual > 0 ? "+" : "";
+                            return `${sinal}${item.variacaoPercentual}% vs ${anoAnterior}`;
+                          })()}
                         </span>
                       )}
                     </>
