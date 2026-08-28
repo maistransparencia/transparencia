@@ -30,6 +30,28 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       dividaMaisAntigaAno: 2021,
       topFornecedores: [],
     },
+    opacidadeContabil: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2024,
+      exercicioAtual: {
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2024,
+        totalEmpenhos: 100,
+        empenhosResidual99: 20,
+        empenhosDesvioSensivel99: 5,
+        taxaEmpenhosOpacidadePct: 20.0,
+        totalPago: 100000,
+        pagoResidual99: 20000,
+        pagoDesvioSensivel99: 5000,
+        taxaValorOpacidadePct: 20.0,
+        taxaDesvioSensivelPct: 25.0,
+        classificacaoRisco: "atencao",
+      },
+      historico: [],
+      topCredores: [],
+      limiares: { limiteAtencaoPct: 15, limiteCriticoPct: 30 },
+      basesLegais: [],
+    },
     ...overrides,
   } as unknown as RawData;
 }
@@ -43,5 +65,6 @@ describe("buildDespesasViewModel", () => {
     expect(vm.metricasGerais).toEqual(raw.metricasGerais);
     expect(vm.radarGastosSensiveis).toEqual(raw.radarGastosSensiveis);
     expect(vm.restosResumo).toEqual(raw.restosResumo);
+    expect(vm.opacidadeContabil).toEqual(raw.opacidadeContabil);
   });
 });

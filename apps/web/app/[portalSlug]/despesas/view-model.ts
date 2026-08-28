@@ -30,5 +30,6 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
       dividaMaisAntigaAno: selectedYear,
       topFornecedores: [],
     },
+    opacidadeContabil: raw.opacidadeContabil ?? null,
   };
 }
