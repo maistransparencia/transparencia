@@ -130,9 +130,11 @@ export function TermometroOpacidadeFiscal({
         Acompanhamento da proporção de despesas municipais registradas sob
         subitens genéricos de apoio (como{" "}
         <em>&ldquo;Outros Serviços de Terceiros - PJ&rdquo;</em> e{" "}
-        <em>&ldquo;Outros Materiais&rdquo;</em>). A especificação clara do
-        objeto é recomendada pela <strong>Lei Federal nº 4.320/64</strong> para
-        assegurar a máxima clareza na prestação de contas à sociedade.
+        <em>&ldquo;Outros Materiais&rdquo;</em>). A Lei Federal nº 4.320/64
+        (Arts. 5º e 15) recomenda que as despesas sejam devidamente
+        especificadas; as faixas de {limiares.limiteAtencaoPct}% e{" "}
+        {limiares.limiteCriticoPct}% são parâmetros metodológicos do portal para
+        acompanhamento estatístico da concentração desses gastos.
       </p>
 
       {/* Termômetro Visual com Legendas Alinhadas com os Marcadores */}
@@ -145,8 +147,8 @@ export function TermometroOpacidadeFiscal({
             </span>
           </span>
           <span className="text-slate-500">
-            Parâmetro: até {limiares.limiteAtencaoPct}% esperado · acima de{" "}
-            {limiares.limiteCriticoPct}% elevado
+            Parâmetros do Portal: até {limiares.limiteAtencaoPct}% esperado ·
+            acima de {limiares.limiteCriticoPct}% elevado
           </span>
         </div>
 
@@ -235,7 +237,7 @@ export function TermometroOpacidadeFiscal({
             {risco.statusText}
           </span>
           <span className="text-[11px] text-slate-500">
-            Referência: Lei 4.320/64
+            Parâmetro do Portal (Lei 4.320/64)
           </span>
         </div>
       </div>

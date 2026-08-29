@@ -47,10 +47,12 @@ Todas as constantes inseridas ou revisadas devem conter links para repositórios
   - Ação: Criar os novos registros para o ano vigente em `seed_constantes_fiscais.csv`, ajustando o `ano_fim` da linha anterior.
 - **Alterações de Metodologia STN / LRF:**
   - Caso haja revisão de limites prudenciais ou planos de contas, atualizar o registro correspondente.
-- **Novas Regras de Auditoria Forense / Opacidade:**
-  - Limiares de atenção e criticidade para subitens `.99` e índices de transparência orçamentária.
+- **Parâmetros Analíticos do Portal vs. Limites Legais Diretos:**
+  - *Limites Legais Diretos:* Parâmetros onde o texto normativo fixa alíquotas ou valores em reais expressos (ex: limites de dispensa da Lei 14.133/2021, teto de 54% de pessoal da LRF, piso de 15% da Saúde).
+  - *Parâmetros Metodológicos do Portal:* Benchmarks analíticos calibrados estatisticamente pelo portal com suporte em princípios gerais do direito financeiro (ex: faixas de 15% e 30% de uso de subitens residuais `.99`, fundamentadas no Princípio da Especificação da Lei Federal 4.320/64 Arts. 5º e 15 e Acórdão TCU 1.540/2014).
 
 ---
+
 
 ## 4. Checklist de Atualização
 
