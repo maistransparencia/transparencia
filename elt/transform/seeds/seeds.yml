@@ -67,6 +67,7 @@ seeds:
         valor_txt: text
         descricao: text
         base_legal: text
+        url_base_legal: text
 
 
 

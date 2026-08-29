@@ -128,6 +128,79 @@ export async function seedHistoriaCaprem(
     .execute();
 }
 
+export interface OpacidadeMetricasRow {
+  portalSlug: string;
+  ano: number;
+  totalEmpenhos?: number;
+  empenhosResidual99?: number;
+  empenhosDesvioSensivel99?: number;
+  taxaEmpenhosOpacidadePct?: number;
+  totalPago?: number;
+  pagoResidual99?: number;
+  pagoDesvioSensivel99?: number;
+  taxaValorOpacidadePct?: number;
+  taxaDesvioSensivelPct?: number;
+  classificacaoRisco?: string;
+}
+
+export async function seedOpacidadeMetricas(
+  row: OpacidadeMetricasRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_opacidade_contabil_metricas")
+    .values({
+      opacidade_metricas_id: nextId("om"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      total_empenhos: row.totalEmpenhos ?? 0,
+      empenhos_residual_99: row.empenhosResidual99 ?? 0,
+      empenhos_desvio_sensivel_99: row.empenhosDesvioSensivel99 ?? 0,
+      taxa_empenhos_opacidade_pct: row.taxaEmpenhosOpacidadePct ?? 0,
+      total_pago: row.totalPago ?? 0,
+      pago_residual_99: row.pagoResidual99 ?? 0,
+      pago_desvio_sensivel_99: row.pagoDesvioSensivel99 ?? 0,
+      taxa_valor_opacidade_pct: row.taxaValorOpacidadePct ?? 0,
+      taxa_desvio_sensivel_pct: row.taxaDesvioSensivelPct ?? 0,
+      classificacao_risco: row.classificacaoRisco ?? "normal",
+    })
+    .execute();
+}
+
+export interface OpacidadeCredorRow {
+  portalSlug: string;
+  ano: number;
+  credorCodigo: string;
+  credorNome: string;
+  totalEmpenhos?: number;
+  totalPago?: number;
+  pagoDesvioSensivel?: number;
+  categoriaPredominante?: string;
+  amostraObjeto?: string;
+  ranking?: number;
+}
+
+export async function seedOpacidadeCredor(
+  row: OpacidadeCredorRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_opacidade_contabil_credores")
+    .values({
+      opacidade_credor_id: nextId("oc"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      credor_codigo: row.credorCodigo,
+      credor_nome: row.credorNome,
+      total_empenhos: row.totalEmpenhos ?? 0,
+      total_pago: row.totalPago ?? 0,
+      pago_desvio_sensivel: row.pagoDesvioSensivel ?? 0,
+      categoria_predominante:
+        row.categoriaPredominante ?? "sem_classificacao_especifica",
+      amostra_objeto: row.amostraObjeto ?? "Despesa em subitem residual",
+      ranking: row.ranking ?? 1,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -140,6 +213,14 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_historia_caprem_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_opacidade_contabil_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_opacidade_contabil_credores")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

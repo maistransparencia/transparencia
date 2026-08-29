@@ -4,6 +4,7 @@ import { KPIGrid } from "@/components/kpi-grid";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { SectionHeader } from "@/components/section-header";
+import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
 import { buildDespesasViewModel } from "./view-model";
@@ -51,6 +52,7 @@ export default async function DespesasPage({
     metricasGerais,
     radarGastosSensiveis,
     restosResumo,
+    opacidadeContabil,
   } = viewModel;
 
   return (
@@ -113,6 +115,11 @@ export default async function DespesasPage({
           isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
+
+        {/* Termômetro de Subitens Genéricos (.99) */}
+        {opacidadeContabil && (
+          <TermometroOpacidadeFiscal data={opacidadeContabil} />
+        )}
       </section>
 
       {/* Ato 4: Restos a Pagar & Dívidas Herdadas */}

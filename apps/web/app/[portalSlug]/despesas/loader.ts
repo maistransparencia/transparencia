@@ -9,6 +9,7 @@ interface MetricasDespesas {
 import {
   getAnaliseDespesasMetrics,
   getEntidades,
+  getOpacidadeContabilMetrics,
   getPosicaoFiscalDetalhesMetrics,
   getRadarGastosSensiveisMetrics,
   getRestosAPagarResumoMetrics,
@@ -117,11 +118,13 @@ async function fetchRawDespesasData(
     radarGastosSensiveis,
     restosResumo,
     posicaoDetalhes,
+    opacidadeContabil,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
     getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
     getRestosAPagarResumoMetrics(tenantSlug, selectedYear, empresaIds),
     getPosicaoFiscalDetalhesMetrics(tenantSlug, selectedYear, empresaIds),
+    getOpacidadeContabilMetrics(tenantSlug, selectedYear),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
@@ -149,6 +152,7 @@ async function fetchRawDespesasData(
     metricasGerais,
     radarGastosSensiveis,
     restosResumo: restosResumoEnriquecido,
+    opacidadeContabil,
   };
 }
 
