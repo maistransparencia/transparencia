@@ -1,0 +1,34 @@
+version: 2
+
+seeds:
+  - name: seed_naturezas_despesa_stn
+    description: "Catálogo oficial de naturezas de despesa padronizadas da STN/MCASP para reclassificação orçamentária"
+    config:
+      column_types:
+        natureza_codigo: text
+        natureza_descricao: text
+        elemento_codigo: text
+        categoria_macro: text
+        is_sensivel: boolean
+    columns:
+      - name: natureza_codigo
+        description: "Código canônico da natureza de despesa (Portaria STN/SOF nº 163/2001 e MCASP)"
+        tests:
+          - unique
+          - not_null
+      - name: natureza_descricao
+        description: "Descrição padronizada do subitem da despesa"
+        tests:
+          - not_null
+      - name: elemento_codigo
+        description: "Código de 2 dígitos do elemento de despesa"
+        tests:
+          - not_null
+      - name: categoria_macro
+        description: "Identificador canônico em lowercase snake_case do agrupamento temático"
+        tests:
+          - not_null
+      - name: is_sensivel
+        description: "Flag que indica se pertence a um centro de custo sensível do radar"
+        tests:
+          - not_null

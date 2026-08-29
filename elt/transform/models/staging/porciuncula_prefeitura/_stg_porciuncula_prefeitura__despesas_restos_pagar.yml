@@ -17,6 +17,8 @@ models:
           - not_null
       - name: rap_id
         data_type: text
+      - name: fornecedor_codigo
+        data_type: text
       - name: descricao
         data_type: text
       - name: empenhado

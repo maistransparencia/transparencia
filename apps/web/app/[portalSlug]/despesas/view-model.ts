@@ -4,25 +4,32 @@ import type { loadDespesasData } from "./loader";
 type DespesasRawData = Awaited<ReturnType<typeof loadDespesasData>>;
 
 export function buildDespesasViewModel(raw: DespesasRawData) {
-  const hhiVal = Math.round(raw.concentracao.hhi || 0);
-  const hhiStatusText =
-    hhiVal <= 1500
-      ? "baixa · abaixo de 1.500"
-      : hhiVal <= 2500
-        ? "moderada · abaixo de 2.500"
-        : "alta · acima de 2.500";
+  const selectedYear = raw.context.selectedYear;
+  const previousYear = selectedYear - 1;
 
   return {
-    selectedYear: raw.context.selectedYear,
+    selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
     partialPeriod: getPartialYearPeriod(),
-    metricasGerais: raw.metricasGerais,
-    impactoLocais: raw.impactoLocais,
-    restosResumo: raw.restosResumo,
-    despesasUnidades: raw.despesasUnidades,
-    diariasResumo: raw.diariasResumo,
-    diariasBeneficiarios: raw.diariasBeneficiarios,
-    hhiVal,
-    hhiStatusText,
+    metricasGerais: raw.metricasGerais ?? {
+      empenhado: 0,
+      liquidado: 0,
+      pago: 0,
+      taxaLiquidacao: 0,
+      taxaPagamento: 0,
+    },
+    radarGastosSensiveis: raw.radarGastosSensiveis ?? {
+      itens: [],
+      anoAtual: selectedYear,
+      anoAnterior: previousYear,
+    },
+    restosResumo: raw.restosResumo ?? {
+      totalPendente: 0,
+      totalLiquidadoPendente: 0,
+      fornecedoresAguardando: 0,
+      dividaMaisAntigaAno: selectedYear,
+      topFornecedores: [],
+    },
+    opacidadeContabil: raw.opacidadeContabil ?? null,
   };
 }

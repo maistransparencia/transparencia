@@ -1,0 +1,29 @@
+natureza_codigo,natureza_descricao,elemento_codigo,categoria_macro,is_sensivel
+3.3.71.70.00,Rateio pela Participação em Consórcio Público,70,consorcios_publicos,false
+3.3.90.13.00,Obrigações Patronais,13,previdencia,false
+3.3.90.14.00,Diárias - Civil,14,diarias_viagens,true
+3.3.90.14.01,Diárias no País,14,diarias_viagens,true
+3.3.90.30.01,Combustíveis e Lubrificantes Automotivos,30,combustivel_frota,true
+3.3.90.30.07,Gêneros de Alimentação,30,generos_alimenticios,false
+3.3.90.30.39,Material para Manutenção de Veículos,30,manutencao_veiculos,false
+3.3.90.33.00,Passagens e Despesas com Locomoção,33,diarias_viagens,true
+3.3.90.33.01,Passagens no País,33,diarias_viagens,true
+3.3.90.35.00,Serviços de Consultoria,35,consultoria_tecnica,false
+3.3.90.36.02,Diárias a Colaboradores Eventuais no País,36,diarias_viagens,true
+3.3.90.36.15,Locação de Imóveis,36,locacao_imoveis,true
+3.3.90.36.16,Locação de Bens Móveis,36,locacao_maquinas_veiculos,true
+3.3.90.36.19,Locação de Máquinas e Equipamentos,36,locacao_maquinas_veiculos,true
+3.3.90.37.00,Locação de Mão-de-Obra,37,terceirizacao_mao_obra,false
+3.3.90.39.05,Serviços Técnicos Profissionais,39,consultoria_tecnica,false
+3.3.90.39.10,Locação de Imóveis,39,locacao_imoveis,true
+3.3.90.39.12,Locação de Máquinas e Equipamentos,39,locacao_maquinas_veiculos,true
+3.3.90.39.13,Locação de Veículos,39,locacao_maquinas_veiculos,true
+3.3.90.39.14,Locação de Bens Móveis e Outras Naturezas e Intangíveis,39,locacao_imoveis,true
+3.3.90.39.21,Serviços de Áudio Vídeo e Foto,39,eventos_festas,true
+3.3.90.39.22,Exposições Congressos e Conferências,39,eventos_festas,true
+3.3.90.39.23,Festividades e Homenagens,39,eventos_festas,true
+3.3.90.39.44,Serviços de Limpeza Urbana e Manejo de Resíduos Sólidos,39,limpeza_residuos,false
+3.3.90.39.50,Serviços Médico-Hospitalares Odontológicos e Laboratoriais,39,plantoes_medicos,false
+3.3.90.91.00,Sentenças Judiciais,91,bloqueios_sentencas,false
+4.4.90.51.00,Obras e Instalações,51,obras_infraestrutura,true
+4.4.90.51.91,Obras em Andamento,51,obras_infraestrutura,true

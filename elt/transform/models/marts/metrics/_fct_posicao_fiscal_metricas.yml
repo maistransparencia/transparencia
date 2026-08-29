@@ -52,11 +52,18 @@ models:
         description: "Total de despesas orçamentárias pagas no ano"
         tests:
           - not_null
+      - name: restos_liquidados_no_ano
+        data_type: numeric
+        constraints:
+          - type: not_null
+        description: "Restos a pagar liquidados no ano de referência"
+        tests:
+          - not_null
       - name: restos_pagos_no_ano
         data_type: numeric
         constraints:
           - type: not_null
-        description: "Restos a pagar liquidados e pagos no ano de referência"
+        description: "Restos a pagar pagos no ano de referência"
         tests:
           - not_null
       - name: restos_pendentes_adm_anterior

@@ -20,6 +20,7 @@ with despesas as (
         subfuncao_nome,
         elemento,
         natureza_despesa,
+        natureza_despesa_codigo,
         categoria,
         grupo_natureza,
         modalidade,
@@ -62,8 +63,12 @@ with despesas as (
         codigo,
         produ,
         vingrupo_vincodigo,
-        vincodigonome
-    from {{ ref('int_despesas_consolidadas') }}
+        vincodigonome,
+        natureza_despesa_codigo_sugerido,
+        natureza_despesa_nome_sugerido,
+        categoria_objeto_sugerida,
+        categoria_gasto_sensivel
+    from {{ ref('int_despesas_reclassificadas') }}
 ),
 
 -- Agrega anulações por empenho pai para calcular empenho líquido
@@ -73,7 +78,7 @@ anulacoes as (
         ano,
         empresa_id,
         pk_empenho_pai,
-        sum(coalesce(empenhado, 0)) as total_anulado
+        sum(coalesce(empenhado, 0.00)) as total_anulado
     from despesas
     where tipo_empenho = 'AN'
     group by portal_slug, ano, empresa_id, pk_empenho_pai
@@ -96,6 +101,7 @@ empenhos as (
         d.subfuncao_nome,
         d.elemento,
         d.natureza_despesa,
+        d.natureza_despesa_codigo,
         d.categoria,
         d.grupo_natureza,
         d.modalidade,
@@ -139,8 +145,12 @@ empenhos as (
         d.produ,
         d.vingrupo_vincodigo,
         d.vincodigonome,
-        coalesce(a.total_anulado, 0) as valor_anulacoes,
-        coalesce(d.empenhado, 0) + coalesce(a.total_anulado, 0) as empenhado_liquido
+        d.natureza_despesa_codigo_sugerido,
+        d.natureza_despesa_nome_sugerido,
+        d.categoria_objeto_sugerida,
+        d.categoria_gasto_sensivel,
+        coalesce(a.total_anulado, 0.00) as valor_anulacoes,
+        coalesce(d.empenhado, 0.00) + coalesce(a.total_anulado, 0.00) as empenhado_liquido
     from despesas d
     left join anulacoes a
         on d.portal_slug = a.portal_slug
@@ -187,6 +197,11 @@ select
     licitacao_modalidade,
     fonte_recurso_desc,
     coalesce(produ, descricao) as descricao,
+    natureza_despesa_codigo,
+    natureza_despesa_codigo_sugerido,
+    natureza_despesa_nome_sugerido,
+    categoria_objeto_sugerida,
+    categoria_gasto_sensivel,
 
     -- Valores financeiros (Lei de Responsabilidade Fiscal: pago ≤ liquidado ≤ empenhado)
     empenhado,

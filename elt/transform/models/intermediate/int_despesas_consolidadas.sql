@@ -19,6 +19,7 @@ with porciuncula_exercicio as (
         subfuncao_nome,
         elemento,
         natureza_despesa,
+        natureza_despesa_codigo,
         categoria,
         grupo_natureza,
         modalidade,
@@ -65,14 +66,34 @@ with porciuncula_exercicio as (
     from {{ ref('stg_porciuncula_prefeitura__despesas_gerais') }}
 ),
 
-porciuncula_fornecedores_mapa as (
-    select distinct on ({{ target.schema }}.unaccent(lower(trim(fornecedor_nome))))
+porciuncula_fornecedores_perfil_codigo as (
+    select distinct on (codif)
+        codif as fornecedor_codigo,
         {{ target.schema }}.unaccent(lower(trim(fornecedor_nome))) as fornecedor_nome_clean,
         fornecedor_nome,
-        fornecedor_cpf_cnpj
+        fornecedor_cpf_cnpj,
+        natureza_despesa_codigo,
+        elemento,
+        funcao,
+        subfuncao
     from {{ ref('stg_porciuncula_prefeitura__despesas_gerais') }}
-    where fornecedor_nome is not null and fornecedor_cpf_cnpj is not null
-    order by {{ target.schema }}.unaccent(lower(trim(fornecedor_nome))), ano desc
+    where codif is not null
+    order by codif, ano desc, data_empenho desc
+),
+
+porciuncula_fornecedores_perfil_nome as (
+    select distinct on ({{ target.schema }}.unaccent(lower(trim(fornecedor_nome))))
+        codif as fornecedor_codigo,
+        {{ target.schema }}.unaccent(lower(trim(fornecedor_nome))) as fornecedor_nome_clean,
+        fornecedor_nome,
+        fornecedor_cpf_cnpj,
+        natureza_despesa_codigo,
+        elemento,
+        funcao,
+        subfuncao
+    from {{ ref('stg_porciuncula_prefeitura__despesas_gerais') }}
+    where fornecedor_nome is not null
+    order by {{ target.schema }}.unaccent(lower(trim(fornecedor_nome))), ano desc, data_empenho desc
 ),
 
 porciuncula_rap as (
@@ -86,12 +107,13 @@ porciuncula_rap as (
         null as pk_empenho_pai,
         null as tipo_empenho,
         null as orgao_codigo,
-        null as funcao,
+        coalesce(fc.funcao, fn.funcao) as funcao,
         null as funcao_nome,
-        null as subfuncao,
+        coalesce(fc.subfuncao, fn.subfuncao) as subfuncao,
         null as subfuncao_nome,
-        null as elemento,
+        coalesce(fc.elemento, fn.elemento) as elemento,
         null as natureza_despesa,
+        coalesce(fc.natureza_despesa_codigo, fn.natureza_despesa_codigo) as natureza_despesa_codigo,
         null as categoria,
         null as grupo_natureza,
         null as modalidade,
@@ -100,8 +122,8 @@ porciuncula_rap as (
         null as proj_atividade,
         null as projeto_atividade_nome,
         null as mes,
-        coalesce(fm.fornecedor_nome, nullif(trim(r.descricao), '')) as fornecedor_nome,
-        fm.fornecedor_cpf_cnpj as fornecedor_cpf_cnpj,
+        coalesce(fc.fornecedor_nome, fn.fornecedor_nome, nullif(trim(r.descricao), '')) as fornecedor_nome,
+        coalesce(fc.fornecedor_cpf_cnpj, fn.fornecedor_cpf_cnpj) as fornecedor_cpf_cnpj,
         nullif(trim(r.descricao), '') as fornecedor_raw,
         null as licitacao_numero,
         null as licitacao_modalidade,
@@ -130,14 +152,16 @@ porciuncula_rap as (
         null as codlo,
         null as cfpro,
         null as ficha,
-        null as codif,
+        coalesce(r.fornecedor_codigo, fc.fornecedor_codigo) as codif,
         null as codigo,
         null as produ,
         null as vingrupo_vincodigo,
         null as vincodigonome
     from {{ ref('stg_porciuncula_prefeitura__despesas_restos_pagar') }} r
-    left join porciuncula_fornecedores_mapa fm
-        on {{ target.schema }}.unaccent(lower(trim(r.descricao))) = fm.fornecedor_nome_clean
+    left join porciuncula_fornecedores_perfil_codigo fc
+        on r.fornecedor_codigo = fc.fornecedor_codigo
+    left join porciuncula_fornecedores_perfil_nome fn
+        on {{ target.schema }}.unaccent(lower(trim(r.descricao))) = fn.fornecedor_nome_clean
 )
 
 select
@@ -156,6 +180,7 @@ select
     subfuncao_nome,
     elemento,
     natureza_despesa,
+    natureza_despesa_codigo,
     categoria,
     grupo_natureza,
     modalidade,
@@ -217,6 +242,7 @@ select
     subfuncao_nome,
     elemento,
     natureza_despesa,
+    natureza_despesa_codigo,
     categoria,
     grupo_natureza,
     modalidade,
