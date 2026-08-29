@@ -172,20 +172,29 @@ export function TermometroOpacidadeFiscal({
           />
         </div>
 
-        {/* Legendas com Posicionamento Absoluto Exato */}
+        {/* Legendas com Posicionamento Absoluto Exato e Responsivo */}
         <div className="relative h-4 text-[11px] text-slate-500">
-          <span className="absolute left-0">0% (Mínimo)</span>
+          <span className="absolute left-0">
+            <span className="hidden sm:inline">0% (Mínimo)</span>
+            <span className="sm:hidden">0%</span>
+          </span>
           <span
             className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-amber-700"
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
           >
-            Atenção ({limiares.limiteAtencaoPct}%)
+            <span className="hidden sm:inline">
+              Atenção ({limiares.limiteAtencaoPct}%)
+            </span>
+            <span className="sm:hidden">{limiares.limiteAtencaoPct}%</span>
           </span>
           <span
             className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-rose-700"
             style={{ left: `${limiares.limiteCriticoPct}%` }}
           >
-            Elevado (&gt;{limiares.limiteCriticoPct}%)
+            <span className="hidden sm:inline">
+              Elevado (&gt;{limiares.limiteCriticoPct}%)
+            </span>
+            <span className="sm:hidden">&gt;{limiares.limiteCriticoPct}%</span>
           </span>
           <span className="absolute right-0">100%</span>
         </div>

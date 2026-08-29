@@ -83,6 +83,7 @@ export async function getOpacidadeContabilMetrics(
     db
       .selectFrom("fct_opacidade_contabil_credores")
       .select([
+        "ano",
         "credor_codigo",
         "credor_nome",
         "total_empenhos",
@@ -93,7 +94,6 @@ export async function getOpacidadeContabilMetrics(
         "ranking",
       ])
       .where("portal_slug", "=", portalSlug)
-      .where("ano", "=", ano)
       .orderBy("ranking", "asc")
       .execute(),
 
@@ -135,17 +135,19 @@ export async function getOpacidadeContabilMetrics(
   const exercicioAtual =
     historico.find((h) => h.ano === ano) ?? historico[historico.length - 1];
 
-  const topCredores: OpacidadeCredorDTO[] = credoresRows.map((c) => ({
-    credorCodigo: c.credor_codigo,
-    credorNome: c.credor_nome,
-    totalEmpenhos: Number(c.total_empenhos ?? 0),
-    totalPago: Number(c.total_pago ?? 0),
-    pagoDesvioSensivel: Number(c.pago_desvio_sensivel ?? 0),
-    categoriaPredominante:
-      c.categoria_predominante ?? "sem_classificacao_especifica",
-    amostraObjeto: c.amostra_objeto,
-    ranking: Number(c.ranking),
-  }));
+  const topCredores: OpacidadeCredorDTO[] = credoresRows
+    .filter((c) => Number(c.ano) === exercicioAtual.ano)
+    .map((c) => ({
+      credorCodigo: c.credor_codigo,
+      credorNome: c.credor_nome,
+      totalEmpenhos: Number(c.total_empenhos ?? 0),
+      totalPago: Number(c.total_pago ?? 0),
+      pagoDesvioSensivel: Number(c.pago_desvio_sensivel ?? 0),
+      categoriaPredominante:
+        c.categoria_predominante ?? "sem_classificacao_especifica",
+      amostraObjeto: c.amostra_objeto,
+      ranking: Number(c.ranking),
+    }));
 
   const limiteAtencaoConst = constantesRows.find(
     (c) => c.chave === "opacidade_limite_atencao_pct",

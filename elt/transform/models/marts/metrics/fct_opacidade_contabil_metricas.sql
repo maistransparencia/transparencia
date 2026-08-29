@@ -30,7 +30,7 @@ opacidade_agregada as (
         sum(is_desvio_sensivel)::integer as empenhos_desvio_sensivel_99,
         case
             when count(*) > 0
-            then round((sum(is_residual_99)::numeric / count(*) * 100.0), 2)
+            then least(100.00, round((sum(is_residual_99)::numeric / count(*) * 100.0), 2))
             else 0.00
         end as taxa_empenhos_opacidade_pct,
         sum(pago)::numeric(15, 2) as total_pago,
@@ -38,12 +38,12 @@ opacidade_agregada as (
         sum(case when is_desvio_sensivel = 1 then pago else 0 end)::numeric(15, 2) as pago_desvio_sensivel_99,
         case
             when sum(pago) > 0
-            then round((sum(case when is_residual_99 = 1 then pago else 0 end)::numeric / sum(pago) * 100.0), 2)
+            then least(100.00, round((sum(case when is_residual_99 = 1 then pago else 0 end)::numeric / sum(pago) * 100.0), 2))
             else 0.00
         end as taxa_valor_opacidade_pct,
         case
             when sum(case when is_residual_99 = 1 then pago else 0 end) > 0
-            then round((sum(case when is_desvio_sensivel = 1 then pago else 0 end)::numeric / sum(case when is_residual_99 = 1 then pago else 0 end) * 100.0), 2)
+            then least(100.00, round((sum(case when is_desvio_sensivel = 1 then pago else 0 end)::numeric / sum(case when is_residual_99 = 1 then pago else 0 end) * 100.0), 2))
             else 0.00
         end as taxa_desvio_sensivel_pct
     from despesas_base
