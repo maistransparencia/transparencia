@@ -44,15 +44,16 @@ Esta seção detalha a execução orçamentária e financeira do município atra
   - *Comparativo de Tendência:* Variação percentual frente ao ano anterior (sinalizando economia obtida ou aumento de desembolso) ou percentual sobre o total pago no exercício (em anos correntes).
   - *Dívida Real Acumulada:* Montante liquidado dessas contas que ainda está pendente de quitação.
 
-#### Ato 2: Radar de Opacidade Orçamentária & Subitens Residuais (.99)
-- **Fundamentação Legal:** Princípio da Especificação Orçamentária (Lei Federal nº 4.320/1964, Arts. 5º e 15), Lei de Responsabilidade Fiscal (LC 101/2000, Art. 48) e jurisprudência consolidada no Acórdão TCU nº 1.540/2014.
-- **Conceito de Subitem Residual (`.99`):** Rubricas de classificação contábil destinadas exclusivamente a despesas eventuais e de pequena relevância que não possuam subitem específico na codificação da STN (como `3.3.90.39.99` - Outros Serviços de Terceiros - Pessoa Jurídica e `3.3.90.30.99` - Outros Materiais de Consumo).
-- **Classificação de Risco e Limiares Fiscais:**
-  - *Normal / Esperado (`normal`):* Taxa de opacidade no desembolso <= 15,00%. Concentração residual legítima para apoio operacional.
-  - *Atenção Orçamentária (`atencao`):* Taxa de opacidade entre 15,01% e 30,00%. Uso elevado que demanda vigilância e melhoria no detalhamento contábil.
-  - *Risco Crítico / Buraco Negro Fiscal (`critico`):* Taxa de opacidade > 30,00%. Concentração abusiva com graves indícios de ocultação de contratos e potencial burla ao fracionamento de licitações.
-- **Desvios Sensíveis Comprovados:** Auditoria forense que cruza empenhos classificados sob `.99` com categorias de gastos sensíveis (como locação de veículos/máquinas, obras, combustíveis e shows), quantificando valores que deveriam ter sido classificados em rubricas próprias.
-- **Top 10 Beneficiários em Subitens Residuais:** Ranking nominal dos maiores credores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria de desvio detectada e amostra descritiva do objeto.
+#### Ato 2: Monitoramento de Gastos Genéricos (Subitens .99)
+- **Referência Normativa:** Princípio da Especificação Orçamentária (Lei Federal nº 4.320/1964, Arts. 5º e 15) e orientações técnicas de transparência pública.
+- **Conceito de Subitem Genérico (`.99`):** Rubricas orçamentárias de suporte destinadas a pequenas despesas que não possuam subitem específico na codificação da STN (como `3.3.90.39.99` - Outros Serviços de Terceiros - Pessoa Jurídica e `3.3.90.30.99` - Outros Materiais de Consumo).
+- **Faixas de Concentração:**
+  - *Uso Residual Esperado (`normal`):* Taxa de uso no desembolso <= 15,00%. Proporção compatível com a rotina administrativa.
+  - *Uso Moderado (`atencao`):* Taxa de uso entre 15,01% e 30,00%. Indica a oportunidade de maior detalhamento contábil das despesas.
+  - *Concentração Elevada (`critico`):* Taxa de uso > 30,00%. Elevada concentração de recursos sob códigos genéricos, recomendando-se a especificação individualizada dos contratos.
+- **Gastos com Categoria Identificada:** Identificação de empenhos em `.99` cujo texto do objeto menciona categorias já acompanhadas no portal (como locação de veículos/máquinas, obras, combustíveis e eventos), oferecendo clareza sobre a destinação real dos recursos.
+- **Maiores Fornecedores em Subitens Genéricos:** Lista dos principais fornecedores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria sugerida pelo objeto e descrição do serviço contratado.
+
 
 #### Ato 3: Restos a Pagar & Dívida Real (SSOT)
 - **Single Source of Truth (SSOT):** Alinhamento contábil e matemático rigoroso com os números consolidados da visão geral do município.
@@ -132,6 +133,7 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 3. **Estágios da Despesa Pública:** Respeite rigorosamente a precedência contábil (Empenhado >= Liquidado >= Pago), explicando ao cidadão a diferença entre autorização de gasto (empenho), prestação do serviço (liquidação) e pagamento de fato.
 4. **Conceito de Dívida Real:** Sempre que questionado sobre dívidas pendentes de exercícios anteriores, destaque o valor **Liquidado (Dívida Real)**, que representa serviços efetivamente executados sem pagamento, diferenciando-o de empenhos a liquidar.
 5. **Segregação de Mandatos:** Ao tratar de restos a pagar e contratos, esclareça a competência de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
-6. **Auditoria de Opacidade Orçamentária (.99):** Ao informar despesas classificadas sob subitens `.99`, esclareça que se tratam de rubricas de exceção. Aponte a taxa de opacidade e enquadre na faixa de risco oficial (<= 15% Normal, 15-30% Atenção, > 30% Risco Crítico), citando a fundamentação na Lei 4.320/64 (Arts. 5º e 15) e jurisprudência do TCU (Acórdão 1.540/2014) caso a concentração seja excessiva.
+6. **Gastos sob Subitens Genéricos (.99):** Ao informar despesas classificadas sob subitens `.99` (como Outros Serviços PJ ou Outros Materiais), esclareça que são rubricas de apoio operacional. Aponte a taxa de concentração e enquadre na faixa de uso informativa (<= 15% Uso Residual Esperado, 15-30% Uso Moderado, > 30% Concentração Elevada), citando a recomendação de especificação da Lei Federal nº 4.320/64 (Arts. 5º e 15) como referência de boas práticas de transparência.
 7. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
+
 

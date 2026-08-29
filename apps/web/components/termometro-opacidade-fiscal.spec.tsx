@@ -87,31 +87,34 @@ describe("TermometroOpacidadeFiscal Component", () => {
     ],
   };
 
-  it("renderiza o termômetro de opacidade com badge de risco crítico e percentuais", () => {
+  it("renderiza o termômetro de opacidade com badge de concentração elevada e percentuais", () => {
+    render(<TermometroOpacidadeFiscal data={sampleData} />);
+
+    expect(
+      screen.getByText("Monitoramento de Gastos Genéricos (Subitens .99)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Concentração Elevada em .99")).toBeInTheDocument();
+    expect(screen.getByText("56.40%")).toBeInTheDocument();
+    expect(
+      screen.getByText("Referência: Lei 4.320/1964 Arts. 5º e 15"),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza a tabela de top credores em .99 com categorias sugeridas pelo objeto", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
       screen.getByText(
-        "Radar de Opacidade Contábil & Subitens Residuais (.99)",
+        "Maiores Fornecedores em Subitens Genéricos (.99) (Top 2)",
       ),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Risco Crítico de Opacidade")).toBeInTheDocument();
-    expect(screen.getByText("56.40%")).toBeInTheDocument();
-    expect(
-      screen.getByText("Base Legal: Lei 4.320/1964 Arts. 5º e 15"),
-    ).toBeInTheDocument();
-  });
-
-  it("renderiza a tabela de top credores em .99 com desvios detectados", () => {
-    render(<TermometroOpacidadeFiscal data={sampleData} />);
-
-    expect(
-      screen.getByText("Top 2 Beneficiários em Subitens Residuais (.99)"),
     ).toBeInTheDocument();
     expect(screen.getByText("CODESP CONSORCIO DE SAUDE")).toBeInTheDocument();
     expect(screen.getByText("COOPERATIVA DE CATADORES")).toBeInTheDocument();
     expect(
       screen.getByText("Locação de Máquinas & Frotas"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Classificação Sugerida pelo Objeto"),
     ).toBeInTheDocument();
   });
 

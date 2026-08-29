@@ -108,11 +108,6 @@ export default async function DespesasPage({
           }
         />
 
-        {/* Termômetro de Opacidade Contábil (.99) */}
-        {opacidadeContabil && (
-          <TermometroOpacidadeFiscal data={opacidadeContabil} />
-        )}
-
         <RadarGastosSensiveis
           itens={radarGastosSensiveis?.itens ?? []}
           anoAtual={radarGastosSensiveis?.anoAtual ?? selectedYear}
@@ -120,6 +115,11 @@ export default async function DespesasPage({
           isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
+
+        {/* Termômetro de Subitens Genéricos (.99) */}
+        {opacidadeContabil && (
+          <TermometroOpacidadeFiscal data={opacidadeContabil} />
+        )}
       </section>
 
       {/* Ato 4: Restos a Pagar & Dívidas Herdadas */}
