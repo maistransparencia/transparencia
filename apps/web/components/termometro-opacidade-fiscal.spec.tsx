@@ -118,6 +118,39 @@ describe("TermometroOpacidadeFiscal Component", () => {
     ).toBeInTheDocument();
   });
 
+  it("renderiza corretamente as novas categorias sugeridas na gaveta de credores", () => {
+    const dataComNovasCategorias: OpacidadeContabilMetricsDTO = {
+      ...sampleData,
+      topCredores: [
+        {
+          credorCodigo: "11.111.111/0001-11",
+          credorNome: "CODESP CONSORCIO DE SAUDE",
+          totalEmpenhos: 10,
+          totalPago: 50000,
+          pagoDesvioSensivel: 50000,
+          categoriaPredominante: "consorcios_publicos",
+          amostraObjeto: "RATEIO DE DESPESAS DE SAUDE",
+          ranking: 1,
+        },
+        {
+          credorCodigo: "22.222.222/0001-22",
+          credorNome: "COOPERATIVA LIMPEZA",
+          totalEmpenhos: 5,
+          totalPago: 20000,
+          pagoDesvioSensivel: 20000,
+          categoriaPredominante: "limpeza_residuos",
+          amostraObjeto: "COLETA DE LIXO E CACAMBAS",
+          ranking: 2,
+        },
+      ],
+    };
+
+    render(<TermometroOpacidadeFiscal data={dataComNovasCategorias} />);
+
+    expect(screen.getByText("Consórcios de Saúde")).toBeInTheDocument();
+    expect(screen.getByText("Limpeza Urbana & Resíduos")).toBeInTheDocument();
+  });
+
   it("retorna null se os dados forem nulos", () => {
     const { container } = render(<TermometroOpacidadeFiscal data={null} />);
     expect(container).toBeEmptyDOMElement();

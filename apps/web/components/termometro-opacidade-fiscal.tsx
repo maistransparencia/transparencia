@@ -53,6 +53,13 @@ function getRiscoConfig(
 function formatCategoriaSensivel(
   cat: OpacidadeCredorDTO["categoriaPredominante"],
 ): string {
+  if (cat === "consorcios_publicos") return "Consórcios de Saúde";
+  if (cat === "limpeza_residuos") return "Limpeza Urbana & Resíduos";
+  if (cat === "plantoes_medicos") return "Plantões Médicos";
+  if (cat === "bloqueios_sentencas") return "Bloqueios & Sentenças";
+  if (cat === "terceirizacao_mao_obra") return "Mão de Obra Terceirizada";
+  if (cat === "previdencia") return "Previdência";
+  if (cat === "consultoria_tecnica") return "Consultoria Técnica";
   if (cat === "locacao_maquinas_veiculos")
     return "Locação de Máquinas & Frotas";
   if (cat === "eventos_festas") return "Eventos & Festividades";

@@ -50,8 +50,7 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Faixas de Concentração:**
   - *Uso Residual Esperado (`normal`):* Taxa de uso no desembolso <= 15,00%. Proporção compatível com a rotina administrativa.
   - *Uso Moderado (`atencao`):* Taxa de uso entre 15,01% e 30,00%. Indica a oportunidade de maior detalhamento contábil das despesas.
-  - *Concentração Elevada (`critico`):* Taxa de uso > 30,00%. Elevada concentração de recursos sob códigos genéricos, recomendando-se a especificação individualizada dos contratos.
-- **Gastos com Categoria Identificada:** Identificação de empenhos em `.99` cujo texto do objeto menciona categorias já acompanhadas no portal (como locação de veículos/máquinas, obras, combustíveis e eventos), oferecendo clareza sobre a destinação real dos recursos.
+- **Gastos com Categoria Sugerida pelo Objeto:** Inferência orçamentária fundamentada no catálogo oficial da Portaria STN/SOF nº 163/2001 e MCASP para despesas lançadas em subitens residuais (`.99`), identificando a destinação real do gasto a partir da descrição do objeto e perfil do fornecedor (ex: Consórcios Públicos/Saúde, Limpeza Urbana & Resíduos, Plantões Médicos, Bloqueios & Sentenças Judiciais, Terceirização de Mão de Obra, Previdência, Consultorias Técnicas, Locação de Máquinas/Veículos, Locação de Imóveis, Combustíveis, Eventos, Diárias e Obras).
 - **Maiores Fornecedores em Subitens Genéricos:** Lista dos principais fornecedores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria sugerida pelo objeto e descrição do serviço contratado.
 
 
