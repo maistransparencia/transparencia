@@ -6,7 +6,9 @@ with despesas_99 as (
         ano,
         coalesce(fornecedor_cpf_cnpj, '00') as credor_codigo,
         coalesce(fornecedor_nome, 'OUTROS') as credor_nome,
+        categoria_objeto_sugerida,
         categoria_gasto_sensivel,
+        natureza_despesa_codigo_sugerido,
         {{ target.schema }}.unaccent(trim(coalesce(descricao, ''))) as descricao_sanitizada,
         coalesce(pago, 0) as pago
     from {{ ref('fct_despesas') }}
@@ -22,8 +24,12 @@ credores_agregados as (
         credor_nome,
         count(*)::integer as total_empenhos,
         sum(pago)::numeric(15, 2) as total_pago,
-        sum(case when categoria_gasto_sensivel is not null then pago else 0 end)::numeric(15, 2) as pago_desvio_sensivel,
-        coalesce(max(nullif(categoria_gasto_sensivel, '')), 'sem_classificacao_especifica') as categoria_predominante,
+        sum(case when coalesce(categoria_objeto_sugerida, categoria_gasto_sensivel) is not null then pago else 0 end)::numeric(15, 2) as pago_desvio_sensivel,
+        coalesce(
+            max(nullif(categoria_objeto_sugerida, '')),
+            max(nullif(categoria_gasto_sensivel, '')),
+            'sem_classificacao_especifica'
+        ) as categoria_predominante,
         max(nullif(descricao_sanitizada, '')) as amostra_objeto
     from despesas_99
     group by

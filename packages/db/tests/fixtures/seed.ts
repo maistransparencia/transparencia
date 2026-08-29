@@ -201,6 +201,40 @@ export async function seedOpacidadeCredor(
     .execute();
 }
 
+export interface OpacidadeElementoRow {
+  portalSlug: string;
+  ano: number;
+  elementoCodigo: string;
+  elementoDescricao: string;
+  categoriaMacro?: string;
+  tipoResidual?: "evitavel" | "estrutural";
+  totalEmpenhos?: number;
+  totalPago?: number;
+  percentualDoResidual99?: number;
+  ranking?: number;
+}
+
+export async function seedOpacidadeElemento(
+  row: OpacidadeElementoRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_opacidade_contabil_elementos")
+    .values({
+      opacidade_elemento_id: nextId("oe"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      elemento_codigo: row.elementoCodigo,
+      elemento_descricao: row.elementoDescricao,
+      categoria_macro: row.categoriaMacro ?? "Serviços de Terceiros",
+      tipo_residual: row.tipoResidual ?? "evitavel",
+      total_empenhos: row.totalEmpenhos ?? 0,
+      total_pago: row.totalPago ?? 0,
+      percentual_do_residual_99: row.percentualDoResidual99 ?? 0,
+      ranking: row.ranking ?? 1,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -221,6 +255,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_opacidade_contabil_credores")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_opacidade_contabil_elementos")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

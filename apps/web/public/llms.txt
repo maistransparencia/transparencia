@@ -18,7 +18,7 @@ Para orientar usuários ou buscar informações específicas no portal, utilize 
 - `/porciuncula_prefeitura/despesas`: **Despesas e Controle de Gastos** — Interface estruturada em atos de fiscalização cidadã:
   1. *Saúde Financeira & Comparativo Anual:* Termômetro de desembolso real (empenhado, liquidado, pago, taxa de liquidação e taxa de quitação) com variação percentual interanual (YoY) frente ao exercício anterior.
   2. *Radar de Gastos Sensíveis:* Monitoramento temático de 6 contas de alta vigilância cidadã (Combustíveis & Frotas, Locação de Máquinas/Veículos, Locação de Imóveis, Eventos/Shows/Festividades, Diárias & Viagens, Obras & Infraestrutura) com alerta de aumento ou economia obtida e montante de Dívida Real acumulada.
-  3. *Monitoramento de Gastos Genéricos (Subitens .99):* Acompanhamento da proporção do orçamento alocada sob rubricas genéricas residuais (`.99`, como *Outros Serviços PJ* e *Outros Materiais*). Classifica o uso em três faixas informativas: **Uso Esperado** (< 15%), **Uso Moderado** (15% a 30%) e **Concentração Elevada** (> 30%, à luz da recomendação de detalhamento da Lei Federal nº 4.320/64), identificando o montante de despesas com categorias específicas detectadas no objeto e lista dos maiores fornecedores.
+  3. *Monitoramento de Gastos Genéricos (Subitens .99):* Acompanhamento da proporção do orçamento alocada sob rubricas genéricas residuais (`.99`, como *Outros Serviços PJ* e *Outros Materiais*). Classifica o uso em três faixas metodológicas: **Esperado** (< 15%), **Atenção** (15% a 30%) e **Elevado** (> 30%, à luz do princípio da especificação da Lei Federal nº 4.320/64). Apresenta a quebra por Elemento Pai (ex: *39.99 Serviços PJ*, *36.99 Serviços PF*, *30.99 Material de Consumo*), série histórica de evolução em exercícios anteriores fechados, classificação sugerida pelo objeto baseada no catálogo STN/MCASP e lista dos maiores fornecedores beneficiários.
   4. *Restos a Pagar & Dívidas Herdadas (SSOT):* Single Source of Truth do passivo de exercícios anteriores, com fracionamento entre Dívida Real / Processada (liquidado pendente) e Dívida Não-Processada (empenhado a liquidar), série histórica por ano de origem e ranking dos Top 5 fornecedores credores. Inclui também o painel agregado de Diárias & Viagens com médias por afastamento sem indexação nominal de servidores.
 
 
@@ -55,7 +55,8 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
 
 6. **Gastos sob Subitens Genéricos (.99):**
    - Subitens orçamentários terminados em `.99` (ex: *3.3.90.39.99 - Outros Serviços de Terceiros - PJ*) são rubricas destinadas a pequenas despesas eventuais. O portal monitora a proporção desses gastos frente ao orçamento total, recomendando a máxima especificação do objeto conforme as diretrizes da Lei Federal nº 4.320/1964 (Arts. 5º e 15).
-   - *Faixas Informativas:* Taxa <= 15% (Uso Residual Esperado), 15% a 30% (Uso Moderado), > 30% (Concentração Elevada).
+   - *Faixas Metodológicas:* Taxa <= 15% (Esperado), 15% a 30% (Atenção), > 30% (Elevado).
+   - *Segregação Conceitual:* Distingue despesas *Estruturais* (compulsórias por ordem judicial ou encargos legais como 91.99 e 13.99) de gastos *Evitáveis* (serviços e compras com rubricas específicas disponíveis como 39.99, 36.99 e 30.99).
 
 7. **Transparência, Cidadania e Fontes:**
 

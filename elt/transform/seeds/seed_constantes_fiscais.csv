@@ -25,8 +25,8 @@ pessoal,lrf_limite_prudencial_executivo,2000,2099,51.30,,Limite prudencial LRF P
 pessoal,lrf_limite_alerta_executivo,2000,2099,48.60,,Limite de alerta LRF Pessoal Executivo,LC 101/2000 Art. 59 § 1º I,http://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm
 despesas,elemento_folha_pessoal,2000,2099,,11,Código do elemento de despesa de folha de pagamento,Portaria STN/SOF,https://www.gov.br/tesouronacional/pt-br
 despesas,elemento_subvencoes_sociais,2000,2099,,43,Código do elemento de despesa de subvenções sociais,Portaria STN/SOF,https://www.gov.br/tesouronacional/pt-br
-opacidade,opacidade_limite_atencao_pct,2000,2099,15.00,,Limite de atenção para taxa de subitens residuais .99,Parâmetro Metodológico do Portal (Ref: Lei 4.320/64 Arts. 5º e 15),http://www.planalto.gov.br/ccivil_03/leis/l4320.htm
-opacidade,opacidade_limite_critico_pct,2000,2099,30.00,,Limite de concentração elevada para subitens residuais .99,Parâmetro Metodológico do Portal (Ref: Acórdão TCU 1540/2014 e Lei 4.320/64),http://www.planalto.gov.br/ccivil_03/leis/l4320.htm
+opacidade,opacidade_limite_atencao_pct,2000,2099,15.00,,Limite de atenção para taxa de subitens residuais .99,Lei 4.320/64 Arts. 5º e 15,http://www.planalto.gov.br/ccivil_03/leis/l4320.htm
+opacidade,opacidade_limite_critico_pct,2000,2099,30.00,,Limite de concentração elevada para subitens residuais .99,Acórdão TCU 1540/2014 e Lei 4.320/64,http://www.planalto.gov.br/ccivil_03/leis/l4320.htm
 opacidade,base_legal_especificacao_orcamentaria,2000,2099,,,Princípio da Especificação Orçamentária,Lei 4.320/1964 Arts. 5º e 15,http://www.planalto.gov.br/ccivil_03/leis/l4320.htm
 opacidade,base_legal_transparencia_lrf,2000,2099,,,Transparência da Gestão Fiscal e Acesso Público,LC 101/2000 Art. 48,http://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm
 opacidade,base_legal_fracionamento_despesa,2000,2099,,,Vedação ao Fracionamento de Despesas e Crime de Burla a Licitação,Lei 14.133/2021 Art. 75 e CP Art. 337-E,http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm

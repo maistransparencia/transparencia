@@ -9,5 +9,5 @@ transparencia:
       password: "{{ env_var('DBT_PASSWORD') }}"
       dbname: "{{ env_var('DBT_DBNAME') }}"
       schema: public
-      threads: 4
+      threads: "{{ env_var('DBT_THREADS', '8') | int }}"
       connect_timeout: 30

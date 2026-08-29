@@ -7,6 +7,7 @@ with despesas_base as (
         natureza_despesa_codigo,
         elemento,
         categoria_gasto_sensivel,
+        categoria_objeto_sugerida,
         coalesce(pago, 0) as pago,
         case
             when (natureza_despesa_codigo like '%.99' or elemento = '99') then 1
@@ -14,7 +15,7 @@ with despesas_base as (
         end as is_residual_99,
         case
             when (natureza_despesa_codigo like '%.99' or elemento = '99')
-             and categoria_gasto_sensivel is not null then 1
+             and coalesce(categoria_objeto_sugerida, categoria_gasto_sensivel) is not null then 1
             else 0
         end as is_desvio_sensivel
     from {{ ref('fct_despesas') }}

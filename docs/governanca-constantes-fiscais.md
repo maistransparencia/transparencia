@@ -70,3 +70,33 @@ Ao modificar ou adicionar qualquer constante fiscal:
    make test/ts
    ```
 4. [ ] **Verificar Paridade Frontend:** Garantir que queries Kysely e View Models que consom a tabela reflitam os novos limiares.
+
+---
+
+## 5. Catálogo Canônico de Naturezas de Despesa STN/MCASP (`seed_naturezas_despesa_stn.csv`)
+
+O catálogo oficial de naturezas de despesa padronizadas da Secretaria do Tesouro Nacional (Portaria Interministerial STN/SOF nº 163/2001 e MCASP) atua como fonte única de verdade (SSOT) para o mecanismo de inferência e reclassificação orçamentária no dbt (`int_despesas_reclassificadas`).
+
+### Estrutura do Catálogo (`seed_naturezas_despesa_stn.csv`)
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `natureza_codigo` | `text` | Código canônico do subitem da despesa (ex: `3.3.90.39.44`) |
+| `natureza_descricao` | `text` | Nomenclatura oficial padronizada STN/SOF |
+| `elemento_codigo` | `text` | Código de 2 dígitos do elemento orçamentário (ex: `39`) |
+| `categoria_macro` | `text` | Categoria de agrupamento temático em lowercase snake_case (ex: `limpeza_residuos`) |
+| `is_sensivel` | `boolean` | Flag que indica se pertence a um centro de custos sensível do radar fiscal |
+
+### Protocolo de Governança para Novos Subitens STN (4 Passos Obrigatórios)
+
+Ao adicionar ou revisar subitens no catálogo, o seguinte checklist deve ser rigorosamente seguido:
+
+1. **Validação Normativa & Nomenclatura:**
+   - O `natureza_codigo` deve existir formalmente na Portaria STN/SOF ou no MCASP da Secretaria do Tesouro Nacional.
+   - `categoria_macro` deve estar estritamente em **lowercase snake_case** (ex: `limpeza_residuos`, `consorcios_publicos`, `plantoes_medicos`), em conformidade com a Regra 10 do `AGENTS.md`.
+2. **Precedência Léxica no Modelo Intermediário (`int_despesas_reclassificadas.sql`):**
+   - Regras específicas e de nicho (ex: resíduos/caçambas, sentenças judiciais, consórcios de saúde) **devem** preceder regras genéricas (ex: locação de máquinas/veículos, consultoria) para evitar falso enquadramento.
+3. **Propagação de Contrato (TypeScript & UI):**
+   - Estender os union types em `@transparencia/db` (`packages/db/src/queries/opacidade-contabil-metrics.ts`) e o helper `formatCategoriaSensivel` em `apps/web/components/termometro-opacidade-fiscal.tsx`.
+4. **Portão de Qualidade Obrigatório:**
+   - Testes de integridade no dbt (`unique` e `not_null` no seed) e execução com 100% de aprovação em `make test` e `pnpm test`.
+
