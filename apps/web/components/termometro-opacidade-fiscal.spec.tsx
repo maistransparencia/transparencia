@@ -78,6 +78,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
         elementoCodigo: "39",
         elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
         categoriaMacro: "Serviços de Terceiros",
+        tipoResidual: "evitavel",
         totalEmpenhos: 200,
         totalPago: 4000000,
         percentualDoResidual99: 70.92,
@@ -87,15 +88,17 @@ describe("TermometroOpacidadeFiscal Component", () => {
         elementoCodigo: "36",
         elementoDescricao: "Outros Serviços de Terceiros - Pessoa Física",
         categoriaMacro: "Serviços de Terceiros",
+        tipoResidual: "evitavel",
         totalEmpenhos: 50,
         totalPago: 1000000,
         percentualDoResidual99: 17.73,
         ranking: 2,
       },
       {
-        elementoCodigo: "30",
-        elementoDescricao: "Material de Consumo",
-        categoriaMacro: "Material",
+        elementoCodigo: "91",
+        elementoDescricao: "Sentenças Judiciais",
+        categoriaMacro: "Sentenças",
+        tipoResidual: "estrutural",
         totalEmpenhos: 30,
         totalPago: 640000,
         percentualDoResidual99: 11.35,
@@ -129,19 +132,25 @@ describe("TermometroOpacidadeFiscal Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza a quebra por elemento pai de despesas .99", () => {
+  it("renderiza a quebra por elemento pai de despesas .99 com callout investigativo e badges", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
       screen.getByText("Concentração por Elemento Pai (Subitens .99)"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Top 3 de 3 naturezas")).toBeInTheDocument();
+    expect(screen.getByText("Achado de Concentração:")).toBeInTheDocument();
     expect(screen.getByText("39.99")).toBeInTheDocument();
     expect(
       screen.getByText("Outros Serviços de Terceiros - Pessoa Jurídica"),
     ).toBeInTheDocument();
     expect(screen.getByText("70.92%")).toBeInTheDocument();
     expect(screen.getByText("36.99")).toBeInTheDocument();
-    expect(screen.getByText("30.99")).toBeInTheDocument();
+    expect(screen.getAllByText("91.99").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Sentenças Judiciais")).toBeInTheDocument();
+    expect(screen.getByText("Estrutural")).toBeInTheDocument();
+    expect(screen.getAllByText("Evitável")).toHaveLength(2);
+    expect(screen.getByText(/Nota Metodológica:/)).toBeInTheDocument();
   });
 
   it("renderiza a evolução histórica de anos anteriores fechados", () => {

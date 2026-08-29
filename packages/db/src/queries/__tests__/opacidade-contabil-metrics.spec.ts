@@ -256,6 +256,7 @@ describe("getOpacidadeContabilMetrics", () => {
       elementoCodigo: "39",
       elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
       categoriaMacro: "Serviços de Terceiros",
+      tipoResidual: "evitavel",
       totalEmpenhos: 30,
       totalPago: 35000,
       percentualDoResidual99: 70.0,
@@ -268,6 +269,7 @@ describe("getOpacidadeContabilMetrics", () => {
       elementoCodigo: "36",
       elementoDescricao: "Outros Serviços de Terceiros - Pessoa Física",
       categoriaMacro: "Serviços de Terceiros",
+      tipoResidual: "evitavel",
       totalEmpenhos: 15,
       totalPago: 10000,
       percentualDoResidual99: 20.0,
@@ -277,9 +279,10 @@ describe("getOpacidadeContabilMetrics", () => {
     await seedOpacidadeElemento({
       portalSlug: PORTAL,
       ano: 2025,
-      elementoCodigo: "30",
-      elementoDescricao: "Material de Consumo",
-      categoriaMacro: "Material",
+      elementoCodigo: "91",
+      elementoDescricao: "Sentenças Judiciais",
+      categoriaMacro: "Sentenças",
+      tipoResidual: "estrutural",
       totalEmpenhos: 5,
       totalPago: 5000,
       percentualDoResidual99: 10.0,
@@ -294,12 +297,15 @@ describe("getOpacidadeContabilMetrics", () => {
       elementoCodigo: "39",
       elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
       categoriaMacro: "Serviços de Terceiros",
+      tipoResidual: "evitavel",
       totalEmpenhos: 30,
       totalPago: 35000,
       percentualDoResidual99: 70.0,
       ranking: 1,
     });
     expect(result?.elementosResidual99[1].elementoCodigo).toBe("36");
-    expect(result?.elementosResidual99[2].elementoCodigo).toBe("30");
+    expect(result?.elementosResidual99[1].tipoResidual).toBe("evitavel");
+    expect(result?.elementosResidual99[2].elementoCodigo).toBe("91");
+    expect(result?.elementosResidual99[2].tipoResidual).toBe("estrutural");
   });
 });

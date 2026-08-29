@@ -207,6 +207,7 @@ export interface OpacidadeElementoRow {
   elementoCodigo: string;
   elementoDescricao: string;
   categoriaMacro?: string;
+  tipoResidual?: "evitavel" | "estrutural";
   totalEmpenhos?: number;
   totalPago?: number;
   percentualDoResidual99?: number;
@@ -225,6 +226,7 @@ export async function seedOpacidadeElemento(
       elemento_codigo: row.elementoCodigo,
       elemento_descricao: row.elementoDescricao,
       categoria_macro: row.categoriaMacro ?? "Serviços de Terceiros",
+      tipo_residual: row.tipoResidual ?? "evitavel",
       total_empenhos: row.totalEmpenhos ?? 0,
       total_pago: row.totalPago ?? 0,
       percentual_do_residual_99: row.percentualDoResidual99 ?? 0,

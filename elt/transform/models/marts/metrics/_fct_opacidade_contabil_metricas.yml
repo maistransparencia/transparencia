@@ -236,6 +236,13 @@ models:
         description: "Categoria macro orçamentária do elemento (ex: Serviços de Terceiros, Material, Pessoal e Encargos)"
         tests:
           - not_null
+      - name: tipo_residual
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Classificação do tipo de residual: 'evitavel' (serviços, materiais, compras) vs 'estrutural' (sentenças judiciais, encargos patronais)"
+        tests:
+          - not_null
       - name: total_empenhos
         data_type: integer
         constraints:
@@ -319,6 +326,6 @@ unit_tests:
           - { elemento_codigo: "36", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Física", categoria_macro: "Serviços de Terceiros" }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "39", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Jurídica", categoria_macro: "Serviços de Terceiros", total_empenhos: 1, total_pago: 6000.00, percentual_do_residual_99: 60.00, ranking: 1 }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "30", elemento_descricao: "Material de Consumo", categoria_macro: "Material", total_empenhos: 1, total_pago: 3000.00, percentual_do_residual_99: 30.00, ranking: 2 }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "36", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Física", categoria_macro: "Serviços de Terceiros", total_empenhos: 1, total_pago: 1000.00, percentual_do_residual_99: 10.00, ranking: 3 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "39", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Jurídica", categoria_macro: "Serviços de Terceiros", tipo_residual: "evitavel", total_empenhos: 1, total_pago: 6000.00, percentual_do_residual_99: 60.00, ranking: 1 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "30", elemento_descricao: "Material de Consumo", categoria_macro: "Material", tipo_residual: "evitavel", total_empenhos: 1, total_pago: 3000.00, percentual_do_residual_99: 30.00, ranking: 2 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "36", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Física", categoria_macro: "Serviços de Terceiros", tipo_residual: "evitavel", total_empenhos: 1, total_pago: 1000.00, percentual_do_residual_99: 10.00, ranking: 3 }

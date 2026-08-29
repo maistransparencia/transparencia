@@ -277,60 +277,205 @@ export function TermometroOpacidadeFiscal({
       </div>
 
       {/* Quebra por Elemento Pai de Despesas (.99) */}
-      {data.elementosResidual99 && data.elementosResidual99.length > 0 && (
-        <div className="mt-6 space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-          <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
-            <div>
-              <h3 className="font-semibold text-slate-900 text-sm">
-                Concentração por Elemento Pai (Subitens .99)
-              </h3>
-              <p className="text-slate-500 text-xs">
-                Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
-                pagos em .99 entre as naturezas orçamentárias
+      {data.elementosResidual99 &&
+        data.elementosResidual99.length > 0 &&
+        (() => {
+          const elemPrincipal = data.elementosResidual99[0];
+          const top5Elementos = data.elementosResidual99.slice(0, 5);
+          const demaisElementos = data.elementosResidual99.slice(5);
+
+          return (
+            <div className="mt-6 space-y-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+              <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
+                <div>
+                  <h3 className="font-semibold text-slate-900 text-sm">
+                    Concentração por Elemento Pai (Subitens .99)
+                  </h3>
+                  <p className="text-slate-500 text-xs">
+                    Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
+                    pagos em .99 entre as naturezas orçamentárias
+                  </p>
+                </div>
+                <span className="font-medium text-[11px] text-slate-400">
+                  Top {top5Elementos.length} de{" "}
+                  {data.elementosResidual99.length} naturezas
+                </span>
+              </div>
+
+              {/* Callout Narrativo do Achado Principal */}
+              {elemPrincipal && elemPrincipal.percentualDoResidual99 >= 30 && (
+                <div className="rounded-lg border border-amber-200/80 bg-amber-50/80 p-3 text-amber-950 text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-200 text-[10px]">
+                      💡
+                    </span>
+                    <p className="leading-relaxed">
+                      <strong className="font-bold text-amber-900">
+                        Achado de Concentração:
+                      </strong>{" "}
+                      <span>
+                        {elemPrincipal.percentualDoResidual99 >= 50
+                          ? "Mais da metade"
+                          : `Cerca de ${fmtPercent(elemPrincipal.percentualDoResidual99)}`}{" "}
+                        ({fmtPercent(elemPrincipal.percentualDoResidual99)}) de
+                        todos os gastos sob subitens genéricos está concentrada
+                        no código{" "}
+                        <strong className="font-mono font-semibold text-amber-900">
+                          {elemPrincipal.elementoCodigo}.99 (
+                          {elemPrincipal.elementoDescricao})
+                        </strong>
+                        , somando{" "}
+                        <strong className="font-semibold text-amber-900">
+                          {fmtCompact(elemPrincipal.totalPago)}
+                        </strong>
+                        . É nesta rubrica que reside a maior oportunidade de
+                        especificação contábil pelo município.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Lista dos Top 5 Elementos */}
+              <div className="space-y-2.5 pt-1">
+                {top5Elementos.map((elem) => (
+                  <div key={elem.elementoCodigo} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex min-w-0 items-center gap-2 pr-2">
+                        <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
+                          {elem.elementoCodigo}.99
+                        </span>
+                        <span
+                          className="truncate font-medium text-slate-800"
+                          title={elem.elementoDescricao}
+                        >
+                          {elem.elementoDescricao}
+                        </span>
+                        {elem.tipoResidual === "estrutural" ? (
+                          <span
+                            className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
+                            title="Despesa compulsória por obrigação legal ou ordem judicial"
+                          >
+                            Estrutural
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
+                            title="Despesa passível de detalhamento específico no plano de contas"
+                          >
+                            Evitável
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2 text-right">
+                        <span className="font-bold text-slate-900">
+                          {fmtCompact(elem.totalPago)}
+                        </span>
+                        <span className="w-12 text-right font-medium text-[11px] text-slate-500">
+                          {fmtPercent(elem.percentualDoResidual99)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          elem.tipoResidual === "estrutural"
+                            ? "bg-sky-600"
+                            : "bg-slate-700"
+                        }`}
+                        style={{
+                          width: `${Math.min(100, elem.percentualDoResidual99)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Expansão das demais naturezas identificadas */}
+              {demaisElementos.length > 0 && (
+                <details className="group/demais mt-2 rounded-lg border border-slate-200/70 bg-white/70 p-3 transition-all">
+                  <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-slate-700 text-xs hover:text-slate-900">
+                    <span>
+                      Ver todas as {data.elementosResidual99.length} naturezas
+                      residuais
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 transition-transform group-open/demais:rotate-180" />
+                  </summary>
+                  <div className="mt-3 space-y-2.5 border-slate-100 border-t pt-2.5">
+                    {demaisElementos.map((elem) => (
+                      <div key={elem.elementoCodigo} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex min-w-0 items-center gap-2 pr-2">
+                            <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
+                              {elem.elementoCodigo}.99
+                            </span>
+                            <span
+                              className="truncate font-medium text-slate-800"
+                              title={elem.elementoDescricao}
+                            >
+                              {elem.elementoDescricao}
+                            </span>
+                            {elem.tipoResidual === "estrutural" ? (
+                              <span
+                                className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
+                                title="Despesa compulsória por obrigação legal ou ordem judicial"
+                              >
+                                Estrutural
+                              </span>
+                            ) : (
+                              <span
+                                className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
+                                title="Despesa passível de detalhamento específico no plano de contas"
+                              >
+                                Evitável
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 text-right">
+                            <span className="font-bold text-slate-900">
+                              {fmtCompact(elem.totalPago)}
+                            </span>
+                            <span className="w-12 text-right font-medium text-[11px] text-slate-500">
+                              {fmtPercent(elem.percentualDoResidual99)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              elem.tipoResidual === "estrutural"
+                                ? "bg-sky-600"
+                                : "bg-slate-700"
+                            }`}
+                            style={{
+                              width: `${Math.min(100, elem.percentualDoResidual99)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+
+              {/* Nota Metodológica Didática */}
+              <p className="border-slate-200/70 border-t pt-2.5 text-[11px] text-slate-500 leading-relaxed">
+                <strong className="font-semibold text-slate-700">
+                  Nota Metodológica:
+                </strong>{" "}
+                Despesas compulsórias por ordem judicial (como Sentenças{" "}
+                <em>91.99</em>) ou encargos legais (como Contribuições Patronais{" "}
+                <em>13.99</em>) são classificadas como{" "}
+                <strong>Estruturais</strong> por determinação do plano de contas
+                da STN. Já contratações de serviços (<em>39.99/36.99</em>) e
+                materiais (<em>30.99</em>) são consideradas{" "}
+                <strong>Evitáveis</strong>, pois contam com rubricas específicas
+                na legislação orçamentária para discriminação do objeto.
               </p>
             </div>
-            <span className="font-medium text-[11px] text-slate-400">
-              {data.elementosResidual99.length} naturezas identificadas
-            </span>
-          </div>
-
-          <div className="space-y-2.5 pt-2">
-            {data.elementosResidual99.slice(0, 5).map((elem) => (
-              <div key={elem.elementoCodigo} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex min-w-0 items-center gap-2 pr-2">
-                    <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
-                      {elem.elementoCodigo}.99
-                    </span>
-                    <span
-                      className="truncate font-medium text-slate-800"
-                      title={elem.elementoDescricao}
-                    >
-                      {elem.elementoDescricao}
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 text-right">
-                    <span className="font-bold text-slate-900">
-                      {fmtCompact(elem.totalPago)}
-                    </span>
-                    <span className="w-12 text-right font-medium text-[11px] text-slate-500">
-                      {fmtPercent(elem.percentualDoResidual99)}
-                    </span>
-                  </div>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-slate-600 transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, elem.percentualDoResidual99)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+          );
+        })()}
 
       {/* Série Histórica de Exercícios Anteriores Fechados */}
       {(() => {

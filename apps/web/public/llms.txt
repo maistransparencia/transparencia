@@ -56,6 +56,7 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
 6. **Gastos sob Subitens Genéricos (.99):**
    - Subitens orçamentários terminados em `.99` (ex: *3.3.90.39.99 - Outros Serviços de Terceiros - PJ*) são rubricas destinadas a pequenas despesas eventuais. O portal monitora a proporção desses gastos frente ao orçamento total, recomendando a máxima especificação do objeto conforme as diretrizes da Lei Federal nº 4.320/1964 (Arts. 5º e 15).
    - *Faixas Metodológicas:* Taxa <= 15% (Esperado), 15% a 30% (Atenção), > 30% (Elevado).
+   - *Segregação Conceitual:* Distingue despesas *Estruturais* (compulsórias por ordem judicial ou encargos legais como 91.99 e 13.99) de gastos *Evitáveis* (serviços e compras com rubricas específicas disponíveis como 39.99, 36.99 e 30.99).
 
 7. **Transparência, Cidadania e Fontes:**
 

@@ -49,6 +49,7 @@ export interface OpacidadeElementoDTO {
   elementoCodigo: string;
   elementoDescricao: string;
   categoriaMacro: string;
+  tipoResidual: "evitavel" | "estrutural";
   totalEmpenhos: number;
   totalPago: number;
   percentualDoResidual99: number;
@@ -132,6 +133,7 @@ export async function getOpacidadeContabilMetrics(
           "elemento_codigo",
           "elemento_descricao",
           "categoria_macro",
+          "tipo_residual",
           "total_empenhos",
           "total_pago",
           "percentual_do_residual_99",
@@ -199,6 +201,9 @@ export async function getOpacidadeContabilMetrics(
       elementoCodigo: e.elemento_codigo,
       elementoDescricao: e.elemento_descricao,
       categoriaMacro: e.categoria_macro,
+      tipoResidual: (e.tipo_residual ?? "evitavel") as
+        | "evitavel"
+        | "estrutural",
       totalEmpenhos: Number(e.total_empenhos ?? 0),
       totalPago: Number(e.total_pago ?? 0),
       percentualDoResidual99: Number(e.percentual_do_residual_99 ?? 0),
