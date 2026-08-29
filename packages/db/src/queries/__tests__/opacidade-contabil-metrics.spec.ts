@@ -149,4 +149,87 @@ describe("getOpacidadeContabilMetrics", () => {
     expect(result?.exercicioAtual.ano).toBe(2024);
     expect(result?.historico).toHaveLength(1);
   });
+
+  it("suporta e tipa corretamente todas as novas categorias sugeridas do objeto", async () => {
+    await seedOpacidadeMetricas({
+      portalSlug: PORTAL,
+      ano: 2025,
+      totalEmpenhos: 70,
+      classificacaoRisco: "normal",
+    });
+
+    const categoriasParaTestar = [
+      {
+        cod: "01",
+        nome: "CODESP CONSORCIO",
+        cat: "consorcios_publicos",
+        obj: "RATEIO DE SAUDE",
+      },
+      {
+        cod: "02",
+        nome: "COOPERATIVA LIMPEZA",
+        cat: "limpeza_residuos",
+        obj: "COLETA DE LIXO E CACAMBAS",
+      },
+      {
+        cod: "03",
+        nome: "INSTITUTO DE OLHOS",
+        cat: "plantoes_medicos",
+        obj: "CONSULTAS E PLANTOES",
+      },
+      {
+        cod: "04",
+        nome: "TRIBUNAL REGIONAL",
+        cat: "bloqueios_sentencas",
+        obj: "BLOQUEIO JUDICIAL",
+      },
+      {
+        cod: "05",
+        nome: "EMPRESA TERCEIRIZADA",
+        cat: "terceirizacao_mao_obra",
+        obj: "SERVICOS DE PORTARIA",
+      },
+      {
+        cod: "06",
+        nome: "INSTITUTO PREVIDENCIA",
+        cat: "previdencia",
+        obj: "REPASSE PATRONAL",
+      },
+      {
+        cod: "07",
+        nome: "AUDITORIA E CONSULTORIA",
+        cat: "consultoria_tecnica",
+        obj: "ASSESSORIA CONTABIL",
+      },
+    ];
+
+    for (let i = 0; i < categoriasParaTestar.length; i++) {
+      const item = categoriasParaTestar[i];
+      await seedOpacidadeCredor({
+        portalSlug: PORTAL,
+        ano: 2025,
+        credorCodigo: item.cod,
+        credorNome: item.nome,
+        totalEmpenhos: 1,
+        totalPago: 1000 * (i + 1),
+        pagoDesvioSensivel: 1000 * (i + 1),
+        categoriaPredominante: item.cat,
+        amostraObjeto: item.obj,
+        ranking: i + 1,
+      });
+    }
+
+    const result = await getOpacidadeContabilMetrics(PORTAL, 2025);
+
+    expect(result).not.toBeNull();
+    expect(result?.topCredores).toHaveLength(7);
+    for (let i = 0; i < categoriasParaTestar.length; i++) {
+      expect(result?.topCredores[i].categoriaPredominante).toBe(
+        categoriasParaTestar[i].cat,
+      );
+      expect(result?.topCredores[i].amostraObjeto).toBe(
+        categoriasParaTestar[i].obj,
+      );
+    }
+  });
 });

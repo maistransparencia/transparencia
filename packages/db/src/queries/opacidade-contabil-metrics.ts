@@ -16,15 +16,31 @@ export interface OpacidadeMetricasExercicioDTO {
   classificacaoRisco: "normal" | "atencao" | "critico";
 }
 
+export const CATEGORIAS_OBJETO_SUGERIDAS = [
+  "consorcios_publicos",
+  "limpeza_residuos",
+  "plantoes_medicos",
+  "bloqueios_sentencas",
+  "terceirizacao_mao_obra",
+  "previdencia",
+  "consultoria_tecnica",
+] as const;
+
+export type CategoriaObjetoSugerida =
+  (typeof CATEGORIAS_OBJETO_SUGERIDAS)[number];
+
+export type CategoriaPredominanteOpacidade =
+  | CategoriaGastoSensivel
+  | CategoriaObjetoSugerida
+  | "sem_classificacao_especifica";
+
 export interface OpacidadeCredorDTO {
   credorCodigo: string;
   credorNome: string;
   totalEmpenhos: number;
   totalPago: number;
   pagoDesvioSensivel: number;
-  categoriaPredominante:
-    | CategoriaGastoSensivel
-    | "sem_classificacao_especifica";
+  categoriaPredominante: CategoriaPredominanteOpacidade;
   amostraObjeto: string;
   ranking: number;
 }
@@ -143,8 +159,8 @@ export async function getOpacidadeContabilMetrics(
       totalEmpenhos: Number(c.total_empenhos ?? 0),
       totalPago: Number(c.total_pago ?? 0),
       pagoDesvioSensivel: Number(c.pago_desvio_sensivel ?? 0),
-      categoriaPredominante:
-        c.categoria_predominante ?? "sem_classificacao_especifica",
+      categoriaPredominante: (c.categoria_predominante ??
+        "sem_classificacao_especifica") as CategoriaPredominanteOpacidade,
       amostraObjeto: c.amostra_objeto,
       ranking: Number(c.ranking),
     }));
