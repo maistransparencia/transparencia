@@ -3,6 +3,7 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedOpacidadeCredor,
+  seedOpacidadeElemento,
   seedOpacidadeMetricas,
 } from "../../../tests/fixtures/seed";
 import { getOpacidadeContabilMetrics } from "../opacidade-contabil-metrics";
@@ -231,5 +232,74 @@ describe("getOpacidadeContabilMetrics", () => {
         categoriasParaTestar[i].obj,
       );
     }
+  });
+
+  it("retorna quebra de elementos pai com percentual e ranking", async () => {
+    await seedOpacidadeMetricas({
+      portalSlug: PORTAL,
+      ano: 2025,
+      totalEmpenhos: 100,
+      empenhosResidual99: 50,
+      empenhosDesvioSensivel99: 20,
+      taxaEmpenhosOpacidadePct: 50.0,
+      totalPago: 100000,
+      pagoResidual99: 50000,
+      pagoDesvioSensivel99: 20000,
+      taxaValorOpacidadePct: 50.0,
+      taxaDesvioSensivelPct: 40.0,
+      classificacaoRisco: "critico",
+    });
+
+    await seedOpacidadeElemento({
+      portalSlug: PORTAL,
+      ano: 2025,
+      elementoCodigo: "39",
+      elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
+      categoriaMacro: "Serviços de Terceiros",
+      totalEmpenhos: 30,
+      totalPago: 35000,
+      percentualDoResidual99: 70.0,
+      ranking: 1,
+    });
+
+    await seedOpacidadeElemento({
+      portalSlug: PORTAL,
+      ano: 2025,
+      elementoCodigo: "36",
+      elementoDescricao: "Outros Serviços de Terceiros - Pessoa Física",
+      categoriaMacro: "Serviços de Terceiros",
+      totalEmpenhos: 15,
+      totalPago: 10000,
+      percentualDoResidual99: 20.0,
+      ranking: 2,
+    });
+
+    await seedOpacidadeElemento({
+      portalSlug: PORTAL,
+      ano: 2025,
+      elementoCodigo: "30",
+      elementoDescricao: "Material de Consumo",
+      categoriaMacro: "Material",
+      totalEmpenhos: 5,
+      totalPago: 5000,
+      percentualDoResidual99: 10.0,
+      ranking: 3,
+    });
+
+    const result = await getOpacidadeContabilMetrics(PORTAL, 2025);
+
+    expect(result).not.toBeNull();
+    expect(result?.elementosResidual99).toHaveLength(3);
+    expect(result?.elementosResidual99[0]).toEqual({
+      elementoCodigo: "39",
+      elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
+      categoriaMacro: "Serviços de Terceiros",
+      totalEmpenhos: 30,
+      totalPago: 35000,
+      percentualDoResidual99: 70.0,
+      ranking: 1,
+    });
+    expect(result?.elementosResidual99[1].elementoCodigo).toBe("36");
+    expect(result?.elementosResidual99[2].elementoCodigo).toBe("30");
   });
 });

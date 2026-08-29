@@ -187,6 +187,84 @@ models:
         tests:
           - not_null
 
+  - name: fct_opacidade_contabil_elementos
+    description: "Mart de quebra de despesas em subitens residuais .99 por elemento de despesa pai"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: opacidade_elemento_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Chave surrogate MD5 (portal_slug | ano | elemento_codigo)"
+        tests:
+          - not_null
+          - unique
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Dimensão de tenant isolada por portal"
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Ano do exercício fiscal"
+        tests:
+          - not_null
+      - name: elemento_codigo
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Código do elemento pai (ex: 39, 30, 36, 91, 52)"
+        tests:
+          - not_null
+      - name: elemento_descricao
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Descrição padronizada do elemento pai vinda do seed_elemento_despesa"
+        tests:
+          - not_null
+      - name: categoria_macro
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Categoria macro orçamentária do elemento (ex: Serviços de Terceiros, Material, Pessoal e Encargos)"
+        tests:
+          - not_null
+      - name: total_empenhos
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Quantidade de empenhos no elemento .99"
+        tests:
+          - not_null
+      - name: total_pago
+        data_type: numeric
+        constraints:
+          - type: not_null
+        description: "Total de valor pago no elemento .99"
+        tests:
+          - not_null
+      - name: percentual_do_residual_99
+        data_type: numeric
+        constraints:
+          - type: not_null
+        description: "Percentual do elemento sobre o total do residual .99 no ano"
+        tests:
+          - not_null
+      - name: ranking
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Posição no ranking por valor pago"
+        tests:
+          - not_null
+
 unit_tests:
   - name: test_opacidade_contabil_metricas_calculo_e_classificacao
     description: "Valida o cálculo de taxa de opacidade e classificação de risco para subitens residuais .99"
@@ -223,3 +301,24 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "11.111.111/0001-11", credor_nome: "CODESP CONSORCIO", total_empenhos: 1, total_pago: 5000.00, pago_desvio_sensivel: 5000.00, categoria_predominante: "consorcios_publicos", amostra_objeto: "RATEIO DO CONSORCIO", ranking: 1 }
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "22.222.222/0001-22", credor_nome: "COOPERATIVA LIMPEZA", total_empenhos: 1, total_pago: 2000.00, pago_desvio_sensivel: 2000.00, categoria_predominante: "limpeza_residuos", amostra_objeto: "SERVICO DE CACAMBAS", ranking: 2 }
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "44.444.444/0001-44", credor_nome: "OUTROS SERVICOS LTDA", total_empenhos: 1, total_pago: 1000.00, pago_desvio_sensivel: 0.00, categoria_predominante: "sem_classificacao_especifica", amostra_objeto: "SERVICOS DIVERSOS", ranking: 3 }
+
+  - name: test_opacidade_contabil_elementos_quebra_e_ranking
+    description: "Valida o agrupamento por elemento pai e cálculo do percentual sobre o residual .99"
+    model: fct_opacidade_contabil_elementos
+    given:
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 6000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.30.99", elemento: "30", pago: 3000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.36.99", elemento: "36", pago: 1000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", pago: 5000.00 }
+      - input: ref('seed_elemento_despesa')
+        rows:
+          - { elemento_codigo: "39", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Jurídica", categoria_macro: "Serviços de Terceiros" }
+          - { elemento_codigo: "30", elemento_descricao: "Material de Consumo", categoria_macro: "Material" }
+          - { elemento_codigo: "36", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Física", categoria_macro: "Serviços de Terceiros" }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "39", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Jurídica", categoria_macro: "Serviços de Terceiros", total_empenhos: 1, total_pago: 6000.00, percentual_do_residual_99: 60.00, ranking: 1 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "30", elemento_descricao: "Material de Consumo", categoria_macro: "Material", total_empenhos: 1, total_pago: 3000.00, percentual_do_residual_99: 30.00, ranking: 2 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento_codigo: "36", elemento_descricao: "Outros Serviços de Terceiros - Pessoa Física", categoria_macro: "Serviços de Terceiros", total_empenhos: 1, total_pago: 1000.00, percentual_do_residual_99: 10.00, ranking: 3 }

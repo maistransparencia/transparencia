@@ -45,6 +45,16 @@ export interface OpacidadeCredorDTO {
   ranking: number;
 }
 
+export interface OpacidadeElementoDTO {
+  elementoCodigo: string;
+  elementoDescricao: string;
+  categoriaMacro: string;
+  totalEmpenhos: number;
+  totalPago: number;
+  percentualDoResidual99: number;
+  ranking: number;
+}
+
 export interface BaseLegalOpacidadeDTO {
   chave: string;
   descricao: string;
@@ -63,6 +73,7 @@ export interface OpacidadeContabilMetricsDTO {
   exercicioAtual: OpacidadeMetricasExercicioDTO;
   historico: OpacidadeMetricasExercicioDTO[];
   topCredores: OpacidadeCredorDTO[];
+  elementosResidual99: OpacidadeElementoDTO[];
   limiares: LimiaresOpacidadeDTO;
   basesLegais: BaseLegalOpacidadeDTO[];
 }
@@ -75,58 +86,75 @@ export async function getOpacidadeContabilMetrics(
   portalSlug: string,
   ano: number,
 ): Promise<OpacidadeContabilMetricsDTO | null> {
-  const [metricasRows, credoresRows, constantesRows] = await Promise.all([
-    db
-      .selectFrom("fct_opacidade_contabil_metricas")
-      .select([
-        "portal_slug",
-        "ano",
-        "total_empenhos",
-        "empenhos_residual_99",
-        "empenhos_desvio_sensivel_99",
-        "taxa_empenhos_opacidade_pct",
-        "total_pago",
-        "pago_residual_99",
-        "pago_desvio_sensivel_99",
-        "taxa_valor_opacidade_pct",
-        "taxa_desvio_sensivel_pct",
-        "classificacao_risco",
-      ])
-      .where("portal_slug", "=", portalSlug)
-      .orderBy("ano", "asc")
-      .execute(),
+  const [metricasRows, credoresRows, elementosRows, constantesRows] =
+    await Promise.all([
+      db
+        .selectFrom("fct_opacidade_contabil_metricas")
+        .select([
+          "portal_slug",
+          "ano",
+          "total_empenhos",
+          "empenhos_residual_99",
+          "empenhos_desvio_sensivel_99",
+          "taxa_empenhos_opacidade_pct",
+          "total_pago",
+          "pago_residual_99",
+          "pago_desvio_sensivel_99",
+          "taxa_valor_opacidade_pct",
+          "taxa_desvio_sensivel_pct",
+          "classificacao_risco",
+        ])
+        .where("portal_slug", "=", portalSlug)
+        .orderBy("ano", "asc")
+        .execute(),
 
-    db
-      .selectFrom("fct_opacidade_contabil_credores")
-      .select([
-        "ano",
-        "credor_codigo",
-        "credor_nome",
-        "total_empenhos",
-        "total_pago",
-        "pago_desvio_sensivel",
-        "categoria_predominante",
-        "amostra_objeto",
-        "ranking",
-      ])
-      .where("portal_slug", "=", portalSlug)
-      .orderBy("ranking", "asc")
-      .execute(),
+      db
+        .selectFrom("fct_opacidade_contabil_credores")
+        .select([
+          "ano",
+          "credor_codigo",
+          "credor_nome",
+          "total_empenhos",
+          "total_pago",
+          "pago_desvio_sensivel",
+          "categoria_predominante",
+          "amostra_objeto",
+          "ranking",
+        ])
+        .where("portal_slug", "=", portalSlug)
+        .orderBy("ranking", "asc")
+        .execute(),
 
-    db
-      .selectFrom("seed_constantes_fiscais")
-      .select([
-        "chave",
-        "descricao",
-        "base_legal",
-        "url_base_legal",
-        "valor_num",
-      ])
-      .where("dominio", "=", "opacidade")
-      .where("ano_inicio", "<=", ano)
-      .where("ano_fim", ">=", ano)
-      .execute(),
-  ]);
+      db
+        .selectFrom("fct_opacidade_contabil_elementos")
+        .select([
+          "ano",
+          "elemento_codigo",
+          "elemento_descricao",
+          "categoria_macro",
+          "total_empenhos",
+          "total_pago",
+          "percentual_do_residual_99",
+          "ranking",
+        ])
+        .where("portal_slug", "=", portalSlug)
+        .orderBy("ranking", "asc")
+        .execute(),
+
+      db
+        .selectFrom("seed_constantes_fiscais")
+        .select([
+          "chave",
+          "descricao",
+          "base_legal",
+          "url_base_legal",
+          "valor_num",
+        ])
+        .where("dominio", "=", "opacidade")
+        .where("ano_inicio", "<=", ano)
+        .where("ano_fim", ">=", ano)
+        .execute(),
+    ]);
 
   if (metricasRows.length === 0) return null;
 
@@ -165,6 +193,18 @@ export async function getOpacidadeContabilMetrics(
       ranking: Number(c.ranking),
     }));
 
+  const elementosResidual99: OpacidadeElementoDTO[] = elementosRows
+    .filter((e) => Number(e.ano) === exercicioAtual.ano)
+    .map((e) => ({
+      elementoCodigo: e.elemento_codigo,
+      elementoDescricao: e.elemento_descricao,
+      categoriaMacro: e.categoria_macro,
+      totalEmpenhos: Number(e.total_empenhos ?? 0),
+      totalPago: Number(e.total_pago ?? 0),
+      percentualDoResidual99: Number(e.percentual_do_residual_99 ?? 0),
+      ranking: Number(e.ranking),
+    }));
+
   const limiteAtencaoConst = constantesRows.find(
     (c) => c.chave === "opacidade_limite_atencao_pct",
   );
@@ -192,6 +232,7 @@ export async function getOpacidadeContabilMetrics(
     exercicioAtual,
     historico,
     topCredores,
+    elementosResidual99,
     limiares,
     basesLegais,
   };
