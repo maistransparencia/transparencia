@@ -63,8 +63,12 @@ with despesas as (
         codigo,
         produ,
         vingrupo_vincodigo,
-        vincodigonome
-    from {{ ref('int_despesas_consolidadas') }}
+        vincodigonome,
+        natureza_despesa_codigo_sugerido,
+        natureza_despesa_nome_sugerido,
+        categoria_objeto_sugerida,
+        categoria_gasto_sensivel
+    from {{ ref('int_despesas_reclassificadas') }}
 ),
 
 -- Agrega anulações por empenho pai para calcular empenho líquido
@@ -141,6 +145,10 @@ empenhos as (
         d.produ,
         d.vingrupo_vincodigo,
         d.vincodigonome,
+        d.natureza_despesa_codigo_sugerido,
+        d.natureza_despesa_nome_sugerido,
+        d.categoria_objeto_sugerida,
+        d.categoria_gasto_sensivel,
         coalesce(a.total_anulado, 0.00) as valor_anulacoes,
         coalesce(d.empenhado, 0.00) + coalesce(a.total_anulado, 0.00) as empenhado_liquido
     from despesas d
@@ -190,92 +198,10 @@ select
     fonte_recurso_desc,
     coalesce(produ, descricao) as descricao,
     natureza_despesa_codigo,
-
-    -- Categorização Canônica Determinística de Gastos Sensíveis
-    case
-        -- 1. Diárias e Viagens
-        when natureza_despesa_codigo like '3.3.90.14%'
-             or natureza_despesa_codigo like '3.3.90.33%'
-             or elemento in ('14', '33') then 'diarias_viagens'
-
-        -- 2. Obras e Infraestrutura
-        when natureza_despesa_codigo like '4.4.90.51%'
-             or elemento = '51'
-             or (
-                 elemento = '39'
-                 and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(pavimentacao|drenagem pluvial|construcao de ponte|muro de contencao|recapeamento asfaltico)'
-                 and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(projeto basico|projeto executivo|topografia|consultoria)'
-             ) then 'obras_infraestrutura'
-
-        -- 3. Combustíveis e Frotas
-        when (
-            natureza_despesa_codigo = '3.3.90.30.01'
-            or (
-                elemento in ('30', '39')
-                and (
-                    {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(posto|petroleo|uaitag)'
-                    or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(gasolina|diesel|etanol|combustivel|abastecimento de combustiveis|abastecimento com arla)'
-                )
-            )
-        )
-        and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(cedae|copasa|enel|educacao|aliment|didatico|livro|magazine|papelaria)'
-        and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(agua e esgoto|abastecimento de agua|tratamento de esgoto|cedae|alimento|generos alimenticios|didatico|livro|jogos|xicara|cobertor|pedagogico)' then 'combustivel_frota'
-
-        -- 4. Locação de Máquinas e Veículos
-        when (
-            natureza_despesa_codigo in ('3.3.90.39.12', '3.3.90.39.13')
-            or (
-                elemento in ('36', '39', '32')
-                and (
-                    {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* 'autolocadora'
-                    or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(locacao|aluguel).*(veiculo|ambulancia|trator|escavadeira|retroescavadeira|caminhao|van|pipa|poliguindauto|poliguindaste|motoniveladora|pa carregadeira|maquinario)'
-                )
-            )
-        )
-        and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino)'
-        and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para)' then 'locacao_maquinas_veiculos'
-
-        -- 5. Locação de Imóveis
-        when (
-            natureza_despesa_codigo in ('3.3.90.36.15', '3.3.90.36.16', '3.3.90.36.19')
-            or (
-                elemento in ('36', '39', '93')
-                and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno|sede|almoxarifado|biblioteca)'
-            )
-        )
-        and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(transporte|veiculo|enel|cedae|copasa)'
-        and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(transporte|veiculo|aluno|energia|eletric|agua|esgoto|tenda|som|palco)' then 'locacao_imoveis'
-
-        -- 6. Eventos, Shows e Festividades
-        when (
-            natureza_despesa_codigo in ('3.3.90.39.14', '3.3.90.39.21', '3.3.90.39.22', '3.3.90.39.23')
-            or natureza_despesa_codigo like '3.3.90.31%'
-            or (
-                elemento in ('39', '31')
-                and (funcao in ('13', '27') or subfuncao in ('392', '695', '812'))
-                and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(show|festa|festivid|palco|sonorizacao|carnaval|bandas|artistic)'
-                and {{ target.schema }}.unaccent(lower(coalesce(projeto_atividade_nome, ''))) !~* 'manutencao'
-            )
-        )
-        and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(data show|projetor|imovel|predio|veiculo|transporte|agua|energia|palestra)'
-        and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(transporte|veiculo|enel|cedae|copasa)' then 'eventos_festas'
-
-        -- 7. Restos a Pagar (sem metadados)
-        when fonte = 'restos_a_pagar' and (
-            {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(posto|combustiv|petroleo)'
-        ) then 'combustivel_frota'
-
-        when fonte = 'restos_a_pagar' and (
-            {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* 'autolocadora'
-            or {{ target.schema }}.unaccent(lower(coalesce(descricao, ''))) ~* '(locacao|aluguel).*(veiculo|ambulancia|trator|caminhao|maquina)'
-        ) then 'locacao_maquinas_veiculos'
-
-        when fonte = 'restos_a_pagar' and (
-            {{ target.schema }}.unaccent(lower(coalesce(descricao, ''))) ~* '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno)'
-        ) then 'locacao_imoveis'
-
-        else null
-    end as categoria_gasto_sensivel,
+    natureza_despesa_codigo_sugerido,
+    natureza_despesa_nome_sugerido,
+    categoria_objeto_sugerida,
+    categoria_gasto_sensivel,
 
     -- Valores financeiros (Lei de Responsabilidade Fiscal: pago ≤ liquidado ≤ empenhado)
     empenhado,

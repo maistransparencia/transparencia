@@ -100,6 +100,15 @@ models:
         data_type: text
       - name: natureza_despesa_codigo
         data_type: text
+      - name: natureza_despesa_codigo_sugerido
+        description: "Código canônico STN sugerido a partir do objeto real da despesa"
+        data_type: text
+      - name: natureza_despesa_nome_sugerido
+        description: "Descrição padronizada do subitem STN inferido"
+        data_type: text
+      - name: categoria_objeto_sugerida
+        description: "Categoria do objeto inferida em lowercase snake_case"
+        data_type: text
       - name: categoria_gasto_sensivel
         data_type: text
         description: "Classificação em lowercase snake_case de centros de custos sensíveis (combustivel_frota, locacao_maquinas_veiculos, locacao_imoveis, eventos_festas, diarias_viagens, obras_infraestrutura)"
@@ -166,7 +175,7 @@ unit_tests:
     description: "Valida a correta classificação determinística das contas de gastos sensíveis baseadas na coluna natureza_despesa_codigo (STN/MCASP)"
     model: fct_despesas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas_reclassificadas')
         rows:
           # 1. Combustível (natureza_despesa_codigo 3.3.90.30.01 / 3.3.90.30.39)
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '1', pk_empenho: '1', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: 'AQUISIÇÃO DE ÓLEO DIESEL S-10 PARA VEÍCULOS', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
@@ -243,7 +252,7 @@ unit_tests:
     description: "Valida cobertura de subitens específicos (ARLA, passagens PF, UTI, locação imóveis residencial e contratos)"
     model: fct_despesas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas_reclassificadas')
         rows:
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '21', pk_empenho: '21', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', descricao: 'fornecimento de combustivel e lubrificantes', empenhado: 100.00}
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '22', pk_empenho: '22', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.02', descricao: 'passagens aereas e taxi', empenhado: 200.00}
@@ -267,7 +276,7 @@ unit_tests:
     description: "Garante que fornecedor não-posto fora do elemento 30 não é combustível de frota"
     model: fct_despesas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas_reclassificadas')
         rows:
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '301', pk_empenho: '301', tipo_empenho: 'OR', elemento: '39', fornecedor_nome: 'EMPRESA DE CARTÕES LTDA', descricao: 'TAXA ADMINISTRATIVA', empenhado: 5000.00}
     expect:
@@ -278,7 +287,7 @@ unit_tests:
     description: "Garante que fornecedores de combustível e locações em Restos a Pagar são corretamente classificados"
     model: fct_despesas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas_reclassificadas')
         rows:
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '401', pk_empenho: '401', tipo_empenho: null, fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: null, empenhado: 50000.00, liquidado: 50000.00, pago: 0.00}
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '402', pk_empenho: '402', tipo_empenho: null, fornecedor_nome: 'NOVO ROLE AUTOPOSTO LTDA', descricao: null, empenhado: 80000.00, liquidado: 80000.00, pago: 0.00}
