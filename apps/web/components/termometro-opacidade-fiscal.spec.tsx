@@ -24,6 +24,20 @@ describe("TermometroOpacidadeFiscal Component", () => {
     historico: [
       {
         portalSlug: "porciuncula_prefeitura",
+        ano: 2024,
+        totalEmpenhos: 300,
+        empenhosResidual99: 60,
+        empenhosDesvioSensivel99: 15,
+        taxaEmpenhosOpacidadePct: 20.0,
+        totalPago: 6000000,
+        pagoResidual99: 1200000,
+        pagoDesvioSensivel99: 300000,
+        taxaValorOpacidadePct: 20.0,
+        taxaDesvioSensivelPct: 25.0,
+        classificacaoRisco: "atencao",
+      },
+      {
+        portalSlug: "porciuncula_prefeitura",
         ano: 2025,
         totalEmpenhos: 400,
         empenhosResidual99: 100,
@@ -161,9 +175,23 @@ describe("TermometroOpacidadeFiscal Component", () => {
         "Evolução Histórica de Opacidade (Exercícios Anteriores Fechados)",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText("2025 – 2025")).toBeInTheDocument();
+    expect(screen.getByText("2024 – 2025")).toBeInTheDocument();
+    expect(screen.getByText("2024")).toBeInTheDocument();
     expect(screen.getByText("2025")).toBeInTheDocument();
-    expect(screen.getByText("25.00%")).toBeInTheDocument();
+    expect(screen.getAllByText("25.00%").length).toBeGreaterThan(0);
+  });
+
+  it("renderiza ano único no badge quando há apenas um exercício anterior", () => {
+    const singleYearData = {
+      ...sampleData,
+      historico: [sampleData.historico[1], sampleData.historico[2]], // 2025 e 2026
+    };
+    render(<TermometroOpacidadeFiscal data={singleYearData} />);
+    const summary = screen.getByText(
+      "Evolução Histórica de Opacidade (Exercícios Anteriores Fechados)",
+    );
+    expect(summary).toBeInTheDocument();
+    expect(screen.getAllByText("2025").length).toBeGreaterThan(0);
   });
 
   it("renderiza a tabela de top credores em .99 com categorias sugeridas pelo objeto", () => {

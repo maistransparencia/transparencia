@@ -384,7 +384,7 @@ export function TermometroOpacidadeFiscal({
                             : "bg-slate-700"
                         }`}
                         style={{
-                          width: `${Math.min(100, elem.percentualDoResidual99)}%`,
+                          width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
                         }}
                       />
                     </div>
@@ -449,7 +449,7 @@ export function TermometroOpacidadeFiscal({
                                 : "bg-slate-700"
                             }`}
                             style={{
-                              width: `${Math.min(100, elem.percentualDoResidual99)}%`,
+                              width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
                             }}
                           />
                         </div>
@@ -493,8 +493,9 @@ export function TermometroOpacidadeFiscal({
                   Fechados)
                 </span>
                 <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-full bg-slate-200 px-2.5 py-0.5 font-normal text-slate-700 text-xs">
-                  {historicoAnterior[0]?.ano} –{" "}
-                  {historicoAnterior[historicoAnterior.length - 1]?.ano}
+                  {historicoAnterior.length === 1
+                    ? historicoAnterior[0]?.ano
+                    : `${historicoAnterior[0]?.ano} – ${historicoAnterior[historicoAnterior.length - 1]?.ano}`}
                 </span>
               </div>
               <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180 sm:mt-0" />

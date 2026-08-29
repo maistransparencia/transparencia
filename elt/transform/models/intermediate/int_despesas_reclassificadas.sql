@@ -66,9 +66,9 @@ with despesas as (
 despesas_normalizadas as (
     select
         d.*,
-        {{ target.schema }}.unaccent(lower(coalesce(d.produ, d.descricao, ''))) as texto_objeto,
+        {{ target.schema }}.unaccent(lower(coalesce(nullif(d.produ, ''), d.descricao, ''))) as texto_objeto,
         {{ target.schema }}.unaccent(lower(coalesce(d.fornecedor_nome, ''))) as texto_fornecedor,
-        {{ target.schema }}.unaccent(lower(coalesce(d.fornecedor_nome, '') || ' ' || coalesce(d.produ, d.descricao, ''))) as texto_completo,
+        {{ target.schema }}.unaccent(lower(coalesce(d.fornecedor_nome, '') || ' ' || coalesce(nullif(d.produ, ''), d.descricao, ''))) as texto_completo,
         {{ target.schema }}.unaccent(lower(coalesce(d.projeto_atividade_nome, ''))) as texto_proj_ativ
     from despesas d
 ),
@@ -148,13 +148,13 @@ reclassificacao as (
                  or texto_completo ~ '(consorcio publico|consorcio intermunicipal|rateio de consorcio|rateio do consorcio|cisbap|codesp|cis-bap|ajuste de contas.*confissao de divida)' then 'consorcios_publicos'
 
             -- 3. Bloqueios Judiciais e Sentenças
-            when (
-                natureza_despesa_codigo like '3.3.90.91%'
-                or elemento in ('91', '61')
-                or texto_completo ~ '(bloqueio judicial|sequestro judicial|precatorio|sentenca judicial|requisicao de pequeno valor|justica do trabalho|tribunal de justica|vara do trabalho|justica federal|tribunal.*trt|tribunal regional do trabalho|vara unica|penhora online|resgate judicial|acordados junto ao tribunal|honorarios advocaticios)'
-            )
-            and texto_fornecedor !~ '(vittalis|homecare|home care|hospital|clinica|medico|saude|codesp|cisbap)'
-            and texto_objeto !~ '(home care|homecare|equipe multidisciplinar|plantao|consulta medica|assistencial de saude)' then 'bloqueios_sentencas'
+            when natureza_despesa_codigo like '3.3.90.91%'
+                 or elemento in ('91', '61')
+                 or (
+                     texto_completo ~ '(bloqueio judicial|sequestro judicial|precatorio|sentenca judicial|requisicao de pequeno valor|justica do trabalho|tribunal de justica|vara do trabalho|justica federal|tribunal.*trt|tribunal regional do trabalho|vara unica|penhora online|resgate judicial|acordados junto ao tribunal|honorarios advocaticios)'
+                     and texto_fornecedor !~ '(vittalis|homecare|home care|hospital|clinica|medico|saude|codesp|cisbap)'
+                     and texto_objeto !~ '(home care|homecare|equipe multidisciplinar|plantao|consulta medica|assistencial de saude)'
+                 ) then 'bloqueios_sentencas'
 
             -- 4. Diárias e Viagens
             when natureza_despesa_codigo like '3.3.90.14%'
@@ -181,13 +181,13 @@ reclassificacao as (
                 or (
                     elemento in ('30', '39', '99')
                     and (
-                        texto_fornecedor ~ '(posto|petroleo|uaitag)'
-                        or texto_objeto ~ '(gasolina|diesel|etanol|combustivel|abastecimento de combustiveis|abastecimento com arla)'
+                        texto_fornecedor ~ '(\yposto\y|petroleo|uaitag)'
+                        or texto_objeto ~ '(gasolina|diesel|etanol|\ycombustivel|\ycombustiveis|abastecimento de combustiveis|abastecimento com arla)'
                     )
                 )
                 or (
                     fonte = 'restos_a_pagar'
-                    and texto_fornecedor ~ '(posto|combustiv|petroleo)'
+                    and texto_fornecedor ~ '(\yposto\y|combustiv|petroleo)'
                 )
             )
             and texto_fornecedor !~ '(cedae|copasa|enel|educacao|aliment|didatico|livro|magazine|papelaria|cooperativa de transportes|autolocadora|radar empreendimentos)'
@@ -196,7 +196,7 @@ reclassificacao as (
             -- 7. Locação de Máquinas e Veículos (específico para máquinas/veículos, sem caçambas ou serviços hospitalares/médicos puros)
             when (
                 (
-                    natureza_despesa_codigo in ('3.3.90.39.12', '3.3.90.39.13', '3.3.90.36.16', '3.3.90.36.19')
+                    natureza_despesa_codigo in ('3.3.90.39.12', '3.3.90.39.13', '3.3.90.36.16')
                     and texto_fornecedor !~ '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino)'
                     and texto_objeto !~ '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo|aluguel social)'
                 )
@@ -244,7 +244,7 @@ reclassificacao as (
                 or natureza_despesa_codigo like '3.3.90.31%'
                 or (
                     natureza_despesa_codigo = '3.3.90.39.14'
-                    and texto_objeto ~ '(palco|som|show|festa|evento)'
+                    and texto_objeto ~ '(palco|\ysom\y|\yshow\y|\yshows\y|\yfesta\y|\yfestas\y|evento)'
                 )
                 or (
                     elemento in ('39', '31', '99')
@@ -281,7 +281,7 @@ reclassificacao as (
             when natureza_despesa_codigo like '3.3.90.13%'
                  or natureza_despesa_codigo in ('3.1.90.01.99', '3.1.90.03.99', '3.1.90.01.01', '3.1.90.01.06', '3.1.90.03.01')
                  or elemento in ('13', '01', '03')
-                 or texto_completo ~ '(inss|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|pasep|folha de pagamento dos inativos|inativos e pensionistas|casp - caixa assist|guias de recolhimento de planos de saude|pensionista|inativo)' then 'previdencia'
+                 or texto_completo ~ '(\yinss\y|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|pasep|folha de pagamento dos inativos|inativos e pensionistas|casp - caixa assist|guias de recolhimento de planos de saude|pensionista|inativo)' then 'previdencia'
 
             -- 13. Consultoria, Assessoria Técnica e Pesquisa
             when (
@@ -327,7 +327,7 @@ select
         when r.categoria_objeto_sugerida = 'consultoria_tecnica' then coalesce(nullif(r.natureza_despesa_codigo, '3.3.90.39.99'), '3.3.90.35.00')
         when r.categoria_objeto_sugerida = 'combustivel_frota' then '3.3.90.30.01'
         when r.categoria_objeto_sugerida = 'locacao_maquinas_veiculos' then coalesce(nullif(r.natureza_despesa_codigo, '3.3.90.39.99'), '3.3.90.39.12')
-        when r.categoria_objeto_sugerida = 'locacao_imoveis' then coalesce(nullif(r.natureza_despesa_codigo, '3.3.90.39.99'), '3.3.90.36.15')
+        when r.categoria_objeto_sugerida = 'locacao_imoveis' then coalesce(nullif(r.natureza_despesa_codigo, '3.3.90.39.99'), case when length(regexp_replace(coalesce(r.fornecedor_cpf_cnpj, ''), '\D', '', 'g')) > 11 then '3.3.90.39.10' else '3.3.90.36.15' end)
         when r.categoria_objeto_sugerida = 'eventos_festas' then coalesce(nullif(r.natureza_despesa_codigo, '3.3.90.39.99'), '3.3.90.39.23')
         when r.categoria_objeto_sugerida = 'diarias_viagens' then coalesce(r.natureza_despesa_codigo, '3.3.90.14.01')
         when r.categoria_objeto_sugerida = 'obras_infraestrutura' then coalesce(r.natureza_despesa_codigo, '4.4.90.51.00')

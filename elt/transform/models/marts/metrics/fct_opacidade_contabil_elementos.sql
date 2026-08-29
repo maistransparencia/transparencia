@@ -53,7 +53,7 @@ com_ranking_e_pct as (
             then round((total_pago / sum(total_pago) over (partition by portal_slug, ano) * 100.0), 2)
             else 0.00
         end as percentual_do_residual_99,
-        row_number() over (partition by portal_slug, ano order by total_pago desc)::integer as ranking
+        row_number() over (partition by portal_slug, ano order by total_pago desc, total_empenhos desc, elemento_codigo asc)::integer as ranking
     from elementos_agregados
 )
 

@@ -280,11 +280,11 @@ unit_tests:
       - input: ref('fct_despesas')
         rows:
           # Despesa em subitem .99 com desvio sensível (R$ 600)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", categoria_gasto_sensivel: "locacao_maquinas_veiculos", pago: 600.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", categoria_gasto_sensivel: "locacao_maquinas_veiculos", categoria_objeto_sugerida: null, pago: 600.00 }
           # Despesa normal (R$ 400)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", categoria_gasto_sensivel: null, pago: 400.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", categoria_gasto_sensivel: null, categoria_objeto_sugerida: null, pago: 400.00 }
           # Restos a pagar (deve ser ignorado pelo filtro fonte = 'exercicio')
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "restos_a_pagar", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", categoria_gasto_sensivel: "locacao_maquinas_veiculos", pago: 999.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "restos_a_pagar", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", categoria_gasto_sensivel: "locacao_maquinas_veiculos", categoria_objeto_sugerida: null, pago: 999.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, total_empenhos: 2, empenhos_residual_99: 1, empenhos_desvio_sensivel_99: 1, taxa_empenhos_opacidade_pct: 50.00, total_pago: 1000.00, pago_residual_99: 600.00, pago_desvio_sensivel_99: 600.00, taxa_valor_opacidade_pct: 60.00, taxa_desvio_sensivel_pct: 100.00, classificacao_risco: "critico" }
