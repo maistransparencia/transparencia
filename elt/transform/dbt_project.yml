@@ -25,6 +25,6 @@ models:
     staging:
       +materialized: view
     intermediate:
-      +materialized: view
+      +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
     marts:
       +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"

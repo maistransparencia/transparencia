@@ -163,7 +163,7 @@ export function RadarGastosSensiveis({
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl border ${getIconBg(
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${getIconBg(
                       config.icone,
                     )}`}
                   >
@@ -172,27 +172,27 @@ export function RadarGastosSensiveis({
 
                   {/* Badge de Variação ou Peso no Orçamento */}
                   {isCurrentYear ? (
-                    <span className="inline-flex whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+                    <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
                       {pesoOrcamento}% do pago em {anoAtual}
                     </span>
                   ) : (
                     <>
                       {isAumento && item.variacaoPercentual !== null && (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
+                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
                           <TrendingUp className="h-3.5 w-3.5" />+
                           {item.variacaoPercentual}% vs {anoAnterior}
                         </span>
                       )}
 
                       {isEconomia && item.variacaoPercentual !== null && (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
+                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
                           <TrendingDown className="h-3.5 w-3.5" />
                           {item.variacaoPercentual}% vs {anoAnterior}
                         </span>
                       )}
 
                       {!isAumento && !isEconomia && (
-                        <span className="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
+                        <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
                           {(() => {
                             if (item.variacaoPercentual === null) {
                               return "Sem histórico";
