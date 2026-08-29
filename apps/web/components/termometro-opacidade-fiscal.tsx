@@ -3,7 +3,12 @@ import type {
   OpacidadeCredorDTO,
   OpacidadeMetricasExercicioDTO,
 } from "@transparencia/db";
-import { fmtCompact, fmtCurrency, fmtPercent } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtCurrency,
+  fmtNumber,
+  fmtPercent,
+} from "@transparencia/ui";
 import {
   AlertTriangle,
   ChevronDown,
@@ -22,30 +27,30 @@ function getRiscoConfig(
 ) {
   if (classificacao === "critico") {
     return {
-      label: "Concentração Elevada em .99",
-      badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
-      barClass: "bg-amber-600",
-      textColor: "text-amber-800",
-      statusText: "Uso Elevado",
+      label: "Uso Elevado de .99",
+      badgeClass: "bg-rose-50 text-rose-800 border-rose-200",
+      barClass: "bg-rose-500",
+      textColor: "text-rose-800",
+      statusText: "Elevado",
       icon: AlertTriangle,
     };
   }
   if (classificacao === "atencao") {
     return {
-      label: "Uso Moderado de .99",
-      badgeClass: "bg-yellow-50 text-yellow-800 border-yellow-200",
-      barClass: "bg-yellow-500",
-      textColor: "text-yellow-800",
-      statusText: "Uso Moderado",
+      label: "Atenção (.99)",
+      badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+      barClass: "bg-amber-500",
+      textColor: "text-amber-800",
+      statusText: "Atenção",
       icon: AlertTriangle,
     };
   }
   return {
-    label: "Uso Residual Esperado",
+    label: "Uso Esperado de .99",
     badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200",
     barClass: "bg-emerald-500",
     textColor: "text-emerald-700",
-    statusText: "Uso Residual Esperado",
+    statusText: "Esperado",
     icon: ShieldCheck,
   };
 }
@@ -100,16 +105,16 @@ export function TermometroOpacidadeFiscal({
     >
       {/* Cabeçalho do Card */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-              <Layers className="h-3.5 w-3.5 text-slate-500" />
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+              <Layers className="h-3.5 w-3.5 shrink-0 text-slate-500" />
               Classificação Orçamentária
             </span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-semibold text-xs ${risco.badgeClass}`}
+              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 font-semibold text-xs ${risco.badgeClass}`}
             >
-              <StatusIcon className="h-3.5 w-3.5" />
+              <StatusIcon className="h-3.5 w-3.5 shrink-0" />
               {risco.label}
             </span>
           </div>
@@ -127,7 +132,7 @@ export function TermometroOpacidadeFiscal({
             className="inline-flex items-center gap-1.5 self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 sm:self-center"
           >
             <span>Referência: {baseLegalPrincipal.baseLegal}</span>
-            <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           </a>
         )}
       </div>
@@ -209,69 +214,197 @@ export function TermometroOpacidadeFiscal({
 
       {/* Grid de 4 Indicadores Informativos */}
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
-          <span className="block text-slate-500 text-xs">
-            Total Pago em .99
-          </span>
-          <span className="mt-1 block font-bold text-lg text-slate-900">
-            {fmtCompact(exercicioAtual.pagoResidual99)}
-          </span>
-          <span className="text-[11px] text-slate-500">
-            de {fmtCompact(exercicioAtual.totalPago)} pagos no ano
-          </span>
-        </div>
-
-        <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
-          <span className="block text-slate-500 text-xs">Empenhos em .99</span>
-          <span className="mt-1 block font-bold text-lg text-slate-900">
-            {exercicioAtual.empenhosResidual99}
-          </span>
-          <span className="text-[11px] text-slate-500">
-            {fmtPercent(exercicioAtual.taxaEmpenhosOpacidadePct)} dos atos de
-            empenho
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+          <div>
+            <span className="block text-slate-500 text-xs">
+              Total Pago em .99
+            </span>
+            <span className="mt-1 block font-bold text-lg text-slate-900">
+              {fmtCompact(exercicioAtual.pagoResidual99)}
+            </span>
+          </div>
+          <span className="mt-2 text-[11px] text-slate-500">
+            {fmtPercent(exercicioAtual.taxaValorOpacidadePct)} de{" "}
+            {fmtCompact(exercicioAtual.totalPago)} pagos
           </span>
         </div>
 
-        <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-3.5 shadow-none">
-          <span className="block font-medium text-amber-900 text-xs">
-            Gastos com Categoria Identificada
-          </span>
-          <span className="mt-1 block font-bold text-amber-900 text-lg">
-            {fmtCompact(exercicioAtual.pagoDesvioSensivel99)}
-          </span>
-          <span className="text-[11px] text-amber-700">
-            {fmtPercent(exercicioAtual.taxaDesvioSensivelPct)} do .99 com objeto
-            mapeado
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+          <div>
+            <span className="block text-slate-500 text-xs">
+              Empenhos em .99
+            </span>
+            <span className="mt-1 block font-bold text-lg text-slate-900">
+              {fmtNumber(exercicioAtual.empenhosResidual99)}
+            </span>
+          </div>
+          <span className="mt-2 text-[11px] text-slate-500">
+            {fmtPercent(exercicioAtual.taxaEmpenhosOpacidadePct)} de{" "}
+            {fmtNumber(exercicioAtual.totalEmpenhos)} atos
           </span>
         </div>
 
-        <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
-          <span className="block text-slate-500 text-xs">
-            Faixa de Concentração
+        <div className="flex flex-col justify-between rounded-xl border border-amber-100 bg-amber-50/40 p-3.5 shadow-none">
+          <div>
+            <span className="block font-medium text-amber-900 text-xs">
+              Genéricos com Objeto Mapeado
+            </span>
+            <span className="mt-1 block font-bold text-amber-900 text-lg">
+              {fmtCompact(exercicioAtual.pagoDesvioSensivel99)}
+            </span>
+          </div>
+          <span className="mt-2 text-[11px] text-amber-700">
+            {fmtPercent(exercicioAtual.taxaDesvioSensivelPct)} de{" "}
+            {fmtCompact(exercicioAtual.pagoResidual99)} em .99
           </span>
-          <span className={`mt-1 block font-bold text-base ${risco.textColor}`}>
-            {risco.statusText}
-          </span>
-          <span className="text-[11px] text-slate-500">
-            Parâmetro do Portal (Lei 4.320/64)
+        </div>
+
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+          <div>
+            <span className="block text-slate-500 text-xs">
+              Faixa de Concentração
+            </span>
+            <span
+              className={`mt-1 block font-bold text-base ${risco.textColor}`}
+            >
+              {risco.statusText}
+            </span>
+          </div>
+          <span className="mt-2 text-[11px] text-slate-500">
+            Parâmetro Metodológico
           </span>
         </div>
       </div>
 
+      {/* Quebra por Elemento Pai de Despesas (.99) */}
+      {data.elementosResidual99 && data.elementosResidual99.length > 0 && (
+        <div className="mt-6 space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+          <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
+            <div>
+              <h3 className="font-semibold text-slate-900 text-sm">
+                Concentração por Elemento Pai (Subitens .99)
+              </h3>
+              <p className="text-slate-500 text-xs">
+                Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
+                pagos em .99 entre as naturezas orçamentárias
+              </p>
+            </div>
+            <span className="font-medium text-[11px] text-slate-400">
+              {data.elementosResidual99.length} naturezas identificadas
+            </span>
+          </div>
+
+          <div className="space-y-2.5 pt-2">
+            {data.elementosResidual99.slice(0, 5).map((elem) => (
+              <div key={elem.elementoCodigo} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex min-w-0 items-center gap-2 pr-2">
+                    <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
+                      {elem.elementoCodigo}.99
+                    </span>
+                    <span
+                      className="truncate font-medium text-slate-800"
+                      title={elem.elementoDescricao}
+                    >
+                      {elem.elementoDescricao}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 text-right">
+                    <span className="font-bold text-slate-900">
+                      {fmtCompact(elem.totalPago)}
+                    </span>
+                    <span className="w-12 text-right font-medium text-[11px] text-slate-500">
+                      {fmtPercent(elem.percentualDoResidual99)}
+                    </span>
+                  </div>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-slate-600 transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, elem.percentualDoResidual99)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Série Histórica de Exercícios Anteriores Fechados */}
+      {(() => {
+        const historicoAnterior = data.historico.filter(
+          (h) => h.ano < exercicioAtual.ano,
+        );
+        if (historicoAnterior.length === 0) return null;
+
+        return (
+          <details className="group mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all">
+            <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-slate-800 text-sm sm:items-center">
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                <span>
+                  Evolução Histórica de Opacidade (Exercícios Anteriores
+                  Fechados)
+                </span>
+                <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-full bg-slate-200 px-2.5 py-0.5 font-normal text-slate-700 text-xs">
+                  {historicoAnterior[0]?.ano} –{" "}
+                  {historicoAnterior[historicoAnterior.length - 1]?.ano}
+                </span>
+              </div>
+              <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180 sm:mt-0" />
+            </summary>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+              {historicoAnterior.map((h) => {
+                const configAno = getRiscoConfig(h.classificacaoRisco);
+                return (
+                  <div
+                    key={h.ano}
+                    className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3 shadow-none"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 text-sm">
+                        {h.ano}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-semibold text-[10px] ${configAno.badgeClass}`}
+                      >
+                        {configAno.statusText}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <span
+                        className={`font-bold text-base ${configAno.textColor}`}
+                      >
+                        {fmtPercent(h.taxaValorOpacidadePct)}
+                      </span>
+                      <span className="block text-[11px] text-slate-500">
+                        {fmtCompact(h.pagoResidual99)} pagos
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        );
+      })()}
+
       {/* Gaveta de Maiores Fornecedores em Subitens .99 */}
       {topCredores.length > 0 && (
-        <details className="group mt-6 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all">
-          <summary className="flex cursor-pointer select-none items-center justify-between font-semibold text-slate-800 text-sm">
-            <span className="flex items-center gap-2">
+        <details className="group mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all">
+          <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-slate-800 text-sm sm:items-center">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
               <span>
                 Maiores Fornecedores em Subitens Genéricos (.99) (Top{" "}
                 {topCredores.length})
               </span>
-              <span className="rounded-full bg-slate-200 px-2 py-0.5 font-normal text-slate-700 text-xs">
+              <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-full bg-slate-200 px-2.5 py-0.5 font-normal text-slate-700 text-xs">
                 Detalhamento por Fornecedor
               </span>
-            </span>
-            <ChevronDown className="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180" />
+            </div>
+            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180 sm:mt-0" />
           </summary>
 
           <div className="mt-4 overflow-x-auto">

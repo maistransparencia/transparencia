@@ -73,6 +73,35 @@ describe("TermometroOpacidadeFiscal Component", () => {
         ranking: 2,
       },
     ],
+    elementosResidual99: [
+      {
+        elementoCodigo: "39",
+        elementoDescricao: "Outros Serviços de Terceiros - Pessoa Jurídica",
+        categoriaMacro: "Serviços de Terceiros",
+        totalEmpenhos: 200,
+        totalPago: 4000000,
+        percentualDoResidual99: 70.92,
+        ranking: 1,
+      },
+      {
+        elementoCodigo: "36",
+        elementoDescricao: "Outros Serviços de Terceiros - Pessoa Física",
+        categoriaMacro: "Serviços de Terceiros",
+        totalEmpenhos: 50,
+        totalPago: 1000000,
+        percentualDoResidual99: 17.73,
+        ranking: 2,
+      },
+      {
+        elementoCodigo: "30",
+        elementoDescricao: "Material de Consumo",
+        categoriaMacro: "Material",
+        totalEmpenhos: 30,
+        totalPago: 640000,
+        percentualDoResidual99: 11.35,
+        ranking: 3,
+      },
+    ],
     limiares: {
       limiteAtencaoPct: 15.0,
       limiteCriticoPct: 30.0,
@@ -93,11 +122,39 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(
       screen.getByText("Monitoramento de Gastos Genéricos (Subitens .99)"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Concentração Elevada em .99")).toBeInTheDocument();
+    expect(screen.getByText("Uso Elevado de .99")).toBeInTheDocument();
     expect(screen.getByText("56.40%")).toBeInTheDocument();
     expect(
       screen.getByText("Referência: Lei 4.320/1964 Arts. 5º e 15"),
     ).toBeInTheDocument();
+  });
+
+  it("renderiza a quebra por elemento pai de despesas .99", () => {
+    render(<TermometroOpacidadeFiscal data={sampleData} />);
+
+    expect(
+      screen.getByText("Concentração por Elemento Pai (Subitens .99)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("39.99")).toBeInTheDocument();
+    expect(
+      screen.getByText("Outros Serviços de Terceiros - Pessoa Jurídica"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("70.92%")).toBeInTheDocument();
+    expect(screen.getByText("36.99")).toBeInTheDocument();
+    expect(screen.getByText("30.99")).toBeInTheDocument();
+  });
+
+  it("renderiza a evolução histórica de anos anteriores fechados", () => {
+    render(<TermometroOpacidadeFiscal data={sampleData} />);
+
+    expect(
+      screen.getByText(
+        "Evolução Histórica de Opacidade (Exercícios Anteriores Fechados)",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2025 – 2025")).toBeInTheDocument();
+    expect(screen.getByText("2025")).toBeInTheDocument();
+    expect(screen.getByText("25.00%")).toBeInTheDocument();
   });
 
   it("renderiza a tabela de top credores em .99 com categorias sugeridas pelo objeto", () => {

@@ -48,8 +48,11 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Referência Normativa:** Princípio da Especificação Orçamentária (Lei Federal nº 4.320/1964, Arts. 5º e 15) e orientações técnicas de transparência pública.
 - **Conceito de Subitem Genérico (`.99`):** Rubricas orçamentárias de suporte destinadas a pequenas despesas que não possuam subitem específico na codificação da STN (como `3.3.90.39.99` - Outros Serviços de Terceiros - Pessoa Jurídica e `3.3.90.30.99` - Outros Materiais de Consumo).
 - **Faixas de Concentração:**
-  - *Uso Residual Esperado (`normal`):* Taxa de uso no desembolso <= 15,00%. Proporção compatível com a rotina administrativa.
-  - *Uso Moderado (`atencao`):* Taxa de uso entre 15,01% e 30,00%. Indica a oportunidade de maior detalhamento contábil das despesas.
+  - *Esperado (`normal`):* Taxa de uso no desembolso <= 15,00%. Proporção compatível com a rotina administrativa.
+  - *Atenção (`atencao`):* Taxa de uso entre 15,01% e 30,00%. Indica a oportunidade de maior detalhamento contábil das despesas.
+  - *Elevado (`critico`):* Taxa de uso superior a 30,00%. Indica alta concentração de recursos sob rubricas orçamentárias genéricas.
+- **Quebra por Elemento Pai (.99):** Detalhamento da concentração dos gastos genéricos entre os elementos de despesa oficiais (como `3.3.90.39.99` Serviços de PJ, `3.3.90.36.99` Serviços de PF, `3.3.90.30.99` Material de Consumo, etc.), vinculados ao catálogo padronizado do `seed_elemento_despesa`.
+- **Evolução Histórica (Exercícios Anteriores Fechados):** Série histórica comparativa das taxas de opacidade e montantes pagos em .99 ao longo dos anos fiscais anteriores fechados.
 - **Gastos com Categoria Sugerida pelo Objeto:** Inferência orçamentária fundamentada no catálogo oficial da Portaria STN/SOF nº 163/2001 e MCASP para despesas lançadas em subitens residuais (`.99`), identificando a destinação real do gasto a partir da descrição do objeto e perfil do fornecedor (ex: Consórcios Públicos/Saúde, Limpeza Urbana & Resíduos, Plantões Médicos, Bloqueios & Sentenças Judiciais, Terceirização de Mão de Obra, Previdência, Consultorias Técnicas, Locação de Máquinas/Veículos, Locação de Imóveis, Combustíveis, Eventos, Diárias e Obras).
 - **Maiores Fornecedores em Subitens Genéricos:** Lista dos principais fornecedores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria sugerida pelo objeto e descrição do serviço contratado.
 
