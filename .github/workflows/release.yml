@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extrair seção do CHANGELOG.md
+        id: changelog_reader
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          python3 -c "
+          import re, sys
+          version = '${VERSION}'
+          try:
+              with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
+                  content = f.read()
+              pattern = rf'## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)'
+              match = re.search(pattern, content, re.DOTALL)
+              if match:
+                  notes = match.group(1).strip()
+                  with open('RELEASE_NOTES.md', 'w', encoding='utf-8') as out:
+                      out.write(notes)
+                  print('Notas de release extraídas com sucesso!')
+              else:
+                  print(f'Aviso: Seção {version} não encontrada no CHANGELOG.md', file=sys.stderr)
+                  with open('RELEASE_NOTES.md', 'w', encoding='utf-8') as out:
+                      out.write(f'Release {version}')
+          except Exception as e:
+              print(f'Erro ao processar CHANGELOG.md: {e}', file=sys.stderr)
+              with open('RELEASE_NOTES.md', 'w', encoding='utf-8') as out:
+                  out.write(f'Release {version}')
+          "
+
+      - name: Publicar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
