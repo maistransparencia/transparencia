@@ -42,6 +42,12 @@ unit_tests:
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '53', pk_empenho: '53', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.50', fornecedor_nome: 'INSTITUTO MEDICO REGIONAL', descricao: 'PRESTAÇÃO DE SERVIÇOS DE PLANTOES MEDICOS E CONSULTAS', empenhado: 30000.00}
           # 7. Terceirização de Mão de Obra
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '54', pk_empenho: '54', tipo_empenho: 'OR', elemento: '37', natureza_despesa_codigo: '3.3.90.37.00', descricao: 'TERCEIRIZACAO DE MAO DE OBRA PARA PORTARIA E RECEPCAO', empenhado: 25000.00}
+          # 8. Plantões de Urgência Médica 24h em .99 (Caso Focus)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '55', pk_empenho: '55', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'FOCUS E MML SERVICOS MEDICOS', descricao: 'PRESTRACAO DE SERVICO ASSISTENCIAL DE SAUDE PARA A GESTAO DE ESCALA E EXECUCAO DE PLANTOES DE URGENCIA - MEDICOS 24H', empenhado: 446778.51}
+          # 9. Serviços Continuados de Mão de Obra Terceirizada em .99 (Caso DEAG)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '56', pk_empenho: '56', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'DEAG EMPREENDIMENTOS LTDA', descricao: 'PRESTACAO DE SERVICOS CONTINUADOS DE MAO DE OBRA TERCEIRIZADA PARA ATENDIMENTO DAS NECESSIDADES ADMINISTRATIVAS', empenhado: 359917.34}
+          # 10. Acordo de Parceria para Pesquisa e Desenvolvimento em .99 (Caso FUJB)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '57', pk_empenho: '57', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'FUNDAÇÃO UNIVERSITÁRIA JOSÉ BONIFÁCIO - FUJB', descricao: 'ACORDO DE PARCERIA PARA PESQUISA, DESENVOLVIMENTO E INOVACAO COM ESTUDO ESPECIALIZADO DE MODELAGEM DE CHEIAS', empenhado: 332354.58}
     expect:
       rows:
         - {empenho_id: '1', categoria_objeto_sugerida: 'combustivel_frota', categoria_gasto_sensivel: 'combustivel_frota', natureza_despesa_codigo_sugerido: '3.3.90.30.01'}
@@ -51,3 +57,6 @@ unit_tests:
         - {empenho_id: '52', categoria_objeto_sugerida: 'bloqueios_sentencas', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.91.00'}
         - {empenho_id: '53', categoria_objeto_sugerida: 'plantoes_medicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.50'}
         - {empenho_id: '54', categoria_objeto_sugerida: 'terceirizacao_mao_obra', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.37.00'}
+        - {empenho_id: '55', categoria_objeto_sugerida: 'plantoes_medicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.50'}
+        - {empenho_id: '56', categoria_objeto_sugerida: 'terceirizacao_mao_obra', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.37.00'}
+        - {empenho_id: '57', categoria_objeto_sugerida: 'consultoria_tecnica', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.35.00'}

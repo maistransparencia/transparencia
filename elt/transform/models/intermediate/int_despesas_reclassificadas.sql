@@ -77,12 +77,12 @@ reclassificacao as (
             -- 2. Consórcios Públicos e Rateios de Saúde
             when natureza_despesa_codigo like '3.3.71%'
                  or elemento = '70'
-                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(consorcio publico|consorcio intermunicipal|rateio de consorcio|rateio do consorcio|cisbap|codesp|cis-bap)' then 'consorcios_publicos'
+                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(consorcio publico|consorcio intermunicipal|rateio de consorcio|rateio do consorcio|cisbap|codesp|cis-bap|ajuste de contas.*confissao de divida)' then 'consorcios_publicos'
 
             -- 3. Bloqueios Judiciais e Sentenças
             when natureza_despesa_codigo like '3.3.90.91%'
-                 or elemento = '91'
-                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(bloqueio judicial|sequestro judicial|precatorio|sentenca judicial|requisicao de pequeno valor|justica do trabalho|tribunal de justica|vara do trabalho|justica federal)' then 'bloqueios_sentencas'
+                 or elemento in ('91', '61')
+                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(bloqueio judicial|sequestro judicial|precatorio|sentenca judicial|requisicao de pequeno valor|justica do trabalho|tribunal de justica|vara do trabalho|justica federal|tribunal.*trt|tribunal regional do trabalho|vara unica|penhora online|resgate judicial|acordados junto ao tribunal|honorarios advocaticios)' then 'bloqueios_sentencas'
 
             -- 4. Diárias e Viagens
             when natureza_despesa_codigo like '3.3.90.14%'
@@ -131,8 +131,8 @@ reclassificacao as (
                 or (
                     elemento in ('36', '39', '32', '99')
                     and (
-                        {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* 'autolocadora'
-                        or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(locacao|aluguel).*(veiculo|ambulancia|trator|escavadeira|retroescavadeira|caminhao|van|pipa|motoniveladora|pa carregadeira|maquinario)'
+                        {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(autolocadora|radar empreendimentos|cooperativa de transportes)'
+                        or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(locacao|aluguel|prestacao de servicos veiculos|veiculos leves|veiculos pesados).*(veiculo|ambulancia|trator|escavadeira|retroescavadeira|caminhao|van|pipa|motoniveladora|pa carregadeira|maquinario|sem condutor)'
                     )
                     and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino)'
                     and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo)'
@@ -140,7 +140,7 @@ reclassificacao as (
                 or (
                     fonte = 'restos_a_pagar'
                     and (
-                        {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* 'autolocadora'
+                        {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(autolocadora|radar empreendimentos|cooperativa de transportes)'
                         or {{ target.schema }}.unaccent(lower(coalesce(descricao, ''))) ~* '(locacao|aluguel).*(veiculo|ambulancia|trator|caminhao|maquina)'
                     )
                 )
@@ -184,12 +184,12 @@ reclassificacao as (
             and {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) !~* '(transporte|veiculo|enel|cedae|copasa)' then 'eventos_festas'
 
             -- 10. Serviços Médicos, Plantões e Exames
-            when natureza_despesa_codigo = '3.3.90.39.50'
+            when natureza_despesa_codigo in ('3.3.90.39.50', '3.3.90.36.06', '3.3.90.36.07', '3.3.90.39.51')
                  or (
                      elemento in ('36', '39', '99')
                      and (
-                         {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(flexlab|laboratorio|clinica|oftalmo|hospital)'
-                         or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(plantao medico|plantoes medicos|consulta medica|consultas medicas|consulta oftalmolog|oftalmolog|pediatria|ultrassonografia|exames laborator|cirurgia|hospitalar|dosimetro|gases medicinais|oxigenio)'
+                         {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(flexlab|laboratorio|clinica|oftalmo|hospital|servicos medicos|assistencia em saude|home care|homecare|remocao.*saude|saude.*servicos|vittalis|focus.*medico)'
+                         or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(plantao|plantoes|escala.*plantao|gestao de escala|assistencial de saude|consulta medica|consultas medicas|consulta oftalmolog|oftalmolog|pediatria|ultrassonografia|exames laborator|cirurgia|hospitalar|home care|homecare|dosimetro|gases medicinais|oxigenio medicinal|medicos 24h|medico 24h|urgencia.*medico|medico.*urgencia)'
                      )
                  ) then 'plantoes_medicos'
 
@@ -198,21 +198,24 @@ reclassificacao as (
                  or elemento = '37'
                  or (
                      elemento in ('36', '39', '99')
-                     and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(locacao de mao de obra|locacao de mao-de-obra|terceirizacao de mao|servicos de portaria|servicos de recepcao|limpeza predial terceirizada|apoio administrativo terceirizado)'
+                     and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(mao de obra terceirizada|mao-de-obra terceirizada|locacao de mao de obra|locacao de mao-de-obra|terceirizacao de mao|terceirizacao de servicos|servicos continuados de mao|servicos terceirizados|posto de trabalho|postos de trabalho|servicos de portaria|servicos de recepcao|limpeza predial terceirizada|apoio administrativo terceirizado)'
                  ) then 'terceirizacao_mao_obra'
 
             -- 12. Previdência e Obrigações Patronais
             when natureza_despesa_codigo like '3.3.90.13%'
                  or elemento = '13'
-                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(inss|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|pasep)' then 'previdencia'
+                 or {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, produ, descricao, ''))) ~* '(inss|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|pasep|folha de pagamento dos inativos|inativos e pensionistas|casp - caixa assist|guias de recolhimento de planos de saude)' then 'previdencia'
 
-            -- 13. Consultoria e Assessoria Técnica
+            -- 13. Consultoria, Assessoria Técnica e Pesquisa
             when natureza_despesa_codigo like '3.3.90.35%'
                  or natureza_despesa_codigo = '3.3.90.39.05'
                  or elemento = '35'
                  or (
                      elemento in ('36', '39', '99')
-                     and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(consultoria tecnica|assessoria juridica|assessoria contabil|auditoria externa|auditoria contabil|assessoria tributaria)'
+                     and (
+                         {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, ''))) ~* '(fundacao universitar|fujb|coppetec|faperj)'
+                         or {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) ~* '(consultoria tecnica|assessoria juridica|assessoria contabil|auditoria externa|auditoria contabil|assessoria tributaria|acordo de parceria para pesquisa|pesquisa.*desenvolvimen|projeto de pesquisa|estudo especializado|modelagem de cheias|desenvolvimento institucional)'
+                     )
                      and {{ target.schema }}.unaccent(lower(coalesce(produ, descricao, ''))) !~* '(show|festa|veiculo|combustivel)'
                  ) then 'consultoria_tecnica'
 
