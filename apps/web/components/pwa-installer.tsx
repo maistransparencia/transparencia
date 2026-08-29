@@ -79,6 +79,30 @@ export function PwaInstaller() {
 
     if (!("serviceWorker" in navigator)) return;
 
+    // Em ambiente de desenvolvimento local (localhost), desregistrar Service Workers e limpar caches para impedir CSS preso
+    const isDevLocalhost =
+      process.env.NODE_ENV === "development" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1");
+
+    if (isDevLocalhost) {
+      if (typeof navigator.serviceWorker.getRegistrations === "function") {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if (typeof window !== "undefined" && "caches" in window) {
+        caches.keys().then((names) => {
+          for (const name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+      return;
+    }
+
     // Listen for controllerchange to reload page reliably after SKIP_WAITING
     let refreshing = false;
     const handleControllerChange = () => {

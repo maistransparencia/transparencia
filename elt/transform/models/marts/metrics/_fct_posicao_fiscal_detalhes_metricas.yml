@@ -38,6 +38,24 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: valor_empenhado
+        data_type: numeric
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: valor_liquidado
+        data_type: numeric
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: valor_pago
+        data_type: numeric
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
       - name: valor_pendente
         data_type: numeric
         constraints:
@@ -56,12 +74,12 @@ unit_tests:
     given:
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", descricao: "Fornecedor A", empenhado: 100000.00, pago: 30000.00 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2026, fonte: "restos_a_pagar", descricao: "Fornecedor E", empenhado: 90000.00, pago: 0.00 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2020, fonte: "restos_a_pagar", descricao: "Fornecedor B", empenhado: 50000.00, pago: 10000.00 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "despesa_normal", descricao: "Fornecedor C", empenhado: 1000.00, pago: 500.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "restos_a_pagar", descricao: "Fornecedor A", empenhado: 100000.00, liquidado: 40000.00, pago: 30000.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2026, fonte: "restos_a_pagar", descricao: "Fornecedor E", empenhado: 90000.00, liquidado: 0.00, pago: 0.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2020, fonte: "restos_a_pagar", descricao: "Fornecedor B", empenhado: 50000.00, liquidado: 20000.00, pago: 10000.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fonte: "despesa_normal", descricao: "Fornecedor C", empenhado: 1000.00, liquidado: 500.00, pago: 500.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, administracao: "Adm. Atual", valor_pendente: 70000.00, fornecedor_nome: "Fornecedor A" }
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2026, administracao: "Adm. Atual", valor_pendente: 90000.00, fornecedor_nome: "Fornecedor E" }
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2020, administracao: "Adm. Anterior", valor_pendente: 40000.00, fornecedor_nome: "Fornecedor B" }
+        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, administracao: "Adm. Atual", valor_empenhado: 100000.00, valor_liquidado: 40000.00, valor_pago: 30000.00, valor_pendente: 70000.00, fornecedor_nome: "Fornecedor A" }
+        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2026, administracao: "Adm. Atual", valor_empenhado: 90000.00, valor_liquidado: 0.00, valor_pago: 0.00, valor_pendente: 90000.00, fornecedor_nome: "Fornecedor E" }
+        - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2020, administracao: "Adm. Anterior", valor_empenhado: 50000.00, valor_liquidado: 20000.00, valor_pago: 10000.00, valor_pendente: 40000.00, fornecedor_nome: "Fornecedor B" }

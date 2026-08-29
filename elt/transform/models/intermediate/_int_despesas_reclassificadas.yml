@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: int_despesas_reclassificadas
+    description: "Modelo intermediário que analisa as despesas consolidadas e infere natureza sugerida (STN/MCASP) e categoria do objeto por análise léxica estruturada"
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: natureza_despesa_codigo_sugerido
+        description: "Código canônico STN sugerido a partir do objeto real da despesa"
+        data_type: text
+      - name: natureza_despesa_nome_sugerido
+        description: "Descrição padronizada do subitem STN inferido"
+        data_type: text
+      - name: categoria_objeto_sugerida
+        description: "Categoria do objeto inferida em lowercase snake_case"
+        data_type: text
+      - name: categoria_gasto_sensivel
+        description: "Classificação em lowercase snake_case dos 6 centros de custos sensíveis do radar"
+        data_type: text
+
+unit_tests:
+  - name: test_int_despesas_reclassificadas_classificacao_lexica
+    description: "Valida a classificação determinística e precedência léxica de despesas (resíduos, consórcios, sentenças, sensíveis)"
+    model: int_despesas_reclassificadas
+    given:
+      - input: ref('int_despesas_consolidadas')
+        rows:
+          # 1. Combustível
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '1', pk_empenho: '1', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: 'AQUISIÇÃO DE ÓLEO DIESEL S-10 PARA VEÍCULOS', empenhado: 1000.00}
+          # 2. Locação de Máquinas e Veículos
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '3', pk_empenho: '3', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.12', funcao: '15', descricao: 'LOCAÇÃO DE RETROESCAVADEIRA PARA URBANISMO', empenhado: 2000.00}
+          # 3. Resíduos Sólidos e Caçambas (não deve virar locação de veículos)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '50', pk_empenho: '50', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', descricao: 'LOCAÇÃO DE CAÇAMBAS E POLIGUINDASTE PARA COLETA DE ENTULHO E RESÍDUOS SÓLIDOS', empenhado: 15000.00}
+          # 4. Consórcios Públicos e Rateios de Saúde
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '51', pk_empenho: '51', tipo_empenho: 'OR', elemento: '70', natureza_despesa_codigo: '3.3.71.70.00', fornecedor_nome: 'CODESP CONSORCIO DE SAUDE', descricao: 'RATEIO DE PROGRAMA DO CONSORCIO INTERMUNICIPAL', empenhado: 50000.00}
+          # 5. Sentenças e Bloqueios Judiciais
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '52', pk_empenho: '52', tipo_empenho: 'OR', elemento: '91', natureza_despesa_codigo: '3.3.90.91.00', fornecedor_nome: 'TRIBUNAL DE JUSTICA DO ESTADO', descricao: 'SEQUESTRO JUDICIAL REFERENTE A PRECATORIO', empenhado: 120000.00}
+          # 6. Plantões Médicos e Serviços Hospitalares
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '53', pk_empenho: '53', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.50', fornecedor_nome: 'INSTITUTO MEDICO REGIONAL', descricao: 'PRESTAÇÃO DE SERVIÇOS DE PLANTOES MEDICOS E CONSULTAS', empenhado: 30000.00}
+          # 7. Terceirização de Mão de Obra
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '54', pk_empenho: '54', tipo_empenho: 'OR', elemento: '37', natureza_despesa_codigo: '3.3.90.37.00', descricao: 'TERCEIRIZACAO DE MAO DE OBRA PARA PORTARIA E RECEPCAO', empenhado: 25000.00}
+          # 8. Plantões de Urgência Médica 24h em .99 (Caso Focus)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '55', pk_empenho: '55', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'FOCUS E MML SERVICOS MEDICOS', descricao: 'PRESTRACAO DE SERVICO ASSISTENCIAL DE SAUDE PARA A GESTAO DE ESCALA E EXECUCAO DE PLANTOES DE URGENCIA - MEDICOS 24H', empenhado: 446778.51}
+          # 9. Serviços Continuados de Mão de Obra Terceirizada em .99 (Caso DEAG)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '56', pk_empenho: '56', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'DEAG EMPREENDIMENTOS LTDA', descricao: 'PRESTACAO DE SERVICOS CONTINUADOS DE MAO DE OBRA TERCEIRIZADA PARA ATENDIMENTO DAS NECESSIDADES ADMINISTRATIVAS', empenhado: 359917.34}
+          # 10. Acordo de Parceria para Pesquisa e Desenvolvimento em .99 (Caso FUJB)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '57', pk_empenho: '57', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'FUNDAÇÃO UNIVERSITÁRIA JOSÉ BONIFÁCIO - FUJB', descricao: 'ACORDO DE PARCERIA PARA PESQUISA, DESENVOLVIMENTO E INOVACAO COM ESTUDO ESPECIALIZADO DE MODELAGEM DE CHEIAS', empenhado: 332354.58}
+    expect:
+      rows:
+        - {empenho_id: '1', categoria_objeto_sugerida: 'combustivel_frota', categoria_gasto_sensivel: 'combustivel_frota', natureza_despesa_codigo_sugerido: '3.3.90.30.01'}
+        - {empenho_id: '3', categoria_objeto_sugerida: 'locacao_maquinas_veiculos', categoria_gasto_sensivel: 'locacao_maquinas_veiculos', natureza_despesa_codigo_sugerido: '3.3.90.39.12'}
+        - {empenho_id: '50', categoria_objeto_sugerida: 'limpeza_residuos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.44'}
+        - {empenho_id: '51', categoria_objeto_sugerida: 'consorcios_publicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.71.70.00'}
+        - {empenho_id: '52', categoria_objeto_sugerida: 'bloqueios_sentencas', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.91.00'}
+        - {empenho_id: '53', categoria_objeto_sugerida: 'plantoes_medicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.50'}
+        - {empenho_id: '54', categoria_objeto_sugerida: 'terceirizacao_mao_obra', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.37.00'}
+        - {empenho_id: '55', categoria_objeto_sugerida: 'plantoes_medicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.50'}
+        - {empenho_id: '56', categoria_objeto_sugerida: 'terceirizacao_mao_obra', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.37.00'}
+        - {empenho_id: '57', categoria_objeto_sugerida: 'consultoria_tecnica', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.35.00'}

@@ -19,6 +19,7 @@ logs/
 venv/
 .vscode/
 docker/postgres
+docker/volumes
 __pycache__
 *mypy_cache
 .superpowers

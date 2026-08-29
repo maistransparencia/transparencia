@@ -98,6 +98,31 @@ models:
         data_type: text
       - name: descricao
         data_type: text
+      - name: natureza_despesa_codigo
+        data_type: text
+      - name: natureza_despesa_codigo_sugerido
+        description: "Código canônico STN sugerido a partir do objeto real da despesa"
+        data_type: text
+      - name: natureza_despesa_nome_sugerido
+        description: "Descrição padronizada do subitem STN inferido"
+        data_type: text
+      - name: categoria_objeto_sugerida
+        description: "Categoria do objeto inferida em lowercase snake_case"
+        data_type: text
+      - name: categoria_gasto_sensivel
+        data_type: text
+        description: "Classificação em lowercase snake_case de centros de custos sensíveis (combustivel_frota, locacao_maquinas_veiculos, locacao_imoveis, eventos_festas, diarias_viagens, obras_infraestrutura)"
+        tests:
+          - accepted_values:
+              values:
+                - combustivel_frota
+                - locacao_maquinas_veiculos
+                - locacao_imoveis
+                - eventos_festas
+                - diarias_viagens
+                - obras_infraestrutura
+              config:
+                where: "categoria_gasto_sensivel is not null"
       - name: credor_id
         data_type: text
       - name: orgao_id
@@ -144,3 +169,133 @@ models:
               row_condition: "reforco is not null"
       - name: valor_anulacoes
         data_type: numeric
+
+unit_tests:
+  - name: test_fct_despesas_categoria_gasto_sensivel_classificacao
+    description: "Valida a correta classificação determinística das contas de gastos sensíveis baseadas na coluna natureza_despesa_codigo (STN/MCASP)"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_reclassificadas')
+        rows:
+          # 1. Combustível (natureza_despesa_codigo 3.3.90.30.01 / 3.3.90.30.39)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '1', pk_empenho: '1', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: 'AQUISIÇÃO DE ÓLEO DIESEL S-10 PARA VEÍCULOS', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '2', pk_empenho: '2', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.39', fornecedor_nome: 'AUTOPOSTO CENTRAL LTDA', descricao: 'DIESEL S-10 DA FROTA', empenhado: 500.00, liquidado: 500.00, pago: 500.00}
+          # 2. Locação de Máquinas e Veículos (natureza_despesa_codigo 3.3.90.39.12 / 3.3.90.39.13)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '3', pk_empenho: '3', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.12', funcao: '15', descricao: 'LOCAÇÃO DE RETROESCAVADEIRA PARA URBANISMO', empenhado: 2000.00, liquidado: 2000.00, pago: 2000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '4', pk_empenho: '4', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.13', funcao: '20', descricao: 'ALUGUEL DE VEICULO AMBULANCIA', empenhado: 1500.00, liquidado: 1500.00, pago: 1500.00}
+          # 3. Eventos, Shows e Festas (natureza_despesa_codigo 3.3.90.39.21 / 3.3.90.39.14)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '5', pk_empenho: '5', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.21', funcao: '13', subfuncao: '392', descricao: 'CONTRATAÇÃO DE SHOW MUSICAL', empenhado: 650000.00, liquidado: 325000.00, pago: 0.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '6', pk_empenho: '6', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.14', funcao: '04', subfuncao: '695', descricao: 'ESTRUTURA DE PALCO E SOM PARA O TURISMO', empenhado: 50000.00, liquidado: 50000.00, pago: 50000.00}
+          # 4. Diárias e Viagens (natureza_despesa_codigo 3.3.90.14.01 / 3.3.90.33.01)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '7', pk_empenho: '7', tipo_empenho: 'OR', elemento: '14', natureza_despesa_codigo: '3.3.90.14.01', descricao: 'DIÁRIAS A SERVIÇO DO MUNICÍPIO', empenhado: 800.00, liquidado: 800.00, pago: 800.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '8', pk_empenho: '8', tipo_empenho: 'OR', elemento: '33', natureza_despesa_codigo: '3.3.90.33.01', descricao: 'PASSAGENS E DESPESAS COM LOCOMOÇÃO', empenhado: 1200.00, liquidado: 1200.00, pago: 1200.00}
+          # 5. Obras e Infraestrutura (natureza_despesa_codigo 4.4.90.51.91)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '9', pk_empenho: '9', tipo_empenho: 'OR', elemento: '51', natureza_despesa_codigo: '4.4.90.51.91', descricao: 'PAVIMENTAÇÃO ASFÁLTICA DE RUAS', empenhado: 700000.00, liquidado: 0.00, pago: 0.00}
+          # 6. Despesas que NÃO devem cair nas categorias sensíveis (Outros subitens)
+          # Tenda para vacinação na Saúde (subitem 39.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '10', pk_empenho: '10', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '10', subfuncao: '301', descricao: 'LOCAÇÃO DE TENDA PARA CAMPANHA DE VACINAÇÃO DA SAÚDE', empenhado: 5000.00, liquidado: 5000.00, pago: 5000.00}
+          # Tenda para feira do livro na Educação (subitem 39.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '11', pk_empenho: '11', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '12', subfuncao: '361', descricao: 'LOCAÇÃO DE TENDA PARA A REALIZAÇÃO DA FEIRA DO LIVRO', empenhado: 3000.00, liquidado: 3000.00, pago: 3000.00}
+          # Gêneros alimentícios (subitem 30.07) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '12', pk_empenho: '12', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.07', fornecedor_nome: 'PADARIA CENTRAL LTDA', descricao: 'GÊNEROS ALIMENTÍCIOS PARA ABASTECER O HOSPITAL', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          # Tintas em Cultura (subitem 30.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '13', pk_empenho: '13', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.99', funcao: '13', subfuncao: '392', fornecedor_nome: 'MARTINS E TUPINI MATERIAIS DE CONSTRUCAO LTDA', descricao: 'AQUISIÇÃO DE TINTAS PARA MANUTENÇÃO DA QUADRA', empenhado: 1500.00, liquidado: 1500.00, pago: 1500.00}
+          # Refletores de LED em Cultura (subitem 30.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '14', pk_empenho: '14', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.99', funcao: '13', subfuncao: '392', fornecedor_nome: 'ROCHA CARDOSO MATERIAIS DE CONSTRUCAO LTDA', descricao: 'AQUISIÇÃO DE REFLETORES DE LED DESTINADOS À ILUMINAÇÃO DO CENTRO CULTURAL', empenhado: 2000.00, liquidado: 2000.00, pago: 2000.00}
+          # Locação de imóvel para sede de Secretaria em Turismo (natureza_despesa_codigo 3.3.90.36.15) -> locacao_imoveis
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '15', pk_empenho: '15', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.15', funcao: '04', subfuncao: '695', descricao: 'LOCAÇÃO DE IMÓVEL PARA FUNCIONAMENTO DA SEC. DE TURISMO', empenhado: 4000.00, liquidado: 4000.00, pago: 4000.00}
+          # Vigia de fazenda/sede em Turismo (natureza_despesa_codigo 3.3.90.36.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '16', pk_empenho: '16', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.99', funcao: '04', subfuncao: '695', descricao: 'CONTRATAÇÃO DE PROFISSIONAL VIGIA PARA ATUAR NA FAZENDA CAETÉ', empenhado: 2500.00, liquidado: 2500.00, pago: 2500.00}
+          # Manutenção administrativa de secretaria em elemento 39 (natureza_despesa_codigo 3.3.90.39.99) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '17', pk_empenho: '17', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '13', subfuncao: '392', descricao: 'DEDETIZACAO DA SEDE DA SECRETARIA DE CULTURA', empenhado: 1200.00, liquidado: 1200.00, pago: 1200.00}
+          # Locação de imóvel para almoxarifado em elemento 39 (natureza_despesa_codigo 3.3.90.39.10) -> locacao_imoveis
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '18', pk_empenho: '18', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.10', funcao: '04', subfuncao: '122', descricao: 'LOCAÇÃO DE PRÉDIO DESTINADO AO ALMOXARIFADO CENTRAL', empenhado: 6000.00, liquidado: 6000.00, pago: 6000.00}
+          # Casos reais de dosímetros, software, médico, etc. -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '19', pk_empenho: '19', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '10', fornecedor_nome: 'RAD MED ASSESSORIA LTDA - ME', descricao: 'Contratação de serviços de locação de dosímetros para atender a sala de raio-x do Hospital conforme descrito em anexo.', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '20', pk_empenho: '20', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '10', fornecedor_nome: 'COOPTAE - COOPERATIVA DOS MOTORISTAS DE TRANSPORTE', descricao: 'Serviços de transporte de passageiros em ambulancia para Casa de Caridade.', empenhado: 2000.00, liquidado: 2000.00, pago: 2000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '30', pk_empenho: '30', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '04', subfuncao: '122', descricao: 'CONTRATAÇÃO DE EMPRESA ESPECIALIZADA EM TRANSPORTE PARA EXPOSIÇÃO', empenhado: 3000.00, liquidado: 3000.00, pago: 3000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '31', pk_empenho: '31', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', funcao: '10', fornecedor_nome: 'NOSSO SOM PROMOÇÕES E EVENTOS LTDA-ME', descricao: 'Locação de tenda, modelo galpão para realização da campanha Outubro Rosa.', empenhado: 4000.00, liquidado: 4000.00, pago: 4000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '32', pk_empenho: '32', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.50', funcao: '10', fornecedor_nome: 'INSTITUTO DE OLHOS DE CARANGOLA', descricao: 'Contratação de serviços para realização de consultas oftalmológicas', empenhado: 1500.00, liquidado: 1500.00, pago: 1500.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '33', pk_empenho: '33', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.11', funcao: '10', fornecedor_nome: 'CÍCERO SOUZA DE CASTRO', descricao: 'Contratação de serviços para realização de manutenção software do laboratório', empenhado: 1000.00, liquidado: 1000.00, pago: 1000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '34', pk_empenho: '34', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.12', funcao: '04', fornecedor_nome: 'MAQSTAR COPIADORAS E SERVIÇOS EIRELI-ME', descricao: 'CONTRATO DE ADESÃO - PRESTAÇÃO DE SERVIÇOS DE CÓPIAS, IMPRESSÕES E DIGITALIZAÇÕES', empenhado: 5000.00, liquidado: 5000.00, pago: 5000.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '35', pk_empenho: '35', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.12', funcao: '04', fornecedor_nome: 'NORT BELO COMERCIO DE MOVEIS E SERVICOS LTDA', descricao: 'LOCAÇÃO DE MÁQUINAS DE XEROX E 02 DUPLICADORES DIGITAIS PARA REPROGRAFIA', empenhado: 4000.00, liquidado: 4000.00, pago: 4000.00}
+    expect:
+      rows:
+        - {empenho_id: '1', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '2', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '3', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '4', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '5', categoria_gasto_sensivel: 'eventos_festas'}
+        - {empenho_id: '6', categoria_gasto_sensivel: 'eventos_festas'}
+        - {empenho_id: '7', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '8', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '9', categoria_gasto_sensivel: 'obras_infraestrutura'}
+        - {empenho_id: '10', categoria_gasto_sensivel: null}
+        - {empenho_id: '11', categoria_gasto_sensivel: null}
+        - {empenho_id: '12', categoria_gasto_sensivel: null}
+        - {empenho_id: '13', categoria_gasto_sensivel: null}
+        - {empenho_id: '14', categoria_gasto_sensivel: null}
+        - {empenho_id: '15', categoria_gasto_sensivel: 'locacao_imoveis'}
+        - {empenho_id: '16', categoria_gasto_sensivel: null}
+        - {empenho_id: '17', categoria_gasto_sensivel: null}
+        - {empenho_id: '18', categoria_gasto_sensivel: 'locacao_imoveis'}
+        - {empenho_id: '19', categoria_gasto_sensivel: null}
+        - {empenho_id: '20', categoria_gasto_sensivel: null}
+        - {empenho_id: '30', categoria_gasto_sensivel: null}
+        - {empenho_id: '31', categoria_gasto_sensivel: null}
+        - {empenho_id: '32', categoria_gasto_sensivel: null}
+        - {empenho_id: '33', categoria_gasto_sensivel: null}
+        - {empenho_id: '34', categoria_gasto_sensivel: null}
+        - {empenho_id: '35', categoria_gasto_sensivel: null}
+
+  - name: test_fct_despesas_categoria_gasto_sensivel_subitens_adicionais
+    description: "Valida cobertura de subitens específicos (ARLA, passagens PF, UTI, locação imóveis residencial e contratos)"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_reclassificadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '21', pk_empenho: '21', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', descricao: 'fornecimento de combustivel e lubrificantes', empenhado: 100.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '22', pk_empenho: '22', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.02', descricao: 'passagens aereas e taxi', empenhado: 200.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '23', pk_empenho: '23', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.50', descricao: 'locacao de veiculo ambulatorial uti', empenhado: 300.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '24', pk_empenho: '24', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.10', descricao: 'contrato de locacao de predio', empenhado: 400.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '25', pk_empenho: '25', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.16', descricao: 'locacao de imovel residencial para posto', empenhado: 500.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '26', pk_empenho: '26', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.10', descricao: 'contrato de locacao de imovel', empenhado: 600.00}
+          # CEDAE (Água e Esgoto com termo abastecimento) -> null
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '27', pk_empenho: '27', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.44', fornecedor_nome: 'CEDAE', descricao: 'Empenho de despesas referente ao abastecimento de àgua e tratamento de esgoto', empenhado: 800.00}
+    expect:
+      rows:
+        - {empenho_id: '21', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '22', categoria_gasto_sensivel: 'diarias_viagens'}
+        - {empenho_id: '23', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '24', categoria_gasto_sensivel: 'locacao_imoveis'}
+        - {empenho_id: '25', categoria_gasto_sensivel: 'locacao_imoveis'}
+        - {empenho_id: '26', categoria_gasto_sensivel: 'locacao_imoveis'}
+        - {empenho_id: '27', categoria_gasto_sensivel: null}
+
+  - name: test_fct_despesas_elemento_estrito_combustivel
+    description: "Garante que fornecedor não-posto fora do elemento 30 não é combustível de frota"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_reclassificadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '301', pk_empenho: '301', tipo_empenho: 'OR', elemento: '39', fornecedor_nome: 'EMPRESA DE CARTÕES LTDA', descricao: 'TAXA ADMINISTRATIVA', empenhado: 5000.00}
+    expect:
+      rows:
+        - {empenho_id: '301', categoria_gasto_sensivel: null}
+
+  - name: test_fct_despesas_restos_a_pagar_gastos_sensiveis
+    description: "Garante que fornecedores de combustível e locações em Restos a Pagar são corretamente classificados"
+    model: fct_despesas
+    given:
+      - input: ref('int_despesas_reclassificadas')
+        rows:
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '401', pk_empenho: '401', tipo_empenho: null, fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: null, empenhado: 50000.00, liquidado: 50000.00, pago: 0.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '402', pk_empenho: '402', tipo_empenho: null, fornecedor_nome: 'NOVO ROLE AUTOPOSTO LTDA', descricao: null, empenhado: 80000.00, liquidado: 80000.00, pago: 0.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '403', pk_empenho: '403', tipo_empenho: null, fornecedor_nome: 'GARCIA AUTOLOCADORA LTDA', descricao: null, empenhado: 20000.00, liquidado: 20000.00, pago: 0.00}
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'restos_a_pagar', ano: 2026, empresa_id: '2', empenho_id: '404', pk_empenho: '404', tipo_empenho: null, fornecedor_nome: 'L.PHILIPPE CONSTRUCOES LTDA', descricao: null, empenhado: 100000.00, liquidado: 100000.00, pago: 100000.00}
+    expect:
+      rows:
+        - {empenho_id: '401', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '402', categoria_gasto_sensivel: 'combustivel_frota'}
+        - {empenho_id: '403', categoria_gasto_sensivel: 'locacao_maquinas_veiculos'}
+        - {empenho_id: '404', categoria_gasto_sensivel: null}

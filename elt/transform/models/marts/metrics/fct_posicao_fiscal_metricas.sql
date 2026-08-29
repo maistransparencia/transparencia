@@ -53,6 +53,7 @@ restos_pagos_agregados as (
         portal_slug,
         empresa_id,
         ano,
+        sum(coalesce(liquidado, 0)) as restos_liquidados_no_ano,
         sum(coalesce(pago, 0)) as restos_pagos_no_ano
     from {{ ref('fct_despesas') }}
     where fonte = 'restos_a_pagar'
@@ -102,6 +103,7 @@ select
     cb.ano,
     coalesce(r.total_arrecadado, 0) as total_arrecadado,
     coalesce(dc.despesas_pagas, 0) as despesas_pagas,
+    coalesce(rp.restos_liquidados_no_ano, 0) as restos_liquidados_no_ano,
     coalesce(rp.restos_pagos_no_ano, 0) as restos_pagos_no_ano,
     coalesce(rp_pend.restos_pendentes_adm_anterior, 0) as restos_pendentes_adm_anterior,
     coalesce(rp_pend.restos_pendentes_adm_atual, 0) as restos_pendentes_adm_atual,

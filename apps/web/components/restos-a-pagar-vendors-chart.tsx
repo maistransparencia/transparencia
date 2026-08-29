@@ -2,7 +2,10 @@ import { fmtCompact, toTitleCase } from "@transparencia/ui";
 
 export interface RestosAPagarVendorItem {
   fornecedor: string;
-  valor: number;
+  valorTotal?: number;
+  liquidado?: number;
+  empenhadoALiquidar?: number;
+  valor?: number;
 }
 
 export interface RestosAPagarVendorsChartProps {
@@ -11,59 +14,106 @@ export interface RestosAPagarVendorsChartProps {
   className?: string;
 }
 
-function getTerracottaGradientColor(ratio: number): string {
-  // Interpolate between soft amber/terracotta (#D99373) for low values and dark terracotta (#A85348) for 100% max value
-  const r1 = 0xd9,
-    g1 = 0x93,
-    b1 = 0x73;
-  const r2 = 0xa8,
-    g2 = 0x53,
-    b2 = 0x48;
-  const r = Math.round(r1 + (r2 - r1) * ratio);
-  const g = Math.round(g1 + (g2 - g1) * ratio);
-  const b = Math.round(b1 + (b2 - b1) * ratio);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
 export function RestosAPagarVendorsChart({
   items,
-  title = "Fornecedores com maior pendência",
+  title = "Fornecedores com maior pendência de restos a pagar",
   className = "",
 }: RestosAPagarVendorsChartProps) {
   if (!items || items.length === 0) return null;
 
-  const maxVal = Math.max(...items.map((i) => i.valor), 1);
+  const getVal = (i: RestosAPagarVendorItem) => i.valorTotal ?? i.valor ?? 0;
+  const maxVal = Math.max(...items.map(getVal), 1);
 
   return (
     <div
       className={`space-y-4 rounded-2xl border border-borderLine bg-white p-6 ${className}`}
     >
-      {title && <h4 className="font-bold text-base text-ink">{title}</h4>}
-      <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {title && <h4 className="font-bold text-base text-ink">{title}</h4>}
+
+        {/* Legenda Stacked */}
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-600" />
+            <span className="font-medium text-ink/70">
+              Liquidado (Dívida Real)
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+            <span className="font-medium text-ink/70">
+              Empenhado (Não Processado)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
         {items.map((item) => {
-          const ratio = Math.max(Math.min(item.valor / maxVal, 1), 0);
-          const barWidthPct = Math.max(ratio * 100, 5);
-          const barColor = getTerracottaGradientColor(ratio);
+          const total = getVal(item);
+          const liq = item.liquidado ?? 0;
+          const naoProc = Math.max(0, total - liq);
+          const barWidthPct = Math.max(
+            Math.min((total / maxVal) * 100, 100),
+            5,
+          );
+
+          const liqPct =
+            total > 0 ? Math.min(100, Math.max(0, (liq / total) * 100)) : 0;
+          const naoProcPct =
+            total > 0 ? Math.min(100, Math.max(0, (naoProc / total) * 100)) : 0;
 
           return (
-            <div
-              key={item.fornecedor}
-              className="flex items-center justify-between gap-4 text-sm"
-            >
-              <div className="w-1/3 truncate font-medium text-ink">
-                {toTitleCase(item.fornecedor)}
+            <div key={item.fornecedor} className="space-y-1.5">
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <div className="w-2/3 truncate font-medium text-ink">
+                  {toTitleCase(item.fornecedor)}
+                </div>
+                <div className="shrink-0 text-right font-bold text-ink">
+                  {fmtCompact(total)}
+                </div>
               </div>
-              <div className="flex h-5 flex-1 items-center overflow-hidden rounded-lg">
+
+              {/* Stacked Bar sem fundo cinza total para evitar falsa ideia de progresso */}
+              <div className="flex h-3.5 w-full items-center">
                 <div
-                  className="h-full rounded-lg transition-all duration-300"
-                  style={{
-                    width: `${barWidthPct}%`,
-                    backgroundColor: barColor,
-                  }}
-                />
+                  className="flex h-full overflow-hidden rounded-full transition-all duration-300"
+                  style={{ width: `${barWidthPct}%` }}
+                >
+                  {liq > 0 && (
+                    <div
+                      className="h-full bg-amber-600"
+                      style={{ width: `${liqPct}%` }}
+                      title={`Liquidado (Dívida Real): ${fmtCompact(liq)}`}
+                    />
+                  )}
+                  {naoProc > 0 && (
+                    <div
+                      className="h-full bg-amber-300"
+                      style={{ width: `${naoProcPct}%` }}
+                      title={`Empenhado (Não Processado): ${fmtCompact(naoProc)}`}
+                    />
+                  )}
+                </div>
               </div>
-              <div className="w-24 shrink-0 text-right font-bold text-ink">
-                {fmtCompact(item.valor)}
+
+              <div className="flex justify-between text-[11px] text-ink/60">
+                {total === 0 ? (
+                  <span>Sem pendências</span>
+                ) : (
+                  <>
+                    <span>
+                      {liq > 0
+                        ? `${fmtCompact(liq)} liquidado (dívida real)`
+                        : "100% não processado (empenhado)"}
+                    </span>
+                    <span>
+                      {naoProc > 0
+                        ? `${fmtCompact(naoProc)} empenhado (não processado)`
+                        : "Totalmente liquidado"}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           );

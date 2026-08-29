@@ -43,6 +43,8 @@ models:
         data_type: text
       - name: natureza_despesa
         data_type: text
+      - name: natureza_despesa_codigo
+        data_type: text
       - name: categoria
         data_type: text
       - name: grupo_natureza

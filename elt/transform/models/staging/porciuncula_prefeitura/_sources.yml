@@ -23,6 +23,7 @@ sources:
           - name: elemento
           - name: natureza
           - name: categoria
+          - name: catec
           - name: gruponatureza
           - name: modalidade
           - name: programa

@@ -3,7 +3,6 @@ import {
   fmtCompact,
   fmtPercent,
   getPartialYearPeriod,
-  toTitleCase,
 } from "@transparencia/ui";
 import type { loadVisaoGeralData } from "./loader";
 
@@ -76,9 +75,11 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const totalLiquidado = execSummary.totalLiquidado;
   const totalPago = execSummary.totalPago;
 
-  const empPct = totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
-  const liqPct = totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
-  const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
+  const empPctDotacao =
+    totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
+  const liqPctDotacao =
+    totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
+  const pagPctDotacao = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
   const pipelineStages = [
     {
@@ -91,22 +92,22 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     {
       name: "Empenhado",
       formattedValue: fmtCompact(totalEmpenhado),
-      percentage: Number(empPct.toFixed(1)),
-      label: `${fmtPercent(empPct)} da dotação`,
+      percentage: Number(empPctDotacao.toFixed(1)),
+      label: `${fmtPercent(empPctDotacao)} da dotação`,
       color: "bg-indigo-600",
     },
     {
       name: "Liquidado",
       formattedValue: fmtCompact(totalLiquidado),
-      percentage: Number(liqPct.toFixed(1)),
-      label: `${fmtPercent(liqPct)} da dotação`,
+      percentage: Number(liqPctDotacao.toFixed(1)),
+      label: `${fmtPercent(liqPctDotacao)} da dotação`,
       color: "bg-sky-600",
     },
     {
       name: "Pago",
       formattedValue: fmtCompact(totalPago),
-      percentage: Number(pagPct.toFixed(1)),
-      label: `${fmtPercent(pagPct)} da dotação`,
+      percentage: Number(pagPctDotacao.toFixed(1)),
+      label: `${fmtPercent(pagPctDotacao)} da dotação`,
       color: "bg-emerald-600",
     },
   ];
@@ -118,17 +119,46 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     1,
   );
 
+  const restosAnoAtual = posicao.restosPendentes.find(
+    (r) => r.ano === selectedYear,
+  );
+  const liquidadoPendenteAnoAtual = restosAnoAtual
+    ? Math.max(0, (restosAnoAtual.liquidado || 0) - (restosAnoAtual.pago || 0))
+    : 0;
+
   const despesasCardData = {
-    title: "Despesas",
-    linkText: "Restos a pagar →",
+    title: "Restos a pagar",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/despesas"),
     totalRestosPagarFormatted: fmtCompact(posicao.restosPendentesTotal),
+    secondaryTextFormatted:
+      liquidadoPendenteAnoAtual > 0
+        ? `${fmtCompact(liquidadoPendenteAnoAtual)} liquidados`
+        : undefined,
+    totalEmpenhadoFormatted: fmtCompact(posicao.restosPendentesTotal),
+    totalLiquidadoFormatted:
+      liquidadoPendenteAnoAtual > 0
+        ? fmtCompact(liquidadoPendenteAnoAtual)
+        : undefined,
     subtext: `pendentes a ${posicao.totalCredoresAdmAtual || 0} fornecedores`,
-    antiguidadeBars: posicao.restosPendentes.map((r) => ({
-      year: String(r.ano),
-      amountFormatted: fmtCompact(r.pendente),
-      percentage: Math.round((r.pendente / maxPendente) * 100),
-    })),
+    antiguidadeBars: posicao.restosPendentes.map((r) => {
+      const totalPct = Math.round((r.pendente / maxPendente) * 100);
+      const pendenteTotal = r.pendente || 1;
+      const liquidadoPendente = Math.max(0, (r.liquidado || 0) - (r.pago || 0));
+      const percentualLiquidado = Math.min(
+        totalPct,
+        Math.round((liquidadoPendente / pendenteTotal) * totalPct),
+      );
+      const percentualEmpenhado = Math.max(0, totalPct - percentualLiquidado);
+      return {
+        year: String(r.ano),
+        amountFormatted: fmtCompact(r.pendente),
+        percentage: totalPct,
+        percentageLiquidado: percentualLiquidado,
+        percentageEmpenhado: percentualEmpenhado,
+        isCurrentYear: r.ano === selectedYear,
+      };
+    }),
     footerText:
       posicao.restosPendentesAnteriores > 0
         ? `Passivo anterior: ${fmtCompact(posicao.restosPendentesAnteriores)}`
@@ -143,7 +173,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   const licitacoesCardData = {
     title: "Licitações e Contratos",
-    linkText: "Contratos →",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/licitacoes"),
     items: [
       {
@@ -171,35 +201,22 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         : undefined,
   };
 
+  const lrfLimit = raw.lrfLimiteMaximo ?? 54;
+
   const pessoalCardData = {
     title: "Pessoal",
-    linkText: "Folha →",
+    linkText: "Detalhes →",
     linkHref: routeUrl("/pessoal"),
     receitaFolhaPercentFormatted: fmtPercent(folhaPct),
     receitaFolhaPercentValue: folhaPct,
     subtext: "da receita comprometida com a folha",
-    lrfLimitPercentValue: 54,
-    lrfLimitPercentFormatted: "54% LRF",
+    lrfLimitPercentValue: lrfLimit,
+    lrfLimitPercentFormatted: `${lrfLimit}% LRF`,
     footerText:
       raw.pctChefiasEfetivas !== null
         ? `${raw.pctChefiasEfetivas}% das chefias com servidores efetivos`
         : "Sem dados de ocupação de chefias no período",
   };
-
-  const credoresCols = [
-    { header: "Fornecedor", accessorKey: "fornecedor" as const },
-    {
-      header: "Pendente",
-      accessorKey: "pendente" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-  ];
-
-  const sanitizedCredores = posicao.topCredoresAdmAtual.map((credor) => ({
-    ...credor,
-    fornecedor: toTitleCase(credor.fornecedor),
-  }));
 
   const partialPeriod = getPartialYearPeriod();
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
@@ -248,8 +265,6 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     despesasCardData,
     licitacoesCardData,
     pessoalCardData,
-    sanitizedCredores,
-    credoresCols,
     orcamentoDetailUrl: routeUrl("/orcamento"),
   };
 }

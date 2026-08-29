@@ -23,6 +23,7 @@ renamed as (
         subfuncaonome as subfuncao_nome,
         elemento,
         natureza as natureza_despesa,
+        catec::text as natureza_despesa_codigo,
         categoria,
         gruponatureza as grupo_natureza,
         modalidade,
