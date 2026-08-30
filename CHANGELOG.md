@@ -5,6 +5,26 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-08-29
+
+### 🌟 Destaques da Versão (Hotfix: Otimização de Performance & Estabilidade do CI)
+* **Aceleração do Pipeline de Despesas (Redução de 110s para 6.5s):** Eliminação de inlining repetitivo de `unaccent()` e materialização da etapa de reclassificação léxica, prevenindo timeouts na execução do dbt em instâncias com recursos restritos (Supabase).
+* **Indexação Estratégica de Marts (`fct_despesas`):** Adição de índices B-Tree compostos para consultas de gastos sensíveis, restos a pagar e fornecedores na camada de aplicação.
+* **Estabilidade da Fixture de Testes (CI/CD):** Inclusão automática dos dados de tabelas de sementes (`seed_*`) no dump de fixture do banco de dados, garantindo paridade total entre testes locais e GitHub Actions.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Pré-computação em `int_despesas_consolidadas.sql`:** Projeção direta dos campos normalizados (`texto_objeto`, `texto_fornecedor`, `texto_completo`, `texto_proj_ativ`) na tabela consolidada, garantindo execução única do `unaccent` por registro.
+* **Otimização em `int_despesas_reclassificadas.sql`:** Aplicação de `materialized` na CTE de inferência léxica para impedir reavaliação de regexes no preenchimento de metadados da Portaria STN/SOF.
+* **Índices B-Tree em `fct_despesas.sql`:** Configuração nativa no dbt-postgres para indexar colunas-chave (`portal_slug, ano`, `empresa_id`, `categoria_gasto_sensivel`, `fonte`, `fornecedor_cpf_cnpj`, `elemento`, `funcao`).
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Tempo Total de Execução do dbt:** Redução superior a 90% no tempo total de build do cluster de despesas (de 67.11s para 6.50s localmente).
+* **Dump de Fixture Aprimorado (`Makefile`):** Atualização do target `db/fixture/dump` para gerar `--schema-only` de tabelas fato/dimensão e `--data-only` das tabelas de sementes (`seed_*`).
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Tratamento de Rota 404 em Portais:** Retorno explícito de página 404 para requisições com `portalSlug` inexistente ou inválido.
+* **Resiliência em Métricas de Opacidade:** Degradação graciosa de consultas quando marts ou constantes fiscais não possuem registros.
+
 ## [1.6.0] - 2026-08-29
 
 ### 🌟 Destaques da Versão (Epic 6: Reformulação Fiscal de Despesas)
