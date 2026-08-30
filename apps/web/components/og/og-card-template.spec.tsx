@@ -27,7 +27,7 @@ describe("OGCardTemplate", () => {
       />,
     );
 
-    expect(screen.getAllByText("MaisTransparencia").length).toBeGreaterThan(0);
+    expect(screen.getByText("MaisTransparencia")).toBeInTheDocument();
     expect(
       screen.getByText("Prefeitura de Porciúncula • RJ"),
     ).toBeInTheDocument();
@@ -115,9 +115,7 @@ describe("OGCardTemplate", () => {
       />,
     );
 
-    expect(screen.getAllByText("Transparência Aberta").length).toBeGreaterThan(
-      0,
-    );
+    expect(screen.getByText("Transparência Aberta")).toBeInTheDocument();
     expect(
       screen.getByText("transparencia.exemplo.gov.br"),
     ).toBeInTheDocument();

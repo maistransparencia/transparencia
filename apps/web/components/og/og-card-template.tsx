@@ -22,10 +22,10 @@ export interface OGCardTemplateProps {
 }
 
 function getVariantColor(variant?: MetricVariant): string {
-  if (variant === "success") return "#34d399";
-  if (variant === "warning") return "#fbbf24";
-  if (variant === "danger") return "#f87171";
-  return "#38bdf8";
+  if (variant === "success") return "#059669";
+  if (variant === "warning") return "#d97706";
+  if (variant === "danger") return "#dc2626";
+  return "#0f172a";
 }
 
 function resolveBrandDomain(customDomain?: string): string {
@@ -65,11 +65,11 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    padding: "40px 48px",
-    backgroundColor: "#090d16",
+    padding: "44px 52px",
+    backgroundColor: "#f8fafc",
     backgroundImage:
-      "radial-gradient(circle at 90% 10%, rgba(30, 41, 59, 0.7) 0%, #090d16 65%)",
-    color: "#f8fafc",
+      "linear-gradient(180deg, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%)",
+    color: "#0f172a",
     fontFamily:
       "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   };
@@ -89,23 +89,12 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     gap: "12px",
   };
 
-  const logoCircleStyle: CSSProperties = {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    backgroundColor: "#10b981",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#090d16",
-  };
-
   const brandTextStyle: CSSProperties = {
     display: "flex",
     flexDirection: "row",
-    fontSize: "22px",
+    fontSize: "24px",
     fontWeight: 700,
-    color: "#ffffff",
+    color: "#0f172a",
     letterSpacing: "-0.02em",
   };
 
@@ -114,13 +103,13 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     flexDirection: "row",
     alignItems: "center",
     gap: "8px",
-    backgroundColor: "rgba(30, 41, 59, 0.9)",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    padding: "8px 16px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #e2e8f0",
+    padding: "8px 18px",
     borderRadius: "9999px",
     fontSize: "15px",
     fontWeight: 600,
-    color: "#e2e8f0",
+    color: "#334155",
   };
 
   const pulseDotStyle: CSSProperties = {
@@ -135,30 +124,30 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     flexDirection: "column",
     justifyContent: "center",
     flex: 1,
-    marginTop: "16px",
-    marginBottom: "16px",
+    marginTop: "20px",
+    marginBottom: "20px",
   };
 
   const titleRowStyle: CSSProperties = {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: "14px",
+    gap: "16px",
     marginBottom: "4px",
   };
 
   const titleStyle: CSSProperties = {
     fontSize: "40px",
     fontWeight: 800,
-    color: "#ffffff",
+    color: "#0f172a",
     letterSpacing: "-0.03em",
     margin: 0,
   };
 
   const subtitleStyle: CSSProperties = {
     fontSize: "18px",
-    color: "#94a3b8",
-    marginTop: "6px",
+    color: "#64748b",
+    marginTop: "8px",
     marginBottom: "0px",
   };
 
@@ -166,7 +155,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     display: "flex",
     flexDirection: "row",
     gap: "16px",
-    marginTop: "24px",
+    marginTop: "28px",
     width: "100%",
   };
 
@@ -176,10 +165,10 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-    paddingTop: "16px",
+    borderTop: "1px solid #e2e8f0",
+    paddingTop: "18px",
     fontSize: "14px",
-    color: "#94a3b8",
+    color: "#64748b",
   };
 
   const municipalityText = portalUf
@@ -191,25 +180,23 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
       {/* Header */}
       <div style={headerStyle}>
         <div style={brandBoxStyle}>
-          <div style={logoCircleStyle}>
-            <svg
-              role="img"
-              aria-label={brandName}
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#090d16"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <title>{brandName}</title>
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
-          </div>
+          {/* Logo Oficial do Portal (svg/favicon.svg em alta definição) */}
+          <svg
+            role="img"
+            aria-label={brandName}
+            width="38"
+            height="38"
+            viewBox="0 0 120 120"
+            fill="none"
+          >
+            <rect width="120" height="120" rx="30" fill="#5a72a8" />
+            <g fill="#ffffff">
+              <rect x="30" y="30" width="12" height="60" rx="4" />
+              <rect x="30" y="42" width="30" height="12" rx="4" />
+              <rect x="52" y="60" width="12" height="30" rx="4" />
+              <rect x="74" y="48" width="12" height="42" rx="4" />
+            </g>
+          </svg>
           <div style={brandTextStyle}>
             <span>{brandName}</span>
           </div>
@@ -230,12 +217,12 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
               style={{
                 display: "flex",
                 alignItems: "center",
-                backgroundColor: "rgba(251, 191, 36, 0.15)",
-                border: "1px solid rgba(251, 191, 36, 0.3)",
-                color: "#fbbf24",
+                backgroundColor: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                color: "#1d4ed8",
                 fontSize: "13px",
                 fontWeight: 700,
-                padding: "4px 10px",
+                padding: "4px 12px",
                 borderRadius: "6px",
                 textTransform: "uppercase",
                 letterSpacing: "0.04em",
@@ -251,7 +238,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
         {/* Metrics Cards */}
         <div style={metricsGridStyle}>
           {metrics.map((metric) => {
-            const cardBg = "rgba(15, 23, 42, 0.85)";
+            const cardBg = "#ffffff";
             const valueColor = getVariantColor(metric.variant);
 
             return (
@@ -262,19 +249,19 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
                   display: "flex",
                   flexDirection: "column",
                   backgroundColor: cardBg,
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  borderRadius: "14px",
-                  padding: "16px 20px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "16px",
+                  padding: "18px 22px",
                 }}
               >
                 <div
                   style={{
                     fontSize: "13px",
                     fontWeight: 600,
-                    color: "#94a3b8",
+                    color: "#64748b",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    marginBottom: "6px",
+                    marginBottom: "8px",
                     display: "flex",
                   }}
                 >
@@ -295,7 +282,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
                   <div
                     style={{
                       fontSize: "13px",
-                      color: "#cbd5e1",
+                      color: "#64748b",
                       marginTop: "6px",
                       display: "flex",
                     }}
@@ -326,19 +313,18 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#10b981"
+            stroke="#059669"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <title>Auditoria Contábil</title>
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <span>Auditoria Contábil Automatizada (STN/MCASP)</span>
           {footerNote ? <span>• {footerNote}</span> : null}
         </div>
 
-        <div style={{ display: "flex", fontWeight: 600, color: "#10b981" }}>
+        <div style={{ display: "flex", fontWeight: 600, color: "#5a72a8" }}>
           <span>{finalBrandDomain}</span>
         </div>
       </div>
