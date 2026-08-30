@@ -58,11 +58,13 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
    - *Faixas Metodológicas:* Taxa <= 15% (Esperado), 15% a 30% (Atenção), > 30% (Elevado).
    - *Segregação Conceitual:* Distingue despesas *Estruturais* (compulsórias por ordem judicial ou encargos legais como 91.99 e 13.99) de gastos *Evitáveis* (serviços e compras com rubricas específicas disponíveis como 39.99, 36.99 e 30.99).
 
-7. **Transparência, Cidadania e Fontes:**
+7. **Cards de Compartilhamento Social e Mensageiros (OpenGraph):**
+   - Cada rota do portal possui um gerador dinâmico de cartões de compartilhamento (OpenGraph / Twitter Card em formato PNG 1200x630px) no endpoint canônico `/[portalSlug]/.../opengraph-image`.
+   - Os cards sintetizam os principais indicadores fiscais da página (ex: Arrecadação vs Despesas, Limite LRF de Pessoal, Opacidade .99, Recursos da Saúde, etc.) em layout visual padronizado, facilitando a divulgação transparente e acessível em mensageiros (como WhatsApp e Telegram) e redes sociais.
 
+8. **Transparência, Cidadania e Fontes:**
    - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos. Formate valores monetários em Reais (R$) e percentuais com duas casas decimais.
 
 ## Arquivo Completo de Dicionário de Dados
-
 
 - Para o detalhamento completo dos campos públicos, conceitos e diretrizes de atendimento ao cidadão por agentes de IA, consulte o arquivo [/llms-full.txt](/llms-full.txt).

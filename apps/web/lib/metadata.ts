@@ -29,15 +29,14 @@ export async function createPortalMetadata(
 ): Promise<Metadata> {
   const portalConfig = await getCachedPortalConfig(portalSlug);
   const portalDisplayName =
-    portalConfig?.displayName?.trim() || "Prefeitura de Porciúncula";
+    portalConfig?.displayName?.trim() || "Prefeitura Municipal";
   const titleText = pageTitle?.trim() || "Visão Geral";
   const fullTitle = `${titleText} | ${portalDisplayName}`;
   const baseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
-  const normPath = options?.path
-    ? options.path.startsWith("/")
-      ? options.path
-      : `/${options.path}`
-    : "";
+  const normPath = (() => {
+    if (!options?.path) return "";
+    return options.path.startsWith("/") ? options.path : `/${options.path}`;
+  })();
   const pagePath = `/${portalSlug}${normPath}`;
   const canonicalUrl = `${baseUrl}${pagePath}`;
   const defaultDescription = `Dados de transparência pública municipal de ${portalDisplayName}. Consulta de ${titleText.toLowerCase()}, dados orçamentários e prestação de contas.`;
@@ -45,7 +44,6 @@ export async function createPortalMetadata(
 
   const defaultKeywords = [
     "transparência pública",
-    "porciúncula",
     portalDisplayName,
     titleText.toLowerCase(),
     "contas públicas",
@@ -55,6 +53,8 @@ export async function createPortalMetadata(
     options?.keywords && options.keywords.length > 0
       ? options.keywords
       : defaultKeywords;
+
+  const ogImageUrl = `${baseUrl}${pagePath}/opengraph-image`;
 
   return {
     title: `${titleText} | ${portalDisplayName}`,
@@ -67,12 +67,13 @@ export async function createPortalMetadata(
       title: fullTitle,
       description: finalDescription,
       url: canonicalUrl,
-      siteName: "MaisTransparencia",
+      siteName:
+        process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "MaisTransparencia",
       locale: "pt_BR",
       type: "website",
       images: [
         {
-          url: `${baseUrl}/favicon.svg`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: fullTitle,
@@ -83,7 +84,7 @@ export async function createPortalMetadata(
       card: "summary_large_image",
       title: fullTitle,
       description: finalDescription,
-      images: [`${baseUrl}/favicon.svg`],
+      images: [ogImageUrl],
     },
   };
 }
