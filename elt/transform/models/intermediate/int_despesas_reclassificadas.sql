@@ -1,79 +1,8 @@
--- Intermediário: aplica regras léxicas e catálogo STN para inferir natureza sugerida e categoria do objeto
 with despesas as (
-    select
-        portal_slug,
-        fonte,
-        ano,
-        empresa_id,
-        empenho_id,
-        pk_empenho,
-        pk_empenho_pai,
-        tipo_empenho,
-        orgao_codigo,
-        funcao,
-        funcao_nome,
-        subfuncao,
-        subfuncao_nome,
-        elemento,
-        natureza_despesa,
-        natureza_despesa_codigo,
-        categoria,
-        grupo_natureza,
-        modalidade,
-        programa,
-        programa_nome,
-        proj_atividade,
-        projeto_atividade_nome,
-        mes,
-        fornecedor_nome,
-        fornecedor_cpf_cnpj,
-        fornecedor_raw,
-        licitacao_numero,
-        licitacao_modalidade,
-        licitacao_descricao,
-        fongrupo,
-        fongrupo_desc,
-        foncodigo,
-        foncodigo_desc,
-        fonro,
-        fonro_desc,
-        fonte_stn,
-        fonte_stn_desc,
-        fonte_recurso_desc,
-        data_empenho,
-        empenhado,
-        liquidado,
-        pago,
-        dotacao_inicial,
-        alteracao_dotacao,
-        dotacao_atualizada,
-        anulado,
-        reforco,
-        descricao,
-        entidade_nome,
-        proc,
-        codlo,
-        cfpro,
-        ficha,
-        codif,
-        codigo,
-        produ,
-        vingrupo_vincodigo,
-        vincodigonome
-    from {{ ref('int_despesas_consolidadas') }}
+    select * from {{ ref('int_despesas_consolidadas') }}
 ),
 
-despesas_normalizadas as (
-    select
-        d.*,
-        {{ target.schema }}.unaccent(lower(coalesce(nullif(d.produ, ''), d.descricao, ''))) as texto_objeto,
-        {{ target.schema }}.unaccent(lower(coalesce(d.fornecedor_nome, ''))) as texto_fornecedor,
-        {{ target.schema }}.unaccent(lower(coalesce(d.fornecedor_nome, '') || ' ' || coalesce(nullif(d.produ, ''), d.descricao, ''))) as texto_completo,
-        {{ target.schema }}.unaccent(lower(coalesce(d.projeto_atividade_nome, ''))) as texto_proj_ativ
-    from despesas d
-),
-
-reclassificacao as (
+reclassificacao as materialized (
     select
         portal_slug,
         fonte,
@@ -304,7 +233,7 @@ reclassificacao as (
 
             else null
         end as categoria_objeto_sugerida
-    from despesas_normalizadas
+    from despesas
 )
 
 select
