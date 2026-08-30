@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
@@ -6,6 +6,7 @@ import {
   seedOpacidadeElemento,
   seedOpacidadeMetricas,
 } from "../../../tests/fixtures/seed";
+import { db } from "../../client";
 import { getOpacidadeContabilMetrics } from "../opacidade-contabil-metrics";
 
 const PORTAL = createFixturePortalSlug();
@@ -18,6 +19,21 @@ describe("getOpacidadeContabilMetrics", () => {
   it("retorna null quando não há registros para o portal", async () => {
     const result = await getOpacidadeContabilMetrics(PORTAL, 2025);
     expect(result).toBeNull();
+  });
+
+  it("retorna null quando a relação de origem não existe no banco", async () => {
+    const spy = vi.spyOn(db, "selectFrom").mockImplementation(() => {
+      throw new Error(
+        'relation "fct_opacidade_contabil_metricas" does not exist',
+      );
+    });
+
+    try {
+      const result = await getOpacidadeContabilMetrics(PORTAL, 2025);
+      expect(result).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("retorna métricas completas do exercício, histórico, credores e bases legais", async () => {
