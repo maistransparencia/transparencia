@@ -3,6 +3,18 @@
 -- para evitar distorções na taxa de quitação quando há estornos de fim de exercício.
 -- RAP (restos a pagar): tipo_empenho é null — incluídos na tabela final sem anulações.
 
+{{ config(
+    indexes=[
+        {'columns': ['portal_slug', 'ano']},
+        {'columns': ['portal_slug', 'ano', 'empresa_id']},
+        {'columns': ['categoria_gasto_sensivel']},
+        {'columns': ['fonte']},
+        {'columns': ['fornecedor_cpf_cnpj']},
+        {'columns': ['elemento']},
+        {'columns': ['funcao']}
+    ]
+) }}
+
 with despesas as (
     select
         portal_slug,
