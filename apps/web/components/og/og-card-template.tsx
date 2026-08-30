@@ -17,6 +17,8 @@ export interface OGCardTemplateProps {
   badgeText?: string;
   metrics: OGMetricItem[];
   footerNote?: string;
+  brandName?: string;
+  brandDomain?: string;
 }
 
 function getVariantColor(variant?: MetricVariant): string {
@@ -24,6 +26,24 @@ function getVariantColor(variant?: MetricVariant): string {
   if (variant === "warning") return "#fbbf24";
   if (variant === "danger") return "#f87171";
   return "#38bdf8";
+}
+
+function resolveBrandDomain(customDomain?: string): string {
+  if (customDomain?.trim()) return customDomain.trim();
+  const envDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN?.trim();
+  if (envDomain) return envDomain;
+  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (envAppUrl) {
+    try {
+      const formatted = envAppUrl.startsWith("http")
+        ? envAppUrl
+        : `https://${envAppUrl}`;
+      return new URL(formatted).host;
+    } catch {
+      return envAppUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    }
+  }
+  return "maistransparencia.com";
 }
 
 export const OGCardTemplate: FC<OGCardTemplateProps> = ({
@@ -34,7 +54,11 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
   badgeText,
   metrics,
   footerNote,
+  brandName = process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "MaisTransparencia",
+  brandDomain,
 }) => {
+  const finalBrandDomain = resolveBrandDomain(brandDomain);
+
   const containerStyle: CSSProperties = {
     width: "1200px",
     height: "630px",
@@ -170,7 +194,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
           <div style={logoCircleStyle}>
             <svg
               role="img"
-              aria-label="MaisTransparencia"
+              aria-label={brandName}
               width="20"
               height="20"
               viewBox="0 0 24 24"
@@ -180,15 +204,14 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <title>MaisTransparencia</title>
+              <title>{brandName}</title>
               <polygon points="12 2 2 7 12 12 22 7 12 2" />
               <polyline points="2 17 12 22 22 17" />
               <polyline points="2 12 12 17 22 12" />
             </svg>
           </div>
           <div style={brandTextStyle}>
-            <span>MaisTransparencia</span>
-            <span style={{ color: "#10b981" }}>.com</span>
+            <span>{brandName}</span>
           </div>
         </div>
 
@@ -316,7 +339,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
         </div>
 
         <div style={{ display: "flex", fontWeight: 600, color: "#10b981" }}>
-          <span>maistransparencia.com</span>
+          <span>{finalBrandDomain}</span>
         </div>
       </div>
     </div>

@@ -98,4 +98,28 @@ describe("OGCardTemplate", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Atualizado em 30\/08\/2026/i)).toBeInTheDocument();
   });
+
+  it("permite customização de brandName e brandDomain para instâncias customizadas / open-source", () => {
+    render(
+      <OGCardTemplate
+        portalDisplayName="Prefeitura de Exemplo"
+        pageTitle="Orçamento Anual"
+        brandName="Transparência Aberta"
+        brandDomain="transparencia.exemplo.gov.br"
+        metrics={[
+          {
+            label: "Dotação",
+            value: "R$ 10,0M",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByText("Transparência Aberta").length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.getByText("transparencia.exemplo.gov.br"),
+    ).toBeInTheDocument();
+  });
 });

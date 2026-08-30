@@ -64,4 +64,32 @@ describe("createPortalMetadata", () => {
       "https://maistransparencia.com/porciuncula_prefeitura/despesas/opengraph-image",
     ]);
   });
+
+  it("respeita NEXT_PUBLIC_APP_URL e NEXT_PUBLIC_SITE_NAME customizados", async () => {
+    vi.stubEnv(
+      "NEXT_PUBLIC_APP_URL",
+      "https://transparencia.meumunicipio.gov.br",
+    );
+    vi.stubEnv("NEXT_PUBLIC_SITE_NAME", "Transparência Aberta");
+
+    const metadata = await createPortalMetadata(
+      "Saúde",
+      "porciuncula_prefeitura",
+      {
+        path: "/saude",
+      },
+    );
+
+    expect(metadata.openGraph?.siteName).toBe("Transparência Aberta");
+    expect(metadata.openGraph?.images).toEqual([
+      {
+        url: "https://transparencia.meumunicipio.gov.br/porciuncula_prefeitura/saude/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Saúde | Prefeitura de Porciúncula",
+      },
+    ]);
+
+    vi.unstubAllEnvs();
+  });
 });
