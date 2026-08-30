@@ -108,17 +108,21 @@ test/ts:
 	pnpm test
 
 # DB TEST FIXTURE (packages/db)
-# Dump SOMENTE DE SCHEMA (--schema-only) das tabelas fct_/dim_/seed_ do schema
-# `public` (marts dbt) do banco de dev local (porta 5544) — sem nenhuma linha de
-# dado real e sem as views de staging (que dependem do schema raw_*, fora do
-# dump). Só cria as tabelas vazias; os dados usados nos testes vêm de
-# packages/db/tests/fixtures/seed.ts.
+# Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
+# (marts dbt) do banco de dev local (porta 5544) + dados estáticos (--data-only)
+# das tabelas seed_* (constantes fiscais, portais, classificações STN) — sem
+# nenhuma linha de dado real transacional (fct_*) e sem views de staging (raw_*).
+# Dados transacionais de teste são semeados dinamicamente via seed.ts.
 
 db/fixture/dump:
-	PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
-		--schema-only --no-owner --no-privileges --no-comments \
-		-t 'public.fct_*' -t 'public.dim_*' -t 'public.seed_*' \
-		| gzip -9 > packages/db/tests/fixtures/schema.sql.gz
+	( \
+		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
+			--schema-only --no-owner --no-privileges --no-comments \
+			-t 'public.fct_*' -t 'public.dim_*' -t 'public.seed_*' ; \
+		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
+			--data-only --inserts --no-owner --no-privileges --no-comments \
+			-t 'public.seed_*' \
+	) | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
 
 db/test/restore:
 	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"
