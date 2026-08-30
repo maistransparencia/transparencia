@@ -29,15 +29,14 @@ export async function createPortalMetadata(
 ): Promise<Metadata> {
   const portalConfig = await getCachedPortalConfig(portalSlug);
   const portalDisplayName =
-    portalConfig?.displayName?.trim() || "Prefeitura de Porciúncula";
+    portalConfig?.displayName?.trim() || "Prefeitura Municipal";
   const titleText = pageTitle?.trim() || "Visão Geral";
   const fullTitle = `${titleText} | ${portalDisplayName}`;
   const baseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
-  const normPath = options?.path
-    ? options.path.startsWith("/")
-      ? options.path
-      : `/${options.path}`
-    : "";
+  const normPath = (() => {
+    if (!options?.path) return "";
+    return options.path.startsWith("/") ? options.path : `/${options.path}`;
+  })();
   const pagePath = `/${portalSlug}${normPath}`;
   const canonicalUrl = `${baseUrl}${pagePath}`;
   const defaultDescription = `Dados de transparência pública municipal de ${portalDisplayName}. Consulta de ${titleText.toLowerCase()}, dados orçamentários e prestação de contas.`;
@@ -45,7 +44,6 @@ export async function createPortalMetadata(
 
   const defaultKeywords = [
     "transparência pública",
-    "porciúncula",
     portalDisplayName,
     titleText.toLowerCase(),
     "contas públicas",

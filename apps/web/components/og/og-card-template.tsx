@@ -43,8 +43,8 @@ function formatExtractionDate(val?: string): string {
   return trimmed;
 }
 
-function formatPortalSource(name: string): string {
-  const trimmed = name.trim();
+function formatPortalSource(name?: string): string {
+  const trimmed = name?.trim() || "";
   if (!trimmed) return "Dados Abertos Extraídos";
   const lower = trimmed.toLowerCase();
   if (
@@ -66,20 +66,23 @@ function formatPortalSource(name: string): string {
 }
 
 function resolveBrandDomain(customDomain?: string): string {
-  if (customDomain?.trim()) return customDomain.trim();
-  const envDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN?.trim();
+  const cleanDomain = (domain?: string): string | null => {
+    if (!domain?.trim()) return null;
+    return domain
+      .trim()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "");
+  };
+
+  const fromCustom = cleanDomain(customDomain);
+  if (fromCustom) return fromCustom;
+
+  const envDomain = cleanDomain(process.env.NEXT_PUBLIC_SITE_DOMAIN);
   if (envDomain) return envDomain;
-  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (envAppUrl) {
-    try {
-      const formatted = envAppUrl.startsWith("http")
-        ? envAppUrl
-        : `https://${envAppUrl}`;
-      return new URL(formatted).host;
-    } catch {
-      return envAppUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-    }
-  }
+
+  const envAppUrl = cleanDomain(process.env.NEXT_PUBLIC_APP_URL);
+  if (envAppUrl) return envAppUrl;
+
   return "maistransparencia.com";
 }
 
