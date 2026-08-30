@@ -133,13 +133,13 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:
 
-- `/[portalSlug]/opengraph-image`: **Card da Visão Geral** — Total Arrecadado, Despesas Pagas, Saldo Estimado do Exercício e Termômetro do Limite de Gastos com Pessoal da LRF.
+- `/[portalSlug]/opengraph-image`: **Card da Visão Geral** — Total Arrecadado no Exercício, Total Empenhado, Despesas Pagas e Comprometimento da Folha frente ao Limite da LRF.
 - `/[portalSlug]/despesas/opengraph-image`: **Card de Despesas** — Total Pago, Percentual de Despesas sob Subitens Genéricos (.99), Radar de Combustíveis & Frotas e Total Empenhado.
 - `/[portalSlug]/licitacoes/opengraph-image`: **Card de Licitações** — Total Homologado no Exercício, Quantidade de Processos Licitatórios e Total Pago em Contratos Vigentes.
 - `/[portalSlug]/receitas/opengraph-image`: **Card de Receitas** — Total Arrecadado, Receitas Próprias Municipais, Repasses Constitucionais da União e Repasses do Estado.
-- `/[portalSlug]/orcamento/opengraph-image`: **Card de Orçamento** — Dotação Atualizada da LOA, Total Empenhado, Total Pago e Saldo Orçamentário Disponível.
+- `/[portalSlug]/orcamento/opengraph-image`: **Card de Orçamento** — Dotação Atualizada da LOA, Total Empenhado, Total Liquidado e Total Pago.
 - `/[portalSlug]/pessoal/opengraph-image`: **Card de Pessoal** — Total da Folha de Pagamento, Comprometimento da LRF com Pessoal, Total Pago e Percentual de Chefias Ocupadas por Servidores Efetivos.
-- `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde.
+- `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde (com valor empenhado no detalhe).
 - `/[portalSlug]/caprem/opengraph-image`: **Card Previdenciário (CAPREM)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados.
 
 ---

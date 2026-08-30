@@ -77,12 +77,12 @@ describe("OGCardTemplate", () => {
     expect(screen.getByText("Alerta de Opacidade")).toBeInTheDocument();
   });
 
-  it("renderiza rodapé com selo de auditoria contábil e URL canônica", () => {
+  it("renderiza rodapé com dados oficiais, data de extração e URL canônica", () => {
     render(
       <OGCardTemplate
         portalDisplayName="Prefeitura de Porciúncula"
         pageTitle="Saúde Pública"
-        footerNote="Atualizado em 30/08/2026"
+        lastExtractionDate="2026-08-19"
         metrics={[
           {
             label: "Orçamento da Saúde",
@@ -94,9 +94,9 @@ describe("OGCardTemplate", () => {
 
     expect(screen.getByText("maistransparencia.com")).toBeInTheDocument();
     expect(
-      screen.getByText(/Auditoria Contábil Automatizada/i),
+      screen.getByText(/Dados Abertos Extraídos da Prefeitura de Porciúncula/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Atualizado em 30\/08\/2026/i)).toBeInTheDocument();
+    expect(screen.getByText(/Extração em 19\/08\/2026/i)).toBeInTheDocument();
   });
 
   it("permite customização de brandName e brandDomain para instâncias customizadas / open-source", () => {

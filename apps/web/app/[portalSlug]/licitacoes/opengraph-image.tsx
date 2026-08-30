@@ -84,7 +84,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Processos de Compras e Contratações`}
         badgeText="Painel de Compras"
         metrics={metrics}
-        footerNote="Lei 14.133/2021 & Transparência"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

@@ -78,7 +78,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Origem e Fontes de Recursos`}
         badgeText="Painel de Receitas"
         metrics={metrics}
-        footerNote="Classificação por Fontes STN"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

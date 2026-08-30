@@ -103,7 +103,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Servidores Públicos e Limite da LRF`}
         badgeText="Gestão de Pessoal"
         metrics={metrics}
-        footerNote="Lei de Responsabilidade Fiscal"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

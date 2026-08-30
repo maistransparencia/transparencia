@@ -1,5 +1,6 @@
 import {
   getEntidades,
+  getExecucaoOrcamentariaMetrics,
   getFolhaVsServicosMetrics,
   getLimiteMaximoLrfPessoal,
   getPortalConfig,
@@ -31,19 +32,23 @@ export default async function Image({
     ]);
 
     const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [posicaoFiscal, folhaList, limiteMaximoLrf] = await Promise.all([
-      empresaIds.length > 0
-        ? getPosicaoFiscalMetrics(portalSlug, currentYear, empresaIds)
-        : null,
-      empresaIds.length > 0
-        ? getFolhaVsServicosMetrics({
-            years: [currentYear],
-            empresaIds,
-            portalSlug,
-          })
-        : [],
-      getLimiteMaximoLrfPessoal(currentYear),
-    ]);
+    const [posicaoFiscal, execucaoList, folhaList, limiteMaximoLrf] =
+      await Promise.all([
+        empresaIds.length > 0
+          ? getPosicaoFiscalMetrics(portalSlug, currentYear, empresaIds)
+          : null,
+        empresaIds.length > 0
+          ? getExecucaoOrcamentariaMetrics(portalSlug, currentYear, empresaIds)
+          : [],
+        empresaIds.length > 0
+          ? getFolhaVsServicosMetrics({
+              years: [currentYear],
+              empresaIds,
+              portalSlug,
+            })
+          : [],
+        getLimiteMaximoLrfPessoal(currentYear),
+      ]);
 
     const portalDisplayName =
       portalConfig?.displayName || "Prefeitura Municipal";
@@ -51,7 +56,10 @@ export default async function Image({
 
     const totalArrecadado = posicaoFiscal?.totalArrecadado ?? 0;
     const despesasPagas = posicaoFiscal?.despesasPagas ?? 0;
-    const saldoEstimado = posicaoFiscal?.saldoEstimado ?? 0;
+    const totalEmpenhado = execucaoList.reduce(
+      (acc, item) => acc + item.totalEmpenhado,
+      0,
+    );
     const percentualFolha = folhaList[0]?.percentualFolha ?? 0;
     const limiteTeto = limiteMaximoLrf ?? 60;
 
@@ -63,19 +71,19 @@ export default async function Image({
         variant: "success",
       },
       {
+        label: "Total Empenhado",
+        value: fmtCompact(totalEmpenhado),
+        detail: "Orçamento Comprometido",
+        variant: "default",
+      },
+      {
         label: "Despesas Pagas",
         value: fmtCompact(despesasPagas),
         detail: "Execução Financeira",
         variant: "default",
       },
       {
-        label: "Saldo Estimado",
-        value: fmtCompact(saldoEstimado),
-        detail: saldoEstimado >= 0 ? "Superávit Apurado" : "Déficit Apurado",
-        variant: saldoEstimado >= 0 ? "success" : "danger",
-      },
-      {
-        label: "Limite Pessoal LRF",
+        label: "Comprometimento Folha",
         value: fmtPercent(percentualFolha),
         detail:
           percentualFolha <= limiteTeto * 0.9
@@ -98,7 +106,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Balanço Orçamentário e Financeiro`}
         badgeText="Posição Consolidada"
         metrics={metrics}
-        footerNote="Dados Oficiais STN/MCASP"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

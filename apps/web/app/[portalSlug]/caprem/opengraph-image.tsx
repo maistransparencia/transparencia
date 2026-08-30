@@ -68,7 +68,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Aposentadorias e Fundo Previdenciário`}
         badgeText="Regime Próprio (RPPS)"
         metrics={metrics}
-        footerNote="Atuária & Gestão Previdenciária"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

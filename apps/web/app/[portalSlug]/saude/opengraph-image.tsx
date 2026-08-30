@@ -1,4 +1,9 @@
-import { getHistoriaSaudeMetrics, getPortalConfig } from "@transparencia/db";
+import {
+  getEntidades,
+  getHistoriaSaudeMetrics,
+  getPortalConfig,
+  getSaudeEmendasMetrics,
+} from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import { ImageResponse } from "next/og";
 import {
@@ -19,9 +24,22 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, saude] = await Promise.all([
+    const [portalConfig, entidades] = await Promise.all([
       getPortalConfig(portalSlug),
+      getEntidades(portalSlug),
+    ]);
+
+    const empresaIds = entidades
+      .filter(
+        ({ nome }) =>
+          nome.toLowerCase().includes("saúde") ||
+          nome.toLowerCase().includes("saude"),
+      )
+      .map((e) => e.id);
+
+    const [saude, emendasStats] = await Promise.all([
       getHistoriaSaudeMetrics(portalSlug, currentYear),
+      getSaudeEmendasMetrics(portalSlug, currentYear, empresaIds),
     ]);
 
     const portalDisplayName =
@@ -31,7 +49,9 @@ export default async function Image({
     const orcamentoFixado = saude?.dotacaoTotal ?? 0;
     const totalPago = saude?.totalPago ?? 0;
     const repassesSus = saude?.medicamentosInsumosPago ?? 0;
-    const emendasSaude = saude?.emendasSaudeArrecadado ?? 0;
+    const totalEmendasAutorizado =
+      emendasStats.totalAutorizado || (saude?.emendasSaudeArrecadado ?? 0);
+    const totalEmendasEmpenhado = emendasStats.totalEmpenhado;
 
     const metrics: OGMetricItem[] = [
       {
@@ -54,8 +74,8 @@ export default async function Image({
       },
       {
         label: "Emendas da Saúde",
-        value: fmtCompact(emendasSaude),
-        detail: "Emendas Parlamentares",
+        value: fmtCompact(totalEmendasAutorizado),
+        detail: `${fmtCompact(totalEmendasEmpenhado)} empenhados`,
         variant: "warning",
       },
     ];
@@ -68,7 +88,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear} • Recursos e Aplicação na Saúde Pública`}
         badgeText="Painel da Saúde"
         metrics={metrics}
-        footerNote="Controle Social & SUS"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

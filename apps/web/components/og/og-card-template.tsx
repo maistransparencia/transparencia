@@ -17,6 +17,7 @@ export interface OGCardTemplateProps {
   badgeText?: string;
   metrics: OGMetricItem[];
   footerNote?: string;
+  lastExtractionDate?: string;
   brandName?: string;
   brandDomain?: string;
 }
@@ -26,6 +27,42 @@ function getVariantColor(variant?: MetricVariant): string {
   if (variant === "warning") return "#d97706";
   if (variant === "danger") return "#dc2626";
   return "#0f172a";
+}
+
+function formatExtractionDate(val?: string): string {
+  if (!val) return "";
+  const trimmed = val.trim();
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  const brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (brMatch) {
+    return `${brMatch[1]}/${brMatch[2]}/${brMatch[3]}`;
+  }
+  return trimmed;
+}
+
+function formatPortalSource(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "Dados Abertos Extraídos";
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith("prefeitura") ||
+    lower.startsWith("câmara") ||
+    lower.startsWith("camara")
+  ) {
+    return `Dados Abertos Extraídos da ${trimmed}`;
+  }
+  if (
+    lower.startsWith("governo") ||
+    lower.startsWith("município") ||
+    lower.startsWith("municipio") ||
+    lower.startsWith("portal")
+  ) {
+    return `Dados Abertos Extraídos do ${trimmed}`;
+  }
+  return `Dados Abertos Extraídos • ${trimmed}`;
 }
 
 function resolveBrandDomain(customDomain?: string): string {
@@ -54,10 +91,13 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
   badgeText,
   metrics,
   footerNote,
+  lastExtractionDate,
   brandName = process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "MaisTransparencia",
   brandDomain,
 }) => {
   const finalBrandDomain = resolveBrandDomain(brandDomain);
+  const formattedExtractionDate = formatExtractionDate(lastExtractionDate);
+  const portalSourceText = formatPortalSource(portalDisplayName);
 
   const containerStyle: CSSProperties = {
     width: "1200px",
@@ -308,7 +348,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
         >
           <svg
             role="img"
-            aria-label="Auditoria Contábil"
+            aria-label="Dados Abertos Extraídos"
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -320,8 +360,13 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
           >
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
-          <span>Auditoria Contábil Automatizada (STN/MCASP)</span>
-          {footerNote ? <span>• {footerNote}</span> : null}
+          <span>
+            {portalSourceText}
+            {formattedExtractionDate
+              ? ` • Extração em ${formattedExtractionDate}`
+              : ""}
+            {footerNote ? ` • ${footerNote}` : ""}
+          </span>
         </div>
 
         <div style={{ display: "flex", fontWeight: 600, color: "#5a72a8" }}>

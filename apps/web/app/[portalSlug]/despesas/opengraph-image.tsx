@@ -102,10 +102,10 @@ export default async function Image({
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
         pageTitle="Despesas & Controle de Gastos"
-        subtitle={`Exercício ${currentYear} • Auditoria de Despesas e Contas Sensíveis`}
+        subtitle={`Exercício ${currentYear} • Acompanhamento de Despesas e Contas Sensíveis`}
         badgeText="Radar de Despesas"
         metrics={metrics}
-        footerNote="Classificação Orçamentária STN"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );
@@ -117,7 +117,7 @@ export default async function Image({
         subtitle={`Exercício ${currentYear}`}
         metrics={[
           {
-            label: "Auditoria de Despesas",
+            label: "Painel de Despesas",
             value: "Disponível",
             detail: "Acesse para consultar despesas detalhadas",
             variant: "default",

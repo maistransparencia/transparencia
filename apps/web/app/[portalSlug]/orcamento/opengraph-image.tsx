@@ -3,7 +3,7 @@ import {
   getExecucaoOrcamentariaMetrics,
   getPortalConfig,
 } from "@transparencia/db";
-import { fmtCompact, fmtPercent } from "@transparencia/ui";
+import { fmtCompact } from "@transparencia/ui";
 import { ImageResponse } from "next/og";
 import {
   OGCardTemplate,
@@ -50,35 +50,40 @@ export default async function Image({
       (acc, i) => acc + i.totalEmpenhado,
       0,
     );
+    const totalLiquidado = execucao.reduce(
+      (acc, i) => acc + i.totalLiquidado,
+      0,
+    );
     const totalPago = execucao.reduce((acc, i) => acc + i.totalPago, 0);
-    const saldoOrcamentario = totalDotacao - totalEmpenhado;
-    const taxaExecucao =
-      totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
+
+    const empPct = totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
+    const liqPct = totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
+    const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
     const metrics: OGMetricItem[] = [
       {
         label: "Dotação Atualizada",
         value: fmtCompact(totalDotacao),
-        detail: "Orçamento Aprovado",
+        detail: "100% autorizado",
         variant: "default",
       },
       {
-        label: "Total Empenhado",
+        label: "Empenhado",
         value: fmtCompact(totalEmpenhado),
-        detail: `${fmtPercent(taxaExecucao)} executado`,
+        detail: `${empPct.toFixed(0)}% da dotação`,
         variant: "default",
       },
       {
-        label: "Total Pago",
-        value: fmtCompact(totalPago),
-        detail: "Recursos Desembolsados",
-        variant: "success",
+        label: "Liquidado",
+        value: fmtCompact(totalLiquidado),
+        detail: `${liqPct.toFixed(0)}% da dotação`,
+        variant: "default",
       },
       {
-        label: "Saldo Orçamentário",
-        value: fmtCompact(saldoOrcamentario),
-        detail: "Disponibilidade Fixada",
-        variant: saldoOrcamentario >= 0 ? "success" : "danger",
+        label: "Pago",
+        value: fmtCompact(totalPago),
+        detail: `${pagPct.toFixed(0)}% da dotação`,
+        variant: "success",
       },
     ];
 
@@ -86,11 +91,11 @@ export default async function Image({
       <OGCardTemplate
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
-        pageTitle="Orçamento Municipal & Execução"
-        subtitle={`Exercício ${currentYear} • Fixação e Execução do Orçamento`}
-        badgeText="Execução Orçamentária"
+        pageTitle="Execução Orçamentária"
+        subtitle={`Exercício ${currentYear} • Acompanhamento dos Estágios da Despesa`}
+        badgeText="Painel do Orçamento"
         metrics={metrics}
-        footerNote="Classificação Funcional-Programática"
+        lastExtractionDate={portalConfig?.dataExtracao}
       />,
       { ...size },
     );

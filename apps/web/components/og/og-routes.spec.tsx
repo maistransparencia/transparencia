@@ -40,6 +40,13 @@ vi.mock("@transparencia/db", () => ({
     medicamentosInsumosPago: 5_000_000,
     emendasSaudeArrecadado: 1_500_000,
   }),
+  getSaudeEmendasMetrics: vi.fn().mockResolvedValue({
+    totalAutorizado: 1_500_000,
+    totalEmpenhado: 1_200_000,
+    taxaEmpenho: 80,
+    maiorEmenda: 500_000,
+    lista: [],
+  }),
   getFontesReceitaMetrics: vi.fn().mockResolvedValue({
     totalArrecadado: 40_000_000,
     receitaPropriaArrecadado: 8_000_000,
