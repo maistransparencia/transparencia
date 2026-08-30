@@ -131,3 +131,11 @@ models:
         data_type: text
       - name: vincodigonome
         data_type: text
+      - name: texto_objeto
+        data_type: text
+      - name: texto_fornecedor
+        data_type: text
+      - name: texto_completo
+        data_type: text
+      - name: texto_proj_ativ
+        data_type: text
