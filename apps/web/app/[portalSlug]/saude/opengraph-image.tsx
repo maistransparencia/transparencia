@@ -10,6 +10,7 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -29,13 +30,13 @@ export default async function Image({
       getEntidades(portalSlug),
     ]);
 
-    const empresaIds = entidades
-      .filter(
-        ({ nome }) =>
-          nome.toLowerCase().includes("saúde") ||
-          nome.toLowerCase().includes("saude"),
-      )
-      .map((e) => e.id);
+    const healthEntities = entidades.filter(({ nome }) =>
+      /sa[uú]de|fms|hospital|policl/i.test(nome),
+    );
+    const empresaIds =
+      healthEntities.length > 0
+        ? healthEntities.map((e) => e.id)
+        : entidades.map((e) => e.id);
 
     const [saude, emendasStats] = await Promise.all([
       getHistoriaSaudeMetrics(portalSlug, currentYear),
@@ -43,8 +44,8 @@ export default async function Image({
     ]);
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const orcamentoFixado = saude?.dotacaoTotal ?? 0;
     const totalPago = saude?.totalPago ?? 0;
@@ -93,6 +94,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:saude",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

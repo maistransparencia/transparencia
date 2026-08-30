@@ -5,6 +5,7 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -25,8 +26,8 @@ export default async function Image({
     ]);
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const despesasPagas = caprem?.totalPago ?? 0;
     const aportesQuitados = caprem?.totalAporteQuitado ?? 0;
@@ -73,6 +74,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:caprem",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

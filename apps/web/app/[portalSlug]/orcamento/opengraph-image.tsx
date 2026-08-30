@@ -3,12 +3,13 @@ import {
   getExecucaoOrcamentariaMetrics,
   getPortalConfig,
 } from "@transparencia/db";
-import { fmtCompact } from "@transparencia/ui";
+import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import { ImageResponse } from "next/og";
 import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -39,8 +40,8 @@ export default async function Image({
         : [];
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const totalDotacao = execucao.reduce(
       (acc, i) => acc + i.totalDotacaoAtualizada,
@@ -56,9 +57,12 @@ export default async function Image({
     );
     const totalPago = execucao.reduce((acc, i) => acc + i.totalPago, 0);
 
-    const empPct = totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
-    const liqPct = totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
-    const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
+    const percentualEmpenhado =
+      totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
+    const percentualLiquidado =
+      totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
+    const percentualPago =
+      totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
     const metrics: OGMetricItem[] = [
       {
@@ -70,19 +74,19 @@ export default async function Image({
       {
         label: "Empenhado",
         value: fmtCompact(totalEmpenhado),
-        detail: `${empPct.toFixed(0)}% da dotação`,
+        detail: `${fmtPercent(percentualEmpenhado)} da dotação`,
         variant: "default",
       },
       {
         label: "Liquidado",
         value: fmtCompact(totalLiquidado),
-        detail: `${liqPct.toFixed(0)}% da dotação`,
+        detail: `${fmtPercent(percentualLiquidado)} da dotação`,
         variant: "default",
       },
       {
         label: "Pago",
         value: fmtCompact(totalPago),
-        detail: `${pagPct.toFixed(0)}% da dotação`,
+        detail: `${fmtPercent(percentualPago)} da dotação`,
         variant: "success",
       },
     ];
@@ -100,6 +104,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:orcamento",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

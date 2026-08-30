@@ -12,6 +12,7 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -51,8 +52,8 @@ export default async function Image({
       ]);
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const totalArrecadado = posicaoFiscal?.totalArrecadado ?? 0;
     const despesasPagas = posicaoFiscal?.despesasPagas ?? 0;
@@ -89,12 +90,11 @@ export default async function Image({
           percentualFolha <= limiteTeto * 0.9
             ? `Dentro do Limite (${limiteTeto}%)`
             : "Alerta de Limite LRF",
-        variant:
-          percentualFolha <= limiteTeto * 0.9
-            ? "success"
-            : percentualFolha <= limiteTeto
-              ? "warning"
-              : "danger",
+        variant: (() => {
+          if (percentualFolha <= limiteTeto * 0.9) return "success";
+          if (percentualFolha <= limiteTeto) return "warning";
+          return "danger";
+        })(),
       },
     ];
 
@@ -111,6 +111,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:homepage",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

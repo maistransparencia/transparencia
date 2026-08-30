@@ -11,6 +11,7 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -31,33 +32,34 @@ export default async function Image({
     ]);
 
     const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [folhaMetrics, limiteMaximoLrf, chefiasPct] = await Promise.all([
-      empresaIds.length > 0
-        ? getFolhaVsServicosMetrics({
-            years: [currentYear],
-            empresaIds,
-            portalSlug,
-          })
-        : [],
-      getLimiteMaximoLrfPessoal(currentYear),
-      empresaIds.length > 0
-        ? getPercentualChefiasEfetivasMetrics(
-            portalSlug,
-            currentYear,
-            empresaIds,
-          )
-        : null,
-    ]);
+    const [folhaMetrics, limiteMaximoLrf, percentualChefiasEfetivas] =
+      await Promise.all([
+        empresaIds.length > 0
+          ? getFolhaVsServicosMetrics({
+              years: [currentYear],
+              empresaIds,
+              portalSlug,
+            })
+          : [],
+        getLimiteMaximoLrfPessoal(currentYear),
+        empresaIds.length > 0
+          ? getPercentualChefiasEfetivasMetrics(
+              portalSlug,
+              currentYear,
+              empresaIds,
+            )
+          : null,
+      ]);
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const folhaData = folhaMetrics[0];
     const totalFolha = folhaData?.totalFolha ?? 0;
     const totalPago = folhaData?.totalPago ?? 0;
     const percentualFolha = folhaData?.percentualFolha ?? 0;
-    const percentualEfetivos = chefiasPct ?? 0;
+    const percentualEfetivos = percentualChefiasEfetivas ?? 0;
     const limiteTeto = limiteMaximoLrf ?? 60;
 
     const metrics: OGMetricItem[] = [
@@ -74,12 +76,11 @@ export default async function Image({
           percentualFolha <= limiteTeto * 0.9
             ? `Dentro do Limite Legal (${limiteTeto}%)`
             : "Alerta de Limite LRF",
-        variant:
-          percentualFolha <= limiteTeto * 0.9
-            ? "success"
-            : percentualFolha <= limiteTeto
-              ? "warning"
-              : "danger",
+        variant: (() => {
+          if (percentualFolha <= limiteTeto * 0.9) return "success";
+          if (percentualFolha <= limiteTeto) return "warning";
+          return "danger";
+        })(),
       },
       {
         label: "Total Pago",
@@ -108,6 +109,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:pessoal",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

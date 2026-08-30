@@ -11,6 +11,7 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
@@ -42,8 +43,8 @@ export default async function Image({
     ]);
 
     const portalDisplayName =
-      portalConfig?.displayName || "Prefeitura Municipal";
-    const portalUf = portalConfig?.uf || "RJ";
+      portalConfig?.displayName?.trim() || "Prefeitura Municipal";
+    const portalUf = portalConfig?.uf;
 
     const totalPago = analiseDespesas.reduce(
       (acc, item) => acc + item.totalPago,
@@ -57,8 +58,8 @@ export default async function Image({
       totalEmpenhado > 0 ? (totalPago / totalEmpenhado) * 100 : 0;
 
     const percentualOpacidade =
-      opacidade?.exercicioAtual.taxaValorOpacidadePct ?? 0;
-    const valorOutrosServicos = opacidade?.exercicioAtual.pagoResidual99 ?? 0;
+      opacidade?.exercicioAtual?.taxaValorOpacidadePct ?? 0;
+    const valorOutrosServicos = opacidade?.exercicioAtual?.pagoResidual99 ?? 0;
 
     const itemCombustivel = radarSensiveis?.itens.find(
       (item) => item.categoria === "combustivel_frota",
@@ -76,12 +77,11 @@ export default async function Image({
         label: "Opacidade .99",
         value: fmtPercent(percentualOpacidade),
         detail: `${fmtCompact(valorOutrosServicos)} em Outros Serviços`,
-        variant:
-          percentualOpacidade < 10
-            ? "success"
-            : percentualOpacidade < 20
-              ? "warning"
-              : "danger",
+        variant: (() => {
+          if (percentualOpacidade < 10) return "success";
+          if (percentualOpacidade < 20) return "warning";
+          return "danger";
+        })(),
       },
       {
         label: "Combustíveis & Frotas",
@@ -110,6 +110,14 @@ export default async function Image({
       { ...size },
     );
   } catch (_error) {
+    const posthog = getPostHogServer();
+    if (posthog) {
+      posthog.captureException(_error as Error, undefined, {
+        portalSlug,
+        route: "og:despesas",
+      });
+    }
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName="Portal de Transparência"

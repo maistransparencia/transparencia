@@ -88,6 +88,13 @@ vi.mock("next/og", () => {
   };
 });
 
+const mockCaptureException = vi.fn();
+vi.mock("@/posthog-server", () => ({
+  getPostHogServer: vi.fn(() => ({
+    captureException: mockCaptureException,
+  })),
+}));
+
 describe("OpenGraph Image Route Handlers", () => {
   const params = Promise.resolve({ portalSlug: "porciuncula_prefeitura" });
 
@@ -162,5 +169,27 @@ describe("OpenGraph Image Route Handlers", () => {
     const response = await generateImage({ params });
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
+  });
+
+  it("captura exceção no PostHog e retorna card fallback quando ocorre erro", async () => {
+    const { getPortalConfig } = await import("@transparencia/db");
+    vi.mocked(getPortalConfig).mockRejectedValueOnce(
+      new Error("DB Connection Error"),
+    );
+
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/opengraph-image"
+    );
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      undefined,
+      expect.objectContaining({
+        portalSlug: "porciuncula_prefeitura",
+        route: "og:homepage",
+      }),
+    );
   });
 });
