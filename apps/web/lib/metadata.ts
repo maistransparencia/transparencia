@@ -56,6 +56,8 @@ export async function createPortalMetadata(
       ? options.keywords
       : defaultKeywords;
 
+  const ogImageUrl = `${baseUrl}${pagePath}/opengraph-image`;
+
   return {
     title: `${titleText} | ${portalDisplayName}`,
     description: finalDescription,
@@ -72,7 +74,7 @@ export async function createPortalMetadata(
       type: "website",
       images: [
         {
-          url: `${baseUrl}/favicon.svg`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: fullTitle,
@@ -83,7 +85,7 @@ export async function createPortalMetadata(
       card: "summary_large_image",
       title: fullTitle,
       description: finalDescription,
-      images: [`${baseUrl}/favicon.svg`],
+      images: [ogImageUrl],
     },
   };
 }
