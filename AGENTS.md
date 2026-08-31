@@ -110,6 +110,14 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Proibição Absoluta em Produção:** É **estritamente proibido** executar comandos de compilação, dbt run/build/seed ou DDL/DML diretamente contra bancos de dados de produção/remotos (como Supabase, AWS, poolers remotos ou qualquer DATABASE_URL de produção) **sem autorização prévia e explícita do usuário**.
 - **Desenvolvimento e Testes Independentes:** Toda validação, desenvolvimento de modelos e testes automatizados devem ser concluídos e validados localmente antes de qualquer interação com ambientes remotos.
 
+---
+
+## 16. CAMPOS DE TEXTO NO POSTGRESQL (SEMPRE TIPO `TEXT`)
+
+- **Proibição de `VARCHAR(n)` e `CHAR(n)`:** No PostgreSQL, não há ganho de performance em limitar o tamanho de campos de texto com `VARCHAR(n)` e essa prática impõe limitações rígidas arbitrárias.
+- **Padrão Obrigatório:** Todas as colunas de texto (strings, identificadores, códigos, e-mails, tokens, slugs, descrições) em migrações, DDLs e tabelas Postgres devem utilizar exclusivamente o tipo `TEXT`.
+
+
 
 
 
