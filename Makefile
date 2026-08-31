@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run db/fixture/dump db/test/restore
 
 # SETUP TASKS
 
@@ -106,6 +106,12 @@ build:
 
 test/ts:
 	pnpm test
+
+digest/send:
+	pnpm --filter web digest:send --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
+
+digest/dry-run:
+	pnpm --filter web digest:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
 
 # DB TEST FIXTURE (packages/db)
 # Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`

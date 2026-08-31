@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "digest:send": "tsx bin/dispatch-digest.ts",
+    "digest:dry-run": "tsx bin/dispatch-digest.ts --dry-run"
   },
   "dependencies": {
     "@react-email/components": "1.0.12",
@@ -38,6 +40,7 @@
     "jsdom": "30.0.1",
     "postcss": "8.5.26",
     "tailwindcss": "4.3.3",
+    "tsx": "4.21.0",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   }
