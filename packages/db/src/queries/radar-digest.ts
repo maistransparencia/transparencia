@@ -92,7 +92,10 @@ export async function getRadarDigestMetrics(
   portalSlug: string,
   ano?: number,
 ): Promise<RadarDigestMetricsDTO | null> {
-  const targetAno = ano ?? new Date().getFullYear();
+  const targetAno =
+    typeof ano === "number" && Number.isInteger(ano) && ano > 0
+      ? ano
+      : new Date().getFullYear();
 
   const entidades = await getEntidades(portalSlug);
   let empresaIds = entidades.map((e) => e.id).filter(Boolean);
