@@ -215,3 +215,30 @@ export async function getNewsletterSubscriber(
   }
   return mapRowToSubscriber(row);
 }
+
+/**
+ * Consulta a lista de assinantes confirmados para o portal especificado.
+ */
+export async function getConfirmedNewsletterSubscribers(
+  portalSlug: string,
+  dbInstance = db,
+): Promise<NewsletterSubscriber[]> {
+  const result = await sql<NewsletterSubscriberRow>`
+    SELECT
+      id,
+      portal_slug,
+      email,
+      status,
+      token_confirmacao,
+      token_cancelamento,
+      created_at,
+      confirmed_at,
+      unsubscribed_at,
+      resend_contact_id
+    FROM public.newsletter_subscribers
+    WHERE portal_slug = ${portalSlug} AND status = 'confirmado'
+    ORDER BY created_at ASC
+  `.execute(dbInstance);
+
+  return result.rows.map(mapRowToSubscriber);
+}

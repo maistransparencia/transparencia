@@ -16,4 +16,5 @@ export * from "./queries/orcamento-funcional-metrics";
 export * from "./queries/pessoal-metrics";
 export * from "./queries/posicao-fiscal-detalhes-metrics";
 export * from "./queries/posicao-fiscal-metrics";
+export * from "./queries/radar-digest";
 export * from "./queries/receitas-extra-metrics";
