@@ -86,10 +86,16 @@ export async function subscribeNewsletter(
     )
     ON CONFLICT (portal_slug, email) DO UPDATE
     SET
-      status = 'pendente',
+      status = CASE
+        WHEN newsletter_subscribers.status = 'confirmado' THEN 'confirmado'
+        ELSE 'pendente'
+      END,
       token_confirmacao = ${tokenConfirmacao},
-      token_cancelamento = ${tokenCancelamento},
-      confirmed_at = NULL,
+      token_cancelamento = COALESCE(newsletter_subscribers.token_cancelamento, ${tokenCancelamento}),
+      confirmed_at = CASE
+        WHEN newsletter_subscribers.status = 'confirmado' THEN newsletter_subscribers.confirmed_at
+        ELSE NULL
+      END,
       unsubscribed_at = NULL
     RETURNING
       id,

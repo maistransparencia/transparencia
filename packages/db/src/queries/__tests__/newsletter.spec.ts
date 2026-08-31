@@ -52,6 +52,19 @@ describe("newsletter queries", () => {
     expect(sub2.id).toBe(sub1.id);
     expect(sub2.status).toBe("pendente");
     expect(sub2.tokenConfirmacao).not.toBe(sub1.tokenConfirmacao);
+    expect(sub2.tokenCancelamento).toBe(sub1.tokenCancelamento);
+  });
+
+  it("não deve desativar assinante já confirmado se o e-mail for re-submetido", async () => {
+    const email = "cidadao_ativo@exemplo.com";
+    const sub1 = await subscribeNewsletter(PORTAL_SLUG, email);
+    await confirmNewsletterSubscription(sub1.tokenConfirmacao);
+
+    const sub2 = await subscribeNewsletter(PORTAL_SLUG, email);
+    expect(sub2.id).toBe(sub1.id);
+    expect(sub2.status).toBe("confirmado");
+    expect(sub2.confirmedAt).not.toBeNull();
+    expect(sub2.tokenCancelamento).toBe(sub1.tokenCancelamento);
   });
 
   it("deve confirmar inscrição via token de confirmação", async () => {
