@@ -1,5 +1,6 @@
-export { db } from "./client";
+export { closeDb, db, dbWrite } from "./client";
 export * from "./constants";
+export * from "./migrator";
 export * from "./queries/analise-despesas-metrics";
 export * from "./queries/contratos-servicos-vigentes";
 export * from "./queries/despesas-metrics";
@@ -9,6 +10,7 @@ export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-saude-metrics";
 export * from "./queries/licitacoes-metrics";
 export * from "./queries/metadata";
+export * from "./queries/newsletter";
 export * from "./queries/opacidade-contabil-metrics";
 export * from "./queries/orcamento-funcional-metrics";
 export * from "./queries/pessoal-metrics";
