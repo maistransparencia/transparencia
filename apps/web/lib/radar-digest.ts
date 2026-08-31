@@ -29,16 +29,38 @@ const defaultFromEmail =
   "Mais Transparência <newsletter@transparencia.app>";
 
 function resolveBaseUrl(customBaseUrl?: string): string {
-  if (customBaseUrl) {
-    return customBaseUrl.replace(/\/+$/, "");
+  let url = "http://localhost:3001";
+  if (customBaseUrl?.trim()) {
+    url = customBaseUrl.trim();
+  } else if (process.env.NEXT_PUBLIC_APP_URL?.trim()) {
+    url = process.env.NEXT_PUBLIC_APP_URL.trim();
+  } else if (process.env.VERCEL_URL?.trim()) {
+    const vUrl = process.env.VERCEL_URL.trim();
+    url =
+      vUrl.startsWith("http://") || vUrl.startsWith("https://")
+        ? vUrl
+        : `https://${vUrl}`;
   }
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, "");
+
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, "");
+  return url.replace(/\/+$/, "");
+}
+
+function resolveLogoUrl(
+  brasaoAsset?: string | null,
+  baseUrl?: string,
+): string | undefined {
+  if (!brasaoAsset) return undefined;
+  if (brasaoAsset.startsWith("http://") || brasaoAsset.startsWith("https://")) {
+    return brasaoAsset;
   }
-  return "http://localhost:3001";
+  const cleanBase = baseUrl ? baseUrl.replace(/\/+$/, "") : "";
+  const cleanAsset = brasaoAsset.startsWith("/")
+    ? brasaoAsset
+    : `/${brasaoAsset}`;
+  return `${cleanBase}${cleanAsset}`;
 }
 
 /**
@@ -48,10 +70,23 @@ function resolveBaseUrl(customBaseUrl?: string): string {
 export async function dispatchRadarDigest(
   options: DispatchRadarDigestOptions,
 ): Promise<DispatchRadarDigestResult> {
-  const portalSlug = options.portalSlug.trim();
-  const ano = options.ano ?? new Date().getFullYear();
-  const baseUrl = resolveBaseUrl(options.baseUrl);
-  const isDryRun = Boolean(options.dryRun || !resend);
+  const portalSlug = (options?.portalSlug || "").trim();
+  const ano = options?.ano ?? new Date().getFullYear();
+  const baseUrl = resolveBaseUrl(options?.baseUrl);
+  const isDryRun = Boolean(options?.dryRun || !resend);
+
+  if (!portalSlug) {
+    return {
+      success: false,
+      portalSlug: "",
+      ano,
+      totalSubscribers: 0,
+      sentCount: 0,
+      failedCount: 0,
+      errors: [{ email: "all", error: "Campo 'portalSlug' é obrigatório." }],
+      dryRun: isDryRun,
+    };
+  }
 
   const subscribers = await getConfirmedNewsletterSubscribers(portalSlug);
 
@@ -95,8 +130,22 @@ export async function dispatchRadarDigest(
     config?.displayName || config?.cidadeClean || portalSlug;
   const subject = `🚨 Radar ${municipioNome}: Novos dados fiscais e termômetro de opacidade (${ano})`;
 
+  const rawLogo = config?.brasaoAsset;
+  const logoUrl = resolveLogoUrl(rawLogo, baseUrl);
+
   const resendClient = resend;
   if (isDryRun || !resendClient) {
+    // Renderiza o template em dry-run para validar integridade do JSX e dados
+    RadarDigestEmail({
+      portalSlug,
+      municipioNome,
+      ano,
+      portalBaseUrl: baseUrl,
+      unsubscribeUrl: `${baseUrl}/api/newsletter/unsubscribe?token=dry-run-sample-token`,
+      metrics,
+      logoUrl,
+    });
+
     return {
       success: true,
       portalSlug,
@@ -130,7 +179,7 @@ export async function dispatchRadarDigest(
           portalBaseUrl: baseUrl,
           unsubscribeUrl,
           metrics,
-          logoUrl: config?.brasaoAsset,
+          logoUrl,
         }),
         headers: {
           "List-Unsubscribe": `<${unsubscribeUrl}>`,
@@ -146,6 +195,12 @@ export async function dispatchRadarDigest(
         });
       } else if (data) {
         sentCount += 1;
+      } else {
+        failedCount += 1;
+        errors.push({
+          email: subscriber.email,
+          error: "Resposta vazia do provedor de e-mail",
+        });
       }
     } catch (err: unknown) {
       failedCount += 1;

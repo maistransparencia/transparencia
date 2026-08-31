@@ -177,6 +177,16 @@ describe("dispatchRadarDigest", () => {
     expect(result.errors[0].error).toContain("Resend rate limit exceeded");
   });
 
+  it("deve retornar erro imediato se o portalSlug não for informado", async () => {
+    const result = await dispatchRadarDigest({
+      portalSlug: "   ",
+      ano: 2025,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors[0].error).toContain("portalSlug");
+  });
+
   it("deve falhar se não encontrar métricas para o portal", async () => {
     const result = await dispatchRadarDigest({
       portalSlug: "no_metrics_portal",
