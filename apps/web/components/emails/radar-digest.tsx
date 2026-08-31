@@ -46,7 +46,7 @@ function formatPercent(value?: number | null): string {
   }).format(val / 100);
 }
 
-function getRiscoBadgeInfo(risco?: "normal" | "atencao" | "critico") {
+function getRiscoBadgeInfo(risco?: "normal" | "atencao" | "critico" | null) {
   if (risco === "critico") {
     return {
       bg: "#fef2f2",
@@ -82,6 +82,13 @@ function formatStatusExecucao(status: string): string {
 }
 
 function formatCategoriaCredor(cat: string): string {
+  if (cat === "combustivel_frota") return "Combustíveis e Frotas";
+  if (cat === "locacao_maquinas_veiculos")
+    return "Locação de Veículos / Máquinas";
+  if (cat === "locacao_imoveis") return "Locação de Imóveis";
+  if (cat === "eventos_festas") return "Eventos e Festividades";
+  if (cat === "diarias_viagens") return "Diárias e Viagens";
+  if (cat === "obras_infraestrutura") return "Obras e Infraestrutura";
   if (cat === "limpeza_residuos") return "Limpeza Urbana / Resíduos";
   if (cat === "plantoes_medicos") return "Plantões Médicos";
   if (cat === "terceirizacao_mao_obra") return "Terceirização de Mão de Obra";
@@ -89,7 +96,9 @@ function formatCategoriaCredor(cat: string): string {
   if (cat === "consultoria_tecnica") return "Consultoria Técnica";
   if (cat === "bloqueios_sentencas") return "Bloqueios Judiciais / Sentenças";
   if (cat === "previdencia") return "Previdência / RPPS";
-  return "Subitens Residuais";
+  if (cat === "sem_classificacao_especifica")
+    return "Outros Subitens Residuais";
+  return "Outros Subitens Residuais";
 }
 
 export function RadarDigestEmail({
@@ -182,9 +191,17 @@ export function RadarDigestEmail({
                   </tr>
                   <tr>
                     <td style={metricLabelCellBold}>
-                      Saldo Estimado em Caixa:
+                      {(metrics.posicaoFiscal.saldoEstimado ?? 0) < 0
+                        ? "Déficit Estimado em Caixa:"
+                        : "Saldo Estimado em Caixa:"}
                     </td>
-                    <td style={metricValueCellBold}>
+                    <td
+                      style={
+                        (metrics.posicaoFiscal.saldoEstimado ?? 0) < 0
+                          ? metricValueCellRedBold
+                          : metricValueCellBold
+                      }
+                    >
                       {formatCurrency(metrics.posicaoFiscal.saldoEstimado)}
                     </td>
                   </tr>
@@ -247,7 +264,9 @@ export function RadarDigestEmail({
                       </thead>
                       <tbody>
                         {metrics.destaquesCredoresOpacidade.map((credor) => (
-                          <tr key={credor.credorNome}>
+                          <tr
+                            key={`${credor.credorNome}-${credor.categoriaPredominante}-${credor.totalPago}`}
+                          >
                             <td style={tdStyle}>{credor.credorNome}</td>
                             <td style={tdStyleMuted}>
                               {formatCategoriaCredor(
@@ -288,7 +307,7 @@ export function RadarDigestEmail({
                 <tbody>
                   {metrics.destaquesContratos.map((contrato) => (
                     <tr
-                      key={`${contrato.fornecedorNome}-${contrato.objetoDescricao}`}
+                      key={`${contrato.fornecedorNome}-${contrato.objetoDescricao}-${contrato.totalPago}`}
                     >
                       <td style={tdStyle}>
                         <strong>{contrato.fornecedorNome}</strong>
@@ -474,6 +493,14 @@ const metricValueCellRed: React.CSSProperties = {
 
 const metricValueCellBold: React.CSSProperties = {
   color: "#0f172a",
+  fontSize: "14px",
+  fontWeight: "700",
+  textAlign: "right",
+  padding: "6px 0 2px 0",
+};
+
+const metricValueCellRedBold: React.CSSProperties = {
+  color: "#dc2626",
   fontSize: "14px",
   fontWeight: "700",
   textAlign: "right",
