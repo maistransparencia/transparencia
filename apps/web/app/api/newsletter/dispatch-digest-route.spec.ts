@@ -137,4 +137,40 @@ describe("POST /api/newsletter/dispatch-digest", () => {
     const data = await res.json();
     expect(data.success).toBe(false);
   });
+
+  it("deve aceitar ano enviado como string numérica no payload e repassar como número", async () => {
+    mockDispatchRadarDigest.mockResolvedValueOnce({
+      success: true,
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2025,
+      totalSubscribers: 5,
+      sentCount: 5,
+      failedCount: 0,
+      errors: [],
+      dryRun: false,
+    });
+
+    const req = new Request(
+      "http://localhost:3001/api/newsletter/dispatch-digest",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer super-secret-token",
+        },
+        body: JSON.stringify({
+          portalSlug: "porciuncula_prefeitura",
+          ano: "2025",
+        }),
+      },
+    );
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockDispatchRadarDigest).toHaveBeenCalledWith({
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2025,
+      dryRun: false,
+    });
+  });
 });

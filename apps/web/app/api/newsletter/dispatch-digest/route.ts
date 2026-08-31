@@ -1,5 +1,16 @@
+import { Buffer } from "node:buffer";
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { dispatchRadarDigest } from "../../../../lib/radar-digest";
+
+function safeCompare(secret: string, token: string): boolean {
+  const bufSecret = Buffer.from(secret);
+  const bufToken = Buffer.from(token);
+  if (bufSecret.length !== bufToken.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(bufSecret, bufToken);
+}
 
 function validateBearerAuth(req: Request): boolean {
   const authHeader = req.headers.get("authorization");
@@ -21,10 +32,27 @@ function validateBearerAuth(req: Request): boolean {
   );
 
   if (validSecrets.length === 0) {
+    // biome-ignore lint/suspicious/noConsole: Log de aviso de configuração do servidor
+    console.warn(
+      "[AUTH] Nenhum secret de autorização configurado (CRON_SECRET, DIGEST_SECRET, INTERNAL_API_SECRET).",
+    );
     return false;
   }
 
-  return validSecrets.includes(token);
+  return validSecrets.some((secret) => safeCompare(secret, token));
+}
+
+function parseAno(ano: unknown): number | undefined {
+  if (typeof ano === "number" && Number.isInteger(ano) && ano > 0) {
+    return ano;
+  }
+  if (typeof ano === "string") {
+    const parsed = Number.parseInt(ano, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return undefined;
 }
 
 export async function POST(req: Request) {
@@ -53,7 +81,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const parsedAno = typeof ano === "number" ? ano : undefined;
+    const parsedAno = parseAno(ano);
     const parsedDryRun = typeof dryRun === "boolean" ? dryRun : false;
 
     const result = await dispatchRadarDigest({
