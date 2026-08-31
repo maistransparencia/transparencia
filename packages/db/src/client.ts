@@ -12,6 +12,11 @@ const connectionString =
   process.env.DATABASE_URL ||
   "postgresql://postgres:postgres@localhost:5544/postgres";
 
+const writeConnectionString =
+  process.env.DATABASE_WRITE_URL ||
+  process.env.DATABASE_URL ||
+  "postgresql://postgres:postgres@localhost:5544/postgres";
+
 // Em ambiente serverless (Vercel) cada instância mantém seu próprio pool, então
 // um `max` alto multiplicado pelo número de instâncias esgota rapidamente o
 // limite de conexões do Postgres gerenciado. As requisições disparam as queries
@@ -30,7 +35,7 @@ const pool = new pg.Pool({
 // próxima query abre uma nova.
 pool.on("error", (err) => {
   // biome-ignore lint/suspicious/noConsole: registrar o erro é o objetivo deste handler — em serverless o stderr é coletado pela plataforma.
-  console.error("[db] Erro em conexão ociosa do pool Postgres:", err);
+  console.error("[db] Erro em conexão ociosa do pool Postgres (read):", err);
 });
 
 export const db = new Kysely<any>({
@@ -39,6 +44,25 @@ export const db = new Kysely<any>({
   }),
 });
 
+const writePool = new pg.Pool({
+  connectionString: writeConnectionString,
+  max: poolMax,
+});
+
+writePool.on("error", (err) => {
+  // biome-ignore lint/suspicious/noConsole: registrar o erro é o objetivo deste handler — em serverless o stderr é coletado pela plataforma.
+  console.error(
+    "[dbWrite] Erro em conexão ociosa do pool Postgres (write):",
+    err,
+  );
+});
+
+export const dbWrite = new Kysely<any>({
+  dialect: new PostgresDialect({
+    pool: writePool,
+  }),
+});
+
 export async function closeDb(): Promise<void> {
-  await db.destroy();
+  await Promise.all([db.destroy(), dbWrite.destroy()]);
 }

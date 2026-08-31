@@ -14,6 +14,7 @@ import {
   generateGovernmentOrganizationSchema,
   JsonLd,
 } from "../components/json-ld";
+import { NewsletterFeedbackBanner } from "../components/newsletter-feedback-banner";
 import { PwaInstaller } from "../components/pwa-installer";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
@@ -161,6 +162,9 @@ export default async function RootLayout({
           </Suspense>
           <div className="flex min-w-0 flex-1 flex-col">
             <Ribbon portalName={portalConfig?.displayName} />
+            <Suspense fallback={null}>
+              <NewsletterFeedbackBanner />
+            </Suspense>
             <ExtractionNotificationBanner
               lastExtractionDate={portalConfig?.dataExtracao}
               portalName={portalConfig?.displayName}
