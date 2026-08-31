@@ -12,6 +12,9 @@ export interface SendConfirmationEmailParams {
   email: string;
   portalSlug: string;
   municipioNome?: string;
+  projectName?: string;
+  portalSubtitle?: string;
+  logoUrl?: string;
   confirmationToken: string;
   cancellationToken: string;
   baseUrl?: string;
@@ -23,6 +26,19 @@ export interface SendEmailResult {
   error?: string;
 }
 
+function resolveBaseUrl(customBaseUrl?: string): string {
+  if (customBaseUrl) {
+    return customBaseUrl;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3001";
+}
+
 /**
  * Dispara o e-mail transacional de confirmação de inscrição (double opt-in)
  * com conformidade aos padrões RFC 8058 (1-Click List-Unsubscribe) e LGPD.
@@ -30,10 +46,7 @@ export interface SendEmailResult {
 export async function sendNewsletterConfirmationEmail(
   params: SendConfirmationEmailParams,
 ): Promise<SendEmailResult> {
-  const baseUrl =
-    params.baseUrl || process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3001";
+  const baseUrl = resolveBaseUrl(params.baseUrl);
 
   const confirmationUrl = `${baseUrl}/api/newsletter/confirm?token=${encodeURIComponent(
     params.confirmationToken,
@@ -43,6 +56,14 @@ export async function sendNewsletterConfirmationEmail(
   )}`;
 
   const municipioNome = params.municipioNome || "Porciúncula";
+  const projectName =
+    params.projectName ||
+    process.env.NEXT_PUBLIC_PROJECT_NAME ||
+    "MaisTransparência";
+  const portalSubtitle =
+    params.portalSubtitle ||
+    `Portal de Transparência Cívica e Controle Social — ${municipioNome}`;
+  const logoUrl = params.logoUrl || `${baseUrl}/favicon-192.png`;
 
   // Em ambiente local/testes sem chave de API, simula o disparo com log estruturado
   if (!resend) {
@@ -63,6 +84,9 @@ export async function sendNewsletterConfirmationEmail(
       subject: `Confirme sua inscrição no Boletim Cívico — ${municipioNome}`,
       react: NewsletterConfirmationEmail({
         municipioNome,
+        projectName,
+        portalSubtitle,
+        logoUrl,
         confirmationUrl,
         unsubscribeUrl,
       }),

@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -15,16 +16,29 @@ import type * as React from "react";
 
 export interface NewsletterConfirmationEmailProps {
   municipioNome?: string;
+  projectName?: string;
+  portalSubtitle?: string;
+  logoUrl?: string;
   confirmationUrl: string;
   unsubscribeUrl: string;
 }
 
 export function NewsletterConfirmationEmail({
   municipioNome = "Porciúncula",
+  projectName,
+  portalSubtitle,
+  logoUrl,
   confirmationUrl,
   unsubscribeUrl,
 }: NewsletterConfirmationEmailProps) {
-  const previewText = `Confirme sua inscrição no Boletim Cívico de ${municipioNome}`;
+  const resolvedProjectName =
+    projectName || process.env.NEXT_PUBLIC_PROJECT_NAME || "MaisTransparência";
+
+  const resolvedSubtitle =
+    portalSubtitle ||
+    `Portal de Transparência Cívica e Controle Social — ${municipioNome}`;
+
+  const previewText = `Confirme sua inscrição no Boletim Cívico de ${municipioNome} — ${resolvedProjectName}`;
 
   return (
     <Html>
@@ -34,10 +48,17 @@ export function NewsletterConfirmationEmail({
         <Container style={containerStyle}>
           {/* Header */}
           <Section style={headerSection}>
-            <Heading style={headerTitle}>Mais Transparência</Heading>
-            <Text style={headerSubtitle}>
-              Portal de Auditoria e Controle Social — {municipioNome}
-            </Text>
+            {logoUrl && (
+              <Img
+                src={logoUrl}
+                alt={resolvedProjectName}
+                width="48"
+                height="48"
+                style={headerLogo}
+              />
+            )}
+            <Heading style={headerTitle}>{resolvedProjectName}</Heading>
+            <Text style={headerSubtitle}>{resolvedSubtitle}</Text>
           </Section>
 
           {/* Body Content */}
@@ -119,6 +140,12 @@ const headerSection: React.CSSProperties = {
   backgroundColor: "#5a72a8",
   padding: "28px 24px",
   textAlign: "center",
+};
+
+const headerLogo: React.CSSProperties = {
+  borderRadius: "10px",
+  display: "block",
+  margin: "0 auto 12px auto",
 };
 
 const headerTitle: React.CSSProperties = {
