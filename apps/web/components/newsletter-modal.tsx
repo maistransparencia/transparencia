@@ -20,6 +20,10 @@ export interface NewsletterModalProps {
   stateUF?: string;
 }
 
+type ModalStatus = "idle" | "loading" | "success" | "error";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function NewsletterModal({
   isOpen,
   onClose,
@@ -28,20 +32,25 @@ export function NewsletterModal({
   stateUF = "RJ",
 }: NewsletterModalProps) {
   const [email, setEmail] = useState("");
-  const [honeypot, setHoneypot] = useState("");
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<ModalStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [renderTime, setRenderTime] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClose = () => {
+    if (status === "loading") {
+      return;
+    }
+    onClose();
+  };
 
   useEffect(() => {
     if (isOpen) {
       setEmail("");
-      setHoneypot("");
       setStatus("idle");
       setErrorMessage("");
+      setHoneypot("");
       setRenderTime(Date.now());
 
       posthog.capture("newsletter_modal_opened", {
@@ -57,13 +66,13 @@ export function NewsletterModal({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+      if (e.key === "Escape" && isOpen && status !== "loading") {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, status]);
 
   if (!isOpen) {
     return null;
@@ -71,7 +80,7 @@ export function NewsletterModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email?.includes("@")) {
+    if (!email || !EMAIL_REGEX.test(email.trim())) {
       setStatus("error");
       setErrorMessage("Por favor, insira um endereço de e-mail válido.");
       return;
@@ -139,8 +148,8 @@ export function NewsletterModal({
       <button
         type="button"
         tabIndex={-1}
-        aria-label="Fechar modal"
-        onClick={onClose}
+        aria-hidden="true"
+        onClick={handleClose}
         className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
       />
       <div
@@ -152,9 +161,10 @@ export function NewsletterModal({
         {/* Botão Fechar */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
+          disabled={status === "loading"}
           aria-label="Fechar modal"
-          className="absolute top-4 right-4 rounded-lg p-1.5 text-mutedText transition-colors hover:bg-gray-100 hover:text-ink"
+          className="absolute top-4 right-4 rounded-lg p-1.5 text-mutedText transition-colors hover:bg-gray-100 hover:text-ink disabled:opacity-50"
         >
           <X className="h-4 w-4" />
         </button>

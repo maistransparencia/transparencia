@@ -72,7 +72,7 @@ describe("NewsletterModal component", () => {
       />,
     );
 
-    const input = screen.getByLabelText(/seu melhor e-mail/i);
+    const input = screen.getByLabelText(/seu e-mail/i);
     fireEvent.change(input, { target: { value: "cidadao@exemplo.com" } });
 
     const submitBtn = screen.getByRole("button", {
