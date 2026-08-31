@@ -46,6 +46,13 @@ export async function POST(req: Request) {
       if (contentType.includes("application/json")) {
         const body = await req.json().catch(() => null);
         token = body?.token ?? null;
+      } else if (
+        contentType.includes("application/x-www-form-urlencoded") ||
+        contentType.includes("multipart/form-data")
+      ) {
+        const formData = await req.formData().catch(() => null);
+        const formToken = formData?.get("token");
+        token = typeof formToken === "string" ? formToken : null;
       }
     }
 

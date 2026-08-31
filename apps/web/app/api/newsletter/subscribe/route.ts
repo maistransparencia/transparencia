@@ -28,15 +28,15 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. Submission timer check (descarte de submissões instantâneas < 1s)
-    if (
-      typeof clientRenderTime === "number" &&
-      Date.now() - clientRenderTime < 1000
-    ) {
-      return NextResponse.json({
-        success: true,
-        message: "Inscrição recebida com sucesso.",
-      });
+    // 2. Submission timer check (descarte de submissões instantâneas < 1s, com proteção contra clock skew)
+    if (typeof clientRenderTime === "number") {
+      const elapsed = Date.now() - clientRenderTime;
+      if (elapsed >= 0 && elapsed < 1000) {
+        return NextResponse.json({
+          success: true,
+          message: "Inscrição recebida com sucesso.",
+        });
+      }
     }
 
     // 3. Validação de e-mail e portal
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
     const requestOrigin = new URL(req.url).origin;
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin;
 
-    await sendNewsletterConfirmationEmail({
+    const emailResult = await sendNewsletterConfirmationEmail({
       email: subscriber.email,
       portalSlug: subscriber.portalSlug,
       municipioNome,
@@ -116,6 +116,17 @@ export async function POST(req: Request) {
       cancellationToken: subscriber.tokenCancelamento,
       baseUrl,
     });
+
+    if (!emailResult.success) {
+      return NextResponse.json(
+        {
+          error:
+            emailResult.error ||
+            "Não foi possível enviar o e-mail de confirmação.",
+        },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       success: true,

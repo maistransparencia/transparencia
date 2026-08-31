@@ -4,8 +4,21 @@ import { GET as confirmGet } from "./confirm/route";
 import { POST as subscribePost } from "./subscribe/route";
 import { GET as unsubGet, POST as unsubPost } from "./unsubscribe/route";
 
+interface MockSubscriber {
+  id: string;
+  portalSlug: string;
+  email: string;
+  status: string;
+  tokenConfirmacao: string;
+  tokenCancelamento: string;
+  createdAt: Date;
+  confirmedAt: Date | null;
+  unsubscribedAt: Date | null;
+  resendContactId: string | null;
+}
+
 vi.mock("@transparencia/db", () => {
-  const subscribers: Record<string, any> = {};
+  const subscribers: Record<string, MockSubscriber> = {};
   return {
     getPortalConfig: vi.fn(async (portalSlug: string) => ({
       portalSlug,
@@ -213,6 +226,22 @@ describe("newsletter api routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: "List-Unsubscribe=One-Click",
+        },
+      );
+      const res = await unsubPost(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+    });
+
+    it("deve cancelar via POST com token no formData", async () => {
+      const formData = new FormData();
+      formData.append("token", "token-unsub-123");
+      const req = new Request(
+        "http://localhost:3001/api/newsletter/unsubscribe",
+        {
+          method: "POST",
+          body: formData,
         },
       );
       const res = await unsubPost(req);
