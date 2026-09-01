@@ -9,7 +9,11 @@
     "lint": "next lint",
     "test": "vitest run",
     "digest:send": "tsx bin/dispatch-digest.ts",
-    "digest:dry-run": "tsx bin/dispatch-digest.ts --dry-run"
+    "digest:dry-run": "tsx bin/dispatch-digest.ts --dry-run",
+    "social:publish": "tsx bin/publish-social.ts",
+    "social:dry-run": "tsx bin/publish-social.ts --dry-run",
+    "social:x": "tsx bin/publish-social.ts --channels x",
+    "social:facebook": "tsx bin/publish-social.ts --channels facebook"
   },
   "dependencies": {
     "@react-email/components": "1.0.12",
