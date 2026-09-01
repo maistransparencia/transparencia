@@ -32,7 +32,7 @@ export function SocialLinks({
   const facebookUrl =
     customFacebookUrl ||
     process.env.NEXT_PUBLIC_FACEBOOK_URL ||
-    "https://facebook.com/maistransparenciabr";
+    "https://facebook.com/maistransparencia";
 
   const handleXClick = () => {
     posthog.capture("social_link_clicked", {
