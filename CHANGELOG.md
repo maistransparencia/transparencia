@@ -5,6 +5,47 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-09-02
+
+### 🌟 Destaques da Versão (Epic 7: Distribuição Cívica, Engajamento Comunitário, Newsletters Automatizadas e Social Sharing Dinâmico)
+* **Cartões OpenGraph Dinâmicos na Edge:** Geração automática e em tempo real de cards visuais (1200x630px) com métricas fiscais consolidadas (gastos, receitas, previdência, despesas com pessoal e restos a pagar) para compartilhamento no WhatsApp, Telegram e redes sociais.
+* **Newsletter Cívica & Boletim Radar Digest:** Canal direto de comunicação com a cidadania via e-mail com double opt-in seguro, conformidade estrita com a LGPD, cancelamento com 1 clique (RFC 8058 `List-Unsubscribe`) e resumos periódicos de despesas e restos a pagar.
+* **Publicação Social Multi-Canal Automatizada:** Bots cívicos oficiais integrados ao X.com (`@mtransparenciax` via OAuth 1.0a) e Facebook Pages (via Meta Graph API v26.0) para disseminação programática de manchetes fiscais e novos lotes de dados.
+* **Governança Estrita de Ambientes & Tipagem Segura:** Centralização e validação em tempo de compilação/execução de todas as variáveis de ambiente com `@t3-oss/env-nextjs` e Zod (Regra 17 de `AGENTS.md`), prevenindo vazamentos de credenciais e falhas silenciosas.
+
+### ✨ Novas Funcionalidades (Added)
+* **Geradores Dinâmicos de OpenGraph (`opengraph-image.tsx`):** Criação de geradores de imagem na edge para todas as rotas públicas do portal (`/`, `/despesas`, `/receitas`, `/orcamento`, `/licitacoes`, `/pessoal`, `/caprem`, `/saude`), baseados no componente `OGCardTemplate` com tema claro, tipografia legível e logomarca oficial.
+* **Modal e Banner de Newsletter (`NewsletterModal` e `NewsletterFeedbackBanner`):** Componentes acessíveis na sidebar e footer para cadastro de cidadãos, com validação de e-mail em tempo real, proteção contra envios robotizados e feedback visual contextual de confirmação e cancelamento.
+* **Boletim Cívico "Radar Digest" (`RadarDigestEmail`):** Template de e-mail transacional responsivo desenvolvido em React Email (`@react-email/components`), exibindo balanço fiscal do exercício (receita vs despesa líquida), monitoramento de restos a pagar, maiores credores e alertas orçamentários.
+* **Rotas de API para Gestão de Assinaturas:** Endpoints `/api/newsletter/subscribe`, `/api/newsletter/confirm` e `/api/newsletter/unsubscribe` com suporte normativo aos cabeçalhos RFC 8058 (`List-Unsubscribe` e `List-Unsubscribe-Post`).
+* **Orquestrador de Publicação Social (`SocialPublisher`):** Integração modular com suporte simultâneo a X.com (`XBotClient` com OAuth 1.0a) e Facebook Pages (`FacebookBotClient` com Meta Graph API v26.0), acionáveis via endpoint protegido `/api/social/publish` ou script CLI (`bin/publish-social.ts`).
+* **Componente de Conexão Cívica (`SocialLinks`):** Exibição de canais oficiais e repositório open-source na barra lateral e rodapé, com links dinâmicos para X e Facebook parametrizados via variáveis de ambiente.
+
+### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
+* **Sistema de Migrações Kysely (`@transparencia/db`):** Implementação do migrador programático (`migrator.ts` e comando `pnpm db:migrate`) para controle e versionamento do schema do banco de dados.
+* **Migração `001_create_newsletter_subscribers.ts`:** Criação da tabela `newsletter_subscribers` com isolamento multi-tenant (`portal_slug`), status do ciclo de vida (`pendente`, `confirmado`, `cancelado`), timestamps e colunas de texto estritamente tipadas como `TEXT` (em conformidade com a Regra 16 de `AGENTS.md`).
+* **Arquitetura Dual-Pool no Kysely (`client.ts`):** Segregação estrutural entre pool de leitura analítica (`readOnlyDb`) e pool de escrita transacional (`adminDb`), assegurando o princípio do menor privilégio.
+* **Provisionamento de Permissões no PostgreSQL (`01-init-roles.sql`):** Configuração automatizada de permissões da role `read_only`, concedendo permissão de escrita estritamente necessária na tabela de assinantes.
+* **Queries Analíticas Atômicas (`queries/newsletter.ts` e `queries/radar-digest.ts`):** Funções atômicas `getConfirmedSubscribers` e `getRadarDigestMetrics` para consolidação dos dados fiscais do município (receita arrecadada, despesas pagas, restos a pagar liquidados/pendentes e ranking de credores) utilizados no boletim.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Centralização Canônica de Variáveis de Ambiente (`apps/web/env.ts`):** Validação estrita de variáveis em tempo de compilação com `@t3-oss/env-nextjs` e Zod, eliminando chamadas dispersas e inseguras a `process.env`.
+* **Limitação de Taxa em Memória (`rate-limit.ts`):** Mecanismo de janela deslizante (sliding window) leve para prevenir abusos nas rotas públicas de submissão de newsletter sem dependências de infraestrutura externa.
+* **Cliente Resend com Tolerância a Falhas (`resend.ts`):** Tratamento defensivo de erros da API, retentativas e suporte a divergências de relógio (clock skew) nos formulários com verificação temporal anti-bot.
+* **Comandos de Automação no `Makefile`:** Inclusão dos targets `db/migrate`, `digest/dispatch` e `social/publish` para execução unificada das rotas e scripts operacionais via CLI.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Regra 16 em `AGENTS.md` (Campos de Texto no PostgreSQL):** Formalização da proibição de `VARCHAR(n)` e `CHAR(n)`, exigindo o tipo `TEXT` para todas as colunas de texto em novas migrações.
+* **Regra 17 em `AGENTS.md` (Centralização de Variáveis de Ambiente):** Diretriz mandatória proibindo chamadas diretas a `process.env` na aplicação web, exigindo consumo exclusivo a partir de `@/env`.
+* **Sincronização dos Guias para LLMs (`llms.txt` e `llms-full.txt`):** Inclusão de documentação pública sobre as rotas de OpenGraph, canais de distribuição de alertas municipais, diretrizes de privacidade conforme a LGPD e links sociais oficiais.
+* **Manuais de Configuração de Ambiente (`.env.example`):** Criação e sincronização dos arquivos de exemplo na raiz e em `apps/web/`, documentando todas as credenciais de e-mail, redes sociais e telemetria.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Mitigação de Timing Attacks:** Implementação de `crypto.timingSafeEqual` para comparação em tempo constante de Bearer tokens em endpoints protegidos de despacho.
+* **Paridade de Restos a Pagar nos Posts Sociais:** Alinhamento dos formatadores dos bots sociais para refletir o saldo de restos a pagar em paridade com a Visão Geral do portal, substituindo referências a taxas de opacidade isoladas.
+* **Resiliência a Formatos de Desinscrição RFC 8058:** Suporte para requisições com `Content-Type: application/x-www-form-urlencoded` e `multipart/form-data` nos cancelamentos acionados diretamente por clientes de e-mail.
+* **Tratamento Defensivo de Dados:** Validação numérica em anos fiscais, fallbacks graciosos para municípios sem histórico e sanitização de domínios em rotas de metadados.
+
 ## [1.6.1] - 2026-08-29
 
 ### 🌟 Destaques da Versão (Hotfix: Otimização de Performance & Estabilidade do CI)
