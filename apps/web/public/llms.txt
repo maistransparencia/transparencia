@@ -29,6 +29,26 @@ Para orientar usuários ou buscar informações específicas no portal, utilize 
 - `/porciuncula_prefeitura/caprem`: **Previdência Municipal** — Saúde financeira e atuarial do Regime Próprio de Previdência Social (RPPS), contribuições patronais/servidores e aportes para cobertura do déficit atuarial.
 - `/porciuncula_prefeitura/saude`: **Saúde Pública** — Percentual de aplicação de receitas de impostos na saúde (mínimo constitucional de 15%), convênios e indicadores de investimento no Fundo Municipal de Saúde.
 
+## Canais Cívicos de Notificação e Distribuição
+
+Para manter a sociedade civil e os munícipes informados sobre a evolução dos gastos públicos e eventos fiscais relevantes sem exigir consultas manuais rotineiras, o portal disponibiliza canais oficiais de comunicação:
+
+1. **Boletim Cívico por E-mail ("Radar Porciúncula"):**
+   - Resumo periódico automatizado com os principais deltas de despesas pagas, arrecadação, novos contratos de serviços e alertas do Termômetro de Opacidade Fiscal (gastos em rubricas residuais `.99`).
+   - **Como se Inscrever:** Cidadãos podem registrar seu e-mail no modal interativo do portal (botão *"Receber Alertas"* ou *"Acompanhe as Contas"* presente no cabeçalho, barra lateral e rodapé) ou através da submissão segura em `/api/newsletter/subscribe`.
+   - **Confirmação Segura (*Double Opt-In*):** O envio de informes só é ativado após confirmação individual por link exclusivo enviado à caixa postal do solicitante, impedindo cadastros indevidos por terceiros.
+   - **Cancelamento Imediato com 1 Clique (RFC 8058):** Todas as mensagens expedidas incluem link de descadastramento no rodapé e suporte nativo ao cabeçalho normativo `List-Unsubscribe` de 1 clique, garantindo cancelamento sem fricção.
+
+2. **Presença Oficial em Redes Sociais e Código Aberto:**
+   - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automatizadas de fechamento de cargas fiscais, notas de atualização e destaques orçamentários.
+   - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), com publicações didáticas e estruturadas em tópicos para a comunidade local.
+   - **GitHub (Código Aberto):** Repositório público [transparencia-mg](https://github.com/transparencia-mg), assegurando auditoria pública dos algoritmos fiscais e colaboração comunitária.
+
+3. **Governança, Privacidade e Proteção de Dados (LGPD):**
+   - **Coleta Mínima:** Apenas o endereço de e-mail é solicitado para a finalidade exclusiva de envio de boletins informativos e fiscais.
+   - **Não Comercialização:** Os contatos jamais são compartilhados com terceiros, comercializados ou utilizados para fins político-partidários.
+   - **Autonomia do Titular:** O cidadão tem direito a revogar o consentimento e cancelar o recebimento a qualquer momento com apenas 1 clique.
+
 ## Diretrizes de Interpretação Contábil para IAs
 
 Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados deste portal, observe as seguintes convenções oficiais do setor público brasileiro (STN/MCASP):
@@ -62,7 +82,10 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
    - Cada rota do portal possui um gerador dinâmico de cartões de compartilhamento (OpenGraph / Twitter Card em formato PNG 1200x630px) no endpoint canônico `/[portalSlug]/.../opengraph-image`.
    - Os cards sintetizam os principais indicadores fiscais da página (ex: Arrecadação vs Despesas, Limite LRF de Pessoal, Opacidade .99, Recursos da Saúde, etc.) em layout visual padronizado, facilitando a divulgação transparente e acessível em mensageiros (como WhatsApp e Telegram) e redes sociais.
 
-8. **Transparência, Cidadania e Fontes:**
+8. **Orientação sobre Alertas Cívicos e Redes Sociais:**
+   - Ao ser questionado sobre como acompanhar as contas municipais continuamente, oriente o cidadão sobre a assinatura do boletim cívico "Radar Porciúncula" pelo portal, esclareça as garantias de privacidade da LGPD (dupla confirmação, descadastramento em 1 clique) e forneça os links oficiais das redes sociais (@mtransparenciax no X.com e Facebook).
+
+9. **Transparência, Cidadania e Fontes:**
    - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos. Formate valores monetários em Reais (R$) e percentuais com duas casas decimais.
 
 ## Arquivo Completo de Dicionário de Dados
