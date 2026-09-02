@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
+import { sanitizeHashtag } from "./facebook-bot";
 
 export interface XCredentials {
   apiKey?: string;
@@ -88,7 +89,7 @@ export function truncateTweet(text: string, maxLength = 280): string {
 
   const urlRegex = /https?:\/\/[^\s]+/g;
   const urls = text.match(urlRegex) || [];
-  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+  const hashtagRegex = /#[\p{L}\p{N}_]+/gu;
   const hashtags = text.match(hashtagRegex) || [];
 
   const preservedSuffixParts: string[] = [];
@@ -109,16 +110,18 @@ export function truncateTweet(text: string, maxLength = 280): string {
 
   const availableLength = maxLength - suffixLength - 3;
   if (availableLength <= 0) {
-    return text.slice(0, maxLength);
+    const chars = Array.from(text);
+    return chars.slice(0, maxLength).join("");
   }
 
   let body = text;
   for (const item of preservedSuffixParts) {
     body = body.replaceAll(item, "");
   }
-  body = body.trim().replace(/\s+/g, " ");
+  body = body.trim().replace(/[^\S\r\n]+/g, " ");
 
-  const truncatedBody = body.slice(0, availableLength).trimEnd();
+  const bodyChars = Array.from(body);
+  const truncatedBody = bodyChars.slice(0, availableLength).join("").trimEnd();
   return `${truncatedBody}...${suffix}`;
 }
 
@@ -162,10 +165,16 @@ export function buildFiscalDigestTweet(
   const { portalSlug, municipioNome, ano, metrics } = params;
   const baseUrl = resolveBaseUrl(params.baseUrl);
   const portalUrl = `${baseUrl}/${portalSlug}`;
+  const tagMunicipio = sanitizeHashtag(municipioNome) || "Porciuncula";
 
-  const totalPago =
-    metrics.posicaoFiscal?.despesasPagas ?? metrics.opacidade?.totalPago ?? 0;
-  const totalFormatado = formatCurrency(totalPago);
+  let totalLine = "";
+  if (metrics.posicaoFiscal?.despesasPagas) {
+    totalLine = `💰 Total Pago: ${formatCurrency(metrics.posicaoFiscal.despesasPagas)}`;
+  } else if (metrics.opacidade?.totalPago) {
+    totalLine = `💰 Total Pago: ${formatCurrency(metrics.opacidade.totalPago)}`;
+  } else {
+    totalLine = "ℹ️ Dados fiscais em apuração contábil";
+  }
 
   let opacidadeLine = "";
   if (metrics.opacidade && metrics.opacidade.taxaValorOpacidadePct > 0) {
@@ -173,9 +182,9 @@ export function buildFiscalDigestTweet(
   }
 
   const raw = `🏛️ Balanço Fiscal de ${municipioNome} (${ano})
-💰 Total Pago: ${totalFormatado}${opacidadeLine}
+${totalLine}${opacidadeLine}
 🔗 ${portalUrl}
-#Porciuncula #TransparenciaFiscal`;
+#${tagMunicipio} #TransparenciaFiscal`;
 
   return truncateTweet(raw);
 }
@@ -189,10 +198,11 @@ export function buildExtractionTweet(params: ExtractionTweetParams): string {
   const portalUrl = `${baseUrl}/${portalSlug}`;
   const anoStr = ano ? ` (${ano})` : "";
   const summaryStr = params.summary ? ` ${params.summary}` : "";
+  const tagMunicipio = sanitizeHashtag(municipioNome) || "Porciuncula";
 
   const raw = `⚡ Dados Atualizados! A base de dados fiscais de ${municipioNome}${anoStr} foi sincronizada com novas informações de empenhos, pagamentos e contratos.${summaryStr}
 🔗 ${portalUrl}
-#Porciuncula #TransparenciaFiscal`;
+#${tagMunicipio} #TransparenciaFiscal`;
 
   return truncateTweet(raw);
 }

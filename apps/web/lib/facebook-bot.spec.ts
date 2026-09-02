@@ -224,5 +224,55 @@ describe("facebook-bot module", () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe("Network timeout");
     });
+
+    it("deve reportar erro se Graph API responder com objeto error mesmo com status HTTP 200", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          error: {
+            message: "Permissions error",
+            type: "OAuthException",
+            code: 200,
+          },
+        }),
+      } as Response);
+
+      const result = await postFacebookPost(
+        { message: "Tentativa com erro no body" },
+        {
+          credentials: {
+            pageId: "123456789",
+            pageAccessToken: "token-sem-permissao",
+          },
+        },
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Permissions error");
+    });
+  });
+
+  describe("tratamento gracioso de métricas nulas", () => {
+    it("buildFiscalDigestFacebookPost: deve indicar apuração contábil quando posicaoFiscal for nula", () => {
+      const post = buildFiscalDigestFacebookPost({
+        portalSlug: "porciuncula_prefeitura",
+        municipioNome: "Porciúncula",
+        ano: 2025,
+        metrics: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          posicaoFiscal: null,
+          opacidade: null,
+          destaquesContratos: [],
+          destaquesCredoresOpacidade: [],
+        },
+      });
+
+      expect(post.message).toContain(
+        "Posição fiscal do exercício em apuração contábil",
+      );
+      expect(post.message).not.toContain("Total Arrecadado: R$ 0");
+    });
   });
 });

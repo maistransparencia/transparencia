@@ -52,7 +52,8 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function sanitizeHashtag(str: string): string {
+export function sanitizeHashtag(str?: string): string {
+  if (!str?.trim()) return "";
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -70,26 +71,32 @@ export function buildFiscalDigestFacebookPost(
   const baseUrl = resolveBaseUrl(params.baseUrl);
   const link = `${baseUrl}/${portalSlug}`;
   const hashtagMunicipio = sanitizeHashtag(municipioNome);
-
-  const totalArrecadado = metrics.posicaoFiscal?.totalArrecadado ?? 0;
-  const despesasPagas =
-    metrics.posicaoFiscal?.despesasPagas ?? metrics.opacidade?.totalPago ?? 0;
-  const restosPagos = metrics.posicaoFiscal?.restosPagosNoAno ?? 0;
-  const saldoEstimado = metrics.posicaoFiscal?.saldoEstimado ?? 0;
+  const tagMunicipio = hashtagMunicipio ? ` #${hashtagMunicipio}` : "";
 
   // Bloco de Execução Orçamentária
-  const linhasExecucao = [
-    `💰 Total Arrecadado: ${formatCurrency(totalArrecadado)}`,
-    `💸 Total Pago: ${formatCurrency(despesasPagas)}`,
-  ];
-  if (restosPagos > 0) {
+  const linhasExecucao: string[] = [];
+  if (metrics.posicaoFiscal) {
     linhasExecucao.push(
-      `⏳ Restos a Pagar de Anos Anteriores Pagos: ${formatCurrency(restosPagos)}`,
+      `💰 Total Arrecadado: ${formatCurrency(metrics.posicaoFiscal.totalArrecadado)}`,
+      `💸 Total Pago: ${formatCurrency(metrics.posicaoFiscal.despesasPagas)}`,
     );
+    if (metrics.posicaoFiscal.restosPagosNoAno > 0) {
+      linhasExecucao.push(
+        `⏳ Restos a Pagar de Anos Anteriores Pagos: ${formatCurrency(metrics.posicaoFiscal.restosPagosNoAno)}`,
+      );
+    }
+    linhasExecucao.push(
+      `⚖️ Saldo em Caixa Estimado: ${formatCurrency(metrics.posicaoFiscal.saldoEstimado)}`,
+    );
+  } else {
+    linhasExecucao.push("ℹ️ Posição fiscal do exercício em apuração contábil.");
+    const totalPago = metrics.opacidade?.totalPago ?? 0;
+    if (totalPago > 0) {
+      linhasExecucao.push(
+        `💸 Despesas Pagas Registradas: ${formatCurrency(totalPago)}`,
+      );
+    }
   }
-  linhasExecucao.push(
-    `⚖️ Saldo em Caixa Estimado: ${formatCurrency(saldoEstimado)}`,
-  );
 
   // Bloco de Opacidade Fiscal (.99)
   let blocoOpacidade = "";
@@ -115,7 +122,16 @@ export function buildFiscalDigestFacebookPost(
   let blocoContratos = "";
   if (metrics.destaquesContratos && metrics.destaquesContratos.length > 0) {
     const topContratos = metrics.destaquesContratos.slice(0, 3).map((c) => {
-      return `• ${c.fornecedorNome}: ${formatCurrency(c.totalPago)} (${c.objetoDescricao})`;
+      const objetoLimpo = c.objetoDescricao?.trim();
+      let objetoStr = "";
+      if (objetoLimpo) {
+        const resumo =
+          objetoLimpo.length > 80
+            ? `${objetoLimpo.slice(0, 80)}...`
+            : objetoLimpo;
+        objetoStr = ` (${resumo})`;
+      }
+      return `• ${c.fornecedorNome}: ${formatCurrency(c.totalPago)}${objetoStr}`;
     });
 
     blocoContratos = `\n\n📑 Destaques de Contratos e Fornecedores:\n${topContratos.join("\n")}`;
@@ -131,7 +147,7 @@ ${linhasExecucao.join("\n")}${blocoOpacidade}${blocoContratos}
 🔗 Acesse os dados completos no portal:
 ${link}
 
-#MaisTransparencia #TransparenciaFiscal #${hashtagMunicipio} #ControleSocial #DadosAbertos`;
+#MaisTransparencia #TransparenciaFiscal${tagMunicipio} #ControleSocial #DadosAbertos`;
 
   return {
     message,
@@ -153,6 +169,7 @@ export function buildExtractionFacebookPost(
   const summaryBlock = params.summary
     ? `\n\n📝 Resumo da Carga: ${params.summary}`
     : "";
+  const tagMunicipio = hashtagMunicipio ? ` #${hashtagMunicipio}` : "";
 
   const message = `⚡ BASE DE DADOS ATUALIZADA: ${municipioNome.toUpperCase()}${anoStr}
 
@@ -163,7 +180,7 @@ Audite as contas públicas do município e exerça o controle social de forma si
 🔗 Acesse o portal:
 ${link}
 
-#MaisTransparencia #TransparenciaFiscal #${hashtagMunicipio} #DadosAbertos #ControleSocial`;
+#MaisTransparencia #TransparenciaFiscal${tagMunicipio} #DadosAbertos #ControleSocial`;
 
   return {
     message,
@@ -205,16 +222,27 @@ ${baseUrl}
  * Valida e formata mensagem personalizada para o Facebook Pages.
  */
 export function buildCustomFacebookPost(
-  params: { text: string; link?: string } | string,
+  params:
+    | { text: string; link?: string; portalSlug?: string; baseUrl?: string }
+    | string,
 ): FacebookPostPayload {
-  const text = typeof params === "string" ? params : params.text;
+  const text = typeof params === "string" ? params : params?.text;
   const clean = text?.trim();
   if (!clean) {
     throw new Error("Mensagem não pode ser vazia");
   }
 
-  const link =
-    typeof params === "string" ? undefined : params.link?.trim() || undefined;
+  const link = (() => {
+    if (typeof params === "string") return undefined;
+    if (params.link?.trim()) return params.link.trim();
+    if (params.portalSlug) {
+      return `${resolveBaseUrl(params.baseUrl)}/${params.portalSlug}`;
+    }
+    if (params.baseUrl) {
+      return resolveBaseUrl(params.baseUrl);
+    }
+    return undefined;
+  })();
 
   return {
     message: clean,
@@ -235,9 +263,9 @@ export function getFacebookCredentials(
 }
 
 export function hasFacebookCredentials(
-  credentials: FacebookCredentials,
+  credentials?: FacebookCredentials,
 ): boolean {
-  return Boolean(credentials.pageId && credentials.pageAccessToken);
+  return Boolean(credentials?.pageId && credentials?.pageAccessToken);
 }
 
 /**
@@ -249,7 +277,10 @@ export async function postFacebookPost(
   content: FacebookPostPayload | string,
   options?: PostFacebookOptions,
 ): Promise<PostFacebookResult> {
-  const payload = typeof content === "string" ? { message: content } : content;
+  const payload =
+    typeof content === "string"
+      ? { message: content }
+      : (content ?? { message: "" });
   const credentials = getFacebookCredentials(options?.credentials);
   const isDryRun = Boolean(
     options?.dryRun || !hasFacebookCredentials(credentials),
@@ -290,7 +321,7 @@ export async function postFacebookPost(
       error?: { message?: string; type?: string; code?: number };
     } | null;
 
-    if (!res.ok) {
+    if (!res.ok || data?.error) {
       const errorMsg =
         data?.error?.message || `Erro HTTP ${res.status}: ${res.statusText}`;
       return {

@@ -73,6 +73,29 @@ describe("x-bot module", () => {
       expect(truncated).toContain(hashtags);
       expect(truncated).toContain("...");
     });
+
+    it("deve preservar quebras de linha em textos estruturados ao truncar", () => {
+      const multiLine = `Linha 1: Título Principal\nLinha 2: Detalhe\n${"C".repeat(260)}`;
+      const url = "https://transparencia.app";
+      const hashtags = "#Transparencia";
+      const input = `${multiLine}\n${url}\n${hashtags}`;
+
+      const truncated = truncateTweet(input, 280);
+      expect(truncated).toContain("\n");
+      expect(calculateTweetLength(truncated)).toBeLessThanOrEqual(280);
+    });
+
+    it("deve reconhecer e preservar hashtags com caracteres acentuados", () => {
+      const longText = "B".repeat(300);
+      const url = "https://transparencia.app";
+      const hashtags = "#Porciúncula #Transparência";
+      const input = `${longText} ${url} ${hashtags}`;
+
+      const truncated = truncateTweet(input, 280);
+      expect(truncated).toContain("#Porciúncula");
+      expect(truncated).toContain("#Transparência");
+      expect(calculateTweetLength(truncated)).toBeLessThanOrEqual(280);
+    });
   });
 
   describe("formatadores especializados para o X", () => {
@@ -113,6 +136,34 @@ describe("x-bot module", () => {
       expect(tweet).toContain("#Porciuncula");
       expect(tweet).toContain("#TransparenciaFiscal");
       expect(calculateTweetLength(tweet)).toBeLessThanOrEqual(280);
+    });
+
+    it("buildFiscalDigestTweet: deve gerar hashtag dinâmica para outros municípios", () => {
+      const tweet = buildFiscalDigestTweet({
+        portalSlug: "outra_cidade",
+        municipioNome: "Santo Antônio de Pádua",
+        ano: 2025,
+        metrics: mockMetrics,
+      });
+
+      expect(tweet).toContain("#SantoAntoniodePadua");
+      expect(tweet).toContain("#TransparenciaFiscal");
+    });
+
+    it("buildFiscalDigestTweet: deve tratar graciosamente posicaoFiscal nula", () => {
+      const tweet = buildFiscalDigestTweet({
+        portalSlug: "porciuncula_prefeitura",
+        municipioNome: "Porciúncula",
+        ano: 2025,
+        metrics: {
+          ...mockMetrics,
+          posicaoFiscal: null,
+          opacidade: null,
+        },
+      });
+
+      expect(tweet).toContain("Dados fiscais em apuração contábil");
+      expect(tweet).not.toContain("Total Pago: R$ 0");
     });
 
     it("buildExtractionTweet: deve gerar tweet de carga de dados concluída <= 280 caracteres", () => {
