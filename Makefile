@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
 
 # SETUP TASKS
 
@@ -70,8 +70,11 @@ endif
 
 # MIGRATIONS
 
+db/init-roles:
+	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f docker/init/01-init-roles.sql
+
 migrate/grant:
-	psql "$$DATABASE_URL" -f elt/migrations/grant_readonly.sql
+	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f elt/migrations/grant_readonly.sql
 
 # DBT TRANSFORM
 
