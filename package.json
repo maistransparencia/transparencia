@@ -1,10 +1,11 @@
 {
   "name": "transparencia-monorepo",
   "private": true,
-  "version": "1.6.1",
+  "version": "1.7.0",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "db:migrate": "pnpm --filter @transparencia/db migrate",
     "lint": "biome check --diagnostic-level=error .",
     "lint:fix": "biome check --write --unsafe .",
     "test": "turbo test"

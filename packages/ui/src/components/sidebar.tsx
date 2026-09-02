@@ -7,6 +7,7 @@ import {
   HeartPulse,
   Landmark,
   LayoutDashboard,
+  Mail,
   Menu,
   PieChart,
   Receipt,
@@ -69,6 +70,8 @@ export interface SidebarProps {
   selectedEntidades?: string[];
   onEntidadesChange?: (selectedIds: string[]) => void;
   portalSlug?: string;
+  onOpenNewsletter?: () => void;
+  socialLinksSlot?: React.ReactNode;
 }
 
 function YearSelect({
@@ -149,6 +152,8 @@ export function Sidebar({
   selectedEntidades,
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
+  onOpenNewsletter,
+  socialLinksSlot,
 }: SidebarProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
@@ -406,27 +411,52 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Data de Extração Dinâmica */}
-        <div className="space-y-1.5 border-borderLine border-t bg-gray-50/50 p-4">
-          {officialPortalUrl && (
-            <a
-              href={officialPortalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between font-medium text-ink text-xs transition-colors hover:text-[#1d64d8]"
+        {/* Rodapé com Newsletter, Social Links e Data de Extração */}
+        <div className="space-y-3 border-borderLine border-t bg-gray-50/50 p-4">
+          {onOpenNewsletter && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileOpen(false);
+                onOpenNewsletter();
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.55_0.11_250)]/10 px-3 py-2.5 font-semibold text-[oklch(0.55_0.11_250)] text-xs transition-colors hover:bg-[oklch(0.55_0.11_250)]/20 active:scale-[0.99]"
             >
-              <span>Portal oficial</span>
-              <ExternalLink
-                strokeWidth={1.6}
-                className="h-3.5 w-3.5 text-mutedText"
-              />
-            </a>
+              <Mail strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0" />
+              <span>Receber Alertas por E-mail</span>
+            </button>
           )}
-          <div className="space-y-0.5 text-[10px] text-mutedText">
-            <p>Dados extraídos do Portal Oficial</p>
-            <p className="font-mono text-[9.5px]">
-              Última extração: {displayExtractionDate}
-            </p>
+
+          {socialLinksSlot && (
+            <div className="flex items-center justify-between border-borderLine/60 border-t pt-2">
+              <span className="font-medium text-[11px] text-mutedText">
+                Redes
+              </span>
+              {socialLinksSlot}
+            </div>
+          )}
+
+          <div className="space-y-1.5 border-borderLine/60 border-t pt-2">
+            {officialPortalUrl && (
+              <a
+                href={officialPortalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between font-medium text-ink text-xs transition-colors hover:text-[#1d64d8]"
+              >
+                <span>Portal oficial</span>
+                <ExternalLink
+                  strokeWidth={1.6}
+                  className="h-3.5 w-3.5 text-mutedText"
+                />
+              </a>
+            )}
+            <div className="space-y-0.5 text-[10px] text-mutedText">
+              <p>Dados extraídos do Portal Oficial</p>
+              <p className="font-mono text-[9.5px]">
+                Última extração: {displayExtractionDate}
+              </p>
+            </div>
           </div>
         </div>
       </aside>

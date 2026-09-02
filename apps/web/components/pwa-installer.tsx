@@ -2,6 +2,7 @@
 
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
+import { env } from "@/env";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => void;
@@ -81,7 +82,7 @@ export function PwaInstaller() {
 
     // Em ambiente de desenvolvimento local (localhost), desregistrar Service Workers e limpar caches para impedir CSS preso
     const isDevLocalhost =
-      process.env.NODE_ENV === "development" &&
+      env.NODE_ENV === "development" &&
       (window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1");
 
