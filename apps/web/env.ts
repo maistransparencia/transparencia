@@ -32,7 +32,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().min(1).optional(),
     NEXT_PUBLIC_SITE_DOMAIN: z.string().min(1).default("maistransparencia.com"),
     NEXT_PUBLIC_SITE_NAME: z.string().min(1).default("MaisTransparencia"),
-    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparencia"),
+    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparência"),
     NEXT_PUBLIC_X_URL: z
       .string()
       .min(1)
