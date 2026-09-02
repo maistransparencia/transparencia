@@ -107,6 +107,8 @@ describe("x-bot module", () => {
         despesasPagas: 110000000,
         restosPagosNoAno: 5000000,
         saldoEstimado: 10000000,
+        restosPendentesTotal: 30800000,
+        restosLiquidadosPendentes: 2900000,
       },
       opacidade: {
         taxaValorOpacidadePct: 4.8,
@@ -130,6 +132,10 @@ describe("x-bot module", () => {
 
       expect(tweet).toContain("Balanço Fiscal de Porciúncula (2025)");
       expect(tweet).toContain("Total Pago:");
+      expect(tweet).toContain(
+        "Restos a Pagar: R$ 30.8mi / R$ 2.9mi liquidados",
+      );
+      expect(tweet).not.toContain("Opacidade");
       expect(tweet).toContain(
         "https://transparencia.app/porciuncula_prefeitura",
       );

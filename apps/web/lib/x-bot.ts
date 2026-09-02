@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
+import { fmtCompact } from "@transparencia/ui";
 import { env } from "@/env";
 import { sanitizeHashtag } from "./facebook-bot";
 
@@ -177,13 +178,23 @@ export function buildFiscalDigestTweet(
     totalLine = "ℹ️ Dados fiscais em apuração contábil";
   }
 
-  let opacidadeLine = "";
-  if (metrics.opacidade && metrics.opacidade.taxaValorOpacidadePct > 0) {
-    opacidadeLine = `\n🔍 Opacidade (.99): ${metrics.opacidade.taxaValorOpacidadePct.toFixed(1)}% dos gastos`;
+  let restosLine = "";
+  if (
+    metrics.posicaoFiscal?.restosPendentesTotal &&
+    metrics.posicaoFiscal.restosPendentesTotal > 0
+  ) {
+    const totalPendente = fmtCompact(
+      metrics.posicaoFiscal.restosPendentesTotal,
+    );
+    const liquidado =
+      (metrics.posicaoFiscal.restosLiquidadosPendentes ?? 0) > 0
+        ? ` / ${fmtCompact(metrics.posicaoFiscal.restosLiquidadosPendentes)} liquidados`
+        : "";
+    restosLine = `\n⏳ Restos a Pagar: ${totalPendente}${liquidado}`;
   }
 
   const raw = `🏛️ Balanço Fiscal de ${municipioNome} (${ano})
-${totalLine}${opacidadeLine}
+${totalLine}${restosLine}
 🔗 ${portalUrl}
 #${tagMunicipio} #TransparenciaFiscal`;
 

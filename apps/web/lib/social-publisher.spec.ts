@@ -31,6 +31,8 @@ describe("social-publisher module", () => {
       despesasPagas: 110000000,
       restosPagosNoAno: 5000000,
       saldoEstimado: 10000000,
+      restosPendentesTotal: 30800000,
+      restosLiquidadosPendentes: 2900000,
     },
     opacidade: {
       taxaValorOpacidadePct: 4.8,

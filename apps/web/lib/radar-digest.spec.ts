@@ -36,6 +36,8 @@ const mockMetrics = {
     despesasPagas: 42000000,
     restosPagosNoAno: 1500000,
     saldoEstimado: 8000000,
+    restosPendentesTotal: 25000000,
+    restosLiquidadosPendentes: 2000000,
   },
   opacidade: {
     taxaValorOpacidadePct: 15.0,

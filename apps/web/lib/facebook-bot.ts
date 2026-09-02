@@ -1,4 +1,5 @@
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
+import { fmtCompact } from "@transparencia/ui";
 import { env } from "@/env";
 import { resolveBaseUrl } from "./x-bot";
 
@@ -79,15 +80,7 @@ export function buildFiscalDigestFacebookPost(
   if (metrics.posicaoFiscal) {
     linhasExecucao.push(
       `💰 Total Arrecadado: ${formatCurrency(metrics.posicaoFiscal.totalArrecadado)}`,
-      `💸 Total Pago: ${formatCurrency(metrics.posicaoFiscal.despesasPagas)}`,
-    );
-    if (metrics.posicaoFiscal.restosPagosNoAno > 0) {
-      linhasExecucao.push(
-        `⏳ Restos a Pagar de Anos Anteriores Pagos: ${formatCurrency(metrics.posicaoFiscal.restosPagosNoAno)}`,
-      );
-    }
-    linhasExecucao.push(
-      `⚖️ Saldo em Caixa Estimado: ${formatCurrency(metrics.posicaoFiscal.saldoEstimado)}`,
+      `💸 Total Pago no Exercício: ${formatCurrency(metrics.posicaoFiscal.despesasPagas)}`,
     );
   } else {
     linhasExecucao.push("ℹ️ Posição fiscal do exercício em apuração contábil.");
@@ -99,24 +92,29 @@ export function buildFiscalDigestFacebookPost(
     }
   }
 
-  // Bloco de Opacidade Fiscal (.99)
-  let blocoOpacidade = "";
-  if (metrics.opacidade) {
-    const taxa = metrics.opacidade.taxaValorOpacidadePct;
-    const classificacao = (() => {
-      if (metrics.opacidade.classificacaoRisco === "critico")
-        return "🚨 Crítico";
-      if (metrics.opacidade.classificacaoRisco === "atencao")
-        return "⚠️ Atenção";
-      return "✅ Normal";
-    })();
+  // Bloco de Restos a Pagar (Exercícios Anteriores)
+  let blocoRestosAPagar = "";
+  if (metrics.posicaoFiscal && metrics.posicaoFiscal.restosPendentesTotal > 0) {
+    const totalPendenteCompact = fmtCompact(
+      metrics.posicaoFiscal.restosPendentesTotal,
+    );
+    const liquidadoCompact =
+      (metrics.posicaoFiscal.restosLiquidadosPendentes ?? 0) > 0
+        ? ` / ${fmtCompact(metrics.posicaoFiscal.restosLiquidadosPendentes)} liquidados`
+        : "";
 
-    blocoOpacidade = `\n\n🔍 Termômetro de Opacidade Contábil (.99):
-• Índice de Opacidade: ${taxa.toFixed(1)}% das despesas
-• Classificação de Risco: ${classificacao}
-• Gastos em subitens residuais sem detalhamento (.99): ${formatCurrency(
-      metrics.opacidade.pagoResidual99,
-    )}`;
+    const linhaLiquidada =
+      (metrics.posicaoFiscal.restosLiquidadosPendentes ?? 0) > 0
+        ? `\n• Dívida Processada (Liquidada): ${formatCurrency(
+            metrics.posicaoFiscal.restosLiquidadosPendentes,
+          )}`
+        : "";
+
+    blocoRestosAPagar = `\n\n⏳ Restos a Pagar:
+• Total: ${totalPendenteCompact}${liquidadoCompact}
+• Dívida Pendente Total: ${formatCurrency(
+      metrics.posicaoFiscal.restosPendentesTotal,
+    )}${linhaLiquidada}`;
   }
 
   // Bloco de Contratos de Destaque
@@ -143,7 +141,7 @@ export function buildFiscalDigestFacebookPost(
 Confira o balanço consolidado da transparência fiscal do município com as informações atualizadas de receitas, despesas e contratos:
 
 📊 Execução Orçamentária:
-${linhasExecucao.join("\n")}${blocoOpacidade}${blocoContratos}
+${linhasExecucao.join("\n")}${blocoRestosAPagar}${blocoContratos}
 
 🔗 Acesse os dados completos no portal:
 ${link}

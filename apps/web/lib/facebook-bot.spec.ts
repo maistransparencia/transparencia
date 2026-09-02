@@ -30,6 +30,8 @@ describe("facebook-bot module", () => {
         despesasPagas: 115000000,
         restosPagosNoAno: 4500000,
         saldoEstimado: 10000000,
+        restosPendentesTotal: 30800000,
+        restosLiquidadosPendentes: 2900000,
       },
       opacidade: {
         taxaValorOpacidadePct: 5.2,
@@ -62,8 +64,11 @@ describe("facebook-bot module", () => {
         "BOLETIM FISCAL MUNICIPAL: PORCIÚNCULA (2025)",
       );
       expect(post.message).toContain("Execução Orçamentária");
-      expect(post.message).toContain("Total Pago:");
-      expect(post.message).toContain("Opacidade Contábil");
+      expect(post.message).toContain("Total Pago no Exercício:");
+      expect(post.message).toContain("Restos a Pagar:");
+      expect(post.message).toContain("R$ 30.8mi / R$ 2.9mi liquidados");
+      expect(post.message).not.toContain("Opacidade Contábil");
+      expect(post.message).not.toContain("Saldo em Caixa Estimado");
       expect(post.message).toContain("Construtora Alfa Ltda");
       expect(post.message).toContain("#MaisTransparencia");
       expect(post.message).toContain("#Porciuncula");
