@@ -9,14 +9,17 @@ const parsedEnv = createEnv({
       .default("development"),
   },
   server: {
-    DATABASE_URL: z.string().min(1).optional(),
+    DATABASE_URL: z
+      .string()
+      .min(1)
+      .default("postgresql://postgres:postgres@localhost:5544/postgres"),
     DATABASE_WRITE_URL: z.string().min(1).optional(),
     DATABASE_POOL_MAX: z.coerce.number().int().positive().default(5),
     RESEND_API_KEY: z.string().min(1).optional(),
     RESEND_FROM_EMAIL: z
       .string()
       .min(1)
-      .default("Radar Porciúncula <newsletter@maistransparencia.org>"),
+      .default("MaisTransparencia <info@maistransparencia.com>"),
     CRON_SECRET: z.string().min(1).optional(),
     INTERNAL_API_SECRET: z.string().min(1).optional(),
     DIGEST_SECRET: z.string().min(1).optional(),
@@ -38,7 +41,7 @@ const parsedEnv = createEnv({
       .optional(),
     NEXT_PUBLIC_SITE_DOMAIN: z.string().min(1).default("maistransparencia.com"),
     NEXT_PUBLIC_SITE_NAME: z.string().min(1).default("MaisTransparencia"),
-    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparência"),
+    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparencia"),
     NEXT_PUBLIC_X_URL: z
       .string()
       .min(1)
