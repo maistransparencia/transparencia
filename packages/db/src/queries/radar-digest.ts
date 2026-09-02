@@ -8,6 +8,10 @@ import {
   type OpacidadeContabilMetricsDTO,
 } from "./opacidade-contabil-metrics";
 import {
+  getPosicaoFiscalDetalhesMetrics,
+  type PosicaoFiscalDetalhesMetricsDTO,
+} from "./posicao-fiscal-detalhes-metrics";
+import {
   getPosicaoFiscalMetrics,
   type PosicaoFiscalMetricsDTO,
 } from "./posicao-fiscal-metrics";
@@ -20,6 +24,8 @@ export interface RadarDigestMetricsDTO {
     despesasPagas: number;
     restosPagosNoAno: number;
     saldoEstimado: number;
+    restosPendentesTotal: number;
+    restosLiquidadosPendentes: number;
   } | null;
   opacidade: {
     taxaValorOpacidadePct: number;
@@ -41,13 +47,27 @@ export interface RadarDigestMetricsDTO {
   }>;
 }
 
-function mapPosicaoFiscal(metrics: PosicaoFiscalMetricsDTO | null) {
+function mapPosicaoFiscal(
+  metrics: PosicaoFiscalMetricsDTO | null,
+  detalhes?: PosicaoFiscalDetalhesMetricsDTO | null,
+  targetAno?: number,
+) {
   if (!metrics) return null;
+
+  const restosAnoAtual = detalhes?.restosPendentes.find(
+    (r) => r.ano === targetAno,
+  );
+  const restosLiquidadosPendentes = restosAnoAtual
+    ? Math.max(0, (restosAnoAtual.liquidado || 0) - (restosAnoAtual.pago || 0))
+    : 0;
+
   return {
     totalArrecadado: metrics.totalArrecadado,
     despesasPagas: metrics.despesasPagas,
     restosPagosNoAno: metrics.restosPagosNoAno,
     saldoEstimado: metrics.saldoEstimado,
+    restosPendentesTotal: detalhes?.restosPendentesTotal ?? 0,
+    restosLiquidadosPendentes,
   };
 }
 
@@ -107,19 +127,27 @@ export async function getRadarDigestMetrics(
     }
   }
 
-  const [posicaoFiscalRaw, opacidadeRaw, contratosRaw] = await Promise.all([
-    empresaIds.length > 0
-      ? getPosicaoFiscalMetrics(portalSlug, targetAno, empresaIds)
-      : null,
-    getOpacidadeContabilMetrics(portalSlug, targetAno),
-    getContratosServicosVigentes(
-      portalSlug,
-      targetAno,
-      empresaIds.length > 0 ? empresaIds : undefined,
-    ),
-  ]);
+  const [posicaoFiscalRaw, posicaoDetalhesRaw, opacidadeRaw, contratosRaw] =
+    await Promise.all([
+      empresaIds.length > 0
+        ? getPosicaoFiscalMetrics(portalSlug, targetAno, empresaIds)
+        : null,
+      empresaIds.length > 0
+        ? getPosicaoFiscalDetalhesMetrics(portalSlug, targetAno, empresaIds)
+        : null,
+      getOpacidadeContabilMetrics(portalSlug, targetAno),
+      getContratosServicosVigentes(
+        portalSlug,
+        targetAno,
+        empresaIds.length > 0 ? empresaIds : undefined,
+      ),
+    ]);
 
-  const posicaoFiscal = mapPosicaoFiscal(posicaoFiscalRaw);
+  const posicaoFiscal = mapPosicaoFiscal(
+    posicaoFiscalRaw,
+    posicaoDetalhesRaw,
+    targetAno,
+  );
   const opacidade = mapOpacidade(opacidadeRaw);
   const destaquesContratos = mapDestaquesContratos(contratosRaw ?? []);
   const destaquesCredoresOpacidade = mapDestaquesCredores(opacidadeRaw);

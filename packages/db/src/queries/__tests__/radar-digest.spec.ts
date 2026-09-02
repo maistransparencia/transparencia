@@ -99,6 +99,8 @@ describe("getRadarDigestMetrics", () => {
       despesasPagas: 45000000,
       restosPagosNoAno: 2000000,
       saldoEstimado: 3000000,
+      restosPendentesTotal: 0,
+      restosLiquidadosPendentes: 0,
     });
 
     // Opacidade
