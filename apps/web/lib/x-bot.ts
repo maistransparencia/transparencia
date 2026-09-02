@@ -130,7 +130,7 @@ export function truncateTweet(text: string, maxLength = 280): string {
  * Resolve URL base do portal para links sociais.
  */
 export function resolveBaseUrl(customBaseUrl?: string): string {
-  let url = "https://transparencia.app";
+  let url = `https://${env.NEXT_PUBLIC_SITE_DOMAIN}`;
   if (customBaseUrl?.trim()) {
     url = customBaseUrl.trim();
   } else if (env.NEXT_PUBLIC_APP_URL?.trim()) {

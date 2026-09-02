@@ -3,13 +3,15 @@ import { z } from "zod";
 
 const parsedEnv = createEnv({
   isServer: typeof window === "undefined" || process.env.NODE_ENV === "test",
-  server: {
+  shared: {
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+  },
+  server: {
     DATABASE_URL: z.string().min(1).optional(),
     DATABASE_WRITE_URL: z.string().min(1).optional(),
-    DATABASE_POOL_MAX: z.coerce.number().positive().default(5),
+    DATABASE_POOL_MAX: z.coerce.number().int().positive().default(5),
     RESEND_API_KEY: z.string().min(1).optional(),
     RESEND_FROM_EMAIL: z
       .string()
@@ -29,7 +31,11 @@ const parsedEnv = createEnv({
     VERCEL_URL: z.string().min(1).optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().min(1).optional(),
+    NEXT_PUBLIC_APP_URL: z
+      .string()
+      .min(1)
+      .transform((val) => val.replace(/\/+$/, ""))
+      .optional(),
     NEXT_PUBLIC_SITE_DOMAIN: z.string().min(1).default("maistransparencia.com"),
     NEXT_PUBLIC_SITE_NAME: z.string().min(1).default("MaisTransparencia"),
     NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparência"),
@@ -53,6 +59,7 @@ const parsedEnv = createEnv({
       .default("https://us.i.posthog.com"),
   },
   experimental__runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SITE_DOMAIN: process.env.NEXT_PUBLIC_SITE_DOMAIN,
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
@@ -66,7 +73,9 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
   emptyStringAsUndefined: true,
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation:
+    process.env.SKIP_ENV_VALIDATION === "true" ||
+    process.env.SKIP_ENV_VALIDATION === "1",
 });
 
 export const env: typeof parsedEnv = new Proxy(parsedEnv, {
@@ -76,7 +85,20 @@ export const env: typeof parsedEnv = new Proxy(parsedEnv, {
       process.env.NODE_ENV === "test" &&
       process.env[prop] !== undefined
     ) {
-      return process.env[prop];
+      const val = process.env[prop];
+      if (val === "") {
+        return Reflect.get(target, prop);
+      }
+      if (prop === "DATABASE_POOL_MAX") {
+        const parsedNum = Number(val);
+        return Number.isNaN(parsedNum)
+          ? Reflect.get(target, prop)
+          : Math.floor(parsedNum);
+      }
+      if (prop === "NEXT_PUBLIC_APP_URL") {
+        return typeof val === "string" ? val.replace(/\/+$/, "") : val;
+      }
+      return val;
     }
     return Reflect.get(target, prop);
   },

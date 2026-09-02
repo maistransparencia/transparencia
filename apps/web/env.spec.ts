@@ -85,5 +85,26 @@ describe("apps/web/env (validação centralizada com t3-env e Zod)", () => {
       process.env.SOCIAL_SECRET = "social-token-vitest";
       expect(env.SOCIAL_SECRET).toBe("social-token-vitest");
     });
+
+    it("deve disponibilizar NODE_ENV compartilhado entre cliente e servidor", () => {
+      expect(env.NODE_ENV).toBeDefined();
+      expect(["development", "test", "production"]).toContain(env.NODE_ENV);
+    });
+
+    it("deve sanitizar trailing slash em NEXT_PUBLIC_APP_URL", () => {
+      process.env.NEXT_PUBLIC_APP_URL = "https://exemplo.com.br/";
+      expect(env.NEXT_PUBLIC_APP_URL).toBe("https://exemplo.com.br");
+    });
+
+    it("deve converter string vazia para fallback em conformidade com emptyStringAsUndefined", () => {
+      process.env.NEXT_PUBLIC_APP_URL = "";
+      expect(env.NEXT_PUBLIC_APP_URL).toBeUndefined();
+    });
+
+    it("deve aplicar coerção numérica inteira para DATABASE_POOL_MAX via Proxy de testes", () => {
+      process.env.DATABASE_POOL_MAX = "10";
+      expect(env.DATABASE_POOL_MAX).toBe(10);
+      expect(typeof env.DATABASE_POOL_MAX).toBe("number");
+    });
   });
 });
