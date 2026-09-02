@@ -171,7 +171,7 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
   - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
     - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias e indicadores de transparência.
     - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos para a comunidade local e conselhos municipais.
-    - **GitHub (Código Aberto):** Repositório comunitário [transparencia-mg](https://github.com/transparencia-mg), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
+    - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
 
 ---
 
@@ -206,7 +206,5 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
 8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
-10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia-mg](https://github.com/transparencia-mg)).
+10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
-
-

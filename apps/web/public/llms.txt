@@ -42,7 +42,7 @@ Para manter a sociedade civil e os munícipes informados sobre a evolução dos 
 2. **Presença Oficial em Redes Sociais e Código Aberto:**
    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automatizadas de fechamento de cargas fiscais, notas de atualização e destaques orçamentários.
    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), com publicações didáticas e estruturadas em tópicos para a comunidade local.
-   - **GitHub (Código Aberto):** Repositório público [transparencia-mg](https://github.com/transparencia-mg), assegurando auditoria pública dos algoritmos fiscais e colaboração comunitária.
+   - **GitHub (Código Aberto):** Repositório público [transparencia](https://github.com/maistransparencia/transparencia), assegurando auditoria pública dos algoritmos fiscais e colaboração comunitária.
 
 3. **Governança, Privacidade e Proteção de Dados (LGPD):**
    - **Coleta Mínima:** Apenas o endereço de e-mail é solicitado para a finalidade exclusiva de envio de boletins informativos e fiscais.
