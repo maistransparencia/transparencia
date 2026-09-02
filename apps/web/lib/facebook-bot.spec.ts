@@ -143,7 +143,7 @@ describe("facebook-bot module", () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it("deve postar na Graph API v21.0 quando credenciais estão presentes", async () => {
+    it("deve postar na Graph API v26.0 quando credenciais estão presentes", async () => {
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -168,7 +168,7 @@ describe("facebook-bot module", () => {
       expect(result.success).toBe(true);
       expect(result.postId).toBe("pageid_postid12345");
       expect(fetchSpy).toHaveBeenCalledWith(
-        "https://graph.facebook.com/v21.0/123456789/feed",
+        "https://graph.facebook.com/v26.0/123456789/feed",
         expect.objectContaining({
           method: "POST",
           headers: expect.objectContaining({

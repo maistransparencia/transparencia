@@ -268,8 +268,8 @@ export function hasFacebookCredentials(
 }
 
 /**
- * Publica um post no feed da Página do Facebook através da Meta Graph API v21.0
- * (`POST https://graph.facebook.com/v21.0/{page-id}/feed`).
+ * Publica um post no feed da Página do Facebook através da Meta Graph API v26.0
+ * (`POST https://graph.facebook.com/v26.0/{page-id}/feed`).
  * Em modo dryRun ou se as credenciais estiverem ausentes, simula com log informativo.
  */
 export async function postFacebookPost(
@@ -298,7 +298,7 @@ export async function postFacebookPost(
     };
   }
 
-  const endpoint = `https://graph.facebook.com/v21.0/${credentials.pageId}/feed`;
+  const endpoint = `https://graph.facebook.com/v26.0/${credentials.pageId}/feed`;
 
   const bodyData: Record<string, string> = {
     message: payload.message,
