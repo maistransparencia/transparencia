@@ -144,6 +144,55 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 
 ---
 
+### 1.9. Canais Cívicos de Notificação, Boletim Periódico e Redes Sociais
+
+Para aproximar a prestação de contas dos cidadãos e viabilizar o controle social contínuo sem a necessidade de consultas manuais diárias, o portal disponibiliza canais estruturados de distribuição cívica:
+
+- **Boletim Cívico por E-mail ("Radar Porciúncula"):**
+  - **Conteúdo do Informativo:** Resumo periódico consolidado trazendo o balanço orçamentário do ano (receitas arrecadadas vs despesas pagas), novos contratos de serviços celebrados pela administração, credores sob acompanhamento e o Termômetro de Opacidade Fiscal com classificação de risco:
+    - *Normal:* Despesas em subitens residuais `.99` dentro do limite esperado (<= 15,00%).
+    - *Atenção:* Despesas em subitens residuais `.99` em patamar intermediário (15,01% a 30,00%).
+    - *Crítico:* Alta concentração de gastos em subitens residuais `.99` (> 30,00%), requerendo maior escrutínio da especificação orçamentária.
+  - **Despacho Automatizado:** Boletins expedidos de forma programada e periódica após a atualização e consolidação das bases de dados fiscais municipais.
+
+- **Fluxo de Inscrição e Ciclo de Vida do Assinante:**
+  - O ciclo de vida do cidadão assinante percorre três estágios auditáveis:
+    1. **Pendente de Confirmação:** O cidadão preenche seu endereço de e-mail no modal interativo do portal (botão *"Receber Alertas"* ou *"Acompanhe as Contas"* presente na barra lateral, cabeçalho e rodapé) ou na rota web dedicada `/api/newsletter/subscribe`. Uma mensagem com link seguro e temporizado é enviada à sua caixa postal.
+    2. **Confirmado (*Double Opt-In*):** O envio de informes só é ativado após o cidadão clicar expressamente no link de validação recebido por e-mail, garantindo que ninguém seja inscrito sem seu consentimento explícito.
+    3. **Cancelado:** O cidadão pode revogar sua inscrição a qualquer momento de forma definitiva através do link de descadastramento disponibilizado no rodapé de todos os boletins ou pelo suporte ao cabeçalho normativo de 1 clique (RFC 8058).
+
+- **Mecanismos de Segurança e Defesa Anti-Abuso:**
+  - A interface de inscrição implementa camadas de proteção cívica para resguardar a caixa de entrada dos cidadãos e a integridade da plataforma:
+    - *Limitação de Taxa (Rate Limiting):* Restrição do número de submissões por endereço de rede para impedir tentativas repetitivas de spam.
+    - *Mecanismo de Armadilha contra Robôs (Honeypot Invisível):* Campo oculto para detecção imediata de preenchimento automatizado por bots maliciosos.
+    - *Temporizador de Submissão:* Bloqueio de envios instantâneos típicos de scripts robotizados.
+
+- **Redes Sociais Oficiais e Disseminação Cívica Automatizada:**
+  - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
+    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias e indicadores de transparência.
+    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos para a comunidade local e conselhos municipais.
+    - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
+
+---
+
+### 1.10. Governança, Proteção de Dados (LGPD) e Boas Práticas Cívicas
+
+O portal segue rigorosas diretrizes de privacidade e governança pública, alinhadas à Lei Geral de Proteção de Dados (Lei Federal nº 13.709/2018 - LGPD):
+
+- **Consentimento, Coleta Mínima e Finalidade Exclusiva:**
+  - Aplica-se o princípio da coleta mínima: apenas o endereço de e-mail é solicitado, com a finalidade exclusiva de distribuição dos boletins de transparência fiscal e prestação de contas governamentais do município.
+  - É proibida a utilização dos dados para fins eleitorais, comerciais, marketing de terceiros ou qualquer destinação estranha ao controle social do patrimônio público.
+
+- **Descadastramento Descomplicado em 1 Clique (RFC 8058):**
+  - Todos os comunicados eletrônicos emitidos pelo portal incorporam o protocolo normativo RFC 8058 (`List-Unsubscribe`), permitindo ao usuário desinscrever-se diretamente através de seu cliente de e-mail sem a exigência de senhas, cadastros complexos ou preenchimento de questionários.
+
+- **Transparência Responsável com Servidores Públicos:**
+  - A prestação de contas referente a diárias e despesas com viagens é orientada pelo princípio do controle social equilibrado com a proteção da intimidade:
+    - O portal publica os valores totais consolidados aplicados em diárias, a média financeira desembolsada por afastamento e a evolução temporal das despesas.
+    - Evita-se a indexação nominal individual massiva de pessoas físicas em modelos de linguagem, garantindo a fiscalização da legalidade e razoabilidade dos montantes públicos sem exposição indevida da segurança ou vida privada dos servidores municipais.
+
+---
+
 ## 2. Orientações para Atendimento de Consultas por Assistentes de IA
 
 Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com base nas informações deste portal:
@@ -155,6 +204,7 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 5. **Segregação de Mandatos:** Ao tratar de restos a pagar e contratos, esclareça a competência de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
 6. **Gastos sob Subitens Genéricos (.99):** Ao informar despesas classificadas sob subitens `.99` (como Outros Serviços PJ ou Outros Materiais), esclareça que são rubricas de apoio operacional. Aponte a taxa de concentração e enquadre na faixa de uso informativa (<= 15% Uso Residual Esperado, 15-30% Uso Moderado, > 30% Concentração Elevada), citando a recomendação de especificação da Lei Federal nº 4.320/64 (Arts. 5º e 15) como referência de boas práticas de transparência.
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
-8. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
-
-
+8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
+9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
+10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
+11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
