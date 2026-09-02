@@ -51,7 +51,13 @@ function resolveChannels(channels?: SocialChannel[] | "all"): SocialChannel[] {
   if (!channels || channels === "all") {
     return ["x", "facebook"];
   }
-  return channels;
+  if (!Array.isArray(channels)) {
+    return ["x", "facebook"];
+  }
+  const valid = channels.filter(
+    (c): c is SocialChannel => c === "x" || c === "facebook",
+  );
+  return valid.length > 0 ? valid : ["x", "facebook"];
 }
 
 /**
@@ -69,7 +75,7 @@ export async function publishSocial(
 
   const results: SocialPublishResult["results"] = {};
 
-  if (!portalSlug && type !== "release") {
+  if (!portalSlug && type !== "release" && type !== "custom") {
     return {
       success: false,
       portalSlug: portalSlug || "",

@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import {
@@ -8,12 +7,9 @@ import {
 } from "../../../../lib/social-publisher";
 
 function safeCompare(secret: string, token: string): boolean {
-  const bufSecret = Buffer.from(secret);
-  const bufToken = Buffer.from(token);
-  if (bufSecret.length !== bufToken.length) {
-    return false;
-  }
-  return crypto.timingSafeEqual(bufSecret, bufToken);
+  const hashSecret = crypto.createHash("sha256").update(secret).digest();
+  const hashToken = crypto.createHash("sha256").update(token).digest();
+  return crypto.timingSafeEqual(hashSecret, hashToken);
 }
 
 function validateBearerAuth(req: Request): boolean {
@@ -103,6 +99,7 @@ export async function POST(req: Request) {
 
     if (
       type !== "release" &&
+      type !== "custom" &&
       (!portalSlug || typeof portalSlug !== "string" || !portalSlug.trim())
     ) {
       return NextResponse.json(
@@ -124,6 +121,25 @@ export async function POST(req: Request) {
         },
         { status: 400 },
       );
+    }
+
+    const validChannels = ["x", "facebook"] as const;
+    if (channels !== undefined && channels !== "all") {
+      if (
+        !Array.isArray(channels) ||
+        channels.length === 0 ||
+        channels.some(
+          (c) => !validChannels.includes(c as (typeof validChannels)[number]),
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Campo 'channels' deve ser 'all' ou um array contendo 'x' e/ou 'facebook'.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
     const parsedAno = parseAno(ano);

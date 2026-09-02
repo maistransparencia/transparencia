@@ -12,24 +12,36 @@ export async function POST(req: Request) {
       unknown
     > | null;
 
-    if (!rawBody || typeof rawBody !== "object") {
-      // Reconstitui requisição para tratamento no handler oficial
-      return handlePublish(req);
-    }
+    const modifiedBody =
+      rawBody && typeof rawBody === "object"
+        ? {
+            ...rawBody,
+            channels: rawBody.channels || ["x"],
+          }
+        : null;
 
-    const modifiedBody = {
-      ...rawBody,
-      channels: rawBody.channels || ["x"],
-    };
+    const headers = new Headers(req.headers);
+    headers.delete("content-length");
+    if (modifiedBody) {
+      headers.set("content-type", "application/json");
+    }
 
     const modifiedReq = new Request(req.url, {
       method: "POST",
-      headers: req.headers,
-      body: JSON.stringify(modifiedBody),
+      headers,
+      body: modifiedBody ? JSON.stringify(modifiedBody) : null,
     });
 
     return handlePublish(modifiedReq);
   } catch {
-    return handlePublish(req);
+    const headers = new Headers(req.headers);
+    headers.delete("content-length");
+    return handlePublish(
+      new Request(req.url, {
+        method: "POST",
+        headers,
+        body: null,
+      }),
+    );
   }
 }
