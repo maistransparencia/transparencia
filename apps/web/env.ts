@@ -54,7 +54,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_FACEBOOK_URL: z
       .string()
       .min(1)
-      .default("https://facebook.com/maistransparencia"),
+      .default("https://facebook.com/profile.php?id="),
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z.string().min(1).optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z
       .string()
