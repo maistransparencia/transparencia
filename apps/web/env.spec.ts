@@ -16,7 +16,7 @@ describe("apps/web/env (validação centralizada com t3-env e Zod)", () => {
     it("deve carregar os defaults institucionais públicos corretamente", () => {
       expect(env.NEXT_PUBLIC_SITE_DOMAIN).toBe("maistransparencia.com");
       expect(env.NEXT_PUBLIC_SITE_NAME).toBe("MaisTransparencia");
-      expect(env.NEXT_PUBLIC_PROJECT_NAME).toBe("MaisTransparência");
+      expect(env.NEXT_PUBLIC_PROJECT_NAME).toBe("MaisTransparencia");
     });
 
     it("deve carregar os links e identificadores das redes sociais oficiais", () => {
@@ -36,7 +36,7 @@ describe("apps/web/env (validação centralizada com t3-env e Zod)", () => {
 
     it("deve carregar o remetente oficial padrão da newsletter", () => {
       expect(env.RESEND_FROM_EMAIL).toBe(
-        "Radar Porciúncula <newsletter@maistransparencia.org>",
+        "MaisTransparencia <info@maistransparencia.com>",
       );
     });
 
