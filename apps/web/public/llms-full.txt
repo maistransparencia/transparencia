@@ -179,8 +179,8 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
 
 O portal segue rigorosas diretrizes de privacidade e governança pública, alinhadas à Lei Geral de Proteção de Dados (Lei Federal nº 13.709/2018 - LGPD):
 
-- **Consentimento e Finalidade Específica:**
-  - O endereço de e-mail cadastrado pelo cidadão tem como única finalidade o envio de informes sobre a transparência fiscal e gastos públicos do município.
+- **Consentimento, Coleta Mínima e Finalidade Exclusiva:**
+  - Aplica-se o princípio da coleta mínima: apenas o endereço de e-mail é solicitado, com a finalidade exclusiva de distribuição dos boletins de transparência fiscal e prestação de contas governamentais do município.
   - É proibida a utilização dos dados para fins eleitorais, comerciais, marketing de terceiros ou qualquer destinação estranha ao controle social do patrimônio público.
 
 - **Descadastramento Descomplicado em 1 Clique (RFC 8058):**
