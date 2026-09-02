@@ -1,4 +1,33 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { publishSocial, type SocialChannel } from "../lib/social-publisher";
+
+// Carrega .env.local e .env caso disponíveis para execuções autônomas via CLI
+for (const envFileName of [".env.local", ".env"]) {
+  const envFilePath = resolve(process.cwd(), envFileName);
+  if (existsSync(envFilePath)) {
+    try {
+      const content = readFileSync(envFilePath, "utf-8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx > 0) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed
+            .slice(eqIdx + 1)
+            .trim()
+            .replace(/^["']|["']$/g, "");
+          if (key && !process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    } catch {
+      // Ignora erro de leitura de env
+    }
+  }
+}
 
 function parseArgs() {
   const args = process.argv.slice(2);

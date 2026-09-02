@@ -114,10 +114,10 @@ digest/dry-run:
 	pnpm --filter web digest:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
 
 bot/post:
-	pnpm --filter web social:publish --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(DRY_RUN),--dry-run)
+	pnpm --filter web social:publish --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)") $(if $(DRY_RUN),--dry-run)
 
 bot/dry-run:
-	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
+	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
 
 # DB TEST FIXTURE (packages/db)
 # Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
