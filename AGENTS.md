@@ -117,6 +117,16 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Proibição de `VARCHAR(n)` e `CHAR(n)`:** No PostgreSQL, não há ganho de performance em limitar o tamanho de campos de texto com `VARCHAR(n)` e essa prática impõe limitações rígidas arbitrárias.
 - **Padrão Obrigatório:** Todas as colunas de texto (strings, identificadores, códigos, e-mails, tokens, slugs, descrições) em migrações, DDLs e tabelas Postgres devem utilizar exclusivamente o tipo `TEXT`.
 
+---
+
+## 17. CENTRALIZAÇÃO DE VARIÁVEIS DE AMBIENTE (PROIBIDO `process.env` DIRETO)
+
+- **Proibição de `process.env` Direto:** Em toda a aplicação web (`apps/web`), é **estritamente proibido** acessar `process.env` diretamente no código da aplicação (ex: `process.env.DATABASE_URL`, `process.env.NEXT_PUBLIC_*`).
+- **Padrão Obrigatório (`@/env`):** Todas as variáveis de ambiente devem ser importadas exclusivamente a partir do módulo canônico `apps/web/env.ts` (`import { env } from "@/env"`).
+- **Validação e Defaults Centralizados no Schema Zod:** Novos parâmetros, segredos ou valores padrão (defaults) devem ser definidos e documentados diretamente no schema Zod em `apps/web/env.ts` e refletidos em `.env.example`, garantindo tipagem estrita, fail-fast e segregação entre `server` e `client`.
+- **Exceções Estritas:** Apenas arquivos de infraestrutura interna do Next.js onde a checagem estática direta for mandatória para o bundler (como verificação de runtime em `apps/web/instrumentation.ts`) podem utilizar `process.env`.
+
+
 
 
 

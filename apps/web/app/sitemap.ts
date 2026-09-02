@@ -1,9 +1,10 @@
 import { getPortalSlugs } from "@transparencia/db";
 import type { MetadataRoute } from "next";
+import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
+  const baseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
   const currentDate = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { publishSocial, type SocialChannel } from "../lib/social-publisher";
+import type { SocialChannel } from "../lib/social-publisher";
 
 // Carrega .env.local e .env caso disponíveis para execuções autônomas via CLI
 for (const envFileName of [".env.local", ".env"]) {
@@ -116,6 +116,7 @@ async function main() {
     `[SOCIAL] Disparando publicação: portal='${options.portalSlug}', tipo='${options.type}', canais='${JSON.stringify(options.channels)}', dryRun=${options.dryRun}`,
   );
 
+  const { publishSocial } = await import("../lib/social-publisher");
   const result = await publishSocial(options);
 
   console.log(

@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+import { env } from "@/env";
 import { dispatchRadarDigest } from "../../../../lib/radar-digest";
 
 function safeCompare(secret: string, token: string): boolean {
@@ -24,9 +25,9 @@ function validateBearerAuth(req: Request): boolean {
   }
 
   const validSecrets = [
-    process.env.CRON_SECRET,
-    process.env.DIGEST_SECRET,
-    process.env.INTERNAL_API_SECRET,
+    env.CRON_SECRET,
+    env.DIGEST_SECRET,
+    env.INTERNAL_API_SECRET,
   ].filter((secret): secret is string =>
     Boolean(secret && secret.trim().length > 0),
   );

@@ -1,10 +1,9 @@
 import { Resend } from "resend";
+import { env } from "@/env";
 import { NewsletterConfirmationEmail } from "../components/emails/newsletter-confirmation";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const defaultFromEmail =
-  process.env.RESEND_FROM_EMAIL ||
-  "Mais Transparência <newsletter@transparencia.app>";
+const resendApiKey = env.RESEND_API_KEY;
+const defaultFromEmail = env.RESEND_FROM_EMAIL;
 
 export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
@@ -30,11 +29,11 @@ function resolveBaseUrl(customBaseUrl?: string): string {
   if (customBaseUrl) {
     return customBaseUrl;
   }
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
+  if (env.NEXT_PUBLIC_APP_URL) {
+    return env.NEXT_PUBLIC_APP_URL;
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  if (env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`;
   }
   return "http://localhost:3001";
 }
@@ -56,10 +55,7 @@ export async function sendNewsletterConfirmationEmail(
   )}`;
 
   const municipioNome = params.municipioNome || "Porciúncula";
-  const projectName =
-    params.projectName ||
-    process.env.NEXT_PUBLIC_PROJECT_NAME ||
-    "MaisTransparência";
+  const projectName = params.projectName || env.NEXT_PUBLIC_PROJECT_NAME;
   const portalSubtitle =
     params.portalSubtitle ||
     `Portal de Transparência Cívica e Controle Social — ${municipioNome}`;

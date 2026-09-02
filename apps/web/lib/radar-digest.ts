@@ -3,6 +3,7 @@ import {
   getPortalConfig,
   getRadarDigestMetrics,
 } from "@transparencia/db";
+import { env } from "@/env";
 import { RadarDigestEmail } from "../components/emails/radar-digest";
 import { resend } from "./resend";
 
@@ -24,18 +25,16 @@ export interface DispatchRadarDigestResult {
   dryRun: boolean;
 }
 
-const defaultFromEmail =
-  process.env.RESEND_FROM_EMAIL ||
-  "Mais Transparência <newsletter@transparencia.app>";
+const defaultFromEmail = env.RESEND_FROM_EMAIL;
 
 function resolveBaseUrl(customBaseUrl?: string): string {
   let url = "http://localhost:3001";
   if (customBaseUrl?.trim()) {
     url = customBaseUrl.trim();
-  } else if (process.env.NEXT_PUBLIC_APP_URL?.trim()) {
-    url = process.env.NEXT_PUBLIC_APP_URL.trim();
-  } else if (process.env.VERCEL_URL?.trim()) {
-    const vUrl = process.env.VERCEL_URL.trim();
+  } else if (env.NEXT_PUBLIC_APP_URL?.trim()) {
+    url = env.NEXT_PUBLIC_APP_URL.trim();
+  } else if (env.VERCEL_URL?.trim()) {
+    const vUrl = env.VERCEL_URL.trim();
     url =
       vUrl.startsWith("http://") || vUrl.startsWith("https://")
         ? vUrl

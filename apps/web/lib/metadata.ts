@@ -1,6 +1,7 @@
 import { getPortalConfig } from "@transparencia/db";
 import type { Metadata } from "next";
 import { cache } from "react";
+import { env } from "@/env";
 
 export const getCachedPortalConfig = cache(async (portalSlug: string) => {
   return getPortalConfig(portalSlug);
@@ -32,7 +33,7 @@ export async function createPortalMetadata(
     portalConfig?.displayName?.trim() || "Prefeitura Municipal";
   const titleText = pageTitle?.trim() || "Visão Geral";
   const fullTitle = `${titleText} | ${portalDisplayName}`;
-  const baseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
+  const baseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
   const normPath = (() => {
     if (!options?.path) return "";
     return options.path.startsWith("/") ? options.path : `/${options.path}`;
@@ -67,8 +68,7 @@ export async function createPortalMetadata(
       title: fullTitle,
       description: finalDescription,
       url: canonicalUrl,
-      siteName:
-        process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "MaisTransparencia",
+      siteName: env.NEXT_PUBLIC_SITE_NAME,
       locale: "pt_BR",
       type: "website",
       images: [

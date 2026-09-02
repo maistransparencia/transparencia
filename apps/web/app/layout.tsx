@@ -7,6 +7,7 @@ import { unstable_cache } from "next/cache";
 import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
+import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
 import {
@@ -21,7 +22,7 @@ import "./globals.css";
 
 import { version } from "../package.json";
 
-const defaultBaseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
+const defaultBaseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
 
 // Cache de configuração do portal.
 // Cache key versionada: bust automático a cada novo deploy.
