@@ -1,8 +1,9 @@
 import posthog from "posthog-js";
+import { env } from "@/env";
 
-const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
-const _host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
-const isProduction = process.env.NODE_ENV === "production";
+const token = env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+const _host = env.NEXT_PUBLIC_POSTHOG_HOST;
+const isProduction = env.NODE_ENV === "production";
 
 if (token) {
   posthog.init(token, {
@@ -14,7 +15,7 @@ if (token) {
     // errors and hot-reload crashes don't pollute production issues.
     capture_exceptions: isProduction,
     // Turn on debug in development mode
-    debug: process.env.NODE_ENV === "development",
+    debug: env.NODE_ENV === "development",
   });
 }
 

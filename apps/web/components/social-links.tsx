@@ -1,6 +1,7 @@
 "use client";
 
 import posthog from "posthog-js";
+import { env } from "@/env";
 
 export interface SocialLinksProps {
   className?: string;
@@ -19,20 +20,10 @@ export function SocialLinks({
   githubUrl: customGithubUrl,
   facebookUrl: customFacebookUrl,
 }: SocialLinksProps) {
-  const xUrl =
-    customXUrl ||
-    process.env.NEXT_PUBLIC_X_URL ||
-    "https://x.com/mtransparenciax";
-  const xHandle =
-    customXHandle || process.env.NEXT_PUBLIC_X_HANDLE || "@mtransparenciax";
-  const githubUrl =
-    customGithubUrl ||
-    process.env.NEXT_PUBLIC_GITHUB_URL ||
-    "https://github.com/maistransparencia/transparencia";
-  const facebookUrl =
-    customFacebookUrl ||
-    process.env.NEXT_PUBLIC_FACEBOOK_URL ||
-    "https://facebook.com/maistransparencia";
+  const xUrl = customXUrl || env.NEXT_PUBLIC_X_URL;
+  const xHandle = customXHandle || env.NEXT_PUBLIC_X_HANDLE;
+  const githubUrl = customGithubUrl || env.NEXT_PUBLIC_GITHUB_URL;
+  const facebookUrl = customFacebookUrl || env.NEXT_PUBLIC_FACEBOOK_URL;
 
   const handleXClick = () => {
     posthog.capture("social_link_clicked", {

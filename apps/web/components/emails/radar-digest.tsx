@@ -14,6 +14,7 @@ import {
 } from "@react-email/components";
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
 import type * as React from "react";
+import { env } from "@/env";
 
 export interface RadarDigestEmailProps {
   portalSlug: string;
@@ -113,8 +114,7 @@ export function RadarDigestEmail({
   metrics,
   dataEdicao,
 }: RadarDigestEmailProps) {
-  const resolvedProjectName =
-    projectName || process.env.NEXT_PUBLIC_PROJECT_NAME || "MaisTransparência";
+  const resolvedProjectName = projectName || env.NEXT_PUBLIC_PROJECT_NAME;
 
   const resolvedSubtitle =
     portalSubtitle || `Boletim Cívico Municipal • Exercício ${ano}`;

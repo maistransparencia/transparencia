@@ -13,6 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import type * as React from "react";
+import { env } from "@/env";
 
 export interface NewsletterConfirmationEmailProps {
   municipioNome?: string;
@@ -31,8 +32,7 @@ export function NewsletterConfirmationEmail({
   confirmationUrl,
   unsubscribeUrl,
 }: NewsletterConfirmationEmailProps) {
-  const resolvedProjectName =
-    projectName || process.env.NEXT_PUBLIC_PROJECT_NAME || "MaisTransparência";
+  const resolvedProjectName = projectName || env.NEXT_PUBLIC_PROJECT_NAME;
 
   const resolvedSubtitle =
     portalSubtitle ||

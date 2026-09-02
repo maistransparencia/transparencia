@@ -1,4 +1,5 @@
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
+import { env } from "@/env";
 import { resolveBaseUrl } from "./x-bot";
 
 export interface FacebookCredentials {
@@ -254,10 +255,10 @@ export function getFacebookCredentials(
   customCredentials?: FacebookCredentials,
 ): FacebookCredentials {
   return {
-    pageId: customCredentials?.pageId || process.env.FACEBOOK_PAGE_ID || "",
+    pageId: customCredentials?.pageId || env.FACEBOOK_PAGE_ID || "",
     pageAccessToken:
       customCredentials?.pageAccessToken ||
-      process.env.FACEBOOK_PAGE_ACCESS_TOKEN ||
+      env.FACEBOOK_PAGE_ACCESS_TOKEN ||
       "",
   };
 }

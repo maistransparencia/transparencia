@@ -1,5 +1,6 @@
 import { getPortalConfig, subscribeNewsletter } from "@transparencia/db";
 import { NextResponse } from "next/server";
+import { env } from "@/env";
 import {
   checkEmailRateLimit,
   checkIpRateLimit,
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
 
     // 8. Disparo do e-mail de confirmação (Double Opt-In)
     const requestOrigin = new URL(req.url).origin;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin;
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || requestOrigin;
 
     const emailResult = await sendNewsletterConfirmationEmail({
       email: subscriber.email,

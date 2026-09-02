@@ -1,4 +1,5 @@
 import { PostHog } from "posthog-node";
+import { env } from "@/env";
 
 let posthogInstance: PostHog | null = null;
 
@@ -7,12 +8,12 @@ let posthogInstance: PostHog | null = null;
 // capturadas e erros de render de Server Components chegavam mascarados
 // (mensagem removida pelo Next.js), impossibilitando o diagnóstico.
 export function getPostHogServer(): PostHog | null {
-  const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+  const token = env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
   if (!token) return null;
 
   if (!posthogInstance) {
     posthogInstance = new PostHog(token, {
-      host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+      host: env.NEXT_PUBLIC_POSTHOG_HOST,
       // Ambiente serverless: envia imediatamente em vez de acumular em buffer,
       // já que a instância pode ser congelada logo após a resposta.
       flushAt: 1,

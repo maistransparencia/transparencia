@@ -1,7 +1,8 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
-export const env = createEnv({
+const parsedEnv = createEnv({
+  isServer: typeof window === "undefined" || process.env.NODE_ENV === "test",
   server: {
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -31,7 +32,7 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().min(1).optional(),
     NEXT_PUBLIC_SITE_DOMAIN: z.string().min(1).default("maistransparencia.com"),
     NEXT_PUBLIC_SITE_NAME: z.string().min(1).default("MaisTransparencia"),
-    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparência"),
+    NEXT_PUBLIC_PROJECT_NAME: z.string().min(1).default("MaisTransparencia"),
     NEXT_PUBLIC_X_URL: z
       .string()
       .min(1)
@@ -66,4 +67,17 @@ export const env = createEnv({
   },
   emptyStringAsUndefined: true,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+});
+
+export const env: typeof parsedEnv = new Proxy(parsedEnv, {
+  get(target, prop) {
+    if (
+      typeof prop === "string" &&
+      process.env.NODE_ENV === "test" &&
+      process.env[prop] !== undefined
+    ) {
+      return process.env[prop];
+    }
+    return Reflect.get(target, prop);
+  },
 });

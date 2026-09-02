@@ -1,5 +1,6 @@
 import { confirmNewsletterSubscription } from "@transparencia/db";
 import { NextResponse } from "next/server";
+import { env } from "@/env";
 
 export async function GET(req: Request) {
   try {
@@ -7,7 +8,7 @@ export async function GET(req: Request) {
     const token = searchParams.get("token");
 
     const requestOrigin = new URL(req.url).origin;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin;
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || requestOrigin;
 
     if (!token) {
       return NextResponse.redirect(`${baseUrl}/?newsletter=missing_token`);
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
     // biome-ignore lint/suspicious/noConsole: log de erro do handler
     console.error("[api/newsletter/confirm] Erro:", err);
     const requestOrigin = new URL(req.url).origin;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin;
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || requestOrigin;
     return NextResponse.redirect(`${baseUrl}/?newsletter=error`);
   }
 }

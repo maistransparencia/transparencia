@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { RadarDigestMetricsDTO } from "@transparencia/db";
+import { env } from "@/env";
 import { sanitizeHashtag } from "./facebook-bot";
 
 export interface XCredentials {
@@ -132,10 +133,10 @@ export function resolveBaseUrl(customBaseUrl?: string): string {
   let url = "https://transparencia.app";
   if (customBaseUrl?.trim()) {
     url = customBaseUrl.trim();
-  } else if (process.env.NEXT_PUBLIC_APP_URL?.trim()) {
-    url = process.env.NEXT_PUBLIC_APP_URL.trim();
-  } else if (process.env.VERCEL_URL?.trim()) {
-    const vUrl = process.env.VERCEL_URL.trim();
+  } else if (env.NEXT_PUBLIC_APP_URL?.trim()) {
+    url = env.NEXT_PUBLIC_APP_URL.trim();
+  } else if (env.VERCEL_URL?.trim()) {
+    const vUrl = env.VERCEL_URL.trim();
     url =
       vUrl.startsWith("http://") || vUrl.startsWith("https://")
         ? vUrl
@@ -284,16 +285,12 @@ export function getXCredentials(
   customCredentials?: XCredentials,
 ): XCredentials {
   return {
-    apiKey: customCredentials?.apiKey || process.env.X_API_KEY || "",
-    apiSecret: customCredentials?.apiSecret || process.env.X_API_SECRET || "",
-    accessToken:
-      customCredentials?.accessToken || process.env.X_ACCESS_TOKEN || "",
+    apiKey: customCredentials?.apiKey || env.X_API_KEY || "",
+    apiSecret: customCredentials?.apiSecret || env.X_API_SECRET || "",
+    accessToken: customCredentials?.accessToken || env.X_ACCESS_TOKEN || "",
     accessTokenSecret:
-      customCredentials?.accessTokenSecret ||
-      process.env.X_ACCESS_TOKEN_SECRET ||
-      "",
-    bearerToken:
-      customCredentials?.bearerToken || process.env.X_BEARER_TOKEN || "",
+      customCredentials?.accessTokenSecret || env.X_ACCESS_TOKEN_SECRET || "",
+    bearerToken: customCredentials?.bearerToken || env.X_BEARER_TOKEN || "",
   };
 }
 

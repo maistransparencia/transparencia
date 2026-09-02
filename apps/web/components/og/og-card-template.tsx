@@ -1,4 +1,5 @@
 import type { CSSProperties, FC } from "react";
+import { env } from "@/env";
 
 export type MetricVariant = "default" | "warning" | "success" | "danger";
 
@@ -77,10 +78,10 @@ function resolveBrandDomain(customDomain?: string): string {
   const fromCustom = cleanDomain(customDomain);
   if (fromCustom) return fromCustom;
 
-  const envDomain = cleanDomain(process.env.NEXT_PUBLIC_SITE_DOMAIN);
+  const envDomain = cleanDomain(env.NEXT_PUBLIC_SITE_DOMAIN);
   if (envDomain) return envDomain;
 
-  const envAppUrl = cleanDomain(process.env.NEXT_PUBLIC_APP_URL);
+  const envAppUrl = cleanDomain(env.NEXT_PUBLIC_APP_URL);
   if (envAppUrl) return envAppUrl;
 
   return "maistransparencia.com";
@@ -95,7 +96,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
   metrics,
   footerNote,
   lastExtractionDate,
-  brandName = process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "MaisTransparencia",
+  brandName = env.NEXT_PUBLIC_SITE_NAME,
   brandDomain,
 }) => {
   const finalBrandDomain = resolveBrandDomain(brandDomain);
