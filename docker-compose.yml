@@ -19,6 +19,7 @@ services:
       - "5544:5432"
     volumes:
       - ./docker/volumes/data:/var/lib/postgresql/data
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
     restart: unless-stopped
 
   # Postgres efêmero (sem volume persistente, sem dados reais) para rodar os
@@ -36,3 +37,5 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5545:5432"
+    volumes:
+      - ./docker/init:/docker-entrypoint-initdb.d:ro

@@ -7,6 +7,7 @@ import { unstable_cache } from "next/cache";
 import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
+import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
 import {
@@ -14,13 +15,14 @@ import {
   generateGovernmentOrganizationSchema,
   JsonLd,
 } from "../components/json-ld";
+import { NewsletterFeedbackBanner } from "../components/newsletter-feedback-banner";
 import { PwaInstaller } from "../components/pwa-installer";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
 import { version } from "../package.json";
 
-const defaultBaseUrl = formatBaseUrl(process.env.NEXT_PUBLIC_APP_URL);
+const defaultBaseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
 
 // Cache de configuração do portal.
 // Cache key versionada: bust automático a cada novo deploy.
@@ -161,6 +163,9 @@ export default async function RootLayout({
           </Suspense>
           <div className="flex min-w-0 flex-1 flex-col">
             <Ribbon portalName={portalConfig?.displayName} />
+            <Suspense fallback={null}>
+              <NewsletterFeedbackBanner />
+            </Suspense>
             <ExtractionNotificationBanner
               lastExtractionDate={portalConfig?.dataExtracao}
               portalName={portalConfig?.displayName}

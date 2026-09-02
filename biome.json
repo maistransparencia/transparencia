@@ -102,7 +102,12 @@
       }
     },
     {
-      "includes": ["mocks/**/*.js", "mocks/**/*.ts"],
+      "includes": [
+        "mocks/**/*.js",
+        "mocks/**/*.ts",
+        "**/bin/**/*.ts",
+        "**/bin/**/*.js"
+      ],
       "linter": {
         "rules": {
           "suspicious": {

@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
 
 # SETUP TASKS
 
@@ -70,8 +70,11 @@ endif
 
 # MIGRATIONS
 
+db/init-roles:
+	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f docker/init/01-init-roles.sql
+
 migrate/grant:
-	psql "$$DATABASE_URL" -f elt/migrations/grant_readonly.sql
+	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f elt/migrations/grant_readonly.sql
 
 # DBT TRANSFORM
 
@@ -106,6 +109,18 @@ build:
 
 test/ts:
 	pnpm test
+
+digest/send:
+	pnpm --filter web digest:send --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
+
+digest/dry-run:
+	pnpm --filter web digest:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO))
+
+bot/post:
+	pnpm --filter web social:publish --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)") $(if $(DRY_RUN),--dry-run)
+
+bot/dry-run:
+	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
 
 # DB TEST FIXTURE (packages/db)
 # Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
