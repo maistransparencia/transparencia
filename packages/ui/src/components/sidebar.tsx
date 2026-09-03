@@ -8,7 +8,6 @@ import {
   Landmark,
   LayoutDashboard,
   Mail,
-  Menu,
   PieChart,
   Receipt,
   TrendingUp,
@@ -254,18 +253,6 @@ export function Sidebar({
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileOpen((prev) => !prev)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-borderLine bg-white text-ink shadow-xs transition-colors hover:bg-gray-50 active:bg-gray-100"
-          aria-label={isMobileOpen ? "Fechar menu" : "Abrir menu"}
-        >
-          {isMobileOpen ? (
-            <X strokeWidth={2} className="h-5 w-5 text-ink" />
-          ) : (
-            <Menu strokeWidth={2} className="h-5 w-5 text-ink" />
-          )}
-        </button>
       </div>
 
       {/* Backdrop Móvel (< md) */}
@@ -291,31 +278,41 @@ export function Sidebar({
         <div className="flex flex-col overflow-y-auto">
           {/* Marca Superior / Brasão Municipal */}
           <div className="border-borderLine border-b p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
-                {!imgError && normalizedBrasao ? (
-                  /* biome-ignore lint/performance/noImgElement: brasao asset */
-                  <img
-                    src={normalizedBrasao}
-                    alt={`Brasão de ${portalName}`}
-                    className="h-full w-full object-contain"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <Landmark
-                    strokeWidth={1.6}
-                    className="h-5 w-5 text-subtleText"
-                  />
-                )}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
+                  {!imgError && normalizedBrasao ? (
+                    /* biome-ignore lint/performance/noImgElement: brasao asset */
+                    <img
+                      src={normalizedBrasao}
+                      alt={`Brasão de ${portalName}`}
+                      className="h-full w-full object-contain"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <Landmark
+                      strokeWidth={1.6}
+                      className="h-5 w-5 text-subtleText"
+                    />
+                  )}
+                </div>
+                <div>
+                  <h1 className="font-bold font-serif text-base text-ink leading-tight">
+                    {displayTitle}
+                  </h1>
+                  <p className="text-[11px] text-mutedText">
+                    Orçamento municipal · {stateUF}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-bold font-serif text-base text-ink leading-tight">
-                  {displayTitle}
-                </h1>
-                <p className="text-[11px] text-mutedText">
-                  Orçamento municipal · {stateUF}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileOpen(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-borderLine bg-white text-mutedText shadow-xs transition-colors hover:bg-gray-50 hover:text-ink active:bg-gray-100 md:hidden"
+                aria-label="Fechar menu"
+              >
+                <X strokeWidth={2} className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
