@@ -15,6 +15,7 @@ import {
   generateGovernmentOrganizationSchema,
   JsonLd,
 } from "../components/json-ld";
+import { MobileBottomNav } from "../components/mobile-bottom-nav";
 import { NewsletterFeedbackBanner } from "../components/newsletter-feedback-banner";
 import { PwaInstaller } from "../components/pwa-installer";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
@@ -170,10 +171,17 @@ export default async function RootLayout({
               lastExtractionDate={portalConfig?.dataExtracao}
               portalName={portalConfig?.displayName}
             />
-            <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 py-4 sm:px-6 md:px-10 md:py-8">
+            <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
               {children}
             </main>
           </div>
+          <Suspense fallback={null}>
+            <MobileBottomNav
+              portalSlug={portalConfig?.portalSlug}
+              anoInicial={portalConfig?.anoInicial}
+              entidades={entidades}
+            />
+          </Suspense>
         </NuqsAdapter>
         <PwaInstaller />
         <Analytics />
