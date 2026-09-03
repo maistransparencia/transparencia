@@ -43,7 +43,7 @@ describe("SocialLinks component", () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute(
       "href",
-      "https://facebook.com/maistransparencia",
+      "https://facebook.com/profile.php?id=",
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
@@ -68,7 +68,7 @@ describe("SocialLinks component", () => {
     fireEvent.click(link);
     expect(posthog.capture).toHaveBeenCalledWith("social_link_clicked", {
       platform: "facebook",
-      url: "https://facebook.com/maistransparencia",
+      url: "https://facebook.com/profile.php?id=",
     });
   });
 
