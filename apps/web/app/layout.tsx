@@ -7,18 +7,18 @@ import { unstable_cache } from "next/cache";
 import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
-import { env } from "@/env";
-import { formatBaseUrl } from "@/lib/metadata";
-import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
 import {
   generateDataCatalogSchema,
   generateGovernmentOrganizationSchema,
   JsonLd,
-} from "../components/json-ld";
-import { MobileBottomNav } from "../components/mobile-bottom-nav";
-import { MobileNavProvider } from "../components/mobile-nav-context";
-import { NewsletterFeedbackBanner } from "../components/newsletter-feedback-banner";
-import { PwaInstaller } from "../components/pwa-installer";
+} from "@/components/json-ld";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { MobileNavProvider } from "@/components/mobile-nav-context";
+import { NewsletterFeedbackBanner } from "@/components/newsletter-feedback-banner";
+import { PwaInstaller } from "@/components/pwa-installer";
+import { env } from "@/env";
+import { formatBaseUrl } from "@/lib/metadata";
+import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
@@ -162,6 +162,7 @@ export default async function RootLayout({
                 lastExtractionDate={portalConfig?.dataExtracao}
                 officialPortalUrl={portalConfig?.portalUrl}
                 entidades={entidades}
+                portalSlug={portalConfig?.portalSlug}
               />
             </Suspense>
             <div className="flex min-w-0 flex-1 flex-col">

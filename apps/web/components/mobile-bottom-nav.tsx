@@ -7,12 +7,13 @@ import {
   Menu,
   Receipt,
   TrendingUp,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import type React from "react";
-import { useMobileNav } from "./mobile-nav-context";
+import { useMobileNav } from "@/components/mobile-nav-context";
 
 export interface PortalTabItem {
   readonly id: string;
@@ -136,7 +137,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label="Navegação móvel"
-      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      className="fixed right-0 bottom-0 left-0 z-50 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
         {PRIMARY_NAV_TABS.map((tab, index) => {
@@ -176,10 +177,13 @@ export function MobileBottomNav({
           );
         })}
 
-        {/* 5ª Aba: Mais (abre o menu lateral completo) */}
+        {/* 5ª Aba: Mais / Fechar (abre ou fecha o menu lateral completo) */}
         <button
           type="button"
-          onClick={toggleMenu}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleMenu();
+          }}
           aria-label={
             isMenuOpen ? "Fechar menu de seções" : "Mais opções e seções"
           }
@@ -191,15 +195,22 @@ export function MobileBottomNav({
               : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
           )}
         >
-          <Menu
-            className={cn(
-              "h-5 w-5 shrink-0 transition-transform",
-              isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
-            )}
-            strokeWidth={isMoreActive ? 2.2 : 1.8}
-          />
+          {isMenuOpen ? (
+            <X
+              className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.55_0.11_250)] transition-transform"
+              strokeWidth={2.2}
+            />
+          ) : (
+            <Menu
+              className={cn(
+                "h-5 w-5 shrink-0 transition-transform",
+                isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+              )}
+              strokeWidth={isMoreActive ? 2.2 : 1.8}
+            />
+          )}
           <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
-            Mais
+            {isMenuOpen ? "Fechar" : "Mais"}
           </span>
         </button>
       </div>

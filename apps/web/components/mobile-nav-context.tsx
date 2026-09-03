@@ -15,13 +15,15 @@ const MobileNavContext = createContext<MobileNavContextValue | null>(null);
 
 export function MobileNavProvider({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const _pathname = usePathname();
+  const pathname = usePathname();
 
   useEffect(() => {
-    setIsMenuOpen(false);
-  }, []);
+    if (pathname) {
+      setIsMenuOpen(false);
+    }
+  }, [pathname]);
 
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const toggleMenu = () => setIsMenuOpen((previousState) => !previousState);
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
@@ -36,12 +38,9 @@ export function MobileNavProvider({ children }: { children: React.ReactNode }) {
 export function useMobileNav(): MobileNavContextValue {
   const context = useContext(MobileNavContext);
   if (!context) {
-    return {
-      isMenuOpen: false,
-      setIsMenuOpen: () => {},
-      toggleMenu: () => {},
-      closeMenu: () => {},
-    };
+    throw new Error(
+      "useMobileNav deve ser utilizado dentro de um MobileNavProvider.",
+    );
   }
   return context;
 }

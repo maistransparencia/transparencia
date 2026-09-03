@@ -220,7 +220,7 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
       );
     });
 
-    it("deve conter as classes de responsividade mobile e fixação z-30", () => {
+    it("deve conter as classes de responsividade mobile e fixação z-50", () => {
       const { container } = render(
         <MobileBottomNav portalSlug="porciuncula_prefeitura" />,
       );
@@ -228,7 +228,24 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
       expect(nav).toHaveClass("fixed");
       expect(nav).toHaveClass("bottom-0");
       expect(nav).toHaveClass("md:hidden");
-      expect(nav).toHaveClass("z-30");
+      expect(nav).toHaveClass("z-50");
+    });
+
+    it("deve alternar entre ícone de Menu e X conforme o estado de abertura", () => {
+      const { rerender } = render(
+        <MobileBottomNav portalSlug="porciuncula_prefeitura" />,
+      );
+      expect(screen.getByText("Mais")).toBeInTheDocument();
+
+      vi.spyOn(MobileNavContextModule, "useMobileNav").mockReturnValue({
+        isMenuOpen: true,
+        setIsMenuOpen: mockSetIsMenuOpen,
+        toggleMenu: mockToggleMenu,
+        closeMenu: mockCloseMenu,
+      });
+
+      rerender(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+      expect(screen.getByText("Fechar")).toBeInTheDocument();
     });
   });
 });
