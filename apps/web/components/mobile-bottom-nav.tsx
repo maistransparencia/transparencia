@@ -292,15 +292,7 @@ export function MobileBottomNav({
 
         {/* Botão Próximo */}
         <div className="flex min-w-0 flex-1 items-center justify-end">
-          {isLast || !nextPage ? (
-            <span
-              aria-disabled="true"
-              className="flex min-h-[44px] w-full cursor-not-allowed touch-manipulation select-none items-center justify-end gap-1 rounded-lg px-2 py-1.5 font-medium text-subtleText text-xs opacity-40"
-            >
-              <span className="truncate">Próximo</span>
-              <ChevronRight className="h-4 w-4 shrink-0" strokeWidth={1.8} />
-            </span>
-          ) : (
+          {!isLast && nextPage ? (
             <Link
               href={nextHref}
               aria-label={`Próxima página: ${nextPage.label}`}
@@ -312,7 +304,7 @@ export function MobileBottomNav({
                 strokeWidth={1.8}
               />
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </nav>

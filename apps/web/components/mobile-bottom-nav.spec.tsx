@@ -180,7 +180,7 @@ describe("MobileBottomNav Component", () => {
       );
     });
 
-    it("deve renderizar na última página CAPREM com Próximo desabilitado e Anterior apontando para Saúde", () => {
+    it("deve renderizar na última página CAPREM com Próximo oculto e Anterior apontando para Saúde", () => {
       mockUsePathname.mockReturnValue("/porciuncula_prefeitura/caprem");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
@@ -193,9 +193,7 @@ describe("MobileBottomNav Component", () => {
         "/porciuncula_prefeitura/saude?ano=2026",
       );
 
-      const nextEl = screen.getByText("Próximo").closest("[aria-disabled]");
-      expect(nextEl).toBeInTheDocument();
-      expect(nextEl).toHaveAttribute("aria-disabled", "true");
+      expect(screen.queryByText("Próximo")).not.toBeInTheDocument();
     });
 
     it("deve preservar parâmetros de query string ano e entidades nos links", () => {
