@@ -78,40 +78,11 @@ function YearSelect({
   years,
   selectedYear,
   onChange,
-  variant = "default",
 }: {
   years: string[];
   selectedYear: string;
   onChange: (year: string) => void;
-  variant?: "default" | "compact";
 }) {
-  if (variant === "compact") {
-    return (
-      <div className="relative max-w-16 border-b *:border-borderLine">
-        <select
-          id="exercice-select"
-          value={selectedYear}
-          onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] cursor-pointer appearance-none px-0 font-medium text-ink text-xs shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none sm:min-h-0 sm:py-1 sm:text-[10px]"
-        >
-          {years.map((yr) => (
-            <option
-              key={yr}
-              value={yr}
-              className="bg-white py-2 font-medium text-base text-ink sm:text-sm"
-            >
-              {yr}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-2 h-3 w-3 -translate-y-1/2 text-mutedText"
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full">
       <select
@@ -221,18 +192,10 @@ export function Sidebar({
               <Landmark strokeWidth={1.6} className="h-4 w-4 text-subtleText" />
             )}
           </div>
-          <div className="space-y-0 overflow-hidden">
-            <span className="truncate font-bold font-serif text-ink text-sm leading-none">
+          <div className="overflow-hidden">
+            <span className="block truncate font-bold font-serif text-ink text-sm leading-tight">
               {displayTitle}
             </span>
-            <div className="text-sm text-subtleText leading-none">
-              <YearSelect
-                years={years}
-                selectedYear={currentExercice}
-                onChange={handleExerciceChange}
-                variant="compact"
-              />
-            </div>
           </div>
         </div>
         <button
