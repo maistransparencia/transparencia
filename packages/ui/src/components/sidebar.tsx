@@ -16,8 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import { fmtDate } from "../utils/formatters";
 import { buildNavUrl } from "../utils/nav";
@@ -166,16 +165,35 @@ export function Sidebar({
   const [imgError, setImgError] = useState(false);
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
-  const isMobileOpen =
-    controlledMobileOpen !== undefined
-      ? controlledMobileOpen
-      : internalMobileOpen;
+  const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
+  const backdropMountedAt = useRef(0);
+
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    backdropMountedAt.current = Date.now();
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileOpen]);
+
+  const handleBackdropClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    // Protege contra "ghost click" / tap bleed-through em dispositivos móveis touch
+    if (Date.now() - backdropMountedAt.current < 350) {
+      return;
+    }
+    setIsMobileOpen(false);
+  };
 
   const setIsMobileOpen = (
-    openOrFn: boolean | ((prev: boolean) => boolean),
+    openOrUpdater: boolean | ((previousState: boolean) => boolean),
   ) => {
     const nextVal =
-      typeof openOrFn === "function" ? openOrFn(isMobileOpen) : openOrFn;
+      typeof openOrUpdater === "function"
+        ? openOrUpdater(isMobileOpen)
+        : openOrUpdater;
     setInternalMobileOpen(nextVal);
     onMobileOpenChange?.(nextVal);
   };
@@ -202,11 +220,10 @@ export function Sidebar({
     (_, i) => String(maxYear - i),
   );
 
-  const normalizedBrasao = brasaoAsset
-    ? brasaoAsset.startsWith("/")
-      ? brasaoAsset
-      : `/${brasaoAsset}`
-    : "/brasao-porciuncula.svg";
+  const normalizedBrasao = (() => {
+    if (!brasaoAsset) return "/brasao-porciuncula.svg";
+    return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
+  })();
 
   const displayExtractionDate = fmtDate(lastExtractionDate);
 
@@ -261,7 +278,7 @@ export function Sidebar({
           type="button"
           aria-label="Fechar menu"
           className="fixed inset-0 z-40 cursor-default border-none bg-black/40 p-0 backdrop-blur-xs transition-opacity md:hidden"
-          onClick={() => setIsMobileOpen(false)}
+          onClick={handleBackdropClick}
         />
       )}
 
@@ -271,11 +288,11 @@ export function Sidebar({
           "select-none border-borderLine border-r bg-white",
           "md:sticky md:top-0 md:flex md:h-screen md:w-[266px] md:shrink-0 md:flex-col md:justify-between",
           isMobileOpen
-            ? "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between shadow-2xl md:relative md:z-auto md:w-[266px] md:shadow-none"
+            ? "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between shadow-2xl md:sticky md:top-0 md:h-screen md:w-[266px] md:shadow-none"
             : "hidden md:flex",
         )}
       >
-        <div className="flex flex-col overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {/* Marca Superior / Brasão Municipal */}
           <div className="border-borderLine border-b p-4">
             <div className="flex items-center justify-between gap-3">
