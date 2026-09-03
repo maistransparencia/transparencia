@@ -272,24 +272,28 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Backdrop Móvel (< md) */}
-      {isMobileOpen && (
-        <button
-          type="button"
-          aria-label="Fechar menu"
-          className="fixed inset-0 z-40 cursor-default border-none bg-black/40 p-0 backdrop-blur-xs transition-opacity md:hidden"
-          onClick={handleBackdropClick}
-        />
-      )}
+      {/* Backdrop Móvel (< md) com Transição Suave */}
+      <div
+        role="presentation"
+        aria-hidden="true"
+        className={cn(
+          "fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-300 ease-in-out md:hidden",
+          isMobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0",
+        )}
+        onClick={handleBackdropClick}
+      />
 
-      {/* Conteúdo da Sidebar (Desktop + Drawer Móvel) */}
+      {/* Conteúdo da Sidebar (Desktop + Drawer Móvel com Animação de Slide) */}
       <aside
         className={cn(
           "select-none border-borderLine border-r bg-white",
-          "md:sticky md:top-0 md:flex md:h-screen md:w-[266px] md:shrink-0 md:flex-col md:justify-between",
+          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-transform duration-300 ease-in-out",
+          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
           isMobileOpen
-            ? "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between shadow-2xl md:sticky md:top-0 md:h-screen md:w-[266px] md:shadow-none"
-            : "hidden md:flex",
+            ? "pointer-events-auto translate-x-0 shadow-2xl"
+            : "pointer-events-none -translate-x-full shadow-none md:pointer-events-auto",
         )}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">

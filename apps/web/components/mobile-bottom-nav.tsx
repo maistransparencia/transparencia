@@ -137,7 +137,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label="Navegação móvel"
-      className="fixed right-0 bottom-0 left-0 z-50 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
         {PRIMARY_NAV_TABS.map((tab, index) => {
