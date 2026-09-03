@@ -16,6 +16,7 @@ import {
   JsonLd,
 } from "../components/json-ld";
 import { MobileBottomNav } from "../components/mobile-bottom-nav";
+import { MobileNavProvider } from "../components/mobile-nav-context";
 import { NewsletterFeedbackBanner } from "../components/newsletter-feedback-banner";
 import { PwaInstaller } from "../components/pwa-installer";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
@@ -147,41 +148,43 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased md:flex-row">
         <NuqsAdapter>
-          <Suspense fallback={null}>
-            <SidebarWrapper
-              portalName={portalConfig?.displayName}
-              stateUF={portalConfig?.uf}
-              portalTitle={
-                portalConfig
-                  ? `Contas da ${portalConfig.displayName}`
-                  : undefined
-              }
-              anoInicial={portalConfig?.anoInicial}
-              lastExtractionDate={portalConfig?.dataExtracao}
-              officialPortalUrl={portalConfig?.portalUrl}
-              entidades={entidades}
-            />
-          </Suspense>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Ribbon portalName={portalConfig?.displayName} />
+          <MobileNavProvider>
             <Suspense fallback={null}>
-              <NewsletterFeedbackBanner />
+              <SidebarWrapper
+                portalName={portalConfig?.displayName}
+                stateUF={portalConfig?.uf}
+                portalTitle={
+                  portalConfig
+                    ? `Contas da ${portalConfig.displayName}`
+                    : undefined
+                }
+                anoInicial={portalConfig?.anoInicial}
+                lastExtractionDate={portalConfig?.dataExtracao}
+                officialPortalUrl={portalConfig?.portalUrl}
+                entidades={entidades}
+              />
             </Suspense>
-            <ExtractionNotificationBanner
-              lastExtractionDate={portalConfig?.dataExtracao}
-              portalName={portalConfig?.displayName}
-            />
-            <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
-              {children}
-            </main>
-          </div>
-          <Suspense fallback={null}>
-            <MobileBottomNav
-              portalSlug={portalConfig?.portalSlug}
-              anoInicial={portalConfig?.anoInicial}
-              entidades={entidades}
-            />
-          </Suspense>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <Ribbon portalName={portalConfig?.displayName} />
+              <Suspense fallback={null}>
+                <NewsletterFeedbackBanner />
+              </Suspense>
+              <ExtractionNotificationBanner
+                lastExtractionDate={portalConfig?.dataExtracao}
+                portalName={portalConfig?.displayName}
+              />
+              <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
+                {children}
+              </main>
+            </div>
+            <Suspense fallback={null}>
+              <MobileBottomNav
+                portalSlug={portalConfig?.portalSlug}
+                anoInicial={portalConfig?.anoInicial}
+                entidades={entidades}
+              />
+            </Suspense>
+          </MobileNavProvider>
         </NuqsAdapter>
         <PwaInstaller />
         <Analytics />

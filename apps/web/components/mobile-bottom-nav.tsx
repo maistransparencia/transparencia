@@ -2,25 +2,19 @@
 
 import { buildNavUrl, cn, type MultiSelectOption } from "@transparencia/ui";
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   FileText,
-  HeartPulse,
-  Landmark,
   LayoutDashboard,
-  PieChart,
+  Menu,
   Receipt,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
-import posthog from "posthog-js";
 import type React from "react";
+import { useMobileNav } from "./mobile-nav-context";
 
-export interface PortalPageItem {
+export interface PortalTabItem {
   readonly id: string;
   readonly path: string;
   readonly label: string;
@@ -31,7 +25,7 @@ export interface PortalPageItem {
   }>;
 }
 
-export const PORTAL_PAGES: readonly PortalPageItem[] = [
+export const PRIMARY_NAV_TABS: readonly PortalTabItem[] = [
   {
     id: "visao-geral",
     path: "/",
@@ -47,13 +41,6 @@ export const PORTAL_PAGES: readonly PortalPageItem[] = [
     icon: TrendingUp,
   },
   {
-    id: "orcamento",
-    path: "/orcamento",
-    label: "Execução Orçamentária",
-    shortLabel: "Orçamento",
-    icon: PieChart,
-  },
-  {
     id: "despesas",
     path: "/despesas",
     label: "Despesas Detalhadas",
@@ -67,35 +54,15 @@ export const PORTAL_PAGES: readonly PortalPageItem[] = [
     shortLabel: "Licitações",
     icon: FileText,
   },
-  {
-    id: "pessoal",
-    path: "/pessoal",
-    label: "Pessoal",
-    shortLabel: "Pessoal",
-    icon: Users,
-  },
-  {
-    id: "saude",
-    path: "/saude",
-    label: "Saúde",
-    shortLabel: "Saúde",
-    icon: HeartPulse,
-  },
-  {
-    id: "caprem",
-    path: "/caprem",
-    label: "CAPREM",
-    shortLabel: "CAPREM",
-    icon: Landmark,
-  },
 ] as const;
 
-export function resolveCurrentPageIndex(
+export function isTabActive(
   pathname: string | null,
+  tabPath: string,
   portalSlug?: string,
-): number {
+): boolean {
   if (!pathname) {
-    return 0;
+    return tabPath === "/";
   }
 
   const effectiveSlug = portalSlug ?? "porciuncula_prefeitura";
@@ -106,46 +73,35 @@ export function resolveCurrentPageIndex(
       ? pathname.slice(0, -1)
       : pathname;
 
-  if (cleanPath === "/" || cleanPath === slugPrefix) {
+  if (tabPath === "/") {
+    return cleanPath === "/" || cleanPath === slugPrefix;
+  }
+
+  const fullTabPath = `${slugPrefix}${tabPath}`;
+  return (
+    cleanPath === fullTabPath ||
+    cleanPath === tabPath ||
+    cleanPath.startsWith(`${fullTabPath}/`) ||
+    cleanPath.startsWith(`${tabPath}/`)
+  );
+}
+
+export function resolveActiveTabIndex(
+  pathname: string | null,
+  portalSlug?: string,
+): number {
+  if (!pathname) {
     return 0;
   }
 
-  for (let i = 1; i < PORTAL_PAGES.length; i++) {
-    const page = PORTAL_PAGES[i];
-    const fullPagePath = `${slugPrefix}${page.path}`;
-    if (
-      cleanPath === fullPagePath ||
-      cleanPath === page.path ||
-      cleanPath.startsWith(`${fullPagePath}/`) ||
-      cleanPath.startsWith(`${page.path}/`)
-    ) {
+  for (let i = 0; i < PRIMARY_NAV_TABS.length; i++) {
+    if (isTabActive(pathname, PRIMARY_NAV_TABS[i].path, portalSlug)) {
       return i;
     }
   }
 
-  return 0;
-}
-
-export function getCivicStepperPages(currentIndex: number) {
-  const boundedIndex = Math.max(
-    0,
-    Math.min(currentIndex, PORTAL_PAGES.length - 1),
-  );
-  const previousPage = boundedIndex > 0 ? PORTAL_PAGES[boundedIndex - 1] : null;
-  const nextPage =
-    boundedIndex < PORTAL_PAGES.length - 1
-      ? PORTAL_PAGES[boundedIndex + 1]
-      : null;
-  const isFirst = boundedIndex === 0;
-  const isLast = boundedIndex === PORTAL_PAGES.length - 1;
-
-  return {
-    currentPage: PORTAL_PAGES[boundedIndex],
-    previousPage,
-    nextPage,
-    isFirst,
-    isLast,
-  };
+  // Se a rota ativa não pertencer às 4 abas primárias, retorna 4 ("Mais")
+  return PRIMARY_NAV_TABS.length;
 }
 
 export interface MobileBottomNavProps {
@@ -156,13 +112,12 @@ export interface MobileBottomNavProps {
 
 export function MobileBottomNav({
   portalSlug = "porciuncula_prefeitura",
-  anoInicial,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const currentYearNum = new Date().getFullYear();
-  const currentYear = String(currentYearNum);
+  const { isMenuOpen, toggleMenu } = useMobileNav();
+  const currentYear = String(new Date().getFullYear());
 
-  const [ano, setAno] = useQueryState(
+  const [ano] = useQueryState(
     "ano",
     parseAsString.withDefault(currentYear).withOptions({ shallow: false }),
   );
@@ -175,137 +130,78 @@ export function MobileBottomNav({
     ? entidadesParam.split(",").filter(Boolean)
     : [];
 
-  const minYear = anoInicial ?? 2021;
-  const maxYear = currentYearNum;
-  const years = Array.from(
-    { length: Math.max(1, maxYear - minYear + 1) },
-    (_, i) => String(maxYear - i),
-  );
-
-  const currentIndex = resolveCurrentPageIndex(pathname, portalSlug);
-  const { previousPage, nextPage, isFirst, isLast } =
-    getCivicStepperPages(currentIndex);
-
-  const handleExerciceChange = (val: string) => {
-    posthog.capture("year_filter_changed", {
-      selected_year: val,
-      previous_year: ano,
-      portal_slug: portalSlug,
-    });
-    setAno(val);
-  };
-
-  const previousHref = previousPage
-    ? buildNavUrl({
-        path: previousPage.path,
-        slug: portalSlug,
-        exercice: ano,
-        entidades: selectedEntidades,
-      })
-    : "#";
-
-  const nextHref = nextPage
-    ? buildNavUrl({
-        path: nextPage.path,
-        slug: portalSlug,
-        exercice: ano,
-        entidades: selectedEntidades,
-      })
-    : "#";
-
-  const homeHref = buildNavUrl({
-    path: "/",
-    slug: portalSlug,
-    exercice: ano,
-    entidades: selectedEntidades,
-  });
+  const activeIndex = resolveActiveTabIndex(pathname, portalSlug);
+  const isMoreActive = activeIndex === PRIMARY_NAV_TABS.length || isMenuOpen;
 
   return (
     <nav
-      aria-label="Navegação móvel contínua"
-      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-3 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      aria-label="Navegação móvel"
+      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
-      <div className="mx-auto flex max-w-lg items-center justify-between gap-1.5">
-        {/* Botão Anterior */}
-        <div className="flex min-w-0 flex-1 items-center justify-start">
-          {!isFirst && previousPage ? (
-            <Link
-              href={previousHref}
-              aria-label={`Página anterior: ${previousPage.label}`}
-              className="flex min-h-[44px] w-full touch-manipulation items-center justify-start gap-1 rounded-lg px-2 py-1.5 font-medium text-ink text-xs transition-colors hover:text-[#1d64d8] active:bg-gray-100"
-            >
-              <ChevronLeft
-                className="h-4 w-4 shrink-0 text-mutedText"
-                strokeWidth={1.8}
-              />
-              <span className="truncate">{previousPage.shortLabel}</span>
-            </Link>
-          ) : null}
-        </div>
+      <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
+        {PRIMARY_NAV_TABS.map((tab, index) => {
+          const isActive = !isMenuOpen && activeIndex === index;
+          const Icon = tab.icon;
+          const href = buildNavUrl({
+            path: tab.path,
+            slug: portalSlug,
+            exercice: ano,
+            entidades: selectedEntidades,
+          });
 
-        {/* Bloco Central: Início + Seletor de Ano */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Link
-            href={homeHref}
-            aria-label="Visão Geral"
+          return (
+            <Link
+              key={tab.id}
+              href={href}
+              aria-label={tab.label}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex min-h-[48px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
+                isActive
+                  ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
+                  : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+              )}
+            >
+              <Icon
+                className={cn(
+                  "h-5 w-5 shrink-0 transition-transform",
+                  isActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                )}
+                strokeWidth={isActive ? 2.2 : 1.8}
+              />
+              <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
+                {tab.shortLabel}
+              </span>
+            </Link>
+          );
+        })}
+
+        {/* 5ª Aba: Mais (abre o menu lateral completo) */}
+        <button
+          type="button"
+          onClick={toggleMenu}
+          aria-label={
+            isMenuOpen ? "Fechar menu de seções" : "Mais opções e seções"
+          }
+          aria-expanded={isMenuOpen}
+          className={cn(
+            "flex min-h-[48px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
+            isMoreActive
+              ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
+              : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+          )}
+        >
+          <Menu
             className={cn(
-              "flex min-h-[44px] touch-manipulation flex-col items-center justify-center rounded-lg px-2 py-1 font-semibold text-[11px] transition-colors",
-              isFirst
-                ? "text-[oklch(0.55_0.11_250)]"
-                : "text-mutedText hover:text-ink active:bg-gray-100",
+              "h-5 w-5 shrink-0 transition-transform",
+              isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
             )}
-          >
-            <LayoutDashboard
-              className="h-4 w-4"
-              strokeWidth={isFirst ? 2 : 1.6}
-            />
-            <span>Início</span>
-          </Link>
-
-          <div className="relative flex items-center">
-            <label htmlFor="mobile-bottom-nav-year" className="sr-only">
-              Selecionar Exercício
-            </label>
-            <select
-              id="mobile-bottom-nav-year"
-              aria-label="Selecionar Exercício"
-              value={ano}
-              onChange={(e) => handleExerciceChange(e.target.value)}
-              className="min-h-[44px] cursor-pointer touch-manipulation appearance-none rounded-md border border-borderLine bg-white py-1 pr-6 pl-2 font-semibold text-ink text-xs shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none"
-            >
-              {years.map((yr) => (
-                <option
-                  key={yr}
-                  value={yr}
-                  className="bg-white text-ink text-sm"
-                >
-                  {yr}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              strokeWidth={2}
-              className="pointer-events-none absolute right-1.5 h-3.5 w-3.5 text-mutedText"
-            />
-          </div>
-        </div>
-
-        {/* Botão Próximo */}
-        <div className="flex min-w-0 flex-1 items-center justify-end">
-          {!isLast && nextPage ? (
-            <Link
-              href={nextHref}
-              aria-label={`Próxima página: ${nextPage.label}`}
-              className="flex min-h-[44px] w-full touch-manipulation items-center justify-end gap-1 rounded-lg px-2 py-1.5 font-medium text-ink text-xs transition-colors hover:text-[#1d64d8] active:bg-gray-100"
-            >
-              <span className="truncate">{nextPage.shortLabel}</span>
-              <ChevronRight
-                className="h-4 w-4 shrink-0 text-mutedText"
-                strokeWidth={1.8}
-              />
-            </Link>
-          ) : null}
-        </div>
+            strokeWidth={isMoreActive ? 2.2 : 1.8}
+          />
+          <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
+            Mais
+          </span>
+        </button>
       </div>
     </nav>
   );

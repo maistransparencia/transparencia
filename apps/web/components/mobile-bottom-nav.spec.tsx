@@ -1,14 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
-import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  getCivicStepperPages,
+  isTabActive,
   MobileBottomNav,
-  PORTAL_PAGES,
-  resolveCurrentPageIndex,
+  PRIMARY_NAV_TABS,
+  resolveActiveTabIndex,
 } from "./mobile-bottom-nav";
+import * as MobileNavContextModule from "./mobile-nav-context";
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
@@ -24,230 +24,203 @@ vi.mock("nuqs", () => ({
   useQueryState: vi.fn(),
 }));
 
-vi.mock("posthog-js", () => ({
-  default: {
-    capture: vi.fn(),
-  },
-}));
-
 const mockUsePathname = vi.mocked(usePathname);
 const mockUseQueryState = vi.mocked(useQueryState);
 
-describe("MobileBottomNav Component", () => {
-  const mockSetAno = vi.fn();
+describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
+  const mockToggleMenu = vi.fn();
+  const mockSetIsMenuOpen = vi.fn();
+  const mockCloseMenu = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockUsePathname.mockReturnValue("/porciuncula_prefeitura");
     mockUseQueryState.mockImplementation(((key: string) => {
-      if (key === "ano") return ["2026", mockSetAno];
+      if (key === "ano") return ["2026", vi.fn()];
       if (key === "entidades") return [null, vi.fn()];
       return [null, vi.fn()];
     }) as unknown as typeof useQueryState);
+
+    vi.spyOn(MobileNavContextModule, "useMobileNav").mockReturnValue({
+      isMenuOpen: false,
+      setIsMenuOpen: mockSetIsMenuOpen,
+      toggleMenu: mockToggleMenu,
+      closeMenu: mockCloseMenu,
+    });
   });
 
   describe("Helper Functions", () => {
-    it("resolveCurrentPageIndex deve mapear corretamente rotas e slugs", () => {
-      expect(resolveCurrentPageIndex("/", "porciuncula_prefeitura")).toBe(0);
+    it("isTabActive deve reconhecer corretamente páginas e sub-rotas", () => {
+      expect(isTabActive("/", "/", "porciuncula_prefeitura")).toBe(true);
       expect(
-        resolveCurrentPageIndex(
-          "/porciuncula_prefeitura",
+        isTabActive("/porciuncula_prefeitura", "/", "porciuncula_prefeitura"),
+      ).toBe(true);
+      expect(
+        isTabActive(
+          "/porciuncula_prefeitura/receitas",
+          "/receitas",
           "porciuncula_prefeitura",
         ),
-      ).toBe(0);
+      ).toBe(true);
       expect(
-        resolveCurrentPageIndex(
+        isTabActive(
+          "/porciuncula_prefeitura/despesas/subitem/123",
+          "/despesas",
+          "porciuncula_prefeitura",
+        ),
+      ).toBe(true);
+      expect(
+        isTabActive(
+          "/porciuncula_prefeitura/saude",
+          "/receitas",
+          "porciuncula_prefeitura",
+        ),
+      ).toBe(false);
+    });
+
+    it("resolveActiveTabIndex deve retornar o índice da aba ou 4 para Mais", () => {
+      expect(resolveActiveTabIndex("/", "porciuncula_prefeitura")).toBe(0);
+      expect(
+        resolveActiveTabIndex(
           "/porciuncula_prefeitura/receitas",
           "porciuncula_prefeitura",
         ),
       ).toBe(1);
       expect(
-        resolveCurrentPageIndex(
-          "/porciuncula_prefeitura/orcamento",
+        resolveActiveTabIndex(
+          "/porciuncula_prefeitura/despesas",
           "porciuncula_prefeitura",
         ),
       ).toBe(2);
       expect(
-        resolveCurrentPageIndex(
-          "/porciuncula_prefeitura/despesas",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(3);
-      expect(
-        resolveCurrentPageIndex(
-          "/porciuncula_prefeitura/despesas/subitem/123",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(3);
-      expect(
-        resolveCurrentPageIndex(
+        resolveActiveTabIndex(
           "/porciuncula_prefeitura/licitacoes",
+          "porciuncula_prefeitura",
+        ),
+      ).toBe(3);
+      // Rotas do menu lateral retornam 4 ("Mais")
+      expect(
+        resolveActiveTabIndex(
+          "/porciuncula_prefeitura/orcamento",
           "porciuncula_prefeitura",
         ),
       ).toBe(4);
       expect(
-        resolveCurrentPageIndex(
+        resolveActiveTabIndex(
           "/porciuncula_prefeitura/pessoal",
           "porciuncula_prefeitura",
         ),
-      ).toBe(5);
+      ).toBe(4);
       expect(
-        resolveCurrentPageIndex(
+        resolveActiveTabIndex(
           "/porciuncula_prefeitura/saude",
           "porciuncula_prefeitura",
         ),
-      ).toBe(6);
+      ).toBe(4);
       expect(
-        resolveCurrentPageIndex(
+        resolveActiveTabIndex(
           "/porciuncula_prefeitura/caprem",
           "porciuncula_prefeitura",
         ),
-      ).toBe(7);
-      // Rota não reconhecida faz fallback para 0
-      expect(
-        resolveCurrentPageIndex(
-          "/porciuncula_prefeitura/pagina-inexistente",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(0);
-    });
-
-    it("getCivicStepperPages deve retornar anterior e próximo apropriados", () => {
-      const first = getCivicStepperPages(0);
-      expect(first.isFirst).toBe(true);
-      expect(first.isLast).toBe(false);
-      expect(first.previousPage).toBeNull();
-      expect(first.nextPage?.shortLabel).toBe("Receitas");
-
-      const middle = getCivicStepperPages(3);
-      expect(middle.isFirst).toBe(false);
-      expect(middle.isLast).toBe(false);
-      expect(middle.previousPage?.shortLabel).toBe("Orçamento");
-      expect(middle.nextPage?.shortLabel).toBe("Licitações");
-
-      const last = getCivicStepperPages(PORTAL_PAGES.length - 1);
-      expect(last.isFirst).toBe(false);
-      expect(last.isLast).toBe(true);
-      expect(last.previousPage?.shortLabel).toBe("Saúde");
-      expect(last.nextPage).toBeNull();
+      ).toBe(4);
     });
   });
 
-  describe("Renderização e Navegação", () => {
-    it("deve renderizar na Visão Geral com Anterior oculto e Próximo apontando para Receitas", () => {
+  describe("Renderização e Interações da Barra", () => {
+    it("deve renderizar as 4 abas primárias e o botão Mais", () => {
+      render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+
+      for (const tab of PRIMARY_NAV_TABS) {
+        expect(
+          screen.getByRole("link", { name: tab.label }),
+        ).toBeInTheDocument();
+      }
+
+      const moreBtn = screen.getByRole("button", {
+        name: /mais opções e seções/i,
+      });
+      expect(moreBtn).toBeInTheDocument();
+      expect(screen.getByText("Mais")).toBeInTheDocument();
+    });
+
+    it("deve marcar Visão Geral como ativa quando estiver na raiz", () => {
       mockUsePathname.mockReturnValue("/porciuncula_prefeitura");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      expect(screen.queryByText("Anterior")).not.toBeInTheDocument();
+      const homeLink = screen.getByRole("link", { name: /visão geral/i });
+      expect(homeLink).toHaveAttribute("aria-current", "page");
 
-      const nextLink = screen.getByRole("link", {
-        name: /próxima página: receitas/i,
+      const receitasLink = screen.getByRole("link", { name: /^receitas$/i });
+      expect(receitasLink).not.toHaveAttribute("aria-current");
+    });
+
+    it("deve marcar Despesas como ativa na rota de despesas", () => {
+      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/despesas");
+      render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+
+      const despesasLink = screen.getByRole("link", {
+        name: /despesas detalhadas/i,
       });
-      expect(nextLink).toBeInTheDocument();
-      expect(nextLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura/receitas?ano=2026",
-      );
+      expect(despesasLink).toHaveAttribute("aria-current", "page");
 
       const homeLink = screen.getByRole("link", { name: /visão geral/i });
-      expect(homeLink).toBeInTheDocument();
-      expect(homeLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura?ano=2026",
-      );
+      expect(homeLink).not.toHaveAttribute("aria-current");
     });
 
-    it("deve renderizar em Despesas com Anterior apontando para Orçamento e Próximo para Licitações", () => {
-      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/despesas");
+    it("deve ativar o botão Mais ao navegar em seção do menu lateral como Saúde", () => {
+      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/saude");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      const prevLink = screen.getByRole("link", {
-        name: /página anterior: execução orçamentária/i,
+      const moreBtn = screen.getByRole("button", {
+        name: /mais opções e seções/i,
       });
-      expect(prevLink).toBeInTheDocument();
-      expect(prevLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura/orcamento?ano=2026",
-      );
-
-      const nextLink = screen.getByRole("link", {
-        name: /próxima página: licitações e contratos/i,
-      });
-      expect(nextLink).toBeInTheDocument();
-      expect(nextLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura/licitacoes?ano=2026",
-      );
+      expect(moreBtn).toHaveClass("text-[oklch(0.55_0.11_250)]");
     });
 
-    it("deve renderizar na última página CAPREM com Próximo oculto e Anterior apontando para Saúde", () => {
-      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/caprem");
+    it("deve disparar toggleMenu ao clicar no botão Mais", () => {
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      const prevLink = screen.getByRole("link", {
-        name: /página anterior: saúde/i,
+      const moreBtn = screen.getByRole("button", {
+        name: /mais opções e seções/i,
       });
-      expect(prevLink).toBeInTheDocument();
-      expect(prevLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura/saude?ano=2026",
-      );
-
-      expect(screen.queryByText("Próximo")).not.toBeInTheDocument();
+      fireEvent.click(moreBtn);
+      expect(mockToggleMenu).toHaveBeenCalledTimes(1);
     });
 
-    it("deve preservar parâmetros de query string ano e entidades nos links", () => {
+    it("deve refletir aria-expanded quando o menu lateral estiver aberto", () => {
+      vi.spyOn(MobileNavContextModule, "useMobileNav").mockReturnValue({
+        isMenuOpen: true,
+        setIsMenuOpen: mockSetIsMenuOpen,
+        toggleMenu: mockToggleMenu,
+        closeMenu: mockCloseMenu,
+      });
+
+      render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+
+      const moreBtn = screen.getByRole("button", {
+        name: /fechar menu de seções/i,
+      });
+      expect(moreBtn).toHaveAttribute("aria-expanded", "true");
+    });
+
+    it("deve preservar parâmetros de busca de ano e entidades nos links", () => {
       mockUsePathname.mockReturnValue("/porciuncula_prefeitura/despesas");
       mockUseQueryState.mockImplementation(((key: string) => {
-        if (key === "ano") return ["2024", mockSetAno];
+        if (key === "ano") return ["2024", vi.fn()];
         if (key === "entidades") return ["1,2", vi.fn()];
         return [null, vi.fn()];
       }) as unknown as typeof useQueryState);
 
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      const prevLink = screen.getByRole("link", {
-        name: /página anterior: execução orçamentária/i,
-      });
-      expect(prevLink).toHaveAttribute(
+      const receitasLink = screen.getByRole("link", { name: /^receitas$/i });
+      expect(receitasLink).toHaveAttribute(
         "href",
-        "/porciuncula_prefeitura/orcamento?ano=2024&entidades=1%2C2",
-      );
-
-      const nextLink = screen.getByRole("link", {
-        name: /próxima página: licitações e contratos/i,
-      });
-      expect(nextLink).toHaveAttribute(
-        "href",
-        "/porciuncula_prefeitura/licitacoes?ano=2024&entidades=1%2C2",
+        "/porciuncula_prefeitura/receitas?ano=2024&entidades=1%2C2",
       );
     });
 
-    it("deve interagir com o seletor de ano e emitir evento PostHog", () => {
-      render(
-        <MobileBottomNav
-          portalSlug="porciuncula_prefeitura"
-          anoInicial={2021}
-        />,
-      );
-
-      const select = screen.getByRole("combobox", {
-        name: /selecionar exercício/i,
-      });
-      expect(select).toBeInTheDocument();
-      expect(select).toHaveValue("2026");
-
-      fireEvent.change(select, { target: { value: "2023" } });
-
-      expect(posthog.capture).toHaveBeenCalledWith("year_filter_changed", {
-        selected_year: "2023",
-        previous_year: "2026",
-        portal_slug: "porciuncula_prefeitura",
-      });
-      expect(mockSetAno).toHaveBeenCalledWith("2023");
-    });
-
-    it("deve conter as classes de responsividade mobile e fixação", () => {
+    it("deve conter as classes de responsividade mobile e fixação z-30", () => {
       const { container } = render(
         <MobileBottomNav portalSlug="porciuncula_prefeitura" />,
       );
@@ -255,6 +228,7 @@ describe("MobileBottomNav Component", () => {
       expect(nav).toHaveClass("fixed");
       expect(nav).toHaveClass("bottom-0");
       expect(nav).toHaveClass("md:hidden");
+      expect(nav).toHaveClass("z-30");
     });
   });
 });
