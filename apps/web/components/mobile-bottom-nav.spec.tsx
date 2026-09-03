@@ -134,13 +134,11 @@ describe("MobileBottomNav Component", () => {
   });
 
   describe("Renderização e Navegação", () => {
-    it("deve renderizar na Visão Geral com Anterior desabilitado e Próximo apontando para Receitas", () => {
+    it("deve renderizar na Visão Geral com Anterior oculto e Próximo apontando para Receitas", () => {
       mockUsePathname.mockReturnValue("/porciuncula_prefeitura");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      const prevEl = screen.getByText("Anterior").closest("[aria-disabled]");
-      expect(prevEl).toBeInTheDocument();
-      expect(prevEl).toHaveAttribute("aria-disabled", "true");
+      expect(screen.queryByText("Anterior")).not.toBeInTheDocument();
 
       const nextLink = screen.getByRole("link", {
         name: /próxima página: receitas/i,

@@ -228,15 +228,7 @@ export function MobileBottomNav({
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1.5">
         {/* Botão Anterior */}
         <div className="flex min-w-0 flex-1 items-center justify-start">
-          {isFirst || !previousPage ? (
-            <span
-              aria-disabled="true"
-              className="flex min-h-[44px] w-full cursor-not-allowed touch-manipulation select-none items-center justify-start gap-1 rounded-lg px-2 py-1.5 font-medium text-subtleText text-xs opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4 shrink-0" strokeWidth={1.8} />
-              <span className="truncate">Anterior</span>
-            </span>
-          ) : (
+          {!isFirst && previousPage ? (
             <Link
               href={previousHref}
               aria-label={`Página anterior: ${previousPage.label}`}
@@ -248,7 +240,7 @@ export function MobileBottomNav({
               />
               <span className="truncate">{previousPage.shortLabel}</span>
             </Link>
-          )}
+          ) : null}
         </div>
 
         {/* Bloco Central: Início + Seletor de Ano */}
