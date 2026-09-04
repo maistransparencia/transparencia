@@ -70,6 +70,7 @@ export interface SidebarProps {
   portalSlug?: string;
   onOpenNewsletter?: () => void;
   socialLinksSlot?: React.ReactNode;
+  mobileHeaderRightSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
@@ -87,13 +88,13 @@ function YearSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative max-w-16 border-b *:border-borderLine">
+      <div className="relative w-fit border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
         <select
           id="exercice-select"
           aria-label="Selecionar Exercício"
           value={selectedYear}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] cursor-pointer appearance-none px-0 font-medium text-ink text-xs shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none sm:min-h-0 sm:py-1 sm:text-[10px]"
+          className="min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-[10px]"
         >
           {years.map((yr) => (
             <option
@@ -107,7 +108,7 @@ function YearSelect({
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-2 h-3 w-3 -translate-y-1/2 text-mutedText"
+          className="pointer-events-none absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2 text-mutedText"
         />
       </div>
     );
@@ -155,6 +156,7 @@ export function Sidebar({
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
   socialLinksSlot,
+  mobileHeaderRightSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
 }: SidebarProps) {
@@ -256,17 +258,18 @@ export function Sidebar({
               <Landmark strokeWidth={1.6} className="h-4 w-4 text-subtleText" />
             )}
           </div>
-          <div className="space-y-0 overflow-hidden">
-            <span className="truncate font-bold font-serif text-ink text-sm leading-none">
+          <div className="min-w-0 space-y-1">
+            <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="text-sm text-subtleText leading-none">
+            <div className="flex items-center gap-3 text-sm text-subtleText leading-none">
               <YearSelect
                 years={years}
                 selectedYear={currentExercice}
                 onChange={handleExerciceChange}
                 variant="compact"
               />
+              {mobileHeaderRightSlot}
             </div>
           </div>
         </div>
