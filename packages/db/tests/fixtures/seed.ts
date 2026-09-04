@@ -295,8 +295,41 @@ export async function seedDimOrgao(row: DimOrgaoRow): Promise<void> {
     .execute();
 }
 
+export interface DespesaRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  fonte: string;
+  categoriaGastoSensivel?: string;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+}
+
+export async function seedDespesa(row: DespesaRow): Promise<void> {
+  await db
+    .insertInto("fct_despesas")
+    .values({
+      despesa_id: nextId("desp"),
+      empenho_id: nextId("emp"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      fonte: row.fonte,
+      categoria_gasto_sensivel: row.categoriaGastoSensivel ?? null,
+      empenhado: row.empenhado ?? 0,
+      liquidado: row.liquidado ?? 0,
+      pago: row.pago ?? 0,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_despesas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_posicao_fiscal_metricas")
     .where("portal_slug", "=", portalSlug)
