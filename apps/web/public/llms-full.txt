@@ -244,18 +244,14 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
     `percentualRelativo = (valorDivida / dividaRealTotal) * 100`
   - *Finalidade Cívica e Prevenção de Equívocos:* Esta decomposição evita generalizações incorretas (por exemplo, atribuir ao gabinete do prefeito ou à administração geral despesas de combustíveis ou locação de veículos contraídas pelo Fundo Municipal de Saúde para ambulâncias e equipes médicas de campo).
 
-- **Navegação Móvel Contínua (`MobileBottomNav`):**
-  - Em telas de dispositivos móveis, o portal disponibiliza uma barra inferior persistente de navegação contínua (*MobileBottomNav*) que otimiza a exploração cívica.
-  - *Stepper Cívico Sequencial:* Controles táteis de avanço ("Próximo") e retrocesso ("Anterior") que guiam o cidadão pelo ciclo canônico de fiscalização municipal:
-    1. Visão Geral (`/porciuncula_prefeitura`)
-    2. Despesas (`/porciuncula_prefeitura/despesas`)
-    3. Receitas (`/porciuncula_prefeitura/receitas`)
-    4. Orçamento (`/porciuncula_prefeitura/orcamento`)
-    5. Licitações (`/porciuncula_prefeitura/licitacoes`)
-    6. Quadro de Pessoal (`/porciuncula_prefeitura/pessoal`)
-    7. Saúde (`/porciuncula_prefeitura/saude`)
-    8. Previdência (`/porciuncula_prefeitura/caprem`)
-  - *Seletor de Exercício Persistente:* Permite alternar o ano orçamentário diretamente no rodapé sem exigir retorno ao topo da página ou ao menu de configurações.
+- **Navegação Móvel Contínua:**
+  - Em telas de dispositivos móveis, o portal disponibiliza uma barra fixa inferior ergonômica com 5 abas de toque generoso para exploração cívica ágil:
+    1. **Início / Visão Geral** (`/porciuncula_prefeitura`): Painel executivo com os principais indicadores municipais.
+    2. **Receitas** (`/porciuncula_prefeitura/receitas`): Tributos próprios, repasses e transferências especiais.
+    3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
+    4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
+    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+  - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
 
 ---
 
@@ -289,4 +285,4 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 14. **Explicação do Perímetro Contábil Municipal (`Consolidado` vs Órgão Individual):**
     - Quando questionado sobre as contas do município, explique se os dados apresentados referem-se à visão **Consolidada** (toda a prefeitura somada a fundos municipais como Saúde e Previdência) ou a um órgão específico filtrado. Essa distinção é fundamental para que o cidadão compreenda a real magnitude do orçamento municipal.
 15. **Orientação sobre Navegação Móvel Contínua:**
-    - Para cidadãos acessando o portal em celulares ou tablets, instrua sobre a barra de rodapé persistente, que permite navegar sequencialmente por toda a prestação de contas do município (stepper cívico) e trocar o ano da consulta a qualquer instante.
+    - Para cidadãos acessando o portal em celulares ou tablets, instrua sobre a barra fixa inferior com 5 abas ergonômicas (Início, Receitas, Despesas, Licitações e o botão "Mais" para abrir as demais seções como Orçamento, Pessoal, Saúde e Previdência), além do seletor de ano no cabeçalho superior sincronizado via URL (`?ano=YYYY`).

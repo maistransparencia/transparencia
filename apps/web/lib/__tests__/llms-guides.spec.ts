@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { CATEGORIAS_GASTOS_SENSIVEIS } from "@transparencia/db";
 import { beforeAll, describe, expect, it } from "vitest";
 
 function resolvePublicPath(filename: string): string {
@@ -106,7 +107,7 @@ describe("Guias de IA para Consumo Público (llms.txt e llms-full.txt)", () => {
       "Supabase",
       "getRawDespesasExportRecords",
       "EntidadeSelectCompact",
-      "MobileBottomNavComponent",
+      "MobileBottomNav",
       "debtPopover",
       "useMobileStepper",
     ];
@@ -154,6 +155,34 @@ describe("Guias de IA para Consumo Público (llms.txt e llms-full.txt)", () => {
     }
 
     expect(llmsFullTxt).toMatch(/Formula Injection|DDE/i);
+
+    // Validação estrita de que todas as URLs de exportação exemplificadas utilizam categorias e parâmetros válidos
+    const exportUrlPattern =
+      /https?:\/\/[^\s)>\]"'`]*\/api\/(?:\[portalSlug\]|porciuncula_prefeitura)\/export\?[^\s)>\]"'`]+/g;
+    const exportUrls = [
+      ...(llmsTxt.match(exportUrlPattern) ?? []),
+      ...(llmsFullTxt.match(exportUrlPattern) ?? []),
+    ];
+
+    expect(exportUrls.length).toBeGreaterThan(0);
+    for (const rawUrl of exportUrls) {
+      const cleanUrl = rawUrl.replace(/[.,;:>`]+$/, "");
+      const parsedUrl = new URL(
+        cleanUrl.replace("/[portalSlug]/", "/porciuncula_prefeitura/"),
+      );
+      const categoria = parsedUrl.searchParams.get("categoria");
+      if (categoria && !categoria.startsWith("[")) {
+        expect(
+          (CATEGORIAS_GASTOS_SENSIVEIS as readonly string[]).includes(
+            categoria,
+          ),
+        ).toBe(true);
+      }
+      const tipo = parsedUrl.searchParams.get("tipo");
+      if (tipo && !tipo.startsWith("[")) {
+        expect(["gasto_sensivel", "opacidade_99", "funcao"]).toContain(tipo);
+      }
+    }
   });
 
   it("garante documentação da decomposição da Dívida Real por entidade pública municipal", () => {
@@ -172,8 +201,8 @@ describe("Guias de IA para Consumo Público (llms.txt e llms-full.txt)", () => {
     for (const content of [llmsTxt, llmsFullTxt]) {
       expect(content).toMatch(/Perímetro.*Consolidado/i);
       expect(content).toMatch(/Filtrado por Entidade|\?entidades=/i);
-      expect(content).toMatch(/MobileBottomNav|Navegação Móvel Contínua/i);
-      expect(content).toMatch(/stepper/i);
+      expect(content).toMatch(/Navegação Móvel Contínua/i);
+      expect(content).toMatch(/barra fixa inferior|abas/i);
     }
 
     // Sequência canônica de páginas cívicas
