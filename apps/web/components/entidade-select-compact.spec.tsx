@@ -157,4 +157,43 @@ describe("EntidadeSelectCompact Component", () => {
 
     expect(handleChange).toHaveBeenCalledWith(["1", "2"]);
   });
+
+  it("deve desmarcar uma entidade já selecionada", () => {
+    const handleChange = vi.fn();
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["1", "2"]}
+        onChange={handleChange}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const entidade1Btn = screen.getByRole("button", {
+      name: /prefeitura municipal/i,
+    });
+    fireEvent.click(entidade1Btn);
+
+    expect(handleChange).toHaveBeenCalledWith(["2"]);
+  });
+
+  it("deve desativar o gatilho quando disabled ou sem entidades", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={[]}
+        selectedEntidades={[]}
+        disabled={true}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    expect(trigger.hasAttribute("disabled")).toBe(true);
+    expect(screen.getByText("Nenhuma entidade")).toBeDefined();
+  });
 });
