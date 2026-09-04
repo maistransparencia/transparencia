@@ -111,7 +111,7 @@ export function EntidadeSelectCompact({
     <div
       ref={containerRef}
       className={cn(
-        "relative max-w-[130px] border-borderLine border-b sm:max-w-[150px]",
+        "relative w-fit max-w-[130px] border-gray-400 border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-600 sm:max-w-[150px]",
         className,
       )}
     >
@@ -123,7 +123,7 @@ export function EntidadeSelectCompact({
         aria-expanded={isOpen}
         aria-label="Filtrar entidades públicas municipais"
         className={cn(
-          "flex min-h-[24px] w-full cursor-pointer appearance-none items-center justify-between gap-1 px-0 font-medium text-ink text-xs shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none",
+          "flex min-h-[24px] w-full cursor-pointer appearance-none items-center justify-between gap-1 px-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none",
           isBtnDisabled && "cursor-not-allowed opacity-60",
         )}
       >
@@ -150,7 +150,7 @@ export function EntidadeSelectCompact({
           role="dialog"
           aria-modal="true"
           aria-label="Perímetro Institucional"
-          className="absolute top-full right-0 z-50 mt-1.5 w-64 rounded-lg border border-borderLine bg-white p-2.5 shadow-lg"
+          className="absolute top-full -left-16 z-50 mt-1.5 w-64 max-w-[calc(100vw-2.5rem)] rounded-lg border border-borderLine bg-white p-2.5 shadow-lg sm:-left-20"
         >
           {/* Cabeçalho do Popover */}
           <div className="mb-2 flex items-center justify-between gap-2 border-borderLine border-b pb-2">
