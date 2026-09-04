@@ -51,56 +51,61 @@ export async function getRawDespesasExportRecords(
 
   try {
     let query = db
-      .selectFrom("fct_despesas")
+      .selectFrom("fct_despesas as d")
+      .leftJoin("dim_orgao as o", (join) =>
+        join
+          .onRef("o.portal_slug", "=", "d.portal_slug")
+          .onRef("o.empresa_id", "=", "d.empresa_id"),
+      )
       .select([
-        "empenho_id",
-        "data_empenho",
-        "entidade_nome",
-        "orgao_codigo",
-        "fornecedor_nome",
-        "fornecedor_cpf_cnpj",
-        "descricao",
-        "natureza_despesa_codigo",
-        "empenhado",
-        "liquidado",
-        "pago",
-        "categoria_gasto_sensivel",
+        "d.empenho_id",
+        "d.data_empenho",
+        "o.orgao_nome",
+        "d.orgao_codigo",
+        "d.fornecedor_nome",
+        "d.fornecedor_cpf_cnpj",
+        "d.descricao",
+        "d.natureza_despesa_codigo",
+        "d.empenhado",
+        "d.liquidado",
+        "d.pago",
+        "d.categoria_gasto_sensivel",
       ])
-      .where("portal_slug", "=", portalSlug)
-      .where("ano", "=", ano)
-      .where("fonte", "=", "exercicio");
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "=", ano)
+      .where("d.fonte", "=", "exercicio");
 
     if (empresaIds && empresaIds.length > 0) {
-      query = query.where("empresa_id", "in", empresaIds);
+      query = query.where("d.empresa_id", "in", empresaIds);
     }
 
     if (tipo === "gasto_sensivel") {
       if (categoria) {
-        query = query.where("categoria_gasto_sensivel", "=", categoria);
+        query = query.where("d.categoria_gasto_sensivel", "=", categoria);
       } else {
-        query = query.where("categoria_gasto_sensivel", "is not", null);
+        query = query.where("d.categoria_gasto_sensivel", "is not", null);
       }
     } else if (tipo === "opacidade_99") {
       query = query.where((eb) =>
         eb.or([
-          eb("natureza_despesa_codigo", "like", "%.99"),
-          eb("elemento", "=", "99"),
+          eb("d.natureza_despesa_codigo", "like", "%.99"),
+          eb("d.elemento", "=", "99"),
         ]),
       );
     } else if (tipo === "funcao") {
       if (funcaoCodigo) {
-        query = query.where("funcao", "=", funcaoCodigo);
+        query = query.where("d.funcao", "=", funcaoCodigo);
       }
     }
 
     const rows = await query
-      .orderBy("pago", "desc")
-      .orderBy("data_empenho", "desc")
+      .orderBy("d.pago", "desc")
+      .orderBy("d.data_empenho", "desc")
       .execute();
 
     return rows.map((r) => {
       const orgaoNome = String(
-        r.entidade_nome || r.orgao_codigo || "Não informado",
+        r.orgao_nome || r.orgao_codigo || "Não informado",
       );
       const credorNome = String(r.fornecedor_nome ?? "Não informado");
       const credorCpfCnpj = r.fornecedor_cpf_cnpj
@@ -128,7 +133,9 @@ export async function getRawDespesasExportRecords(
         categoriaSensivel,
       };
     });
-  } catch {
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+    console.error("[getRawDespesasExportRecords] Erro na consulta:", error);
     return [];
   }
 }
