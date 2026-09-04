@@ -1,5 +1,73 @@
-with despesas as (
+with despesas_base as (
     select * from {{ ref('int_despesas_consolidadas') }}
+),
+
+despesas as (
+    select
+        portal_slug,
+        fonte,
+        ano,
+        empresa_id,
+        empenho_id,
+        pk_empenho,
+        pk_empenho_pai,
+        tipo_empenho,
+        orgao_codigo,
+        funcao,
+        funcao_nome,
+        subfuncao,
+        subfuncao_nome,
+        elemento,
+        natureza_despesa,
+        natureza_despesa_codigo,
+        categoria,
+        grupo_natureza,
+        modalidade,
+        programa,
+        programa_nome,
+        proj_atividade,
+        projeto_atividade_nome,
+        mes,
+        fornecedor_nome,
+        fornecedor_cpf_cnpj,
+        fornecedor_raw,
+        licitacao_numero,
+        licitacao_modalidade,
+        licitacao_descricao,
+        fongrupo,
+        fongrupo_desc,
+        foncodigo,
+        foncodigo_desc,
+        fonro,
+        fonro_desc,
+        fonte_stn,
+        fonte_stn_desc,
+        fonte_recurso_desc,
+        data_empenho,
+        empenhado,
+        liquidado,
+        pago,
+        dotacao_inicial,
+        alteracao_dotacao,
+        dotacao_atualizada,
+        anulado,
+        reforco,
+        descricao,
+        entidade_nome,
+        proc,
+        codlo,
+        cfpro,
+        ficha,
+        codif,
+        codigo,
+        produ,
+        vingrupo_vincodigo,
+        vincodigonome,
+        coalesce(texto_objeto, {{ target.schema }}.unaccent(lower(coalesce(nullif(produ, ''), descricao, '')))) as texto_objeto,
+        coalesce(texto_fornecedor, {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, '')))) as texto_fornecedor,
+        coalesce(texto_completo, {{ target.schema }}.unaccent(lower(coalesce(fornecedor_nome, '') || ' ' || coalesce(nullif(produ, ''), descricao, '')))) as texto_completo,
+        coalesce(texto_proj_ativ, {{ target.schema }}.unaccent(lower(coalesce(projeto_atividade_nome, '')))) as texto_proj_ativ
+    from despesas_base
 ),
 
 reclassificacao as materialized (
@@ -65,24 +133,33 @@ reclassificacao as materialized (
         vincodigonome,
         case
             -- 1. Limpeza Urbana e Resíduos Sólidos (Precede locação genérica para evitar capturar caçambas/poliguindastes como veículos)
-            when natureza_despesa_codigo = '3.3.90.39.44'
-                 or (
-                     elemento in ('39', '99')
-                     and texto_objeto ~ '(cacamba|poliguindaste|residuo|entulho|lixo|recicla|transbordo|destinacao final|capina|varricao|aterro sanit)'
-                 ) then 'limpeza_residuos'
+            when (
+                     (natureza_despesa_codigo = '3.3.90.39.44' and texto_fornecedor !~ 'cedae' and texto_objeto !~ '(agua e esgoto|abastecimento de agua|consumo de agua|hidraulic)')
+                     or (
+                         elemento in ('39', '99')
+                         and texto_objeto ~ '(cacamba|poliguindaste|residuo|entulho|lixo|recicla|transbordo|destinacao final|capina|varricao|aterro sanit)'
+                     )
+                 )
+                 and texto_fornecedor !~ 'cedae'
+                 and texto_objeto !~ '(agua e esgoto|abastecimento de agua|consumo de agua)' then 'limpeza_residuos'
 
             -- 2. Consórcios Públicos e Rateios de Saúde
-            when natureza_despesa_codigo like '3.3.71%'
-                 or elemento = '70'
-                 or texto_completo ~ '(consorcio publico|consorcio intermunicipal|rateio de consorcio|rateio do consorcio|cisbap|codesp|cis-bap|ajuste de contas.*confissao de divida)' then 'consorcios_publicos'
+            when (
+                     natureza_despesa_codigo like '3.3.71%'
+                     or elemento = '70'
+                     or texto_completo ~ '(consorcio publico|consorcio intermunicipal|rateio de consorcio|rateio do consorcio|cisbap|codesp|cis-bap|ajuste de contas.*confissao de divida)'
+                 )
+                 and elemento != '30'
+                 and texto_objeto !~ '(aquisicao de medicamento|fornecimento de medicamento|material hospitalar|medicamentos)' then 'consorcios_publicos'
 
             -- 3. Bloqueios Judiciais e Sentenças
             when natureza_despesa_codigo like '3.3.90.91%'
-                 or elemento in ('91', '61')
+                 or elemento = '91'
                  or (
                      texto_completo ~ '(bloqueio judicial|sequestro judicial|precatorio|sentenca judicial|requisicao de pequeno valor|justica do trabalho|tribunal de justica|vara do trabalho|justica federal|tribunal.*trt|tribunal regional do trabalho|vara unica|penhora online|resgate judicial|acordados junto ao tribunal|honorarios advocaticios)'
+                     and elemento != '61'
                      and texto_fornecedor !~ '(vittalis|homecare|home care|hospital|clinica|medico|saude|codesp|cisbap)'
-                     and texto_objeto !~ '(home care|homecare|equipe multidisciplinar|plantao|consulta medica|assistencial de saude)'
+                     and texto_objeto !~ '(home care|homecare|equipe multidisciplinar|plantao|consulta medica|assistencial de saude|aquisicao de terreno|aquisicao de imovel)'
                  ) then 'bloqueios_sentencas'
 
             -- 4. Diárias e Viagens
@@ -104,9 +181,9 @@ reclassificacao as materialized (
                      and texto_objeto !~ '(projeto basico|projeto executivo|topografia|consultoria)'
                  ) then 'obras_infraestrutura'
 
-            -- 6. Combustíveis e Frotas
+            -- 6. Combustíveis e Abastecimento de Frota
             when (
-                natureza_despesa_codigo in ('3.3.90.30.01', '3.3.90.30.39')
+                natureza_despesa_codigo = '3.3.90.30.01'
                 or (
                     elemento in ('30', '39', '99')
                     and (
@@ -119,55 +196,85 @@ reclassificacao as materialized (
                     and texto_fornecedor ~ '(\yposto\y|combustiv|petroleo)'
                 )
             )
-            and texto_fornecedor !~ '(cedae|copasa|enel|educacao|aliment|didatico|livro|magazine|papelaria|cooperativa de transportes|autolocadora|radar empreendimentos)'
-            and texto_objeto !~ '(agua e esgoto|abastecimento de agua|tratamento de esgoto|cedae|alimento|generos alimenticios|didatico|livro|jogos|xicara|cobertor|pedagogico|locacao|aluguel|veiculos leves|veiculos pesados|combustivel por conta)' then 'combustivel_frota'
+            and texto_fornecedor !~ '(cedae|copasa|enel|educacao|aliment|didatico|livro|magazine|papelaria|cooperativa de transportes|autolocadora|radar empreendimentos|auto pecas|autopeças|tratores|rolamentos|pneus)'
+            and texto_objeto !~ '(agua e esgoto|abastecimento de agua|tratamento de esgoto|cedae|alimento|generos alimenticios|didatico|livro|jogos|xicara|cobertor|pedagogico|locacao|aluguel|veiculos leves|veiculos pesados|combustivel por conta|auto-pecas|auto pecas|autopeças|pneu|bateria|pecas para|manutencao preventiva e corretiva dos veiculos)' then 'combustivel_frota'
 
-            -- 7. Locação de Máquinas e Veículos (específico para máquinas/veículos, sem caçambas ou serviços hospitalares/médicos puros)
+            -- 7. Peças e Manutenção de Frotas
+            when natureza_despesa_codigo = '3.3.90.30.39'
+                 or (
+                     elemento in ('30', '99')
+                     and (
+                         texto_fornecedor ~ '(auto pecas|autopeças|tratores e pecas|rolamentos e pecas|comercio de pneus)'
+                         or texto_objeto ~ '(auto-pecas|auto pecas|autopeças|aquisicao de pecas|pecas automotivas|aquisicao de pneu|aquisicao de bateria|pecas de reposicao|bateria automotiva)'
+                     )
+                     and texto_objeto !~ '(gasolina|diesel|etanol|combustivel)'
+                 ) then 'pecas_manutencao_frota'
+
+            -- 8. Locação de Equipamentos de Saúde e Hospitalares
+            when (
+                elemento in ('36', '39', '99')
+                and (
+                    texto_fornecedor ~ '(pure air|gases medicinais|flexlab|minas med hospitalar)'
+                    or texto_objeto ~ '(locacao.*usina de gases|locacao.*gases medicinais|locacao de aparelho.*hospitalar|locacao de equipamentos.*laboratorio|locacao de aparelho de hematologia|locacao.*ambulancia|locacao de equipamentos e mobiliario.*hospitalar|locacao de aparelho para.*unidade mista)'
+                )
+                and texto_objeto ~ '(locacao|aluguel)'
+                and texto_objeto !~ '(show|palco|veiculo leve|trator|escavadeira|caminhao|imovel|predio)'
+            ) then 'locacao_equipamentos_saude'
+
+            -- 9. Locação de Máquinas e Veículos (específico para máquinas/veículos, sem caçambas ou equipamentos hospitalares)
             when (
                 (
                     natureza_despesa_codigo in ('3.3.90.39.12', '3.3.90.39.13', '3.3.90.36.16')
-                    and texto_fornecedor !~ '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino)'
-                    and texto_objeto !~ '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo|aluguel social)'
+                    and texto_fornecedor !~ '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino|minas med)'
+                    and texto_objeto !~ '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo|aluguel social|locacao.*ambulancia|aparelhos hospitalares)'
                 )
                 or (
                     elemento in ('36', '39', '32', '99')
                     and (
                         texto_fornecedor ~ '(autolocadora|radar empreendimentos|cooperativa de transportes)'
-                        or texto_objeto ~ '(locacao|aluguel|prestacao de servicos veiculos|veiculos leves|veiculos pesados).*(veiculo|ambulancia|trator|escavadeira|retroescavadeira|caminhao|van|pipa|motoniveladora|pa carregadeira|maquinario|sem condutor)'
+                        or texto_objeto ~ '(locacao|aluguel|prestacao de servicos veiculos|veiculos leves|veiculos pesados).*(veiculo|trator|escavadeira|retroescavadeira|caminhao|van|pipa|motoniveladora|pa carregadeira|maquinario|sem condutor)'
                     )
-                    and texto_fornecedor !~ '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino)'
-                    and texto_objeto !~ '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo|aluguel social)'
+                    and texto_fornecedor !~ '(copiadora|grafica|papelaria|informatica|flexlab|laboratorio|magazine|pousada|pure air|gases|salino|minas med)'
+                    and texto_objeto !~ '(copiadora|xerox|impressora|digitalizac|reprografia|duplicador|toner|cartucho|software|sistema|imovel|predio|sala|galpao|tenda|palco|dosimetro|abastecimento de agua|tratamento de esgoto|bomba infusora|laboratorio|consulta oftalmolog|consulta medica|oftalmolog|pediatria|som |sonor|mesa|cadeira|freezer|fogao|lavar roupa|colocacao de vidro|revisao|troca de pneu|alinhamento|gases medicinais|oxigenio|brinquedo|inflaveis|usina de|aparelho para|cacamba|residuo|lixo|aluguel social|locacao.*ambulancia|aparelhos hospitalares)'
                 )
                 or (
                     fonte = 'restos_a_pagar'
                     and (
                         texto_fornecedor ~ '(autolocadora|radar empreendimentos|cooperativa de transportes)'
-                        or texto_objeto ~ '(locacao|aluguel).*(veiculo|ambulancia|trator|caminhao|maquina)'
+                        or texto_objeto ~ '(locacao|aluguel).*(veiculo|trator|caminhao|maquina)'
                     )
-                    and texto_objeto !~ 'aluguel social'
+                    and texto_objeto !~ '(aluguel social|locacao.*ambulancia)'
                 )
             ) then 'locacao_maquinas_veiculos'
 
-            -- 8. Locação de Imóveis
+            -- 10. Aluguel Social (Benefício Assistencial Eventual)
+            when (
+                natureza_despesa_codigo in ('3.3.90.36.15', '3.3.90.36.16', '3.3.90.48.00')
+                or elemento in ('36', '48', '99')
+            )
+            and texto_objeto ~ 'aluguel social' then 'aluguel_social'
+
+            -- 11. Locação de Imóveis (Prédios Administrativos e Órgãos Públicos)
             when (
                 natureza_despesa_codigo in ('3.3.90.36.15', '3.3.90.39.10')
                 or (
                     natureza_despesa_codigo in ('3.3.90.36.19', '3.3.90.39.14', '3.3.90.36.16')
-                    and texto_objeto ~ '(imovel|predio|sala|galpao|terreno|sede|almoxarifado|biblioteca|aluguel social)'
+                    and texto_objeto ~ '(imovel|predio|sala|galpao|terreno|sede|almoxarifado|biblioteca)'
                 )
                 or (
                     elemento in ('36', '39', '93', '99')
-                    and texto_objeto ~ '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno|sede|almoxarifado|biblioteca|aluguel social)'
+                    and texto_objeto ~ '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno|sede|almoxarifado|biblioteca)'
                 )
                 or (
                     fonte = 'restos_a_pagar'
-                    and texto_objeto ~ '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno|aluguel social)'
+                    and texto_objeto ~ '(locacao|aluguel).*(imovel|predio|sala|galpao|terreno)'
                 )
             )
+            and texto_objeto !~ 'aluguel social'
             and texto_fornecedor !~ '(transporte|veiculo|enel|cedae|copasa)'
             and texto_objeto !~ '(transporte|veiculo|aluno|energia|eletric|agua|esgoto|tenda|som|palco)' then 'locacao_imoveis'
 
-            -- 9. Eventos, Shows e Festividades
+            -- 12. Eventos, Shows e Festividades
             when (
                 natureza_despesa_codigo in ('3.3.90.39.21', '3.3.90.39.22', '3.3.90.39.23')
                 or natureza_despesa_codigo like '3.3.90.31%'
@@ -188,17 +295,31 @@ reclassificacao as materialized (
             and texto_objeto !~ '(data show|projetor|imovel|predio|veiculo|transporte|agua|energia|palestra)'
             and texto_fornecedor !~ '(transporte|veiculo|enel|cedae|copasa)' then 'eventos_festas'
 
-            -- 10. Serviços Médicos, Plantões e Exames
-            when natureza_despesa_codigo in ('3.3.90.39.50', '3.3.90.36.06', '3.3.90.36.07', '3.3.90.39.51')
-                 or (
-                     elemento in ('36', '39', '99')
-                     and (
-                         texto_fornecedor ~ '(flexlab|laboratorio|clinica|oftalmo|hospital|servicos medicos|assistencia em saude|home care|homecare|remocao.*saude|saude.*servicos|vittalis|focus.*medico|pure air|gases medicinais)'
-                         or texto_objeto ~ '(plantao|plantoes|escala.*plantao|gestao de escala|assistencial de saude|consulta medica|consultas medicas|consulta oftalmolog|oftalmolog|pediatria|ultrassonografia|exames laborator|cirurgia|hospitalar|home care|homecare|dosimetro|gases medicinais|oxigenio medicinal|medicos 24h|medico 24h|urgencia.*medico|medico.*urgencia)'
-                     )
-                 ) then 'plantoes_medicos'
+            -- 13. Assistência Domiciliar e Home Care
+            when (
+                elemento in ('36', '39', '99')
+                and (
+                    texto_fornecedor ~ '(home care|homecare|remocao.*saude|vittalis)'
+                    or texto_objeto ~ '(home care|homecare|atendimento domiciliar|tecnica de enfermagem.*home care|tecnico de enfermagem.*home care|cuidador.*domiciliar|equipe multidisciplinar.*sentenca judicial|equipe multidisciplinar.*manutencao da vida)'
+                )
+                and texto_objeto !~ '(show|palco|combustivel|locacao de aparelho|locacao.*usina)'
+            ) then 'assistencia_domiciliar_home_care'
 
-            -- 11. Mão de Obra Terceirizada
+            -- 14. Serviços Médicos, Plantões e Exames
+            when (
+                natureza_despesa_codigo in ('3.3.90.39.50', '3.3.90.36.06', '3.3.90.36.07', '3.3.90.39.51')
+                or (
+                    elemento in ('36', '39', '99')
+                    and (
+                        texto_fornecedor ~ '(clinica|oftalmo|hospital|servicos medicos|focus.*medico)'
+                        or texto_objeto ~ '(plantao.*medic|plantoes.*medic|medico.*plant|plantonista|escala.*medic|gestao de escala.*medico|medicos 24h|medico 24h|urgencia.*medico|medico.*urgencia|consulta medica|consultas medicas|consulta oftalmolog|oftalmolog|pediatria|ultrassonografia|exames laborator|cirurgia|hospitalar)'
+                    )
+                )
+            )
+            and texto_objeto !~ '(auxiliar de cozinha|cozinheir|motorista|vigia|vigilante|porteir|portaria|recepcao|recepcionista|maqueiro|lavanderia|home care|homecare|gases medicinais|oxigenio medicinal|usina de gases|locacao de aparelho|locacao.*ambulancia|locacao de equipamentos)'
+            and texto_fornecedor !~ '(pure air|flexlab|minas med hospitalar)' then 'plantoes_medicos'
+
+            -- 15. Mão de Obra Terceirizada
             when natureza_despesa_codigo like '3.3.90.37%'
                  or elemento = '37'
                  or (
@@ -206,20 +327,23 @@ reclassificacao as materialized (
                      and texto_objeto ~ '(mao de obra terceirizada|mao-de-obra terceirizada|locacao de mao de obra|locacao de mao-de-obra|terceirizacao de mao|terceirizacao de servicos|servicos continuados de mao|servicos terceirizados|posto de trabalho|postos de trabalho|servicos de portaria|servicos de recepcao|limpeza predial terceirizada|apoio administrativo terceirizado)'
                  ) then 'terceirizacao_mao_obra'
 
-            -- 12. Previdência e Obrigações Patronais (inclui folha de inativos e pensionistas)
-            when natureza_despesa_codigo like '3.3.90.13%'
-                 or natureza_despesa_codigo in ('3.1.90.01.99', '3.1.90.03.99', '3.1.90.01.01', '3.1.90.01.06', '3.1.90.03.01')
-                 or elemento in ('13', '01', '03')
-                 or texto_completo ~ '(\yinss\y|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|pasep|folha de pagamento dos inativos|inativos e pensionistas|casp - caixa assist|guias de recolhimento de planos de saude|pensionista|inativo)' then 'previdencia'
+            -- 16. Previdência e Obrigações Patronais (inclui folha de inativos e pensionistas)
+            when (
+                     natureza_despesa_codigo like '3.3.90.13%'
+                     or natureza_despesa_codigo in ('3.1.90.01.99', '3.1.90.03.99', '3.1.90.01.01', '3.1.90.01.06', '3.1.90.03.01')
+                     or elemento in ('13', '01', '03')
+                     or texto_completo ~ '(\yinss\y|caprem|previdencia propria|contribuicao previdenciaria patronal|obrigacoes patronais|folha de pagamento dos inativos|inativos e pensionistas|casp - caixa assist|guias de recolhimento de planos de saude|pensionista|inativo)'
+                 )
+                 and texto_completo !~ 'pasep' then 'previdencia'
 
-            -- 13. Consultoria, Assessoria Técnica e Pesquisa
+            -- 17. Consultoria, Assessoria Técnica e Pesquisa
             when (
                      natureza_despesa_codigo like '3.3.90.35%'
                      or elemento = '35'
                      or (
                          natureza_despesa_codigo = '3.3.90.39.05'
-                         and texto_fornecedor !~ '(informatica|telecom|digital net|internet)'
-                         and texto_objeto !~ '(internet|telecomunicac|link de dados|provedor)'
+                         and texto_objeto ~ '(consultoria|assessoria|auditoria|estudo especializado|planejamento|projeto basico|pesquisa)'
+                         and texto_objeto !~ '(ar condicionado|climatizac|eletric|cameras|monitoramento|conserto|reparo|manutencao de aparelho|instalacao)'
                      )
                      or (
                          elemento in ('36', '39', '99')
@@ -229,7 +353,7 @@ reclassificacao as materialized (
                          )
                      )
                  )
-                 and texto_objeto !~ '(show|festa|veiculo|combustivel|internet|telecomunicac)' then 'consultoria_tecnica'
+                 and texto_objeto !~ '(show|festa|veiculo|combustivel|internet|telecomunicac|ar condicionado|cameras|monitoramento)' then 'consultoria_tecnica'
 
             else null
         end as categoria_objeto_sugerida
@@ -244,7 +368,23 @@ select
         when r.categoria_objeto_sugerida = 'limpeza_residuos' then '3.3.90.39.44'
         when r.categoria_objeto_sugerida = 'consorcios_publicos' then '3.3.71.70.00'
         when r.categoria_objeto_sugerida = 'bloqueios_sentencas' then '3.3.90.91.00'
-        when r.categoria_objeto_sugerida = 'plantoes_medicos' then '3.3.90.39.50'
+        when r.categoria_objeto_sugerida = 'plantoes_medicos' then
+            case
+                when r.elemento = '36' then '3.3.90.36.06'
+                when r.elemento = '39' then '3.3.90.39.50'
+                when length(regexp_replace(coalesce(r.fornecedor_cpf_cnpj, ''), '\D', '', 'g')) > 11 then '3.3.90.39.50'
+                else '3.3.90.36.06'
+            end
+        when r.categoria_objeto_sugerida = 'locacao_equipamentos_saude' then '3.3.90.39.12'
+        when r.categoria_objeto_sugerida = 'assistencia_domiciliar_home_care' then
+            case
+                when r.elemento = '36' then '3.3.90.36.06'
+                when r.elemento = '39' then '3.3.90.39.99'
+                when length(regexp_replace(coalesce(r.fornecedor_cpf_cnpj, ''), '\D', '', 'g')) > 11 then '3.3.90.39.99'
+                else '3.3.90.36.06'
+            end
+        when r.categoria_objeto_sugerida = 'pecas_manutencao_frota' then '3.3.90.30.39'
+        when r.categoria_objeto_sugerida = 'aluguel_social' then '3.3.90.48.00'
         when r.categoria_objeto_sugerida = 'terceirizacao_mao_obra' then '3.3.90.37.00'
         when r.categoria_objeto_sugerida = 'previdencia' then
             case
@@ -268,7 +408,23 @@ select
         when r.categoria_objeto_sugerida = 'limpeza_residuos' then 'Serviços de Limpeza Urbana e Manejo de Resíduos Sólidos'
         when r.categoria_objeto_sugerida = 'consorcios_publicos' then 'Rateio pela Participação em Consórcio Público'
         when r.categoria_objeto_sugerida = 'bloqueios_sentencas' then 'Sentenças Judiciais'
-        when r.categoria_objeto_sugerida = 'plantoes_medicos' then 'Serviços Médico-Hospitalares e Plantões'
+        when r.categoria_objeto_sugerida = 'plantoes_medicos' then
+            case
+                when r.elemento = '36' then 'Serviços Técnicos Profissionais'
+                when r.elemento = '39' then 'Serviços Médico-Hospitalares e Plantões'
+                when length(regexp_replace(coalesce(r.fornecedor_cpf_cnpj, ''), '\D', '', 'g')) > 11 then 'Serviços Médico-Hospitalares e Plantões'
+                else 'Serviços Técnicos Profissionais'
+            end
+        when r.categoria_objeto_sugerida = 'locacao_equipamentos_saude' then 'Locação de Máquinas e Equipamentos'
+        when r.categoria_objeto_sugerida = 'assistencia_domiciliar_home_care' then
+            case
+                when r.elemento = '36' then 'Serviços Técnicos Profissionais'
+                when r.elemento = '39' then 'Outros Serviços de Terceiros - Pessoa Jurídica'
+                when length(regexp_replace(coalesce(r.fornecedor_cpf_cnpj, ''), '\D', '', 'g')) > 11 then 'Outros Serviços de Terceiros - Pessoa Jurídica'
+                else 'Serviços Técnicos Profissionais'
+            end
+        when r.categoria_objeto_sugerida = 'pecas_manutencao_frota' then 'Material para Manutenção de Veículos'
+        when r.categoria_objeto_sugerida = 'aluguel_social' then 'Outros Auxílios Financeiros a Pessoas Físicas'
         when r.categoria_objeto_sugerida = 'terceirizacao_mao_obra' then 'Locação de Mão-de-Obra Terceirizada'
         when r.categoria_objeto_sugerida = 'previdencia' then
             case

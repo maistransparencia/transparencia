@@ -48,6 +48,22 @@ unit_tests:
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '56', pk_empenho: '56', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'DEAG EMPREENDIMENTOS LTDA', descricao: 'PRESTACAO DE SERVICOS CONTINUADOS DE MAO DE OBRA TERCEIRIZADA PARA ATENDIMENTO DAS NECESSIDADES ADMINISTRATIVAS', empenhado: 359917.34}
           # 10. Acordo de Parceria para Pesquisa e Desenvolvimento em .99 (Caso FUJB)
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '57', pk_empenho: '57', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'FUNDAÇÃO UNIVERSITÁRIA JOSÉ BONIFÁCIO - FUJB', descricao: 'ACORDO DE PARCERIA PARA PESQUISA, DESENVOLVIMENTO E INOVACAO COM ESTUDO ESPECIALIZADO DE MODELAGEM DE CHEIAS', empenhado: 332354.58}
+          # 11. Locação de Equipamentos de Saúde (Caso Pure Air)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '58', pk_empenho: '58', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_nome: 'PURE AIR LOCACAO DE EQUIPAMENTOS', descricao: 'LOCACAO DE USINA DE GASES MEDICINAIS PARA UNIDADE MISTA', empenhado: 12000.00}
+          # 12. Assistência Domiciliar / Home Care PJ (Caso Vittalis)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '59', pk_empenho: '59', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.99', fornecedor_cpf_cnpj: '12.345.678/0001-90', fornecedor_nome: 'VITTALIS HOME CARE LTDA', descricao: 'SERVICO DE ATENDIMENTO DOMICILIAR MULTIDISCIPLINAR PARA MANUTENCAO DA VIDA', empenhado: 25000.00}
+          # 13. Assistência Domiciliar / Home Care PF (Técnica de Enfermagem PF)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '60', pk_empenho: '60', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.99', fornecedor_cpf_cnpj: '123.456.789-00', fornecedor_nome: 'MARIA SILVA ENFERMAGEM', descricao: 'CONTRATACAO DE SERVICOS DE TECNICA DE ENFERMAGEM PARA ATENDIMENTO DE HOME CARE', empenhado: 3000.00}
+          # 14. Peças e Manutenção de Frotas
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '61', pk_empenho: '61', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.39', fornecedor_nome: 'AUTO PECAS NORTE LTDA', descricao: 'AQUISICAO DE PECAS AUTOMOTIVAS E BATERIAS PARA VEICULOS', empenhado: 4500.00}
+          # 15. Aluguel Social
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '62', pk_empenho: '62', tipo_empenho: 'OR', elemento: '48', natureza_despesa_codigo: '3.3.90.48.00', fornecedor_nome: 'CIDADAO BENEFICIARIO', descricao: 'PAGAMENTO DE BENEFICIO EVENTUAL DE ALUGUEL SOCIAL', empenhado: 600.00}
+          # 16. Exclusão: Cozinheira em regime de plantão (NÃO médico)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '63', pk_empenho: '63', tipo_empenho: 'OR', elemento: '36', natureza_despesa_codigo: '3.3.90.36.99', fornecedor_nome: 'ANA COZINHEIRA', descricao: 'CONTRATACAO DE SERVICOS PARA ATUAR COMO COZINHEIRA EM REGIME DE PLANTOES', empenhado: 1500.00}
+          # 17. Exclusão: CEDAE em 3.3.90.39.44 (NÃO lixo/resíduos)
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '64', pk_empenho: '64', tipo_empenho: 'OR', elemento: '39', natureza_despesa_codigo: '3.3.90.39.44', fornecedor_nome: 'CEDAE COMPANHIA ESTADUAL', descricao: 'CONSUMO DE AGUA E ESGOTO DA SECRETARIA', empenhado: 800.00}
+          # 18. Exclusão: PASEP em Previdência
+          - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '65', pk_empenho: '65', tipo_empenho: 'OR', elemento: '13', natureza_despesa_codigo: '3.3.90.13.99', fornecedor_nome: 'RECEITA FEDERAL', descricao: 'CONTRIBUICAO PARA O PROGRAMA PASEP', empenhado: 15000.00}
     expect:
       rows:
         - {empenho_id: '1', categoria_objeto_sugerida: 'combustivel_frota', categoria_gasto_sensivel: 'combustivel_frota', natureza_despesa_codigo_sugerido: '3.3.90.30.01'}
@@ -60,3 +76,11 @@ unit_tests:
         - {empenho_id: '55', categoria_objeto_sugerida: 'plantoes_medicos', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.50'}
         - {empenho_id: '56', categoria_objeto_sugerida: 'terceirizacao_mao_obra', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.37.00'}
         - {empenho_id: '57', categoria_objeto_sugerida: 'consultoria_tecnica', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.35.00'}
+        - {empenho_id: '58', categoria_objeto_sugerida: 'locacao_equipamentos_saude', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.12'}
+        - {empenho_id: '59', categoria_objeto_sugerida: 'assistencia_domiciliar_home_care', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.99'}
+        - {empenho_id: '60', categoria_objeto_sugerida: 'assistencia_domiciliar_home_care', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.36.06'}
+        - {empenho_id: '61', categoria_objeto_sugerida: 'pecas_manutencao_frota', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.30.39'}
+        - {empenho_id: '62', categoria_objeto_sugerida: 'aluguel_social', categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.48.00'}
+        - {empenho_id: '63', categoria_objeto_sugerida: null, categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.36.99'}
+        - {empenho_id: '64', categoria_objeto_sugerida: null, categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.39.44'}
+        - {empenho_id: '65', categoria_objeto_sugerida: null, categoria_gasto_sensivel: null, natureza_despesa_codigo_sugerido: '3.3.90.13.99'}
