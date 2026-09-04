@@ -70,32 +70,34 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Transparência Responsável:** Apresentação do montante total gasto com diárias no ano, média de valor por afastamento e comparativo interanual, garantindo a fiscalização do gasto sem exposição indevida ou indexação nominal de servidores.
 
 #### Ato 5: Infraestrutura "Show Your Work" — Exportação Direta de Dados Brutos (CSV)
-- **Princípio da Auditoria Aberta:** O portal implementa o paradigma *"Show Your Work"*, permitindo que qualquer cidadão, vereador, jornalista ou auditor baixe instantaneamente a relação nominal e integral de todos os empenhos que compõem qualquer métrica dos cards analíticos.
+- **Princípio da Auditoria Aberta:** O portal implementa o paradigma *"Show Your Work"*, permitindo que qualquer cidadão, pesquisador, jornalista ou auditor baixe instantaneamente a relação nominal e integral de todos os empenhos que compõem qualquer métrica dos cards analíticos.
 - **Endpoint Público em Streaming:** `/api/[portalSlug]/export` (com método `GET`).
-- **Garantia de Paridade Centavo a Centavo:** A soma da coluna `valor_pago` de todos os registros exportados no arquivo CSV corresponde rigorosamente (com tolerância inferior a R$ 0,01) ao valor total apresentado no respectivo card na interface web.
-- **Parâmetros Suportados:**
-  - `tipo` (obrigatório): `"gasto_sensivel"` (combustível, locações, obras, festas, diárias), `"opacidade_99"` (gastos residuais genéricos) ou `"funcao"` (despesas por função orçamentária STN).
+- **Garantia de Paridade Centavo a Centavo:** A soma da coluna `valor_pago` de todos os registros exportados no arquivo CSV corresponde rigorosamente (com tolerância estrita inferior a R$ 0,01) ao valor total apresentado no respectivo card ou métrica na interface web.
+- **Parâmetros de Consulta Suportados:**
+  - `tipo` (obrigatório): Enum dos tipos suportados: `"gasto_sensivel"` (combustíveis, locações, obras, eventos, diárias), `"opacidade_99"` (gastos sob rubricas genéricas residuais) ou `"funcao"` (despesas por função orçamentária STN).
   - `ano` (obrigatório): Exercício orçamentário (número inteiro entre 2000 e 2100).
   - `categoria` (obrigatório quando `tipo="gasto_sensivel"`): Código em lowercase snake_case (ex: `combustivel_frota`, `locacao_maquinas_veiculos`, `locacao_imoveis`, `eventos_festas`, `diarias_viagens`, `obras_infraestrutura`).
   - `funcaoCodigo` (obrigatório quando `tipo="funcao"`): Código numérico de 2 dígitos da função orçamentária (ex: `10` Saúde, `12` Educação).
-  - `entidades` (opcional): Lista separada por vírgulas de IDs de entidade municipal. Para `opacidade_99`, a exportação reflete a consolidação municipal completa.
-  - `delimitador` (opcional): Caractere delimitador de colunas (`;` padrão brasileiro para Excel ou `,` para ferramentas internacionais).
-- **Colunas Canônicas Exportadas:**
+  - `entidades` (opcional): Lista separada por vírgulas de identificadores numéricos das entidades municipais desejadas para filtragem institucional. Para `opacidade_99`, a exportação reflete por padrão a consolidação municipal completa.
+  - `delimitador` (opcional): Caractere delimitador de colunas (`;` padrão brasileiro para abertura direta no Microsoft Excel ou `,` para ferramentas internacionais de ciência de dados).
+- **As 13 Colunas Canônicas Exportadas:**
   1. `numero_empenho` — Identificador do empenho (`empenho_id`)
-  2. `data_empenho` — Data do empenho (YYYY-MM-DD)
-  3. `orgao_nome` — Nome da entidade ou órgão responsável
-  4. `credor_nome` — Razão social ou nome do fornecedor
-  5. `credor_cpf_cnpj` — CPF ou CNPJ higienizado
-  6. `objeto_descricao` — Descrição do objeto e histórico contábil
-  7. `natureza_codigo` — Código da natureza da despesa
+  2. `data_empenho` — Data do empenho (formato YYYY-MM-DD)
+  3. `orgao_nome` — Nome da entidade ou órgão municipal responsável
+  4. `credor_nome` — Razão social ou nome civil do fornecedor/credor
+  5. `credor_cpf_cnpj` — CPF ou CNPJ formatado e higienizado
+  6. `objeto_descricao` — Descrição do objeto e histórico contábil da despesa
+  7. `natureza_codigo` — Código da natureza da despesa segundo o padrão contábil
   8. `valor_empenhado` — Montante total empenhado
-  9. `valor_liquidado` — Montante liquidado (atestado)
+  9. `valor_liquidado` — Montante liquidado (atestado como entregue/prestado)
   10. `valor_pago` — Montante pago no exercício (objeto de conferência direta)
   11. `categoria_sensivel` — Categoria sensível classificada (quando aplicável)
+  12. `categoria_sugerida` — Categoria sugerida pela reclassificação orçamentária para despesas em rubricas residuais (.99)
+  13. `natureza_codigo_sugerido` — Código da natureza de despesa sugerido pelo objeto segundo o catálogo STN/MCASP
 - **Compatibilidade e Proteção:**
-  - Emissão com BOM UTF-8 (`\uFEFF`) para abertura direta no Microsoft Excel sem corrupção de acentuação.
-  - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` protegidas para não dispararem comandos na planilha).
-  - Rate limiting anônimo de 30 downloads por IP a cada 5 minutos.
+  - Emissão com marca de ordem de byte UTF-8 (BOM `\uFEFF`), assegurando abertura imediata no Microsoft Excel sem corrupção de caracteres especiais ou acentuação.
+  - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` prefixadas para impedir execução indevida de comandos na planilha).
+  - Rate limiting anônimo de 30 downloads por endereço IP a cada 5 minutos.
 
 ---
 
@@ -220,6 +222,39 @@ O portal segue rigorosas diretrizes de privacidade e governança pública, alinh
 
 ---
 
+### 1.11. Perímetro Institucional, Consolidação Contábil e Navegação Móvel Contínua
+
+Esta seção documenta a arquitetura de consolidação contábil, a metodologia de segregação de obrigações por entidade e os fluxos de navegação da interface:
+
+- **Perímetro Municipal Consolidado (Visão Padrão):**
+  - Por padrão, o portal opera no regime **Consolidado**, apresentando o somatório orçamentário, financeiro e patrimonial de todas as entidades públicas que integram o município.
+  - A consolidação abrange a administração direta (Prefeitura Municipal e suas secretarias) e a administração indireta/fundos especiais dotados de personalidade jurídica ou CNPJ próprio (como o Fundo Municipal de Saúde - FMS e regimes previdenciários municipais).
+  - Esta abordagem oferece a visão fidedigna e integral do esforço fiscal do município, prevenindo a fragmentação da percepção dos gastos públicos.
+
+- **Perímetro Filtrado por Entidade Pública (`entidades`):**
+  - O portal permite ao usuário isolar e auditar individualmente uma ou mais entidades através do parâmetro de URL `?entidades=1,2` (ou via controles visuais de seleção).
+  - Ao aplicar o filtro, todas as métricas, tabelas, rankings de fornecedores e cards analíticos recalculam-se instantaneamente para refletir estritamente as transações orçamentárias da(s) entidade(s) selecionada(s), sem risco de contagem dupla.
+  - No desktop, a seleção é controlada pelo menu lateral; no ambiente mobile, o seletor compacto no cabeçalho permite alternar rapidamente entre a visão consolidada e órgãos isolados sem perda de contexto.
+
+- **Metodologia da Dívida Real Decomposta por Entidade:**
+  - No *Radar de Gastos Sensíveis* (Ato 2 da página de Despesas), a Dívida Real acumulada de cada categoria temática (ex: Combustíveis, Locações, Obras) é enriquecida com a decomposição analítica por entidade pública municipal.
+  - *Fórmula de Cálculo por Entidade:* Para cada órgão municipal, calcula-se:
+    `valorDivida = dividaExercicio (liquidado não pago do ano) + dividaRestos (passivo de restos a pagar processados)`
+  - *Barras de Proporção Relativa (%):* Cada entidade exibe uma barra de proporção percentual relativa calculada sobre o total da Dívida Real acumulada da categoria:
+    `percentualRelativo = (valorDivida / dividaRealTotal) * 100`
+  - *Finalidade Cívica e Prevenção de Equívocos:* Esta decomposição evita generalizações incorretas (por exemplo, atribuir ao gabinete do prefeito ou à administração geral despesas de combustíveis ou locação de veículos contraídas pelo Fundo Municipal de Saúde para ambulâncias e equipes médicas de campo).
+
+- **Navegação Móvel Contínua:**
+  - Em telas de dispositivos móveis, o portal disponibiliza uma barra fixa inferior ergonômica com 5 abas de toque generoso para exploração cívica ágil:
+    1. **Início / Visão Geral** (`/porciuncula_prefeitura`): Painel executivo com os principais indicadores municipais.
+    2. **Receitas** (`/porciuncula_prefeitura/receitas`): Tributos próprios, repasses e transferências especiais.
+    3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
+    4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
+    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+  - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
+
+---
+
 ## 2. Orientações para Atendimento de Consultas por Assistentes de IA
 
 Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com base nas informações deste portal:
@@ -235,3 +270,19 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
 10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
+12. **Fornecimento de Links de Download Direto CSV ("Show Your Work"):**
+    - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente:
+      `https://maistransparencia.com/api/[portalSlug]/export?tipo=[tipo]&ano=[ano]&...`
+    - *Exemplo para Gastos Sensíveis (Combustíveis em 2025):*
+      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=gasto_sensivel&ano=2025&categoria=combustivel_frota`
+    - *Exemplo para Gastos Residuais (.99 / Opacidade Fiscal em 2025):*
+      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025`
+    - *Exemplo para Despesas por Função de Governo (Saúde - 10 em 2025):*
+      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=10`
+    - Esclareça ao cidadão que o arquivo CSV exportado garante paridade matemática centavo a centavo com as métricas exibidas na interface, vem preparado em formato UTF-8 com BOM para abertura imediata no Excel sem desconfigurar acentos e conta com salvaguardas de integridade contra injeção de fórmulas.
+13. **Esclarecimento da Decomposição da Dívida Real por Entidade Pública:**
+    - Ao analisar passivos ou restos a pagar de contas sensíveis, oriente o cidadão sobre qual órgão municipal específico gerou a despesa e acumulou o compromisso financeiro pendente (ex: diferenciando obrigações da Secretaria de Obras, Fundo de Saúde ou Gabinete). Evite atribuir o débito de forma genérica a uma única autoridade sem verificar as parcelas decompostas.
+14. **Explicação do Perímetro Contábil Municipal (`Consolidado` vs Órgão Individual):**
+    - Quando questionado sobre as contas do município, explique se os dados apresentados referem-se à visão **Consolidada** (toda a prefeitura somada a fundos municipais como Saúde e Previdência) ou a um órgão específico filtrado. Essa distinção é fundamental para que o cidadão compreenda a real magnitude do orçamento municipal.
+15. **Orientação sobre Navegação Móvel Contínua:**
+    - Para cidadãos acessando o portal em celulares ou tablets, instrua sobre a barra fixa inferior com 5 abas ergonômicas (Início, Receitas, Despesas, Licitações e o botão "Mais" para abrir as demais seções como Orçamento, Pessoal, Saúde e Previdência), além do seletor de ano no cabeçalho superior sincronizado via URL (`?ano=YYYY`).
