@@ -26,7 +26,7 @@ describe("apps/web/env (validação centralizada com t3-env e Zod)", () => {
         "https://github.com/maistransparencia/transparencia",
       );
       expect(env.NEXT_PUBLIC_FACEBOOK_URL).toBe(
-        "https://facebook.com/maistransparencia",
+        "https://facebook.com/profile.php?id=",
       );
     });
 
