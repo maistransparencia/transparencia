@@ -80,9 +80,9 @@ export async function loadPessoalData(
       empresaIds,
       portalSlug: tenantSlug,
     }),
-    getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear, empresaIds),
+    getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear),
     getExecucaoDecimoTerceiroMetrics(tenantSlug, selectedYear, empresaIds),
-    getDistribuicaoProventosMetrics(tenantSlug, selectedYear, empresaIds),
+    getDistribuicaoProventosMetrics(tenantSlug, selectedYear),
     getDepartmentalPayrollMetrics(tenantSlug, selectedYear, empresaIds),
   ]);
 

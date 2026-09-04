@@ -46,4 +46,28 @@ describe("pessoal-metrics", () => {
     const limiteLrf = await getLimiteMaximoLrfPessoal(TEST_YEAR);
     expect(limiteLrf).toBe(54);
   });
+
+  it("deve manter rclProxy consolidado mesmo com empresaIds filtrados", async () => {
+    const folhaConsolidada = await getFolhaVsServicosMetrics({
+      years: [TEST_YEAR],
+      portalSlug: PORTAL_SLUG,
+    });
+    const folhaEntidade = await getFolhaVsServicosMetrics({
+      years: [TEST_YEAR],
+      portalSlug: PORTAL_SLUG,
+      empresaIds: ["3"],
+    });
+
+    expect(folhaConsolidada.length).toBeGreaterThan(0);
+    expect(folhaEntidade.length).toBeGreaterThan(0);
+
+    // O denominador rclProxy deve ser idêntico (a receita consolidada do município)
+    expect(folhaEntidade[0].rclProxy).toBe(folhaConsolidada[0].rclProxy);
+    expect(folhaEntidade[0].rclProxy).toBeGreaterThan(0);
+
+    // O percentual da entidade individual deve ser proporcional à sua folha, abaixo do total consolidado
+    expect(folhaEntidade[0].percentualFolha).toBeLessThanOrEqual(
+      folhaConsolidada[0].percentualFolha,
+    );
+  });
 });

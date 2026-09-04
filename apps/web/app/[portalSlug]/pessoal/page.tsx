@@ -50,6 +50,8 @@ export default async function PessoalPage({
     distribuicaoProventos,
     departmentalPayroll,
     currentYearRow,
+    headerDescription,
+    folhaKpi,
   } = viewModel;
 
   return (
@@ -64,32 +66,23 @@ export default async function PessoalPage({
           Folha de Pagamento
         </h1>
         <p className="mt-2 max-w-4xl text-slate-600 text-xs leading-relaxed sm:text-sm">
-          Quanto da receita arrecadada é comprometido com salários e proventos.
-          A Lei de Responsabilidade Fiscal limita esse gasto a{" "}
-          <strong className="font-semibold text-slate-900">
-            54% da receita corrente líquida
-          </strong>{" "}
-          para o Poder Executivo.
+          {headerDescription}
         </p>
       </div>
 
       {/* 3 Key KPI Cards */}
       <KPIGrid columns={3}>
         <KPICard
-          title="Folha / Receita Arrecadada"
+          title={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
-          subtext={
-            currentYearRow.percentualFolha <= 54
-              ? "abaixo do teto de 54%"
-              : "acima do teto de 54%"
-          }
-          alert={currentYearRow.percentualFolha > 54}
+          subtext={folhaKpi.subtext}
+          alert={folhaKpi.alert}
           accent
         />
         <KPICard
           title="Efetivos no comando das chefias"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
-          subtext="cargos de liderança concursados"
+          subtext="cargos de liderança concursados (total municipal)"
         />
         <KPICard
           title="Total pago em folha"
