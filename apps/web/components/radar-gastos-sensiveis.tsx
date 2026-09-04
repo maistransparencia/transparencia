@@ -13,6 +13,8 @@ import {
   Truck,
 } from "lucide-react";
 
+import { ShowYourWorkButton } from "./show-your-work-button";
+
 export interface ItemGastoSensivel {
   categoria: (typeof CATEGORIAS_GASTOS_SENSIVEIS)[number];
   valorPagoAnoAtual: number;
@@ -38,6 +40,8 @@ export interface RadarGastosSensiveisProps {
   itens: ItemGastoSensivel[];
   anoAtual: number;
   anoAnterior: number;
+  portalSlug?: string;
+  entidades?: string;
   isCurrentYear?: boolean;
   totalDespesasPagas?: number;
   className?: string;
@@ -88,6 +92,8 @@ export function RadarGastosSensiveis({
   itens,
   anoAtual,
   anoAnterior,
+  portalSlug,
+  entidades,
   isCurrentYear = false,
   totalDespesasPagas = 0,
   className = "",
@@ -170,41 +176,53 @@ export function RadarGastosSensiveis({
                     {renderIcon(config.icone)}
                   </div>
 
-                  {/* Badge de Variação ou Peso no Orçamento */}
-                  {isCurrentYear ? (
-                    <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-                      {pesoOrcamento}% do pago em {anoAtual}
-                    </span>
-                  ) : (
-                    <>
-                      {isAumento && item.variacaoPercentual !== null && (
-                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
-                          <TrendingUp className="h-3.5 w-3.5" />+
-                          {item.variacaoPercentual}% vs {anoAnterior}
-                        </span>
-                      )}
+                  <div className="flex items-center gap-1.5">
+                    {/* Badge de Variação ou Peso no Orçamento */}
+                    {isCurrentYear ? (
+                      <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+                        {pesoOrcamento}% do pago em {anoAtual}
+                      </span>
+                    ) : (
+                      <>
+                        {isAumento && item.variacaoPercentual !== null && (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
+                            <TrendingUp className="h-3.5 w-3.5" />+
+                            {item.variacaoPercentual}% vs {anoAnterior}
+                          </span>
+                        )}
 
-                      {isEconomia && item.variacaoPercentual !== null && (
-                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
-                          <TrendingDown className="h-3.5 w-3.5" />
-                          {item.variacaoPercentual}% vs {anoAnterior}
-                        </span>
-                      )}
+                        {isEconomia && item.variacaoPercentual !== null && (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
+                            <TrendingDown className="h-3.5 w-3.5" />
+                            {item.variacaoPercentual}% vs {anoAnterior}
+                          </span>
+                        )}
 
-                      {!isAumento && !isEconomia && (
-                        <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
-                          {(() => {
-                            if (item.variacaoPercentual === null) {
-                              return "Sem histórico";
-                            }
-                            const sinal =
-                              item.variacaoPercentual > 0 ? "+" : "";
-                            return `${sinal}${item.variacaoPercentual}% vs ${anoAnterior}`;
-                          })()}
-                        </span>
-                      )}
-                    </>
-                  )}
+                        {!isAumento && !isEconomia && (
+                          <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
+                            {(() => {
+                              if (item.variacaoPercentual === null) {
+                                return "Sem histórico";
+                              }
+                              const sinal =
+                                item.variacaoPercentual > 0 ? "+" : "";
+                              return `${sinal}${item.variacaoPercentual}% vs ${anoAnterior}`;
+                            })()}
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {/* Botão sutil de 3 pontos para Show Your Work */}
+                    <ShowYourWorkButton
+                      portalSlug={portalSlug}
+                      ano={anoAtual}
+                      tipo="gasto_sensivel"
+                      categoria={item.categoria}
+                      entidades={entidades}
+                      tituloContexto={config.titulo}
+                    />
+                  </div>
                 </div>
 
                 <div>
