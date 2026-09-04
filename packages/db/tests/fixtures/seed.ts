@@ -331,6 +331,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
+    .deleteFrom("dim_orgao")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
     .deleteFrom("fct_posicao_fiscal_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();

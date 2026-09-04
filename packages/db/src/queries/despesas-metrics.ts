@@ -358,7 +358,7 @@ export async function getRadarGastosSensiveisMetrics(
       const empenhado = Number(r.empenhado ?? 0);
       const pendente = Math.max(0, liquidado - pago);
       const empresaId = String(r.empresa_id);
-      const entidadeNome = r.orgao_nome ?? `Órgão ${empresaId}`;
+      const entidadeNome = r.orgao_nome?.trim() || `Órgão ${empresaId}`;
 
       if (!acc[cat].entidades[empresaId]) {
         acc[cat].entidades[empresaId] = {
@@ -421,7 +421,11 @@ export async function getRadarGastosSensiveisMetrics(
             };
           })
           .filter((ent) => ent.valorDivida > 0)
-          .sort((a, b) => b.valorDivida - a.valorDivida);
+          .sort(
+            (a, b) =>
+              b.valorDivida - a.valorDivida ||
+              a.empresaId.localeCompare(b.empresaId),
+          );
       })();
 
       return {

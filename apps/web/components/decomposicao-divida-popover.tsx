@@ -3,7 +3,7 @@
 import type { EntidadeDividaItemDTO } from "@transparencia/db";
 import { fmtCompact, fmtCurrency } from "@transparencia/ui";
 import { AlertCircle, ChevronDown, Info, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export type { EntidadeDividaItemDTO };
 
@@ -24,11 +24,13 @@ export function DecomposicaoDividaPopover({
 }: DecomposicaoDividaPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverId = useId();
+  const titleId = useId();
 
   useEffect(() => {
     if (!isOpen) return;
 
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | PointerEvent) {
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
@@ -43,10 +45,12 @@ export function DecomposicaoDividaPopover({
       }
     }
 
+    document.addEventListener("pointerdown", handleClickOutside);
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -65,6 +69,7 @@ export function DecomposicaoDividaPopover({
           className="w-full text-left"
           aria-haspopup="dialog"
           aria-expanded={isOpen}
+          aria-controls={isOpen ? popoverId : undefined}
           aria-label={`Ver decomposição da dívida de ${categoriaTitulo} por entidade`}
         >
           {trigger}
@@ -76,6 +81,7 @@ export function DecomposicaoDividaPopover({
           className="mt-3 flex w-full cursor-pointer items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs transition-colors hover:border-amber-300 hover:bg-amber-100/80 focus:outline-none focus:ring-2 focus:ring-amber-400"
           aria-haspopup="dialog"
           aria-expanded={isOpen}
+          aria-controls={isOpen ? popoverId : undefined}
           aria-label={`Ver decomposição da dívida de ${categoriaTitulo} por entidade`}
         >
           <div className="flex items-center gap-1.5 font-medium text-amber-900">
@@ -98,15 +104,16 @@ export function DecomposicaoDividaPopover({
       {/* Popover Decomposto */}
       {isOpen && (
         <div
+          id={popoverId}
           role="dialog"
           aria-modal="true"
-          aria-label={`Decomposição da dívida de ${categoriaTitulo}`}
+          aria-labelledby={titleId}
           className="absolute right-0 bottom-full left-0 z-50 mb-2 rounded-xl border border-slate-200 bg-white p-3.5 shadow-xl"
         >
           {/* Cabeçalho */}
           <div className="flex items-start justify-between border-slate-100 border-b pb-2.5">
             <div>
-              <h5 className="font-bold text-slate-800 text-sm">
+              <h5 id={titleId} className="font-bold text-slate-800 text-sm">
                 Decomposição da Dívida Real
               </h5>
               <p className="mt-0.5 text-slate-500 text-xs">
@@ -131,7 +138,7 @@ export function DecomposicaoDividaPopover({
           </div>
 
           {/* Lista Decomposta por Entidade */}
-          <div className="max-h-60 divide-y divide-slate-100 overflow-y-auto py-1">
+          <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto py-1">
             {decomposicao.length === 0 ? (
               <p className="py-4 text-center text-slate-500 text-xs">
                 Nenhuma dívida pendente registrada para as entidades
@@ -159,7 +166,7 @@ export function DecomposicaoDividaPopover({
                     </div>
 
                     {/* Barra de progresso visual proporcional */}
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
                         className="h-full rounded-full bg-amber-500 transition-all duration-300"
                         style={{ width: `${percentualVal}%` }}
