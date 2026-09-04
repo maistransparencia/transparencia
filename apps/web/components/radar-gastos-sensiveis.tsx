@@ -1,7 +1,9 @@
-import type { CATEGORIAS_GASTOS_SENSIVEIS } from "@transparencia/db";
+import type {
+  CATEGORIAS_GASTOS_SENSIVEIS,
+  EntidadeDividaItemDTO,
+} from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import {
-  AlertCircle,
   Building2,
   CheckCircle2,
   Fuel,
@@ -12,6 +14,9 @@ import {
   TrendingUp,
   Truck,
 } from "lucide-react";
+
+import { DecomposicaoDividaPopover } from "./decomposicao-divida-popover";
+import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface ItemGastoSensivel {
   categoria: (typeof CATEGORIAS_GASTOS_SENSIVEIS)[number];
@@ -24,6 +29,7 @@ export interface ItemGastoSensivel {
   dividaRestosAcumulada?: number;
   variacaoPercentual: number | null;
   tendencia: "aumento" | "economia" | "estavel" | "sem_historico";
+  decomposicaoDivida?: EntidadeDividaItemDTO[];
 }
 
 export type RadarIcon =
@@ -38,6 +44,8 @@ export interface RadarGastosSensiveisProps {
   itens: ItemGastoSensivel[];
   anoAtual: number;
   anoAnterior: number;
+  portalSlug?: string;
+  entidades?: string;
   isCurrentYear?: boolean;
   totalDespesasPagas?: number;
   className?: string;
@@ -88,6 +96,8 @@ export function RadarGastosSensiveis({
   itens,
   anoAtual,
   anoAnterior,
+  portalSlug,
+  entidades,
   isCurrentYear = false,
   totalDespesasPagas = 0,
   className = "",
@@ -151,13 +161,11 @@ export function RadarGastosSensiveis({
 
           const dividaReal =
             item.dividaRealAcumulada ?? item.valorLiquidadoPendente ?? 0;
-          const dividaRestos = item.dividaRestosAcumulada ?? 0;
-          const dividaExercicio = item.valorLiquidadoPendente ?? 0;
 
           return (
             <div
               key={item.categoria}
-              className="flex flex-col justify-between rounded-2xl border border-borderLine bg-white p-5 shadow-sm transition-all hover:border-ink/20"
+              className="flex flex-col justify-between rounded-2xl border border-borderLine bg-white p-4 shadow-sm transition-all hover:border-ink/20"
             >
               {/* Header do Card: Ícone e Badge */}
               <div className="space-y-3.5">
@@ -170,41 +178,55 @@ export function RadarGastosSensiveis({
                     {renderIcon(config.icone)}
                   </div>
 
-                  {/* Badge de Variação ou Peso no Orçamento */}
-                  {isCurrentYear ? (
-                    <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-                      {pesoOrcamento}% do pago em {anoAtual}
-                    </span>
-                  ) : (
-                    <>
-                      {isAumento && item.variacaoPercentual !== null && (
-                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
-                          <TrendingUp className="h-3.5 w-3.5" />+
-                          {item.variacaoPercentual}% vs {anoAnterior}
-                        </span>
-                      )}
+                  <div className="flex items-center gap-1.5">
+                    {/* Badge de Variação ou Peso no Orçamento */}
+                    {isCurrentYear ? (
+                      <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+                        {pesoOrcamento}% do pago em {anoAtual}
+                      </span>
+                    ) : (
+                      <>
+                        {isAumento && item.variacaoPercentual !== null && (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
+                            <TrendingUp className="h-3.5 w-3.5" />+
+                            {item.variacaoPercentual}% vs {anoAnterior}
+                          </span>
+                        )}
 
-                      {isEconomia && item.variacaoPercentual !== null && (
-                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
-                          <TrendingDown className="h-3.5 w-3.5" />
-                          {item.variacaoPercentual}% vs {anoAnterior}
-                        </span>
-                      )}
+                        {isEconomia && item.variacaoPercentual !== null && (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
+                            <TrendingDown className="h-3.5 w-3.5" />
+                            {item.variacaoPercentual}% vs {anoAnterior}
+                          </span>
+                        )}
 
-                      {!isAumento && !isEconomia && (
-                        <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
-                          {(() => {
-                            if (item.variacaoPercentual === null) {
-                              return "Sem histórico";
-                            }
-                            const sinal =
-                              item.variacaoPercentual > 0 ? "+" : "";
-                            return `${sinal}${item.variacaoPercentual}% vs ${anoAnterior}`;
-                          })()}
-                        </span>
-                      )}
-                    </>
-                  )}
+                        {!isAumento && !isEconomia && (
+                          <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
+                            {(() => {
+                              if (item.variacaoPercentual === null) {
+                                return "Sem histórico";
+                              }
+                              const sinal =
+                                item.variacaoPercentual > 0 ? "+" : "";
+                              return `${sinal}${item.variacaoPercentual}% vs ${anoAnterior}`;
+                            })()}
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {/* Botão sutil de 3 pontos para Show Your Work */}
+                    {portalSlug && (
+                      <ShowYourWorkButton
+                        portalSlug={portalSlug}
+                        ano={anoAtual}
+                        tipo="gasto_sensivel"
+                        categoria={item.categoria}
+                        entidades={entidades}
+                        tituloContexto={config.titulo}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -228,26 +250,15 @@ export function RadarGastosSensiveis({
                   </div>
                 </div>
 
-                {/* Pill de Status de Dívida Real Acumulada */}
+                {/* Pill / Gatilho de Status de Dívida Real Acumulada */}
                 {(() => {
                   if (dividaReal > 0) {
                     return (
-                      <div
-                        className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs"
-                        title={
-                          dividaRestos > 0
-                            ? `R$ ${dividaExercicio.toLocaleString("pt-BR")} do exercício ${anoAtual} + R$ ${dividaRestos.toLocaleString("pt-BR")} de anos anteriores (Restos a Pagar)`
-                            : undefined
-                        }
-                      >
-                        <div className="flex items-center gap-1.5 font-medium text-amber-900">
-                          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-700" />
-                          <span>Dívida real acumulada:</span>
-                        </div>
-                        <span className="whitespace-nowrap font-bold font-serif text-amber-900">
-                          {fmtCompact(dividaReal)}
-                        </span>
-                      </div>
+                      <DecomposicaoDividaPopover
+                        categoriaTitulo={config.titulo}
+                        dividaRealTotal={dividaReal}
+                        decomposicao={item.decomposicaoDivida ?? []}
+                      />
                     );
                   }
 

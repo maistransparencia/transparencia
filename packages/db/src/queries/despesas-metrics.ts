@@ -39,6 +39,13 @@ export const CATEGORIAS_GASTOS_SENSIVEIS = [
 export type CategoriaGastoSensivel =
   (typeof CATEGORIAS_GASTOS_SENSIVEIS)[number];
 
+export interface EntidadeDividaItemDTO {
+  empresaId: string;
+  entidadeNome: string;
+  valorDivida: number;
+  percentual: number;
+}
+
 export interface ItemGastoSensivelDTO {
   categoria: CategoriaGastoSensivel;
   valorPagoAnoAtual: number;
@@ -50,6 +57,7 @@ export interface ItemGastoSensivelDTO {
   dividaRestosAcumulada: number;
   variacaoPercentual: number | null;
   tendencia: "aumento" | "economia" | "estavel" | "sem_historico";
+  decomposicaoDivida: EntidadeDividaItemDTO[];
 }
 
 export interface RadarGastosSensiveisDTO {
@@ -266,6 +274,7 @@ export async function getRadarGastosSensiveisMetrics(
     dividaRestosAcumulada: 0,
     variacaoPercentual: null,
     tendencia: "sem_historico",
+    decomposicaoDivida: [],
   });
 
   const emptyResult: RadarGastosSensiveisDTO = {
@@ -278,71 +287,104 @@ export async function getRadarGastosSensiveisMetrics(
 
   try {
     const rows = await db
-      .selectFrom("fct_despesas")
+      .selectFrom("fct_despesas as d")
+      .leftJoin("dim_orgao as o", (join) =>
+        join
+          .onRef("o.portal_slug", "=", "d.portal_slug")
+          .onRef("o.empresa_id", "=", "d.empresa_id"),
+      )
       .select((eb) => [
-        "ano",
-        "fonte",
-        "categoria_gasto_sensivel",
-        eb.fn.sum<string>("pago").as("pago"),
-        eb.fn.sum<string>("liquidado").as("liquidado"),
-        eb.fn.sum<string>("empenhado").as("empenhado"),
+        "d.ano",
+        "d.fonte",
+        "d.empresa_id",
+        "o.orgao_nome",
+        "d.categoria_gasto_sensivel",
+        eb.fn.sum<string>("d.pago").as("pago"),
+        eb.fn.sum<string>("d.liquidado").as("liquidado"),
+        eb.fn.sum<string>("d.empenhado").as("empenhado"),
       ])
-      .where("portal_slug", "=", portalSlug)
-      .where("ano", "<=", year)
-      .where("empresa_id", "in", empresaIds)
-      .where("categoria_gasto_sensivel", "is not", null)
-      .groupBy(["ano", "fonte", "categoria_gasto_sensivel"])
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "<=", year)
+      .where("d.empresa_id", "in", empresaIds)
+      .where("d.categoria_gasto_sensivel", "is not", null)
+      .groupBy([
+        "d.ano",
+        "d.fonte",
+        "d.empresa_id",
+        "o.orgao_nome",
+        "d.categoria_gasto_sensivel",
+      ])
       .execute();
 
-    const dataMap = rows.reduce(
-      (acc, r) => {
-        const cat = r.categoria_gasto_sensivel as CategoriaGastoSensivel;
-        if (!cat || !acc[cat]) return acc;
-        const rowAno = Number(r.ano);
-        const pago = Number(r.pago ?? 0);
-        const liquidado = Number(r.liquidado ?? 0);
-        const empenhado = Number(r.empenhado ?? 0);
-        const pendente = Math.max(0, liquidado - pago);
+    type EntidadeAcumulada = {
+      empresaId: string;
+      entidadeNome: string;
+      dividaExercicio: number;
+      dividaRestos: number;
+    };
 
-        if (r.fonte === "exercicio") {
-          if (rowAno === year) {
-            acc[cat].pagoAtual += pago;
-            acc[cat].liquidadoAtual += liquidado;
-            acc[cat].empenhadoAtual += empenhado;
-            acc[cat].dividaExercicio += pendente;
-          } else if (rowAno === previousYear) {
-            acc[cat].pagoAnterior += pago;
-          }
-        } else if (r.fonte === "restos_a_pagar") {
-          acc[cat].dividaRestos += pendente;
-        }
+    type CategoriaAcumulada = {
+      pagoAtual: number;
+      pagoAnterior: number;
+      liquidadoAtual: number;
+      empenhadoAtual: number;
+      dividaExercicio: number;
+      dividaRestos: number;
+      entidades: Record<string, EntidadeAcumulada>;
+    };
+
+    const initialMap = CATEGORIAS_GASTOS_SENSIVEIS.reduce(
+      (acc, cat) => {
+        acc[cat] = {
+          pagoAtual: 0,
+          pagoAnterior: 0,
+          liquidadoAtual: 0,
+          empenhadoAtual: 0,
+          dividaExercicio: 0,
+          dividaRestos: 0,
+          entidades: {},
+        };
         return acc;
       },
-      CATEGORIAS_GASTOS_SENSIVEIS.reduce(
-        (acc, cat) => {
-          acc[cat] = {
-            pagoAtual: 0,
-            pagoAnterior: 0,
-            liquidadoAtual: 0,
-            empenhadoAtual: 0,
-            dividaExercicio: 0,
-            dividaRestos: 0,
-          };
-          return acc;
-        },
-        {} as Record<
-          CategoriaGastoSensivel,
-          {
-            pagoAtual: number;
-            pagoAnterior: number;
-            liquidadoAtual: number;
-            empenhadoAtual: number;
-            dividaExercicio: number;
-            dividaRestos: number;
-          }
-        >,
-      ),
+      {} as Record<CategoriaGastoSensivel, CategoriaAcumulada>,
     );
+
+    const dataMap = rows.reduce((acc, r) => {
+      const cat = r.categoria_gasto_sensivel as CategoriaGastoSensivel;
+      if (!cat || !acc[cat]) return acc;
+      const rowAno = Number(r.ano);
+      const pago = Number(r.pago ?? 0);
+      const liquidado = Number(r.liquidado ?? 0);
+      const empenhado = Number(r.empenhado ?? 0);
+      const pendente = Math.max(0, liquidado - pago);
+      const empresaId = String(r.empresa_id);
+      const entidadeNome = r.orgao_nome?.trim() || `Órgão ${empresaId}`;
+
+      if (!acc[cat].entidades[empresaId]) {
+        acc[cat].entidades[empresaId] = {
+          empresaId,
+          entidadeNome,
+          dividaExercicio: 0,
+          dividaRestos: 0,
+        };
+      }
+
+      if (r.fonte === "exercicio") {
+        if (rowAno === year) {
+          acc[cat].pagoAtual += pago;
+          acc[cat].liquidadoAtual += liquidado;
+          acc[cat].empenhadoAtual += empenhado;
+          acc[cat].dividaExercicio += pendente;
+          acc[cat].entidades[empresaId].dividaExercicio += pendente;
+        } else if (rowAno === previousYear) {
+          acc[cat].pagoAnterior += pago;
+        }
+      } else if (r.fonte === "restos_a_pagar") {
+        acc[cat].dividaRestos += pendente;
+        acc[cat].entidades[empresaId].dividaRestos += pendente;
+      }
+      return acc;
+    }, initialMap);
 
     const itens = CATEGORIAS_GASTOS_SENSIVEIS.map((categoria) => {
       const data = dataMap[categoria];
@@ -363,6 +405,29 @@ export async function getRadarGastosSensiveisMetrics(
         return "estavel";
       })();
 
+      const decomposicaoDivida: EntidadeDividaItemDTO[] = (() => {
+        if (dividaRealAcumulada === 0) return [];
+        return Object.values(data.entidades)
+          .map((ent) => {
+            const valorDivida = ent.dividaExercicio + ent.dividaRestos;
+            const percentual = Number(
+              ((valorDivida / dividaRealAcumulada) * 100).toFixed(1),
+            );
+            return {
+              empresaId: ent.empresaId,
+              entidadeNome: ent.entidadeNome,
+              valorDivida,
+              percentual,
+            };
+          })
+          .filter((ent) => ent.valorDivida > 0)
+          .sort(
+            (a, b) =>
+              b.valorDivida - a.valorDivida ||
+              a.empresaId.localeCompare(b.empresaId),
+          );
+      })();
+
       return {
         categoria,
         valorPagoAnoAtual: atual,
@@ -374,6 +439,7 @@ export async function getRadarGastosSensiveisMetrics(
         dividaRestosAcumulada,
         variacaoPercentual,
         tendencia,
+        decomposicaoDivida,
       };
     });
 

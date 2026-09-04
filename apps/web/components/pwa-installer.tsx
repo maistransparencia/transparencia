@@ -245,7 +245,7 @@ export function PwaInstaller() {
       )}
 
       {!isStandalone && !isDismissed && installPrompt && (
-        <div className="fixed right-5 bottom-5 z-50 flex max-w-md items-center gap-3.5 rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl ring-1 ring-slate-900/5">
+        <div className="fixed right-5 bottom-20 z-50 flex max-w-md items-center gap-3.5 rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl ring-1 ring-slate-900/5 md:bottom-5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 font-bold text-base text-blue-600">
             📲
           </div>
