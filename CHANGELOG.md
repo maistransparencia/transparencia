@@ -5,6 +5,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-09-04
+
 ### 🐛 Correções & Refinamentos (Fixed & Polish)
 * **Indicador Folha / Receita Municipal (LRF):** Correção do cálculo de `rclProxy` em `getFolhaVsServicosMetrics` (`@transparencia/db`) para adotar a arrecadação municipal consolidada do exercício mesmo sob filtro de entidade, evitando distorções matemáticas artificiais (como os 147% no FMAS) e desativando alertas indevidos de teto da LRF para fundos setoriais.
 * **Consolidação Municipal de Proventos e Chefias:** Remoção do filtro de entidade nas consultas de distribuição por faixas salariais (`distribuicaoProventos`) e ocupação de chefias (`pctChefias`) na página de Pessoal e na Visão Geral, exibindo com transparência pedagógica os dados consolidados de todos os servidores municipais (uma vez que a folha analítica individual de origem não é segregada por órgão).
