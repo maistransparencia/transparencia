@@ -175,7 +175,7 @@ export async function loadVisaoGeralData(
       empresaIds,
       portalSlug: tenantSlug,
     }),
-    getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear, empresaIds),
+    getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear),
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
     getLimiteMaximoLrfPessoal(selectedYear),
   ]);

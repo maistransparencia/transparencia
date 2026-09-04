@@ -45,4 +45,67 @@ describe("buildPessoalViewModel", () => {
     expect(vm.pctChefias).toBeNull();
     expect(vm.decimo13).toBeNull();
   });
+
+  it("configura folhaKpi para consolidado municipal (abaixo e acima do teto)", () => {
+    const vmOk = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 50,
+          },
+        ],
+      }),
+    );
+    expect(vmOk.folhaKpi.title).toBe("Folha / Receita Arrecadada");
+    expect(vmOk.folhaKpi.subtext).toBe("abaixo do teto de 54%");
+    expect(vmOk.folhaKpi.alert).toBe(false);
+
+    const vmEstouro = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1200,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 60,
+          },
+        ],
+      }),
+    );
+    expect(vmEstouro.folhaKpi.title).toBe("Folha / Receita Arrecadada");
+    expect(vmEstouro.folhaKpi.subtext).toBe("acima do teto de 54%");
+    expect(vmEstouro.folhaKpi.alert).toBe(true);
+  });
+
+  it("configura folhaKpi e headerDescription contextuais quando há entidade filtrada", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2026,
+          isCurrentYear: false,
+          entidadesIds: ["3"],
+        },
+        folhaData: [
+          {
+            totalFolha: 240,
+            totalPago: 200,
+            rclProxy: 10000,
+            percentualFolha: 2.4,
+          },
+        ],
+      }),
+    );
+    expect(vm.isEntidadeFiltrada).toBe(true);
+    expect(vm.folhaKpi.title).toBe("Folha / Receita Municipal");
+    expect(vm.folhaKpi.subtext).toBe(
+      "impacto no teto da LRF do município (54%)",
+    );
+    expect(vm.folhaKpi.alert).toBe(false);
+    expect(vm.headerDescription).toContain(
+      "desta entidade na arrecadação do município",
+    );
+  });
 });
