@@ -57,6 +57,8 @@ describe("export-raw-data (smoke & parity)", () => {
       expect(typeof record.orgaoNome).toBe("string");
       expect(typeof record.credorNome).toBe("string");
       expect(typeof record.valorPago).toBe("number");
+      expect("categoriaSugerida" in record).toBe(true);
+      expect("naturezaCodigoSugerido" in record).toBe(true);
     }
   });
 

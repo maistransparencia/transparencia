@@ -27,6 +27,8 @@ const CSV_HEADERS = [
   "valor_liquidado",
   "valor_pago",
   "categoria_sensivel",
+  "categoria_sugerida",
+  "natureza_codigo_sugerido",
 ] as const;
 
 function escapeCsvCell(
@@ -70,6 +72,8 @@ function formatCsvRow(record: RawDespesaRecordDTO, delimiter: string): string {
     escapeCsvCell(formatMoney(record.valorLiquidado, delimiter), delimiter),
     escapeCsvCell(formatMoney(record.valorPago, delimiter), delimiter),
     escapeCsvCell(record.categoriaSensivel, delimiter),
+    escapeCsvCell(record.categoriaSugerida, delimiter),
+    escapeCsvCell(record.naturezaCodigoSugerido, delimiter),
   ];
   return cells.join(delimiter);
 }

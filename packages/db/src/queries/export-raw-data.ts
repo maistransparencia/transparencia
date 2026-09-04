@@ -23,6 +23,8 @@ export interface RawDespesaRecordDTO {
   valorLiquidado: number;
   valorPago: number;
   categoriaSensivel: string | null;
+  categoriaSugerida: string | null;
+  naturezaCodigoSugerido: string | null;
 }
 
 function formatDateEmpenho(value: unknown): string | null {
@@ -72,6 +74,8 @@ export async function getRawDespesasExportRecords(
         "d.liquidado",
         "d.pago",
         "d.categoria_gasto_sensivel",
+        "d.categoria_objeto_sugerida",
+        "d.natureza_despesa_codigo_sugerido",
       ])
       .where("d.portal_slug", "=", portalSlug)
       .where("d.ano", "=", ano)
@@ -118,6 +122,11 @@ export async function getRawDespesasExportRecords(
       const categoriaSensivel = (r.categoria_gasto_sensivel ?? null) as
         | string
         | null;
+      const categoriaSugerida = (r.categoria_objeto_sugerida ?? null) as
+        | string
+        | null;
+      const naturezaCodigoSugerido = (r.natureza_despesa_codigo_sugerido ??
+        null) as string | null;
 
       return {
         numeroEmpenho: String(r.empenho_id ?? ""),
@@ -131,6 +140,8 @@ export async function getRawDespesasExportRecords(
         valorLiquidado: Number(r.liquidado ?? 0),
         valorPago: Number(r.pago ?? 0),
         categoriaSensivel,
+        categoriaSugerida,
+        naturezaCodigoSugerido,
       };
     });
   } catch (error) {
