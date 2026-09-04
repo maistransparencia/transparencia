@@ -111,6 +111,36 @@ describe("API Route: /api/[portalSlug]/export", () => {
     expect(body.error).toContain("funcaoCodigo");
   });
 
+  it("deve retornar 400 se funcaoCodigo não tiver exatamente 2 dígitos", async () => {
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=abc",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("2 dígitos numéricos");
+  });
+
+  it("deve retornar 400 se delimitador for inválido", async () => {
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025&delimitador=tab",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("delimitador");
+  });
+
   it("deve retornar 404 se portalSlug for desconhecido", async () => {
     const { GET } = await import("./route");
     const req = new Request(
@@ -226,5 +256,60 @@ describe("API Route: /api/[portalSlug]/export", () => {
     expect(blockedRes.headers.get("retry-after")).toBeDefined();
     const body = await blockedRes.json();
     expect(body.error).toContain("Muitos downloads");
+  });
+
+  it("deve retornar 500 se ocorrer erro na consulta ao banco de dados", async () => {
+    const { getRawDespesasExportRecords } = await import("@transparencia/db");
+    vi.mocked(getRawDespesasExportRecords).mockRejectedValueOnce(
+      new Error("Database connection lost"),
+    );
+
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain("Erro interno");
+  });
+
+  it("deve prefixar células com apóstrofo para prevenir CSV formula injection", async () => {
+    const { getRawDespesasExportRecords } = await import("@transparencia/db");
+    vi.mocked(getRawDespesasExportRecords).mockResolvedValueOnce([
+      {
+        numeroEmpenho: "=1+1",
+        dataEmpenho: "2025-01-01",
+        orgaoNome: "@Secretaria",
+        credorNome: "+Fornecedor",
+        credorCpfCnpj: null,
+        objetoDescricao: "-Termo aditivo",
+        naturezaCodigo: null,
+        valorEmpenhado: 100,
+        valorLiquidado: 100,
+        valorPago: 100,
+        categoriaSensivel: null,
+      },
+    ]);
+
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("'=1+1");
+    expect(text).toContain("'@Secretaria");
+    expect(text).toContain("'+Fornecedor");
+    expect(text).toContain("'-Termo aditivo");
   });
 });

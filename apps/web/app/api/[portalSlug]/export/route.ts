@@ -34,7 +34,10 @@ function escapeCsvCell(
   delimiter: string,
 ): string {
   if (value === null || value === undefined) return "";
-  const stringValue = String(value);
+  let stringValue = String(value);
+  if (/^[=+\-@\t\r]/.test(stringValue)) {
+    stringValue = `'${stringValue}`;
+  }
   if (
     stringValue.includes(delimiter) ||
     stringValue.includes('"') ||
@@ -105,20 +108,12 @@ export async function GET(req: Request, context: ExportRouteContext) {
     );
   }
 
-  // 1. Verificação de existência do portal
-  const portalConfig = await getPortalConfig(portalSlug);
-  if (!portalConfig) {
-    return NextResponse.json(
-      { error: `Portal '${portalSlug}' não encontrado.` },
-      { status: 404 },
-    );
-  }
-
-  // 2. Proteção contra sobrecarga / Rate Limit anônimo por IP (30 req / 5 min)
+  // 1. Proteção contra sobrecarga / Rate Limit anônimo por IP (30 req / 5 min)
   const forwardedHeader = req.headers.get("x-forwarded-for");
-  const ip = forwardedHeader
+  const rawIp = forwardedHeader
     ? forwardedHeader.split(",")[0].trim()
-    : req.headers.get("x-real-ip") || "unknown-ip";
+    : req.headers.get("x-real-ip");
+  const ip = rawIp && rawIp.length > 0 ? rawIp : "unknown-ip";
 
   const rateLimitResult = checkRateLimit(`export-ip:${ip}`, 30, 5 * 60 * 1000);
   if (!rateLimitResult.success) {
@@ -133,6 +128,15 @@ export async function GET(req: Request, context: ExportRouteContext) {
           "Retry-After": String(rateLimitResult.resetInSeconds),
         },
       },
+    );
+  }
+
+  // 2. Verificação de existência do portal
+  const portalConfig = await getPortalConfig(portalSlug);
+  if (!portalConfig) {
+    return NextResponse.json(
+      { error: `Portal '${portalSlug}' não encontrado.` },
+      { status: 404 },
     );
   }
 
@@ -156,11 +160,11 @@ export async function GET(req: Request, context: ExportRouteContext) {
   }
 
   const ano = Number(anoParam);
-  if (!anoParam || Number.isNaN(ano) || ano < 2000 || ano > 2100) {
+  if (!anoParam || !Number.isInteger(ano) || ano < 2000 || ano > 2100) {
     return NextResponse.json(
       {
         error:
-          "Parâmetro 'ano' inválido ou ausente. Deve ser um ano numérico válido.",
+          "Parâmetro 'ano' inválido ou ausente. Deve ser um ano numérico inteiro válido.",
       },
       { status: 400 },
     );
@@ -183,19 +187,34 @@ export async function GET(req: Request, context: ExportRouteContext) {
     }
   }
 
+  if (tipoParam === "funcao") {
+    const isFuncaoValida =
+      funcaoCodigoParam && /^\d{2}$/.test(funcaoCodigoParam.trim());
+    if (!isFuncaoValida) {
+      return NextResponse.json(
+        {
+          error:
+            "Parâmetro 'funcaoCodigo' é obrigatório e deve conter exatamente 2 dígitos numéricos para o tipo 'funcao'.",
+        },
+        { status: 400 },
+      );
+    }
+  }
+
   if (
-    tipoParam === "funcao" &&
-    (!funcaoCodigoParam || funcaoCodigoParam.trim() === "")
+    delimitadorParam &&
+    delimitadorParam !== ";" &&
+    delimitadorParam !== ","
   ) {
     return NextResponse.json(
       {
-        error: "Parâmetro 'funcaoCodigo' é obrigatório para o tipo 'funcao'.",
+        error: "Parâmetro 'delimitador' inválido. Valores aceitos: ';' ou ','.",
       },
       { status: 400 },
     );
   }
+  const delimiter = delimitadorParam ?? ";";
 
-  const delimiter = delimitadorParam === "," ? "," : ";";
   const empresaIds = entidadesParam
     ? entidadesParam
         .split(",")
@@ -204,14 +223,24 @@ export async function GET(req: Request, context: ExportRouteContext) {
     : undefined;
 
   // 4. Execução da query atômica em @transparencia/db
-  const records = await getRawDespesasExportRecords({
-    portalSlug,
-    ano,
-    empresaIds,
-    tipo: tipoParam,
-    categoria: categoriaParam ?? undefined,
-    funcaoCodigo: funcaoCodigoParam ?? undefined,
-  });
+  let records: RawDespesaRecordDTO[];
+  try {
+    records = await getRawDespesasExportRecords({
+      portalSlug,
+      ano,
+      empresaIds,
+      tipo: tipoParam,
+      categoria: categoriaParam ?? undefined,
+      funcaoCodigo: funcaoCodigoParam?.trim() ?? undefined,
+    });
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+    console.error("[Export API] Erro ao consultar registros brutos:", error);
+    return NextResponse.json(
+      { error: "Erro interno ao processar a exportação de dados." },
+      { status: 500 },
+    );
+  }
 
   // 5. Montagem do streaming CSV compatível com RFC 4180 e Microsoft Excel
   const filename = resolveFilename({

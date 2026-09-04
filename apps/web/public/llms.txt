@@ -28,6 +28,7 @@ Para orientar usuários ou buscar informações específicas no portal, utilize 
 - `/porciuncula_prefeitura/pessoal`: **Quadro de Pessoal e Folha** — Servidores públicos ativos/inativos, cargos comissionados, funções de confiança, proventos, 13º salário e limites da Lei de Responsabilidade Fiscal (LRF).
 - `/porciuncula_prefeitura/caprem`: **Previdência Municipal** — Saúde financeira e atuarial do Regime Próprio de Previdência Social (RPPS), contribuições patronais/servidores e aportes para cobertura do déficit atuarial.
 - `/porciuncula_prefeitura/saude`: **Saúde Pública** — Percentual de aplicação de receitas de impostos na saúde (mínimo constitucional de 15%), convênios e indicadores de investimento no Fundo Municipal de Saúde.
+- `/api/[portalSlug]/export`: **Exportação de Dados Brutos ("Show Your Work")** — Endpoint público de streaming de despesas brutas em formato CSV (UTF-8 com BOM, delimitador `;` ou `,`) para auditoria linha a linha de empenhos, credores, órgãos e pagamentos, com garantia de paridade matemática centavo a centavo com os cards da tela. Parâmetros aceitos: `tipo` (`gasto_sensivel`, `opacidade_99` ou `funcao`), `ano` (numérico inteiro), `categoria` (quando tipo for `gasto_sensivel`), `funcaoCodigo` (2 dígitos, quando tipo for `funcao`), `entidades` (opcional) e `delimitador` (`;` ou `,`). Protegido por rate limiting anônimo de 30 requisições a cada 5 minutos por IP.
 
 ## Canais Cívicos de Notificação e Distribuição
 

@@ -214,14 +214,16 @@ export function RadarGastosSensiveis({
                     )}
 
                     {/* Botão sutil de 3 pontos para Show Your Work */}
-                    <ShowYourWorkButton
-                      portalSlug={portalSlug}
-                      ano={anoAtual}
-                      tipo="gasto_sensivel"
-                      categoria={item.categoria}
-                      entidades={entidades}
-                      tituloContexto={config.titulo}
-                    />
+                    {portalSlug && (
+                      <ShowYourWorkButton
+                        portalSlug={portalSlug}
+                        ano={anoAtual}
+                        tipo="gasto_sensivel"
+                        categoria={item.categoria}
+                        entidades={entidades}
+                        tituloContexto={config.titulo}
+                      />
+                    )}
                   </div>
                 </div>
 

@@ -81,7 +81,6 @@ function formatCategoriaSensivel(
 export function TermometroOpacidadeFiscal({
   data,
   portalSlug,
-  entidades,
   className = "",
 }: TermometroOpacidadeFiscalProps) {
   if (!data?.exercicioAtual) return null;
@@ -147,7 +146,6 @@ export function TermometroOpacidadeFiscal({
             portalSlug={portalSlug || data.portalSlug}
             ano={exercicioAtual.ano}
             tipo="opacidade_99"
-            entidades={entidades}
             tituloContexto="Gastos Genéricos (.99)"
           />
         </div>

@@ -69,6 +69,33 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 #### Ato 4: Diárias e Viagens
 - **Transparência Responsável:** Apresentação do montante total gasto com diárias no ano, média de valor por afastamento e comparativo interanual, garantindo a fiscalização do gasto sem exposição indevida ou indexação nominal de servidores.
 
+#### Ato 5: Infraestrutura "Show Your Work" — Exportação Direta de Dados Brutos (CSV)
+- **Princípio da Auditoria Aberta:** O portal implementa o paradigma *"Show Your Work"*, permitindo que qualquer cidadão, vereador, jornalista ou auditor baixe instantaneamente a relação nominal e integral de todos os empenhos que compõem qualquer métrica dos cards analíticos.
+- **Endpoint Público em Streaming:** `/api/[portalSlug]/export` (com método `GET`).
+- **Garantia de Paridade Centavo a Centavo:** A soma da coluna `valor_pago` de todos os registros exportados no arquivo CSV corresponde rigorosamente (com tolerância inferior a R$ 0,01) ao valor total apresentado no respectivo card na interface web.
+- **Parâmetros Suportados:**
+  - `tipo` (obrigatório): `"gasto_sensivel"` (combustível, locações, obras, festas, diárias), `"opacidade_99"` (gastos residuais genéricos) ou `"funcao"` (despesas por função orçamentária STN).
+  - `ano` (obrigatório): Exercício orçamentário (número inteiro entre 2000 e 2100).
+  - `categoria` (obrigatório quando `tipo="gasto_sensivel"`): Código em lowercase snake_case (ex: `combustivel_frota`, `locacao_maquinas_veiculos`, `locacao_imoveis`, `eventos_festas`, `diarias_viagens`, `obras_infraestrutura`).
+  - `funcaoCodigo` (obrigatório quando `tipo="funcao"`): Código numérico de 2 dígitos da função orçamentária (ex: `10` Saúde, `12` Educação).
+  - `entidades` (opcional): Lista separada por vírgulas de IDs de entidade municipal. Para `opacidade_99`, a exportação reflete a consolidação municipal completa.
+  - `delimitador` (opcional): Caractere delimitador de colunas (`;` padrão brasileiro para Excel ou `,` para ferramentas internacionais).
+- **Colunas Canônicas Exportadas:**
+  1. `numero_empenho` — Identificador do empenho (`empenho_id`)
+  2. `data_empenho` — Data do empenho (YYYY-MM-DD)
+  3. `orgao_nome` — Nome da entidade ou órgão responsável
+  4. `credor_nome` — Razão social ou nome do fornecedor
+  5. `credor_cpf_cnpj` — CPF ou CNPJ higienizado
+  6. `objeto_descricao` — Descrição do objeto e histórico contábil
+  7. `natureza_codigo` — Código da natureza da despesa
+  8. `valor_empenhado` — Montante total empenhado
+  9. `valor_liquidado` — Montante liquidado (atestado)
+  10. `valor_pago` — Montante pago no exercício (objeto de conferência direta)
+  11. `categoria_sensivel` — Categoria sensível classificada (quando aplicável)
+- **Compatibilidade e Proteção:**
+  - Emissão com BOM UTF-8 (`\uFEFF`) para abertura direta no Microsoft Excel sem corrupção de acentuação.
+  - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` protegidas para não dispararem comandos na planilha).
+  - Rate limiting anônimo de 30 downloads por IP a cada 5 minutos.
 
 ---
 

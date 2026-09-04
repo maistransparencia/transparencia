@@ -10,7 +10,7 @@ import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 export interface ShowYourWorkButtonProps {
-  portalSlug?: string;
+  portalSlug: string;
   ano: number;
   tipo: "gasto_sensivel" | "opacidade_99" | "funcao";
   categoria?: string;
@@ -34,6 +34,14 @@ export function ShowYourWorkButton({
   const [isDownloading, setIsDownloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,7 +74,7 @@ export function ShowYourWorkButton({
     setIsDownloading(true);
     setErrorMessage(null);
 
-    const slug = portalSlug || "porciuncula_prefeitura";
+    const slug = portalSlug;
     const telemetryPayload = {
       portal_slug: slug,
       tipo,
@@ -93,7 +101,9 @@ export function ShowYourWorkButton({
         const errorData = await res.json().catch(() => null);
         const message =
           errorData?.error || "Erro ao processar o download dos registros.";
-        setErrorMessage(message);
+        if (isMountedRef.current) {
+          setErrorMessage(message);
+        }
         posthog.capture("show_your_work_download_failed", {
           ...telemetryPayload,
           status: res.status,
@@ -114,22 +124,30 @@ export function ShowYourWorkButton({
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      setTimeout(() => {
+        window.URL.revokeObjectURL(downloadUrl);
+      }, 1000);
 
       posthog.capture("show_your_work_download_completed", {
         ...telemetryPayload,
         filename,
       });
 
-      setIsOpen(false);
+      if (isMountedRef.current) {
+        setIsOpen(false);
+      }
     } catch {
-      setErrorMessage("Falha de conexão ao baixar o arquivo CSV.");
+      if (isMountedRef.current) {
+        setErrorMessage("Falha de conexão ao baixar o arquivo CSV.");
+      }
       posthog.capture("show_your_work_download_failed", {
         ...telemetryPayload,
         error: "network_error",
       });
     } finally {
-      setIsDownloading(false);
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+      }
     }
   };
 
@@ -142,8 +160,10 @@ export function ShowYourWorkButton({
           setIsOpen((prev) => !prev);
           setErrorMessage(null);
         }}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+        className="flex h-8 min-h-[44px] w-8 min-w-[44px] items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 sm:min-h-8 sm:min-w-8"
         aria-label="Opções de auditoria"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
         title="Opções de auditoria (Show Your Work)"
       >
         <MoreVertical className="h-4 w-4" />

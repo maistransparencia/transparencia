@@ -8,6 +8,7 @@ import {
   getRawDespesasExportRecords,
   type RawDespesaRecordDTO,
 } from "../export-raw-data";
+import { getOpacidadeContabilMetrics } from "../opacidade-contabil-metrics";
 
 describe("export-raw-data (smoke & parity)", () => {
   it("deve retornar array vazio quando empresaIds for vazio", async () => {
@@ -133,5 +134,25 @@ describe("export-raw-data (smoke & parity)", () => {
     const totalPagoFuncao = funcaoItem?.totalPago ?? 0;
 
     expect(Math.abs(sumValorPago - totalPagoFuncao)).toBeLessThan(0.01);
+  });
+
+  it("deve manter paridade matemática centavo a centavo com o Termômetro de Opacidade Contábil (.99)", async () => {
+    const exportRows = await getRawDespesasExportRecords({
+      portalSlug: PORTAL_SLUG,
+      ano: TEST_YEAR,
+      tipo: "opacidade_99",
+    });
+
+    const sumValorPago = exportRows.reduce(
+      (acc: number, r: RawDespesaRecordDTO) => acc + r.valorPago,
+      0,
+    );
+
+    const opacidade = await getOpacidadeContabilMetrics(PORTAL_SLUG, TEST_YEAR);
+
+    if (opacidade) {
+      const totalResidualPago = opacidade.exercicioAtual.pagoResidual99;
+      expect(Math.abs(sumValorPago - totalResidualPago)).toBeLessThan(0.01);
+    }
   });
 });

@@ -34,6 +34,8 @@ describe("ShowYourWorkButton Component", () => {
       name: /opções de auditoria/i,
     });
     expect(trigger).toBeDefined();
+    expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("deve abrir e fechar o dropdown de auditoria ao clicar", async () => {

@@ -28,7 +28,9 @@ export interface RawDespesaRecordDTO {
 function formatDateEmpenho(value: unknown): string | null {
   if (!value) return null;
   if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
+    return Number.isNaN(value.getTime())
+      ? null
+      : value.toISOString().slice(0, 10);
   }
   const dateString = String(value).trim();
   if (!dateString) return null;
@@ -45,7 +47,7 @@ export async function getRawDespesasExportRecords(
   const { portalSlug, ano, empresaIds, tipo, categoria, funcaoCodigo } =
     options;
 
-  if (empresaIds && empresaIds.length === 0) {
+  if (tipo !== "opacidade_99" && empresaIds && empresaIds.length === 0) {
     return [];
   }
 
@@ -75,7 +77,7 @@ export async function getRawDespesasExportRecords(
       .where("d.ano", "=", ano)
       .where("d.fonte", "=", "exercicio");
 
-    if (empresaIds && empresaIds.length > 0) {
+    if (tipo !== "opacidade_99" && empresaIds && empresaIds.length > 0) {
       query = query.where("d.empresa_id", "in", empresaIds);
     }
 
@@ -104,20 +106,18 @@ export async function getRawDespesasExportRecords(
       .execute();
 
     return rows.map((r) => {
-      const orgaoNome = String(
-        r.orgao_nome || r.orgao_codigo || "Não informado",
-      );
-      const credorNome = String(r.fornecedor_nome ?? "Não informado");
-      const credorCpfCnpj = r.fornecedor_cpf_cnpj
-        ? String(r.fornecedor_cpf_cnpj)
-        : null;
-      const objetoDescricao = r.descricao ? String(r.descricao) : null;
-      const naturezaCodigo = r.natureza_despesa_codigo
-        ? String(r.natureza_despesa_codigo)
-        : null;
-      const categoriaSensivel = r.categoria_gasto_sensivel
-        ? String(r.categoria_gasto_sensivel)
-        : null;
+      const orgaoNome = (r.orgao_nome ||
+        r.orgao_codigo ||
+        "Não informado") as string;
+      const credorNome = (r.fornecedor_nome ?? "Não informado") as string;
+      const credorCpfCnpj = (r.fornecedor_cpf_cnpj ?? null) as string | null;
+      const objetoDescricao = (r.descricao ?? null) as string | null;
+      const naturezaCodigo = (r.natureza_despesa_codigo ?? null) as
+        | string
+        | null;
+      const categoriaSensivel = (r.categoria_gasto_sensivel ?? null) as
+        | string
+        | null;
 
       return {
         numeroEmpenho: String(r.empenho_id ?? ""),
@@ -136,6 +136,6 @@ export async function getRawDespesasExportRecords(
   } catch (error) {
     // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
     console.error("[getRawDespesasExportRecords] Erro na consulta:", error);
-    return [];
+    throw error;
   }
 }
