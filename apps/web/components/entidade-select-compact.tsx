@@ -23,9 +23,14 @@ export function EntidadeSelectCompact({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const hasOptions = entidades.length > 0;
+  const validOptionIds = new Set(entidades.map((opt) => opt.id));
+  const validSelected = selectedEntidades.filter((id) =>
+    validOptionIds.has(id),
+  );
+
   const isAllSelected =
-    selectedEntidades.length === 0 ||
-    selectedEntidades.length === entidades.length;
+    validSelected.length === 0 ||
+    (entidades.length > 0 && validSelected.length === entidades.length);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,6 +46,7 @@ export function EntidadeSelectCompact({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.stopPropagation();
         setIsOpen(false);
       }
     }
@@ -62,6 +68,10 @@ export function EntidadeSelectCompact({
   const handleToggleOption = (id: string) => {
     if (!onChange) return;
 
+    if (entidades.length <= 1) {
+      return;
+    }
+
     if (isAllSelected) {
       const allExcept = entidades
         .map((opt) => opt.id)
@@ -70,15 +80,15 @@ export function EntidadeSelectCompact({
       return;
     }
 
-    if (selectedEntidades.includes(id)) {
-      const next = selectedEntidades.filter((item) => item !== id);
+    if (validSelected.includes(id)) {
+      const next = validSelected.filter((item) => item !== id);
       if (next.length === 0 || next.length === entidades.length) {
         onChange([]);
       } else {
         onChange(next);
       }
     } else {
-      const next = [...selectedEntidades, id];
+      const next = [...validSelected, id];
       if (next.length === entidades.length) {
         onChange([]);
       } else {
@@ -94,13 +104,13 @@ export function EntidadeSelectCompact({
     if (isAllSelected) {
       return { label: "Consolidado", isFiltered: false };
     }
-    if (selectedEntidades.length === 1) {
-      const found = entidades.find((opt) => opt.id === selectedEntidades[0]);
+    if (validSelected.length === 1) {
+      const found = entidades.find((opt) => opt.id === validSelected[0]);
       const friendlyName = found ? toTitleCase(found.nome) : "1 entidade";
       return { label: friendlyName, isFiltered: true };
     }
     return {
-      label: `${selectedEntidades.length} entidades`,
+      label: `${validSelected.length} entidades`,
       isFiltered: true,
     };
   })();
@@ -111,7 +121,7 @@ export function EntidadeSelectCompact({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-fit max-w-[130px] border-gray-400 border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-600 sm:max-w-[150px]",
+        "relative w-fit max-w-[130px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400 sm:max-w-[150px]",
         className,
       )}
     >
@@ -152,11 +162,18 @@ export function EntidadeSelectCompact({
           aria-label="Perímetro Institucional"
           className="absolute top-full -left-16 z-50 mt-1.5 w-64 max-w-[calc(100vw-2.5rem)] rounded-lg border border-borderLine bg-white p-2.5 shadow-lg sm:-left-20"
         >
-          {/* Cabeçalho do Popover */}
+          {/* Cabeçalho do Popover com Resumo do Escopo Atual */}
           <div className="mb-2 flex items-center justify-between gap-2 border-borderLine border-b pb-2">
-            <span className="font-semibold text-[10px] text-mutedText uppercase tracking-wider">
-              Perímetro Institucional
-            </span>
+            <div>
+              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+                Perímetro Institucional
+              </span>
+              <span className="text-[11px] text-subtleText">
+                {isAllSelected
+                  ? "Consolidado"
+                  : `${validSelected.length} de ${entidades.length} selecionadas`}
+              </span>
+            </div>
             <button
               type="button"
               onClick={handleToggleAll}
@@ -171,14 +188,16 @@ export function EntidadeSelectCompact({
             </button>
           </div>
 
-          {/* Lista de Entidades com Checkboxes */}
+          {/* Lista de Entidades com Checkboxes Semânticos */}
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {entidades.map((opt) => {
-              const isChecked =
-                isAllSelected || selectedEntidades.includes(opt.id);
+              const isChecked = isAllSelected || validSelected.includes(opt.id);
               return (
+                // biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button inside popover list
                 <button
                   type="button"
+                  role="checkbox"
+                  aria-checked={isChecked}
                   key={opt.id}
                   onClick={() => handleToggleOption(opt.id)}
                   className="flex w-full cursor-pointer items-center gap-2 rounded-md p-1.5 text-left text-ink text-xs transition-colors hover:bg-gray-100/80"

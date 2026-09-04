@@ -70,7 +70,6 @@ export interface SidebarProps {
   portalSlug?: string;
   onOpenNewsletter?: () => void;
   socialLinksSlot?: React.ReactNode;
-  mobileHeaderSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
@@ -89,7 +88,7 @@ function YearSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative w-fit border-gray-400 border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-600">
+      <div className="relative w-fit border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
         <select
           id="exercice-select"
           aria-label="Selecionar Exercício"
@@ -157,7 +156,6 @@ export function Sidebar({
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
   socialLinksSlot,
-  mobileHeaderSlot,
   mobileHeaderRightSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
@@ -271,7 +269,7 @@ export function Sidebar({
                 onChange={handleExerciceChange}
                 variant="compact"
               />
-              {mobileHeaderSlot ?? mobileHeaderRightSlot}
+              {mobileHeaderRightSlot}
             </div>
           </div>
         </div>

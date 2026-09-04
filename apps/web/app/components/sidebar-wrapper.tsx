@@ -87,7 +87,7 @@ export function SidebarWrapper({
         onEntidadesChange={handleEntidadesChange}
         onOpenNewsletter={() => setIsNewsletterOpen(true)}
         socialLinksSlot={<SocialLinks />}
-        mobileHeaderSlot={
+        mobileHeaderRightSlot={
           entidades && entidades.length > 0 ? (
             <EntidadeSelectCompact
               entidades={entidades}

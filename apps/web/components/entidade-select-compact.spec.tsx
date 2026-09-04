@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { MultiSelectOption } from "@transparencia/ui";
+import { type MultiSelectOption, Sidebar } from "@transparencia/ui";
 import { describe, expect, it, vi } from "vitest";
 import { EntidadeSelectCompact } from "./entidade-select-compact";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/porciuncula_prefeitura",
+}));
 
 describe("EntidadeSelectCompact Component", () => {
   const mockEntidades: MultiSelectOption[] = [
@@ -150,7 +154,7 @@ describe("EntidadeSelectCompact Component", () => {
     fireEvent.click(trigger);
 
     // Clicar na entidade 2 (adicionar ao filtro)
-    const entidade2Btn = screen.getByRole("button", {
+    const entidade2Btn = screen.getByRole("checkbox", {
       name: /fundo municipal de saúde/i,
     });
     fireEvent.click(entidade2Btn);
@@ -173,7 +177,7 @@ describe("EntidadeSelectCompact Component", () => {
     });
     fireEvent.click(trigger);
 
-    const entidade1Btn = screen.getByRole("button", {
+    const entidade1Btn = screen.getByRole("checkbox", {
       name: /prefeitura municipal/i,
     });
     fireEvent.click(entidade1Btn);
@@ -195,5 +199,106 @@ describe("EntidadeSelectCompact Component", () => {
     });
     expect(trigger.hasAttribute("disabled")).toBe(true);
     expect(screen.getByText("Nenhuma entidade")).toBeDefined();
+  });
+
+  it("deve renderizar os itens de entidade com role='checkbox' e aria-checked correto", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["1"]}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes.length).toBe(3);
+
+    expect(checkboxes[0].getAttribute("aria-checked")).toBe("true");
+    expect(checkboxes[1].getAttribute("aria-checked")).toBe("false");
+    expect(checkboxes[2].getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("deve exibir o resumo do escopo atual no cabeçalho do popover", () => {
+    const { rerender } = render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={[]}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    expect(screen.getAllByText("Consolidado").length).toBeGreaterThanOrEqual(1);
+
+    rerender(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["2"]}
+      />,
+    );
+    expect(screen.getByText("1 de 3 selecionadas")).toBeDefined();
+  });
+
+  it("deve interromper a propagação do evento ao pressionar Escape", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={[]}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const escapeEvent = new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      cancelable: true,
+    });
+    const stopPropagationSpy = vi.spyOn(escapeEvent, "stopPropagation");
+
+    fireEvent(document, escapeEvent);
+
+    expect(stopPropagationSpy).toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("deve filtrar IDs órfãos vindos da URL sem corromper a contagem ou o rótulo", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["999", "888", "777"]}
+      />,
+    );
+
+    // Como nenhum ID existe em entidades, deve ser tratado como Consolidado (sem filtro válido)
+    expect(screen.getByText("Consolidado")).toBeDefined();
+  });
+});
+
+describe("Sidebar mobileHeaderRightSlot Integration", () => {
+  it("deve renderizar o slot de cabeçalho móvel dentro do Top Header Móvel da Sidebar", () => {
+    render(
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        mobileHeaderRightSlot={
+          <span data-testid="custom-mobile-header-slot">Gatilho Entidade</span>
+        }
+      />,
+    );
+
+    const slotElement = screen.getByTestId("custom-mobile-header-slot");
+    expect(slotElement).toBeDefined();
+    expect(slotElement.textContent).toBe("Gatilho Entidade");
   });
 });
