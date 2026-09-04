@@ -1,6 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import posthog from "posthog-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ShowYourWorkButton } from "./show-your-work-button";
+
+vi.mock("posthog-js", () => ({
+  default: {
+    capture: vi.fn(),
+  },
+}));
 
 describe("ShowYourWorkButton Component", () => {
   const originalFetch = global.fetch;
@@ -100,9 +107,31 @@ describe("ShowYourWorkButton Component", () => {
     });
 
     expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "show_your_work_download_clicked",
+      {
+        portal_slug: "porciuncula_prefeitura",
+        tipo: "gasto_sensivel",
+        ano: 2025,
+        categoria: "combustivel_frota",
+        funcao_codigo: null,
+        entidades: "1,2",
+      },
+    );
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "show_your_work_download_completed",
+      expect.objectContaining({
+        portal_slug: "porciuncula_prefeitura",
+        tipo: "gasto_sensivel",
+        ano: 2025,
+        filename: "despesas_combustivel.csv",
+      }),
+    );
   });
 
-  it("deve exibir mensagem de erro se a API retornar erro de limite de requisição (HTTP 429)", async () => {
+  it("deve exibir mensagem de erro se a API retornar erro de limite de requisição (HTTP 429) e enviar telemetria", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
@@ -134,5 +163,29 @@ describe("ShowYourWorkButton Component", () => {
     await waitFor(() => {
       expect(screen.getByText(/muitos downloads requisitados/i)).toBeDefined();
     });
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "show_your_work_download_clicked",
+      {
+        portal_slug: "porciuncula_prefeitura",
+        tipo: "opacidade_99",
+        ano: 2025,
+        categoria: null,
+        funcao_codigo: null,
+        entidades: null,
+      },
+    );
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "show_your_work_download_failed",
+      expect.objectContaining({
+        portal_slug: "porciuncula_prefeitura",
+        tipo: "opacidade_99",
+        ano: 2025,
+        status: 429,
+        error:
+          "Muitos downloads requisitados. Por favor, aguarde alguns minutos.",
+      }),
+    );
   });
 });

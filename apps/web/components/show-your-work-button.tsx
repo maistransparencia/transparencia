@@ -6,6 +6,7 @@ import {
   Loader2,
   MoreVertical,
 } from "lucide-react";
+import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 export interface ShowYourWorkButtonProps {
@@ -66,6 +67,17 @@ export function ShowYourWorkButton({
     setErrorMessage(null);
 
     const slug = portalSlug || "porciuncula_prefeitura";
+    const telemetryPayload = {
+      portal_slug: slug,
+      tipo,
+      ano,
+      categoria: categoria ?? null,
+      funcao_codigo: funcaoCodigo ?? null,
+      entidades: entidades ?? null,
+    };
+
+    posthog.capture("show_your_work_download_clicked", telemetryPayload);
+
     const searchParams = new URLSearchParams();
     searchParams.set("tipo", tipo);
     searchParams.set("ano", String(ano));
@@ -82,6 +94,11 @@ export function ShowYourWorkButton({
         const message =
           errorData?.error || "Erro ao processar o download dos registros.";
         setErrorMessage(message);
+        posthog.capture("show_your_work_download_failed", {
+          ...telemetryPayload,
+          status: res.status,
+          error: message,
+        });
         return;
       }
 
@@ -99,9 +116,18 @@ export function ShowYourWorkButton({
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
+      posthog.capture("show_your_work_download_completed", {
+        ...telemetryPayload,
+        filename,
+      });
+
       setIsOpen(false);
     } catch {
       setErrorMessage("Falha de conexão ao baixar o arquivo CSV.");
+      posthog.capture("show_your_work_download_failed", {
+        ...telemetryPayload,
+        error: "network_error",
+      });
     } finally {
       setIsDownloading(false);
     }
