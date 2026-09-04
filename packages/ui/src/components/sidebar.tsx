@@ -8,7 +8,6 @@ import {
   Landmark,
   LayoutDashboard,
   Mail,
-  Menu,
   PieChart,
   Receipt,
   TrendingUp,
@@ -17,8 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import { fmtDate } from "../utils/formatters";
 import { buildNavUrl } from "../utils/nav";
@@ -72,6 +70,9 @@ export interface SidebarProps {
   portalSlug?: string;
   onOpenNewsletter?: () => void;
   socialLinksSlot?: React.ReactNode;
+  mobileHeaderRightSlot?: React.ReactNode;
+  isMobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
 function YearSelect({
@@ -87,12 +88,13 @@ function YearSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative max-w-16 border-b *:border-borderLine">
+      <div className="relative w-fit border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
         <select
           id="exercice-select"
+          aria-label="Selecionar Exercício"
           value={selectedYear}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] cursor-pointer appearance-none px-0 font-medium text-ink text-xs shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none sm:min-h-0 sm:py-1 sm:text-[10px]"
+          className="min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-[10px]"
         >
           {years.map((yr) => (
             <option
@@ -106,7 +108,7 @@ function YearSelect({
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-2 h-3 w-3 -translate-y-1/2 text-mutedText"
+          className="pointer-events-none absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2 text-mutedText"
         />
       </div>
     );
@@ -154,13 +156,49 @@ export function Sidebar({
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
   socialLinksSlot,
+  mobileHeaderRightSlot,
+  isMobileOpen: controlledMobileOpen,
+  onMobileOpenChange,
 }: SidebarProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const [internalExercice, setInternalExercice] = useState(String(currentYear));
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
   const [imgError, setImgError] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+
+  const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
+  const backdropMountedAt = useRef(0);
+
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    backdropMountedAt.current = Date.now();
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileOpen]);
+
+  const handleBackdropClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    // Protege contra "ghost click" / tap bleed-through em dispositivos móveis touch
+    if (Date.now() - backdropMountedAt.current < 350) {
+      return;
+    }
+    setIsMobileOpen(false);
+  };
+
+  const setIsMobileOpen = (
+    openOrUpdater: boolean | ((previousState: boolean) => boolean),
+  ) => {
+    const nextVal =
+      typeof openOrUpdater === "function"
+        ? openOrUpdater(isMobileOpen)
+        : openOrUpdater;
+    setInternalMobileOpen(nextVal);
+    onMobileOpenChange?.(nextVal);
+  };
 
   const currentExercice = selectedExercice ?? internalExercice;
   const handleExerciceChange = (val: string) => {
@@ -184,11 +222,10 @@ export function Sidebar({
     (_, i) => String(maxYear - i),
   );
 
-  const normalizedBrasao = brasaoAsset
-    ? brasaoAsset.startsWith("/")
-      ? brasaoAsset
-      : `/${brasaoAsset}`
-    : "/brasao-porciuncula.svg";
+  const normalizedBrasao = (() => {
+    if (!brasaoAsset) return "/brasao-porciuncula.svg";
+    return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
+  })();
 
   const displayExtractionDate = fmtDate(lastExtractionDate);
 
@@ -221,82 +258,85 @@ export function Sidebar({
               <Landmark strokeWidth={1.6} className="h-4 w-4 text-subtleText" />
             )}
           </div>
-          <div className="space-y-0 overflow-hidden">
-            <span className="truncate font-bold font-serif text-ink text-sm leading-none">
+          <div className="min-w-0 space-y-1">
+            <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="text-sm text-subtleText leading-none">
+            <div className="flex items-center gap-3 text-sm text-subtleText leading-none">
               <YearSelect
                 years={years}
                 selectedYear={currentExercice}
                 onChange={handleExerciceChange}
                 variant="compact"
               />
+              {mobileHeaderRightSlot}
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileOpen((prev) => !prev)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-borderLine bg-white text-ink shadow-xs transition-colors hover:bg-gray-50 active:bg-gray-100"
-          aria-label={isMobileOpen ? "Fechar menu" : "Abrir menu"}
-        >
-          {isMobileOpen ? (
-            <X strokeWidth={2} className="h-5 w-5 text-ink" />
-          ) : (
-            <Menu strokeWidth={2} className="h-5 w-5 text-ink" />
-          )}
-        </button>
       </div>
 
-      {/* Backdrop Móvel (< md) */}
-      {isMobileOpen && (
-        <button
-          type="button"
-          aria-label="Fechar menu"
-          className="fixed inset-0 z-40 cursor-default border-none bg-black/40 p-0 backdrop-blur-xs transition-opacity md:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
+      {/* Backdrop Móvel (< md) com Transição Suave */}
+      <div
+        role="presentation"
+        aria-hidden="true"
+        className={cn(
+          "fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-300 ease-in-out md:hidden",
+          isMobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0",
+        )}
+        onClick={handleBackdropClick}
+      />
 
-      {/* Conteúdo da Sidebar (Desktop + Drawer Móvel) */}
+      {/* Conteúdo da Sidebar (Desktop + Drawer Móvel com Animação de Slide) */}
       <aside
         className={cn(
           "select-none border-borderLine border-r bg-white",
-          "md:sticky md:top-0 md:flex md:h-screen md:w-[266px] md:shrink-0 md:flex-col md:justify-between",
+          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-transform duration-300 ease-in-out",
+          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
           isMobileOpen
-            ? "fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between shadow-2xl md:relative md:z-auto md:w-[266px] md:shadow-none"
-            : "hidden md:flex",
+            ? "pointer-events-auto translate-x-0 shadow-2xl"
+            : "pointer-events-none -translate-x-full shadow-none md:pointer-events-auto",
         )}
       >
-        <div className="flex flex-col overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {/* Marca Superior / Brasão Municipal */}
           <div className="border-borderLine border-b p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
-                {!imgError && normalizedBrasao ? (
-                  /* biome-ignore lint/performance/noImgElement: brasao asset */
-                  <img
-                    src={normalizedBrasao}
-                    alt={`Brasão de ${portalName}`}
-                    className="h-full w-full object-contain"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <Landmark
-                    strokeWidth={1.6}
-                    className="h-5 w-5 text-subtleText"
-                  />
-                )}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
+                  {!imgError && normalizedBrasao ? (
+                    /* biome-ignore lint/performance/noImgElement: brasao asset */
+                    <img
+                      src={normalizedBrasao}
+                      alt={`Brasão de ${portalName}`}
+                      className="h-full w-full object-contain"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <Landmark
+                      strokeWidth={1.6}
+                      className="h-5 w-5 text-subtleText"
+                    />
+                  )}
+                </div>
+                <div>
+                  <h1 className="font-bold font-serif text-base text-ink leading-tight">
+                    {displayTitle}
+                  </h1>
+                  <p className="text-[11px] text-mutedText">
+                    Orçamento municipal · {stateUF}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-bold font-serif text-base text-ink leading-tight">
-                  {displayTitle}
-                </h1>
-                <p className="text-[11px] text-mutedText">
-                  Orçamento municipal · {stateUF}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileOpen(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-borderLine bg-white text-mutedText shadow-xs transition-colors hover:bg-gray-50 hover:text-ink active:bg-gray-100 md:hidden"
+                aria-label="Fechar menu"
+              >
+                <X strokeWidth={2} className="h-4 w-4" />
+              </button>
             </div>
           </div>
 

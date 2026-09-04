@@ -4,8 +4,10 @@ import { type MultiSelectOption, Sidebar } from "@transparencia/ui";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import { useState } from "react";
-import { NewsletterModal } from "../../components/newsletter-modal";
-import { SocialLinks } from "../../components/social-links";
+import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
+import { useMobileNav } from "@/components/mobile-nav-context";
+import { NewsletterModal } from "@/components/newsletter-modal";
+import { SocialLinks } from "@/components/social-links";
 
 interface SidebarWrapperProps {
   portalName?: string;
@@ -30,6 +32,7 @@ export function SidebarWrapper({
   entidades,
   portalSlug,
 }: SidebarWrapperProps) {
+  const { isMenuOpen, setIsMenuOpen } = useMobileNav();
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const currentYear = String(new Date().getFullYear());
   const [ano, setAno] = useQueryState(
@@ -84,6 +87,17 @@ export function SidebarWrapper({
         onEntidadesChange={handleEntidadesChange}
         onOpenNewsletter={() => setIsNewsletterOpen(true)}
         socialLinksSlot={<SocialLinks />}
+        mobileHeaderRightSlot={
+          entidades && entidades.length > 0 ? (
+            <EntidadeSelectCompact
+              entidades={entidades}
+              selectedEntidades={selectedEntidades}
+              onChange={handleEntidadesChange}
+            />
+          ) : undefined
+        }
+        isMobileOpen={isMenuOpen}
+        onMobileOpenChange={setIsMenuOpen}
       />
       <NewsletterModal
         isOpen={isNewsletterOpen}

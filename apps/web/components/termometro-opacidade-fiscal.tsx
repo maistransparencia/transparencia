@@ -16,9 +16,12 @@ import {
   Layers,
   ShieldCheck,
 } from "lucide-react";
+import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface TermometroOpacidadeFiscalProps {
   data: OpacidadeContabilMetricsDTO | null;
+  portalSlug?: string;
+  entidades?: string;
   className?: string;
 }
 
@@ -82,6 +85,7 @@ function formatCategoriaSensivel(
 
 export function TermometroOpacidadeFiscal({
   data,
+  portalSlug,
   className = "",
 }: TermometroOpacidadeFiscalProps) {
   if (!data?.exercicioAtual) return null;
@@ -128,18 +132,28 @@ export function TermometroOpacidadeFiscal({
           </h2>
         </div>
 
-        {/* Link Referência Normativa */}
-        {baseLegalPrincipal.urlBaseLegal && (
-          <a
-            href={baseLegalPrincipal.urlBaseLegal}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 sm:self-center"
-          >
-            <span>Referência: {baseLegalPrincipal.baseLegal}</span>
-            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          </a>
-        )}
+        <div className="flex items-center gap-2 self-start sm:self-center">
+          {/* Link Referência Normativa */}
+          {baseLegalPrincipal.urlBaseLegal && (
+            <a
+              href={baseLegalPrincipal.urlBaseLegal}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <span>Referência: {baseLegalPrincipal.baseLegal}</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            </a>
+          )}
+
+          {/* Botão sutil de 3 pontos para Show Your Work */}
+          <ShowYourWorkButton
+            portalSlug={portalSlug || data.portalSlug}
+            ano={exercicioAtual.ano}
+            tipo="opacidade_99"
+            tituloContexto="Gastos Genéricos (.99)"
+          />
+        </div>
       </div>
 
       {/* Descrição Didática e Cidadã */}

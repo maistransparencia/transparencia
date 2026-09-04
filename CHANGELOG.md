@@ -5,6 +5,43 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-09-04
+
+### 🌟 Destaques da Versão (Epic 8: Auditabilidade Cívica ('Show Your Work'), Transparência Metodológica e Navegação Mobile Contínua)
+* **Auditabilidade Cívica Direta ("Show Your Work"):** Exportação instantânea em streaming CSV com codificação UTF-8 com BOM (`\uFEFF`) diretamente a partir de cards analíticos (gastos sensíveis e termômetro de opacidade), viabilizando a conferência centavo a centavo dos microdados públicos por cidadãos, jornalistas e órgãos de controle.
+* **Decomposição da Dívida Real por Entidade:** Popovers interativos e acessíveis no Radar de Gastos Sensíveis detalhando a dívida flutuante e restos a pagar por ente público (Prefeitura, Fundo Municipal de Saúde, Fundo de Assistência), prevenindo generalizações e identificando o real passivo setorial.
+* **Navegação Mobile Contínua & Seletor de Perímetro Institucional:** Nova tab bar fixa no rodapé móvel (`MobileBottomNav`) com stepper cívico e atalhos rápidos, acompanhada de seletor compacto de entidade no topo móvel (`EntidadeSelectCompact`), viabilizando alternância fluida entre visão `Consolidada` e órgãos específicos com uma única mão.
+* **Transparência Metodológica e Guias para IA:** Expansão abrangente dos arquivos públicos `llms.txt` e `llms-full.txt` documentando a arquitetura dos endpoints de exportação, regras de agregação contábil e critérios de consolidação para assistentes de inteligência artificial e cidadãos.
+
+### ✨ Novas Funcionalidades (Added)
+* **Botão "Show Your Work" (`ShowYourWorkButton`):** Menu dropdown acessível integrado aos cards analíticos de gastos sensíveis e termômetro de opacidade (`.99`), disponibilizando o download direto de microdados em CSV (`/api/[portalSlug]/export`) e acionando telemetria PostHog (`show_your_work_download_clicked`).
+* **Endpoint de Streaming CSV de Alta Performance (`/api/[portalSlug]/export`):** Rota server-side com transmissão em streaming assíncrono de registros contábeis brutos, incluindo cabeçalho BOM UTF-8 (`\uFEFF`) para compatibilidade nativa com Excel e Google Sheets sem corrupção de caracteres.
+* **Popover de Decomposição da Dívida (`DecomposicaoDividaPopover`):** Mini-painel flutuante baseado em Radix UI com barras de participação percentual, permitindo auditar a distribuição dos restos a pagar por órgão/entidade ao tocar ou clicar no valor da Dívida Acumulada.
+* **Barra Fixa de Navegação Mobile (`MobileBottomNav`):** Tab bar de navegação no rodapé para dispositivos móveis (`md:hidden`) com 5 abas principais, botão "Mais" para o drawer lateral, botões de avanço e retrocesso (`← Anterior` / `Próximo →`) e contexto de estado integrado (`MobileNavContext`).
+* **Seletor Compacto de Perímetro no Header Móvel (`EntidadeSelectCompact`):** Componente no cabeçalho superior móvel com rigorosa simetria tipográfica ao seletor de ano (`YearSelect`), permitindo filtrar dinamicamente entre `Consolidado` e órgãos individuais via parâmetro `entidades` na URL sincronizado com `nuqs`.
+
+### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
+* **Query Atômica de Exportação de Dados Brutos (`export-raw-data.ts`):** Nova função `getRawExpensesExport` em `@transparencia/db` com filtros parametrizados por categoria sensível, rubrica `.99`, fornecedor e órgão, realizando join com `dim_orgao` para recuperar `orgao_nome` e projetando `categoria_sugerida` e `natureza_codigo_sugerido`.
+* **Desagregação da Dívida no Kysely (`despesas-metrics.ts`):** Expansão de `getGastosSensiveisConsolidados` com a propriedade `decomposicao_divida`, computando o saldo de restos a pagar por entidade e sua participação percentual relativa sobre o total acumulado da categoria.
+* **Fixtures de Teste Enriquecidas (`seed.ts`):** Inclusão de registros com múltiplos órgãos (`Fundo Municipal de Saúde` e `Prefeitura Municipal`) e metadados de classificação sugerida para validação de paridade matemática centavo a centavo.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Ergonomia e Layout Mobile Global (`layout.tsx` e `sidebar.tsx`):** Ajuste de espaçamento inferior (`pb-20 md:pb-0`) para evitar sobreposição de elementos pelo `MobileBottomNav`, elevação de z-index do drawer e backdrop para `z-40`/`z-50` sobrepondo o rodapé (`z-30`), e desacoplamento do seletor de ano redundante do topo móvel.
+* **Offset Vertical do Banner PWA (`pwa-installer.tsx`):** Ajuste do banner de instalação do Progressive Web App para `bottom-20 md:bottom-4`, preservando a visibilidade da barra de navegação móvel inferior.
+* **Transições e Acessibilidade do Drawer Móvel:** Implementação de animação suave de slide/fade (`translate-x-full transition-transform duration-200`) e travamento de scroll do `body` durante a abertura do menu drawer.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Sincronização dos Guias para LLMs (`llms.txt` e `llms-full.txt`):** Atualização em conformidade estrita com a Regra 12 de `AGENTS.md`, documentando a rota `/api/[portalSlug]/export`, dicionário de parâmetros (`categoria`, `subitem`, `fornecedor`, `entidades`), notas metodológicas de consolidação institucional e links para download auditável.
+* **Proteção contra Vazamento de Dados Internos (Leak Check):** Criação da suíte `apps/web/lib/__tests__/llms-guides.spec.ts` validando formalmente a integridade dos guias públicos e a ausência de termos de infraestrutura interna ou dados confidenciais.
+* **Atualização de Capturas de Tela (`screenshot-mobile.png`):** Renovação da imagem visual de demonstração do portal refletindo a nova barra móvel inferior e o seletor compacto de entidade.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Alinhamento do Fallback de Redes Sociais no CI:** Padronização de asserções em `env.spec.ts` e `social-links.spec.tsx` com o valor canônico institucional `NEXT_PUBLIC_FACEBOOK_URL="https://facebook.com/profile.php?id="`.
+* **Acessibilidade e Foco (WAI-ARIA):** Inclusão de atributos `aria-haspopup="dialog"`, rótulos `aria-label`, foco gerenciado e fechamento por tecla `Escape` em `DecomposicaoDividaPopover` e `EntidadeSelectCompact`.
+* **Ordenação Decrescente e Tratamento de Zeros na Dívida:** Ordenação determinística por valor e percentual com tratamento gracioso de categorias sem passivo acumulado na decomposição por entidade.
+
+## [1.7.1] - 2026-09-04
+
 ### 🌟 Destaques da Versão (Hotfix v1.7.1: Saneamento Léxico e Desagregação Canônica de Despesas Sensíveis)
 * **Segregação de Equipamentos Hospitalares e Plantões Clínicos:** Desagregação analítica determinística entre serviços médicos humanos presenciais e locação de usinas de oxigênio/equipamentos hospitalares, eliminando distorções de custos na saúde pública.
 * **Depuração Rigorosa da Rubrica de Plantões Médicos:** Restrição estrita a termos clínicos diretos e exclusão determinística de funções de apoio operacional (cozinheiras, motoristas, portaria e vigias) indevidamente classificadas sob a rubrica médica.
