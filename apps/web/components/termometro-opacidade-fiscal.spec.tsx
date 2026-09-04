@@ -236,6 +236,16 @@ describe("TermometroOpacidadeFiscal Component", () => {
           amostraObjeto: "COLETA DE LIXO E CACAMBAS",
           ranking: 2,
         },
+        {
+          credorCodigo: "33.333.333/0001-33",
+          credorNome: "PURE AIR LOCACOES",
+          totalEmpenhos: 2,
+          totalPago: 15000,
+          pagoDesvioSensivel: 15000,
+          categoriaPredominante: "locacao_equipamentos_saude",
+          amostraObjeto: "LOCACAO DE USINA DE OXIGENIO",
+          ranking: 3,
+        },
       ],
     };
 
@@ -243,6 +253,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
 
     expect(screen.getByText("Consórcios de Saúde")).toBeInTheDocument();
     expect(screen.getByText("Limpeza Urbana & Resíduos")).toBeInTheDocument();
+    expect(screen.getByText("Equipamentos de Saúde")).toBeInTheDocument();
   });
 
   it("renderiza o botão de auditoria Show Your Work no cabeçalho", () => {

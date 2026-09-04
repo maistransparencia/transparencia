@@ -299,6 +299,10 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "CODESP CONSORCIO", categoria_objeto_sugerida: "consorcios_publicos", categoria_gasto_sensivel: null, descricao: "RATEIO DO CONSORCIO", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 5000.00 }
           # Credor B em .99 com resíduos sugerido (R$ 2.000)
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "COOPERATIVA LIMPEZA", categoria_objeto_sugerida: "limpeza_residuos", categoria_gasto_sensivel: null, descricao: "SERVICO DE CACAMBAS", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2000.00 }
+          # Credor E em .99 com locação de equipamentos de saúde sugerido (R$ 3.000)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "55.555.555/0001-55", fornecedor_nome: "PURE AIR LOCACAO", categoria_objeto_sugerida: "locacao_equipamentos_saude", categoria_gasto_sensivel: null, descricao: "LOCACAO DE USINA DE GASES", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 3000.00 }
+          # Credor F em .99 com assistência domiciliar / home care sugerido (R$ 2.500)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "66.666.666/0001-66", fornecedor_nome: "VITTALIS ASSISTENCIA", categoria_objeto_sugerida: "assistencia_domiciliar_home_care", categoria_gasto_sensivel: null, descricao: "SERVICOS DE HOME CARE", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2500.00 }
           # Credor C em despesa regular (R$ 10.000) - não deve entrar no mart de .99
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "33.333.333/0001-33", fornecedor_nome: "AUTO LOCADORA", categoria_objeto_sugerida: "locacao_maquinas_veiculos", categoria_gasto_sensivel: "locacao_maquinas_veiculos", descricao: "LOCACAO DE VEICULOS", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", pago: 10000.00 }
           # Credor D em .99 sem classificação específica (R$ 1.000)
@@ -306,8 +310,10 @@ unit_tests:
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "11.111.111/0001-11", credor_nome: "CODESP CONSORCIO", total_empenhos: 1, total_pago: 5000.00, pago_desvio_sensivel: 5000.00, categoria_predominante: "consorcios_publicos", amostra_objeto: "RATEIO DO CONSORCIO", ranking: 1 }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "22.222.222/0001-22", credor_nome: "COOPERATIVA LIMPEZA", total_empenhos: 1, total_pago: 2000.00, pago_desvio_sensivel: 2000.00, categoria_predominante: "limpeza_residuos", amostra_objeto: "SERVICO DE CACAMBAS", ranking: 2 }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "44.444.444/0001-44", credor_nome: "OUTROS SERVICOS LTDA", total_empenhos: 1, total_pago: 1000.00, pago_desvio_sensivel: 0.00, categoria_predominante: "sem_classificacao_especifica", amostra_objeto: "SERVICOS DIVERSOS", ranking: 3 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "55.555.555/0001-55", credor_nome: "PURE AIR LOCACAO", total_empenhos: 1, total_pago: 3000.00, pago_desvio_sensivel: 3000.00, categoria_predominante: "locacao_equipamentos_saude", amostra_objeto: "LOCACAO DE USINA DE GASES", ranking: 2 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "66.666.666/0001-66", credor_nome: "VITTALIS ASSISTENCIA", total_empenhos: 1, total_pago: 2500.00, pago_desvio_sensivel: 2500.00, categoria_predominante: "assistencia_domiciliar_home_care", amostra_objeto: "SERVICOS DE HOME CARE", ranking: 3 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "22.222.222/0001-22", credor_nome: "COOPERATIVA LIMPEZA", total_empenhos: 1, total_pago: 2000.00, pago_desvio_sensivel: 2000.00, categoria_predominante: "limpeza_residuos", amostra_objeto: "SERVICO DE CACAMBAS", ranking: 4 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "44.444.444/0001-44", credor_nome: "OUTROS SERVICOS LTDA", total_empenhos: 1, total_pago: 1000.00, pago_desvio_sensivel: 0.00, categoria_predominante: "sem_classificacao_especifica", amostra_objeto: "SERVICOS DIVERSOS", ranking: 5 }
 
   - name: test_opacidade_contabil_elementos_quebra_e_ranking
     description: "Valida o agrupamento por elemento pai e cálculo do percentual sobre o residual .99"

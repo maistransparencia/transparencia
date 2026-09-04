@@ -5,6 +5,42 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Hotfix v1.7.1: Saneamento Léxico e Desagregação Canônica de Despesas Sensíveis)
+* **Segregação de Equipamentos Hospitalares e Plantões Clínicos:** Desagregação analítica determinística entre serviços médicos humanos presenciais e locação de usinas de oxigênio/equipamentos hospitalares, eliminando distorções de custos na saúde pública.
+* **Depuração Rigorosa da Rubrica de Plantões Médicos:** Restrição estrita a termos clínicos diretos e exclusão determinística de funções de apoio operacional (cozinheiras, motoristas, portaria e vigias) indevidamente classificadas sob a rubrica médica.
+* **Isolamento de Assistência Domiciliar (Home Care):** Criação de categoria dedicada com segregação precisa entre prestadores pessoa física (`3.3.90.36.06`) e pessoa jurídica (`3.3.90.39.99`).
+* **Saneamento Upstream de Falsos Positivos:** Purificação de filtros léxicos em resíduos sólidos (exclusão de tarifas de água da CEDAE), combustíveis (segregação de peças automotivas), previdência (exclusão de PASEP) e consultoria técnica.
+
+### ✨ Novas Funcionalidades (Added)
+* **Novas Categorias de Despesas Sensíveis na Web & E-mails:** Apresentação transparente das categorias `locacao_equipamentos_saude`, `assistencia_domiciliar_home_care`, `pecas_manutencao_frota` e `aluguel_social` com rotulagem amigável no componente `TermometroOpacidadeFiscal` e no boletim cívico transacional `RadarDigestEmail`.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Refatoração Léxica Canônica (`int_despesas_reclassificadas`):**
+  * Introdução das categorias em lowercase snake_case `locacao_equipamentos_saude` (`3.3.90.39.12`), `assistencia_domiciliar_home_care` (PF `3.3.90.36.06` / PJ `3.3.90.39.99`), `pecas_manutencao_frota` (`3.3.90.30.39`) e `aluguel_social` (`3.3.90.48.00`), em conformidade com as Regras 9 e 10 de `AGENTS.md`.
+  * Refinamento de `plantoes_medicos` com vocabulário estritamente clínico e aplicação de cláusulas de exclusão negativa para serviços não clínicos.
+  * CTE `despesas` atualizada com fallback defensivo (`coalesce` e `unaccent`) garantindo integridade léxica contra valores nulos em fixtures de teste.
+* **Atualização do Catálogo STN (`seed_naturezas_despesa_stn.csv`):** Inclusão das naturezas canônicas `3.3.90.36.06` (Serviços Técnicos Profissionais), `3.3.90.48.00` (Outros Auxílios Financeiros a Pessoas Físicas) e alinhamento de `3.3.90.30.39` com a categoria macro `pecas_manutencao_frota`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Constantes e Tipagem Fiscal (`@transparencia/db`):** Atualização de `CATEGORIAS_OBJETO_SUGERIDAS` e do tipo `CategoriaObjetoSugerida` para inclusão dos 4 novos discriminadores fiscais.
+* **Formatadores UI com Early Returns (`apps/web`):** Padronização das funções de formatação `formatCategoriaSensivel` e `formatCategoriaCredor` com retornos antecipados em conformidade com a Regra 13 de `AGENTS.md` (Zero Ternários Aninhados).
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Governança de Constantes Fiscais:** Alinhamento com as diretrizes de desagregação de subitens residuais `.99` e fundamentação nas normas da STN/MCASP e Lei 4.320/64.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Saneamento de Falsos Positivos Upstream:**
+  * `limpeza_residuos`: Exclusão de faturas da concessionária estadual de água (CEDAE) erroneamente catalogadas sob o código `3.3.90.39.44`.
+  * `combustivel_frota`: Segregação de peças automotivas, baterias e pneus da rubrica de abastecimento e combustíveis.
+  * `previdencia`: Exclusão de recolhimentos PASEP (`3.3.90.13.99`) do agregado de previdência e obrigações patronais.
+  * `bloqueios_sentencas`: Exclusão de despesas com aquisição de imóveis e terrenos sob elemento `61`.
+  * `consorcios_publicos`: Exclusão de compras diretas de medicamentos e insumos hospitalares.
+  * `consultoria_tecnica`: Exclusão de reparos e manutenções físicas/operacionais (climatização, elétrica e CFTV).
+* **Expansão da Cobertura de Testes Automatizados:**
+  * Inclusão de 8 novos cenários de teste unitário dbt em `_int_despesas_reclassificadas.yml` validando todas as novas classes e regras de exclusão.
+  * Atualização dos testes unitários de ranking em `_fct_opacidade_contabil_metricas.yml` contemplando credores das novas categorias sugeridas.
+  * Expansão da suíte de testes unitários em TypeScript (`opacidade-contabil-metrics.spec.ts`, `termometro-opacidade-fiscal.spec.tsx` e `radar-digest.spec.tsx`).
+
 ## [1.7.0] - 2026-09-02
 
 ### 🌟 Destaques da Versão (Epic 7: Distribuição Cívica, Engajamento Comunitário, Newsletters Automatizadas e Social Sharing Dinâmico)

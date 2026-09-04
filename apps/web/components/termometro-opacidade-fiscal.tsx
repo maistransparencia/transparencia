@@ -68,6 +68,11 @@ function formatCategoriaSensivel(
   if (cat === "terceirizacao_mao_obra") return "Mão de Obra Terceirizada";
   if (cat === "previdencia") return "Previdência";
   if (cat === "consultoria_tecnica") return "Consultoria Técnica";
+  if (cat === "locacao_equipamentos_saude") return "Equipamentos de Saúde";
+  if (cat === "assistencia_domiciliar_home_care")
+    return "Home Care & Domiciliar";
+  if (cat === "pecas_manutencao_frota") return "Peças & Manutenção de Frotas";
+  if (cat === "aluguel_social") return "Aluguel Social";
   if (cat === "locacao_maquinas_veiculos")
     return "Locação de Máquinas & Frotas";
   if (cat === "eventos_festas") return "Eventos & Festividades";
