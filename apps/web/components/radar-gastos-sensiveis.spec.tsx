@@ -97,6 +97,22 @@ describe("RadarGastosSensiveis Component", () => {
     ).toBeInTheDocument();
   });
 
+  it("renderiza botões de auditoria Show Your Work para cada card", () => {
+    render(
+      <RadarGastosSensiveis
+        itens={sampleItens}
+        anoAtual={2026}
+        anoAnterior={2025}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    const auditButtons = screen.getAllByRole("button", {
+      name: /opções de auditoria/i,
+    });
+    expect(auditButtons.length).toBe(6);
+  });
+
   it("retorna null se a lista de itens estiver vazia", () => {
     const { container } = render(
       <RadarGastosSensiveis itens={[]} anoAtual={2026} anoAnterior={2025} />,

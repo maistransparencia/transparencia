@@ -112,13 +112,19 @@ export default async function DespesasPage({
           itens={radarGastosSensiveis?.itens ?? []}
           anoAtual={radarGastosSensiveis?.anoAtual ?? selectedYear}
           anoAnterior={radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}
+          portalSlug={portalSlug}
+          entidades={resolvedSearchParams.entidades}
           isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
 
         {/* Termômetro de Subitens Genéricos (.99) */}
         {opacidadeContabil && (
-          <TermometroOpacidadeFiscal data={opacidadeContabil} />
+          <TermometroOpacidadeFiscal
+            data={opacidadeContabil}
+            portalSlug={portalSlug}
+            entidades={resolvedSearchParams.entidades}
+          />
         )}
       </section>
 

@@ -245,6 +245,19 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getByText("Limpeza Urbana & Resíduos")).toBeInTheDocument();
   });
 
+  it("renderiza o botão de auditoria Show Your Work no cabeçalho", () => {
+    render(
+      <TermometroOpacidadeFiscal
+        data={sampleData}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+    const auditButton = screen.getByRole("button", {
+      name: /opções de auditoria/i,
+    });
+    expect(auditButton).toBeInTheDocument();
+  });
+
   it("retorna null se os dados forem nulos", () => {
     const { container } = render(<TermometroOpacidadeFiscal data={null} />);
     expect(container).toBeEmptyDOMElement();
