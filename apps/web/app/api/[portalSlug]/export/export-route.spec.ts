@@ -33,6 +33,8 @@ vi.mock("@transparencia/db", () => ({
       valorLiquidado: 5000.5,
       valorPago: 5000.5,
       categoriaSensivel: "combustivel_frota",
+      categoriaSugerida: "combustivel_frota",
+      naturezaCodigoSugerido: "3.3.90.30.01",
     },
   ]),
   CATEGORIAS_GASTOS_SENSIVEIS: [
@@ -182,7 +184,7 @@ describe("API Route: /api/[portalSlug]/export", () => {
     const text = new TextDecoder("utf-8").decode(buffer);
     // Cabeçalhos de coluna separados por ';'
     expect(text).toContain(
-      "numero_empenho;data_empenho;orgao_nome;credor_nome;credor_cpf_cnpj;objeto_descricao;natureza_codigo;valor_empenhado;valor_liquidado;valor_pago;categoria_sensivel",
+      "numero_empenho;data_empenho;orgao_nome;credor_nome;credor_cpf_cnpj;objeto_descricao;natureza_codigo;valor_empenhado;valor_liquidado;valor_pago;categoria_sensivel;categoria_sugerida;natureza_codigo_sugerido",
     );
 
     // Escape de aspas e ponto e vírgula na descrição
@@ -210,7 +212,7 @@ describe("API Route: /api/[portalSlug]/export", () => {
 
     const text = await res.text();
     expect(text).toContain(
-      "numero_empenho,data_empenho,orgao_nome,credor_nome,credor_cpf_cnpj,objeto_descricao,natureza_codigo,valor_empenhado,valor_liquidado,valor_pago,categoria_sensivel",
+      "numero_empenho,data_empenho,orgao_nome,credor_nome,credor_cpf_cnpj,objeto_descricao,natureza_codigo,valor_empenhado,valor_liquidado,valor_pago,categoria_sensivel,categoria_sugerida,natureza_codigo_sugerido",
     );
     expect(text).toContain("5000.50");
   });
@@ -293,6 +295,8 @@ describe("API Route: /api/[portalSlug]/export", () => {
         valorLiquidado: 100,
         valorPago: 100,
         categoriaSensivel: null,
+        categoriaSugerida: null,
+        naturezaCodigoSugerido: null,
       },
     ]);
 
