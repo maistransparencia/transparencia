@@ -218,6 +218,30 @@ describe("getOpacidadeContabilMetrics", () => {
         cat: "consultoria_tecnica",
         obj: "ASSESSORIA CONTABIL",
       },
+      {
+        cod: "08",
+        nome: "PURE AIR EQUIPAMENTOS",
+        cat: "locacao_equipamentos_saude",
+        obj: "LOCACAO DE USINA DE GASES",
+      },
+      {
+        cod: "09",
+        nome: "VITTALIS ASSISTENCIA",
+        cat: "assistencia_domiciliar_home_care",
+        obj: "SERVICO DE HOME CARE",
+      },
+      {
+        cod: "10",
+        nome: "AUTO PECAS DO VALE",
+        cat: "pecas_manutencao_frota",
+        obj: "PECAS PARA VEICULOS",
+      },
+      {
+        cod: "11",
+        nome: "BENEFICIARIO EVENTUAL",
+        cat: "aluguel_social",
+        obj: "BENEFICIO DE ALUGUEL SOCIAL",
+      },
     ];
 
     for (let i = 0; i < categoriasParaTestar.length; i++) {
@@ -239,7 +263,7 @@ describe("getOpacidadeContabilMetrics", () => {
     const result = await getOpacidadeContabilMetrics(PORTAL, 2025);
 
     expect(result).not.toBeNull();
-    expect(result?.topCredores).toHaveLength(7);
+    expect(result?.topCredores).toHaveLength(11);
     for (let i = 0; i < categoriasParaTestar.length; i++) {
       expect(result?.topCredores[i].categoriaPredominante).toBe(
         categoriasParaTestar[i].cat,

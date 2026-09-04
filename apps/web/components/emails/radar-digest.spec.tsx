@@ -36,6 +36,11 @@ describe("RadarDigestEmail", () => {
         totalPago: 2500000,
         categoriaPredominante: "limpeza_residuos",
       },
+      {
+        credorNome: "Pure Air Hospitalar",
+        totalPago: 1800000,
+        categoriaPredominante: "locacao_equipamentos_saude",
+      },
     ],
   };
 
@@ -69,6 +74,8 @@ describe("RadarDigestEmail", () => {
     expect(getByText(/18,5%/i)).toBeInTheDocument();
     expect(getByText(/Risco Atenção/i)).toBeInTheDocument();
     expect(getByText(/Empresa Limpeza Urbana/i)).toBeInTheDocument();
+    expect(getByText(/Pure Air Hospitalar/i)).toBeInTheDocument();
+    expect(getByText(/Locação de Equipamentos de Saúde/i)).toBeInTheDocument();
 
     // Contratos em Destaque
     expect(

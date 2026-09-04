@@ -97,6 +97,12 @@ function formatCategoriaCredor(cat: string): string {
   if (cat === "consultoria_tecnica") return "Consultoria Técnica";
   if (cat === "bloqueios_sentencas") return "Bloqueios Judiciais / Sentenças";
   if (cat === "previdencia") return "Previdência / RPPS";
+  if (cat === "locacao_equipamentos_saude")
+    return "Locação de Equipamentos de Saúde";
+  if (cat === "assistencia_domiciliar_home_care")
+    return "Assistência Domiciliar / Home Care";
+  if (cat === "pecas_manutencao_frota") return "Peças e Manutenção de Frotas";
+  if (cat === "aluguel_social") return "Aluguel Social";
   if (cat === "sem_classificacao_especifica")
     return "Outros Subitens Residuais";
   return "Outros Subitens Residuais";
