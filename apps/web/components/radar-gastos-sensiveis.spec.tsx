@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   type ItemGastoSensivel,
@@ -35,6 +35,14 @@ describe("RadarGastosSensiveis Component", () => {
       valorEmpenhadoAnoAtual: 65000,
       valorLiquidadoPendente: 5000,
       dividaRealAcumulada: 5000,
+      decomposicaoDivida: [
+        {
+          empresaId: "1",
+          entidadeNome: "Fundo Municipal de Assistência Social",
+          valorDivida: 5000,
+          percentual: 100,
+        },
+      ],
       variacaoPercentual: 20.0,
       tendencia: "aumento",
     },
@@ -94,6 +102,31 @@ describe("RadarGastosSensiveis Component", () => {
       screen.getByText(
         "Aluguel de prédios, salas, galpões e terrenos para órgãos públicos",
       ),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza gatilho interativo de decomposição da dívida quando dividaReal > 0 e abre o popover ao clicar", () => {
+    render(
+      <RadarGastosSensiveis
+        itens={sampleItens}
+        anoAtual={2026}
+        anoAnterior={2025}
+      />,
+    );
+
+    const debtButton = screen.getByRole("button", {
+      name: /ver decomposição da dívida de locação de imóveis por entidade/i,
+    });
+    expect(debtButton).toBeInTheDocument();
+    expect(debtButton).toHaveAttribute("aria-haspopup", "dialog");
+    expect(debtButton).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(debtButton);
+
+    expect(debtButton).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText("Fundo Municipal de Assistência Social"),
     ).toBeInTheDocument();
   });
 

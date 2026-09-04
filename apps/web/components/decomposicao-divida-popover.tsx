@@ -53,7 +53,10 @@ export function DecomposicaoDividaPopover({
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div
+      ref={containerRef}
+      className={`relative ${isOpen ? "z-30" : ""} ${className}`}
+    >
       {/* Gatilho Interativo */}
       {trigger ? (
         <button
@@ -98,7 +101,7 @@ export function DecomposicaoDividaPopover({
           role="dialog"
           aria-modal="true"
           aria-label={`Decomposição da dívida de ${categoriaTitulo}`}
-          className="absolute right-0 bottom-full left-0 z-40 mb-2 rounded-xl border border-slate-200 bg-white p-4 shadow-xl sm:right-0 sm:left-auto sm:w-96"
+          className="absolute right-0 bottom-full left-0 z-50 mb-2 rounded-xl border border-slate-200 bg-white p-3.5 shadow-xl"
         >
           {/* Cabeçalho */}
           <div className="flex items-start justify-between border-slate-100 border-b pb-2.5">
@@ -145,28 +148,32 @@ export function DecomposicaoDividaPopover({
                     key={item.empresaId}
                     className="py-2.5 first:pt-1.5 last:pb-1"
                   >
-                    <div className="flex items-center justify-between text-xs">
+                    {/* Linha superior: Nome da entidade com espaço amplo para evitar truncamento */}
+                    <div className="flex items-start justify-between gap-2">
                       <span
-                        className="truncate pr-2 font-medium text-slate-800"
+                        className="font-medium text-slate-800 text-xs leading-snug"
                         title={item.entidadeNome}
                       >
                         {item.entidadeNome}
                       </span>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <span className="font-bold font-serif text-slate-900">
-                          {fmtCurrency(item.valorDivida)}
-                        </span>
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-[10px] text-amber-800">
-                          {item.percentual}%
-                        </span>
-                      </div>
                     </div>
+
                     {/* Barra de progresso visual proporcional */}
-                    <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
                         className="h-full rounded-full bg-amber-500 transition-all duration-300"
                         style={{ width: `${percentualVal}%` }}
                       />
+                    </div>
+
+                    {/* Linha inferior: Percentual e Valor monetário */}
+                    <div className="mt-1.5 flex items-center justify-between text-xs">
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-[10px] text-amber-800">
+                        {item.percentual}%
+                      </span>
+                      <span className="font-bold font-serif text-slate-900">
+                        {fmtCurrency(item.valorDivida)}
+                      </span>
                     </div>
                   </div>
                 );

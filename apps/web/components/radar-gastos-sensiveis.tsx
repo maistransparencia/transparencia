@@ -1,7 +1,9 @@
-import type { CATEGORIAS_GASTOS_SENSIVEIS } from "@transparencia/db";
+import type {
+  CATEGORIAS_GASTOS_SENSIVEIS,
+  EntidadeDividaItemDTO,
+} from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import {
-  AlertCircle,
   Building2,
   CheckCircle2,
   Fuel,
@@ -13,6 +15,7 @@ import {
   Truck,
 } from "lucide-react";
 
+import { DecomposicaoDividaPopover } from "./decomposicao-divida-popover";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface ItemGastoSensivel {
@@ -26,6 +29,7 @@ export interface ItemGastoSensivel {
   dividaRestosAcumulada?: number;
   variacaoPercentual: number | null;
   tendencia: "aumento" | "economia" | "estavel" | "sem_historico";
+  decomposicaoDivida?: EntidadeDividaItemDTO[];
 }
 
 export type RadarIcon =
@@ -157,13 +161,11 @@ export function RadarGastosSensiveis({
 
           const dividaReal =
             item.dividaRealAcumulada ?? item.valorLiquidadoPendente ?? 0;
-          const dividaRestos = item.dividaRestosAcumulada ?? 0;
-          const dividaExercicio = item.valorLiquidadoPendente ?? 0;
 
           return (
             <div
               key={item.categoria}
-              className="flex flex-col justify-between rounded-2xl border border-borderLine bg-white p-5 shadow-sm transition-all hover:border-ink/20"
+              className="flex flex-col justify-between rounded-2xl border border-borderLine bg-white p-4 shadow-sm transition-all hover:border-ink/20"
             >
               {/* Header do Card: Ícone e Badge */}
               <div className="space-y-3.5">
@@ -248,26 +250,15 @@ export function RadarGastosSensiveis({
                   </div>
                 </div>
 
-                {/* Pill de Status de Dívida Real Acumulada */}
+                {/* Pill / Gatilho de Status de Dívida Real Acumulada */}
                 {(() => {
                   if (dividaReal > 0) {
                     return (
-                      <div
-                        className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs"
-                        title={
-                          dividaRestos > 0
-                            ? `R$ ${dividaExercicio.toLocaleString("pt-BR")} do exercício ${anoAtual} + R$ ${dividaRestos.toLocaleString("pt-BR")} de anos anteriores (Restos a Pagar)`
-                            : undefined
-                        }
-                      >
-                        <div className="flex items-center gap-1.5 font-medium text-amber-900">
-                          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-700" />
-                          <span>Dívida real acumulada:</span>
-                        </div>
-                        <span className="whitespace-nowrap font-bold font-serif text-amber-900">
-                          {fmtCompact(dividaReal)}
-                        </span>
-                      </div>
+                      <DecomposicaoDividaPopover
+                        categoriaTitulo={config.titulo}
+                        dividaRealTotal={dividaReal}
+                        decomposicao={item.decomposicaoDivida ?? []}
+                      />
                     );
                   }
 
