@@ -1,8 +1,21 @@
 "use client";
 
 import { cn, fmtCurrency } from "@transparencia/ui";
-import { ChevronDown, Download, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronUp,
+  Download,
+  Search,
+} from "lucide-react";
 import { useMemo, useState } from "react";
+
+export type SortColumn =
+  | "fornecedor"
+  | "objeto"
+  | "modalidade"
+  | "valorContrato"
+  | "periodo";
 
 export interface ContratoSemLicitacaoItem {
   ano: number;
@@ -36,10 +49,20 @@ export function LicitacoesTable({
   className,
 }: LicitacoesTableProps) {
   const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState<
-    "maior_valor" | "menor_valor" | "fornecedor" | "periodo"
-  >("maior_valor");
+  const [sortColumn, setSortColumn] = useState<SortColumn>("valorContrato");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection(
+        column === "valorContrato" || column === "periodo" ? "desc" : "asc",
+      );
+    }
+  };
 
   // Search & Filter
   const filteredData = useMemo(() => {
@@ -57,27 +80,32 @@ export function LicitacoesTable({
 
     // Sort
     result.sort((a, b) => {
-      const valA =
-        typeof a.valorContrato === "number"
-          ? a.valorContrato
-          : parseFloat(String(a.valorContrato ?? "0").replace(",", ".")) || 0;
-      const valB =
-        typeof b.valorContrato === "number"
-          ? b.valorContrato
-          : parseFloat(String(b.valorContrato ?? "0").replace(",", ".")) || 0;
-
-      if (sortBy === "maior_valor") return valB - valA;
-      if (sortBy === "menor_valor") return valA - valB;
-      if (sortBy === "fornecedor")
-        return (a.fornecedor || "").localeCompare(b.fornecedor || "");
-      if (sortBy === "periodo") {
-        return (b.mes || 0) - (a.mes || 0);
+      let cmp = 0;
+      if (sortColumn === "valorContrato") {
+        const valA =
+          typeof a.valorContrato === "number"
+            ? a.valorContrato
+            : parseFloat(String(a.valorContrato ?? "0").replace(",", ".")) || 0;
+        const valB =
+          typeof b.valorContrato === "number"
+            ? b.valorContrato
+            : parseFloat(String(b.valorContrato ?? "0").replace(",", ".")) || 0;
+        cmp = valA - valB;
+      } else if (sortColumn === "periodo") {
+        cmp = (a.mes || 0) - (b.mes || 0);
+      } else if (sortColumn === "fornecedor") {
+        cmp = (a.fornecedor || "").localeCompare(b.fornecedor || "", "pt-BR");
+      } else if (sortColumn === "objeto") {
+        cmp = (a.objeto || "").localeCompare(b.objeto || "", "pt-BR");
+      } else if (sortColumn === "modalidade") {
+        cmp = (a.modalidade || "").localeCompare(b.modalidade || "", "pt-BR");
       }
-      return 0;
+
+      return sortDirection === "asc" ? cmp : -cmp;
     });
 
     return result;
-  }, [data, query, sortBy]);
+  }, [data, query, sortColumn, sortDirection]);
 
   // Pagination calculation
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
@@ -135,6 +163,33 @@ export function LicitacoesTable({
     return "bg-slate-100 text-slate-700 border-slate-200";
   };
 
+  const renderSortIcon = (col: SortColumn) => {
+    if (sortColumn !== col) {
+      return (
+        <ChevronsUpDown
+          className="h-3.5 w-3.5 opacity-35 hover:opacity-100"
+          aria-hidden="true"
+        />
+      );
+    }
+    if (sortDirection === "asc") {
+      return (
+        <ChevronUp className="h-3.5 w-3.5 text-[#2b6cb0]" aria-hidden="true" />
+      );
+    }
+    return (
+      <ChevronDown className="h-3.5 w-3.5 text-[#2b6cb0]" aria-hidden="true" />
+    );
+  };
+
+  const getAriaSort = (
+    col: SortColumn,
+  ): "ascending" | "descending" | "none" => {
+    if (sortColumn !== col) return "none";
+    if (sortDirection === "asc") return "ascending";
+    return "descending";
+  };
+
   return (
     <div
       className={cn(
@@ -159,36 +214,8 @@ export function LicitacoesTable({
           />
         </div>
 
-        {/* Tools (Sort + CSV) */}
+        {/* Tools (CSV) */}
         <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-          <div className="flex items-center gap-1.5 font-medium text-subtleText text-xs">
-            <span>Ordenar por</span>
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) =>
-                  setSortBy(
-                    e.target.value as
-                      | "maior_valor"
-                      | "menor_valor"
-                      | "fornecedor"
-                      | "periodo",
-                  )
-                }
-                className="cursor-pointer appearance-none rounded-md border border-borderLine bg-white px-2.5 py-1.5 pr-8 font-medium text-ink text-xs shadow-sm transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none"
-              >
-                <option value="maior_valor">Maior valor</option>
-                <option value="menor_valor">Menor valor</option>
-                <option value="fornecedor">Fornecedor (A-Z)</option>
-                <option value="periodo">Período</option>
-              </select>
-              <ChevronDown
-                strokeWidth={1.6}
-                className="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-mutedText"
-              />
-            </div>
-          </div>
-
           <button
             type="button"
             onClick={handleExportCSV}
@@ -205,11 +232,76 @@ export function LicitacoesTable({
         <table className="w-full border-collapse text-left text-xs">
           <thead>
             <tr className="border-slate-100 border-b bg-slate-50/80 font-bold text-[11px] text-slate-400 uppercase tracking-wider">
-              <th className="px-5 py-3">FORNECEDOR</th>
-              <th className="px-5 py-3">OBJETO</th>
-              <th className="px-5 py-3 text-center">MODALIDADE</th>
-              <th className="px-5 py-3 text-right">VALOR</th>
-              <th className="px-5 py-3 text-right">PERÍODO</th>
+              <th
+                scope="col"
+                aria-sort={getAriaSort("fornecedor")}
+                className="px-5 py-3 text-left"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSort("fornecedor")}
+                  className="inline-flex items-center gap-1.5 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none"
+                >
+                  <span>FORNECEDOR</span>
+                  {renderSortIcon("fornecedor")}
+                </button>
+              </th>
+              <th
+                scope="col"
+                aria-sort={getAriaSort("objeto")}
+                className="px-5 py-3 text-left"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSort("objeto")}
+                  className="inline-flex items-center gap-1.5 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none"
+                >
+                  <span>OBJETO</span>
+                  {renderSortIcon("objeto")}
+                </button>
+              </th>
+              <th
+                scope="col"
+                aria-sort={getAriaSort("modalidade")}
+                className="px-5 py-3 text-center"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSort("modalidade")}
+                  className="inline-flex items-center justify-center gap-1.5 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none"
+                >
+                  <span>MODALIDADE</span>
+                  {renderSortIcon("modalidade")}
+                </button>
+              </th>
+              <th
+                scope="col"
+                aria-sort={getAriaSort("valorContrato")}
+                className="px-5 py-3 text-right"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSort("valorContrato")}
+                  className="ml-auto inline-flex items-center justify-end gap-1.5 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none"
+                >
+                  <span>VALOR</span>
+                  {renderSortIcon("valorContrato")}
+                </button>
+              </th>
+              <th
+                scope="col"
+                aria-sort={getAriaSort("periodo")}
+                className="px-5 py-3 text-right"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSort("periodo")}
+                  className="ml-auto inline-flex items-center justify-end gap-1.5 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none"
+                >
+                  <span>PERÍODO</span>
+                  {renderSortIcon("periodo")}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
