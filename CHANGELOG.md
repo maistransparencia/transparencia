@@ -5,6 +5,127 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-09-04
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Indicador Folha / Receita Municipal (LRF):** Correção do cálculo de `rclProxy` em `getFolhaVsServicosMetrics` (`@transparencia/db`) para adotar a arrecadação municipal consolidada do exercício mesmo sob filtro de entidade, evitando distorções matemáticas artificiais (como os 147% no FMAS) e desativando alertas indevidos de teto da LRF para fundos setoriais.
+* **Consolidação Municipal de Proventos e Chefias:** Remoção do filtro de entidade nas consultas de distribuição por faixas salariais (`distribuicaoProventos`) e ocupação de chefias (`pctChefias`) na página de Pessoal e na Visão Geral, exibindo com transparência pedagógica os dados consolidados de todos os servidores municipais (uma vez que a folha analítica individual de origem não é segregada por órgão).
+* **Empty State no Gráfico de Proventos:** Inclusão de estado vazio defensivo e tag `Consolidado Municipal` no componente `ProventosDistributionChart`.
+
+## [1.8.0] - 2026-09-04
+
+### 🌟 Destaques da Versão (Epic 8: Auditabilidade Cívica ('Show Your Work'), Transparência Metodológica e Navegação Mobile Contínua)
+* **Auditabilidade Cívica Direta ("Show Your Work"):** Exportação instantânea em streaming CSV com codificação UTF-8 com BOM (`\uFEFF`) diretamente a partir de cards analíticos (gastos sensíveis e termômetro de opacidade), viabilizando a conferência centavo a centavo dos microdados públicos por cidadãos, jornalistas e órgãos de controle.
+* **Decomposição da Dívida Real por Entidade:** Popovers interativos e acessíveis no Radar de Gastos Sensíveis detalhando a dívida flutuante e restos a pagar por ente público (Prefeitura, Fundo Municipal de Saúde, Fundo de Assistência), prevenindo generalizações e identificando o real passivo setorial.
+* **Navegação Mobile Contínua & Seletor de Perímetro Institucional:** Nova tab bar fixa no rodapé móvel (`MobileBottomNav`) com stepper cívico e atalhos rápidos, acompanhada de seletor compacto de entidade no topo móvel (`EntidadeSelectCompact`), viabilizando alternância fluida entre visão `Consolidada` e órgãos específicos com uma única mão.
+* **Transparência Metodológica e Guias para IA:** Expansão abrangente dos arquivos públicos `llms.txt` e `llms-full.txt` documentando a arquitetura dos endpoints de exportação, regras de agregação contábil e critérios de consolidação para assistentes de inteligência artificial e cidadãos.
+
+### ✨ Novas Funcionalidades (Added)
+* **Botão "Show Your Work" (`ShowYourWorkButton`):** Menu dropdown acessível integrado aos cards analíticos de gastos sensíveis e termômetro de opacidade (`.99`), disponibilizando o download direto de microdados em CSV (`/api/[portalSlug]/export`) e acionando telemetria PostHog (`show_your_work_download_clicked`).
+* **Endpoint de Streaming CSV de Alta Performance (`/api/[portalSlug]/export`):** Rota server-side com transmissão em streaming assíncrono de registros contábeis brutos, incluindo cabeçalho BOM UTF-8 (`\uFEFF`) para compatibilidade nativa com Excel e Google Sheets sem corrupção de caracteres.
+* **Popover de Decomposição da Dívida (`DecomposicaoDividaPopover`):** Mini-painel flutuante baseado em Radix UI com barras de participação percentual, permitindo auditar a distribuição dos restos a pagar por órgão/entidade ao tocar ou clicar no valor da Dívida Acumulada.
+* **Barra Fixa de Navegação Mobile (`MobileBottomNav`):** Tab bar de navegação no rodapé para dispositivos móveis (`md:hidden`) com 5 abas principais, botão "Mais" para o drawer lateral, botões de avanço e retrocesso (`← Anterior` / `Próximo →`) e contexto de estado integrado (`MobileNavContext`).
+* **Seletor Compacto de Perímetro no Header Móvel (`EntidadeSelectCompact`):** Componente no cabeçalho superior móvel com rigorosa simetria tipográfica ao seletor de ano (`YearSelect`), permitindo filtrar dinamicamente entre `Consolidado` e órgãos individuais via parâmetro `entidades` na URL sincronizado com `nuqs`.
+
+### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
+* **Query Atômica de Exportação de Dados Brutos (`export-raw-data.ts`):** Nova função `getRawExpensesExport` em `@transparencia/db` com filtros parametrizados por categoria sensível, rubrica `.99`, fornecedor e órgão, realizando join com `dim_orgao` para recuperar `orgao_nome` e projetando `categoria_sugerida` e `natureza_codigo_sugerido`.
+* **Desagregação da Dívida no Kysely (`despesas-metrics.ts`):** Expansão de `getGastosSensiveisConsolidados` com a propriedade `decomposicao_divida`, computando o saldo de restos a pagar por entidade e sua participação percentual relativa sobre o total acumulado da categoria.
+* **Fixtures de Teste Enriquecidas (`seed.ts`):** Inclusão de registros com múltiplos órgãos (`Fundo Municipal de Saúde` e `Prefeitura Municipal`) e metadados de classificação sugerida para validação de paridade matemática centavo a centavo.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Ergonomia e Layout Mobile Global (`layout.tsx` e `sidebar.tsx`):** Ajuste de espaçamento inferior (`pb-20 md:pb-0`) para evitar sobreposição de elementos pelo `MobileBottomNav`, elevação de z-index do drawer e backdrop para `z-40`/`z-50` sobrepondo o rodapé (`z-30`), e desacoplamento do seletor de ano redundante do topo móvel.
+* **Offset Vertical do Banner PWA (`pwa-installer.tsx`):** Ajuste do banner de instalação do Progressive Web App para `bottom-20 md:bottom-4`, preservando a visibilidade da barra de navegação móvel inferior.
+* **Transições e Acessibilidade do Drawer Móvel:** Implementação de animação suave de slide/fade (`translate-x-full transition-transform duration-200`) e travamento de scroll do `body` durante a abertura do menu drawer.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Sincronização dos Guias para LLMs (`llms.txt` e `llms-full.txt`):** Atualização em conformidade estrita com a Regra 12 de `AGENTS.md`, documentando a rota `/api/[portalSlug]/export`, dicionário de parâmetros (`categoria`, `subitem`, `fornecedor`, `entidades`), notas metodológicas de consolidação institucional e links para download auditável.
+* **Proteção contra Vazamento de Dados Internos (Leak Check):** Criação da suíte `apps/web/lib/__tests__/llms-guides.spec.ts` validando formalmente a integridade dos guias públicos e a ausência de termos de infraestrutura interna ou dados confidenciais.
+* **Atualização de Capturas de Tela (`screenshot-mobile.png`):** Renovação da imagem visual de demonstração do portal refletindo a nova barra móvel inferior e o seletor compacto de entidade.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Alinhamento do Fallback de Redes Sociais no CI:** Padronização de asserções em `env.spec.ts` e `social-links.spec.tsx` com o valor canônico institucional `NEXT_PUBLIC_FACEBOOK_URL="https://facebook.com/profile.php?id="`.
+* **Acessibilidade e Foco (WAI-ARIA):** Inclusão de atributos `aria-haspopup="dialog"`, rótulos `aria-label`, foco gerenciado e fechamento por tecla `Escape` em `DecomposicaoDividaPopover` e `EntidadeSelectCompact`.
+* **Ordenação Decrescente e Tratamento de Zeros na Dívida:** Ordenação determinística por valor e percentual com tratamento gracioso de categorias sem passivo acumulado na decomposição por entidade.
+
+## [1.7.1] - 2026-09-04
+
+### 🌟 Destaques da Versão (Hotfix v1.7.1: Saneamento Léxico e Desagregação Canônica de Despesas Sensíveis)
+* **Segregação de Equipamentos Hospitalares e Plantões Clínicos:** Desagregação analítica determinística entre serviços médicos humanos presenciais e locação de usinas de oxigênio/equipamentos hospitalares, eliminando distorções de custos na saúde pública.
+* **Depuração Rigorosa da Rubrica de Plantões Médicos:** Restrição estrita a termos clínicos diretos e exclusão determinística de funções de apoio operacional (cozinheiras, motoristas, portaria e vigias) indevidamente classificadas sob a rubrica médica.
+* **Isolamento de Assistência Domiciliar (Home Care):** Criação de categoria dedicada com segregação precisa entre prestadores pessoa física (`3.3.90.36.06`) e pessoa jurídica (`3.3.90.39.99`).
+* **Saneamento Upstream de Falsos Positivos:** Purificação de filtros léxicos em resíduos sólidos (exclusão de tarifas de água da CEDAE), combustíveis (segregação de peças automotivas), previdência (exclusão de PASEP) e consultoria técnica.
+
+### ✨ Novas Funcionalidades (Added)
+* **Novas Categorias de Despesas Sensíveis na Web & E-mails:** Apresentação transparente das categorias `locacao_equipamentos_saude`, `assistencia_domiciliar_home_care`, `pecas_manutencao_frota` e `aluguel_social` com rotulagem amigável no componente `TermometroOpacidadeFiscal` e no boletim cívico transacional `RadarDigestEmail`.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Refatoração Léxica Canônica (`int_despesas_reclassificadas`):**
+  * Introdução das categorias em lowercase snake_case `locacao_equipamentos_saude` (`3.3.90.39.12`), `assistencia_domiciliar_home_care` (PF `3.3.90.36.06` / PJ `3.3.90.39.99`), `pecas_manutencao_frota` (`3.3.90.30.39`) e `aluguel_social` (`3.3.90.48.00`), em conformidade com as Regras 9 e 10 de `AGENTS.md`.
+  * Refinamento de `plantoes_medicos` com vocabulário estritamente clínico e aplicação de cláusulas de exclusão negativa para serviços não clínicos.
+  * CTE `despesas` atualizada com fallback defensivo (`coalesce` e `unaccent`) garantindo integridade léxica contra valores nulos em fixtures de teste.
+* **Atualização do Catálogo STN (`seed_naturezas_despesa_stn.csv`):** Inclusão das naturezas canônicas `3.3.90.36.06` (Serviços Técnicos Profissionais), `3.3.90.48.00` (Outros Auxílios Financeiros a Pessoas Físicas) e alinhamento de `3.3.90.30.39` com a categoria macro `pecas_manutencao_frota`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Constantes e Tipagem Fiscal (`@transparencia/db`):** Atualização de `CATEGORIAS_OBJETO_SUGERIDAS` e do tipo `CategoriaObjetoSugerida` para inclusão dos 4 novos discriminadores fiscais.
+* **Formatadores UI com Early Returns (`apps/web`):** Padronização das funções de formatação `formatCategoriaSensivel` e `formatCategoriaCredor` com retornos antecipados em conformidade com a Regra 13 de `AGENTS.md` (Zero Ternários Aninhados).
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Governança de Constantes Fiscais:** Alinhamento com as diretrizes de desagregação de subitens residuais `.99` e fundamentação nas normas da STN/MCASP e Lei 4.320/64.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Saneamento de Falsos Positivos Upstream:**
+  * `limpeza_residuos`: Exclusão de faturas da concessionária estadual de água (CEDAE) erroneamente catalogadas sob o código `3.3.90.39.44`.
+  * `combustivel_frota`: Segregação de peças automotivas, baterias e pneus da rubrica de abastecimento e combustíveis.
+  * `previdencia`: Exclusão de recolhimentos PASEP (`3.3.90.13.99`) do agregado de previdência e obrigações patronais.
+  * `bloqueios_sentencas`: Exclusão de despesas com aquisição de imóveis e terrenos sob elemento `61`.
+  * `consorcios_publicos`: Exclusão de compras diretas de medicamentos e insumos hospitalares.
+  * `consultoria_tecnica`: Exclusão de reparos e manutenções físicas/operacionais (climatização, elétrica e CFTV).
+* **Expansão da Cobertura de Testes Automatizados:**
+  * Inclusão de 8 novos cenários de teste unitário dbt em `_int_despesas_reclassificadas.yml` validando todas as novas classes e regras de exclusão.
+  * Atualização dos testes unitários de ranking em `_fct_opacidade_contabil_metricas.yml` contemplando credores das novas categorias sugeridas.
+  * Expansão da suíte de testes unitários em TypeScript (`opacidade-contabil-metrics.spec.ts`, `termometro-opacidade-fiscal.spec.tsx` e `radar-digest.spec.tsx`).
+
+## [1.7.0] - 2026-09-02
+
+### 🌟 Destaques da Versão (Epic 7: Distribuição Cívica, Engajamento Comunitário, Newsletters Automatizadas e Social Sharing Dinâmico)
+* **Cartões OpenGraph Dinâmicos na Edge:** Geração automática e em tempo real de cards visuais (1200x630px) com métricas fiscais consolidadas (gastos, receitas, previdência, despesas com pessoal e restos a pagar) para compartilhamento no WhatsApp, Telegram e redes sociais.
+* **Newsletter Cívica & Boletim Radar Digest:** Canal direto de comunicação com a cidadania via e-mail com double opt-in seguro, conformidade estrita com a LGPD, cancelamento com 1 clique (RFC 8058 `List-Unsubscribe`) e resumos periódicos de despesas e restos a pagar.
+* **Publicação Social Multi-Canal Automatizada:** Bots cívicos oficiais integrados ao X.com (`@mtransparenciax` via OAuth 1.0a) e Facebook Pages (via Meta Graph API v26.0) para disseminação programática de manchetes fiscais e novos lotes de dados.
+* **Governança Estrita de Ambientes & Tipagem Segura:** Centralização e validação em tempo de compilação/execução de todas as variáveis de ambiente com `@t3-oss/env-nextjs` e Zod (Regra 17 de `AGENTS.md`), prevenindo vazamentos de credenciais e falhas silenciosas.
+
+### ✨ Novas Funcionalidades (Added)
+* **Geradores Dinâmicos de OpenGraph (`opengraph-image.tsx`):** Criação de geradores de imagem na edge para todas as rotas públicas do portal (`/`, `/despesas`, `/receitas`, `/orcamento`, `/licitacoes`, `/pessoal`, `/caprem`, `/saude`), baseados no componente `OGCardTemplate` com tema claro, tipografia legível e logomarca oficial.
+* **Modal e Banner de Newsletter (`NewsletterModal` e `NewsletterFeedbackBanner`):** Componentes acessíveis na sidebar e footer para cadastro de cidadãos, com validação de e-mail em tempo real, proteção contra envios robotizados e feedback visual contextual de confirmação e cancelamento.
+* **Boletim Cívico "Radar Digest" (`RadarDigestEmail`):** Template de e-mail transacional responsivo desenvolvido em React Email (`@react-email/components`), exibindo balanço fiscal do exercício (receita vs despesa líquida), monitoramento de restos a pagar, maiores credores e alertas orçamentários.
+* **Rotas de API para Gestão de Assinaturas:** Endpoints `/api/newsletter/subscribe`, `/api/newsletter/confirm` e `/api/newsletter/unsubscribe` com suporte normativo aos cabeçalhos RFC 8058 (`List-Unsubscribe` e `List-Unsubscribe-Post`).
+* **Orquestrador de Publicação Social (`SocialPublisher`):** Integração modular com suporte simultâneo a X.com (`XBotClient` com OAuth 1.0a) e Facebook Pages (`FacebookBotClient` com Meta Graph API v26.0), acionáveis via endpoint protegido `/api/social/publish` ou script CLI (`bin/publish-social.ts`).
+* **Componente de Conexão Cívica (`SocialLinks`):** Exibição de canais oficiais e repositório open-source na barra lateral e rodapé, com links dinâmicos para X e Facebook parametrizados via variáveis de ambiente.
+
+### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
+* **Sistema de Migrações Kysely (`@transparencia/db`):** Implementação do migrador programático (`migrator.ts` e comando `pnpm db:migrate`) para controle e versionamento do schema do banco de dados.
+* **Migração `001_create_newsletter_subscribers.ts`:** Criação da tabela `newsletter_subscribers` com isolamento multi-tenant (`portal_slug`), status do ciclo de vida (`pendente`, `confirmado`, `cancelado`), timestamps e colunas de texto estritamente tipadas como `TEXT` (em conformidade com a Regra 16 de `AGENTS.md`).
+* **Arquitetura Dual-Pool no Kysely (`client.ts`):** Segregação estrutural entre pool de leitura analítica (`readOnlyDb`) e pool de escrita transacional (`adminDb`), assegurando o princípio do menor privilégio.
+* **Provisionamento de Permissões no PostgreSQL (`01-init-roles.sql`):** Configuração automatizada de permissões da role `read_only`, concedendo permissão de escrita estritamente necessária na tabela de assinantes.
+* **Queries Analíticas Atômicas (`queries/newsletter.ts` e `queries/radar-digest.ts`):** Funções atômicas `getConfirmedSubscribers` e `getRadarDigestMetrics` para consolidação dos dados fiscais do município (receita arrecadada, despesas pagas, restos a pagar liquidados/pendentes e ranking de credores) utilizados no boletim.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Centralização Canônica de Variáveis de Ambiente (`apps/web/env.ts`):** Validação estrita de variáveis em tempo de compilação com `@t3-oss/env-nextjs` e Zod, eliminando chamadas dispersas e inseguras a `process.env`.
+* **Limitação de Taxa em Memória (`rate-limit.ts`):** Mecanismo de janela deslizante (sliding window) leve para prevenir abusos nas rotas públicas de submissão de newsletter sem dependências de infraestrutura externa.
+* **Cliente Resend com Tolerância a Falhas (`resend.ts`):** Tratamento defensivo de erros da API, retentativas e suporte a divergências de relógio (clock skew) nos formulários com verificação temporal anti-bot.
+* **Comandos de Automação no `Makefile`:** Inclusão dos targets `db/migrate`, `digest/dispatch` e `social/publish` para execução unificada das rotas e scripts operacionais via CLI.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Regra 16 em `AGENTS.md` (Campos de Texto no PostgreSQL):** Formalização da proibição de `VARCHAR(n)` e `CHAR(n)`, exigindo o tipo `TEXT` para todas as colunas de texto em novas migrações.
+* **Regra 17 em `AGENTS.md` (Centralização de Variáveis de Ambiente):** Diretriz mandatória proibindo chamadas diretas a `process.env` na aplicação web, exigindo consumo exclusivo a partir de `@/env`.
+* **Sincronização dos Guias para LLMs (`llms.txt` e `llms-full.txt`):** Inclusão de documentação pública sobre as rotas de OpenGraph, canais de distribuição de alertas municipais, diretrizes de privacidade conforme a LGPD e links sociais oficiais.
+* **Manuais de Configuração de Ambiente (`.env.example`):** Criação e sincronização dos arquivos de exemplo na raiz e em `apps/web/`, documentando todas as credenciais de e-mail, redes sociais e telemetria.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Mitigação de Timing Attacks:** Implementação de `crypto.timingSafeEqual` para comparação em tempo constante de Bearer tokens em endpoints protegidos de despacho.
+* **Paridade de Restos a Pagar nos Posts Sociais:** Alinhamento dos formatadores dos bots sociais para refletir o saldo de restos a pagar em paridade com a Visão Geral do portal, substituindo referências a taxas de opacidade isoladas.
+* **Resiliência a Formatos de Desinscrição RFC 8058:** Suporte para requisições com `Content-Type: application/x-www-form-urlencoded` e `multipart/form-data` nos cancelamentos acionados diretamente por clientes de e-mail.
+* **Tratamento Defensivo de Dados:** Validação numérica em anos fiscais, fallbacks graciosos para municípios sem histórico e sanitização de domínios em rotas de metadados.
+
 ## [1.6.1] - 2026-08-29
 
 ### 🌟 Destaques da Versão (Hotfix: Otimização de Performance & Estabilidade do CI)

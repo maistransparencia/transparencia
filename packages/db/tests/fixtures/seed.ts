@@ -235,8 +235,105 @@ export async function seedOpacidadeElemento(
     .execute();
 }
 
+export interface ContratosServicosVigentesRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  contratoNumero?: string;
+  fornecedorNome: string;
+  fornecedorCnpj?: string;
+  objetoDescricao?: string;
+  dataInicio?: string;
+  vencimentoAtual?: string;
+  valorAditado?: number;
+  totalEmpenhado?: number;
+  totalLiquidado?: number;
+  totalPago?: number;
+  statusExecucao?: "em_execucao" | "concluido" | "inexecutado";
+}
+
+export async function seedContratosServicosVigentes(
+  row: ContratosServicosVigentesRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_contratos_servicos_vigentes")
+    .values({
+      contrato_servico_id: nextId("cs"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      contrato_numero: row.contratoNumero ?? "001/2025",
+      fornecedor_nome: row.fornecedorNome,
+      fornecedor_cnpj: row.fornecedorCnpj ?? "00.000.000/0001-00",
+      objeto_descricao: row.objetoDescricao ?? "Serviços prestados",
+      data_inicio: row.dataInicio ?? "2025-01-01",
+      vencimento_atual: row.vencimentoAtual ?? "2025-12-31",
+      valor_aditado: row.valorAditado ?? 0,
+      total_empenhado: row.totalEmpenhado ?? 0,
+      total_liquidado: row.totalLiquidado ?? 0,
+      total_pago: row.totalPago ?? 0,
+      status_execucao: row.statusExecucao ?? "em_execucao",
+    })
+    .execute();
+}
+
+export interface DimOrgaoRow {
+  portalSlug: string;
+  empresaId: string;
+  orgaoNome: string;
+}
+
+export async function seedDimOrgao(row: DimOrgaoRow): Promise<void> {
+  await db
+    .insertInto("dim_orgao")
+    .values({
+      orgao_id: nextId("orgao"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      orgao_nome: row.orgaoNome,
+    })
+    .execute();
+}
+
+export interface DespesaRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  fonte: string;
+  categoriaGastoSensivel?: string;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+}
+
+export async function seedDespesa(row: DespesaRow): Promise<void> {
+  await db
+    .insertInto("fct_despesas")
+    .values({
+      despesa_id: nextId("desp"),
+      empenho_id: nextId("emp"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      fonte: row.fonte,
+      categoria_gasto_sensivel: row.categoriaGastoSensivel ?? null,
+      empenhado: row.empenhado ?? 0,
+      liquidado: row.liquidado ?? 0,
+      pago: row.pago ?? 0,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_despesas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("dim_orgao")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_posicao_fiscal_metricas")
     .where("portal_slug", "=", portalSlug)
@@ -259,6 +356,14 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_opacidade_contabil_elementos")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_contratos_servicos_vigentes")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("dim_orgao")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

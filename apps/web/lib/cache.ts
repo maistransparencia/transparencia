@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { env } from "@/env";
 import { version } from "../package.json";
 
 /**
@@ -13,7 +14,7 @@ export function createCachedDataLoader<T, Args extends unknown[]>(
   revalidateSeconds: number = 86400,
 ) {
   return (...args: Args): Promise<T> => {
-    if (process.env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
       return fn(...args);
     }
     const key = `${keyPrefix}-v${version}-${JSON.stringify(args)}`;

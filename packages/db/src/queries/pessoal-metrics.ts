@@ -1,5 +1,4 @@
 import { db } from "../client";
-import { getFontesReceitaMetrics } from "./fontes-receita-metrics";
 
 export interface FolhaVsServicosMetricsDTO {
   ano: number;
@@ -64,7 +63,20 @@ export async function getFolhaVsServicosMetrics({
     query = query.where("empresa_id", "in", empresaIds);
   }
 
-  const rows = await query.groupBy("ano").execute();
+  const [rows, rclRows] = await Promise.all([
+    query.groupBy("ano").execute(),
+    db
+      .selectFrom("fct_fontes_receita_metricas")
+      .select([
+        "ano",
+        (eb) => eb.fn.sum<string>("total_arrecadado").as("total_arrecadado"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "in", validYears)
+      .groupBy("ano")
+      .execute(),
+  ]);
+
   const folhaMap = new Map(
     rows.map((r) => [
       Number(r.ano),
@@ -75,27 +87,27 @@ export async function getFolhaVsServicosMetrics({
     ]),
   );
 
-  return Promise.all(
-    validYears.map(async (year) => {
-      const data = folhaMap.get(year) ?? { totalFolha: 0, totalPago: 0 };
-      const fontesReceita = await getFontesReceitaMetrics(
-        portalSlug,
-        year,
-        empresaIds ?? [],
-      );
-      const rclProxy = fontesReceita ? fontesReceita.totalArrecadado : 0;
-      const percentualFolha =
-        rclProxy > 0 ? (data.totalFolha / rclProxy) * 100 : 0;
-
-      return {
-        ano: year,
-        totalFolha: data.totalFolha,
-        totalPago: data.totalPago,
-        rclProxy,
-        percentualFolha,
-      };
-    }),
+  const rclMap = new Map(
+    rclRows.map((r) => [
+      Number(r.ano),
+      parseFloat(r.total_arrecadado ?? "0") || 0,
+    ]),
   );
+
+  return validYears.map((year) => {
+    const data = folhaMap.get(year) ?? { totalFolha: 0, totalPago: 0 };
+    const rclProxy = rclMap.get(year) ?? 0;
+    const percentualFolha =
+      rclProxy > 0 ? (data.totalFolha / rclProxy) * 100 : 0;
+
+    return {
+      ano: year,
+      totalFolha: data.totalFolha,
+      totalPago: data.totalPago,
+      rclProxy,
+      percentualFolha,
+    };
+  });
 }
 
 /**

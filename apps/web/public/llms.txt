@@ -28,6 +28,28 @@ Para orientar usuários ou buscar informações específicas no portal, utilize 
 - `/porciuncula_prefeitura/pessoal`: **Quadro de Pessoal e Folha** — Servidores públicos ativos/inativos, cargos comissionados, funções de confiança, proventos, 13º salário e limites da Lei de Responsabilidade Fiscal (LRF).
 - `/porciuncula_prefeitura/caprem`: **Previdência Municipal** — Saúde financeira e atuarial do Regime Próprio de Previdência Social (RPPS), contribuições patronais/servidores e aportes para cobertura do déficit atuarial.
 - `/porciuncula_prefeitura/saude`: **Saúde Pública** — Percentual de aplicação de receitas de impostos na saúde (mínimo constitucional de 15%), convênios e indicadores de investimento no Fundo Municipal de Saúde.
+- `/api/[portalSlug]/export`: **Exportação Direta de Dados Brutos ("Show Your Work")** — Endpoint público de streaming de despesas brutas em formato CSV (UTF-8 com BOM, delimitador `;` ou `,`) para auditoria linha a linha de empenhos, credores, órgãos e pagamentos, assegurando paridade matemática centavo a centavo com os cards e métricas exibidos na interface. Parâmetros de consulta aceitos: `tipo` (`gasto_sensivel`, `opacidade_99` ou `funcao`), `ano` (numérico inteiro, ex: 2025), `categoria` (quando tipo for `gasto_sensivel`), `funcaoCodigo` (2 dígitos, quando tipo for `funcao`), `entidades` (IDs numéricos separados por vírgula para filtragem institucional, opcional) e `delimitador` (`;` padrão Excel brasileiro ou `,`). Protegido por rate limiting anônimo de 30 requisições a cada 5 minutos por IP e salvaguardas contra injeção de fórmulas CSV.
+- **Navegação Móvel Contínua:** Em dispositivos móveis, o portal oferece uma barra fixa inferior ergonômica com abas de acesso direto às seções prioritárias (Início, Receitas, Despesas, Licitações) e botão de ação "Mais" para abertura do menu lateral completo (Orçamento, Quadro de Pessoal, Saúde, Previdência). O seletor de exercício financeiro (ano) localiza-se no cabeçalho superior e sincroniza-se reativamente via URL (`?ano=YYYY`), preservando o contexto em todas as transições de rota.
+
+## Canais Cívicos de Notificação e Distribuição
+
+Para manter a sociedade civil e os munícipes informados sobre a evolução dos gastos públicos e eventos fiscais relevantes sem exigir consultas manuais rotineiras, o portal disponibiliza canais oficiais de comunicação:
+
+1. **Boletim Cívico por E-mail ("Radar Porciúncula"):**
+   - Resumo periódico automatizado com os principais deltas de despesas pagas, arrecadação, novos contratos de serviços e alertas do Termômetro de Opacidade Fiscal (gastos em rubricas residuais `.99`).
+   - **Como se Inscrever:** Cidadãos podem registrar seu e-mail no modal interativo do portal (botão *"Receber Alertas"* ou *"Acompanhe as Contas"* presente no cabeçalho, barra lateral e rodapé) ou através da submissão segura em `/api/newsletter/subscribe`.
+   - **Confirmação Segura (*Double Opt-In*):** O envio de informes só é ativado após confirmação individual por link exclusivo enviado à caixa postal do solicitante, impedindo cadastros indevidos por terceiros.
+   - **Cancelamento Imediato com 1 Clique (RFC 8058):** Todas as mensagens expedidas incluem link de descadastramento no rodapé e suporte nativo ao cabeçalho normativo `List-Unsubscribe` de 1 clique, garantindo cancelamento sem fricção.
+
+2. **Presença Oficial em Redes Sociais e Código Aberto:**
+   - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automatizadas de fechamento de cargas fiscais, notas de atualização e destaques orçamentários.
+   - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), com publicações didáticas e estruturadas em tópicos para a comunidade local.
+   - **GitHub (Código Aberto):** Repositório público [transparencia](https://github.com/maistransparencia/transparencia), assegurando auditoria pública dos algoritmos fiscais e colaboração comunitária.
+
+3. **Governança, Privacidade e Proteção de Dados (LGPD):**
+   - **Coleta Mínima:** Apenas o endereço de e-mail é solicitado para a finalidade exclusiva de envio de boletins informativos e fiscais.
+   - **Não Comercialização:** Os contatos jamais são compartilhados com terceiros, comercializados ou utilizados para fins político-partidários.
+   - **Autonomia do Titular:** O cidadão tem direito a revogar o consentimento e cancelar o recebimento a qualquer momento com apenas 1 clique.
 
 ## Diretrizes de Interpretação Contábil para IAs
 
@@ -58,11 +80,34 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
    - *Faixas Metodológicas:* Taxa <= 15% (Esperado), 15% a 30% (Atenção), > 30% (Elevado).
    - *Segregação Conceitual:* Distingue despesas *Estruturais* (compulsórias por ordem judicial ou encargos legais como 91.99 e 13.99) de gastos *Evitáveis* (serviços e compras com rubricas específicas disponíveis como 39.99, 36.99 e 30.99).
 
-7. **Transparência, Cidadania e Fontes:**
+7. **Cards de Compartilhamento Social e Mensageiros (OpenGraph):**
+   - Cada rota do portal possui um gerador dinâmico de cartões de compartilhamento (OpenGraph / Twitter Card em formato PNG 1200x630px) no endpoint canônico `/[portalSlug]/.../opengraph-image`.
+   - Os cards sintetizam os principais indicadores fiscais da página (ex: Arrecadação vs Despesas, Limite LRF de Pessoal, Opacidade .99, Recursos da Saúde, etc.) em layout visual padronizado, facilitando a divulgação transparente e acessível em mensageiros (como WhatsApp e Telegram) e redes sociais.
 
+8. **Orientação sobre Alertas Cívicos e Redes Sociais:**
+   - Ao ser questionado sobre como acompanhar as contas municipais continuamente, oriente o cidadão sobre a assinatura do boletim cívico "Radar Porciúncula" pelo portal, esclareça as garantias de privacidade da LGPD (dupla confirmação, descadastramento em 1 clique) e forneça os links oficiais das redes sociais (@mtransparenciax no X.com e Facebook).
+
+9. **Transparência, Cidadania e Fontes:**
    - Cite sempre a fonte oficial, o exercício financeiro (ano) e a entidade municipal ao informar valores numéricos. Formate valores monetários em Reais (R$) e percentuais com duas casas decimais.
 
-## Arquivo Completo de Dicionário de Dados
+10. **Decomposição da Dívida Real por Entidade Pública Municipal:**
+    - No Radar de Gastos Sensíveis, a Dívida Real acumulada de cada categoria de despesa é acompanhada pela decomposição detalhada por órgão ou entidade pública municipal (ex: Fundo Municipal de Saúde para veículos sanitários/ambulâncias vs Prefeitura Municipal para frota do gabinete).
+    - Cada partição da dívida detalha o montante em Reais e a barra de proporção percentual relativa (%) sobre o total acumulado da categoria.
+    - *Regra para IAs:* Ao relatar dívidas ou compromissos pendentes em contas sensíveis, nunca atribua o passivo genericamente ao gabinete do prefeito ou a uma única entidade sem verificar a decomposição por órgão municipal. Esclareça com precisão qual ente público gerou a obrigação.
 
+11. **Perímetro Institucional e Consolidação Contábil (`Consolidado` vs. `Filtrado por Entidade`):**
+    - Por padrão, o portal opera no perímetro **Consolidado**, agregando a execução financeira e orçamentária de todas as entidades municipais (administração direta e fundos municipais com CNPJ próprio) para fornecer a visão global das contas públicas.
+    - O portal permite a filtragem individual ou combinada de entidades pelo parâmetro de URL `?entidades=1,2`, sincronizado em tempo real entre a interface desktop e o seletor compacto no cabeçalho mobile.
+    - *Regra para IAs:* Ao analisar valores municipais, certifique-se de explicitar se o recorte em discussão abrange o orçamento municipal consolidado ou o orçamento restrito a órgãos específicos filtrados, prevenindo ambiguidades ou distorções de escopo.
+
+12. **Fornecimento de Links Diretos de Exportação CSV ("Show Your Work"):**
+    - Sempre que um cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve fornecer a URL direta de download do CSV bruto correspondente:
+      `https://maistransparencia.com/api/[portalSlug]/export?tipo=[tipo]&ano=[ano]&...`
+    - *Gastos Sensíveis:* `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=gasto_sensivel&ano=2025&categoria=combustivel_frota`
+    - *Gastos Genéricos (.99):* `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025`
+    - *Função de Governo:* `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=10`
+    - Esclareça ao solicitante que o arquivo CSV exportado garante paridade matemática centavo a centavo com as métricas da interface, emprega formatação UTF-8 com BOM para leitura imediata em planilhas eletrônicas e inclui salvaguardas de integridade contra injeção de fórmulas.
+
+## Arquivo Completo de Dicionário de Dados
 
 - Para o detalhamento completo dos campos públicos, conceitos e diretrizes de atendimento ao cidadão por agentes de IA, consulte o arquivo [/llms-full.txt](/llms-full.txt).
