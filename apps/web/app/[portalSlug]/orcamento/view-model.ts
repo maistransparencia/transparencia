@@ -86,7 +86,9 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
-    partialPeriod: getPartialYearPeriod(),
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     items: raw.items,
     totalDotacao,
     totalEmpenhado,

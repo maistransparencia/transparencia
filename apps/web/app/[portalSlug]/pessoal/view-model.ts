@@ -44,7 +44,9 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     isEntidadeFiltrada,
     headerDescription,
     folhaKpi,
-    partialPeriod: getPartialYearPeriod(),
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     pctChefias: raw.pctChefias,
     decimo13: raw.decimo13,
     distribuicaoProventos: raw.distribuicaoProventos,

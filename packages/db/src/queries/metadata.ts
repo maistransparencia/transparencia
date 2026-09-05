@@ -12,6 +12,7 @@ export interface PortalConfig {
   empresaPadrao: string;
   brasaoAsset: string;
   dataExtracao: string;
+  dataExtracaoDate: Date | null;
 }
 
 export interface EntidadeItem {
@@ -30,6 +31,28 @@ export async function getPortalConfig(
     if (result.rows.length > 0) {
       const row = result.rows[0];
       let dataExtracaoStr = "";
+
+      const dataExtracaoDate: Date | null = (() => {
+        if (!row.data_extracao) return null;
+        if (row.data_extracao instanceof Date) {
+          return Number.isNaN(row.data_extracao.getTime())
+            ? null
+            : row.data_extracao;
+        }
+        if (
+          typeof row.data_extracao === "object" &&
+          "toISOString" in (row.data_extracao as Record<string, unknown>)
+        ) {
+          const d = row.data_extracao as unknown as Date;
+          return Number.isNaN(d.getTime()) ? null : d;
+        }
+        const str = String(row.data_extracao).trim();
+        if (!str) return null;
+        const parsed = str.includes("T")
+          ? new Date(str)
+          : new Date(`${str}T12:00:00Z`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      })();
 
       if (row.data_extracao) {
         if (
@@ -55,6 +78,7 @@ export async function getPortalConfig(
         empresaPadrao: String(row.empresa_padrao || ""),
         brasaoAsset: String(row.brasao_asset || ""),
         dataExtracao: dataExtracaoStr,
+        dataExtracaoDate,
       };
     }
   } catch (_error) {}

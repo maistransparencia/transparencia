@@ -69,6 +69,10 @@ export default async function CapremPage({
         taxaExecucao={caprem.taxaExecucao}
         totalAporteAtuarial={caprem.totalAporteAtuarial}
         totalDividaResgatada={caprem.totalDividaResgatada}
+        dataExtracao={
+          viewModel.portalConfig?.dataExtracaoDate ??
+          viewModel.portalConfig?.dataExtracao
+        }
       />
 
       {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
