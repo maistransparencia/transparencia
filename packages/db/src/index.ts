@@ -5,6 +5,7 @@ export * from "./queries/analise-despesas-metrics";
 export * from "./queries/contratos-servicos-vigentes";
 export * from "./queries/despesas-metrics";
 export * from "./queries/execucao-orcamentaria-metrics";
+export * from "./queries/export-raw-data";
 export * from "./queries/fontes-receita-metrics";
 export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-saude-metrics";

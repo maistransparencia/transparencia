@@ -201,6 +201,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         : undefined,
   };
 
+  const isEntidadeFiltrada = (context.entidadesIds?.length ?? 0) > 0;
   const lrfLimit = raw.lrfLimiteMaximo ?? 54;
 
   const pessoalCardData = {
@@ -209,9 +210,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     linkHref: routeUrl("/pessoal"),
     receitaFolhaPercentFormatted: fmtPercent(folhaPct),
     receitaFolhaPercentValue: folhaPct,
-    subtext: "da receita comprometida com a folha",
+    subtext: isEntidadeFiltrada
+      ? "da receita municipal consumida por esta entidade"
+      : "da receita comprometida com a folha",
     lrfLimitPercentValue: lrfLimit,
-    lrfLimitPercentFormatted: `${lrfLimit}% LRF`,
+    lrfLimitPercentFormatted: isEntidadeFiltrada
+      ? `${lrfLimit}% LRF (total)`
+      : `${lrfLimit}% LRF`,
     footerText:
       raw.pctChefiasEfetivas !== null
         ? `${raw.pctChefiasEfetivas}% das chefias com servidores efetivos`

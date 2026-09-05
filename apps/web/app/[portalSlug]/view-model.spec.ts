@@ -129,4 +129,23 @@ describe("buildVisaoGeralViewModel - pessoalCardData", () => {
     expect(vm.pessoalCardData.lrfLimitPercentValue).toBe(54);
     expect(vm.pessoalCardData.lrfLimitPercentFormatted).toBe("54% LRF");
   });
+
+  it("adapta subtexto e legenda de LRF quando há entidade filtrada", () => {
+    const raw = makeRawVisaoGeral({
+      context: {
+        selectedYear: 2026,
+        isCurrentYear: false,
+        entidadesIds: ["3"],
+      },
+      folha: {
+        percentualFolha: 2.3,
+      },
+    });
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.pessoalCardData.subtext).toBe(
+      "da receita municipal consumida por esta entidade",
+    );
+    expect(vm.pessoalCardData.lrfLimitPercentFormatted).toBe("54% LRF (total)");
+  });
 });

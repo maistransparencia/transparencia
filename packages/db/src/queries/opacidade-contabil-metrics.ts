@@ -24,6 +24,10 @@ export const CATEGORIAS_OBJETO_SUGERIDAS = [
   "terceirizacao_mao_obra",
   "previdencia",
   "consultoria_tecnica",
+  "locacao_equipamentos_saude",
+  "assistencia_domiciliar_home_care",
+  "pecas_manutencao_frota",
+  "aluguel_social",
 ] as const;
 
 export type CategoriaObjetoSugerida =
