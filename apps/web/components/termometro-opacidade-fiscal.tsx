@@ -83,6 +83,68 @@ function formatCategoriaSensivel(
   return "Subitem Genérico (.99)";
 }
 
+function ElementoResidualRow({
+  elem,
+}: {
+  elem: OpacidadeContabilMetricsDTO["elementosResidual99"][number];
+}) {
+  return (
+    <div key={elem.elementoCodigo} className="space-y-1">
+      {/* Topo: Código, Descrição e Badge de Classificação */}
+      <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+          <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
+            {elem.elementoCodigo}.99
+          </span>
+          <span
+            className="truncate font-medium text-slate-800"
+            title={elem.elementoDescricao}
+          >
+            {elem.elementoDescricao}
+          </span>
+        </div>
+        {elem.tipoResidual === "estrutural" ? (
+          <span
+            className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
+            title="Despesa compulsória por obrigação legal ou ordem judicial"
+          >
+            Estrutural
+          </span>
+        ) : (
+          <span
+            className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
+            title="Despesa passível de detalhamento específico no plano de contas"
+          >
+            Evitável
+          </span>
+        )}
+      </div>
+
+      {/* Centro: Barra de Progresso Horizontal em Largura Total */}
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${
+            elem.tipoResidual === "estrutural" ? "bg-sky-600" : "bg-slate-700"
+          }`}
+          style={{
+            width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
+          }}
+        />
+      </div>
+
+      {/* Abaixo da barra: Linha com Valor Monetário e Percentual */}
+      <div className="flex items-center justify-between text-slate-600 text-xs">
+        <span className="font-semibold text-slate-900">
+          {fmtCompact(elem.totalPago)}
+        </span>
+        <span className="font-medium text-[11px] text-slate-500">
+          {fmtPercent(elem.percentualDoResidual99)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function TermometroOpacidadeFiscal({
   data,
   portalSlug,
@@ -358,56 +420,7 @@ export function TermometroOpacidadeFiscal({
               {/* Lista dos Top 5 Elementos */}
               <div className="space-y-2.5 pt-1">
                 {top5Elementos.map((elem) => (
-                  <div key={elem.elementoCodigo} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex min-w-0 items-center gap-2 pr-2">
-                        <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
-                          {elem.elementoCodigo}.99
-                        </span>
-                        <span
-                          className="truncate font-medium text-slate-800"
-                          title={elem.elementoDescricao}
-                        >
-                          {elem.elementoDescricao}
-                        </span>
-                        {elem.tipoResidual === "estrutural" ? (
-                          <span
-                            className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
-                            title="Despesa compulsória por obrigação legal ou ordem judicial"
-                          >
-                            Estrutural
-                          </span>
-                        ) : (
-                          <span
-                            className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
-                            title="Despesa passível de detalhamento específico no plano de contas"
-                          >
-                            Evitável
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2 text-right">
-                        <span className="font-bold text-slate-900">
-                          {fmtCompact(elem.totalPago)}
-                        </span>
-                        <span className="w-12 text-right font-medium text-[11px] text-slate-500">
-                          {fmtPercent(elem.percentualDoResidual99)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          elem.tipoResidual === "estrutural"
-                            ? "bg-sky-600"
-                            : "bg-slate-700"
-                        }`}
-                        style={{
-                          width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <ElementoResidualRow key={elem.elementoCodigo} elem={elem} />
                 ))}
               </div>
 
@@ -423,56 +436,10 @@ export function TermometroOpacidadeFiscal({
                   </summary>
                   <div className="mt-3 space-y-2.5 border-slate-100 border-t pt-2.5">
                     {demaisElementos.map((elem) => (
-                      <div key={elem.elementoCodigo} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex min-w-0 items-center gap-2 pr-2">
-                            <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
-                              {elem.elementoCodigo}.99
-                            </span>
-                            <span
-                              className="truncate font-medium text-slate-800"
-                              title={elem.elementoDescricao}
-                            >
-                              {elem.elementoDescricao}
-                            </span>
-                            {elem.tipoResidual === "estrutural" ? (
-                              <span
-                                className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
-                                title="Despesa compulsória por obrigação legal ou ordem judicial"
-                              >
-                                Estrutural
-                              </span>
-                            ) : (
-                              <span
-                                className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
-                                title="Despesa passível de detalhamento específico no plano de contas"
-                              >
-                                Evitável
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2 text-right">
-                            <span className="font-bold text-slate-900">
-                              {fmtCompact(elem.totalPago)}
-                            </span>
-                            <span className="w-12 text-right font-medium text-[11px] text-slate-500">
-                              {fmtPercent(elem.percentualDoResidual99)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              elem.tipoResidual === "estrutural"
-                                ? "bg-sky-600"
-                                : "bg-slate-700"
-                            }`}
-                            style={{
-                              width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
+                      <ElementoResidualRow
+                        key={elem.elementoCodigo}
+                        elem={elem}
+                      />
                     ))}
                   </div>
                 </details>
