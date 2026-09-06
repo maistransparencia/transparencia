@@ -145,9 +145,27 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(
-      screen.getByText("Nenhuma emenda destinada no exercício"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Sem emendas no exercício")).toBeInTheDocument();
+  });
+
+  it("exibe subtexto em linha única quando há emendas recebidas mas nenhuma empenhada", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        saude: {
+          emendasStats: {
+            lista: [],
+            totalAutorizado: 100000,
+            totalEmpenhado: 0,
+            taxaEmpenho: 0,
+          },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(screen.getByText("Nenhum valor empenhado")).toBeInTheDocument();
   });
 
   it("renderiza badge e descrição de concentração moderada", async () => {

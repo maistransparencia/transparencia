@@ -55,15 +55,22 @@ export default async function SaudePage({
     saude.emendasStats?.totalAutorizado ||
     saude.fontesReceita?.emendasParlamentares ||
     0;
+  const totalEmpenhado = saude.emendasStats?.totalEmpenhado ?? 0;
+  const taxaEmpenho = saude.emendasStats?.taxaEmpenho ?? 0;
   const hasEmendas = totalEmendas > 0;
+
   const emendasSubtext = (() => {
-    if ((saude.emendasStats?.totalAutorizado ?? 0) > 0) {
-      return `${fmtCompact(saude.emendasStats.totalEmpenhado)} empenhados (${fmtPercent((saude.emendasStats.taxaEmpenho ?? 0) * 100)})`;
+    if (!hasEmendas) {
+      return "Sem emendas no exercício";
     }
-    if (totalEmendas > 0) {
-      return "Valor arrecadado no exercício";
+    if (totalEmpenhado === 0) {
+      return (
+        <span className="font-semibold text-rose-600">
+          Nenhum valor empenhado
+        </span>
+      );
     }
-    return "Nenhuma emenda destinada no exercício";
+    return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
   })();
 
   const concentracao =
@@ -98,7 +105,7 @@ export default async function SaudePage({
             title="Emendas na Saúde"
             value={fmtCompact(totalEmendas)}
             subtext={emendasSubtext}
-            accent={hasEmendas}
+            accent={hasEmendas && taxaEmpenho >= 0.7}
           />
           <KPICard
             title="Contratos vinculados"

@@ -3,7 +3,8 @@ import { cn } from "../utils/cn";
 export interface KPICardProps {
   title: string;
   value: React.ReactNode;
-  subtext?: string;
+  subtext?: React.ReactNode;
+  subtextClassName?: string;
   trend?: {
     value: string | number;
     isPositive?: boolean;
@@ -17,6 +18,7 @@ export function KPICard({
   title,
   value,
   subtext,
+  subtextClassName,
   trend,
   accent = false,
   alert = false,
@@ -46,7 +48,7 @@ export function KPICard({
       </div>
       {(subtext || trend) && (
         <div className="mt-3 flex items-center justify-between border-gray-100 border-t pt-2 text-mutedText text-xs">
-          {subtext && <span>{subtext}</span>}
+          {subtext && <span className={subtextClassName}>{subtext}</span>}
           {trend && (
             <span
               className={cn(
