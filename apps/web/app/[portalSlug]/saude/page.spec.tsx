@@ -126,4 +126,94 @@ describe("SaudePage", () => {
       screen.getByText("Alerta de Subexecução Orçamentária"),
     ).toBeInTheDocument();
   });
+
+  it("exibe mensagem adequada quando não há emendas no exercício", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        saude: {
+          emendasStats: {
+            lista: [],
+            totalAutorizado: 0,
+            totalEmpenhado: 0,
+            taxaEmpenho: 0,
+          },
+          fontesReceita: { emendasParlamentares: 0 },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Nenhuma emenda destinada no exercício"),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza badge e descrição de concentração moderada", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        saude: {
+          farmaceutica: {
+            medicamentosInsumos: 100,
+            medicamentosInsumosPago: 90,
+            judicializacao: 20,
+            judicializacaoPago: 15,
+            hhi: 1850,
+            hhiClassificacao: "moderada",
+            concentracao: {
+              hhi: 1850,
+              nivel: "moderada",
+              label: "Moderada",
+              descricao: "Mercado moderadamente concentrado em poucas empresas",
+            },
+          },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(screen.getByText("Moderada")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mercado moderadamente concentrado em poucas empresas"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Índice HHI: 1.850")).toBeInTheDocument();
+  });
+
+  it("renderiza badge e descrição de alta concentração", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        saude: {
+          farmaceutica: {
+            medicamentosInsumos: 100,
+            medicamentosInsumosPago: 90,
+            judicializacao: 20,
+            judicializacaoPago: 15,
+            hhi: 3200,
+            hhiClassificacao: "alta",
+            concentracao: {
+              hhi: 3200,
+              nivel: "alta",
+              label: "Alta",
+              descricao:
+                "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
+            },
+          },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(screen.getByText("Alta")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Índice HHI: 3.200")).toBeInTheDocument();
+  });
 });

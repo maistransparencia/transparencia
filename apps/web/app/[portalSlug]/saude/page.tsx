@@ -186,7 +186,7 @@ export default async function SaudePage({
           <KPICard
             title="Concentração de Fornecedores"
             value={
-              <div className="flex flex-wrap items-center gap-2">
+              <span className="flex flex-wrap items-center gap-2">
                 <span
                   className={cn(
                     "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-sm",
@@ -201,7 +201,7 @@ export default async function SaudePage({
                 >
                   Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
                 </span>
-              </div>
+              </span>
             }
             subtext={concentracao.descricao}
           />
