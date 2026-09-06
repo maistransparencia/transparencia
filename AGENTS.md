@@ -126,6 +126,15 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Validação e Defaults Centralizados no Schema Zod:** Novos parâmetros, segredos ou valores padrão (defaults) devem ser definidos e documentados diretamente no schema Zod em `apps/web/env.ts` e refletidos em `.env.example`, garantindo tipagem estrita, fail-fast e segregação entre `server` e `client`.
 - **Exceções Estritas:** Apenas arquivos de infraestrutura interna do Next.js onde a checagem estática direta for mandatória para o bundler (como verificação de runtime em `apps/web/instrumentation.ts`) podem utilizar `process.env`.
 
+---
+
+## 18. PADRÃO ESTRITO DE IDENTIFICADORES E DTOS EM TYPESCRIPT (`camelCase` MANDATÓRIO)
+
+- **Proibição de Chaves por Extenso, Espaços ou Acentos:** É estritamente proibido definir propriedades de interfaces, tipos ou DTOs em TypeScript com chaves entre aspas contendo espaços, acentuação, caracteres especiais ou PascalCase (ex: `"Valor Autorizado"`, `"Esfera de Origem"`, `Nº`, `Destinação`, `Periodo`).
+- **Padrão Obrigatório (`camelCase`):** Todas as propriedades e campos de DTOs, queries Kysely, loaders e View Models devem utilizar exclusivamente a convenção **`camelCase`** (ex: `valorAutorizado`, `esferaOrigem`, `numero`, `destinacao`, `periodo`, `tipoEmenda`, `atoNormativo`).
+- **Apresentação e Rótulos na UI:** Rótulos humanos, cabeçalhos de colunas ou títulos amigáveis para o cidadão pertencem exclusivamente à camada de visualização (`packages/ui` e `apps/web/components`), via mapeamento explícito de colunas (ex: `header: "Valor Autorizado"`, `accessorKey: "valorAutorizado"`).
+
+
 
 
 

@@ -10,16 +10,16 @@ import { KPIGrid } from "@/components/kpi-grid";
 
 export interface SaudeEmendaItem {
   id: string;
-  Nº: string;
-  Objeto: string;
-  "Valor Autorizado": number;
-  Empenhado: number | null;
-  Autor: string;
-  Origem?: string;
-  "Tipo da Emenda": string;
-  "Esfera de Origem": string;
-  "Ato Normativo": string;
-  Destinação: string;
+  numero: string;
+  objeto: string;
+  valorAutorizado: number;
+  empenhado: number | null;
+  autor: string;
+  origem?: string;
+  tipoEmenda: string;
+  esferaOrigem: string;
+  atoNormativo: string;
+  destinacao: string;
 }
 
 export interface SaudeEmendasStatsProps {
@@ -45,28 +45,28 @@ export function SaudeEmendasSection({
   const emendasCols = [
     {
       header: "Autor da Emenda",
-      accessorKey: "Autor" as const,
+      accessorKey: "autor" as const,
       className: "font-bold",
     },
     {
       header: "Origem",
-      accessorKey: "Origem" as const,
+      accessorKey: "origem" as const,
       className: "font-medium text-slate-700 whitespace-nowrap",
     },
     {
       header: "Objeto",
-      accessorKey: "Objeto" as const,
+      accessorKey: "objeto" as const,
       className: "max-w-[250px]",
     },
     {
       header: "Valor Autorizado",
-      accessorKey: "Valor Autorizado" as const,
+      accessorKey: "valorAutorizado" as const,
       align: "right" as const,
       format: "currency" as const,
     },
     {
       header: "Empenhado",
-      accessorKey: "Empenhado" as const,
+      accessorKey: "empenhado" as const,
       align: "right" as const,
       format: "currency" as const,
     },
@@ -169,14 +169,14 @@ export function SaudeEmendasSection({
           sortable
           data={emendasStats.lista.map((item) => ({
             ...item,
-            Autor: toTitleCase(item.Autor),
-            Origem: item["Esfera de Origem"]
-              ? toTitleCase(item["Esfera de Origem"])
+            autor: toTitleCase(item.autor),
+            origem: item.esferaOrigem
+              ? toTitleCase(item.esferaOrigem)
               : "Não informada",
-            Objeto: toTitleCase(item.Objeto),
+            objeto: toTitleCase(item.objeto),
           }))}
           columns={emendasCols}
-          searchableKeys={["Autor", "Objeto", "Origem"]}
+          searchableKeys={["autor", "objeto", "origem"]}
           rowKey="id"
         />
 
