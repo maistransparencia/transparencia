@@ -13,6 +13,7 @@ export interface CapremHeroSectionProps {
   taxaExecucao: number;
   totalAporteAtuarial: number;
   totalDividaResgatada: number;
+  dataExtracao?: Date | string | null;
 }
 
 export function CapremHeroSection({
@@ -24,6 +25,7 @@ export function CapremHeroSection({
   taxaExecucao,
   totalAporteAtuarial,
   totalDividaResgatada,
+  dataExtracao,
 }: CapremHeroSectionProps) {
   const liquidadoRatio =
     totalEmpenhado > 0
@@ -34,7 +36,7 @@ export function CapremHeroSection({
       ? Math.min(100, Math.max(0, (totalPago / totalEmpenhado) * 100))
       : 0;
 
-  const partialPeriod = getPartialYearPeriod();
+  const partialPeriod = getPartialYearPeriod(dataExtracao);
 
   return (
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">

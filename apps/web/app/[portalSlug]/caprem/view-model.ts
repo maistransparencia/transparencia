@@ -69,6 +69,7 @@ export function buildCapremViewModel(raw: CapremRawData) {
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
+    portalConfig: raw.portalConfig,
     caprem: {
       ...raw.caprem,
       natureza: naturezaFormatada,

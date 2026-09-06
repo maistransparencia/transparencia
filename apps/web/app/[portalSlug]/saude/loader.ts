@@ -1,6 +1,7 @@
 import {
   getEntidades,
   getHistoriaSaudeMetrics,
+  getPortalConfig,
   getSaudeContratosCountMetrics,
   getSaudeEmendasMetrics,
   getSaudeExecutionTrendMetrics,
@@ -70,6 +71,7 @@ export async function loadSaudeData(
     contratosCount,
     fornecedoresCount,
     licitacoesSaude,
+    portalConfig,
   ] = await Promise.all([
     getHistoriaSaudeMetrics(tenantSlug, context.selectedYear),
     getSaudeExecutionTrendMetrics(tenantSlug),
@@ -81,6 +83,7 @@ export async function loadSaudeData(
       empresaIds,
     ),
     getSaudeLicitacoesMetrics(tenantSlug, context.selectedYear, empresaIds),
+    getPortalConfig(tenantSlug),
   ]);
 
   const dotacao = saudeMetrics?.dotacaoTotal ?? 0;
@@ -140,6 +143,7 @@ export async function loadSaudeData(
   return {
     portalSlug: tenantSlug,
     context,
+    portalConfig,
     saude,
   };
 }

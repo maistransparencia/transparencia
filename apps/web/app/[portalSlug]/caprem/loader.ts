@@ -4,6 +4,7 @@ import {
   getCapremEntidadesMetrics,
   getCapremNaturezaMetrics,
   getHistoriaCapremMetrics,
+  getPortalConfig,
 } from "@transparencia/db";
 
 export interface CapremSearchParams {
@@ -54,12 +55,14 @@ export async function loadCapremData(
     naturezaMetrics,
     actuarialTrend,
     cadprevParcelamentos,
+    portalConfig,
   ] = await Promise.all([
     getHistoriaCapremMetrics(tenantSlug, context.selectedYear),
     getCapremEntidadesMetrics(tenantSlug, context.selectedYear),
     getCapremNaturezaMetrics(tenantSlug, context.selectedYear),
     getCapremActuarialTrendMetrics(tenantSlug),
     getCapremCadprevMetrics(tenantSlug, context.selectedYear),
+    getPortalConfig(tenantSlug),
   ]);
 
   const totalEmpenhado = capremMetrics?.totalEmpenhado ?? 0;
@@ -144,6 +147,7 @@ export async function loadCapremData(
 
   return {
     context,
+    portalConfig,
     caprem,
   };
 }

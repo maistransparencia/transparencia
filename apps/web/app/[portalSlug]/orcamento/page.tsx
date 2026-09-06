@@ -69,7 +69,7 @@ export default async function OrcamentoPage({
       <div>
         <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""}
+          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-slate-900">
           Execução Orçamentária

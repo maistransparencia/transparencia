@@ -5,6 +5,7 @@ import {
   getExecucaoDecimoTerceiroMetrics,
   getFolhaVsServicosMetrics,
   getPercentualChefiasEfetivasMetrics,
+  getPortalConfig,
 } from "@transparencia/db";
 
 export interface PessoalSearchParams {
@@ -74,6 +75,7 @@ export async function loadPessoalData(
     decimo13,
     distribuicaoProventos,
     departmentalPayroll,
+    portalConfig,
   ] = await Promise.all([
     getFolhaVsServicosMetrics({
       years: [selectedYear],
@@ -84,10 +86,12 @@ export async function loadPessoalData(
     getExecucaoDecimoTerceiroMetrics(tenantSlug, selectedYear, empresaIds),
     getDistribuicaoProventosMetrics(tenantSlug, selectedYear),
     getDepartmentalPayrollMetrics(tenantSlug, selectedYear, empresaIds),
+    getPortalConfig(tenantSlug),
   ]);
 
   return {
     context,
+    portalConfig,
     folhaData,
     pctChefias,
     decimo13,
