@@ -42,56 +42,36 @@ function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-export const HHI_CORTE_MODERADA = 1500;
-export const HHI_CORTE_ALTA = 2500;
-
-export type NivelConcentracao = "baixa" | "moderada" | "alta";
-
-export const HHI_NIVEIS_CONCENTRACAO = {
-  alta: {
-    nivel: "alta" as const,
-    label: "Alta",
-    descricao:
-      "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
-  },
-  moderada: {
-    nivel: "moderada" as const,
-    label: "Moderada",
-    descricao: "Mercado moderadamente concentrado em poucas empresas",
-  },
-  baixa: {
-    nivel: "baixa" as const,
-    label: "Baixa",
-    descricao: "Compras bem distribuídas entre múltiplos fornecedores",
-  },
-} as const;
-
-export interface ConcentracaoFornecedores {
+export interface FarmaceuticaConcentracao {
   hhi: number;
-  nivel: NivelConcentracao;
+  nivel: "baixa" | "moderada" | "alta";
   label: string;
   descricao: string;
 }
 
-/** Alias para a métrica de concentração no bloco de assistência farmacêutica */
-export type FarmaceuticaConcentracao = ConcentracaoFornecedores;
-
-export function classifyHhi(hhi: number): ConcentracaoFornecedores {
-  if (hhi >= HHI_CORTE_ALTA) {
+export function classifyHhi(hhi: number): FarmaceuticaConcentracao {
+  if (hhi >= 2500) {
     return {
       hhi,
-      ...HHI_NIVEIS_CONCENTRACAO.alta,
+      nivel: "alta",
+      label: "Alta",
+      descricao:
+        "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
     };
   }
-  if (hhi >= HHI_CORTE_MODERADA) {
+  if (hhi >= 1500) {
     return {
       hhi,
-      ...HHI_NIVEIS_CONCENTRACAO.moderada,
+      nivel: "moderada",
+      label: "Moderada",
+      descricao: "Mercado moderadamente concentrado em poucas empresas",
     };
   }
   return {
     hhi,
-    ...HHI_NIVEIS_CONCENTRACAO.baixa,
+    nivel: "baixa",
+    label: "Baixa",
+    descricao: "Compras bem distribuídas entre múltiplos fornecedores",
   };
 }
 

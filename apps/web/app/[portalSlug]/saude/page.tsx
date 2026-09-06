@@ -65,7 +65,7 @@ export default async function SaudePage({
     }
     if (totalEmpenhado === 0) {
       return (
-        <span className="font-semibold text-rose-600">
+        <span className="font-semibold text-amber-700">
           Nenhum valor empenhado
         </span>
       );

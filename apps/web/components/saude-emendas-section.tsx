@@ -15,6 +15,7 @@ export interface SaudeEmendaItem {
   "Valor Autorizado": number;
   Empenhado: number | null;
   Autor: string;
+  Origem?: string;
   "Tipo da Emenda": string;
   "Esfera de Origem": string;
   "Ato Normativo": string;
@@ -46,6 +47,11 @@ export function SaudeEmendasSection({
       header: "Autor da Emenda",
       accessorKey: "Autor" as const,
       className: "font-bold",
+    },
+    {
+      header: "Origem",
+      accessorKey: "Origem" as const,
+      className: "font-medium text-slate-700 whitespace-nowrap",
     },
     {
       header: "Objeto",
@@ -89,9 +95,9 @@ export function SaudeEmendasSection({
         </span>
       </div>
 
-      {/* Banner de Alerta Vermelho / Salmão */}
+      {/* Banner de Alerta Âmbar */}
       {emendasStats.totalAutorizado > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border-rose-600 border-l-4 bg-[#fff5f5] p-4 text-[#8c1d1d] text-xs shadow-2xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-amber-50/80 p-4 text-amber-950 text-xs shadow-2xs sm:text-sm">
           <div>
             <strong className="font-bold">
               {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
@@ -101,7 +107,7 @@ export function SaudeEmendasSection({
               <>
                 Até agora, <strong className="font-bold">R$ 0</strong> haviam
                 sido empenhados. O recurso está disponível, mas ainda não virou
-                contrato — sinal de alerta para acompanhar de perto.
+                contrato — sinal de atenção para acompanhar de perto.
               </>
             ) : (
               <>
@@ -129,7 +135,7 @@ export function SaudeEmendasSection({
             <span
               className={
                 isZeroEmpenhado
-                  ? "font-bold text-rose-600"
+                  ? "font-bold text-amber-700"
                   : "font-bold text-slate-900"
               }
             >
@@ -143,7 +149,7 @@ export function SaudeEmendasSection({
             <span
               className={
                 isZeroEmpenhado
-                  ? "font-bold text-rose-600"
+                  ? "font-bold text-amber-700"
                   : "font-bold text-slate-900"
               }
             >
@@ -160,13 +166,17 @@ export function SaudeEmendasSection({
       {/* Tabela Densa com Linha de Totalizador */}
       <div className="space-y-2">
         <DenseTable
+          sortable
           data={emendasStats.lista.map((item) => ({
             ...item,
             Autor: toTitleCase(item.Autor),
+            Origem: item["Esfera de Origem"]
+              ? toTitleCase(item["Esfera de Origem"])
+              : "Não informada",
             Objeto: toTitleCase(item.Objeto),
           }))}
           columns={emendasCols}
-          searchableKeys={["Autor", "Objeto"]}
+          searchableKeys={["Autor", "Objeto", "Origem"]}
           rowKey="id"
         />
 
@@ -178,7 +188,7 @@ export function SaudeEmendasSection({
               {fmtCurrency(emendasStats.totalAutorizado)} (Autorizado)
             </span>
             <span
-              className={isZeroEmpenhado ? "text-rose-600" : "text-slate-900"}
+              className={isZeroEmpenhado ? "text-amber-700" : "text-slate-900"}
             >
               {fmtCurrency(emendasStats.totalEmpenhado)} (Empenhado)
             </span>

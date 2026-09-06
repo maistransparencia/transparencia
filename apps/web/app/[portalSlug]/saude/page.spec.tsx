@@ -69,10 +69,24 @@ function makeRaw(
         modalidades: [],
       },
       emendasStats: {
-        lista: [],
+        lista: [
+          {
+            id: "1",
+            Nº: "123",
+            Objeto: "Custeio SUS",
+            "Valor Autorizado": 50,
+            Empenhado: 40,
+            Autor: "Deputado Fulano",
+            "Tipo da Emenda": "INDIVIDUAL",
+            "Esfera de Origem": "FEDERAL",
+            "Ato Normativo": "Portaria 1",
+            Destinação: "Saúde",
+          },
+        ],
         totalAutorizado: 50,
         totalEmpenhado: 40,
         taxaEmpenho: 0.8,
+        maiorEmenda: 50,
       },
       emendas: [],
       emendasTotal: 50,
@@ -99,6 +113,8 @@ describe("SaudePage", () => {
       screen.getByText("Concentração de Fornecedores"),
     ).toBeInTheDocument();
     expect(screen.getByText("Baixa")).toBeInTheDocument();
+    expect(screen.getByText("Origem")).toBeInTheDocument();
+    expect(screen.getByText("Federal")).toBeInTheDocument();
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {
