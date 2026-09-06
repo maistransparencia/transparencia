@@ -88,8 +88,10 @@ function ElementoResidualRow({
 }: {
   elem: OpacidadeContabilMetricsDTO["elementosResidual99"][number];
 }) {
+  const pct = Math.max(0, Math.min(100, elem.percentualDoResidual99 || 0));
+
   return (
-    <div key={elem.elementoCodigo} className="space-y-1">
+    <div className="space-y-1">
       {/* Topo: Código, Descrição e Badge de Classificação */}
       <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
@@ -121,13 +123,20 @@ function ElementoResidualRow({
       </div>
 
       {/* Centro: Barra de Progresso Horizontal em Largura Total */}
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Percentual do elemento ${elem.elementoCodigo}.99`}
+        className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
+      >
         <div
           className={`h-full rounded-full transition-all duration-300 ${
             elem.tipoResidual === "estrutural" ? "bg-sky-600" : "bg-slate-700"
           }`}
           style={{
-            width: `${Math.max(0, Math.min(100, elem.percentualDoResidual99))}%`,
+            width: `${pct}%`,
           }}
         />
       </div>
