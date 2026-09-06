@@ -227,7 +227,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
   );
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
-    isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""
+    isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"

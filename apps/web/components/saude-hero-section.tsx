@@ -74,7 +74,7 @@ export function SaudeHeroSection({
       <div className="space-y-4 lg:col-span-7">
         <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
           TEMAS · FUNDO MUNICIPAL DE SAÚDE · {ano}
-          {isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""}
+          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
 
         <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
