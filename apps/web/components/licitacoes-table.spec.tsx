@@ -132,6 +132,77 @@ describe("LicitacoesTable", () => {
     expect(header).toHaveAttribute("aria-sort", "ascending");
   });
 
+  it("ordena por objeto ao clicar no cabeçalho OBJETO", () => {
+    render(<LicitacoesTable data={mockContratos} />);
+
+    const objetoBtn = screen.getByRole("button", { name: /OBJETO/i });
+    // Default inicial para texto é asc (A-Z: Aquisição, Manutenção, Reforma)
+    fireEvent.click(objetoBtn);
+
+    const rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("Aquisição de computadores");
+    expect(rows[2]).toHaveTextContent("Manutenção predial");
+    expect(rows[3]).toHaveTextContent("Reforma de escola");
+
+    const header = screen.getByRole("columnheader", { name: /OBJETO/i });
+    expect(header).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("ordena por modalidade ao clicar no cabeçalho MODALIDADE", () => {
+    render(<LicitacoesTable data={mockContratos} />);
+
+    const modalidadeBtn = screen.getByRole("button", { name: /MODALIDADE/i });
+    // Ascendente: Dispensa, Inexigibilidade, Pregão
+    fireEvent.click(modalidadeBtn);
+
+    const rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("Dispensa");
+    expect(rows[2]).toHaveTextContent("Inexigibilidade");
+    expect(rows[3]).toHaveTextContent("Pregão Eletrônico");
+
+    const header = screen.getByRole("columnheader", { name: /MODALIDADE/i });
+    expect(header).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("reseta para a página 1 ao alterar a ordenação", () => {
+    // Cria 12 contratos para forçar paginação (pageSize = 10)
+    const muitosContratos: ContratoSemLicitacaoItem[] = Array.from(
+      { length: 12 },
+      (_, i) => ({
+        ano: 2024,
+        empresa: `Empresa ${i}`,
+        numero: `00${i}/2024`,
+        fornecedor: `Fornecedor ${String.fromCharCode(65 + i)}`,
+        objeto: `Objeto ${i}`,
+        valorContrato: (i + 1) * 1000,
+        mes: (i % 12) + 1,
+        modalidade: "Dispensa",
+        periodo: `Mês ${i + 1}`,
+      }),
+    );
+
+    render(<LicitacoesTable data={muitosContratos} />);
+
+    // Navega para página 2
+    const proximaBtn = screen.getByRole("button", { name: /próxima página/i });
+    fireEvent.click(proximaBtn);
+
+    // Confirma que está na página 2 (botão 2 ativo e itens com menores valores visíveis na página 2)
+    const page2Btn = screen.getByRole("button", { name: "Página 2" });
+    expect(page2Btn).toHaveClass("bg-[#2b6cb0]");
+    expect(screen.getByText("Fornecedor A")).toBeInTheDocument();
+
+    // Reordena por fornecedor (A-Z asc)
+    const fornecedorBtn = screen.getByRole("button", { name: /FORNECEDOR/i });
+    fireEvent.click(fornecedorBtn);
+
+    // Deve resetar para página 1
+    const page1Btn = screen.getByRole("button", { name: "Página 1" });
+    expect(page1Btn).toHaveClass("bg-[#2b6cb0]");
+    expect(screen.getByText("Fornecedor A")).toBeInTheDocument();
+    expect(screen.queryByText("Fornecedor L")).not.toBeInTheDocument();
+  });
+
   it("filtra dados pela barra de busca mantendo a ordenação", () => {
     render(<LicitacoesTable data={mockContratos} />);
 
