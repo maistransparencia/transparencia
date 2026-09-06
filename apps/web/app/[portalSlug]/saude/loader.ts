@@ -42,10 +42,57 @@ function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-function classifyHhi(hhi: number): string {
-  if (hhi >= 2500) return "alta";
-  if (hhi >= 1500) return "moderada a alta";
-  return "baixa";
+export const HHI_CORTE_MODERADA = 1500;
+export const HHI_CORTE_ALTA = 2500;
+
+export type NivelConcentracao = "baixa" | "moderada" | "alta";
+
+export const HHI_NIVEIS_CONCENTRACAO = {
+  alta: {
+    nivel: "alta" as const,
+    label: "Alta",
+    descricao:
+      "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
+  },
+  moderada: {
+    nivel: "moderada" as const,
+    label: "Moderada",
+    descricao: "Mercado moderadamente concentrado em poucas empresas",
+  },
+  baixa: {
+    nivel: "baixa" as const,
+    label: "Baixa",
+    descricao: "Compras bem distribuídas entre múltiplos fornecedores",
+  },
+} as const;
+
+export interface ConcentracaoFornecedores {
+  hhi: number;
+  nivel: NivelConcentracao;
+  label: string;
+  descricao: string;
+}
+
+/** Alias para a métrica de concentração no bloco de assistência farmacêutica */
+export type FarmaceuticaConcentracao = ConcentracaoFornecedores;
+
+export function classifyHhi(hhi: number): ConcentracaoFornecedores {
+  if (hhi >= HHI_CORTE_ALTA) {
+    return {
+      hhi,
+      ...HHI_NIVEIS_CONCENTRACAO.alta,
+    };
+  }
+  if (hhi >= HHI_CORTE_MODERADA) {
+    return {
+      hhi,
+      ...HHI_NIVEIS_CONCENTRACAO.moderada,
+    };
+  }
+  return {
+    hhi,
+    ...HHI_NIVEIS_CONCENTRACAO.baixa,
+  };
 }
 
 export async function loadSaudeData(
@@ -97,6 +144,7 @@ export async function loadSaudeData(
   const judicializacaoPago = saudeMetrics?.judicializacaoPago ?? 0;
   const emendasArrecadado = saudeMetrics?.emendasSaudeArrecadado ?? 0;
   const hhiVal = Math.round(saudeMetrics?.hhiConcentracaoFornecedores ?? 0);
+  const concentracao = classifyHhi(hhiVal);
 
   const fontesReceitaMetrics = await getSaudeFontesReceitaMetrics({
     portalSlug: tenantSlug,
@@ -127,7 +175,8 @@ export async function loadSaudeData(
       judicializacao: judicializacaoEmpenhado,
       judicializacaoPago: judicializacaoPago,
       hhi: hhiVal,
-      hhiClassificacao: classifyHhi(hhiVal),
+      hhiClassificacao: concentracao.nivel,
+      concentracao,
     },
     fontesReceita: {
       ...fontesReceitaMetrics,
