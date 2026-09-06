@@ -169,6 +169,19 @@ def main() -> None:
         table = json_file.parent.name
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
+            if table == "siconfi_msc_patrimonial":
+                from elt.extract.siconfi_msc import ensure_siconfi_table, load_siconfi_msc
+
+                ensure_siconfi_table(engine, schema)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = load_siconfi_msc(engine, rows)
+                logger.info(
+                    "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
+                    json_file.name,
+                    count,
+                    schema,
+                )
+                continue
             logger.warning("No endpoint config for table: %s", table)
             continue
 

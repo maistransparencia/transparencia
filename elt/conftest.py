@@ -49,6 +49,8 @@ def _create_raw_schema(eng) -> None:
 
 def _run_dbt(pg_url: str, *args: str) -> None:
     u = urlparse(pg_url)
+    venv_dbt = Path(__file__).parent / ".venv" / "bin" / "dbt"
+    dbt_bin = str(venv_dbt) if venv_dbt.exists() else "dbt"
     env = {
         **os.environ,
         "DBT_HOST": u.hostname or "",
@@ -59,7 +61,7 @@ def _run_dbt(pg_url: str, *args: str) -> None:
         "DBT_ALLOW_EXPERIMENTAL_ADAPTERS": "true",
     }
     subprocess.run(
-        ["dbt", *args, "--profiles-dir", _PROFILES_DIR, "--project-dir", _PROFILES_DIR],
+        [dbt_bin, *args, "--profiles-dir", _PROFILES_DIR, "--project-dir", _PROFILES_DIR],
         env=env,
         check=True,
         capture_output=True,

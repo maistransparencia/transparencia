@@ -31,8 +31,8 @@ def test_fetch_page_success(sample_payload):
         assert mock_get.call_count == 1
         call_kwargs = mock_get.call_args.kwargs
         assert call_kwargs["params"]["id_ente"] == DEFAULT_IBGE_PORCIUNCULA
-        assert call_kwargs["params"]["an_referencia"] == 2024
-        assert call_kwargs["params"]["me_referencia"] == 12
+        assert call_kwargs["params"]["an_referencia"] == "2024"
+        assert call_kwargs["params"]["me_referencia"] == "12"
         assert call_kwargs["params"]["co_tipo_matriz"] == "MSCC"
         assert call_kwargs["params"]["classe_conta"] == 1
         assert call_kwargs["params"]["id_tv"] == "ending_balance"
@@ -204,3 +204,140 @@ def test_load_siconfi_msc():
         res = load_siconfi_msc(mock_db, rows)
         assert res == 1
         mock_upsert.assert_called_once_with(mock_db, "siconfi_msc_patrimonial", rows, KEY_COLS)
+
+
+def test_ensure_siconfi_table():
+    from elt.extract.siconfi_msc import ensure_siconfi_table
+    from sqlalchemy.engine import Engine
+
+    mock_engine = MagicMock(spec=Engine)
+    mock_conn = MagicMock()
+    mock_engine.begin.return_value.__enter__.return_value = mock_conn
+
+    ensure_siconfi_table(mock_engine, schema="raw_porciuncula_prefeitura")
+    assert mock_conn.execute.call_count == 1
+    call_sql = str(mock_conn.execute.call_args[0][0])
+    assert "siconfi_msc_patrimonial" in call_sql
+
+
+def test_extract_and_load_siconfi(tmp_path):
+    from elt.extract.siconfi_msc import extract_and_load_siconfi
+    from sqlalchemy.engine import Engine
+
+    portal = MagicMock()
+    portal.slug = "porciuncula_prefeitura"
+    portal.cod_ibge = 3304102
+    portal.ano_inicial = 2024
+    portal.raw_schema = "raw_porciuncula_prefeitura"
+
+    mock_db = MagicMock(spec=Engine)
+    sample_rows = [{"ano": 2024, "mes_referencia": 12, "valor": 100.0}]
+
+    with (
+        patch("elt.extract.siconfi_msc.ensure_siconfi_table") as mock_ensure,
+        patch.object(SiconfiMscExtractor, "extract_ano", return_value=sample_rows) as mock_extract,
+        patch("elt.extract.siconfi_msc.load_siconfi_msc", return_value=1) as mock_load,
+    ):
+        total = extract_and_load_siconfi(
+            portal=portal,
+            years=[2024],
+            db=mock_db,
+            run_dir=tmp_path,
+            save_raw=True,
+        )
+
+        assert total == 1
+        mock_ensure.assert_called_once_with(mock_db, "raw_porciuncula_prefeitura")
+        mock_extract.assert_called_once_with(3304102, 2024, session=None)
+        mock_load.assert_called_once_with(mock_db, sample_rows)
+
+        saved_file = tmp_path / "siconfi_msc_patrimonial" / "3304102_2024.json"
+        assert saved_file.exists()
+        assert json.loads(saved_file.read_text()) == sample_rows
+
+
+def test_main_cli(tmp_path):
+    from elt.extract.siconfi_msc import main
+
+    test_args = [
+        "siconfi_msc.py",
+        "--portal",
+        "porciuncula_prefeitura",
+        "--years",
+        "2024",
+        "--raw-only",
+        "--dir",
+        str(tmp_path),
+    ]
+
+    with (
+        patch("sys.argv", test_args),
+        patch("elt.extract.siconfi_msc.extract_and_load_siconfi", return_value=5) as mock_extract_load,
+    ):
+        main()
+        mock_extract_load.assert_called_once()
+        kwargs = mock_extract_load.call_args.kwargs
+        assert kwargs["years"] == [2024]
+        assert kwargs["db"] is None
+        assert kwargs["run_dir"] == tmp_path
+
+
+def test_extract_run_only_siconfi(tmp_path, monkeypatch):
+    import elt.extract.run as extract_run
+
+    sample_rows = [{"ano": 2024, "mes_referencia": 12, "valor": 50.0}]
+    test_args = [
+        "run.py",
+        "--portal",
+        "porciuncula_prefeitura",
+        "--years",
+        "2024",
+        "--only",
+        "siconfi_msc",
+    ]
+
+    with (
+        patch("sys.argv", test_args),
+        patch.object(SiconfiMscExtractor, "extract_ano", return_value=sample_rows) as mock_extract,
+    ):
+        monkeypatch.setattr(
+            "elt.extract.run.Path",
+            lambda p: tmp_path / p if isinstance(p, str) and p.startswith("data/raw_runs") else Path(p),
+        )
+        extract_run.main()
+
+        assert mock_extract.call_count == 1
+        written_files = list(tmp_path.rglob("*.json"))
+        assert len(written_files) == 1
+        assert "siconfi_msc_patrimonial" in str(written_files[0])
+
+
+def test_load_run_siconfi(tmp_path):
+    import elt.load.run as load_run
+
+    run_dir = tmp_path / "data" / "raw_runs" / "porciuncula_prefeitura" / "20260101_120000"
+    siconfi_dir = run_dir / "siconfi_msc_patrimonial"
+    siconfi_dir.mkdir(parents=True)
+    json_file = siconfi_dir / "3304102_2024.json"
+    sample_rows = [{"ano": 2024, "mes_referencia": 12, "valor": 50.0}]
+    json_file.write_text(json.dumps(sample_rows))
+
+    test_args = [
+        "run.py",
+        "--portal",
+        "porciuncula_prefeitura",
+        "--dir",
+        str(run_dir),
+    ]
+
+    with (
+        patch("sys.argv", test_args),
+        patch("elt.load.run.get_engine") as mock_engine,
+        patch("elt.load.run._upsert_raw") as mock_upsert_raw,
+        patch("elt.extract.siconfi_msc.ensure_siconfi_table") as mock_ensure,
+        patch("elt.extract.siconfi_msc.load_siconfi_msc", return_value=1) as mock_load,
+    ):
+        load_run.main()
+        mock_ensure.assert_called_once()
+        mock_load.assert_called_once_with(mock_engine.return_value, sample_rows)
+        mock_upsert_raw.assert_called_once()

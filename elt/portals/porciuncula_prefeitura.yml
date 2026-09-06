@@ -1,6 +1,7 @@
 slug: porciuncula_prefeitura
 display_name: Prefeitura de Porciúncula
 uf: RJ
+cod_ibge: 3304102
 portal_url: https://transparencia.porciuncula.rj.gov.br/transparencia/
 base_host: https://transparencia.porciuncula.rj.gov.br
 cidade_clean: PORCIUNCULA
