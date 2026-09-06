@@ -3,7 +3,7 @@ import { cn } from "../utils/cn";
 export interface KPICardProps {
   title: string;
   value: React.ReactNode;
-  subtext?: string;
+  subtext?: React.ReactNode;
   trend?: {
     value: string | number;
     isPositive?: boolean;

@@ -24,15 +24,15 @@ export interface HistoriaSaudeMetricsDTO {
 
 export interface EmendaSaudeDTO {
   id: string;
-  Nº: string;
-  Objeto: string;
-  "Valor Autorizado": number;
-  Empenhado: number | null;
-  Autor: string;
-  "Tipo da Emenda": string;
-  "Esfera de Origem": string;
-  "Ato Normativo": string;
-  Destinação: string;
+  numero: string;
+  objeto: string;
+  valorAutorizado: number;
+  empenhado: number | null;
+  autor: string;
+  tipoEmenda: string;
+  esferaOrigem: string;
+  atoNormativo: string;
+  destinacao: string;
 }
 
 export interface EmendasStatsSaudeDTO {
@@ -162,15 +162,15 @@ export async function getSaudeEmendasMetrics(
 
       lista.push({
         id: `${r.autor ?? ""}-${r.resumo ?? ""}-${r.numero_emenda ?? ""}-${lista.length}`,
-        Nº: String(r.numero_emenda ?? ""),
-        Objeto: String(r.resumo ?? ""),
-        "Valor Autorizado": valAut,
-        Empenhado: emp > 0 ? emp : null,
-        Autor: String(r.autor ?? ""),
-        "Tipo da Emenda": String(r.tipo_emenda ?? ""),
-        "Esfera de Origem": String(r.esfera_origem ?? ""),
-        "Ato Normativo": String(r.ato_normativo ?? ""),
-        Destinação: String(r.destinacao ?? ""),
+        numero: String(r.numero_emenda ?? ""),
+        objeto: String(r.resumo ?? ""),
+        valorAutorizado: valAut,
+        empenhado: emp > 0 ? emp : null,
+        autor: String(r.autor ?? ""),
+        tipoEmenda: String(r.tipo_emenda ?? ""),
+        esferaOrigem: String(r.esfera_origem ?? ""),
+        atoNormativo: String(r.ato_normativo ?? ""),
+        destinacao: String(r.destinacao ?? ""),
       });
     }
 
