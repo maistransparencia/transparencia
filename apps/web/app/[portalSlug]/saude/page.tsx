@@ -1,4 +1,10 @@
-import { AlertBox, fmtCompact, KPICard } from "@transparencia/ui";
+import {
+  AlertBox,
+  cn,
+  fmtCompact,
+  fmtPercent,
+  KPICard,
+} from "@transparencia/ui";
 import type { Metadata } from "next";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
@@ -7,7 +13,7 @@ import { SaudeFontesDonut } from "@/components/saude-fontes-donut";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeTrendChart } from "@/components/saude-trend-chart";
 import { createPortalMetadata } from "@/lib/metadata";
-import { loadSaudeData } from "./loader";
+import { classifyHhi, loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +51,35 @@ export default async function SaudePage({
   const viewModel = buildSaudeViewModel(rawData);
   const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
 
+  const totalEmendas =
+    saude.emendasStats?.totalAutorizado ||
+    saude.fontesReceita?.emendasParlamentares ||
+    0;
+  const hasEmendas = totalEmendas > 0;
+  const emendasSubtext = (() => {
+    if ((saude.emendasStats?.totalAutorizado ?? 0) > 0) {
+      return `${fmtCompact(saude.emendasStats.totalEmpenhado)} empenhados (${fmtPercent((saude.emendasStats.taxaEmpenho ?? 0) * 100)})`;
+    }
+    if (totalEmendas > 0) {
+      return "Valor arrecadado no exercício";
+    }
+    return "Nenhuma emenda destinada no exercício";
+  })();
+
+  const concentracao =
+    saude.farmaceutica?.concentracao ??
+    classifyHhi(saude.farmaceutica?.hhi ?? 0);
+
+  const badgeColorClasses = (() => {
+    if (concentracao.nivel === "alta") {
+      return "text-rose-700 bg-rose-50 border-rose-200";
+    }
+    if (concentracao.nivel === "moderada") {
+      return "text-amber-700 bg-amber-50 border-amber-200";
+    }
+    return "text-emerald-700 bg-emerald-50 border-emerald-200";
+  })();
+
   return (
     <div className="space-y-12 pb-12">
       {/* Seção 1: Hero (Novo) */}
@@ -60,8 +95,10 @@ export default async function SaudePage({
         {/* Hero KPIs com KPIGrid e KPICard */}
         <KPIGrid columns={4}>
           <KPICard
-            title="Dotação Atualizada"
-            value={fmtCompact(saude.orcamento.dotacao)}
+            title="Emendas na Saúde"
+            value={fmtCompact(totalEmendas)}
+            subtext={emendasSubtext}
+            accent={hasEmendas}
           />
           <KPICard
             title="Contratos vinculados"
@@ -147,13 +184,26 @@ export default async function SaudePage({
             subtext={`${fmtCompact(saude.farmaceutica.judicializacaoPago)} pagos (sentenças judiciais)`}
           />
           <KPICard
-            title="Concentração (HHI)"
+            title="Concentração de Fornecedores"
             value={
-              <span className="font-bold text-amber-600">
-                {saude.farmaceutica.hhi.toLocaleString("pt-BR")}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-sm",
+                    badgeColorClasses,
+                  )}
+                >
+                  {concentracao.label}
+                </span>
+                <span
+                  className="font-mono text-[11px] text-slate-400"
+                  title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
+                >
+                  Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
+                </span>
+              </div>
             }
-            subtext={saude.farmaceutica.hhiClassificacao}
+            subtext={concentracao.descricao}
           />
         </KPIGrid>
       </section>

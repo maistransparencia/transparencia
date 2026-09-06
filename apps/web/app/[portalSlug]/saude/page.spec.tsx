@@ -8,9 +8,13 @@ const { loadSaudeDataMock } = vi.hoisted(() => ({
   loadSaudeDataMock: vi.fn(),
 }));
 
-vi.mock("./loader", () => ({
-  loadSaudeData: loadSaudeDataMock,
-}));
+vi.mock("./loader", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./loader")>();
+  return {
+    ...actual,
+    loadSaudeData: loadSaudeDataMock,
+  };
+});
 
 const { default: SaudePage } = await import("./page");
 
@@ -45,6 +49,12 @@ function makeRaw(
         judicializacaoPago: 15,
         hhi: 900,
         hhiClassificacao: "baixa",
+        concentracao: {
+          hhi: 900,
+          nivel: "baixa",
+          label: "Baixa",
+          descricao: "Compras bem distribuídas entre múltiplos fornecedores",
+        },
       },
       fontesReceita: {
         repassesPrefeitura: 500,
@@ -58,7 +68,12 @@ function makeRaw(
         pagoAtaExternaValor: 0,
         modalidades: [],
       },
-      emendasStats: { lista: [], totalAutorizado: 50 },
+      emendasStats: {
+        lista: [],
+        totalAutorizado: 50,
+        totalEmpenhado: 40,
+        taxaEmpenho: 0.8,
+      },
       emendas: [],
       emendasTotal: 50,
       ...saudeRest,
@@ -79,8 +94,11 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Dotação Atualizada")).toBeInTheDocument();
-    expect(screen.getByText("Concentração (HHI)")).toBeInTheDocument();
+    expect(screen.getByText("Emendas na Saúde")).toBeInTheDocument();
+    expect(
+      screen.getByText("Concentração de Fornecedores"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Baixa")).toBeInTheDocument();
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {
