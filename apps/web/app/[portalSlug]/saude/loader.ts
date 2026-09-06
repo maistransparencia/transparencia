@@ -50,6 +50,15 @@ export interface FarmaceuticaConcentracao {
 }
 
 export function classifyHhi(hhi: number): FarmaceuticaConcentracao {
+  if (hhi <= 0 || Number.isNaN(hhi)) {
+    return {
+      hhi: 0,
+      nivel: "baixa",
+      label: "Não aplicável",
+      descricao:
+        "Sem registros de aquisições de insumos ou contratos no exercício",
+    };
+  }
   if (hhi >= 2500) {
     return {
       hhi,

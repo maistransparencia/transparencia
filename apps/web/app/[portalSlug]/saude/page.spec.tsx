@@ -8,13 +8,9 @@ const { loadSaudeDataMock } = vi.hoisted(() => ({
   loadSaudeDataMock: vi.fn(),
 }));
 
-vi.mock("./loader", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./loader")>();
-  return {
-    ...actual,
-    loadSaudeData: loadSaudeDataMock,
-  };
-});
+vi.mock("./loader", () => ({
+  loadSaudeData: loadSaudeDataMock,
+}));
 
 const { default: SaudePage } = await import("./page");
 
@@ -161,7 +157,9 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Sem emendas no exercício")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma emenda destinada no exercício"),
+    ).toBeInTheDocument();
   });
 
   it("exibe subtexto em linha única quando há emendas recebidas mas nenhuma empenhada", async () => {

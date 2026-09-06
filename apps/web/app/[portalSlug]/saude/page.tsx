@@ -13,7 +13,7 @@ import { SaudeFontesDonut } from "@/components/saude-fontes-donut";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeTrendChart } from "@/components/saude-trend-chart";
 import { createPortalMetadata } from "@/lib/metadata";
-import { classifyHhi, loadSaudeData } from "./loader";
+import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
 
 export const dynamic = "force-dynamic";
@@ -52,8 +52,8 @@ export default async function SaudePage({
   const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
 
   const totalEmendas =
-    saude.emendasStats?.totalAutorizado ||
-    saude.fontesReceita?.emendasParlamentares ||
+    saude.emendasStats?.totalAutorizado ??
+    saude.fontesReceita?.emendasParlamentares ??
     0;
   const totalEmpenhado = saude.emendasStats?.totalEmpenhado ?? 0;
   const taxaEmpenho = saude.emendasStats?.taxaEmpenho ?? 0;
@@ -61,7 +61,7 @@ export default async function SaudePage({
 
   const emendasSubtext = (() => {
     if (!hasEmendas) {
-      return "Sem emendas no exercício";
+      return "Nenhuma emenda destinada no exercício";
     }
     if (totalEmpenhado === 0) {
       return (
@@ -73,9 +73,13 @@ export default async function SaudePage({
     return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
   })();
 
-  const concentracao =
-    saude.farmaceutica?.concentracao ??
-    classifyHhi(saude.farmaceutica?.hhi ?? 0);
+  const concentracao = saude.farmaceutica?.concentracao ?? {
+    hhi: 0,
+    nivel: "baixa" as const,
+    label: "Não aplicável",
+    descricao:
+      "Sem registros de aquisições de insumos ou contratos no exercício",
+  };
 
   const badgeColorClasses = (() => {
     if (concentracao.nivel === "alta") {
@@ -203,7 +207,7 @@ export default async function SaudePage({
                   {concentracao.label}
                 </span>
                 <span
-                  className="font-mono text-[11px] text-slate-400"
+                  className="font-medium font-mono text-[11px] text-slate-500"
                   title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
                 >
                   Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
