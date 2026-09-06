@@ -1,5 +1,3 @@
-{{ config(pre_hook="create extension if not exists unaccent;") }}
-
 with stg as (
     select * from {{ ref('stg_siconfi_msc_patrimonial') }}
 ),
@@ -19,10 +17,10 @@ stg_com_fonte as (
             f.grupo_destinacao,
             case
                 when s.fonte_recursos in ('1500', '2500', '10010000', '10900000', '1502') then 'livre'
+                when s.fonte_recursos like '166%' then 'assistencia_social'
                 when s.fonte_recursos in ('1501', '2501', '12110000') or s.fonte_recursos like '16%' then 'saude'
                 when s.fonte_recursos like '154%' or s.fonte_recursos like '155%' or s.fonte_recursos like '11%' then 'educacao'
-                when s.fonte_recursos like '166%' then 'assistencia_social'
-                when s.fonte_recursos in ('1750', '1751', '1755') then 'meio_ambiente'
+                when s.fonte_recursos in ('1750', '1755') then 'meio_ambiente'
                 when s.fonte_recursos like '18%' or s.fonte_recursos like '28%' or s.fonte_recursos like '98%' then 'previdencia'
                 when s.fonte_recursos = 'sem_fonte' then 'sem_fonte'
                 else 'outros_vinculados'
@@ -38,15 +36,12 @@ stg_com_fonte as (
         ) as recurso_vinculado_flag
     from stg s
     left join fontes f
-      on f.codigo_fonte = s.fonte_recursos
+        on f.codigo_fonte = s.fonte_recursos
 ),
 
 agregado_siconfi as (
     select
-        case
-            when cod_ibge = 3304102 then 'porciuncula_prefeitura'
-            else 'porciuncula_prefeitura'
-        end as portal_slug,
+        'porciuncula_prefeitura' as portal_slug,
         cod_ibge,
         ano,
         mes_referencia,
@@ -103,12 +98,12 @@ associado as (
         end as ultima_competencia_flag
     from agregado_siconfi a
     left join vinculos v
-      on v.portal_slug = a.portal_slug
-     and v.poder_orgao = a.poder_orgao
-     and v.grupo_destinacao = a.grupo_destinacao
+        on v.portal_slug = a.portal_slug
+        and v.poder_orgao = a.poder_orgao
+        and v.grupo_destinacao = a.grupo_destinacao
     left join orgaos o
-      on o.portal_slug = v.portal_slug
-     and o.empresa_id = v.empresa_id
+        on o.portal_slug = v.portal_slug
+        and o.empresa_id = v.empresa_id
 )
 
 select * from associado

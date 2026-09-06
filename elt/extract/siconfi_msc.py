@@ -54,7 +54,7 @@ class SiconfiMscExtractor:
     def _wait_rate_limit(self) -> None:
         if self.min_interval_seconds <= 0:
             return
-        elapsed = time.time() - self._last_request_time
+        elapsed = time.monotonic() - self._last_request_time
         if elapsed < self.min_interval_seconds:
             time.sleep(self.min_interval_seconds - elapsed)
 
@@ -93,7 +93,7 @@ class SiconfiMscExtractor:
         for attempt in range(1, self.max_retries + 1):
             self._wait_rate_limit()
             try:
-                self._last_request_time = time.time()
+                self._last_request_time = time.monotonic()
                 resp = client.get(
                     self.base_url,
                     params=params,

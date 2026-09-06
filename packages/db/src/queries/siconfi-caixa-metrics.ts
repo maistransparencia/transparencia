@@ -2,7 +2,7 @@ import { db } from "../client";
 
 export interface EntidadeSaldoCaixaDTO {
   poderOrgao: string;
-  entidadeNome: string;
+  entidadeNome: string | null;
   cnpj: string | null;
   empresaId: string | null;
   grupoDestinacao: string;
@@ -29,6 +29,10 @@ export async function getSiconfiPosicaoFinanceira(
   ano: number,
   mes?: number,
 ): Promise<SiconfiPosicaoFinanceiraDTO | null> {
+  if (mes !== undefined && (!Number.isInteger(mes) || mes < 1 || mes > 12)) {
+    return null;
+  }
+
   const query = (() => {
     const baseQuery = db
       .selectFrom("fct_saldo_caixa_siconfi")
@@ -64,7 +68,7 @@ export async function getSiconfiPosicaoFinanceira(
 
   const entidades: EntidadeSaldoCaixaDTO[] = rows.map((r) => ({
     poderOrgao: r.poder_orgao,
-    entidadeNome: r.entidade_nome ?? r.orgao_nome ?? r.grupo_destinacao,
+    entidadeNome: r.entidade_nome ?? null,
     cnpj: r.cnpj ?? null,
     empresaId: r.empresa_id ? String(r.empresa_id) : null,
     grupoDestinacao: r.grupo_destinacao,

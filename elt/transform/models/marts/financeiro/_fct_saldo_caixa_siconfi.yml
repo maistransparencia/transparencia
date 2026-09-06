@@ -5,7 +5,7 @@ models:
     description: "Mart canônico de disponibilidade e saldo de caixa e bancos por entidade contábil do município (SICONFI MSC Patrimonial - Classe 1)"
     columns:
       - name: saldo_caixa_id
-        description: "Chave surrogate (portal_slug | cod_ibge | ano | mes_referencia | poder_orgao)"
+        description: "Chave surrogate (portal_slug | cod_ibge | ano | mes_referencia | poder_orgao | grupo_destinacao)"
         tests:
           - not_null
           - unique
