@@ -455,6 +455,52 @@ export async function seedFontesReceita(row: FontesReceitaRow): Promise<void> {
     .execute();
 }
 
+export interface SaldoCaixaSiconfiRow {
+  portalSlug: string;
+  codIbge?: number;
+  ano: number;
+  mesReferencia: number;
+  poderOrgao: string;
+  grupoDestinacao: string;
+  empresaId?: string | null;
+  orgaoId?: string | null;
+  orgaoNome?: string | null;
+  entidadeNome?: string | null;
+  cnpj?: string | null;
+  dataReferencia?: string | null;
+  saldoCaixaBancos?: number;
+  saldoRecursosLivres?: number;
+  saldoRecursosVinculados?: number;
+  ultimaCompetenciaFlag?: boolean;
+}
+
+export async function seedSaldoCaixaSiconfi(
+  row: SaldoCaixaSiconfiRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_saldo_caixa_siconfi")
+    .values({
+      saldo_caixa_id: nextId("sc"),
+      portal_slug: row.portalSlug,
+      cod_ibge: row.codIbge ?? 3304102,
+      ano: row.ano,
+      mes_referencia: row.mesReferencia,
+      poder_orgao: row.poderOrgao,
+      grupo_destinacao: row.grupoDestinacao,
+      empresa_id: row.empresaId ?? null,
+      orgao_id: row.orgaoId ?? null,
+      orgao_nome: row.orgaoNome ?? null,
+      entidade_nome: row.entidadeNome ?? null,
+      cnpj: row.cnpj ?? null,
+      data_referencia: row.dataReferencia ?? null,
+      saldo_caixa_bancos: row.saldoCaixaBancos ?? 0,
+      saldo_recursos_livres: row.saldoRecursosLivres ?? 0,
+      saldo_recursos_vinculados: row.saldoRecursosVinculados ?? 0,
+      ultima_competencia_flag: row.ultimaCompetenciaFlag ?? false,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -503,6 +549,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_fontes_receita_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saldo_caixa_siconfi")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }
