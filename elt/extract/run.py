@@ -39,8 +39,9 @@ def main() -> None:
 
     years = args.years or list(range(portal.ano_inicial, date.today().year + 1))
 
+    siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
     if args.only:
-        valid = [e.listagem for e in endpoints]
+        valid = [e.listagem for e in endpoints] + list(siconfi_keys)
         if args.only not in valid:
             raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
         endpoints = [e for e in endpoints if e.listagem == args.only]
@@ -79,6 +80,27 @@ def main() -> None:
                 except Exception as exc:
                     logger.warning("Failed: %s / %s / %d: %s", config.listagem, empresa_name, year, exc)
                     _log_failed(run_dir, config.listagem, empresa_name, year, exc)
+
+    if not args.only or args.only in siconfi_keys:
+        from elt.extract.siconfi_msc import SiconfiMscExtractor
+
+        logger.info("Extracting SICONFI MSC Patrimonial for IBGE %s...", portal.cod_ibge)
+        siconfi_extractor = SiconfiMscExtractor()
+        for year in years:
+            try:
+                siconfi_rows = siconfi_extractor.extract_ano(portal.cod_ibge, year)
+                out = run_dir / "siconfi_msc_patrimonial" / f"{portal.cod_ibge}_{year}.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(siconfi_rows, ensure_ascii=False, indent=2))
+                logger.info(
+                    "Extracted siconfi_msc_patrimonial / %s / %d → %d rows",
+                    portal.slug,
+                    year,
+                    len(siconfi_rows),
+                )
+            except Exception as exc:
+                logger.warning("Failed: siconfi_msc_patrimonial / %s / %d: %s", portal.slug, year, exc)
+                _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 
