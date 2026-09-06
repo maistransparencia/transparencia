@@ -20,6 +20,7 @@ import { Badge } from "./badge";
 
 export interface Column<T> {
   header: string;
+  exportHeader?: string;
   accessorKey?: keyof T;
   align?: "left" | "center" | "right";
   isSerifNumeric?: boolean;
@@ -33,6 +34,9 @@ export interface Column<T> {
     | "caspBadge";
   className?: string;
   sortable?: boolean;
+  defaultSortDir?: "asc" | "desc";
+  sortValue?: (row: T) => number | string;
+  exportValue?: (row: T) => string | number;
   renderCell?: (row: T) => React.ReactNode;
 }
 
@@ -46,8 +50,40 @@ export interface DenseTableProps<T> {
   className?: string;
   rowKey?: keyof T;
   sortable?: boolean;
+  defaultSortKey?: keyof T;
+  defaultSortDir?: "asc" | "desc";
   enableExportCsv?: boolean;
   exportFilename?: string;
+  csvButtonLabel?: string;
+  recordLabel?: string;
+}
+
+function getAriaSort(
+  isSortable: boolean,
+  isSorted: boolean,
+  sortDir: "asc" | "desc",
+): "ascending" | "descending" | "none" | undefined {
+  if (!isSortable) return undefined;
+  if (!isSorted) return "none";
+  return sortDir === "asc" ? "ascending" : "descending";
+}
+
+function SortIcon({
+  isSorted,
+  sortDir,
+}: {
+  isSorted: boolean;
+  sortDir: "asc" | "desc";
+}) {
+  if (!isSorted) {
+    return (
+      <ChevronsUpDown className="h-3.5 w-3.5 opacity-35 hover:opacity-100" />
+    );
+  }
+  if (sortDir === "asc") {
+    return <ChevronUp className="h-3.5 w-3.5 text-[#2b6cb0]" />;
+  }
+  return <ChevronDown className="h-3.5 w-3.5 text-[#2b6cb0]" />;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: T accepts any typed object model
@@ -61,13 +97,21 @@ export function DenseTable<T extends Record<string, any>>({
   className,
   rowKey,
   sortable = false,
+  defaultSortKey,
+  defaultSortDir,
   enableExportCsv = true,
   exportFilename = "lancamentos.csv",
+  csvButtonLabel = "Baixar CSV",
+  recordLabel = "registros",
 }: DenseTableProps<T>) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [sortKey, setSortKey] = useState<keyof T | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortKey, setSortKey] = useState<keyof T | null>(
+    defaultSortKey ?? null,
+  );
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(
+    defaultSortDir ?? "asc",
+  );
 
   const filteredData = useMemo(() => {
     if (!query.trim()) return data;
@@ -87,22 +131,39 @@ export function DenseTable<T extends Record<string, any>>({
 
   const handleSort = (key?: keyof T) => {
     if (!key) return;
+    setPage(1);
     if (sortKey === key) {
-      if (sortDir === "asc") {
-        setSortDir("desc");
-      } else {
-        setSortKey(null);
-        setSortDir("asc");
-      }
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("asc");
+      const col = columns.find((c) => c.accessorKey === key);
+      setSortDir(col?.defaultSortDir ?? "asc");
     }
   };
 
   const sortedData = useMemo(() => {
     if (!sortKey) return filteredData;
+    const activeCol = columns.find((c) => c.accessorKey === sortKey);
+
     return [...filteredData].sort((a, b) => {
+      if (activeCol?.sortValue) {
+        const valA = activeCol.sortValue(a);
+        const valB = activeCol.sortValue(b);
+        if (valA === valB) return 0;
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        let cmp = 0;
+        if (typeof valA === "number" && typeof valB === "number") {
+          cmp = valA - valB;
+        } else {
+          cmp = String(valA).localeCompare(String(valB), "pt-BR", {
+            numeric: true,
+          });
+        }
+        return sortDir === "asc" ? cmp : -cmp;
+      }
+
       const valA = a[sortKey];
       const valB = b[sortKey];
       if (valA === valB) return 0;
@@ -119,7 +180,7 @@ export function DenseTable<T extends Record<string, any>>({
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [filteredData, sortKey, sortDir]);
+  }, [filteredData, sortKey, sortDir, columns]);
 
   const totalPages = pageSize
     ? Math.max(1, Math.ceil(sortedData.length / pageSize))
@@ -135,11 +196,15 @@ export function DenseTable<T extends Record<string, any>>({
   const handleExportCsv = () => {
     if (!sortedData.length) return;
     const headerRow = columns
-      .map((c) => `"${c.header.replace(/"/g, '""')}"`)
+      .map((c) => `"${(c.exportHeader ?? c.header).replace(/"/g, '""')}"`)
       .join(",");
     const bodyRows = sortedData.map((row) =>
       columns
         .map((col) => {
+          if (col.exportValue) {
+            const val = col.exportValue(row);
+            return `"${String(val ?? "").replace(/"/g, '""')}"`;
+          }
           const val = col.accessorKey ? row[col.accessorKey] : "";
           const strVal = val === null || val === undefined ? "" : String(val);
           return `"${strVal.replace(/"/g, '""')}"`;
@@ -275,7 +340,7 @@ export function DenseTable<T extends Record<string, any>>({
               className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-medium text-slate-700 text-xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:min-h-0 sm:py-1.5"
             >
               <Download className="h-3.5 w-3.5 text-slate-500" />
-              Baixar CSV
+              <span>{csvButtonLabel}</span>
             </button>
           )}
         </div>
@@ -290,40 +355,43 @@ export function DenseTable<T extends Record<string, any>>({
                 const isSorted = sortKey === col.accessorKey;
                 return (
                   <th
-                    key={col.header}
+                    key={String(col.accessorKey || col.header)}
                     scope="col"
-                    onClick={() => isSortable && handleSort(col.accessorKey)}
+                    aria-sort={getAriaSort(isSortable, isSorted, sortDir)}
                     className={cn(
                       "select-none px-3 py-2.5 sm:px-4",
-                      isSortable &&
-                        "cursor-pointer transition-colors hover:bg-gray-200/60",
                       col.align === "right" && "text-right",
                       col.align === "center" && "text-center",
                       col.className,
                     )}
                   >
-                    <div
-                      className={cn(
-                        "inline-flex items-center gap-1.5",
-                        col.align === "right" && "justify-end",
-                        col.align === "center" && "justify-center",
-                      )}
-                    >
-                      <span>{col.header}</span>
-                      {isSortable && (
+                    {isSortable ? (
+                      <button
+                        type="button"
+                        onClick={() => handleSort(col.accessorKey)}
+                        aria-label={`Ordenar por ${col.header.toLowerCase()}`}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded px-1 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+                          col.align === "right" && "ml-auto justify-end",
+                          col.align === "center" && "justify-center",
+                        )}
+                      >
+                        <span>{col.header}</span>
                         <span className="inline-flex shrink-0 items-center text-slate-400">
-                          {isSorted ? (
-                            sortDir === "asc" ? (
-                              <ChevronUp className="h-3.5 w-3.5 text-[#2b6cb0]" />
-                            ) : (
-                              <ChevronDown className="h-3.5 w-3.5 text-[#2b6cb0]" />
-                            )
-                          ) : (
-                            <ChevronsUpDown className="h-3.5 w-3.5 opacity-35 hover:opacity-100" />
-                          )}
+                          <SortIcon isSorted={isSorted} sortDir={sortDir} />
                         </span>
-                      )}
-                    </div>
+                      </button>
+                    ) : (
+                      <div
+                        className={cn(
+                          "inline-flex items-center gap-1.5",
+                          col.align === "right" && "justify-end",
+                          col.align === "center" && "justify-center",
+                        )}
+                      >
+                        <span>{col.header}</span>
+                      </div>
+                    )}
                   </th>
                 );
               })}
@@ -391,13 +459,14 @@ export function DenseTable<T extends Record<string, any>>({
             <span className="font-semibold text-slate-700">
               {filteredData.length}
             </span>{" "}
-            registros
+            {recordLabel}
           </div>
 
           {totalPages > 1 && (
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
+                aria-label="Página anterior"
                 disabled={currentPage <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
@@ -417,6 +486,7 @@ export function DenseTable<T extends Record<string, any>>({
                   <button
                     key={`page-btn-${pageNum}`}
                     type="button"
+                    aria-label={`Página ${pageNum}`}
                     onClick={() => setPage(pageNum)}
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-lg font-semibold text-xs transition-colors sm:h-7 sm:w-7",
@@ -432,6 +502,7 @@ export function DenseTable<T extends Record<string, any>>({
 
               <button
                 type="button"
+                aria-label="Próxima página"
                 disabled={currentPage >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
