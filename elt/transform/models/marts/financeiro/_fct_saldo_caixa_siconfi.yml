@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: fct_saldo_caixa_siconfi
+    description: "Mart canônico de disponibilidade e saldo de caixa e bancos por entidade contábil do município (SICONFI MSC Patrimonial - Classe 1)"
+    columns:
+      - name: saldo_caixa_id
+        description: "Chave surrogate (portal_slug | cod_ibge | ano | mes_referencia | poder_orgao)"
+        tests:
+          - not_null
+          - unique
+      - name: portal_slug
+        description: "Slug do portal municipal"
+        tests:
+          - not_null
+      - name: cod_ibge
+        description: "Código IBGE de 7 dígitos do ente municipal"
+        tests:
+          - not_null
+      - name: ano
+        description: "Exercício de referência contábil"
+        tests:
+          - not_null
+      - name: mes_referencia
+        description: "Mês da competência contábil (1 a 12)"
+        tests:
+          - not_null
+      - name: poder_orgao
+        description: "Código de poder/órgão contábil na MSC"
+        tests:
+          - not_null
+      - name: grupo_destinacao
+        description: "Grupo de destinação da fonte STN (livre, saude, assistencia_social, educacao, etc.)"
+        tests:
+          - not_null
+      - name: empresa_id
+        description: "ID do órgão/empresa associado em dim_orgao ou null se não mapeado"
+      - name: orgao_id
+        description: "Surrogate key do órgão associado em dim_orgao ou null se não mapeado"
+      - name: orgao_nome
+        description: "Nome do órgão associado em dim_orgao ou null se não mapeado"
+      - name: entidade_nome
+        description: "Nome oficial da entidade ou null se não mapeado"
+      - name: cnpj
+        description: "CNPJ do órgão associado ou null se não mapeado"
+      - name: data_referencia
+        description: "Data de encerramento da competência contábil mensal"
+      - name: saldo_caixa_bancos
+        description: "Saldo financeiro total disponível em caixa, bancos e aplicações imediatas"
+        tests:
+          - not_null
+      - name: saldo_recursos_livres
+        description: "Saldo disponível vinculado a fontes de recursos livres/ordinários (fonte 1500)"
+        tests:
+          - not_null
+      - name: saldo_recursos_vinculados
+        description: "Saldo disponível vinculado a fontes de recursos carimbados/vinculados (SUS, FUNDEB, etc.)"
+        tests:
+          - not_null
+      - name: ultima_competencia_flag
+        description: "Flag booleana indicando se o registro pertence ao mês mais recente homologado do exercício"
+        tests:
+          - not_null

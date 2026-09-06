@@ -24,3 +24,6 @@ models:
           - type: not_null
       - name: orgao_nome
         data_type: text
+      - name: cnpj
+        data_type: text
+        description: "CNPJ oficial do órgão municipal ou null se não cadastrado"

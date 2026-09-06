@@ -5,5 +5,6 @@ select
     {{ dbt_utils.generate_surrogate_key(['portal_slug', 'empresa_id']) }} as orgao_id,
     portal_slug,
     empresa_id::text as empresa_id,
-    nome as orgao_nome
+    nome as orgao_nome,
+    nullif(trim(cnpj), '') as cnpj
 from {{ ref('seed_porciuncula_prefeitura_orgaos') }}
