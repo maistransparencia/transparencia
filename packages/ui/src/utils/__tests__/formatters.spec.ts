@@ -40,6 +40,28 @@ describe("getPartialYearPeriod", () => {
     expect(resultUndefined).toBe(result);
   });
 
+  it("deve lidar com viradas de ano e transições de exercício", () => {
+    // Fim do exercício anterior
+    expect(getPartialYearPeriod("2025-12-31")).toBe("Jan–Dez");
+    expect(getPartialYearPeriod(new Date(2025, 11, 31))).toBe("Jan–Dez");
+
+    // Início do novo exercício (virada de ano)
+    expect(getPartialYearPeriod("2026-01-01")).toBe("Jan");
+    expect(getPartialYearPeriod("2026-01-01T00:00:00.000Z")).toBe("Jan");
+    expect(getPartialYearPeriod(new Date(2026, 0, 1))).toBe("Jan");
+
+    // Próximo exercício
+    expect(getPartialYearPeriod("2027-02-15")).toBe("Jan–Fev");
+  });
+
+  it("deve ser imune a deslocamento de fuso em datas UTC no 1º dia do mês", () => {
+    // 1º de agosto à meia-noite UTC não deve retroceder para julho em fusos negativos (ex: Brasil UTC-3)
+    expect(getPartialYearPeriod("2026-08-01T00:00:00.000Z")).toBe("Jan–Ago");
+    expect(getPartialYearPeriod(new Date("2026-08-01T00:00:00.000Z"))).toBe(
+      "Jan–Ago",
+    );
+  });
+
   it("deve retornar string vazia para null ou entradas inválidas", () => {
     expect(getPartialYearPeriod(null)).toBe("");
     expect(getPartialYearPeriod("data-invalida")).toBe("");

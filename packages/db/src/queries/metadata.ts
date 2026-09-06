@@ -35,36 +35,36 @@ export async function getPortalConfig(
       const dataExtracaoDate: Date | null = (() => {
         if (!row.data_extracao) return null;
         if (row.data_extracao instanceof Date) {
-          return Number.isNaN(row.data_extracao.getTime())
-            ? null
-            : row.data_extracao;
+          if (Number.isNaN(row.data_extracao.getTime())) return null;
+          const y = row.data_extracao.getUTCFullYear();
+          const m = row.data_extracao.getUTCMonth();
+          const d = row.data_extracao.getUTCDate();
+          return new Date(Date.UTC(y, m, d, 12, 0, 0));
         }
         if (
           typeof row.data_extracao === "object" &&
           "toISOString" in (row.data_extracao as Record<string, unknown>)
         ) {
           const d = row.data_extracao as unknown as Date;
-          return Number.isNaN(d.getTime()) ? null : d;
+          if (Number.isNaN(d.getTime())) return null;
+          const y = d.getUTCFullYear();
+          const m = d.getUTCMonth();
+          const day = d.getUTCDate();
+          return new Date(Date.UTC(y, m, day, 12, 0, 0));
         }
         const str = String(row.data_extracao).trim();
         if (!str) return null;
-        const parsed = str.includes("T")
-          ? new Date(str)
-          : new Date(`${str}T12:00:00Z`);
+        const normalized = str.includes(" ") ? str.replace(" ", "T") : str;
+        const parsed = normalized.includes("T")
+          ? new Date(normalized)
+          : new Date(`${normalized}T12:00:00Z`);
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       })();
 
-      if (row.data_extracao) {
-        if (
-          typeof row.data_extracao === "object" &&
-          "toISOString" in (row.data_extracao as Record<string, unknown>)
-        ) {
-          dataExtracaoStr = (row.data_extracao as unknown as Date)
-            .toISOString()
-            .split("T")[0];
-        } else {
-          dataExtracaoStr = String(row.data_extracao);
-        }
+      if (dataExtracaoDate) {
+        dataExtracaoStr = dataExtracaoDate.toISOString().split("T")[0];
+      } else if (row.data_extracao) {
+        dataExtracaoStr = String(row.data_extracao).split("T")[0];
       }
 
       return {

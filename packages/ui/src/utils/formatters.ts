@@ -90,15 +90,27 @@ function parseReferenceDate(
   if (val === undefined) return new Date();
   if (val === null) return null;
   if (val instanceof Date) {
-    return Number.isNaN(val.getTime()) ? null : val;
+    if (Number.isNaN(val.getTime())) return null;
+    if (
+      val.getUTCHours() === 0 &&
+      val.getUTCMinutes() === 0 &&
+      val.getHours() !== 0
+    ) {
+      return new Date(
+        val.getUTCFullYear(),
+        val.getUTCMonth(),
+        val.getUTCDate(),
+      );
+    }
+    return val;
   }
   const str = String(val).trim();
   if (!str) return null;
-  const isoDateOnly = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (isoDateOnly) {
-    const year = Number.parseInt(isoDateOnly[1], 10);
-    const month = Number.parseInt(isoDateOnly[2], 10) - 1;
-    const day = Number.parseInt(isoDateOnly[3], 10);
+  const isoPrefix = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoPrefix) {
+    const year = Number.parseInt(isoPrefix[1], 10);
+    const month = Number.parseInt(isoPrefix[2], 10) - 1;
+    const day = Number.parseInt(isoPrefix[3], 10);
     const d = new Date(year, month, day);
     return Number.isNaN(d.getTime()) ? null : d;
   }
