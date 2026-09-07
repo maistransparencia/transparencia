@@ -113,10 +113,11 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 
 ---
 
-### 1.3. Receitas Orçamentárias, Repasses e Extra-Orçamentárias
+### 1.3. Receitas e Execução Orçamentária
 
-Esta seção especifica a origem de todos os recursos que ingressam nos cofres do município:
+Esta seção apresenta a arrecadação de recursos, o ciclo completo do orçamento municipal (LOA) e o demonstrativo oficial de disponibilidades em contas bancárias homologado pelo Tesouro Nacional:
 
+#### 1.3.1. Receitas Orçamentárias, Repasses e Extra-Orçamentárias
 - **Receita Própria:** Arrecadação direta oriunda de impostos municipais (como IPTU, ISS e ITBI), taxas de serviços, contribuições e cobrança de dívida ativa.
 - **Transferências Constitucionais e Legais:** Repasses obrigatórios feitos pela União e pelo Estado, como o Fundo de Participação dos Municípios (FPM), a cota-parte do ICMS, o IPVA e os recursos do Fundeb para a educação.
 - **Emendas Parlamentares Individuais:** Verbas destinadas ao município por indicação direta de Deputados ou Senadores para obras ou serviços específicos.
@@ -124,12 +125,7 @@ Esta seção especifica a origem de todos os recursos que ingressam nos cofres d
 - **Total de Emendas Parlamentares:** O somatório consolidado de todas as modalidades de emendas parlamentares recebidas pelo município.
 - **Receitas Extra-Orçamentárias:** Recursos financeiros temporários recolhidos pela tesouraria que transitam pelos cofres municipais mas não constituem receita orçamentária própria (como retenções de imposto de renda, INSS, consignados de empréstimos em folha, cauções de contratos e depósitos judiciais).
 
----
-
-### 1.4. Execução Orçamentária e Disponibilidade Financeira em Caixa
-
-Esta seção apresenta o ciclo completo do orçamento municipal (LOA) e o demonstrativo oficial de disponibilidades em contas bancárias homologado pelo Tesouro Nacional:
-
+#### 1.3.2. Execução Orçamentária e Disponibilidade Financeira em Caixa (SICONFI / STN)
 - **Dotação Atualizada:** O valor total autorizado em lei para gastos no exercício, considerando a dotação inicial da LOA e os créditos adicionais (suplementares, especiais ou extraordinários) abertos.
 - **Empenhado:** A primeira etapa da despesa pública, em que o município emite a nota de empenho e reserva previamente a dotação orçamentária para um credor.
 - **Liquidado:** A confirmação legal da entrega do bem ou prestação do serviço contratado (atesto de liquidação), constituindo a obrigação de pagamento do município.
@@ -145,7 +141,7 @@ Esta seção apresenta o ciclo completo do orçamento municipal (LOA) e o demons
 
 ---
 
-### 1.5. Licitações, Dispensas e Contratos Administrativos
+### 1.4. Licitações, Dispensas e Contratos Administrativos
 
 Esta seção disponibiliza a transparência sobre os processos de compras e contratações públicas:
 
@@ -158,7 +154,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 
 ---
 
-### 1.6. Quadro de Pessoal e Folha de Pagamento
+### 1.5. Quadro de Pessoal e Folha de Pagamento
 
 Esta seção apresenta as informações relativas aos servidores públicos municipais e aos gastos com pessoal:
 
@@ -170,7 +166,7 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
 
 ---
 
-### 1.7. Regime Próprio de Previdência Social (CAPREM)
+### 1.6. Regime Próprio de Previdência Social (CAPREM)
 
 Esta seção traz a prestação de contas do instituto de previdência dos servidores municipais:
 
@@ -185,7 +181,7 @@ Esta seção traz a prestação de contas do instituto de previdência dos servi
 
 ---
 
-### 1.8. Aplicação em Ações e Serviços Públicos de Saúde
+### 1.7. Aplicação em Ações e Serviços Públicos de Saúde
 
 Esta seção demonstra o cumprimento das metas constitucionais de investimento na saúde pública municipal:
 
@@ -194,7 +190,7 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 ---
 
-### 1.9. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
+### 1.8. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:
 
@@ -209,7 +205,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 
 ---
 
-### 1.10. Canais Cívicos de Notificação, Boletim Periódico e Redes Sociais
+### 1.9. Canais Cívicos de Notificação, Boletim Periódico e Redes Sociais
 
 Para aproximar a prestação de contas dos cidadãos e viabilizar o controle social contínuo sem a necessidade de consultas manuais diárias, o portal disponibiliza canais estruturados de distribuição cívica:
 
