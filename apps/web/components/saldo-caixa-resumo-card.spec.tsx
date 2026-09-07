@@ -14,6 +14,8 @@ describe("SaldoCaixaResumoCard Component", () => {
     totalRecursosVinculados: 14300000.25,
     totalCaixaPrevidencia: 0,
     totalRecursosPrevidencia: 0,
+    hasSaldoDescoberto: false,
+    variacaoAnualPct: 15.2,
     entidades: [
       {
         poderOrgao: "Executivo",
@@ -26,6 +28,7 @@ describe("SaldoCaixaResumoCard Component", () => {
         saldoRecursosVinculados: 7000000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
       },
     ],
     previdencia: [],
@@ -36,7 +39,7 @@ describe("SaldoCaixaResumoCard Component", () => {
       <SaldoCaixaResumoCard
         posicaoFinanceira={samplePosicao}
         ano={2024}
-        receitasUrl="/porciuncula/receitas"
+        detailUrl="/porciuncula/orcamento#disponibilidade-caixa"
       />,
     );
 
@@ -52,38 +55,62 @@ describe("SaldoCaixaResumoCard Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("exibe o total consolidado e a proporção de recursos livres e vinculados", () => {
+  it("exibe o total consolidado e a proporção de recursos livres e vinculados com variação anual", () => {
     render(
       <SaldoCaixaResumoCard
         posicaoFinanceira={samplePosicao}
         ano={2024}
-        receitasUrl="/porciuncula/receitas"
+        detailUrl="/porciuncula/orcamento#disponibilidade-caixa"
       />,
     );
 
     expect(screen.getByText(/total em caixa municipal/i)).toBeInTheDocument();
     expect(screen.getByText(/livres \(ordinários\):/i)).toBeInTheDocument();
     expect(screen.getByText(/vinculados:/i)).toBeInTheDocument();
+    expect(screen.getByText("+15.2% vs. 2023")).toBeInTheDocument();
 
     const progressbar = screen.getByRole("progressbar");
     expect(progressbar).toBeInTheDocument();
     expect(progressbar).toHaveAttribute("aria-valuenow", "23");
   });
 
-  it("renderiza link para a página de receitas", () => {
+  it("renderiza link para a página de execução orçamentária", () => {
     render(
       <SaldoCaixaResumoCard
         posicaoFinanceira={samplePosicao}
         ano={2024}
-        receitasUrl="/porciuncula/receitas?ano=2024"
+        detailUrl="/porciuncula/orcamento#disponibilidade-caixa"
       />,
     );
 
     const link = screen.getByRole("link", {
-      name: /ver detalhamento por entidade em receitas/i,
+      name: /ver detalhamento por entidade em execução orçamentária/i,
     });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/porciuncula/receitas?ano=2024");
+    expect(link).toHaveAttribute(
+      "href",
+      "/porciuncula/orcamento#disponibilidade-caixa",
+    );
+  });
+
+  it("exibe callout explicativo quando hasEntityFilter for true", () => {
+    render(
+      <SaldoCaixaResumoCard
+        posicaoFinanceira={samplePosicao}
+        ano={2024}
+        detailUrl="/porciuncula/orcamento#disponibilidade-caixa"
+        hasEntityFilter={true}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /disponibilidade contábil exibida na visão consolidada municipal/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/total em caixa municipal/i),
+    ).not.toBeInTheDocument();
   });
 
   it("renderiza fallback amigável quando não houver dados homologados", () => {
@@ -91,7 +118,7 @@ describe("SaldoCaixaResumoCard Component", () => {
       <SaldoCaixaResumoCard
         posicaoFinanceira={null}
         ano={2025}
-        receitasUrl="/porciuncula/receitas?ano=2025"
+        detailUrl="/porciuncula/orcamento#disponibilidade-caixa"
       />,
     );
 
@@ -100,11 +127,5 @@ describe("SaldoCaixaResumoCard Component", () => {
         /aguardando homologação da remessa msc pelo tesouro nacional para o exercício/i,
       ),
     ).toBeInTheDocument();
-
-    const link = screen.getByRole("link", {
-      name: /ver arrecadação municipal em receitas/i,
-    });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/porciuncula/receitas?ano=2025");
   });
 });

@@ -100,5 +100,9 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     funnelStages,
     funcItems,
     orgaosCols,
+    posicaoFinanceira: raw.posicaoFinanceira,
+    hasEntityFilter: Boolean(
+      raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
+    ),
   };
 }

@@ -6,7 +6,8 @@ import Link from "next/link";
 export interface SaldoCaixaResumoCardProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
   ano: number;
-  receitasUrl: string;
+  detailUrl: string;
+  hasEntityFilter?: boolean;
   className?: string;
 }
 
@@ -32,9 +33,46 @@ function getMesNome(mes: number): string {
 export function SaldoCaixaResumoCard({
   posicaoFinanceira,
   ano,
-  receitasUrl,
+  detailUrl,
+  hasEntityFilter = false,
   className = "",
 }: SaldoCaixaResumoCardProps) {
+  if (hasEntityFilter) {
+    return (
+      <section
+        aria-label="Disponibilidade Financeira em Caixa"
+        className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="font-bold text-base text-ink tracking-tight">
+              Disponibilidade em Caixa e Bancos
+            </h3>
+            <p className="text-subtleText text-xs">
+              Contas bancárias e aplicações homologadas pelo Tesouro Nacional
+              (SICONFI MSC)
+            </p>
+          </div>
+          <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-700 text-xs">
+            Visão Consolidada
+          </span>
+        </div>
+
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-blue-200/80 bg-blue-50/60 p-4 text-blue-950 text-xs">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
+          <div className="leading-relaxed">
+            <span className="font-semibold text-blue-900">
+              Disponibilidade contábil exibida na visão consolidada municipal.
+            </span>{" "}
+            A disponibilidade em caixa do Tesouro Nacional reflete o montante
+            macro de todo o Poder Executivo. Para visualizá-la, selecione{" "}
+            <strong>Todas as entidades</strong>.
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (!posicaoFinanceira || posicaoFinanceira.entidades.length === 0) {
     return (
       <section
@@ -72,10 +110,10 @@ export function SaldoCaixaResumoCard({
           </p>
           <div className="mt-3">
             <Link
-              href={receitasUrl}
+              href={detailUrl}
               className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
             >
-              <span>Ver arrecadação municipal em Receitas</span>
+              <span>Ver execução orçamentária municipal</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -149,10 +187,27 @@ export function SaldoCaixaResumoCard({
           <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
             Total em Caixa Municipal
           </span>
-          <div className="mt-1">
+          <div className="mt-1 flex items-center gap-2">
             <p className="font-bold font-serif text-3xl text-ink tracking-tight">
               {fmtCompact(totalCaixaGeral)}
             </p>
+            {posicaoFinanceira.variacaoAnualPct !== undefined &&
+              posicaoFinanceira.variacaoAnualPct !== null && (
+                <span
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${
+                    posicaoFinanceira.variacaoAnualPct > 0
+                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : posicaoFinanceira.variacaoAnualPct < 0
+                        ? "border border-rose-200 bg-rose-50 text-rose-700"
+                        : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {posicaoFinanceira.variacaoAnualPct > 0
+                    ? `+${posicaoFinanceira.variacaoAnualPct}%`
+                    : `${posicaoFinanceira.variacaoAnualPct}%`}{" "}
+                  vs. {ano - 1}
+                </span>
+              )}
           </div>
         </div>
 
@@ -198,7 +253,7 @@ export function SaldoCaixaResumoCard({
         </div>
       </div>
 
-      {/* Rodapé com Alerta Curto e Link para Receitas */}
+      {/* Rodapé com Alerta Curto e Link para Execução Orçamentária */}
       <div className="mt-5 flex flex-col gap-3 border-[#e7e9ee] border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1.5 text-subtleText text-xs">
           <Info className="h-3.5 w-3.5 shrink-0 text-amber-600" />
@@ -209,10 +264,10 @@ export function SaldoCaixaResumoCard({
         </div>
 
         <Link
-          href={receitasUrl}
+          href={detailUrl}
           className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
         >
-          <span>Ver detalhamento por entidade em Receitas</span>
+          <span>Ver detalhamento por entidade em Execução Orçamentária</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>

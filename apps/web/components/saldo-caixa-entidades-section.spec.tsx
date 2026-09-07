@@ -14,6 +14,8 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     totalRecursosVinculados: 13200000.25,
     totalCaixaPrevidencia: 1500000,
     totalRecursosPrevidencia: 1100000,
+    hasSaldoDescoberto: false,
+    variacaoAnualPct: 15.2,
     entidades: [
       {
         poderOrgao: "Executivo",
@@ -26,6 +28,8 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoRecursosVinculados: 7000000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
+        variacaoAnualPct: 10.5,
       },
       {
         poderOrgao: "Executivo",
@@ -38,6 +42,8 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoRecursosVinculados: 4500000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
+        variacaoAnualPct: -5.0,
       },
       {
         poderOrgao: "Executivo",
@@ -50,6 +56,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoRecursosVinculados: 1300000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
       },
       {
         poderOrgao: "Legislativo",
@@ -62,6 +69,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoRecursosVinculados: 400000.25,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
       },
     ],
     previdencia: [
@@ -76,6 +84,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoRecursosVinculados: 1100000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
+        saldoDescobertoFlag: false,
       },
     ],
   };
@@ -169,6 +178,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
           saldoCaixaBancos: 10000000,
           saldoRecursosLivres: 3000000,
           saldoRecursosVinculados: 7000000,
+          saldoDescobertoFlag: false,
           mesReferencia: 12,
           dataReferencia: "2024-12-31",
         },
@@ -181,6 +191,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
           saldoCaixaBancos: 5000000,
           saldoRecursosLivres: 500000,
           saldoRecursosVinculados: 4500000,
+          saldoDescobertoFlag: false,
           mesReferencia: 12,
           dataReferencia: "2024-12-31",
         },
@@ -217,5 +228,78 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         name: /opções de auditoria/i,
       }),
     ).toBeInTheDocument();
+  });
+
+  it("exibe callout explicativo quando hasEntityFilter for true e oculta os cards detalhados", () => {
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={samplePosicao}
+        ano={2024}
+        hasEntityFilter={true}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /disponibilidade contábil exibida na visão consolidada municipal/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /desmarque os filtros de órgãos específicos e selecione/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Prefeitura Municipal")).not.toBeInTheDocument();
+  });
+
+  it("renderiza callout técnico de saldo a descoberto e badges quando hasSaldoDescoberto for true", () => {
+    const posicaoComSaldoDescoberto: SiconfiPosicaoFinanceiraDTO = {
+      ...samplePosicao,
+      hasSaldoDescoberto: true,
+      entidades: [
+        {
+          poderOrgao: "10131",
+          entidadeNome: "Fundo Municipal de Educação",
+          cnpj: "32.169.444/0001-41",
+          empresaId: "6",
+          grupoDestinacao: "educacao",
+          saldoCaixaBancos: -1794864.11,
+          saldoRecursosLivres: 0,
+          saldoRecursosVinculados: -1794864.11,
+          mesReferencia: 12,
+          dataReferencia: "2024-12-31",
+          saldoDescobertoFlag: true,
+          variacaoAnualPct: -45.2,
+        },
+      ],
+    };
+
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={posicaoComSaldoDescoberto}
+        ano={2024}
+      />,
+    );
+
+    expect(
+      screen.getByText(/atenção técnica: ocorrência de saldo a descoberto/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Saldo a Descoberto")).toBeInTheDocument();
+    expect(
+      screen.getByText(/insuficiência financeira na competência/i),
+    ).toBeInTheDocument();
+  });
+
+  it("exibe indicativo de variação anual em relação ao ano anterior", () => {
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={samplePosicao}
+        ano={2024}
+      />,
+    );
+
+    expect(screen.getByText("+15.2% vs. 2023")).toBeInTheDocument();
+    expect(screen.getByText("+10.5% vs. 2023")).toBeInTheDocument();
+    expect(screen.getByText("-5% vs. 2023")).toBeInTheDocument();
   });
 });

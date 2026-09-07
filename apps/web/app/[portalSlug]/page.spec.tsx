@@ -107,7 +107,7 @@ describe("VisaoGeralPage", () => {
     expect(screen.getByText(/total em caixa municipal/i)).toBeInTheDocument();
     expect(
       screen.getByRole("link", {
-        name: /ver detalhamento por entidade em receitas/i,
+        name: /ver detalhamento por entidade em execução orçamentária/i,
       }),
     ).toBeInTheDocument();
   });

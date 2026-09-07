@@ -63,7 +63,8 @@ export default async function VisaoGeralPage({
       <SaldoCaixaResumoCard
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={viewModel.selectedYear}
-        receitasUrl={viewModel.receitasDetailUrl}
+        detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
+        hasEntityFilter={viewModel.hasEntityFilter}
       />
 
       <CardsSecundariosVisaoGeral
