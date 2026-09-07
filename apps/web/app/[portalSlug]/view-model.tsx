@@ -272,6 +272,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     despesasCardData,
     licitacoesCardData,
     pessoalCardData,
+    posicaoFinanceira: raw.posicaoFinanceira,
     orcamentoDetailUrl: routeUrl("/orcamento"),
+    receitasDetailUrl: routeUrl("/receitas"),
   };
 }

@@ -115,4 +115,84 @@ describe("getSiconfiPosicaoFinanceira", () => {
     expect(result?.entidades[0].empresaId).toBe("7");
     expect(result?.entidades[0].grupoDestinacao).toBe("livre");
   });
+
+  it("segrega estritamente os saldos do CAPREM (RPPS) em previdencia, mantendo totalCaixaGeral restrito ao Executivo", async () => {
+    // Executivo: Prefeitura (Livre)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA MUNICIPAL",
+      entidadeNome: "PREFEITURA MUNICIPAL",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 5000000,
+      saldoRecursosLivres: 5000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Executivo: Fundo Municipal de Saúde (Vinculado)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "saude",
+      empresaId: "2",
+      orgaoNome: "FUNDO MUNICIPAL DE SAUDE",
+      entidadeNome: "FUNDO MUNICIPAL DE SAUDE",
+      cnpj: "12097798000110",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 1200000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 1200000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Previdência: CAPREM (RPPS - 10132)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10132",
+      grupoDestinacao: "previdencia",
+      empresaId: "4",
+      orgaoNome: "CAPREM",
+      entidadeNome: "CAPREM",
+      cnpj: "33444555000166",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 8000000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 8000000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    const result = await getSiconfiPosicaoFinanceira(PORTAL, 2024);
+
+    expect(result).not.toBeNull();
+    // Total em caixa geral da Prefeitura NÃO deve incluir os 8M do CAPREM
+    expect(result?.totalCaixaGeral).toBe(6200000);
+    expect(result?.totalRecursosLivres).toBe(5000000);
+    expect(result?.totalRecursosVinculados).toBe(1200000);
+
+    // Saldo previdenciário deve estar isolado
+    expect(result?.totalCaixaPrevidencia).toBe(8000000);
+    expect(result?.totalRecursosPrevidencia).toBe(8000000);
+
+    // Entidades operacionais do Executivo (sem CAPREM)
+    expect(result?.entidades).toHaveLength(2);
+    expect(result?.entidades.some((e) => e.poderOrgao === "10132")).toBe(false);
+    expect(result?.entidades.some((e) => e.entidadeNome === "CAPREM")).toBe(
+      false,
+    );
+
+    // Array dedicado à Previdência
+    expect(result?.previdencia).toHaveLength(1);
+    expect(result?.previdencia[0].entidadeNome).toBe("CAPREM");
+    expect(result?.previdencia[0].saldoCaixaBancos).toBe(8000000);
+  });
 });

@@ -9,9 +9,11 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     ano: 2024,
     mesMaisRecente: 12,
     dataHomologacao: "2024-12-31",
-    totalCaixaGeral: 18500000.5,
-    totalRecursosLivres: 4200000.25,
-    totalRecursosVinculados: 14300000.25,
+    totalCaixaGeral: 17000000.5,
+    totalRecursosLivres: 3800000.25,
+    totalRecursosVinculados: 13200000.25,
+    totalCaixaPrevidencia: 1500000,
+    totalRecursosPrevidencia: 1100000,
     entidades: [
       {
         poderOrgao: "Executivo",
@@ -50,18 +52,6 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         dataReferencia: "2024-12-31",
       },
       {
-        poderOrgao: "Executivo",
-        entidadeNome: "CAPREM",
-        cnpj: "33.444.555/0001-66",
-        empresaId: "4",
-        grupoDestinacao: "recursos_previdenciarios",
-        saldoCaixaBancos: 1500000,
-        saldoRecursosLivres: 400000,
-        saldoRecursosVinculados: 1100000,
-        mesReferencia: 12,
-        dataReferencia: "2024-12-31",
-      },
-      {
         poderOrgao: "Legislativo",
         entidadeNome: "Câmara Municipal",
         cnpj: "44.555.666/0001-77",
@@ -70,6 +60,20 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         saldoCaixaBancos: 500000.5,
         saldoRecursosLivres: 100000.25,
         saldoRecursosVinculados: 400000.25,
+        mesReferencia: 12,
+        dataReferencia: "2024-12-31",
+      },
+    ],
+    previdencia: [
+      {
+        poderOrgao: "10132",
+        entidadeNome: "CAPREM",
+        cnpj: "33.444.555/0001-66",
+        empresaId: "4",
+        grupoDestinacao: "recursos_previdenciarios",
+        saldoCaixaBancos: 1500000,
+        saldoRecursosLivres: 400000,
+        saldoRecursosVinculados: 1100000,
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
       },
@@ -140,8 +144,8 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     expect(
       screen.getByText("Fundo Municipal de Assistência Social"),
     ).toBeInTheDocument();
-    expect(screen.getByText("CAPREM")).toBeInTheDocument();
     expect(screen.getByText("Câmara Municipal")).toBeInTheDocument();
+    expect(screen.queryByText("CAPREM")).not.toBeInTheDocument();
   });
 
   it("exibe fallback amigável quando não houver dados homologados", () => {

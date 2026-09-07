@@ -21,7 +21,10 @@ export interface SiconfiPosicaoFinanceiraDTO {
   totalCaixaGeral: number;
   totalRecursosLivres: number;
   totalRecursosVinculados: number;
+  totalCaixaPrevidencia: number;
+  totalRecursosPrevidencia: number;
   entidades: EntidadeSaldoCaixaDTO[];
+  previdencia: EntidadeSaldoCaixaDTO[];
 }
 
 export async function getSiconfiPosicaoFinanceira(
@@ -66,7 +69,7 @@ export async function getSiconfiPosicaoFinanceira(
 
   if (rows.length === 0) return null;
 
-  const entidades: EntidadeSaldoCaixaDTO[] = rows.map((r) => ({
+  const todasEntidades: EntidadeSaldoCaixaDTO[] = rows.map((r) => ({
     poderOrgao: r.poder_orgao,
     entidadeNome: r.entidade_nome ?? null,
     cnpj: r.cnpj ?? null,
@@ -79,21 +82,40 @@ export async function getSiconfiPosicaoFinanceira(
     dataReferencia: r.data_referencia ? String(r.data_referencia) : "",
   }));
 
-  const totais = entidades.reduce(
-    (acc, ent) => ({
-      caixaGeral: acc.caixaGeral + ent.saldoCaixaBancos,
-      recursosLivres: acc.recursosLivres + ent.saldoRecursosLivres,
-      recursosVinculados: acc.recursosVinculados + ent.saldoRecursosVinculados,
-    }),
-    { caixaGeral: 0, recursosLivres: 0, recursosVinculados: 0 },
-  );
+  const isPrevidencia = (ent: EntidadeSaldoCaixaDTO) => {
+    const nome = (ent.entidadeNome ?? "").toLowerCase();
+    return (
+      ent.poderOrgao === "10132" ||
+      ent.grupoDestinacao === "previdencia" ||
+      nome.includes("previdência") ||
+      nome.includes("previdencia") ||
+      nome.includes("caprem")
+    );
+  };
 
-  const mesMaisRecente = entidades.reduce(
+  const entidades = todasEntidades.filter((ent) => !isPrevidencia(ent));
+  const previdencia = todasEntidades.filter((ent) => isPrevidencia(ent));
+
+  const somarTotais = (lista: EntidadeSaldoCaixaDTO[]) =>
+    lista.reduce(
+      (acc, ent) => ({
+        caixaGeral: acc.caixaGeral + ent.saldoCaixaBancos,
+        recursosLivres: acc.recursosLivres + ent.saldoRecursosLivres,
+        recursosVinculados:
+          acc.recursosVinculados + ent.saldoRecursosVinculados,
+      }),
+      { caixaGeral: 0, recursosLivres: 0, recursosVinculados: 0 },
+    );
+
+  const totaisExecutivo = somarTotais(entidades);
+  const totaisPrevidencia = somarTotais(previdencia);
+
+  const mesMaisRecente = todasEntidades.reduce(
     (max, ent) => Math.max(max, ent.mesReferencia),
     0,
   );
 
-  const dataHomologacao = entidades.reduce(
+  const dataHomologacao = todasEntidades.reduce(
     (latest, ent) =>
       ent.dataReferencia > latest ? ent.dataReferencia : latest,
     "",
@@ -104,9 +126,16 @@ export async function getSiconfiPosicaoFinanceira(
     ano,
     mesMaisRecente,
     dataHomologacao,
-    totalCaixaGeral: Number(totais.caixaGeral.toFixed(2)),
-    totalRecursosLivres: Number(totais.recursosLivres.toFixed(2)),
-    totalRecursosVinculados: Number(totais.recursosVinculados.toFixed(2)),
+    totalCaixaGeral: Number(totaisExecutivo.caixaGeral.toFixed(2)),
+    totalRecursosLivres: Number(totaisExecutivo.recursosLivres.toFixed(2)),
+    totalRecursosVinculados: Number(
+      totaisExecutivo.recursosVinculados.toFixed(2),
+    ),
+    totalCaixaPrevidencia: Number(totaisPrevidencia.caixaGeral.toFixed(2)),
+    totalRecursosPrevidencia: Number(
+      totaisPrevidencia.recursosVinculados.toFixed(2),
+    ),
     entidades,
+    previdencia,
   };
 }

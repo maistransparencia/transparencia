@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
+import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
 import { buildVisaoGeralViewModel } from "./view-model";
@@ -57,6 +58,12 @@ export default async function VisaoGeralPage({
       <PipelineExecucao
         stages={viewModel.pipelineStages}
         detailUrl={viewModel.orcamentoDetailUrl}
+      />
+
+      <SaldoCaixaResumoCard
+        posicaoFinanceira={viewModel.posicaoFinanceira}
+        ano={viewModel.selectedYear}
+        receitasUrl={viewModel.receitasDetailUrl}
       />
 
       <CardsSecundariosVisaoGeral
