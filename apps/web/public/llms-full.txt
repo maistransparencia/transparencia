@@ -22,6 +22,7 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Restos Pendentes da Gestão Atual:** O saldo de compromissos assumidos na gestão vigente (`2025-2028`) que aguardam desembolso, acompanhado do número total de fornecedores credores.
 - **Antiguidade da Dívida:** Indicação do ano de origem da obrigação mais antiga ainda pendente de quitação pelo município.
 - **Saldo Financeiro Estimado:** O resultado financeiro apurado pela diferença entre o total de receitas arrecadadas e o total de despesas pagas no exercício.
+- **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
 ---
@@ -74,13 +75,13 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Endpoint Público em Streaming:** `/api/[portalSlug]/export` (com método `GET`).
 - **Garantia de Paridade Centavo a Centavo:** A soma da coluna `valor_pago` de todos os registros exportados no arquivo CSV corresponde rigorosamente (com tolerância estrita inferior a R$ 0,01) ao valor total apresentado no respectivo card ou métrica na interface web.
 - **Parâmetros de Consulta Suportados:**
-  - `tipo` (obrigatório): Enum dos tipos suportados: `"gasto_sensivel"` (combustíveis, locações, obras, eventos, diárias), `"opacidade_99"` (gastos sob rubricas genéricas residuais) ou `"funcao"` (despesas por função orçamentária STN).
+  - `tipo` (obrigatório): Enum dos tipos suportados: `"gasto_sensivel"` (combustíveis, locações, obras, eventos, diárias), `"opacidade_99"` (gastos sob rubricas genéricas residuais), `"funcao"` (despesas por função orçamentária STN) ou `"saldo_caixa_siconfi"` (disponibilidades financeiras em caixa e bancos da MSC/STN).
   - `ano` (obrigatório): Exercício orçamentário (número inteiro entre 2000 e 2100).
   - `categoria` (obrigatório quando `tipo="gasto_sensivel"`): Código em lowercase snake_case (ex: `combustivel_frota`, `locacao_maquinas_veiculos`, `locacao_imoveis`, `eventos_festas`, `diarias_viagens`, `obras_infraestrutura`).
   - `funcaoCodigo` (obrigatório quando `tipo="funcao"`): Código numérico de 2 dígitos da função orçamentária (ex: `10` Saúde, `12` Educação).
-  - `entidades` (opcional): Lista separada por vírgulas de identificadores numéricos das entidades municipais desejadas para filtragem institucional. Para `opacidade_99`, a exportação reflete por padrão a consolidação municipal completa.
+  - `entidades` (opcional): Lista separada por vírgulas de identificadores numéricos das entidades para despesas; ou discriminador de escopo contábil (`executivo`, `previdencia`, `todas`) quando `tipo="saldo_caixa_siconfi"`.
   - `delimitador` (opcional): Caractere delimitador de colunas (`;` padrão brasileiro para abertura direta no Microsoft Excel ou `,` para ferramentas internacionais de ciência de dados).
-- **As 13 Colunas Canônicas Exportadas:**
+- **Colunas Canônicas Exportadas para Despesas (`gasto_sensivel`, `opacidade_99`, `funcao`):**
   1. `numero_empenho` — Identificador do empenho (`empenho_id`)
   2. `data_empenho` — Data do empenho (formato YYYY-MM-DD)
   3. `orgao_nome` — Nome da entidade ou órgão municipal responsável
@@ -94,6 +95,17 @@ Esta seção detalha a execução orçamentária e financeira do município atra
   11. `categoria_sensivel` — Categoria sensível classificada (quando aplicável)
   12. `categoria_sugerida` — Categoria sugerida pela reclassificação orçamentária para despesas em rubricas residuais (.99)
   13. `natureza_codigo_sugerido` — Código da natureza de despesa sugerido pelo objeto segundo o catálogo STN/MCASP
+- **Colunas Canônicas Exportadas para Saldo em Caixa SICONFI (`saldo_caixa_siconfi`):**
+  1. `exercicio` — Ano do exercício de referência (ex: 2024)
+  2. `mes_referencia` — Competência mensal homologada (1 a 12)
+  3. `poder_orgao` — Código ou discriminador do órgão/poder (Executivo, 10132 RPPS)
+  4. `entidade_nome` — Nome institucional da entidade contábil
+  5. `cnpj` — CNPJ oficial da entidade municipal
+  6. `grupo_destinacao` — Destinação legal dos recursos (`livre`, `saude`, `educacao`, `previdencia`, `outros_vinculados`, `multiplos`)
+  7. `saldo_caixa_bancos` — Saldo total em contas bancárias e aplicações de liquidez (R$)
+  8. `saldo_recursos_livres` — Saldo alocado em recursos ordinários/livres (R$)
+  9. `saldo_recursos_vinculados` — Saldo vinculado a finalidades legais específicas (R$)
+  10. `data_referencia` — Data de corte da remessa contábil homologada pela STN
 - **Compatibilidade e Proteção:**
   - Emissão com marca de ordem de byte UTF-8 (BOM `\uFEFF`), assegurando abertura imediata no Microsoft Excel sem corrupção de caracteres especiais ou acentuação.
   - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` prefixadas para impedir execução indevida de comandos na planilha).
@@ -114,7 +126,26 @@ Esta seção especifica a origem de todos os recursos que ingressam nos cofres d
 
 ---
 
-### 1.4. Licitações, Dispensas e Contratos Administrativos
+### 1.4. Execução Orçamentária e Disponibilidade Financeira em Caixa
+
+Esta seção apresenta o ciclo completo do orçamento municipal (LOA) e o demonstrativo oficial de disponibilidades em contas bancárias homologado pelo Tesouro Nacional:
+
+- **Dotação Atualizada:** O valor total autorizado em lei para gastos no exercício, considerando a dotação inicial da LOA e os créditos adicionais (suplementares, especiais ou extraordinários) abertos.
+- **Empenhado:** A primeira etapa da despesa pública, em que o município emite a nota de empenho e reserva previamente a dotação orçamentária para um credor.
+- **Liquidado:** A confirmação legal da entrega do bem ou prestação do serviço contratado (atesto de liquidação), constituindo a obrigação de pagamento do município.
+- **Pago:** O efetivo desembolso financeiro e saída de recursos da conta bancária da prefeitura em favor do credor.
+- **Funil de Execução Orçamentária:** Visualização sequencial demonstrando a taxa de avanço de cada estágio (Empenhado, Liquidado e Pago) em relação ao total autorizado.
+- **Despesas por Função de Governo:** Distribuição temática das despesas pagas segundo a classificação funcional oficial da STN (Saúde, Educação, Administração, Urbanismo, etc.).
+- **Execução por Órgão e Unidade Gestora:** Demonstrativo da dotação, empenho, liquidação e pagamento por secretaria municipal, fundo e órgão executor.
+- **Disponibilidade Financeira em Caixa e Bancos por Entidade (SICONFI / STN):** Demonstrativo de estoques financeiros homologados pela Secretaria do Tesouro Nacional na Matriz de Saldos Contábeis (MSC), desagregado por entidade do Poder Executivo:
+  - *Prefeitura e Fundos Municipais:* Contas bancárias e aplicações financeiras de liquidez imediata da Administração Direta e dos Fundos Municipais (Saúde, Assistência Social).
+  - *Recursos Livres vs Vinculados:* Segregação contábil entre receitas ordinárias (recursos livres, de livre movimentação pelo gestor) e receitas carimbadas/vinculadas por lei (saúde, educação, Fundeb, convênios estaduais/federais).
+  - *Identificação Técnica de Saldo a Descoberto:* Sinalização técnica de insuficiência financeira em fontes específicas quando o total desembolsado supera a arrecadação daquela destinação. Tratado sob linguagem institucional e não-acusatória, evidenciando a relevância fiscal da ocorrência fiscalizada pelos Tribunais de Contas.
+  - *Auditoria e Transparência ("Show Your Work"):* Exportação direta dos registros contábeis brutos do SICONFI em formato CSV (`tipo=saldo_caixa_siconfi&entidades=executivo`).
+
+---
+
+### 1.5. Licitações, Dispensas e Contratos Administrativos
 
 Esta seção disponibiliza a transparência sobre os processos de compras e contratações públicas:
 
@@ -127,7 +158,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 
 ---
 
-### 1.5. Quadro de Pessoal e Folha de Pagamento
+### 1.6. Quadro de Pessoal e Folha de Pagamento
 
 Esta seção apresenta as informações relativas aos servidores públicos municipais e aos gastos com pessoal:
 
@@ -139,17 +170,22 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
 
 ---
 
-### 1.6. Regime Próprio de Previdência Social (CAPREM)
+### 1.7. Regime Próprio de Previdência Social (CAPREM)
 
 Esta seção traz a prestação de contas do instituto de previdência dos servidores municipais:
 
 - **Contribuições Patronais:** Os valores devidos pela prefeitura ao instituto de previdência como cota do empregador.
 - **Contribuições dos Servidores:** O desconto previdenciário retido da remuneração dos servidores ativos e aposentados repassado ao instituto.
 - **Aportes de Amortização do Déficit Atuarial:** Repasses financeiros extraordinários realizados pelo município para cobrir o déficit atuarial e garantir o pagamento futuro das aposentadorias e pensões.
+- **Disponibilidade em Caixa e Aplicações do RPPS (SICONFI / STN):** Demonstração do patrimônio financeiro exclusivo do fundo previdenciário municipal (CAPREM) mantido em contas bancárias e carteira de investimentos, conforme a Matriz de Saldos Contábeis homologada pelo Tesouro Nacional:
+  - *Segregação Constitucional Obrigatória:* Cumprimento estrito do artigo 167, XI da Constituição Federal e artigo 50, IV da LRF, garantindo a incomunicabilidade entre o caixa da previdência e o caixa geral da prefeitura.
+  - *Recursos 100% Vinculados:* Alocação exclusiva das disponibilidades para pagamento de benefícios previdenciários e formação de reserva atuarial.
+  - *Variação Anual:* Indicador percentual comparativo frente ao encerramento do exercício anterior.
+  - *Exportação dos Dados Brutos:* Download em formato CSV dos lançamentos contábeis do RPPS homologados na STN (`tipo=saldo_caixa_siconfi&entidades=previdencia`).
 
 ---
 
-### 1.7. Aplicação em Ações e Serviços Públicos de Saúde
+### 1.8. Aplicação em Ações e Serviços Públicos de Saúde
 
 Esta seção demonstra o cumprimento das metas constitucionais de investimento na saúde pública municipal:
 
@@ -158,7 +194,7 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 ---
 
-### 1.8. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
+### 1.9. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:
 
@@ -173,7 +209,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 
 ---
 
-### 1.9. Canais Cívicos de Notificação, Boletim Periódico e Redes Sociais
+### 1.10. Canais Cívicos de Notificação, Boletim Periódico e Redes Sociais
 
 Para aproximar a prestação de contas dos cidadãos e viabilizar o controle social contínuo sem a necessidade de consultas manuais diárias, o portal disponibiliza canais estruturados de distribuição cívica:
 
