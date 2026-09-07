@@ -153,4 +153,64 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("exibe badges semânticas institucionais e remove códigos brutos como 10131", () => {
+    const posicaoComCodigoBruto: SiconfiPosicaoFinanceiraDTO = {
+      ...samplePosicao,
+      entidades: [
+        {
+          poderOrgao: "10131",
+          entidadeNome: "Prefeitura Municipal",
+          cnpj: "29.138.342/0001-30",
+          empresaId: "1",
+          grupoDestinacao: "livre",
+          saldoCaixaBancos: 10000000,
+          saldoRecursosLivres: 3000000,
+          saldoRecursosVinculados: 7000000,
+          mesReferencia: 12,
+          dataReferencia: "2024-12-31",
+        },
+        {
+          poderOrgao: "10131",
+          entidadeNome: "Fundo Municipal de Saúde",
+          cnpj: "11.222.333/0001-44",
+          empresaId: "2",
+          grupoDestinacao: "saude",
+          saldoCaixaBancos: 5000000,
+          saldoRecursosLivres: 500000,
+          saldoRecursosVinculados: 4500000,
+          mesReferencia: 12,
+          dataReferencia: "2024-12-31",
+        },
+      ],
+    };
+
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={posicaoComCodigoBruto}
+        ano={2024}
+        portalSlug="porciuncula"
+      />,
+    );
+
+    expect(screen.getByText("Administração Direta")).toBeInTheDocument();
+    expect(screen.getByText("Fundo Municipal")).toBeInTheDocument();
+    expect(screen.queryByText("10131")).not.toBeInTheDocument();
+  });
+
+  it("renderiza o botão ShowYourWorkButton quando portalSlug é fornecido", () => {
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={samplePosicao}
+        ano={2024}
+        portalSlug="porciuncula"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: /opções de auditoria/i,
+      }),
+    ).toBeInTheDocument();
+  });
 });
