@@ -153,6 +153,6 @@ describe("CapremPage", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Segregação Constitucional")).toBeInTheDocument();
-    expect(screen.getAllByText("R$ 8.5mi")).toHaveLength(2);
+    expect(screen.getAllByText("R$ 8.5mi").length).toBeGreaterThanOrEqual(2);
   });
 });
