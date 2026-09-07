@@ -209,15 +209,30 @@ describe("export-raw-data (smoke & parity)", () => {
         ultimaCompetenciaFlag: true,
       });
 
+      // Competência mais recente (mês 12) - Linha Previdencia sob poderOrgao 10131
+      await seedSaldoCaixaSiconfi({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        mesReferencia: 12,
+        poderOrgao: "10131",
+        entidadeNome: "Previdencia",
+        cnpj: "33444555000166",
+        grupoDestinacao: "previdencia",
+        saldoCaixaBancos: 1000000,
+        saldoRecursosLivres: 0,
+        saldoRecursosVinculados: 1000000,
+        ultimaCompetenciaFlag: true,
+      });
+
       // 1. Busca padrão (última competência homologada, sem filtro de entidade)
       const allRows = await getRawSaldoCaixaSiconfiExportRecords({
         portalSlug: FIXTURE_PORTAL,
         ano: 2024,
       });
-      expect(allRows).toHaveLength(2);
+      expect(allRows).toHaveLength(3);
       expect(allRows.every((r) => r.mesReferencia === 12)).toBe(true);
 
-      // 2. Filtro exclusivo Executivo
+      // 2. Filtro exclusivo Executivo (deve excluir CAPREM e Previdencia mesmo com poderOrgao 10131)
       const executivoRows = await getRawSaldoCaixaSiconfiExportRecords({
         portalSlug: FIXTURE_PORTAL,
         ano: 2024,
@@ -228,16 +243,19 @@ describe("export-raw-data (smoke & parity)", () => {
       expect(executivoRows[0].entidadeNome).toBe("PREFEITURA MUNICIPAL");
       expect(executivoRows[0].saldoCaixaBancos).toBe(10000000);
 
-      // 3. Filtro exclusivo Previdência
+      // 3. Filtro exclusivo Previdência (deve incluir tanto 10132 quanto linhas previdencia de 10131)
       const previdenciaRows = await getRawSaldoCaixaSiconfiExportRecords({
         portalSlug: FIXTURE_PORTAL,
         ano: 2024,
         entidades: "previdencia",
       });
-      expect(previdenciaRows).toHaveLength(1);
-      expect(previdenciaRows[0].poderOrgao).toBe("10132");
-      expect(previdenciaRows[0].entidadeNome).toBe("CAPREM");
-      expect(previdenciaRows[0].saldoCaixaBancos).toBe(5000000);
+      expect(previdenciaRows).toHaveLength(2);
+      expect(previdenciaRows.some((r) => r.entidadeNome === "CAPREM")).toBe(
+        true,
+      );
+      expect(
+        previdenciaRows.some((r) => r.entidadeNome === "Previdencia"),
+      ).toBe(true);
 
       await cleanupFixtures(FIXTURE_PORTAL);
     });

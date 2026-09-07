@@ -209,9 +209,29 @@ export async function getRawSaldoCaixaSiconfiExportRecords(
     }
 
     if (entidades === "executivo") {
-      query = query.where("poder_orgao", "!=", "10132");
+      query = query
+        .where("poder_orgao", "!=", "10132")
+        .where("grupo_destinacao", "!=", "previdencia")
+        .where((eb) =>
+          eb.or([
+            eb("entidade_nome", "is", null),
+            eb.and([
+              eb("entidade_nome", "not ilike", "%previdencia%"),
+              eb("entidade_nome", "not ilike", "%previdência%"),
+              eb("entidade_nome", "not ilike", "%caprem%"),
+            ]),
+          ]),
+        );
     } else if (entidades === "previdencia" || entidades === "caprem") {
-      query = query.where("poder_orgao", "=", "10132");
+      query = query.where((eb) =>
+        eb.or([
+          eb("poder_orgao", "=", "10132"),
+          eb("grupo_destinacao", "=", "previdencia"),
+          eb("entidade_nome", "ilike", "%previdencia%"),
+          eb("entidade_nome", "ilike", "%previdência%"),
+          eb("entidade_nome", "ilike", "%caprem%"),
+        ]),
+      );
     }
 
     const rows = await query
