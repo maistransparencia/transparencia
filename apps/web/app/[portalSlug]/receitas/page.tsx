@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
+import { SaldoCaixaEntidadesSection } from "@/components/saldo-caixa-entidades-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadReceitasData } from "./loader";
 import { buildReceitasViewModel } from "./view-model";
@@ -191,6 +192,13 @@ export default async function ReceitasPage({
         icms={rec.icmsArrecadado || 0}
         issIptu={rec.issIptuArrecadado || 0}
         totalArrecadado={totalArr}
+      />
+
+      {/* Disponibilidade Financeira em Caixa e Bancos por Entidade (SICONFI MSC) */}
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={viewModel.posicaoFinanceira}
+        ano={selectedYear}
+        portalSlug={portalSlug}
       />
 
       {/* Tabela Detalhada de Previsão vs Arrecadação */}

@@ -1,12 +1,6 @@
 import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
-import { fmtCompact, fmtCurrency, fmtPercent } from "@transparencia/ui";
-import {
-  AlertCircle,
-  ArrowRight,
-  ExternalLink,
-  Info,
-  Landmark,
-} from "lucide-react";
+import { fmtCompact, fmtPercent } from "@transparencia/ui";
+import { AlertCircle, ArrowRight, ExternalLink, Info } from "lucide-react";
 import Link from "next/link";
 
 export interface SaldoCaixaResumoCardProps {
@@ -49,9 +43,6 @@ export function SaldoCaixaResumoCard({
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-slate-700">
-              <Landmark className="h-4 w-4" />
-            </div>
             <div>
               <h3 className="font-bold text-base text-ink tracking-tight">
                 Disponibilidade em Caixa e Bancos
@@ -68,7 +59,7 @@ export function SaldoCaixaResumoCard({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink sm:self-auto"
           >
-            <span>🏛️ STN / SICONFI</span>
+            <span>Fonte: STN / SICONFI</span>
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
@@ -125,9 +116,6 @@ export function SaldoCaixaResumoCard({
       {/* Cabeçalho */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-slate-700">
-            <Landmark className="h-4 w-4" />
-          </div>
           <div>
             <h3 className="font-bold text-base text-ink tracking-tight">
               Disponibilidade em Caixa e Bancos
@@ -149,7 +137,7 @@ export function SaldoCaixaResumoCard({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
           >
-            <span>🏛️ STN / SICONFI</span>
+            <span>Fonte: STN / SICONFI</span>
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
@@ -161,13 +149,10 @@ export function SaldoCaixaResumoCard({
           <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
             Total em Caixa Municipal
           </span>
-          <div className="mt-1 flex items-baseline gap-2">
+          <div className="mt-1">
             <p className="font-bold font-serif text-3xl text-ink tracking-tight">
               {fmtCompact(totalCaixaGeral)}
             </p>
-            <span className="text-subtleText text-xs">
-              ({fmtCurrency(totalCaixaGeral)})
-            </span>
           </div>
         </div>
 

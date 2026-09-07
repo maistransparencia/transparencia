@@ -158,5 +158,6 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     tableData,
     totalExtraOrcamentario: rec.receitaExtraOrcamentariaArrecadado,
     variationText,
+    posicaoFinanceira: raw.posicaoFinanceira,
   };
 }

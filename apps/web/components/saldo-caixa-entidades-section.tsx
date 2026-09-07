@@ -2,14 +2,8 @@ import type {
   EntidadeSaldoCaixaDTO,
   SiconfiPosicaoFinanceiraDTO,
 } from "@transparencia/db";
-import { fmtCurrency, fmtPercent } from "@transparencia/ui";
-import {
-  AlertCircle,
-  Building2,
-  ExternalLink,
-  Info,
-  Landmark,
-} from "lucide-react";
+import { fmtCompact, fmtPercent, toTitleCase } from "@transparencia/ui";
+import { AlertCircle, ExternalLink, Info } from "lucide-react";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface SaldoCaixaEntidadesSectionProps {
@@ -38,82 +32,6 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
-function getEntityIcon(nome: string | null) {
-  const lower = (nome ?? "").toLowerCase();
-  if (
-    lower.includes("previdência") ||
-    lower.includes("previdencia") ||
-    lower.includes("caprem")
-  ) {
-    return <Landmark className="h-4 w-4 text-purple-700" />;
-  }
-  if (
-    lower.includes("câmara") ||
-    lower.includes("camara") ||
-    lower.includes("legislativo")
-  ) {
-    return <Landmark className="h-4 w-4 text-sky-700" />;
-  }
-  if (lower.includes("saúde") || lower.includes("saude")) {
-    return <Building2 className="h-4 w-4 text-emerald-700" />;
-  }
-  if (
-    lower.includes("assistência") ||
-    lower.includes("assistencia") ||
-    lower.includes("social")
-  ) {
-    return <Building2 className="h-4 w-4 text-amber-700" />;
-  }
-  return <Building2 className="h-4 w-4 text-slate-700" />;
-}
-
-function getInstitutionalBadge(
-  nome: string | null,
-  poderOrgao: string | null,
-): string {
-  const lower = (nome ?? "").toLowerCase();
-  if (
-    lower.includes("previdência") ||
-    lower.includes("previdencia") ||
-    lower.includes("caprem") ||
-    lower.includes("rpps") ||
-    poderOrgao === "10132"
-  ) {
-    return "Previdência";
-  }
-  if (
-    lower.includes("fundo") ||
-    lower.includes("saúde") ||
-    lower.includes("saude") ||
-    lower.includes("assistência") ||
-    lower.includes("assistencia") ||
-    lower.includes("educação") ||
-    lower.includes("educacao")
-  ) {
-    return "Fundo Municipal";
-  }
-  if (
-    lower.includes("câmara") ||
-    lower.includes("camara") ||
-    lower.includes("legislativo") ||
-    poderOrgao === "10133" ||
-    (poderOrgao ?? "").toLowerCase().includes("legislativo")
-  ) {
-    return "Poder Legislativo";
-  }
-  if (
-    lower.includes("prefeitura") ||
-    poderOrgao === "10131" ||
-    (poderOrgao ?? "").toLowerCase().includes("executivo")
-  ) {
-    return "Administração Direta";
-  }
-  if (poderOrgao && !/^\d+$/.test(poderOrgao)) {
-    return poderOrgao;
-  }
-  return "Administração Direta";
-}
-
 export function SaldoCaixaEntidadesSection({
   posicaoFinanceira,
   ano,
@@ -128,8 +46,7 @@ export function SaldoCaixaEntidadesSection({
       >
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-bold text-ink text-xl tracking-tight">
-              <Landmark className="h-5 w-5 text-slate-700" />
+            <h2 className="font-bold text-ink text-xl tracking-tight">
               Disponibilidade Financeira em Caixa e Bancos
             </h2>
             <a
@@ -138,10 +55,7 @@ export function SaldoCaixaEntidadesSection({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
             >
-              <span>
-                🏛️ Fonte Oficial: STN / SICONFI (Matriz de Saldos Contábeis -
-                MSC)
-              </span>
+              <span>Fonte: STN / SICONFI</span>
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -193,12 +107,9 @@ export function SaldoCaixaEntidadesSection({
       {/* Header com Título, Subtítulo, Badges e ShowYourWork */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="flex items-center gap-2 font-bold text-ink text-xl tracking-tight">
-              <Landmark className="h-5 w-5 text-slate-700" />
-              Disponibilidade Financeira em Caixa e Bancos
-            </h2>
-          </div>
+          <h2 className="font-bold text-ink text-xl tracking-tight">
+            Disponibilidade Financeira em Caixa e Bancos
+          </h2>
           <p className="text-sm text-subtleText">
             Contas bancárias ativas e aplicações de liquidez imediata declaradas
             mensalmente ao Tesouro Nacional.
@@ -215,9 +126,7 @@ export function SaldoCaixaEntidadesSection({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
           >
-            <span>
-              🏛️ Fonte Oficial: STN / SICONFI (Matriz de Saldos Contábeis - MSC)
-            </span>
+            <span>Fonte: STN / SICONFI</span>
             <ExternalLink className="h-3 w-3" />
           </a>
           {portalSlug && (
@@ -251,7 +160,7 @@ export function SaldoCaixaEntidadesSection({
             Total Disponível em Caixa
           </span>
           <p className="mt-1 font-bold font-serif text-2xl text-ink tracking-tight">
-            {fmtCurrency(totalCaixaGeral)}
+            {fmtCompact(totalCaixaGeral)}
           </p>
         </div>
         <div className="rounded-xl border border-[#e7e9ee] bg-slate-50/50 p-4">
@@ -259,7 +168,7 @@ export function SaldoCaixaEntidadesSection({
             Recursos Livres (Ordinários)
           </span>
           <p className="mt-1 font-bold font-serif text-2xl text-ink tracking-tight">
-            {fmtCurrency(totalRecursosLivres)}
+            {fmtCompact(totalRecursosLivres)}
           </p>
           <span className="text-subtleText text-xs">
             {fmtPercent(pctLivresGeral)} do saldo total
@@ -270,7 +179,7 @@ export function SaldoCaixaEntidadesSection({
             Recursos Vinculados (Destinação Específica)
           </span>
           <p className="mt-1 font-bold font-serif text-2xl text-ink tracking-tight">
-            {fmtCurrency(totalRecursosVinculados)}
+            {fmtCompact(totalRecursosVinculados)}
           </p>
           <span className="text-subtleText text-xs">
             {fmtPercent(pctVinculadosGeral)} do saldo total
@@ -294,10 +203,6 @@ export function SaldoCaixaEntidadesSection({
               Math.max((entidade.saldoRecursosVinculados / total) * 100, 0),
               100,
             );
-            const badgeText = getInstitutionalBadge(
-              entidade.entidadeNome,
-              entidade.poderOrgao,
-            );
 
             return (
               <div
@@ -305,33 +210,16 @@ export function SaldoCaixaEntidadesSection({
                 className="flex flex-col justify-between rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm transition-all hover:border-[#cbd0db]"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50">
-                        {getEntityIcon(entidade.entidadeNome)}
-                      </div>
-                      <div>
-                        <h4 className="line-clamp-1 font-bold text-base text-ink">
-                          {entidade.entidadeNome ?? "Entidade Municipal"}
-                        </h4>
-                        {entidade.cnpj && (
-                          <span className="font-mono text-[11px] text-subtleText">
-                            CNPJ: {entidade.cnpj}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-[10px] text-slate-700">
-                      {badgeText}
-                    </span>
-                  </div>
+                  <h4 className="line-clamp-2 font-bold text-base text-ink">
+                    {toTitleCase(entidade.entidadeNome ?? "Entidade Municipal")}
+                  </h4>
 
                   <div className="mt-4">
                     <span className="font-medium text-subtleText text-xs uppercase tracking-wide">
                       Saldo em Caixa e Bancos
                     </span>
                     <p className="font-bold font-serif text-2xl text-ink tracking-tight">
-                      {fmtCurrency(entidade.saldoCaixaBancos)}
+                      {fmtCompact(entidade.saldoCaixaBancos)}
                     </p>
                   </div>
 
@@ -364,7 +252,7 @@ export function SaldoCaixaEntidadesSection({
                         Livres:
                       </span>
                       <span className="font-medium text-ink">
-                        {fmtCurrency(entidade.saldoRecursosLivres)} (
+                        {fmtCompact(entidade.saldoRecursosLivres)} (
                         {fmtPercent(pctLivres)})
                       </span>
                     </div>
@@ -374,7 +262,7 @@ export function SaldoCaixaEntidadesSection({
                         Vinculados:
                       </span>
                       <span className="font-medium text-ink">
-                        {fmtCurrency(entidade.saldoRecursosVinculados)} (
+                        {fmtCompact(entidade.saldoRecursosVinculados)} (
                         {fmtPercent(pctVinculados)})
                       </span>
                     </div>

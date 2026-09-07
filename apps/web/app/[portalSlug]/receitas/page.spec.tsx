@@ -104,4 +104,75 @@ describe("ReceitasPage", () => {
 
     expect(screen.getByText("Fontes de Receita")).toBeInTheDocument();
   });
+
+  it("renderiza a seção de disponibilidade financeira em caixa por entidade na página de receitas (excluindo CAPREM)", async () => {
+    loadReceitasDataMock.mockResolvedValue(
+      makeRaw({
+        posicaoFinanceira: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          mesMaisRecente: 12,
+          dataHomologacao: "2024-12-31",
+          totalCaixaGeral: 11200000,
+          totalRecursosLivres: 5000000,
+          totalRecursosVinculados: 6200000,
+          totalCaixaPrevidencia: 8000000,
+          totalRecursosPrevidencia: 8000000,
+          entidades: [
+            {
+              poderOrgao: "Executivo",
+              entidadeNome: "Prefeitura Municipal",
+              cnpj: "29.138.342/0001-30",
+              empresaId: "1",
+              grupoDestinacao: "livre",
+              saldoCaixaBancos: 6200000,
+              saldoRecursosLivres: 5000000,
+              saldoRecursosVinculados: 1200000,
+              mesReferencia: 12,
+              dataReferencia: "2024-12-31",
+            },
+            {
+              poderOrgao: "Executivo",
+              entidadeNome: "Fundo Municipal de Saúde",
+              cnpj: "11.222.333/0001-44",
+              empresaId: "2",
+              grupoDestinacao: "saude",
+              saldoCaixaBancos: 5000000,
+              saldoRecursosLivres: 0,
+              saldoRecursosVinculados: 5000000,
+              mesReferencia: 12,
+              dataReferencia: "2024-12-31",
+            },
+          ],
+          previdencia: [
+            {
+              poderOrgao: "10132",
+              entidadeNome: "CAPREM",
+              cnpj: "33.444.555/0001-66",
+              empresaId: "4",
+              grupoDestinacao: "previdencia",
+              saldoCaixaBancos: 8000000,
+              saldoRecursosLivres: 0,
+              saldoRecursosVinculados: 8000000,
+              mesReferencia: 12,
+              dataReferencia: "2024-12-31",
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await ReceitasPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", {
+        name: /disponibilidade financeira em caixa e bancos/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Prefeitura Municipal")).toBeInTheDocument();
+    expect(screen.getByText("Fundo Municipal de Saúde")).toBeInTheDocument();
+    // CAPREM deve estar restrito ao /caprem e não aparecer em Receitas
+    expect(screen.queryByText("CAPREM")).not.toBeInTheDocument();
+  });
 });

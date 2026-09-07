@@ -100,9 +100,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       ),
     ).toBeInTheDocument();
 
-    expect(
-      screen.getByText(/stn \/ siconfi \(matriz de saldos contábeis - msc\)/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/fonte: stn \/ siconfi/i)).toBeInTheDocument();
   });
 
   it("exibe a competência contábil homologada mais recente", () => {
@@ -158,7 +156,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("exibe badges semânticas institucionais e remove códigos brutos como 10131", () => {
+  it("remove códigos brutos, badges e CNPJs dos cards individuais", () => {
     const posicaoComCodigoBruto: SiconfiPosicaoFinanceiraDTO = {
       ...samplePosicao,
       entidades: [
@@ -197,9 +195,12 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       />,
     );
 
-    expect(screen.getByText("Administração Direta")).toBeInTheDocument();
-    expect(screen.getByText("Fundo Municipal")).toBeInTheDocument();
+    expect(screen.getByText("Prefeitura Municipal")).toBeInTheDocument();
+    expect(screen.getByText("Fundo Municipal de Saúde")).toBeInTheDocument();
+    expect(screen.queryByText("Administração Direta")).not.toBeInTheDocument();
+    expect(screen.queryByText("Fundo Municipal")).not.toBeInTheDocument();
     expect(screen.queryByText("10131")).not.toBeInTheDocument();
+    expect(screen.queryByText(/29\.138\.342/)).not.toBeInTheDocument();
   });
 
   it("renderiza o botão ShowYourWorkButton quando portalSlug é fornecido", () => {
