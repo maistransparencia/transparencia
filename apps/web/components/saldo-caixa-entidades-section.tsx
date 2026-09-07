@@ -206,12 +206,6 @@ export function SaldoCaixaEntidadesSection({
           <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 text-xs">
             Posição oficial em {mesExtenso}/{ano}
           </span>
-          {isPrevidencia && (
-            <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 font-medium text-blue-800 text-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Segregação Constitucional
-            </span>
-          )}
           <a
             href="https://siconfi.tesouro.gov.br"
             target="_blank"
