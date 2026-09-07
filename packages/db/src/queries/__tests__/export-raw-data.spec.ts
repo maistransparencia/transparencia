@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import {
+  cleanupFixtures,
+  createFixturePortalSlug,
+  seedSaldoCaixaSiconfi,
+} from "../../../tests/fixtures/seed";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
 import {
   getDespesasPorFuncaoMetrics,
@@ -6,6 +11,7 @@ import {
 } from "../despesas-metrics";
 import {
   getRawDespesasExportRecords,
+  getRawSaldoCaixaSiconfiExportRecords,
   type RawDespesaRecordDTO,
 } from "../export-raw-data";
 import { getOpacidadeContabilMetrics } from "../opacidade-contabil-metrics";
@@ -156,5 +162,84 @@ describe("export-raw-data (smoke & parity)", () => {
       const totalResidualPago = opacidade.exercicioAtual.pagoResidual99;
       expect(Math.abs(sumValorPago - totalResidualPago)).toBeLessThan(0.01);
     }
+  });
+
+  describe("getRawSaldoCaixaSiconfiExportRecords", () => {
+    const FIXTURE_PORTAL = createFixturePortalSlug();
+
+    it("retorna registros brutos de saldo de caixa com filtragem por competência e poder/órgão", async () => {
+      // Competência antiga (mês 11)
+      await seedSaldoCaixaSiconfi({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        mesReferencia: 11,
+        poderOrgao: "10131",
+        grupoDestinacao: "livre",
+        saldoCaixaBancos: 3000000,
+        ultimaCompetenciaFlag: false,
+      });
+
+      // Competência mais recente (mês 12) - Executivo
+      await seedSaldoCaixaSiconfi({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        mesReferencia: 12,
+        poderOrgao: "10131",
+        entidadeNome: "PREFEITURA MUNICIPAL",
+        cnpj: "28920999000106",
+        grupoDestinacao: "livre",
+        saldoCaixaBancos: 10000000,
+        saldoRecursosLivres: 10000000,
+        saldoRecursosVinculados: 0,
+        ultimaCompetenciaFlag: true,
+      });
+
+      // Competência mais recente (mês 12) - Previdência (CAPREM)
+      await seedSaldoCaixaSiconfi({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        mesReferencia: 12,
+        poderOrgao: "10132",
+        entidadeNome: "CAPREM",
+        cnpj: "33444555000166",
+        grupoDestinacao: "previdencia",
+        saldoCaixaBancos: 5000000,
+        saldoRecursosLivres: 0,
+        saldoRecursosVinculados: 5000000,
+        ultimaCompetenciaFlag: true,
+      });
+
+      // 1. Busca padrão (última competência homologada, sem filtro de entidade)
+      const allRows = await getRawSaldoCaixaSiconfiExportRecords({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+      });
+      expect(allRows).toHaveLength(2);
+      expect(allRows.every((r) => r.mesReferencia === 12)).toBe(true);
+
+      // 2. Filtro exclusivo Executivo
+      const executivoRows = await getRawSaldoCaixaSiconfiExportRecords({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        entidades: "executivo",
+      });
+      expect(executivoRows).toHaveLength(1);
+      expect(executivoRows[0].poderOrgao).toBe("10131");
+      expect(executivoRows[0].entidadeNome).toBe("PREFEITURA MUNICIPAL");
+      expect(executivoRows[0].saldoCaixaBancos).toBe(10000000);
+
+      // 3. Filtro exclusivo Previdência
+      const previdenciaRows = await getRawSaldoCaixaSiconfiExportRecords({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        entidades: "previdencia",
+      });
+      expect(previdenciaRows).toHaveLength(1);
+      expect(previdenciaRows[0].poderOrgao).toBe("10132");
+      expect(previdenciaRows[0].entidadeNome).toBe("CAPREM");
+      expect(previdenciaRows[0].saldoCaixaBancos).toBe(5000000);
+
+      await cleanupFixtures(FIXTURE_PORTAL);
+    });
   });
 });

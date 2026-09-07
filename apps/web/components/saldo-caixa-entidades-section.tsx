@@ -134,6 +134,7 @@ export function SaldoCaixaEntidadesSection({
               portalSlug={portalSlug}
               ano={ano}
               tipo="saldo_caixa_siconfi"
+              entidades="executivo"
               tituloContexto="Disponibilidade Financeira SICONFI"
             />
           )}

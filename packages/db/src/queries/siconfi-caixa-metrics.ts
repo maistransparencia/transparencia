@@ -69,18 +69,60 @@ export async function getSiconfiPosicaoFinanceira(
 
   if (rows.length === 0) return null;
 
-  const todasEntidades: EntidadeSaldoCaixaDTO[] = rows.map((r) => ({
-    poderOrgao: r.poder_orgao,
-    entidadeNome: r.entidade_nome ?? null,
-    cnpj: r.cnpj ?? null,
-    empresaId: r.empresa_id ? String(r.empresa_id) : null,
-    grupoDestinacao: r.grupo_destinacao,
-    saldoCaixaBancos: Number(r.saldo_caixa_bancos ?? 0),
-    saldoRecursosLivres: Number(r.saldo_recursos_livres ?? 0),
-    saldoRecursosVinculados: Number(r.saldo_recursos_vinculados ?? 0),
-    mesReferencia: Number(r.mes_referencia),
-    dataReferencia: r.data_referencia ? String(r.data_referencia) : "",
-  }));
+  // Agrupar linhas por entidade para consolidar grupos de destinação múltiplos (livre + vinculados) em um único card por entidade
+  const entidadesAgrupadasMap = rows.reduce<Map<string, EntidadeSaldoCaixaDTO>>(
+    (map, r) => {
+      const chave = (r.entidade_nome ?? r.poder_orgao).trim().toLowerCase();
+      const existente = map.get(chave);
+      const saldoCaixa = Number(r.saldo_caixa_bancos ?? 0);
+      const saldoLivres = Number(r.saldo_recursos_livres ?? 0);
+      const saldoVinculados = Number(r.saldo_recursos_vinculados ?? 0);
+      const mesRef = Number(r.mes_referencia);
+      const dataRef = r.data_referencia ? String(r.data_referencia) : "";
+
+      if (existente) {
+        existente.cnpj = existente.cnpj ?? r.cnpj ?? null;
+        existente.empresaId =
+          existente.empresaId ?? (r.empresa_id ? String(r.empresa_id) : null);
+        existente.saldoCaixaBancos = Number(
+          (existente.saldoCaixaBancos + saldoCaixa).toFixed(2),
+        );
+        existente.saldoRecursosLivres = Number(
+          (existente.saldoRecursosLivres + saldoLivres).toFixed(2),
+        );
+        existente.saldoRecursosVinculados = Number(
+          (existente.saldoRecursosVinculados + saldoVinculados).toFixed(2),
+        );
+        existente.mesReferencia = Math.max(existente.mesReferencia, mesRef);
+        existente.dataReferencia =
+          dataRef > existente.dataReferencia
+            ? dataRef
+            : existente.dataReferencia;
+        if (existente.grupoDestinacao !== r.grupo_destinacao) {
+          existente.grupoDestinacao = "multiplos";
+        }
+      } else {
+        map.set(chave, {
+          poderOrgao: r.poder_orgao,
+          entidadeNome: r.entidade_nome ?? null,
+          cnpj: r.cnpj ?? null,
+          empresaId: r.empresa_id ? String(r.empresa_id) : null,
+          grupoDestinacao: r.grupo_destinacao,
+          saldoCaixaBancos: Number(saldoCaixa.toFixed(2)),
+          saldoRecursosLivres: Number(saldoLivres.toFixed(2)),
+          saldoRecursosVinculados: Number(saldoVinculados.toFixed(2)),
+          mesReferencia: mesRef,
+          dataReferencia: dataRef,
+        });
+      }
+      return map;
+    },
+    new Map(),
+  );
+
+  const todasEntidades = Array.from(entidadesAgrupadasMap.values()).sort(
+    (a, b) => b.saldoCaixaBancos - a.saldoCaixaBancos,
+  );
 
   const isPrevidencia = (ent: EntidadeSaldoCaixaDTO) => {
     const nome = (ent.entidadeNome ?? "").toLowerCase();

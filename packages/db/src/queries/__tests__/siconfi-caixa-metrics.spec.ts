@@ -195,4 +195,55 @@ describe("getSiconfiPosicaoFinanceira", () => {
     expect(result?.previdencia[0].entidadeNome).toBe("CAPREM");
     expect(result?.previdencia[0].saldoCaixaBancos).toBe(8000000);
   });
+
+  it("consolida múltiplos grupos de destinação de uma mesma entidade em um único registro", async () => {
+    // Linha 1: Prefeitura com recursos livres
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+      entidadeNome: "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 10000000,
+      saldoRecursosLivres: 10000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Linha 2: Mesma prefeitura com outros recursos vinculados
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "outros_vinculados",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+      entidadeNome: "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 8000000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 8000000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    const result = await getSiconfiPosicaoFinanceira(PORTAL, 2024);
+
+    expect(result).not.toBeNull();
+    // Deve haver apenas 1 entidade consolidada para a Prefeitura, e não 2
+    expect(result?.entidades).toHaveLength(1);
+    const prefeitura = result?.entidades[0];
+    expect(prefeitura?.entidadeNome).toBe(
+      "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+    );
+    expect(prefeitura?.saldoCaixaBancos).toBe(18000000);
+    expect(prefeitura?.saldoRecursosLivres).toBe(10000000);
+    expect(prefeitura?.saldoRecursosVinculados).toBe(8000000);
+  });
 });
