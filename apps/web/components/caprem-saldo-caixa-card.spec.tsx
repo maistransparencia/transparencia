@@ -51,11 +51,11 @@ describe("CapremSaldoCaixaCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Segregação Constitucional")).toBeInTheDocument();
     expect(screen.getByText("Total em Caixa e Aplicações")).toBeInTheDocument();
-    expect(screen.getByText("Recursos Vinculados (RPPS)")).toBeInTheDocument();
-    expect(screen.getAllByText("R$ 8.5mi").length).toBeGreaterThanOrEqual(2);
     expect(
-      screen.getAllByText("+13.3% vs. 2023").length,
-    ).toBeGreaterThanOrEqual(1);
+      screen.getByText(/Recursos Vinculados \(RPPS\)/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
+    expect(screen.getByText("+13.3% vs. 2023")).toBeInTheDocument();
     expect(screen.getByText("Fonte: STN / SICONFI")).toBeInTheDocument();
   });
 

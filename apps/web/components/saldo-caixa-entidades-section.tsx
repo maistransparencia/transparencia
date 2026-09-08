@@ -400,9 +400,6 @@ export function SaldoCaixaEntidadesSection({
                       </div>
 
                       <div className="mt-4">
-                        <span className="font-medium text-subtleText text-xs uppercase tracking-wide">
-                          Saldo em Caixa e Bancos
-                        </span>
                         <div className="mt-1 flex items-center gap-2">
                           <p
                             className={`font-bold font-serif text-2xl tracking-tight ${
