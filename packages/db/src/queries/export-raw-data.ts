@@ -209,29 +209,9 @@ export async function getRawSaldoCaixaSiconfiExportRecords(
     }
 
     if (entidades === "executivo") {
-      query = query
-        .where("poder_orgao", "!=", "10132")
-        .where("grupo_destinacao", "!=", "previdencia")
-        .where((eb) =>
-          eb.or([
-            eb("entidade_nome", "is", null),
-            eb.and([
-              eb("entidade_nome", "not ilike", "%previdencia%"),
-              eb("entidade_nome", "not ilike", "%previdência%"),
-              eb("entidade_nome", "not ilike", "%caprem%"),
-            ]),
-          ]),
-        );
+      query = query.where("poder_orgao", "!=", "10132");
     } else if (entidades === "previdencia" || entidades === "caprem") {
-      query = query.where((eb) =>
-        eb.or([
-          eb("poder_orgao", "=", "10132"),
-          eb("grupo_destinacao", "=", "previdencia"),
-          eb("entidade_nome", "ilike", "%previdencia%"),
-          eb("entidade_nome", "ilike", "%previdência%"),
-          eb("entidade_nome", "ilike", "%caprem%"),
-        ]),
-      );
+      query = query.where("poder_orgao", "=", "10132");
     }
 
     const rows = await query
@@ -240,18 +220,31 @@ export async function getRawSaldoCaixaSiconfiExportRecords(
       .orderBy("saldo_caixa_bancos", "desc")
       .execute();
 
-    return rows.map((r) => ({
-      ano: Number(r.ano),
-      mesReferencia: Number(r.mes_referencia),
-      dataReferencia: r.data_referencia ? String(r.data_referencia) : null,
-      poderOrgao: r.poder_orgao,
-      entidadeNome: r.entidade_nome ?? null,
-      cnpj: r.cnpj ?? null,
-      grupoDestinacao: r.grupo_destinacao,
-      saldoCaixaBancos: Number(r.saldo_caixa_bancos ?? 0),
-      saldoRecursosLivres: Number(r.saldo_recursos_livres ?? 0),
-      saldoRecursosVinculados: Number(r.saldo_recursos_vinculados ?? 0),
-    }));
+    return rows.map((r) => {
+      const nomeTratado = (() => {
+        if (
+          r.poder_orgao === "10131" &&
+          (r.grupo_destinacao === "previdencia" ||
+            (r.entidade_nome ?? "").toLowerCase().trim() === "previdencia")
+        ) {
+          return "Recursos Previdenciários (Prefeitura)";
+        }
+        return r.entidade_nome ?? null;
+      })();
+
+      return {
+        ano: Number(r.ano),
+        mesReferencia: Number(r.mes_referencia),
+        dataReferencia: r.data_referencia ? String(r.data_referencia) : null,
+        poderOrgao: r.poder_orgao,
+        entidadeNome: nomeTratado,
+        cnpj: r.cnpj ?? null,
+        grupoDestinacao: r.grupo_destinacao,
+        saldoCaixaBancos: Number(r.saldo_caixa_bancos ?? 0),
+        saldoRecursosLivres: Number(r.saldo_recursos_livres ?? 0),
+        saldoRecursosVinculados: Number(r.saldo_recursos_vinculados ?? 0),
+      };
+    });
   } catch (error) {
     // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
     console.error(

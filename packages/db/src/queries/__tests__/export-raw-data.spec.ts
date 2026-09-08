@@ -232,30 +232,33 @@ describe("export-raw-data (smoke & parity)", () => {
       expect(allRows).toHaveLength(3);
       expect(allRows.every((r) => r.mesReferencia === 12)).toBe(true);
 
-      // 2. Filtro exclusivo Executivo (deve excluir CAPREM e Previdencia mesmo com poderOrgao 10131)
+      // 2. Filtro exclusivo Executivo (deve incluir todas as contas sob poderOrgao != 10132, incluindo contas vinculadas mantidas pela Prefeitura)
       const executivoRows = await getRawSaldoCaixaSiconfiExportRecords({
         portalSlug: FIXTURE_PORTAL,
         ano: 2024,
         entidades: "executivo",
       });
-      expect(executivoRows).toHaveLength(1);
-      expect(executivoRows[0].poderOrgao).toBe("10131");
-      expect(executivoRows[0].entidadeNome).toBe("PREFEITURA MUNICIPAL");
-      expect(executivoRows[0].saldoCaixaBancos).toBe(10000000);
+      expect(executivoRows).toHaveLength(2);
+      expect(executivoRows.every((r) => r.poderOrgao === "10131")).toBe(true);
+      expect(
+        executivoRows.some((r) => r.entidadeNome === "PREFEITURA MUNICIPAL"),
+      ).toBe(true);
+      expect(
+        executivoRows.some(
+          (r) => r.entidadeNome === "Recursos Previdenciários (Prefeitura)",
+        ),
+      ).toBe(true);
 
-      // 3. Filtro exclusivo Previdência (deve incluir tanto 10132 quanto linhas previdencia de 10131)
+      // 3. Filtro exclusivo Previdência (deve incluir estritamente contas da autarquia poderOrgao = 10132)
       const previdenciaRows = await getRawSaldoCaixaSiconfiExportRecords({
         portalSlug: FIXTURE_PORTAL,
         ano: 2024,
         entidades: "previdencia",
       });
-      expect(previdenciaRows).toHaveLength(2);
-      expect(previdenciaRows.some((r) => r.entidadeNome === "CAPREM")).toBe(
-        true,
-      );
-      expect(
-        previdenciaRows.some((r) => r.entidadeNome === "Previdencia"),
-      ).toBe(true);
+      expect(previdenciaRows).toHaveLength(1);
+      expect(previdenciaRows[0].poderOrgao).toBe("10132");
+      expect(previdenciaRows[0].entidadeNome).toBe("CAPREM");
+      expect(previdenciaRows[0].saldoCaixaBancos).toBe(5000000);
 
       await cleanupFixtures(FIXTURE_PORTAL);
     });

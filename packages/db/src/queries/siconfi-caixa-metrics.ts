@@ -48,7 +48,18 @@ function agruparEntidades(
   }>,
 ): Map<string, EntidadeSaldoCaixaDTO> {
   return rowsList.reduce<Map<string, EntidadeSaldoCaixaDTO>>((map, r) => {
-    const chave = (r.entidade_nome ?? r.poder_orgao).trim().toLowerCase();
+    const nomeTratado = (() => {
+      if (
+        r.poder_orgao === "10131" &&
+        (r.grupo_destinacao === "previdencia" ||
+          (r.entidade_nome ?? "").toLowerCase().trim() === "previdencia")
+      ) {
+        return "Recursos Previdenciários (Prefeitura)";
+      }
+      return r.entidade_nome ?? r.poder_orgao;
+    })();
+
+    const chave = `${r.poder_orgao}_${nomeTratado.trim().toLowerCase()}`;
     const existente = map.get(chave);
     const saldoCaixa = Number(r.saldo_caixa_bancos ?? 0);
     const saldoLivres = Number(r.saldo_recursos_livres ?? 0);
@@ -82,7 +93,7 @@ function agruparEntidades(
     } else {
       map.set(chave, {
         poderOrgao: r.poder_orgao,
-        entidadeNome: r.entidade_nome ?? null,
+        entidadeNome: nomeTratado,
         cnpj: r.cnpj ?? null,
         empresaId: r.empresa_id ? String(r.empresa_id) : null,
         grupoDestinacao: r.grupo_destinacao,
@@ -147,16 +158,8 @@ export async function getSiconfiPosicaoFinanceira(
   const entidadesAgrupadasMap = agruparEntidades(rowsAtual);
   const entidadesAnteriorMap = agruparEntidades(rowsAnterior);
 
-  const isPrevidencia = (ent: EntidadeSaldoCaixaDTO) => {
-    const nome = (ent.entidadeNome ?? "").toLowerCase();
-    return (
-      ent.poderOrgao === "10132" ||
-      ent.grupoDestinacao === "previdencia" ||
-      nome.includes("previdência") ||
-      nome.includes("previdencia") ||
-      nome.includes("caprem")
-    );
-  };
+  const isPrevidencia = (ent: EntidadeSaldoCaixaDTO) =>
+    ent.poderOrgao === "10132";
 
   const todasEntidades = Array.from(entidadesAgrupadasMap.entries())
     .map(([chave, ent]) => {

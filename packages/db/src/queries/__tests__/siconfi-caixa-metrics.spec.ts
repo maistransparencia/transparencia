@@ -246,4 +246,74 @@ describe("getSiconfiPosicaoFinanceira", () => {
     expect(prefeitura?.saldoRecursosLivres).toBe(10000000);
     expect(prefeitura?.saldoRecursosVinculados).toBe(8000000);
   });
+
+  it("atribui contas previdenciárias sob poderOrgao 10131 ao caixa do Executivo com nome semântico", async () => {
+    // Conta livre da prefeitura
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA MUNICIPAL",
+      entidadeNome: "PREFEITURA MUNICIPAL",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 5000000,
+      saldoRecursosLivres: 5000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Conta vinculada à previdência sob poderOrgao 10131 (Prefeitura)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "previdencia",
+      entidadeNome: "Previdencia",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 1250000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 1250000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Conta do RPPS autárquico poderOrgao 10132 (CAPREM)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10132",
+      grupoDestinacao: "previdencia",
+      entidadeNome: "CAPREM",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 67000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 67000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    const result = await getSiconfiPosicaoFinanceira(PORTAL, 2024);
+
+    expect(result).not.toBeNull();
+    // O totalCaixaGeral inclui o 1.25M da prefeitura (5M + 1.25M = 6.25M)
+    expect(result?.totalCaixaGeral).toBe(6250000);
+    // Mas não inclui os 67k do 10132
+    expect(result?.totalCaixaPrevidencia).toBe(67000);
+
+    // Na lista de entidades do executivo deve estar Recursos Previdenciários (Prefeitura)
+    expect(
+      result?.entidades.some(
+        (e) => e.entidadeNome === "Recursos Previdenciários (Prefeitura)",
+      ),
+    ).toBe(true);
+
+    // E a lista previdencia contém APENAS o 10132
+    expect(result?.previdencia).toHaveLength(1);
+    expect(result?.previdencia[0].poderOrgao).toBe("10132");
+    expect(result?.previdencia[0].saldoCaixaBancos).toBe(67000);
+  });
 });
