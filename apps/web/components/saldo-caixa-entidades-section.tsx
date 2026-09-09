@@ -194,42 +194,41 @@ export function SaldoCaixaEntidadesSection({
       className={`rounded-2xl border border-[#e7e9ee] bg-white p-6 shadow-sm ${className}`}
     >
       {/* Header com Título, Subtítulo, Badges e ShowYourWork */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
+      <div>
+        <div className="flex flex-wrap justify-between">
           <h2 className="font-bold text-ink text-xl tracking-tight">
             {tituloSecao}
           </h2>
-          <p className="text-sm text-subtleText">{subtituloSecao}</p>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 text-xs">
-            Posição oficial em {mesExtenso}/{ano}
-          </span>
-          <a
-            href="https://siconfi.tesouro.gov.br"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
-          >
-            <span>Fonte: STN / SICONFI</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 text-xs">
+              Posição: {mesExtenso}/{ano}
+            </span>
+            <a
+              href="https://siconfi.tesouro.gov.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
+            >
+              <span>SICONFI</span>
+              <ExternalLink className="h-3 w-3" />
+            </a>
+            {portalSlug && (
+              <ShowYourWorkButton
+                portalSlug={portalSlug}
+                ano={ano}
+                tipo="saldo_caixa_siconfi"
+                entidades={isPrevidencia ? "previdencia" : "executivo"}
+                tituloContexto={
+                  isPrevidencia
+                    ? "Previdência Municipal (CAPREM)"
+                    : "Disponibilidade Financeira SICONFI"
+                }
+              />
+            )}
+          </div>
         </div>
-
-        {portalSlug && (
-          <ShowYourWorkButton
-            portalSlug={portalSlug}
-            ano={ano}
-            tipo="saldo_caixa_siconfi"
-            entidades={isPrevidencia ? "previdencia" : "executivo"}
-            tituloContexto={
-              isPrevidencia
-                ? "Previdência Municipal (CAPREM)"
-                : "Disponibilidade Financeira SICONFI"
-            }
-          />
-        )}
+        <p className="text-sm text-subtleText">{subtituloSecao}</p>
       </div>
 
       {/* Callouts Didáticos e de Prevenção de Desinformação */}

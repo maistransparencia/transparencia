@@ -167,7 +167,7 @@ export function SaldoCaixaResumoCard({
 
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 text-xs">
-            Posição oficial em {mesExtenso}/{ano}
+            Posição: {mesExtenso}/{ano}
           </span>
           <a
             href="https://siconfi.tesouro.gov.br"
@@ -175,7 +175,7 @@ export function SaldoCaixaResumoCard({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
           >
-            <span>Fonte: STN / SICONFI</span>
+            <span>SICONFI</span>
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
