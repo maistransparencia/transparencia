@@ -15,7 +15,7 @@ describe("SaldoCaixaResumoCard Component", () => {
     totalCaixaPrevidencia: 0,
     totalRecursosPrevidencia: 0,
     hasSaldoDescoberto: false,
-    variacaoAnualPct: 15.2,
+    variacaoAnualPercentual: 15.2,
     entidades: [
       {
         poderOrgao: "Executivo",

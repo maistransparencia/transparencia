@@ -134,7 +134,7 @@ describe("CapremPage", () => {
               saldoRecursosLivres: 0,
               saldoRecursosVinculados: 8500000,
               saldoCaixaAnoAnterior: 7500000,
-              variacaoAnualPct: 13.3,
+              variacaoAnualPercentual: 13.3,
               saldoDescobertoFlag: false,
               mesReferencia: 12,
               dataReferencia: "2024-12-31",

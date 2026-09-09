@@ -26,7 +26,7 @@ const samplePosicao: SiconfiPosicaoFinanceiraDTO = {
       saldoRecursosLivres: 0,
       saldoRecursosVinculados: 8500000,
       saldoCaixaAnoAnterior: 7500000,
-      variacaoAnualPct: 13.3,
+      variacaoAnualPercentual: 13.3,
       saldoDescobertoFlag: false,
       mesReferencia: 12,
       dataReferencia: "2024-12-31",
@@ -68,7 +68,7 @@ describe("CapremSaldoCaixaCard", () => {
       previdencia: [
         {
           ...samplePosicao.previdencia[0],
-          variacaoAnualPct: -8.5,
+          variacaoAnualPercentual: -8.5,
         },
       ],
     };

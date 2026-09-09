@@ -15,7 +15,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     totalCaixaPrevidencia: 1500000,
     totalRecursosPrevidencia: 1100000,
     hasSaldoDescoberto: false,
-    variacaoAnualPct: 15.2,
+    variacaoAnualPercentual: 15.2,
     entidades: [
       {
         poderOrgao: "Executivo",
@@ -29,7 +29,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
         saldoDescobertoFlag: false,
-        variacaoAnualPct: 10.5,
+        variacaoAnualPercentual: 10.5,
       },
       {
         poderOrgao: "Executivo",
@@ -43,7 +43,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
         mesReferencia: 12,
         dataReferencia: "2024-12-31",
         saldoDescobertoFlag: false,
-        variacaoAnualPct: -5.0,
+        variacaoAnualPercentual: -5.0,
       },
       {
         poderOrgao: "Executivo",
@@ -267,7 +267,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
           mesReferencia: 12,
           dataReferencia: "2024-12-31",
           saldoDescobertoFlag: true,
-          variacaoAnualPct: -45.2,
+          variacaoAnualPercentual: -45.2,
         },
       ],
     };
