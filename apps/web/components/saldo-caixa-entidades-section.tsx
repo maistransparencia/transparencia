@@ -34,6 +34,16 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
+function getVariacaoBadgeClass(variacao: number): string {
+  if (variacao > 0) {
+    return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (variacao < 0) {
+    return "border border-rose-200 bg-rose-50 text-rose-700";
+  }
+  return "bg-slate-100 text-slate-600";
+}
+
 export function SaldoCaixaEntidadesSection({
   posicaoFinanceira,
   ano,
@@ -111,12 +121,13 @@ export function SaldoCaixaEntidadesSection({
               {tituloVazio}
             </h2>
             <a
-              href="https://siconfi.tesouro.gov.br"
+              href="https://siconfi.tesouro.gov.br/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
+              className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100"
+              title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
             >
-              <span>Fonte: STN / SICONFI</span>
+              <span>SICONFI</span>
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -159,8 +170,8 @@ export function SaldoCaixaEntidadesSection({
     : posicaoFinanceira.totalRecursosVinculados;
 
   const variacaoAnualTotal = isPrevidencia
-    ? (listaItens[0]?.variacaoAnualPct ?? null)
-    : posicaoFinanceira.variacaoAnualPct;
+    ? (listaItens[0]?.variacaoAnualPercentual ?? null)
+    : posicaoFinanceira.variacaoAnualPercentual;
 
   const hasSaldoDescoberto = isPrevidencia
     ? listaItens.some((item: EntidadeSaldoCaixaDTO) => item.saldoDescobertoFlag)
@@ -293,13 +304,9 @@ export function SaldoCaixaEntidadesSection({
             {variacaoAnualTotal !== undefined &&
               variacaoAnualTotal !== null && (
                 <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${
-                    variacaoAnualTotal > 0
-                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : variacaoAnualTotal < 0
-                        ? "border border-rose-200 bg-rose-50 text-rose-700"
-                        : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                    variacaoAnualTotal,
+                  )}`}
                 >
                   {variacaoAnualTotal > 0
                     ? `+${variacaoAnualTotal}%`
@@ -409,20 +416,16 @@ export function SaldoCaixaEntidadesSection({
                           >
                             {fmtCompact(entidade.saldoCaixaBancos)}
                           </p>
-                          {entidade.variacaoAnualPct !== undefined &&
-                            entidade.variacaoAnualPct !== null && (
+                          {entidade.variacaoAnualPercentual !== undefined &&
+                            entidade.variacaoAnualPercentual !== null && (
                               <span
-                                className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${
-                                  entidade.variacaoAnualPct > 0
-                                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                                    : entidade.variacaoAnualPct < 0
-                                      ? "border border-rose-200 bg-rose-50 text-rose-700"
-                                      : "bg-slate-100 text-slate-600"
-                                }`}
+                                className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                                  entidade.variacaoAnualPercentual,
+                                )}`}
                               >
-                                {entidade.variacaoAnualPct > 0
-                                  ? `+${entidade.variacaoAnualPct}%`
-                                  : `${entidade.variacaoAnualPct}%`}{" "}
+                                {entidade.variacaoAnualPercentual > 0
+                                  ? `+${entidade.variacaoAnualPercentual}%`
+                                  : `${entidade.variacaoAnualPercentual}%`}{" "}
                                 vs. {ano - 1}
                               </span>
                             )}

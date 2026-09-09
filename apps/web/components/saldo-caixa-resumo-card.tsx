@@ -30,6 +30,16 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
+function getVariacaoBadgeClass(variacao: number): string {
+  if (variacao > 0) {
+    return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (variacao < 0) {
+    return "border border-rose-200 bg-rose-50 text-rose-700";
+  }
+  return "bg-slate-100 text-slate-600";
+}
+
 export function SaldoCaixaResumoCard({
   posicaoFinanceira,
   ano,
@@ -44,7 +54,7 @@ export function SaldoCaixaResumoCard({
         className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+          <div className="space-y-1">
             <h3 className="font-bold text-base text-ink tracking-tight">
               Disponibilidade em Caixa e Bancos
             </h3>
@@ -92,12 +102,13 @@ export function SaldoCaixaResumoCard({
             </div>
           </div>
           <a
-            href="https://siconfi.tesouro.gov.br"
+            href="https://siconfi.tesouro.gov.br/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink sm:self-auto"
+            className="inline-flex items-center gap-1 self-start rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100 sm:self-auto"
+            title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
           >
-            <span>Fonte: STN / SICONFI</span>
+            <span>SICONFI</span>
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
@@ -191,20 +202,16 @@ export function SaldoCaixaResumoCard({
             <p className="font-bold font-serif text-3xl text-ink tracking-tight">
               {fmtCompact(totalCaixaGeral)}
             </p>
-            {posicaoFinanceira.variacaoAnualPct !== undefined &&
-              posicaoFinanceira.variacaoAnualPct !== null && (
+            {posicaoFinanceira.variacaoAnualPercentual !== undefined &&
+              posicaoFinanceira.variacaoAnualPercentual !== null && (
                 <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${
-                    posicaoFinanceira.variacaoAnualPct > 0
-                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : posicaoFinanceira.variacaoAnualPct < 0
-                        ? "border border-rose-200 bg-rose-50 text-rose-700"
-                        : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                    posicaoFinanceira.variacaoAnualPercentual,
+                  )}`}
                 >
-                  {posicaoFinanceira.variacaoAnualPct > 0
-                    ? `+${posicaoFinanceira.variacaoAnualPct}%`
-                    : `${posicaoFinanceira.variacaoAnualPct}%`}{" "}
+                  {posicaoFinanceira.variacaoAnualPercentual > 0
+                    ? `+${posicaoFinanceira.variacaoAnualPercentual}%`
+                    : `${posicaoFinanceira.variacaoAnualPercentual}%`}{" "}
                   vs. {ano - 1}
                 </span>
               )}

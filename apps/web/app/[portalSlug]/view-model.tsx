@@ -274,7 +274,6 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     pessoalCardData,
     posicaoFinanceira: raw.posicaoFinanceira,
     orcamentoDetailUrl: routeUrl("/orcamento"),
-    receitasDetailUrl: routeUrl("/receitas"),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),

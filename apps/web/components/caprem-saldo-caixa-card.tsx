@@ -29,6 +29,16 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
+function getVariacaoBadgeClass(variacao: number): string {
+  if (variacao > 0) {
+    return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (variacao < 0) {
+    return "border border-rose-200 bg-rose-50 text-rose-700";
+  }
+  return "bg-slate-100 text-slate-600";
+}
+
 export function CapremSaldoCaixaCard({
   posicaoFinanceira,
   ano,
@@ -54,17 +64,18 @@ export function CapremSaldoCaixaCard({
               própria
             </p>
           </div>
-        </div>
 
-        <a
-          href="https://siconfi.tesouro.gov.br"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink sm:self-auto"
-        >
-          <span>Fonte: STN / SICONFI</span>
-          <ExternalLink className="h-3 w-3" />
-        </a>
+          <a
+            href="https://siconfi.tesouro.gov.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 self-start rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100 sm:self-auto"
+            title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
+          >
+            <span>SICONFI</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
 
         <div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-6 text-center">
           <AlertCircle className="mb-2 h-6 w-6 text-subtleText/60" />
@@ -87,7 +98,7 @@ export function CapremSaldoCaixaCard({
   const mesReferencia =
     prevItem?.mesReferencia ?? posicaoFinanceira.mesMaisRecente;
   const mesExtenso = getMesNome(mesReferencia);
-  const variacaoAnualPct = prevItem?.variacaoAnualPct;
+  const variacaoAnualPercentual = prevItem?.variacaoAnualPercentual;
   const saldoDescobertoFlag = prevItem?.saldoDescobertoFlag ?? false;
 
   const pctLivres = (() => {
@@ -168,22 +179,19 @@ export function CapremSaldoCaixaCard({
             <p className="font-bold font-serif text-3xl text-ink tracking-tight">
               {fmtCompact(saldoTotal)}
             </p>
-            {variacaoAnualPct !== undefined && variacaoAnualPct !== null && (
-              <span
-                className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${
-                  variacaoAnualPct > 0
-                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : variacaoAnualPct < 0
-                      ? "border border-rose-200 bg-rose-50 text-rose-700"
-                      : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {variacaoAnualPct > 0
-                  ? `+${variacaoAnualPct}%`
-                  : `${variacaoAnualPct}%`}{" "}
-                vs. {ano - 1}
-              </span>
-            )}
+            {variacaoAnualPercentual !== undefined &&
+              variacaoAnualPercentual !== null && (
+                <span
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                    variacaoAnualPercentual,
+                  )}`}
+                >
+                  {variacaoAnualPercentual > 0
+                    ? `+${variacaoAnualPercentual}%`
+                    : `${variacaoAnualPercentual}%`}{" "}
+                  vs. {ano - 1}
+                </span>
+              )}
           </div>
         </div>
 
