@@ -137,7 +137,9 @@ function resolveFilename(options: ResolveFilenameOptions): string {
     return `despesas_opacidade_residual_99_${portalSlug}_${ano}.csv`;
   }
   if (tipo === "saldo_caixa_siconfi") {
-    const sufixo = entidades ? `_${entidades}` : "";
+    const sufixo = entidades
+      ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
+      : "";
     return `saldo_caixa_siconfi_${portalSlug}_${ano}${sufixo}.csv`;
   }
   return `despesas_funcao_${funcaoCodigo}_${portalSlug}_${ano}.csv`;

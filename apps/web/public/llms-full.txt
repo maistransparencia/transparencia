@@ -96,16 +96,16 @@ Esta seção detalha a execução orçamentária e financeira do município atra
   12. `categoria_sugerida` — Categoria sugerida pela reclassificação orçamentária para despesas em rubricas residuais (.99)
   13. `natureza_codigo_sugerido` — Código da natureza de despesa sugerido pelo objeto segundo o catálogo STN/MCASP
 - **Colunas Canônicas Exportadas para Saldo em Caixa SICONFI (`saldo_caixa_siconfi`):**
-  1. `exercicio` — Ano do exercício de referência (ex: 2024)
+  1. `ano` — Ano do exercício de referência (ex: 2024)
   2. `mes_referencia` — Competência mensal homologada (1 a 12)
-  3. `poder_orgao` — Código ou discriminador do órgão/poder (Executivo, 10132 RPPS)
-  4. `entidade_nome` — Nome institucional da entidade contábil
-  5. `cnpj` — CNPJ oficial da entidade municipal
-  6. `grupo_destinacao` — Destinação legal dos recursos (`livre`, `saude`, `educacao`, `previdencia`, `outros_vinculados`, `multiplos`)
-  7. `saldo_caixa_bancos` — Saldo total em contas bancárias e aplicações de liquidez (R$)
-  8. `saldo_recursos_livres` — Saldo alocado em recursos ordinários/livres (R$)
-  9. `saldo_recursos_vinculados` — Saldo vinculado a finalidades legais específicas (R$)
-  10. `data_referencia` — Data de corte da remessa contábil homologada pela STN
+  3. `data_referencia` — Data de corte da remessa contábil homologada pela STN
+  4. `poder_orgao` — Código ou discriminador do órgão/poder (Executivo, 10132 RPPS)
+  5. `entidade_nome` — Nome institucional da entidade contábil
+  6. `cnpj` — CNPJ oficial da entidade municipal
+  7. `grupo_destinacao` — Destinação legal dos recursos (`livre`, `saude`, `educacao`, `previdencia`, `outros_vinculados`, `multiplos`)
+  8. `saldo_caixa_bancos` — Saldo total em contas bancárias e aplicações de liquidez (R$)
+  9. `saldo_recursos_livres` — Saldo alocado em recursos ordinários/livres (R$)
+  10. `saldo_recursos_vinculados` — Saldo vinculado a finalidades legais específicas (R$)
 - **Compatibilidade e Proteção:**
   - Emissão com marca de ordem de byte UTF-8 (BOM `\uFEFF`), assegurando abertura imediata no Microsoft Excel sem corrupção de caracteres especiais ou acentuação.
   - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` prefixadas para impedir execução indevida de comandos na planilha).
