@@ -49,14 +49,17 @@ describe("CapremSaldoCaixaCard", () => {
         name: /disponibilidade em caixa e aplicações do rpps/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Segregação Constitucional")).toBeInTheDocument();
+    expect(
+      screen.getByText(/segregado do caixa geral do município/i),
+    ).toBeInTheDocument();
     expect(screen.getByText("Total em Caixa e Aplicações")).toBeInTheDocument();
     expect(
       screen.getByText(/Recursos Vinculados \(RPPS\)/i),
     ).toBeInTheDocument();
     expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
     expect(screen.getByText("+13.3% vs. 2023")).toBeInTheDocument();
-    expect(screen.getByText("Fonte: STN / SICONFI")).toBeInTheDocument();
+    expect(screen.getByText("SICONFI")).toBeInTheDocument();
+    expect(screen.getByText(/posição:\s*dezembro\/2024/i)).toBeInTheDocument();
   });
 
   it("renderiza variação percentual anual negativa corretamente", () => {

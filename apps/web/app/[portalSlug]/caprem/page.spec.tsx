@@ -152,7 +152,9 @@ describe("CapremPage", () => {
         name: /disponibilidade em caixa e aplicações do rpps/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Segregação Constitucional")).toBeInTheDocument();
+    expect(
+      screen.getByText(/segregado do caixa geral do município/i),
+    ).toBeInTheDocument();
     expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
   });
 });

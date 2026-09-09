@@ -109,7 +109,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       ),
     ).toBeInTheDocument();
 
-    expect(screen.getByText(/fonte: stn \/ siconfi/i)).toBeInTheDocument();
+    expect(screen.getByText("SICONFI")).toBeInTheDocument();
   });
 
   it("exibe a competência contábil homologada mais recente", () => {
@@ -120,9 +120,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       />,
     );
 
-    expect(
-      screen.getByText(/posição oficial em dezembro\/2024/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/posição:\s*dezembro\/2024/i)).toBeInTheDocument();
   });
 
   it("exibe o callout didático prevenindo equívocos de desinformação", () => {
