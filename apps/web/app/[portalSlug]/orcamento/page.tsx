@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { FunnelExecucaoHorizontal } from "@/components/funil-execucao-horizontal";
 import { GastoPorFuncaoBars } from "@/components/gasto-por-funcao-bars";
 import { KPIGrid } from "@/components/kpi-grid";
+import { SaldoCaixaEntidadesSection } from "@/components/saldo-caixa-entidades-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadOrcamentoData } from "./loader";
 import { buildOrcamentoViewModel } from "./view-model";
@@ -144,6 +145,18 @@ export default async function OrcamentoPage({
           searchableKeys={["descricao"]}
         />
       </div>
+
+      {/* Disponibilidade Financeira em Caixa (SICONFI / STN) */}
+      {viewModel.posicaoFinanceira && (
+        <div id="disponibilidade-caixa">
+          <SaldoCaixaEntidadesSection
+            posicaoFinanceira={viewModel.posicaoFinanceira}
+            ano={selectedYear}
+            portalSlug={portalSlug}
+            hasEntityFilter={viewModel.hasEntityFilter}
+          />
+        </div>
+      )}
     </div>
   );
 }

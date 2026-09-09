@@ -107,4 +107,54 @@ describe("CapremPage", () => {
       screen.getByText("Composição Contábil dos Repasses"),
     ).toBeInTheDocument();
   });
+
+  it("renderiza a seção de disponibilidade financeira em caixa do RPPS (SICONFI)", async () => {
+    loadCapremDataMock.mockResolvedValue(
+      makeRaw({
+        posicaoFinanceira: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          mesMaisRecente: 12,
+          dataHomologacao: "2024-12-31",
+          totalCaixaGeral: 15000000,
+          totalRecursosLivres: 5000000,
+          totalRecursosVinculados: 10000000,
+          totalCaixaPrevidencia: 8500000,
+          totalRecursosPrevidencia: 8500000,
+          hasSaldoDescoberto: false,
+          entidades: [],
+          previdencia: [
+            {
+              poderOrgao: "10132",
+              entidadeNome: "CAPREM",
+              cnpj: "33.444.555/0001-66",
+              empresaId: "4",
+              grupoDestinacao: "previdencia",
+              saldoCaixaBancos: 8500000,
+              saldoRecursosLivres: 0,
+              saldoRecursosVinculados: 8500000,
+              saldoCaixaAnoAnterior: 7500000,
+              variacaoAnualPercentual: 13.3,
+              saldoDescobertoFlag: false,
+              mesReferencia: 12,
+              dataReferencia: "2024-12-31",
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await CapremPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", {
+        name: /disponibilidade em caixa e aplicações do rpps/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/segregado do caixa geral do município/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
+  });
 });

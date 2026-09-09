@@ -1,6 +1,10 @@
 import { db } from "../client";
 
-export type TipoExportacao = "gasto_sensivel" | "opacidade_99" | "funcao";
+export type TipoExportacao =
+  | "gasto_sensivel"
+  | "opacidade_99"
+  | "funcao"
+  | "saldo_caixa_siconfi";
 
 export interface RawExportOptions {
   portalSlug: string;
@@ -147,6 +151,106 @@ export async function getRawDespesasExportRecords(
   } catch (error) {
     // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
     console.error("[getRawDespesasExportRecords] Erro na consulta:", error);
+    throw error;
+  }
+}
+
+export interface RawSaldoCaixaSiconfiRecordDTO {
+  ano: number;
+  mesReferencia: number;
+  dataReferencia: string | null;
+  poderOrgao: string;
+  entidadeNome: string | null;
+  cnpj: string | null;
+  grupoDestinacao: string;
+  saldoCaixaBancos: number;
+  saldoRecursosLivres: number;
+  saldoRecursosVinculados: number;
+}
+
+export interface RawSaldoCaixaExportOptions {
+  portalSlug: string;
+  ano: number;
+  mes?: number;
+  entidades?: string;
+}
+
+/**
+ * Consulta registros brutos de saldo em caixa e bancos do SICONFI/MSC para exportação direta em CSV (Show Your Work).
+ */
+export async function getRawSaldoCaixaSiconfiExportRecords(
+  options: RawSaldoCaixaExportOptions,
+): Promise<RawSaldoCaixaSiconfiRecordDTO[]> {
+  const { portalSlug, ano, mes, entidades } = options;
+
+  try {
+    let query = db
+      .selectFrom("fct_saldo_caixa_siconfi")
+      .select([
+        "ano",
+        "mes_referencia",
+        "data_referencia",
+        "poder_orgao",
+        "entidade_nome",
+        "cnpj",
+        "grupo_destinacao",
+        "saldo_caixa_bancos",
+        "saldo_recursos_livres",
+        "saldo_recursos_vinculados",
+        "ultima_competencia_flag",
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", ano);
+
+    if (mes !== undefined) {
+      query = query.where("mes_referencia", "=", mes);
+    } else {
+      query = query.where("ultima_competencia_flag", "=", true);
+    }
+
+    if (entidades === "executivo") {
+      query = query.where("poder_orgao", "!=", "10132");
+    } else if (entidades === "previdencia" || entidades === "caprem") {
+      query = query.where("poder_orgao", "=", "10132");
+    }
+
+    const rows = await query
+      .orderBy("poder_orgao", "asc")
+      .orderBy("entidade_nome", "asc")
+      .orderBy("saldo_caixa_bancos", "desc")
+      .execute();
+
+    return rows.map((r) => {
+      const nomeTratado = (() => {
+        if (
+          r.poder_orgao === "10131" &&
+          (r.grupo_destinacao === "previdencia" ||
+            (r.entidade_nome ?? "").toLowerCase().trim() === "previdencia")
+        ) {
+          return "Recursos Previdenciários (Prefeitura)";
+        }
+        return r.entidade_nome ?? null;
+      })();
+
+      return {
+        ano: Number(r.ano),
+        mesReferencia: Number(r.mes_referencia),
+        dataReferencia: r.data_referencia ? String(r.data_referencia) : null,
+        poderOrgao: r.poder_orgao,
+        entidadeNome: nomeTratado,
+        cnpj: r.cnpj ?? null,
+        grupoDestinacao: r.grupo_destinacao,
+        saldoCaixaBancos: Number(r.saldo_caixa_bancos ?? 0),
+        saldoRecursosLivres: Number(r.saldo_recursos_livres ?? 0),
+        saldoRecursosVinculados: Number(r.saldo_recursos_vinculados ?? 0),
+      };
+    });
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+    console.error(
+      "[getRawSaldoCaixaSiconfiExportRecords] Erro na consulta:",
+      error,
+    );
     throw error;
   }
 }

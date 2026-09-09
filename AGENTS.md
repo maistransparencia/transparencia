@@ -134,11 +134,10 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Padrão Obrigatório (`camelCase`):** Todas as propriedades e campos de DTOs, queries Kysely, loaders e View Models devem utilizar exclusivamente a convenção **`camelCase`** (ex: `valorAutorizado`, `esferaOrigem`, `numero`, `destinacao`, `periodo`, `tipoEmenda`, `atoNormativo`).
 - **Apresentação e Rótulos na UI:** Rótulos humanos, cabeçalhos de colunas ou títulos amigáveis para o cidadão pertencem exclusivamente à camada de visualização (`packages/ui` e `apps/web/components`), via mapeamento explícito de colunas (ex: `header: "Valor Autorizado"`, `accessorKey: "valorAutorizado"`).
 
+---
 
+## 19. MENSAGENS DE COMMIT CONVENCIONAIS E SEM METADADOS DE PROCESSO (SEM STORY/TASK)
 
-
-
-
-
-
+- **Proibição de Detalhes de Story/Task:** É estritamente proibido incluir referências a números de stories, tasks ou processos internos de gestão em mensagens de commit (ex: proibido `(story 9-4 task 3)`, `[story-9.4]`, `task 2`).
+- **Padrão Obrigatório:** Utilizar estritamente Conventional Commits em minúsculas focado na mudança funcional ou técnica (ex: `feat(web): adicionar secao detalhada de saldo em caixa em receitas`, `fix(db): consolidar saldos de caixa por entidade`).
 

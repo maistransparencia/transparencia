@@ -10,6 +10,7 @@ import { BarChartH } from "@/components/bar-chart-h";
 import { CapremActuarialRiskSection } from "@/components/caprem-actuarial-risk-section";
 import { CapremEntidadesDonut } from "@/components/caprem-entidades-donut";
 import { CapremHeroSection } from "@/components/caprem-hero-section";
+import { CapremSaldoCaixaCard } from "@/components/caprem-saldo-caixa-card";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SectionHeader } from "@/components/section-header";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -105,6 +106,13 @@ export default async function CapremPage({
           <CapremEntidadesDonut data={caprem.entidades} ano={selectedYear} />
         </section>
       )}
+
+      {/* Seção de Disponibilidade em Caixa e Aplicações do RPPS (SICONFI / STN) */}
+      <CapremSaldoCaixaCard
+        posicaoFinanceira={viewModel.posicaoFinanceira}
+        ano={selectedYear}
+        portalSlug={portalSlug}
+      />
 
       {/* Seção 3: Diagnóstico de Sustentabilidade Atuarial & Risco Previdenciário */}
       <CapremActuarialRiskSection
