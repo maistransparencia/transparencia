@@ -12,7 +12,7 @@ export interface EntidadeSaldoCaixaDTO {
   mesReferencia: number;
   dataReferencia: string;
   saldoCaixaAnoAnterior?: number | null;
-  variacaoAnualPct?: number | null;
+  variacaoAnualPercentual?: number | null;
   saldoDescobertoFlag: boolean;
 }
 
@@ -27,7 +27,7 @@ export interface SiconfiPosicaoFinanceiraDTO {
   totalCaixaPrevidencia: number;
   totalRecursosPrevidencia: number;
   totalCaixaGeralAnoAnterior?: number | null;
-  variacaoAnualPct?: number | null;
+  variacaoAnualPercentual?: number | null;
   hasSaldoDescoberto: boolean;
   entidades: EntidadeSaldoCaixaDTO[];
   previdencia: EntidadeSaldoCaixaDTO[];
@@ -68,28 +68,36 @@ function agruparEntidades(
     const dataRef = r.data_referencia ? String(r.data_referencia) : "";
 
     if (existente) {
-      existente.cnpj = existente.cnpj ?? r.cnpj ?? null;
-      existente.empresaId =
-        existente.empresaId ?? (r.empresa_id ? String(r.empresa_id) : null);
-      existente.saldoCaixaBancos = Number(
+      const novoSaldoCaixa = Number(
         (existente.saldoCaixaBancos + saldoCaixa).toFixed(2),
       );
-      existente.saldoRecursosLivres = Number(
+      const novoSaldoLivres = Number(
         (existente.saldoRecursosLivres + saldoLivres).toFixed(2),
       );
-      existente.saldoRecursosVinculados = Number(
+      const novoSaldoVinculados = Number(
         (existente.saldoRecursosVinculados + saldoVinculados).toFixed(2),
       );
-      existente.mesReferencia = Math.max(existente.mesReferencia, mesRef);
-      existente.dataReferencia =
-        dataRef > existente.dataReferencia ? dataRef : existente.dataReferencia;
-      if (existente.grupoDestinacao !== r.grupo_destinacao) {
-        existente.grupoDestinacao = "multiplos";
-      }
-      existente.saldoDescobertoFlag =
-        existente.saldoCaixaBancos < 0 ||
-        existente.saldoRecursosLivres < 0 ||
-        existente.saldoRecursosVinculados < 0;
+
+      map.set(chave, {
+        ...existente,
+        cnpj: existente.cnpj ?? r.cnpj ?? null,
+        empresaId:
+          existente.empresaId ?? (r.empresa_id ? String(r.empresa_id) : null),
+        saldoCaixaBancos: novoSaldoCaixa,
+        saldoRecursosLivres: novoSaldoLivres,
+        saldoRecursosVinculados: novoSaldoVinculados,
+        mesReferencia: Math.max(existente.mesReferencia, mesRef),
+        dataReferencia:
+          dataRef > existente.dataReferencia
+            ? dataRef
+            : existente.dataReferencia,
+        grupoDestinacao:
+          existente.grupoDestinacao !== r.grupo_destinacao
+            ? "multiplos"
+            : existente.grupoDestinacao,
+        saldoDescobertoFlag:
+          novoSaldoCaixa < 0 || novoSaldoLivres < 0 || novoSaldoVinculados < 0,
+      });
     } else {
       map.set(chave, {
         poderOrgao: r.poder_orgao,
@@ -165,7 +173,7 @@ export async function getSiconfiPosicaoFinanceira(
     .map(([chave, ent]) => {
       const anterior = entidadesAnteriorMap.get(chave);
       const saldoAnterior = anterior ? anterior.saldoCaixaBancos : null;
-      const variacaoAnualPct = (() => {
+      const variacaoAnualPercentual = (() => {
         if (saldoAnterior === null || saldoAnterior === 0) return null;
         const diff = ent.saldoCaixaBancos - saldoAnterior;
         return Number(((diff / Math.abs(saldoAnterior)) * 100).toFixed(1));
@@ -174,7 +182,7 @@ export async function getSiconfiPosicaoFinanceira(
       return {
         ...ent,
         saldoCaixaAnoAnterior: saldoAnterior,
-        variacaoAnualPct,
+        variacaoAnualPercentual,
       };
     })
     .sort((a, b) => b.saldoCaixaBancos - a.saldoCaixaBancos);
@@ -250,7 +258,7 @@ export async function getSiconfiPosicaoFinanceira(
       totaisPrevidencia.recursosVinculados.toFixed(2),
     ),
     totalCaixaGeralAnoAnterior,
-    variacaoAnualPct: variacaoAnualGeralPct,
+    variacaoAnualPercentual: variacaoAnualGeralPct,
     hasSaldoDescoberto,
     entidades,
     previdencia,
