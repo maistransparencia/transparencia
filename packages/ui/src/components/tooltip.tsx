@@ -14,6 +14,8 @@ export interface TooltipProps {
   className?: string;
   /** Classes CSS adicionais para o balão do tooltip */
   contentClassName?: string;
+  /** Estilos inline para o container do gatilho */
+  style?: React.CSSProperties;
 }
 
 export function Tooltip({
@@ -23,6 +25,7 @@ export function Tooltip({
   ariaLabel,
   className,
   contentClassName,
+  style,
 }: TooltipProps) {
   const positionClasses = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
@@ -32,7 +35,10 @@ export function Tooltip({
   };
 
   return (
-    <div className={cn("group relative inline-flex items-center", className)}>
+    <div
+      className={cn("group relative inline-flex items-center", className)}
+      style={style}
+    >
       {children ? (
         children
       ) : (
