@@ -1,10 +1,15 @@
 import { db } from "../client";
+import type { CategoriaRegime } from "./pessoal-regime-metrics";
 
-export type TipoExportacao =
-  | "gasto_sensivel"
-  | "opacidade_99"
-  | "funcao"
-  | "saldo_caixa_siconfi";
+export const TIPOS_EXPORTACAO = [
+  "gasto_sensivel",
+  "opacidade_99",
+  "funcao",
+  "saldo_caixa_siconfi",
+  "pessoal_regime",
+] as const;
+
+export type TipoExportacao = (typeof TIPOS_EXPORTACAO)[number];
 
 export interface RawExportOptions {
   portalSlug: string;
@@ -249,6 +254,90 @@ export async function getRawSaldoCaixaSiconfiExportRecords(
     // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
     console.error(
       "[getRawSaldoCaixaSiconfiExportRecords] Erro na consulta:",
+      error,
+    );
+    throw error;
+  }
+}
+
+export interface RawPessoalRegimeRecordDTO {
+  ano: number;
+  empresaId: string;
+  matricula: string | null;
+  cargo: string | null;
+  proventos: number;
+  categoriaRegime: string;
+  regimePrevidenciario: string;
+  formaProvimento: string | null;
+  vinculo: string | null;
+  categoriaFuncional: string | null;
+}
+
+export interface RawPessoalRegimeExportOptions {
+  portalSlug: string;
+  ano: number;
+  empresaIds?: string[];
+  categoriaRegime?: string;
+}
+
+/**
+ * Consulta registros brutos de servidores na tabela fct_pessoal com classificação de regime e previdência.
+ */
+export async function getRawPessoalRegimeExportRecords(
+  options: RawPessoalRegimeExportOptions,
+): Promise<RawPessoalRegimeRecordDTO[]> {
+  const { portalSlug, ano, empresaIds, categoriaRegime } = options;
+
+  try {
+    let query = db
+      .selectFrom("fct_pessoal")
+      .select([
+        "ano",
+        "empresa_id",
+        "matricula",
+        "cargo",
+        "proventos",
+        "categoria_regime",
+        "regime_previdenciario",
+        "forma_provimento",
+        "vinculo",
+        "categoria_funcional",
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", ano);
+
+    if (empresaIds && empresaIds.length > 0) {
+      query = query.where("empresa_id", "in", empresaIds);
+    }
+
+    if (categoriaRegime) {
+      query = query.where("categoria_regime", "=", categoriaRegime);
+    }
+
+    const rows = await query
+      .orderBy("categoria_regime", "asc")
+      .orderBy("proventos", "desc")
+      .execute();
+
+    return rows.map((r) => {
+      const cat = (r.categoria_regime ?? "outros") as CategoriaRegime;
+      return {
+        ano: Number(r.ano),
+        empresaId: r.empresa_id,
+        matricula: r.matricula ?? null,
+        cargo: r.cargo ?? null,
+        proventos: Number(r.proventos ?? 0),
+        categoriaRegime: cat,
+        regimePrevidenciario: r.regime_previdenciario ?? "sem_regime",
+        formaProvimento: r.forma_provimento ?? null,
+        vinculo: r.vinculo ?? null,
+        categoriaFuncional: r.categoria_funcional ?? null,
+      };
+    });
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+    console.error(
+      "[getRawPessoalRegimeExportRecords] Erro na consulta:",
       error,
     );
     throw error;

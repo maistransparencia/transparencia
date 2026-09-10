@@ -501,6 +501,36 @@ export async function seedSaldoCaixaSiconfi(
     .execute();
 }
 
+export interface PessoalRegimeRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  categoriaRegime: string;
+  totalProfissionais?: number;
+  totalProventos?: number;
+  proventoMedio?: number;
+  percentualProfissionais?: number;
+  percentualFolha?: number;
+}
+
+export async function seedPessoalRegime(row: PessoalRegimeRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_regime_metricas")
+    .values({
+      pessoal_regime_metricas_id: nextId("prm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      categoria_regime: row.categoriaRegime,
+      total_profissionais: row.totalProfissionais ?? 0,
+      total_proventos: row.totalProventos ?? 0,
+      provento_medio: row.proventoMedio ?? 0,
+      percentual_profissionais: row.percentualProfissionais ?? 0,
+      percentual_folha: row.percentualFolha ?? 0,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -545,6 +575,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_pessoal_departamento_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_regime_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
