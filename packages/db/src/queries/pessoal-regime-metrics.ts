@@ -41,7 +41,7 @@ export async function getPessoalRegimeMetrics(
   ano: number,
   options?: GetPessoalRegimeMetricsOptions,
 ): Promise<PessoalRegimeMetricsDTO[]> {
-  if (!portalSlug || Number.isNaN(ano)) return [];
+  if (!portalSlug || !ano || Number.isNaN(ano)) return [];
   if (Array.isArray(options?.empresaIds) && options.empresaIds.length === 0) {
     return [];
   }
@@ -103,9 +103,9 @@ export async function getPessoalRegimeMetrics(
         percentualFolha,
       };
     })
-    .sort(
-      (a, b) =>
-        CANONICAL_ORDER.indexOf(a.categoriaRegime) -
-        CANONICAL_ORDER.indexOf(b.categoriaRegime),
-    );
+    .sort((a, b) => {
+      const idxA = CANONICAL_ORDER.indexOf(a.categoriaRegime);
+      const idxB = CANONICAL_ORDER.indexOf(b.categoriaRegime);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
 }

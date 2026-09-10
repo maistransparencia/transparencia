@@ -288,6 +288,10 @@ export async function getRawPessoalRegimeExportRecords(
 ): Promise<RawPessoalRegimeRecordDTO[]> {
   const { portalSlug, ano, empresaIds, categoriaRegime } = options;
 
+  if (Array.isArray(empresaIds) && empresaIds.length === 0) {
+    return [];
+  }
+
   try {
     let query = db
       .selectFrom("fct_pessoal")
@@ -307,7 +311,14 @@ export async function getRawPessoalRegimeExportRecords(
       .where("ano", "=", ano);
 
     if (empresaIds && empresaIds.length > 0) {
-      query = query.where("empresa_id", "in", empresaIds);
+      const expandedIds = Array.from(
+        new Set([
+          ...empresaIds,
+          ...empresaIds.map((id) => id.replace(/^0+/, "") || "0"),
+          ...empresaIds.map((id) => id.padStart(2, "0")),
+        ]),
+      );
+      query = query.where("empresa_id", "in", expandedIds);
     }
 
     if (categoriaRegime) {
