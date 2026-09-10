@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
 import { DepartmentalPayrollChart } from "@/components/departmental-payroll-chart";
 import { KPIGrid } from "@/components/kpi-grid";
+import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadPessoalData } from "./loader";
@@ -49,6 +50,7 @@ export default async function PessoalPage({
     decimo13,
     distribuicaoProventos,
     departmentalPayroll,
+    regimeMetrics,
     currentYearRow,
     headerDescription,
     folhaKpi,
@@ -90,6 +92,13 @@ export default async function PessoalPage({
           subtext={`proventos brutos, ${selectedYear}`}
         />
       </KPIGrid>
+
+      {/* Personnel by Legal Regime and Appointment Type */}
+      <PessoalRegimeSection
+        data={regimeMetrics}
+        ano={selectedYear}
+        portalSlug={portalSlug}
+      />
 
       {/* Proventos Distribution Histogram Chart */}
       <ProventosDistributionChart data={distribuicaoProventos} />

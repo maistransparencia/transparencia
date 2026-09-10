@@ -18,6 +18,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
     distribuicaoProventos: [],
     departmentalPayroll: [],
+    regimeMetrics: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -107,5 +108,21 @@ describe("buildPessoalViewModel", () => {
     expect(vm.headerDescription).toContain(
       "desta entidade na arrecadação do município",
     );
+  });
+
+  it("repassa regimeMetrics para o viewModel", () => {
+    const mockRegimes = [
+      {
+        categoriaRegime: "efetivo_concurso" as const,
+        categoriaRegimeRotulo: "Concursados (Efetivos)",
+        totalProfissionais: 50,
+        totalProventos: 200000,
+        proventoMedio: 4000,
+        percentualProfissionais: 100,
+        percentualFolha: 100,
+      },
+    ];
+    const vm = buildPessoalViewModel(makeRaw({ regimeMetrics: mockRegimes }));
+    expect(vm.regimeMetrics).toEqual(mockRegimes);
   });
 });

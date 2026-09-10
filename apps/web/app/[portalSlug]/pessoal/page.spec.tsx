@@ -28,6 +28,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
     distribuicaoProventos: [],
     departmentalPayroll: [],
+    regimeMetrics: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -77,5 +78,33 @@ describe("PessoalPage", () => {
     render(element);
 
     expect(screen.getByText("N/D")).toBeInTheDocument();
+  });
+
+  it("renderiza a seção de quadro e folha por regime jurídico", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        regimeMetrics: [
+          {
+            categoriaRegime: "efetivo_concurso",
+            categoriaRegimeRotulo: "Concursados (Efetivos)",
+            totalProfissionais: 150,
+            totalProventos: 600000,
+            proventoMedio: 4000,
+            percentualProfissionais: 100,
+            percentualFolha: 100,
+          },
+        ],
+      }),
+    );
+
+    const element = await PessoalPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", {
+        name: /Quadro e Folha por Regime Jurídico/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Concursados (Efetivos)")).toBeInTheDocument();
   });
 });
