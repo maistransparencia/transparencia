@@ -2,10 +2,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedPessoal,
   seedPessoalRegime,
 } from "../../../tests/fixtures/seed";
 import { TEST_YEAR } from "../../test-helpers";
-import { getPessoalRegimeMetrics } from "../pessoal-regime-metrics";
+import {
+  getCountDivergenciasCadastraisPessoal,
+  getPessoalRegimeMetrics,
+} from "../pessoal-regime-metrics";
 
 const PORTAL = createFixturePortalSlug();
 
@@ -100,5 +104,75 @@ describe("pessoal-regime-metrics", () => {
     expect(filterBoth).toHaveLength(1);
     expect(filterBoth[0].totalProfissionais).toBe(80);
     expect(filterBoth[0].totalProventos).toBe(400_000);
+  });
+
+  describe("getCountDivergenciasCadastraisPessoal", () => {
+    it("deve retornar 0 para parâmetros inválidos", async () => {
+      expect(await getCountDivergenciasCadastraisPessoal("", TEST_YEAR)).toBe(
+        0,
+      );
+      expect(
+        await getCountDivergenciasCadastraisPessoal(PORTAL, Number.NaN),
+      ).toBe(0);
+    });
+
+    it("deve retornar 0 quando não houver registros divergentes", async () => {
+      await seedPessoal({
+        portalSlug: PORTAL,
+        ano: TEST_YEAR,
+        matricula: "MAT-001",
+        categoriaRegime: "efetivo_concurso",
+        formaProvimento: "CONCURSO PUBLICO",
+        vinculo: "Estatutario",
+        categoriaFuncional: "Efetivo",
+      });
+
+      const total = await getCountDivergenciasCadastraisPessoal(
+        PORTAL,
+        TEST_YEAR,
+      );
+      expect(total).toBe(0);
+    });
+
+    it("deve contabilizar comissionados ou contratos temporários com inconsistência de agente político ou excepcional interesse", async () => {
+      // Divergente 1: comissionado com vínculo 'Agentes Politicos (INSS)'
+      await seedPessoal({
+        portalSlug: PORTAL,
+        ano: TEST_YEAR,
+        matricula: "MAT-COM-1",
+        categoriaRegime: "comissionado",
+        formaProvimento: "LIVRE PROVIMENTO",
+        vinculo: "Agentes Politicos (INSS)",
+        categoriaFuncional: "Contratação por excepcional interesse público",
+      });
+
+      // Divergente 2: contrato temporário com categoria_funcional 'Contratação por excepcional interesse público'
+      await seedPessoal({
+        portalSlug: PORTAL,
+        ano: TEST_YEAR,
+        matricula: "MAT-TEMP-1",
+        categoriaRegime: "contrato_temporario",
+        formaProvimento: "Processo Seletivo",
+        vinculo: "Contrato Administrativo",
+        categoriaFuncional: "Contratação por excepcional interesse público",
+      });
+
+      // Regular: agente político legítimo (Prefeito / Secretário)
+      await seedPessoal({
+        portalSlug: PORTAL,
+        ano: TEST_YEAR,
+        matricula: "MAT-POL-1",
+        categoriaRegime: "agente_politico",
+        formaProvimento: "ELEICAO",
+        vinculo: "Agentes Politicos",
+        categoriaFuncional: "Prefeito",
+      });
+
+      const total = await getCountDivergenciasCadastraisPessoal(
+        PORTAL,
+        TEST_YEAR,
+      );
+      expect(total).toBe(2);
+    });
   });
 });

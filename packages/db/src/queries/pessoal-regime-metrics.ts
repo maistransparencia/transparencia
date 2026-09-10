@@ -109,3 +109,31 @@ export async function getPessoalRegimeMetrics(
       return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
     });
 }
+
+/**
+ * Retorna a contagem de servidores com divergências cadastrais no portal
+ * (comissionados ou contratados temporários marcados indevidamente como agente político ou excepcional interesse público).
+ * Utilizado para o badge/nota data-driven de Auditoria Cívica.
+ */
+export async function getCountDivergenciasCadastraisPessoal(
+  portalSlug: string,
+  ano: number,
+): Promise<number> {
+  if (!portalSlug || !ano || Number.isNaN(ano)) return 0;
+
+  const result = await db
+    .selectFrom("fct_pessoal")
+    .select((eb) => eb.fn.count<string>("matricula").as("total"))
+    .where("portal_slug", "=", portalSlug)
+    .where("ano", "=", ano)
+    .where((eb) =>
+      eb.or([
+        eb("vinculo", "ilike", "%agente%politico%"),
+        eb("categoria_funcional", "ilike", "%excepcional interesse%"),
+      ]),
+    )
+    .where("categoria_regime", "in", ["comissionado", "contrato_temporario"])
+    .executeTakeFirst();
+
+  return parseInt(result?.total ?? "0", 10) || 0;
+}

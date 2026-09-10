@@ -531,8 +531,45 @@ export async function seedPessoalRegime(row: PessoalRegimeRow): Promise<void> {
     .execute();
 }
 
+export interface PessoalRow {
+  portalSlug: string;
+  ano: number;
+  empresaId?: string;
+  matricula: string;
+  cargo?: string;
+  proventos?: number;
+  categoriaRegime: string;
+  regimePrevidenciario?: string;
+  formaProvimento?: string;
+  vinculo?: string | null;
+  categoriaFuncional?: string | null;
+}
+
+export async function seedPessoal(row: PessoalRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal")
+    .values({
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId ?? "1",
+      ano: row.ano,
+      matricula: row.matricula,
+      cargo: row.cargo ?? "Assessor",
+      proventos: row.proventos ?? 3000,
+      categoria_regime: row.categoriaRegime,
+      regime_previdenciario: row.regimePrevidenciario ?? "rgps",
+      forma_provimento: row.formaProvimento ?? "LIVRE PROVIMENTO",
+      vinculo: row.vinculo ?? null,
+      categoria_funcional: row.categoriaFuncional ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_pessoal")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_despesas")
     .where("portal_slug", "=", portalSlug)
