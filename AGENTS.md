@@ -141,3 +141,11 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Proibição de Detalhes de Story/Task:** É estritamente proibido incluir referências a números de stories, tasks ou processos internos de gestão em mensagens de commit (ex: proibido `(story 9-4 task 3)`, `[story-9.4]`, `task 2`).
 - **Padrão Obrigatório:** Utilizar estritamente Conventional Commits em minúsculas focado na mudança funcional ou técnica (ex: `feat(web): adicionar secao detalhada de saldo em caixa em receitas`, `fix(db): consolidar saldos de caixa por entidade`).
 
+---
+
+## 20. LINKS OBRIGATÓRIOS PARA LEIS E NORMAS CITADAS NA APLICAÇÃO
+
+- **Fundamentação Legal Acessível:** Sempre que qualquer lei, decreto, dispositivo constitucional ou norma infralegal for citado na interface (`apps/web/`, componentes, alertas, tooltips ou relatórios cívicos) — como Art. 37 da CF/88, Lei 4.320/64, Lei Complementar 101/2000 (LRF), Lei 14.133/2021, etc. —, é **obrigatório** disponibilizar o hyperlink direto e oficial para o respectivo texto legal.
+- **Fontes Oficiais:** Utilizar preferencialmente os links canônicos do portal da Presidência da República / Casa Civil (`https://www.planalto.gov.br/...`), direcionando para o artigo ou fragmento específico quando aplicável (ex: `#art37`).
+- **Padrão de UI:** Links externos para legislações devem incluir os atributos de segurança `target="_blank"` e `rel="noopener noreferrer"`, além do ícone acessível de link externo (`ExternalLink`) ou estilo sublinhado com contraste adequado, permitindo que o cidadão valide a fundamentação jurídica com um único clique.
+
