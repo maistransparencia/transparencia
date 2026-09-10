@@ -53,6 +53,9 @@ export default async function PessoalPage({
     currentYearRow,
     headerDescription,
     folhaKpi,
+    folhaTrend,
+    chefiasTrend,
+    totalFolhaTrend,
   } = viewModel;
 
   return (
@@ -77,6 +80,7 @@ export default async function PessoalPage({
           title={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
           subtext={folhaKpi.subtext}
+          trend={folhaTrend}
           alert={folhaKpi.alert}
           accent
         />
@@ -84,11 +88,13 @@ export default async function PessoalPage({
           title="Efetivos no comando das chefias"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
           subtext="cargos de liderança concursados (total municipal)"
+          trend={chefiasTrend}
         />
         <KPICard
           title="Total pago em folha"
           value={fmtCompact(currentYearRow.totalFolha)}
           subtext={`proventos brutos, ${selectedYear}`}
+          trend={totalFolhaTrend}
         />
       </KPIGrid>
 

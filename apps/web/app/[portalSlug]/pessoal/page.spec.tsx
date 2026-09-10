@@ -108,4 +108,37 @@ describe("PessoalPage", () => {
       screen.getByRole("heading", { name: "Concursados (Efetivos)" }),
     ).toBeInTheDocument();
   });
+
+  it("renderiza indicadores de tendência YoY nos KPICards quando há histórico do ano anterior", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2024, isCurrentYear: false },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1100,
+            totalPago: 1000,
+            rclProxy: 2000,
+            percentualFolha: 55,
+          },
+          {
+            ano: 2023,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 50,
+          },
+        ],
+        pctChefias: 70,
+        prevPctChefias: 60,
+      }),
+    );
+
+    const element = await PessoalPage(props);
+    render(element);
+
+    expect(screen.getByText("+5 p.p. vs 2023")).toBeInTheDocument();
+    expect(screen.getByText("+10 p.p. vs 2023")).toBeInTheDocument();
+    expect(screen.getByText("+10% vs 2023")).toBeInTheDocument();
+  });
 });

@@ -69,37 +69,47 @@ export async function loadPessoalData(
   const context = parsePessoalContext(searchParams);
   const { selectedYear, entidadesIds } = context;
   const empresaIds = await resolveEmpresaIds(tenantSlug, entidadesIds);
+  const previousYear = selectedYear - 1;
 
   const [
     folhaData,
     pctChefias,
+    prevPctChefias,
     decimo13,
     distribuicaoProventos,
     regimeMetrics,
+    prevRegimeMetrics,
     totalDivergencias,
     portalConfig,
   ] = await Promise.all([
     getFolhaVsServicosMetrics({
-      years: [selectedYear],
+      years: [selectedYear, previousYear],
       empresaIds,
       portalSlug: tenantSlug,
     }),
     getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear),
+    getPercentualChefiasEfetivasMetrics(tenantSlug, previousYear),
     getExecucaoDecimoTerceiroMetrics(tenantSlug, selectedYear, empresaIds),
     getDistribuicaoProventosMetrics(tenantSlug, selectedYear),
     getPessoalRegimeMetrics(tenantSlug, selectedYear),
+    getPessoalRegimeMetrics(tenantSlug, previousYear),
     getCountDivergenciasCadastraisPessoal(tenantSlug, selectedYear),
     getPortalConfig(tenantSlug),
   ]);
 
   return {
-    context,
+    context: {
+      ...context,
+      previousYear,
+    },
     portalConfig,
     folhaData,
     pctChefias,
+    prevPctChefias,
     decimo13,
     distribuicaoProventos,
     regimeMetrics,
+    prevRegimeMetrics,
     totalDivergencias,
   };
 }

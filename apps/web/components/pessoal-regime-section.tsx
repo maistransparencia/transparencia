@@ -12,6 +12,8 @@ import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PessoalRegimeItem extends PessoalRegimeMetricsDTO {
   categoriaRegimeRotulo?: string;
+  variacaoProfissionais?: number | null;
+  variacaoFolha?: number | null;
 }
 
 export interface PessoalRegimeSectionProps {
@@ -300,21 +302,47 @@ export function PessoalRegimeSection({
                     <span className="text-slate-500 text-xs">
                       Profissionais
                     </span>
-                    <span className="font-semibold text-slate-900 text-sm">
-                      {fmtNumber(item.totalProfissionais)}
-                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      {item.variacaoProfissionais !== null &&
+                        item.variacaoProfissionais !== undefined && (
+                          <span
+                            className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            title={`Variação de ${item.variacaoProfissionais > 0 ? `+${item.variacaoProfissionais}%` : `${item.variacaoProfissionais}%`} vs ${ano - 1}`}
+                          >
+                            {item.variacaoProfissionais > 0
+                              ? `+${item.variacaoProfissionais}%`
+                              : `${item.variacaoProfissionais}%`}
+                          </span>
+                        )}
+                      <span className="font-semibold text-slate-900 text-sm">
+                        {fmtNumber(item.totalProfissionais)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-baseline justify-between">
                     <span className="text-slate-500 text-xs">
                       Volume em Folha
                     </span>
-                    <span
-                      className="font-semibold text-slate-900 text-sm"
-                      title={fmtCurrency(item.totalProventos)}
-                    >
-                      {fmtCompact(item.totalProventos)}
-                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      {item.variacaoFolha !== null &&
+                        item.variacaoFolha !== undefined && (
+                          <span
+                            className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            title={`Variação de ${item.variacaoFolha > 0 ? `+${item.variacaoFolha}%` : `${item.variacaoFolha}%`} vs ${ano - 1}`}
+                          >
+                            {item.variacaoFolha > 0
+                              ? `+${item.variacaoFolha}%`
+                              : `${item.variacaoFolha}%`}
+                          </span>
+                        )}
+                      <span
+                        className="font-semibold text-slate-900 text-sm"
+                        title={fmtCurrency(item.totalProventos)}
+                      >
+                        {fmtCompact(item.totalProventos)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-baseline justify-between">

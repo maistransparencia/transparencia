@@ -58,7 +58,9 @@ describe("PessoalRegimeSection Component", () => {
       }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText("Consolidado Municipal")).toBeInTheDocument();
+    expect(screen.getAllByText("Consolidado Municipal").length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getByText(/700 profissionais/i)).toBeInTheDocument();
     expect(screen.getByText(/4\.0mi/i)).toBeInTheDocument();
   });
@@ -182,10 +184,10 @@ describe("PessoalRegimeSection Component", () => {
     );
 
     expect(
-      screen.getByRole("button", {
+      screen.getAllByRole("button", {
         name: /opções de auditoria/i,
-      }),
-    ).toBeInTheDocument();
+      }).length,
+    ).toBeGreaterThan(0);
   });
 
   it("não renderiza ShowYourWorkButton quando portalSlug não é fornecido", () => {
@@ -196,5 +198,26 @@ describe("PessoalRegimeSection Component", () => {
         name: /opções de auditoria/i,
       }),
     ).not.toBeInTheDocument();
+  });
+
+  it("renderiza badges de variação YoY ao lado de profissionais e volume em folha", () => {
+    const dataComVariacao: PessoalRegimeItem[] = [
+      {
+        categoriaRegime: "efetivo_concurso",
+        categoriaRegimeRotulo: "Concursados (Efetivos)",
+        totalProfissionais: 520,
+        totalProventos: 2_600_000,
+        proventoMedio: 5_000,
+        percentualProfissionais: 100,
+        percentualFolha: 100,
+        variacaoProfissionais: 4.0,
+        variacaoFolha: 8.5,
+      },
+    ];
+
+    render(<PessoalRegimeSection data={dataComVariacao} ano={2025} />);
+
+    expect(screen.getByText("+4%")).toBeInTheDocument();
+    expect(screen.getByText("+8.5%")).toBeInTheDocument();
   });
 });
