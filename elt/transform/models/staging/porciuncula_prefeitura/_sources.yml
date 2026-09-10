@@ -317,6 +317,9 @@ sources:
           - name: categoriafuncional
           - name: vinculo
           - name: formaprovimento
+          - name: tiporegime
+          - name: tipocontrato
+          - name: situacaofuncional
 
       - name: transferencias
         description: "Transferências a terceiros"

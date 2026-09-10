@@ -96,18 +96,14 @@ pessoal_stats as (
         coalesce(nullif(ltrim(empresa_id, '0'), ''), '0') as empresa_id,
         sum(
             case
-                when vinculo like '%FG%'
-                or vinculo like '%CC%'
-                or categoria_funcional = 'Efetivos ocupantes de cargo comissionado'
+                when categoria_regime = 'efetivo_comissao'
                 then 1
                 else 0
             end
         ) as efetivos_confianca,
         sum(
             case
-                when categoria_funcional = 'Cargo comissionado extra-quadro'
-                or vinculo = 'Comissionado INSS'
-                or lower(vinculo) like 'cargo comissionado%'
+                when categoria_regime = 'comissionado'
                 then 1
                 else 0
             end

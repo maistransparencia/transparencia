@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: fct_pessoal_regime_metricas
+    description: Mart de métricas de pessoal consolidadas por regime jurídico e vínculo funcional.
+    columns:
+      - name: pessoal_regime_metricas_id
+        description: Chave primária substituta composta por portal_slug, ano, empresa_id e categoria_regime.
+        tests:
+          - unique
+          - not_null
+      - name: portal_slug
+        description: Identificador do portal tenant.
+        tests:
+          - not_null
+      - name: ano
+        description: Ano de referência.
+        tests:
+          - not_null
+      - name: empresa_id
+        description: Identificador do órgão/empresa.
+        tests:
+          - not_null
+      - name: categoria_regime
+        description: Categoria do regime jurídico e vínculo funcional (lowercase snake_case).
+        tests:
+          - not_null
+      - name: total_profissionais
+        description: Contagem total de profissionais no regime e ano.
+        tests:
+          - not_null
+      - name: total_proventos
+        description: Volume financeiro total pago em proventos ao regime.
+        tests:
+          - not_null
+      - name: provento_medio
+        description: Provento médio mensal por profissional no regime.
+        tests:
+          - not_null
+      - name: percentual_profissionais
+        description: Percentual de representatividade no quadro total de servidores do órgão.
+        tests:
+          - not_null
+      - name: percentual_folha
+        description: Percentual de impacto na folha salarial total do órgão.
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_pessoal_regime_metricas_calculo
+    description: "Valida agregação, provento médio e percentuais proporcionais por regime"
+    model: fct_pessoal_regime_metricas
+    given:
+      - input: ref('fct_pessoal')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 3000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 5000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "comissionado", proventos: 2000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", total_profissionais: 2, total_proventos: 8000.00, provento_medio: 4000.00, percentual_profissionais: 66.67, percentual_folha: 80.00 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "comissionado", total_profissionais: 1, total_proventos: 2000.00, provento_medio: 2000.00, percentual_profissionais: 33.33, percentual_folha: 20.00 }
