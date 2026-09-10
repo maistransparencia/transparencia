@@ -129,14 +129,32 @@ export function PessoalRegimeSection({
       className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
     >
       {/* Header com Contexto e Botão Show Your Work */}
+      <div className="visible sm:hidden">
+        <div className="flex items-center justify-between">
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+            Consolidado Municipal
+          </span>
+          {portalSlug ? (
+            <ShowYourWorkButton
+              portalSlug={portalSlug}
+              ano={ano}
+              tipo="pessoal_regime"
+              tituloContexto="Regimes e Vínculos Funcionais"
+            />
+          ) : null}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-bold text-lg text-slate-900">
               Quadro e Folha por Regime Jurídico
             </h2>
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-              Consolidado Municipal
+            <span className="hidden sm:inline">
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+                Consolidado Municipal
+              </span>
             </span>
           </div>
           <p className="text-slate-500 text-xs sm:text-sm">
@@ -145,15 +163,16 @@ export function PessoalRegimeSection({
             de contratação no exercício de {ano}.
           </p>
         </div>
-
-        {portalSlug ? (
-          <ShowYourWorkButton
-            portalSlug={portalSlug}
-            ano={ano}
-            tipo="pessoal_regime"
-            tituloContexto="Regimes e Vínculos Funcionais"
-          />
-        ) : null}
+        <div className="hidden sm:inline">
+          {portalSlug ? (
+            <ShowYourWorkButton
+              portalSlug={portalSlug}
+              ano={ano}
+              tipo="pessoal_regime"
+              tituloContexto="Regimes e Vínculos Funcionais"
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* Barra de Distribuição Visual Proporcional do Quadro */}
@@ -164,7 +183,7 @@ export function PessoalRegimeSection({
         </div>
 
         <div
-          className="flex h-3 w-full rounded-full bg-slate-100"
+          className="flex h-3 w-full rounded-full"
           role="progressbar"
           aria-valuenow={100}
           aria-valuemin={0}
