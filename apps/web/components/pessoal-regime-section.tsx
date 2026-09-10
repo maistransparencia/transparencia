@@ -16,6 +16,7 @@ export interface PessoalRegimeSectionProps {
   data: PessoalRegimeItem[];
   ano: number;
   portalSlug?: string;
+  entidades?: string;
   className?: string;
 }
 
@@ -84,6 +85,7 @@ export function PessoalRegimeSection({
   data,
   ano,
   portalSlug,
+  entidades,
   className = "",
 }: PessoalRegimeSectionProps) {
   if (!data || data.length === 0) {
@@ -141,6 +143,7 @@ export function PessoalRegimeSection({
             portalSlug={portalSlug}
             ano={ano}
             tipo="pessoal_regime"
+            entidades={entidades}
             tituloContexto="Regimes e Vínculos Funcionais"
           />
         ) : null}
@@ -156,18 +159,22 @@ export function PessoalRegimeSection({
         <div
           className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100"
           role="progressbar"
+          aria-valuenow={100}
+          aria-valuemin={0}
+          aria-valuemax={100}
           aria-label="Distribuição do quadro por regime funcional"
         >
           {data
             .filter((item) => item.percentualProfissionais > 0)
             .map((item) => {
               const style = getRegimeStyle(item.categoriaRegime);
+              const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
               return (
                 <div
                   key={item.categoriaRegime}
                   className={`h-full transition-all ${style.barBg}`}
                   style={{ width: `${item.percentualProfissionais}%` }}
-                  title={`${item.categoriaRegimeRotulo}: ${fmtPercent(
+                  title={`${rotulo}: ${fmtPercent(
                     item.percentualProfissionais,
                   )} (${fmtNumber(item.totalProfissionais)} servidores)`}
                 />
@@ -180,6 +187,7 @@ export function PessoalRegimeSection({
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {data.map((item) => {
           const style = getRegimeStyle(item.categoriaRegime);
+          const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
 
           return (
             <div
@@ -194,9 +202,7 @@ export function PessoalRegimeSection({
                       className={`h-2.5 w-2.5 rounded-full ${style.dot}`}
                       aria-hidden="true"
                     />
-                    <h3 className="font-semibold text-ink text-sm">
-                      {item.categoriaRegimeRotulo}
-                    </h3>
+                    <h3 className="font-semibold text-ink text-sm">{rotulo}</h3>
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}

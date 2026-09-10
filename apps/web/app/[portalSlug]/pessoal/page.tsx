@@ -98,6 +98,7 @@ export default async function PessoalPage({
         data={regimeMetrics}
         ano={selectedYear}
         portalSlug={portalSlug}
+        entidades={resolvedSearchParams?.entidades}
       />
 
       {/* Proventos Distribution Histogram Chart */}

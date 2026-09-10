@@ -11,7 +11,10 @@ import {
   type TipoExportacao,
 } from "@transparencia/db";
 import { NextResponse } from "next/server";
-import { CATEGORIA_REGIME_LABELS } from "@/app/[portalSlug]/pessoal/view-model";
+import {
+  CATEGORIA_REGIME_LABELS,
+  CATEGORIAS_REGIME,
+} from "@/lib/constants/pessoal";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const VALID_TIPOS: readonly TipoExportacao[] = [
@@ -86,7 +89,7 @@ function escapeCsvCell(
 }
 
 function formatMoney(value: number, delimiter: string): string {
-  const fixed = value.toFixed(2);
+  const fixed = Number(value ?? 0).toFixed(2);
   if (delimiter === ";") {
     return fixed.replace(".", ",");
   }
@@ -185,10 +188,13 @@ function resolveFilename(options: ResolveFilenameOptions): string {
     return `saldo_caixa_siconfi_${portalSlug}_${ano}${sufixo}.csv`;
   }
   if (tipo === "pessoal_regime") {
-    const sufixo = categoria
+    const sufixoCategoria = categoria
       ? `_${categoria.replace(/[^a-zA-Z0-9_-]/g, "")}`
       : "";
-    return `pessoal_regime_${portalSlug}_${ano}${sufixo}.csv`;
+    const sufixoEntidades = entidades
+      ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
+      : "";
+    return `pessoal_regime_${portalSlug}_${ano}${sufixoCategoria}${sufixoEntidades}.csv`;
   }
   return `despesas_funcao_${funcaoCodigo}_${portalSlug}_${ano}.csv`;
 }
@@ -338,6 +344,18 @@ export async function GET(req: Request, context: ExportRouteContext) {
 
   // Rota especializada para exportação de dados de pessoal por regime jurídico e vínculo
   if (tipoParam === "pessoal_regime") {
+    if (
+      categoriaParam &&
+      !CATEGORIAS_REGIME.includes(
+        categoriaParam as (typeof CATEGORIAS_REGIME)[number],
+      )
+    ) {
+      return NextResponse.json(
+        { error: `Categoria de regime inválida: '${categoriaParam}'.` },
+        { status: 400 },
+      );
+    }
+
     let pessoalRecords: RawPessoalRegimeRecordDTO[];
     try {
       pessoalRecords = await getRawPessoalRegimeExportRecords({

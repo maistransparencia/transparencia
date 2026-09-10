@@ -1,16 +1,6 @@
-import type { CategoriaRegime } from "@transparencia/db";
 import { getPartialYearPeriod } from "@transparencia/ui";
+import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
 import type { loadPessoalData } from "./loader";
-
-export const CATEGORIA_REGIME_LABELS: Record<CategoriaRegime, string> = {
-  efetivo_concurso: "Concursados (Efetivos)",
-  efetivo_comissao: "Efetivos em Chefia (FG/CC)",
-  comissionado: "Cargos em Comissão",
-  contrato_temporario: "Contratos Temporários",
-  agente_politico: "Agentes Políticos",
-  rpps_inativos: "RPPS / Previdenciários",
-  outros: "Outros",
-};
 
 type PessoalRawData = Awaited<ReturnType<typeof loadPessoalData>>;
 
