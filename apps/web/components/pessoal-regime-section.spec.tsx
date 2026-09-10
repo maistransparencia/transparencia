@@ -47,7 +47,7 @@ describe("PessoalRegimeSection Component", () => {
     render(
       <PessoalRegimeSection
         data={mockData}
-        ano={2025}
+        ano={2026}
         portalSlug="porciuncula_prefeitura"
       />,
     );
@@ -58,31 +58,118 @@ describe("PessoalRegimeSection Component", () => {
       }),
     ).toBeInTheDocument();
 
+    expect(screen.getByText("Consolidado Municipal")).toBeInTheDocument();
     expect(screen.getByText(/700 profissionais/i)).toBeInTheDocument();
     expect(screen.getByText(/4\.0mi/i)).toBeInTheDocument();
+  });
+
+  it("renderiza nota de auditoria cívica data-driven quando totalDivergencias > 0", () => {
+    render(
+      <PessoalRegimeSection
+        data={mockData}
+        ano={2026}
+        portalSlug="porciuncula_prefeitura"
+        totalDivergencias={187}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Harmonização de Vínculos Cadastrais/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/187 profissionais cadastrados/i),
+    ).toBeInTheDocument();
+
+    const linkLei = screen.getByRole("link", {
+      name: /Art\. 37 da Constituição Federal/i,
+    });
+    expect(linkLei).toBeInTheDocument();
+    expect(linkLei).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+    );
+    expect(linkLei).toHaveAttribute("target", "_blank");
+    expect(linkLei).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("renderiza no singular quando totalDivergencias é 1", () => {
+    render(
+      <PessoalRegimeSection
+        data={mockData}
+        ano={2022}
+        portalSlug="porciuncula_prefeitura"
+        totalDivergencias={1}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Harmonização de Vínculos Cadastrais/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/1 profissional cadastrado/i)).toBeInTheDocument();
+  });
+
+  it("não exibe a nota de auditoria cívica quando totalDivergencias é 0 ou ausente", () => {
+    const { rerender } = render(
+      <PessoalRegimeSection
+        data={mockData}
+        ano={2025}
+        portalSlug="porciuncula_prefeitura"
+        totalDivergencias={0}
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        /Auditoria Cívica: Harmonização de Vínculos Cadastrais/i,
+      ),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <PessoalRegimeSection
+        data={mockData}
+        ano={2025}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        /Auditoria Cívica: Harmonização de Vínculos Cadastrais/i,
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it("renderiza cards individuais para cada categoria com métricas", () => {
     render(<PessoalRegimeSection data={mockData} ano={2025} />);
 
-    expect(screen.getByText("Concursados (Efetivos)")).toBeInTheDocument();
-    expect(screen.getByText("Cargos em Comissão")).toBeInTheDocument();
-    expect(screen.getByText("Contratos Temporários")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Concursados (Efetivos)" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Cargos em Comissão" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Contratos Temporários" }),
+    ).toBeInTheDocument();
 
-    expect(screen.getByText(/71[.,]43%/)).toBeInTheDocument();
-    expect(screen.getByText(/14[.,]29%/)).toBeInTheDocument();
-    expect(screen.getByText(/14[.,]28%/)).toBeInTheDocument();
+    expect(screen.getAllByText(/71[.,]43%/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/14[.,]29%/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/14[.,]28%/).length).toBeGreaterThanOrEqual(1);
 
     expect(screen.getByText(/62[.,]50%.*da despesa/)).toBeInTheDocument();
     expect(screen.getByText(/25[.,]00%.*da despesa/)).toBeInTheDocument();
     expect(screen.getByText(/12[.,]50%.*da despesa/)).toBeInTheDocument();
   });
 
-  it("renderiza barra de progresso proporcional", () => {
+  it("renderiza barra de progresso proporcional com tooltips em cada segmento", () => {
     render(<PessoalRegimeSection data={mockData} ano={2025} />);
 
     const progressBar = screen.getByRole("progressbar");
     expect(progressBar).toBeInTheDocument();
+
+    const tooltips = screen.getAllByRole("tooltip");
+    expect(tooltips).toHaveLength(3);
+    expect(screen.getByText("500 servidores")).toBeInTheDocument();
   });
 
   it("renderiza botão ShowYourWorkButton quando portalSlug é fornecido", () => {

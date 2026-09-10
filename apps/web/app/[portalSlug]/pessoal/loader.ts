@@ -1,5 +1,5 @@
 import {
-  getDepartmentalPayrollMetrics,
+  getCountDivergenciasCadastraisPessoal,
   getDistribuicaoProventosMetrics,
   getEntidades,
   getExecucaoDecimoTerceiroMetrics,
@@ -75,8 +75,8 @@ export async function loadPessoalData(
     pctChefias,
     decimo13,
     distribuicaoProventos,
-    departmentalPayroll,
     regimeMetrics,
+    totalDivergencias,
     portalConfig,
   ] = await Promise.all([
     getFolhaVsServicosMetrics({
@@ -87,8 +87,8 @@ export async function loadPessoalData(
     getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear),
     getExecucaoDecimoTerceiroMetrics(tenantSlug, selectedYear, empresaIds),
     getDistribuicaoProventosMetrics(tenantSlug, selectedYear),
-    getDepartmentalPayrollMetrics(tenantSlug, selectedYear, empresaIds),
-    getPessoalRegimeMetrics(tenantSlug, selectedYear, { empresaIds }),
+    getPessoalRegimeMetrics(tenantSlug, selectedYear),
+    getCountDivergenciasCadastraisPessoal(tenantSlug, selectedYear),
     getPortalConfig(tenantSlug),
   ]);
 
@@ -99,7 +99,7 @@ export async function loadPessoalData(
     pctChefias,
     decimo13,
     distribuicaoProventos,
-    departmentalPayroll,
     regimeMetrics,
+    totalDivergencias,
   };
 }

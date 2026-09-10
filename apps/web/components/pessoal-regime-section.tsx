@@ -1,11 +1,13 @@
 import type { PessoalRegimeMetricsDTO } from "@transparencia/db";
 import {
+  cn,
   fmtCompact,
   fmtCurrency,
   fmtNumber,
   fmtPercent,
+  Tooltip,
 } from "@transparencia/ui";
-import { Users } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PessoalRegimeItem extends PessoalRegimeMetricsDTO {
@@ -16,7 +18,7 @@ export interface PessoalRegimeSectionProps {
   data: PessoalRegimeItem[];
   ano: number;
   portalSlug?: string;
-  entidades?: string;
+  totalDivergencias?: number;
   className?: string;
 }
 
@@ -38,10 +40,10 @@ function getRegimeStyle(categoria: string): RegimeStyle {
       };
     case "efetivo_comissao":
       return {
-        barBg: "bg-teal-500",
-        badge: "border-teal-200 bg-teal-50 text-teal-800",
-        dot: "bg-teal-500",
-        description: "Concursados em liderança ou chefia (FG/CC)",
+        barBg: "bg-lime-500",
+        badge: "border-lime-200 bg-lime-50 text-lime-800",
+        dot: "bg-lime-500",
+        description: "Concursados em liderança ou chefia",
       };
     case "comissionado":
       return {
@@ -76,7 +78,8 @@ function getRegimeStyle(categoria: string): RegimeStyle {
         barBg: "bg-slate-400",
         badge: "border-slate-200 bg-slate-50 text-slate-700",
         dot: "bg-slate-400",
-        description: "Outros vínculos e situações cadastrais",
+        description:
+          "Vínculos excepcionais e provimentos atípicos no portal de origem",
       };
   }
 }
@@ -85,20 +88,25 @@ export function PessoalRegimeSection({
   data,
   ano,
   portalSlug,
-  entidades,
+  totalDivergencias,
   className = "",
 }: PessoalRegimeSectionProps) {
   if (!data || data.length === 0) {
     return (
       <section
         aria-label="Quadro e Folha por Regime Jurídico"
-        className={`rounded-2xl border border-[#e7e9ee] bg-white p-6 shadow-sm ${className}`}
+        className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="font-bold text-ink text-xl tracking-tight">
-              Quadro e Folha por Regime Jurídico
-            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-bold text-lg text-slate-900">
+                Quadro e Folha por Regime Jurídico
+              </h2>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+                Consolidado Municipal
+              </span>
+            </div>
             <p className="mt-1 text-slate-500 text-xs sm:text-sm">
               Sem dados de regime funcional disponíveis para o exercício de{" "}
               {ano}.
@@ -118,18 +126,18 @@ export function PessoalRegimeSection({
   return (
     <section
       aria-label="Quadro e Folha por Regime Jurídico"
-      className={`rounded-2xl border border-[#e7e9ee] bg-white p-6 shadow-sm ${className}`}
+      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
     >
       {/* Header com Contexto e Botão Show Your Work */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-700">
-              <Users className="h-4 w-4" />
-            </span>
-            <h2 className="font-bold text-ink text-xl tracking-tight">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-bold text-lg text-slate-900">
               Quadro e Folha por Regime Jurídico
             </h2>
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+              Consolidado Municipal
+            </span>
           </div>
           <p className="text-slate-500 text-xs sm:text-sm">
             Distribuição dos {fmtNumber(totalProfissionais)} profissionais e{" "}
@@ -143,7 +151,6 @@ export function PessoalRegimeSection({
             portalSlug={portalSlug}
             ano={ano}
             tipo="pessoal_regime"
-            entidades={entidades}
             tituloContexto="Regimes e Vínculos Funcionais"
           />
         ) : null}
@@ -157,34 +164,85 @@ export function PessoalRegimeSection({
         </div>
 
         <div
-          className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100"
+          className="flex h-3 w-full rounded-full bg-slate-100"
           role="progressbar"
           aria-valuenow={100}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Distribuição do quadro por regime funcional"
         >
-          {data
-            .filter((item) => item.percentualProfissionais > 0)
-            .map((item) => {
+          {(() => {
+            const activeItems = data.filter(
+              (item) => item.percentualProfissionais > 0,
+            );
+            let accumulatedPct = 0;
+            return activeItems.map((item, index) => {
               const style = getRegimeStyle(item.categoriaRegime);
               const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
+              const isFirst = index === 0;
+              const isLast = index === activeItems.length - 1;
+              const centerPct =
+                accumulatedPct + item.percentualProfissionais / 2;
+              accumulatedPct += item.percentualProfissionais;
+
+              const alignmentClasses = (() => {
+                if (centerPct > 65 || isLast) {
+                  return "right-0 left-auto translate-x-0";
+                }
+                if (centerPct < 35 || isFirst) {
+                  return "left-0 translate-x-0";
+                }
+                return "left-1/2 -translate-x-1/2";
+              })();
+
               return (
-                <div
+                <Tooltip
                   key={item.categoriaRegime}
-                  className={`h-full transition-all ${style.barBg}`}
+                  position="top"
+                  className="block h-full"
                   style={{ width: `${item.percentualProfissionais}%` }}
-                  title={`${rotulo}: ${fmtPercent(
-                    item.percentualProfissionais,
-                  )} (${fmtNumber(item.totalProfissionais)} servidores)`}
-                />
+                  contentClassName={cn(
+                    "w-56 border-slate-700 bg-slate-900 p-2.5 shadow-lg",
+                    alignmentClasses,
+                  )}
+                  content={
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center gap-1.5 font-semibold text-white">
+                        <span
+                          className={`h-2 w-2 rounded-full ${style.dot}`}
+                          aria-hidden="true"
+                        />
+                        <span>{rotulo}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 text-slate-300">
+                        <span>{fmtPercent(item.percentualProfissionais)}</span>
+                        <span className="font-medium text-white">
+                          {fmtNumber(item.totalProfissionais)} servidores
+                        </span>
+                      </div>
+                    </div>
+                  }
+                >
+                  <button
+                    type="button"
+                    aria-label={`${rotulo}: ${fmtPercent(
+                      item.percentualProfissionais,
+                    )} (${fmtNumber(item.totalProfissionais)} servidores)`}
+                    className={`h-full w-full transition-all ${style.barBg} ${
+                      isFirst ? "rounded-l-full" : ""
+                    } ${
+                      isLast ? "rounded-r-full" : ""
+                    } cursor-pointer hover:brightness-110 focus:outline-none focus:ring-1 focus:ring-slate-400`}
+                  />
+                </Tooltip>
               );
-            })}
+            });
+          })()}
         </div>
       </div>
 
       {/* Grid de Cards de Cada Categoria de Regime */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {data.map((item) => {
           const style = getRegimeStyle(item.categoriaRegime);
           const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
@@ -192,7 +250,7 @@ export function PessoalRegimeSection({
           return (
             <div
               key={item.categoriaRegime}
-              className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/40 p-4 transition-all hover:border-[#cbd0db] hover:bg-white hover:shadow-xs"
+              className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-xs"
             >
               <div>
                 {/* Header do Card com Rótulo e Badge */}
@@ -202,7 +260,9 @@ export function PessoalRegimeSection({
                       className={`h-2.5 w-2.5 rounded-full ${style.dot}`}
                       aria-hidden="true"
                     />
-                    <h3 className="font-semibold text-ink text-sm">{rotulo}</h3>
+                    <h3 className="font-semibold text-slate-900 text-sm">
+                      {rotulo}
+                    </h3>
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}
@@ -221,7 +281,7 @@ export function PessoalRegimeSection({
                     <span className="text-slate-500 text-xs">
                       Profissionais
                     </span>
-                    <span className="font-mono font-semibold text-ink text-sm">
+                    <span className="font-semibold text-slate-900 text-sm">
                       {fmtNumber(item.totalProfissionais)}
                     </span>
                   </div>
@@ -231,7 +291,7 @@ export function PessoalRegimeSection({
                       Volume em Folha
                     </span>
                     <span
-                      className="font-mono font-semibold text-ink text-sm"
+                      className="font-semibold text-slate-900 text-sm"
                       title={fmtCurrency(item.totalProventos)}
                     >
                       {fmtCompact(item.totalProventos)}
@@ -242,7 +302,7 @@ export function PessoalRegimeSection({
                     <span className="text-slate-500 text-xs">
                       Provento Médio
                     </span>
-                    <span className="font-mono font-semibold text-ink text-sm">
+                    <span className="font-semibold text-slate-900 text-sm">
                       {fmtCurrency(item.proventoMedio)}
                     </span>
                   </div>
@@ -252,7 +312,7 @@ export function PessoalRegimeSection({
               {/* Footer do Card: Impacto na Folha Total */}
               <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
                 <span className="text-slate-400">Impacto na Folha</span>
-                <span className="font-medium text-slate-700">
+                <span className="font-medium text-slate-800">
                   {fmtPercent(item.percentualFolha)} da despesa
                 </span>
               </div>
@@ -260,6 +320,44 @@ export function PessoalRegimeSection({
           );
         })}
       </div>
+
+      {/* Nota de Auditoria Cívica: 100% data-driven, exibida estritamente quando há divergências registradas */}
+      {typeof totalDivergencias === "number" && totalDivergencias > 0 ? (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-slate-700 sm:p-5">
+          <Info
+            className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
+            aria-hidden="true"
+          />
+          <div className="space-y-1 text-xs leading-relaxed">
+            <h4 className="font-semibold text-slate-900 text-sm">
+              Harmonização de Vínculos Cadastrais
+            </h4>
+            <p className="text-slate-600">
+              Neste exercício, identificamos{" "}
+              <strong className="font-semibold text-slate-900">
+                {fmtNumber(totalDivergencias)}{" "}
+                {totalDivergencias === 1
+                  ? "profissional cadastrado"
+                  : "profissionais cadastrados"}
+              </strong>{" "}
+              com inconsistências de vínculo no portal de origem (como funções
+              comissionadas ou temporárias registradas sob categorias atípicas).
+              Para garantir rigor fiscal, classificamos cada vínculo com base na
+              forma real de provimento e nos preceitos do{" "}
+              <a
+                href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-slate-800 underline decoration-slate-400 underline-offset-2 transition-colors hover:text-slate-950"
+              >
+                <span>Art. 37 da Constituição Federal</span>
+                <ExternalLink className="h-3 w-3 shrink-0 text-slate-400" />
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

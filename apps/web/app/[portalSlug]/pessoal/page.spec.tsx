@@ -27,7 +27,6 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
     pctChefias: 60,
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
     distribuicaoProventos: [],
-    departmentalPayroll: [],
     regimeMetrics: [],
     ...overrides,
   } as unknown as RawData;
@@ -105,6 +104,8 @@ describe("PessoalPage", () => {
         name: /Quadro e Folha por Regime Jurídico/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Concursados (Efetivos)")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Concursados (Efetivos)" }),
+    ).toBeInTheDocument();
   });
 });

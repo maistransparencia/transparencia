@@ -56,7 +56,6 @@ const SICONFI_CSV_HEADERS = [
 
 const PESSOAL_REGIME_CSV_HEADERS = [
   "ano",
-  "empresa_id",
   "matricula",
   "cargo",
   "proventos",
@@ -150,7 +149,6 @@ function formatPessoalRegimeCsvRow(
     ] ?? "Outros";
   const cells = [
     escapeCsvCell(record.ano, delimiter),
-    escapeCsvCell(record.empresaId, delimiter),
     escapeCsvCell(record.matricula, delimiter),
     escapeCsvCell(record.cargo, delimiter),
     escapeCsvCell(formatMoney(record.proventos, delimiter), delimiter),
@@ -191,10 +189,7 @@ function resolveFilename(options: ResolveFilenameOptions): string {
     const sufixoCategoria = categoria
       ? `_${categoria.replace(/[^a-zA-Z0-9_-]/g, "")}`
       : "";
-    const sufixoEntidades = entidades
-      ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
-      : "";
-    return `pessoal_regime_${portalSlug}_${ano}${sufixoCategoria}${sufixoEntidades}.csv`;
+    return `pessoal_regime_${portalSlug}_${ano}${sufixoCategoria}.csv`;
   }
   return `despesas_funcao_${funcaoCodigo}_${portalSlug}_${ano}.csv`;
 }
@@ -361,9 +356,6 @@ export async function GET(req: Request, context: ExportRouteContext) {
       pessoalRecords = await getRawPessoalRegimeExportRecords({
         portalSlug,
         ano,
-        empresaIds: entidadesParam
-          ? entidadesParam.split(",").filter(Boolean)
-          : undefined,
         categoriaRegime: categoriaParam ?? undefined,
       });
     } catch (error) {
@@ -383,7 +375,6 @@ export async function GET(req: Request, context: ExportRouteContext) {
       portalSlug,
       ano,
       categoria: categoriaParam ?? undefined,
-      entidades: entidadesParam ?? undefined,
     });
 
     const csvHeader = PESSOAL_REGIME_CSV_HEADERS.join(delimiter);

@@ -407,7 +407,7 @@ describe("API Route: /api/[portalSlug]/export", () => {
 
     const text = await res.text();
     expect(text).toContain(
-      "ano;empresa_id;matricula;cargo;proventos;categoria_regime;categoria_regime_rotulo;regime_previdenciario;forma_provimento;vinculo;categoria_funcional",
+      "ano;matricula;cargo;proventos;categoria_regime;categoria_regime_rotulo;regime_previdenciario;forma_provimento;vinculo;categoria_funcional",
     );
     expect(text).toContain("PROFESSOR");
     expect(text).toContain("5000,50");

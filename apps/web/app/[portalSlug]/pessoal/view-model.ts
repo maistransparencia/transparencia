@@ -51,12 +51,12 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     pctChefias: raw.pctChefias,
     decimo13: raw.decimo13,
     distribuicaoProventos: raw.distribuicaoProventos,
-    departmentalPayroll: raw.departmentalPayroll,
     regimeMetrics: (raw.regimeMetrics ?? []).map((item) => ({
       ...item,
       categoriaRegimeRotulo:
         CATEGORIA_REGIME_LABELS[item.categoriaRegime] ?? "Outros",
     })),
+    totalDivergencias: raw.totalDivergencias ?? 0,
     currentYearRow,
   };
 }

@@ -14,7 +14,7 @@ export const CATEGORIAS_REGIME: readonly CategoriaRegime[] = [
 
 export const CATEGORIA_REGIME_LABELS: Record<CategoriaRegime, string> = {
   efetivo_concurso: "Concursados (Efetivos)",
-  efetivo_comissao: "Efetivos em Chefia (FG/CC)",
+  efetivo_comissao: "Efetivos em Chefia",
   comissionado: "Cargos em Comissão",
   contrato_temporario: "Contratos Temporários",
   agente_politico: "Agentes Políticos",

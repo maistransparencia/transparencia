@@ -1,7 +1,6 @@
 import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
-import { DepartmentalPayrollChart } from "@/components/departmental-payroll-chart";
 import { KPIGrid } from "@/components/kpi-grid";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
@@ -49,8 +48,8 @@ export default async function PessoalPage({
     pctChefias,
     decimo13,
     distribuicaoProventos,
-    departmentalPayroll,
     regimeMetrics,
+    totalDivergencias,
     currentYearRow,
     headerDescription,
     folhaKpi,
@@ -98,17 +97,11 @@ export default async function PessoalPage({
         data={regimeMetrics}
         ano={selectedYear}
         portalSlug={portalSlug}
-        entidades={resolvedSearchParams?.entidades}
+        totalDivergencias={totalDivergencias}
       />
 
       {/* Proventos Distribution Histogram Chart */}
       <ProventosDistributionChart data={distribuicaoProventos} />
-
-      {/* Departmental Payroll (E OUTROS) Chart */}
-      <DepartmentalPayrollChart
-        data={departmentalPayroll}
-        selectedYear={selectedYear}
-      />
 
       {/* 13º Salário Card */}
       {decimo13 ? (
