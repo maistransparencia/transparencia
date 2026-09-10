@@ -26,18 +26,18 @@ com_totais as (
         end::numeric(15, 2) as provento_medio,
         case
             when sum(total_profissionais) over (partition by portal_slug, ano, empresa_id) > 0
-            then round(
+            then least(greatest(round(
                 (total_profissionais::numeric / sum(total_profissionais) over (partition by portal_slug, ano, empresa_id)) * 100,
                 2
-            )
+            ), -999.99), 999.99)
             else 0
         end::numeric(5, 2) as percentual_profissionais,
         case
             when sum(total_proventos) over (partition by portal_slug, ano, empresa_id) > 0
-            then round(
+            then least(greatest(round(
                 (total_proventos::numeric / sum(total_proventos) over (partition by portal_slug, ano, empresa_id)) * 100,
                 2
-            )
+            ), -999.99), 999.99)
             else 0
         end::numeric(5, 2) as percentual_folha
     from agregacao
