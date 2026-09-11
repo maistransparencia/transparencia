@@ -94,7 +94,7 @@ export default async function PessoalPage({
           title="Total pago em folha"
           value={fmtCompact(currentYearRow.totalFolha)}
           subtext={`proventos brutos, ${selectedYear}`}
-          trend={totalFolhaTrend}
+          {...(!isCurrentYear && { trend: totalFolhaTrend })}
         />
       </KPIGrid>
 
