@@ -3,12 +3,18 @@ import {
   type CategoriaGastoSensivel,
   getPortalConfig,
   getRawDespesasExportRecords,
+  getRawPessoalRegimeExportRecords,
   getRawSaldoCaixaSiconfiExportRecords,
   type RawDespesaRecordDTO,
+  type RawPessoalRegimeRecordDTO,
   type RawSaldoCaixaSiconfiRecordDTO,
   type TipoExportacao,
 } from "@transparencia/db";
 import { NextResponse } from "next/server";
+import {
+  CATEGORIA_REGIME_LABELS,
+  CATEGORIAS_REGIME,
+} from "@/lib/constants/pessoal";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const VALID_TIPOS: readonly TipoExportacao[] = [
@@ -16,6 +22,7 @@ const VALID_TIPOS: readonly TipoExportacao[] = [
   "opacidade_99",
   "funcao",
   "saldo_caixa_siconfi",
+  "pessoal_regime",
 ];
 
 const CSV_HEADERS = [
@@ -47,6 +54,19 @@ const SICONFI_CSV_HEADERS = [
   "saldo_recursos_vinculados",
 ] as const;
 
+const PESSOAL_REGIME_CSV_HEADERS = [
+  "ano",
+  "matricula",
+  "cargo",
+  "proventos",
+  "categoria_regime",
+  "categoria_regime_rotulo",
+  "regime_previdenciario",
+  "forma_provimento",
+  "vinculo",
+  "categoria_funcional",
+] as const;
+
 function escapeCsvCell(
   value: string | number | null | undefined,
   delimiter: string,
@@ -68,7 +88,7 @@ function escapeCsvCell(
 }
 
 function formatMoney(value: number, delimiter: string): string {
-  const fixed = value.toFixed(2);
+  const fixed = Number(value ?? 0).toFixed(2);
   if (delimiter === ";") {
     return fixed.replace(".", ",");
   }
@@ -119,6 +139,29 @@ function formatSiconfiCsvRow(
   return cells.join(delimiter);
 }
 
+function formatPessoalRegimeCsvRow(
+  record: RawPessoalRegimeRecordDTO,
+  delimiter: string,
+): string {
+  const rotulo =
+    (CATEGORIA_REGIME_LABELS as Record<string, string>)[
+      record.categoriaRegime
+    ] ?? "Outros";
+  const cells = [
+    escapeCsvCell(record.ano, delimiter),
+    escapeCsvCell(record.matricula, delimiter),
+    escapeCsvCell(record.cargo, delimiter),
+    escapeCsvCell(formatMoney(record.proventos, delimiter), delimiter),
+    escapeCsvCell(record.categoriaRegime, delimiter),
+    escapeCsvCell(rotulo, delimiter),
+    escapeCsvCell(record.regimePrevidenciario, delimiter),
+    escapeCsvCell(record.formaProvimento, delimiter),
+    escapeCsvCell(record.vinculo, delimiter),
+    escapeCsvCell(record.categoriaFuncional, delimiter),
+  ];
+  return cells.join(delimiter);
+}
+
 interface ResolveFilenameOptions {
   tipo: TipoExportacao;
   portalSlug: string;
@@ -141,6 +184,12 @@ function resolveFilename(options: ResolveFilenameOptions): string {
       ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
       : "";
     return `saldo_caixa_siconfi_${portalSlug}_${ano}${sufixo}.csv`;
+  }
+  if (tipo === "pessoal_regime") {
+    const sufixoCategoria = categoria
+      ? `_${categoria.replace(/[^a-zA-Z0-9_-]/g, "")}`
+      : "";
+    return `pessoal_regime_${portalSlug}_${ano}${sufixoCategoria}.csv`;
   }
   return `despesas_funcao_${funcaoCodigo}_${portalSlug}_${ano}.csv`;
 }
@@ -272,6 +321,73 @@ export async function GET(req: Request, context: ExportRouteContext) {
         for (const record of siconfiRecords) {
           controller.enqueue(
             encoder.encode(`${formatSiconfiCsvRow(record, delimiter)}\r\n`),
+          );
+        }
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  }
+
+  // Rota especializada para exportação de dados de pessoal por regime jurídico e vínculo
+  if (tipoParam === "pessoal_regime") {
+    if (
+      categoriaParam &&
+      !CATEGORIAS_REGIME.includes(
+        categoriaParam as (typeof CATEGORIAS_REGIME)[number],
+      )
+    ) {
+      return NextResponse.json(
+        { error: `Categoria de regime inválida: '${categoriaParam}'.` },
+        { status: 400 },
+      );
+    }
+
+    let pessoalRecords: RawPessoalRegimeRecordDTO[];
+    try {
+      pessoalRecords = await getRawPessoalRegimeExportRecords({
+        portalSlug,
+        ano,
+        categoriaRegime: categoriaParam ?? undefined,
+      });
+    } catch (error) {
+      // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+      console.error(
+        "[Export API] Erro ao consultar registros de pessoal por regime:",
+        error,
+      );
+      return NextResponse.json(
+        { error: "Erro interno ao processar a exportação de dados." },
+        { status: 500 },
+      );
+    }
+
+    const filename = resolveFilename({
+      tipo: tipoParam,
+      portalSlug,
+      ano,
+      categoria: categoriaParam ?? undefined,
+    });
+
+    const csvHeader = PESSOAL_REGIME_CSV_HEADERS.join(delimiter);
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`\uFEFF${csvHeader}\r\n`));
+        for (const record of pessoalRecords) {
+          controller.enqueue(
+            encoder.encode(
+              `${formatPessoalRegimeCsvRow(record, delimiter)}\r\n`,
+            ),
           );
         }
         controller.close();

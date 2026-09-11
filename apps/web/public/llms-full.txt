@@ -75,7 +75,7 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Endpoint Público em Streaming:** `/api/[portalSlug]/export` (com método `GET`).
 - **Garantia de Paridade Centavo a Centavo:** A soma da coluna `valor_pago` de todos os registros exportados no arquivo CSV corresponde rigorosamente (com tolerância estrita inferior a R$ 0,01) ao valor total apresentado no respectivo card ou métrica na interface web.
 - **Parâmetros de Consulta Suportados:**
-  - `tipo` (obrigatório): Enum dos tipos suportados: `"gasto_sensivel"` (combustíveis, locações, obras, eventos, diárias), `"opacidade_99"` (gastos sob rubricas genéricas residuais), `"funcao"` (despesas por função orçamentária STN) ou `"saldo_caixa_siconfi"` (disponibilidades financeiras em caixa e bancos da MSC/STN).
+  - `tipo` (obrigatório): Enum dos tipos suportados: `"gasto_sensivel"` (combustíveis, locações, obras, eventos, diárias), `"opacidade_99"` (gastos sob rubricas genéricas residuais), `"funcao"` (despesas por função orçamentária STN), `"saldo_caixa_siconfi"` (disponibilidades financeiras em caixa e bancos da MSC/STN) ou `"pessoal_regime"` (relação individualizada de pessoal e proventos por vínculo e regime jurídico).
   - `ano` (obrigatório): Exercício orçamentário (número inteiro entre 2000 e 2100).
   - `categoria` (obrigatório quando `tipo="gasto_sensivel"`): Código em lowercase snake_case (ex: `combustivel_frota`, `locacao_maquinas_veiculos`, `locacao_imoveis`, `eventos_festas`, `diarias_viagens`, `obras_infraestrutura`).
   - `funcaoCodigo` (obrigatório quando `tipo="funcao"`): Código numérico de 2 dígitos da função orçamentária (ex: `10` Saúde, `12` Educação).
@@ -106,6 +106,19 @@ Esta seção detalha a execução orçamentária e financeira do município atra
   8. `saldo_caixa_bancos` — Saldo total em contas bancárias e aplicações de liquidez (R$)
   9. `saldo_recursos_livres` — Saldo alocado em recursos ordinários/livres (R$)
   10. `saldo_recursos_vinculados` — Saldo vinculado a finalidades legais específicas (R$)
+- **Colunas Canônicas Exportadas para Pessoal por Regime Jurídico (`pessoal_regime`):**
+  1. `ano` — Ano do exercício de referência da folha
+  2. `matricula` — Matrícula funcional do servidor
+  3. `nome` — Nome completo do servidor/profissional
+  4. `cargo` — Denominação do cargo público ou função
+  5. `orgao` — Unidade administrativa ou órgão de lotação
+  6. `categoria_regime` — Código canônico do regime (`concursado_efetivo`, `comissionado`, `temporario`, `agente_politico`, `inativo_pensionista`, `outros`)
+  7. `categoria_regime_rotulo` — Rótulo descritivo do vínculo (ex: Efetivos / Concursados)
+  8. `regime_previdenciario` — Regime de previdência social (`rpps`, `rgps` ou `nenhum`)
+  9. `tipo_regime_origem` — Tipo de regime bruto registrado no sistema de origem
+  10. `tipo_contrato_origem` — Tipo de contrato funcional bruto de origem
+  11. `situacao_funcional_origem` — Situação funcional bruta de origem
+  12. `total_proventos` — Total bruto de proventos recebidos no ano (R$)
 - **Compatibilidade e Proteção:**
   - Emissão com marca de ordem de byte UTF-8 (BOM `\uFEFF`), assegurando abertura imediata no Microsoft Excel sem corrupção de caracteres especiais ou acentuação.
   - Sanitização RFC 4180 e proteção contra CSV Formula Injection / DDE (células iniciadas por `=`, `+`, `-`, `@` prefixadas para impedir execução indevida de comandos na planilha).
@@ -163,6 +176,16 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
 - **Comprometimento da Receita com Pessoal (LRF):** O percentual da Receita Corrente Líquida (RCL) gasto com pessoal, utilizado para verificação dos limites estipulados pela Lei de Responsabilidade Fiscal (limite máximo de 54% para o Poder Executivo).
 - **Cargos de Confiança e Funções Gratificadas:** A quantidade e o custo total de cargos comissionados de livre nomeação e funções de confiança na estrutura administrativa.
 - **Proventos e Vantagens:** A composição das remunerações, incluindo vencimento básico, gratificações e parcelas relativas ao 13º salário.
+- **Painel de Pessoal por Regime Jurídico e Vínculo Funcional:**
+  - Segregação analítica dos profissionais municipais e respectivos custos por regime jurídico e vínculo funcional em 5 categorias canônicas:
+    1. *Efetivos / Concursados* (`concursado_efetivo`): Servidores titulares de cargo efetivo aprovados em concurso público vinculados ao estatuto dos servidores públicos municipais.
+    2. *Comissionados* (`comissionado`): Cargos de direção, chefia e assessoramento de livre nomeação e exoneração.
+    3. *Temporários / Contratados* (`temporario`): Profissionais contratados por tempo determinado para atender a necessidade temporária de excepcional interesse público (CF art. 37, IX).
+    4. *Agentes Políticos* (`agente_politico`): Prefeito, vice-prefeito e secretários municipais detentores de mandato ou cargo político executivo.
+    5. *Inativos e Pensionistas* (`inativo_pensionista`): Aposentados e pensionistas mantidos pela previdência municipal (CAPREM).
+  - *Métricas por Regime:* Quantitativo anual de profissionais, custo total da folha (proventos brutos), remuneração média individual anualizada, percentual do quadro total de profissionais (%) e percentual de absorção da folha de pagamento (%).
+  - *Distribuição Visual Proporcional:* Gráfico de barras horizontal proporcional apresentando a divisão do quadro funcional e dos custos da folha entre os diferentes regimes.
+  - *Auditoria Aberta ("Show Your Work"):* Download em CSV da relação de pessoal e remunerações por vínculo (`tipo=pessoal_regime&ano=YYYY`).
 
 ---
 
@@ -311,6 +334,8 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
       `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025`
     - *Exemplo para Despesas por Função de Governo (Saúde - 10 em 2025):*
       `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=10`
+    - *Exemplo para Quadro de Pessoal por Regime Jurídico (2024):*
+      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=pessoal_regime&ano=2024`
     - Esclareça ao cidadão que o arquivo CSV exportado garante paridade matemática centavo a centavo com as métricas exibidas na interface, vem preparado em formato UTF-8 com BOM para abertura imediata no Excel sem desconfigurar acentos e conta com salvaguardas de integridade contra injeção de fórmulas.
 13. **Esclarecimento da Decomposição da Dívida Real por Entidade Pública:**
     - Ao analisar passivos ou restos a pagar de contas sensíveis, oriente o cidadão sobre qual órgão municipal específico gerou a despesa e acumulou o compromisso financeiro pendente (ex: diferenciando obrigações da Secretaria de Obras, Fundo de Saúde ou Gabinete). Evite atribuir o débito de forma genérica a uma única autoridade sem verificar as parcelas decompostas.

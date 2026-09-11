@@ -12,7 +12,12 @@ import { useEffect, useRef, useState } from "react";
 export interface ShowYourWorkButtonProps {
   portalSlug: string;
   ano: number;
-  tipo: "gasto_sensivel" | "opacidade_99" | "funcao" | "saldo_caixa_siconfi";
+  tipo:
+    | "gasto_sensivel"
+    | "opacidade_99"
+    | "funcao"
+    | "saldo_caixa_siconfi"
+    | "pessoal_regime";
   categoria?: string;
   funcaoCodigo?: string;
   entidades?: string;

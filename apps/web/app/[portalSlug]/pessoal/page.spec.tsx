@@ -27,7 +27,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
     pctChefias: 60,
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
     distribuicaoProventos: [],
-    departmentalPayroll: [],
+    regimeMetrics: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -77,5 +77,68 @@ describe("PessoalPage", () => {
     render(element);
 
     expect(screen.getByText("N/D")).toBeInTheDocument();
+  });
+
+  it("renderiza a seção de quadro e folha por regime jurídico", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        regimeMetrics: [
+          {
+            categoriaRegime: "efetivo_concurso",
+            categoriaRegimeRotulo: "Concursados (Efetivos)",
+            totalProfissionais: 150,
+            totalProventos: 600000,
+            proventoMedio: 4000,
+            percentualProfissionais: 100,
+            percentualFolha: 100,
+          },
+        ],
+      }),
+    );
+
+    const element = await PessoalPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", {
+        name: /Quadro e Folha por Regime Jurídico/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Concursados (Efetivos)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza indicadores de tendência YoY nos KPICards quando há histórico do ano anterior", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2024, isCurrentYear: false },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1100,
+            totalPago: 1000,
+            rclProxy: 2000,
+            percentualFolha: 55,
+          },
+          {
+            ano: 2023,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 50,
+          },
+        ],
+        pctChefias: 70,
+        prevPctChefias: 60,
+      }),
+    );
+
+    const element = await PessoalPage(props);
+    render(element);
+
+    expect(screen.getByText("+5 p.p. vs 2023")).toBeInTheDocument();
+    expect(screen.getByText("+10 p.p. vs 2023")).toBeInTheDocument();
+    expect(screen.getByText("+10% vs 2023")).toBeInTheDocument();
   });
 });

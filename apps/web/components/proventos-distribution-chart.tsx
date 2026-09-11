@@ -17,13 +17,20 @@ export function ProventosDistributionChart({
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6">
+      <span className="inline sm:hidden">
+        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+          Consolidado Municipal
+        </span>
+      </span>
       <div className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <h4 className="font-bold text-lg text-slate-900">
             Distribuição dos Proventos Brutos
           </h4>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-            Consolidado Municipal
+          <span className="hidden sm:inline">
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+              Consolidado Municipal
+            </span>
           </span>
         </div>
         <p className="mt-1 text-slate-500 text-xs leading-relaxed">

@@ -17,7 +17,11 @@ renamed as (
         nullif(trim(categoriafuncional), '') as categoria_funcional,
         nullif(trim(vinculo), '') as vinculo,
         nullif(trim(cargo), '') as cargo,
-        nullif(trim(formaprovimento), '') as forma_provimento
+        nullif(trim(formaprovimento), '') as forma_provimento,
+        nullif(trim(matricula), '') as matricula,
+        nullif(trim(tiporegime), '') as tipo_regime_raw,
+        nullif(trim(tipocontrato), '') as tipo_contrato_raw,
+        nullif(trim(situacaofuncional), '') as situacao_funcional_raw
     from source
 )
 
@@ -28,5 +32,9 @@ select
     categoria_funcional,
     vinculo,
     cargo,
-    forma_provimento
+    forma_provimento,
+    matricula,
+    tipo_regime_raw,
+    tipo_contrato_raw,
+    situacao_funcional_raw
 from renamed
