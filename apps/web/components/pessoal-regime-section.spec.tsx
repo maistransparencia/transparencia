@@ -217,7 +217,7 @@ describe("PessoalRegimeSection Component", () => {
 
     render(<PessoalRegimeSection data={dataComVariacao} ano={2025} />);
 
-    expect(screen.getByText("+4%")).toBeInTheDocument();
-    expect(screen.getByText("+8.5%")).toBeInTheDocument();
+    expect(screen.getByText("+4% vs 2024")).toBeInTheDocument();
+    expect(screen.getByText("+8.5% vs 2024")).toBeInTheDocument();
   });
 });

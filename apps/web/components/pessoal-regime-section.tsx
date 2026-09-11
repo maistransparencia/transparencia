@@ -306,12 +306,13 @@ export function PessoalRegimeSection({
                       {item.variacaoProfissionais !== null &&
                         item.variacaoProfissionais !== undefined && (
                           <span
-                            className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            className="shrink-0 whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
                             title={`Variação de ${item.variacaoProfissionais > 0 ? `+${item.variacaoProfissionais}%` : `${item.variacaoProfissionais}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoProfissionais > 0
                               ? `+${item.variacaoProfissionais}%`
-                              : `${item.variacaoProfissionais}%`}
+                              : `${item.variacaoProfissionais}%`}{" "}
+                            vs {ano - 1}
                           </span>
                         )}
                       <span className="font-semibold text-slate-900 text-sm">
@@ -328,12 +329,13 @@ export function PessoalRegimeSection({
                       {item.variacaoFolha !== null &&
                         item.variacaoFolha !== undefined && (
                           <span
-                            className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            className="shrink-0 whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
                             title={`Variação de ${item.variacaoFolha > 0 ? `+${item.variacaoFolha}%` : `${item.variacaoFolha}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoFolha > 0
                               ? `+${item.variacaoFolha}%`
-                              : `${item.variacaoFolha}%`}
+                              : `${item.variacaoFolha}%`}{" "}
+                            vs {ano - 1}
                           </span>
                         )}
                       <span
