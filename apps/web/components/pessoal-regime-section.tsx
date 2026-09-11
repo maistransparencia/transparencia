@@ -178,7 +178,7 @@ export function PessoalRegimeSection({
       </div>
 
       {/* Barra de Distribuição Visual Proporcional do Quadro */}
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 space-y-1">
         <div className="flex items-center justify-between text-slate-500 text-xs">
           <span className="font-medium">Proporção no Quadro de Pessoal</span>
           <span>Total: {fmtNumber(totalProfissionais)} servidores</span>
@@ -263,7 +263,7 @@ export function PessoalRegimeSection({
       </div>
 
       {/* Grid de Cards de Cada Categoria de Regime */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {data.map((item) => {
           const style = getRegimeStyle(item.categoriaRegime);
           const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
@@ -352,7 +352,7 @@ export function PessoalRegimeSection({
                       Provento Médio
                     </span>
                     <span className="font-semibold text-slate-900 text-sm">
-                      {fmtCurrency(item.proventoMedio)}
+                      {fmtCompact(item.proventoMedio)}
                     </span>
                   </div>
                 </div>
