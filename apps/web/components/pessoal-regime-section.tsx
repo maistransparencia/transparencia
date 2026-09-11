@@ -161,8 +161,8 @@ export function PessoalRegimeSection({
           </div>
           <p className="text-slate-500 text-xs sm:text-sm">
             Distribuição dos {fmtNumber(totalProfissionais)} profissionais e{" "}
-            {fmtCompact(totalFolha)} em proventos por vínculo funcional e regime
-            de contratação no exercício de {ano}.
+            {fmtCompact(totalFolha)} na folha mensal de referência por vínculo
+            funcional e regime de contratação no exercício de {ano}.
           </p>
         </div>
         <div className="hidden sm:inline">
@@ -322,9 +322,7 @@ export function PessoalRegimeSection({
                   </div>
 
                   <div className="flex items-baseline justify-between">
-                    <span className="text-slate-500 text-xs">
-                      Volume em Folha
-                    </span>
+                    <span className="text-slate-500 text-xs">Folha Mensal</span>
                     <div className="flex items-baseline gap-1.5">
                       {item.variacaoFolha !== null &&
                         item.variacaoFolha !== undefined && (
@@ -360,7 +358,7 @@ export function PessoalRegimeSection({
 
               {/* Footer do Card: Impacto na Folha Total */}
               <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
-                <span className="text-slate-400">Impacto na Folha</span>
+                <span className="text-slate-400">Impacto na Folha Mensal</span>
                 <span className="font-medium text-slate-800">
                   {fmtPercent(item.percentualFolha)} da despesa
                 </span>
