@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
           name: analise_despesas_invariante_lrf
+          arguments:
+            expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
       - name: analise_despesas_id
         data_type: text
@@ -76,7 +77,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_liquidado
         data_type: numeric
         constraints:
@@ -85,7 +87,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_pago
         data_type: numeric
         constraints:
@@ -94,4 +97,5 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0

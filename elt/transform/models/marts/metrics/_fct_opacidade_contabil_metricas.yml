@@ -100,7 +100,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['normal', 'atencao', 'critico']
+              arguments:
+                values: ['normal', 'atencao', 'critico']
 
   - name: fct_opacidade_contabil_credores
     description: "Top 10 credores que mais receberam recursos sob subitens residuais .99 por portal e ano"

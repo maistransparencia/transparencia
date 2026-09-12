@@ -45,8 +45,9 @@ models:
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "valor_contrato is not null"
+              arguments:
+                min_value: 0
+                row_condition: "valor_contrato is not null"
       - name: valor_aditado
         data_type: numeric
       - name: licitacao_numero

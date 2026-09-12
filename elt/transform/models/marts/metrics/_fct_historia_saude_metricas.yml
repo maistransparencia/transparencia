@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
           name: historia_saude_invariante_lrf
+          arguments:
+            expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
       - name: historia_saude_id
         data_type: text

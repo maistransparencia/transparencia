@@ -8,14 +8,17 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado"
           name: fct_contratos_servicos_empenhado_gte_liquidado
+          arguments:
+            expression: "total_empenhado >= total_liquidado"
       - dbt_utils.expression_is_true:
-          expression: "total_liquidado >= total_pago"
           name: fct_contratos_servicos_liquidado_gte_pago
+          arguments:
+            expression: "total_liquidado >= total_pago"
       - dbt_utils.expression_is_true:
-          expression: "extract(year from vencimento_atual) >= ano or vencimento_atual is null"
           name: fct_contratos_servicos_vencimento_vigente
+          arguments:
+            expression: "extract(year from vencimento_atual) >= ano or vencimento_atual is null"
     columns:
       - name: contrato_servico_id
         data_type: text
@@ -64,17 +67,20 @@ models:
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_liquidado
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_pago
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: status_execucao
         data_type: text
         constraints:
@@ -82,7 +88,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['em_execucao', 'concluido', 'inexecutado']
+              arguments:
+                values: ['inexecutado', 'concluido', 'em_execucao']
 
 unit_tests:
   - name: test_contratos_servicos_vigentes_filtragem_e_agregacao

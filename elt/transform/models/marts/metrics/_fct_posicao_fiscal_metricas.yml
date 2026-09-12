@@ -44,7 +44,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: despesas_pagas
         data_type: numeric
         constraints:

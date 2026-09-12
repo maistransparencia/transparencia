@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_arrecadado >= 0"
           name: fontes_receita_invariante_arrecadado
+          arguments:
+            expression: "total_arrecadado >= 0"
     columns:
       - name: fontes_receita_id
         data_type: text

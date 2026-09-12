@@ -26,8 +26,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2015
-              max_value: 2035
+              arguments:
+                min_value: 2015
+                max_value: 2035
       - name: empresa_id
         data_type: text
         constraints:
@@ -37,7 +38,8 @@ models:
         description: "'orcamentaria', 'uniao' ou 'estado'"
         tests:
           - dbt_expectations.expect_column_values_to_be_in_set:
-              value_set: ['orcamentaria', 'uniao', 'estado']
+              arguments:
+                value_set: ['orcamentaria', 'uniao', 'estado']
       - name: codigo
         data_type: text
       - name: descricao

@@ -26,8 +26,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2010
-              max_value: 2035
+              arguments:
+                min_value: 2010
+                max_value: 2035
       - name: empresa_id
         data_type: text
         constraints:
@@ -44,16 +45,18 @@ models:
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "valor is not null"
+              arguments:
+                min_value: 0
+                row_condition: "valor is not null"
       - name: situacao
         data_type: text
       - name: data_abertura
         data_type: date
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: "'2010-01-01'::date"
-              max_value: "'2040-12-31'::date"
-              row_condition: "data_abertura is not null"
+              arguments:
+                min_value: "'2010-01-01'::date"
+                max_value: "'2040-12-31'::date"
+                row_condition: "data_abertura is not null"
       - name: carona
         data_type: text
