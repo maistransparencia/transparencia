@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="CREATE EXTENSION IF NOT EXISTS unaccent;"
+    materialized='table'
 ) }}
 
 with licitacoes_proprias as (

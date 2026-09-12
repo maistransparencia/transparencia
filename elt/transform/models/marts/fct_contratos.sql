@@ -35,16 +35,16 @@ select
     fornecedor_cpf_cnpj,
     objeto,
     objeto_completo,
-    valor_contrato,
-    valor_aditado,
+    valor_contrato::numeric(15, 2) as valor_contrato,
+    valor_aditado::numeric(15, 2) as valor_aditado,
     licitacao_numero,
     modalidade,
     mes,
     tipo_obra,
     numero_obra,
     fundlegal,
-    empenhado,
+    empenhado::numeric(15, 2) as empenhado,
     data_inicio,
     vencimento_atual,
-    saldo_a_empenhar
+    saldo_a_empenhar::numeric(15, 2) as saldo_a_empenhar
 from contratos

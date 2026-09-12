@@ -37,51 +37,52 @@ models:
         tests:
           - not_null
       - name: total_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de receitas arrecadadas no exercício"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: despesas_pagas
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de despesas orçamentárias pagas no ano"
         tests:
           - not_null
       - name: restos_liquidados_no_ano
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Restos a pagar liquidados no ano de referência"
         tests:
           - not_null
       - name: restos_pagos_no_ano
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Restos a pagar pagos no ano de referência"
         tests:
           - not_null
       - name: restos_pendentes_adm_anterior
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Saldo pendente de restos a pagar referente a gestões anteriores"
         tests:
           - not_null
       - name: restos_pendentes_adm_atual
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Saldo pendente de restos a pagar da gestão atual"
         tests:
           - not_null
       - name: saldo_estimado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Saldo estimado calculado como total_arrecadado - (despesas_pagas + restos_pagos_no_ano)"

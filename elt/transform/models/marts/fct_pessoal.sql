@@ -21,7 +21,7 @@ select
     portal_slug,
     ano,
     empresa_id,
-    proventos,
+    proventos::numeric(15, 2) as proventos,
     categoria_funcional,
     vinculo,
     cargo,

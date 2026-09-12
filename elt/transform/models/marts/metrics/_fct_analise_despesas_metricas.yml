@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
           name: analise_despesas_invariante_lrf
+          arguments:
+            expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
       - name: analise_despesas_id
         data_type: text
@@ -62,36 +63,39 @@ models:
         tests:
           - not_null
       - name: total_dotacao_atualizada
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Dotação orçamentária atualizada da unidade/função"
         tests:
           - not_null
       - name: total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores empenhados no agrupamento"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_liquidado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores liquidados no agrupamento"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores pagos no agrupamento"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0

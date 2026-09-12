@@ -1,9 +1,6 @@
 {{
     config(
-        materialized='table',
-        pre_hook=[
-            "create extension if not exists unaccent;"
-        ]
+        materialized='table'
     )
 }}
 
@@ -119,7 +116,7 @@ carros_chefe as (
             end
         ) as iss_iptu_arrecadado
     from {{ ref('fct_receitas') }}
-    where tipo_receita = 'orcamentaria'
+    where tipo_receita in ('orcamentaria', 'uniao', 'estado')
     group by portal_slug, empresa_id, ano
 ),
 

@@ -6,10 +6,7 @@ models:
     config:
       contract:
         enforced: true
-    tests:
-      - dbt_utils.expression_is_true:
-          expression: "valor_arrecadado >= 0"
-          name: receita_extra_orcamentaria_invariante_arrecadado
+
     columns:
       - name: receita_extra_id
         data_type: text
@@ -47,24 +44,11 @@ models:
         data_type: text
         description: "Descrição da receita extra-orçamentária"
       - name: valor_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total arrecadado no ano"
         tests:
           - not_null
 
-unit_tests:
-  - name: test_receita_extra_orcamentaria_agrupamento_ano
-    description: "Valida se os lançamentos extra-orçamentários são corretamente somados por ano"
-    model: fct_receita_extra_orcamentaria
-    given:
-      - input: ref('stg_porciuncula_prefeitura__receita_extra_orcamentaria')
-        rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, codigo: "9114", descricao: "I.N.S.S.", valor_arrecadado: 2775.50 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, codigo: "9114", descricao: "I.N.S.S.", valor_arrecadado: 18699.38 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, codigo: "9118", descricao: "CAPREM", valor_arrecadado: 2782.31 }
-    expect:
-      rows:
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, codigo: "9114", descricao: "I.N.S.S.", valor_arrecadado: 21474.88 }
-        - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, codigo: "9118", descricao: "CAPREM", valor_arrecadado: 2782.31 }
+

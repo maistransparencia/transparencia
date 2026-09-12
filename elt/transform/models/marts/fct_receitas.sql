@@ -22,6 +22,6 @@ select
     tipo_receita,
     codigo,
     descricao,
-    previsao_atualizada,
-    arrecadado_efetivo as arrecadado
+    previsao_atualizada::numeric(15, 2) as previsao_atualizada,
+    arrecadado_efetivo::numeric(15, 2) as arrecadado
 from receitas
