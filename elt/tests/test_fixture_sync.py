@@ -21,10 +21,12 @@ def setup_fixture_audit(engine: Engine) -> None:
     raw_sql = gzip.decompress(FIXTURE_PATH.read_bytes()).decode("utf-8")
 
     # Remove metacomandos específicos do psql (ex: \restrict, \unrestrict, \connect)
+    # e parâmetros de sessão de versões mais recentes (ex: transaction_timeout do PG 17+)
     cleaned_lines = [
         line
         for line in raw_sql.splitlines()
         if not line.strip().startswith(("\\restrict", "\\unrestrict", "\\connect", "\\c "))
+        and not line.strip().startswith("SET transaction_timeout")
     ]
     cleaned_sql = "\n".join(cleaned_lines)
 

@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore
 
 # SETUP TASKS
 
@@ -35,6 +35,9 @@ check: lint format/check type-check
 
 test:
 	uv run --project elt pytest -v
+
+# PORTÃO DE QUALIDADE UNIFICADO (PARIDADE LOCAL ↔ CI)
+verify: check db/fixture/check test lint/ts test/ts build
 
 # PIPELINE
 
@@ -113,6 +116,9 @@ dev:
 build:
 	pnpm build
 
+lint/ts:
+	pnpm lint
+
 test/ts:
 	pnpm test
 
@@ -150,7 +156,7 @@ db/fixture/dump:
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
 			-t 'analytics.seed_*' \
-	) | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
+	) | grep -v -E '^(\\restrict|\\unrestrict|SET transaction_timeout = 0;)' | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
 
 db/fixture/check:
 	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
