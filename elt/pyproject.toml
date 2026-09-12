@@ -51,7 +51,7 @@ module = "numpy.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "extract"]
+testpaths = ["tests", "extract", "spikes"]
 
 [tool.vulture]
 exclude = ["*__tests__*", "*/tests/*", "*/fixtures/*", "*conftest.py"]
