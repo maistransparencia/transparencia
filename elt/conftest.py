@@ -36,6 +36,16 @@ def _create_raw_schema(eng) -> None:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw_porciuncula_prefeitura"))
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
+        conn.execute(
+            text(
+                "CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$"
+            )
+        )
+        conn.execute(
+            text(
+                "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$"
+            )
+        )
         for table_def in tables:
             name = table_def["name"]
             col_defs_list = table_def.get("columns", [])

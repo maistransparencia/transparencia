@@ -8,6 +8,6 @@ transparencia:
       user: "{{ env_var('DBT_USER') }}"
       password: "{{ env_var('DBT_PASSWORD') }}"
       dbname: "{{ env_var('DBT_DBNAME') }}"
-      schema: public
+      schema: analytics
       threads: "{{ env_var('DBT_THREADS', '8') | int }}"
       connect_timeout: 30

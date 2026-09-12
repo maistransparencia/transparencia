@@ -3,6 +3,8 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 
 -- Schemas
 CREATE SCHEMA IF NOT EXISTS analytics;
+CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$;
+CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$;
 
 -- Inicialização do usuário read_only no ambiente de desenvolvimento local
 DO $$
