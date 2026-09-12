@@ -35,16 +35,16 @@ models:
           - type: not_null
       - name: tipo_receita
         data_type: text
-        description: "'orcamentaria', 'uniao' ou 'estado'"
+        description: "'orcamentaria', 'uniao', 'estado' ou 'extra_orcamentaria'"
         tests:
           - dbt_expectations.expect_column_values_to_be_in_set:
               arguments:
-                value_set: ['orcamentaria', 'uniao', 'estado']
+                value_set: ['orcamentaria', 'uniao', 'estado', 'extra_orcamentaria']
       - name: codigo
         data_type: text
       - name: descricao
         data_type: text
       - name: previsao_atualizada
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)

@@ -38,14 +38,14 @@ models:
       - name: resumo
         data_type: text
       - name: valor_total
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 row_condition: "valor_total is not null"
       - name: empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:

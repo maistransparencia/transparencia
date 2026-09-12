@@ -21,8 +21,8 @@ select
     mes,
     entidade_pagadora,
     entidade_recebedora,
-    sum(repasse) as repasse,
-    sum(devolucao) as devolucao
+    sum(repasse)::numeric(15, 2) as repasse,
+    sum(devolucao)::numeric(15, 2) as devolucao
 from transferencias
 group by
     portal_slug,

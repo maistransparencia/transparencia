@@ -42,7 +42,7 @@ models:
       - name: discriminacao
         data_type: text
       - name: valor
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:

@@ -25,7 +25,7 @@ select
     modalidade,
     objeto,
     discriminacao,
-    valor,
+    valor::numeric(15, 2) as valor,
     situacao,
     data_abertura,
     carona

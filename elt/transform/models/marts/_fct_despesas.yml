@@ -141,44 +141,44 @@ models:
                 max_value: "'2040-12-31'::date"
                 row_condition: "data_empenho is not null"
       - name: empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: empenhado_liquido
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Empenhado bruto + anulações (valores negativos). Denominador correto para taxas de quitação."
       - name: liquidado
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 row_condition: "pago is not null"
       - name: dotacao_inicial
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 row_condition: "dotacao_inicial is not null"
       - name: alteracao_dotacao
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: dotacao_atualizada
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 row_condition: "dotacao_atualizada is not null"
       - name: reforco
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 row_condition: "reforco is not null"
       - name: valor_anulacoes
-        data_type: numeric
+        data_type: numeric(15, 2)
 
 unit_tests:
   - name: test_fct_despesas_categoria_gasto_sensivel_classificacao

@@ -6,7 +6,7 @@ select
     insmf as fornecedor_cpf_cnpj,
     upper(unaccent(cepci)) as fornecedor_cidade_clean,
     cepci as fornecedor_cidade,
-    nullif(replace(empenhado, ',', '.'), '')::numeric as empenhado,
-    nullif(replace(liquidado, ',', '.'), '')::numeric as liquidado,
-    nullif(replace(pago, ',', '.'), '')::numeric as pago
+    nullif(replace(empenhado, ',', '.'), '')::numeric(15, 2) as empenhado,
+    nullif(replace(liquidado, ',', '.'), '')::numeric(15, 2) as liquidado,
+    nullif(replace(pago, ',', '.'), '')::numeric(15, 2) as pago
 from {{ source('porciuncula_prefeitura', 'despesas_por_fornecedor') }}

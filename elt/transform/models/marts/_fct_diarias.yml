@@ -36,7 +36,7 @@ models:
       - name: diaria_id
         data_type: text
       - name: valor
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: favorecido
         data_type: text
       - name: cargo
