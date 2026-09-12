@@ -58,14 +58,14 @@ models:
         tests:
           - not_null
       - name: total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total empenhado para o fornecedor"
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total pago para o fornecedor"
