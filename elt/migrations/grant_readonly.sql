@@ -34,3 +34,6 @@ BEGIN
   END IF;
 END
 $$;
+
+ALTER ROLE read_only SET search_path = analytics, public;
+ALTER ROLE postgres SET search_path = analytics, public;

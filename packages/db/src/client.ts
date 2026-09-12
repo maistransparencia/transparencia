@@ -29,7 +29,7 @@ const pool = new pg.Pool({
 });
 
 pool.on("connect", (client) => {
-  client.query("SET search_path = analytics, public;");
+  client.query("SET search_path = analytics, public;").catch(() => {});
 });
 
 // O Postgres gerenciado encerra conexões ociosas. Quando isso acontece, o `pg`
@@ -54,7 +54,7 @@ const writePool = new pg.Pool({
 });
 
 writePool.on("connect", (client) => {
-  client.query("SET search_path = analytics, public;");
+  client.query("SET search_path = analytics, public;").catch(() => {});
 });
 
 writePool.on("error", (err) => {

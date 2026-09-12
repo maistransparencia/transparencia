@@ -140,7 +140,7 @@ db/fixture/dump:
 		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'public.seed_*' ; \
+			-t 'analytics.*' -t 'public.seed_*' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
 			-t 'public.seed_*' \
