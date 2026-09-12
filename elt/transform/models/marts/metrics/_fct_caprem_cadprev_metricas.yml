@@ -39,14 +39,14 @@ models:
         data_type: date
         description: "Data do empenho/lançamento"
       - name: empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total empenhado"
         tests:
           - not_null
       - name: pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total pago"

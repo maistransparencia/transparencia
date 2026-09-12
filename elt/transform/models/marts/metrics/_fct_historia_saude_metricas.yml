@@ -35,63 +35,63 @@ models:
         tests:
           - not_null
       - name: dotacao_total
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Dotação orçamentária atualizada da saúde"
         tests:
           - not_null
       - name: total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total empenhado na função saúde (Função 10)"
         tests:
           - not_null
       - name: total_liquidado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total liquidado na função saúde (Função 10)"
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total pago na função saúde (Função 10)"
         tests:
           - not_null
       - name: medicamentos_insumos_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Despesas com medicamentos e insumos farmacêuticos empenhados (Subfunção 10.303)"
         tests:
           - not_null
       - name: medicamentos_insumos_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Despesas com medicamentos e insumos farmacêuticos pagos (Subfunção 10.303)"
         tests:
           - not_null
       - name: judicializacao_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Despesas com sentenças judiciais da saúde empenhadas (Elemento 91)"
         tests:
           - not_null
       - name: judicializacao_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Despesas com sentenças judiciais da saúde pagas (Elemento 91)"
         tests:
           - not_null
       - name: emendas_saude_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total arrecadado em emendas parlamentares vinculadas à saúde"
@@ -105,21 +105,21 @@ models:
         tests:
           - not_null
       - name: receita_uniao_saude
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total arrecadado em transferências da União para a Saúde (SUS)"
         tests:
           - not_null
       - name: receita_estado_saude
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total arrecadado em transferências do Estado para a Saúde"
         tests:
           - not_null
       - name: repasses_prefeitura_saude
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de repasses e recursos próprios municipais para a Saúde"

@@ -47,12 +47,12 @@ com_ranking_e_pct as (
         categoria_macro,
         tipo_residual,
         total_empenhos,
-        total_pago,
-        case
+        total_pago::numeric(15, 2) as total_pago,
+        (case
             when sum(total_pago) over (partition by portal_slug, ano) > 0
             then round((total_pago / sum(total_pago) over (partition by portal_slug, ano) * 100.0), 2)
             else 0.00
-        end as percentual_do_residual_99,
+        end)::numeric(5, 2) as percentual_do_residual_99,
         row_number() over (partition by portal_slug, ano order by total_pago desc, total_empenhos desc, elemento_codigo asc)::integer as ranking
     from elementos_agregados
 )

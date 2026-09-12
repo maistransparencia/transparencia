@@ -61,9 +61,9 @@ select
     empenhos_residual_99,
     empenhos_desvio_sensivel_99,
     taxa_empenhos_opacidade_pct::numeric(5, 2) as taxa_empenhos_opacidade_pct,
-    total_pago,
-    pago_residual_99,
-    pago_desvio_sensivel_99,
+    total_pago::numeric(15, 2) as total_pago,
+    pago_residual_99::numeric(15, 2) as pago_residual_99,
+    pago_desvio_sensivel_99::numeric(15, 2) as pago_desvio_sensivel_99,
     taxa_valor_opacidade_pct::numeric(5, 2) as taxa_valor_opacidade_pct,
     taxa_desvio_sensivel_pct::numeric(5, 2) as taxa_desvio_sensivel_pct,
     case

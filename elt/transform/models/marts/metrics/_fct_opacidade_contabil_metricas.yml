@@ -51,42 +51,42 @@ models:
         tests:
           - not_null
       - name: taxa_empenhos_opacidade_pct
-        data_type: numeric
+        data_type: numeric(5, 2)
         constraints:
           - type: not_null
         description: "Percentual de empenhos em subitens .99 sobre o total de empenhos"
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de despesas orçamentárias pagas no exercício"
         tests:
           - not_null
       - name: pago_residual_99
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de valores pagos sob subitens residuais .99"
         tests:
           - not_null
       - name: pago_desvio_sensivel_99
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total pago em .99 com desvio de classificação para gastos sensíveis detectado"
         tests:
           - not_null
       - name: taxa_valor_opacidade_pct
-        data_type: numeric
+        data_type: numeric(5, 2)
         constraints:
           - type: not_null
         description: "Percentual de valores pagos em subitens .99 sobre o total pago"
         tests:
           - not_null
       - name: taxa_desvio_sensivel_pct
-        data_type: numeric
+        data_type: numeric(5, 2)
         constraints:
           - type: not_null
         description: "Percentual de valores em .99 com desvio sensível comprovado"
@@ -153,14 +153,14 @@ models:
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de valores pagos em .99 para o credor"
         tests:
           - not_null
       - name: pago_desvio_sensivel
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor pago em .99 associado a desvios sensíveis identificados"
@@ -252,14 +252,14 @@ models:
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de valor pago no elemento .99"
         tests:
           - not_null
       - name: percentual_do_residual_99
-        data_type: numeric
+        data_type: numeric(5, 2)
         constraints:
           - type: not_null
         description: "Percentual do elemento sobre o total do residual .99 no ano"
