@@ -5,31 +5,49 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
-### 🌟 Destaques da Versão (Epic 9: Análise Estrutural da Folha de Pagamento por Regime Jurídico e Vínculo)
-* **Quadro e Folha por Regime Jurídico e Vínculo:** Painel completo na rota `/pessoal` com decomposição dos servidores e proventos por categoria legal (Efetivos Concursados, Comissionados, Contratos Temporários, Agentes Políticos e Outros), com barra de distribuição visual, tooltips analíticos e detalhamento por vínculo de ingresso.
-* **Auditoria Cívica de Divergências Cadastrais (Data-Driven):** Monitoramento em tempo real de inconformidades cadastrais (como servidores comissionados em cargos técnicos sem concurso ou divergências de enquadramento), com nota cívica dinâmica fundamentada no Art. 37 da Constituição Federal (com link oficial direto).
-* **Indicadores de Variação Anual (YoY):** Badges e métricas comparativas em relação ao exercício anterior nos 3 KPIs de topo (diferença em `p.p.` para Folha/Receita e Chefias Efetivas; `%` relativo para Total Pago em Folha) e em cada card de regime funcional (evolução percentual de Profissionais e Volume em Folha).
-* **Exportação Auditável de Microdados de Pessoal ("Show Your Work"):** Exportação de dados brutos por regime e vínculo no endpoint `/api/[portalSlug]/export?tipo=pessoal_regime` com codificação UTF-8 com BOM (`\uFEFF`) e streaming assíncrono.
-* **Saneamento da Apresentação da Folha:** Remoção da seção obsoleta e opaca de despesas agrupadas por ordenador nominal ("Folha distribuída por responsável" com "E OUTROS"), consolidando a página `/pessoal` exclusivamente no quadro funcional e salarial dos servidores públicos.
+## [1.9.0] - 2026-09-11
+
+### 🌟 Destaques da Versão (Epic 9: Consistência Cívica, Indicadores da Saúde e Disponibilidade Financeira SICONFI)
+* **Disponibilidade em Caixa e Saldos Bancários Oficiais (SICONFI/STN):** Ingestão direta da Matriz de Saldos Contábeis (MSC Patrimonial - Classe 1) da Secretaria do Tesouro Nacional, apresentando nas páginas `/orcamento`, `/receitas`, `/caprem` e na Visão Geral o saldo bancário auditado centavo a centavo por entidade pública autônoma (Prefeitura, Fundo de Saúde, Assistência Social, CAPREM e Câmara), prevenindo equívocos entre superávit orçamentário e disponibilidade real em contas bancárias.
+* **Estrutura Funcional e Folha de Pagamento por Regime Jurídico e Vínculo:** Painel completo na rota `/pessoal` com decomposição dos servidores e proventos por categoria legal (Efetivos Concursados, Comissionados, Contratos Temporários, Agentes Políticos e Inativos RPPS), acompanhado de auditoria cívica data-driven de divergências cadastrais com nota fundamentada no Art. 37 da Constituição Federal (com link canônico para o Planalto) e indicativos comparativos de variação anual (YoY).
+* **Transparência e Alertas na Saúde Pública:** Redesign analítico dos recursos da saúde na rota `/saude`, com exibição em linha única das emendas parlamentares (destacando alocações sem empenho em tom de alerta), badges semânticas de concentração de fornecedores pelo Índice Herfindahl-Hirschman (HHI) e tabela detalhada de credores com rastreabilidade de origem dos recursos.
+* **Auditabilidade Ponta a Ponta ("Show Your Work"):** Exportação instantânea em streaming CSV com codificação UTF-8 com BOM (`\uFEFF`) para os novos conjuntos de dados: saldos de caixa do SICONFI (`tipo=siconfi_saldo_caixa`) e microdados de servidores por regime (`tipo=pessoal_regime`), além de ordenação nativa nas tabelas de licitações e contratos.
 
 ### ✨ Novas Funcionalidades (Added)
-* **Painel de Pessoal por Regime Jurídico (`PessoalRegimeSection`):** Tabela e cards estruturados apresentando total de profissionais, valor da folha, provento médio e indicativos de variação YoY por regime e tipo de provimento.
-* **Indicadores de Tendência YoY em KPIs (`KPICard`):** Exibição de tendências anuais com rigor metodológico (p.p. para taxas e % para valores absolutos) e proteção tipográfica contra sobreposição (`shrink-0 whitespace-nowrap`).
-* **Barra de Distribuição Proporcional com Tooltips Ricos:** Visualização proporcional no quadro de pessoal com balões contextuais (`Tooltip`) alinhados dinamicamente para prevenir cortes nas bordas da tela.
-* **Exportação CSV de Pessoal (`/api/[portalSlug]/export`):** Suporte ao tipo `pessoal_regime` na rota de streaming, permitindo auditoria detalhada de matrículas, vínculos e remunerações.
+* **Demonstrativo de Saldos de Caixa SICONFI (`SaldoCaixaEntidadesSection` e `SaldoCaixaEntidadesCard`):** Painéis e cards analíticos detalhando a disponibilidade financeira real e saldos bancários por entidade autônoma, com badges oficiais do SICONFI e destaque visual para a segregação patrimonial constitucional dos recursos previdenciários (CAPREM).
+* **Painel de Pessoal por Regime Jurídico (`PessoalRegimeSection`):** Tabela e cards estruturados apresentando total de profissionais, valor da folha, provento médio, barra de distribuição proporcional com tooltips contextuais ricos e indicativos de variação anual (YoY) por regime e provimento.
+* **Indicadores de Tendência YoY em KPIs (`KPICard`):** Exibição de variações anuais com rigor metodológico (diferença em `p.p.` para taxas percentuais e `%` relativo para grandezas financeiras absolutas) e proteção tipográfica contra sobreposições (`shrink-0 whitespace-nowrap`).
+* **Card de Emendas Parlamentares na Saúde (`SaudeEmendasCard`):** Exibição compacta e em linha única dos repasses de emendas na rota `/saude`, destacando valores autorizados vs empenhados com badge rose-600 para alertar sobre saldos sem execução orçamentária.
+* **Classificação de Concentração de Fornecedores HHI na Saúde:** Classificação semântica do Índice Herfindahl-Hirschman (`baixa`, `moderada`, `alta` concentração) nos contratos e empenhos da saúde, auxiliando o controle social na detecção de oligopólios de fornecimento.
+* **Exportação Auditável de Microdados ("Show Your Work"):** Novos parâmetros no endpoint `/api/[portalSlug]/export` para download de saldos de caixa (`siconfi_saldo_caixa`) e microdados de folha (`pessoal_regime`) com streaming assíncrono e preservação de acentuação no Excel via BOM UTF-8 (`\uFEFF`).
+* **Ordenação Nativa e Acessibilidade em Tabelas (`DenseTable` e `LicitacoesTable`):** Cabeçalhos clicáveis e ordenáveis em licitações e contratos com suporte completo a atributos WAI-ARIA (`aria-sort`) e teclado.
 
-### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
-* **Precedência Constitucional na Classificação de Pessoal (`int_pessoal_consolidado.sql`):** Refinamento das regras de negócio de classificação de regime e provimento, priorizando a natureza estrita do vínculo efetivo/concurso e segregando divergências cadastrais.
-* **Queries Kysely de Métricas de Regime (`pessoal-regime-metrics.ts`):** Novas consultas `getPessoalRegimeMetrics` e `getCountDivergenciasCadastraisPessoal` com tipagem estrita e testes automatizados de paridade em `@transparencia/db`.
-* **Exportação de Microdados de Pessoal (`export-raw-data.ts`):** Implementação de `getRawPessoalRegimeExport` para extração auditável e paginada de registros de pessoal por exercício e tenant.
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Pipeline ELT da MSC SICONFI (`siconfi_msc_extractor.py`):** Ingestão automatizada da Matriz de Saldos Contábeis Patrimoniais (Classe 1) via API oficial do Tesouro Nacional / STN, com validação estrita via Pydantic, retentativas exponenciais com jitter e normalização de períodos.
+* **Sementes de Mapeamento STN / SICONFI:** Novos seeds canônicos `seed_stn_fontes_recursos.csv` e `seed_orgaos_siconfi.csv` mapeando órgãos e fontes de recursos vinculadas e desvinculadas às entidades municipais.
+* **Modelo Mart de Disponibilidade de Caixa (`fct_siconfi_saldo_caixa`):** Modelo dbt consolidando saldos de contas correntes, aplicações e caixas por entidade municipal (`Prefeitura`, `Fundo de Saúde`, `Fundo de Assistência Social`, `Previdência/CAPREM`, `Câmara Municipal`), exercício e mês de encerramento.
+* **Resgate de Colunas Nativas e Modelo Mart de Pessoal (`fct_pessoal_regime_metricas`):** Mapeamento em `stg_porciuncula_prefeitura__pessoal` das colunas nativas de vínculo (`tiporegime`, `tipocontrato`, `situacaofuncional`, `matricula`) e agregação de métricas de headcount, folha e provento médio por categoria legal e regime previdenciário.
+* **Precedência Constitucional na Classificação de Pessoal (`int_pessoal_consolidado`):** Refinamento das regras de negócio de classificação de regime e provimento, priorizando a natureza estrita do vínculo concursado/efetivo e isolando divergências cadastrais.
+* **Queries Kysely Tipadas (`@transparencia/db`):** Novas consultas analíticas `getSiconfiCashPosition`, `getPessoalRegimeMetrics`, `getCountDivergenciasCadastraisPessoal`, `getRawSiconfiCashExport` e `getRawPessoalRegimeExport`, com tipagem estrita, transformações funcionais e fixtures de paridade matemática.
 
 ### 🔧 Melhorias & Otimizações (Changed / Perf)
-* **Remoção de Componentes e Métricas Obsoletas na UI:** Descontinuação do componente `DepartmentalPayrollChart` na página `/pessoal`, mantendo a separação entre gastos por função orçamentária e gestão de pessoal.
-* **Suporte a Estilo Inline em Tooltip (`TooltipProps`):** Adição da propriedade `style` no componente base `@transparencia/ui` para posicionamento contextual refinado.
+* **Padronização Estrita de DTOs em `camelCase` (Regra 18 de `AGENTS.md`):** Eliminação de chaves contendo espaços, acentos ou formatação PascalCase em queries e contratos TypeScript em `@transparencia/db` e `apps/web`.
+* **Sincronização Cronológica Real de Ano Parcial (`getPartialYearPeriod`):** Exposição de `dataExtracaoDate` nos metadados do portal para exibir o mês de corte real da extração (ex: "Até Maio/2026"), evitando sufixos parciais vazios ou ambíguos.
+* **Responsividade Fluida no Card de Gastos Residuais (`.99`):** Reestruturação do card de subitens genéricos com adaptação de layout em 3 níveis (mobile compacto, tablet e desktop) e proteção matemática contra `NaN`.
+* **Desacoplamento e Reuso de `DenseTable`:** Refatoração de `LicitacoesTable` para utilizar a base padronizada de `DenseTable`, eliminando duplicação de lógica de ordenação e paginação.
+* **Suporte a Estilo Inline em Tooltip (`TooltipProps`):** Adição da propriedade `style` no componente base `@transparencia/ui` para posicionamento contextual refinado contra as bordas da tela.
+* **Saneamento da Apresentação da Folha:** Descontinuação do componente legado `DepartmentalPayrollChart` na página `/pessoal`, consolidando a rota exclusivamente no quadro funcional e salarial dos servidores públicos.
 
 ### ⚖️ Governança & Documentação Pública (Governance & Docs)
-* **Regra de Hiperlinks Oficiais para Legislação Citada (`AGENTS.md`):** Formalização da Regra 20 exigindo links diretos e canônicos para a Presidência da República/Planalto em qualquer citação de lei ou norma constitucional na interface do sistema.
-* **Sincronização dos Guias para IA (`llms.txt` e `llms-full.txt`):** Atualização dos manuais cívicos para agentes e LLMs com a documentação do endpoint de exportação de pessoal e da seção de regimes jurídicos.
+* **Regra 18 em `AGENTS.md` (Padrão de Identificadores e DTOs em TypeScript):** Formalização da diretriz obrigatória exigindo convenção estrita em `camelCase` para todas as propriedades de interfaces, tipos, DTOs e loaders.
+* **Regra 20 em `AGENTS.md` (Hiperlinks Oficiais para Legislação Citada):** Obrigatoriedade de links canônicos do portal da Presidência da República / Casa Civil (`planalto.gov.br`) para qualquer norma ou artigo legal citado na interface pública.
+* **Sincronização dos Guias para Agentes e LLMs (`llms.txt` e `llms-full.txt`):** Atualização completa das rotas públicas, convenções contábeis da MSC SICONFI, métricas de regimes de pessoal e documentação detalhada do endpoint `/api/[portalSlug]/export`.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Tratamento de Saldos a Descoberto no SICONFI:** Identificação e tratamento visual adequado para contas bancárias ou disponibilidades temporariamente negativas.
+* **Segregação Rigorosa de Contas Previdenciárias:** Garantia de isolamento das contas do RPPS (CAPREM) nas queries de exportação SICONFI.
+* **Normalização de Fuso Horário em Datas de Extração:** Parsing defensivo de datas no cliente e servidor prevenindo divergências de fuso horário UTC na exibição do período de extração.
+* **Tratamento Tipográfico em Badges YoY:** Prevenção de quebra de linha ou sobreposição visual em variações anuais (`shrink-0 whitespace-nowrap`).
 
 ## [1.8.1] - 2026-09-04
 
