@@ -28,6 +28,10 @@ const pool = new pg.Pool({
   max: poolMax,
 });
 
+pool.on("connect", (client) => {
+  client.query("SET search_path = analytics, public;");
+});
+
 // O Postgres gerenciado encerra conexões ociosas. Quando isso acontece, o `pg`
 // emite um evento 'error' no client ocioso; sem este listener ele vira uma
 // exceção não tratada que derruba o handler da requisição — mesmo com a query
@@ -47,6 +51,10 @@ export const db = new Kysely<any>({
 const writePool = new pg.Pool({
   connectionString: writeConnectionString,
   max: poolMax,
+});
+
+writePool.on("connect", (client) => {
+  client.query("SET search_path = analytics, public;");
 });
 
 writePool.on("error", (err) => {
