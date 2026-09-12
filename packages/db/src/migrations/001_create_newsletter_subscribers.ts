@@ -2,6 +2,7 @@ import { type Kysely, sql } from "kysely";
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
+    .withSchema("public")
     .createTable("newsletter_subscribers")
     .ifNotExists()
     .addColumn("id", "uuid", (col) =>
@@ -26,6 +27,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute();
 
   await db.schema
+    .withSchema("public")
     .createIndex("idx_newsletter_subscribers_portal")
     .ifNotExists()
     .on("newsletter_subscribers")
@@ -33,6 +35,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute();
 
   await db.schema
+    .withSchema("public")
     .createIndex("idx_newsletter_subscribers_status")
     .ifNotExists()
     .on("newsletter_subscribers")
@@ -41,5 +44,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable("newsletter_subscribers").ifExists().execute();
+  await db.schema
+    .withSchema("public")
+    .dropTable("newsletter_subscribers")
+    .ifExists()
+    .execute();
 }
