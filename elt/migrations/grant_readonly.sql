@@ -1,18 +1,26 @@
+CREATE SCHEMA IF NOT EXISTS analytics;
+
 GRANT USAGE ON SCHEMA public TO read_only;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO read_only;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO read_only;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read_only;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO read_only;
 
+GRANT USAGE ON SCHEMA analytics TO read_only;
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO read_only;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA analytics TO read_only;
+ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT SELECT ON TABLES TO read_only;
+ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT USAGE, SELECT ON SEQUENCES TO read_only;
+
 DO $$
 DECLARE
   r record;
 BEGIN
-  FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+  FOR r IN SELECT tablename, schemaname FROM pg_tables WHERE schemaname IN ('public', 'analytics')
   LOOP
-    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', r.tablename);
-    EXECUTE format('DROP POLICY IF EXISTS read_only_select ON %I;', r.tablename);
-    EXECUTE format('CREATE POLICY read_only_select ON %I FOR SELECT TO read_only USING (true);', r.tablename);
+    EXECUTE format('ALTER TABLE %I.%I ENABLE ROW LEVEL SECURITY;', r.schemaname, r.tablename);
+    EXECUTE format('DROP POLICY IF EXISTS read_only_select ON %I.%I;', r.schemaname, r.tablename);
+    EXECUTE format('CREATE POLICY read_only_select ON %I.%I FOR SELECT TO read_only USING (true);', r.schemaname, r.tablename);
   END LOOP;
 
   -- Exceção: Permissões de escrita e políticas RLS para newsletter_subscribers

@@ -17,6 +17,7 @@ clean-targets:
 
 on-run-start:
   - "CREATE EXTENSION IF NOT EXISTS unaccent;"
+  - "CREATE SCHEMA IF NOT EXISTS analytics;"
 
 vars:
   test_mode: false
@@ -30,4 +31,5 @@ models:
     intermediate:
       +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
     marts:
+      +schema: analytics
       +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
