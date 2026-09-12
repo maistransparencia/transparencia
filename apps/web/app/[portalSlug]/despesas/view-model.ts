@@ -10,7 +10,9 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
   return {
     selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
-    partialPeriod: getPartialYearPeriod(),
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     metricasGerais: raw.metricasGerais ?? {
       empenhado: 0,
       liquidado: 0,

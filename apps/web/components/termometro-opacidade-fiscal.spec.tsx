@@ -167,6 +167,18 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getByText(/Nota Metodológica:/)).toBeInTheDocument();
   });
 
+  it("renderiza os elementos residuais com estrutura responsiva (código, descrição, badge, barra e valores)", () => {
+    render(<TermometroOpacidadeFiscal data={sampleData} />);
+
+    // Valida valores monetários formatados e percentuais dos elementos
+    expect(screen.getAllByText("R$ 4.0mi").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("70.92%").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("R$ 1.0mi")).toBeInTheDocument();
+    expect(screen.getByText("17.73%")).toBeInTheDocument();
+    expect(screen.getByText("R$ 640.0mil")).toBeInTheDocument();
+    expect(screen.getByText("11.35%")).toBeInTheDocument();
+  });
+
   it("renderiza a evolução histórica de anos anteriores fechados", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 

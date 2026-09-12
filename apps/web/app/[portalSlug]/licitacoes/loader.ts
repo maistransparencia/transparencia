@@ -7,6 +7,7 @@ import {
   getEntidades,
   getLicitacaoGapsMetrics,
   getLimiteDispensaComprasServicos,
+  getPortalConfig,
 } from "@transparencia/db";
 
 export interface LicitacoesSearchParams {
@@ -78,6 +79,7 @@ export async function loadLicitacoesData(
     modalidades,
     contratosServicosVigentes,
     limiteDispensaComprasServicos,
+    portalConfig,
   ] = await Promise.all([
     getLicitacaoGapsMetrics(tenantSlug, selectedYear, empresaIds),
     getAdesaoDeAtaMetrics(tenantSlug, selectedYear, empresaIds),
@@ -86,11 +88,13 @@ export async function loadLicitacoesData(
     getDistribucaoModalidadesMetrics(tenantSlug, selectedYear, empresaIds),
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
     getLimiteDispensaComprasServicos(tenantSlug, selectedYear),
+    getPortalConfig(tenantSlug),
   ]);
 
   return {
     portalSlug: tenantSlug,
     context,
+    portalConfig,
     gaps,
     adesao,
     adesaoExterna,

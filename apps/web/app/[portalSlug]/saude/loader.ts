@@ -1,6 +1,7 @@
 import {
   getEntidades,
   getHistoriaSaudeMetrics,
+  getPortalConfig,
   getSaudeContratosCountMetrics,
   getSaudeEmendasMetrics,
   getSaudeExecutionTrendMetrics,
@@ -41,10 +42,46 @@ function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-function classifyHhi(hhi: number): string {
-  if (hhi >= 2500) return "alta";
-  if (hhi >= 1500) return "moderada a alta";
-  return "baixa";
+export interface FarmaceuticaConcentracao {
+  hhi: number;
+  nivel: "baixa" | "moderada" | "alta";
+  label: string;
+  descricao: string;
+}
+
+export function classifyHhi(hhi: number): FarmaceuticaConcentracao {
+  if (hhi <= 0 || Number.isNaN(hhi)) {
+    return {
+      hhi: 0,
+      nivel: "baixa",
+      label: "Não aplicável",
+      descricao:
+        "Sem registros de aquisições de insumos ou contratos no exercício",
+    };
+  }
+  if (hhi >= 2500) {
+    return {
+      hhi,
+      nivel: "alta",
+      label: "Alta",
+      descricao:
+        "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
+    };
+  }
+  if (hhi >= 1500) {
+    return {
+      hhi,
+      nivel: "moderada",
+      label: "Moderada",
+      descricao: "Mercado moderadamente concentrado em poucas empresas",
+    };
+  }
+  return {
+    hhi,
+    nivel: "baixa",
+    label: "Baixa",
+    descricao: "Compras bem distribuídas entre múltiplos fornecedores",
+  };
 }
 
 export async function loadSaudeData(
@@ -70,6 +107,7 @@ export async function loadSaudeData(
     contratosCount,
     fornecedoresCount,
     licitacoesSaude,
+    portalConfig,
   ] = await Promise.all([
     getHistoriaSaudeMetrics(tenantSlug, context.selectedYear),
     getSaudeExecutionTrendMetrics(tenantSlug),
@@ -81,6 +119,7 @@ export async function loadSaudeData(
       empresaIds,
     ),
     getSaudeLicitacoesMetrics(tenantSlug, context.selectedYear, empresaIds),
+    getPortalConfig(tenantSlug),
   ]);
 
   const dotacao = saudeMetrics?.dotacaoTotal ?? 0;
@@ -94,6 +133,7 @@ export async function loadSaudeData(
   const judicializacaoPago = saudeMetrics?.judicializacaoPago ?? 0;
   const emendasArrecadado = saudeMetrics?.emendasSaudeArrecadado ?? 0;
   const hhiVal = Math.round(saudeMetrics?.hhiConcentracaoFornecedores ?? 0);
+  const concentracao = classifyHhi(hhiVal);
 
   const fontesReceitaMetrics = await getSaudeFontesReceitaMetrics({
     portalSlug: tenantSlug,
@@ -124,7 +164,8 @@ export async function loadSaudeData(
       judicializacao: judicializacaoEmpenhado,
       judicializacaoPago: judicializacaoPago,
       hhi: hhiVal,
-      hhiClassificacao: classifyHhi(hhiVal),
+      hhiClassificacao: concentracao.nivel,
+      concentracao,
     },
     fontesReceita: {
       ...fontesReceitaMetrics,
@@ -140,6 +181,7 @@ export async function loadSaudeData(
   return {
     portalSlug: tenantSlug,
     context,
+    portalConfig,
     saude,
   };
 }

@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
 
 # SETUP TASKS
 
@@ -68,6 +68,12 @@ else
 	$(error No load-csv script available for portal '$(PORTAL)')
 endif
 
+elt/siconfi:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+
 # MIGRATIONS
 
 db/init-roles:
@@ -82,10 +88,10 @@ dbt/deps:
 	uv run --project elt python elt/scripts/run_dbt.py deps
 
 dbt/seed:
-	uv run --project elt python elt/scripts/run_dbt.py seed
+	uv run --project elt python elt/scripts/run_dbt.py seed $(if $(FULL_REFRESH),--full-refresh) $(if $(SELECT),--select $(SELECT))
 
 dbt/run:
-	uv run --project elt python elt/scripts/run_dbt.py run $(if $(SELECT),--select $(SELECT))
+	uv run --project elt python elt/scripts/run_dbt.py run $(if $(FULL_REFRESH),--full-refresh) $(if $(SELECT),--select $(SELECT))
 
 dbt/test:
 	uv run --project elt python elt/scripts/run_dbt.py test $(if $(SELECT),--select $(SELECT))

@@ -5,6 +5,32 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Epic 9: Análise Estrutural da Folha de Pagamento por Regime Jurídico e Vínculo)
+* **Quadro e Folha por Regime Jurídico e Vínculo:** Painel completo na rota `/pessoal` com decomposição dos servidores e proventos por categoria legal (Efetivos Concursados, Comissionados, Contratos Temporários, Agentes Políticos e Outros), com barra de distribuição visual, tooltips analíticos e detalhamento por vínculo de ingresso.
+* **Auditoria Cívica de Divergências Cadastrais (Data-Driven):** Monitoramento em tempo real de inconformidades cadastrais (como servidores comissionados em cargos técnicos sem concurso ou divergências de enquadramento), com nota cívica dinâmica fundamentada no Art. 37 da Constituição Federal (com link oficial direto).
+* **Indicadores de Variação Anual (YoY):** Badges e métricas comparativas em relação ao exercício anterior nos 3 KPIs de topo (diferença em `p.p.` para Folha/Receita e Chefias Efetivas; `%` relativo para Total Pago em Folha) e em cada card de regime funcional (evolução percentual de Profissionais e Volume em Folha).
+* **Exportação Auditável de Microdados de Pessoal ("Show Your Work"):** Exportação de dados brutos por regime e vínculo no endpoint `/api/[portalSlug]/export?tipo=pessoal_regime` com codificação UTF-8 com BOM (`\uFEFF`) e streaming assíncrono.
+* **Saneamento da Apresentação da Folha:** Remoção da seção obsoleta e opaca de despesas agrupadas por ordenador nominal ("Folha distribuída por responsável" com "E OUTROS"), consolidando a página `/pessoal` exclusivamente no quadro funcional e salarial dos servidores públicos.
+
+### ✨ Novas Funcionalidades (Added)
+* **Painel de Pessoal por Regime Jurídico (`PessoalRegimeSection`):** Tabela e cards estruturados apresentando total de profissionais, valor da folha, provento médio e indicativos de variação YoY por regime e tipo de provimento.
+* **Indicadores de Tendência YoY em KPIs (`KPICard`):** Exibição de tendências anuais com rigor metodológico (p.p. para taxas e % para valores absolutos) e proteção tipográfica contra sobreposição (`shrink-0 whitespace-nowrap`).
+* **Barra de Distribuição Proporcional com Tooltips Ricos:** Visualização proporcional no quadro de pessoal com balões contextuais (`Tooltip`) alinhados dinamicamente para prevenir cortes nas bordas da tela.
+* **Exportação CSV de Pessoal (`/api/[portalSlug]/export`):** Suporte ao tipo `pessoal_regime` na rota de streaming, permitindo auditoria detalhada de matrículas, vínculos e remunerações.
+
+### 🏛️ Engenharia de Dados & Infraestrutura de Banco (Data & Analytics)
+* **Precedência Constitucional na Classificação de Pessoal (`int_pessoal_consolidado.sql`):** Refinamento das regras de negócio de classificação de regime e provimento, priorizando a natureza estrita do vínculo efetivo/concurso e segregando divergências cadastrais.
+* **Queries Kysely de Métricas de Regime (`pessoal-regime-metrics.ts`):** Novas consultas `getPessoalRegimeMetrics` e `getCountDivergenciasCadastraisPessoal` com tipagem estrita e testes automatizados de paridade em `@transparencia/db`.
+* **Exportação de Microdados de Pessoal (`export-raw-data.ts`):** Implementação de `getRawPessoalRegimeExport` para extração auditável e paginada de registros de pessoal por exercício e tenant.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Remoção de Componentes e Métricas Obsoletas na UI:** Descontinuação do componente `DepartmentalPayrollChart` na página `/pessoal`, mantendo a separação entre gastos por função orçamentária e gestão de pessoal.
+* **Suporte a Estilo Inline em Tooltip (`TooltipProps`):** Adição da propriedade `style` no componente base `@transparencia/ui` para posicionamento contextual refinado.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Regra de Hiperlinks Oficiais para Legislação Citada (`AGENTS.md`):** Formalização da Regra 20 exigindo links diretos e canônicos para a Presidência da República/Planalto em qualquer citação de lei ou norma constitucional na interface do sistema.
+* **Sincronização dos Guias para IA (`llms.txt` e `llms-full.txt`):** Atualização dos manuais cívicos para agentes e LLMs com a documentação do endpoint de exportação de pessoal e da seção de regimes jurídicos.
+
 ## [1.8.1] - 2026-09-04
 
 ### 🐛 Correções & Refinamentos (Fixed & Polish)

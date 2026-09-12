@@ -11,6 +11,11 @@ describe("metadata", () => {
       expect(typeof config.uf).toBe("string");
       expect(typeof config.anoInicial).toBe("number");
       expect(typeof config.empresaPadrao).toBe("string");
+      expect(typeof config.dataExtracao).toBe("string");
+      expect(
+        config.dataExtracaoDate === null ||
+          config.dataExtracaoDate instanceof Date,
+      ).toBe(true);
     }
   });
 

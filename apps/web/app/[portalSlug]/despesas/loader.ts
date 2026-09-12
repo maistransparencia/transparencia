@@ -10,6 +10,7 @@ import {
   getAnaliseDespesasMetrics,
   getEntidades,
   getOpacidadeContabilMetrics,
+  getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getRadarGastosSensiveisMetrics,
   getRestosAPagarResumoMetrics,
@@ -119,12 +120,14 @@ async function fetchRawDespesasData(
     restosResumo,
     posicaoDetalhes,
     opacidadeContabil,
+    portalConfig,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
     getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
     getRestosAPagarResumoMetrics(tenantSlug, selectedYear, empresaIds),
     getPosicaoFiscalDetalhesMetrics(tenantSlug, selectedYear, empresaIds),
     getOpacidadeContabilMetrics(tenantSlug, selectedYear),
+    getPortalConfig(tenantSlug),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
@@ -149,6 +152,7 @@ async function fetchRawDespesasData(
 
   return {
     context,
+    portalConfig,
     metricasGerais,
     radarGastosSensiveis,
     restosResumo: restosResumoEnriquecido,

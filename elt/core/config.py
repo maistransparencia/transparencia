@@ -17,6 +17,7 @@ class PortalConfig:
     ano_inicial: int
     empresa_padrao: str
     assets: dict[str, str]
+    cod_ibge: int = 3304102
     github_url: str | None = None
 
     @property

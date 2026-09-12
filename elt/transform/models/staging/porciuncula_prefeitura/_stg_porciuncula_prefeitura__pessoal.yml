@@ -29,3 +29,11 @@ models:
         data_type: text
       - name: forma_provimento
         data_type: text
+      - name: matricula
+        data_type: text
+      - name: tipo_regime_raw
+        data_type: text
+      - name: tipo_contrato_raw
+        data_type: text
+      - name: situacao_funcional_raw
+        data_type: text

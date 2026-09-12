@@ -3,13 +3,22 @@ version: 2
 seeds:
   - name: seed_porciuncula_prefeitura_orgaos
     description: "Entidades municipais de Porciúncula (prefeitura + fundos)"
-    columns:
-      - name: portal_slug
-        data_type: text
-      - name: empresa_id
-        data_type: text
-      - name: nome
-        data_type: text
+    config:
+      column_types:
+        portal_slug: text
+        empresa_id: text
+        nome: text
+        cnpj: text
+
+  - name: seed_porciuncula_prefeitura_siconfi_orgaos
+    description: "Vínculo entre grupos de destinação contábil da MSC SICONFI e órgãos de Porciúncula"
+    config:
+      column_types:
+        portal_slug: text
+        poder_orgao: text
+        grupo_destinacao: text
+        empresa_id: text
+        descricao: text
 
   - name: seed_portais
     description: "Configurações e metadados dos portais de transparência"
@@ -68,6 +77,15 @@ seeds:
         descricao: text
         base_legal: text
         url_base_legal: text
+
+  - name: seed_fontes_recursos_stn
+    description: "Catálogo oficial de fontes de recursos padronizadas nacionalmente (Portaria STN nº 710/2021 e códigos legados)"
+    config:
+      column_types:
+        codigo_fonte: text
+        descricao: text
+        grupo_destinacao: text
+        recurso_vinculado_flag: boolean
 
 
 

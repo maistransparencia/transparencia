@@ -10,7 +10,10 @@ with pessoal as (
         categoria_funcional,
         vinculo,
         cargo,
-        forma_provimento
+        forma_provimento,
+        matricula,
+        categoria_regime,
+        regime_previdenciario
     from {{ ref('int_pessoal_consolidado') }}
 )
 
@@ -22,5 +25,8 @@ select
     categoria_funcional,
     vinculo,
     cargo,
-    forma_provimento
+    forma_provimento,
+    matricula,
+    categoria_regime,
+    regime_previdenciario
 from pessoal

@@ -1,7 +1,10 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { CATEGORIAS_GASTOS_SENSIVEIS } from "@transparencia/db";
+import {
+  CATEGORIAS_GASTOS_SENSIVEIS,
+  TIPOS_EXPORTACAO,
+} from "@transparencia/db";
 import { beforeAll, describe, expect, it } from "vitest";
 
 function resolvePublicPath(filename: string): string {
@@ -180,7 +183,7 @@ describe("Guias de IA para Consumo Público (llms.txt e llms-full.txt)", () => {
       }
       const tipo = parsedUrl.searchParams.get("tipo");
       if (tipo && !tipo.startsWith("[")) {
-        expect(["gasto_sensivel", "opacidade_99", "funcao"]).toContain(tipo);
+        expect(TIPOS_EXPORTACAO).toContain(tipo);
       }
     }
   });
