@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PwaInstaller } from "./pwa-installer";
@@ -162,6 +168,41 @@ describe("PwaInstaller Component", () => {
 
     expect(localStorage.getItem("pwa_dismissed")).toBe("true");
     expect(posthog.capture).toHaveBeenCalledWith("pwa_install_dismissed");
+  });
+
+  it("captures the native prompt outcome after the user answers it", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstaller />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "dismissed" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Instalar" }));
+
+    await waitFor(() => {
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "pwa_install_prompt_outcome",
+        { outcome: "dismissed" },
+      );
+    });
+  });
+
+  it("captures pwa_installed when the browser reports a completed install", () => {
+    render(<PwaInstaller />);
+
+    act(() => {
+      window.dispatchEvent(new Event("appinstalled"));
+    });
+
+    expect(posthog.capture).toHaveBeenCalledWith("pwa_installed");
+    expect(localStorage.getItem("pwa_installed")).toBe("true");
   });
 
   it("suppresses install banner when pwa_dismissed is set in localStorage", () => {

@@ -184,6 +184,7 @@ export function PwaInstaller() {
     };
 
     const handleAppInstalled = () => {
+      posthog.capture("pwa_installed");
       safeSetLocalStorage("pwa_installed", "true");
       setIsStandalone(true);
       setInstallPrompt(null);
@@ -261,6 +262,9 @@ export function PwaInstaller() {
               installPrompt.prompt();
               installPrompt.userChoice
                 .then((choiceResult: { outcome?: string }) => {
+                  posthog.capture("pwa_install_prompt_outcome", {
+                    outcome: choiceResult?.outcome ?? "unknown",
+                  });
                   if (choiceResult?.outcome === "accepted") {
                     safeSetLocalStorage("pwa_installed", "true");
                     setIsStandalone(true);
@@ -268,6 +272,9 @@ export function PwaInstaller() {
                   setInstallPrompt(null);
                 })
                 .catch(() => {
+                  posthog.capture("pwa_install_prompt_outcome", {
+                    outcome: "error",
+                  });
                   setInstallPrompt(null);
                 });
             }}
