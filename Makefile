@@ -129,17 +129,18 @@ bot/dry-run:
 	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
 
 # DB TEST FIXTURE (packages/db)
-# Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
-# (marts dbt) do banco de dev local (porta 5544) + dados estáticos (--data-only)
-# das tabelas seed_* (constantes fiscais, portais, classificações STN) — sem
-# nenhuma linha de dado real transacional (fct_*) e sem views de staging (raw_*).
+# Dump de schema (--schema-only) das tabelas fct_/dim_ do schema `analytics`
+# e seed_ do schema `public` do banco de dev local (porta 5544) + dados estáticos
+# (--data-only) das tabelas seed_* (constantes fiscais, portais, classificações STN)
+# — sem nenhuma linha de dado real transacional (fct_*) e sem views de staging (raw_*).
 # Dados transacionais de teste são semeados dinamicamente via seed.ts.
 
 db/fixture/dump:
 	( \
+		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'public.fct_*' -t 'public.dim_*' -t 'public.seed_*' ; \
+			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'public.seed_*' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
 			-t 'public.seed_*' \
