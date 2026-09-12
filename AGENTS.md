@@ -149,3 +149,12 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Fontes Oficiais:** Utilizar preferencialmente os links canônicos do portal da Presidência da República / Casa Civil (`https://www.planalto.gov.br/...`), direcionando para o artigo ou fragmento específico quando aplicável (ex: `#art37`).
 - **Padrão de UI:** Links externos para legislações devem incluir os atributos de segurança `target="_blank"` e `rel="noopener noreferrer"`, além do ícone acessível de link externo (`ExternalLink`) ou estilo sublinhado com contraste adequado, permitindo que o cidadão valide a fundamentação jurídica com um único clique.
 
+---
+
+## 21. GOVERNANÇA E SINCRONIZAÇÃO DE FIXTURES DE TESTE (dbt models ↔ packages/db/tests/fixtures/schema.sql.gz)
+
+- **Sincronização Obrigatória de Fixtures:** Sempre que houver qualquer criação, alteração ou remoção de modelos marts (`elt/transform/models/marts/`) ou tabelas de seed (`elt/transform/seeds/`), é **obrigatório** regerar o fixture compactado de teste `packages/db/tests/fixtures/schema.sql.gz` executando `make db/fixture/dump`.
+- **Validação Automatizada de Paridade:** Antes de submeter commits ou pull requests, execute `make db/fixture/check` (ou `make test`) para validar se o fixture restaurado no banco de testes está em 100% de paridade de tabelas, colunas, tipos de dados e registros estáticos de seed com a estrutura gerada pelo dbt.
+- **Fail-Fast no CI:** O pipeline de integração contínua rejeitará automaticamente qualquer PR que contenha discrepâncias entre as definições analíticas do dbt e o fixture de banco de dados utilizado pela camada TypeScript (`packages/db`).
+
+
