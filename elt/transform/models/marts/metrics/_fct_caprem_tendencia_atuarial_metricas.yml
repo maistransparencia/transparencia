@@ -30,28 +30,28 @@ models:
         tests:
           - not_null
       - name: aporte_exigido
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total do aporte atuarial exigido/empenhado (Elemento 97)"
         tests:
           - not_null
       - name: aporte_quitado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total do aporte atuarial quitado/pago (Elemento 97)"
         tests:
           - not_null
       - name: taxa_adimplencia
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Taxa de adimplência do aporte atuarial (%)"
         tests:
           - not_null
       - name: amortizacao_divida
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de amortização de dívidas e parcelamentos pagos (Elemento 71)"

@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
           name: historia_caprem_invariante_lrf
+          arguments:
+            expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
       - name: historia_caprem_id
         data_type: text
@@ -34,84 +35,84 @@ models:
         tests:
           - not_null
       - name: total_aporte_exigido
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total exigido de aporte atuarial ao RPPS (Elemento 97)"
         tests:
           - not_null
       - name: total_aporte_quitado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total quitado/pago de aporte atuarial ao RPPS (Elemento 97)"
         tests:
           - not_null
       - name: taxa_adimplencia_aporte
-        data_type: numeric
+        data_type: numeric(15, 4)
         constraints:
           - type: not_null
         description: "Taxa de adimplência do aporte atuarial (quitado / exigido * 100)"
         tests:
           - not_null
       - name: total_empenhado_patronal
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de contribuição patronal empenhada (Elemento 13), inclui reservas orçamentárias para períodos futuros"
         tests:
           - not_null
       - name: total_liquidado_patronal
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de contribuição patronal liquidada/incorrida (Elemento 13)"
         tests:
           - not_null
       - name: total_pago_patronal
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total de contribuição patronal paga (Elemento 13)"
         tests:
           - not_null
       - name: rombo_patronal_nao_repassado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Rombo patronal não repassado (liquidado patronal - pago patronal). Usa liquidado em vez de empenhado para não contar reservas orçamentárias de períodos futuros como inadimplência atual."
         tests:
           - not_null
       - name: total_amortizacao_divida
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total amortizado da dívida previdenciária contratual (Elemento 71)"
         tests:
           - not_null
       - name: total_casp_plano_saude
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total despendido com plano de saúde da caixa de assistência CASP"
         tests:
           - not_null
       - name: total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total empenhado consolidado do domínio CAPREM/CASP"
         tests:
           - not_null
       - name: total_liquidado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total liquidado consolidado do domínio CAPREM/CASP"
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Total pago consolidado do domínio CAPREM/CASP"

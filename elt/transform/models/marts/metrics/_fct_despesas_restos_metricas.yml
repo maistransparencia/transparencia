@@ -28,19 +28,19 @@ models:
         constraints:
           - type: not_null
       - name: restos_inscritos
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Total de restos a pagar inscritos"
       - name: restos_liquidados
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Total de restos a pagar liquidados"
       - name: restos_pagos
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Total de restos a pagar pagos"
       - name: restos_cancelados
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Total de restos a pagar anulados ou cancelados"
       - name: saldo_restos
-        data_type: numeric
+        data_type: numeric(15, 2)
         description: "Saldo pendente acumulado de restos a pagar"
       - name: divida_mais_antiga_ano
         data_type: integer

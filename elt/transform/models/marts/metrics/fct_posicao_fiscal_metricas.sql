@@ -101,13 +101,13 @@ select
     cb.portal_slug,
     cb.empresa_id,
     cb.ano,
-    coalesce(r.total_arrecadado, 0) as total_arrecadado,
-    coalesce(dc.despesas_pagas, 0) as despesas_pagas,
-    coalesce(rp.restos_liquidados_no_ano, 0) as restos_liquidados_no_ano,
-    coalesce(rp.restos_pagos_no_ano, 0) as restos_pagos_no_ano,
-    coalesce(rp_pend.restos_pendentes_adm_anterior, 0) as restos_pendentes_adm_anterior,
-    coalesce(rp_pend.restos_pendentes_adm_atual, 0) as restos_pendentes_adm_atual,
-    coalesce(r.total_arrecadado, 0) - (coalesce(dc.despesas_pagas, 0) + coalesce(rp.restos_pagos_no_ano, 0)) as saldo_estimado
+    coalesce(r.total_arrecadado, 0)::numeric(15, 2) as total_arrecadado,
+    coalesce(dc.despesas_pagas, 0)::numeric(15, 2) as despesas_pagas,
+    coalesce(rp.restos_liquidados_no_ano, 0)::numeric(15, 2) as restos_liquidados_no_ano,
+    coalesce(rp.restos_pagos_no_ano, 0)::numeric(15, 2) as restos_pagos_no_ano,
+    coalesce(rp_pend.restos_pendentes_adm_anterior, 0)::numeric(15, 2) as restos_pendentes_adm_anterior,
+    coalesce(rp_pend.restos_pendentes_adm_atual, 0)::numeric(15, 2) as restos_pendentes_adm_atual,
+    (coalesce(r.total_arrecadado, 0) - (coalesce(dc.despesas_pagas, 0) + coalesce(rp.restos_pagos_no_ano, 0)))::numeric(15, 2) as saldo_estimado
 from chaves_base cb
 left join receitas_agregadas r
     on cb.portal_slug = r.portal_slug

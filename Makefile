@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore
 
 # SETUP TASKS
 
@@ -129,21 +129,31 @@ bot/dry-run:
 	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
 
 # DB TEST FIXTURE (packages/db)
-# Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
-# (marts dbt) do banco de dev local (porta 5544) + dados estáticos (--data-only)
-# das tabelas seed_* (constantes fiscais, portais, classificações STN) — sem
-# nenhuma linha de dado real transacional (fct_*) e sem views de staging (raw_*).
+# Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`
+# do banco de dev local (porta 5544) + dados estáticos (--data-only) das tabelas seed_*
+# (constantes fiscais, portais, classificações STN) — sem nenhuma linha de dado real
+# transacional (fct_*) e sem views de staging/intermediate.
 # Dados transacionais de teste são semeados dinamicamente via seed.ts.
+#
+# Ciclo de sincronização e governança:
+# 1. Qualquer alteração em modelos marts (elt/transform/models/marts/) ou seeds (elt/transform/seeds/)
+#    exige regerar o fixture: make db/fixture/dump
+# 2. Validar a paridade semântica entre dbt e o fixture: make db/fixture/check
 
 db/fixture/dump:
 	( \
+		set -eo pipefail ; \
+		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'public.fct_*' -t 'public.dim_*' -t 'public.seed_*' ; \
+			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'analytics.seed_*' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
-			-t 'public.seed_*' \
+			-t 'analytics.seed_*' \
 	) | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
+
+db/fixture/check:
+	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
 
 db/test/restore:
 	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"

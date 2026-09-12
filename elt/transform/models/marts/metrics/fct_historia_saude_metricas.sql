@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="create extension if not exists unaccent;"
+    materialized='table'
 ) }}
 
 with orgaos_saude as (

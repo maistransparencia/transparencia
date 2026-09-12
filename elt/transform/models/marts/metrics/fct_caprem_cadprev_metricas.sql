@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="create extension if not exists unaccent;"
+    materialized='table'
 ) }}
 
 with cadprev_despesas as (
