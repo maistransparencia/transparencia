@@ -1,9 +1,3 @@
-{{ config(
-    pre_hook=[
-        "CREATE EXTENSION IF NOT EXISTS unaccent;"
-    ]
-) }}
-
 select
     empresa,
     ano::int as ano,

@@ -1,3 +1,6 @@
+-- Extensões necessárias
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 -- Inicialização do usuário read_only no ambiente de desenvolvimento local
 DO $$
 BEGIN
