@@ -33,6 +33,9 @@ jobs:
       - name: Run linting
         run: make check
 
+      - name: Verify test fixture synchronization
+        run: make db/fixture/check
+
       - name: Run tests
         run: make test
         env:
@@ -72,7 +75,9 @@ jobs:
         run: pnpm lint
 
       - name: Restore packages/db test schema
-        run: gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$DATABASE_URL"
+        run: |
+          set -eo pipefail
+          gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql -v ON_ERROR_STOP=1 "$DATABASE_URL"
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
 
