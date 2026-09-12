@@ -1,0 +1,7 @@
+portal_slug,poder_orgao,grupo_destinacao,empresa_id,descricao
+porciuncula_prefeitura,10131,livre,7,Recursos Livres e Ordinários da Prefeitura
+porciuncula_prefeitura,10131,saude,2,Fundo Municipal de Saúde
+porciuncula_prefeitura,10131,educacao,8,Fundo Municipal de Educação
+porciuncula_prefeitura,10131,assistencia_social,3,Fundo Municipal de Assistência Social
+porciuncula_prefeitura,10131,meio_ambiente,9,Fundo Municipal de Defesa Ambiental
+porciuncula_prefeitura,10131,outros_vinculados,7,Convênios e Outras Vinculações da Prefeitura

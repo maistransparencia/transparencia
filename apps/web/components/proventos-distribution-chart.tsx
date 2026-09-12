@@ -17,13 +17,20 @@ export function ProventosDistributionChart({
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6">
+      <span className="inline sm:hidden">
+        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+          Consolidado Municipal
+        </span>
+      </span>
       <div className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <h4 className="font-bold text-lg text-slate-900">
             Distribuição dos Proventos Brutos
           </h4>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-            Consolidado Municipal
+          <span className="hidden sm:inline">
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
+              Consolidado Municipal
+            </span>
           </span>
         </div>
         <p className="mt-1 text-slate-500 text-xs leading-relaxed">
@@ -42,7 +49,7 @@ export function ProventosDistributionChart({
       ) : (
         <div className="relative overflow-x-auto overflow-y-hidden pt-2 pb-2">
           <div
-            className="grid min-w-[460px] items-end gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
+            className="grid min-w-175 items-end gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
             style={{
               gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
             }}

@@ -126,10 +126,26 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Validação e Defaults Centralizados no Schema Zod:** Novos parâmetros, segredos ou valores padrão (defaults) devem ser definidos e documentados diretamente no schema Zod em `apps/web/env.ts` e refletidos em `.env.example`, garantindo tipagem estrita, fail-fast e segregação entre `server` e `client`.
 - **Exceções Estritas:** Apenas arquivos de infraestrutura interna do Next.js onde a checagem estática direta for mandatória para o bundler (como verificação de runtime em `apps/web/instrumentation.ts`) podem utilizar `process.env`.
 
+---
 
+## 18. PADRÃO ESTRITO DE IDENTIFICADORES E DTOS EM TYPESCRIPT (`camelCase` MANDATÓRIO)
 
+- **Proibição de Chaves por Extenso, Espaços ou Acentos:** É estritamente proibido definir propriedades de interfaces, tipos ou DTOs em TypeScript com chaves entre aspas contendo espaços, acentuação, caracteres especiais ou PascalCase (ex: `"Valor Autorizado"`, `"Esfera de Origem"`, `Nº`, `Destinação`, `Periodo`).
+- **Padrão Obrigatório (`camelCase`):** Todas as propriedades e campos de DTOs, queries Kysely, loaders e View Models devem utilizar exclusivamente a convenção **`camelCase`** (ex: `valorAutorizado`, `esferaOrigem`, `numero`, `destinacao`, `periodo`, `tipoEmenda`, `atoNormativo`).
+- **Apresentação e Rótulos na UI:** Rótulos humanos, cabeçalhos de colunas ou títulos amigáveis para o cidadão pertencem exclusivamente à camada de visualização (`packages/ui` e `apps/web/components`), via mapeamento explícito de colunas (ex: `header: "Valor Autorizado"`, `accessorKey: "valorAutorizado"`).
 
+---
 
+## 19. MENSAGENS DE COMMIT CONVENCIONAIS E SEM METADADOS DE PROCESSO (SEM STORY/TASK)
 
+- **Proibição de Detalhes de Story/Task:** É estritamente proibido incluir referências a números de stories, tasks ou processos internos de gestão em mensagens de commit (ex: proibido `(story 9-4 task 3)`, `[story-9.4]`, `task 2`).
+- **Padrão Obrigatório:** Utilizar estritamente Conventional Commits em minúsculas focado na mudança funcional ou técnica (ex: `feat(web): adicionar secao detalhada de saldo em caixa em receitas`, `fix(db): consolidar saldos de caixa por entidade`).
 
+---
+
+## 20. LINKS OBRIGATÓRIOS PARA LEIS E NORMAS CITADAS NA APLICAÇÃO
+
+- **Fundamentação Legal Acessível:** Sempre que qualquer lei, decreto, dispositivo constitucional ou norma infralegal for citado na interface (`apps/web/`, componentes, alertas, tooltips ou relatórios cívicos) — como Art. 37 da CF/88, Lei 4.320/64, Lei Complementar 101/2000 (LRF), Lei 14.133/2021, etc. —, é **obrigatório** disponibilizar o hyperlink direto e oficial para o respectivo texto legal.
+- **Fontes Oficiais:** Utilizar preferencialmente os links canônicos do portal da Presidência da República / Casa Civil (`https://www.planalto.gov.br/...`), direcionando para o artigo ou fragmento específico quando aplicável (ex: `#art37`).
+- **Padrão de UI:** Links externos para legislações devem incluir os atributos de segurança `target="_blank"` e `rel="noopener noreferrer"`, além do ícone acessível de link externo (`ExternalLink`) ou estilo sublinhado com contraste adequado, permitindo que o cidadão valide a fundamentação jurídica com um único clique.
 

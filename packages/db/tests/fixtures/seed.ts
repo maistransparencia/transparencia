@@ -324,8 +324,252 @@ export async function seedDespesa(row: DespesaRow): Promise<void> {
     .execute();
 }
 
+export interface PessoalFolhaRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  totalFolha?: number;
+  totalPago?: number;
+  empenhado13?: number;
+  empenhadoBruto13?: number;
+  liquidado13?: number;
+  pago13?: number;
+  efetivosConfianca?: number;
+  comissionadosExternos?: number;
+  bin0_25k?: number;
+  bin25k_5k?: number;
+  bin5k_75k?: number;
+  bin75k_10k?: number;
+  bin10k_125k?: number;
+  bin125k_15k?: number;
+  bin15k_175k?: number;
+  bin175k_20k?: number;
+  binAcima20k?: number;
+}
+
+export async function seedPessoalFolha(row: PessoalFolhaRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_folha_metricas")
+    .values({
+      pessoal_folha_metricas_id: nextId("pfm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      total_folha: row.totalFolha ?? 0,
+      total_pago: row.totalPago ?? 0,
+      empenhado_13: row.empenhado13 ?? 0,
+      empenhado_bruto_13: row.empenhadoBruto13 ?? 0,
+      liquidado_13: row.liquidado13 ?? 0,
+      pago_13: row.pago13 ?? 0,
+      efetivos_confianca: row.efetivosConfianca ?? 0,
+      comissionados_externos: row.comissionadosExternos ?? 0,
+      bin_0_25k: row.bin0_25k ?? 0,
+      bin_25k_5k: row.bin25k_5k ?? 0,
+      bin_5k_75k: row.bin5k_75k ?? 0,
+      bin_75k_10k: row.bin75k_10k ?? 0,
+      bin_10k_125k: row.bin10k_125k ?? 0,
+      bin_125k_15k: row.bin125k_15k ?? 0,
+      bin_15k_175k: row.bin15k_175k ?? 0,
+      bin_175k_20k: row.bin175k_20k ?? 0,
+      bin_acima_20k: row.binAcima20k ?? 0,
+    })
+    .execute();
+}
+
+export interface PessoalDepartamentoRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  descricao: string;
+  totalPago?: number;
+}
+
+export async function seedPessoalDepartamento(
+  row: PessoalDepartamentoRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_departamento_metricas")
+    .values({
+      departamento_metricas_id: nextId("pdm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      descricao: row.descricao,
+      total_pago: row.totalPago ?? 0,
+    })
+    .execute();
+}
+
+export interface FontesReceitaRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  receitaPropriaPrevisto?: number;
+  receitaPropriaArrecadado?: number;
+  transferenciasUniaoPrevisto?: number;
+  transferenciasUniaoArrecadado?: number;
+  transferenciasEstadoPrevisto?: number;
+  transferenciasEstadoArrecadado?: number;
+  receitaExtraOrcamentariaArrecadado?: number;
+  totalPrevisto?: number;
+  totalArrecadado?: number;
+  pctPropria?: number;
+  alertaDependencia?: boolean;
+  fpmArrecadado?: number;
+  icmsArrecadado?: number;
+  issIptuArrecadado?: number;
+  emendasPixArrecadado?: number;
+  emendasIndividuaisArrecadado?: number;
+  emendasTotalArrecadado?: number;
+  emendasTotalEmpenhado?: number;
+}
+
+export async function seedFontesReceita(row: FontesReceitaRow): Promise<void> {
+  await db
+    .insertInto("fct_fontes_receita_metricas")
+    .values({
+      fontes_receita_id: nextId("fr"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      receita_propria_previsto: row.receitaPropriaPrevisto ?? 0,
+      receita_propria_arrecadado: row.receitaPropriaArrecadado ?? 0,
+      transferencias_uniao_previsto: row.transferenciasUniaoPrevisto ?? 0,
+      transferencias_uniao_arrecadado: row.transferenciasUniaoArrecadado ?? 0,
+      transferencias_estado_previsto: row.transferenciasEstadoPrevisto ?? 0,
+      transferencias_estado_arrecadado: row.transferenciasEstadoArrecadado ?? 0,
+      receita_extra_orcamentaria_arrecadado:
+        row.receitaExtraOrcamentariaArrecadado ?? 0,
+      total_previsto: row.totalPrevisto ?? 0,
+      total_arrecadado: row.totalArrecadado ?? 0,
+      pct_propria: row.pctPropria ?? 0,
+      alerta_dependencia: row.alertaDependencia ?? false,
+      fpm_arrecadado: row.fpmArrecadado ?? 0,
+      icms_arrecadado: row.icmsArrecadado ?? 0,
+      iss_iptu_arrecadado: row.issIptuArrecadado ?? 0,
+      emendas_pix_arrecadado: row.emendasPixArrecadado ?? 0,
+      emendas_individuais_arrecadado: row.emendasIndividuaisArrecadado ?? 0,
+      emendas_total_arrecadado: row.emendasTotalArrecadado ?? 0,
+      emendas_total_empenhado: row.emendasTotalEmpenhado ?? 0,
+    })
+    .execute();
+}
+
+export interface SaldoCaixaSiconfiRow {
+  portalSlug: string;
+  codIbge?: number;
+  ano: number;
+  mesReferencia: number;
+  poderOrgao: string;
+  grupoDestinacao: string;
+  empresaId?: string | null;
+  orgaoId?: string | null;
+  orgaoNome?: string | null;
+  entidadeNome?: string | null;
+  cnpj?: string | null;
+  dataReferencia?: string | null;
+  saldoCaixaBancos?: number;
+  saldoRecursosLivres?: number;
+  saldoRecursosVinculados?: number;
+  ultimaCompetenciaFlag?: boolean;
+}
+
+export async function seedSaldoCaixaSiconfi(
+  row: SaldoCaixaSiconfiRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_saldo_caixa_siconfi")
+    .values({
+      saldo_caixa_id: nextId("sc"),
+      portal_slug: row.portalSlug,
+      cod_ibge: row.codIbge ?? 3304102,
+      ano: row.ano,
+      mes_referencia: row.mesReferencia,
+      poder_orgao: row.poderOrgao,
+      grupo_destinacao: row.grupoDestinacao,
+      empresa_id: row.empresaId ?? null,
+      orgao_id: row.orgaoId ?? null,
+      orgao_nome: row.orgaoNome ?? null,
+      entidade_nome: row.entidadeNome ?? null,
+      cnpj: row.cnpj ?? null,
+      data_referencia: row.dataReferencia ?? null,
+      saldo_caixa_bancos: row.saldoCaixaBancos ?? 0,
+      saldo_recursos_livres: row.saldoRecursosLivres ?? 0,
+      saldo_recursos_vinculados: row.saldoRecursosVinculados ?? 0,
+      ultima_competencia_flag: row.ultimaCompetenciaFlag ?? false,
+    })
+    .execute();
+}
+
+export interface PessoalRegimeRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  categoriaRegime: string;
+  totalProfissionais?: number;
+  totalProventos?: number;
+  proventoMedio?: number;
+  percentualProfissionais?: number;
+  percentualFolha?: number;
+}
+
+export async function seedPessoalRegime(row: PessoalRegimeRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_regime_metricas")
+    .values({
+      pessoal_regime_metricas_id: nextId("prm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      categoria_regime: row.categoriaRegime,
+      total_profissionais: row.totalProfissionais ?? 0,
+      total_proventos: row.totalProventos ?? 0,
+      provento_medio: row.proventoMedio ?? 0,
+      percentual_profissionais: row.percentualProfissionais ?? 0,
+      percentual_folha: row.percentualFolha ?? 0,
+    })
+    .execute();
+}
+
+export interface PessoalRow {
+  portalSlug: string;
+  ano: number;
+  empresaId?: string;
+  matricula: string;
+  cargo?: string;
+  proventos?: number;
+  categoriaRegime: string;
+  regimePrevidenciario?: string;
+  formaProvimento?: string;
+  vinculo?: string | null;
+  categoriaFuncional?: string | null;
+}
+
+export async function seedPessoal(row: PessoalRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal")
+    .values({
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId ?? "1",
+      ano: row.ano,
+      matricula: row.matricula,
+      cargo: row.cargo ?? "Assessor",
+      proventos: row.proventos ?? 3000,
+      categoria_regime: row.categoriaRegime,
+      regime_previdenciario: row.regimePrevidenciario ?? "rgps",
+      forma_provimento: row.formaProvimento ?? "LIVRE PROVIMENTO",
+      vinculo: row.vinculo ?? null,
+      categoria_funcional: row.categoriaFuncional ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_pessoal")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_despesas")
     .where("portal_slug", "=", portalSlug)
@@ -363,7 +607,23 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
-    .deleteFrom("dim_orgao")
+    .deleteFrom("fct_pessoal_folha_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_departamento_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_regime_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_fontes_receita_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saldo_caixa_siconfi")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

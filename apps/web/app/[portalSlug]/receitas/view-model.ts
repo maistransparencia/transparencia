@@ -147,7 +147,9 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
-    partialPeriod: getPartialYearPeriod(),
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     rec,
     totalArr,
     totalPrev,

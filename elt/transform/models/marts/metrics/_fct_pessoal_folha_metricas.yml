@@ -40,8 +40,8 @@ unit_tests:
           - { ano: 2025, empresa: "1", pago: 60000.00 }
       - input: ref('fct_pessoal')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "FG1", categoria_funcional: "Efetivo", proventos: 3000.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "Comissionado INSS", categoria_funcional: "Cargo comissionado extra-quadro", proventos: 1500.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "FG1", categoria_funcional: "Efetivo", categoria_regime: "efetivo_comissao", proventos: 3000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "Comissionado INSS", categoria_funcional: "Cargo comissionado extra-quadro", categoria_regime: "comissionado", proventos: 1500.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", total_folha: 60000.00, total_pago: 60000.00, empenhado_13: 10000.00, empenhado_bruto_13: 10000.00, liquidado_13: 10000.00, pago_13: 10000.00, efetivos_confianca: 1, comissionados_externos: 1, bin_0_25k: 1, bin_25k_5k: 1 }

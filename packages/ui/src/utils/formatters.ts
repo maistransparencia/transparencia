@@ -84,24 +84,59 @@ export function fmtLicitacaoModalidade(
     .join(" ");
 }
 
-export function getPartialYearPeriod(referenceDate = new Date()): string {
-  if (!referenceDate || Number.isNaN(referenceDate.getTime())) return "";
-  const currentMonthIndex = referenceDate.getMonth();
-  const prevMonthIndex = currentMonthIndex > 0 ? currentMonthIndex - 1 : 0;
-  const year = referenceDate.getFullYear();
+function parseReferenceDate(
+  val: Date | string | null | undefined,
+): Date | null {
+  if (val === undefined) return new Date();
+  if (val === null) return null;
+  if (val instanceof Date) {
+    if (Number.isNaN(val.getTime())) return null;
+    if (
+      val.getUTCHours() === 0 &&
+      val.getUTCMinutes() === 0 &&
+      val.getHours() !== 0
+    ) {
+      return new Date(
+        val.getUTCFullYear(),
+        val.getUTCMonth(),
+        val.getUTCDate(),
+      );
+    }
+    return val;
+  }
+  const str = String(val).trim();
+  if (!str) return null;
+  const isoPrefix = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoPrefix) {
+    const year = Number.parseInt(isoPrefix[1], 10);
+    const month = Number.parseInt(isoPrefix[2], 10) - 1;
+    const day = Number.parseInt(isoPrefix[3], 10);
+    const d = new Date(year, month, day);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const parsed = new Date(str);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function getPartialYearPeriod(
+  referenceDate?: Date | string | null,
+): string {
+  const date = parseReferenceDate(referenceDate);
+  if (!date) return "";
+
+  const monthIndex = date.getMonth();
+  const year = date.getFullYear();
 
   const formatter = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 
-  const formatMonth = (monthIndex: number) => {
-    const raw = formatter
-      .format(new Date(year, monthIndex, 1))
-      .replace(".", "");
+  const formatMonth = (idx: number) => {
+    const raw = formatter.format(new Date(year, idx, 1)).replace(".", "");
     return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
   };
 
   const jan = formatMonth(0);
-  if (prevMonthIndex === 0) return jan;
+  if (monthIndex === 0) return jan;
 
-  const prev = formatMonth(prevMonthIndex);
-  return `${jan}–${prev}`;
+  const currentMonth = formatMonth(monthIndex);
+  return `${jan}–${currentMonth}`;
 }

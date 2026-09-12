@@ -12,7 +12,12 @@ import { useEffect, useRef, useState } from "react";
 export interface ShowYourWorkButtonProps {
   portalSlug: string;
   ano: number;
-  tipo: "gasto_sensivel" | "opacidade_99" | "funcao";
+  tipo:
+    | "gasto_sensivel"
+    | "opacidade_99"
+    | "funcao"
+    | "saldo_caixa_siconfi"
+    | "pessoal_regime";
   categoria?: string;
   funcaoCodigo?: string;
   entidades?: string;
@@ -115,7 +120,11 @@ export function ShowYourWorkButton({
       const blob = await res.blob();
       const contentDisposition = res.headers.get("Content-Disposition");
       const filenameMatch = contentDisposition?.match(/filename="?([^";]+)"?/);
-      const filename = filenameMatch?.[1] || `despesas_${tipo}_${ano}.csv`;
+      const defaultFilename =
+        tipo === "saldo_caixa_siconfi"
+          ? `saldo_caixa_siconfi_${ano}.csv`
+          : `despesas_${tipo}_${ano}.csv`;
+      const filename = filenameMatch?.[1] || defaultFilename;
 
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");

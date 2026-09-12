@@ -38,3 +38,9 @@ models:
         data_type: text
       - name: forma_provimento
         data_type: text
+      - name: matricula
+        data_type: text
+      - name: categoria_regime
+        data_type: text
+      - name: regime_previdenciario
+        data_type: text

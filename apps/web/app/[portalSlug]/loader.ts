@@ -10,6 +10,7 @@ import {
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
+  getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { notFound } from "next/navigation";
 
@@ -163,6 +164,7 @@ export async function loadVisaoGeralData(
     pctChefiasEfetivas,
     contratosServicosVigentes,
     lrfLimiteMaximo,
+    posicaoFinanceira,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -178,6 +180,7 @@ export async function loadVisaoGeralData(
     getPercentualChefiasEfetivasMetrics(tenantSlug, selectedYear),
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
     getLimiteMaximoLrfPessoal(selectedYear),
+    getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -208,6 +211,7 @@ export async function loadVisaoGeralData(
     context,
     portalConfig,
     posicao,
+    posicaoFinanceira,
     execSummary,
     gaps,
     fonte: fontesMetricas ? mapFontesMetricToLegacy(fontesMetricas) : undefined,

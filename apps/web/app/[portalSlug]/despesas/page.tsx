@@ -61,7 +61,7 @@ export default async function DespesasPage({
       <div>
         <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
           FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
-          {isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""}
+          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-ink">
           Despesas & Controle de Gastos

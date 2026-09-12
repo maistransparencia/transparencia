@@ -1,8 +1,8 @@
 import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
-import { DepartmentalPayrollChart } from "@/components/departmental-payroll-chart";
 import { KPIGrid } from "@/components/kpi-grid";
+import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadPessoalData } from "./loader";
@@ -48,10 +48,14 @@ export default async function PessoalPage({
     pctChefias,
     decimo13,
     distribuicaoProventos,
-    departmentalPayroll,
+    regimeMetrics,
+    totalDivergencias,
     currentYearRow,
     headerDescription,
     folhaKpi,
+    folhaTrend,
+    chefiasTrend,
+    totalFolhaTrend,
   } = viewModel;
 
   return (
@@ -60,7 +64,7 @@ export default async function PessoalPage({
       <div>
         <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""}
+          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-slate-900">
           Folha de Pagamento
@@ -76,6 +80,7 @@ export default async function PessoalPage({
           title={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
           subtext={folhaKpi.subtext}
+          trend={folhaTrend}
           alert={folhaKpi.alert}
           accent
         />
@@ -83,22 +88,26 @@ export default async function PessoalPage({
           title="Efetivos no comando das chefias"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
           subtext="cargos de liderança concursados (total municipal)"
+          trend={chefiasTrend}
         />
         <KPICard
           title="Total pago em folha"
           value={fmtCompact(currentYearRow.totalFolha)}
           subtext={`proventos brutos, ${selectedYear}`}
+          {...(!isCurrentYear && { trend: totalFolhaTrend })}
         />
       </KPIGrid>
 
+      {/* Personnel by Legal Regime and Appointment Type */}
+      <PessoalRegimeSection
+        data={regimeMetrics}
+        ano={selectedYear}
+        portalSlug={portalSlug}
+        totalDivergencias={totalDivergencias}
+      />
+
       {/* Proventos Distribution Histogram Chart */}
       <ProventosDistributionChart data={distribuicaoProventos} />
-
-      {/* Departmental Payroll (E OUTROS) Chart */}
-      <DepartmentalPayrollChart
-        data={departmentalPayroll}
-        selectedYear={selectedYear}
-      />
 
       {/* 13º Salário Card */}
       {decimo13 ? (

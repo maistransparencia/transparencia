@@ -1,4 +1,8 @@
-import { getEntidades, getFontesReceitaMetrics } from "@transparencia/db";
+import {
+  getEntidades,
+  getFontesReceitaMetrics,
+  getPortalConfig,
+} from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
 export interface ReceitasSearchParams {
@@ -125,9 +129,10 @@ async function fetchRawReceitasData(
     await resolveEmpresaIds(tenantSlug, entidadesIds),
   );
 
-  const [fonteAtual, fonteAnterior] = await Promise.all([
+  const [fonteAtual, fonteAnterior, portalConfig] = await Promise.all([
     getFontesReceitaMetrics(tenantSlug, selectedYear, empresaIds),
     getFontesReceitaMetrics(tenantSlug, selectedYear - 1, empresaIds),
+    getPortalConfig(tenantSlug),
   ]);
 
   const totalPctChange =
@@ -140,6 +145,7 @@ async function fetchRawReceitasData(
   return {
     portalSlug: tenantSlug,
     context,
+    portalConfig,
     fonte: fonteAtual
       ? mapFontesMetricToLegacy(fonteAtual, totalPctChange)
       : undefined,

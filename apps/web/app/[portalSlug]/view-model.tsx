@@ -223,9 +223,11 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         : "Sem dados de ocupação de chefias no período",
   };
 
-  const partialPeriod = getPartialYearPeriod();
+  const partialPeriod = getPartialYearPeriod(
+    raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+  );
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
-    isCurrentYear ? ` (PARCIAL, ${partialPeriod})` : ""
+    isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
@@ -270,6 +272,10 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     despesasCardData,
     licitacoesCardData,
     pessoalCardData,
+    posicaoFinanceira: raw.posicaoFinanceira,
     orcamentoDetailUrl: routeUrl("/orcamento"),
+    hasEntityFilter: Boolean(
+      raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
+    ),
   };
 }

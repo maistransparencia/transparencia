@@ -3,7 +3,7 @@ import { cn } from "../utils/cn";
 export interface KPICardProps {
   title: string;
   value: React.ReactNode;
-  subtext?: string;
+  subtext?: React.ReactNode;
   trend?: {
     value: string | number;
     isPositive?: boolean;
@@ -45,12 +45,12 @@ export function KPICard({
         </p>
       </div>
       {(subtext || trend) && (
-        <div className="mt-3 flex items-center justify-between border-gray-100 border-t pt-2 text-mutedText text-xs">
+        <div className="mt-3 flex items-center justify-between gap-2 border-gray-100 border-t pt-2 text-mutedText text-xs">
           {subtext && <span>{subtext}</span>}
           {trend && (
             <span
               className={cn(
-                "font-semibold",
+                "shrink-0 whitespace-nowrap font-semibold",
                 trend.isPositive ? "text-emerald-600" : "text-rose-600",
               )}
             >

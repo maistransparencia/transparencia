@@ -37,6 +37,34 @@ vi.mock("@transparencia/db", () => ({
       naturezaCodigoSugerido: "3.3.90.30.01",
     },
   ]),
+  getRawSaldoCaixaSiconfiExportRecords: vi.fn(async () => [
+    {
+      ano: 2024,
+      mesReferencia: 12,
+      dataReferencia: "2024-12-31",
+      poderOrgao: "10131",
+      entidadeNome: "PREFEITURA MUNICIPAL DE PORCIÚNCULA",
+      cnpj: "28920999000106",
+      grupoDestinacao: "livre",
+      saldoCaixaBancos: 10266561.77,
+      saldoRecursosLivres: 10266561.77,
+      saldoRecursosVinculados: 0,
+    },
+  ]),
+  getRawPessoalRegimeExportRecords: vi.fn(async () => [
+    {
+      ano: 2025,
+      empresaId: "1",
+      matricula: "001",
+      cargo: "PROFESSOR",
+      proventos: 5000.5,
+      categoriaRegime: "efetivo_concurso",
+      regimePrevidenciario: "rpps",
+      formaProvimento: "CONCURSO",
+      vinculo: "Efetivo",
+      categoriaFuncional: "Efetivo",
+    },
+  ]),
   CATEGORIAS_GASTOS_SENSIVEIS: [
     "combustivel_frota",
     "locacao_maquinas_veiculos",
@@ -315,5 +343,96 @@ describe("API Route: /api/[portalSlug]/export", () => {
     expect(text).toContain("'@Secretaria");
     expect(text).toContain("'+Fornecedor");
     expect(text).toContain("'-Termo aditivo");
+  });
+
+  it("deve exportar CSV de saldo de caixa SICONFI com cabeçalhos e valores corretos", async () => {
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=saldo_caixa_siconfi&ano=2024&entidades=executivo",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+    expect(res.headers.get("content-disposition")).toContain(
+      "saldo_caixa_siconfi_porciuncula_prefeitura_2024_executivo.csv",
+    );
+
+    const text = await res.text();
+    expect(text).toContain("ano;mes_referencia;data_referencia;poder_orgao");
+    expect(text).toContain("PREFEITURA MUNICIPAL DE PORCIÚNCULA");
+    expect(text).toContain("10266561,77");
+  });
+
+  it("deve retornar 500 se ocorrer erro na consulta de saldo_caixa_siconfi", async () => {
+    const { getRawSaldoCaixaSiconfiExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getRawSaldoCaixaSiconfiExportRecords).mockRejectedValueOnce(
+      new Error("Database connection failed"),
+    );
+
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=saldo_caixa_siconfi&ano=2024",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain("Erro interno");
+  });
+
+  it("deve exportar CSV com sucesso para tipo 'pessoal_regime'", async () => {
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=pessoal_regime&ano=2025",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+    expect(res.headers.get("content-disposition")).toContain(
+      "pessoal_regime_porciuncula_prefeitura_2025.csv",
+    );
+
+    const text = await res.text();
+    expect(text).toContain(
+      "ano;matricula;cargo;proventos;categoria_regime;categoria_regime_rotulo;regime_previdenciario;forma_provimento;vinculo;categoria_funcional",
+    );
+    expect(text).toContain("PROFESSOR");
+    expect(text).toContain("5000,50");
+    expect(text).toContain("Concursados (Efetivos)");
+  });
+
+  it("deve retornar 500 se ocorrer erro na consulta de pessoal_regime", async () => {
+    const { getRawPessoalRegimeExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getRawPessoalRegimeExportRecords).mockRejectedValueOnce(
+      new Error("Database error"),
+    );
+
+    const { GET } = await import("./route");
+    const req = new Request(
+      "https://example.com/api/porciuncula_prefeitura/export?tipo=pessoal_regime&ano=2025",
+    );
+    const context = {
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+    };
+
+    const res = await GET(req, context);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain("Erro interno");
   });
 });

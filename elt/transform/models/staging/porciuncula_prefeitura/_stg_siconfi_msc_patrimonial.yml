@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: stg_siconfi_msc_patrimonial
+    description: "Staging da Matriz de Saldos Contábeis (MSC) Patrimonial do SICONFI (Classe 1 - Ativo Disponível 111%), excluindo o Poder Legislativo (Câmara Municipal)"
+    columns:
+      - name: ano
+        description: "Exercício contábil de referência da matriz"
+        data_type: integer
+        tests:
+          - not_null
+      - name: mes_referencia
+        description: "Mês da competência contábil mensal (1 a 12)"
+        data_type: integer
+        tests:
+          - not_null
+      - name: cod_ibge
+        description: "Código IBGE de 7 dígitos do ente municipal (3304102 para Porciúncula)"
+        data_type: integer
+        tests:
+          - not_null
+      - name: tipo_matriz
+        description: "Tipo da matriz contábil (MSCC para Matriz de Saldos Contábeis do Ente)"
+        data_type: text
+      - name: classe_conta
+        description: "Classe da conta contábil no PCASP (1 para Ativo)"
+        data_type: integer
+        tests:
+          - not_null
+      - name: conta_contabil
+        description: "Código da conta contábil analítica no PCASP (ex: 111110200 para Bancos Conta Movimento)"
+        data_type: text
+        tests:
+          - not_null
+      - name: poder_orgao
+        description: "Código identificador do poder ou órgão contábil no SICONFI (10131 para Executivo, 10132 para RPPS)"
+        data_type: text
+        tests:
+          - not_null
+      - name: financeiro_permanente
+        description: "Indicador de superávit financeiro/patrimonial permanente (1 para Financeiro/Disponível)"
+        data_type: integer
+        tests:
+          - not_null
+      - name: ano_fonte_recursos
+        description: "Dígito indicador do exercício da fonte de recursos (1 para recursos do exercício corrente)"
+        data_type: integer
+      - name: fonte_recursos
+        description: "Código padronizado da fonte de recursos (Portaria STN nº 710/2021 ou códigos legados)"
+        data_type: text
+        tests:
+          - not_null
+      - name: valor_original
+        description: "Valor absoluto informado no registro original da matriz SICONFI"
+        data_type: numeric
+        tests:
+          - not_null
+      - name: natureza_conta
+        description: "Natureza do saldo contábil: D (devedora) ou C (credora)"
+        data_type: text
+        tests:
+          - not_null
+      - name: tipo_valor
+        description: "Tipo de saldo contábil da matriz: ending_balance (saldo final da competência)"
+        data_type: text
+        tests:
+          - not_null
+      - name: saldo_valor
+        description: "Saldo financeiro com sinal contábil ajustado (negativo para contas com saldo credor C)"
+        data_type: numeric
+        tests:
+          - not_null
+      - name: data_referencia
+        description: "Data de encerramento da competência contábil mensal (último dia do mês de referência)"
+        data_type: text
+      - name: data_extracao
+        description: "Timestamp ISO da extração do lote de dados da API do SICONFI"
+        data_type: text

@@ -78,7 +78,6 @@ export interface ContratoFracionamentoMetricsDTO {
   licitacaoNumero: string;
   mes: number;
   periodo: string;
-  Periodo: string;
 }
 
 export interface FornecedorRecorrenteMetricsDTO {
@@ -491,7 +490,6 @@ export async function getAnomaliasContratuaisMetrics(
         licitacaoNumero: String(p.licitacao_numero ?? ""),
         mes: mes_num,
         periodo,
-        Periodo: periodo,
       };
     });
 

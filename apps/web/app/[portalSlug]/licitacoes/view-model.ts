@@ -21,7 +21,9 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
-    partialPeriod: getPartialYearPeriod(),
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     gaps: raw.gaps,
     adesao: raw.adesao,
     adesaoExterna: raw.adesaoExterna,
