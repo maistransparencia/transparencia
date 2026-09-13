@@ -266,14 +266,17 @@ export function Sidebar({
             <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-subtleText leading-none">
-              <YearSelect
-                years={years}
-                selectedYear={currentExercice}
-                onChange={handleExerciceChange}
-                variant="compact"
-              />
-              {mobileHeaderRightSlot}
+            <div className="flex items-center justify-between gap-x-2">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-subtleText leading-none">
+                <YearSelect
+                  years={years}
+                  selectedYear={currentExercice}
+                  onChange={handleExerciceChange}
+                  variant="compact"
+                />
+                {mobileHeaderRightSlot}
+              </div>
+
               {mobileHeaderActionSlot}
             </div>
           </div>

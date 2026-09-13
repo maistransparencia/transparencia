@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { usePushNotifications } from "../use-push-notifications";
+import {
+  __resetPushStoreForTesting,
+  usePushNotifications,
+} from "../use-push-notifications";
 
 vi.mock("posthog-js", () => ({
   default: {
@@ -24,6 +27,7 @@ describe("usePushNotifications", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    __resetPushStoreForTesting();
 
     mockUnsubscribe = vi.fn().mockResolvedValue(true);
     mockGetSubscription = vi.fn().mockResolvedValue(null);

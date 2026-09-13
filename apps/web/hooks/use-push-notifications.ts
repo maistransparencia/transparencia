@@ -1,7 +1,7 @@
 "use client";
 
 import posthog from "posthog-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { env } from "@/env";
 import {
   isPushNotificationSupported,
@@ -22,6 +22,14 @@ export interface UsePushNotificationsReturn {
   unsubscribe: () => Promise<boolean>;
 }
 
+export interface PushStoreState {
+  isSupported: boolean;
+  isSubscribed: boolean;
+  permission: NotificationPermission | "unsupported";
+  isLoading: boolean;
+  error: string | null;
+}
+
 const PUSH_SUBSCRIPTION_CHANGED_EVENT =
   "transparencia:push-subscription-changed";
 
@@ -30,15 +38,129 @@ interface PushSubscriptionChangedDetail {
   permission?: NotificationPermission | "unsupported";
 }
 
-function broadcastPushStateChange(detail: PushSubscriptionChangedDetail) {
+let storeState: PushStoreState = {
+  isSupported: false,
+  isSubscribed: false,
+  permission: "unsupported",
+  isLoading: true,
+  error: null,
+};
+
+const storeListeners = new Set<() => void>();
+
+function getStoreSnapshot(): PushStoreState {
+  return storeState;
+}
+
+function getServerSnapshot(): PushStoreState {
+  return {
+    isSupported: false,
+    isSubscribed: false,
+    permission: "unsupported",
+    isLoading: true,
+    error: null,
+  };
+}
+
+function subscribeToStore(onStoreChange: () => void): () => void {
+  storeListeners.add(onStoreChange);
+  return () => {
+    storeListeners.delete(onStoreChange);
+  };
+}
+
+export function updatePushStore(partial: Partial<PushStoreState>) {
+  storeState = { ...storeState, ...partial };
+  for (const listener of storeListeners) {
+    listener();
+  }
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent<PushSubscriptionChangedDetail>(
         PUSH_SUBSCRIPTION_CHANGED_EVENT,
-        { detail },
+        {
+          detail: {
+            isSubscribed: storeState.isSubscribed,
+            permission: storeState.permission,
+          },
+        },
       ),
     );
   }
+}
+
+let hasInitialized = false;
+
+export async function refreshPushSubscription(): Promise<void> {
+  if (!isPushNotificationSupported()) {
+    updatePushStore({
+      isSupported: false,
+      isSubscribed: false,
+      permission: "unsupported",
+      isLoading: false,
+    });
+    return;
+  }
+
+  updatePushStore({
+    isSupported: true,
+    permission: Notification.permission,
+  });
+
+  try {
+    let sub: PushSubscription | null = null;
+    if (
+      typeof navigator !== "undefined" &&
+      "serviceWorker" in navigator &&
+      typeof navigator.serviceWorker.getRegistration === "function"
+    ) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg?.pushManager) {
+        sub = await reg.pushManager.getSubscription();
+      }
+    }
+
+    if (
+      !sub &&
+      typeof navigator !== "undefined" &&
+      "serviceWorker" in navigator
+    ) {
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), 2500);
+      });
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        timeoutPromise,
+      ]);
+      if (reg?.pushManager) {
+        sub = await reg.pushManager.getSubscription();
+      }
+    }
+
+    updatePushStore({
+      isSubscribed: Boolean(sub),
+      isLoading: false,
+    });
+  } catch (err: unknown) {
+    updatePushStore({
+      isLoading: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Erro ao consultar subscrição existente",
+    });
+  }
+}
+
+export function __resetPushStoreForTesting() {
+  hasInitialized = false;
+  storeState = {
+    isSupported: false,
+    isSubscribed: false,
+    permission: "unsupported",
+    isLoading: true,
+    error: null,
+  };
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
@@ -97,54 +219,17 @@ export function usePushNotifications(
   options?: UsePushNotificationsOptions,
 ): UsePushNotificationsReturn {
   const portalSlug = options?.portalSlug ?? "porciuncula_prefeitura";
-  const [isSupported, setIsSupported] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [permission, setPermission] = useState<
-    NotificationPermission | "unsupported"
-  >("unsupported");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const state = useSyncExternalStore(
+    subscribeToStore,
+    getStoreSnapshot,
+    getServerSnapshot,
+  );
 
   useEffect(() => {
-    if (!isPushNotificationSupported()) {
-      setIsSupported(false);
-      setPermission("unsupported");
-      setIsSubscribed(false);
-      setIsLoading(false);
-      return;
+    if (!hasInitialized) {
+      hasInitialized = true;
+      refreshPushSubscription();
     }
-
-    setIsSupported(true);
-    setPermission(Notification.permission);
-
-    let isMounted = true;
-
-    const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), 3000);
-    });
-
-    Promise.race([
-      navigator.serviceWorker.ready.then((reg) =>
-        reg.pushManager.getSubscription(),
-      ),
-      timeoutPromise,
-    ])
-      .then((sub) => {
-        if (isMounted) {
-          setIsSubscribed(Boolean(sub));
-          setIsLoading(false);
-        }
-      })
-      .catch((err: unknown) => {
-        if (isMounted) {
-          setIsLoading(false);
-          const msg =
-            err instanceof Error
-              ? err.message
-              : "Erro ao consultar subscrição existente";
-          setError(msg);
-        }
-      });
 
     const handleSubscriptionChange = (e: Event) => {
       const customEvent = e as CustomEvent<PushSubscriptionChangedDetail>;
@@ -152,10 +237,12 @@ export function usePushNotifications(
         customEvent.detail &&
         typeof customEvent.detail.isSubscribed === "boolean"
       ) {
-        setIsSubscribed(customEvent.detail.isSubscribed);
-      }
-      if (customEvent.detail?.permission) {
-        setPermission(customEvent.detail.permission);
+        if (storeState.isSubscribed !== customEvent.detail.isSubscribed) {
+          updatePushStore({
+            isSubscribed: customEvent.detail.isSubscribed,
+            permission: customEvent.detail.permission ?? storeState.permission,
+          });
+        }
       }
     };
 
@@ -167,7 +254,6 @@ export function usePushNotifications(
     }
 
     return () => {
-      isMounted = false;
       if (typeof window !== "undefined") {
         window.removeEventListener(
           PUSH_SUBSCRIPTION_CHANGED_EVENT,
@@ -179,23 +265,26 @@ export function usePushNotifications(
 
   const subscribe = useCallback(
     async (topics?: string[]): Promise<boolean> => {
-      setError(null);
-      setIsLoading(true);
+      updatePushStore({ error: null, isLoading: true });
 
       if (!isPushNotificationSupported()) {
-        setError("Notificações Web Push não suportadas neste navegador.");
-        setIsLoading(false);
+        updatePushStore({
+          error: "Notificações Web Push não suportadas neste navegador.",
+          isLoading: false,
+        });
         return false;
       }
 
       const vapidKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidKey) {
-        setError("Chave pública VAPID não configurada no ambiente.");
+        updatePushStore({
+          error: "Chave pública VAPID não configurada no ambiente.",
+          isLoading: false,
+        });
         posthog.capture("push_subscribed_failure", {
           portal_slug: portalSlug,
           reason: "missing_vapid_key",
         });
-        setIsLoading(false);
         return false;
       }
 
@@ -203,12 +292,13 @@ export function usePushNotifications(
 
       try {
         const reqPermission = await Notification.requestPermission();
-        setPermission(reqPermission);
+        updatePushStore({ permission: reqPermission });
 
         if (reqPermission !== "granted") {
           posthog.capture("push_permission_denied", {
             portal_slug: portalSlug,
           });
+          updatePushStore({ isLoading: false });
           return false;
         }
 
@@ -262,10 +352,10 @@ export function usePushNotifications(
           throw new Error(errMsg);
         }
 
-        setIsSubscribed(true);
-        broadcastPushStateChange({
+        updatePushStore({
           isSubscribed: true,
           permission: reqPermission,
+          isLoading: false,
         });
         posthog.capture("push_notification_subscribed", {
           portal_slug: portalSlug,
@@ -279,33 +369,30 @@ export function usePushNotifications(
         if (createdSub) {
           await createdSub.unsubscribe().catch(() => null);
         }
-        setIsSubscribed(false);
-        broadcastPushStateChange({
-          isSubscribed: false,
-        });
         const errorMsg =
           err instanceof Error
             ? err.message
             : "Erro inesperado ao ativar notificações";
-        setError(errorMsg);
+        updatePushStore({
+          isSubscribed: false,
+          error: errorMsg,
+          isLoading: false,
+        });
         posthog.capture("push_subscribed_failure", {
           portal_slug: portalSlug,
           error: errorMsg,
         });
         return false;
-      } finally {
-        setIsLoading(false);
       }
     },
     [portalSlug],
   );
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
-    setError(null);
-    setIsLoading(true);
+    updatePushStore({ error: null, isLoading: true });
 
     if (!isPushNotificationSupported()) {
-      setIsLoading(false);
+      updatePushStore({ isLoading: false });
       return false;
     }
 
@@ -331,9 +418,9 @@ export function usePushNotifications(
         }
       }
 
-      setIsSubscribed(false);
-      broadcastPushStateChange({
+      updatePushStore({
         isSubscribed: false,
+        isLoading: false,
         permission:
           typeof Notification !== "undefined"
             ? Notification.permission
@@ -352,19 +439,20 @@ export function usePushNotifications(
         err instanceof Error
           ? err.message
           : "Erro inesperado ao cancelar notificações";
-      setError(errorMsg);
+      updatePushStore({
+        error: errorMsg,
+        isLoading: false,
+      });
       return false;
-    } finally {
-      setIsLoading(false);
     }
   }, [portalSlug]);
 
   return {
-    isSupported,
-    isSubscribed,
-    permission,
-    isLoading,
-    error,
+    isSupported: state.isSupported,
+    isSubscribed: state.isSubscribed,
+    permission: state.permission,
+    isLoading: state.isLoading,
+    error: state.error,
     subscribe,
     unsubscribe,
   };
