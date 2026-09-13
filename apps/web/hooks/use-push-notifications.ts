@@ -22,6 +22,25 @@ export interface UsePushNotificationsReturn {
   unsubscribe: () => Promise<boolean>;
 }
 
+const PUSH_SUBSCRIPTION_CHANGED_EVENT =
+  "transparencia:push-subscription-changed";
+
+interface PushSubscriptionChangedDetail {
+  isSubscribed: boolean;
+  permission?: NotificationPermission | "unsupported";
+}
+
+function broadcastPushStateChange(detail: PushSubscriptionChangedDetail) {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent<PushSubscriptionChangedDetail>(
+        PUSH_SUBSCRIPTION_CHANGED_EVENT,
+        { detail },
+      ),
+    );
+  }
+}
+
 function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
   if (!buffer) return "";
   const bytes = new Uint8Array(buffer);
@@ -127,8 +146,34 @@ export function usePushNotifications(
         }
       });
 
+    const handleSubscriptionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<PushSubscriptionChangedDetail>;
+      if (
+        customEvent.detail &&
+        typeof customEvent.detail.isSubscribed === "boolean"
+      ) {
+        setIsSubscribed(customEvent.detail.isSubscribed);
+      }
+      if (customEvent.detail?.permission) {
+        setPermission(customEvent.detail.permission);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener(
+        PUSH_SUBSCRIPTION_CHANGED_EVENT,
+        handleSubscriptionChange,
+      );
+    }
+
     return () => {
       isMounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          PUSH_SUBSCRIPTION_CHANGED_EVENT,
+          handleSubscriptionChange,
+        );
+      }
     };
   }, []);
 
@@ -218,6 +263,10 @@ export function usePushNotifications(
         }
 
         setIsSubscribed(true);
+        broadcastPushStateChange({
+          isSubscribed: true,
+          permission: reqPermission,
+        });
         posthog.capture("push_notification_subscribed", {
           portal_slug: portalSlug,
         });
@@ -230,6 +279,10 @@ export function usePushNotifications(
         if (createdSub) {
           await createdSub.unsubscribe().catch(() => null);
         }
+        setIsSubscribed(false);
+        broadcastPushStateChange({
+          isSubscribed: false,
+        });
         const errorMsg =
           err instanceof Error
             ? err.message
@@ -279,6 +332,13 @@ export function usePushNotifications(
       }
 
       setIsSubscribed(false);
+      broadcastPushStateChange({
+        isSubscribed: false,
+        permission:
+          typeof Notification !== "undefined"
+            ? Notification.permission
+            : undefined,
+      });
       posthog.capture("push_notification_unsubscribed", {
         portal_slug: portalSlug,
       });

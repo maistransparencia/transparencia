@@ -266,7 +266,7 @@ export function Sidebar({
             <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="flex items-center gap-3 text-sm text-subtleText leading-none">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-subtleText leading-none">
               <YearSelect
                 years={years}
                 selectedYear={currentExercice}
@@ -274,14 +274,10 @@ export function Sidebar({
                 variant="compact"
               />
               {mobileHeaderRightSlot}
+              {mobileHeaderActionSlot}
             </div>
           </div>
         </div>
-        {mobileHeaderActionSlot && (
-          <div className="flex shrink-0 items-center pl-2">
-            {mobileHeaderActionSlot}
-          </div>
-        )}
       </div>
 
       {/* Backdrop Móvel (< md) com Transição Suave */}

@@ -233,4 +233,39 @@ describe("usePushNotifications", () => {
       { portal_slug: "porciuncula_prefeitura" },
     );
   });
+
+  it("sincroniza em tempo real o estado de subscrição entre múltiplas instâncias do hook", async () => {
+    const hookA = renderHook(() =>
+      usePushNotifications({ portalSlug: "porciuncula_prefeitura" }),
+    );
+    const hookB = renderHook(() =>
+      usePushNotifications({ portalSlug: "porciuncula_prefeitura" }),
+    );
+
+    await waitFor(() => {
+      expect(hookA.result.current.isLoading).toBe(false);
+      expect(hookB.result.current.isLoading).toBe(false);
+    });
+
+    expect(hookA.result.current.isSubscribed).toBe(false);
+    expect(hookB.result.current.isSubscribed).toBe(false);
+
+    // Dispara subscribe na instância A
+    await act(async () => {
+      await hookA.result.current.subscribe();
+    });
+
+    // Ambas as instâncias devem refletir isSubscribed: true imediatamente
+    expect(hookA.result.current.isSubscribed).toBe(true);
+    expect(hookB.result.current.isSubscribed).toBe(true);
+
+    // Dispara unsubscribe na instância B
+    await act(async () => {
+      await hookB.result.current.unsubscribe();
+    });
+
+    // Ambas as instâncias devem refletir isSubscribed: false imediatamente
+    expect(hookA.result.current.isSubscribed).toBe(false);
+    expect(hookB.result.current.isSubscribed).toBe(false);
+  });
 });
