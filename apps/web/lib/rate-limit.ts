@@ -52,12 +52,25 @@ export function checkRateLimit(
   };
 }
 
+export function getClientIp(req: Request): string {
+  const forwardedHeader = req.headers.get("x-forwarded-for");
+  if (forwardedHeader) {
+    return forwardedHeader.split(",")[0].trim();
+  }
+  return req.headers.get("x-real-ip") || "unknown-ip";
+}
+
 /**
- * Limite de requisições por IP: 5 requisições a cada 10 minutos (600.000 ms).
+ * Limite de requisições por IP (padrão: 5 requisições a cada 10 minutos).
  */
-export function checkIpRateLimit(ip: string): RateLimitResult {
+export function checkIpRateLimit(
+  reqOrIp: Request | string,
+  limit = 5,
+  windowMs = 10 * 60 * 1000,
+): RateLimitResult {
+  const ip = typeof reqOrIp === "string" ? reqOrIp : getClientIp(reqOrIp);
   const normalizedIp = ip.trim() || "unknown-ip";
-  return checkRateLimit(`ip:${normalizedIp}`, 5, 10 * 60 * 1000);
+  return checkRateLimit(`ip:${normalizedIp}`, limit, windowMs);
 }
 
 /**

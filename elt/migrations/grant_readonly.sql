@@ -32,6 +32,16 @@ BEGIN
       EXECUTE 'CREATE POLICY newsletter_subscribers_read_only_all ON public.newsletter_subscribers FOR ALL TO read_only USING (true) WITH CHECK (true);';
     END IF;
   END IF;
+
+  -- Exceção: Permissões de escrita e políticas RLS para push_subscriptions
+  IF to_regclass('public.push_subscriptions') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'read_only') THEN
+      EXECUTE 'GRANT USAGE ON SCHEMA public TO read_only;';
+      EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.push_subscriptions TO read_only;';
+      EXECUTE 'DROP POLICY IF EXISTS push_subscriptions_read_only_all ON public.push_subscriptions;';
+      EXECUTE 'CREATE POLICY push_subscriptions_read_only_all ON public.push_subscriptions FOR ALL TO read_only USING (true) WITH CHECK (true);';
+    END IF;
+  END IF;
 END
 $$;
 

@@ -1,9 +1,11 @@
 import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
+import { getPortalConfig } from "@transparencia/db";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/env";
+import { dispatchPushNotification } from "@/lib/push-dispatcher";
 
 /**
  * Endpoint de Webhook de Ingestão de Dados.
@@ -93,7 +95,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: "Payload inválido",
-          details: parseResult.error.flatten(),
+          details: z.flattenError(parseResult.error),
         },
         { status: 400 },
       );
@@ -116,8 +118,28 @@ export async function POST(req: Request) {
         console.warn(`[INGESTION_WEBHOOK] Aviso ao revalidar cache: ${err}`);
       }
 
-      // Ponto de extensão para Story 11.3: disparo de notificações Web Push aos cidadãos inscritos
-      // await dispatchCivicPushNotification(payload.portalSlug);
+      // Disparo de notificação cívica via Web Push aos cidadãos inscritos
+      // em observância ao princípio da tempestividade (Art. 48-A da LC 101/2000 - LRF:
+      // https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art48a)
+      try {
+        const portalConfig = await getPortalConfig(payload.portalSlug).catch(
+          () => null,
+        );
+        const portalName = portalConfig?.displayName ?? payload.portalSlug;
+
+        await dispatchPushNotification({
+          portalSlug: payload.portalSlug,
+          title: `MaisTransparencia - Atualização Fiscal (${portalName})`,
+          body: `Novos dados fiscais foram disponibilizados no portal em conformidade com o Art. 48-A da LC 101/2000 (LRF).`,
+          url: `/${payload.portalSlug}`,
+          topic: "extracoes",
+        });
+      } catch (pushErr) {
+        // biome-ignore lint/suspicious/noConsole: Log de aviso caso o envio de push falhe sem invalidar a ingestão
+        console.warn(
+          `[INGESTION_WEBHOOK] Falha não-bloqueante ao despachar Web Push: ${pushErr}`,
+        );
+      }
 
       return NextResponse.json(
         { success: true, message: "Ingestion recorded successfully" },
