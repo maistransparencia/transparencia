@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -77,6 +77,20 @@ ifndef PORTAL
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
 
+# DOCKER ELT
+
+docker/elt/build:
+	docker build -f elt/Dockerfile -t transparencia-elt:latest elt
+
+docker/elt/run:
+	docker run --rm --network host \
+		-e DATABASE_URL="$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" \
+		-e FLARESOLVERR_URL="$${FLARESOLVERR_URL:-http://localhost:8191/v1}" \
+		-e WEBHOOK_URL="$${WEBHOOK_URL:-http://localhost:3001/api/ingestion/webhook}" \
+		-e INTERNAL_API_SECRET="$${INTERNAL_API_SECRET:-}" \
+		-e ALERT_WEBHOOK_URL="$${ALERT_WEBHOOK_URL:-}" \
+		transparencia-elt:latest $(ARGS)
+
 # MIGRATIONS
 
 db/init-roles:
@@ -133,6 +147,14 @@ bot/post:
 
 bot/dry-run:
 	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
+
+push/send:
+	pnpm --filter web push:send --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+push/dry-run:
+	pnpm --filter web push:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+
 
 # DB TEST FIXTURE (packages/db)
 # Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`

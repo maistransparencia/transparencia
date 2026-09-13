@@ -58,3 +58,19 @@ def test_fetch_retries_once_on_failure():
         result = fetch("http://fake-url.com/")
     assert result == []
     assert call_count["n"] == 2
+
+
+def test_fetch_uses_custom_flaresolverr_url(monkeypatch):
+    custom_url = "http://custom-flaresolverr:8191/v1"
+    monkeypatch.setenv("FLARESOLVERR_URL", custom_url)
+    called_urls = []
+
+    def mock_post(url, **kwargs):
+        called_urls.append(url)
+        return _mock_flare(url, **kwargs)
+
+    with patch("elt.core.scraper.requests.post", side_effect=mock_post):
+        result = fetch("http://fake-url.com/")
+
+    assert result == FAKE_JSON
+    assert called_urls == [custom_url]

@@ -69,8 +69,10 @@ export interface SidebarProps {
   onEntidadesChange?: (selectedIds: string[]) => void;
   portalSlug?: string;
   onOpenNewsletter?: () => void;
+  pushNotificationSlot?: React.ReactNode;
   socialLinksSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
+  mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
@@ -155,8 +157,10 @@ export function Sidebar({
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
+  pushNotificationSlot,
   socialLinksSlot,
   mobileHeaderRightSlot,
+  mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
 }: SidebarProps) {
@@ -262,14 +266,18 @@ export function Sidebar({
             <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="flex items-center gap-3 text-sm text-subtleText leading-none">
-              <YearSelect
-                years={years}
-                selectedYear={currentExercice}
-                onChange={handleExerciceChange}
-                variant="compact"
-              />
-              {mobileHeaderRightSlot}
+            <div className="flex items-center justify-between gap-x-2">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-subtleText leading-none">
+                <YearSelect
+                  years={years}
+                  selectedYear={currentExercice}
+                  onChange={handleExerciceChange}
+                  variant="compact"
+                />
+                {mobileHeaderRightSlot}
+              </div>
+
+              {mobileHeaderActionSlot}
             </div>
           </div>
         </div>
@@ -451,8 +459,10 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Newsletter, Social Links e Data de Extração */}
+        {/* Rodapé com Newsletter, Push, Social Links e Data de Extração */}
         <div className="space-y-3 border-borderLine border-t bg-gray-50/50 p-4">
+          {pushNotificationSlot}
+
           {onOpenNewsletter && (
             <button
               type="button"
