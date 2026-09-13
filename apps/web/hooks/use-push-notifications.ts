@@ -52,14 +52,16 @@ function getStoreSnapshot(): PushStoreState {
   return storeState;
 }
 
+const SERVER_SNAPSHOT: PushStoreState = {
+  isSupported: false,
+  isSubscribed: false,
+  permission: "unsupported",
+  isLoading: true,
+  error: null,
+};
+
 function getServerSnapshot(): PushStoreState {
-  return {
-    isSupported: false,
-    isSubscribed: false,
-    permission: "unsupported",
-    isLoading: true,
-    error: null,
-  };
+  return SERVER_SNAPSHOT;
 }
 
 function subscribeToStore(onStoreChange: () => void): () => void {
