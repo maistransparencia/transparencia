@@ -7,6 +7,8 @@ import { useState } from "react";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
 import { NewsletterModal } from "@/components/newsletter-modal";
+import { PushNotificationSettings } from "@/components/push-notification-settings";
+import { PushNotificationTopbarButton } from "@/components/push-notification-topbar-button";
 import { SocialLinks } from "@/components/social-links";
 
 interface SidebarWrapperProps {
@@ -86,6 +88,12 @@ export function SidebarWrapper({
         selectedEntidades={selectedEntidades}
         onEntidadesChange={handleEntidadesChange}
         onOpenNewsletter={() => setIsNewsletterOpen(true)}
+        pushNotificationSlot={
+          <PushNotificationSettings portalSlug={portalSlug} />
+        }
+        mobileHeaderActionSlot={
+          <PushNotificationTopbarButton portalSlug={portalSlug} />
+        }
         socialLinksSlot={<SocialLinks />}
         mobileHeaderRightSlot={
           entidades && entidades.length > 0 ? (
