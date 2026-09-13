@@ -1,12 +1,13 @@
 import json
 import logging
+import os
 import time
 from html.parser import HTMLParser
 from typing import Any, cast
 
 import requests
 
-FLARESOLVERR_URL = "http://localhost:8191/v1"
+FLARESOLVERR_URL: str = os.environ.get("FLARESOLVERR_URL", "http://localhost:8191/v1")
 logger = logging.getLogger(__name__)
 
 
@@ -29,8 +30,9 @@ class FlareSolverrClient:
     @staticmethod
     def _post_request(url: str) -> dict[str, Any]:
         """Performs a synchronous HTTP post request to the FlareSolverr instance."""
+        target_url = os.environ.get("FLARESOLVERR_URL") or FLARESOLVERR_URL
         resp = requests.post(
-            FLARESOLVERR_URL,
+            target_url,
             json={"cmd": "request.get", "url": url, "maxTimeout": 60000},
             timeout=90,
         )

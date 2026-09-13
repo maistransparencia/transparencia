@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -76,6 +76,20 @@ ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+
+# DOCKER ELT
+
+docker/elt/build:
+	docker build -f elt/Dockerfile -t transparencia-elt:latest elt
+
+docker/elt/run:
+	docker run --rm --network host \
+		-e DATABASE_URL="$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" \
+		-e FLARESOLVERR_URL="$${FLARESOLVERR_URL:-http://localhost:8191/v1}" \
+		-e WEBHOOK_URL="$${WEBHOOK_URL:-http://localhost:3001/api/ingestion/webhook}" \
+		-e INTERNAL_API_SECRET="$${INTERNAL_API_SECRET:-}" \
+		-e ALERT_WEBHOOK_URL="$${ALERT_WEBHOOK_URL:-}" \
+		transparencia-elt:latest $(ARGS)
 
 # MIGRATIONS
 
