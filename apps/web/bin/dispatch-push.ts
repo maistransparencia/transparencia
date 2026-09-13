@@ -1,3 +1,4 @@
+import { closeDb } from "@transparencia/db";
 import { dispatchPushNotification } from "../lib/push-dispatcher";
 
 function parseArgs() {
@@ -69,12 +70,12 @@ async function main() {
     }
   }
 
-  if (!result.success && !result.dryRun) {
-    process.exit(1);
-  }
+  await closeDb();
+  process.exit(result.success || result.dryRun ? 0 : 1);
 }
 
-main().catch((error: unknown) => {
+main().catch(async (error: unknown) => {
   console.error("[PUSH FATAL]", error);
+  await closeDb().catch(() => {});
   process.exit(1);
 });
