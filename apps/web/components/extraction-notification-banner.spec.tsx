@@ -9,6 +9,21 @@ vi.mock("posthog-js", () => ({
   },
 }));
 
+const mockSubscribe = vi.fn();
+const mockPushState = {
+  isSupported: true,
+  isSubscribed: false,
+  permission: "default" as NotificationPermission | "unsupported",
+  isLoading: false,
+  error: null as string | null,
+  subscribe: mockSubscribe,
+  unsubscribe: vi.fn(),
+};
+
+vi.mock("@/hooks/use-push-notifications", () => ({
+  usePushNotifications: () => mockPushState,
+}));
+
 describe("ExtractionNotificationBanner Component", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -65,5 +80,51 @@ describe("ExtractionNotificationBanner Component", () => {
         portal_name: "Prefeitura de Porciúncula",
       },
     );
+  });
+
+  it("exibe atalho contextual de notificações quando push é suportado e permissão é default", () => {
+    localStorage.setItem("last_seen_extraction", "2026-08-01");
+    mockPushState.isSupported = true;
+    mockPushState.isSubscribed = false;
+    mockPushState.permission = "default";
+
+    render(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /Deseja receber avisos automáticos de novas contas públicas\?/i,
+      ),
+    ).toBeInTheDocument();
+
+    const optInButton = screen.getByRole("button", {
+      name: "Ativar notificações",
+    });
+    fireEvent.click(optInButton);
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("não exibe atalho contextual de notificações se o usuário já estiver inscrito", () => {
+    localStorage.setItem("last_seen_extraction", "2026-08-01");
+    mockPushState.isSupported = true;
+    mockPushState.isSubscribed = true;
+    mockPushState.permission = "granted";
+
+    render(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        /Deseja receber avisos automáticos de novas contas públicas\?/i,
+      ),
+    ).not.toBeInTheDocument();
   });
 });

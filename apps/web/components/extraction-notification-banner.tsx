@@ -2,10 +2,12 @@
 
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 interface ExtractionNotificationBannerProps {
   lastExtractionDate?: string;
   portalName?: string;
+  portalSlug?: string;
 }
 
 function safeGetLocalStorage(key: string): string | null {
@@ -56,8 +58,16 @@ function formatDateBR(dateStr?: string): string {
 export function ExtractionNotificationBanner({
   lastExtractionDate,
   portalName = "Prefeitura de Porciúncula",
+  portalSlug = "porciuncula_prefeitura",
 }: ExtractionNotificationBannerProps) {
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const {
+    isSupported,
+    isSubscribed,
+    permission,
+    isLoading: isPushLoading,
+    subscribe,
+  } = usePushNotifications({ portalSlug });
 
   useEffect(() => {
     if (!lastExtractionDate || typeof window === "undefined") return;
@@ -111,20 +121,38 @@ export function ExtractionNotificationBanner({
   const formattedDate = formatDateBR(lastExtractionDate);
 
   return (
-    <div className="flex items-center justify-between border-blue-200 border-b bg-blue-50 px-4 py-2.5 text-blue-950 text-sm shadow-sm">
-      <span className="flex items-center gap-2">
-        <span>📢</span>
+    <div className="flex flex-wrap items-center justify-between gap-2 border-blue-200 border-b bg-blue-50 px-4 py-2.5 text-blue-950 text-sm shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <span aria-hidden="true">📢</span>
         <span>
           <strong>Novos dados disponíveis!</strong> A última extração de contas
           públicas de{" "}
           <span className="font-semibold text-blue-700">{portalName}</span> foi
           atualizada ({formattedDate}).
         </span>
-      </span>
+        {isSupported && !isSubscribed && permission === "default" && (
+          <span className="inline-flex items-center gap-1.5 text-blue-900 text-xs">
+            <span className="hidden sm:inline">•</span>
+            <span>
+              Deseja receber avisos automáticos de novas contas públicas?
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                await subscribe();
+              }}
+              disabled={isPushLoading}
+              className="cursor-pointer font-semibold text-blue-700 underline transition-colors hover:text-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPushLoading ? "Ativando..." : "Ativar notificações"}
+            </button>
+          </span>
+        )}
+      </div>
       <button
         type="button"
         onClick={handleDismiss}
-        className="ml-4 rounded px-2.5 py-1 font-semibold text-blue-700 text-xs transition-colors hover:bg-blue-100"
+        className="ml-auto shrink-0 rounded px-2.5 py-1 font-semibold text-blue-700 text-xs transition-colors hover:bg-blue-100"
       >
         Entendido
       </button>

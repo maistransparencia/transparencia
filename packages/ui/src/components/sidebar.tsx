@@ -69,6 +69,7 @@ export interface SidebarProps {
   onEntidadesChange?: (selectedIds: string[]) => void;
   portalSlug?: string;
   onOpenNewsletter?: () => void;
+  pushNotificationSlot?: React.ReactNode;
   socialLinksSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   isMobileOpen?: boolean;
@@ -155,6 +156,7 @@ export function Sidebar({
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
+  pushNotificationSlot,
   socialLinksSlot,
   mobileHeaderRightSlot,
   isMobileOpen: controlledMobileOpen,
@@ -451,8 +453,10 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Newsletter, Social Links e Data de Extração */}
+        {/* Rodapé com Newsletter, Push, Social Links e Data de Extração */}
         <div className="space-y-3 border-borderLine border-t bg-gray-50/50 p-4">
+          {pushNotificationSlot}
+
           {onOpenNewsletter && (
             <button
               type="button"
