@@ -119,7 +119,7 @@ def run_pipeline(
     load_dotenv()
     pipeline_start = time.perf_counter()
     current_year = date.today().year
-    target_years = years if years else [current_year - 1, current_year]
+    target_years = years if years else [current_year]
 
     # Validate portal configuration
     try:

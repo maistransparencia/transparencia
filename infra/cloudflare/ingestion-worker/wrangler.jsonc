@@ -4,6 +4,6 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "triggers": {
-    "crons": ["0 3 * * *"]
+    "crons": ["0 23 * * 5"]
   }
 }
