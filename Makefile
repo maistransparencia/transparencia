@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -147,6 +147,14 @@ bot/post:
 
 bot/dry-run:
 	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
+
+push/send:
+	pnpm --filter web push:send --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+push/dry-run:
+	pnpm --filter web push:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+
 
 # DB TEST FIXTURE (packages/db)
 # Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`

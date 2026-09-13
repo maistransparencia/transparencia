@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../route";
 
+const mockDispatchPushNotification = vi.fn();
+
+vi.mock("@/lib/push-dispatcher", () => ({
+  dispatchPushNotification: (...args: unknown[]) =>
+    mockDispatchPushNotification(...args),
+}));
+
 vi.mock("@/env", () => ({
   env: {
     INTERNAL_API_SECRET: "test-internal-secret",
@@ -131,6 +138,13 @@ describe("POST /api/ingestion/webhook", () => {
       success: true,
       message: "Ingestion recorded successfully",
     });
+    expect(mockDispatchPushNotification).toHaveBeenCalledWith({
+      portalSlug: "porciuncula_prefeitura",
+      title: expect.stringContaining("MaisTransparencia - Atualização Fiscal"),
+      body: expect.stringContaining("Art. 48-A da LC 101/2000 (LRF)"),
+      url: "/porciuncula_prefeitura",
+      topic: "extracoes",
+    });
   });
 
   it("retorna 200 ao receber evento de sucesso com token CRON_SECRET", async () => {
@@ -151,6 +165,34 @@ describe("POST /api/ingestion/webhook", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.success).toBe(true);
+    expect(mockDispatchPushNotification).toHaveBeenCalled();
+  });
+
+  it("retorna 200 mesmo se o disparo de push falhar de forma não-bloqueante", async () => {
+    mockDispatchPushNotification.mockRejectedValue(
+      new Error("Push service unreachable"),
+    );
+
+    const req = new Request("http://localhost/api/ingestion/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-internal-secret",
+      },
+      body: JSON.stringify({
+        portalSlug: "porciuncula_prefeitura",
+        status: "success",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data).toEqual({
+      success: true,
+      message: "Ingestion recorded successfully",
+    });
   });
 
   it("retorna 200 e confirma falha quando status for 'failure' com errorMessage", async () => {
@@ -176,6 +218,7 @@ describe("POST /api/ingestion/webhook", () => {
       success: false,
       message: "Ingestion failure acknowledged",
     });
+    expect(mockDispatchPushNotification).not.toHaveBeenCalled();
   });
 
   it("aceita header de autorização com prefixo 'bearer' em minúsculas e timestamp com offset", async () => {
