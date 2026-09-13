@@ -34,6 +34,46 @@ function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
     : Buffer.from(binary, "binary").toString("base64");
 }
 
+async function getActiveServiceWorkerRegistration(
+  timeoutMs = 6000,
+): Promise<ServiceWorkerRegistration> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+    throw new Error("Service Worker não suportado neste navegador.");
+  }
+
+  if (typeof navigator.serviceWorker.getRegistration === "function") {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (
+        !registration &&
+        typeof navigator.serviceWorker.register === "function"
+      ) {
+        await navigator.serviceWorker.register("/sw.js");
+      }
+    } catch {
+      // Falhas em getRegistration não impedem a verificação via ready
+    }
+  } else if (typeof navigator.serviceWorker.register === "function") {
+    try {
+      await navigator.serviceWorker.register("/sw.js");
+    } catch {
+      // Falhas em register não impedem a verificação via ready
+    }
+  }
+
+  const timeoutPromise = new Promise<ServiceWorkerRegistration>((_, reject) => {
+    setTimeout(() => {
+      reject(
+        new Error(
+          "Não foi possível ativar o Service Worker a tempo. Recarregue a página e tente novamente.",
+        ),
+      );
+    }, timeoutMs);
+  });
+
+  return Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+}
+
 export function usePushNotifications(
   options?: UsePushNotificationsOptions,
 ): UsePushNotificationsReturn {
@@ -114,6 +154,8 @@ export function usePushNotifications(
         return false;
       }
 
+      let createdSub: PushSubscription | null = null;
+
       try {
         const reqPermission = await Notification.requestPermission();
         setPermission(reqPermission);
@@ -122,17 +164,17 @@ export function usePushNotifications(
           posthog.capture("push_permission_denied", {
             portal_slug: portalSlug,
           });
-          setIsLoading(false);
           return false;
         }
 
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await getActiveServiceWorkerRegistration();
         const appServerKey = urlBase64ToUint8Array(vapidKey);
 
         const sub = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: appServerKey as unknown as BufferSource,
         });
+        createdSub = sub;
 
         const jsonSub = sub.toJSON();
         const p256dh =
@@ -168,6 +210,7 @@ export function usePushNotifications(
 
         if (!res.ok) {
           await sub.unsubscribe().catch(() => null);
+          createdSub = null;
           const body = await res.json().catch(() => ({}));
           const errMsg =
             body.error ?? `Falha ao registrar subscrição (HTTP ${res.status})`;
@@ -182,9 +225,11 @@ export function usePushNotifications(
           portal_slug: portalSlug,
         });
 
-        setIsLoading(false);
         return true;
       } catch (err: unknown) {
+        if (createdSub) {
+          await createdSub.unsubscribe().catch(() => null);
+        }
         const errorMsg =
           err instanceof Error
             ? err.message
@@ -194,8 +239,9 @@ export function usePushNotifications(
           portal_slug: portalSlug,
           error: errorMsg,
         });
-        setIsLoading(false);
         return false;
+      } finally {
+        setIsLoading(false);
       }
     },
     [portalSlug],
@@ -211,21 +257,25 @@ export function usePushNotifications(
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const sub = await registration.pushManager.getSubscription();
+      const registration = await getActiveServiceWorkerRegistration().catch(
+        () => null,
+      );
+      if (registration) {
+        const sub = await registration.pushManager.getSubscription();
 
-      if (sub) {
-        const endpoint = sub.endpoint;
-        await sub.unsubscribe();
+        if (sub) {
+          const endpoint = sub.endpoint;
+          await sub.unsubscribe();
 
-        await fetch("/api/push/unsubscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            endpoint,
-            portalSlug,
-          }),
-        }).catch(() => null);
+          await fetch("/api/push/unsubscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              endpoint,
+              portalSlug,
+            }),
+          }).catch(() => null);
+        }
       }
 
       setIsSubscribed(false);
@@ -236,7 +286,6 @@ export function usePushNotifications(
         portal_slug: portalSlug,
       });
 
-      setIsLoading(false);
       return true;
     } catch (err: unknown) {
       const errorMsg =
@@ -244,8 +293,9 @@ export function usePushNotifications(
           ? err.message
           : "Erro inesperado ao cancelar notificações";
       setError(errorMsg);
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, [portalSlug]);
 

@@ -75,7 +75,7 @@ describe("usePushNotifications", () => {
       ok: true,
       json: async () => ({ success: true }),
     } as unknown as Response);
-    globalThis.fetch = mockFetch;
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
   });
 
   it("inicializa com estado unsupported quando APIs de push não estão disponíveis", async () => {

@@ -18,6 +18,7 @@ export function PushNotificationSettings({
     isSubscribed,
     permission,
     isLoading,
+    error,
     subscribe,
     unsubscribe,
   } = usePushNotifications({ portalSlug });
@@ -76,8 +77,11 @@ export function PushNotificationSettings({
             type="button"
             onClick={async () => {
               setIsActionLoading(true);
-              await unsubscribe();
-              setIsActionLoading(false);
+              try {
+                await unsubscribe();
+              } finally {
+                setIsActionLoading(false);
+              }
             }}
             disabled={isLoading || isActionLoading}
             className="cursor-pointer font-semibold text-emerald-700 text-xs transition-colors hover:text-emerald-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
@@ -90,35 +94,43 @@ export function PushNotificationSettings({
 
     // Estado 2: Não inscrito / Disponível (AC 4: Exibe status 'Notificações desativadas' com botão para ativar)
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex items-center justify-between gap-2 rounded-lg border border-borderLine bg-white px-3 py-2 text-xs shadow-xs"
-      >
-        <div className="flex items-center gap-2 text-slate-600">
-          <Bell
-            className="h-3.5 w-3.5 shrink-0 text-slate-400"
-            aria-hidden="true"
-          />
-          <span className="font-medium text-slate-700">
-            Notificações desativadas
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={async () => {
-            setIsActionLoading(true);
-            const success = await subscribe();
-            setIsActionLoading(false);
-            if (success && onSubscribeSuccess) {
-              onSubscribeSuccess();
-            }
-          }}
-          disabled={isLoading || isActionLoading}
-          className="cursor-pointer font-semibold text-blue-600 text-xs transition-colors hover:text-blue-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+      <div className="space-y-1">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between gap-2 rounded-lg border border-borderLine bg-white px-3 py-2 text-xs shadow-xs"
         >
-          {isActionLoading ? "Ativando..." : "Ativar"}
-        </button>
+          <div className="flex items-center gap-2 text-slate-600">
+            <Bell
+              className="h-3.5 w-3.5 shrink-0 text-slate-400"
+              aria-hidden="true"
+            />
+            <span className="font-medium text-slate-700">
+              Notificações desativadas
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              setIsActionLoading(true);
+              try {
+                const success = await subscribe();
+                if (success && onSubscribeSuccess) {
+                  onSubscribeSuccess();
+                }
+              } finally {
+                setIsActionLoading(false);
+              }
+            }}
+            disabled={isLoading || isActionLoading}
+            className="cursor-pointer font-semibold text-blue-600 text-xs transition-colors hover:text-blue-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isActionLoading ? "Ativando..." : "Ativar"}
+          </button>
+        </div>
+        {error && (
+          <p className="px-1 text-[11px] text-red-600 leading-tight">{error}</p>
+        )}
       </div>
     );
   })();

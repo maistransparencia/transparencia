@@ -99,19 +99,21 @@ export function PushNotificationPrompt({
 
   const handleAccept = useCallback(async () => {
     setIsSubscribing(true);
-    posthog.capture("push_prompt_accepted", {
-      portal_slug: portalSlug,
-    });
+    try {
+      posthog.capture("push_prompt_accepted", {
+        portal_slug: portalSlug,
+      });
 
-    const success = await subscribe();
-    setIsSubscribing(false);
-
-    if (success) {
-      setIsDismissed(true);
-    } else {
-      // Se a permissão foi negada no diálogo nativo ou houve erro, aplica cooldown e fecha o prompt
-      safeSetLocalStorage(storageKey, String(Date.now()));
-      setIsDismissed(true);
+      const success = await subscribe();
+      if (success) {
+        setIsDismissed(true);
+      } else {
+        // Se a permissão foi negada no diálogo nativo ou houve erro, aplica cooldown e fecha o prompt
+        safeSetLocalStorage(storageKey, String(Date.now()));
+        setIsDismissed(true);
+      }
+    } finally {
+      setIsSubscribing(false);
     }
   }, [subscribe, portalSlug, storageKey]);
 
