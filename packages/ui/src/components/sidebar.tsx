@@ -72,6 +72,7 @@ export interface SidebarProps {
   pushNotificationSlot?: React.ReactNode;
   socialLinksSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
+  mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
@@ -159,6 +160,7 @@ export function Sidebar({
   pushNotificationSlot,
   socialLinksSlot,
   mobileHeaderRightSlot,
+  mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
 }: SidebarProps) {
@@ -275,6 +277,11 @@ export function Sidebar({
             </div>
           </div>
         </div>
+        {mobileHeaderActionSlot && (
+          <div className="flex shrink-0 items-center pl-2">
+            {mobileHeaderActionSlot}
+          </div>
+        )}
       </div>
 
       {/* Backdrop Móvel (< md) com Transição Suave */}
