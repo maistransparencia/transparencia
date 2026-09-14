@@ -44,6 +44,16 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
   - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
   - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
 
+### 1.1.2. Painel Histórico do Radar Cívico (/radar)
+
+Acessível através do grupo **Temas** no menu de navegação lateral (Sidebar), a página dedicada `/radar` consolida a série temporal completa de todos os alertas e variações atípicas identificadas desde o início do período de auditoria (2021 em diante):
+
+- **Agrupamento por Seções Anuais Cronológicas:** Os alertas são distribuídos em seções individuais organizadas por exercício financeiro em ordem decrescente (ex: 2026, 2024, 2023...), permitindo ao cidadão analisar tendências plurianuais de governança e cumprimento de metas fiscais.
+- **Omissão de Anos sem Alertas:** Exercícios nos quais todos os indicadores mantiveram-se estritamente dentro da conformidade estatística e normativa são omitidos da exibição, mantendo o foco analítico nos anos que demandam auditoria cidadã.
+- **Resumo e Badges de Severidade por Exercício:** Cada cabeçalho anual quantifica os alertas apurados e detalha o perfil de severidade daquele ano (contagem de alertas Críticos, de Atenção e de Acompanhamento).
+- **Barra de Navegação Rápida (Âncoras):** Uma barra fixa superior permite pular diretamente para qualquer exercício listado através de âncoras locais (`#ano-2026`, `#ano-2024`), facilitando a navegação em telas móveis e desktop.
+- **Grade Responsiva de 2 Colunas:** Cada cartão reutiliza a estrutura canônica do `RadarAnomaliaCard` com narrativa factual neutra, métricas comparativas com destaque visual e atalhos de fiscalização profunda em cada tema administrativo.
+
 ---
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos
