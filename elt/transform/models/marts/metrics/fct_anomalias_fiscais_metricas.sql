@@ -19,6 +19,7 @@ despesas_anuais as (
     join max_ano_despesas m on d.portal_slug = m.portal_slug
     where d.fonte = 'exercicio'
       and d.ano < m.max_ano
+      and d.ano >= {{ var('ano_inicial_historico', 2021) }}
     group by d.portal_slug, d.ano, coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função')
 ),
 
@@ -74,6 +75,7 @@ comissionados as (
         sum(total_profissionais) as valor_observado
     from {{ ref('fct_pessoal_regime_metricas') }}
     where categoria_regime = 'comissionado'
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
     group by portal_slug, ano
 ),
 
@@ -123,6 +125,7 @@ caixa as (
         sum(saldo_recursos_livres) as valor_observado
     from {{ ref('fct_saldo_caixa_siconfi') }}
     where ultima_competencia_flag = true
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
     group by portal_slug, ano
 ),
 
@@ -158,34 +161,22 @@ caixa_anomalias as (
        or c.valor_observado < s.q1 - 1.5 * (s.q3 - s.q1)
 ),
 
-ref_periodo_lic as (
-    select
-        l.portal_slug,
-        max(extract(month from coalesce(l.data_abertura, make_date(l.ano, 1, 1)))) as max_mes
-    from {{ ref('fct_licitacoes') }} l
-    where l.ano = (select max(ano) from {{ ref('fct_licitacoes') }} where portal_slug = l.portal_slug)
-    group by l.portal_slug
-),
-
-licitacoes_homologas as (
+licitacoes_anuais as (
     select
         l.portal_slug,
         l.ano,
-        sum(
+        count(*)::integer as total_processos,
+        count(
             case
                 when {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%dispensa%'
                   or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%inexigibilidade%'
                   or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%adesao%ata%'
                   or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%sem%licitacao%'
-                then l.valor
-                else 0
+                then 1
             end
-        ) as valor_dispensas,
-        sum(l.valor) as valor_total,
-        max(r.max_mes) as max_mes
+        )::integer as dispensas_processos
     from {{ ref('fct_licitacoes') }} l
-    join ref_periodo_lic r on l.portal_slug = r.portal_slug
-    where extract(month from coalesce(l.data_abertura, make_date(l.ano, 1, 1))) <= r.max_mes
+    where l.ano >= {{ var('ano_inicial_historico', 2021) }}
     group by l.portal_slug, l.ano
 ),
 
@@ -193,9 +184,13 @@ dispensas_calc as (
     select
         portal_slug,
         ano,
-        max_mes,
-        case when valor_total > 0 then (valor_dispensas / valor_total) * 100.0 else 0 end as valor_observado
-    from licitacoes_homologas
+        12::integer as max_mes,
+        case
+            when total_processos > 0
+            then round((dispensas_processos::numeric / total_processos * 100.0), 2)
+            else 0.00
+        end as valor_observado
+    from licitacoes_anuais
 ),
 
 dispensas_stats as (
@@ -221,13 +216,34 @@ dispensas_anomalias as (
             else ((d.valor_observado - s.mediana) / s.mediana) * 100.0
         end::numeric as desvio_percentual,
         1::integer as mes_inicial,
-        d.max_mes::integer as mes_final,
+        12::integer as mes_final,
         ('/' || d.portal_slug || '/licitacoes?ano=' || d.ano)::text as deep_link_rota,
-        'iqr_fluxo_homologo'::text as metodo_deteccao
+        'iqr_processos'::text as metodo_deteccao
     from dispensas_calc d
     join dispensas_stats s on d.portal_slug = s.portal_slug
     where d.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1)
-      and d.valor_observado >= 5.0
+       or (
+           d.valor_observado >= s.mediana * 1.3
+           and (d.valor_observado - s.mediana) >= 15.0
+       )
+),
+
+opacidade_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'opacidade_gastos_genericos'::text as tipo_anomalia,
+        'gastos_genericos'::text as dimensao_referencia,
+        taxa_valor_opacidade_pct::numeric as valor_observado,
+        30.00::numeric as valor_esperado,
+        (taxa_valor_opacidade_pct - 30.00)::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/despesas?ano=' || ano || '#gastos-genericos')::text as deep_link_rota,
+        'limite_normativo_opacidade'::text as metodo_deteccao
+    from {{ ref('fct_opacidade_contabil_metricas') }}
+    where taxa_valor_opacidade_pct > 30.00
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
 
 todas_anomalias as (
@@ -238,6 +254,8 @@ todas_anomalias as (
     select * from caixa_anomalias
     union all
     select * from dispensas_anomalias
+    union all
+    select * from opacidade_anomalias
 )
 
 select
@@ -247,7 +265,7 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
-        when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' then 'critico'
+        when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' or tipo_anomalia = 'opacidade_gastos_genericos' then 'critico'
         when abs(desvio_percentual) > 30 then 'alto'
         else 'moderado'
     end::text as grau_severidade,

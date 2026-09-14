@@ -156,7 +156,7 @@ export function RadarAnomaliaCard({
             </div>
             <div>
               <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-                Média Histórica
+                {card.esperadoLabel ?? "Média Histórica"}
               </span>
               <span className="mt-0.5 block truncate font-medium font-sans text-slate-700 text-xs sm:text-sm">
                 {card.valorEsperadoFormatted}

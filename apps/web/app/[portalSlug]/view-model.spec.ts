@@ -261,24 +261,24 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
-      "área de Saúde totalizaram R$ 15,2 mi",
+      "área de Saúde totalizaram R$ 15.2mi",
     );
-    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15,2 mi");
-    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10,7 mi");
+    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15.2mi");
+    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10.7mi");
     expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde");
     expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
 
-    // Card 4: Contratações Diretas
+    // Card 4: Compras sem Licitação (Dispensas)
     const cardDispensa = feed[3];
-    expect(cardDispensa.titulo).toBe("Volume em Contratações Diretas");
+    expect(cardDispensa.titulo).toBe("Compras sem Licitação");
     expect(cardDispensa.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardDispensa.badgeSeveridade?.label).toBe("Acompanhamento");
     expect(cardDispensa.tipoMetodologia).toBe("homologa");
     expect(cardDispensa.textoFactual).toContain(
-      "48,5% do volume financeiro total licitado",
+      "48.5% dos processos de contratação foram realizados por dispensa",
     );
-    expect(cardDispensa.valorObservadoFormatted).toBe("48,5%");
-    expect(cardDispensa.ctaLabel).toBe("Examinar Licitações e Contratos");
+    expect(cardDispensa.valorObservadoFormatted).toBe("48.5%");
+    expect(cardDispensa.ctaLabel).toBe("Examinar Licitações e Compras");
     expect(cardDispensa.ctaUrl).toBe("/porciuncula/licitacoes?ano=2024");
   });
 
@@ -308,11 +308,47 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.titulo).toBe("Aporte Expressivo em Habitação");
     expect(card.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(card.textoFactual).toContain(
-      "área de Habitação totalizaram R$ 500 mil",
+      "área de Habitação totalizaram R$ 500.0mil",
     );
-    expect(card.valorObservadoFormatted).toBe("R$ 500 mil");
-    expect(card.valorEsperadoFormatted).toBe("R$ 105 mil");
+    expect(card.valorObservadoFormatted).toBe("R$ 500.0mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 105.0mil");
     expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação");
+  });
+
+  it("monta card para opacidade de gastos genéricos (.99) quando acima de 30%", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-opacidade",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "opacidade_gastos_genericos",
+          dimensaoReferencia: "gastos_genericos",
+          grauSeveridade: "alto",
+          desvioPercentual: 1.03,
+          valorObservado: 30.31,
+          valorEsperado: 30.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/despesas?ano=2026#gastos-genericos",
+          metodoDeteccao: "limite_prudencial",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Elevada Opacidade em Gastos Genéricos");
+    expect(card.metodologiaBadge).toBe("Quota de Alerta (30%)");
+    expect(card.esperadoLabel).toBe("Limite de Alerta");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("30.3%");
+    expect(card.valorEsperadoFormatted).toBe("30%");
+    expect(card.ctaLabel).toBe("Fiscalizar Gastos Genéricos");
+    expect(card.ctaUrl).toBe("/porciuncula/despesas?ano=2026#gastos-genericos");
+    expect(card.textoFactual).toContain(
+      "superando o limite prudencial de 30% estabelecido para a transparência pública",
+    );
   });
 
   it("retorna array vazio quando não houver alertas", () => {

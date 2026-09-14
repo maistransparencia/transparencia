@@ -322,6 +322,7 @@ export interface RadarCivicoCardItem {
   metodologiaBadge: string;
   badgeMetodologia?: string;
   tipoMetodologia: "homologa" | "estoque";
+  esperadoLabel?: string;
   textoFactual: string;
   resumoFactual?: string;
   desvioPercentual: number;
@@ -406,7 +407,8 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   comissionados: "Cargos Comissionados",
   recursos_livres: "Recursos Livres",
   caixa: "Disponibilidade em Caixa",
-  dispensas: "Contratações Diretas",
+  dispensas: "Compras sem Licitação",
+  gastos_genericos: "Gastos Genéricos (.99)",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -481,14 +483,14 @@ export function formatDesvioPercentual(val: number): string {
   if (Number.isInteger(absVal)) {
     return String(absVal);
   }
-  return Number(absVal.toFixed(1)).toString().replace(".", ",");
+  return Number(absVal.toFixed(1)).toString();
 }
 
 export function formatPercentNumber(val: number): string {
   if (Number.isInteger(val)) {
     return String(val);
   }
-  return Number(val.toFixed(1)).toString().replace(".", ",");
+  return Number(val.toFixed(1)).toString();
 }
 
 export function formatMoeda(val: number): string {
@@ -496,24 +498,7 @@ export function formatMoeda(val: number): string {
 }
 
 export function formatCompactBRL(value: number): string {
-  const abs = Math.abs(value);
-  if (abs >= 1_000_000_000) {
-    const val = (value / 1_000_000_000).toFixed(1).replace(".", ",");
-    return `R$ ${val} bi`;
-  }
-  if (abs >= 1_000_000) {
-    const val = (value / 1_000_000).toFixed(1).replace(".", ",");
-    return `R$ ${val} mi`;
-  }
-  if (abs >= 1_000) {
-    const k = value / 1_000;
-    const formattedK =
-      Number.isInteger(k) || k % 1 === 0
-        ? String(Math.round(k))
-        : k.toFixed(1).replace(".", ",");
-    return `R$ ${formattedK} mil`;
-  }
-  return formatMoeda(value);
+  return fmtCompact(value);
 }
 
 export function getBadgeMetodologia(
@@ -524,6 +509,10 @@ export function getBadgeMetodologia(
     alerta.tipoAnomalia === "rombo_caixa"
   ) {
     return "Quadro Atual";
+  }
+
+  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+    return "Quota de Alerta (30%)";
   }
 
   const mesFinal = alerta.mesFinal;
@@ -563,7 +552,10 @@ export function getCardTitulo(
     return `Aumento de Gastos em ${nomeFuncao}`;
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    return "Volume em Contratações Diretas";
+    return "Compras sem Licitação";
+  }
+  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+    return "Elevada Opacidade em Gastos Genéricos";
   }
   return "Indicador em Destaque";
 }
@@ -590,8 +582,8 @@ export function formatFactualNarrative(
   }
 
   if (alerta.tipoAnomalia === "rombo_caixa") {
-    const obs = formatMoeda(alerta.valorObservado ?? 0);
-    const esp = formatMoeda(alerta.valorEsperado ?? 0);
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    const esp = fmtCompact(alerta.valorEsperado ?? 0);
     const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
     return `A disponibilidade financeira líquida em recursos livres encerrou o período em ${obs}, posicionando-se ${desvio}% abaixo da média histórica (${esp}).`;
   }
@@ -606,8 +598,8 @@ export function formatFactualNarrative(
       return "";
     })();
     const nomeFuncao = formatarDimensao(alerta.dimensaoReferencia);
-    const obs = formatCompactBRL(alerta.valorObservado ?? 0);
-    const esp = formatCompactBRL(alerta.valorEsperado ?? 0);
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    const esp = fmtCompact(alerta.valorEsperado ?? 0);
     const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
 
     if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
@@ -618,9 +610,16 @@ export function formatFactualNarrative(
   }
 
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    const obs = (alerta.valorObservado ?? 0).toFixed(1).replace(".", ",");
-    const esp = (alerta.valorEsperado ?? 0).toFixed(1).replace(".", ",");
-    return `No período de referência, ${obs}% do volume financeiro total licitado ocorreu via dispensa ou inexigibilidade de licitação, frente à média histórica de ${esp}%.`;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 0);
+    return `No período analisado, ${obs}% dos processos de contratação foram realizados por dispensa ou inexigibilidade de licitação, frente à média histórica de ${esp}%.`;
+  }
+
+  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 30);
+    return `Em ${ano}, ${obs}% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de ${esp}% estabelecido para a transparência pública.`;
   }
 
   const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
@@ -645,7 +644,10 @@ export function getCardCtaLabel(
     return `Explorar Despesas de ${nomeFuncao}`;
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    return "Examinar Licitações e Contratos";
+    return "Examinar Licitações e Compras";
+  }
+  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+    return "Fiscalizar Gastos Genéricos";
   }
   return "Ver detalhes";
 }
@@ -670,6 +672,9 @@ export function getCardCtaUrl(
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
     return `/${portalSlug}/licitacoes?ano=${ano}`;
+  }
+  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+    return `/${portalSlug}/despesas?ano=${ano}#gastos-genericos`;
   }
   return `/${portalSlug}`;
 }
@@ -734,9 +739,14 @@ export function buildRadarCivicoCards(
     const metodologiaBadge = getBadgeMetodologia(alerta);
     const tipoMetodologia: "homologa" | "estoque" =
       alerta.tipoAnomalia === "explosao_comissionados" ||
-      alerta.tipoAnomalia === "rombo_caixa"
+      alerta.tipoAnomalia === "rombo_caixa" ||
+      alerta.tipoAnomalia === "opacidade_gastos_genericos"
         ? "estoque"
         : "homologa";
+    const esperadoLabel =
+      alerta.tipoAnomalia === "opacidade_gastos_genericos"
+        ? "Limite de Alerta"
+        : "Média Histórica";
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
     const ctaUrl = getCardCtaUrl(alerta, portalSlug, anoContexto);
     const ctaLabel = getCardCtaLabel(alerta);
@@ -760,26 +770,26 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorObservado))} cargos`;
       }
-      if (alerta.tipoAnomalia === "concentracao_dispensa") {
-        return `${alerta.valorObservado.toFixed(1).replace(".", ",")}%`;
+      if (
+        alerta.tipoAnomalia === "concentracao_dispensa" ||
+        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+      ) {
+        return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
-      if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-        return formatCompactBRL(alerta.valorObservado);
-      }
-      return formatMoeda(alerta.valorObservado);
+      return fmtCompact(alerta.valorObservado);
     })();
 
     const valorEsperadoFormatted = (() => {
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorEsperado))} cargos`;
       }
-      if (alerta.tipoAnomalia === "concentracao_dispensa") {
-        return `${alerta.valorEsperado.toFixed(1).replace(".", ",")}%`;
+      if (
+        alerta.tipoAnomalia === "concentracao_dispensa" ||
+        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+      ) {
+        return `${formatPercentNumber(alerta.valorEsperado)}%`;
       }
-      if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-        return formatCompactBRL(alerta.valorEsperado);
-      }
-      return formatMoeda(alerta.valorEsperado);
+      return fmtCompact(alerta.valorEsperado);
     })();
 
     return {
@@ -793,6 +803,7 @@ export function buildRadarCivicoCards(
       metodologiaBadge,
       badgeMetodologia: metodologiaBadge,
       tipoMetodologia,
+      esperadoLabel,
       textoFactual,
       resumoFactual: textoFactual,
       desvioPercentual: alerta.desvioPercentual,

@@ -8,6 +8,7 @@ export type TipoAnomalia =
   | "rombo_caixa"
   | "pico_despesa_homologa"
   | "concentracao_dispensa"
+  | "opacidade_gastos_genericos"
   | (string & {});
 
 export interface RadarCivicoAlertaDTO {

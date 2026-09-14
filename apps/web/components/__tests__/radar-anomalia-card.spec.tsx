@@ -36,10 +36,10 @@ const mockItemAlto: RadarCivicoCardItem = {
   metodologiaBadge: "Histórico Jan a Ago",
   tipoMetodologia: "homologa",
   textoFactual:
-    "No período analisado (Jan a Ago), os recursos aplicados na área de Saúde totalizaram R$ 15,2 mi — valor +42% superior à média histórica do período (R$ 10,7 mi).",
+    "No período analisado (Jan a Ago), os recursos aplicados na área de Saúde totalizaram R$ 15.2mi — valor +42% superior à média histórica do período (R$ 10.7mi).",
   desvioPercentual: 42,
-  valorObservadoFormatted: "R$ 15,2 mi",
-  valorEsperadoFormatted: "R$ 10,7 mi",
+  valorObservadoFormatted: "R$ 15.2mi",
+  valorEsperadoFormatted: "R$ 10.7mi",
   ctaLabel: "Conferir Aplicação em Saúde",
   ctaUrl: "/porciuncula/despesas?ano=2024",
   whatsappShareUrl:
@@ -49,17 +49,17 @@ const mockItemAlto: RadarCivicoCardItem = {
 const mockItemModerado: RadarCivicoCardItem = {
   anomaliaId: "anomalia-3",
   tipoAnomalia: "concentracao_dispensa",
-  titulo: "Volume em Contratações Diretas",
+  titulo: "Compras sem Licitação",
   dimensaoReferencia: "dispensas",
   grauSeveridade: "moderado",
   metodologiaBadge: "Histórico Jan a Ago",
   tipoMetodologia: "homologa",
   textoFactual:
-    "No período de referência, 48,5% do volume financeiro total licitado ocorreu via dispensa ou inexigibilidade de licitação, frente à média histórica de 25,0%.",
+    "No período analisado, 48.5% dos processos de contratação foram realizados por dispensa ou inexigibilidade de licitação, frente à média histórica de 25%.",
   desvioPercentual: 23.5,
-  valorObservadoFormatted: "48,5%",
-  valorEsperadoFormatted: "25,0%",
-  ctaLabel: "Examinar Licitações e Contratos",
+  valorObservadoFormatted: "48.5%",
+  valorEsperadoFormatted: "25%",
+  ctaLabel: "Examinar Licitações e Compras",
   ctaUrl: "/porciuncula/licitacoes?ano=2024",
   whatsappShareUrl: "https://api.whatsapp.com/send?text=Dispensas%202024",
 };
@@ -99,21 +99,50 @@ describe("RadarAnomaliaCard", () => {
     expect(screen.getByText("Aporte Expressivo em Saúde")).toBeInTheDocument();
     expect(screen.getByText("Histórico Jan a Ago")).toBeInTheDocument();
     expect(screen.getByText("Aporte Relevante")).toBeInTheDocument();
-    expect(screen.getByText("R$ 15,2 mi")).toBeInTheDocument();
-    expect(screen.getByText("R$ 10,7 mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 15.2mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 10.7mi")).toBeInTheDocument();
 
     const ctaLink = screen.getByTestId("radar-cta-link");
     expect(ctaLink).toHaveAttribute("href", "/porciuncula/despesas?ano=2024");
     expect(ctaLink).toHaveTextContent("Conferir Aplicação em Saúde");
   });
 
-  it("renderiza card com severidade moderado", () => {
+  it("renderiza card com severidade moderado e compras sem licitação", () => {
     render(<RadarAnomaliaCard item={mockItemModerado} />);
 
-    expect(
-      screen.getByText("Volume em Contratações Diretas"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Compras sem Licitação")).toBeInTheDocument();
     expect(screen.getByText("Acompanhamento")).toBeInTheDocument();
-    expect(screen.getByText("48,5%")).toBeInTheDocument();
+    expect(screen.getByText("48.5%")).toBeInTheDocument();
+    expect(screen.getByText("25%")).toBeInTheDocument();
+  });
+
+  it("renderiza card de opacidade com rótulo customizado de limite de alerta", () => {
+    const mockItemOpacidade: RadarCivicoCardItem = {
+      anomaliaId: "anomalia-opac",
+      tipoAnomalia: "opacidade_gastos_genericos",
+      titulo: "Elevada Opacidade em Gastos Genéricos",
+      dimensaoReferencia: "gastos_genericos",
+      grauSeveridade: "alto",
+      metodologiaBadge: "Quota de Alerta (30%)",
+      tipoMetodologia: "estoque",
+      esperadoLabel: "Limite de Alerta",
+      textoFactual: "Opacidade de 30.3% em 2026.",
+      desvioPercentual: 1.03,
+      valorObservadoFormatted: "30.3%",
+      valorEsperadoFormatted: "30%",
+      ctaLabel: "Fiscalizar Gastos Genéricos",
+      ctaUrl: "/porciuncula/despesas?ano=2026#gastos-genericos",
+      whatsappShareUrl: "https://api.whatsapp.com/send?text=Opacidade",
+    };
+
+    render(<RadarAnomaliaCard item={mockItemOpacidade} />);
+
+    expect(
+      screen.getByText("Elevada Opacidade em Gastos Genéricos"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Quota de Alerta (30%)")).toBeInTheDocument();
+    expect(screen.getByText("Limite de Alerta")).toBeInTheDocument();
+    expect(screen.getByText("30.3%")).toBeInTheDocument();
+    expect(screen.getByText("30%")).toBeInTheDocument();
   });
 });
