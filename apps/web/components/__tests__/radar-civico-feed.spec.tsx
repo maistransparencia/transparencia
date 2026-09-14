@@ -39,12 +39,23 @@ const mockItems: RadarCivicoCardItem[] = [
 ];
 
 describe("RadarCivicoFeed", () => {
-  it("renderiza feed com múltiplos cards de anomalia no primeiro scroll", () => {
+  it("renderiza feed com múltiplos cards de anomalia no primeiro scroll e link para todos os anos", () => {
     render(
-      <RadarCivicoFeed items={mockItems} portalName="Porciúncula" ano={2024} />,
+      <RadarCivicoFeed
+        items={mockItems}
+        portalName="Porciúncula"
+        portalSlug="porciuncula"
+        ano={2024}
+      />,
     );
 
-    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Radar Cívico Municipal (2024)"),
+    ).toBeInTheDocument();
+
+    const link = screen.getByRole("link", { name: "Ver todos os anos →" });
+    expect(link).toHaveAttribute("href", "/porciuncula/radar");
 
     const cards = screen.getAllByTestId("radar-anomalia-card");
     expect(cards).toHaveLength(2);
@@ -59,9 +70,16 @@ describe("RadarCivicoFeed", () => {
   });
 
   it("renderiza empty state de conformidade quando não houver anomalias no exercício", () => {
-    render(<RadarCivicoFeed items={[]} portalName="Porciúncula" ano={2024} />);
+    render(
+      <RadarCivicoFeed
+        items={[]}
+        portalName="Porciúncula"
+        portalSlug="porciuncula"
+        ano={2024}
+      />,
+    );
 
-    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
     expect(screen.getByTestId("radar-empty-state")).toBeInTheDocument();
     expect(
       screen.getByText("Contas e Indicadores em Conformidade Histórica"),
@@ -69,5 +87,8 @@ describe("RadarCivicoFeed", () => {
     expect(
       screen.getByText(/Nenhuma anomalia fiscal ou desvio atípico/),
     ).toBeInTheDocument();
+
+    const link = screen.getByRole("link", { name: "Ver todos os anos →" });
+    expect(link).toHaveAttribute("href", "/porciuncula/radar");
   });
 });

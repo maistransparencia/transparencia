@@ -77,6 +77,7 @@ export default async function VisaoGeralPage({
       <RadarCivicoFeed
         items={viewModel.radarCivicoFeedData}
         portalName={viewModel.portalName}
+        portalSlug={portalSlug}
         ano={viewModel.selectedYear}
       />
     </div>

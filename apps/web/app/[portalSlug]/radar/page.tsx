@@ -1,4 +1,4 @@
-import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -45,12 +45,12 @@ export default async function RadarPage({
     <div className="w-full space-y-6 pb-12">
       {/* Cabeçalho da Página */}
       <div className="flex flex-col gap-2 border-[#e7e9ee] border-b pb-5">
-        <div className="flex items-center gap-2 font-semibold text-slate-500 text-xs uppercase tracking-wider">
-          <ShieldAlert className="h-4 w-4 text-amber-600" aria-hidden="true" />
-          <span>Controle Social e Auditoria Fiscal</span>
-        </div>
+        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+          Controle Social e Auditoria Fiscal
+        </span>
+
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-          <h1 className="font-bold font-serif text-2xl text-ink tracking-tight sm:text-3xl">
+          <h1 className="font-bold font-serif text-3xl text-slate-900">
             Radar Cívico Municipal
           </h1>
           {hasAlertas && (
@@ -75,7 +75,7 @@ export default async function RadarPage({
       {hasAlertas && secoes.length > 1 && (
         <nav
           aria-label="Navegação por exercício"
-          className="no-scrollbar sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto border-borderLine border-b bg-white/95 px-4 py-3 backdrop-blur-xs sm:mx-0 sm:px-0"
+          className="no-scrollbar sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto border-borderLine border-b bg-white/95 px-4 py-3 backdrop-blur-xs sm:mx-0"
         >
           <span className="shrink-0 font-semibold text-slate-500 text-xs uppercase">
             Exercícios:

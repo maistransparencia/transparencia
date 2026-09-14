@@ -1,4 +1,5 @@
 import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import type {
   RadarCivicoCardItem,
   RadarCivicoFeedViewModel,
@@ -11,6 +12,7 @@ export interface RadarCivicoFeedProps {
   items?: RadarCivicoCardItem[];
   radarCivicoFeedData?: RadarCivicoCardItem[];
   portalName?: string;
+  portalSlug?: string;
   ano?: number;
   className?: string;
 }
@@ -21,6 +23,7 @@ export function RadarCivicoFeed({
   items,
   radarCivicoFeedData,
   portalName,
+  portalSlug,
   ano,
   className,
 }: RadarCivicoFeedProps) {
@@ -35,19 +38,27 @@ export function RadarCivicoFeed({
       className={`w-full space-y-4 ${className ?? ""}`}
     >
       {/* Cabeçalho da Seção */}
-      <div className="mb-3.5 flex items-baseline justify-between border-[#1a1d21] border-t-2 pt-3">
-        <div>
+      <div className="border-[#1a1d21] border-t-2 pt-3">
+        <div className="flex items-baseline justify-between">
           <h2
             id="radar-civico-heading"
-            className="flex items-center gap-2 font-bold font-serif text-ink text-xl tracking-tight"
+            className="font-bold font-serif text-ink text-xl"
           >
-            Radar Cívico Municipal
+            Radar Cívico Municipal ({anoExercicio})
           </h2>
-          <p className="mt-0.5 text-sm text-subtleText">
-            Acompanhamento cívico de despesas, contratações e movimentações em
-            relação ao padrão histórico municipal.
-          </p>
+
+          <Link
+            href={`${portalSlug}/radar?ano=${anoExercicio}`}
+            className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent text-xs hover:underline"
+          >
+            Ver todos os anos →
+          </Link>
         </div>
+
+        <p className="mt-0.5 text-sm text-subtleText">
+          Acompanhamento cívico de despesas, contratações e movimentações em
+          relação ao padrão histórico municipal.
+        </p>
       </div>
 
       {/* Conteúdo do Feed: Empty State ou Grade de Cards */}
