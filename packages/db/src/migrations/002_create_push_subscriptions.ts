@@ -16,22 +16,18 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("topics", sql`text[]`, (col) =>
       col.notNull().defaultTo(sql`ARRAY['extracoes', 'versoes']::text[]`),
     )
-    .addColumn("failed_attempts", "integer", (col) =>
-      col.notNull().defaultTo(0),
-    )
-    .addColumn("last_failure_at", "timestamptz")
-    .addColumn("last_success_at", "timestamptz")
     .addColumn("created_at", "timestamptz", (col) =>
       col.notNull().defaultTo(sql`now()`),
     )
-    .addColumn("updated_at", "timestamptz", (col) =>
-      col.notNull().defaultTo(sql`now()`),
+    .addColumn("last_notified_at", "timestamptz")
+    .addColumn("failed_attempts", "integer", (col) =>
+      col.notNull().defaultTo(0),
     )
     .execute();
 
   await db.schema
     .withSchema("public")
-    .createIndex("idx_push_subscriptions_portal_slug")
+    .createIndex("idx_push_subscriptions_portal")
     .ifNotExists()
     .on("push_subscriptions")
     .column("portal_slug")
