@@ -76,3 +76,25 @@ def test_set_and_get_metadata(conn):
 def test_get_metadata_returns_none_for_missing_key(conn):
     result = db.get_metadata(conn, "nonexistent_key_xyz", "porciuncula_prefeitura")
     assert result is None
+
+
+def test_fct_anomalias_fiscais_metricas_exists(conn):
+    from sqlalchemy import text
+
+    # Verify that the table was created by dbt in the analytics schema
+    rows = conn.execute(
+        text(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'analytics' AND table_name = 'fct_anomalias_fiscais_metricas'"
+        )
+    ).fetchall()
+
+    columns = {r[0]: r[1] for r in rows}
+    assert len(columns) > 0, "Table analytics.fct_anomalias_fiscais_metricas should exist"
+
+    assert "anomalia_id" in columns
+    assert "tipo_anomalia" in columns
+    assert "grau_severidade" in columns
+
+    # Ensure text types per spec
+    assert columns["tipo_anomalia"] == "text"
+    assert columns["grau_severidade"] == "text"

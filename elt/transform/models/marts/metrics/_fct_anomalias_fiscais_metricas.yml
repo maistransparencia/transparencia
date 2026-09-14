@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: fct_anomalias_fiscais_metricas
+    description: "Motor estatístico automatizado para detecção de anomalias fiscais tempestivas."
+    config:
+      materialized: table
+    columns:
+      - name: anomalia_id
+        description: "Chave primária da anomalia."
+        data_type: text
+        tests:
+          - unique
+          - not_null
+
+      - name: portal_slug
+        description: "Identificador do portal/município."
+        data_type: text
+        tests:
+          - not_null
+
+      - name: ano
+        description: "Ano de referência da anomalia."
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: tipo_anomalia
+        description: "Classificação do tipo de anomalia identificada."
+        data_type: text
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa']
+
+      - name: grau_severidade
+        description: "Grau de severidade da anomalia baseada no desvio."
+        data_type: text
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['critico', 'alto', 'moderado']
+
+      - name: desvio_percentual
+        description: "Percentual de desvio em relação ao valor esperado."
+        data_type: numeric
+
+      - name: valor_observado
+        description: "Valor ou métrica calculada/observada para o ano de referência."
+        data_type: numeric
+
+      - name: valor_esperado
+        description: "Valor histórico esperado com base na mediana."
+        data_type: numeric
+
+      - name: deep_link_rota
+        description: "Rota canônica de redirecionamento no portal web."
+        data_type: text
+        tests:
+          - not_null
+
+      - name: resumo_factual
+        description: "Resumo explicativo e não opinativo sobre a anomalia."
+        data_type: text
+
+      - name: periodo_referencia
+        description: "Referência temporal da comparação (ex: 'Jan a Ago' ou 'Posição Atual')."
+        data_type: text
+
+      - name: metodo_deteccao
+        description: "Método estatístico utilizado para detectar a anomalia."
+        data_type: text
