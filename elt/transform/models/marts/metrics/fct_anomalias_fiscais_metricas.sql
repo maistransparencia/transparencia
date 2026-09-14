@@ -90,10 +90,17 @@ comissionados_anomalias as (
         1::integer as mes_inicial,
         12::integer as mes_final,
         ('/' || c.portal_slug || '/pessoal?ano=' || c.ano || '#comissionados')::text as deep_link_rota,
-        'iqr_estoque'::text as metodo_deteccao
+        case
+            when c.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1) then 'iqr_estoque'
+            else 'desvio_mediana_estoque'
+        end::text as metodo_deteccao
     from comissionados c
     join comissionados_stats s on c.portal_slug = s.portal_slug
     where c.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1)
+       or (
+           c.valor_observado >= s.mediana * 1.3
+           and (c.valor_observado - s.mediana) >= 10
+       )
 ),
 
 caixa as (
