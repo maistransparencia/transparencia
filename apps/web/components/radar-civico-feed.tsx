@@ -42,7 +42,7 @@ export function RadarCivicoFeed({
               <Sparkles className="h-3 w-3" />
               Controle Social Ativo
             </span>
-            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] text-slate-700">
+            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
               Exercício {anoExercicio}
             </span>
           </div>
@@ -82,7 +82,7 @@ export function RadarCivicoFeed({
       ) : (
         <div
           data-testid="radar-cards-container"
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
+          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:overflow-visible [&::-webkit-scrollbar]:hidden"
         >
           {cards.map((card, index) => (
             <div
