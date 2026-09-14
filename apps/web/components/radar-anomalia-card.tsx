@@ -20,21 +20,18 @@ function getSeverityBadgeData(grau: string) {
   if (grau === "critico") {
     return {
       label: "Atenção Especial",
-      colorClass:
-        "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+      colorClass: "bg-rose-50 text-rose-900 border-rose-200",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
-      colorClass:
-        "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+      colorClass: "bg-amber-50 text-amber-950 border-amber-300",
     };
   }
   return {
     label: "Acompanhamento",
-    colorClass:
-      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700",
+    colorClass: "bg-slate-100 text-slate-800 border-slate-200",
   };
 }
 
@@ -42,7 +39,7 @@ function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "critico") {
     return (
       <AlertCircle
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-rose-700 dark:text-rose-400"
+        className="mr-1 h-3.5 w-3.5 shrink-0 text-rose-700"
         aria-hidden="true"
       />
     );
@@ -50,14 +47,14 @@ function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "alto") {
     return (
       <AlertTriangle
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-400"
+        className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-700"
         aria-hidden="true"
       />
     );
   }
   return (
     <Info
-      className="mr-1 h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-slate-400"
+      className="mr-1 h-3.5 w-3.5 shrink-0 text-slate-600"
       aria-hidden="true"
     />
   );
@@ -129,7 +126,7 @@ export function RadarAnomaliaCard({
 
           <span
             data-testid="radar-metodologia-badge"
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-600 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-medium text-slate-700 text-xs shadow-xs"
           >
             <MethodologyIcon tipo={card.tipoMetodologia} />
             {metodologiaLabel}
@@ -142,15 +139,15 @@ export function RadarAnomaliaCard({
         </h3>
 
         {/* Narrativa Factual Neutra */}
-        <p className="mt-2.5 text-subtleText text-xs leading-relaxed sm:text-sm">
+        <p className="mt-2.5 text-slate-600 text-xs leading-relaxed sm:text-sm">
           {card.textoFactual || card.resumoFactual}
         </p>
 
         {/* Tabela de métricas comparativas harmoniosa */}
-        <div className="mt-4 rounded-xl border border-[#f0f2f5] bg-[#f8f9fb] p-3 text-xs">
+        <div className="mt-4 rounded-xl border border-slate-200/80 bg-[#f8f9fb] p-3 text-xs">
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+              <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                 Observado
               </span>
               <span className="mt-0.5 block truncate font-bold font-serif text-ink text-sm sm:text-base">
@@ -158,18 +155,18 @@ export function RadarAnomaliaCard({
               </span>
             </div>
             <div>
-              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+              <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                 Média Histórica
               </span>
-              <span className="mt-0.5 block truncate font-medium font-sans text-slate-600 text-xs sm:text-sm">
+              <span className="mt-0.5 block truncate font-medium font-sans text-slate-700 text-xs sm:text-sm">
                 {card.valorEsperadoFormatted}
               </span>
             </div>
             <div>
-              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+              <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                 Variação
               </span>
-              <span className="mt-0.5 block truncate font-bold font-sans text-amber-800 text-xs sm:text-sm">
+              <span className="mt-0.5 block truncate font-bold font-sans text-amber-900 text-xs sm:text-sm">
                 {card.desvioPercentualFormatted || `${card.desvioPercentual}%`}
               </span>
             </div>

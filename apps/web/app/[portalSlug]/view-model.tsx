@@ -451,8 +451,7 @@ export function getBadgeSeveridade(
     return {
       label: "Aporte Relevante",
       variant: "alto",
-      colorClass:
-        "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+      colorClass: "bg-blue-50 text-blue-900 border-blue-200",
     };
   }
 
@@ -460,23 +459,20 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass:
-        "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+      colorClass: "bg-rose-50 text-rose-900 border-rose-200",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass:
-        "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+      colorClass: "bg-amber-50 text-amber-950 border-amber-300",
     };
   }
   return {
     label: "Acompanhamento",
     variant: "moderado",
-    colorClass:
-      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700",
+    colorClass: "bg-slate-100 text-slate-800 border-slate-200",
   };
 }
 
@@ -636,22 +632,22 @@ export function getCardCtaLabel(
   alerta: Pick<RadarCivicoAlertaDTO, "tipoAnomalia" | "dimensaoReferencia">,
 ): string {
   if (alerta.tipoAnomalia === "explosao_comissionados") {
-    return "Auditar Cargos Comissionados →";
+    return "Auditar Cargos Comissionados";
   }
   if (alerta.tipoAnomalia === "rombo_caixa") {
-    return "Verificar Saldo em Caixa →";
+    return "Verificar Saldo em Caixa";
   }
   if (alerta.tipoAnomalia === "pico_despesa_homologa") {
     const nomeFuncao = formatarDimensao(alerta.dimensaoReferencia);
     if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
-      return `Conferir Aplicação em ${nomeFuncao} →`;
+      return `Conferir Aplicação em ${nomeFuncao}`;
     }
-    return `Explorar Despesas de ${nomeFuncao} →`;
+    return `Explorar Despesas de ${nomeFuncao}`;
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    return "Examinar Licitações e Contratos →";
+    return "Examinar Licitações e Contratos";
   }
-  return "Ver detalhes →";
+  return "Ver detalhes";
 }
 
 export function getCardCtaUrl(

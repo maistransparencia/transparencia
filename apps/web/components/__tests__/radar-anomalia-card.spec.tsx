@@ -16,7 +16,7 @@ const mockItemCritico: RadarCivicoCardItem = {
   desvioPercentual: 65,
   valorObservadoFormatted: "165 cargos",
   valorEsperadoFormatted: "100 cargos",
-  ctaLabel: "Auditar Cargos Comissionados →",
+  ctaLabel: "Auditar Cargos Comissionados",
   ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
   whatsappShareUrl:
     "https://api.whatsapp.com/send?text=Em%202024%20comissionados",
@@ -31,7 +31,7 @@ const mockItemAlto: RadarCivicoCardItem = {
   badgeSeveridade: {
     label: "Aporte Relevante",
     variant: "alto",
-    colorClass: "bg-blue-50 text-blue-800 border-blue-200",
+    colorClass: "bg-blue-50 text-blue-900 border-blue-200",
   },
   metodologiaBadge: "Histórico Jan a Ago",
   tipoMetodologia: "homologa",
@@ -40,7 +40,7 @@ const mockItemAlto: RadarCivicoCardItem = {
   desvioPercentual: 42,
   valorObservadoFormatted: "R$ 15,2 mi",
   valorEsperadoFormatted: "R$ 10,7 mi",
-  ctaLabel: "Conferir Aplicação em Saúde →",
+  ctaLabel: "Conferir Aplicação em Saúde",
   ctaUrl: "/porciuncula/despesas?ano=2024",
   whatsappShareUrl:
     "https://api.whatsapp.com/send?text=Gastos%20saude%20homologa",
@@ -59,7 +59,7 @@ const mockItemModerado: RadarCivicoCardItem = {
   desvioPercentual: 23.5,
   valorObservadoFormatted: "48,5%",
   valorEsperadoFormatted: "25,0%",
-  ctaLabel: "Examinar Licitações e Contratos →",
+  ctaLabel: "Examinar Licitações e Contratos",
   ctaUrl: "/porciuncula/licitacoes?ano=2024",
   whatsappShareUrl: "https://api.whatsapp.com/send?text=Dispensas%202024",
 };
@@ -82,7 +82,7 @@ describe("RadarAnomaliaCard", () => {
       "href",
       "/porciuncula/pessoal?ano=2024#comissionados",
     );
-    expect(ctaLink).toHaveTextContent("Auditar Cargos Comissionados →");
+    expect(ctaLink).toHaveTextContent("Auditar Cargos Comissionados");
 
     const whatsappButton = screen.getByTestId("radar-whatsapp-button");
     expect(whatsappButton).toHaveAttribute(
@@ -104,7 +104,7 @@ describe("RadarAnomaliaCard", () => {
 
     const ctaLink = screen.getByTestId("radar-cta-link");
     expect(ctaLink).toHaveAttribute("href", "/porciuncula/despesas?ano=2024");
-    expect(ctaLink).toHaveTextContent("Conferir Aplicação em Saúde →");
+    expect(ctaLink).toHaveTextContent("Conferir Aplicação em Saúde");
   });
 
   it("renderiza card com severidade moderado", () => {

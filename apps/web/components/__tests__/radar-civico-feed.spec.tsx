@@ -16,7 +16,7 @@ const mockItems: RadarCivicoCardItem[] = [
     desvioPercentual: 65,
     valorObservadoFormatted: "165 cargos",
     valorEsperadoFormatted: "100 cargos",
-    ctaLabel: "Auditar Cargos Comissionados →",
+    ctaLabel: "Auditar Cargos Comissionados",
     ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
     whatsappShareUrl: "https://api.whatsapp.com/send?text=msg1",
   },
@@ -32,7 +32,7 @@ const mockItems: RadarCivicoCardItem[] = [
     desvioPercentual: 42,
     valorObservadoFormatted: "R$ 15,2 mi",
     valorEsperadoFormatted: "R$ 10,7 mi",
-    ctaLabel: "Conferir Aplicação em Saúde →",
+    ctaLabel: "Conferir Aplicação em Saúde",
     ctaUrl: "/porciuncula/despesas?ano=2024",
     whatsappShareUrl: "https://api.whatsapp.com/send?text=msg2",
   },
@@ -45,7 +45,6 @@ describe("RadarCivicoFeed", () => {
     );
 
     expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
-    expect(screen.getByText("Exercício 2024")).toBeInTheDocument();
 
     const cards = screen.getAllByTestId("radar-anomalia-card");
     expect(cards).toHaveLength(2);

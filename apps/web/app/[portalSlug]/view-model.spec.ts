@@ -265,7 +265,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
     expect(cardSaude.valorObservadoFormatted).toBe("R$ 15,2 mi");
     expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10,7 mi");
-    expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde →");
+    expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde");
     expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
 
     // Card 4: Contratações Diretas
@@ -278,7 +278,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       "48,5% do volume financeiro total licitado",
     );
     expect(cardDispensa.valorObservadoFormatted).toBe("48,5%");
-    expect(cardDispensa.ctaLabel).toBe("Examinar Licitações e Contratos →");
+    expect(cardDispensa.ctaLabel).toBe("Examinar Licitações e Contratos");
     expect(cardDispensa.ctaUrl).toBe("/porciuncula/licitacoes?ano=2024");
   });
 
@@ -312,7 +312,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
     expect(card.valorObservadoFormatted).toBe("R$ 500 mil");
     expect(card.valorEsperadoFormatted).toBe("R$ 105 mil");
-    expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação →");
+    expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação");
   });
 
   it("retorna array vazio quando não houver alertas", () => {
