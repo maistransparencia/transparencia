@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@transparencia/ui";
 import {
   AlertCircle,
@@ -8,12 +10,15 @@ import {
   Layers,
 } from "lucide-react";
 import Link from "next/link";
+import posthog from "posthog-js";
+import { useEffect } from "react";
 import type { RadarCivicoCardItem } from "@/app/[portalSlug]/view-model";
 
 export interface RadarAnomaliaCardProps {
   card?: RadarCivicoCardItem;
   item?: RadarCivicoCardItem;
   className?: string;
+  funnelSource?: string;
 }
 
 function getSeverityBadgeData(grau: string) {
@@ -93,8 +98,60 @@ export function RadarAnomaliaCard({
   card: cardProp,
   item: itemProp,
   className,
+  funnelSource = "home_radar_civico",
 }: RadarAnomaliaCardProps) {
   const card = cardProp ?? itemProp;
+
+  useEffect(() => {
+    if (!card) return;
+    try {
+      posthog.capture("civic_radar_card_viewed", {
+        anomaliaId: card.anomaliaId,
+        tipoAnomalia: card.tipoAnomalia,
+        grauSeveridade: card.grauSeveridade,
+        dimensaoReferencia: card.dimensaoReferencia,
+        ctaUrl: card.ctaUrl,
+        source: funnelSource,
+      });
+    } catch {
+      // Ignora falhas de telemetria
+    }
+  }, [card, funnelSource]);
+
+  const handleCtaClick = () => {
+    if (!card) return;
+    try {
+      posthog.capture("civic_radar_card_clicked", {
+        anomaliaId: card.anomaliaId,
+        tipoAnomalia: card.tipoAnomalia,
+        grauSeveridade: card.grauSeveridade,
+        dimensaoReferencia: card.dimensaoReferencia,
+        ctaUrl: card.ctaUrl,
+      });
+      posthog.capture("funnel_home_to_internal_page", {
+        from: funnelSource,
+        to: card.ctaUrl,
+        anomaliaId: card.anomaliaId,
+        tipoAnomalia: card.tipoAnomalia,
+      });
+    } catch {
+      // Ignora falhas de telemetria
+    }
+  };
+
+  const handleWhatsAppClick = () => {
+    if (!card) return;
+    try {
+      posthog.capture("civic_radar_whatsapp_shared", {
+        anomaliaId: card.anomaliaId,
+        tipoAnomalia: card.tipoAnomalia,
+        grauSeveridade: card.grauSeveridade,
+      });
+    } catch {
+      // Ignora falhas de telemetria
+    }
+  };
+
   if (!card) return null;
 
   const badgeSeveridade =
@@ -178,6 +235,7 @@ export function RadarAnomaliaCard({
       <div className="mt-5 flex items-center justify-between gap-3 border-[#f4f5f7] border-t pt-3.5">
         <Link
           href={card.ctaUrl}
+          onClick={handleCtaClick}
           data-testid="radar-cta-link"
           className="inline-flex min-w-0 items-center gap-1 truncate font-semibold text-accent text-xs hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
         >
@@ -187,6 +245,7 @@ export function RadarAnomaliaCard({
 
         <a
           href={card.whatsappShareUrl}
+          onClick={handleWhatsAppClick}
           target="_blank"
           rel="noopener noreferrer"
           data-testid="radar-whatsapp-button"

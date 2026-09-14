@@ -42,12 +42,22 @@ Para manter a sociedade civil e os munícipes informados sobre a evolução dos 
    - **Confirmação Segura (*Double Opt-In*):** O envio de informes só é ativado após confirmação individual por link exclusivo enviado à caixa postal do solicitante, impedindo cadastros indevidos por terceiros.
    - **Cancelamento Imediato com 1 Clique (RFC 8058):** Todas as mensagens expedidas incluem link de descadastramento no rodapé e suporte nativo ao cabeçalho normativo `List-Unsubscribe` de 1 clique, garantindo cancelamento sem fricção.
 
-2. **Presença Oficial em Redes Sociais e Código Aberto:**
-   - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automatizadas de fechamento de cargas fiscais, notas de atualização e destaques orçamentários.
-   - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), com publicações didáticas e estruturadas em tópicos para a comunidade local.
+2. **Notificações Web Push (PWA / Alertas Tempestivos do Radar Cívico):**
+   - Notificações tempestivas expedidas via padrão Web Push (VAPID) diretamente aos navegadores e celulares de cidadãos inscritos, em observância ao Art. 48-A da Lei Complementar nº 101/2000 (LRF).
+   - **Alertas Críticos Imediatos:** Disparo ativo quando o motor estatístico de detecção identifica anomalias fiscais com severidade crítica (`critico`), enviando resumo factual e deep link direto para auditoria da conta pública específica (pessoal, compras diretas, saldos em caixa ou funções orçamentárias).
+   - **Avisos Periódicos de Ingestão:** Disparo geral na conclusão bem-sucedida do pipeline de dados (`topic: "extracoes"`).
+
+3. **Presença Oficial em Redes Sociais e Código Aberto:**
+   - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automatizadas de fechamento de cargas fiscais, notas de atualização, destaques orçamentários e alertas cívicos críticos (`civic_anomaly`), respeitando rigoroso teto de 280 caracteres e preservando links oficiais e hashtags de controle social.
+   - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), com publicações didáticas e estruturadas em tópicos para a comunidade local, detalhando anomalias observadas vs. médias históricas esperadas.
+   - **Cartões Sociais Dinâmicos (OpenGraph):** Geração visual dinâmica de pré-visualizações em redes sociais e WhatsApp, com destaque para a severidade e volume de anomalias detectadas no Radar Cívico (`/[portalSlug]/radar/opengraph-image`).
    - **GitHub (Código Aberto):** Repositório público [transparencia](https://github.com/maistransparencia/transparencia), assegurando auditoria pública dos algoritmos fiscais e colaboração comunitária.
 
-3. **Governança, Privacidade e Proteção de Dados (LGPD):**
+4. **Telemetria Cívica e Engajamento Comunitário:**
+   - Medição quantitativa do impacto do controle social por meio do funil de navegação da página inicial para as telas temáticas de auditoria detalhada (pessoal, despesas, licitações e orçamento).
+   - Acompanhamento do compartilhamento cívico comunitário via mensagens instantâneas e redes sociais, sem retenção de dados pessoais identificáveis ou rastreamento invasivo.
+
+5. **Governança, Privacidade e Proteção de Dados (LGPD):**
    - **Coleta Mínima:** Apenas o endereço de e-mail é solicitado para a finalidade exclusiva de envio de boletins informativos e fiscais.
    - **Não Comercialização:** Os contatos jamais são compartilhados com terceiros, comercializados ou utilizados para fins político-partidários.
    - **Autonomia do Titular:** O cidadão tem direito a revogar o consentimento e cancelar o recebimento a qualquer momento com apenas 1 clique.

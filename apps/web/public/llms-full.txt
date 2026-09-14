@@ -280,11 +280,24 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
     - *Mecanismo de Armadilha contra Robôs (Honeypot Invisível):* Campo oculto para detecção imediata de preenchimento automatizado por bots maliciosos.
     - *Temporizador de Submissão:* Bloqueio de envios instantâneos típicos de scripts robotizados.
 
+- **Notificações Web Push (PWA / Alertas Tempestivos do Radar Cívico):**
+  - Notificações tempestivas expedidas via protocolo Web Push (VAPID) diretamente a navegadores e dispositivos móveis cadastrados pelos munícipes, cumprindo o princípio da tempestividade da informação fiscal (Art. 48-A da LC 101/2000 - LRF):
+    - *Alertas Críticos Imediatos:* Disparo reativo automático ao término de ciclos de ingestão quando o motor estatístico identifica anomalias fiscais com severidade crítica (`critico`), direcionando o cidadão via deep link à seção temática correspondente (pessoal comissionado, compras sem licitação, rombo de caixa ou picos orçamentários).
+    - *Notificações de Ingestão de Rotina:* Avisos consolidados de conclusão de extração fiscal para acompanhamento regular do portal (`topic: "extracoes"`).
+
 - **Redes Sociais Oficiais e Disseminação Cívica Automatizada:**
   - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
-    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias e indicadores de transparência.
-    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos para a comunidade local e conselhos municipais.
+    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias, indicadores de transparência e alertas cívicos de severidade crítica (`civic_anomaly`), rigorosamente limitados a 280 caracteres ponderados e com links canônicos de validação.
+    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
+    - **Cartões Sociais Dinâmicos (OpenGraph):** Templates dinâmicos de alta resolução para renderização em tempo real de metadados visuais ao compartilhar links no WhatsApp e redes sociais, com badges de severidade crítica do Radar Cívico (`/[portalSlug]/radar/opengraph-image`).
     - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
+
+- **Telemetria Cívica e Medição do Funil de Engajamento:**
+  - Monitoramento analítico de navegação orientado a avaliar a transição de visitantes passivos em auditores cívicos engajados, sem retenção de dados pessoais identificáveis ou rastreamento invasivo:
+    - *Visualização de Alertas Cívicos:* Acompanhamento da taxa de visualização de anomalias no feed inicial pelo cidadão.
+    - *Aprofundamento Temático:* Medição da adesão às ações de fiscalização e auditoria das contas públicas municipais.
+    - *Conversão de Navegação:* Mensuração do fluxo da página inicial para as seções analíticas detalhadas (`/pessoal`, `/despesas`, `/licitacoes`, `/orcamento`).
+    - *Mobilização Comunitária:* Acompanhamento da difusão espontânea de alertas factuais para redes cidadãs via WhatsApp.
 
 ---
 

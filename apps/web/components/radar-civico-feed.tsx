@@ -48,7 +48,7 @@ export function RadarCivicoFeed({
           </h2>
 
           <Link
-            href={`${portalSlug}/radar?ano=${anoExercicio}`}
+            href={`/${portalSlug}/radar`}
             className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent text-xs hover:underline"
           >
             Ver todos os anos →

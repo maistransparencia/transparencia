@@ -1,7 +1,14 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import posthog from "posthog-js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RadarCivicoCardItem } from "@/app/[portalSlug]/view-model";
 import { RadarAnomaliaCard } from "../radar-anomalia-card";
+
+vi.mock("posthog-js", () => ({
+  default: {
+    capture: vi.fn(),
+  },
+}));
 
 const mockItemCritico: RadarCivicoCardItem = {
   anomaliaId: "anomalia-1",
@@ -65,6 +72,9 @@ const mockItemModerado: RadarCivicoCardItem = {
 };
 
 describe("RadarAnomaliaCard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it("renderiza card crítico com badges semânticas, textos factuais e links corretos", () => {
     render(<RadarAnomaliaCard item={mockItemCritico} />);
 
@@ -144,5 +154,81 @@ describe("RadarAnomaliaCard", () => {
     expect(screen.getByText("Limite de Alerta")).toBeInTheDocument();
     expect(screen.getByText("30.3%")).toBeInTheDocument();
     expect(screen.getByText("30%")).toBeInTheDocument();
+  });
+
+  it("dispara evento civic_radar_card_viewed no carregamento do card", () => {
+    render(<RadarAnomaliaCard item={mockItemCritico} />);
+
+    expect(posthog.capture).toHaveBeenCalledWith("civic_radar_card_viewed", {
+      anomaliaId: "anomalia-1",
+      tipoAnomalia: "explosao_comissionados",
+      grauSeveridade: "critico",
+      dimensaoReferencia: "comissionados",
+      ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
+      source: "home_radar_civico",
+    });
+  });
+
+  it("dispara eventos civic_radar_card_clicked e funnel_home_to_internal_page ao clicar no CTA", () => {
+    render(<RadarAnomaliaCard item={mockItemCritico} />);
+
+    const ctaLink = screen.getByTestId("radar-cta-link");
+    fireEvent.click(ctaLink);
+
+    expect(posthog.capture).toHaveBeenCalledWith("civic_radar_card_clicked", {
+      anomaliaId: "anomalia-1",
+      tipoAnomalia: "explosao_comissionados",
+      grauSeveridade: "critico",
+      dimensaoReferencia: "comissionados",
+      ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
+    });
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "funnel_home_to_internal_page",
+      {
+        from: "home_radar_civico",
+        to: "/porciuncula/pessoal?ano=2024#comissionados",
+        anomaliaId: "anomalia-1",
+        tipoAnomalia: "explosao_comissionados",
+      },
+    );
+  });
+
+  it("respeita funnelSource customizado no funil ao clicar no CTA", () => {
+    render(
+      <RadarAnomaliaCard
+        item={mockItemCritico}
+        funnelSource="radar_historico"
+      />,
+    );
+
+    const ctaLink = screen.getByTestId("radar-cta-link");
+    fireEvent.click(ctaLink);
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "funnel_home_to_internal_page",
+      {
+        from: "radar_historico",
+        to: "/porciuncula/pessoal?ano=2024#comissionados",
+        anomaliaId: "anomalia-1",
+        tipoAnomalia: "explosao_comissionados",
+      },
+    );
+  });
+
+  it("dispara evento civic_radar_whatsapp_shared ao clicar no botão do WhatsApp", () => {
+    render(<RadarAnomaliaCard item={mockItemCritico} />);
+
+    const whatsappButton = screen.getByTestId("radar-whatsapp-button");
+    fireEvent.click(whatsappButton);
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "civic_radar_whatsapp_shared",
+      {
+        anomaliaId: "anomalia-1",
+        tipoAnomalia: "explosao_comissionados",
+        grauSeveridade: "critico",
+      },
+    );
   });
 });

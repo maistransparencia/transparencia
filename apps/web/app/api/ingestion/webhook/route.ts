@@ -1,11 +1,12 @@
 import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
-import { getPortalConfig } from "@transparencia/db";
+import { getPortalConfig, getRadarCivicoAlertas } from "@transparencia/db";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/env";
 import { dispatchPushNotification } from "@/lib/push-dispatcher";
+import { formatFactualNarrative } from "@/lib/radar-civico-narrative";
 
 /**
  * Endpoint de Webhook de Ingestão de Dados.
@@ -127,13 +128,36 @@ export async function POST(req: Request) {
         );
         const portalName = portalConfig?.displayName ?? payload.portalSlug;
 
-        await dispatchPushNotification({
-          portalSlug: payload.portalSlug,
-          title: `MaisTransparencia - Atualização Fiscal (${portalName})`,
-          body: `Novos dados fiscais foram disponibilizados no portal em conformidade com o Art. 48-A da LC 101/2000 (LRF).`,
-          url: `/${payload.portalSlug}`,
-          topic: "extracoes",
-        });
+        const ingestionYear = new Date(payload.timestamp).getFullYear();
+        const alertas = await getRadarCivicoAlertas(payload.portalSlug, {
+          ano: ingestionYear,
+          severidadeMinima: "critico",
+        }).catch(() => []);
+
+        const alertaCritico = alertas.find(
+          (a) => a.grauSeveridade === "critico",
+        );
+
+        if (alertaCritico) {
+          const resumoFactual = formatFactualNarrative(
+            alertaCritico,
+            alertaCritico.ano,
+          );
+          await dispatchPushNotification({
+            portalSlug: payload.portalSlug,
+            title: `🚨 Alerta Crítico - Radar Cívico (${portalName})`,
+            body: resumoFactual,
+            url: alertaCritico.deepLinkRota,
+          });
+        } else {
+          await dispatchPushNotification({
+            portalSlug: payload.portalSlug,
+            title: `MaisTransparencia - Atualização Fiscal (${portalName})`,
+            body: `Novos dados fiscais foram disponibilizados no portal em conformidade com o Art. 48-A da LC 101/2000 (LRF).`,
+            url: `/${payload.portalSlug}`,
+            topic: "extracoes",
+          });
+        }
       } catch (pushErr) {
         // biome-ignore lint/suspicious/noConsole: Log de aviso caso o envio de push falhe sem invalidar a ingestão
         console.warn(

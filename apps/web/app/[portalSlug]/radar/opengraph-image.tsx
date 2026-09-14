@@ -63,13 +63,21 @@ export default async function Image({
       },
     ];
 
+    const badgeText = criticosCount > 0 ? "🚨 Alerta Crítico" : "Radar Cívico";
+    const subtitle = (() => {
+      if (criticosCount > 0) {
+        return `${criticosCount} anomalia(s) de severidade crítica identificada(s) nas contas municipais`;
+      }
+      return "Histórico Consolidado de Controle Social e Alertas Fiscais";
+    })();
+
     return new ImageResponse(
       <OGCardTemplate
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
         pageTitle="Radar Cívico Municipal"
-        subtitle="Histórico Consolidado de Controle Social e Alertas Fiscais"
-        badgeText="Radar Cívico"
+        subtitle={subtitle}
+        badgeText={badgeText}
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
       />,

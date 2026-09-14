@@ -161,6 +161,7 @@ export default async function RadarPage({
                   <RadarAnomaliaCard
                     key={card.id || card.anomaliaId}
                     card={card}
+                    funnelSource="radar_historico"
                   />
                 ))}
               </div>
