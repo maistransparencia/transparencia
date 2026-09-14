@@ -4,10 +4,10 @@ models:
   - name: fct_anomalias_fiscais_metricas
     description: "Motor estatístico automatizado para detecção de anomalias fiscais tempestivas."
     config:
-      materialized: table
+      materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
     columns:
       - name: anomalia_id
-        description: "Chave primária da anomalia."
+        description: "Chave primária surrogate da anomalia (portal_slug | ano | tipo_anomalia | dimensao_referencia)."
         data_type: text
         tests:
           - unique
@@ -33,6 +33,12 @@ models:
           - accepted_values:
               values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa']
 
+      - name: dimensao_referencia
+        description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas)."
+        data_type: text
+        tests:
+          - not_null
+
       - name: grau_severidade
         description: "Grau de severidade da anomalia baseada no desvio."
         data_type: text
@@ -53,19 +59,23 @@ models:
         description: "Valor histórico esperado com base na mediana."
         data_type: numeric
 
+      - name: mes_inicial
+        description: "Mês inicial da competência temporal ou período acumulado (1 a 12)."
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: mes_final
+        description: "Mês final ou competência do snapshot analisado (1 a 12)."
+        data_type: integer
+        tests:
+          - not_null
+
       - name: deep_link_rota
         description: "Rota canônica de redirecionamento no portal web."
         data_type: text
         tests:
           - not_null
-
-      - name: resumo_factual
-        description: "Resumo explicativo e não opinativo sobre a anomalia."
-        data_type: text
-
-      - name: periodo_referencia
-        description: "Referência temporal da comparação (ex: 'Jan a Ago' ou 'Posição Atual')."
-        data_type: text
 
       - name: metodo_deteccao
         description: "Método estatístico utilizado para detectar a anomalia."

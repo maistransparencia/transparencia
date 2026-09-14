@@ -93,8 +93,14 @@ def test_fct_anomalias_fiscais_metricas_exists(conn):
 
     assert "anomalia_id" in columns
     assert "tipo_anomalia" in columns
+    assert "dimensao_referencia" in columns
     assert "grau_severidade" in columns
+    assert "mes_inicial" in columns
+    assert "mes_final" in columns
 
-    # Ensure text types per spec
+    # Ensure text and integer types per spec
     assert columns["tipo_anomalia"] == "text"
+    assert columns["dimensao_referencia"] == "text"
     assert columns["grau_severidade"] == "text"
+    assert columns["mes_inicial"] == "integer"
+    assert columns["mes_final"] == "integer"
