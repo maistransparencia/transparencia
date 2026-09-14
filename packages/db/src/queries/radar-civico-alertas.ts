@@ -133,6 +133,10 @@ export async function getRadarCivicoAlertas(
 
   query = query
     .orderBy(
+      sql`CASE tipo_anomalia WHEN 'rombo_caixa' THEN 1 ELSE 0 END`,
+      "desc",
+    )
+    .orderBy(
       sql`CASE grau_severidade WHEN 'critico' THEN 3 WHEN 'alto' THEN 2 WHEN 'moderado' THEN 1 ELSE 0 END`,
       "desc",
     )
