@@ -35,7 +35,7 @@ export function RadarCivicoFeed({
       className={`w-full space-y-4 ${className ?? ""}`}
     >
       {/* Cabeçalho da Seção */}
-      <div className="flex flex-col gap-2 border-[#e7e9ee] border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3.5 flex items-baseline justify-between border-[#1a1d21] border-t-2 pt-3">
         <div>
           <h2
             id="radar-civico-heading"
@@ -73,7 +73,7 @@ export function RadarCivicoFeed({
       ) : (
         <div
           data-testid="radar-cards-container"
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:overflow-visible [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:overflow-visible [&::-webkit-scrollbar]:hidden"
         >
           {cards.map((card, index) => (
             <div

@@ -56,12 +56,6 @@ export default async function VisaoGeralPage({
         originBreakdown={viewModel.originBreakdown}
       />
 
-      <RadarCivicoFeed
-        items={viewModel.radarCivicoFeedData}
-        portalName={viewModel.portalName}
-        ano={viewModel.selectedYear}
-      />
-
       <PipelineExecucao
         stages={viewModel.pipelineStages}
         detailUrl={viewModel.orcamentoDetailUrl}
@@ -78,6 +72,12 @@ export default async function VisaoGeralPage({
         despesas={viewModel.despesasCardData}
         licitacoes={viewModel.licitacoesCardData}
         pessoal={viewModel.pessoalCardData}
+      />
+
+      <RadarCivicoFeed
+        items={viewModel.radarCivicoFeedData}
+        portalName={viewModel.portalName}
+        ano={viewModel.selectedYear}
       />
     </div>
   );
