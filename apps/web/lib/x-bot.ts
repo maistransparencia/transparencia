@@ -123,7 +123,13 @@ export function truncateTweet(text: string, maxLength = 280): string {
   body = body.trim().replace(/[^\S\r\n]+/g, " ");
 
   const bodyChars = Array.from(body);
-  const truncatedBody = bodyChars.slice(0, availableLength).join("").trimEnd();
+  let truncatedBody = bodyChars.slice(0, availableLength).join("").trimEnd();
+  while (
+    truncatedBody.length > 0 &&
+    calculateTweetLength(`${truncatedBody}...${suffix}`) > maxLength
+  ) {
+    truncatedBody = Array.from(truncatedBody).slice(0, -1).join("").trimEnd();
+  }
   return `${truncatedBody}...${suffix}`;
 }
 

@@ -204,4 +204,40 @@ describe("Social publish API routes", () => {
     const res = await handlePublishX(req);
     expect(res.status).toBe(400);
   });
+
+  it("POST /api/social/publish: deve aceitar type 'civic_anomaly' com portalSlug", async () => {
+    vi.mocked(publisher.publishSocial).mockResolvedValueOnce({
+      success: true,
+      portalSlug: "porciuncula_prefeitura",
+      type: "civic_anomaly",
+      dryRun: false,
+      results: {
+        x: { success: true, tweetId: "tweet-civic-123" },
+        facebook: { success: true, postId: "fb-civic-123" },
+      },
+    });
+
+    const req = new Request("http://localhost/api/social/publish", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer super-secret-cron-token",
+      },
+      body: JSON.stringify({
+        portalSlug: "porciuncula_prefeitura",
+        type: "civic_anomaly",
+        ano: 2025,
+      }),
+    });
+
+    const res = await handlePublish(req);
+    expect(res.status).toBe(200);
+    expect(publisher.publishSocial).toHaveBeenCalledWith(
+      expect.objectContaining({
+        portalSlug: "porciuncula_prefeitura",
+        type: "civic_anomaly",
+        ano: 2025,
+      }),
+    );
+  });
 });

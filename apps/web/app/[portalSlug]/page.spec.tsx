@@ -100,7 +100,7 @@ describe("VisaoGeralPage", () => {
     const element = await VisaoGeralPage(props);
     render(element);
 
-    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /disponibilidade em caixa e bancos/i,
@@ -141,7 +141,7 @@ describe("VisaoGeralPage", () => {
     const element = await VisaoGeralPage(props);
     render(element);
 
-    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
     expect(
       screen.getByText("Variação em Cargos Comissionados"),
     ).toBeInTheDocument();

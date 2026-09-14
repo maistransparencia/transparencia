@@ -349,94 +349,26 @@ export interface RadarCivicoFeedViewModel {
   };
 }
 
-const MESES_ABREV = [
-  "Jan",
-  "Fev",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Out",
-  "Nov",
-  "Dez",
-];
+export {
+  DIMENSAO_NOMES,
+  FUNCOES_INVESTIMENTO_SOCIAL,
+  formatarDimensao,
+  formatDesvioPercentual,
+  formatFactualNarrative,
+  formatPercentNumber,
+  getMesNome,
+  isInvestimentoSocial,
+  MESES_ABREV,
+} from "@/lib/radar-civico-narrative";
 
-export function getMesNome(mes: number | null | undefined): string {
-  if (!mes || mes < 1 || mes > 12) {
-    return "";
-  }
-  return MESES_ABREV[mes - 1] ?? "";
-}
-
-export const DIMENSAO_NOMES: Record<string, string> = {
-  // Funções de Governo STN (Portaria 42/1999)
-  legislativa: "Legislativa",
-  judiciaria: "Judiciária",
-  essencial_a_justica: "Essencial à Justiça",
-  administracao: "Administração",
-  defesa_nacional: "Defesa Nacional",
-  seguranca_publica: "Segurança Pública",
-  relacoes_exteriores: "Relações Exteriores",
-  assistencia_social: "Assistência Social",
-  previdencia_social: "Previdência Social",
-  saude: "Saúde",
-  trabalho: "Trabalho",
-  educacao: "Educação",
-  cultura: "Cultura",
-  direitos_da_cidadania: "Direitos da Cidadania",
-  urbanismo: "Urbanismo",
-  habitacao: "Habitação",
-  saneamento: "Saneamento",
-  gestao_ambiental: "Gestão Ambiental",
-  ciencia_e_tecnologia: "Ciência e Tecnologia",
-  agricultura: "Agricultura",
-  organizacao_agraria: "Organização Agrária",
-  industria: "Indústria",
-  comercio_e_servicos: "Comércio e Serviços",
-  comunicacoes: "Comunicações",
-  energia: "Energia",
-  transporte: "Transporte",
-  desporto_e_lazer: "Desporto e Lazer",
-  encargos_especiais: "Encargos Especiais",
-  sem_funcao: "Sem Função Específica",
-
-  // Dimensões do Radar Cívico
-  comissionados: "Cargos Comissionados",
-  recursos_livres: "Recursos Livres",
-  caixa: "Disponibilidade em Caixa",
-  dispensas: "Compras sem Licitação",
-  gastos_genericos: "Gastos Genéricos (.99)",
-};
-
-export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
-  "saude",
-  "educacao",
-  "assistencia_social",
-  "habitacao",
-  "saneamento",
-  "gestao_ambiental",
-  "cultura",
-  "desporto_e_lazer",
-  "direitos_da_cidadania",
-]);
-
-export function isInvestimentoSocial(dimensao?: string | null): boolean {
-  if (!dimensao) return false;
-  return FUNCOES_INVESTIMENTO_SOCIAL.has(dimensao.toLowerCase().trim());
-}
-
-export function formatarDimensao(dimensao?: string | null): string {
-  const clean = dimensao?.toLowerCase().trim();
-  if (!clean) return "Geral";
-  if (DIMENSAO_NOMES[clean]) return DIMENSAO_NOMES[clean];
-  return clean
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+import {
+  formatarDimensao,
+  formatDesvioPercentual,
+  formatFactualNarrative,
+  formatPercentNumber,
+  getMesNome,
+  isInvestimentoSocial,
+} from "@/lib/radar-civico-narrative";
 
 export function getBadgeSeveridade(
   grau: GrauSeveridade | string,
@@ -476,21 +408,6 @@ export function getBadgeSeveridade(
     variant: "moderado",
     colorClass: "bg-slate-100 text-slate-800 border-slate-200",
   };
-}
-
-export function formatDesvioPercentual(val: number): string {
-  const absVal = Math.abs(val);
-  if (Number.isInteger(absVal)) {
-    return String(absVal);
-  }
-  return Number(absVal.toFixed(1)).toString();
-}
-
-export function formatPercentNumber(val: number): string {
-  if (Number.isInteger(val)) {
-    return String(val);
-  }
-  return Number(val.toFixed(1)).toString();
 }
 
 export function formatMoeda(val: number): string {
@@ -558,73 +475,6 @@ export function getCardTitulo(
     return "Elevada Opacidade em Gastos Genéricos";
   }
   return "Indicador em Destaque";
-}
-
-export function formatFactualNarrative(
-  alerta: Pick<
-    RadarCivicoAlertaDTO,
-    | "tipoAnomalia"
-    | "ano"
-    | "valorObservado"
-    | "valorEsperado"
-    | "desvioPercentual"
-    | "mesFinal"
-    | "dimensaoReferencia"
-  >,
-  anoContexto: number,
-): string {
-  if (alerta.tipoAnomalia === "explosao_comissionados") {
-    const ano = alerta.ano || anoContexto;
-    const obs = fmtNumber(Math.round(alerta.valorObservado ?? 0));
-    const esp = fmtNumber(Math.round(alerta.valorEsperado ?? 0));
-    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-    return `Em ${ano}, o quadro de pessoal registrou ${obs} cargos comissionados ativos, número +${desvio}% acima da média histórica observada (${esp} cargos).`;
-  }
-
-  if (alerta.tipoAnomalia === "rombo_caixa") {
-    const obs = fmtCompact(alerta.valorObservado ?? 0);
-    const esp = fmtCompact(alerta.valorEsperado ?? 0);
-    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-    return `A disponibilidade financeira líquida em recursos livres encerrou o período em ${obs}, posicionando-se ${desvio}% abaixo da média histórica (${esp}).`;
-  }
-
-  if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-    const mesFinalNome = getMesNome(alerta.mesFinal);
-    const periodoStr = (() => {
-      if (mesFinalNome && alerta.mesFinal) {
-        if (alerta.mesFinal === 1) return " (Jan)";
-        if (alerta.mesFinal < 12) return ` (Jan a ${mesFinalNome})`;
-      }
-      return "";
-    })();
-    const nomeFuncao = formatarDimensao(alerta.dimensaoReferencia);
-    const obs = fmtCompact(alerta.valorObservado ?? 0);
-    const esp = fmtCompact(alerta.valorEsperado ?? 0);
-    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-
-    if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
-      return `No período analisado${periodoStr}, os recursos aplicados na área de ${nomeFuncao} totalizaram ${obs} — valor +${desvio}% superior à média histórica do período (${esp}).`;
-    }
-
-    return `No período analisado${periodoStr}, as despesas empenhadas na função ${nomeFuncao} somaram ${obs}, com variação de +${desvio}% em relação à média histórica (${esp}).`;
-  }
-
-  if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
-    const esp = formatPercentNumber(alerta.valorEsperado ?? 0);
-    return `No período analisado, ${obs}% dos processos de contratação foram realizados por dispensa ou inexigibilidade de licitação, frente à média histórica de ${esp}%.`;
-  }
-
-  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
-    const ano = alerta.ano || anoContexto;
-    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
-    const esp = formatPercentNumber(alerta.valorEsperado ?? 30);
-    return `Em ${ano}, ${obs}% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de ${esp}% estabelecido para a transparência pública.`;
-  }
-
-  const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-  const sinal = (alerta.desvioPercentual ?? 0) > 0 ? "+" : "";
-  return `Registrada variação de ${sinal}${desvio}% no indicador em relação ao padrão histórico observado.`;
 }
 
 export function getCardCtaLabel(

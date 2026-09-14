@@ -1,0 +1,261 @@
+import { describe, expect, it } from "vitest";
+import {
+  formatarDimensao,
+  formatDesvioPercentual,
+  formatFactualNarrative,
+  formatPercentNumber,
+  getMesNome,
+  isInvestimentoSocial,
+} from "../radar-civico-narrative";
+
+describe("radar-civico-narrative", () => {
+  describe("getMesNome", () => {
+    it("returns correct abbreviation for valid months 1-12", () => {
+      expect(getMesNome(1)).toBe("Jan");
+      expect(getMesNome(6)).toBe("Jun");
+      expect(getMesNome(12)).toBe("Dez");
+    });
+
+    it("returns empty string for null, undefined, or invalid months", () => {
+      expect(getMesNome(null)).toBe("");
+      expect(getMesNome(undefined)).toBe("");
+      expect(getMesNome(0)).toBe("");
+      expect(getMesNome(13)).toBe("");
+      expect(getMesNome(-1)).toBe("");
+    });
+  });
+
+  describe("formatarDimensao", () => {
+    it("returns mapped names for known dimensions and functions", () => {
+      expect(formatarDimensao("saude")).toBe("Saúde");
+      expect(formatarDimensao("educacao")).toBe("Educação");
+      expect(formatarDimensao("comissionados")).toBe("Cargos Comissionados");
+      expect(formatarDimensao("caixa")).toBe("Disponibilidade em Caixa");
+      expect(formatarDimensao("dispensas")).toBe("Compras sem Licitação");
+      expect(formatarDimensao("gastos_genericos")).toBe(
+        "Gastos Genéricos (.99)",
+      );
+    });
+
+    it("formats unmapped snake_case strings to Title Case", () => {
+      expect(formatarDimensao("recursos_especiais")).toBe("Recursos Especiais");
+    });
+
+    it("returns 'Geral' for undefined, null, or empty strings", () => {
+      expect(formatarDimensao(undefined)).toBe("Geral");
+      expect(formatarDimensao(null)).toBe("Geral");
+      expect(formatarDimensao("")).toBe("Geral");
+    });
+  });
+
+  describe("isInvestimentoSocial", () => {
+    it("returns true for social functions", () => {
+      expect(isInvestimentoSocial("saude")).toBe(true);
+      expect(isInvestimentoSocial("educacao")).toBe(true);
+      expect(isInvestimentoSocial("assistencia_social")).toBe(true);
+      expect(isInvestimentoSocial("cultura")).toBe(true);
+      expect(isInvestimentoSocial("SAUDE ")).toBe(true);
+    });
+
+    it("returns false for non-social functions or empty", () => {
+      expect(isInvestimentoSocial("administracao")).toBe(false);
+      expect(isInvestimentoSocial("legislativa")).toBe(false);
+      expect(isInvestimentoSocial(null)).toBe(false);
+      expect(isInvestimentoSocial(undefined)).toBe(false);
+    });
+  });
+
+  describe("formatDesvioPercentual and formatPercentNumber", () => {
+    it("formats integers without decimals", () => {
+      expect(formatDesvioPercentual(45)).toBe("45");
+      expect(formatDesvioPercentual(-45)).toBe("45");
+      expect(formatPercentNumber(30)).toBe("30");
+    });
+
+    it("formats decimals with at most one decimal place", () => {
+      expect(formatDesvioPercentual(45.67)).toBe("45.7");
+      expect(formatDesvioPercentual(-45.67)).toBe("45.7");
+      expect(formatPercentNumber(30.44)).toBe("30.4");
+    });
+  });
+
+  describe("formatFactualNarrative", () => {
+    it("formats explosao_comissionados with positive deviation", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "explosao_comissionados",
+          ano: 2024,
+          valorObservado: 120,
+          valorEsperado: 80,
+          desvioPercentual: 50,
+          mesFinal: null,
+          dimensaoReferencia: "comissionados",
+        },
+        2024,
+      );
+      expect(narrative).toContain("Em 2024, o quadro de pessoal registrou");
+      expect(narrative).toContain("+50% acima da média histórica observada");
+    });
+
+    it("formats explosao_comissionados with negative deviation and fallback anoContexto", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "explosao_comissionados",
+          ano: 0,
+          valorObservado: 40,
+          valorEsperado: 80,
+          desvioPercentual: -50,
+          mesFinal: null,
+          dimensaoReferencia: "comissionados",
+        },
+        2025,
+      );
+      expect(narrative).toContain("Em 2025, o quadro de pessoal registrou");
+      expect(narrative).toContain("-50% abaixo da média histórica observada");
+    });
+
+    it("formats rombo_caixa with year reference", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "rombo_caixa",
+          ano: 2024,
+          valorObservado: -500000,
+          valorEsperado: 1000000,
+          desvioPercentual: -150,
+          mesFinal: null,
+          dimensaoReferencia: "caixa",
+        },
+        2024,
+      );
+      expect(narrative).toContain(
+        "Em 2024, a disponibilidade financeira líquida",
+      );
+      expect(narrative).toContain(
+        "posicionando-se 150% abaixo da média histórica",
+      );
+    });
+
+    it("formats pico_despesa_homologa for social investment with month range", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "pico_despesa_homologa",
+          ano: 2024,
+          valorObservado: 5000000,
+          valorEsperado: 3000000,
+          desvioPercentual: 66.7,
+          mesFinal: 6,
+          dimensaoReferencia: "saude",
+        },
+        2024,
+      );
+      expect(narrative).toContain("No período analisado (Jan a Jun)");
+      expect(narrative).toContain("área de Saúde");
+      expect(narrative).toContain("+66.7% superior à média histórica");
+    });
+
+    it("formats pico_despesa_homologa for single month (Jan)", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "pico_despesa_homologa",
+          ano: 2024,
+          valorObservado: 500000,
+          valorEsperado: 300000,
+          desvioPercentual: 66.7,
+          mesFinal: 1,
+          dimensaoReferencia: "saude",
+        },
+        2024,
+      );
+      expect(narrative).toContain("No período analisado (Jan)");
+    });
+
+    it("formats pico_despesa_homologa for non-social function with negative deviation", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "pico_despesa_homologa",
+          ano: 2024,
+          valorObservado: 100000,
+          valorEsperado: 200000,
+          desvioPercentual: -50,
+          mesFinal: 12,
+          dimensaoReferencia: "legislativa",
+        },
+        2024,
+      );
+      expect(narrative).toContain("função Legislativa");
+      expect(narrative).toContain(
+        "com variação de -50% em relação à média histórica",
+      );
+    });
+
+    it("formats concentracao_dispensa with year and percentages", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "concentracao_dispensa",
+          ano: 2024,
+          valorObservado: 45.2,
+          valorEsperado: 15.0,
+          desvioPercentual: 201.3,
+          mesFinal: null,
+          dimensaoReferencia: "dispensas",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, no período analisado, 45.2% dos processos de contratação foram realizados por dispensa ou inexigibilidade de licitação, frente à média histórica de 15%.",
+      );
+    });
+
+    it("formats opacidade_gastos_genericos with year and default expected limit", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "opacidade_gastos_genericos",
+          ano: 2024,
+          valorObservado: 35.5,
+          valorEsperado: null,
+          desvioPercentual: 18.3,
+          mesFinal: null,
+          dimensaoReferencia: "gastos_genericos",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, 35.5% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de 30% estabelecido para a transparência pública.",
+      );
+    });
+
+    it("formats unknown anomaly type using fallback variation narrative", () => {
+      const positiveNarrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "anomalia_desconhecida",
+          ano: 2024,
+          valorObservado: 100,
+          valorEsperado: 80,
+          desvioPercentual: 25,
+          mesFinal: null,
+          dimensaoReferencia: "geral",
+        },
+        2024,
+      );
+      expect(positiveNarrative).toBe(
+        "Registrada variação de +25% no indicador em relação ao padrão histórico observado.",
+      );
+
+      const negativeNarrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "anomalia_desconhecida",
+          ano: 2024,
+          valorObservado: 75,
+          valorEsperado: 100,
+          desvioPercentual: -25,
+          mesFinal: null,
+          dimensaoReferencia: "geral",
+        },
+        2024,
+      );
+      expect(negativeNarrative).toBe(
+        "Registrada variação de -25% no indicador em relação ao padrão histórico observado.",
+      );
+    });
+  });
+});

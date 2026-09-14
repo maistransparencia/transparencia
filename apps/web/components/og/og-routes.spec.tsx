@@ -72,6 +72,7 @@ vi.mock("@transparencia/db", () => ({
     totalPagoPatronal: 2_000_000,
     servidoresEfetivos: 120,
   }),
+  getRadarCivicoAlertas: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock ImageResponse from next/og as a class constructor
@@ -165,6 +166,48 @@ describe("OpenGraph Image Route Handlers", () => {
   it("gera o card do CAPREM", async () => {
     const { default: generateImage } = await import(
       "../../app/[portalSlug]/caprem/opengraph-image"
+    );
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+  });
+
+  it("gera o card do Radar Cívico com anomalias críticas destacadas", async () => {
+    const { getRadarCivicoAlertas } = await import("@transparencia/db");
+    vi.mocked(getRadarCivicoAlertas).mockResolvedValueOnce([
+      {
+        anomaliaId: "crit-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "explosao_comissionados",
+        grauSeveridade: "critico",
+        desvioPercentual: 50,
+      } as any,
+    ]);
+
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/radar/opengraph-image"
+    );
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+  });
+
+  it("gera o card do Radar Cívico sem anomalias críticas (estado normal)", async () => {
+    const { getRadarCivicoAlertas } = await import("@transparencia/db");
+    vi.mocked(getRadarCivicoAlertas).mockResolvedValueOnce([
+      {
+        anomaliaId: "mod-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "concentracao_dispensa",
+        grauSeveridade: "moderado",
+        desvioPercentual: 15,
+      } as any,
+    ]);
+
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/radar/opengraph-image"
     );
     const response = await generateImage({ params });
     expect(response).toBeDefined();
