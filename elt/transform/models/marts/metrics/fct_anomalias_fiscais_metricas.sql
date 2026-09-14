@@ -3,9 +3,10 @@
 with ref_periodo_despesas as (
     select
         d.portal_slug,
-        max(nullif(trim(d.mes::text), '')::integer) as max_mes
+        max(nullif(regexp_replace(trim(d.mes::text), '[^0-9]', '', 'g'), '')::integer) as max_mes
     from {{ ref('fct_despesas') }} d
     where d.ano = (select max(ano) from {{ ref('fct_despesas') }} where portal_slug = d.portal_slug)
+      and d.fonte = 'exercicio'
     group by d.portal_slug
 ),
 
@@ -13,13 +14,14 @@ despesas_homologas as (
     select
         d.portal_slug,
         d.ano,
-        d.funcao_nome,
+        coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função') as funcao_nome,
         sum(d.empenhado_liquido) as valor_observado,
         max(r.max_mes) as max_mes
     from {{ ref('fct_despesas') }} d
     join ref_periodo_despesas r on d.portal_slug = r.portal_slug
-    where nullif(trim(d.mes::text), '')::integer <= nullif(trim(r.max_mes::text), '')::integer
-    group by d.portal_slug, d.ano, d.funcao_nome
+    where d.fonte = 'exercicio'
+      and nullif(regexp_replace(trim(d.mes::text), '[^0-9]', '', 'g'), '')::integer <= r.max_mes
+    group by d.portal_slug, d.ano, coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função')
 ),
 
 despesas_stats as (
@@ -38,7 +40,7 @@ despesas_anomalias as (
         h.portal_slug,
         h.ano,
         'pico_despesa_homologa'::text as tipo_anomalia,
-        lower(replace({{ target.schema }}.unaccent(h.funcao_nome), ' ', '_'))::text as dimensao_referencia,
+        lower(regexp_replace({{ target.schema }}.unaccent(trim(h.funcao_nome)), '[^a-zA-Z0-9]+', '_', 'g'))::text as dimensao_referencia,
         h.valor_observado::numeric,
         s.mediana::numeric as valor_esperado,
         case
@@ -52,7 +54,8 @@ despesas_anomalias as (
     from despesas_homologas h
     join despesas_stats s on h.portal_slug = s.portal_slug and h.funcao_nome = s.funcao_nome
     where h.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1)
-      and h.valor_observado > 0
+      and h.valor_observado >= 50000.0
+      and (h.valor_observado - s.mediana) >= 20000.0
 ),
 
 comissionados as (
@@ -215,6 +218,7 @@ dispensas_anomalias as (
     from dispensas_calc d
     join dispensas_stats s on d.portal_slug = s.portal_slug
     where d.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1)
+      and d.valor_observado >= 5.0
 ),
 
 todas_anomalias as (
@@ -234,11 +238,11 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
-        when desvio_percentual > 50 or tipo_anomalia = 'rombo_caixa' then 'critico'
-        when desvio_percentual > 30 then 'alto'
+        when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' then 'critico'
+        when abs(desvio_percentual) > 30 then 'alto'
         else 'moderado'
     end::text as grau_severidade,
-    desvio_percentual::numeric(15, 2) as desvio_percentual,
+    abs(desvio_percentual)::numeric(15, 2) as desvio_percentual,
     valor_observado::numeric(18, 2) as valor_observado,
     valor_esperado::numeric(18, 2) as valor_esperado,
     mes_inicial,

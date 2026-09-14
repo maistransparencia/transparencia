@@ -104,3 +104,11 @@ def test_fct_anomalias_fiscais_metricas_exists(conn):
     assert columns["grau_severidade"] == "text"
     assert columns["mes_inicial"] == "integer"
     assert columns["mes_final"] == "integer"
+
+    # Ensure query executes without SQL evaluation or runtime errors
+    result = conn.execute(
+        text(
+            "SELECT anomalia_id, tipo_anomalia, dimensao_referencia, grau_severidade, mes_inicial, mes_final, desvio_percentual FROM analytics.fct_anomalias_fiscais_metricas LIMIT 10"
+        )
+    ).fetchall()
+    assert isinstance(result, list)
