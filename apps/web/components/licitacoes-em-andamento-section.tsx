@@ -45,8 +45,8 @@ export function LicitacoesEmAndamentoSection({
     });
   }, [lista]);
 
-  const top3 = useMemo(() => {
-    return sortedByRelevance.slice(0, 3);
+  const topDestaques = useMemo(() => {
+    return sortedByRelevance.slice(0, 4);
   }, [sortedByRelevance]);
 
   const tableData: LicitacaoTableRow[] = useMemo(() => {
@@ -213,21 +213,21 @@ export function LicitacoesEmAndamentoSection({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Top 3 Cards Grid */}
-          {top3.length > 0 && (
+          {/* Top Destaques Cards Grid (4 itens em 2 colunas) */}
+          {topDestaques.length > 0 && (
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
                   Processos em Destaque por Relevância
                 </h3>
                 <span className="text-slate-400 text-xs">
-                  {top3.length === 1
+                  {topDestaques.length === 1
                     ? "Maior valor estimado"
-                    : `Top ${top3.length} de maior valor`}
+                    : `Top ${topDestaques.length} de maior valor`}
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {top3.map((item) => {
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {topDestaques.map((item) => {
                   const valorExibicao = (() => {
                     const val = item.valorEstimado ?? item.valor;
                     if (typeof val === "number" && val > 0) {
@@ -249,15 +249,15 @@ export function LicitacoesEmAndamentoSection({
                       className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm"
                     >
                       <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0 flex-1">
                             <span className="font-bold font-mono text-slate-900 text-sm">
                               Processo {item.licitacaoNumero || "S/N"}
                             </span>
                             {item.entidadeNome && (
                               <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
                                 <Building2
-                                  className="h-3 w-3 shrink-0"
+                                  className="h-3.5 w-3.5 shrink-0"
                                   aria-hidden="true"
                                 />
                                 <span className="truncate">
@@ -267,7 +267,7 @@ export function LicitacoesEmAndamentoSection({
                             )}
                           </div>
 
-                          <div className="flex flex-wrap items-center justify-end gap-1.5">
+                          <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:justify-end">
                             <Badge variant="accent">
                               {fmtLicitacaoModalidade(item.modalidade)}
                             </Badge>
@@ -290,7 +290,7 @@ export function LicitacoesEmAndamentoSection({
                           )}
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-slate-100 border-t pt-3 text-xs">
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-slate-100 border-t pt-3 text-xs">
                         <div className="flex items-center gap-1.5 text-slate-500">
                           <Calendar
                             className="h-3.5 w-3.5 shrink-0"

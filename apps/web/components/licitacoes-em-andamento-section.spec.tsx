@@ -75,6 +75,45 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(cards[1]).toHaveTextContent("PE 001/2025");
   });
 
+  it("limita os cards de destaque a 4 itens quando há mais de 4 licitações", () => {
+    const cincoItens: LicitacaoEmAndamentoDTO[] = [
+      ...sampleItems,
+      {
+        ...sampleItems[0],
+        licitacaoId: "lic-003",
+        licitacaoNumero: "PE 003/2025",
+        valorEstimado: 500000,
+        valor: 500000,
+      },
+      {
+        ...sampleItems[0],
+        licitacaoId: "lic-004",
+        licitacaoNumero: "PE 004/2025",
+        valorEstimado: 800000,
+        valor: 800000,
+      },
+      {
+        ...sampleItems[0],
+        licitacaoId: "lic-005",
+        licitacaoNumero: "PE 005/2025",
+        valorEstimado: 100000,
+        valor: 100000,
+      },
+    ];
+
+    render(<LicitacoesEmAndamentoSection licitacoes={cincoItens} />);
+
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(4);
+    // Ordenação esperada dos 4 maiores:
+    // CP 002/2025 (1.200.000), PE 004/2025 (800.000), PE 003/2025 (500.000), PE 001/2025 (250.000)
+    // O menor (PE 005/2025 de 100.000) não entra nos cards
+    expect(cards[0]).toHaveTextContent("CP 002/2025");
+    expect(cards[1]).toHaveTextContent("PE 004/2025");
+    expect(cards[2]).toHaveTextContent("PE 003/2025");
+    expect(cards[3]).toHaveTextContent("PE 001/2025");
+  });
+
   it("filtra itens na tabela pela busca do DenseTable", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
