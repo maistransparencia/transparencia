@@ -276,6 +276,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       "Detecção estatística de desvios e variações atípicas em relação aos padrões históricos municipais.",
     cards: radarCivicoFeedData,
     hasAlertas: radarCivicoFeedData.length > 0,
+    licitacoesEmAndamentoCount: raw.licitacoesEmAndamentoCount ?? 0,
     emptyState: {
       title: "Conformidade com Parâmetros Históricos",
       message: `Para o exercício de ${selectedYear}, as despesas, contratações diretas e o quadro de pessoal encontram-se dentro dos parâmetros históricos esperados, sem desvios estatísticos atípicos apurados.`,
@@ -300,6 +301,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     posicaoFinanceira: raw.posicaoFinanceira,
     radarCivicoFeedData,
     radarCivicoFeed,
+    licitacoesEmAndamentoCount: raw.licitacoesEmAndamentoCount ?? 0,
     orcamentoDetailUrl: routeUrl("/orcamento"),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
@@ -343,6 +345,7 @@ export interface RadarCivicoFeedViewModel {
   description: string;
   cards: RadarCivicoCardItem[];
   hasAlertas: boolean;
+  licitacoesEmAndamentoCount?: number;
   emptyState: {
     title: string;
     message: string;

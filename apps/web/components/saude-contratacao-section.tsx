@@ -1,4 +1,14 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
+import {
+  Badge,
+  fmtCompact,
+  fmtCurrency,
+  fmtDate,
+  fmtLicitacaoModalidade,
+  fmtPercent,
+  KPICard,
+} from "@transparencia/ui";
+import { Calendar, Coins } from "lucide-react";
 import Link from "next/link";
 import { KPIGrid } from "@/components/kpi-grid";
 
@@ -24,14 +34,18 @@ export interface SaudeContratacaoOrcamentoProps {
 
 export interface SaudeContratacaoSectionProps {
   portalSlug: string;
+  ano?: number;
   orcamento: SaudeContratacaoOrcamentoProps;
   licitacoesSaude: SaudeContratacaoLicitacoesProps;
+  licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
 }
 
 export function SaudeContratacaoSection({
   portalSlug,
+  ano,
   orcamento,
   licitacoesSaude,
+  licitacoesEmAndamento = [],
 }: SaudeContratacaoSectionProps) {
   const caronaValor = licitacoesSaude.adesaoCaronaValor;
   const caronaPct =
@@ -173,6 +187,93 @@ export function SaudeContratacaoSection({
             },
           )}
         </div>
+      </div>
+
+      {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
+      <div className="space-y-4 rounded-xl border border-[#e7e9ee] bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold font-serif text-lg text-slate-900">
+                Compras e Licitações da Saúde em Andamento
+              </h3>
+              <Badge variant="accent">Em Aberto</Badge>
+            </div>
+            <p className="mt-0.5 text-slate-500 text-xs leading-relaxed">
+              Processos licitatórios abertos da pasta de saúde (medicamentos,
+              insumos hospitalares e equipamentos).
+            </p>
+          </div>
+          <Link
+            href={
+              ano
+                ? `/${portalSlug}/licitacoes?ano=${ano}#licitacoes-em-andamento`
+                : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
+            }
+            className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
+          >
+            Ver radar geral &rarr;
+          </Link>
+        </div>
+
+        {Array.isArray(licitacoesEmAndamento) &&
+        licitacoesEmAndamento.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {licitacoesEmAndamento.slice(0, 6).map((lic) => {
+              const valorTxt = (() => {
+                const val = lic.valorEstimado ?? lic.valor;
+                if (typeof val === "number" && val > 0) {
+                  return fmtCurrency(val);
+                }
+                return "Valor não divulgado";
+              })();
+
+              return (
+                <div
+                  key={lic.licitacaoId}
+                  className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-4 text-xs"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold font-mono text-slate-900">
+                      Processo {lic.licitacaoNumero || "S/N"}
+                    </span>
+                    <Badge variant="accent">
+                      {fmtLicitacaoModalidade(lic.modalidade)}
+                    </Badge>
+                  </div>
+                  <p
+                    className="line-clamp-2 font-medium text-slate-700"
+                    title={lic.objeto}
+                  >
+                    {lic.objeto}
+                  </p>
+                  <div className="flex items-center justify-between border-slate-200/60 border-t pt-2 text-[11px] text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" aria-hidden="true" />
+                      <span>
+                        {lic.dataAbertura
+                          ? fmtDate(lic.dataAbertura)
+                          : "Abertura não informada"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 font-bold font-serif text-slate-900">
+                      <Coins
+                        className="h-3 w-3 text-slate-400"
+                        aria-hidden="true"
+                      />
+                      <span>{valorTxt}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-slate-200 border-dashed bg-slate-50/50 p-4 text-center text-slate-500 text-xs">
+            Nenhuma licitação da Saúde em andamento ou aberta no momento para
+            este exercício.
+          </div>
+        )}
       </div>
     </section>
   );

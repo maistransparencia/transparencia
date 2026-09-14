@@ -33,6 +33,7 @@ vi.mock("@transparencia/db", () => ({
   getLimiteMaximoLrfPessoal: vi.fn().mockResolvedValue(null),
   getSiconfiPosicaoFinanceira: vi.fn().mockResolvedValue(null),
   getRadarCivicoAlertas: getRadarCivicoAlertasMock,
+  getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("next/navigation", () => ({

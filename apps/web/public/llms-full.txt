@@ -40,6 +40,7 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
 - **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas, isentas de adjetivações valorativas ou acusações subjetivas.
 - **Métricas Comparativas:** Exibição clara do valor observado versus valor de referência ou limite normativo.
 - **Funil de Aprofundamento e Compartilhamento:**
+  - *Pílula de Alerta de Compras Abertas:* Quando houver processos licitatórios atualmente em andamento no município, o cabeçalho do Radar Cívico exibe uma pílula de alerta indicando o volume de compras abertas com deep link direto para auditoria prévia em `/[portalSlug]/licitacoes#licitacoes-em-andamento`.
   - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`) para investigação detalhada.
   - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
   - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
@@ -188,6 +189,8 @@ Esta seção apresenta a arrecadação de recursos, o ciclo completo do orçamen
 Esta seção disponibiliza a transparência sobre os processos de compras e contratações públicas:
 
 - **Modalidades de Contratação:** Os procedimentos utilizados para contratar bens e serviços, tais como Pregão Eletrônico, Concorrência Pública, Dispensa de Licitação, Inexigibilidade e Adesão a Atas de Registro de Preços.
+- **Taxa de Contratação Direta:** Indicador percentual apurado na grade de KPIs que consolida o volume financeiro contratado diretamente por dispensas, inexigibilidades e adesões a ata sobre o total de compras do exercício. Apresenta badge e banner contextual explicativo quando houver a anomalia `concentracao_dispensa` apurada pelo motor estatístico, fundamentando a análise nas exigências do Art. 75 da Lei Federal nº 14.133/2021.
+- **Radar de Licitações Abertas e em Andamento (`#licitacoes-em-andamento`):** Seção interativa de fiscalização preventiva que exibe todos os processos licitatórios municipais em andamento antes da homologação, com contadores, campo de busca textual em tempo real por objeto, identificação da modalidade, prazos de abertura e valores estimados.
 - **Limites de Dispensa de Licitação:** Acompanhamento dos limites legais de dispensa previstos na Lei Federal nº 14.133/2021 e decretos de atualização monetária para obras/engenharia e compras/outros serviços.
 - **Objeto da Contratação:** A descrição detalhada do que foi comprado ou contratado pela administração pública.
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
@@ -239,6 +242,7 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 - **Percentual de Aplicação em Saúde:** O percentual das receitas de impostos e transferências efetivamente investido na saúde pública (compara-se ao piso constitucional de 15% estabelecido pela Lei Complementar nº 141/2012).
 - **Total Investido na Saúde:** O montante financeiro consolidado alocado no custeio e investimentos da rede municipal de saúde.
+- **Compras e Licitações da Saúde em Andamento:** Monitoramento de compras abertas específicas do Fundo Municipal de Saúde (medicamentos essenciais, insumos hospitalares e equipamentos médicos) dentro da seção "Como o Fundo contrata", permitindo controle prévio pelo cidadão e fornecedores locais.
 
 ---
 

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedDimOrgao,
   seedLicitacao,
 } from "../../../tests/fixtures/seed";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
@@ -260,6 +261,58 @@ describe("licitacoes-metrics", () => {
       );
       expect(viaNum).toHaveLength(1);
       expect(viaNum[0].licitacaoNumero).toBe("010/2023");
+    });
+
+    it("deve projetar entidadeNome via dim_orgao e valorEstimado em paridade com valor", async () => {
+      await seedDimOrgao({
+        portalSlug: FIXTURE_PORTAL,
+        empresaId: "1",
+        orgaoNome: "Fundo Municipal de Saúde",
+      });
+
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        empresaId: "1",
+        licitacaoNumero: "010/2024",
+        modalidade: "Pregao Eletronico",
+        objeto: "Aquisição de insumos hospitalares",
+        valor: 250000,
+        situacao: "em_andamento",
+        dataAbertura: "2024-09-01",
+      });
+
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        empresaId: "2",
+        licitacaoNumero: "011/2024",
+        modalidade: "Pregao Presencial",
+        objeto: "Contratação de transporte escolar",
+        valor: 120000,
+        situacao: "em_andamento",
+        dataAbertura: "2024-08-15",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2024,
+      });
+
+      expect(resultado).toHaveLength(2);
+
+      const saudeItem = resultado.find((r) => r.licitacaoNumero === "010/2024");
+      expect(saudeItem).toBeDefined();
+      expect(saudeItem?.entidadeNome).toBe("Fundo Municipal de Saúde");
+      expect(saudeItem?.valorEstimado).toBe(250000);
+      expect(saudeItem?.valor).toBe(250000);
+
+      const semOrgaoItem = resultado.find(
+        (r) => r.licitacaoNumero === "011/2024",
+      );
+      expect(semOrgaoItem).toBeDefined();
+      expect(semOrgaoItem?.entidadeNome).toBeNull();
+      expect(semOrgaoItem?.valorEstimado).toBe(120000);
+      expect(semOrgaoItem?.valor).toBe(120000);
     });
   });
 

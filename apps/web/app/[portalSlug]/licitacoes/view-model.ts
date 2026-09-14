@@ -18,6 +18,47 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
       ?.limiteDispensa ??
     0;
 
+  const alertaDispensa =
+    raw.alertasRadar?.find((a) => a.tipoAnomalia === "concentracao_dispensa") ??
+    null;
+
+  const totalGeralModalidades = (raw.modalidades || []).reduce(
+    (acc, m) => acc + (m.valorTotal || 0),
+    0,
+  );
+
+  const totalContratacaoDireta = (raw.modalidades || [])
+    .filter((m) => {
+      const mod = (m.modalidade || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      return (
+        mod.includes("dispensa") ||
+        mod.includes("inexigibilidade") ||
+        mod.includes("adesao") ||
+        mod.includes("sem_licitacao") ||
+        mod.includes("gap_licitacao")
+      );
+    })
+    .reduce((acc, m) => acc + (m.valorTotal || 0), 0);
+
+  const taxaContratacaoDireta = (() => {
+    if (totalGeralModalidades > 0) {
+      return (totalContratacaoDireta / totalGeralModalidades) * 100;
+    }
+    if (
+      alertaDispensa &&
+      typeof alertaDispensa.valorObservado === "number" &&
+      !Number.isNaN(alertaDispensa.valorObservado)
+    ) {
+      return alertaDispensa.valorObservado;
+    }
+    return 0;
+  })();
+
+  const hasAnomaliaDispensa = alertaDispensa !== null;
+
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
@@ -34,5 +75,9 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
     numCasosFracionamento: Object.keys(fracionamentoVendorsMap).length,
     contratosServicosVigentes: raw.contratosServicosVigentes || [],
     top3ContratosVigentes: (raw.contratosServicosVigentes || []).slice(0, 3),
+    licitacoesEmAndamento: raw.licitacoesEmAndamento || [],
+    alertaDispensa,
+    taxaContratacaoDireta,
+    hasAnomaliaDispensa,
   };
 }

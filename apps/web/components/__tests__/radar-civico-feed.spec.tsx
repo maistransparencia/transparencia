@@ -91,4 +91,38 @@ describe("RadarCivicoFeed", () => {
     const link = screen.getByRole("link", { name: "Ver todos os anos →" });
     expect(link).toHaveAttribute("href", "/porciuncula/radar");
   });
+
+  it("renderiza pílula de compras em andamento quando count > 0 e oculta quando count = 0", () => {
+    const { rerender } = render(
+      <RadarCivicoFeed
+        items={mockItems}
+        portalName="Porciúncula"
+        portalSlug="porciuncula"
+        ano={2024}
+        licitacoesEmAndamentoCount={3}
+      />,
+    );
+
+    const pill = screen.getByTestId("radar-licitacoes-andamento-pill");
+    expect(pill).toBeInTheDocument();
+    expect(pill).toHaveAttribute(
+      "href",
+      "/porciuncula/licitacoes?ano=2024#licitacoes-em-andamento",
+    );
+    expect(screen.getByText("3 compras em andamento")).toBeInTheDocument();
+
+    rerender(
+      <RadarCivicoFeed
+        items={mockItems}
+        portalName="Porciúncula"
+        portalSlug="porciuncula"
+        ano={2024}
+        licitacoesEmAndamentoCount={0}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("radar-licitacoes-andamento-pill"),
+    ).not.toBeInTheDocument();
+  });
 });
