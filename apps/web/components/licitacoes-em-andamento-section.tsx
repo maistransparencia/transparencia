@@ -85,15 +85,14 @@ export function LicitacoesEmAndamentoSection({
       header: "Processo",
       accessorKey: "licitacaoNumero",
       sortable: true,
-      className:
-        "whitespace-nowrap font-bold font-mono text-slate-900 text-xs sm:text-sm",
+      className: "whitespace-nowrap font-semibold text-slate-900",
       renderCell: (row) => row.licitacaoNumero || "S/N",
     },
     {
       header: "Órgão",
       accessorKey: "entidadeNome",
       sortable: true,
-      className: "min-w-[150px] max-w-[220px] truncate text-slate-700 text-xs",
+      className: "min-w-[150px] max-w-[220px] truncate text-slate-700",
       renderCell: (row) => row.entidadeNome || "—",
     },
     {
@@ -110,7 +109,7 @@ export function LicitacoesEmAndamentoSection({
       header: "Objeto",
       accessorKey: "objeto",
       sortable: true,
-      className: "min-w-[220px] max-w-[340px] text-slate-700 text-xs",
+      className: "min-w-[220px] max-w-[340px] text-slate-700",
       renderCell: (row) => (
         <div className="space-y-0.5">
           <span className="line-clamp-2 font-medium" title={row.objeto}>
@@ -132,7 +131,7 @@ export function LicitacoesEmAndamentoSection({
       accessorKey: "dataAbertura",
       sortable: true,
       align: "center",
-      className: "whitespace-nowrap font-medium text-slate-600 text-xs",
+      className: "whitespace-nowrap font-medium text-slate-600",
       renderCell: (row) =>
         row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada",
     },
@@ -251,7 +250,7 @@ export function LicitacoesEmAndamentoSection({
                       <div className="space-y-3">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0 flex-1">
-                            <span className="font-bold font-mono text-slate-900 text-sm">
+                            <span className="font-bold text-slate-900 text-sm">
                               Processo {item.licitacaoNumero || "S/N"}
                             </span>
                             {item.entidadeNome && (
