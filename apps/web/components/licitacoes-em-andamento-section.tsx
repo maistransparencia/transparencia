@@ -3,78 +3,178 @@
 import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
 import {
   Badge,
+  type Column,
   cn,
+  DenseTable,
   fmtCurrency,
   fmtDate,
   fmtLicitacaoModalidade,
 } from "@transparencia/ui";
-import { Building2, Calendar, Coins, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Building2, Calendar, Coins } from "lucide-react";
+import { useMemo } from "react";
 
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
   className?: string;
 }
 
+interface LicitacaoTableRow extends LicitacaoEmAndamentoDTO {
+  modalidadeFormatada: string;
+  valorFinal: number | null;
+  buscaNormalizada: string;
+}
+
 export function LicitacoesEmAndamentoSection({
   licitacoes,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
-  const [busca, setBusca] = useState("");
-
   const lista = useMemo(() => {
     if (!Array.isArray(licitacoes)) return [];
     return licitacoes;
   }, [licitacoes]);
 
-  const licitacoesFiltradas = useMemo(() => {
-    const termo = busca
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    if (!termo) return lista;
-
-    return lista.filter((item) => {
-      const objeto = (item.objeto || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const discriminacao = (item.discriminacao || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const numero = (item.licitacaoNumero || "").toLowerCase();
-      const entidade = (item.entidadeNome || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const modalidadeRaw = (item.modalidade || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const modalidadeComEspaco = modalidadeRaw.replace(/_/g, " ");
-
-      return (
-        objeto.includes(termo) ||
-        discriminacao.includes(termo) ||
-        numero.includes(termo) ||
-        entidade.includes(termo) ||
-        modalidadeRaw.includes(termo) ||
-        modalidadeComEspaco.includes(termo)
-      );
+  // Ordena por relevância (maior valor estimado primeiro; se igual/nulo, data de abertura decrescente)
+  const sortedByRelevance = useMemo(() => {
+    return [...lista].sort((a, b) => {
+      const valA = a.valorEstimado ?? a.valor ?? 0;
+      const valB = b.valorEstimado ?? b.valor ?? 0;
+      if (valB !== valA) return valB - valA;
+      const dataA = a.dataAbertura ?? "";
+      const dataB = b.dataAbertura ?? "";
+      return dataB.localeCompare(dataA);
     });
-  }, [lista, busca]);
+  }, [lista]);
+
+  const top3 = useMemo(() => {
+    return sortedByRelevance.slice(0, 3);
+  }, [sortedByRelevance]);
+
+  const tableData: LicitacaoTableRow[] = useMemo(() => {
+    return sortedByRelevance.map((item) => {
+      const valorNum = item.valorEstimado ?? item.valor ?? null;
+      const modalidadeFmt = fmtLicitacaoModalidade(item.modalidade);
+
+      // Normaliza termos de busca para suportar consultas sem acentuação e formatos alternativos
+      const buscaNorm = [
+        item.objeto,
+        item.discriminacao,
+        item.licitacaoNumero,
+        item.entidadeNome,
+        item.modalidade,
+        item.modalidade ? item.modalidade.replace(/_/g, " ") : "",
+        modalidadeFmt,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      return {
+        ...item,
+        modalidadeFormatada: modalidadeFmt,
+        valorFinal:
+          typeof valorNum === "number" && valorNum > 0 ? valorNum : null,
+        buscaNormalizada: buscaNorm,
+      };
+    });
+  }, [sortedByRelevance]);
+
+  const columns: Column<LicitacaoTableRow>[] = [
+    {
+      header: "Processo",
+      accessorKey: "licitacaoNumero",
+      sortable: true,
+      className:
+        "whitespace-nowrap font-bold font-mono text-slate-900 text-xs sm:text-sm",
+      renderCell: (row) => row.licitacaoNumero || "S/N",
+    },
+    {
+      header: "Órgão",
+      accessorKey: "entidadeNome",
+      sortable: true,
+      className: "min-w-[150px] max-w-[220px] truncate text-slate-700 text-xs",
+      renderCell: (row) => row.entidadeNome || "—",
+    },
+    {
+      header: "Modalidade",
+      accessorKey: "modalidadeFormatada",
+      sortable: true,
+      align: "center",
+      className: "whitespace-nowrap",
+      renderCell: (row) => (
+        <Badge variant="accent">{row.modalidadeFormatada}</Badge>
+      ),
+    },
+    {
+      header: "Objeto",
+      accessorKey: "objeto",
+      sortable: true,
+      className: "min-w-[220px] max-w-[340px] text-slate-700 text-xs",
+      renderCell: (row) => (
+        <div className="space-y-0.5">
+          <span className="line-clamp-2 font-medium" title={row.objeto}>
+            {row.objeto}
+          </span>
+          {row.discriminacao && row.discriminacao !== row.objeto && (
+            <span
+              className="line-clamp-1 text-[11px] text-slate-400 italic"
+              title={row.discriminacao}
+            >
+              {row.discriminacao}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: "Abertura",
+      accessorKey: "dataAbertura",
+      sortable: true,
+      align: "center",
+      className: "whitespace-nowrap font-medium text-slate-600 text-xs",
+      renderCell: (row) =>
+        row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada",
+    },
+    {
+      header: "Valor Estimado",
+      accessorKey: "valorFinal",
+      sortable: true,
+      align: "right",
+      isSerifNumeric: true,
+      renderCell: (row) => {
+        if (typeof row.valorFinal === "number" && row.valorFinal > 0) {
+          return (
+            <span className="font-bold font-serif text-slate-900">
+              {fmtCurrency(row.valorFinal)}
+            </span>
+          );
+        }
+        return (
+          <span className="text-slate-400 text-xs italic">Não divulgado</span>
+        );
+      },
+      exportValue: (row) => (row.valorFinal !== null ? row.valorFinal : ""),
+    },
+    {
+      header: "Situação",
+      accessorKey: "situacao",
+      sortable: true,
+      align: "center",
+      className: "whitespace-nowrap",
+      renderCell: () => <Badge variant="warning">Em andamento</Badge>,
+    },
+  ];
 
   const totalProcessos = lista.length;
-  const totalFiltrados = licitacoesFiltradas.length;
 
   return (
     <section
       id="licitacoes-em-andamento"
       aria-labelledby="licitacoes-em-andamento-heading"
-      className={cn("scroll-mt-6 space-y-4", className)}
+      className={cn("scroll-mt-6 space-y-6", className)}
     >
+      {/* Cabeçalho da Seção */}
       <div className="flex flex-col justify-between gap-2 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
         <div>
           <div className="flex items-center gap-2">
@@ -112,134 +212,137 @@ export function LicitacoesEmAndamentoSection({
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-md">
-              <Search
-                className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar por objeto da compra, edital ou órgão..."
-                className="w-full rounded-xl border border-slate-200 bg-white py-2 pr-9 pl-9 text-slate-800 text-xs placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:text-sm"
-                aria-label="Buscar licitações em andamento por objeto"
-              />
-              {busca && (
-                <button
-                  type="button"
-                  onClick={() => setBusca("")}
-                  className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600"
-                  aria-label="Limpar busca"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
+        <div className="space-y-6">
+          {/* Top 3 Cards Grid */}
+          {top3.length > 0 && (
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
+                  Processos em Destaque por Relevância
+                </h3>
+                <span className="text-slate-400 text-xs">
+                  {top3.length === 1
+                    ? "Maior valor estimado"
+                    : `Top ${top3.length} de maior valor`}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {top3.map((item) => {
+                  const valorExibicao = (() => {
+                    const val = item.valorEstimado ?? item.valor;
+                    if (typeof val === "number" && val > 0) {
+                      return fmtCurrency(val);
+                    }
+                    return "Valor não divulgado";
+                  })();
 
-            {busca && (
-              <span className="text-slate-500 text-xs" aria-live="polite">
-                {totalFiltrados}{" "}
-                {totalFiltrados === 1
-                  ? "processo encontrado"
-                  : "processos encontrados"}
-              </span>
-            )}
-          </div>
+                  const dataAberturaTexto = (() => {
+                    if (item.dataAbertura) {
+                      return fmtDate(item.dataAbertura);
+                    }
+                    return "Abertura não informada";
+                  })();
 
-          {totalFiltrados === 0 ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-500 text-xs">
-              Nenhuma licitação encontrada para o termo &ldquo;{busca}&rdquo;.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {licitacoesFiltradas.map((item) => {
-                const valorExibicao = (() => {
-                  const val = item.valorEstimado ?? item.valor;
-                  if (typeof val === "number" && val > 0) {
-                    return fmtCurrency(val);
-                  }
-                  return "Valor não divulgado";
-                })();
+                  return (
+                    <article
+                      key={item.licitacaoId}
+                      className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-bold font-mono text-slate-900 text-sm">
+                              Processo {item.licitacaoNumero || "S/N"}
+                            </span>
+                            {item.entidadeNome && (
+                              <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
+                                <Building2
+                                  className="h-3 w-3 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                <span className="truncate">
+                                  {item.entidadeNome}
+                                </span>
+                              </div>
+                            )}
+                          </div>
 
-                const dataAberturaTexto = (() => {
-                  if (item.dataAbertura) {
-                    return fmtDate(item.dataAbertura);
-                  }
-                  return "Abertura não informada";
-                })();
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <Badge variant="accent">
+                              {fmtLicitacaoModalidade(item.modalidade)}
+                            </Badge>
+                            <Badge variant="warning">Em andamento</Badge>
+                          </div>
+                        </div>
 
-                return (
-                  <article
-                    key={item.licitacaoId}
-                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="font-bold font-mono text-slate-900 text-sm">
-                            Processo {item.licitacaoNumero || "S/N"}
-                          </span>
-                          {item.entidadeNome && (
-                            <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
-                              <Building2
-                                className="h-3 w-3 shrink-0"
-                                aria-hidden="true"
-                              />
-                              <span className="truncate">
-                                {item.entidadeNome}
-                              </span>
-                            </div>
+                        <p
+                          className="line-clamp-3 font-medium text-slate-700 text-xs leading-relaxed sm:text-sm"
+                          title={item.objeto}
+                        >
+                          {item.objeto}
+                        </p>
+
+                        {item.discriminacao &&
+                          item.discriminacao !== item.objeto && (
+                            <p className="line-clamp-2 text-slate-500 text-xs italic">
+                              {item.discriminacao}
+                            </p>
                           )}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-slate-100 border-t pt-3 text-xs">
+                        <div className="flex items-center gap-1.5 text-slate-500">
+                          <Calendar
+                            className="h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span>Abertura: {dataAberturaTexto}</span>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-end gap-1.5">
-                          <Badge variant="accent">
-                            {fmtLicitacaoModalidade(item.modalidade)}
-                          </Badge>
-                          <Badge variant="warning">Em andamento</Badge>
+                        <div className="flex items-center gap-1 font-bold font-serif text-slate-900">
+                          <Coins
+                            className="h-3.5 w-3.5 text-slate-400"
+                            aria-hidden="true"
+                          />
+                          <span>{valorExibicao}</span>
                         </div>
                       </div>
-
-                      <p
-                        className="line-clamp-3 font-medium text-slate-700 text-xs leading-relaxed sm:text-sm"
-                        title={item.objeto}
-                      >
-                        {item.objeto}
-                      </p>
-
-                      {item.discriminacao &&
-                        item.discriminacao !== item.objeto && (
-                          <p className="line-clamp-2 text-slate-500 text-xs italic">
-                            {item.discriminacao}
-                          </p>
-                        )}
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between border-slate-100 border-t pt-3 text-xs">
-                      <div className="flex items-center gap-1.5 text-slate-500">
-                        <Calendar
-                          className="h-3.5 w-3.5 shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span>Abertura: {dataAberturaTexto}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 font-bold font-serif text-slate-900">
-                        <Coins
-                          className="h-3.5 w-3.5 text-slate-400"
-                          aria-hidden="true"
-                        />
-                        <span>{valorExibicao}</span>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+                    </article>
+                  );
+                })}
+              </div>
             </div>
           )}
+
+          {/* Tabela Completa via DenseTable */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
+                Relação Completa de Licitações em Aberto
+              </h3>
+            </div>
+            <DenseTable
+              data={tableData}
+              columns={columns}
+              searchPlaceholder="Buscar por objeto da compra, edital, órgão ou modalidade..."
+              searchableKeys={[
+                "objeto",
+                "discriminacao",
+                "licitacaoNumero",
+                "entidadeNome",
+                "modalidadeFormatada",
+                "buscaNormalizada",
+              ]}
+              pageSize={10}
+              sortable={true}
+              defaultSortKey="valorFinal"
+              defaultSortDir="desc"
+              enableExportCsv={true}
+              exportFilename="licitacoes_em_andamento.csv"
+              recordLabel="licitações"
+              rowKey="licitacaoId"
+            />
+          </div>
         </div>
       )}
     </section>

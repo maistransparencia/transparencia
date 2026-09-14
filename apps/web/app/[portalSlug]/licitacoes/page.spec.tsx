@@ -203,9 +203,12 @@ describe("LicitacoesPage", () => {
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
     expect(screen.getByText("Processo 042/2024")).toBeInTheDocument();
-    expect(screen.getByText("Secretaria de Obras")).toBeInTheDocument();
     expect(
-      screen.getByText("Contratação de empresa para reforma de pontes"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Secretaria de Obras").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Contratação de empresa para reforma de pontes")
+        .length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });

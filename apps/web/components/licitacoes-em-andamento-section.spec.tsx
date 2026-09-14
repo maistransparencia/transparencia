@@ -39,34 +39,59 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     },
   ];
 
-  it("renderiza cabeçalho, contagem e itens corretamente", () => {
+  it("renderiza cabeçalho, contagem, top cards e tabela DenseTable", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     expect(
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Radar Preventivo")).toBeInTheDocument();
     expect(screen.getByText(/2 processos em aberto/i)).toBeInTheDocument();
-    expect(screen.getByText(/PE 001\/2025/i)).toBeInTheDocument();
-    expect(screen.getByText(/CP 002\/2025/i)).toBeInTheDocument();
+
+    // Destaque Top 3
     expect(
-      screen.getByText(/Aquisição de medicamentos hospitalares/i),
+      screen.getByText("Processos em Destaque por Relevância"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Fundo Municipal de Saúde/i)).toBeInTheDocument();
+
+    // Tabela completa
+    expect(
+      screen.getByText("Relação Completa de Licitações em Aberto"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/PE 001\/2025/i).length).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(screen.getAllByText(/CP 002\/2025/i).length).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
-  it("filtra itens pela busca de objeto", () => {
+  it("ordena os cards em destaque por maior valor estimado", () => {
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(2);
+    // CP 002/2025 tem 1.200.000 vs PE 001/2025 com 250.000
+    expect(cards[0]).toHaveTextContent("CP 002/2025");
+    expect(cards[1]).toHaveTextContent("PE 001/2025");
+  });
+
+  it("filtra itens na tabela pela busca do DenseTable", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital ou órgão/i,
+      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
     );
     fireEvent.change(searchInput, { target: { value: "medicamentos" } });
 
-    expect(screen.getByText(/PE 001\/2025/i)).toBeInTheDocument();
-    expect(screen.queryByText(/CP 002\/2025/i)).not.toBeInTheDocument();
+    // Na tabela filtrada, deve encontrar apenas o PE 001/2025
+    const rows = screen.getAllByRole("row");
+    // Header + 1 linha de dado
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toHaveTextContent("PE 001/2025");
+    expect(rows[1]).not.toHaveTextContent("CP 002/2025");
   });
 
-  it("filtra itens pela busca de modalidade com espaços ou discriminação", () => {
+  it("filtra itens na busca por modalidade com espaços ou discriminação", () => {
     const itemsComDiscriminacao: LicitacaoEmAndamentoDTO[] = [
       {
         ...sampleItems[0],
@@ -74,33 +99,36 @@ describe("LicitacoesEmAndamentoSection Component", () => {
         discriminacao: "Fornecimento de antibióticos e seringas",
         modalidade: "pregao_eletronico",
       },
+      sampleItems[1],
     ];
 
     render(<LicitacoesEmAndamentoSection licitacoes={itemsComDiscriminacao} />);
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital ou órgão/i,
+      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
     );
 
     // Busca por termo na discriminação
     fireEvent.change(searchInput, { target: { value: "antibioticos" } });
-    expect(screen.getByText(/PE 001\/2025/i)).toBeInTheDocument();
+    const rowsDiscriminacao = screen.getAllByRole("row");
+    expect(rowsDiscriminacao).toHaveLength(2);
+    expect(rowsDiscriminacao[1]).toHaveTextContent("PE 001/2025");
 
     // Busca por modalidade com espaços em vez de snake_case
     fireEvent.change(searchInput, { target: { value: "pregao eletronico" } });
-    expect(screen.getByText(/PE 001\/2025/i)).toBeInTheDocument();
+    const rowsModalidade = screen.getAllByRole("row");
+    expect(rowsModalidade).toHaveLength(2);
+    expect(rowsModalidade[1]).toHaveTextContent("PE 001/2025");
   });
 
-  it("exibe estado vazio quando busca não retorna resultados", () => {
+  it("exibe estado vazio na tabela quando a busca não retorna resultados", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital ou órgão/i,
+      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
     );
-    fireEvent.change(searchInput, { target: { value: "inexistente" } });
+    fireEvent.change(searchInput, { target: { value: "termo_inexistente" } });
 
-    expect(
-      screen.getByText(/Nenhuma licitação encontrada para o termo/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Nenhum registro encontrado.")).toBeInTheDocument();
   });
 
   it("exibe estado vazio padrão quando a lista de itens é vazia", () => {
@@ -111,5 +139,6 @@ describe("LicitacoesEmAndamentoSection Component", () => {
         "Nenhuma licitação em andamento ou aberta encontrada para este exercício.",
       ),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 });
