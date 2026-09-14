@@ -30,13 +30,14 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
 
 - **Critérios de Detecção de Anomalias:** Regras contábeis e fiscais pré-programadas que identificam pontos fora da curva em pessoal, compras, receitas e limites legais (ex: disparidade na razão salarial média entre cargos comissionados e efetivos, concentração de contratações, evolução de passivos e dependência de repasses).
-- **Badges Semânticos de Severidade:**
-  - *Crítico:* Desvios de alta magnitude que exigem vigilância prioritária da sociedade civil.
-  - *Alto Desvio:* Variações acentuadas frente aos parâmetros de normalidade ou limites de referência.
-  - *Moderado:* Oscilações com relevância para acompanhamento orçamentário.
-- **Metodologia Analítica Declarada:**
-  - *Comparação Homóloga:* Confronto do período observado com o intervalo equivalente do exercício anterior ou série histórica.
-  - *Posição Atual:* Apuração pontual ou acumulada no exercício de referência.
+- **Badges Semânticos de Atenção e Acompanhamento:**
+  - *Atenção Especial:* Variações de maior magnitude que merecem acompanhamento prioritário da sociedade civil.
+  - *Atenção:* Variações relevantes frente aos padrões médios ou limites de referência.
+  - *Aporte Relevante:* Expansão expressiva de recursos aplicados em áreas sociais e serviços essenciais (como Saúde, Educação e Assistência Social).
+  - *Acompanhamento:* Oscilações moderadas para monitoramento orçamentário rotineiro.
+- **Contexto Temporal Declarado:**
+  - *Média Histórica (Jan a Mês):* Confronto do período observado com o intervalo equivalente em exercícios anteriores.
+  - *Quadro Atual:* Apuração pontual da situação vigente no exercício de referência.
 - **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas, isentas de adjetivações valorativas ou acusações subjetivas.
 - **Métricas Comparativas:** Exibição clara do valor observado versus valor de referência ou limite normativo.
 - **Funil de Aprofundamento e Compartilhamento:**

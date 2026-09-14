@@ -370,61 +370,113 @@ export function getMesNome(mes: number | null | undefined): string {
   return MESES_ABREV[mes - 1] ?? "";
 }
 
+export const DIMENSAO_NOMES: Record<string, string> = {
+  // Funções de Governo STN (Portaria 42/1999)
+  legislativa: "Legislativa",
+  judiciaria: "Judiciária",
+  essencial_a_justica: "Essencial à Justiça",
+  administracao: "Administração",
+  defesa_nacional: "Defesa Nacional",
+  seguranca_publica: "Segurança Pública",
+  relacoes_exteriores: "Relações Exteriores",
+  assistencia_social: "Assistência Social",
+  previdencia_social: "Previdência Social",
+  saude: "Saúde",
+  trabalho: "Trabalho",
+  educacao: "Educação",
+  cultura: "Cultura",
+  direitos_da_cidadania: "Direitos da Cidadania",
+  urbanismo: "Urbanismo",
+  habitacao: "Habitação",
+  saneamento: "Saneamento",
+  gestao_ambiental: "Gestão Ambiental",
+  ciencia_e_tecnologia: "Ciência e Tecnologia",
+  agricultura: "Agricultura",
+  organizacao_agraria: "Organização Agrária",
+  industria: "Indústria",
+  comercio_e_servicos: "Comércio e Serviços",
+  comunicacoes: "Comunicações",
+  energia: "Energia",
+  transporte: "Transporte",
+  desporto_e_lazer: "Desporto e Lazer",
+  encargos_especiais: "Encargos Especiais",
+  sem_funcao: "Sem Função Específica",
+
+  // Dimensões do Radar Cívico
+  comissionados: "Cargos Comissionados",
+  recursos_livres: "Recursos Livres",
+  caixa: "Disponibilidade em Caixa",
+  dispensas: "Contratações Diretas",
+};
+
+export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
+  "saude",
+  "educacao",
+  "assistencia_social",
+  "habitacao",
+  "saneamento",
+  "gestao_ambiental",
+  "cultura",
+  "desporto_e_lazer",
+  "direitos_da_cidadania",
+]);
+
+export function isInvestimentoSocial(dimensao?: string | null): boolean {
+  if (!dimensao) return false;
+  return FUNCOES_INVESTIMENTO_SOCIAL.has(dimensao.toLowerCase().trim());
+}
+
 export function formatarDimensao(dimensao?: string | null): string {
   const clean = dimensao?.toLowerCase().trim();
   if (!clean) return "Geral";
-  const map: Record<string, string> = {
-    saude: "Saúde",
-    educacao: "Educação",
-    administracao: "Administração",
-    assistencia_social: "Assistência Social",
-    seguranca_publica: "Segurança Pública",
-    urbanismo: "Urbanismo",
-    saneamento: "Saneamento",
-    gestao_ambiental: "Gestão Ambiental",
-    agricultura: "Agricultura",
-    transporte: "Transporte",
-    desporto_e_lazer: "Desporto e Lazer",
-    encargos_especiais: "Encargos Especiais",
-    previdencia_social: "Previdência Social",
-    legislativa: "Legislativa",
-    comissionados: "Cargos Comissionados",
-    recursos_livres: "Recursos Livres",
-    dispensas: "Contratações Diretas",
-  };
-  if (map[clean]) return map[clean];
+  if (DIMENSAO_NOMES[clean]) return DIMENSAO_NOMES[clean];
   return clean
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
-export function getBadgeSeveridade(grau: GrauSeveridade | string): {
+export function getBadgeSeveridade(
+  grau: GrauSeveridade | string,
+  alerta?: Pick<RadarCivicoAlertaDTO, "tipoAnomalia" | "dimensaoReferencia">,
+): {
   label: string;
   variant: GrauSeveridade;
   colorClass: string;
 } {
+  if (
+    alerta?.tipoAnomalia === "pico_despesa_homologa" &&
+    isInvestimentoSocial(alerta.dimensaoReferencia)
+  ) {
+    return {
+      label: "Aporte Relevante",
+      variant: "alto",
+      colorClass:
+        "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+    };
+  }
+
   if (grau === "critico") {
     return {
-      label: "Crítico",
+      label: "Atenção Especial",
       variant: "critico",
       colorClass:
-        "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
+        "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
     };
   }
   if (grau === "alto") {
     return {
-      label: "Alto Desvio",
+      label: "Atenção",
       variant: "alto",
       colorClass:
-        "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/60",
+        "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
     };
   }
   return {
-    label: "Moderado",
+    label: "Acompanhamento",
     variant: "moderado",
     colorClass:
-      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
+      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700",
   };
 }
 
@@ -433,14 +485,14 @@ export function formatDesvioPercentual(val: number): string {
   if (Number.isInteger(absVal)) {
     return String(absVal);
   }
-  return Number(absVal.toFixed(2)).toString().replace(".", ",");
+  return Number(absVal.toFixed(1)).toString().replace(".", ",");
 }
 
 export function formatPercentNumber(val: number): string {
   if (Number.isInteger(val)) {
     return String(val);
   }
-  return Number(val.toFixed(2)).toString().replace(".", ",");
+  return Number(val.toFixed(1)).toString().replace(".", ",");
 }
 
 export function formatMoeda(val: number): string {
@@ -448,11 +500,24 @@ export function formatMoeda(val: number): string {
 }
 
 export function formatCompactBRL(value: number): string {
-  const formatted = fmtCompact(value);
-  if (Math.abs(value) >= 1_000_000) {
-    return formatted.replace(".", ",");
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000_000) {
+    const val = (value / 1_000_000_000).toFixed(1).replace(".", ",");
+    return `R$ ${val} bi`;
   }
-  return formatted;
+  if (abs >= 1_000_000) {
+    const val = (value / 1_000_000).toFixed(1).replace(".", ",");
+    return `R$ ${val} mi`;
+  }
+  if (abs >= 1_000) {
+    const k = value / 1_000;
+    const formattedK =
+      Number.isInteger(k) || k % 1 === 0
+        ? String(Math.round(k))
+        : k.toFixed(1).replace(".", ",");
+    return `R$ ${formattedK} mil`;
+  }
+  return formatMoeda(value);
 }
 
 export function getBadgeMetodologia(
@@ -462,7 +527,7 @@ export function getBadgeMetodologia(
     alerta.tipoAnomalia === "explosao_comissionados" ||
     alerta.tipoAnomalia === "rombo_caixa"
   ) {
-    return "Posição Atual (Estoque 1:1)";
+    return "Quadro Atual";
   }
 
   const mesFinal = alerta.mesFinal;
@@ -473,35 +538,38 @@ export function getBadgeMetodologia(
     const mesFinalNome = getMesNome(mesFinal);
     if (mesFinalNome && mesFinal) {
       if (mesFinal === 1) {
-        return "Comparação Homóloga (Jan)";
+        return "Histórico Jan";
       }
       if (mesFinal < 12) {
-        return `Comparação Homóloga (Jan–${mesFinalNome})`;
+        return `Histórico Jan a ${mesFinalNome}`;
       }
     }
-    return "Comparação Homóloga";
+    return "Média Histórica";
   }
 
-  return "Comparação Homóloga";
+  return "Média Histórica";
 }
 
 export function getCardTitulo(
   alerta: Pick<RadarCivicoAlertaDTO, "tipoAnomalia" | "dimensaoReferencia">,
 ): string {
   if (alerta.tipoAnomalia === "explosao_comissionados") {
-    return "Variação Atípica em Cargos Comissionados";
+    return "Variação em Cargos Comissionados";
   }
   if (alerta.tipoAnomalia === "rombo_caixa") {
     return "Disponibilidade em Recursos Livres";
   }
   if (alerta.tipoAnomalia === "pico_despesa_homologa") {
     const nomeFuncao = formatarDimensao(alerta.dimensaoReferencia);
-    return `Concentração de Despesas em ${nomeFuncao}`;
+    if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
+      return `Aporte Expressivo em ${nomeFuncao}`;
+    }
+    return `Aumento de Gastos em ${nomeFuncao}`;
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
     return "Volume em Contratações Diretas";
   }
-  return "Indicador Fiscal em Destaque";
+  return "Indicador em Destaque";
 }
 
 export function formatFactualNarrative(
@@ -522,14 +590,14 @@ export function formatFactualNarrative(
     const obs = fmtNumber(Math.round(alerta.valorObservado ?? 0));
     const esp = fmtNumber(Math.round(alerta.valorEsperado ?? 0));
     const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-    return `Em ${ano}, o quadro de pessoal registrou ${obs} cargos comissionados ativos, número +${desvio}% superior à mediana histórica observada (${esp} cargos).`;
+    return `Em ${ano}, o quadro de pessoal registrou ${obs} cargos comissionados ativos, número +${desvio}% acima da média histórica observada (${esp} cargos).`;
   }
 
   if (alerta.tipoAnomalia === "rombo_caixa") {
     const obs = formatMoeda(alerta.valorObservado ?? 0);
     const esp = formatMoeda(alerta.valorEsperado ?? 0);
     const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-    return `A disponibilidade financeira líquida em recursos livres fechou em ${obs}, posicionando-se ${desvio}% abaixo da mediana histórica de referência (${esp}).`;
+    return `A disponibilidade financeira líquida em recursos livres encerrou o período em ${obs}, posicionando-se ${desvio}% abaixo da média histórica (${esp}).`;
   }
 
   if (alerta.tipoAnomalia === "pico_despesa_homologa") {
@@ -545,18 +613,23 @@ export function formatFactualNarrative(
     const obs = formatCompactBRL(alerta.valorObservado ?? 0);
     const esp = formatCompactBRL(alerta.valorEsperado ?? 0);
     const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
-    return `No período homólogo${periodoStr}, os gastos empenhados na função ${nomeFuncao} somaram ${obs}, com variação de +${desvio}% sobre a mediana histórica do período (${esp}).`;
+
+    if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
+      return `No período analisado${periodoStr}, os recursos aplicados na área de ${nomeFuncao} totalizaram ${obs} — valor +${desvio}% superior à média histórica do período (${esp}).`;
+    }
+
+    return `No período analisado${periodoStr}, as despesas empenhadas na função ${nomeFuncao} somaram ${obs}, com variação de +${desvio}% em relação à média histórica (${esp}).`;
   }
 
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    const obs = Number((alerta.valorObservado ?? 0).toFixed(1));
-    const esp = Number((alerta.valorEsperado ?? 0).toFixed(1));
-    return `No período homólogo, ${obs}% do volume financeiro total licitado ocorreu via dispensa ou inexigibilidade de licitação, frente à mediana histórica de ${esp}%.`;
+    const obs = (alerta.valorObservado ?? 0).toFixed(1).replace(".", ",");
+    const esp = (alerta.valorEsperado ?? 0).toFixed(1).replace(".", ",");
+    return `No período de referência, ${obs}% do volume financeiro total licitado ocorreu via dispensa ou inexigibilidade de licitação, frente à média histórica de ${esp}%.`;
   }
 
   const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
   const sinal = (alerta.desvioPercentual ?? 0) > 0 ? "+" : "";
-  return `Registrado desvio de ${sinal}${desvio}% no indicador em relação ao padrão histórico observado.`;
+  return `Registrada variação de ${sinal}${desvio}% no indicador em relação ao padrão histórico observado.`;
 }
 
 export function getCardCtaLabel(
@@ -570,10 +643,13 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "pico_despesa_homologa") {
     const nomeFuncao = formatarDimensao(alerta.dimensaoReferencia);
+    if (isInvestimentoSocial(alerta.dimensaoReferencia)) {
+      return `Conferir Aplicação em ${nomeFuncao} →`;
+    }
     return `Explorar Despesas de ${nomeFuncao} →`;
   }
   if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    return "Examinar Licitações e Dispensas →";
+    return "Examinar Licitações e Contratos →";
   }
   return "Ver detalhes →";
 }
@@ -658,7 +734,7 @@ export function buildRadarCivicoCards(
 
   return alertas.map((alerta) => {
     const titulo = getCardTitulo(alerta);
-    const badgeSeveridade = getBadgeSeveridade(alerta.grauSeveridade);
+    const badgeSeveridade = getBadgeSeveridade(alerta.grauSeveridade, alerta);
     const metodologiaBadge = getBadgeMetodologia(alerta);
     const tipoMetodologia: "homologa" | "estoque" =
       alerta.tipoAnomalia === "explosao_comissionados" ||
@@ -689,10 +765,10 @@ export function buildRadarCivicoCards(
         return `${fmtNumber(Math.round(alerta.valorObservado))} cargos`;
       }
       if (alerta.tipoAnomalia === "concentracao_dispensa") {
-        return `${Number(alerta.valorObservado.toFixed(1))}%`;
+        return `${alerta.valorObservado.toFixed(1).replace(".", ",")}%`;
       }
       if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-        return fmtCompact(alerta.valorObservado).replace(".", ",");
+        return formatCompactBRL(alerta.valorObservado);
       }
       return formatMoeda(alerta.valorObservado);
     })();
@@ -702,10 +778,10 @@ export function buildRadarCivicoCards(
         return `${fmtNumber(Math.round(alerta.valorEsperado))} cargos`;
       }
       if (alerta.tipoAnomalia === "concentracao_dispensa") {
-        return `${Number(alerta.valorEsperado.toFixed(1))}%`;
+        return `${alerta.valorEsperado.toFixed(1).replace(".", ",")}%`;
       }
       if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-        return fmtCompact(alerta.valorEsperado).replace(".", ",");
+        return formatCompactBRL(alerta.valorEsperado);
       }
       return formatMoeda(alerta.valorEsperado);
     })();

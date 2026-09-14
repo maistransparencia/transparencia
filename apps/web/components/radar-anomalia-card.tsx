@@ -1,8 +1,9 @@
+import { cn } from "@transparencia/ui";
 import {
   AlertCircle,
   AlertTriangle,
   ArrowRight,
-  History,
+  Clock,
   Info,
   Layers,
 } from "lucide-react";
@@ -15,59 +16,74 @@ export interface RadarAnomaliaCardProps {
   className?: string;
 }
 
-function getSeverityBorderClass(grau: string): string {
-  if (grau === "critico") return "border-l-rose-500 dark:border-l-rose-400";
-  if (grau === "alto") return "border-l-amber-500 dark:border-l-amber-400";
-  return "border-l-blue-500 dark:border-l-blue-400";
-}
-
 function getSeverityBadgeData(grau: string) {
   if (grau === "critico") {
     return {
-      label: "Crítico",
+      label: "Atenção Especial",
       colorClass:
-        "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
+        "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
     };
   }
   if (grau === "alto") {
     return {
-      label: "Alto Desvio",
+      label: "Atenção",
       colorClass:
-        "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/60",
+        "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
     };
   }
   return {
-    label: "Moderado",
+    label: "Acompanhamento",
     colorClass:
-      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
+      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700",
   };
 }
 
 function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "critico") {
     return (
-      <AlertCircle className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <AlertCircle
+        className="mr-1 h-3.5 w-3.5 shrink-0 text-rose-700 dark:text-rose-400"
+        aria-hidden="true"
+      />
     );
   }
   if (grau === "alto") {
     return (
-      <AlertTriangle className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <AlertTriangle
+        className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-400"
+        aria-hidden="true"
+      />
     );
   }
-  return <Info className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  return (
+    <Info
+      className="mr-1 h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-slate-400"
+      aria-hidden="true"
+    />
+  );
 }
 
 function MethodologyIcon({ tipo }: { tipo: string }) {
   if (tipo === "estoque") {
-    return <Layers className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+    return (
+      <Layers
+        className="mr-1 h-3.5 w-3.5 shrink-0 text-slate-500"
+        aria-hidden="true"
+      />
+    );
   }
-  return <History className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  return (
+    <Clock
+      className="mr-1 h-3.5 w-3.5 shrink-0 text-slate-500"
+      aria-hidden="true"
+    />
+  );
 }
 
 function WhatsAppIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5 shrink-0 fill-current"
+      className="h-3.5 w-3.5 shrink-0 fill-current text-[#25D366]"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
@@ -84,7 +100,6 @@ export function RadarAnomaliaCard({
   const card = cardProp ?? itemProp;
   if (!card) return null;
 
-  const borderClass = getSeverityBorderClass(card.grauSeveridade);
   const badgeSeveridade =
     card.badgeSeveridade ?? getSeverityBadgeData(card.grauSeveridade);
   const metodologiaLabel = card.metodologiaBadge || card.badgeMetodologia || "";
@@ -93,14 +108,20 @@ export function RadarAnomaliaCard({
     <article
       data-testid="radar-anomalia-card"
       data-card-id={card.anomaliaId}
-      className={`relative flex h-full flex-col justify-between rounded-xl border border-border bg-card ${borderClass} border-l-4 p-5 shadow-sm transition-shadow duration-200 hover:shadow-md ${className ?? ""}`}
+      className={cn(
+        "relative flex h-full flex-col justify-between rounded-[14px] border border-borderLine bg-cardBg p-5 shadow-sm transition-all duration-200 hover:shadow-md",
+        className,
+      )}
     >
       <div>
-        {/* Badges superiores */}
+        {/* Badges superiores com alto contraste e elegância */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span
             data-testid="radar-severidade-badge"
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 font-semibold text-xs ${badgeSeveridade.colorClass}`}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium text-xs shadow-xs",
+              badgeSeveridade.colorClass,
+            )}
           >
             <SeverityIcon grau={card.grauSeveridade} />
             {badgeSeveridade.label}
@@ -108,54 +129,62 @@ export function RadarAnomaliaCard({
 
           <span
             data-testid="radar-metodologia-badge"
-            className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 font-medium text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-600 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           >
             <MethodologyIcon tipo={card.tipoMetodologia} />
             {metodologiaLabel}
           </span>
         </div>
 
-        {/* Título do Card */}
-        <h3 className="font-semibold text-base text-foreground leading-snug tracking-tight">
+        {/* Título do Card: tipografia serif elegante */}
+        <h3 className="font-bold font-serif text-base text-ink leading-snug tracking-tight sm:text-lg">
           {card.titulo}
         </h3>
 
         {/* Narrativa Factual Neutra */}
-        <p className="mt-2.5 text-muted-foreground text-sm leading-relaxed">
+        <p className="mt-2.5 text-subtleText text-xs leading-relaxed sm:text-sm">
           {card.textoFactual || card.resumoFactual}
         </p>
 
-        {/* Métricas comparativas */}
-        <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-border/50 bg-muted/50 p-2.5 text-xs">
-          <div>
-            <span className="block text-muted-foreground">Observado</span>
-            <span className="block truncate font-semibold text-foreground">
-              {card.valorObservadoFormatted}
-            </span>
-          </div>
-          <div>
-            <span className="block text-muted-foreground">Esperado</span>
-            <span className="block truncate font-semibold text-foreground">
-              {card.valorEsperadoFormatted}
-            </span>
-          </div>
-          <div>
-            <span className="block text-muted-foreground">Variação</span>
-            <span className="block truncate font-semibold text-foreground">
-              {card.desvioPercentualFormatted || `${card.desvioPercentual}%`}
-            </span>
+        {/* Tabela de métricas comparativas harmoniosa */}
+        <div className="mt-4 rounded-xl border border-[#f0f2f5] bg-[#f8f9fb] p-3 text-xs">
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+                Observado
+              </span>
+              <span className="mt-0.5 block truncate font-bold font-serif text-ink text-sm sm:text-base">
+                {card.valorObservadoFormatted}
+              </span>
+            </div>
+            <div>
+              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+                Média Histórica
+              </span>
+              <span className="mt-0.5 block truncate font-medium font-sans text-slate-600 text-xs sm:text-sm">
+                {card.valorEsperadoFormatted}
+              </span>
+            </div>
+            <div>
+              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+                Variação
+              </span>
+              <span className="mt-0.5 block truncate font-bold font-sans text-amber-800 text-xs sm:text-sm">
+                {card.desvioPercentualFormatted || `${card.desvioPercentual}%`}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Ações / Rodapé */}
-      <div className="mt-5 flex items-center justify-between gap-2 border-border/60 border-t pt-3">
+      {/* Ações / Rodapé perfeitamente balanceado */}
+      <div className="mt-5 flex items-center justify-between gap-3 border-[#f4f5f7] border-t pt-3.5">
         <Link
           href={card.ctaUrl}
           data-testid="radar-cta-link"
-          className="inline-flex items-center gap-1 rounded font-semibold text-primary text-xs hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm"
+          className="inline-flex min-w-0 items-center gap-1 truncate font-semibold text-accent text-xs hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
         >
-          <span>{card.ctaLabel}</span>
+          <span className="truncate">{card.ctaLabel}</span>
           <ArrowRight className="h-3.5 w-3.5 shrink-0" />
         </Link>
 
@@ -165,7 +194,7 @@ export function RadarAnomaliaCard({
           rel="noopener noreferrer"
           data-testid="radar-whatsapp-button"
           aria-label="Compartilhar no WhatsApp"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 font-medium text-emerald-700 text-xs transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-300 bg-[#eefaf3] px-2.5 py-1.5 font-semibold text-[#1e6f43] text-[11px] shadow-xs transition-colors hover:border-emerald-400 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
           <WhatsAppIcon />
           <span>WhatsApp</span>

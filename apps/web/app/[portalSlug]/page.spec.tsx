@@ -143,7 +143,7 @@ describe("VisaoGeralPage", () => {
 
     expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
     expect(
-      screen.getByText("Variação Atípica em Cargos Comissionados"),
+      screen.getByText("Variação em Cargos Comissionados"),
     ).toBeInTheDocument();
     expect(screen.getByTestId("radar-whatsapp-button")).toBeInTheDocument();
   });

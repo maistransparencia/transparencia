@@ -225,14 +225,15 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
 
     // Card 1: Comissionados
     const cardComiss = feed[0];
-    expect(cardComiss.titulo).toBe("Variação Atípica em Cargos Comissionados");
-    expect(cardComiss.metodologiaBadge).toBe("Posição Atual (Estoque 1:1)");
+    expect(cardComiss.titulo).toBe("Variação em Cargos Comissionados");
+    expect(cardComiss.metodologiaBadge).toBe("Quadro Atual");
     expect(cardComiss.tipoMetodologia).toBe("estoque");
     expect(cardComiss.grauSeveridade).toBe("critico");
+    expect(cardComiss.badgeSeveridade?.label).toBe("Atenção Especial");
     expect(cardComiss.textoFactual).toContain(
       "165 cargos comissionados ativos",
     );
-    expect(cardComiss.textoFactual).toContain("+65% superior");
+    expect(cardComiss.textoFactual).toContain("+65% acima da média histórica");
     expect(cardComiss.ctaUrl).toBe(
       "/porciuncula/pessoal?ano=2024#comissionados",
     );
@@ -246,27 +247,72 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     // Card 2: Rombo Caixa
     const cardCaixa = feed[1];
     expect(cardCaixa.titulo).toBe("Disponibilidade em Recursos Livres");
-    expect(cardCaixa.metodologiaBadge).toBe("Posição Atual (Estoque 1:1)");
-    expect(cardCaixa.textoFactual).toContain("recursos livres fechou em");
+    expect(cardCaixa.metodologiaBadge).toBe("Quadro Atual");
+    expect(cardCaixa.badgeSeveridade?.label).toBe("Atenção Especial");
+    expect(cardCaixa.textoFactual).toContain(
+      "recursos livres encerrou o período em",
+    );
     expect(cardCaixa.ctaUrl).toBe("/porciuncula/receitas?ano=2024#saldo-caixa");
 
-    // Card 3: Despesa Homóloga
+    // Card 3: Despesa Homóloga em Saúde (Investimento Social)
     const cardSaude = feed[2];
-    expect(cardSaude.titulo).toBe("Concentração de Despesas em Saúde");
-    expect(cardSaude.metodologiaBadge).toBe("Comparação Homóloga (Jan–Ago)");
+    expect(cardSaude.titulo).toBe("Aporte Expressivo em Saúde");
+    expect(cardSaude.metodologiaBadge).toBe("Histórico Jan a Ago");
+    expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
-    expect(cardSaude.textoFactual).toContain("função Saúde somaram");
+    expect(cardSaude.textoFactual).toContain(
+      "área de Saúde totalizaram R$ 15,2 mi",
+    );
+    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15,2 mi");
+    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10,7 mi");
+    expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde →");
     expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
 
     // Card 4: Contratações Diretas
     const cardDispensa = feed[3];
     expect(cardDispensa.titulo).toBe("Volume em Contratações Diretas");
-    expect(cardDispensa.metodologiaBadge).toBe("Comparação Homóloga (Jan–Ago)");
+    expect(cardDispensa.metodologiaBadge).toBe("Histórico Jan a Ago");
+    expect(cardDispensa.badgeSeveridade?.label).toBe("Acompanhamento");
     expect(cardDispensa.tipoMetodologia).toBe("homologa");
     expect(cardDispensa.textoFactual).toContain(
-      "48.5% do volume financeiro total licitado",
+      "48,5% do volume financeiro total licitado",
     );
+    expect(cardDispensa.valorObservadoFormatted).toBe("48,5%");
+    expect(cardDispensa.ctaLabel).toBe("Examinar Licitações e Contratos →");
     expect(cardDispensa.ctaUrl).toBe("/porciuncula/licitacoes?ano=2024");
+  });
+
+  it("mapeia dimensao_referencia com acentuação correta usando o dicionário (ex: habitacao -> Habitação)", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-habitacao",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "pico_despesa_homologa",
+          dimensaoReferencia: "habitacao",
+          grauSeveridade: "critico",
+          desvioPercentual: 376.11,
+          valorObservado: 500000,
+          valorEsperado: 105000,
+          mesInicial: 1,
+          mesFinal: 8,
+          deepLinkRota: "/porciuncula/despesas?ano=2024",
+          metodoDeteccao: "iqr_fluxo_homologo",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Aporte Expressivo em Habitação");
+    expect(card.badgeSeveridade?.label).toBe("Aporte Relevante");
+    expect(card.textoFactual).toContain(
+      "área de Habitação totalizaram R$ 500 mil",
+    );
+    expect(card.valorObservadoFormatted).toBe("R$ 500 mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 105 mil");
+    expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação →");
   });
 
   it("retorna array vazio quando não houver alertas", () => {

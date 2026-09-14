@@ -35,26 +35,26 @@ export function RadarCivicoFeed({
       className={`w-full space-y-4 ${className ?? ""}`}
     >
       {/* Cabeçalho da Seção */}
-      <div className="flex flex-col gap-2 border-border/60 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-[#e7e9ee] border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 font-semibold text-primary text-xs">
+          <div className="mb-1.5 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/20 bg-blue-50 px-2.5 py-0.5 font-medium text-accent text-xs">
               <Sparkles className="h-3 w-3" />
               Controle Social Ativo
             </span>
-            <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] text-slate-700">
               Exercício {anoExercicio}
             </span>
           </div>
           <h2
             id="radar-civico-heading"
-            className="flex items-center gap-2 font-bold text-foreground text-xl tracking-tight"
+            className="flex items-center gap-2 font-bold font-serif text-ink text-xl tracking-tight"
           >
             Radar Cívico Municipal
           </h2>
-          <p className="mt-0.5 text-muted-foreground text-sm">
-            Detecção estatística de variações atípicas em relação ao padrão
-            histórico municipal.
+          <p className="mt-0.5 text-sm text-subtleText">
+            Acompanhamento cívico de despesas, contratações e movimentações em
+            relação ao padrão histórico municipal.
           </p>
         </div>
       </div>
