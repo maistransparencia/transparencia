@@ -1,26 +1,24 @@
 {{ config(materialized='view' if var('test_mode', false) else 'table') }}
 
-with ref_periodo_despesas as (
+with max_ano_despesas as (
     select
         d.portal_slug,
-        max(nullif(regexp_replace(trim(d.mes::text), '[^0-9]', '', 'g'), '')::integer) as max_mes
+        max(d.ano) as max_ano
     from {{ ref('fct_despesas') }} d
-    where d.ano = (select max(ano) from {{ ref('fct_despesas') }} where portal_slug = d.portal_slug)
-      and d.fonte = 'exercicio'
+    where d.fonte = 'exercicio'
     group by d.portal_slug
 ),
 
-despesas_homologas as (
+despesas_anuais as (
     select
         d.portal_slug,
         d.ano,
         coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função') as funcao_nome,
-        sum(d.empenhado_liquido) as valor_observado,
-        max(r.max_mes) as max_mes
+        sum(d.empenhado_liquido) as valor_observado
     from {{ ref('fct_despesas') }} d
-    join ref_periodo_despesas r on d.portal_slug = r.portal_slug
+    join max_ano_despesas m on d.portal_slug = m.portal_slug
     where d.fonte = 'exercicio'
-      and nullif(regexp_replace(trim(d.mes::text), '[^0-9]', '', 'g'), '')::integer <= r.max_mes
+      and d.ano < m.max_ano
     group by d.portal_slug, d.ano, coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função')
 ),
 
@@ -31,7 +29,7 @@ despesas_stats as (
         percentile_cont(0.25) within group (order by valor_observado) as q1,
         percentile_cont(0.50) within group (order by valor_observado) as mediana,
         percentile_cont(0.75) within group (order by valor_observado) as q3
-    from despesas_homologas
+    from despesas_anuais
     group by portal_slug, funcao_nome
 ),
 
@@ -48,14 +46,25 @@ despesas_anomalias as (
             else ((h.valor_observado - s.mediana) / s.mediana) * 100.0
         end::numeric as desvio_percentual,
         1::integer as mes_inicial,
-        h.max_mes::integer as mes_final,
+        12::integer as mes_final,
         ('/' || h.portal_slug || '/despesas?ano=' || h.ano)::text as deep_link_rota,
         'iqr_fluxo_homologo'::text as metodo_deteccao
-    from despesas_homologas h
+    from despesas_anuais h
     join despesas_stats s on h.portal_slug = s.portal_slug and h.funcao_nome = s.funcao_nome
     where h.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1)
       and h.valor_observado >= 50000.0
       and (h.valor_observado - s.mediana) >= 20000.0
+      and lower(regexp_replace({{ target.schema }}.unaccent(trim(h.funcao_nome)), '[^a-zA-Z0-9]+', '_', 'g')) not in (
+          'saude',
+          'educacao',
+          'assistencia_social',
+          'habitacao',
+          'saneamento',
+          'gestao_ambiental',
+          'cultura',
+          'desporto_e_lazer',
+          'direitos_da_cidadania'
+      )
 ),
 
 comissionados as (
