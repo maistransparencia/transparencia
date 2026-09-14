@@ -25,6 +25,35 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
+### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)
+
+Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
+
+- **Critérios de Detecção de Anomalias:** Regras contábeis e fiscais automatizadas que identificam pontos fora da curva em pessoal, compras, receitas e limites legais (ex: explosão de cargos comissionados, concentração excessiva de contratações diretas/dispensas e rombo de caixa). No ano corrente, monitora exclusivamente métricas de consistência tempestiva direta. Despesas por função são avaliadas apenas em exercícios consolidados, excluindo investimentos sociais e pisos constitucionais (Saúde, Educação e Assistência Social), que representam garantia de direitos e não anomalias fiscais.
+- **Badges Semânticos de Atenção e Acompanhamento:**
+  - *Atenção Especial:* Variações de maior magnitude que merecem acompanhamento prioritário da sociedade civil (ex: saltos atípicos em comissionados ou rombo de recursos livres).
+  - *Atenção:* Variações relevantes frente aos padrões médios ou limites de referência.
+  - *Acompanhamento:* Oscilações moderadas para monitoramento orçamentário rotineiro.
+- **Contexto Temporal Declarado:**
+  - *Média Histórica:* Confronto com a série histórica plurianual consolidada da contabilidade municipal.
+  - *Quadro Atual:* Apuração pontual da situação vigente no exercício de referência.
+- **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas, isentas de adjetivações valorativas ou acusações subjetivas.
+- **Métricas Comparativas:** Exibição clara do valor observado versus valor de referência ou limite normativo.
+- **Funil de Aprofundamento e Compartilhamento:**
+  - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`) para investigação detalhada.
+  - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
+  - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
+
+### 1.1.2. Painel Histórico do Radar Cívico (/radar)
+
+Acessível através do grupo **Temas** no menu de navegação lateral (Sidebar), a página dedicada `/radar` consolida a série temporal completa de todos os alertas e variações atípicas identificadas desde o início do período de auditoria (2021 em diante):
+
+- **Agrupamento por Seções Anuais Cronológicas:** Os alertas são distribuídos em seções individuais organizadas por exercício financeiro em ordem decrescente (ex: 2026, 2024, 2023...), permitindo ao cidadão analisar tendências plurianuais de governança e cumprimento de metas fiscais.
+- **Omissão de Anos sem Alertas:** Exercícios nos quais todos os indicadores mantiveram-se estritamente dentro da conformidade estatística e normativa são omitidos da exibição, mantendo o foco analítico nos anos que demandam auditoria cidadã.
+- **Resumo e Badges de Severidade por Exercício:** Cada cabeçalho anual quantifica os alertas apurados e detalha o perfil de severidade daquele ano (contagem de alertas Críticos, de Atenção e de Acompanhamento).
+- **Barra de Navegação Rápida (Âncoras):** Uma barra fixa superior permite pular diretamente para qualquer exercício listado através de âncoras locais (`#ano-2026`, `#ano-2024`), facilitando a navegação em telas móveis e desktop.
+- **Grade Responsiva de 2 Colunas:** Cada cartão reutiliza a estrutura canônica do `RadarAnomaliaCard` com narrativa factual neutra, métricas comparativas com destaque visual e atalhos de fiscalização profunda em cada tema administrativo.
+
 ---
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos

@@ -10,6 +10,7 @@ import {
   Mail,
   PieChart,
   Receipt,
+  ShieldAlert,
   TrendingUp,
   Users,
   X,
@@ -50,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: "Saúde", href: "/saude", icon: HeartPulse },
       { name: "CAPREM", href: "/caprem", icon: Landmark },
+      { name: "Radar Cívico", href: "/radar", icon: ShieldAlert },
     ],
   },
 ];
