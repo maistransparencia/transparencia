@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
+import { RadarCivicoFeed } from "@/components/radar-civico-feed";
 import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
@@ -53,6 +54,12 @@ export default async function VisaoGeralPage({
         previstoTotal={viewModel.previstoTotal}
         realizationPercent={viewModel.realizationPercent}
         originBreakdown={viewModel.originBreakdown}
+      />
+
+      <RadarCivicoFeed
+        items={viewModel.radarCivicoFeedData}
+        portalName={viewModel.portalName}
+        ano={viewModel.selectedYear}
       />
 
       <PipelineExecucao

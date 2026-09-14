@@ -1,0 +1,76 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import type { RadarCivicoCardItem } from "@/app/[portalSlug]/view-model";
+import { RadarCivicoFeed } from "../radar-civico-feed";
+
+const mockItems: RadarCivicoCardItem[] = [
+  {
+    anomaliaId: "anomalia-1",
+    tipoAnomalia: "explosao_comissionados",
+    titulo: "Variação Atípica em Cargos Comissionados",
+    dimensaoReferencia: "comissionados",
+    grauSeveridade: "critico",
+    metodologiaBadge: "Posição Atual (Estoque 1:1)",
+    tipoMetodologia: "estoque",
+    textoFactual: "Em 2024, 165 cargos (+65%).",
+    desvioPercentual: 65,
+    valorObservadoFormatted: "165 cargos",
+    valorEsperadoFormatted: "100 cargos",
+    ctaLabel: "Auditar Cargos Comissionados →",
+    ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
+    whatsappShareUrl: "https://api.whatsapp.com/send?text=msg1",
+  },
+  {
+    anomaliaId: "anomalia-2",
+    tipoAnomalia: "pico_despesa_homologa",
+    titulo: "Concentração de Despesas em Saúde",
+    dimensaoReferencia: "saude",
+    grauSeveridade: "alto",
+    metodologiaBadge: "Comparação Homóloga (Jan–Ago)",
+    tipoMetodologia: "homologa",
+    textoFactual: "No período homólogo, R$ 15,2mi (+42%).",
+    desvioPercentual: 42,
+    valorObservadoFormatted: "R$ 15,2mi",
+    valorEsperadoFormatted: "R$ 10,7mi",
+    ctaLabel: "Explorar Despesas de Saúde →",
+    ctaUrl: "/porciuncula/despesas?ano=2024",
+    whatsappShareUrl: "https://api.whatsapp.com/send?text=msg2",
+  },
+];
+
+describe("RadarCivicoFeed", () => {
+  it("renderiza feed com múltiplos cards de anomalia no primeiro scroll", () => {
+    render(
+      <RadarCivicoFeed items={mockItems} portalName="Porciúncula" ano={2024} />,
+    );
+
+    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText("Exercício 2024")).toBeInTheDocument();
+
+    const cards = screen.getAllByTestId("radar-anomalia-card");
+    expect(cards).toHaveLength(2);
+
+    expect(
+      screen.getByText("Variação Atípica em Cargos Comissionados"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Concentração de Despesas em Saúde"),
+    ).toBeInTheDocument();
+
+    const container = screen.getByTestId("radar-cards-container");
+    expect(container).toHaveClass("snap-x");
+  });
+
+  it("renderiza empty state de conformidade quando não houver anomalias no exercício", () => {
+    render(<RadarCivicoFeed items={[]} portalName="Porciúncula" ano={2024} />);
+
+    expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByTestId("radar-empty-state")).toBeInTheDocument();
+    expect(
+      screen.getByText("Contas e Indicadores em Conformidade Histórica"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nenhuma anomalia fiscal ou desvio atípico/),
+    ).toBeInTheDocument();
+  });
+});

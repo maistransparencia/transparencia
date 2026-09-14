@@ -25,6 +25,25 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
+### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)
+
+Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
+
+- **Critérios de Detecção de Anomalias:** Regras contábeis e fiscais pré-programadas que identificam pontos fora da curva em pessoal, compras, receitas e limites legais (ex: disparidade na razão salarial média entre cargos comissionados e efetivos, concentração de contratações, evolução de passivos e dependência de repasses).
+- **Badges Semânticos de Severidade:**
+  - *Crítico:* Desvios de alta magnitude que exigem vigilância prioritária da sociedade civil.
+  - *Alto Desvio:* Variações acentuadas frente aos parâmetros de normalidade ou limites de referência.
+  - *Moderado:* Oscilações com relevância para acompanhamento orçamentário.
+- **Metodologia Analítica Declarada:**
+  - *Comparação Homóloga:* Confronto do período observado com o intervalo equivalente do exercício anterior ou série histórica.
+  - *Posição Atual:* Apuração pontual ou acumulada no exercício de referência.
+- **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas, isentas de adjetivações valorativas ou acusações subjetivas.
+- **Métricas Comparativas:** Exibição clara do valor observado versus valor de referência ou limite normativo.
+- **Funil de Aprofundamento e Compartilhamento:**
+  - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`) para investigação detalhada.
+  - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
+  - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
+
 ---
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos

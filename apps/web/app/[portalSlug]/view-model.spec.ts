@@ -61,6 +61,7 @@ function makeRawVisaoGeral(overrides: Record<string, unknown> = {}): RawData {
       totalContratosComPendencia: 1,
       totalEmpenhado: 500000,
     },
+    radarAlertas: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -147,5 +148,130 @@ describe("buildVisaoGeralViewModel - pessoalCardData", () => {
       "da receita municipal consumida por esta entidade",
     );
     expect(vm.pessoalCardData.lrfLimitPercentFormatted).toBe("54% LRF (total)");
+  });
+});
+
+describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
+  it("converte alertas de diferentes tipos para cards com narrativa factual e URLs de compartilhamento", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-comiss",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "explosao_comissionados",
+          dimensaoReferencia: "comissionados",
+          grauSeveridade: "critico",
+          desvioPercentual: 65,
+          valorObservado: 165,
+          valorEsperado: 100,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/pessoal?ano=2024#comissionados",
+          metodoDeteccao: "iqr_estoque",
+        },
+        {
+          anomaliaId: "anomalia-caixa",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "rombo_caixa",
+          dimensaoReferencia: "recursos_livres",
+          grauSeveridade: "critico",
+          desvioPercentual: 80,
+          valorObservado: 500000,
+          valorEsperado: 2500000,
+          mesInicial: 12,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/receitas?ano=2024#saldo-caixa",
+          metodoDeteccao: "iqr_estoque",
+        },
+        {
+          anomaliaId: "anomalia-saude",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "pico_despesa_homologa",
+          dimensaoReferencia: "saude",
+          grauSeveridade: "alto",
+          desvioPercentual: 42,
+          valorObservado: 15200000,
+          valorEsperado: 10700000,
+          mesInicial: 1,
+          mesFinal: 8,
+          deepLinkRota: "/porciuncula/despesas?ano=2024",
+          metodoDeteccao: "iqr_fluxo_homologo",
+        },
+        {
+          anomaliaId: "anomalia-dispensa",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "concentracao_dispensa",
+          dimensaoReferencia: "dispensas",
+          grauSeveridade: "moderado",
+          desvioPercentual: 23.5,
+          valorObservado: 48.5,
+          valorEsperado: 25.0,
+          mesInicial: 1,
+          mesFinal: 8,
+          deepLinkRota: "/porciuncula/licitacoes?ano=2024",
+          metodoDeteccao: "iqr_fluxo_homologo",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const feed = vm.radarCivicoFeedData;
+
+    expect(feed).toHaveLength(4);
+
+    // Card 1: Comissionados
+    const cardComiss = feed[0];
+    expect(cardComiss.titulo).toBe("Variação Atípica em Cargos Comissionados");
+    expect(cardComiss.metodologiaBadge).toBe("Posição Atual (Estoque 1:1)");
+    expect(cardComiss.tipoMetodologia).toBe("estoque");
+    expect(cardComiss.grauSeveridade).toBe("critico");
+    expect(cardComiss.textoFactual).toContain(
+      "165 cargos comissionados ativos",
+    );
+    expect(cardComiss.textoFactual).toContain("+65% superior");
+    expect(cardComiss.ctaUrl).toBe(
+      "/porciuncula/pessoal?ano=2024#comissionados",
+    );
+    expect(cardComiss.whatsappShareUrl).toContain(
+      "api.whatsapp.com/send?text=",
+    );
+    expect(decodeURIComponent(cardComiss.whatsappShareUrl)).toContain(
+      "Porciúncula",
+    );
+
+    // Card 2: Rombo Caixa
+    const cardCaixa = feed[1];
+    expect(cardCaixa.titulo).toBe("Disponibilidade em Recursos Livres");
+    expect(cardCaixa.metodologiaBadge).toBe("Posição Atual (Estoque 1:1)");
+    expect(cardCaixa.textoFactual).toContain("recursos livres fechou em");
+    expect(cardCaixa.ctaUrl).toBe("/porciuncula/receitas?ano=2024#saldo-caixa");
+
+    // Card 3: Despesa Homóloga
+    const cardSaude = feed[2];
+    expect(cardSaude.titulo).toBe("Concentração de Despesas em Saúde");
+    expect(cardSaude.metodologiaBadge).toBe("Comparação Homóloga (Jan–Ago)");
+    expect(cardSaude.tipoMetodologia).toBe("homologa");
+    expect(cardSaude.textoFactual).toContain("função Saúde somaram");
+    expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
+
+    // Card 4: Contratações Diretas
+    const cardDispensa = feed[3];
+    expect(cardDispensa.titulo).toBe("Volume em Contratações Diretas");
+    expect(cardDispensa.metodologiaBadge).toBe("Comparação Homóloga (Jan–Ago)");
+    expect(cardDispensa.tipoMetodologia).toBe("homologa");
+    expect(cardDispensa.textoFactual).toContain(
+      "48.5% do volume financeiro total licitado",
+    );
+    expect(cardDispensa.ctaUrl).toBe("/porciuncula/licitacoes?ano=2024");
+  });
+
+  it("retorna array vazio quando não houver alertas", () => {
+    const raw = makeRawVisaoGeral({ radarAlertas: [] });
+    const vm = buildVisaoGeralViewModel(raw);
+    expect(vm.radarCivicoFeedData).toEqual([]);
   });
 });
