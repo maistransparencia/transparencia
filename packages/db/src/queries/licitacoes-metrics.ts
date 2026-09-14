@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { db } from "../client";
 import { NEAR_THRESHOLD_PCT } from "../constants";
 
@@ -529,4 +530,153 @@ export async function getAnomaliasContratuaisMetrics(
     fornecedorRecorrente,
     janelaCurta: [],
   };
+}
+
+export interface LicitacaoEmAndamentoDTO {
+  licitacaoId: string;
+  portalSlug: string;
+  ano: number;
+  empresaId: string;
+  licitacaoNumero: string;
+  modalidade: string;
+  objeto: string;
+  discriminacao: string | null;
+  valor: number | null;
+  situacao: string;
+  dataAbertura: string | null;
+  carona: string | null;
+}
+
+export interface GetLicitacoesEmAndamentoOptions {
+  ano?: number;
+  empresaIds?: string[] | null;
+  empresaId?: string | null;
+  entidade?: string | null;
+  limite?: number;
+}
+
+export function toIsoDateString(val: unknown): string | null {
+  if (!val) return null;
+  if (val instanceof Date) {
+    if (Number.isNaN(val.getTime())) return null;
+    return val.toISOString().slice(0, 10);
+  }
+  const str = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+  return null;
+}
+
+/**
+ * Retorna os processos licitatórios abertos e em andamento a partir do fato `fct_licitacoes`.
+ */
+export async function getLicitacoesEmAndamentoMetrics(
+  portalSlug: string,
+  optionsOrYear?: GetLicitacoesEmAndamentoOptions | number,
+  empresaIdsParam?: string[] | null,
+): Promise<LicitacaoEmAndamentoDTO[]> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === ""
+  ) {
+    return [];
+  }
+
+  const cleanSlug = portalSlug.trim();
+
+  const options: GetLicitacoesEmAndamentoOptions = (() => {
+    if (typeof optionsOrYear === "number") {
+      return { ano: optionsOrYear, empresaIds: empresaIdsParam };
+    }
+    if (optionsOrYear && typeof optionsOrYear === "object") {
+      return optionsOrYear;
+    }
+    return {};
+  })();
+
+  if (options.ano !== undefined && Number.isNaN(options.ano)) {
+    return [];
+  }
+
+  const effectiveEmpresaIds: string[] | null = (() => {
+    if (Array.isArray(options.empresaIds)) {
+      return options.empresaIds;
+    }
+    const single = options.empresaId ?? options.entidade;
+    if (typeof single === "string" && single.trim() !== "") {
+      return [single.trim()];
+    }
+    return null;
+  })();
+
+  if (Array.isArray(effectiveEmpresaIds) && effectiveEmpresaIds.length === 0) {
+    return [];
+  }
+
+  let query = db
+    .selectFrom("fct_licitacoes")
+    .select([
+      "licitacao_id",
+      "portal_slug",
+      "ano",
+      "empresa_id",
+      "licitacao_numero",
+      "modalidade",
+      "objeto",
+      "discriminacao",
+      "valor",
+      "situacao",
+      "data_abertura",
+      "carona",
+    ])
+    .where("portal_slug", "=", cleanSlug)
+    .where(
+      sql<boolean>`lower(replace(trim(situacao), ' ', '_')) in ('em_andamento', 'aberta', 'em_aberto')`,
+    );
+
+  if (options.ano !== undefined) {
+    query = query.where("ano", "=", options.ano);
+  }
+
+  if (Array.isArray(effectiveEmpresaIds) && effectiveEmpresaIds.length > 0) {
+    query = query.where("empresa_id", "in", effectiveEmpresaIds);
+  }
+
+  query = query
+    .orderBy(sql`data_abertura IS NULL`, "asc")
+    .orderBy("data_abertura", "desc")
+    .orderBy(sql`valor IS NULL`, "asc")
+    .orderBy("valor", "desc")
+    .orderBy("licitacao_id", "asc");
+
+  if (
+    typeof options.limite === "number" &&
+    Number.isInteger(options.limite) &&
+    options.limite > 0
+  ) {
+    query = query.limit(options.limite);
+  }
+
+  const rows = await query.execute();
+
+  return rows.map((r) => ({
+    licitacaoId: String(r.licitacao_id),
+    portalSlug: String(r.portal_slug),
+    ano: Number(r.ano),
+    empresaId: String(r.empresa_id ?? ""),
+    licitacaoNumero: String(r.licitacao_numero ?? ""),
+    modalidade: String(r.modalidade ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_"),
+    objeto: String(r.objeto ?? ""),
+    discriminacao: r.discriminacao ? String(r.discriminacao) : null,
+    valor: r.valor != null ? parseFloat(String(r.valor)) : null,
+    situacao: String(r.situacao ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_"),
+    dataAbertura: toIsoDateString(r.data_abertura),
+    carona: r.carona ? String(r.carona) : null,
+  }));
 }

@@ -564,8 +564,90 @@ export async function seedPessoal(row: PessoalRow): Promise<void> {
     .execute();
 }
 
+export interface AnomaliaFiscalRow {
+  anomaliaId?: string;
+  portalSlug: string;
+  ano: number;
+  tipoAnomalia: string;
+  dimensaoReferencia: string;
+  grauSeveridade: string;
+  desvioPercentual?: number;
+  valorObservado?: number;
+  valorEsperado?: number;
+  mesInicial?: number;
+  mesFinal?: number;
+  deepLinkRota: string;
+  metodoDeteccao?: string | null;
+}
+
+export async function seedAnomaliaFiscal(
+  row: AnomaliaFiscalRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_anomalias_fiscais_metricas")
+    .values({
+      anomalia_id: row.anomaliaId ?? nextId("anomalia"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      tipo_anomalia: row.tipoAnomalia,
+      dimensao_referencia: row.dimensaoReferencia,
+      grau_severidade: row.grauSeveridade,
+      desvio_percentual: row.desvioPercentual ?? 0,
+      valor_observado: row.valorObservado ?? 0,
+      valor_esperado: row.valorEsperado ?? 0,
+      mes_inicial: row.mesInicial ?? 1,
+      mes_final: row.mesFinal ?? 12,
+      deep_link_rota: row.deepLinkRota,
+      metodo_deteccao: row.metodoDeteccao ?? "iqr_fluxo_homologo",
+    })
+    .execute();
+}
+
+export interface LicitacaoRow {
+  licitacaoId?: string;
+  portalSlug: string;
+  ano: number;
+  empresaId?: string;
+  licitacaoNumero?: string;
+  modalidade?: string;
+  objeto: string;
+  discriminacao?: string | null;
+  valor?: number | null;
+  situacao?: string;
+  dataAbertura?: string | null;
+  carona?: string | null;
+}
+
+export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
+  await db
+    .insertInto("fct_licitacoes")
+    .values({
+      licitacao_id: row.licitacaoId ?? nextId("lic"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empresa_id: row.empresaId ?? "1",
+      licitacao_numero: row.licitacaoNumero ?? "001/2024",
+      modalidade: row.modalidade ?? "pregao_eletronico",
+      objeto: row.objeto,
+      discriminacao: row.discriminacao ?? null,
+      valor: row.valor !== undefined ? row.valor : 100000,
+      situacao: row.situacao ?? "em_andamento",
+      data_abertura: row.dataAbertura ? row.dataAbertura : null,
+      carona: row.carona ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_anomalias_fiscais_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_licitacoes")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_pessoal")
     .where("portal_slug", "=", portalSlug)
