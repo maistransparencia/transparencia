@@ -118,7 +118,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
+      /Buscar por objeto.*modalidade/i,
     );
     fireEvent.change(searchInput, { target: { value: "medicamentos" } });
 
@@ -143,7 +143,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
 
     render(<LicitacoesEmAndamentoSection licitacoes={itemsComDiscriminacao} />);
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
+      /Buscar por objeto.*modalidade/i,
     );
 
     // Busca por termo na discriminação
@@ -159,11 +159,43 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(rowsModalidade[1]).toHaveTextContent("PE 001/2025");
   });
 
+  it("filtra itens na tabela pela situação (ex: 'em andamento')", () => {
+    const itensComSituacaoDiferente: LicitacaoEmAndamentoDTO[] = [
+      {
+        ...sampleItems[0],
+        licitacaoId: "lic-andamento",
+        licitacaoNumero: "PE 101/2025",
+        situacao: "em_andamento",
+      },
+      {
+        ...sampleItems[1],
+        licitacaoId: "lic-homologada",
+        licitacaoNumero: "CP 102/2025",
+        situacao: "homologada",
+      },
+    ];
+
+    render(
+      <LicitacoesEmAndamentoSection licitacoes={itensComSituacaoDiferente} />,
+    );
+
+    const searchInput = screen.getByPlaceholderText(
+      /Buscar por objeto.*modalidade/i,
+    );
+    fireEvent.change(searchInput, { target: { value: "em andamento" } });
+
+    const rows = screen.getAllByRole("row");
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toHaveTextContent("PE 101/2025");
+    expect(rows[1]).toHaveTextContent("Em andamento");
+    expect(rows[1]).not.toHaveTextContent("CP 102/2025");
+  });
+
   it("exibe estado vazio na tabela quando a busca não retorna resultados", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto da compra, edital, órgão ou modalidade/i,
+      /Buscar por objeto.*modalidade/i,
     );
     fireEvent.change(searchInput, { target: { value: "termo_inexistente" } });
 

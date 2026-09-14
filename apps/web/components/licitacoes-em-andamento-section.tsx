@@ -18,8 +18,22 @@ export interface LicitacoesEmAndamentoSectionProps {
   className?: string;
 }
 
+export function fmtLicitacaoSituacao(situacao?: string | null): string {
+  if (!situacao) return "Em andamento";
+  const s = situacao.toLowerCase().trim().replace(/_/g, " ");
+  if (s === "aberta" || s === "em aberto") return "Aberta";
+  if (s === "em andamento") return "Em andamento";
+  if (s === "homologada") return "Homologada";
+  if (s === "publicado" || s === "publicada") return "Publicada";
+  if (s === "deserta") return "Deserta";
+  if (s === "encerrada") return "Encerrada";
+  if (s === "classificada") return "Classificada";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 interface LicitacaoTableRow extends LicitacaoEmAndamentoDTO {
   modalidadeFormatada: string;
+  situacaoFormatada: string;
   valorFinal: number | null;
   buscaNormalizada: string;
 }
@@ -53,6 +67,24 @@ export function LicitacoesEmAndamentoSection({
     return sortedByRelevance.map((item) => {
       const valorNum = item.valorEstimado ?? item.valor ?? null;
       const modalidadeFmt = fmtLicitacaoModalidade(item.modalidade);
+      const situacaoFmt = fmtLicitacaoSituacao(item.situacao);
+
+      const situacaoNorm = (item.situacao || "em andamento")
+        .toLowerCase()
+        .trim();
+      const termosSituacao = (() => {
+        if (
+          situacaoNorm === "em_andamento" ||
+          situacaoNorm === "em andamento" ||
+          situacaoNorm === "andamento"
+        ) {
+          return ["em andamento", "andamento"];
+        }
+        if (situacaoNorm === "aberta" || situacaoNorm === "em aberto") {
+          return ["aberta", "em aberto"];
+        }
+        return [situacaoNorm, situacaoNorm.replace(/_/g, " ")];
+      })();
 
       // Normaliza termos de busca para suportar consultas sem acentuação e formatos alternativos
       const buscaNorm = [
@@ -63,6 +95,8 @@ export function LicitacoesEmAndamentoSection({
         item.modalidade,
         item.modalidade ? item.modalidade.replace(/_/g, " ") : "",
         modalidadeFmt,
+        situacaoFmt,
+        ...termosSituacao,
       ]
         .filter(Boolean)
         .join(" ")
@@ -73,6 +107,7 @@ export function LicitacoesEmAndamentoSection({
       return {
         ...item,
         modalidadeFormatada: modalidadeFmt,
+        situacaoFormatada: situacaoFmt,
         valorFinal:
           typeof valorNum === "number" && valorNum > 0 ? valorNum : null,
         buscaNormalizada: buscaNorm,
@@ -157,11 +192,13 @@ export function LicitacoesEmAndamentoSection({
     },
     {
       header: "Situação",
-      accessorKey: "situacao",
+      accessorKey: "situacaoFormatada",
       sortable: true,
       align: "center",
       className: "whitespace-nowrap",
-      renderCell: () => <Badge variant="warning">Em andamento</Badge>,
+      renderCell: (row) => (
+        <Badge variant="warning">{row.situacaoFormatada}</Badge>
+      ),
     },
   ];
 
@@ -270,7 +307,9 @@ export function LicitacoesEmAndamentoSection({
                             <Badge variant="accent">
                               {fmtLicitacaoModalidade(item.modalidade)}
                             </Badge>
-                            <Badge variant="warning">Em andamento</Badge>
+                            <Badge variant="warning">
+                              {fmtLicitacaoSituacao(item.situacao)}
+                            </Badge>
                           </div>
                         </div>
 
@@ -323,13 +362,15 @@ export function LicitacoesEmAndamentoSection({
             <DenseTable
               data={tableData}
               columns={columns}
-              searchPlaceholder="Buscar por objeto da compra, edital, órgão ou modalidade..."
+              searchPlaceholder="Buscar por objeto, edital, órgão, modalidade ou situação..."
               searchableKeys={[
                 "objeto",
                 "discriminacao",
                 "licitacaoNumero",
                 "entidadeNome",
                 "modalidadeFormatada",
+                "situacaoFormatada",
+                "situacao",
                 "buscaNormalizada",
               ]}
               pageSize={10}
