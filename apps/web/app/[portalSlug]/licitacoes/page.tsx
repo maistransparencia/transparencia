@@ -1,4 +1,4 @@
-import { Badge, cn, fmtCurrency, fmtPercent, KPICard } from "@transparencia/ui";
+import { cn, fmtCurrency, fmtPercent, KPICard } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
@@ -94,13 +94,6 @@ export default async function LicitacoesPage({
             <span className={cn(hasAnomaliaDispensa && "text-amber-600")}>
               {fmtPercent(taxaContratacaoDireta)}
             </span>
-          }
-          subtext={
-            hasAnomaliaDispensa ? (
-              <Badge variant="warning">Alerta de concentração</Badge>
-            ) : (
-              <Badge variant="default">Padrão esperado</Badge>
-            )
           }
           alert={hasAnomaliaDispensa}
           accent={!hasAnomaliaDispensa}

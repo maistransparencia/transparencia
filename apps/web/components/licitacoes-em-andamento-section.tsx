@@ -10,7 +10,7 @@ import {
   fmtDate,
   fmtLicitacaoModalidade,
 } from "@transparencia/ui";
-import { Building2, Calendar, Coins } from "lucide-react";
+import { Calendar, Coins } from "lucide-react";
 import { useMemo } from "react";
 
 export interface LicitacoesEmAndamentoSectionProps {
@@ -253,7 +253,7 @@ export function LicitacoesEmAndamentoSection({
           {topDestaques.length > 0 && (
             <div>
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
+                <h3 className="font-semibold text-slate-700 text-xs tracking-wider">
                   Processos em Destaque por Relevância
                 </h3>
                 <span className="text-slate-400 text-xs">
@@ -286,23 +286,6 @@ export function LicitacoesEmAndamentoSection({
                     >
                       <div className="space-y-3">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0 flex-1">
-                            <span className="font-bold text-slate-900 text-sm">
-                              Processo {item.licitacaoNumero || "S/N"}
-                            </span>
-                            {item.entidadeNome && (
-                              <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
-                                <Building2
-                                  className="h-3.5 w-3.5 shrink-0"
-                                  aria-hidden="true"
-                                />
-                                <span className="truncate">
-                                  {item.entidadeNome}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
                           <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:justify-end">
                             <Badge variant="accent">
                               {fmtLicitacaoModalidade(item.modalidade)}
@@ -311,6 +294,19 @@ export function LicitacoesEmAndamentoSection({
                               {fmtLicitacaoSituacao(item.situacao)}
                             </Badge>
                           </div>
+                        </div>
+
+                        <div className="flex min-w-0 flex-1 items-center justify-between">
+                          <span className="font-bold text-slate-900 text-sm">
+                            Processo {item.licitacaoNumero || "S/N"}
+                          </span>
+                          {item.entidadeNome && (
+                            <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
+                              <span className="truncate">
+                                {item.entidadeNome}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <p
@@ -355,7 +351,7 @@ export function LicitacoesEmAndamentoSection({
           {/* Tabela Completa via DenseTable */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
+              <h3 className="font-semibold text-slate-700 text-xs tracking-wider">
                 Relação Completa de Licitações em Aberto
               </h3>
             </div>
