@@ -220,7 +220,6 @@ export function LicitacoesEmAndamentoSection({
             >
               Licitações Abertas e em Andamento
             </h2>
-            <Badge variant="accent">Radar Preventivo</Badge>
           </div>
           <p className="mt-1 max-w-3xl text-slate-600 text-xs leading-relaxed sm:text-sm">
             Audite preventivamente as compras públicas em andamento antes da

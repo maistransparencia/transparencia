@@ -45,7 +45,6 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Radar Preventivo")).toBeInTheDocument();
     expect(screen.getByText(/2 processos em aberto/i)).toBeInTheDocument();
 
     // Destaque Top 3
