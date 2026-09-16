@@ -101,7 +101,7 @@ describe("LicitacoesPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("exibe Taxa de Contratação Direta com badge neutra quando sem anomalia", async () => {
+  it("exibe Taxa de Contratação Direta quando sem anomalia", async () => {
     loadLicitacoesDataMock.mockResolvedValue(
       makeRaw({
         modalidades: [
@@ -117,13 +117,12 @@ describe("LicitacoesPage", () => {
 
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/20[.,]00%/)).toBeInTheDocument();
-    expect(screen.getByText("Padrão esperado")).toBeInTheDocument();
     expect(
       screen.queryByText(/Alerta de Concentração de Contratações Diretas/),
     ).not.toBeInTheDocument();
   });
 
-  it("exibe badge de alerta, banner contextual e link da Lei 14.133/2021 quando há anomalia concentracao_dispensa", async () => {
+  it("exibe banner contextual articulando volume financeiro e processos com links da Lei 14.133/2021", async () => {
     loadLicitacoesDataMock.mockResolvedValue(
       makeRaw({
         modalidades: [
@@ -145,7 +144,6 @@ describe("LicitacoesPage", () => {
 
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/75[.,]00%/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Alerta de concentração")).toBeInTheDocument();
     expect(
       screen.getByText(/Alerta de Concentração de Contratações Diretas:/),
     ).toBeInTheDocument();
@@ -176,6 +174,89 @@ describe("LicitacoesPage", () => {
       "href",
       "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art86",
     );
+
+    expect(
+      screen.getByText(
+        /No consolidado municipal de 2024, embora as contratações diretas representem/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/card acima/)).toBeInTheDocument();
+  });
+
+  it("não exibe alerta quando entidade filtrada possui contratação direta baixa", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["2"],
+        },
+        modalidades: [
+          { modalidade: "Pregão Eletrônico", valorTotal: 90000 },
+          { modalidade: "Dispensa", valorTotal: 10000 },
+        ],
+        alertasRadar: [
+          {
+            tipoAnomalia: "concentracao_dispensa",
+            valorObservado: 85,
+            valorEsperado: 40,
+          },
+        ],
+      }),
+    );
+
+    const propsComEntidade = {
+      ...props,
+      searchParams: Promise.resolve({ entidades: "2" }),
+    };
+
+    const element = await LicitacoesPage(propsComEntidade);
+    render(element);
+
+    expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
+    expect(screen.getByText(/10[.,]00%/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Alerta de Concentração de Contratações Diretas:/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("exibe alerta contextualizado para a entidade quando contratação direta for anômala", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["7"],
+        },
+        modalidades: [
+          { modalidade: "Pregão Eletrônico", valorTotal: 40000 },
+          { modalidade: "Dispensa", valorTotal: 60000 },
+        ],
+        alertasRadar: [
+          {
+            tipoAnomalia: "concentracao_dispensa",
+            valorObservado: 85,
+            valorEsperado: 40,
+          },
+        ],
+      }),
+    );
+
+    const propsComEntidade = {
+      ...props,
+      searchParams: Promise.resolve({ entidades: "7" }),
+    };
+
+    const element = await LicitacoesPage(propsComEntidade);
+    render(element);
+
+    expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
+    expect(screen.getAllByText(/60[.,]00%/).length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText(
+        /Nas entidades selecionadas em 2024, 60\.00% do volume apurado/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renderiza a seção de Licitações Abertas e em Andamento com lista de processos", async () => {

@@ -139,4 +139,56 @@ describe("buildLicitacoesViewModel", () => {
     expect(vmComAlertaNaN.taxaContratacaoDireta).toBe(0);
     expect(vmComAlertaNaN.hasAnomaliaDispensa).toBe(true);
   });
+
+  it("avalia anomalia contextualmente quando entidades estiver filtrada", () => {
+    // Entidade com contratação direta baixa (10%) não deve disparar alerta de concentração
+    const vmEntidadeNormal = buildLicitacoesViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["2"],
+        },
+        modalidades: [
+          { modalidade: "Pregão Eletrônico", valorTotal: 90000 },
+          { modalidade: "Dispensa", valorTotal: 10000 },
+        ],
+        alertasRadar: [
+          {
+            tipoAnomalia: "concentracao_dispensa",
+            valorObservado: 85,
+            valorEsperado: 40,
+          },
+        ],
+      }),
+    );
+    expect(vmEntidadeNormal.isFilteredByEntidade).toBe(true);
+    expect(vmEntidadeNormal.taxaContratacaoDireta).toBe(10);
+    expect(vmEntidadeNormal.hasAnomaliaDispensa).toBe(false);
+
+    // Entidade com contratação direta alta (60% >= 40%) deve disparar alerta
+    const vmEntidadeConcentrada = buildLicitacoesViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["7"],
+        },
+        modalidades: [
+          { modalidade: "Pregão Eletrônico", valorTotal: 40000 },
+          { modalidade: "Dispensa", valorTotal: 60000 },
+        ],
+        alertasRadar: [
+          {
+            tipoAnomalia: "concentracao_dispensa",
+            valorObservado: 85,
+            valorEsperado: 40,
+          },
+        ],
+      }),
+    );
+    expect(vmEntidadeConcentrada.isFilteredByEntidade).toBe(true);
+    expect(vmEntidadeConcentrada.taxaContratacaoDireta).toBe(60);
+    expect(vmEntidadeConcentrada.hasAnomaliaDispensa).toBe(true);
+  });
 });

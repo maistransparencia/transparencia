@@ -57,11 +57,20 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
     return 0;
   })();
 
-  const hasAnomaliaDispensa = alertaDispensa !== null;
+  const isFilteredByEntidade = (raw.context.entidadesIds?.length ?? 0) > 0;
+
+  const hasAnomaliaDispensa = (() => {
+    if (isFilteredByEntidade) {
+      const threshold = alertaDispensa?.valorEsperado ?? 50;
+      return totalGeralModalidades > 0 && taxaContratacaoDireta >= threshold;
+    }
+    return alertaDispensa !== null;
+  })();
 
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
+    isFilteredByEntidade,
     partialPeriod: getPartialYearPeriod(
       raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
     ),

@@ -63,6 +63,7 @@ export default async function LicitacoesPage({
     alertaDispensa,
     taxaContratacaoDireta,
     hasAnomaliaDispensa,
+    isFilteredByEntidade,
   } = viewModel;
 
   return (
@@ -90,13 +91,8 @@ export default async function LicitacoesPage({
       <KPIGrid columns={5}>
         <KPICard
           title="Taxa de Contratação Direta"
-          value={
-            <span className={cn(hasAnomaliaDispensa && "text-amber-600")}>
-              {fmtPercent(taxaContratacaoDireta)}
-            </span>
-          }
-          alert={hasAnomaliaDispensa}
-          accent={!hasAnomaliaDispensa}
+          value={fmtPercent(taxaContratacaoDireta)}
+          accent
         />
         <KPICard
           title="Acima do limite s/ licitação"
@@ -121,22 +117,52 @@ export default async function LicitacoesPage({
       {/* Warning Alert Banner - Concentração de Dispensas */}
       {hasAnomaliaDispensa && (
         <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
-          <span className="mt-0.5 shrink-0 text-base" aria-hidden="true">
-            ⚠️
-          </span>
           <div>
             <span className="font-bold text-[#9c4221]">
               Alerta de Concentração de Contratações Diretas:
             </span>{" "}
-            Em {selectedYear}, {fmtPercent(taxaContratacaoDireta)} do volume
-            apurado de compras públicas foi contratado diretamente por dispensa,
-            inexigibilidade ou adesão a ata
-            {alertaDispensa?.valorEsperado != null
-              ? ` (média histórica de referência: ${fmtPercent(alertaDispensa.valorEsperado)})`
-              : ""}
-            . Embora legais em hipóteses específicas, compras sem concorrência
-            aberta exigem justificativa formal e estrita conformidade com a Lei
-            Federal nº 14.133/2021:{" "}
+            {(() => {
+              if (isFilteredByEntidade) {
+                return (
+                  <>
+                    Nas entidades selecionadas em {selectedYear},{" "}
+                    {fmtPercent(taxaContratacaoDireta)} do volume apurado de
+                    compras públicas foi contratado diretamente por dispensa,
+                    inexigibilidade ou adesão a ata
+                    {alertaDispensa?.valorEsperado != null
+                      ? ` (referência histórica municipal: ${fmtPercent(alertaDispensa.valorEsperado)})`
+                      : ""}
+                    .
+                  </>
+                );
+              }
+              return (
+                <>
+                  No consolidado municipal de {selectedYear}, embora as
+                  contratações diretas representem{" "}
+                  <strong>{fmtPercent(taxaContratacaoDireta)}</strong> do volume
+                  financeiro apurado (card acima),{" "}
+                  {alertaDispensa?.valorObservado != null ? (
+                    <>
+                      <strong>
+                        {fmtPercent(alertaDispensa.valorObservado)}
+                      </strong>{" "}
+                      dos processos de compras públicas foram realizados
+                      diretamente
+                    </>
+                  ) : (
+                    "foram realizadas diretamente"
+                  )}{" "}
+                  por dispensa, inexigibilidade ou adesão a ata
+                  {alertaDispensa?.valorEsperado != null
+                    ? ` (média histórica de referência: ${fmtPercent(alertaDispensa.valorEsperado)} dos processos)`
+                    : ""}
+                  .
+                </>
+              );
+            })()} Embora legais em hipóteses específicas, compras sem
+            concorrência aberta exigem justificativa formal e estrita
+            conformidade com a Lei Federal nº 14.133/2021:{" "}
             <a
               href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74"
               target="_blank"
