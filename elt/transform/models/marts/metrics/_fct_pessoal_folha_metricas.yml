@@ -23,6 +23,8 @@ models:
           - not_null
       - name: total_folha
         description: Total pago com despesas de pessoal no ano.
+      - name: despesa_total_pessoal_lrf
+        description: Despesa total com pessoal nos termos do art. 18 da LRF (inclui vencimentos, obrigações patronais e contratações temporárias).
       - name: total_pago
         description: Total pago consolidado por órgão no ano.
 
@@ -44,4 +46,4 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "Comissionado INSS", categoria_funcional: "Cargo comissionado extra-quadro", categoria_regime: "comissionado", proventos: 1500.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", total_folha: 60000.00, total_pago: 60000.00, empenhado_13: 10000.00, empenhado_bruto_13: 10000.00, liquidado_13: 10000.00, pago_13: 10000.00, efetivos_confianca: 1, comissionados_externos: 1, bin_0_25k: 1, bin_25k_5k: 1 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", total_folha: 60000.00, despesa_total_pessoal_lrf: 60000.00, total_pago: 60000.00, empenhado_13: 10000.00, empenhado_bruto_13: 10000.00, liquidado_13: 10000.00, pago_13: 10000.00, efetivos_confianca: 1, comissionados_externos: 1, bin_0_25k: 1, bin_25k_5k: 1 }
