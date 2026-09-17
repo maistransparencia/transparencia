@@ -202,7 +202,7 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
 
 - **Quantitativo de Servidores:** O número total de agentes públicos em atividade na administração municipal.
 - **Total da Folha de Pagamento:** A despesa bruta dedicada ao pagamento de vencimentos, salários e proventos de pessoal no período.
-- **Comprometimento da Receita com Pessoal (LRF):** O percentual da Receita Corrente Líquida (RCL) gasto com pessoal, utilizado para verificação dos limites estipulados pela Lei de Responsabilidade Fiscal (limite máximo de 54% para o Poder Executivo).
+- **Comprometimento da Receita com Pessoal (LRF):** O percentual da Receita Corrente Líquida (RCL) gasto com a Despesa Total com Pessoal (DTP nos termos do Art. 18 da LRF, incluindo vencimentos, contratações temporárias e obrigações patronais ao INSS/RPPS), confrontado com os limites legais da Lei de Responsabilidade Fiscal para o Poder Executivo: Limite de Alerta (48,6%), Limite Prudencial (51,3%) e Limite Máximo (54,0%).
 - **Cargos de Confiança e Funções Gratificadas:** A quantidade e o custo total de cargos comissionados de livre nomeação e funções de confiança na estrutura administrativa.
 - **Proventos e Vantagens:** A composição das remunerações, incluindo vencimento básico, gratificações e parcelas relativas ao 13º salário.
 - **Painel de Pessoal por Regime Jurídico e Vínculo Funcional:**
