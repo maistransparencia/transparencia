@@ -5,6 +5,7 @@ import {
   getFolhaVsServicosMetrics,
   getFontesReceitaMetrics,
   getLicitacaoGapsMetrics,
+  getLicitacoesEmAndamentoMetrics,
   getLimiteMaximoLrfPessoal,
   getPercentualChefiasEfetivasMetrics,
   getPortalConfig,
@@ -167,6 +168,7 @@ export async function loadVisaoGeralData(
     lrfLimiteMaximo,
     posicaoFinanceira,
     radarAlertas,
+    licitacoesEmAndamento,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -184,6 +186,10 @@ export async function loadVisaoGeralData(
     getLimiteMaximoLrfPessoal(selectedYear),
     getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
     getRadarCivicoAlertas(tenantSlug, { ano: selectedYear, limite: 6 }),
+    getLicitacoesEmAndamentoMetrics(tenantSlug, {
+      ano: selectedYear,
+      empresaIds,
+    }),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -232,5 +238,6 @@ export async function loadVisaoGeralData(
       ),
     },
     radarAlertas: radarAlertas ?? [],
+    licitacoesEmAndamentoCount: licitacoesEmAndamento.length,
   };
 }

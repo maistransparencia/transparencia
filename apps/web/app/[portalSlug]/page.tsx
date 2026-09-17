@@ -79,6 +79,7 @@ export default async function VisaoGeralPage({
         portalName={viewModel.portalName}
         portalSlug={portalSlug}
         ano={viewModel.selectedYear}
+        licitacoesEmAndamentoCount={viewModel.licitacoesEmAndamentoCount}
       />
     </div>
   );

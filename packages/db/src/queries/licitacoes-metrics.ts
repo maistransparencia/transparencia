@@ -537,11 +537,13 @@ export interface LicitacaoEmAndamentoDTO {
   portalSlug: string;
   ano: number;
   empresaId: string;
+  entidadeNome: string | null;
   licitacaoNumero: string;
   modalidade: string;
   objeto: string;
   discriminacao: string | null;
   valor: number | null;
+  valorEstimado: number | null;
   situacao: string;
   dataAbertura: string | null;
   carona: string | null;
@@ -614,40 +616,46 @@ export async function getLicitacoesEmAndamentoMetrics(
   }
 
   let query = db
-    .selectFrom("fct_licitacoes")
+    .selectFrom("fct_licitacoes as l")
+    .leftJoin("dim_orgao as o", (join) =>
+      join
+        .onRef("o.portal_slug", "=", "l.portal_slug")
+        .onRef("o.empresa_id", "=", "l.empresa_id"),
+    )
     .select([
-      "licitacao_id",
-      "portal_slug",
-      "ano",
-      "empresa_id",
-      "licitacao_numero",
-      "modalidade",
-      "objeto",
-      "discriminacao",
-      "valor",
-      "situacao",
-      "data_abertura",
-      "carona",
+      "l.licitacao_id",
+      "l.portal_slug",
+      "l.ano",
+      "l.empresa_id",
+      "o.orgao_nome as entidade_nome",
+      "l.licitacao_numero",
+      "l.modalidade",
+      "l.objeto",
+      "l.discriminacao",
+      "l.valor",
+      "l.situacao",
+      "l.data_abertura",
+      "l.carona",
     ])
-    .where("portal_slug", "=", cleanSlug)
+    .where("l.portal_slug", "=", cleanSlug)
     .where(
-      sql<boolean>`lower(replace(trim(situacao), ' ', '_')) in ('em_andamento', 'aberta', 'em_aberto')`,
+      sql<boolean>`unaccent(lower(replace(trim(l.situacao), ' ', '_'))) in ('em_andamento', 'aberta', 'em_aberto')`,
     );
 
   if (options.ano !== undefined) {
-    query = query.where("ano", "=", options.ano);
+    query = query.where("l.ano", "=", options.ano);
   }
 
   if (Array.isArray(effectiveEmpresaIds) && effectiveEmpresaIds.length > 0) {
-    query = query.where("empresa_id", "in", effectiveEmpresaIds);
+    query = query.where("l.empresa_id", "in", effectiveEmpresaIds);
   }
 
   query = query
-    .orderBy(sql`data_abertura IS NULL`, "asc")
-    .orderBy("data_abertura", "desc")
-    .orderBy(sql`valor IS NULL`, "asc")
-    .orderBy("valor", "desc")
-    .orderBy("licitacao_id", "asc");
+    .orderBy(sql`l.data_abertura IS NULL`, "asc")
+    .orderBy("l.data_abertura", "desc")
+    .orderBy(sql`l.valor IS NULL`, "asc")
+    .orderBy("l.valor", "desc")
+    .orderBy("l.licitacao_id", "asc");
 
   if (
     typeof options.limite === "number" &&
@@ -659,24 +667,29 @@ export async function getLicitacoesEmAndamentoMetrics(
 
   const rows = await query.execute();
 
-  return rows.map((r) => ({
-    licitacaoId: String(r.licitacao_id),
-    portalSlug: String(r.portal_slug),
-    ano: Number(r.ano),
-    empresaId: String(r.empresa_id ?? ""),
-    licitacaoNumero: String(r.licitacao_numero ?? ""),
-    modalidade: String(r.modalidade ?? "")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "_"),
-    objeto: String(r.objeto ?? ""),
-    discriminacao: r.discriminacao ? String(r.discriminacao) : null,
-    valor: r.valor != null ? parseFloat(String(r.valor)) : null,
-    situacao: String(r.situacao ?? "")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "_"),
-    dataAbertura: toIsoDateString(r.data_abertura),
-    carona: r.carona ? String(r.carona) : null,
-  }));
+  return rows.map((r) => {
+    const valorNumerico = r.valor != null ? parseFloat(String(r.valor)) : null;
+    return {
+      licitacaoId: String(r.licitacao_id),
+      portalSlug: String(r.portal_slug),
+      ano: Number(r.ano),
+      empresaId: String(r.empresa_id ?? ""),
+      entidadeNome: r.entidade_nome ? String(r.entidade_nome) : null,
+      licitacaoNumero: String(r.licitacao_numero ?? ""),
+      modalidade: String(r.modalidade ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_"),
+      objeto: String(r.objeto ?? ""),
+      discriminacao: r.discriminacao ? String(r.discriminacao) : null,
+      valor: valorNumerico,
+      valorEstimado: valorNumerico,
+      situacao: String(r.situacao ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_"),
+      dataAbertura: toIsoDateString(r.data_abertura),
+      carona: r.carona ? String(r.carona) : null,
+    };
+  });
 }

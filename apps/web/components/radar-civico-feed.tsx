@@ -14,6 +14,7 @@ export interface RadarCivicoFeedProps {
   portalName?: string;
   portalSlug?: string;
   ano?: number;
+  licitacoesEmAndamentoCount?: number;
   className?: string;
 }
 
@@ -25,11 +26,14 @@ export function RadarCivicoFeed({
   portalName,
   portalSlug,
   ano,
+  licitacoesEmAndamentoCount,
   className,
 }: RadarCivicoFeedProps) {
   const cards = cardsProp ?? items ?? radar?.cards ?? radarCivicoFeedData ?? [];
   const hasAlertas = cards.length > 0;
   const anoExercicio = ano ?? new Date().getFullYear();
+  const countLicitacoes =
+    licitacoesEmAndamentoCount ?? radar?.licitacoesEmAndamentoCount ?? 0;
 
   return (
     <section
@@ -38,14 +42,36 @@ export function RadarCivicoFeed({
       className={`w-full space-y-4 ${className ?? ""}`}
     >
       {/* Cabeçalho da Seção */}
-      <div className="border-[#1a1d21] border-t-2 pt-3">
-        <div className="flex items-baseline justify-between">
-          <h2
-            id="radar-civico-heading"
-            className="font-bold font-serif text-ink text-xl"
-          >
-            Radar Cívico Municipal ({anoExercicio})
-          </h2>
+      <div className="space-y-2 border-[#1a1d21] border-t-2 pt-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2
+              id="radar-civico-heading"
+              className="font-bold font-serif text-ink text-xl"
+            >
+              Radar Cívico Municipal ({anoExercicio})
+            </h2>
+
+            {countLicitacoes > 0 && (
+              <Link
+                href={`/${portalSlug}/licitacoes?ano=${anoExercicio}#licitacoes-em-andamento`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 font-semibold text-accent text-xs transition-colors hover:bg-blue-100"
+                data-testid="radar-licitacoes-andamento-pill"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600" />
+                </span>
+                <span>
+                  {countLicitacoes}{" "}
+                  {countLicitacoes === 1
+                    ? "compra em andamento"
+                    : "compras em andamento"}
+                </span>
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            )}
+          </div>
 
           <Link
             href={`/${portalSlug}/radar`}

@@ -248,4 +248,44 @@ describe("SaudePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Índice HHI: 3.200")).toBeInTheDocument();
   });
+
+  it("exibe bloco de Compras e Licitações da Saúde em Andamento dentro de Como o Fundo contrata", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        saude: {
+          licitacoesEmAndamento: [
+            {
+              licitacaoId: "lic-saude-1",
+              licitacaoNumero: "005/2024",
+              objeto: "Aquisição de medicamentos essenciais e antibióticos",
+              modalidade: "pregao_eletronico",
+              valor: 85000,
+              valorEstimado: 85000,
+              entidadeNome: "Fundo Municipal de Saúde",
+              dataAbertura: "2024-11-20",
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Compras e Licitações da Saúde em Andamento"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Processo 005/2024")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aquisição de medicamentos essenciais e antibióticos"),
+    ).toBeInTheDocument();
+
+    const linkRadarGeral = screen.getByRole("link", {
+      name: /Ver radar geral/i,
+    });
+    expect(linkRadarGeral).toHaveAttribute(
+      "href",
+      "/porciuncula_prefeitura/licitacoes?ano=2024#licitacoes-em-andamento",
+    );
+  });
 });
