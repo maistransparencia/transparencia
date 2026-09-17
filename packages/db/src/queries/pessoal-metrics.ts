@@ -4,8 +4,11 @@ export interface FolhaVsServicosMetricsDTO {
   ano: number;
   totalFolha: number;
   totalPago: number;
+  despesaPessoalLrf: number;
   rclProxy: number;
+  receitaCorrenteLiquida: number;
   percentualFolha: number;
+  statusLrf: "normal" | "alerta" | "prudencial" | "excedido";
 }
 
 export interface DecimoTerceiroExecucaoMetricsDTO {
@@ -54,6 +57,10 @@ export async function getFolhaVsServicosMetrics({
     .select([
       "ano",
       (eb) => eb.fn.sum<string>("total_folha").as("total_folha"),
+      (eb) =>
+        eb.fn
+          .sum<string>("despesa_total_pessoal_lrf")
+          .as("despesa_total_pessoal_lrf"),
       (eb) => eb.fn.sum<string>("total_pago").as("total_pago"),
     ])
     .where("portal_slug", "=", portalSlug)
@@ -69,7 +76,10 @@ export async function getFolhaVsServicosMetrics({
       .selectFrom("fct_fontes_receita_metricas")
       .select([
         "ano",
-        (eb) => eb.fn.sum<string>("total_arrecadado").as("total_arrecadado"),
+        (eb) =>
+          eb.fn
+            .sum<string>("receita_corrente_liquida")
+            .as("receita_corrente_liquida"),
       ])
       .where("portal_slug", "=", portalSlug)
       .where("ano", "in", validYears)
@@ -82,6 +92,10 @@ export async function getFolhaVsServicosMetrics({
       Number(r.ano),
       {
         totalFolha: parseFloat(r.total_folha ?? "0") || 0,
+        despesaPessoalLrf:
+          parseFloat(r.despesa_total_pessoal_lrf ?? "0") ||
+          parseFloat(r.total_folha ?? "0") ||
+          0,
         totalPago: parseFloat(r.total_pago ?? "0") || 0,
       },
     ]),
@@ -90,22 +104,42 @@ export async function getFolhaVsServicosMetrics({
   const rclMap = new Map(
     rclRows.map((r) => [
       Number(r.ano),
-      parseFloat(r.total_arrecadado ?? "0") || 0,
+      parseFloat(r.receita_corrente_liquida ?? "0") || 0,
     ]),
   );
 
   return validYears.map((year) => {
-    const data = folhaMap.get(year) ?? { totalFolha: 0, totalPago: 0 };
-    const rclProxy = rclMap.get(year) ?? 0;
+    const data = folhaMap.get(year) ?? {
+      totalFolha: 0,
+      despesaPessoalLrf: 0,
+      totalPago: 0,
+    };
+    const receitaCorrenteLiquida = rclMap.get(year) ?? 0;
     const percentualFolha =
-      rclProxy > 0 ? (data.totalFolha / rclProxy) * 100 : 0;
+      receitaCorrenteLiquida > 0
+        ? Number(
+            ((data.despesaPessoalLrf / receitaCorrenteLiquida) * 100).toFixed(
+              2,
+            ),
+          )
+        : 0;
+
+    const statusLrf: "normal" | "alerta" | "prudencial" | "excedido" = (() => {
+      if (percentualFolha > 54.0) return "excedido";
+      if (percentualFolha >= 51.3) return "prudencial";
+      if (percentualFolha >= 48.6) return "alerta";
+      return "normal";
+    })();
 
     return {
       ano: year,
       totalFolha: data.totalFolha,
       totalPago: data.totalPago,
-      rclProxy,
+      despesaPessoalLrf: data.despesaPessoalLrf,
+      rclProxy: receitaCorrenteLiquida,
+      receitaCorrenteLiquida,
       percentualFolha,
+      statusLrf,
     };
   });
 }

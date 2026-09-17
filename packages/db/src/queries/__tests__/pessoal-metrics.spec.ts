@@ -126,4 +126,57 @@ describe("pessoal-metrics", () => {
     expect(folhaEntidade[0].percentualFolha).toBe(10);
     expect(folhaConsolidada[0].percentualFolha).toBe(40);
   });
+
+  it("deve apurar despesaPessoalLrf, receitaCorrenteLiquida e classificar statusLrf corretamente", async () => {
+    await seedFontesReceita({
+      portalSlug: PORTAL,
+      empresaId: "1",
+      ano: 2024,
+      totalArrecadado: 10_000_000,
+      receitaCorrenteLiquida: 10_000_000,
+    });
+    // Caso 1: 5.5M / 10M = 55% (> 54% -> excedido)
+    await seedPessoalFolha({
+      portalSlug: PORTAL,
+      empresaId: "1",
+      ano: 2024,
+      totalFolha: 4_500_000,
+      despesaTotalPessoalLrf: 5_500_000,
+      totalPago: 4_500_000,
+    });
+
+    const metrics2024 = await getFolhaVsServicosMetrics({
+      years: [2024],
+      portalSlug: PORTAL,
+    });
+    expect(metrics2024[0].totalFolha).toBe(4_500_000);
+    expect(metrics2024[0].despesaPessoalLrf).toBe(5_500_000);
+    expect(metrics2024[0].receitaCorrenteLiquida).toBe(10_000_000);
+    expect(metrics2024[0].percentualFolha).toBe(55);
+    expect(metrics2024[0].statusLrf).toBe("excedido");
+
+    // Caso 2: 5.2M / 10M = 52% (>= 51.3% -> prudencial)
+    await seedFontesReceita({
+      portalSlug: PORTAL,
+      empresaId: "1",
+      ano: 2025,
+      totalArrecadado: 10_000_000,
+      receitaCorrenteLiquida: 10_000_000,
+    });
+    await seedPessoalFolha({
+      portalSlug: PORTAL,
+      empresaId: "1",
+      ano: 2025,
+      totalFolha: 4_200_000,
+      despesaTotalPessoalLrf: 5_200_000,
+      totalPago: 4_200_000,
+    });
+
+    const metrics2025 = await getFolhaVsServicosMetrics({
+      years: [2025],
+      portalSlug: PORTAL,
+    });
+    expect(metrics2025[0].percentualFolha).toBe(52);
+    expect(metrics2025[0].statusLrf).toBe("prudencial");
+  });
 });

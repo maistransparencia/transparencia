@@ -5,7 +5,20 @@ with despesas_folha as (
         portal_slug,
         ano,
         coalesce(nullif(ltrim(empresa_id, '0'), ''), '0') as empresa_id,
-        sum(coalesce(pago, 0)) as total_folha,
+        sum(
+            case
+                when elemento in ('01', '03', '11', '96')
+                then coalesce(pago, 0)
+                else 0
+            end
+        ) as total_folha,
+        sum(
+            case
+                when elemento in ('01', '03', '04', '11', '13', '16', '96')
+                then greatest(coalesce(liquidado, 0), coalesce(pago, 0))
+                else 0
+            end
+        ) as despesa_total_pessoal_lrf,
         sum(
             case
                 when (
@@ -75,7 +88,7 @@ with despesas_folha as (
             end
         ) as pago_13
     from {{ ref('fct_despesas') }}
-    where elemento in ('01', '03', '11', '96')
+    where elemento in ('01', '03', '04', '11', '13', '16', '96')
     group by portal_slug, ano, coalesce(nullif(ltrim(empresa_id, '0'), ''), '0')
 ),
 
@@ -135,6 +148,7 @@ select
     c.ano,
     c.empresa_id,
     coalesce(df.total_folha, 0)::numeric(15, 2) as total_folha,
+    coalesce(df.despesa_total_pessoal_lrf, 0)::numeric(15, 2) as despesa_total_pessoal_lrf,
     coalesce(dor.total_pago, 0)::numeric(15, 2) as total_pago,
     coalesce(df.empenhado_13, 0)::numeric(15, 2) as empenhado_13,
     coalesce(df.empenhado_bruto_13, 0)::numeric(15, 2) as empenhado_bruto_13,

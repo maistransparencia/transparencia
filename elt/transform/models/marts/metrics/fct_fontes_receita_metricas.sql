@@ -9,6 +9,7 @@ with receitas_root as (
         t.portal_slug,
         t.empresa_id,
         t.ano,
+        t.codigo,
         t.previsao_atualizada,
         t.arrecadado
     from {{ ref('fct_receitas') }} t
@@ -30,7 +31,14 @@ totais_orcamentarios as (
         empresa_id,
         ano,
         sum(coalesce(previsao_atualizada, 0)) as total_previsto,
-        sum(coalesce(arrecadado, 0)) as total_arrecadado
+        sum(coalesce(arrecadado, 0)) as total_arrecadado,
+        sum(
+            case
+                when codigo like '1%' or codigo like '9%' or codigo like '7%'
+                then coalesce(arrecadado, 0)
+                else 0
+            end
+        ) as receita_corrente_liquida
     from receitas_root
     group by portal_slug, empresa_id, ano
 ),
@@ -155,6 +163,7 @@ receitas_base as (
         t.ano,
         t.total_previsto,
         t.total_arrecadado,
+        t.receita_corrente_liquida,
         coalesce(b.transferencias_uniao_previsto, 0) as transferencias_uniao_previsto,
         coalesce(b.transferencias_uniao_arrecadado, 0) as transferencias_uniao_arrecadado,
         coalesce(b.transferencias_estado_previsto, 0) as transferencias_estado_previsto,
@@ -195,6 +204,7 @@ calculos as (
         receita_extra_orcamentaria_arrecadado::numeric(15, 2) as receita_extra_orcamentaria_arrecadado,
         total_previsto::numeric(15, 2) as total_previsto,
         total_arrecadado::numeric(15, 2) as total_arrecadado,
+        receita_corrente_liquida::numeric(15, 2) as receita_corrente_liquida,
         fpm_arrecadado::numeric(15, 2) as fpm_arrecadado,
         icms_arrecadado::numeric(15, 2) as icms_arrecadado,
         iss_iptu_arrecadado::numeric(15, 2) as iss_iptu_arrecadado,
@@ -219,6 +229,7 @@ select
     receita_extra_orcamentaria_arrecadado,
     total_previsto,
     total_arrecadado,
+    receita_corrente_liquida,
     case
         when total_arrecadado > 0
         then (receita_propria_arrecadado / total_arrecadado) * 100

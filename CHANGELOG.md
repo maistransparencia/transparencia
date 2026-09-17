@@ -5,6 +5,30 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-09-16
+
+### 🌟 Destaques da Versão (Hotfix: Conformidade Contábil da Despesa com Pessoal e RCL - LRF)
+* **Adequação Contábil Estrita à Lei de Responsabilidade Fiscal (Art. 18 e 19 da LRF):** Correção metodológica na apuração do gasto com pessoal na página `/pessoal` e nos modelos de dados. A folha salarial nominal foi devidamente segregada da Despesa Total com Pessoal (DTP), passando a incluir os encargos sociais patronais previdenciários (INSS e RPPS - elemento 13) e contratos temporários (elemento 04).
+* **Adoção Canônica da Receita Corrente Líquida (RCL):** Substituição da receita orçamentária bruta total pela Receita Corrente Líquida consolidada (RCL) como denominador do percentual de gasto com pessoal, expurgando receitas de capital e deduzindo as parcelas constitucionais obrigatórias (FUNDEB).
+* **Alinhamento Imediato com os Relatórios de Gestão Fiscal (RGF/TCE-RJ):** A correção corrigiu distorções históricas onde Porciúncula figurava artificialmente em ~39% a 41%: no exercício fechado de 2024 a DTP atingiu 54,11% (acima do limite máximo legal de 54,0%) e em 2025 atingiu 52,75% (acima do limite prudencial de 51,3%).
+* **Sinalização Proativa de Limites Constitucionais na UI:** O card principal na rota `/pessoal` passa a exibir o status contextual da LRF (normal, alerta a 48,6%, prudencial a 51,3% ou excedido a 54,0%), informando com transparência e clareza os gatilhos fiscais para o cidadão.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Segregação de Folha Nominal e DTP (`fct_pessoal_folha_metricas`):** Inclusão da métrica `despesa_total_pessoal_lrf` cobrindo os elementos de despesa 01, 03, 04, 11, 13, 16 e 96 via `greatest(liquidado, pago)` conforme preceitua o Art. 18 da LRF, preservando `total_folha` para a folha nominal direta (elementos 01, 03, 11, 96).
+* **Cálculo da Receita Corrente Líquida (`fct_fontes_receita_metricas`):** Adição da métrica `receita_corrente_liquida` agregada por exercício, consolidando as contas de receitas correntes (classes 1 e 7) deduzidas das deduções legais (classe 9), e expansão das fontes orçamentárias nos filtros de cálculo.
+* **Contratos de Schema e Testes dbt:** Atualização de `_fct_pessoal_folha_metricas.yml` e `_fct_fontes_receita_metricas.yml` com validações de integridade matemática e schema contracts.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Camada de Consultas Tipadas (`@transparencia/db`):** Atualização de `getFolhaVsServicosMetrics` para consumir `despesa_total_pessoal_lrf` e `receita_corrente_liquida`, calculando `percentualFolha` com precisão decimal e computando o enum tipado `statusLrf` (`normal | alerta | prudencial | excedido`) via função pura IIFE (Regra 13 de `AGENTS.md`).
+* **Fixtures e Testes de Regressão Kysely:** Atualização do dump de testes `schema.sql.gz`, sementes em `seed.ts` e suíte de testes de paridade em `pessoal-metrics.spec.ts`.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Sincronização dos Guias para LLMs (`llms-full.txt`):** Documentação técnica da metodologia do cálculo fiscal da DTP/RCL conforme o Art. 18 da LRF, especificando os limites de alerta (48,6%), prudencial (51,3%) e teto (54,0%) para consumo por agentes externos.
+* **Links Oficiais para Legislação (Regra 20 de `AGENTS.md`):** Links diretos e canônicos para a Lei de Responsabilidade Fiscal no Planalto nos textos explicativos e tooltips.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Card de Gasto com Pessoal LRF (`PessoalViewModel`):** Renomeação de "Folha / Receita Municipal" para "Gasto com Pessoal (LRF)" e exibição do subtexto dinâmico com o enquadramento fiscal do município frente aos limites legais.
+
 ## [1.9.0] - 2026-09-11
 
 ### 🌟 Destaques da Versão (Epic 9: Consistência Cívica, Indicadores da Saúde e Disponibilidade Financeira SICONFI)
