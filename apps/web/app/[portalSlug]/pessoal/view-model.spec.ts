@@ -33,8 +33,11 @@ describe("buildPessoalViewModel", () => {
     expect(vm.currentYearRow).toEqual({
       totalFolha: 0,
       totalPago: 0,
+      despesaPessoalLrf: 0,
       rclProxy: 0,
+      receitaCorrenteLiquida: 0,
       percentualFolha: 0,
+      statusLrf: "normal",
     });
   });
 
@@ -46,8 +49,26 @@ describe("buildPessoalViewModel", () => {
     expect(vm.decimo13).toBeNull();
   });
 
-  it("configura folhaKpi para consolidado municipal (abaixo e acima do teto)", () => {
-    const vmOk = buildPessoalViewModel(
+  it("configura folhaKpi para consolidado municipal (dentro do limite, alerta, prudencial e acima do teto)", () => {
+    const vmNormal = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 900,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 45,
+          },
+        ],
+      }),
+    );
+    expect(vmNormal.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
+    expect(vmNormal.folhaKpi.subtext).toBe(
+      "dentro dos limites da LRF (teto 54%)",
+    );
+    expect(vmNormal.folhaKpi.alert).toBe(false);
+
+    const vmAlerta = buildPessoalViewModel(
       makeRaw({
         folhaData: [
           {
@@ -59,9 +80,27 @@ describe("buildPessoalViewModel", () => {
         ],
       }),
     );
-    expect(vmOk.folhaKpi.title).toBe("Folha / Receita Arrecadada");
-    expect(vmOk.folhaKpi.subtext).toBe("abaixo do teto de 54%");
-    expect(vmOk.folhaKpi.alert).toBe(false);
+    expect(vmAlerta.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
+    expect(vmAlerta.folhaKpi.subtext).toBe("acima do limite de alerta (48,6%)");
+    expect(vmAlerta.folhaKpi.alert).toBe(true);
+
+    const vmPrudencial = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1050,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 52.5,
+          },
+        ],
+      }),
+    );
+    expect(vmPrudencial.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
+    expect(vmPrudencial.folhaKpi.subtext).toBe(
+      "acima do limite prudencial (51,3%)",
+    );
+    expect(vmPrudencial.folhaKpi.alert).toBe(true);
 
     const vmEstouro = buildPessoalViewModel(
       makeRaw({
@@ -75,7 +114,7 @@ describe("buildPessoalViewModel", () => {
         ],
       }),
     );
-    expect(vmEstouro.folhaKpi.title).toBe("Folha / Receita Arrecadada");
+    expect(vmEstouro.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
     expect(vmEstouro.folhaKpi.subtext).toBe("acima do teto de 54%");
     expect(vmEstouro.folhaKpi.alert).toBe(true);
   });
@@ -99,13 +138,13 @@ describe("buildPessoalViewModel", () => {
       }),
     );
     expect(vm.isEntidadeFiltrada).toBe(true);
-    expect(vm.folhaKpi.title).toBe("Folha / Receita Municipal");
+    expect(vm.folhaKpi.title).toBe("Pessoal / Receita Municipal");
     expect(vm.folhaKpi.subtext).toBe(
       "impacto no teto da LRF do município (54%)",
     );
     expect(vm.folhaKpi.alert).toBe(false);
     expect(vm.headerDescription).toContain(
-      "desta entidade na arrecadação do município",
+      "desta entidade na receita corrente líquida do município",
     );
   });
 

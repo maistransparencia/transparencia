@@ -329,6 +329,7 @@ export interface PessoalFolhaRow {
   empresaId: string;
   ano: number;
   totalFolha?: number;
+  despesaTotalPessoalLrf?: number;
   totalPago?: number;
   empenhado13?: number;
   empenhadoBruto13?: number;
@@ -356,6 +357,8 @@ export async function seedPessoalFolha(row: PessoalFolhaRow): Promise<void> {
       empresa_id: row.empresaId,
       ano: row.ano,
       total_folha: row.totalFolha ?? 0,
+      despesa_total_pessoal_lrf:
+        row.despesaTotalPessoalLrf ?? row.totalFolha ?? 0,
       total_pago: row.totalPago ?? 0,
       empenhado_13: row.empenhado13 ?? 0,
       empenhado_bruto_13: row.empenhadoBruto13 ?? 0,
@@ -413,6 +416,7 @@ export interface FontesReceitaRow {
   receitaExtraOrcamentariaArrecadado?: number;
   totalPrevisto?: number;
   totalArrecadado?: number;
+  receitaCorrenteLiquida?: number;
   pctPropria?: number;
   alertaDependencia?: boolean;
   fpmArrecadado?: number;
@@ -442,6 +446,8 @@ export async function seedFontesReceita(row: FontesReceitaRow): Promise<void> {
         row.receitaExtraOrcamentariaArrecadado ?? 0,
       total_previsto: row.totalPrevisto ?? 0,
       total_arrecadado: row.totalArrecadado ?? 0,
+      receita_corrente_liquida:
+        row.receitaCorrenteLiquida ?? row.totalArrecadado ?? 0,
       pct_propria: row.pctPropria ?? 0,
       alerta_dependencia: row.alertaDependencia ?? false,
       fpm_arrecadado: row.fpmArrecadado ?? 0,

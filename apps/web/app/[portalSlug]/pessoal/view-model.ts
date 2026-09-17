@@ -13,31 +13,57 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     raw.folhaData[0] || {
       totalFolha: 0,
       totalPago: 0,
+      despesaPessoalLrf: 0,
       rclProxy: 0,
+      receitaCorrenteLiquida: 0,
       percentualFolha: 0,
+      statusLrf: "normal" as const,
     };
 
   const previousYearRow = raw.folhaData.find((r) => r.ano === previousYear);
 
+  const statusLrf =
+    currentYearRow.statusLrf ??
+    (() => {
+      if (currentYearRow.percentualFolha > 54) return "excedido";
+      if (currentYearRow.percentualFolha >= 51.3) return "prudencial";
+      if (currentYearRow.percentualFolha >= 48.6) return "alerta";
+      return "normal";
+    })();
+
   const folhaKpi = (() => {
     if (isEntidadeFiltrada) {
       return {
-        title: "Folha / Receita Municipal",
+        title: "Pessoal / Receita Municipal",
         subtext: "impacto no teto da LRF do município (54%)",
         alert: false,
       };
     }
-    if (currentYearRow.percentualFolha <= 54) {
+    if (statusLrf === "excedido") {
       return {
-        title: "Folha / Receita Arrecadada",
-        subtext: "abaixo do teto de 54%",
-        alert: false,
+        title: "Gasto com Pessoal (LRF)",
+        subtext: "acima do teto de 54%",
+        alert: true,
+      };
+    }
+    if (statusLrf === "prudencial") {
+      return {
+        title: "Gasto com Pessoal (LRF)",
+        subtext: "acima do limite prudencial (51,3%)",
+        alert: true,
+      };
+    }
+    if (statusLrf === "alerta") {
+      return {
+        title: "Gasto com Pessoal (LRF)",
+        subtext: "acima do limite de alerta (48,6%)",
+        alert: true,
       };
     }
     return {
-      title: "Folha / Receita Arrecadada",
-      subtext: "acima do teto de 54%",
-      alert: true,
+      title: "Gasto com Pessoal (LRF)",
+      subtext: "dentro dos limites da LRF (teto 54%)",
+      alert: false,
     };
   })();
 
@@ -130,8 +156,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
   });
 
   const headerDescription = isEntidadeFiltrada
-    ? "Impacto da folha de pagamento desta entidade na arrecadação do município. A Lei de Responsabilidade Fiscal limita o gasto total com pessoal a 54% da receita corrente líquida para o Poder Executivo."
-    : "Quanto da receita arrecadada é comprometido com salários e proventos. A Lei de Responsabilidade Fiscal limita esse gasto a 54% da receita corrente líquida para o Poder Executivo.";
+    ? "Impacto da folha de pagamento desta entidade na receita corrente líquida do município. A Lei de Responsabilidade Fiscal limita o gasto total com pessoal a 54% da RCL para o Poder Executivo."
+    : "Comprometimento da Receita Corrente Líquida (RCL) com a despesa total com pessoal. A Lei de Responsabilidade Fiscal limita esse gasto a 54% para o Poder Executivo (com limites de alerta a 48,6% e prudencial a 51,3%).";
 
   return {
     selectedYear,
