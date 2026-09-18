@@ -1,4 +1,5 @@
 import argparse
+import calendar
 import json
 import logging
 import time
@@ -25,8 +26,8 @@ class PncpExtractor:
         base_url: str = PNCP_BASE_URL,
         user_agent: str = DEFAULT_USER_AGENT,
         min_interval_seconds: float = 0.5,
-        max_retries: int = 3,
-        timeout: int = 30,
+        max_retries: int = 4,
+        timeout: int = 45,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.user_agent = user_agent
@@ -337,53 +338,71 @@ def extract_and_load_pncp(
     all_itens: list[dict[str, Any]] = []
     all_resultados: list[dict[str, Any]] = []
 
+    current_now = datetime.now()
+    current_year = current_now.year
+    current_month = current_now.month
+
+    processed_compras_keys: set[tuple[str, int, int]] = set()
+
     for year in target_years:
-        data_inicial = f"{year}0101"
-        data_final = f"{year}1231"
-        logger.info("Consultando publicações do PNCP para CNPJ %s no exercício %d", cnpj, year)
-        pagina = 1
-        while True:
-            pub_data = extractor.fetch_publicacoes(
-                data_inicial=data_inicial,
-                data_final=data_final,
-                cnpj=cnpj,
-                pagina=pagina,
-                tamanho_pagina=20,
+        if year > current_year:
+            continue
+        max_month = current_month if year == current_year else 12
+        for month in range(1, max_month + 1):
+            last_day = calendar.monthrange(year, month)[1]
+            data_inicial = f"{year}{month:02d}01"
+            data_final = f"{year}{month:02d}{last_day:02d}"
+            logger.info(
+                "Consultando publicações do PNCP para CNPJ %s no período %s a %s", cnpj, data_inicial, data_final
             )
-            if not pub_data or not isinstance(pub_data, dict):
-                break
-            registros = pub_data.get("data") or []
-            if not registros:
-                break
+            pagina = 1
+            while True:
+                pub_data = extractor.fetch_publicacoes(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    cnpj=cnpj,
+                    pagina=pagina,
+                    tamanho_pagina=20,
+                )
+                if not pub_data or not isinstance(pub_data, dict):
+                    break
+                registros = pub_data.get("data") or []
+                if not registros:
+                    break
 
-            for item_pub in registros:
-                ano_compra = item_pub.get("anoCompra") or year
-                seq_compra = item_pub.get("sequencialCompra")
-                if not seq_compra:
-                    continue
-                compra_detalhe = extractor.fetch_compra(cnpj, int(ano_compra), int(seq_compra))
-                merged_compra = {**item_pub, **(compra_detalhe or {})}
-                norm_compra = extractor.normalize_compra(merged_compra)
-                all_compras.append(norm_compra)
+                for item_pub in registros:
+                    ano_compra = item_pub.get("anoCompra") or year
+                    seq_compra = item_pub.get("sequencialCompra")
+                    if not seq_compra:
+                        continue
+                    compra_key = (cnpj, int(ano_compra), int(seq_compra))
+                    if compra_key in processed_compras_keys:
+                        continue
+                    processed_compras_keys.add(compra_key)
 
-                raw_itens = extractor.fetch_itens(cnpj, int(ano_compra), int(seq_compra))
-                for raw_item in raw_itens:
-                    norm_item = extractor.normalize_item(raw_item)
-                    all_itens.append(norm_item)
+                    compra_detalhe = extractor.fetch_compra(cnpj, int(ano_compra), int(seq_compra))
+                    merged_compra = {**item_pub, **(compra_detalhe or {})}
+                    norm_compra = extractor.normalize_compra(merged_compra)
+                    all_compras.append(norm_compra)
 
-                    num_item = raw_item.get("numeroItem") or raw_item.get("numero_item")
-                    if num_item:
-                        raw_resultados = extractor.fetch_item_resultados(
-                            cnpj, int(ano_compra), int(seq_compra), int(num_item)
-                        )
-                        for raw_res in raw_resultados:
-                            norm_res = extractor.normalize_item_resultado(raw_res)
-                            all_resultados.append(norm_res)
+                    raw_itens = extractor.fetch_itens(cnpj, int(ano_compra), int(seq_compra))
+                    for raw_item in raw_itens:
+                        norm_item = extractor.normalize_item(raw_item)
+                        all_itens.append(norm_item)
 
-            total_registros = pub_data.get("totalRegistros", 0)
-            if pagina * 20 >= total_registros:
-                break
-            pagina += 1
+                        num_item = raw_item.get("numeroItem") or raw_item.get("numero_item")
+                        if num_item:
+                            raw_resultados = extractor.fetch_item_resultados(
+                                cnpj, int(ano_compra), int(seq_compra), int(num_item)
+                            )
+                            for raw_res in raw_resultados:
+                                norm_res = extractor.normalize_item_resultado(raw_res)
+                                all_resultados.append(norm_res)
+
+                total_registros = pub_data.get("totalRegistros", 0)
+                if pagina * 20 >= total_registros:
+                    break
+                pagina += 1
 
     if save_raw and run_dir:
         pncp_dir = run_dir / "pncp"
