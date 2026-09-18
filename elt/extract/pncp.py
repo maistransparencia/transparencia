@@ -65,8 +65,8 @@ class PncpExtractor:
 
                 if resp.status_code == 200:
                     return resp.json()
-                if resp.status_code == 404:
-                    logger.debug("Recurso não encontrado (404): %s", url)
+                if resp.status_code in (204, 404):
+                    logger.debug("Recurso não encontrado ou sem conteúdo (%d): %s", resp.status_code, url)
                     return None
                 if resp.status_code == 429 or resp.status_code >= 500:
                     wait = 2**attempt
