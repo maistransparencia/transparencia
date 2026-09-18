@@ -301,7 +301,29 @@ export function LicitacoesEmAndamentoSection({
           </div>
           <p className="mt-1 max-w-3xl text-slate-600 text-xs leading-relaxed sm:text-sm">
             Audite preventivamente as compras públicas em andamento antes da
-            adjudicação e homologação de contratos pelo município.
+            adjudicação e homologação de contratos pelo município. Descrições e
+            itens são enriquecidos e integrados diretamente com o{" "}
+            <a
+              href="https://pncp.gov.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+            >
+              PNCP (Portal Nacional de Contratações Públicas)
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            , com fundamento no{" "}
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art174"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+            >
+              Art. 174 da Lei 14.133/2021
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            , e cruzados com os contratos locais para eliminação de
+            truncamentos.
           </p>
         </div>
         <span

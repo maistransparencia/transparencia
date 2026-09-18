@@ -1,12 +1,14 @@
-"""Extrator de dados da API pública de Consulta do PNCP (Portal Nacional de Contratações Públicas)."""
-
+import argparse
 import json
 import logging
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import requests
+
+from elt.core.db import Connectable
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,7 @@ class PncpExtractor:
         cnpj: str = DEFAULT_CNPJ_PORCIUNCULA,
         codigo_modalidade: int | None = None,
         pagina: int = 1,
+        tamanho_pagina: int = 10,
         session: requests.Session | None = None,
     ) -> dict[str, Any] | None:
         """Consulta contratações publicadas por intervalo de datas (AAAAMMDD) e CNPJ."""
@@ -111,6 +114,7 @@ class PncpExtractor:
             "dataFinal": data_final,
             "cnpj": cnpj,
             "pagina": pagina,
+            "tamanhoPagina": tamanho_pagina,
         }
         if codigo_modalidade is not None:
             params["codigoModalidadeContratacao"] = codigo_modalidade
@@ -313,3 +317,133 @@ class PncpExtractor:
             "data_resultado": str(resultado.get("data_resultado") or resultado.get("dataResultado") or ""),
             "data_extracao": extracted_at or datetime.now(timezone.utc).isoformat(),
         }
+
+
+def extract_and_load_pncp(
+    cnpj: str = DEFAULT_CNPJ_PORCIUNCULA,
+    years: list[int] | None = None,
+    db: Connectable | None = None,
+    extractor: PncpExtractor | None = None,
+    run_dir: Path | None = None,
+    save_raw: bool = True,
+) -> dict[str, int]:
+    """Extrai e opcionalmente carrega compras, itens e resultados do PNCP."""
+    if extractor is None:
+        extractor = PncpExtractor()
+    target_years = years or [2024, 2025, 2026]
+    total_counts = {"compras": 0, "itens": 0, "itens_resultados": 0}
+
+    all_compras: list[dict[str, Any]] = []
+    all_itens: list[dict[str, Any]] = []
+    all_resultados: list[dict[str, Any]] = []
+
+    for year in target_years:
+        data_inicial = f"{year}0101"
+        data_final = f"{year}1231"
+        logger.info("Consultando publicações do PNCP para CNPJ %s no exercício %d", cnpj, year)
+        pagina = 1
+        while True:
+            pub_data = extractor.fetch_publicacoes(
+                data_inicial=data_inicial,
+                data_final=data_final,
+                cnpj=cnpj,
+                pagina=pagina,
+                tamanho_pagina=20,
+            )
+            if not pub_data or not isinstance(pub_data, dict):
+                break
+            registros = pub_data.get("data") or []
+            if not registros:
+                break
+
+            for item_pub in registros:
+                ano_compra = item_pub.get("anoCompra") or year
+                seq_compra = item_pub.get("sequencialCompra")
+                if not seq_compra:
+                    continue
+                compra_detalhe = extractor.fetch_compra(cnpj, int(ano_compra), int(seq_compra))
+                merged_compra = {**item_pub, **(compra_detalhe or {})}
+                norm_compra = extractor.normalize_compra(merged_compra)
+                all_compras.append(norm_compra)
+
+                raw_itens = extractor.fetch_itens(cnpj, int(ano_compra), int(seq_compra))
+                for raw_item in raw_itens:
+                    norm_item = extractor.normalize_item(raw_item)
+                    all_itens.append(norm_item)
+
+                    num_item = raw_item.get("numeroItem") or raw_item.get("numero_item")
+                    if num_item:
+                        raw_resultados = extractor.fetch_item_resultados(
+                            cnpj, int(ano_compra), int(seq_compra), int(num_item)
+                        )
+                        for raw_res in raw_resultados:
+                            norm_res = extractor.normalize_item_resultado(raw_res)
+                            all_resultados.append(norm_res)
+
+            total_registros = pub_data.get("totalRegistros", 0)
+            if pagina * 20 >= total_registros:
+                break
+            pagina += 1
+
+    if save_raw and run_dir:
+        pncp_dir = run_dir / "pncp"
+        pncp_dir.mkdir(parents=True, exist_ok=True)
+        (pncp_dir / "compras.json").write_text(json.dumps(all_compras, ensure_ascii=False, indent=2))
+        (pncp_dir / "itens.json").write_text(json.dumps(all_itens, ensure_ascii=False, indent=2))
+        (pncp_dir / "itens_resultados.json").write_text(json.dumps(all_resultados, ensure_ascii=False, indent=2))
+        logger.info("Arquivos raw PNCP salvos em %s", pncp_dir)
+
+    if db is not None:
+        from elt.load.pncp import (
+            ensure_pncp_tables,
+            load_pncp_compras,
+            load_pncp_itens,
+            load_pncp_itens_resultados,
+        )
+
+        ensure_pncp_tables(db)
+        if all_compras:
+            total_counts["compras"] = load_pncp_compras(db, all_compras)
+        if all_itens:
+            total_counts["itens"] = load_pncp_itens(db, all_itens)
+        if all_resultados:
+            total_counts["itens_resultados"] = load_pncp_itens_resultados(db, all_resultados)
+
+        logger.info(
+            "Carga PNCP concluída no PostgreSQL: %d compras, %d itens, %d resultados",
+            total_counts["compras"],
+            total_counts["itens"],
+            total_counts["itens_resultados"],
+        )
+
+    return total_counts
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    parser = argparse.ArgumentParser(description="Extrai e carrega contratações, itens e resultados do PNCP")
+    parser.add_argument("--cnpj", default=DEFAULT_CNPJ_PORCIUNCULA, help="CNPJ do órgão (default: 28920999000106)")
+    parser.add_argument("--years", nargs="+", type=int, help="Anos a extrair (default: 2024 2025 2026)")
+    parser.add_argument("--raw-only", action="store_true", help="Apenas salva os arquivos JSON sem carregar no banco")
+    parser.add_argument("--dir", help="Diretório de saída para raw JSON")
+    args = parser.parse_args()
+
+    from elt.core.db import get_engine
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_dir = Path(args.dir) if args.dir else Path(f"data/raw_runs/pncp/{timestamp}")
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    db_engine = None if args.raw_only else get_engine()
+    counts = extract_and_load_pncp(
+        cnpj=args.cnpj,
+        years=args.years,
+        db=db_engine,
+        run_dir=run_dir,
+        save_raw=True,
+    )
+    logger.info("Processamento finalizado com sucesso: %s", counts)
+
+
+if __name__ == "__main__":
+    main()
