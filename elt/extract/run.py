@@ -40,8 +40,9 @@ def main() -> None:
     years = args.years or list(range(portal.ano_inicial, date.today().year + 1))
 
     siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
+    pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     if args.only:
-        valid = [e.listagem for e in endpoints] + list(siconfi_keys)
+        valid = [e.listagem for e in endpoints] + list(siconfi_keys) + list(pncp_keys)
         if args.only not in valid:
             raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
         endpoints = [e for e in endpoints if e.listagem == args.only]
@@ -101,6 +102,22 @@ def main() -> None:
             except Exception as exc:
                 logger.warning("Failed: siconfi_msc_patrimonial / %s / %d: %s", portal.slug, year, exc)
                 _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc)
+
+    if not args.only or args.only in pncp_keys:
+        from elt.extract.pncp import extract_and_load_pncp
+
+        logger.info("Extracting PNCP data for %s...", portal.slug)
+        try:
+            extract_and_load_pncp(
+                years=years,
+                run_dir=run_dir,
+                save_raw=True,
+                db=None,
+            )
+            logger.info("Extracted PNCP data for %s", portal.slug)
+        except Exception as exc:
+            logger.warning("Failed: pncp / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 
