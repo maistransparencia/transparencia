@@ -1,5 +1,4 @@
 import argparse
-import calendar
 import json
 import logging
 import time
@@ -13,7 +12,7 @@ from elt.core.db import Connectable
 
 logger = logging.getLogger(__name__)
 
-PNCP_BASE_URL = "https://pncp.gov.br/api/consulta"
+PNCP_BASE_URL = "https://pncp.gov.br/api/pncp"
 DEFAULT_USER_AGENT = "TransparenciaPublica/1.0"
 DEFAULT_CNPJ_PORCIUNCULA = "28920999000106"
 
@@ -133,6 +132,20 @@ class PncpExtractor:
         endpoint = f"v1/orgaos/{cnpj}/compras/{ano}/{sequencial}"
         return self._request(endpoint, session=session)
 
+    def fetch_arquivos(
+        self,
+        cnpj: str,
+        ano: int,
+        sequencial: int,
+        session: requests.Session | None = None,
+    ) -> list[dict[str, Any]]:
+        """Busca os documentos/arquivos publicados de uma contratação (editais, termos)."""
+        endpoint = f"v1/orgaos/{cnpj}/compras/{ano}/{sequencial}/arquivos"
+        res = self._request(endpoint, session=session)
+        if isinstance(res, list):
+            return res
+        return []
+
     def fetch_itens(
         self,
         cnpj: str,
@@ -153,11 +166,13 @@ class PncpExtractor:
         elif isinstance(res, dict) and "data" in res and isinstance(res["data"], list):
             raw_items = res["data"]
 
-        ctrl = f"{cnpj}-{sequencial}/{ano}"
+        ctrl = f"{cnpj}-1-{sequencial:06d}/{ano}"
+        num_compra = f"{sequencial:03d}/{ano}"
         for it in raw_items:
             it.setdefault("cnpj_orgao", cnpj)
             it.setdefault("ano_compra", ano)
             it.setdefault("sequencial_compra", sequencial)
+            it.setdefault("numero_compra", num_compra)
             it.setdefault("numero_controle_pncp", ctrl)
 
         return raw_items
@@ -181,11 +196,13 @@ class PncpExtractor:
         elif isinstance(res, dict) and "data" in res and isinstance(res["data"], list):
             raw_results = res["data"]
 
-        ctrl = f"{cnpj}-{sequencial}/{ano}"
+        ctrl = f"{cnpj}-1-{sequencial:06d}/{ano}"
+        num_compra = f"{sequencial:03d}/{ano}"
         for r in raw_results:
             r.setdefault("cnpj_orgao", cnpj)
             r.setdefault("ano_compra", ano)
             r.setdefault("sequencial_compra", sequencial)
+            r.setdefault("numero_compra", num_compra)
             r.setdefault("numero_item", numero_item)
             r.setdefault("numero_controle_pncp", ctrl)
 
@@ -338,71 +355,74 @@ def extract_and_load_pncp(
     all_itens: list[dict[str, Any]] = []
     all_resultados: list[dict[str, Any]] = []
 
-    current_now = datetime.now()
-    current_year = current_now.year
-    current_month = current_now.month
-
-    processed_compras_keys: set[tuple[str, int, int]] = set()
+    max_consecutive_404 = 5
+    max_sequencial = 60
 
     for year in target_years:
-        if year > current_year:
-            continue
-        max_month = current_month if year == current_year else 12
-        for month in range(1, max_month + 1):
-            last_day = calendar.monthrange(year, month)[1]
-            data_inicial = f"{year}{month:02d}01"
-            data_final = f"{year}{month:02d}{last_day:02d}"
-            logger.info(
-                "Consultando publicações do PNCP para CNPJ %s no período %s a %s", cnpj, data_inicial, data_final
-            )
-            pagina = 1
-            while True:
-                pub_data = extractor.fetch_publicacoes(
-                    data_inicial=data_inicial,
-                    data_final=data_final,
-                    cnpj=cnpj,
-                    pagina=pagina,
-                    tamanho_pagina=20,
+        consecutive_404 = 0
+        seq = 1
+        logger.info("Varrendo contratações do PNCP para CNPJ %s no exercício %d...", cnpj, year)
+        while consecutive_404 < max_consecutive_404 and seq <= max_sequencial:
+            raw_itens = extractor.fetch_itens(cnpj, year, seq)
+            if not raw_itens:
+                consecutive_404 += 1
+                seq += 1
+                continue
+
+            consecutive_404 = 0
+            logger.info("Compra %d/%d encontrada no PNCP com %d itens", year, seq, len(raw_itens))
+
+            compra_resultados: list[dict[str, Any]] = []
+            for raw_item in raw_itens:
+                norm_item = extractor.normalize_item(raw_item)
+                all_itens.append(norm_item)
+
+                num_item = raw_item.get("numeroItem") or raw_item.get("numero_item")
+                if num_item:
+                    item_res = extractor.fetch_item_resultados(cnpj, year, seq, int(num_item))
+                    for res in item_res:
+                        norm_res = extractor.normalize_item_resultado(res)
+                        all_resultados.append(norm_res)
+                        compra_resultados.append(res)
+
+            arquivos = extractor.fetch_arquivos(cnpj, year, seq)
+            edital_doc = arquivos[0] if arquivos else {}
+
+            ctrl = None
+            if compra_resultados:
+                ctrl = compra_resultados[0].get("numeroControlePNCPCompra") or compra_resultados[0].get(
+                    "numero_controle_pncp"
                 )
-                if not pub_data or not isinstance(pub_data, dict):
-                    break
-                registros = pub_data.get("data") or []
-                if not registros:
-                    break
+            if not ctrl:
+                ctrl = f"{cnpj}-1-{seq:06d}/{year}"
 
-                for item_pub in registros:
-                    ano_compra = item_pub.get("anoCompra") or year
-                    seq_compra = item_pub.get("sequencialCompra")
-                    if not seq_compra:
-                        continue
-                    compra_key = (cnpj, int(ano_compra), int(seq_compra))
-                    if compra_key in processed_compras_keys:
-                        continue
-                    processed_compras_keys.add(compra_key)
+            obj_itens = "; ".join(it.get("descricao", "") for it in raw_itens if it.get("descricao"))
+            data_pub = edital_doc.get("dataPublicacaoPncp") or (raw_itens[0].get("dataInclusao") if raw_itens else None)
+            valor_estimado = sum(
+                float(it.get("valorTotal") or 0) for it in raw_itens if it.get("valorTotal") is not None
+            )
+            valor_homologado = sum(
+                float(r.get("valorTotalHomologado") or 0)
+                for r in compra_resultados
+                if r.get("valorTotalHomologado") is not None
+            )
 
-                    compra_detalhe = extractor.fetch_compra(cnpj, int(ano_compra), int(seq_compra))
-                    merged_compra = {**item_pub, **(compra_detalhe or {})}
-                    norm_compra = extractor.normalize_compra(merged_compra)
-                    all_compras.append(norm_compra)
-
-                    raw_itens = extractor.fetch_itens(cnpj, int(ano_compra), int(seq_compra))
-                    for raw_item in raw_itens:
-                        norm_item = extractor.normalize_item(raw_item)
-                        all_itens.append(norm_item)
-
-                        num_item = raw_item.get("numeroItem") or raw_item.get("numero_item")
-                        if num_item:
-                            raw_resultados = extractor.fetch_item_resultados(
-                                cnpj, int(ano_compra), int(seq_compra), int(num_item)
-                            )
-                            for raw_res in raw_resultados:
-                                norm_res = extractor.normalize_item_resultado(raw_res)
-                                all_resultados.append(norm_res)
-
-                total_registros = pub_data.get("totalRegistros", 0)
-                if pagina * 20 >= total_registros:
-                    break
-                pagina += 1
+            compra_dict = {
+                "numeroControlePNCP": ctrl,
+                "cnpjOrgao": cnpj,
+                "anoCompra": year,
+                "sequencialCompra": seq,
+                "numeroCompra": f"{seq:03d}/{year}",
+                "objetoCompra": obj_itens,
+                "linkSistemaOrigem": f"https://pncp.gov.br/app/editais/{cnpj}/{year}/{seq}",
+                "dataPublicacaoPncp": data_pub,
+                "valorTotalEstimado": valor_estimado if valor_estimado > 0 else None,
+                "valorTotalHomologado": valor_homologado if valor_homologado > 0 else None,
+                "modalidadeNome": raw_itens[0].get("criterioJulgamentoNome") if raw_itens else None,
+                "situacaoCompraNome": raw_itens[0].get("situacaoCompraItemNome") if raw_itens else None,
+            }
+            all_compras.append(extractor.normalize_compra(compra_dict))
+            seq += 1
 
     if save_raw and run_dir:
         pncp_dir = run_dir / "pncp"
