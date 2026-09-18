@@ -211,4 +211,100 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
+
+  it("renderiza link para sala de disputa externa (linkSistemaOrigem) e badge de fonte de objeto", () => {
+    const itensEnriquecidos: LicitacaoEmAndamentoDTO[] = [
+      {
+        ...sampleItems[0],
+        fonteObjeto: "pncp",
+        linkSistemaOrigem: "https://pncp.gov.br/app/editais/12345/2025/1",
+      },
+      {
+        ...sampleItems[1],
+        fonteObjeto: "contrato_local",
+      },
+    ];
+
+    render(<LicitacoesEmAndamentoSection licitacoes={itensEnriquecidos} />);
+
+    // Badges de fonte do objeto
+    expect(screen.getAllByText("PNCP").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Contrato Local").length).toBeGreaterThanOrEqual(
+      1,
+    );
+
+    // Link da sala de disputa
+    const disputeLinks = screen.getAllByRole("link", {
+      name: /sala de disputa/i,
+    });
+    expect(disputeLinks.length).toBeGreaterThanOrEqual(1);
+    expect(disputeLinks[0]).toHaveAttribute(
+      "href",
+      "https://pncp.gov.br/app/editais/12345/2025/1",
+    );
+    expect(disputeLinks[0]).toHaveAttribute("target", "_blank");
+    expect(disputeLinks[0]).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("abre modal com itens da licitação ao clicar no botão e permite fechar", () => {
+    const itensMock = [
+      {
+        itemId: "item-1",
+        licitacaoNumero: "PE 001/2025",
+        ano: 2025,
+        portalSlug: "porciuncula_prefeitura",
+        numeroItem: 1,
+        descricao: "Paracetamol 500mg comprimido",
+        quantidade: 1000,
+        unidadeMedida: "UN",
+        valorUnitarioEstimado: 0.5,
+        valorTotalEstimado: 500,
+        valorUnitarioHomologado: 0.45,
+        valorTotalHomologado: 450,
+        percentualDesconto: 10,
+        situacaoItem: "adjudicado",
+        fornecedorNome: "Distribuidora Farmacêutica LTDA",
+        fornecedorCpfCnpj: "12.345.678/0001-90",
+      },
+    ];
+
+    const licitacaoComItens: LicitacaoEmAndamentoDTO[] = [
+      {
+        ...sampleItems[0],
+      },
+    ];
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={licitacaoComItens}
+        itensByLicitacao={{
+          "PE 001/2025": itensMock,
+        }}
+      />,
+    );
+
+    const buttons = screen.getAllByRole("button", {
+      name: /ver itens licitados/i,
+    });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+
+    // Abre o modal
+    fireEvent.click(buttons[0]);
+    expect(
+      screen.getByRole("heading", { name: /Itens Licitados/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Paracetamol 500mg comprimido"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Distribuidora Farmacêutica LTDA"),
+    ).toBeInTheDocument();
+
+    // Fecha o modal
+    const closeBtn = screen.getByRole("button", { name: /fechar/i });
+    fireEvent.click(closeBtn);
+    expect(
+      screen.queryByText("Distribuidora Farmacêutica LTDA"),
+    ).not.toBeInTheDocument();
+  });
 });

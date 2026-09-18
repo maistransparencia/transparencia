@@ -547,6 +547,32 @@ export interface LicitacaoEmAndamentoDTO {
   situacao: string;
   dataAbertura: string | null;
   carona: string | null;
+  fonteObjeto?: string | null;
+  linkSistemaOrigem?: string | null;
+}
+
+export interface LicitacaoItemDTO {
+  itemId: string;
+  portalSlug: string;
+  ano: number;
+  licitacaoNumero: string;
+  numeroItem: number;
+  descricao: string | null;
+  quantidade: number | null;
+  unidadeMedida: string | null;
+  valorUnitarioEstimado: number | null;
+  valorTotalEstimado: number | null;
+  valorUnitarioHomologado: number | null;
+  valorTotalHomologado: number | null;
+  percentualDesconto: number | null;
+  fornecedorNome: string | null;
+  fornecedorCpfCnpj: string | null;
+  situacaoItem: string | null;
+}
+
+export interface GetLicitacaoItensOptions {
+  ano?: number;
+  licitacaoNumero: string;
 }
 
 export interface GetLicitacoesEmAndamentoOptions {
@@ -636,6 +662,8 @@ export async function getLicitacoesEmAndamentoMetrics(
       "l.situacao",
       "l.data_abertura",
       "l.carona",
+      "l.fonte_objeto",
+      "l.link_sistema_origem",
     ])
     .where("l.portal_slug", "=", cleanSlug)
     .where(
@@ -690,6 +718,107 @@ export async function getLicitacoesEmAndamentoMetrics(
         .replace(/\s+/g, "_"),
       dataAbertura: toIsoDateString(r.data_abertura),
       carona: r.carona ? String(r.carona) : null,
+      fonteObjeto: r.fonte_objeto ? String(r.fonte_objeto) : "municipal",
+      linkSistemaOrigem: r.link_sistema_origem
+        ? String(r.link_sistema_origem)
+        : null,
     };
   });
+}
+
+/**
+ * Retorna os itens licitados de um processo a partir do mart `fct_licitacoes_itens`.
+ */
+export async function getLicitacaoItens(
+  portalSlug: string,
+  options: GetLicitacaoItensOptions,
+): Promise<LicitacaoItemDTO[]> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !options ||
+    !options.licitacaoNumero ||
+    typeof options.licitacaoNumero !== "string" ||
+    options.licitacaoNumero.trim() === ""
+  ) {
+    return [];
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const cleanNumero = options.licitacaoNumero.trim();
+
+  if (
+    options.ano !== undefined &&
+    (Number.isNaN(options.ano) || !Number.isInteger(options.ano))
+  ) {
+    return [];
+  }
+
+  let query = db
+    .selectFrom("fct_licitacoes_itens")
+    .select([
+      "item_id",
+      "portal_slug",
+      "ano",
+      "licitacao_numero",
+      "numero_item",
+      "descricao",
+      "quantidade",
+      "unidade_medida",
+      "valor_unitario_estimado",
+      "valor_total_estimado",
+      "valor_unitario_homologado",
+      "valor_total_homologado",
+      "percentual_desconto",
+      "fornecedor_nome",
+      "fornecedor_cpf_cnpj",
+      "situacao_item",
+    ])
+    .where("portal_slug", "=", cleanSlug)
+    .where("licitacao_numero", "=", cleanNumero);
+
+  if (options.ano !== undefined) {
+    query = query.where("ano", "=", options.ano);
+  }
+
+  query = query.orderBy("numero_item", "asc");
+
+  const rows = await query.execute();
+
+  return rows.map((r) => ({
+    itemId: String(r.item_id),
+    portalSlug: String(r.portal_slug),
+    ano: Number(r.ano),
+    licitacaoNumero: String(r.licitacao_numero),
+    numeroItem: Number(r.numero_item),
+    descricao: r.descricao ? String(r.descricao) : null,
+    quantidade: r.quantidade != null ? parseFloat(String(r.quantidade)) : null,
+    unidadeMedida: r.unidade_medida ? String(r.unidade_medida) : null,
+    valorUnitarioEstimado:
+      r.valor_unitario_estimado != null
+        ? parseFloat(String(r.valor_unitario_estimado))
+        : null,
+    valorTotalEstimado:
+      r.valor_total_estimado != null
+        ? parseFloat(String(r.valor_total_estimado))
+        : null,
+    valorUnitarioHomologado:
+      r.valor_unitario_homologado != null
+        ? parseFloat(String(r.valor_unitario_homologado))
+        : null,
+    valorTotalHomologado:
+      r.valor_total_homologado != null
+        ? parseFloat(String(r.valor_total_homologado))
+        : null,
+    percentualDesconto:
+      r.percentual_desconto != null
+        ? parseFloat(String(r.percentual_desconto))
+        : null,
+    fornecedorNome: r.fornecedor_nome ? String(r.fornecedor_nome) : null,
+    fornecedorCpfCnpj: r.fornecedor_cpf_cnpj
+      ? String(r.fornecedor_cpf_cnpj)
+      : null,
+    situacaoItem: r.situacao_item ? String(r.situacao_item) : null,
+  }));
 }

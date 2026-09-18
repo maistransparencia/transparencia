@@ -85,6 +85,7 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
     contratosServicosVigentes: raw.contratosServicosVigentes || [],
     top3ContratosVigentes: (raw.contratosServicosVigentes || []).slice(0, 3),
     licitacoesEmAndamento: raw.licitacoesEmAndamento || [],
+    itensByLicitacao: raw.itensByLicitacao || {},
     alertaDispensa,
     taxaContratacaoDireta,
     hasAnomaliaDispensa,

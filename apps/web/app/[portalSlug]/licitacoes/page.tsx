@@ -60,6 +60,7 @@ export default async function LicitacoesPage({
     numCasosFracionamento,
     contratosServicosVigentes,
     licitacoesEmAndamento,
+    itensByLicitacao,
     alertaDispensa,
     taxaContratacaoDireta,
     hasAnomaliaDispensa,
@@ -227,7 +228,10 @@ export default async function LicitacoesPage({
       )}
 
       {/* Section: Licitações Abertas e em Andamento */}
-      <LicitacoesEmAndamentoSection licitacoes={licitacoesEmAndamento} />
+      <LicitacoesEmAndamentoSection
+        licitacoes={licitacoesEmAndamento}
+        itensByLicitacao={itensByLicitacao}
+      />
 
       {/* Section 1: Distribuição por modalidade */}
       <section className="space-y-4">

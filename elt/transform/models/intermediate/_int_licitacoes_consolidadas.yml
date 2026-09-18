@@ -34,3 +34,7 @@ models:
         data_type: date
       - name: carona
         data_type: text
+      - name: fonte_objeto
+        data_type: text
+      - name: link_sistema_origem
+        data_type: text

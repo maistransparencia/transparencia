@@ -60,3 +60,9 @@ models:
                 row_condition: "data_abertura is not null"
       - name: carona
         data_type: text
+      - name: fonte_objeto
+        data_type: text
+        description: "Origem do objeto enriquecido: pncp, contrato_local, tce_rj ou municipal"
+      - name: link_sistema_origem
+        data_type: text
+        description: "Link externo para sala de disputa ou sistema de origem no PNCP"

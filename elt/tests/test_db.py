@@ -112,3 +112,75 @@ def test_fct_anomalias_fiscais_metricas_exists(conn):
         )
     ).fetchall()
     assert isinstance(result, list)
+
+
+def test_fct_licitacoes_enrichment_columns(conn):
+    from sqlalchemy import text
+
+    rows = conn.execute(
+        text(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'analytics' AND table_name = 'fct_licitacoes'"
+        )
+    ).fetchall()
+    columns = {r[0]: r[1] for r in rows}
+    assert "fonte_objeto" in columns
+    assert "link_sistema_origem" in columns
+    assert columns["fonte_objeto"] == "text"
+
+    # Inserção e validação de dados transformados
+    conn.execute(
+        text(
+            """
+            INSERT INTO "raw_porciuncula_prefeitura"."licitacoes" (ano, empresa, numero, discr, valor, situacao)
+            VALUES (2025, '1', 'PE 099/2025', 'Objeto truncado municipal', '1000.00', 'em_andamento')
+            ON CONFLICT (ano, empresa, numero) DO UPDATE SET discr = EXCLUDED.discr;
+            """
+        )
+    )
+    conn.execute(
+        text(
+            """
+            INSERT INTO "raw_pncp"."compras" (numero_controle_pncp, cnpj_orgao, ano_compra, sequencial_compra, numero_compra, objeto_compra, link_sistema_origem)
+            VALUES ('29129778000199-1-99/2025', '29129778000199', '2025', '99', 'PE 099/2025', 'Objeto completo enriquecido via PNCP oficial', 'https://pncp.gov.br/app/editais/29129778000199/2025/99')
+            ON CONFLICT (numero_controle_pncp) DO UPDATE SET objeto_compra = EXCLUDED.objeto_compra;
+            """
+        )
+    )
+
+    enriched_row = conn.execute(
+        text(
+            """
+            SELECT objeto, fonte_objeto, link_sistema_origem
+            FROM analytics.fct_licitacoes
+            WHERE ano = 2025 AND empresa_id = '1' AND licitacao_numero = 'PE 099/2025'
+            """
+        )
+    ).fetchone()
+
+    assert enriched_row is not None
+    assert enriched_row[0] == "Objeto completo enriquecido via PNCP oficial"
+    assert enriched_row[1] == "pncp"
+    assert enriched_row[2] == "https://pncp.gov.br/app/editais/29129778000199/2025/99"
+
+
+def test_fct_licitacoes_itens_exists(conn):
+    from sqlalchemy import text
+
+    rows = conn.execute(
+        text(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'analytics' AND table_name = 'fct_licitacoes_itens'"
+        )
+    ).fetchall()
+    columns = {r[0]: r[1] for r in rows}
+    assert len(columns) > 0, "Table analytics.fct_licitacoes_itens should exist"
+    assert "item_id" in columns
+    assert "portal_slug" in columns
+    assert "ano" in columns
+    assert "licitacao_numero" in columns
+    assert "numero_item" in columns
+    assert "descricao" in columns
+    assert "quantidade" in columns
+    assert "valor_total_estimado" in columns
+    assert "valor_total_homologado" in columns
+    assert "percentual_desconto" in columns
+    assert "fornecedor_nome" in columns
