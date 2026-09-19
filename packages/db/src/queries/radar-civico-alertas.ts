@@ -13,6 +13,7 @@ export type TipoAnomalia =
   | "retencao_patronal_rpps"
   | "desconto_nulo_pregao"
   | "desagio_extremo_inexequibilidade"
+  | "inconsistencia_vinculo_pessoal"
   | (string & {});
 
 export interface RadarCivicoAlertaDTO {

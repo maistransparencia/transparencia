@@ -62,6 +62,7 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   gastos_genericos: "Gastos Genéricos (.99)",
   aporte_atuarial: "Aporte Atuarial (RPPS)",
   contribuicao_patronal: "Contribuição Patronal (RPPS)",
+  quadro_pessoal: "Quadro de Pessoal",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -221,6 +222,16 @@ export function formatFactualNarrative(
     const obs = formatPercentNumber(alerta.valorObservado ?? 0);
     const esp = formatPercentNumber(alerta.valorEsperado ?? 50);
     return `Em ${ano}, o certame licitatório registrou deságio homologado expressivo de ${obs}%, patamar que exige comprovação de exequibilidade da proposta contratual (${esp}%).`;
+  }
+
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtNumber(Math.round(alerta.valorObservado ?? 0));
+    const plural =
+      alerta.valorObservado === 1
+        ? "profissional cadastrado"
+        : "profissionais cadastrados";
+    return `Em ${ano}, foram identificados ${obs} ${plural} com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

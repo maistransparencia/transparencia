@@ -31,7 +31,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade']
+              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal']
 
       - name: dimensao_referencia
         description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal)."
@@ -114,6 +114,8 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2023, rombo_patronal_nao_repassado: 5000.00 }
       - input: ref('fct_licitacoes_itens')
         rows: []
+      - input: ref('fct_pessoal')
+        rows: []
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
@@ -136,6 +138,8 @@ unit_tests:
         rows: []
       - input: ref('fct_historia_caprem_metricas')
         rows: []
+      - input: ref('fct_pessoal')
+        rows: []
       - input: ref('fct_licitacoes')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, licitacao_numero: "000517", modalidade: "Pregão Eletrônico" }
@@ -156,3 +160,77 @@ unit_tests:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desconto_nulo_pregao", dimensao_referencia: "licitacao_000517", grau_severidade: "critico", desvio_percentual: 10.00, valor_observado: 0.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/licitacoes?ano=2026&numero=000517#itens", metodo_deteccao: "limite_competitividade_pregao" }
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desagio_extremo_inexequibilidade", dimensao_referencia: "licitacao_000290", grau_severidade: "critico", desvio_percentual: 20.00, valor_observado: 70.00, valor_esperado: 50.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/licitacoes?ano=2026&numero=000290#itens", metodo_deteccao: "limite_inexequibilidade_art59" }
+
+  - name: test_fct_anomalias_fiscais_pessoal_divergencias
+    description: "Valida deteccao de anomalias de harmonizacao cadastral de pessoal sob Art. 37 da CF/88"
+    model: fct_anomalias_fiscais_metricas
+    given:
+      - input: ref('fct_despesas')
+        rows: []
+      - input: ref('fct_pessoal_regime_metricas')
+        rows: []
+      - input: ref('fct_saldo_caixa_siconfi')
+        rows: []
+      - input: ref('fct_opacidade_contabil_metricas')
+        rows: []
+      - input: ref('fct_caprem_tendencia_atuarial_metricas')
+        rows: []
+      - input: ref('fct_historia_caprem_metricas')
+        rows: []
+      - input: ref('fct_licitacoes')
+        rows: []
+      - input: ref('fct_licitacoes_itens')
+        rows: []
+      - input: ref('fct_pessoal')
+        rows:
+          # 2026: 31 divergencias (> 30 => critico)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m01", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m02", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m03", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m04", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m05", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m06", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m07", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m08", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m09", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m10", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m11", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m12", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m13", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m14", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m15", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m16", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m17", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m18", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m19", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m20", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m21", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m22", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m23", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m24", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m25", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m26", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m27", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m28", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m29", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m30", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, matricula: "m31", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          # 2025: 8 divergencias (6 a 30 => alto)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m01", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m02", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m03", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m04", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m05", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m06", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m07", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, matricula: "m08", vinculo: "Contratado", categoria_funcional: "Excepcional Interesse Público", categoria_regime: "contrato_temporario" }
+          # 2024: 2 divergencias (<= 5 => moderado)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, matricula: "m01", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, matricula: "m02", vinculo: "Agente Político", categoria_funcional: "Comissão", categoria_regime: "comissionado" }
+          # 2023: Vínculo regular (efetivo) -> não deve gerar anomalia
+          - { portal_slug: "porciuncula_prefeitura", ano: 2023, matricula: "m01", vinculo: "Efetivo", categoria_funcional: "Efetivo", categoria_regime: "estatutario" }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 31.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2026#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "alto", desvio_percentual: 100.00, valor_observado: 8.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2025#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "moderado", desvio_percentual: 100.00, valor_observado: 2.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2024#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }

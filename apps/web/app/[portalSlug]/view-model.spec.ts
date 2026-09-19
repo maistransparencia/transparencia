@@ -519,6 +519,47 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para inconsistência em vínculos de pessoal com fundamentação no Art. 37 da CF/88", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-inconsistencia-vinculo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          dimensaoReferencia: "quadro_pessoal",
+          grauSeveridade: "critico",
+          desvioPercentual: 100.0,
+          valorObservado: 187,
+          valorEsperado: 0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/pessoal?ano=2026#regime",
+          metodoDeteccao: "harmonizacao_vinculo_art37",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Inconsistência em Vínculos de Pessoal");
+    expect(card.metodologiaBadge).toBe("Harmonização Cadastral");
+    expect(card.esperadoLabel).toBe("Padrão Constitucional");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("187 vínculos");
+    expect(card.valorEsperadoFormatted).toBe("0 vínculos");
+    expect(card.desvioPercentualFormatted).toBe("+100%");
+    expect(card.ctaLabel).toBe("Auditar Vínculos Cadastrais");
+    expect(card.ctaUrl).toBe("/porciuncula/pessoal?ano=2026#regime");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 37 da CF/88",
+      url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+    });
+    expect(card.textoFactual).toContain(
+      "foram identificados 187 profissionais cadastrados com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

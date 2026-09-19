@@ -41,6 +41,7 @@ describe("radar-civico-narrative", () => {
       expect(formatarDimensao("contribuicao_patronal")).toBe(
         "Contribuição Patronal (RPPS)",
       );
+      expect(formatarDimensao("quadro_pessoal")).toBe("Quadro de Pessoal");
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
@@ -300,6 +301,40 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2026, o certame licitatório registrou deságio homologado expressivo de 72.4%, patamar que exige comprovação de exequibilidade da proposta contratual (50%).",
+      );
+    });
+
+    it("formats inconsistencia_vinculo_pessoal with observed count (plural)", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          ano: 2026,
+          valorObservado: 187,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "quadro_pessoal",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, foram identificados 187 profissionais cadastrados com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+      );
+    });
+
+    it("formats inconsistencia_vinculo_pessoal with observed count (singular)", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          ano: 2022,
+          valorObservado: 1,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "quadro_pessoal",
+        },
+        2022,
+      );
+      expect(narrative).toBe(
+        "Em 2022, foram identificados 1 profissional cadastrado com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
       );
     });
 

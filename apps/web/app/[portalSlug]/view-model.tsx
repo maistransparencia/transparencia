@@ -455,6 +455,10 @@ export function getBadgeMetodologia(
     return "Risco de Inexequibilidade";
   }
 
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Harmonização Cadastral";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -509,6 +513,9 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
     return "Risco de Inexequibilidade Contratual";
   }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Inconsistência em Vínculos de Pessoal";
+  }
   return "Indicador em Destaque";
 }
 
@@ -545,6 +552,9 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
     return "Verificar Propostas Homologadas";
+  }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Auditar Vínculos Cadastrais";
   }
   return "Ver detalhes";
 }
@@ -584,6 +594,9 @@ export function getCardCtaUrl(
     alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
   ) {
     return `/${portalSlug}/licitacoes?ano=${ano}#itens`;
+  }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return `/${portalSlug}/pessoal?ano=${ano}#regime`;
   }
   return `/${portalSlug}`;
 }
@@ -671,6 +684,9 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
         return "Limite de Exequibilidade";
       }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return "Padrão Constitucional";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -696,6 +712,12 @@ export function buildRadarCivicoCards(
         return {
           label: "Art. 59, III da Lei nº 14.133/2021",
           url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+        };
+      }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return {
+          label: "Art. 37 da CF/88",
+          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
         };
       }
       return undefined;
@@ -727,6 +749,9 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorObservado))} cargos`;
       }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return `${fmtNumber(Math.round(alerta.valorObservado))} vínculos`;
+      }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
@@ -741,6 +766,9 @@ export function buildRadarCivicoCards(
     const valorEsperadoFormatted = (() => {
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorEsperado))} cargos`;
+      }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return "0 vínculos";
       }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||

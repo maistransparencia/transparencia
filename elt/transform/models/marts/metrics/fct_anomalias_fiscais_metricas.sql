@@ -343,6 +343,30 @@ desagio_extremo_anomalias as (
       and total_estimado >= 20000.00
 ),
 
+pessoal_divergencias_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'inconsistencia_vinculo_pessoal'::text as tipo_anomalia,
+        'quadro_pessoal'::text as dimensao_referencia,
+        count(*)::numeric as valor_observado,
+        0.00::numeric as valor_esperado,
+        100.00::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/pessoal?ano=' || ano || '#regime')::text as deep_link_rota,
+        'harmonizacao_cadastral_art37'::text as metodo_deteccao
+    from {{ ref('fct_pessoal') }}
+    where (
+        {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%agente%politico%'
+        or {{ target.schema }}.unaccent(lower(coalesce(categoria_funcional, ''))) like '%excepcional interesse%'
+    )
+      and categoria_regime in ('comissionado', 'contrato_temporario')
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano
+    having count(*) > 0
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -361,6 +385,8 @@ todas_anomalias as (
     select * from desconto_nulo_anomalias
     union all
     select * from desagio_extremo_anomalias
+    union all
+    select * from pessoal_divergencias_anomalias
 )
 
 select
@@ -385,6 +411,12 @@ select
             case
                 when valor_observado >= 65.00 then 'critico'
                 else 'alto'
+            end
+        when tipo_anomalia = 'inconsistencia_vinculo_pessoal' then
+            case
+                when valor_observado > 30 then 'critico'
+                when valor_observado > 5 then 'alto'
+                else 'moderado'
             end
         when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' or tipo_anomalia = 'opacidade_gastos_genericos' then 'critico'
         when abs(desvio_percentual) > 30 then 'alto'

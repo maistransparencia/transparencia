@@ -472,5 +472,39 @@ describe("radar-civico-alertas", () => {
         "limite_inexequibilidade_art59",
       );
     });
+
+    it("deve carregar e mapear corretamente anomalia de inconsistência de vínculos de pessoal", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "inconsistencia_vinculo_pessoal",
+        dimensaoReferencia: "quadro_pessoal",
+        grauSeveridade: "critico",
+        desvioPercentual: 100.0,
+        valorObservado: 187.0,
+        valorEsperado: 0.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/pessoal?ano=2026#regime`,
+        metodoDeteccao: "harmonizacao_vinculo_art37",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const vinculoAlerta = alertas[0];
+      expect(vinculoAlerta?.tipoAnomalia).toBe(
+        "inconsistencia_vinculo_pessoal",
+      );
+      expect(vinculoAlerta?.dimensaoReferencia).toBe("quadro_pessoal");
+      expect(vinculoAlerta?.grauSeveridade).toBe("critico");
+      expect(vinculoAlerta?.desvioPercentual).toBe(100.0);
+      expect(vinculoAlerta?.valorObservado).toBe(187.0);
+      expect(vinculoAlerta?.valorEsperado).toBe(0.0);
+      expect(vinculoAlerta?.deepLinkRota).toBe(
+        `/${PORTAL}/pessoal?ano=2026#regime`,
+      );
+      expect(vinculoAlerta?.metodoDeteccao).toBe("harmonizacao_vinculo_art37");
+    });
   });
 });
