@@ -14,7 +14,9 @@ with porciuncula_base as (
         valor,
         situacao,
         data_abertura,
-        carona
+        carona,
+        edital_numero,
+        processo
     from {{ ref('stg_porciuncula_prefeitura__licitacoes') }}
 ),
 
@@ -43,9 +45,20 @@ contratos_dedup as (
     where rn = 1
 ),
 
+pncp_mapeamento as (
+    select
+        portal_slug,
+        ano,
+        licitacao_numero,
+        ano_compra,
+        sequencial_compra
+    from {{ ref('seed_pncp_licitacoes_mapeamento') }}
+),
+
 pncp_dedup as (
     select
         ano_compra,
+        sequencial_compra,
         numero_compra,
         processo,
         objeto_compra,
@@ -53,12 +66,13 @@ pncp_dedup as (
     from (
         select
             ano_compra,
+            sequencial_compra,
             numero_compra,
             processo,
             objeto_compra,
             link_sistema_origem,
             row_number() over (
-                partition by ano_compra, coalesce(nullif(numero_compra, ''), processo)
+                partition by ano_compra, coalesce(numero_compra, sequencial_compra::text)
                 order by length(coalesce(objeto_compra, '')) desc
             ) as rn
         from {{ ref('stg_pncp__compras') }}
@@ -115,17 +129,51 @@ porciuncula_enriched as (
                and split_part(c.licitacao_numero, '/', 1) = split_part(l.licitacao_numero, '/', 1)
            )
        )
+    left join pncp_mapeamento m
+        on m.portal_slug = l.portal_slug
+       and m.ano = l.ano
+       and m.licitacao_numero = l.licitacao_numero
     left join pncp_dedup p
-        on p.ano_compra = l.ano
-       and (
-           p.numero_compra = l.licitacao_numero
-           or p.processo = l.licitacao_numero
-           or (
-               l.licitacao_numero is not null
-               and p.numero_compra is not null
-               and split_part(p.numero_compra, '/', 1) = split_part(l.licitacao_numero, '/', 1)
-           )
-       )
+        on (
+            m.licitacao_numero is not null
+            and p.ano_compra = m.ano_compra
+            and p.sequencial_compra = m.sequencial_compra
+        )
+        or (
+            m.licitacao_numero is null
+            and p.ano_compra = l.ano
+            and (
+                p.numero_compra = l.licitacao_numero
+                or (l.processo is not null and p.processo = l.processo)
+            )
+        )
+),
+
+pncp_exclusivas as (
+    select
+        'porciuncula_prefeitura' as portal_slug,
+        c.ano_compra as ano,
+        '7' as empresa_id,
+        coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text) as licitacao_numero,
+        coalesce(nullif(c.modalidade_nome, ''), 'OUTROS') as modalidade,
+        c.objeto_compra as objeto,
+        cast(null as text) as discriminacao,
+        coalesce(c.valor_total_homologado, c.valor_total_estimado) as valor,
+        coalesce(c.situacao_compra_nome, 'Divulgada no PNCP') as situacao,
+        coalesce(c.data_abertura_proposta, c.data_publicacao_pncp) as data_abertura,
+        cast(null as text) as carona,
+        'pncp' as fonte_objeto,
+        c.link_sistema_origem,
+        row_number() over (
+            partition by c.ano_compra, coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text)
+            order by c.sequencial_compra asc
+        ) as dedupe_rn
+    from {{ ref('stg_pncp__compras') }} c
+    left join pncp_mapeamento m
+        on m.ano_compra = c.ano_compra
+       and m.sequencial_compra = c.sequencial_compra
+    where m.licitacao_numero is null
+      and c.objeto_compra is not null
 )
 
 select
@@ -143,4 +191,23 @@ select
     fonte_objeto,
     link_sistema_origem
 from porciuncula_enriched
+where dedupe_rn = 1
+
+union all
+
+select
+    portal_slug,
+    ano,
+    empresa_id,
+    licitacao_numero,
+    modalidade,
+    objeto,
+    discriminacao,
+    valor,
+    situacao,
+    data_abertura,
+    carona,
+    fonte_objeto,
+    link_sistema_origem
+from pncp_exclusivas
 where dedupe_rn = 1

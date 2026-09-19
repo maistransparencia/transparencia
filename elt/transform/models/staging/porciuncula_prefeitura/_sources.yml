@@ -228,6 +228,8 @@ sources:
           - name: situacao
           - name: datae
           - name: carona
+          - name: licitacao
+          - name: proclic
 
       - name: contratos
         description: "Contratos celebrados"
