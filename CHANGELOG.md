@@ -5,6 +5,19 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### ✨ Novas Funcionalidades (Added)
+* **Auditoria Detalhada de Itens Licitados:** Modal expansível na listagem de licitações ativas exibindo o detalhamento de itens individuais com quantidades, unidades de medida, valores unitários e totais estimados, valores homologados, percentuais de desconto e identificação dos fornecedores vencedores com CNPJ/CPF.
+* **Integração de Compras Exclusivas do PNCP:** Exibição proativa de processos licitatórios e contratações diretas divulgadas e homologadas no Portal Nacional de Contratações Públicas (PNCP), incluindo obras estruturantes do Novo PAC e unidades escolares, com badges da fonte oficial e link direto para a sala de disputa pública (`linkSistemaOrigem`).
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Pipeline ELT e Ingestão do PNCP:** Pipeline de extração e carga de compras, itens licitados e resultados de disputas homologadas da API do PNCP para a base de dados analítica.
+* **Hierarquia Analítica de Des-truncamento de Objetos (`int_licitacoes_consolidadas`):** Substituição das descrições truncadas (150 caracteres) por textos integrais a partir da hierarquia canônica de resolução: PNCP (1ª prioridade), Contratos Administrativos Locais (2ª prioridade), TCE-RJ (3ª prioridade) e Sistema Municipal Fiorilli (4ª prioridade).
+* **Mart Analítico de Itens Licitados (`fct_licitacoes_itens`):** Novo modelo mart analítico consolidando itens, valores de referência, valores homologados, fornecedores vencedores e cálculo matemático do percentual real de desconto obtido na disputa pública.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Leitor Kysely de Licitações em Andamento (`licitacoes-metrics.ts`):** Atualização do leitor `getLicitacoesEmAndamentoMetrics` com filtro abrangente via `unaccent`, incluindo processos abertos, em andamento, publicados e contratações do PNCP ativas/homologadas do exercício.
+* **Exibição Contextual de Valores Unitários:** Formatação inteligente das células de valor estimado e homologado no modal de itens, apresentando o valor total da contratação e o valor unitário de referência quando a quantidade de itens for superior a 1.
+
 ## [1.9.1] - 2026-09-16
 
 ### 🌟 Destaques da Versão (Hotfix: Conformidade Contábil da Despesa com Pessoal e RCL - LRF)
