@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Clock,
+  ExternalLink,
   Info,
   Layers,
 } from "lucide-react";
@@ -229,6 +230,23 @@ export function RadarAnomaliaCard({
             </div>
           </div>
         </div>
+
+        {/* Fundamentação Legal Acessível (Regra 20) */}
+        {card.fundamentacaoLegal && (
+          <div className="mt-3 flex items-center text-slate-500 text-xs">
+            <span className="mr-1">Base legal:</span>
+            <a
+              href={card.fundamentacaoLegal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="radar-legal-link"
+              className="inline-flex items-center gap-1 font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-accent hover:decoration-accent"
+            >
+              <span>{card.fundamentacaoLegal.label}</span>
+              <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Ações / Rodapé perfeitamente balanceado */}

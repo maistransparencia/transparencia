@@ -351,6 +351,88 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para inadimplência no aporte atuarial do RPPS com fundamentação legal", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-caprem-atuarial",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "inadimplencia_aporte_rpps",
+          dimensaoReferencia: "aporte_atuarial",
+          grauSeveridade: "critico",
+          desvioPercentual: 35.0,
+          valorObservado: 650000,
+          valorEsperado: 1000000,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/caprem?ano=2024#atuarial",
+          metodoDeteccao: "limite_normativo_adimplencia",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Inadimplência no Aporte Atuarial (RPPS)");
+    expect(card.metodologiaBadge).toBe("Meta Atuarial");
+    expect(card.esperadoLabel).toBe("Aporte Exigido");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("R$ 650.0mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 1.0mi");
+    expect(card.desvioPercentualFormatted).toBe("-35%");
+    expect(card.ctaLabel).toBe("Auditar Aporte Atuarial");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#atuarial");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Lei nº 9.717/1998",
+      url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+    });
+    expect(card.textoFactual).toContain(
+      "déficit de recolhimento de 35% no plano de amortização previdenciária",
+    );
+  });
+
+  it("monta card para retenção patronal do RPPS com fundamentação legal e valor esperado zero", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-caprem-patronal",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "retencao_patronal_rpps",
+          dimensaoReferencia: "contribuicao_patronal",
+          grauSeveridade: "critico",
+          desvioPercentual: 100.0,
+          valorObservado: 50000,
+          valorEsperado: 0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/caprem?ano=2024#patronal",
+          metodoDeteccao: "fluxo_patronal_em_aberto",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Retenção de Contribuição Patronal (RPPS)");
+    expect(card.metodologiaBadge).toBe("Fluxo em Aberto");
+    expect(card.esperadoLabel).toBe("Passivo Tolerado");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("R$ 50.0mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 0");
+    expect(card.desvioPercentualFormatted).toBe("+100%");
+    expect(card.ctaLabel).toBe("Verificar Repasse Patronal");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#patronal");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 40 da CF/88",
+      url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+    });
+    expect(card.textoFactual).toContain(
+      "não repassadas tempestivamente ao RPPS/CAPREM",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

@@ -48,6 +48,20 @@ describe("radar-civico-alertas", () => {
       );
       expect(result).toBe("/porciuncula/pessoal?ano=2024#comissionados");
     });
+
+    it("deve preservar âncoras temáticas do CAPREM (#atuarial e #patronal) ao enriquecer deep link", () => {
+      expect(
+        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#atuarial`, {
+          entidade: "1",
+        }),
+      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=1#atuarial`);
+
+      expect(
+        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#patronal`, {
+          entidade: "2",
+        }),
+      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=2#patronal`);
+    });
   });
 
   describe("getRadarCivicoAlertas", () => {
@@ -327,6 +341,69 @@ describe("radar-civico-alertas", () => {
       expect(alertas).toHaveLength(2);
       expect(alertas[0].anomaliaId).toBe("anomalia_a");
       expect(alertas[1].anomaliaId).toBe("anomalia_b");
+    });
+
+    it("deve retornar e tipar anomalias previdenciárias de aporte atuarial e retenção patronal", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "inadimplencia_aporte_rpps",
+        dimensaoReferencia: "aporte_atuarial",
+        grauSeveridade: "critico",
+        desvioPercentual: 35.0,
+        valorObservado: 650000,
+        valorEsperado: 1000000,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/caprem?ano=2024#atuarial`,
+        metodoDeteccao: "limite_normativo_adimplencia",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "retencao_patronal_rpps",
+        dimensaoReferencia: "contribuicao_patronal",
+        grauSeveridade: "critico",
+        desvioPercentual: 100.0,
+        valorObservado: 50000,
+        valorEsperado: 0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/caprem?ano=2024#patronal`,
+        metodoDeteccao: "fluxo_patronal_em_aberto",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(2);
+
+      const atuarial = alertas.find(
+        (a) => a.tipoAnomalia === "inadimplencia_aporte_rpps",
+      );
+      expect(atuarial).toBeDefined();
+      expect(atuarial?.dimensaoReferencia).toBe("aporte_atuarial");
+      expect(atuarial?.grauSeveridade).toBe("critico");
+      expect(atuarial?.desvioPercentual).toBe(35.0);
+      expect(atuarial?.valorObservado).toBe(650000);
+      expect(atuarial?.valorEsperado).toBe(1000000);
+      expect(atuarial?.deepLinkRota).toBe(
+        `/${PORTAL}/caprem?ano=2024#atuarial`,
+      );
+      expect(atuarial?.metodoDeteccao).toBe("limite_normativo_adimplencia");
+
+      const patronal = alertas.find(
+        (a) => a.tipoAnomalia === "retencao_patronal_rpps",
+      );
+      expect(patronal).toBeDefined();
+      expect(patronal?.dimensaoReferencia).toBe("contribuicao_patronal");
+      expect(patronal?.grauSeveridade).toBe("critico");
+      expect(patronal?.desvioPercentual).toBe(100.0);
+      expect(patronal?.valorObservado).toBe(50000);
+      expect(patronal?.valorEsperado).toBe(0);
+      expect(patronal?.deepLinkRota).toBe(
+        `/${PORTAL}/caprem?ano=2024#patronal`,
+      );
+      expect(patronal?.metodoDeteccao).toBe("fluxo_patronal_em_aberto");
     });
   });
 });

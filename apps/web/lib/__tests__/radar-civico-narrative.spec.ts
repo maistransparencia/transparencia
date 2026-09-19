@@ -35,6 +35,12 @@ describe("radar-civico-narrative", () => {
       expect(formatarDimensao("gastos_genericos")).toBe(
         "Gastos Genéricos (.99)",
       );
+      expect(formatarDimensao("aporte_atuarial")).toBe(
+        "Aporte Atuarial (RPPS)",
+      );
+      expect(formatarDimensao("contribuicao_patronal")).toBe(
+        "Contribuição Patronal (RPPS)",
+      );
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
@@ -221,6 +227,40 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2024, 35.5% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de 30% estabelecido para a transparência pública.",
+      );
+    });
+
+    it("formats inadimplencia_aporte_rpps with observed, expected and deficit deviation", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inadimplencia_aporte_rpps",
+          ano: 2024,
+          valorObservado: 650000,
+          valorEsperado: 1000000,
+          desvioPercentual: 35.0,
+          dimensaoReferencia: "aporte_atuarial",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, o município quitou R$ 650.0mil do aporte atuarial exigido de R$ 1.0mi, registrando déficit de recolhimento de 35% no plano de amortização previdenciária.",
+      );
+    });
+
+    it("formats retencao_patronal_rpps with observed retained amount", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "retencao_patronal_rpps",
+          ano: 2024,
+          valorObservado: 50000,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "contribuicao_patronal",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.",
       );
     });
 

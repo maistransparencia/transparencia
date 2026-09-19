@@ -246,6 +246,43 @@ opacidade_anomalias as (
       and ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
 
+caprem_atuarial_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'inadimplencia_aporte_rpps'::text as tipo_anomalia,
+        'aporte_atuarial'::text as dimensao_referencia,
+        aporte_quitado::numeric as valor_observado,
+        aporte_exigido::numeric as valor_esperado,
+        (100.00 - taxa_adimplencia)::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/caprem?ano=' || ano || '#atuarial')::text as deep_link_rota,
+        'limite_normativo_adimplencia'::text as metodo_deteccao
+    from {{ ref('fct_caprem_tendencia_atuarial_metricas') }}
+    where aporte_exigido > 0
+      and taxa_adimplencia < 90.00
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
+caprem_patronal_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'retencao_patronal_rpps'::text as tipo_anomalia,
+        'contribuicao_patronal'::text as dimensao_referencia,
+        rombo_patronal_nao_repassado::numeric as valor_observado,
+        0.00::numeric as valor_esperado,
+        100.00::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/caprem?ano=' || ano || '#patronal')::text as deep_link_rota,
+        'fluxo_patronal_em_aberto'::text as metodo_deteccao
+    from {{ ref('fct_historia_caprem_metricas') }}
+    where rombo_patronal_nao_repassado > 20000.00
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -256,6 +293,10 @@ todas_anomalias as (
     select * from dispensas_anomalias
     union all
     select * from opacidade_anomalias
+    union all
+    select * from caprem_atuarial_anomalias
+    union all
+    select * from caprem_patronal_anomalias
 )
 
 select
@@ -265,6 +306,12 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
+        when tipo_anomalia = 'retencao_patronal_rpps' then 'critico'
+        when tipo_anomalia = 'inadimplencia_aporte_rpps' then
+            case
+                when desvio_percentual > 30.0 then 'critico'
+                else 'alto'
+            end
         when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' or tipo_anomalia = 'opacidade_gastos_genericos' then 'critico'
         when abs(desvio_percentual) > 30 then 'alto'
         else 'moderado'

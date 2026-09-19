@@ -60,6 +60,8 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   caixa: "Disponibilidade em Caixa",
   dispensas: "Compras sem Licitação",
   gastos_genericos: "Gastos Genéricos (.99)",
+  aporte_atuarial: "Aporte Atuarial (RPPS)",
+  contribuicao_patronal: "Contribuição Patronal (RPPS)",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -188,6 +190,20 @@ export function formatFactualNarrative(
     const obs = formatPercentNumber(alerta.valorObservado ?? 0);
     const esp = formatPercentNumber(alerta.valorEsperado ?? 30);
     return `Em ${ano}, ${obs}% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de ${esp}% estabelecido para a transparência pública.`;
+  }
+
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    const esp = fmtCompact(alerta.valorEsperado ?? 0);
+    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
+    return `Em ${ano}, o município quitou ${obs} do aporte atuarial exigido de ${esp}, registrando déficit de recolhimento de ${desvio}% no plano de amortização previdenciária.`;
+  }
+
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    return `Em ${ano}, foram apurados ${obs} em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

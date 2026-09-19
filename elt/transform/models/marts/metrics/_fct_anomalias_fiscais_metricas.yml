@@ -31,10 +31,10 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos']
+              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps']
 
       - name: dimensao_referencia
-        description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas)."
+        description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal)."
         data_type: text
         tests:
           - not_null
@@ -80,3 +80,40 @@ models:
       - name: metodo_deteccao
         description: "Método estatístico utilizado para detectar a anomalia."
         data_type: text
+
+unit_tests:
+  - name: test_fct_anomalias_fiscais_caprem_atuarial_e_patronal
+    description: "Valida deteccao de anomalias previdenciarias de aporte atuarial e retencao patronal"
+    model: fct_anomalias_fiscais_metricas
+    given:
+      - input: ref('fct_despesas')
+        rows: []
+      - input: ref('fct_pessoal_regime_metricas')
+        rows: []
+      - input: ref('fct_saldo_caixa_siconfi')
+        rows: []
+      - input: ref('fct_licitacoes')
+        rows: []
+      - input: ref('fct_opacidade_contabil_metricas')
+        rows: []
+      - input: ref('fct_caprem_tendencia_atuarial_metricas')
+        rows:
+          # Inadimplencia critica (< 70% adimplencia => desvio > 30%)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, aporte_exigido: 1000000.00, aporte_quitado: 650000.00, taxa_adimplencia: 65.00, amortizacao_divida: 0.00 }
+          # Inadimplencia alta (70% <= adimplencia < 90% => desvio <= 30%)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2023, aporte_exigido: 500000.00, aporte_quitado: 400000.00, taxa_adimplencia: 80.00, amortizacao_divida: 0.00 }
+          # Adimplente (>= 90% adimplencia) -> deve ser ignorado
+          - { portal_slug: "porciuncula_prefeitura", ano: 2022, aporte_exigido: 800000.00, aporte_quitado: 760000.00, taxa_adimplencia: 95.00, amortizacao_divida: 0.00 }
+          # Sem aporte exigido -> deve ser ignorado
+          - { portal_slug: "porciuncula_prefeitura", ano: 2021, aporte_exigido: 0.00, aporte_quitado: 0.00, taxa_adimplencia: 100.00, amortizacao_divida: 0.00 }
+      - input: ref('fct_historia_caprem_metricas')
+        rows:
+          # Retencao patronal critica (> 20.000)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, rombo_patronal_nao_repassado: 50000.00 }
+          # Retencao residual (<= 20.000) -> deve ser ignorado
+          - { portal_slug: "porciuncula_prefeitura", ano: 2023, rombo_patronal_nao_repassado: 5000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "retencao_patronal_rpps", dimensao_referencia: "contribuicao_patronal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 50000.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#patronal", metodo_deteccao: "fluxo_patronal_em_aberto" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2023, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "alto", desvio_percentual: 20.00, valor_observado: 400000.00, valor_esperado: 500000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2023#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
