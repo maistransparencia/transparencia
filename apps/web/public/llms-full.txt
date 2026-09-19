@@ -191,6 +191,17 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 - **Modalidades de Contratação:** Os procedimentos utilizados para contratar bens e serviços, tais como Pregão Eletrônico, Concorrência Pública, Dispensa de Licitação, Inexigibilidade e Adesão a Atas de Registro de Preços.
 - **Taxa de Contratação Direta:** Indicador percentual apurado na grade de KPIs que consolida o volume financeiro contratado diretamente por dispensas, inexigibilidades e adesões a ata sobre o total de compras do exercício. Apresenta badge e banner contextual explicativo quando houver a anomalia `concentracao_dispensa` apurada pelo motor estatístico, fundamentando a análise nas exigências do Art. 75 da Lei Federal nº 14.133/2021.
 - **Radar de Licitações Abertas e em Andamento (`#licitacoes-em-andamento`):** Seção interativa de fiscalização preventiva que exibe todos os processos licitatórios municipais em andamento antes da homologação, com contadores, campo de busca textual em tempo real por objeto, identificação da modalidade, prazos de abertura e valores estimados.
+- **Des-truncamento e Enriquecimento Hierárquico dos Objetos Licitatórios:**
+  - *Contexto:* Sistemas municipais legados truncavam a descrição dos objetos de licitações a 150 caracteres, gerando opacidade e truncamento de compras públicas complexas.
+  - *Hierarquia Analítica de Fontes:* O pipeline unifica os dados sob modelo analítico consolidado aplicando rigorosa precedência para recuperar a íntegra descritiva:
+    1. **PNCP (Portal Nacional de Contratações Públicas):** 1ª prioridade — descrição completa e link oficial da sala de disputa pública (`linkSistemaOrigem`).
+    2. **Contratos Administrativos Municipais:** 2ª prioridade — objeto na íntegra recuperado dos instrumentos contratuais correlacionados.
+    3. **TCE-RJ / Auditoria Externa:** 3ª prioridade.
+    4. **Sistema Municipal Nativo:** 4ª prioridade (objeto base de 150 caracteres).
+  - *Rastreabilidade Visual:* Na interface, processos enriquecidos exibem badges discretos indicando a procedência (`PNCP` ou `Contrato Local`).
+  - *Acesso à Sala de Disputa Pública:* Processos com integração ao PNCP disponibilizam hiperlink direto para a sala de disputa externa com salvaguardas normativas (`target="_blank" rel="noopener noreferrer"`).
+- **Relação Individualizada de Itens Licitados:**
+  - Demonstrativo e modal interativo no portal web detalhando cada item integrante da licitação, contendo: número do item, descrição textual integral do bem/serviço, quantidade, unidade de medida, valor unitário estimado, valor total estimado, valor unitário homologado, valor total homologado, percentual de desconto obtido na disputa, situação do item (ex: `adjudicado`, `homologado`, `deserto`) e identificação do fornecedor adjudicado (razão social e CNPJ/CPF).
 - **Limites de Dispensa de Licitação:** Acompanhamento dos limites legais de dispensa previstos na Lei Federal nº 14.133/2021 e decretos de atualização monetária para obras/engenharia e compras/outros serviços.
 - **Objeto da Contratação:** A descrição detalhada do que foi comprado ou contratado pela administração pública.
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.

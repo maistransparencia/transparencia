@@ -12,7 +12,9 @@ with licitacoes as (
         valor,
         situacao,
         data_abertura,
-        carona
+        carona,
+        fonte_objeto,
+        link_sistema_origem
     from {{ ref('int_licitacoes_consolidadas') }}
 )
 
@@ -28,5 +30,7 @@ select
     valor::numeric(15, 2) as valor,
     situacao,
     data_abertura,
-    carona
+    carona,
+    fonte_objeto,
+    link_sistema_origem
 from licitacoes

@@ -60,6 +60,7 @@ export default async function LicitacoesPage({
     numCasosFracionamento,
     contratosServicosVigentes,
     licitacoesEmAndamento,
+    itensByLicitacao,
     alertaDispensa,
     taxaContratacaoDireta,
     hasAnomaliaDispensa,
@@ -227,32 +228,32 @@ export default async function LicitacoesPage({
       )}
 
       {/* Section: Licitações Abertas e em Andamento */}
-      <LicitacoesEmAndamentoSection licitacoes={licitacoesEmAndamento} />
-
-      {/* Section 1: Distribuição por modalidade */}
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between border-ink border-t-2 pt-8">
-          <h2 className="font-bold font-serif text-slate-900 text-xl">
-            Distribuição por modalidade
-          </h2>
-          <span className="font-medium text-slate-400 text-xs">
-            valor contratado · quantidade
-          </span>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
-          {modalidades.length === 0 ? (
-            <div className="py-6 text-center text-slate-400 text-xs italic">
-              Nenhuma informação de modalidade disponível para o período.
-            </div>
-          ) : (
-            <DistribucaoModalidadesChart data={modalidades} />
-          )}
-        </div>
-      </section>
+      <LicitacoesEmAndamentoSection
+        licitacoes={licitacoesEmAndamento}
+        itensByLicitacao={itensByLicitacao}
+      />
 
       {/* Section: Contratos de Serviços Vigentes */}
       <ContratosServicosVigentesSection contratos={contratosServicosVigentes} />
+
+      <div className="flex items-baseline justify-between border-ink border-t-2 pt-8">
+        <h2 className="font-bold font-serif text-slate-900 text-xl">
+          Distribuição de contratos por modalidade
+        </h2>
+        <span className="font-medium text-slate-400 text-xs">
+          valor contratado · quantidade
+        </span>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+        {modalidades.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 text-xs italic">
+            Nenhuma informação de modalidade disponível para o período.
+          </div>
+        ) : (
+          <DistribucaoModalidadesChart data={modalidades} />
+        )}
+      </div>
 
       {/* Section 2: Contratos acima do limite, sem licitação */}
       <section className="space-y-4">

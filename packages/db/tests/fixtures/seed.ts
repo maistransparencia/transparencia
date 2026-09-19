@@ -622,6 +622,27 @@ export interface LicitacaoRow {
   situacao?: string;
   dataAbertura?: string | null;
   carona?: string | null;
+  fonteObjeto?: string | null;
+  linkSistemaOrigem?: string | null;
+}
+
+export interface LicitacaoItemRow {
+  itemId?: string;
+  portalSlug: string;
+  ano: number;
+  licitacaoNumero: string;
+  numeroItem: number;
+  descricao?: string | null;
+  quantidade?: number | null;
+  unidadeMedida?: string | null;
+  valorUnitarioEstimado?: number | null;
+  valorTotalEstimado?: number | null;
+  valorUnitarioHomologado?: number | null;
+  valorTotalHomologado?: number | null;
+  percentualDesconto?: number | null;
+  fornecedorNome?: string | null;
+  fornecedorCpfCnpj?: string | null;
+  situacaoItem?: string | null;
 }
 
 export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
@@ -640,6 +661,32 @@ export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
       situacao: row.situacao ?? "em_andamento",
       data_abertura: row.dataAbertura ? row.dataAbertura : null,
       carona: row.carona ?? null,
+      fonte_objeto: row.fonteObjeto ?? "municipal",
+      link_sistema_origem: row.linkSistemaOrigem ?? null,
+    })
+    .execute();
+}
+
+export async function seedLicitacaoItem(row: LicitacaoItemRow): Promise<void> {
+  await db
+    .insertInto("fct_licitacoes_itens")
+    .values({
+      item_id: row.itemId ?? nextId("item"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      licitacao_numero: row.licitacaoNumero,
+      numero_item: row.numeroItem,
+      descricao: row.descricao ?? null,
+      quantidade: row.quantidade !== undefined ? row.quantidade : 1,
+      unidade_medida: row.unidadeMedida ?? "un",
+      valor_unitario_estimado: row.valorUnitarioEstimado ?? null,
+      valor_total_estimado: row.valorTotalEstimado ?? null,
+      valor_unitario_homologado: row.valorUnitarioHomologado ?? null,
+      valor_total_homologado: row.valorTotalHomologado ?? null,
+      percentual_desconto: row.percentualDesconto ?? null,
+      fornecedor_nome: row.fornecedorNome ?? null,
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+      situacao_item: row.situacaoItem ?? "homologado",
     })
     .execute();
 }
@@ -648,6 +695,10 @@ export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
     .deleteFrom("fct_anomalias_fiscais_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_licitacoes_itens")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

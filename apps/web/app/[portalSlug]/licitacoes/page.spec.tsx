@@ -292,4 +292,57 @@ describe("LicitacoesPage", () => {
         .length,
     ).toBeGreaterThanOrEqual(1);
   });
+
+  it("repassa itensByLicitacao para LicitacoesEmAndamentoSection permitindo abrir modal de itens", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        licitacoesEmAndamento: [
+          {
+            licitacaoId: "lic-and-1",
+            licitacaoNumero: "042/2024",
+            objeto: "Contratação de empresa para reforma de pontes",
+            modalidade: "concorrencia",
+            valor: 450000,
+            valorEstimado: 450000,
+            entidadeNome: "Secretaria de Obras",
+            dataAbertura: "2024-10-15",
+            fonteObjeto: "pncp",
+            linkSistemaOrigem: "https://pncp.gov.br/app/editais/123/2024/1",
+          },
+        ],
+        itensByLicitacao: {
+          "042/2024": [
+            {
+              itemId: "item-1",
+              portalSlug: "porciuncula_prefeitura",
+              ano: 2024,
+              licitacaoNumero: "042/2024",
+              numeroItem: 1,
+              descricao: "Viga pré-moldada de concreto",
+              quantidade: 50,
+              unidadeMedida: "UN",
+              valorUnitarioEstimado: 1000,
+              valorTotalEstimado: 50000,
+              valorUnitarioHomologado: 900,
+              valorTotalHomologado: 45000,
+              percentualDesconto: 10,
+              fornecedorNome: "Construtora Alfa LTDA",
+              fornecedorCpfCnpj: "12.345.678/0001-00",
+              situacaoItem: "adjudicado",
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await LicitacoesPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("link", { name: /sala de disputa/i }),
+    ).toHaveAttribute("href", "https://pncp.gov.br/app/editais/123/2024/1");
+    expect(
+      screen.getByRole("button", { name: /ver itens licitados/i }),
+    ).toBeInTheDocument();
+  });
 });

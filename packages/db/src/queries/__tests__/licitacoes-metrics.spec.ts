@@ -4,6 +4,7 @@ import {
   createFixturePortalSlug,
   seedDimOrgao,
   seedLicitacao,
+  seedLicitacaoItem,
 } from "../../../tests/fixtures/seed";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
 import {
@@ -12,6 +13,7 @@ import {
   getAnomaliasContratuaisMetrics,
   getDistribucaoModalidadesMetrics,
   getLicitacaoGapsMetrics,
+  getLicitacaoItens,
   getLicitacoesEmAndamentoMetrics,
   toIsoDateString,
 } from "../licitacoes-metrics";
@@ -313,6 +315,157 @@ describe("licitacoes-metrics", () => {
       expect(semOrgaoItem?.entidadeNome).toBeNull();
       expect(semOrgaoItem?.valorEstimado).toBe(120000);
       expect(semOrgaoItem?.valor).toBe(120000);
+    });
+
+    it("deve carregar fonteObjeto e linkSistemaOrigem da licitacao", async () => {
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        empresaId: "1",
+        licitacaoNumero: "050/2024",
+        modalidade: "Pregao Eletronico",
+        objeto: "Contratação via PNCP com link",
+        valor: 300000,
+        situacao: "Em Andamento",
+        fonteObjeto: "pncp",
+        linkSistemaOrigem:
+          "https://pncp.gov.br/app/editais/28920999000106/2024/50",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2024,
+      });
+
+      const lic = resultado.find((r) => r.licitacaoNumero === "050/2024");
+      expect(lic).toBeDefined();
+      expect(lic?.fonteObjeto).toBe("pncp");
+      expect(lic?.linkSistemaOrigem).toBe(
+        "https://pncp.gov.br/app/editais/28920999000106/2024/50",
+      );
+    });
+
+    it("deve incluir compras do PNCP com situacao homologado ou divulgada e excluir canceladas/fracassadas", async () => {
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2026,
+        empresaId: "1",
+        licitacaoNumero: "003/2026",
+        modalidade: "Menor Preço",
+        objeto: "Execução de obra PAC casas populares",
+        valor: 6482938.82,
+        situacao: "Homologado",
+        fonteObjeto: "pncp",
+        linkSistemaOrigem:
+          "https://pncp.gov.br/app/editais/28920999000106/2026/3",
+      });
+
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2026,
+        empresaId: "1",
+        licitacaoNumero: "099/2026",
+        modalidade: "Pregao",
+        objeto: "Compra cancelada do PNCP",
+        valor: 50000,
+        situacao: "Fracassada",
+        fonteObjeto: "pncp",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2026,
+      });
+
+      const pacItem = resultado.find((r) => r.licitacaoNumero === "003/2026");
+      expect(pacItem).toBeDefined();
+      expect(pacItem?.valor).toBe(6482938.82);
+      expect(pacItem?.situacao).toBe("homologado");
+      expect(pacItem?.fonteObjeto).toBe("pncp");
+
+      const fracassadoItem = resultado.find(
+        (r) => r.licitacaoNumero === "099/2026",
+      );
+      expect(fracassadoItem).toBeUndefined();
+    });
+  });
+
+  describe("getLicitacaoItens", () => {
+    it("deve retornar array vazio para parâmetros inválidos ou sem itens", async () => {
+      expect(
+        await getLicitacaoItens("", { licitacaoNumero: "001/2024" }),
+      ).toEqual([]);
+      expect(
+        await getLicitacaoItens(FIXTURE_PORTAL, { licitacaoNumero: "" }),
+      ).toEqual([]);
+      expect(
+        await getLicitacaoItens(FIXTURE_PORTAL, {
+          licitacaoNumero: "001/2024",
+          ano: Number.NaN,
+        }),
+      ).toEqual([]);
+      expect(
+        await getLicitacaoItens(FIXTURE_PORTAL, {
+          licitacaoNumero: "999/9999",
+        }),
+      ).toEqual([]);
+    });
+
+    it("deve retornar itens ordenados por numeroItem com campos tipados em camelCase", async () => {
+      await seedLicitacaoItem({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        licitacaoNumero: "001/2024",
+        numeroItem: 2,
+        descricao: "Amoxicilina 500mg",
+        quantidade: 500,
+        unidadeMedida: "cx",
+        valorUnitarioEstimado: 25.0,
+        valorTotalEstimado: 12500.0,
+        valorUnitarioHomologado: 22.0,
+        valorTotalHomologado: 11000.0,
+        percentualDesconto: 12.0,
+        fornecedorNome: "Farma Distribuidora B",
+        fornecedorCpfCnpj: "22.333.444/0001-55",
+        situacaoItem: "homologado",
+      });
+
+      await seedLicitacaoItem({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        licitacaoNumero: "001/2024",
+        numeroItem: 1,
+        descricao: "Dipirona 500mg",
+        quantidade: 1000,
+        unidadeMedida: "cx",
+        valorUnitarioEstimado: 10.0,
+        valorTotalEstimado: 10000.0,
+        valorUnitarioHomologado: 8.5,
+        valorTotalHomologado: 8500.0,
+        percentualDesconto: 15.0,
+        fornecedorNome: "Farma Distribuidora A",
+        fornecedorCpfCnpj: "11.222.333/0001-44",
+        situacaoItem: "homologado",
+      });
+
+      const itens = await getLicitacaoItens(FIXTURE_PORTAL, {
+        ano: 2024,
+        licitacaoNumero: "001/2024",
+      });
+
+      expect(itens).toHaveLength(2);
+      expect(itens[0].numeroItem).toBe(1);
+      expect(itens[0].descricao).toBe("Dipirona 500mg");
+      expect(itens[0].quantidade).toBe(1000);
+      expect(itens[0].unidadeMedida).toBe("cx");
+      expect(itens[0].valorUnitarioEstimado).toBe(10.0);
+      expect(itens[0].valorTotalEstimado).toBe(10000.0);
+      expect(itens[0].valorUnitarioHomologado).toBe(8.5);
+      expect(itens[0].valorTotalHomologado).toBe(8500.0);
+      expect(itens[0].percentualDesconto).toBe(15.0);
+      expect(itens[0].fornecedorNome).toBe("Farma Distribuidora A");
+      expect(itens[0].fornecedorCpfCnpj).toBe("11.222.333/0001-44");
+
+      expect(itens[1].numeroItem).toBe(2);
+      expect(itens[1].descricao).toBe("Amoxicilina 500mg");
     });
   });
 

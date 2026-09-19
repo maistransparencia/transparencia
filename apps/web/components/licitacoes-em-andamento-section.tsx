@@ -1,6 +1,9 @@
 "use client";
 
-import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
+import type {
+  LicitacaoEmAndamentoDTO,
+  LicitacaoItemDTO,
+} from "@transparencia/db";
 import {
   Badge,
   type Column,
@@ -10,11 +13,12 @@ import {
   fmtDate,
   fmtLicitacaoModalidade,
 } from "@transparencia/ui";
-import { Calendar, Coins } from "lucide-react";
-import { useMemo } from "react";
+import { Calendar, Coins, ExternalLink, Package, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
+  itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
   className?: string;
 }
 
@@ -23,10 +27,10 @@ export function fmtLicitacaoSituacao(situacao?: string | null): string {
   const s = situacao.toLowerCase().trim().replace(/_/g, " ");
   if (s === "aberta" || s === "em aberto") return "Aberta";
   if (s === "em andamento") return "Em andamento";
-  if (s === "homologada") return "Homologada";
+  if (s === "homologada" || s === "homologado") return "Homologada";
   if (s === "publicado" || s === "publicada") return "Publicada";
   if (s === "deserta") return "Deserta";
-  if (s === "encerrada") return "Encerrada";
+  if (s === "encerrada" || s === "encerrado") return "Encerrada";
   if (s === "classificada") return "Classificada";
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -40,8 +44,32 @@ interface LicitacaoTableRow extends LicitacaoEmAndamentoDTO {
 
 export function LicitacoesEmAndamentoSection({
   licitacoes,
+  itensByLicitacao,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
+  const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
+    useState<LicitacaoTableRow | null>(null);
+
+  // Gerencia listener de Escape e bloqueio de scroll do body quando modal está aberto
+  useEffect(() => {
+    if (!selectedLicitacaoForItens) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedLicitacaoForItens(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedLicitacaoForItens]);
+
   const lista = useMemo(() => {
     if (!Array.isArray(licitacoes)) return [];
     return licitacoes;
@@ -96,6 +124,7 @@ export function LicitacoesEmAndamentoSection({
         item.modalidade ? item.modalidade.replace(/_/g, " ") : "",
         modalidadeFmt,
         situacaoFmt,
+        item.fonteObjeto,
         ...termosSituacao,
       ]
         .filter(Boolean)
@@ -121,7 +150,36 @@ export function LicitacoesEmAndamentoSection({
       accessorKey: "licitacaoNumero",
       sortable: true,
       className: "whitespace-nowrap font-semibold text-slate-900",
-      renderCell: (row) => row.licitacaoNumero || "S/N",
+      renderCell: (row) => (
+        <div className="space-y-1">
+          <span className="font-semibold text-slate-900">
+            {row.licitacaoNumero || "S/N"}
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {row.linkSistemaOrigem && (
+              <a
+                href={row.linkSistemaOrigem}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-[11px] text-blue-600 hover:text-blue-800 hover:underline"
+                title="Acessar sala de disputa pública oficial"
+              >
+                <span>Disputa</span>
+                <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedLicitacaoForItens(row)}
+              className="inline-flex items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
+              title="Visualizar itens licitados"
+            >
+              <Package className="h-2.5 w-2.5" aria-hidden="true" />
+              <span>Itens</span>
+            </button>
+          </div>
+        </div>
+      ),
     },
     {
       header: "Órgão",
@@ -147,9 +205,29 @@ export function LicitacoesEmAndamentoSection({
       className: "min-w-[220px] max-w-[340px] text-slate-700",
       renderCell: (row) => (
         <div className="space-y-0.5">
-          <span className="line-clamp-2 font-medium" title={row.objeto}>
-            {row.objeto}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="line-clamp-2 font-medium" title={row.objeto}>
+              {row.objeto}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 pt-0.5">
+            {row.fonteObjeto === "pncp" && (
+              <span
+                className="inline-block rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 font-medium text-[10px] text-emerald-700"
+                title="Objeto des-truncado via Portal Nacional de Contratações Públicas (PNCP)"
+              >
+                PNCP
+              </span>
+            )}
+            {row.fonteObjeto === "contrato_local" && (
+              <span
+                className="inline-block rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 font-medium text-[10px] text-indigo-700"
+                title="Objeto des-truncado via contrato municipal vinculado"
+              >
+                Contrato Local
+              </span>
+            )}
+          </div>
           {row.discriminacao && row.discriminacao !== row.objeto && (
             <span
               className="line-clamp-1 text-[11px] text-slate-400 italic"
@@ -223,7 +301,29 @@ export function LicitacoesEmAndamentoSection({
           </div>
           <p className="mt-1 max-w-3xl text-slate-600 text-xs leading-relaxed sm:text-sm">
             Audite preventivamente as compras públicas em andamento antes da
-            adjudicação e homologação de contratos pelo município.
+            adjudicação e homologação de contratos pelo município. Descrições e
+            itens são enriquecidos e integrados diretamente com o{" "}
+            <a
+              href="https://pncp.gov.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+            >
+              PNCP (Portal Nacional de Contratações Públicas)
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            , com fundamento no{" "}
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art174"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+            >
+              Art. 174 da Lei 14.133/2021
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            , e cruzados com os contratos locais para eliminação de
+            truncamentos.
           </p>
         </div>
         <span
@@ -292,6 +392,22 @@ export function LicitacoesEmAndamentoSection({
                             <Badge variant="warning">
                               {fmtLicitacaoSituacao(item.situacao)}
                             </Badge>
+                            {item.fonteObjeto === "pncp" && (
+                              <span
+                                className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
+                                title="Objeto des-truncado via PNCP"
+                              >
+                                PNCP
+                              </span>
+                            )}
+                            {item.fonteObjeto === "contrato_local" && (
+                              <span
+                                className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
+                                title="Objeto des-truncado via contrato local"
+                              >
+                                Contrato Local
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -340,6 +456,40 @@ export function LicitacoesEmAndamentoSection({
                           <span>{valorExibicao}</span>
                         </div>
                       </div>
+
+                      <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2 text-xs">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedLicitacaoForItens(
+                              item as LicitacaoTableRow,
+                            )
+                          }
+                          className="inline-flex items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
+                        >
+                          <Package
+                            className="h-3.5 w-3.5 text-slate-400"
+                            aria-hidden="true"
+                          />
+                          <span>Ver Itens Licitados</span>
+                        </button>
+
+                        {item.linkSistemaOrigem && (
+                          <a
+                            href={item.linkSistemaOrigem}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded bg-blue-50 px-2.5 py-1 font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                            title="Acessar sala de disputa pública externa"
+                          >
+                            <span>Sala de Disputa</span>
+                            <ExternalLink
+                              className="h-3 w-3"
+                              aria-hidden="true"
+                            />
+                          </a>
+                        )}
+                      </div>
                     </article>
                   );
                 })}
@@ -377,6 +527,234 @@ export function LicitacoesEmAndamentoSection({
               recordLabel="licitações"
               rowKey="licitacaoId"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Diálogo / Modal de Itens Licitados */}
+      {selectedLicitacaoForItens && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden="true"
+            onClick={() => setSelectedLicitacaoForItens(null)}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="itens-modal-title"
+            className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl transition-all"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-slate-200 border-b bg-slate-50/80 px-6 py-4">
+              <div>
+                <h3
+                  id="itens-modal-title"
+                  className="font-bold font-serif text-lg text-slate-900"
+                >
+                  Itens Licitados — Processo{" "}
+                  {selectedLicitacaoForItens.licitacaoNumero || "S/N"}
+                </h3>
+                <p
+                  className="mt-1 line-clamp-1 max-w-2xl text-slate-500 text-xs"
+                  title={selectedLicitacaoForItens.objeto}
+                >
+                  {selectedLicitacaoForItens.objeto}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLicitacaoForItens(null)}
+                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+                aria-label="Fechar modal"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {(() => {
+                const itens =
+                  itensByLicitacao?.[
+                    selectedLicitacaoForItens.licitacaoNumero
+                  ] ?? [];
+                if (itens.length === 0) {
+                  return (
+                    <div className="py-12 text-center">
+                      <Package
+                        className="mx-auto h-10 w-10 text-slate-300"
+                        aria-hidden="true"
+                      />
+                      <p className="mt-3 font-medium text-slate-700 text-sm">
+                        Nenhum item individual cadastrado para este processo.
+                      </p>
+                      <p className="mt-1 text-slate-400 text-xs">
+                        Os detalhes da contratação podem ser consultados no
+                        edital completo ou na sala de disputa pública.
+                      </p>
+                      {selectedLicitacaoForItens.linkSistemaOrigem && (
+                        <div className="mt-4">
+                          <a
+                            href={selectedLicitacaoForItens.linkSistemaOrigem}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white text-xs shadow-xs transition-colors hover:bg-blue-700"
+                          >
+                            <span>Acessar Sala de Disputa no PNCP</span>
+                            <ExternalLink
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-slate-600 text-xs">
+                      <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
+                        <tr>
+                          <th className="px-3 py-2 text-center">Item</th>
+                          <th className="px-3 py-2">Descrição</th>
+                          <th className="px-3 py-2 text-center">Qtd / Un</th>
+                          <th className="px-3 py-2 text-right">
+                            Valor Estimado
+                          </th>
+                          <th className="px-3 py-2 text-right">Homologado</th>
+                          <th className="px-3 py-2 text-center">Desconto</th>
+                          <th className="px-3 py-2">Fornecedor Vencedor</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {itens.map((it) => (
+                          <tr key={it.itemId} className="hover:bg-slate-50/80">
+                            <td className="px-3 py-2.5 text-center font-bold text-slate-900">
+                              {it.numeroItem}
+                            </td>
+                            <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
+                              {it.descricao || "—"}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                              {it.quantidade != null ? it.quantidade : "—"}{" "}
+                              {it.unidadeMedida || ""}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
+                              {(() => {
+                                const valorExibicao =
+                                  it.valorTotalEstimado ??
+                                  (it.valorUnitarioEstimado != null &&
+                                  it.quantidade != null
+                                    ? it.valorUnitarioEstimado * it.quantidade
+                                    : it.valorUnitarioEstimado);
+                                if (valorExibicao != null) {
+                                  return (
+                                    <>
+                                      <span>{fmtCurrency(valorExibicao)}</span>
+                                      {it.quantidade != null &&
+                                        it.quantidade > 1 &&
+                                        it.valorUnitarioEstimado != null && (
+                                          <span className="block font-sans text-[10px] text-slate-400">
+                                            {fmtCurrency(
+                                              it.valorUnitarioEstimado,
+                                            )}{" "}
+                                            / un
+                                          </span>
+                                        )}
+                                    </>
+                                  );
+                                }
+                                return "—";
+                              })()}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
+                              {(() => {
+                                const valorExibicao =
+                                  it.valorTotalHomologado ??
+                                  (it.valorUnitarioHomologado != null &&
+                                  it.quantidade != null
+                                    ? it.valorUnitarioHomologado * it.quantidade
+                                    : it.valorUnitarioHomologado);
+                                if (valorExibicao != null) {
+                                  return (
+                                    <>
+                                      <span>{fmtCurrency(valorExibicao)}</span>
+                                      {it.quantidade != null &&
+                                        it.quantidade > 1 &&
+                                        it.valorUnitarioHomologado != null && (
+                                          <span className="block font-normal font-sans text-[10px] text-slate-400">
+                                            {fmtCurrency(
+                                              it.valorUnitarioHomologado,
+                                            )}{" "}
+                                            / un
+                                          </span>
+                                        )}
+                                    </>
+                                  );
+                                }
+                                return "—";
+                              })()}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                              {it.percentualDesconto != null ? (
+                                <span className="font-semibold text-emerald-700">
+                                  {it.percentualDesconto}%
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="min-w-[150px] px-3 py-2.5">
+                              {it.fornecedorNome ? (
+                                <div>
+                                  <span className="font-medium text-slate-800">
+                                    {it.fornecedorNome}
+                                  </span>
+                                  {it.fornecedorCpfCnpj && (
+                                    <span className="block text-[10px] text-slate-400">
+                                      {it.fornecedorCpfCnpj}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 italic">
+                                  Pendente / Não homologado
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between border-slate-200 border-t bg-slate-50 px-6 py-3 text-xs">
+              <span className="text-slate-500">
+                {itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
+                  ?.length || 0}{" "}
+                itens listados
+              </span>
+              {selectedLicitacaoForItens.linkSistemaOrigem && (
+                <a
+                  href={selectedLicitacaoForItens.linkSistemaOrigem}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  <span>Abrir Sala de Disputa</span>
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}

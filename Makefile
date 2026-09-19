@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi elt/pncp dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -76,6 +76,9 @@ ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+
+elt/pncp:
+	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
 
 # DOCKER ELT
 
