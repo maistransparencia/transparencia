@@ -343,6 +343,49 @@ describe("licitacoes-metrics", () => {
         "https://pncp.gov.br/app/editais/28920999000106/2024/50",
       );
     });
+
+    it("deve incluir compras do PNCP com situacao homologado ou divulgada e excluir canceladas/fracassadas", async () => {
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2026,
+        empresaId: "1",
+        licitacaoNumero: "003/2026",
+        modalidade: "Menor Preço",
+        objeto: "Execução de obra PAC casas populares",
+        valor: 6482938.82,
+        situacao: "Homologado",
+        fonteObjeto: "pncp",
+        linkSistemaOrigem:
+          "https://pncp.gov.br/app/editais/28920999000106/2026/3",
+      });
+
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2026,
+        empresaId: "1",
+        licitacaoNumero: "099/2026",
+        modalidade: "Pregao",
+        objeto: "Compra cancelada do PNCP",
+        valor: 50000,
+        situacao: "Fracassada",
+        fonteObjeto: "pncp",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2026,
+      });
+
+      const pacItem = resultado.find((r) => r.licitacaoNumero === "003/2026");
+      expect(pacItem).toBeDefined();
+      expect(pacItem?.valor).toBe(6482938.82);
+      expect(pacItem?.situacao).toBe("homologado");
+      expect(pacItem?.fonteObjeto).toBe("pncp");
+
+      const fracassadoItem = resultado.find(
+        (r) => r.licitacaoNumero === "099/2026",
+      );
+      expect(fracassadoItem).toBeUndefined();
+    });
   });
 
   describe("getLicitacaoItens", () => {

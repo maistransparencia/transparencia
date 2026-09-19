@@ -667,7 +667,13 @@ export async function getLicitacoesEmAndamentoMetrics(
     ])
     .where("l.portal_slug", "=", cleanSlug)
     .where(
-      sql<boolean>`unaccent(lower(replace(trim(l.situacao), ' ', '_'))) in ('em_andamento', 'aberta', 'em_aberto')`,
+      sql<boolean>`(
+        unaccent(lower(replace(trim(l.situacao), ' ', '_'))) in ('em_andamento', 'aberta', 'em_aberto', 'publicada', 'publicado')
+        or (
+          l.fonte_objeto = 'pncp'
+          and unaccent(lower(replace(trim(coalesce(l.situacao, '')), ' ', '_'))) not in ('encerrada', 'encerrado', 'fracassada', 'fracassado', 'anulada', 'anulado', 'revogada', 'revogado', 'deserta')
+        )
+      )`,
     );
 
   if (options.ano !== undefined) {
