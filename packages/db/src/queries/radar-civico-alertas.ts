@@ -11,6 +11,8 @@ export type TipoAnomalia =
   | "opacidade_gastos_genericos"
   | "inadimplencia_aporte_rpps"
   | "retencao_patronal_rpps"
+  | "desconto_nulo_pregao"
+  | "desagio_extremo_inexequibilidade"
   | (string & {});
 
 export interface RadarCivicoAlertaDTO {

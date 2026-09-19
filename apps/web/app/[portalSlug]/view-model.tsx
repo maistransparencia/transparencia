@@ -447,6 +447,14 @@ export function getBadgeMetodologia(
     return "Fluxo em Aberto";
   }
 
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Competitividade PNCP";
+  }
+
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Risco de Inexequibilidade";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -495,6 +503,12 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
     return "Retenção de Contribuição Patronal (RPPS)";
   }
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Desconto Nulo em Pregão";
+  }
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Risco de Inexequibilidade Contratual";
+  }
   return "Indicador em Destaque";
 }
 
@@ -525,6 +539,12 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
     return "Verificar Repasse Patronal";
+  }
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Auditar Itens do Pregão";
+  }
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Verificar Propostas Homologadas";
   }
   return "Ver detalhes";
 }
@@ -558,6 +578,12 @@ export function getCardCtaUrl(
   }
   if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
     return `/${portalSlug}/caprem?ano=${ano}#patronal`;
+  }
+  if (
+    alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+    alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+  ) {
+    return `/${portalSlug}/licitacoes?ano=${ano}#itens`;
   }
   return `/${portalSlug}`;
 }
@@ -639,6 +665,12 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
         return "Passivo Tolerado";
       }
+      if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+        return "Margem Esperada";
+      }
+      if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+        return "Limite de Exequibilidade";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -652,6 +684,18 @@ export function buildRadarCivicoCards(
         return {
           label: "Art. 40 da CF/88",
           url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+        };
+      }
+      if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+        return {
+          label: "Art. 5º da Lei nº 14.133/2021",
+          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+        };
+      }
+      if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+        return {
+          label: "Art. 59, III da Lei nº 14.133/2021",
+          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
         };
       }
       return undefined;
@@ -670,7 +714,8 @@ export function buildRadarCivicoCards(
       if (val === 0) return "0%";
       if (
         alerta.tipoAnomalia === "rombo_caixa" ||
-        alerta.tipoAnomalia === "inadimplencia_aporte_rpps"
+        alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao"
       ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
@@ -684,7 +729,9 @@ export function buildRadarCivicoCards(
       }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||
-        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+        alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
       ) {
         return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
@@ -697,7 +744,9 @@ export function buildRadarCivicoCards(
       }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||
-        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+        alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
       ) {
         return `${formatPercentNumber(alerta.valorEsperado)}%`;
       }

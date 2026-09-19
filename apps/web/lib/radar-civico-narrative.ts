@@ -85,6 +85,9 @@ export function formatarDimensao(dimensao?: string | null): string {
   const clean = dimensao?.toLowerCase().trim();
   if (!clean) return "Geral";
   if (DIMENSAO_NOMES[clean]) return DIMENSAO_NOMES[clean];
+  if (clean.startsWith("licitacao_")) {
+    return clean.replace(/^licitacao_/, "Licitação ").replace(/_/g, "/");
+  }
   return clean
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -204,6 +207,20 @@ export function formatFactualNarrative(
     const ano = alerta.ano || anoContexto;
     const obs = fmtCompact(alerta.valorObservado ?? 0);
     return `Em ${ano}, foram apurados ${obs} em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.`;
+  }
+
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 10);
+    return `Em ${ano}, o certame licitatório registrou desconto homologado de apenas ${obs}%, indicando ausência de competitividade efetiva em relação à margem prudencial esperada (${esp}%).`;
+  }
+
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 50);
+    return `Em ${ano}, o certame licitatório registrou deságio homologado expressivo de ${obs}%, patamar que exige comprovação de exequibilidade da proposta contratual (${esp}%).`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

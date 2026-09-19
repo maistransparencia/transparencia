@@ -433,6 +433,92 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para desconto nulo em pregão com fundamentação no Art. 5º da Lei 14.133/2021", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desconto-nulo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "desconto_nulo_pregao",
+          dimensaoReferencia: "licitacao_000517",
+          grauSeveridade: "critico",
+          desvioPercentual: 10.0,
+          valorObservado: 0.0,
+          valorEsperado: 10.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000517#itens",
+          metodoDeteccao: "limite_competitividade_pregao",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Desconto Nulo em Pregão");
+    expect(card.metodologiaBadge).toBe("Competitividade PNCP");
+    expect(card.esperadoLabel).toBe("Margem Esperada");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("0%");
+    expect(card.valorEsperadoFormatted).toBe("10%");
+    expect(card.desvioPercentualFormatted).toBe("-10%");
+    expect(card.ctaLabel).toBe("Auditar Itens do Pregão");
+    expect(card.ctaUrl).toBe(
+      "/porciuncula/licitacoes?ano=2026&numero=000517#itens",
+    );
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 5º da Lei nº 14.133/2021",
+      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+    });
+    expect(card.textoFactual).toContain(
+      "indicando ausência de competitividade efetiva em relação à margem prudencial esperada (10%)",
+    );
+  });
+
+  it("monta card para risco de inexequibilidade com fundamentação no Art. 59, III da Lei 14.133/2021", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desagio-extremo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "desagio_extremo_inexequibilidade",
+          dimensaoReferencia: "licitacao_000290",
+          grauSeveridade: "critico",
+          desvioPercentual: 22.37,
+          valorObservado: 72.37,
+          valorEsperado: 50.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000290#itens",
+          metodoDeteccao: "limite_inexequibilidade_art59",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Risco de Inexequibilidade Contratual");
+    expect(card.metodologiaBadge).toBe("Risco de Inexequibilidade");
+    expect(card.esperadoLabel).toBe("Limite de Exequibilidade");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("72.4%");
+    expect(card.valorEsperadoFormatted).toBe("50%");
+    expect(card.desvioPercentualFormatted).toBe("+22.4%");
+    expect(card.ctaLabel).toBe("Verificar Propostas Homologadas");
+    expect(card.ctaUrl).toBe(
+      "/porciuncula/licitacoes?ano=2026&numero=000290#itens",
+    );
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 59, III da Lei nº 14.133/2021",
+      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+    });
+    expect(card.textoFactual).toContain(
+      "patamar que exige comprovação de exequibilidade da proposta contratual (50%)",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

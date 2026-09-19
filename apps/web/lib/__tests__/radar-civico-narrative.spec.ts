@@ -47,6 +47,11 @@ describe("radar-civico-narrative", () => {
       expect(formatarDimensao("recursos_especiais")).toBe("Recursos Especiais");
     });
 
+    it("formats licitacao_ prefix as Licitação with slashes", () => {
+      expect(formatarDimensao("licitacao_000517")).toBe("Licitação 000517");
+      expect(formatarDimensao("licitacao_016_2026")).toBe("Licitação 016/2026");
+    });
+
     it("returns 'Geral' for undefined, null, or empty strings", () => {
       expect(formatarDimensao(undefined)).toBe("Geral");
       expect(formatarDimensao(null)).toBe("Geral");
@@ -261,6 +266,40 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.",
+      );
+    });
+
+    it("formats desconto_nulo_pregao with observed discount and expected margin", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desconto_nulo_pregao",
+          ano: 2026,
+          valorObservado: 0.0,
+          valorEsperado: 10.0,
+          desvioPercentual: 10.0,
+          dimensaoReferencia: "licitacao_000517",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, o certame licitatório registrou desconto homologado de apenas 0%, indicando ausência de competitividade efetiva em relação à margem prudencial esperada (10%).",
+      );
+    });
+
+    it("formats desagio_extremo_inexequibilidade with observed discount and threshold", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desagio_extremo_inexequibilidade",
+          ano: 2026,
+          valorObservado: 72.37,
+          valorEsperado: 50.0,
+          desvioPercentual: 22.37,
+          dimensaoReferencia: "licitacao_000290",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, o certame licitatório registrou deságio homologado expressivo de 72.4%, patamar que exige comprovação de exequibilidade da proposta contratual (50%).",
       );
     });
 

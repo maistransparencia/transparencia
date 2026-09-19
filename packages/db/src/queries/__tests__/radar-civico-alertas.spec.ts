@@ -405,5 +405,72 @@ describe("radar-civico-alertas", () => {
       );
       expect(patronal?.metodoDeteccao).toBe("fluxo_patronal_em_aberto");
     });
+
+    it("deve carregar e mapear corretamente anomalias de compras públicas do PNCP (desconto nulo e deságio extremo)", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "desconto_nulo_pregao",
+        dimensaoReferencia: "licitacao_000517",
+        grauSeveridade: "critico",
+        desvioPercentual: 10.0,
+        valorObservado: 0.0,
+        valorEsperado: 10.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
+        metodoDeteccao: "limite_competitividade_pregao",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "desagio_extremo_inexequibilidade",
+        dimensaoReferencia: "licitacao_000290",
+        grauSeveridade: "critico",
+        desvioPercentual: 22.37,
+        valorObservado: 72.37,
+        valorEsperado: 50.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
+        metodoDeteccao: "limite_inexequibilidade_art59",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(2);
+
+      const descontoNulo = alertas.find(
+        (a) => a.tipoAnomalia === "desconto_nulo_pregao",
+      );
+      expect(descontoNulo).toBeDefined();
+      expect(descontoNulo?.dimensaoReferencia).toBe("licitacao_000517");
+      expect(descontoNulo?.grauSeveridade).toBe("critico");
+      expect(descontoNulo?.desvioPercentual).toBe(10.0);
+      expect(descontoNulo?.valorObservado).toBe(0.0);
+      expect(descontoNulo?.valorEsperado).toBe(10.0);
+      expect(descontoNulo?.deepLinkRota).toBe(
+        `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
+      );
+      expect(descontoNulo?.metodoDeteccao).toBe(
+        "limite_competitividade_pregao",
+      );
+
+      const desagioExtremo = alertas.find(
+        (a) => a.tipoAnomalia === "desagio_extremo_inexequibilidade",
+      );
+      expect(desagioExtremo).toBeDefined();
+      expect(desagioExtremo?.dimensaoReferencia).toBe("licitacao_000290");
+      expect(desagioExtremo?.grauSeveridade).toBe("critico");
+      expect(desagioExtremo?.desvioPercentual).toBe(22.37);
+      expect(desagioExtremo?.valorObservado).toBe(72.37);
+      expect(desagioExtremo?.valorEsperado).toBe(50.0);
+      expect(desagioExtremo?.deepLinkRota).toBe(
+        `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
+      );
+      expect(desagioExtremo?.metodoDeteccao).toBe(
+        "limite_inexequibilidade_art59",
+      );
+    });
   });
 });
