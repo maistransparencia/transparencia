@@ -27,10 +27,10 @@ export function fmtLicitacaoSituacao(situacao?: string | null): string {
   const s = situacao.toLowerCase().trim().replace(/_/g, " ");
   if (s === "aberta" || s === "em aberto") return "Aberta";
   if (s === "em andamento") return "Em andamento";
-  if (s === "homologada") return "Homologada";
+  if (s === "homologada" || s === "homologado") return "Homologada";
   if (s === "publicado" || s === "publicada") return "Publicada";
   if (s === "deserta") return "Deserta";
-  if (s === "encerrada") return "Encerrada";
+  if (s === "encerrada" || s === "encerrado") return "Encerrada";
   if (s === "classificada") return "Classificada";
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -645,14 +645,60 @@ export function LicitacoesEmAndamentoSection({
                               {it.unidadeMedida || ""}
                             </td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
-                              {it.valorTotalEstimado != null
-                                ? fmtCurrency(it.valorTotalEstimado)
-                                : "—"}
+                              {(() => {
+                                const valorExibicao =
+                                  it.valorTotalEstimado ??
+                                  (it.valorUnitarioEstimado != null &&
+                                  it.quantidade != null
+                                    ? it.valorUnitarioEstimado * it.quantidade
+                                    : it.valorUnitarioEstimado);
+                                if (valorExibicao != null) {
+                                  return (
+                                    <>
+                                      <span>{fmtCurrency(valorExibicao)}</span>
+                                      {it.quantidade != null &&
+                                        it.quantidade > 1 &&
+                                        it.valorUnitarioEstimado != null && (
+                                          <span className="block font-sans text-[10px] text-slate-400">
+                                            {fmtCurrency(
+                                              it.valorUnitarioEstimado,
+                                            )}{" "}
+                                            / un
+                                          </span>
+                                        )}
+                                    </>
+                                  );
+                                }
+                                return "—";
+                              })()}
                             </td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
-                              {it.valorTotalHomologado != null
-                                ? fmtCurrency(it.valorTotalHomologado)
-                                : "—"}
+                              {(() => {
+                                const valorExibicao =
+                                  it.valorTotalHomologado ??
+                                  (it.valorUnitarioHomologado != null &&
+                                  it.quantidade != null
+                                    ? it.valorUnitarioHomologado * it.quantidade
+                                    : it.valorUnitarioHomologado);
+                                if (valorExibicao != null) {
+                                  return (
+                                    <>
+                                      <span>{fmtCurrency(valorExibicao)}</span>
+                                      {it.quantidade != null &&
+                                        it.quantidade > 1 &&
+                                        it.valorUnitarioHomologado != null && (
+                                          <span className="block font-normal font-sans text-[10px] text-slate-400">
+                                            {fmtCurrency(
+                                              it.valorUnitarioHomologado,
+                                            )}{" "}
+                                            / un
+                                          </span>
+                                        )}
+                                    </>
+                                  );
+                                }
+                                return "—";
+                              })()}
                             </td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-center">
                               {it.percentualDesconto != null ? (
