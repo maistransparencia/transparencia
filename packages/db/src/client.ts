@@ -26,6 +26,7 @@ const poolMax = Number(process.env.DATABASE_POOL_MAX) || 5;
 const pool = new pg.Pool({
   connectionString,
   max: poolMax,
+  options: "-c search_path=analytics,public",
 });
 
 pool.on("connect", (client) => {
@@ -51,6 +52,7 @@ export const db = new Kysely<any>({
 const writePool = new pg.Pool({
   connectionString: writeConnectionString,
   max: poolMax,
+  options: "-c search_path=analytics,public",
 });
 
 writePool.on("connect", (client) => {
