@@ -512,6 +512,7 @@ export interface PessoalRegimeRow {
   empresaId: string;
   ano: number;
   categoriaRegime: string;
+  mesReferencia?: number;
   totalProfissionais?: number;
   totalProventos?: number;
   proventoMedio?: number;
@@ -528,6 +529,7 @@ export async function seedPessoalRegime(row: PessoalRegimeRow): Promise<void> {
       empresa_id: row.empresaId,
       ano: row.ano,
       categoria_regime: row.categoriaRegime,
+      mes_referencia: row.mesReferencia ?? 1,
       total_profissionais: row.totalProfissionais ?? 0,
       total_proventos: row.totalProventos ?? 0,
       provento_medio: row.proventoMedio ?? 0,
@@ -540,6 +542,7 @@ export async function seedPessoalRegime(row: PessoalRegimeRow): Promise<void> {
 export interface PessoalRow {
   portalSlug: string;
   ano: number;
+  mes?: number;
   empresaId?: string;
   matricula: string;
   cargo?: string;
@@ -558,6 +561,7 @@ export async function seedPessoal(row: PessoalRow): Promise<void> {
       portal_slug: row.portalSlug,
       empresa_id: row.empresaId ?? "1",
       ano: row.ano,
+      mes: row.mes ?? 1,
       matricula: row.matricula,
       cargo: row.cargo ?? "Assessor",
       proventos: row.proventos ?? 3000,
