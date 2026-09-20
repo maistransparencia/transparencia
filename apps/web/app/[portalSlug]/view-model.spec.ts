@@ -151,6 +151,39 @@ describe("buildVisaoGeralViewModel - pessoalCardData", () => {
   });
 });
 
+describe("buildVisaoGeralViewModel - licitacoesCardData", () => {
+  it("exibe contagem de compras em andamento no plural quando maior que 1 ou zero", () => {
+    const rawZero = makeRawVisaoGeral({ licitacoesEmAndamentoCount: 0 });
+    const vmZero = buildVisaoGeralViewModel(rawZero);
+    const itemZero = vmZero.licitacoesCardData.items.find((i) =>
+      i.label.includes("ompras em andamento"),
+    );
+    expect(itemZero).toBeDefined();
+    expect(itemZero?.count).toBe(0);
+    expect(itemZero?.label).toBe("Compras em andamento");
+
+    const rawPlural = makeRawVisaoGeral({ licitacoesEmAndamentoCount: 5 });
+    const vmPlural = buildVisaoGeralViewModel(rawPlural);
+    const itemPlural = vmPlural.licitacoesCardData.items.find((i) =>
+      i.label.includes("ompras em andamento"),
+    );
+    expect(itemPlural).toBeDefined();
+    expect(itemPlural?.count).toBe(5);
+    expect(itemPlural?.label).toBe("Compras em andamento");
+  });
+
+  it("exibe contagem de compras em andamento no singular quando igual a 1", () => {
+    const rawSingular = makeRawVisaoGeral({ licitacoesEmAndamentoCount: 1 });
+    const vmSingular = buildVisaoGeralViewModel(rawSingular);
+    const itemSingular = vmSingular.licitacoesCardData.items.find((i) =>
+      i.label.includes("ompra em andamento"),
+    );
+    expect(itemSingular).toBeDefined();
+    expect(itemSingular?.count).toBe(1);
+    expect(itemSingular?.label).toBe("Compra em andamento");
+  });
+});
+
 describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
   it("converte alertas de diferentes tipos para cards com narrativa factual e URLs de compartilhamento", () => {
     const raw = makeRawVisaoGeral({

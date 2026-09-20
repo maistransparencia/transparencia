@@ -544,6 +544,7 @@ export interface LicitacaoEmAndamentoDTO {
   discriminacao: string | null;
   valor: number | null;
   valorEstimado: number | null;
+  valorHomologado: number | null;
   situacao: string;
   dataAbertura: string | null;
   carona: string | null;
@@ -659,6 +660,8 @@ export async function getLicitacoesEmAndamentoMetrics(
       "l.objeto",
       "l.discriminacao",
       "l.valor",
+      "l.valor_estimado",
+      "l.valor_homologado",
       "l.situacao",
       "l.data_abertura",
       "l.carona",
@@ -703,6 +706,15 @@ export async function getLicitacoesEmAndamentoMetrics(
 
   return rows.map((r) => {
     const valorNumerico = r.valor != null ? parseFloat(String(r.valor)) : null;
+    const valorEstimado =
+      r.valor_estimado != null
+        ? parseFloat(String(r.valor_estimado))
+        : valorNumerico;
+    const valorHomologado =
+      r.valor_homologado != null
+        ? parseFloat(String(r.valor_homologado))
+        : null;
+
     return {
       licitacaoId: String(r.licitacao_id),
       portalSlug: String(r.portal_slug),
@@ -717,7 +729,8 @@ export async function getLicitacoesEmAndamentoMetrics(
       objeto: String(r.objeto ?? ""),
       discriminacao: r.discriminacao ? String(r.discriminacao) : null,
       valor: valorNumerico,
-      valorEstimado: valorNumerico,
+      valorEstimado,
+      valorHomologado,
       situacao: String(r.situacao ?? "")
         .trim()
         .toLowerCase()

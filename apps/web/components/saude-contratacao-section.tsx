@@ -7,6 +7,7 @@ import {
   fmtLicitacaoModalidade,
   fmtPercent,
   KPICard,
+  TruncatedCellWithModal,
 } from "@transparencia/ui";
 import { Calendar, Coins } from "lucide-react";
 import Link from "next/link";
@@ -241,12 +242,15 @@ export function SaudeContratacaoSection({
                       {fmtLicitacaoModalidade(lic.modalidade)}
                     </Badge>
                   </div>
-                  <p
-                    className="line-clamp-2 font-medium text-slate-700"
-                    title={lic.objeto}
-                  >
-                    {lic.objeto}
-                  </p>
+                  <TruncatedCellWithModal
+                    text={lic.objeto}
+                    modalTitle={`Processo ${lic.licitacaoNumero || "S/N"} — Objeto da Licitação (Saúde)`}
+                    characterThreshold={100}
+                    maxLines={2}
+                    badge={fmtLicitacaoModalidade(lic.modalidade)}
+                    externalUrl={lic.linkSistemaOrigem}
+                    externalLabel="Sala de Disputa"
+                  />
                   <div className="flex items-center justify-between border-slate-200/60 border-t pt-2 text-[11px] text-slate-500">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" aria-hidden="true" />

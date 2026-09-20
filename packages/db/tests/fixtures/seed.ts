@@ -619,6 +619,8 @@ export interface LicitacaoRow {
   objeto: string;
   discriminacao?: string | null;
   valor?: number | null;
+  valorEstimado?: number | null;
+  valorHomologado?: number | null;
   situacao?: string;
   dataAbertura?: string | null;
   carona?: string | null;
@@ -658,6 +660,13 @@ export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
       objeto: row.objeto,
       discriminacao: row.discriminacao ?? null,
       valor: row.valor !== undefined ? row.valor : 100000,
+      valor_estimado:
+        row.valorEstimado !== undefined
+          ? row.valorEstimado
+          : row.valor !== undefined
+            ? row.valor
+            : 100000,
+      valor_homologado: row.valorHomologado ?? null,
       situacao: row.situacao ?? "em_andamento",
       data_abertura: row.dataAbertura ? row.dataAbertura : null,
       carona: row.carona ?? null,

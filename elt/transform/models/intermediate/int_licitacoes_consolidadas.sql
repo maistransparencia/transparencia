@@ -62,7 +62,9 @@ pncp_dedup as (
         numero_compra,
         processo,
         objeto_compra,
-        link_sistema_origem
+        link_sistema_origem,
+        valor_total_estimado,
+        valor_total_homologado
     from (
         select
             ano_compra,
@@ -71,6 +73,8 @@ pncp_dedup as (
             processo,
             objeto_compra,
             link_sistema_origem,
+            valor_total_estimado,
+            valor_total_homologado,
             row_number() over (
                 partition by ano_compra, coalesce(numero_compra, sequencial_compra::text)
                 order by length(coalesce(objeto_compra, '')) desc
@@ -96,6 +100,8 @@ porciuncula_enriched as (
         end as objeto,
         l.discriminacao,
         l.valor,
+        coalesce(l.valor, p.valor_total_estimado) as valor_estimado,
+        p.valor_total_homologado as valor_homologado,
         l.situacao,
         l.data_abertura,
         l.carona,
@@ -159,6 +165,8 @@ pncp_exclusivas as (
         c.objeto_compra as objeto,
         cast(null as text) as discriminacao,
         coalesce(c.valor_total_homologado, c.valor_total_estimado) as valor,
+        c.valor_total_estimado as valor_estimado,
+        c.valor_total_homologado as valor_homologado,
         coalesce(c.situacao_compra_nome, 'Divulgada no PNCP') as situacao,
         coalesce(c.data_abertura_proposta, c.data_publicacao_pncp) as data_abertura,
         cast(null as text) as carona,
@@ -185,6 +193,8 @@ select
     objeto,
     discriminacao,
     valor,
+    valor_estimado,
+    valor_homologado,
     situacao,
     data_abertura,
     carona,
@@ -204,6 +214,8 @@ select
     objeto,
     discriminacao,
     valor,
+    valor_estimado,
+    valor_homologado,
     situacao,
     data_abertura,
     carona,

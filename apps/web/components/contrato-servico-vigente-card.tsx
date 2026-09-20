@@ -1,7 +1,12 @@
 "use client";
 
 import type { ContratoServicoVigente } from "@transparencia/db";
-import { fmtCurrency, fmtDate, fmtPercent } from "@transparencia/ui";
+import {
+  fmtCurrency,
+  fmtDate,
+  fmtPercent,
+  TruncatedCellWithModal,
+} from "@transparencia/ui";
 
 interface ContratoServicoVigenteCardProps {
   contrato: ContratoServicoVigente;
@@ -56,21 +61,29 @@ export function ContratoServicoVigenteCard({
             {fornecedorNome}
           </h3>
           <div className="flex flex-wrap items-center justify-end gap-1">
-            {contrato.statusExecucao === "inexecutado" ? (
-              <span
-                className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 font-medium text-[10px] text-slate-700 ring-1 ring-slate-400/20 ring-inset"
-                title="Contrato sem execução orçamentária (sem liquidação/pagamento no período)"
-              >
-                Sem Execução Orçamentária
-              </span>
-            ) : contrato.statusExecucao === "concluido" ? (
-              <span
-                className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-blue-50 px-2 py-0.5 font-medium text-[10px] text-blue-700 ring-1 ring-blue-600/20 ring-inset"
-                title="Execução orçamentária concluída (100% pago ou saldo pendente quitado)"
-              >
-                Concluído
-              </span>
-            ) : null}
+            {(() => {
+              if (contrato.statusExecucao === "inexecutado") {
+                return (
+                  <span
+                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 font-medium text-[10px] text-slate-700 ring-1 ring-slate-400/20 ring-inset"
+                    title="Contrato sem execução orçamentária (sem liquidação/pagamento no período)"
+                  >
+                    Sem Execução Orçamentária
+                  </span>
+                );
+              }
+              if (contrato.statusExecucao === "concluido") {
+                return (
+                  <span
+                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-blue-50 px-2 py-0.5 font-medium text-[10px] text-blue-700 ring-1 ring-blue-600/20 ring-inset"
+                    title="Execução orçamentária concluída (100% pago ou saldo pendente quitado)"
+                  >
+                    Concluído
+                  </span>
+                );
+              }
+              return null;
+            })()}
             {valorAditado && valorAditado > 0 ? (
               <span
                 className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 font-medium text-[10px] text-amber-800 ring-1 ring-amber-600/20 ring-inset"
@@ -81,6 +94,26 @@ export function ContratoServicoVigenteCard({
             ) : null}
           </div>
         </div>
+
+        {contrato.objetoDescricao && (
+          <div className="pt-0.5">
+            <TruncatedCellWithModal
+              text={contrato.objetoDescricao}
+              modalTitle={`Contrato — ${fornecedorNome}`}
+              characterThreshold={100}
+              maxLines={2}
+              badge={(() => {
+                if (contrato.statusExecucao === "inexecutado")
+                  return "Não Executado";
+                if (contrato.statusExecucao === "concluido") return "Concluído";
+                return "Em Execução";
+              })()}
+              secondaryText={
+                vigenciaText ? `Vigência: ${vigenciaText}` : undefined
+              }
+            />
+          </div>
+        )}
 
         {/* Vigência */}
         <div className="text-subtleText text-xs">

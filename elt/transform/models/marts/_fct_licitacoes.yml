@@ -48,6 +48,10 @@ models:
               arguments:
                 min_value: 0
                 row_condition: "valor is not null"
+      - name: valor_estimado
+        data_type: numeric(15, 2)
+      - name: valor_homologado
+        data_type: numeric(15, 2)
       - name: situacao
         data_type: text
       - name: data_abertura

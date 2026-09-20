@@ -44,11 +44,7 @@ describe("LicitacoesPage", () => {
     render(element);
 
     expect(screen.getByText("Licitações e Contratos")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Nenhuma informação de modalidade disponível para o período.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
   });
 
   it("não exibe alerta de fracionamento quando não há casos", async () => {
@@ -60,7 +56,7 @@ describe("LicitacoesPage", () => {
     expect(screen.queryByText(/de possível/)).not.toBeInTheDocument();
   });
 
-  it("exibe alerta de fracionamento e gráfico de modalidades quando há dados", async () => {
+  it("exibe alerta de fracionamento quando há dados", async () => {
     loadLicitacoesDataMock.mockResolvedValue(
       makeRaw({
         gaps: [
@@ -94,11 +90,6 @@ describe("LicitacoesPage", () => {
     render(element);
 
     expect(screen.getByText(/1 caso de possível/)).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "Nenhuma informação de modalidade disponível para o período.",
-      ),
-    ).not.toBeInTheDocument();
   });
 
   it("exibe Taxa de Contratação Direta quando sem anomalia", async () => {
@@ -283,7 +274,7 @@ describe("LicitacoesPage", () => {
     expect(
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Processo 042/2024")).toBeInTheDocument();
+    expect(screen.getAllByText(/042\/2024/).length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText("Secretaria de Obras").length,
     ).toBeGreaterThanOrEqual(1);
@@ -339,10 +330,10 @@ describe("LicitacoesPage", () => {
     render(element);
 
     expect(
-      screen.getByRole("link", { name: /sala de disputa/i }),
+      screen.getAllByRole("link", { name: /sala de disputa/i })[0],
     ).toHaveAttribute("href", "https://pncp.gov.br/app/editais/123/2024/1");
     expect(
-      screen.getByRole("button", { name: /ver itens licitados/i }),
+      screen.getAllByRole("button", { name: /ver itens licitados/i })[0],
     ).toBeInTheDocument();
   });
 });

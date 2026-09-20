@@ -72,7 +72,6 @@ export interface SidebarProps {
   portalSlug?: string;
   onOpenNewsletter?: () => void;
   pushNotificationSlot?: React.ReactNode;
-  socialLinksSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
@@ -160,7 +159,6 @@ export function Sidebar({
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
   pushNotificationSlot,
-  socialLinksSlot,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
@@ -477,15 +475,6 @@ export function Sidebar({
               <Mail strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0" />
               <span>Receber Alertas por E-mail</span>
             </button>
-          )}
-
-          {socialLinksSlot && (
-            <div className="flex items-center justify-between border-borderLine/60 border-t pt-2">
-              <span className="font-medium text-[11px] text-mutedText">
-                Redes
-              </span>
-              {socialLinksSlot}
-            </div>
           )}
 
           <div className="space-y-1.5 border-borderLine/60 border-t pt-2">

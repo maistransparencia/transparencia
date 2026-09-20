@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import { LicitacoesEmAndamentoSection } from "./licitacoes-em-andamento-section";
@@ -18,6 +18,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       situacao: "aberta",
       entidadeNome: "Fundo Municipal de Saúde",
       valorEstimado: 250000,
+      valorHomologado: null,
       valor: 250000,
       carona: null,
     },
@@ -34,6 +35,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       situacao: "publicado",
       entidadeNome: "Secretaria de Educação",
       valorEstimado: 1200000,
+      valorHomologado: null,
       valor: 1200000,
       carona: null,
     },
@@ -67,7 +69,8 @@ describe("LicitacoesEmAndamentoSection Component", () => {
   it("ordena os cards em destaque por maior valor estimado", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
-    const cards = screen.getAllByRole("article");
+    const destaquesGrid = screen.getByTestId("top-destaques-grid");
+    const cards = within(destaquesGrid).getAllByRole("article");
     expect(cards).toHaveLength(2);
     // CP 002/2025 tem 1.200.000 vs PE 001/2025 com 250.000
     expect(cards[0]).toHaveTextContent("CP 002/2025");
@@ -102,7 +105,8 @@ describe("LicitacoesEmAndamentoSection Component", () => {
 
     render(<LicitacoesEmAndamentoSection licitacoes={cincoItens} />);
 
-    const cards = screen.getAllByRole("article");
+    const destaquesGrid = screen.getByTestId("top-destaques-grid");
+    const cards = within(destaquesGrid).getAllByRole("article");
     expect(cards).toHaveLength(4);
     // Ordenação esperada dos 4 maiores:
     // CP 002/2025 (1.200.000), PE 004/2025 (800.000), PE 003/2025 (500.000), PE 001/2025 (250.000)
@@ -306,5 +310,74 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(
       screen.queryByText("Distribuidora Farmacêutica LTDA"),
     ).not.toBeInTheDocument();
+  });
+
+  it("exibe valorHomologado e badge de economia quando homologado", () => {
+    const itemHomologado: LicitacaoEmAndamentoDTO[] = [
+      {
+        ...sampleItems[0],
+        valorEstimado: 200000,
+        valorHomologado: 150000,
+      },
+    ];
+
+    render(<LicitacoesEmAndamentoSection licitacoes={itemHomologado} />);
+
+    // Valor homologado de 150.000 (economia de 25%)
+    expect(screen.getAllByText(/150\.000/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("-25%").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("exibe 'Em disputa / Aguardando homologação' quando valorHomologado é nulo", () => {
+    render(<LicitacoesEmAndamentoSection licitacoes={[sampleItems[0]]} />);
+
+    expect(
+      screen.getAllByText(/Aguardando homologação/i).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it("abre automaticamente o modal de itens quando URL possui ?numero=...#itens", () => {
+    const itensMock = [
+      {
+        itemId: "item-1",
+        licitacaoNumero: "PE 001/2025",
+        ano: 2025,
+        portalSlug: "porciuncula_prefeitura",
+        numeroItem: 1,
+        descricao: "Item de Teste Deep Link",
+        quantidade: 10,
+        unidadeMedida: "UN",
+        valorUnitarioEstimado: 100,
+        valorTotalEstimado: 1000,
+        valorUnitarioHomologado: null,
+        valorTotalHomologado: null,
+        percentualDesconto: null,
+        situacaoItem: "em_andamento",
+        fornecedorNome: null,
+        fornecedorCpfCnpj: null,
+      },
+    ];
+
+    // Simula a URL com query param e hash
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL(
+        "http://localhost:3000/porciuncula/licitacoes?numero=PE 001/2025#itens",
+      ),
+    });
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        itensByLicitacao={{
+          "PE 001/2025": itensMock,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: /Itens Licitados/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Item de Teste Deep Link")).toBeInTheDocument();
   });
 });
