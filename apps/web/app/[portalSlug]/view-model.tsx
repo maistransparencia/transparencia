@@ -338,6 +338,10 @@ export interface RadarCivicoCardItem {
   deepLinkRota?: string;
   whatsappShareUrl: string;
   whatsappShareText?: string;
+  fundamentacaoLegal?: {
+    label: string;
+    url: string;
+  };
 }
 
 export interface RadarCivicoFeedViewModel {
@@ -435,6 +439,26 @@ export function getBadgeMetodologia(
     return "Quota de Alerta (30%)";
   }
 
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    return "Meta Atuarial";
+  }
+
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    return "Fluxo em Aberto";
+  }
+
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Competitividade PNCP";
+  }
+
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Risco de Inexequibilidade";
+  }
+
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Harmonização Cadastral";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -477,6 +501,21 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
     return "Elevada Opacidade em Gastos Genéricos";
   }
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    return "Inadimplência no Aporte Atuarial (RPPS)";
+  }
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    return "Retenção de Contribuição Patronal (RPPS)";
+  }
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Desconto Nulo em Pregão";
+  }
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Risco de Inexequibilidade Contratual";
+  }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Inconsistência em Vínculos de Pessoal";
+  }
   return "Indicador em Destaque";
 }
 
@@ -501,6 +540,21 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
     return "Fiscalizar Gastos Genéricos";
+  }
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    return "Auditar Aporte Atuarial";
+  }
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    return "Verificar Repasse Patronal";
+  }
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    return "Auditar Itens do Pregão";
+  }
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    return "Verificar Propostas Homologadas";
+  }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return "Auditar Vínculos Cadastrais";
   }
   return "Ver detalhes";
 }
@@ -528,6 +582,21 @@ export function getCardCtaUrl(
   }
   if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
     return `/${portalSlug}/despesas?ano=${ano}#gastos-genericos`;
+  }
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    return `/${portalSlug}/caprem?ano=${ano}#atuarial`;
+  }
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    return `/${portalSlug}/caprem?ano=${ano}#patronal`;
+  }
+  if (
+    alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+    alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+  ) {
+    return `/${portalSlug}/licitacoes?ano=${ano}#itens`;
+  }
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    return `/${portalSlug}/pessoal?ano=${ano}#regime`;
   }
   return `/${portalSlug}`;
 }
@@ -590,16 +659,69 @@ export function buildRadarCivicoCards(
     const titulo = getCardTitulo(alerta);
     const badgeSeveridade = getBadgeSeveridade(alerta.grauSeveridade, alerta);
     const metodologiaBadge = getBadgeMetodologia(alerta);
-    const tipoMetodologia: "homologa" | "estoque" =
-      alerta.tipoAnomalia === "explosao_comissionados" ||
-      alerta.tipoAnomalia === "rombo_caixa" ||
-      alerta.tipoAnomalia === "opacidade_gastos_genericos"
-        ? "estoque"
-        : "homologa";
-    const esperadoLabel =
-      alerta.tipoAnomalia === "opacidade_gastos_genericos"
-        ? "Limite de Alerta"
-        : "Média Histórica";
+    const tipoMetodologia: "homologa" | "estoque" = (() => {
+      if (
+        alerta.tipoAnomalia === "pico_despesa_homologa" ||
+        alerta.tipoAnomalia === "concentracao_dispensa"
+      ) {
+        return "homologa";
+      }
+      return "estoque";
+    })();
+    const esperadoLabel = (() => {
+      if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
+        return "Limite de Alerta";
+      }
+      if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+        return "Aporte Exigido";
+      }
+      if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+        return "Passivo Tolerado";
+      }
+      if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+        return "Margem Esperada";
+      }
+      if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+        return "Limite de Exequibilidade";
+      }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return "Padrão Constitucional";
+      }
+      return "Média Histórica";
+    })();
+    const fundamentacaoLegal = (() => {
+      if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+        return {
+          label: "Lei nº 9.717/1998",
+          url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+        };
+      }
+      if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+        return {
+          label: "Art. 40 da CF/88",
+          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+        };
+      }
+      if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+        return {
+          label: "Art. 5º da Lei nº 14.133/2021",
+          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+        };
+      }
+      if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+        return {
+          label: "Art. 59, III da Lei nº 14.133/2021",
+          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+        };
+      }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return {
+          label: "Art. 37 da CF/88",
+          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+        };
+      }
+      return undefined;
+    })();
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
     const ctaUrl = getCardCtaUrl(alerta, portalSlug, anoContexto);
     const ctaLabel = getCardCtaLabel(alerta);
@@ -612,7 +734,11 @@ export function buildRadarCivicoCards(
     const desvioPercentualFormatted = (() => {
       const val = alerta.desvioPercentual ?? 0;
       if (val === 0) return "0%";
-      if (alerta.tipoAnomalia === "rombo_caixa") {
+      if (
+        alerta.tipoAnomalia === "rombo_caixa" ||
+        alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao"
+      ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
       const sinal = val > 0 ? "+" : "-";
@@ -623,9 +749,14 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorObservado))} cargos`;
       }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return `${fmtNumber(Math.round(alerta.valorObservado))} vínculos`;
+      }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||
-        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+        alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
       ) {
         return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
@@ -636,11 +767,19 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "explosao_comissionados") {
         return `${fmtNumber(Math.round(alerta.valorEsperado))} cargos`;
       }
+      if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+        return "0 vínculos";
+      }
       if (
         alerta.tipoAnomalia === "concentracao_dispensa" ||
-        alerta.tipoAnomalia === "opacidade_gastos_genericos"
+        alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
       ) {
         return `${formatPercentNumber(alerta.valorEsperado)}%`;
+      }
+      if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+        return "R$ 0";
       }
       return fmtCompact(alerta.valorEsperado);
     })();
@@ -670,6 +809,7 @@ export function buildRadarCivicoCards(
       deepLinkRota: ctaUrl,
       whatsappShareUrl,
       whatsappShareText,
+      fundamentacaoLegal,
     };
   });
 }

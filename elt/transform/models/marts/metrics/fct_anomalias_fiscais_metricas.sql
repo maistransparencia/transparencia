@@ -246,6 +246,127 @@ opacidade_anomalias as (
       and ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
 
+caprem_atuarial_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'inadimplencia_aporte_rpps'::text as tipo_anomalia,
+        'aporte_atuarial'::text as dimensao_referencia,
+        aporte_quitado::numeric as valor_observado,
+        aporte_exigido::numeric as valor_esperado,
+        (100.00 - taxa_adimplencia)::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/caprem?ano=' || ano || '#atuarial')::text as deep_link_rota,
+        'limite_normativo_adimplencia'::text as metodo_deteccao
+    from {{ ref('fct_caprem_tendencia_atuarial_metricas') }}
+    where aporte_exigido > 0
+      and taxa_adimplencia < 90.00
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
+caprem_patronal_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'retencao_patronal_rpps'::text as tipo_anomalia,
+        'contribuicao_patronal'::text as dimensao_referencia,
+        rombo_patronal_nao_repassado::numeric as valor_observado,
+        0.00::numeric as valor_esperado,
+        100.00::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/caprem?ano=' || ano || '#patronal')::text as deep_link_rota,
+        'fluxo_patronal_em_aberto'::text as metodo_deteccao
+    from {{ ref('fct_historia_caprem_metricas') }}
+    where rombo_patronal_nao_repassado > 20000.00
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
+licitacoes_itens_agrupadas as (
+    select
+        i.portal_slug,
+        i.ano,
+        i.licitacao_numero,
+        coalesce(l.modalidade, '') as modalidade,
+        sum(i.valor_total_estimado) as total_estimado,
+        sum(i.valor_total_homologado) as total_homologado,
+        case
+            when sum(i.valor_total_estimado) > 0
+            then round(((sum(i.valor_total_estimado) - sum(i.valor_total_homologado)) / sum(i.valor_total_estimado) * 100.0)::numeric, 2)
+            else 0.00
+        end as desconto_global
+    from {{ ref('fct_licitacoes_itens') }} i
+    left join {{ ref('fct_licitacoes') }} l
+        on l.portal_slug = i.portal_slug
+       and l.ano = i.ano
+       and l.licitacao_numero = i.licitacao_numero
+    where i.valor_total_homologado is not null
+      and i.ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by i.portal_slug, i.ano, i.licitacao_numero, coalesce(l.modalidade, '')
+),
+
+desconto_nulo_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'desconto_nulo_pregao'::text as tipo_anomalia,
+        ('licitacao_' || lower(regexp_replace(trim(licitacao_numero), '[^a-zA-Z0-9]+', '_', 'g')))::text as dimensao_referencia,
+        desconto_global::numeric as valor_observado,
+        10.00::numeric as valor_esperado,
+        round((10.00 - desconto_global)::numeric, 2) as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/licitacoes?ano=' || ano || '&numero=' || licitacao_numero || '#itens')::text as deep_link_rota,
+        'limite_competitividade_pregao'::text as metodo_deteccao
+    from licitacoes_itens_agrupadas
+    where {{ target.schema }}.unaccent(lower(modalidade)) like '%pregao%'
+      and desconto_global < 1.00
+      and total_homologado >= 20000.00
+),
+
+desagio_extremo_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'desagio_extremo_inexequibilidade'::text as tipo_anomalia,
+        ('licitacao_' || lower(regexp_replace(trim(licitacao_numero), '[^a-zA-Z0-9]+', '_', 'g')))::text as dimensao_referencia,
+        desconto_global::numeric as valor_observado,
+        50.00::numeric as valor_esperado,
+        round((desconto_global - 50.00)::numeric, 2) as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/licitacoes?ano=' || ano || '&numero=' || licitacao_numero || '#itens')::text as deep_link_rota,
+        'limite_inexequibilidade_art59'::text as metodo_deteccao
+    from licitacoes_itens_agrupadas
+    where desconto_global >= 50.00
+      and total_estimado >= 20000.00
+),
+
+pessoal_divergencias_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'inconsistencia_vinculo_pessoal'::text as tipo_anomalia,
+        'quadro_pessoal'::text as dimensao_referencia,
+        count(*)::numeric as valor_observado,
+        0.00::numeric as valor_esperado,
+        100.00::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/pessoal?ano=' || ano || '#regime')::text as deep_link_rota,
+        'harmonizacao_cadastral_art37'::text as metodo_deteccao
+    from {{ ref('fct_pessoal') }}
+    where (
+        {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%agente%politico%'
+        or {{ target.schema }}.unaccent(lower(coalesce(categoria_funcional, ''))) like '%excepcional interesse%'
+    )
+      and categoria_regime in ('comissionado', 'contrato_temporario')
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano
+    having count(*) > 0
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -256,6 +377,16 @@ todas_anomalias as (
     select * from dispensas_anomalias
     union all
     select * from opacidade_anomalias
+    union all
+    select * from caprem_atuarial_anomalias
+    union all
+    select * from caprem_patronal_anomalias
+    union all
+    select * from desconto_nulo_anomalias
+    union all
+    select * from desagio_extremo_anomalias
+    union all
+    select * from pessoal_divergencias_anomalias
 )
 
 select
@@ -265,6 +396,28 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
+        when tipo_anomalia = 'retencao_patronal_rpps' then 'critico'
+        when tipo_anomalia = 'inadimplencia_aporte_rpps' then
+            case
+                when desvio_percentual > 30.0 then 'critico'
+                else 'alto'
+            end
+        when tipo_anomalia = 'desconto_nulo_pregao' then
+            case
+                when valor_observado <= 0.20 or desvio_percentual >= 9.80 then 'critico'
+                else 'alto'
+            end
+        when tipo_anomalia = 'desagio_extremo_inexequibilidade' then
+            case
+                when valor_observado >= 65.00 then 'critico'
+                else 'alto'
+            end
+        when tipo_anomalia = 'inconsistencia_vinculo_pessoal' then
+            case
+                when valor_observado > 30 then 'critico'
+                when valor_observado > 5 then 'alto'
+                else 'moderado'
+            end
         when abs(desvio_percentual) > 50 or tipo_anomalia = 'rombo_caixa' or tipo_anomalia = 'opacidade_gastos_genericos' then 'critico'
         when abs(desvio_percentual) > 30 then 'alto'
         else 'moderado'

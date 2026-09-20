@@ -351,6 +351,215 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para inadimplência no aporte atuarial do RPPS com fundamentação legal", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-caprem-atuarial",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "inadimplencia_aporte_rpps",
+          dimensaoReferencia: "aporte_atuarial",
+          grauSeveridade: "critico",
+          desvioPercentual: 35.0,
+          valorObservado: 650000,
+          valorEsperado: 1000000,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/caprem?ano=2024#atuarial",
+          metodoDeteccao: "limite_normativo_adimplencia",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Inadimplência no Aporte Atuarial (RPPS)");
+    expect(card.metodologiaBadge).toBe("Meta Atuarial");
+    expect(card.esperadoLabel).toBe("Aporte Exigido");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("R$ 650.0mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 1.0mi");
+    expect(card.desvioPercentualFormatted).toBe("-35%");
+    expect(card.ctaLabel).toBe("Auditar Aporte Atuarial");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#atuarial");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Lei nº 9.717/1998",
+      url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+    });
+    expect(card.textoFactual).toContain(
+      "déficit de recolhimento de 35% no plano de amortização previdenciária",
+    );
+  });
+
+  it("monta card para retenção patronal do RPPS com fundamentação legal e valor esperado zero", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-caprem-patronal",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "retencao_patronal_rpps",
+          dimensaoReferencia: "contribuicao_patronal",
+          grauSeveridade: "critico",
+          desvioPercentual: 100.0,
+          valorObservado: 50000,
+          valorEsperado: 0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/caprem?ano=2024#patronal",
+          metodoDeteccao: "fluxo_patronal_em_aberto",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Retenção de Contribuição Patronal (RPPS)");
+    expect(card.metodologiaBadge).toBe("Fluxo em Aberto");
+    expect(card.esperadoLabel).toBe("Passivo Tolerado");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("R$ 50.0mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 0");
+    expect(card.desvioPercentualFormatted).toBe("+100%");
+    expect(card.ctaLabel).toBe("Verificar Repasse Patronal");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#patronal");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 40 da CF/88",
+      url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+    });
+    expect(card.textoFactual).toContain(
+      "não repassadas tempestivamente ao RPPS/CAPREM",
+    );
+  });
+
+  it("monta card para desconto nulo em pregão com fundamentação no Art. 5º da Lei 14.133/2021", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desconto-nulo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "desconto_nulo_pregao",
+          dimensaoReferencia: "licitacao_000517",
+          grauSeveridade: "critico",
+          desvioPercentual: 10.0,
+          valorObservado: 0.0,
+          valorEsperado: 10.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000517#itens",
+          metodoDeteccao: "limite_competitividade_pregao",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Desconto Nulo em Pregão");
+    expect(card.metodologiaBadge).toBe("Competitividade PNCP");
+    expect(card.esperadoLabel).toBe("Margem Esperada");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("0%");
+    expect(card.valorEsperadoFormatted).toBe("10%");
+    expect(card.desvioPercentualFormatted).toBe("-10%");
+    expect(card.ctaLabel).toBe("Auditar Itens do Pregão");
+    expect(card.ctaUrl).toBe(
+      "/porciuncula/licitacoes?ano=2026&numero=000517#itens",
+    );
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 5º da Lei nº 14.133/2021",
+      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+    });
+    expect(card.textoFactual).toContain(
+      "indicando ausência de competitividade efetiva em relação à margem prudencial esperada (10%)",
+    );
+  });
+
+  it("monta card para risco de inexequibilidade com fundamentação no Art. 59, III da Lei 14.133/2021", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desagio-extremo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "desagio_extremo_inexequibilidade",
+          dimensaoReferencia: "licitacao_000290",
+          grauSeveridade: "critico",
+          desvioPercentual: 22.37,
+          valorObservado: 72.37,
+          valorEsperado: 50.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000290#itens",
+          metodoDeteccao: "limite_inexequibilidade_art59",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Risco de Inexequibilidade Contratual");
+    expect(card.metodologiaBadge).toBe("Risco de Inexequibilidade");
+    expect(card.esperadoLabel).toBe("Limite de Exequibilidade");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("72.4%");
+    expect(card.valorEsperadoFormatted).toBe("50%");
+    expect(card.desvioPercentualFormatted).toBe("+22.4%");
+    expect(card.ctaLabel).toBe("Verificar Propostas Homologadas");
+    expect(card.ctaUrl).toBe(
+      "/porciuncula/licitacoes?ano=2026&numero=000290#itens",
+    );
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 59, III da Lei nº 14.133/2021",
+      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+    });
+    expect(card.textoFactual).toContain(
+      "patamar que exige comprovação de exequibilidade da proposta contratual (50%)",
+    );
+  });
+
+  it("monta card para inconsistência em vínculos de pessoal com fundamentação no Art. 37 da CF/88", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-inconsistencia-vinculo",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          dimensaoReferencia: "quadro_pessoal",
+          grauSeveridade: "critico",
+          desvioPercentual: 100.0,
+          valorObservado: 187,
+          valorEsperado: 0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/pessoal?ano=2026#regime",
+          metodoDeteccao: "harmonizacao_vinculo_art37",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Inconsistência em Vínculos de Pessoal");
+    expect(card.metodologiaBadge).toBe("Harmonização Cadastral");
+    expect(card.esperadoLabel).toBe("Padrão Constitucional");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("187 vínculos");
+    expect(card.valorEsperadoFormatted).toBe("0 vínculos");
+    expect(card.desvioPercentualFormatted).toBe("+100%");
+    expect(card.ctaLabel).toBe("Auditar Vínculos Cadastrais");
+    expect(card.ctaUrl).toBe("/porciuncula/pessoal?ano=2026#regime");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 37 da CF/88",
+      url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+    });
+    expect(card.textoFactual).toContain(
+      "foram identificados 187 profissionais cadastrados com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

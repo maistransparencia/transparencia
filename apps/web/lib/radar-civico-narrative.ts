@@ -60,6 +60,9 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   caixa: "Disponibilidade em Caixa",
   dispensas: "Compras sem Licitação",
   gastos_genericos: "Gastos Genéricos (.99)",
+  aporte_atuarial: "Aporte Atuarial (RPPS)",
+  contribuicao_patronal: "Contribuição Patronal (RPPS)",
+  quadro_pessoal: "Quadro de Pessoal",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -83,6 +86,9 @@ export function formatarDimensao(dimensao?: string | null): string {
   const clean = dimensao?.toLowerCase().trim();
   if (!clean) return "Geral";
   if (DIMENSAO_NOMES[clean]) return DIMENSAO_NOMES[clean];
+  if (clean.startsWith("licitacao_")) {
+    return clean.replace(/^licitacao_/, "Licitação ").replace(/_/g, "/");
+  }
   return clean
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -188,6 +194,44 @@ export function formatFactualNarrative(
     const obs = formatPercentNumber(alerta.valorObservado ?? 0);
     const esp = formatPercentNumber(alerta.valorEsperado ?? 30);
     return `Em ${ano}, ${obs}% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de ${esp}% estabelecido para a transparência pública.`;
+  }
+
+  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    const esp = fmtCompact(alerta.valorEsperado ?? 0);
+    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
+    return `Em ${ano}, o município quitou ${obs} do aporte atuarial exigido de ${esp}, registrando déficit de recolhimento de ${desvio}% no plano de amortização previdenciária.`;
+  }
+
+  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    return `Em ${ano}, foram apurados ${obs} em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.`;
+  }
+
+  if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 10);
+    return `Em ${ano}, o certame licitatório registrou desconto homologado de apenas ${obs}%, indicando ausência de competitividade efetiva em relação à margem prudencial esperada (${esp}%).`;
+  }
+
+  if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 50);
+    return `Em ${ano}, o certame licitatório registrou deságio homologado expressivo de ${obs}%, patamar que exige comprovação de exequibilidade da proposta contratual (${esp}%).`;
+  }
+
+  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtNumber(Math.round(alerta.valorObservado ?? 0));
+    const plural =
+      alerta.valorObservado === 1
+        ? "profissional cadastrado"
+        : "profissionais cadastrados";
+    return `Em ${ano}, foram identificados ${obs} ${plural} com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

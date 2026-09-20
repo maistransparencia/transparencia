@@ -35,10 +35,22 @@ describe("radar-civico-narrative", () => {
       expect(formatarDimensao("gastos_genericos")).toBe(
         "Gastos Genéricos (.99)",
       );
+      expect(formatarDimensao("aporte_atuarial")).toBe(
+        "Aporte Atuarial (RPPS)",
+      );
+      expect(formatarDimensao("contribuicao_patronal")).toBe(
+        "Contribuição Patronal (RPPS)",
+      );
+      expect(formatarDimensao("quadro_pessoal")).toBe("Quadro de Pessoal");
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
       expect(formatarDimensao("recursos_especiais")).toBe("Recursos Especiais");
+    });
+
+    it("formats licitacao_ prefix as Licitação with slashes", () => {
+      expect(formatarDimensao("licitacao_000517")).toBe("Licitação 000517");
+      expect(formatarDimensao("licitacao_016_2026")).toBe("Licitação 016/2026");
     });
 
     it("returns 'Geral' for undefined, null, or empty strings", () => {
@@ -221,6 +233,108 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2024, 35.5% das despesas pagas foram alocadas sob subitens genéricos (.99), superando o limite prudencial de 30% estabelecido para a transparência pública.",
+      );
+    });
+
+    it("formats inadimplencia_aporte_rpps with observed, expected and deficit deviation", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inadimplencia_aporte_rpps",
+          ano: 2024,
+          valorObservado: 650000,
+          valorEsperado: 1000000,
+          desvioPercentual: 35.0,
+          dimensaoReferencia: "aporte_atuarial",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, o município quitou R$ 650.0mil do aporte atuarial exigido de R$ 1.0mi, registrando déficit de recolhimento de 35% no plano de amortização previdenciária.",
+      );
+    });
+
+    it("formats retencao_patronal_rpps with observed retained amount", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "retencao_patronal_rpps",
+          ano: 2024,
+          valorObservado: 50000,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "contribuicao_patronal",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.",
+      );
+    });
+
+    it("formats desconto_nulo_pregao with observed discount and expected margin", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desconto_nulo_pregao",
+          ano: 2026,
+          valorObservado: 0.0,
+          valorEsperado: 10.0,
+          desvioPercentual: 10.0,
+          dimensaoReferencia: "licitacao_000517",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, o certame licitatório registrou desconto homologado de apenas 0%, indicando ausência de competitividade efetiva em relação à margem prudencial esperada (10%).",
+      );
+    });
+
+    it("formats desagio_extremo_inexequibilidade with observed discount and threshold", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desagio_extremo_inexequibilidade",
+          ano: 2026,
+          valorObservado: 72.37,
+          valorEsperado: 50.0,
+          desvioPercentual: 22.37,
+          dimensaoReferencia: "licitacao_000290",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, o certame licitatório registrou deságio homologado expressivo de 72.4%, patamar que exige comprovação de exequibilidade da proposta contratual (50%).",
+      );
+    });
+
+    it("formats inconsistencia_vinculo_pessoal with observed count (plural)", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          ano: 2026,
+          valorObservado: 187,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "quadro_pessoal",
+        },
+        2026,
+      );
+      expect(narrative).toBe(
+        "Em 2026, foram identificados 187 profissionais cadastrados com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+      );
+    });
+
+    it("formats inconsistencia_vinculo_pessoal with observed count (singular)", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "inconsistencia_vinculo_pessoal",
+          ano: 2022,
+          valorObservado: 1,
+          valorEsperado: 0,
+          desvioPercentual: 100.0,
+          dimensaoReferencia: "quadro_pessoal",
+        },
+        2022,
+      );
+      expect(narrative).toBe(
+        "Em 2022, foram identificados 1 profissional cadastrado com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
       );
     });
 

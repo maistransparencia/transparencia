@@ -48,6 +48,20 @@ describe("radar-civico-alertas", () => {
       );
       expect(result).toBe("/porciuncula/pessoal?ano=2024#comissionados");
     });
+
+    it("deve preservar âncoras temáticas do CAPREM (#atuarial e #patronal) ao enriquecer deep link", () => {
+      expect(
+        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#atuarial`, {
+          entidade: "1",
+        }),
+      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=1#atuarial`);
+
+      expect(
+        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#patronal`, {
+          entidade: "2",
+        }),
+      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=2#patronal`);
+    });
   });
 
   describe("getRadarCivicoAlertas", () => {
@@ -327,6 +341,170 @@ describe("radar-civico-alertas", () => {
       expect(alertas).toHaveLength(2);
       expect(alertas[0].anomaliaId).toBe("anomalia_a");
       expect(alertas[1].anomaliaId).toBe("anomalia_b");
+    });
+
+    it("deve retornar e tipar anomalias previdenciárias de aporte atuarial e retenção patronal", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "inadimplencia_aporte_rpps",
+        dimensaoReferencia: "aporte_atuarial",
+        grauSeveridade: "critico",
+        desvioPercentual: 35.0,
+        valorObservado: 650000,
+        valorEsperado: 1000000,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/caprem?ano=2024#atuarial`,
+        metodoDeteccao: "limite_normativo_adimplencia",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "retencao_patronal_rpps",
+        dimensaoReferencia: "contribuicao_patronal",
+        grauSeveridade: "critico",
+        desvioPercentual: 100.0,
+        valorObservado: 50000,
+        valorEsperado: 0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/caprem?ano=2024#patronal`,
+        metodoDeteccao: "fluxo_patronal_em_aberto",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(2);
+
+      const atuarial = alertas.find(
+        (a) => a.tipoAnomalia === "inadimplencia_aporte_rpps",
+      );
+      expect(atuarial).toBeDefined();
+      expect(atuarial?.dimensaoReferencia).toBe("aporte_atuarial");
+      expect(atuarial?.grauSeveridade).toBe("critico");
+      expect(atuarial?.desvioPercentual).toBe(35.0);
+      expect(atuarial?.valorObservado).toBe(650000);
+      expect(atuarial?.valorEsperado).toBe(1000000);
+      expect(atuarial?.deepLinkRota).toBe(
+        `/${PORTAL}/caprem?ano=2024#atuarial`,
+      );
+      expect(atuarial?.metodoDeteccao).toBe("limite_normativo_adimplencia");
+
+      const patronal = alertas.find(
+        (a) => a.tipoAnomalia === "retencao_patronal_rpps",
+      );
+      expect(patronal).toBeDefined();
+      expect(patronal?.dimensaoReferencia).toBe("contribuicao_patronal");
+      expect(patronal?.grauSeveridade).toBe("critico");
+      expect(patronal?.desvioPercentual).toBe(100.0);
+      expect(patronal?.valorObservado).toBe(50000);
+      expect(patronal?.valorEsperado).toBe(0);
+      expect(patronal?.deepLinkRota).toBe(
+        `/${PORTAL}/caprem?ano=2024#patronal`,
+      );
+      expect(patronal?.metodoDeteccao).toBe("fluxo_patronal_em_aberto");
+    });
+
+    it("deve carregar e mapear corretamente anomalias de compras públicas do PNCP (desconto nulo e deságio extremo)", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "desconto_nulo_pregao",
+        dimensaoReferencia: "licitacao_000517",
+        grauSeveridade: "critico",
+        desvioPercentual: 10.0,
+        valorObservado: 0.0,
+        valorEsperado: 10.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
+        metodoDeteccao: "limite_competitividade_pregao",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "desagio_extremo_inexequibilidade",
+        dimensaoReferencia: "licitacao_000290",
+        grauSeveridade: "critico",
+        desvioPercentual: 22.37,
+        valorObservado: 72.37,
+        valorEsperado: 50.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
+        metodoDeteccao: "limite_inexequibilidade_art59",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(2);
+
+      const descontoNulo = alertas.find(
+        (a) => a.tipoAnomalia === "desconto_nulo_pregao",
+      );
+      expect(descontoNulo).toBeDefined();
+      expect(descontoNulo?.dimensaoReferencia).toBe("licitacao_000517");
+      expect(descontoNulo?.grauSeveridade).toBe("critico");
+      expect(descontoNulo?.desvioPercentual).toBe(10.0);
+      expect(descontoNulo?.valorObservado).toBe(0.0);
+      expect(descontoNulo?.valorEsperado).toBe(10.0);
+      expect(descontoNulo?.deepLinkRota).toBe(
+        `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
+      );
+      expect(descontoNulo?.metodoDeteccao).toBe(
+        "limite_competitividade_pregao",
+      );
+
+      const desagioExtremo = alertas.find(
+        (a) => a.tipoAnomalia === "desagio_extremo_inexequibilidade",
+      );
+      expect(desagioExtremo).toBeDefined();
+      expect(desagioExtremo?.dimensaoReferencia).toBe("licitacao_000290");
+      expect(desagioExtremo?.grauSeveridade).toBe("critico");
+      expect(desagioExtremo?.desvioPercentual).toBe(22.37);
+      expect(desagioExtremo?.valorObservado).toBe(72.37);
+      expect(desagioExtremo?.valorEsperado).toBe(50.0);
+      expect(desagioExtremo?.deepLinkRota).toBe(
+        `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
+      );
+      expect(desagioExtremo?.metodoDeteccao).toBe(
+        "limite_inexequibilidade_art59",
+      );
+    });
+
+    it("deve carregar e mapear corretamente anomalia de inconsistência de vínculos de pessoal", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2026,
+        tipoAnomalia: "inconsistencia_vinculo_pessoal",
+        dimensaoReferencia: "quadro_pessoal",
+        grauSeveridade: "critico",
+        desvioPercentual: 100.0,
+        valorObservado: 187.0,
+        valorEsperado: 0.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/pessoal?ano=2026#regime`,
+        metodoDeteccao: "harmonizacao_vinculo_art37",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const vinculoAlerta = alertas[0];
+      expect(vinculoAlerta?.tipoAnomalia).toBe(
+        "inconsistencia_vinculo_pessoal",
+      );
+      expect(vinculoAlerta?.dimensaoReferencia).toBe("quadro_pessoal");
+      expect(vinculoAlerta?.grauSeveridade).toBe("critico");
+      expect(vinculoAlerta?.desvioPercentual).toBe(100.0);
+      expect(vinculoAlerta?.valorObservado).toBe(187.0);
+      expect(vinculoAlerta?.valorEsperado).toBe(0.0);
+      expect(vinculoAlerta?.deepLinkRota).toBe(
+        `/${PORTAL}/pessoal?ano=2026#regime`,
+      );
+      expect(vinculoAlerta?.metodoDeteccao).toBe("harmonizacao_vinculo_art37");
     });
   });
 });

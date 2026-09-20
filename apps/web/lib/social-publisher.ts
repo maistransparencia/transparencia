@@ -400,11 +400,20 @@ export function buildCivicAnomalyFacebookPost(
     ) {
       return `${formatPercentNumber(alerta.valorEsperado ?? 0)}%`;
     }
+    if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+      return "R$ 0,00";
+    }
     return fmtCurrency(alerta.valorEsperado ?? 0);
   })();
 
   const desvioVal = alerta.desvioPercentual ?? 0;
   const sinalDesvio = (() => {
+    if (
+      alerta.tipoAnomalia === "rombo_caixa" ||
+      alerta.tipoAnomalia === "inadimplencia_aporte_rpps"
+    ) {
+      return "-";
+    }
     if (desvioVal > 0) return "+";
     if (desvioVal < 0) return "-";
     return "";

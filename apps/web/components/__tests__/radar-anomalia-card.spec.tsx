@@ -156,6 +156,100 @@ describe("RadarAnomaliaCard", () => {
     expect(screen.getByText("30%")).toBeInTheDocument();
   });
 
+  it("renderiza card de inadimplência no aporte atuarial com fundamentação legal oficial (Lei 9.717/1998)", () => {
+    const mockItemAtuarial: RadarCivicoCardItem = {
+      anomaliaId: "anomalia-atuarial",
+      tipoAnomalia: "inadimplencia_aporte_rpps",
+      titulo: "Inadimplência no Aporte Atuarial (RPPS)",
+      dimensaoReferencia: "aporte_atuarial",
+      grauSeveridade: "critico",
+      metodologiaBadge: "Meta Atuarial",
+      tipoMetodologia: "estoque",
+      esperadoLabel: "Aporte Exigido",
+      textoFactual:
+        "Em 2024, o município quitou R$ 650.0mil do aporte atuarial exigido de R$ 1.0mi.",
+      desvioPercentual: 35,
+      desvioPercentualFormatted: "-35%",
+      valorObservadoFormatted: "R$ 650.0mil",
+      valorEsperadoFormatted: "R$ 1.0mi",
+      ctaLabel: "Auditar Aporte Atuarial",
+      ctaUrl: "/porciuncula/caprem?ano=2024#atuarial",
+      whatsappShareUrl: "https://api.whatsapp.com/send?text=Atuarial",
+      fundamentacaoLegal: {
+        label: "Lei nº 9.717/1998",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+      },
+    };
+
+    render(<RadarAnomaliaCard item={mockItemAtuarial} />);
+
+    expect(
+      screen.getByText("Inadimplência no Aporte Atuarial (RPPS)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Meta Atuarial")).toBeInTheDocument();
+    expect(screen.getByText("Aporte Exigido")).toBeInTheDocument();
+    expect(screen.getByText("R$ 650.0mil")).toBeInTheDocument();
+    expect(screen.getByText("R$ 1.0mi")).toBeInTheDocument();
+    expect(screen.getByText("-35%")).toBeInTheDocument();
+
+    const legalLink = screen.getByTestId("radar-legal-link");
+    expect(legalLink).toBeInTheDocument();
+    expect(legalLink).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+    );
+    expect(legalLink).toHaveAttribute("target", "_blank");
+    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(legalLink).toHaveTextContent("Lei nº 9.717/1998");
+  });
+
+  it("renderiza card de retenção patronal com fundamentação legal no Art. 40 da CF/88", () => {
+    const mockItemPatronal: RadarCivicoCardItem = {
+      anomaliaId: "anomalia-patronal",
+      tipoAnomalia: "retencao_patronal_rpps",
+      titulo: "Retenção de Contribuição Patronal (RPPS)",
+      dimensaoReferencia: "contribuicao_patronal",
+      grauSeveridade: "critico",
+      metodologiaBadge: "Fluxo em Aberto",
+      tipoMetodologia: "estoque",
+      esperadoLabel: "Repasse Devido",
+      textoFactual:
+        "Em 2024, foram apurados R$ 50.0mil em contribuições patronais não repassadas.",
+      desvioPercentual: 100,
+      desvioPercentualFormatted: "+100%",
+      valorObservadoFormatted: "R$ 50.0mil",
+      valorEsperadoFormatted: "R$ 0",
+      ctaLabel: "Verificar Repasse Patronal",
+      ctaUrl: "/porciuncula/caprem?ano=2024#patronal",
+      whatsappShareUrl: "https://api.whatsapp.com/send?text=Patronal",
+      fundamentacaoLegal: {
+        label: "Art. 40 da CF/88",
+        url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+      },
+    };
+
+    render(<RadarAnomaliaCard item={mockItemPatronal} />);
+
+    expect(
+      screen.getByText("Retenção de Contribuição Patronal (RPPS)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Fluxo em Aberto")).toBeInTheDocument();
+    expect(screen.getByText("Repasse Devido")).toBeInTheDocument();
+    expect(screen.getByText("R$ 50.0mil")).toBeInTheDocument();
+    expect(screen.getByText("R$ 0")).toBeInTheDocument();
+    expect(screen.getByText("+100%")).toBeInTheDocument();
+
+    const legalLink = screen.getByTestId("radar-legal-link");
+    expect(legalLink).toBeInTheDocument();
+    expect(legalLink).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+    );
+    expect(legalLink).toHaveAttribute("target", "_blank");
+    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(legalLink).toHaveTextContent("Art. 40 da CF/88");
+  });
+
   it("dispara evento civic_radar_card_viewed no carregamento do card", () => {
     render(<RadarAnomaliaCard item={mockItemCritico} />);
 

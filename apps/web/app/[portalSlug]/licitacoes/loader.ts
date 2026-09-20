@@ -11,6 +11,7 @@ import {
   getLimiteDispensaComprasServicos,
   getPortalConfig,
   getRadarCivicoAlertas,
+  type LicitacaoItemDTO,
 } from "@transparencia/db";
 
 export interface LicitacoesSearchParams {
