@@ -12,31 +12,19 @@ import {
   fmtCurrency,
   fmtDate,
   fmtLicitacaoModalidade,
+  fmtLicitacaoSituacao,
   ModalDialog,
   TruncatedCellWithModal,
 } from "@transparencia/ui";
 import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+export { fmtLicitacaoSituacao };
+
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
   className?: string;
-}
-
-export function fmtLicitacaoSituacao(situacao?: string | null): string {
-  if (!situacao) return "Em andamento";
-  const s = situacao.toLowerCase().trim().replace(/_/g, " ");
-  if (s === "aberta" || s === "em aberto") return "Aberta";
-  if (s === "em andamento") return "Em andamento";
-  if (s === "homologada" || s === "homologado") return "Homologada";
-  if (s === "publicado" || s === "publicada") return "Publicada";
-  if (s === "deserta") return "Deserta";
-  if (s === "fracassada") return "Fracassada";
-  if (s === "revogada" || s === "anulada") return "Cancelada";
-  if (s === "encerrada" || s === "encerrado") return "Encerrada";
-  if (s === "classificada") return "Classificada";
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export interface LicitacaoTableRow extends LicitacaoEmAndamentoDTO {

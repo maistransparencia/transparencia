@@ -5,6 +5,7 @@ import {
   fmtCurrency,
   fmtDate,
   fmtLicitacaoModalidade,
+  fmtLicitacaoSituacao,
   fmtPercent,
   KPICard,
   TruncatedCellWithModal,
@@ -12,7 +13,6 @@ import {
 import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
 import Link from "next/link";
 import { KPIGrid } from "@/components/kpi-grid";
-import { fmtLicitacaoSituacao } from "@/components/licitacoes-em-andamento-section";
 
 export interface SaudeContratacaoModalidadeItem {
   nome: string;
