@@ -7,6 +7,7 @@ import { unstable_cache } from "next/cache";
 import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
+import { GlobalFooter } from "@/components/global-footer";
 import {
   generateDataCatalogSchema,
   generateGovernmentOrganizationSchema,
@@ -179,6 +180,10 @@ export default async function RootLayout({
               <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                 {children}
               </main>
+              <GlobalFooter
+                portalName={portalConfig?.displayName}
+                officialPortalUrl={portalConfig?.portalUrl}
+              />
             </div>
             <Suspense fallback={null}>
               <MobileBottomNav

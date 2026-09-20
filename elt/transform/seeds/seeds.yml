@@ -87,5 +87,17 @@ seeds:
         grupo_destinacao: text
         recurso_vinculado_flag: boolean
 
+  - name: seed_pncp_licitacoes_mapeamento
+    description: "Mapeamento determinístico auditado entre licitações municipais e compras do PNCP"
+    config:
+      column_types:
+        portal_slug: text
+        ano: integer
+        licitacao_numero: text
+        ano_compra: integer
+        sequencial_compra: integer
+        confianca: text
+
+
 
 

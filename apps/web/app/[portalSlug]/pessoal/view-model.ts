@@ -177,6 +177,7 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     distribuicaoProventos: raw.distribuicaoProventos,
     regimeMetrics,
     totalDivergencias: raw.totalDivergencias ?? 0,
+    servidoresDivergentes: raw.servidoresDivergentes ?? [],
     currentYearRow,
   };
 }

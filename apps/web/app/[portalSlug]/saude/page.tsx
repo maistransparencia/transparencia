@@ -170,8 +170,10 @@ export default async function SaudePage({
       {/* Seção 4: Como o Fundo contrata (Novo) */}
       <SaudeContratacaoSection
         portalSlug={portalSlug}
+        ano={selectedYear}
         orcamento={saude.orcamento}
         licitacoesSaude={saude.licitacoesSaude}
+        licitacoesEmAndamento={saude.licitacoesEmAndamento}
       />
 
       {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}

@@ -25,7 +25,6 @@ _SOURCES_YML = Path(__file__).parent / "transform" / "models" / "staging" / "por
 def _create_raw_schema(eng) -> None:
     """Cria schema raw e tabelas a partir de _sources.yml (fonte única de verdade)."""
     sources = yaml.safe_load(_SOURCES_YML.read_text())
-    tables = sources["sources"][0]["tables"]
 
     def _sql_type(col: dict) -> str:
         if "data_type" in col:
@@ -34,7 +33,6 @@ def _create_raw_schema(eng) -> None:
 
     with eng.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw_porciuncula_prefeitura"))
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
         conn.execute(
             text(
@@ -46,16 +44,20 @@ def _create_raw_schema(eng) -> None:
                 "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$"
             )
         )
-        for table_def in tables:
-            name = table_def["name"]
-            col_defs_list = table_def.get("columns", [])
-            if not col_defs_list:
-                continue
-            pk_cols = table_def.get("meta", {}).get("primary_key", [])
-            col_sql = ", ".join(f'"{c["name"]}" {_sql_type(c)}' for c in col_defs_list)
-            pk_clause = f", PRIMARY KEY ({', '.join(pk_cols)})" if pk_cols else ""
-            ddl = f'CREATE TABLE IF NOT EXISTS raw_porciuncula_prefeitura."{name}" ({col_sql}{pk_clause})'
-            conn.execute(text(ddl))
+        for source in sources.get("sources", []):
+            schema_name = source.get("schema", source["name"])
+            conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
+            tables = source.get("tables", [])
+            for table_def in tables:
+                name = table_def["name"]
+                col_defs_list = table_def.get("columns", [])
+                if not col_defs_list:
+                    continue
+                pk_cols = table_def.get("meta", {}).get("primary_key", [])
+                col_sql = ", ".join(f'"{c["name"]}" {_sql_type(c)}' for c in col_defs_list)
+                pk_clause = f", PRIMARY KEY ({', '.join(pk_cols)})" if pk_cols else ""
+                ddl = f'CREATE TABLE IF NOT EXISTS "{schema_name}"."{name}" ({col_sql}{pk_clause})'
+                conn.execute(text(ddl))
         conn.commit()
 
 

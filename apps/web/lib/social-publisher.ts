@@ -1,11 +1,23 @@
-import { getPortalConfig, getRadarDigestMetrics } from "@transparencia/db";
+import {
+  type GetRadarCivicoAlertasOptions,
+  getPortalConfig,
+  getRadarCivicoAlertas,
+  getRadarDigestMetrics,
+  type RadarCivicoAlertaDTO,
+} from "@transparencia/db";
+import { fmtCurrency } from "@transparencia/ui";
 import {
   buildCustomFacebookPost,
   buildExtractionFacebookPost,
   buildFiscalDigestFacebookPost,
   buildReleaseFacebookPost,
   postFacebookPost,
+  sanitizeHashtag,
 } from "./facebook-bot";
+import {
+  formatFactualNarrative,
+  formatPercentNumber,
+} from "./radar-civico-narrative";
 import {
   buildCustomTweet,
   buildExtractionTweet,
@@ -13,15 +25,26 @@ import {
   buildReleaseTweet,
   postTweet,
   resolveBaseUrl,
+  truncateTweet,
 } from "./x-bot";
 
 export type SocialChannel = "x" | "facebook";
 
+export interface CivicAnomalySocialParams {
+  portalSlug: string;
+  municipioNome: string;
+  alerta: RadarCivicoAlertaDTO;
+  ano?: number;
+  baseUrl?: string;
+  summary?: string;
+}
+
 export interface SocialPublishOptions {
   portalSlug: string;
-  type: "fiscal_digest" | "extraction" | "release" | "custom";
+  type: "fiscal_digest" | "extraction" | "release" | "custom" | "civic_anomaly";
   channels?: SocialChannel[] | "all";
   ano?: number;
+  anomaliaId?: string;
   text?: string;
   version?: string;
   summary?: string;
@@ -197,6 +220,58 @@ export async function publishSocial(
       const link = portalSlug ? `${baseUrl}/${portalSlug}` : baseUrl;
       fbPost = buildCustomFacebookPost({ text, link });
     }
+  } else if (type === "civic_anomaly") {
+    const config = await getPortalConfig(portalSlug);
+    const municipioNome =
+      config?.displayName || config?.cidadeClean || portalSlug;
+
+    const alertOptions: GetRadarCivicoAlertasOptions = {
+      severidadeMinima: "critico",
+      ...(options.ano !== undefined ? { ano: options.ano } : {}),
+    };
+    const alertas = await getRadarCivicoAlertas(portalSlug, alertOptions);
+    const criticos = alertas.filter((a) => a.grauSeveridade === "critico");
+
+    const alertaSelecionado = options.anomaliaId
+      ? (alertas.find((a) => a.anomaliaId === options.anomaliaId) ?? null)
+      : (criticos[0] ?? null);
+
+    if (!alertaSelecionado) {
+      const error = options.anomaliaId
+        ? `Anomalia com id '${options.anomaliaId}' não encontrada para '${portalSlug}'.`
+        : `Nenhuma anomalia crítica encontrada para '${portalSlug}'${options.ano ? ` no ano ${options.ano}` : ""}.`;
+      if (targetChannels.includes("x")) results.x = { success: false, error };
+      if (targetChannels.includes("facebook"))
+        results.facebook = { success: false, error };
+      return {
+        success: false,
+        portalSlug,
+        type,
+        dryRun,
+        results,
+      };
+    }
+
+    if (targetChannels.includes("x")) {
+      tweetText = buildCivicAnomalyTweet({
+        portalSlug,
+        municipioNome,
+        ano: alertaSelecionado.ano,
+        alerta: alertaSelecionado,
+        baseUrl,
+        summary,
+      });
+    }
+    if (targetChannels.includes("facebook")) {
+      fbPost = buildCivicAnomalyFacebookPost({
+        portalSlug,
+        municipioNome,
+        ano: alertaSelecionado.ano,
+        alerta: alertaSelecionado,
+        baseUrl,
+        summary,
+      });
+    }
   }
 
   // Despacho paralelo e independente entre os canais
@@ -247,4 +322,119 @@ export async function publishSocial(
     dryRun,
     results,
   };
+}
+
+/**
+ * Resolve rota ou URL canônica para o alerta cívico (sem ternários aninhados).
+ */
+export function resolveAnomalyLink(
+  alerta: Pick<RadarCivicoAlertaDTO, "deepLinkRota">,
+  baseUrl: string,
+  portalSlug: string,
+): string {
+  if (!alerta.deepLinkRota) {
+    return `${baseUrl}/${portalSlug}/radar`;
+  }
+  if (alerta.deepLinkRota.startsWith("http")) {
+    return alerta.deepLinkRota;
+  }
+  const path = alerta.deepLinkRota.startsWith("/")
+    ? alerta.deepLinkRota
+    : `/${alerta.deepLinkRota}`;
+  return `${baseUrl}${path}`;
+}
+
+/**
+ * Constrói tweet conciso (teto <= 280 chars com URLs calculadas a 23 chars)
+ * para anomalia crítica apurada pelo Radar Cívico.
+ */
+export function buildCivicAnomalyTweet(
+  params: CivicAnomalySocialParams,
+): string {
+  const { portalSlug, municipioNome, alerta } = params;
+  const baseUrl = resolveBaseUrl(params.baseUrl);
+  const link = resolveAnomalyLink(alerta, baseUrl, portalSlug);
+  const ano = alerta.ano || params.ano || new Date().getFullYear();
+  const textoFactual = params.summary || formatFactualNarrative(alerta, ano);
+
+  const raw = `🚨 Radar Cívico (${municipioNome}): Alerta de severidade crítica apurado nas contas municipais. ${textoFactual} Confira os dados oficiais: ${link} #ControleSocial #TransparenciaFiscal`;
+  return truncateTweet(raw, 280);
+}
+
+/**
+ * Constrói publicação detalhada e estruturada para o Facebook Pages
+ * para anomalia crítica apurada pelo Radar Cívico.
+ */
+export function buildCivicAnomalyFacebookPost(
+  params: CivicAnomalySocialParams,
+): { message: string; link: string } {
+  const { portalSlug, municipioNome, alerta } = params;
+  const baseUrl = resolveBaseUrl(params.baseUrl);
+  const link = resolveAnomalyLink(alerta, baseUrl, portalSlug);
+  const ano = alerta.ano || params.ano || new Date().getFullYear();
+  const textoFactual = params.summary || formatFactualNarrative(alerta, ano);
+
+  const hashtagMunicipio = sanitizeHashtag(municipioNome);
+  const tagMunicipio = hashtagMunicipio ? ` #${hashtagMunicipio}` : "";
+
+  const valorObsFormatted = (() => {
+    if (alerta.tipoAnomalia === "explosao_comissionados") {
+      return `${Math.round(alerta.valorObservado ?? 0)} cargos`;
+    }
+    if (
+      alerta.tipoAnomalia === "concentracao_dispensa" ||
+      alerta.tipoAnomalia === "opacidade_gastos_genericos"
+    ) {
+      return `${formatPercentNumber(alerta.valorObservado ?? 0)}%`;
+    }
+    return fmtCurrency(alerta.valorObservado ?? 0);
+  })();
+
+  const valorEspFormatted = (() => {
+    if (alerta.tipoAnomalia === "explosao_comissionados") {
+      return `${Math.round(alerta.valorEsperado ?? 0)} cargos`;
+    }
+    if (
+      alerta.tipoAnomalia === "concentracao_dispensa" ||
+      alerta.tipoAnomalia === "opacidade_gastos_genericos"
+    ) {
+      return `${formatPercentNumber(alerta.valorEsperado ?? 0)}%`;
+    }
+    if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
+      return "R$ 0,00";
+    }
+    return fmtCurrency(alerta.valorEsperado ?? 0);
+  })();
+
+  const desvioVal = alerta.desvioPercentual ?? 0;
+  const sinalDesvio = (() => {
+    if (
+      alerta.tipoAnomalia === "rombo_caixa" ||
+      alerta.tipoAnomalia === "inadimplencia_aporte_rpps"
+    ) {
+      return "-";
+    }
+    if (desvioVal > 0) return "+";
+    if (desvioVal < 0) return "-";
+    return "";
+  })();
+  const desvioFormatted = `${sinalDesvio}${formatPercentNumber(Math.abs(desvioVal))}%`;
+
+  const message = `🏛️ RADAR CÍVICO MUNICIPAL: ALERTA CRÍTICO (${municipioNome.toUpperCase()})
+
+🚨 O motor de detecção estatística identificou um alerta de severidade crítica nas contas públicas do exercício ${ano}:
+
+${textoFactual}
+
+📊 Métricas Apuradas:
+• Valor Observado: ${valorObsFormatted}
+• Valor Esperado (Referência): ${valorEspFormatted}
+• Variação: ${desvioFormatted}
+
+🔍 Confira os dados oficiais e audite as contas no portal da transparência:
+${link}
+
+#MaisTransparência #RadarCívico #ControleSocial #TransparênciaFiscal${tagMunicipio}`;
+
+  return { message, link };
 }

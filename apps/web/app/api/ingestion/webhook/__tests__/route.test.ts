@@ -2,10 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../route";
 
 const mockDispatchPushNotification = vi.fn();
+const mockGetPortalConfig = vi.fn();
+const mockGetRadarCivicoAlertas = vi.fn();
 
 vi.mock("@/lib/push-dispatcher", () => ({
   dispatchPushNotification: (...args: unknown[]) =>
     mockDispatchPushNotification(...args),
+}));
+
+vi.mock("@transparencia/db", () => ({
+  getPortalConfig: (...args: unknown[]) => mockGetPortalConfig(...args),
+  getRadarCivicoAlertas: (...args: unknown[]) =>
+    mockGetRadarCivicoAlertas(...args),
 }));
 
 vi.mock("@/env", () => ({
@@ -18,6 +26,10 @@ vi.mock("@/env", () => ({
 describe("POST /api/ingestion/webhook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetPortalConfig.mockResolvedValue({
+      displayName: "Porciúncula",
+    });
+    mockGetRadarCivicoAlertas.mockResolvedValue([]);
   });
 
   it("retorna 401 se cabeçalho de autorização estiver ausente", async () => {
@@ -241,5 +253,54 @@ describe("POST /api/ingestion/webhook", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.success).toBe(true);
+  });
+
+  it("dispara notificação Web Push com alerta crítico e deep link quando houver anomalias de severidade 'critico'", async () => {
+    mockGetRadarCivicoAlertas.mockResolvedValueOnce([
+      {
+        anomaliaId: "crit-anom-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+        desvioPercentual: 65,
+        valorObservado: 165,
+        valorEsperado: 100,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        metodoDeteccao: "iqr_estoque",
+      },
+    ]);
+
+    const req = new Request("http://localhost/api/ingestion/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-internal-secret",
+      },
+      body: JSON.stringify({
+        portalSlug: "porciuncula_prefeitura",
+        status: "success",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockGetRadarCivicoAlertas).toHaveBeenCalledWith(
+      "porciuncula_prefeitura",
+      {
+        ano: new Date().getFullYear(),
+        severidadeMinima: "critico",
+      },
+    );
+    expect(mockDispatchPushNotification).toHaveBeenCalledWith({
+      portalSlug: "porciuncula_prefeitura",
+      title: expect.stringContaining("Alerta Crítico - Radar Cívico"),
+      body: expect.stringContaining("cargos comissionados"),
+      url: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+    });
   });
 });

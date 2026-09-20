@@ -6,8 +6,12 @@ import {
   getDistribucaoModalidadesMetrics,
   getEntidades,
   getLicitacaoGapsMetrics,
+  getLicitacaoItens,
+  getLicitacoesEmAndamentoMetrics,
   getLimiteDispensaComprasServicos,
   getPortalConfig,
+  getRadarCivicoAlertas,
+  type LicitacaoItemDTO,
 } from "@transparencia/db";
 
 export interface LicitacoesSearchParams {
@@ -80,6 +84,8 @@ export async function loadLicitacoesData(
     contratosServicosVigentes,
     limiteDispensaComprasServicos,
     portalConfig,
+    licitacoesEmAndamento,
+    alertasRadar,
   ] = await Promise.all([
     getLicitacaoGapsMetrics(tenantSlug, selectedYear, empresaIds),
     getAdesaoDeAtaMetrics(tenantSlug, selectedYear, empresaIds),
@@ -89,7 +95,27 @@ export async function loadLicitacoesData(
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
     getLimiteDispensaComprasServicos(tenantSlug, selectedYear),
     getPortalConfig(tenantSlug),
+    getLicitacoesEmAndamentoMetrics(tenantSlug, {
+      ano: selectedYear,
+      empresaIds,
+    }),
+    getRadarCivicoAlertas(tenantSlug, { ano: selectedYear }),
   ]);
+
+  const itensArray = await Promise.all(
+    licitacoesEmAndamento
+      .filter((l) => Boolean(l.licitacaoNumero))
+      .map(async (l) => {
+        const items = await getLicitacaoItens(tenantSlug, {
+          ano: selectedYear,
+          licitacaoNumero: l.licitacaoNumero,
+        });
+        return [l.licitacaoNumero, items] as const;
+      }),
+  );
+
+  const itensByLicitacao: Record<string, LicitacaoItemDTO[]> =
+    Object.fromEntries(itensArray.filter(([_, items]) => items.length > 0));
 
   return {
     portalSlug: tenantSlug,
@@ -102,5 +128,8 @@ export async function loadLicitacoesData(
     modalidades,
     contratosServicosVigentes,
     limiteDispensaComprasServicos,
+    licitacoesEmAndamento,
+    itensByLicitacao,
+    alertasRadar,
   };
 }

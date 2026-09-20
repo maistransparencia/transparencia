@@ -1,6 +1,7 @@
 import {
   getEntidades,
   getHistoriaSaudeMetrics,
+  getLicitacoesEmAndamentoMetrics,
   getPortalConfig,
   getSaudeContratosCountMetrics,
   getSaudeEmendasMetrics,
@@ -107,6 +108,7 @@ export async function loadSaudeData(
     contratosCount,
     fornecedoresCount,
     licitacoesSaude,
+    licitacoesEmAndamento,
     portalConfig,
   ] = await Promise.all([
     getHistoriaSaudeMetrics(tenantSlug, context.selectedYear),
@@ -119,6 +121,10 @@ export async function loadSaudeData(
       empresaIds,
     ),
     getSaudeLicitacoesMetrics(tenantSlug, context.selectedYear, empresaIds),
+    getLicitacoesEmAndamentoMetrics(tenantSlug, {
+      ano: context.selectedYear,
+      empresaIds,
+    }),
     getPortalConfig(tenantSlug),
   ]);
 
@@ -173,6 +179,7 @@ export async function loadSaudeData(
     },
     executionTrend,
     licitacoesSaude,
+    licitacoesEmAndamento,
     emendasStats,
     emendas: emendasStats.lista,
     emendasTotal: emendasStats.totalAutorizado || emendasArrecadado,

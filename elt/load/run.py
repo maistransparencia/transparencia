@@ -181,6 +181,25 @@ def main() -> None:
                     count,
                     schema,
                 )
+            if table == "pncp":
+                from elt.load.pncp import (
+                    ensure_pncp_tables,
+                    load_pncp_compras,
+                    load_pncp_itens,
+                    load_pncp_itens_resultados,
+                )
+
+                ensure_pncp_tables(engine)
+                raw_data = json.loads(json_file.read_text(encoding="utf-8"))
+                if json_file.name == "compras.json":
+                    count = load_pncp_compras(engine, raw_data)
+                    logger.info("Loaded pncp/compras.json → %d rows into raw_pncp.compras", count)
+                elif json_file.name == "itens.json":
+                    count = load_pncp_itens(engine, raw_data)
+                    logger.info("Loaded pncp/itens.json → %d rows into raw_pncp.itens", count)
+                elif json_file.name == "itens_resultados.json":
+                    count = load_pncp_itens_resultados(engine, raw_data)
+                    logger.info("Loaded pncp/itens_resultados.json → %d rows into raw_pncp.itens_resultados", count)
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue

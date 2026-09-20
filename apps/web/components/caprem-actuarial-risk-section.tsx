@@ -54,6 +54,7 @@ export function CapremActuarialRiskSection({
   className,
 }: CapremActuarialRiskSectionProps) {
   const hasDeficitPatronal = (risk.romboPatronalNaoRepassado ?? 0) > 0;
+  const hasDeficitAporte = (risk.romboAporteNaoRepassado ?? 0) > 0;
 
   const trendCols = [
     { header: "Exercício / Ano", accessorKey: "ano" as const },
@@ -117,7 +118,43 @@ export function CapremActuarialRiskSection({
 
       {/* Grid de KPIs de Risco Atuarial */}
       <KPIGrid columns={3}>
-        <div className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
+        {/* Indicador de Aporte Atuarial (Elemento 97) */}
+        <div
+          id="atuarial"
+          className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
+        >
+          <div className="flex items-center justify-between pb-2">
+            <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
+              Aporte Déficit Atuarial ({ano})
+            </span>
+            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+          </div>
+          <div className="font-bold font-serif text-2xl text-ink">
+            {fmtCurrency(risk.totalAporteQuitado)}{" "}
+            <span className="font-normal font-sans text-mutedText text-xs">
+              pagos
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-mutedText">
+              Exigido: {fmtCurrency(risk.totalAporteExigido)}
+            </span>
+            {hasDeficitAporte ? (
+              <Badge variant="danger">
+                Inadimplência: {fmtCurrency(risk.romboAporteNaoRepassado)} (
+                {fmtPercent(risk.taxaAdimplenciaAporte)} adimplente)
+              </Badge>
+            ) : (
+              <Badge variant="success">100% Adimplente</Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Indicador de Retenção de Contribuição Patronal (Elemento 13) */}
+        <div
+          id="patronal"
+          className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
+        >
           <div className="flex items-center justify-between pb-2">
             <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
               Déficit de Repasse Mensal ({ano})

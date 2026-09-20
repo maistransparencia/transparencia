@@ -25,6 +25,49 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
+### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)
+
+Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
+
+- **Critérios de Detecção de Anomalias:** Regras contábeis e fiscais automatizadas que identificam pontos fora da curva em pessoal, compras, receitas, previdência e limites legais:
+  - *Explosão de Cargos Comissionados (`explosao_comissionados`):* Monitora aumento desproporcional no headcount ativo de servidores comissionados em relação à série histórica.
+  - *Rombo em Recursos Livres (`rombo_caixa`):* Identifica descompasso crítico de disponibilidade de caixa livre desprovida de vinculação legal.
+  - *Pico de Despesa Homóloga (`pico_despesa_homologa`):* Compara períodos homólogos equivalentes mês-a-mês em despesas setoriais, excluindo áreas essenciais de investimento social e pisos constitucionais (Saúde, Educação e Assistência Social).
+  - *Concentração de Dispensas (`concentracao_dispensa`):* Acompanha a proporção de contratações diretas em relação ao volume total de processos licitatórios.
+  - *Opacidade em Gastos Genéricos (`opacidade_gastos_genericos`):* Monitora alocação de despesas pagas em subitens residuais `.99` acima da quota prudencial de 30%.
+  - *Inadimplência de Aporte Atuarial (`inadimplencia_aporte_rpps`):* Identifica recolhimento insuficiente dos aportes exigidos por lei municipal para equacionamento do déficit atuarial do Regime Próprio (Elemento 97). Dispara alerta de severidade alta quando a adimplência é inferior a 90% e crítica quando inferior a 70%, com fundamentação jurídica oficial na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm) e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#atuarial`.
+  - *Retenção Patronal Não Repassada (`retencao_patronal_rpps`):* Detecta passivo de contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM (Elemento 13) acima do piso de materialidade de R$ 20.000,00. Possui severidade crítica mandatória, fundamentação jurídica no [Art. 40 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40) e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#patronal`.
+  - *Desconto Nulo em Pregão (`desconto_nulo_pregao`):* Identifica pregões homologados com ausência de disputa real ou desconto irrisório (< 1,00% em relação ao valor estimado) em certames com valor homologado relevante (>= R$ 20.000,00). Dispara severidade crítica para valores homologados a partir de R$ 100.000,00 ou desconto <= 0,20%, com fundamentação jurídica oficial no [Art. 5º da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5) e deep link contextual para `/[portalSlug]/licitacoes?ano=[ano]&numero=[numero]#itens`.
+  - *Deságio Extremo e Inexequibilidade (`desagio_extremo_inexequibilidade`):* Alerta para certames homologados com deságio excessivo (desconto global >= 50,00% sobre o valor estimado) em contratações expressivas (>= R$ 20.000,00), exigindo comprovação de exequibilidade da proposta. Possui severidade crítica quando o deságio atinge ou supera 65,00%, com fundamentação jurídica oficial no [Art. 59, III da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59) e deep link para os itens do processo.
+  - *Inconsistência em Vínculos de Pessoal (`inconsistencia_vinculo_pessoal`):* Identifica servidores públicos cadastrados com categorias funcionais atípicas no portal de origem (como agentes políticos ou excepcional interesse alocados indevidamente em comissionados ou contratos temporários), exigindo harmonização cadastral. Dispara severidade crítica para mais de 30 divergências, alta para 6 a 30 e moderada para até 5, com fundamentação jurídica oficial no [Art. 37 da Constituição Federal](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37) e deep link contextual para `/[portalSlug]/pessoal?ano=[ano]#regime`.
+- **Badges Semânticos de Atenção e Acompanhamento:**
+  - *Atenção Especial (Crítico):* Variações de maior magnitude ou infrações que demandam acompanhamento prioritário da sociedade civil (ex: saltos atípicos em comissionados, rombo de caixa, retenção de contribuição patronal, inadimplência atuarial severa, deságio extremo com risco grave de inexequibilidade, pregão de grande vulto com desconto nulo ou contingente expressivo de vínculos inconsistentes).
+  - *Atenção (Alto):* Variações relevantes frente aos padrões médios ou limites de referência (ex: aporte atuarial com adimplência entre 70% e 90%, deságio entre 50% e 65%, desconto nulo em pregão de menor porte, divergências cadastrais moderadas de pessoal, opacidade elevada ou picos atípicos em funções administrativas).
+  - *Acompanhamento (Moderado):* Oscilações moderadas para monitoramento orçamentário rotineiro.
+- **Contexto Temporal e Metodologia Declarada:**
+  - *Média Histórica:* Confronto com a série histórica plurianual consolidada da contabilidade municipal.
+  - *Quadro Atual:* Apuração pontual da situação vigente no exercício de referência (estoque instantâneo).
+  - *Meta Atuarial / Fluxo em Aberto:* Apuração estrutural de conformidade do plano de amortização e repasses correntes da previdência própria.
+  - *Competitividade PNCP / Risco de Inexequibilidade:* Análise granular de itens homologados e lances vencedores via integração com a base de dados do Portal Nacional de Contratações Públicas.
+  - *Harmonização Cadastral:* Confronto entre categorias de regime jurídico reportadas e atribuições funcionais descritas no cadastro do servidor perante os preceitos do Art. 37 da CF/88.
+- **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas e dados oficiais, isentas de adjetivações valorativas ou acusações subjetivas.
+- **Métricas Comparativas e Fundamentação Jurídica Acessível:** Exibição clara do valor observado versus valor esperado/normativo e disponibilização de hyperlink oficial da Casa Civil / Planalto para o dispositivo legal pertinente com ícone acessível (`ExternalLink`), permitindo validação da norma com um clique.
+- **Funil de Aprofundamento e Compartilhamento:**
+  - *Pílula de Alerta de Compras Abertas:* Quando houver processos licitatórios atualmente em andamento no município, o cabeçalho do Radar Cívico exibe uma pílula de alerta indicando o volume de compras abertas com deep link direto para auditoria prévia em `/[portalSlug]/licitacoes#licitacoes-em-andamento`.
+  - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`, `/caprem`) para investigação detalhada no contexto do alerta.
+  - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
+  - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
+
+### 1.1.2. Painel Histórico do Radar Cívico (/radar)
+
+Acessível através do grupo **Temas** no menu de navegação lateral (Sidebar), a página dedicada `/radar` consolida a série temporal completa de todos os alertas e variações atípicas identificadas desde o início do período de auditoria (2021 em diante):
+
+- **Agrupamento por Seções Anuais Cronológicas:** Os alertas são distribuídos em seções individuais organizadas por exercício financeiro em ordem decrescente (ex: 2026, 2024, 2023...), permitindo ao cidadão analisar tendências plurianuais de governança e cumprimento de metas fiscais.
+- **Omissão de Anos sem Alertas:** Exercícios nos quais todos os indicadores mantiveram-se estritamente dentro da conformidade estatística e normativa são omitidos da exibição, mantendo o foco analítico nos anos que demandam auditoria cidadã.
+- **Resumo e Badges de Severidade por Exercício:** Cada cabeçalho anual quantifica os alertas apurados e detalha o perfil de severidade daquele ano (contagem de alertas Críticos, de Atenção e de Acompanhamento).
+- **Barra de Navegação Rápida (Âncoras):** Uma barra fixa superior permite pular diretamente para qualquer exercício listado através de âncoras locais (`#ano-2026`, `#ano-2024`), facilitando a navegação em telas móveis e desktop.
+- **Grade Responsiva de 2 Colunas:** Cada cartão reutiliza a estrutura canônica do `RadarAnomaliaCard` com narrativa factual neutra, métricas comparativas com destaque visual e atalhos de fiscalização profunda em cada tema administrativo.
+
 ---
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos
@@ -159,6 +202,19 @@ Esta seção apresenta a arrecadação de recursos, o ciclo completo do orçamen
 Esta seção disponibiliza a transparência sobre os processos de compras e contratações públicas:
 
 - **Modalidades de Contratação:** Os procedimentos utilizados para contratar bens e serviços, tais como Pregão Eletrônico, Concorrência Pública, Dispensa de Licitação, Inexigibilidade e Adesão a Atas de Registro de Preços.
+- **Taxa de Contratação Direta:** Indicador percentual apurado na grade de KPIs que consolida o volume financeiro contratado diretamente por dispensas, inexigibilidades e adesões a ata sobre o total de compras do exercício. Apresenta badge e banner contextual explicativo quando houver a anomalia `concentracao_dispensa` apurada pelo motor estatístico, fundamentando a análise nas exigências do Art. 75 da Lei Federal nº 14.133/2021.
+- **Radar de Licitações Abertas e em Andamento (`#licitacoes-em-andamento`):** Seção interativa de fiscalização preventiva que exibe todos os processos licitatórios municipais em andamento antes da homologação, com contadores, campo de busca textual em tempo real por objeto, identificação da modalidade, prazos de abertura e valores estimados.
+- **Des-truncamento e Enriquecimento Hierárquico dos Objetos Licitatórios:**
+  - *Contexto:* Sistemas municipais legados truncavam a descrição dos objetos de licitações a 150 caracteres, gerando opacidade e truncamento de compras públicas complexas.
+  - *Hierarquia Analítica de Fontes:* O pipeline unifica os dados sob modelo analítico consolidado aplicando rigorosa precedência para recuperar a íntegra descritiva:
+    1. **PNCP (Portal Nacional de Contratações Públicas):** 1ª prioridade — descrição completa e link oficial da sala de disputa pública (`linkSistemaOrigem`).
+    2. **Contratos Administrativos Municipais:** 2ª prioridade — objeto na íntegra recuperado dos instrumentos contratuais correlacionados.
+    3. **TCE-RJ / Auditoria Externa:** 3ª prioridade.
+    4. **Sistema Municipal Nativo:** 4ª prioridade (objeto base de 150 caracteres).
+  - *Rastreabilidade Visual:* Na interface, processos enriquecidos exibem badges discretos indicando a procedência (`PNCP` ou `Contrato Local`).
+  - *Acesso à Sala de Disputa Pública:* Processos com integração ao PNCP disponibilizam hiperlink direto para a sala de disputa externa com salvaguardas normativas (`target="_blank" rel="noopener noreferrer"`).
+- **Relação Individualizada de Itens Licitados:**
+  - Demonstrativo e modal interativo no portal web detalhando cada item integrante da licitação, contendo: número do item, descrição textual integral do bem/serviço, quantidade, unidade de medida, valor unitário estimado, valor total estimado, valor unitário homologado, valor total homologado, percentual de desconto obtido na disputa, situação do item (ex: `adjudicado`, `homologado`, `deserto`) e identificação do fornecedor adjudicado (razão social e CNPJ/CPF).
 - **Limites de Dispensa de Licitação:** Acompanhamento dos limites legais de dispensa previstos na Lei Federal nº 14.133/2021 e decretos de atualização monetária para obras/engenharia e compras/outros serviços.
 - **Objeto da Contratação:** A descrição detalhada do que foi comprado ou contratado pela administração pública.
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
@@ -210,6 +266,7 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 - **Percentual de Aplicação em Saúde:** O percentual das receitas de impostos e transferências efetivamente investido na saúde pública (compara-se ao piso constitucional de 15% estabelecido pela Lei Complementar nº 141/2012).
 - **Total Investido na Saúde:** O montante financeiro consolidado alocado no custeio e investimentos da rede municipal de saúde.
+- **Compras e Licitações da Saúde em Andamento:** Monitoramento de compras abertas específicas do Fundo Municipal de Saúde (medicamentos essenciais, insumos hospitalares e equipamentos médicos) dentro da seção "Como o Fundo contrata", permitindo controle prévio pelo cidadão e fornecedores locais.
 
 ---
 
@@ -251,11 +308,24 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
     - *Mecanismo de Armadilha contra Robôs (Honeypot Invisível):* Campo oculto para detecção imediata de preenchimento automatizado por bots maliciosos.
     - *Temporizador de Submissão:* Bloqueio de envios instantâneos típicos de scripts robotizados.
 
+- **Notificações Web Push (PWA / Alertas Tempestivos do Radar Cívico):**
+  - Notificações tempestivas expedidas via protocolo Web Push (VAPID) diretamente a navegadores e dispositivos móveis cadastrados pelos munícipes, cumprindo o princípio da tempestividade da informação fiscal (Art. 48-A da LC 101/2000 - LRF):
+    - *Alertas Críticos Imediatos:* Disparo reativo automático ao término de ciclos de ingestão quando o motor estatístico identifica anomalias fiscais com severidade crítica (`critico`), direcionando o cidadão via deep link à seção temática correspondente (pessoal comissionado, compras sem licitação, rombo de caixa ou picos orçamentários).
+    - *Notificações de Ingestão de Rotina:* Avisos consolidados de conclusão de extração fiscal para acompanhamento regular do portal (`topic: "extracoes"`).
+
 - **Redes Sociais Oficiais e Disseminação Cívica Automatizada:**
   - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
-    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias e indicadores de transparência.
-    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos para a comunidade local e conselhos municipais.
+    - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias, indicadores de transparência e alertas cívicos de severidade crítica (`civic_anomaly`), rigorosamente limitados a 280 caracteres ponderados e com links canônicos de validação.
+    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
+    - **Cartões Sociais Dinâmicos (OpenGraph):** Templates dinâmicos de alta resolução para renderização em tempo real de metadados visuais ao compartilhar links no WhatsApp e redes sociais, com badges de severidade crítica do Radar Cívico (`/[portalSlug]/radar/opengraph-image`).
     - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
+
+- **Telemetria Cívica e Medição do Funil de Engajamento:**
+  - Monitoramento analítico de navegação orientado a avaliar a transição de visitantes passivos em auditores cívicos engajados, sem retenção de dados pessoais identificáveis ou rastreamento invasivo:
+    - *Visualização de Alertas Cívicos:* Acompanhamento da taxa de visualização de anomalias no feed inicial pelo cidadão.
+    - *Aprofundamento Temático:* Medição da adesão às ações de fiscalização e auditoria das contas públicas municipais.
+    - *Conversão de Navegação:* Mensuração do fluxo da página inicial para as seções analíticas detalhadas (`/pessoal`, `/despesas`, `/licitacoes`, `/orcamento`).
+    - *Mobilização Comunitária:* Acompanhamento da difusão espontânea de alertas factuais para redes cidadãs via WhatsApp.
 
 ---
 

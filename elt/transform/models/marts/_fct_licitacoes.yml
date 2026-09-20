@@ -48,6 +48,10 @@ models:
               arguments:
                 min_value: 0
                 row_condition: "valor is not null"
+      - name: valor_estimado
+        data_type: numeric(15, 2)
+      - name: valor_homologado
+        data_type: numeric(15, 2)
       - name: situacao
         data_type: text
       - name: data_abertura
@@ -60,3 +64,9 @@ models:
                 row_condition: "data_abertura is not null"
       - name: carona
         data_type: text
+      - name: fonte_objeto
+        data_type: text
+        description: "Origem do objeto enriquecido: pncp, contrato_local, tce_rj ou municipal"
+      - name: link_sistema_origem
+        data_type: text
+        description: "Link externo para sala de disputa ou sistema de origem no PNCP"

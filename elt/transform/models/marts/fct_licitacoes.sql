@@ -10,9 +10,13 @@ with licitacoes as (
         objeto,
         discriminacao,
         valor,
+        valor_estimado,
+        valor_homologado,
         situacao,
         data_abertura,
-        carona
+        carona,
+        fonte_objeto,
+        link_sistema_origem
     from {{ ref('int_licitacoes_consolidadas') }}
 )
 
@@ -26,7 +30,11 @@ select
     objeto,
     discriminacao,
     valor::numeric(15, 2) as valor,
+    valor_estimado::numeric(15, 2) as valor_estimado,
+    valor_homologado::numeric(15, 2) as valor_homologado,
     situacao,
     data_abertura,
-    carona
+    carona,
+    fonte_objeto,
+    link_sistema_origem
 from licitacoes

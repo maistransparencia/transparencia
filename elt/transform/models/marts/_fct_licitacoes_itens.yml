@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: fct_licitacoes_itens
+    description: "Mart analítico de itens licitados unificando itens e resultados homologados do PNCP"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: item_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Chave surrogate MD5 (portal_slug | ano | licitacao_numero | numero_item)"
+        tests:
+          - not_null
+          - unique
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: licitacao_numero
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: numero_item
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: descricao
+        data_type: text
+      - name: quantidade
+        data_type: numeric(15, 4)
+      - name: unidade_medida
+        data_type: text
+      - name: valor_unitario_estimado
+        data_type: numeric(15, 4)
+      - name: valor_total_estimado
+        data_type: numeric(15, 2)
+      - name: valor_unitario_homologado
+        data_type: numeric(15, 4)
+      - name: valor_total_homologado
+        data_type: numeric(15, 2)
+      - name: percentual_desconto
+        data_type: numeric(5, 2)
+      - name: fornecedor_nome
+        data_type: text
+      - name: fornecedor_cpf_cnpj
+        data_type: text
+      - name: situacao_item
+        data_type: text

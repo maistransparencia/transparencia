@@ -9,6 +9,7 @@ import { TEST_YEAR } from "../../test-helpers";
 import {
   getCountDivergenciasCadastraisPessoal,
   getPessoalRegimeMetrics,
+  getServidoresDivergenciasCadastraisPessoal,
 } from "../pessoal-regime-metrics";
 
 const PORTAL = createFixturePortalSlug();
@@ -173,6 +174,15 @@ describe("pessoal-regime-metrics", () => {
         TEST_YEAR,
       );
       expect(total).toBe(2);
+
+      const lista = await getServidoresDivergenciasCadastraisPessoal(
+        PORTAL,
+        TEST_YEAR,
+      );
+      expect(lista).toHaveLength(2);
+      expect(lista.map((s) => s.matricula)).toContain("MAT-COM-1");
+      expect(lista.map((s) => s.matricula)).toContain("MAT-TEMP-1");
+      expect(lista.map((s) => s.matricula)).not.toContain("MAT-POL-1");
     });
   });
 });
