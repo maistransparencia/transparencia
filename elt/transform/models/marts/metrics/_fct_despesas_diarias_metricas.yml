@@ -51,7 +51,7 @@ models:
         tests:
           - not_null
       - name: total_valor
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Valor total de diárias concedidas"

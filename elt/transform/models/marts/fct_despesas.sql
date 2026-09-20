@@ -216,14 +216,14 @@ select
     categoria_gasto_sensivel,
 
     -- Valores financeiros (Lei de Responsabilidade Fiscal: pago ≤ liquidado ≤ empenhado)
-    empenhado,
-    empenhado_liquido,
-    liquidado,
-    pago,
-    dotacao_inicial,
-    alteracao_dotacao,
-    dotacao_atualizada,
-    reforco,
-    valor_anulacoes
+    empenhado::numeric(15, 2) as empenhado,
+    empenhado_liquido::numeric(15, 2) as empenhado_liquido,
+    liquidado::numeric(15, 2) as liquidado,
+    pago::numeric(15, 2) as pago,
+    dotacao_inicial::numeric(15, 2) as dotacao_inicial,
+    alteracao_dotacao::numeric(15, 2) as alteracao_dotacao,
+    dotacao_atualizada::numeric(15, 2) as dotacao_atualizada,
+    reforco::numeric(15, 2) as reforco,
+    valor_anulacoes::numeric(15, 2) as valor_anulacoes
 
 from empenhos

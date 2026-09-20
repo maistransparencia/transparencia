@@ -1,12 +1,17 @@
 import * as db from "@transparencia/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as facebookBot from "./facebook-bot";
-import { publishSocial } from "./social-publisher";
+import {
+  buildCivicAnomalyFacebookPost,
+  buildCivicAnomalyTweet,
+  publishSocial,
+} from "./social-publisher";
 import * as xBot from "./x-bot";
 
 vi.mock("@transparencia/db", () => ({
   getPortalConfig: vi.fn(),
   getRadarDigestMetrics: vi.fn(),
+  getRadarCivicoAlertas: vi.fn(),
 }));
 
 describe("social-publisher module", () => {
@@ -203,6 +208,184 @@ describe("social-publisher module", () => {
     expect(postFbSpy).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({ dryRun: true }),
+    );
+  });
+
+  it("deve despachar alerta cívico crítico para X e Facebook quando type for civic_anomaly", async () => {
+    vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
+      portalSlug: "porciuncula_prefeitura",
+      displayName: "Prefeitura de Porciúncula",
+      cidadeClean: "Porciúncula",
+    } as any);
+
+    const mockAlerta = {
+      anomaliaId: "crit-1",
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2025,
+      tipoAnomalia: "explosao_comissionados" as const,
+      dimensaoReferencia: "comissionados",
+      grauSeveridade: "critico" as const,
+      desvioPercentual: 65,
+      valorObservado: 165,
+      valorEsperado: 100,
+      mesInicial: 1,
+      mesFinal: 12,
+      deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+      metodoDeteccao: "iqr_estoque",
+    };
+
+    vi.mocked(db.getRadarCivicoAlertas).mockResolvedValueOnce([mockAlerta]);
+
+    const postTweetSpy = vi
+      .spyOn(xBot, "postTweet")
+      .mockResolvedValueOnce({ success: true, tweetId: "tweet-crit-1" });
+    const postFbSpy = vi
+      .spyOn(facebookBot, "postFacebookPost")
+      .mockResolvedValueOnce({ success: true, postId: "fb-crit-1" });
+
+    const result = await publishSocial({
+      portalSlug: "porciuncula_prefeitura",
+      type: "civic_anomaly",
+      ano: 2025,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.results.x?.tweetId).toBe("tweet-crit-1");
+    expect(result.results.facebook?.postId).toBe("fb-crit-1");
+    expect(postTweetSpy).toHaveBeenCalledWith(
+      expect.stringContaining("🚨 Radar Cívico (Prefeitura de Porciúncula)"),
+      expect.any(Object),
+    );
+    expect(postFbSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("ALERTA CRÍTICO"),
+        link: expect.stringContaining("pessoal?ano=2025#comissionados"),
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it("deve retornar erro e success: false se nenhuma anomalia crítica for encontrada para civic_anomaly", async () => {
+    vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
+      portalSlug: "porciuncula_prefeitura",
+      displayName: "Prefeitura de Porciúncula",
+    } as any);
+
+    vi.mocked(db.getRadarCivicoAlertas).mockResolvedValueOnce([]);
+
+    const result = await publishSocial({
+      portalSlug: "porciuncula_prefeitura",
+      type: "civic_anomaly",
+      ano: 2025,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.results.x?.error).toContain("Nenhuma anomalia crítica");
+    expect(result.results.facebook?.error).toContain(
+      "Nenhuma anomalia crítica",
+    );
+  });
+
+  it("buildCivicAnomalyTweet gera tweet com limite <= 280 caracteres e hashtags oficiais", () => {
+    const tweet = buildCivicAnomalyTweet({
+      portalSlug: "porciuncula_prefeitura",
+      municipioNome: "Porciúncula",
+      alerta: {
+        anomaliaId: "crit-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+        desvioPercentual: 65,
+        valorObservado: 165,
+        valorEsperado: 100,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        metodoDeteccao: "iqr_estoque",
+      },
+    });
+
+    expect(tweet).toContain("🚨 Radar Cívico (Porciúncula)");
+    expect(tweet).toContain("#ControleSocial #TransparenciaFiscal");
+    expect(xBot.calculateTweetLength(tweet)).toBeLessThanOrEqual(280);
+  });
+
+  it("buildCivicAnomalyFacebookPost gera post estruturado com métricas e deep link", () => {
+    const post = buildCivicAnomalyFacebookPost({
+      portalSlug: "porciuncula_prefeitura",
+      municipioNome: "Porciúncula",
+      alerta: {
+        anomaliaId: "crit-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+        desvioPercentual: 65,
+        valorObservado: 165,
+        valorEsperado: 100,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        metodoDeteccao: "iqr_estoque",
+      },
+    });
+
+    expect(post.message).toContain("RADAR CÍVICO MUNICIPAL: ALERTA CRÍTICO");
+    expect(post.message).toContain("165 cargos");
+    expect(post.message).toContain("+65%");
+    expect(post.link).toContain(
+      "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+    );
+  });
+
+  it("deve selecionar anomalia especificada por anomaliaId quando fornecida", async () => {
+    vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
+      portalSlug: "porciuncula_prefeitura",
+      displayName: "Prefeitura de Porciúncula",
+    } as any);
+
+    vi.mocked(db.getRadarCivicoAlertas).mockResolvedValueOnce([
+      {
+        anomaliaId: "crit-1",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "explosao_comissionados",
+        grauSeveridade: "critico",
+        desvioPercentual: 50,
+      } as any,
+      {
+        anomaliaId: "crit-2",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "concentracao_dispensa",
+        grauSeveridade: "critico",
+        desvioPercentual: 120,
+        valorObservado: 45.5,
+        valorEsperado: 20,
+      } as any,
+    ]);
+
+    const postFbSpy = vi
+      .spyOn(facebookBot, "postFacebookPost")
+      .mockResolvedValueOnce({ success: true, postId: "fb-crit-2" });
+
+    const result = await publishSocial({
+      portalSlug: "porciuncula_prefeitura",
+      type: "civic_anomaly",
+      channels: ["facebook"],
+      ano: 2025,
+      anomaliaId: "crit-2",
+    });
+
+    expect(result.success).toBe(true);
+    expect(postFbSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("45.5%"),
+      }),
+      expect.any(Object),
     );
   });
 });

@@ -88,10 +88,10 @@ select
     empresa_id,
     ano,
     administracao,
-    coalesce(valor_empenhado, 0) as valor_empenhado,
-    coalesce(valor_liquidado, 0) as valor_liquidado,
-    coalesce(valor_pago, 0) as valor_pago,
-    coalesce(valor_pendente, 0) as valor_pendente,
+    coalesce(valor_empenhado, 0)::numeric(15, 2) as valor_empenhado,
+    coalesce(valor_liquidado, 0)::numeric(15, 2) as valor_liquidado,
+    coalesce(valor_pago, 0)::numeric(15, 2) as valor_pago,
+    coalesce(valor_pendente, 0)::numeric(15, 2) as valor_pendente,
     fornecedor_nome
 from aggregated
 where coalesce(valor_pendente, 0) > 0 or coalesce(valor_liquidado, 0) > coalesce(valor_pago, 0)

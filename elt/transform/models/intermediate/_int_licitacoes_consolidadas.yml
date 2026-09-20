@@ -13,8 +13,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2010
-              max_value: 2035
+              arguments:
+                min_value: 2010
+                max_value: 2035
       - name: empresa_id
         data_type: text
         tests:
@@ -29,7 +30,15 @@ models:
         data_type: text
       - name: valor
         data_type: numeric
+      - name: valor_estimado
+        data_type: numeric
+      - name: valor_homologado
+        data_type: numeric
       - name: data_abertura
         data_type: date
       - name: carona
+        data_type: text
+      - name: fonte_objeto
+        data_type: text
+      - name: link_sistema_origem
         data_type: text

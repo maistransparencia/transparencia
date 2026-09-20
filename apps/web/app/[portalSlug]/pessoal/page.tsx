@@ -50,6 +50,7 @@ export default async function PessoalPage({
     distribuicaoProventos,
     regimeMetrics,
     totalDivergencias,
+    servidoresDivergentes,
     currentYearRow,
     headerDescription,
     folhaKpi,
@@ -104,6 +105,7 @@ export default async function PessoalPage({
         ano={selectedYear}
         portalSlug={portalSlug}
         totalDivergencias={totalDivergencias}
+        servidoresDivergentes={servidoresDivergentes}
       />
 
       {/* Proventos Distribution Histogram Chart */}

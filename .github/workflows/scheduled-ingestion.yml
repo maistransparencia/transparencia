@@ -1,0 +1,69 @@
+name: Scheduled Ingestion Pipeline
+
+on:
+  schedule:
+    # Toda sexta-feira às 20:00 BRT (23:00 UTC)
+    - cron: "0 23 * * 5"
+  workflow_dispatch:
+    inputs:
+      portal:
+        description: "Slug do portal de transparência"
+        required: true
+        default: "porciuncula_prefeitura"
+      dry_run:
+        description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: scheduled-ingestion-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ingestion:
+    name: Run Municipal ELT Ingestion
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      flaresolverr:
+        image: ghcr.io/flaresolverr/flaresolverr:latest
+        ports:
+          - 8191:8191
+        env:
+          LOG_LEVEL: info
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv and sync ELT dependencies
+        run: |
+          pip install uv
+          uv sync --project elt --no-dev
+
+      - name: Install dbt packages
+        run: |
+          uv run --project elt python elt/scripts/run_dbt.py deps
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/postgres' }}
+
+      - name: Execute Orchestrator Pipeline
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            EXTRA_ARGS="--dry-run"
+          fi
+          PORTAL="${{ github.event.inputs.portal || 'porciuncula_prefeitura' }}"
+          uv run --project elt python -m elt.orchestrator --portal "$PORTAL" $EXTRA_ARGS
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FLARESOLVERR_URL: http://localhost:8191/v1
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}

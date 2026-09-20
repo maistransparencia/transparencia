@@ -7,6 +7,7 @@ import { unstable_cache } from "next/cache";
 import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
+import { GlobalFooter } from "@/components/global-footer";
 import {
   generateDataCatalogSchema,
   generateGovernmentOrganizationSchema,
@@ -15,6 +16,7 @@ import {
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { MobileNavProvider } from "@/components/mobile-nav-context";
 import { NewsletterFeedbackBanner } from "@/components/newsletter-feedback-banner";
+import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
@@ -173,10 +175,15 @@ export default async function RootLayout({
               <ExtractionNotificationBanner
                 lastExtractionDate={portalConfig?.dataExtracao}
                 portalName={portalConfig?.displayName}
+                portalSlug={portalConfig?.portalSlug}
               />
               <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                 {children}
               </main>
+              <GlobalFooter
+                portalName={portalConfig?.displayName}
+                officialPortalUrl={portalConfig?.portalUrl}
+              />
             </div>
             <Suspense fallback={null}>
               <MobileBottomNav
@@ -188,6 +195,7 @@ export default async function RootLayout({
           </MobileNavProvider>
         </NuqsAdapter>
         <PwaInstaller />
+        <PushNotificationPrompt portalSlug={portalConfig?.portalSlug} />
         <Analytics />
         <SpeedInsights />
       </body>

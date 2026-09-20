@@ -15,13 +15,25 @@ clean-targets:
   - "dbt_packages"
 
 
+on-run-start:
+  - "CREATE EXTENSION IF NOT EXISTS unaccent;"
+  - "CREATE SCHEMA IF NOT EXISTS analytics;"
+  - "CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$;"
+  - "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$;"
+
 vars:
   test_mode: false
   administracao_reference_year: 2025
   administracao_min_valid_year: 2000
+  ano_inicial_historico: 2021
+
+seeds:
+  transparencia:
+    +schema: analytics
 
 models:
   transparencia:
+    +schema: analytics
     staging:
       +materialized: view
     intermediate:

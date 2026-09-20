@@ -25,7 +25,6 @@ _SOURCES_YML = Path(__file__).parent / "transform" / "models" / "staging" / "por
 def _create_raw_schema(eng) -> None:
     """Cria schema raw e tabelas a partir de _sources.yml (fonte única de verdade)."""
     sources = yaml.safe_load(_SOURCES_YML.read_text())
-    tables = sources["sources"][0]["tables"]
 
     def _sql_type(col: dict) -> str:
         if "data_type" in col:
@@ -33,17 +32,32 @@ def _create_raw_schema(eng) -> None:
         return "integer" if col["name"] == "ano" else "text"
 
     with eng.connect() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw_porciuncula_prefeitura"))
-        for table_def in tables:
-            name = table_def["name"]
-            col_defs_list = table_def.get("columns", [])
-            if not col_defs_list:
-                continue
-            pk_cols = table_def.get("meta", {}).get("primary_key", [])
-            col_sql = ", ".join(f'"{c["name"]}" {_sql_type(c)}' for c in col_defs_list)
-            pk_clause = f", PRIMARY KEY ({', '.join(pk_cols)})" if pk_cols else ""
-            ddl = f'CREATE TABLE IF NOT EXISTS raw_porciuncula_prefeitura."{name}" ({col_sql}{pk_clause})'
-            conn.execute(text(ddl))
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
+        conn.execute(
+            text(
+                "CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$"
+            )
+        )
+        conn.execute(
+            text(
+                "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$"
+            )
+        )
+        for source in sources.get("sources", []):
+            schema_name = source.get("schema", source["name"])
+            conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
+            tables = source.get("tables", [])
+            for table_def in tables:
+                name = table_def["name"]
+                col_defs_list = table_def.get("columns", [])
+                if not col_defs_list:
+                    continue
+                pk_cols = table_def.get("meta", {}).get("primary_key", [])
+                col_sql = ", ".join(f'"{c["name"]}" {_sql_type(c)}' for c in col_defs_list)
+                pk_clause = f", PRIMARY KEY ({', '.join(pk_cols)})" if pk_cols else ""
+                ddl = f'CREATE TABLE IF NOT EXISTS "{schema_name}"."{name}" ({col_sql}{pk_clause})'
+                conn.execute(text(ddl))
         conn.commit()
 
 
@@ -80,7 +94,7 @@ def engine(pg):
     eng = create_engine(pg_url)
     # Raw schema e tabelas derivadas de _sources.yml
     _create_raw_schema(eng)
-    # dbt cria staging/intermediate (views) e marts (views em test_mode) em public
+    # dbt cria staging/intermediate (views) em public e marts (views em test_mode) em analytics
     _run_dbt(pg_url, "deps")
     _run_dbt(pg_url, "seed")
     _run_dbt(pg_url, "run", "--vars", '{"test_mode": true}')
@@ -90,6 +104,6 @@ def engine(pg):
 @pytest.fixture
 def conn(engine) -> Iterator[Connection]:
     with engine.connect() as connection:
-        connection.execute(text("SET search_path = raw_porciuncula_prefeitura, public"))
+        connection.execute(text("SET search_path = analytics, raw_porciuncula_prefeitura, public"))
         yield connection
         connection.rollback()

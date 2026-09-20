@@ -16,7 +16,9 @@ renamed as (
         nullif(replace(valor, ',', '.'), '')::numeric(15, 2) as valor,
         nullif(trim(situacao), '') as situacao,
         case when nullif(trim(datae), '') is not null then to_date(left(trim(datae), 10), 'DD/MM/YYYY') end as data_abertura,
-        nullif(trim(carona), '') as carona
+        nullif(trim(carona), '') as carona,
+        nullif(trim(licitacao), '') as edital_numero,
+        nullif(trim(proclic), '') as processo
     from source
 )
 
@@ -30,5 +32,7 @@ select
     valor,
     situacao,
     data_abertura,
-    carona
+    carona,
+    edital_numero,
+    processo
 from renamed

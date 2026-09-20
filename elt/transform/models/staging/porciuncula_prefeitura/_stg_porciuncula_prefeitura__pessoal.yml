@@ -9,8 +9,17 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2015
-              max_value: 2035
+              arguments:
+                min_value: 2015
+                max_value: 2035
+      - name: mes
+        data_type: integer
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 12
       - name: empresa_id
         data_type: text
         tests:
@@ -19,8 +28,9 @@ models:
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "proventos is not null"
+              arguments:
+                min_value: 0
+                row_condition: "proventos is not null"
       - name: categoria_funcional
         data_type: text
       - name: vinculo

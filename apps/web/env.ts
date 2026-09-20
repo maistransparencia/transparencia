@@ -32,6 +32,15 @@ const parsedEnv = createEnv({
     FACEBOOK_PAGE_ID: z.string().min(1).optional(),
     FACEBOOK_PAGE_ACCESS_TOKEN: z.string().min(1).optional(),
     VERCEL_URL: z.string().min(1).optional(),
+    VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+    VAPID_SUBJECT: z
+      .string()
+      .min(1)
+      .default("mailto:info@maistransparencia.com")
+      .refine(
+        (s) => s.startsWith("mailto:") || s.startsWith("https://"),
+        "VAPID_SUBJECT must be a mailto: or https: URI",
+      ),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z
@@ -60,6 +69,7 @@ const parsedEnv = createEnv({
       .string()
       .min(1)
       .default("https://us.i.posthog.com"),
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
   },
   experimental__runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -74,6 +84,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN:
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   },
   emptyStringAsUndefined: true,
   skipValidation:

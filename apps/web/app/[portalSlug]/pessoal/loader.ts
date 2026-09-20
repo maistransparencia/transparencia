@@ -7,6 +7,7 @@ import {
   getPercentualChefiasEfetivasMetrics,
   getPessoalRegimeMetrics,
   getPortalConfig,
+  getServidoresDivergenciasCadastraisPessoal,
 } from "@transparencia/db";
 
 export interface PessoalSearchParams {
@@ -80,6 +81,7 @@ export async function loadPessoalData(
     regimeMetrics,
     prevRegimeMetrics,
     totalDivergencias,
+    servidoresDivergentes,
     portalConfig,
   ] = await Promise.all([
     getFolhaVsServicosMetrics({
@@ -94,6 +96,9 @@ export async function loadPessoalData(
     getPessoalRegimeMetrics(tenantSlug, selectedYear),
     getPessoalRegimeMetrics(tenantSlug, previousYear),
     getCountDivergenciasCadastraisPessoal(tenantSlug, selectedYear),
+    getServidoresDivergenciasCadastraisPessoal(tenantSlug, selectedYear, {
+      empresaIds,
+    }),
     getPortalConfig(tenantSlug),
   ]);
 
@@ -111,5 +116,6 @@ export async function loadPessoalData(
     regimeMetrics,
     prevRegimeMetrics,
     totalDivergencias,
+    servidoresDivergentes,
   };
 }

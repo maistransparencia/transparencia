@@ -9,8 +9,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2015
-              max_value: 2035
+              arguments:
+                min_value: 2015
+                max_value: 2035
       - name: empresa_id
         data_type: text
         tests:
@@ -23,11 +24,13 @@ models:
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "previsao_atualizada is not null"
+              arguments:
+                min_value: 0
+                row_condition: "previsao_atualizada is not null"
       - name: arrecadado_efetivo
         data_type: numeric
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "arrecadado_efetivo is not null"
+              arguments:
+                min_value: 0
+                row_condition: "arrecadado_efetivo is not null"

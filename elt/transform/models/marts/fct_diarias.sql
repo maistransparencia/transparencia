@@ -21,7 +21,7 @@ select
     ano,
     empresa_id,
     diaria_id,
-    valor,
+    valor::numeric(15, 2) as valor,
     favorecido,
     cargo,
     data,

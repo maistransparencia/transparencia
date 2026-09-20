@@ -1,8 +1,9 @@
-import { cn, fmtCurrency, KPICard } from "@transparencia/ui";
+import { cn, fmtCurrency, fmtPercent, KPICard } from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
-import { DistribucaoModalidadesChart } from "@/components/distribuicao-modalidades-chart";
 import { KPIGrid } from "@/components/kpi-grid";
+import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { LicitacoesTable } from "@/components/licitacoes-table";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -51,12 +52,17 @@ export default async function LicitacoesPage({
     gaps,
     adesao,
     adesaoExterna,
-    modalidades,
     acimaLimiteGaps,
     limiteDispensaComprasServicos,
     fracionamentoVendorsMap,
     numCasosFracionamento,
     contratosServicosVigentes,
+    licitacoesEmAndamento,
+    itensByLicitacao,
+    alertaDispensa,
+    taxaContratacaoDireta,
+    hasAnomaliaDispensa,
+    isFilteredByEntidade,
   } = viewModel;
 
   return (
@@ -81,7 +87,12 @@ export default async function LicitacoesPage({
         </p>
       </div>
 
-      <KPIGrid columns={4}>
+      <KPIGrid columns={5}>
+        <KPICard
+          title="Taxa de Contratação Direta"
+          value={fmtPercent(taxaContratacaoDireta)}
+          accent
+        />
         <KPICard
           title="Acima do limite s/ licitação"
           value={
@@ -92,7 +103,7 @@ export default async function LicitacoesPage({
             </span>
           }
           alert={acimaLimiteGaps.length > 0}
-          accent
+          accent={false}
         />
         <KPICard title="Sem processo licitatório" value={gaps.length} />
         <KPICard title="Adesões de ata (carona)" value={adesao.quantidade} />
@@ -102,7 +113,102 @@ export default async function LicitacoesPage({
         />
       </KPIGrid>
 
-      {/* Warning Alert Banner */}
+      {/* Warning Alert Banner - Concentração de Dispensas */}
+      {hasAnomaliaDispensa && (
+        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+          <div>
+            <span className="font-bold text-[#9c4221]">
+              Alerta de Concentração de Contratações Diretas:
+            </span>{" "}
+            {(() => {
+              if (isFilteredByEntidade) {
+                return (
+                  <>
+                    Nas entidades selecionadas em {selectedYear},{" "}
+                    {fmtPercent(taxaContratacaoDireta)} do volume apurado de
+                    compras públicas foi contratado diretamente por dispensa,
+                    inexigibilidade ou adesão a ata
+                    {alertaDispensa?.valorEsperado != null
+                      ? ` (referência histórica municipal: ${fmtPercent(alertaDispensa.valorEsperado)})`
+                      : ""}
+                    .
+                  </>
+                );
+              }
+              return (
+                <>
+                  No consolidado municipal de {selectedYear}, embora as
+                  contratações diretas representem{" "}
+                  <strong>{fmtPercent(taxaContratacaoDireta)}</strong> do volume
+                  financeiro apurado (card acima),{" "}
+                  {alertaDispensa?.valorObservado != null ? (
+                    <>
+                      <strong>
+                        {fmtPercent(alertaDispensa.valorObservado)}
+                      </strong>{" "}
+                      dos processos de compras públicas foram realizados
+                      diretamente
+                    </>
+                  ) : (
+                    "foram realizadas diretamente"
+                  )}{" "}
+                  por dispensa, inexigibilidade ou adesão a ata
+                  {alertaDispensa?.valorEsperado != null
+                    ? ` (média histórica de referência: ${fmtPercent(alertaDispensa.valorEsperado)} dos processos)`
+                    : ""}
+                  .
+                </>
+              );
+            })()} Embora legais em hipóteses específicas, compras sem
+            concorrência aberta exigem justificativa formal e estrita
+            conformidade com a Lei Federal nº 14.133/2021:{" "}
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+            >
+              Art. 74 (Inexigibilidade)
+              <ExternalLink
+                className="ml-0.5 inline h-3 w-3"
+                aria-hidden="true"
+              />
+            </a>
+            {", "}
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art75"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+            >
+              Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)
+              <ExternalLink
+                className="ml-0.5 inline h-3 w-3"
+                aria-hidden="true"
+              />
+            </a>
+            {" e "}
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art86"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+            >
+              Art. 86 (Adesão a Ata)
+              <ExternalLink
+                className="ml-0.5 inline h-3 w-3"
+                aria-hidden="true"
+              />
+            </a>
+            .
+          </div>
+        </div>
+      )}
+
+      {/* Warning Alert Banner - Fracionamento */}
       {numCasosFracionamento > 0 && (
         <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
           <span className="mt-0.5 shrink-0 text-base">⚠️</span>
@@ -119,27 +225,11 @@ export default async function LicitacoesPage({
         </div>
       )}
 
-      {/* Section 1: Distribuição por modalidade */}
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between border-ink border-t-2 pt-8">
-          <h2 className="font-bold font-serif text-slate-900 text-xl">
-            Distribuição por modalidade
-          </h2>
-          <span className="font-medium text-slate-400 text-xs">
-            valor contratado · quantidade
-          </span>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
-          {modalidades.length === 0 ? (
-            <div className="py-6 text-center text-slate-400 text-xs italic">
-              Nenhuma informação de modalidade disponível para o período.
-            </div>
-          ) : (
-            <DistribucaoModalidadesChart data={modalidades} />
-          )}
-        </div>
-      </section>
+      {/* Section: Licitações Abertas e em Andamento */}
+      <LicitacoesEmAndamentoSection
+        licitacoes={licitacoesEmAndamento}
+        itensByLicitacao={itensByLicitacao}
+      />
 
       {/* Section: Contratos de Serviços Vigentes */}
       <ContratosServicosVigentesSection contratos={contratosServicosVigentes} />

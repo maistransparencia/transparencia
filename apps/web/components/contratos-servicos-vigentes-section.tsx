@@ -1,7 +1,12 @@
 "use client";
 
 import type { ContratoServicoVigente } from "@transparencia/db";
-import { type Column, DenseTable, fmtDate } from "@transparencia/ui";
+import {
+  type Column,
+  DenseTable,
+  fmtDate,
+  TruncatedCellWithModal,
+} from "@transparencia/ui";
 import { useMemo, useState } from "react";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
@@ -47,12 +52,11 @@ export function ContratosServicosVigentesSection({
     if (!Array.isArray(filteredContratos)) return [];
     return filteredContratos.map((c) => ({
       ...c,
-      statusLabel:
-        c.statusExecucao === "inexecutado"
-          ? "Não Executado"
-          : c.statusExecucao === "concluido"
-            ? "Concluído"
-            : "Em Execução",
+      statusLabel: (() => {
+        if (c.statusExecucao === "inexecutado") return "Não Executado";
+        if (c.statusExecucao === "concluido") return "Concluído";
+        return "Em Execução";
+      })(),
       vigenciaFormatada: (() => {
         if (c.dataInicio && c.vencimentoAtual) {
           return `${fmtDate(c.dataInicio)} – ${fmtDate(c.vencimentoAtual)}`;
@@ -85,7 +89,21 @@ export function ContratosServicosVigentesSection({
       header: "Objeto",
       accessorKey: "objetoDescricao",
       sortable: true,
-      className: "min-w-[220px] max-w-[300px] truncate",
+      className: "min-w-[220px] max-w-[300px]",
+      renderCell: (row) => (
+        <TruncatedCellWithModal
+          text={row.objetoDescricao}
+          modalTitle={`Contrato — ${row.fornecedorNome}`}
+          characterThreshold={100}
+          maxLines={2}
+          badge={row.statusLabel}
+          secondaryText={
+            row.vigenciaFormatada
+              ? `Vigência: ${row.vigenciaFormatada}`
+              : undefined
+          }
+        />
+      ),
     },
     {
       header: "Status",
@@ -237,6 +255,9 @@ export function ContratosServicosVigentesSection({
       <DenseTable
         data={tableData}
         columns={columns}
+        renderMobileCard={(row) => (
+          <ContratoServicoVigenteCard contrato={row} />
+        )}
         searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."
         searchableKeys={["fornecedorNome", "fornecedorCnpj", "objetoDescricao"]}
         pageSize={10}

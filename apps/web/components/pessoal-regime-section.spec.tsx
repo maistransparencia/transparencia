@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import type { ServidorDivergenciaCadastralDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
   type PessoalRegimeItem,
@@ -219,5 +220,48 @@ describe("PessoalRegimeSection Component", () => {
 
     expect(screen.getByText("+4% vs 2024")).toBeInTheDocument();
     expect(screen.getByText("+8.5% vs 2024")).toBeInTheDocument();
+  });
+
+  it("renderiza botão de auditoria e abre modal com tabela de servidores divergentes", () => {
+    const mockServidoresDivergentes: ServidorDivergenciaCadastralDTO[] = [
+      {
+        matricula: "12345",
+        cargo: "Assessor Técnico",
+        orgaoNome: "Gabinete do Prefeito",
+        categoriaRegime: "comissionado",
+        categoriaFuncional: "Comissionado",
+        vinculo: "Estatutário",
+        formaProvimento: "Nomeação em Comissão",
+        proventos: 4500,
+      },
+    ];
+
+    render(
+      <PessoalRegimeSection
+        data={mockData}
+        ano={2026}
+        portalSlug="porciuncula_prefeitura"
+        totalDivergencias={1}
+        servidoresDivergentes={mockServidoresDivergentes}
+      />,
+    );
+
+    const btn = screen.getByRole("button", {
+      name: /ver lista de profissionais auditados/i,
+    });
+    expect(btn).toBeInTheDocument();
+
+    fireEvent.click(btn);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Profissionais com Divergência Cadastral Auditada — 2026",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("12345").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Assessor Técnico").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });

@@ -228,6 +228,8 @@ sources:
           - name: situacao
           - name: datae
           - name: carona
+          - name: licitacao
+          - name: proclic
 
       - name: contratos
         description: "Contratos celebrados"
@@ -320,6 +322,7 @@ sources:
           - name: tiporegime
           - name: tipocontrato
           - name: situacaofuncional
+          - name: referencia_nome
 
       - name: transferencias
         description: "Transferências a terceiros"
@@ -372,4 +375,74 @@ sources:
           - name: natureza_conta
           - name: tipo_valor
           - name: data_referencia
+          - name: data_extracao
+
+  - name: raw_pncp
+    schema: raw_pncp
+    description: "Dados brutos extraídos da API do Portal Nacional de Contratações Públicas (PNCP)"
+    tables:
+      - name: compras
+        description: "Contratações e compras públicas publicadas no PNCP"
+        meta:
+          primary_key: [numero_controle_pncp]
+        columns:
+          - name: numero_controle_pncp
+          - name: cnpj_orgao
+          - name: ano_compra
+          - name: sequencial_compra
+          - name: numero_compra
+          - name: processo
+          - name: objeto_compra
+          - name: link_sistema_origem
+          - name: modalidade_id
+          - name: modalidade_nome
+          - name: situacao_compra_id
+          - name: situacao_compra_nome
+          - name: data_publicacao_pncp
+          - name: data_abertura_proposta
+          - name: valor_total_estimado
+          - name: valor_total_homologado
+          - name: informacao_complementar
+          - name: srp
+          - name: data_extracao
+
+      - name: itens
+        description: "Itens de compras e processos licitatórios do PNCP"
+        meta:
+          primary_key: [numero_controle_pncp, numero_item]
+        columns:
+          - name: numero_controle_pncp
+          - name: cnpj_orgao
+          - name: ano_compra
+          - name: sequencial_compra
+          - name: numero_compra
+          - name: numero_item
+          - name: descricao
+          - name: material_ou_servico
+          - name: quantidade
+          - name: unidade_medida
+          - name: valor_unitario_estimado
+          - name: valor_total_estimado
+          - name: situacao_item
+          - name: criterio_julgamento
+          - name: data_extracao
+
+      - name: itens_resultados
+        description: "Resultados homologados e adjudicados de itens do PNCP"
+        meta:
+          primary_key: [numero_controle_pncp, numero_item, sequencial_resultado]
+        columns:
+          - name: numero_controle_pncp
+          - name: cnpj_orgao
+          - name: ano_compra
+          - name: sequencial_compra
+          - name: numero_item
+          - name: sequencial_resultado
+          - name: fornecedor_cnpj_cpf
+          - name: fornecedor_nome
+          - name: valor_unitario_homologado
+          - name: valor_total_homologado
+          - name: percentual_desconto
+          - name: situacao_resultado
+          - name: data_resultado
           - name: data_extracao

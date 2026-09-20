@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_arrecadado >= 0"
           name: fontes_receita_invariante_arrecadado
+          arguments:
+            expression: "total_arrecadado >= 0"
     columns:
       - name: fontes_receita_id
         data_type: text
@@ -41,63 +42,63 @@ models:
         tests:
           - not_null
       - name: receita_propria_previsto
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Previsão de receita própria municipal"
         tests:
           - not_null
       - name: receita_propria_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação de receita própria municipal"
         tests:
           - not_null
       - name: transferencias_uniao_previsto
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Previsão de transferências da União"
         tests:
           - not_null
       - name: transferencias_uniao_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação de transferências da União"
         tests:
           - not_null
       - name: transferencias_estado_previsto
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Previsão de transferências do Estado"
         tests:
           - not_null
       - name: transferencias_estado_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação de transferências do Estado"
         tests:
           - not_null
       - name: receita_extra_orcamentaria_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação total de receitas extra-orçamentárias"
         tests:
           - not_null
       - name: total_previsto
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Previsão total de receitas orçamentárias"
         tests:
           - not_null
       - name: total_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação total de receitas orçamentárias"
@@ -111,7 +112,7 @@ models:
         tests:
           - not_null
       - name: pct_propria
-        data_type: numeric
+        data_type: numeric(15, 4)
         constraints:
           - type: not_null
         description: "Percentual da receita própria em relação ao total"
@@ -125,49 +126,49 @@ models:
         tests:
           - not_null
       - name: fpm_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação específica do Fundo de Participação dos Municípios (FPM)"
         tests:
           - not_null
       - name: icms_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação específica do ICMS"
         tests:
           - not_null
       - name: iss_iptu_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação específica de tributos municipais (ISS/IPTU)"
         tests:
           - not_null
       - name: emendas_pix_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação de transferências especiais / Emendas Pix"
         tests:
           - not_null
       - name: emendas_individuais_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Arrecadação de emendas parlamentares individuais"
         tests:
           - not_null
       - name: emendas_total_arrecadado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório total de arrecadação de emendas"
         tests:
           - not_null
       - name: emendas_total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório total empenhado de emendas parlamentares"

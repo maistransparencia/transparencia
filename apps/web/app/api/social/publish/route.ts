@@ -92,7 +92,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "Campo 'type' é obrigatório (fiscal_digest | extraction | release | custom).",
+            "Campo 'type' é obrigatório (fiscal_digest | extraction | release | custom | civic_anomaly).",
         },
         { status: 400 },
       );
@@ -114,6 +114,7 @@ export async function POST(req: Request) {
       "extraction",
       "release",
       "custom",
+      "civic_anomaly",
     ] as const;
     if (!validTypes.includes(type as (typeof validTypes)[number])) {
       return NextResponse.json(

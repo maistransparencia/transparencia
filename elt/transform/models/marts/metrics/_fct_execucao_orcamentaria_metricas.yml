@@ -8,8 +8,9 @@ models:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
           name: execucao_orcamentaria_invariante_lrf
+          arguments:
+            expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
       - name: execucao_orcamentaria_id
         data_type: text
@@ -72,42 +73,42 @@ models:
         tests:
           - not_null
       - name: total_dotacao_atualizada
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de dotação atualizada no agrupamento"
         tests:
           - not_null
       - name: total_empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores empenhados no agrupamento"
         tests:
           - not_null
       - name: total_liquidado
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores liquidados no agrupamento"
         tests:
           - not_null
       - name: total_pago
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Somatório de valores pagos no agrupamento"
         tests:
           - not_null
       - name: saldo_orcamentario
-        data_type: numeric
+        data_type: numeric(15, 2)
         constraints:
           - type: not_null
         description: "Saldo orçamentário (dotação atualizada - total empenhado)"
         tests:
           - not_null
       - name: taxa_execucao
-        data_type: numeric
+        data_type: numeric(15, 4)
         constraints:
           - type: not_null
         description: "Taxa de execução orçamentária (empenhado / dotação)"

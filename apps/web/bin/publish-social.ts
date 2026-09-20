@@ -32,10 +32,15 @@ for (const envFileName of [".env.local", ".env"]) {
 function parseArgs() {
   const args = process.argv.slice(2);
   let portalSlug = "porciuncula_prefeitura";
-  let type: "fiscal_digest" | "extraction" | "release" | "custom" =
-    "fiscal_digest";
+  let type:
+    | "fiscal_digest"
+    | "extraction"
+    | "release"
+    | "custom"
+    | "civic_anomaly" = "fiscal_digest";
   let channels: SocialChannel[] | "all" = "all";
   let ano: number | undefined;
+  let anomaliaId: string | undefined;
   let text: string | undefined;
   let version: string | undefined;
   let summary: string | undefined;
@@ -54,6 +59,11 @@ function parseArgs() {
       i++;
     } else if (arg.startsWith("--type=")) {
       type = arg.slice(arg.indexOf("=") + 1) as typeof type;
+    } else if (arg === "--anomalia-id" && args[i + 1]) {
+      anomaliaId = args[i + 1];
+      i++;
+    } else if (arg.startsWith("--anomalia-id=")) {
+      anomaliaId = arg.slice(arg.indexOf("=") + 1);
     } else if (arg === "--channels" && args[i + 1]) {
       const val = args[i + 1];
       channels = val === "all" ? "all" : (val.split(",") as SocialChannel[]);
@@ -102,6 +112,7 @@ function parseArgs() {
     type,
     channels,
     ano,
+    anomaliaId,
     text,
     version,
     summary,

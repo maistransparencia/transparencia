@@ -5,11 +5,13 @@ import {
   getFolhaVsServicosMetrics,
   getFontesReceitaMetrics,
   getLicitacaoGapsMetrics,
+  getLicitacoesEmAndamentoMetrics,
   getLimiteMaximoLrfPessoal,
   getPercentualChefiasEfetivasMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
+  getRadarCivicoAlertas,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { notFound } from "next/navigation";
@@ -165,6 +167,8 @@ export async function loadVisaoGeralData(
     contratosServicosVigentes,
     lrfLimiteMaximo,
     posicaoFinanceira,
+    radarAlertas,
+    licitacoesEmAndamento,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -181,6 +185,11 @@ export async function loadVisaoGeralData(
     getContratosServicosVigentes(tenantSlug, selectedYear, empresaIds),
     getLimiteMaximoLrfPessoal(selectedYear),
     getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
+    getRadarCivicoAlertas(tenantSlug, { ano: selectedYear, limite: 6 }),
+    getLicitacoesEmAndamentoMetrics(tenantSlug, {
+      ano: selectedYear,
+      empresaIds,
+    }),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -228,5 +237,7 @@ export async function loadVisaoGeralData(
         0,
       ),
     },
+    radarAlertas: radarAlertas ?? [],
+    licitacoesEmAndamentoCount: licitacoesEmAndamento.length,
   };
 }

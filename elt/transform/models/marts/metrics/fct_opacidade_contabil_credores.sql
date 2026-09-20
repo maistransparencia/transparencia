@@ -64,8 +64,8 @@ select
     credor_codigo,
     credor_nome,
     total_empenhos,
-    total_pago,
-    pago_desvio_sensivel,
+    total_pago::numeric(15, 2) as total_pago,
+    pago_desvio_sensivel::numeric(15, 2) as pago_desvio_sensivel,
     categoria_predominante,
     amostra_objeto,
     ranking::integer as ranking

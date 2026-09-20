@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build test/ts digest/send digest/dry-run bot/post bot/dry-run db/init-roles db/fixture/dump db/test/restore
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi elt/pncp dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -35,6 +35,9 @@ check: lint format/check type-check
 
 test:
 	uv run --project elt pytest -v
+
+# PORTÃO DE QUALIDADE UNIFICADO (PARIDADE LOCAL ↔ CI)
+verify: check db/fixture/check test lint/ts test/ts build
 
 # PIPELINE
 
@@ -73,6 +76,23 @@ ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+
+elt/pncp:
+	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
+
+# DOCKER ELT
+
+docker/elt/build:
+	docker build -f elt/Dockerfile -t transparencia-elt:latest elt
+
+docker/elt/run:
+	docker run --rm --network host \
+		-e DATABASE_URL="$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" \
+		-e FLARESOLVERR_URL="$${FLARESOLVERR_URL:-http://localhost:8191/v1}" \
+		-e WEBHOOK_URL="$${WEBHOOK_URL:-http://localhost:3001/api/ingestion/webhook}" \
+		-e INTERNAL_API_SECRET="$${INTERNAL_API_SECRET:-}" \
+		-e ALERT_WEBHOOK_URL="$${ALERT_WEBHOOK_URL:-}" \
+		transparencia-elt:latest $(ARGS)
 
 # MIGRATIONS
 
@@ -113,6 +133,9 @@ dev:
 build:
 	pnpm build
 
+lint/ts:
+	pnpm lint
+
 test/ts:
 	pnpm test
 
@@ -128,22 +151,40 @@ bot/post:
 bot/dry-run:
 	pnpm --filter web social:dry-run --channels $(if $(CHANNELS),$(CHANNELS),all) --type $(if $(TYPE),$(TYPE),fiscal_digest) --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(ANO),--ano $(ANO)) $(if $(TEXT),--text "$(TEXT)") $(if $(VERSION),--version $(VERSION)) $(if $(SUMMARY),--summary "$(SUMMARY)")
 
+push/send:
+	pnpm --filter web push:send --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+push/dry-run:
+	pnpm --filter web push:dry-run --portal $(if $(PORTAL),$(PORTAL),porciuncula_prefeitura) $(if $(TITLE),--title "$(TITLE)") $(if $(BODY),--body "$(BODY)") $(if $(URL),--url "$(URL)") $(if $(TOPIC),--topic $(TOPIC))
+
+
+
 # DB TEST FIXTURE (packages/db)
-# Dump de schema (--schema-only) das tabelas fct_/dim_/seed_ do schema `public`
-# (marts dbt) do banco de dev local (porta 5544) + dados estáticos (--data-only)
-# das tabelas seed_* (constantes fiscais, portais, classificações STN) — sem
-# nenhuma linha de dado real transacional (fct_*) e sem views de staging (raw_*).
+# Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`
+# do banco de dev local (porta 5544) + dados estáticos (--data-only) das tabelas seed_*
+# (constantes fiscais, portais, classificações STN) — sem nenhuma linha de dado real
+# transacional (fct_*) e sem views de staging/intermediate.
 # Dados transacionais de teste são semeados dinamicamente via seed.ts.
+#
+# Ciclo de sincronização e governança:
+# 1. Qualquer alteração em modelos marts (elt/transform/models/marts/) ou seeds (elt/transform/seeds/)
+#    exige regerar o fixture: make db/fixture/dump
+# 2. Validar a paridade semântica entre dbt e o fixture: make db/fixture/check
 
 db/fixture/dump:
 	( \
+		set -eo pipefail ; \
+		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'public.fct_*' -t 'public.dim_*' -t 'public.seed_*' ; \
+			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'analytics.seed_*' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
-			-t 'public.seed_*' \
-	) | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
+			-t 'analytics.seed_*' \
+	) | grep -v -E '^(\\restrict|\\unrestrict|SET transaction_timeout = 0;)' | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
+
+db/fixture/check:
+	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
 
 db/test/restore:
 	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"

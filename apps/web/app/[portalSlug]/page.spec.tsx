@@ -83,6 +83,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       ],
       previdencia: [],
     },
+    radarAlertas: [],
     ...overrides,
   } as unknown as RawData;
 }
@@ -93,12 +94,13 @@ const props = {
 };
 
 describe("VisaoGeralPage", () => {
-  it("happy-path: renderiza hero, card resumo de saldo em caixa e pipeline de execução", async () => {
+  it("happy-path: renderiza hero, radar cívico municipal, card resumo de saldo em caixa e pipeline de execução", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
 
     const element = await VisaoGeralPage(props);
     render(element);
 
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /disponibilidade em caixa e bancos/i,
@@ -110,6 +112,40 @@ describe("VisaoGeralPage", () => {
         name: /ver detalhamento por entidade em execução orçamentária/i,
       }),
     ).toBeInTheDocument();
+  });
+
+  it("renderiza cards no radar cívico quando existirem anomalias no exercício", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        radarAlertas: [
+          {
+            anomaliaId: "anomalia-1",
+            portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
+            tipoAnomalia: "explosao_comissionados",
+            dimensaoReferencia: "comissionados",
+            grauSeveridade: "critico",
+            desvioPercentual: 65,
+            valorObservado: 165,
+            valorEsperado: 100,
+            mesInicial: 1,
+            mesFinal: 12,
+            deepLinkRota:
+              "/porciuncula_prefeitura/pessoal?ano=2024#comissionados",
+            metodoDeteccao: "iqr_estoque",
+          },
+        ],
+      }),
+    );
+
+    const element = await VisaoGeralPage(props);
+    render(element);
+
+    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Variação em Cargos Comissionados"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("radar-whatsapp-button")).toBeInTheDocument();
   });
 
   it("renderiza fallback amigável quando posicaoFinanceira for nula", async () => {

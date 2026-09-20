@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: stg_pncp__compras
+    description: "Staging das contratações públicas publicadas no PNCP"
+    columns:
+      - name: numero_controle_pncp
+        tests:
+          - not_null
+          - unique
+      - name: ano_compra
+      - name: objeto_compra
+
+  - name: stg_pncp__itens
+    description: "Staging dos itens licitados no PNCP"
+    columns:
+      - name: numero_controle_pncp
+        tests:
+          - not_null
+      - name: numero_item
+        tests:
+          - not_null
+
+  - name: stg_pncp__itens_resultados
+    description: "Staging dos resultados homologados de itens no PNCP"
+    columns:
+      - name: numero_controle_pncp
+        tests:
+          - not_null
+      - name: numero_item
+        tests:
+          - not_null
+      - name: sequencial_resultado
+        tests:
+          - not_null

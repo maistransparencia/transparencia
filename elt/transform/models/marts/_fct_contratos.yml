@@ -42,13 +42,14 @@ models:
       - name: objeto
         data_type: text
       - name: valor_contrato
-        data_type: numeric
+        data_type: numeric(15, 2)
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              row_condition: "valor_contrato is not null"
+              arguments:
+                min_value: 0
+                row_condition: "valor_contrato is not null"
       - name: valor_aditado
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: licitacao_numero
         data_type: text
       - name: modalidade
@@ -62,7 +63,7 @@ models:
       - name: fundlegal
         data_type: text
       - name: empenhado
-        data_type: numeric
+        data_type: numeric(15, 2)
       - name: objeto_completo
         data_type: text
       - name: data_inicio
@@ -70,7 +71,7 @@ models:
       - name: vencimento_atual
         data_type: date
       - name: saldo_a_empenhar
-        data_type: numeric
+        data_type: numeric(15, 2)
 
 unit_tests:
   - name: test_fct_contratos_geracao_chave_e_mapeamento

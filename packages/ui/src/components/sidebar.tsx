@@ -10,6 +10,7 @@ import {
   Mail,
   PieChart,
   Receipt,
+  ShieldAlert,
   TrendingUp,
   Users,
   X,
@@ -50,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: "Saúde", href: "/saude", icon: HeartPulse },
       { name: "CAPREM", href: "/caprem", icon: Landmark },
+      { name: "Radar Cívico", href: "/radar", icon: ShieldAlert },
     ],
   },
 ];
@@ -69,8 +71,9 @@ export interface SidebarProps {
   onEntidadesChange?: (selectedIds: string[]) => void;
   portalSlug?: string;
   onOpenNewsletter?: () => void;
-  socialLinksSlot?: React.ReactNode;
+  pushNotificationSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
+  mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
@@ -155,8 +158,9 @@ export function Sidebar({
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
   onOpenNewsletter,
-  socialLinksSlot,
+  pushNotificationSlot,
   mobileHeaderRightSlot,
+  mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
 }: SidebarProps) {
@@ -243,35 +247,43 @@ export function Sidebar({
   return (
     <>
       {/* Top Header Móvel (< md) */}
-      <div className="sticky top-0 z-30 flex w-full items-center justify-between border-borderLine border-b bg-white px-4 py-2.5 shadow-xs md:hidden">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
-            {!imgError && normalizedBrasao ? (
-              /* biome-ignore lint/performance/noImgElement: brasao asset */
-              <img
-                src={normalizedBrasao}
-                alt={`Brasão de ${portalName}`}
-                className="h-full w-full object-contain"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <Landmark strokeWidth={1.6} className="h-4 w-4 text-subtleText" />
-            )}
-          </div>
-          <div className="min-w-0 space-y-1">
-            <span className="block truncate font-bold font-serif text-ink text-sm leading-none">
+      <div className="sticky top-0 z-30 w-full border-borderLine border-b bg-white px-4 py-2 shadow-xs md:hidden">
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
+              {!imgError && normalizedBrasao ? (
+                /* biome-ignore lint/performance/noImgElement: brasao asset */
+                <img
+                  src={normalizedBrasao}
+                  alt={`Brasão de ${portalName}`}
+                  className="h-full w-full object-contain"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <Landmark
+                  strokeWidth={1.6}
+                  className="h-3.5 w-3.5 text-subtleText"
+                />
+              )}
+            </div>
+            <span className="truncate font-bold font-serif text-ink text-sm leading-none">
               {displayTitle}
             </span>
-            <div className="flex items-center gap-3 text-sm text-subtleText leading-none">
-              <YearSelect
-                years={years}
-                selectedYear={currentExercice}
-                onChange={handleExerciceChange}
-                variant="compact"
-              />
-              {mobileHeaderRightSlot}
-            </div>
           </div>
+
+          {mobileHeaderActionSlot && (
+            <div className="shrink-0">{mobileHeaderActionSlot}</div>
+          )}
+        </div>
+
+        <div className="mt-2 flex items-center gap-3 border-slate-100 border-t pt-1.5 text-subtleText text-xs">
+          <YearSelect
+            years={years}
+            selectedYear={currentExercice}
+            onChange={handleExerciceChange}
+            variant="compact"
+          />
+          {mobileHeaderRightSlot}
         </div>
       </div>
 
@@ -451,8 +463,10 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Newsletter, Social Links e Data de Extração */}
+        {/* Rodapé com Newsletter, Push, Social Links e Data de Extração */}
         <div className="space-y-3 border-borderLine border-t bg-gray-50/50 p-4">
+          {pushNotificationSlot}
+
           {onOpenNewsletter && (
             <button
               type="button"
@@ -465,15 +479,6 @@ export function Sidebar({
               <Mail strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0" />
               <span>Receber Alertas por E-mail</span>
             </button>
-          )}
-
-          {socialLinksSlot && (
-            <div className="flex items-center justify-between border-borderLine/60 border-t pt-2">
-              <span className="font-medium text-[11px] text-mutedText">
-                Redes
-              </span>
-              {socialLinksSlot}
-            </div>
           )}
 
           <div className="space-y-1.5 border-borderLine/60 border-t pt-2">

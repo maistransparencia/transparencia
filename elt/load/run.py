@@ -41,16 +41,18 @@ def _sanitize_key(k: str) -> str:
 
 
 def _extract_month(row: dict) -> str | None:
+    if "referencia_nome" in row and row["referencia_nome"]:
+        parts = row["referencia_nome"].split(" - ")
+        if len(parts) > 1:
+            mes = _MONTH_MAP.get(parts[1].strip())
+            if mes:
+                return mes
     for field in ["dtassi", "datae", "dtpublic", "dataadmissao"]:
         if field in row and row[field]:
             try:
                 return datetime.strptime(row[field], "%d/%m/%Y %H:%M:%S").strftime("%m")
             except ValueError:
                 continue
-    if "referencia_nome" in row and row["referencia_nome"]:
-        parts = row["referencia_nome"].split(" - ")
-        if len(parts) > 1:
-            return _MONTH_MAP.get(parts[1].strip())
     return None
 
 
@@ -181,6 +183,25 @@ def main() -> None:
                     count,
                     schema,
                 )
+            if table == "pncp":
+                from elt.load.pncp import (
+                    ensure_pncp_tables,
+                    load_pncp_compras,
+                    load_pncp_itens,
+                    load_pncp_itens_resultados,
+                )
+
+                ensure_pncp_tables(engine)
+                raw_data = json.loads(json_file.read_text(encoding="utf-8"))
+                if json_file.name == "compras.json":
+                    count = load_pncp_compras(engine, raw_data)
+                    logger.info("Loaded pncp/compras.json → %d rows into raw_pncp.compras", count)
+                elif json_file.name == "itens.json":
+                    count = load_pncp_itens(engine, raw_data)
+                    logger.info("Loaded pncp/itens.json → %d rows into raw_pncp.itens", count)
+                elif json_file.name == "itens_resultados.json":
+                    count = load_pncp_itens_resultados(engine, raw_data)
+                    logger.info("Loaded pncp/itens_resultados.json → %d rows into raw_pncp.itens_resultados", count)
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue
