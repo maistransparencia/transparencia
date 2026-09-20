@@ -49,18 +49,20 @@ class PipelineHelper:
     @staticmethod
     def extract_month(row: dict) -> str | None:
         """Attempts to parse and extract a standardized two-digit month string from a data row."""
+        if "referencia_nome" in row and row["referencia_nome"]:
+            parts = row["referencia_nome"].split(" - ")
+            if len(parts) > 1:
+                mes = parts[1].strip()
+                result = _MONTH_MAP.get(mes)
+                if result:
+                    return result
+
         for field in ["dtassi", "datae", "dtpublic", "dataadmissao"]:
             if field in row and row[field]:
                 try:
                     return datetime.strptime(row[field], "%d/%m/%Y %H:%M:%S").strftime("%m")
                 except ValueError:
                     continue
-
-        if "referencia_nome" in row and row["referencia_nome"]:
-            parts = row["referencia_nome"].split(" - ")
-            if len(parts) > 1:
-                mes = parts[1].strip()
-                return _MONTH_MAP.get(mes)
 
         return None
 

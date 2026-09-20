@@ -41,16 +41,18 @@ def _sanitize_key(k: str) -> str:
 
 
 def _extract_month(row: dict) -> str | None:
+    if "referencia_nome" in row and row["referencia_nome"]:
+        parts = row["referencia_nome"].split(" - ")
+        if len(parts) > 1:
+            mes = _MONTH_MAP.get(parts[1].strip())
+            if mes:
+                return mes
     for field in ["dtassi", "datae", "dtpublic", "dataadmissao"]:
         if field in row and row[field]:
             try:
                 return datetime.strptime(row[field], "%d/%m/%Y %H:%M:%S").strftime("%m")
             except ValueError:
                 continue
-    if "referencia_nome" in row and row["referencia_nome"]:
-        parts = row["referencia_nome"].split(" - ")
-        if len(parts) > 1:
-            return _MONTH_MAP.get(parts[1].strip())
     return None
 
 
