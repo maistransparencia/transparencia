@@ -17,6 +17,7 @@ import {
 } from "@transparencia/ui";
 import { ExternalLink, Info, UserCheck } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PessoalRegimeItem extends PessoalRegimeMetricsDTO {
@@ -148,6 +149,10 @@ export function PessoalRegimeSection({
           className: "whitespace-nowrap",
           renderCell: (row) => {
             const style = getRegimeStyle(row.categoriaRegime);
+            const rotulo =
+              CATEGORIA_REGIME_LABELS[
+                row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
+              ] ?? row.categoriaRegime;
             return (
               <span
                 className={cn(
@@ -155,7 +160,7 @@ export function PessoalRegimeSection({
                   style.badge,
                 )}
               >
-                {row.categoriaRegime}
+                {rotulo}
               </span>
             );
           },
@@ -180,6 +185,10 @@ export function PessoalRegimeSection({
     row: ServidorDivergenciaCadastralDTO,
   ) => {
     const style = getRegimeStyle(row.categoriaRegime);
+    const rotulo =
+      CATEGORIA_REGIME_LABELS[
+        row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
+      ] ?? row.categoriaRegime;
     return (
       <article className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs">
         <div className="space-y-2">
@@ -200,7 +209,7 @@ export function PessoalRegimeSection({
                 style.badge,
               )}
             >
-              {row.categoriaRegime}
+              {rotulo}
             </span>
           </div>
 
