@@ -26,6 +26,7 @@ export interface PessoalRegimeMetricsDTO {
   proventoMedio: number;
   percentualProfissionais: number;
   percentualFolha: number;
+  mesReferencia?: number;
 }
 
 export interface GetPessoalRegimeMetricsOptions {
@@ -53,6 +54,7 @@ export async function getPessoalRegimeMetrics(
       (eb) =>
         eb.fn.sum<string>("total_profissionais").as("total_profissionais"),
       (eb) => eb.fn.sum<string>("total_proventos").as("total_proventos"),
+      (eb) => eb.fn.max<number>("mes_referencia").as("mes_referencia"),
     ])
     .where("portal_slug", "=", portalSlug)
     .where("ano", "=", ano);
@@ -101,6 +103,8 @@ export async function getPessoalRegimeMetrics(
         proventoMedio,
         percentualProfissionais,
         percentualFolha,
+        mesReferencia:
+          r.mes_referencia != null ? Number(r.mes_referencia) : undefined,
       };
     })
     .sort((a, b) => {

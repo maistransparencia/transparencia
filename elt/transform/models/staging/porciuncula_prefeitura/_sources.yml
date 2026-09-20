@@ -322,6 +322,7 @@ sources:
           - name: tiporegime
           - name: tipocontrato
           - name: situacaofuncional
+          - name: referencia_nome
 
       - name: transferencias
         description: "Transferências a terceiros"

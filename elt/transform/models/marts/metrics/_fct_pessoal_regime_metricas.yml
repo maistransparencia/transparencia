@@ -25,6 +25,15 @@ models:
         description: Categoria do regime jurídico e vínculo funcional (lowercase snake_case).
         tests:
           - not_null
+      - name: mes_referencia
+        description: Mês da folha de pagamento de referência (ex. 1, 7).
+        data_type: integer
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 12
       - name: total_profissionais
         description: Contagem total de profissionais no regime e ano.
         tests:
@@ -53,10 +62,10 @@ unit_tests:
     given:
       - input: ref('fct_pessoal')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 3000.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 5000.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "comissionado", proventos: 2000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes: 7, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 3000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes: 7, empresa_id: "1", categoria_regime: "efetivo_concurso", proventos: 5000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes: 7, empresa_id: "1", categoria_regime: "comissionado", proventos: 2000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", total_profissionais: 2, total_proventos: 8000.00, provento_medio: 4000.00, percentual_profissionais: 66.67, percentual_folha: 80.00 }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "comissionado", total_profissionais: 1, total_proventos: 2000.00, provento_medio: 2000.00, percentual_profissionais: 33.33, percentual_folha: 20.00 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "efetivo_concurso", mes_referencia: 7, total_profissionais: 2, total_proventos: 8000.00, provento_medio: 4000.00, percentual_profissionais: 66.67, percentual_folha: 80.00 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", categoria_regime: "comissionado", mes_referencia: 7, total_profissionais: 1, total_proventos: 2000.00, provento_medio: 2000.00, percentual_profissionais: 33.33, percentual_folha: 20.00 }

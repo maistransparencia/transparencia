@@ -1,6 +1,8 @@
+from datetime import datetime
 from urllib.parse import urlencode
 
 from elt.core.config import PortalConfig
+from elt.extract import base
 from elt.extract.base import EndpointConfig
 from elt.extract.porciuncula_prefeitura.extractor import PorciunculaExtractor
 
@@ -148,6 +150,47 @@ class PessoalExtractor(PorciunculaExtractor):
             "MesFinalPeriodo": "01",
         }
         return f"{self.base_url}{self.base_path}?{urlencode(params)}"
+
+    def extract(self, empresa_id: str, year: int) -> list[dict]:
+        all_rows: list[dict] = []
+        current_year = datetime.now().year
+        for mes_int in range(1, 13):
+            mes_str = f"{mes_int:02d}"
+            params = {
+                "ConectarExercicio": str(year),
+                "Listagem": self.listagem,
+                "Empresa": str(empresa_id),
+                "Ano": str(year),
+                "MesFinalPeriodo": mes_str,
+            }
+            url = f"{self.base_url}{self.base_path}?{urlencode(params)}"
+            self.logger.info(
+                "Extraindo pessoal empresa=%s ano=%s mes=%s...",
+                empresa_id,
+                year,
+                mes_str,
+            )
+            try:
+                rows = base.fetch(url)
+                if not rows:
+                    if mes_int == 1:
+                        # Entidades sem folha cadastrada não possuem dados em nenhum mês
+                        break
+                    if year >= current_year:
+                        break
+                    continue
+                all_rows.extend(rows)
+            except Exception as e:
+                self.logger.warning(
+                    "Erro ao extrair pessoal empresa=%s ano=%s mes=%s: %s",
+                    empresa_id,
+                    year,
+                    mes_str,
+                    e,
+                )
+                if year >= current_year:
+                    break
+        return all_rows
 
 
 ENDPOINT_CONFIGS: list[EndpointConfig] = [

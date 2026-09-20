@@ -5,6 +5,7 @@ with porciuncula as (
     select
         'porciuncula_prefeitura' as portal_slug,
         ano,
+        mes,
         empresa_id,
         proventos,
         categoria_funcional,
@@ -88,6 +89,7 @@ with porciuncula as (
 select
     portal_slug,
     ano,
+    mes,
     empresa_id,
     proventos,
     categoria_funcional,

@@ -5,6 +5,7 @@ with pessoal as (
     select
         portal_slug,
         ano,
+        mes,
         empresa_id,
         proventos,
         categoria_funcional,
@@ -20,6 +21,7 @@ with pessoal as (
 select
     portal_slug,
     ano,
+    mes,
     empresa_id,
     proventos::numeric(15, 2) as proventos,
     categoria_funcional,

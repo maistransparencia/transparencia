@@ -6,6 +6,7 @@ with agregacao as (
         ano,
         coalesce(nullif(ltrim(empresa_id, '0'), ''), '0') as empresa_id,
         categoria_regime,
+        max(mes)::integer as mes_referencia,
         count(*)::integer as total_profissionais,
         coalesce(sum(proventos), 0)::numeric(15, 2) as total_proventos
     from {{ ref('fct_pessoal') }}
@@ -18,6 +19,7 @@ com_totais as (
         ano,
         empresa_id,
         categoria_regime,
+        mes_referencia,
         total_profissionais,
         total_proventos,
         case
@@ -49,6 +51,7 @@ select
     ano,
     empresa_id,
     categoria_regime,
+    mes_referencia,
     total_profissionais,
     total_proventos,
     provento_medio,

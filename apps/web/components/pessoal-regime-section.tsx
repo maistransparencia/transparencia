@@ -97,6 +97,21 @@ function getRegimeStyle(categoria: string): RegimeStyle {
   }
 }
 
+const MESES_NOME: Record<number, string> = {
+  1: "Janeiro",
+  2: "Fevereiro",
+  3: "Março",
+  4: "Abril",
+  5: "Maio",
+  6: "Junho",
+  7: "Julho",
+  8: "Agosto",
+  9: "Setembro",
+  10: "Outubro",
+  11: "Novembro",
+  12: "Dezembro",
+};
+
 export function PessoalRegimeSection({
   data,
   ano,
@@ -106,6 +121,14 @@ export function PessoalRegimeSection({
   className = "",
 }: PessoalRegimeSectionProps) {
   const [isDivergenciasModalOpen, setIsDivergenciasModalOpen] = useState(false);
+
+  const mesTexto = (() => {
+    const mesRef = data?.[0]?.mesReferencia;
+    if (mesRef && MESES_NOME[mesRef]) {
+      return `${MESES_NOME[mesRef]} de ${ano}`;
+    }
+    return `exercício de ${ano}`;
+  })();
 
   const divergenciasColumns: Column<ServidorDivergenciaCadastralDTO>[] =
     useMemo(
@@ -310,8 +333,8 @@ export function PessoalRegimeSection({
           </div>
           <p className="text-slate-500 text-xs sm:text-sm">
             Distribuição dos {fmtNumber(totalProfissionais)} profissionais e{" "}
-            {fmtCompact(totalFolha)} na folha mensal de referência por vínculo
-            funcional e regime de contratação no exercício de {ano}.
+            {fmtCompact(totalFolha)} na folha mensal de referência ({mesTexto})
+            por vínculo funcional e regime de contratação.
           </p>
         </div>
         <div className="hidden sm:inline">
