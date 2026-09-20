@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Handshake de Conexão e Estabilidade em Servidores Serverless (`@transparencia/db`):** Configuração determinística do parâmetro `options: "-c search_path=analytics,public"` nos pools de conexão do PostgreSQL (`pool` e `writePool`). A injeção direta no pacote de inicialização (`StartupMessage`) elimina a condição de corrida assíncrona do evento não-bloqueante `pool.on("connect")` durante cold starts de funções serverless na Vercel, prevenindo falhas intermitentes de tabela inexistente (`42P01: relation does not exist`) em consultas ao schema `analytics` através de poolers em modo de transação.
+
 ## [1.10.0] - 2026-09-20
 
 ### 🌟 Destaques da Versão (Epics 10, 11 e 12: Radar Cívico de Anomalias, Automação em Nuvem e Isolamento de Schema)
