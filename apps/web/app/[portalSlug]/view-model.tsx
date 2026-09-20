@@ -175,11 +175,20 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     totalEmpenhado: 0,
   };
 
+  const countComprasAndamento = raw.licitacoesEmAndamentoCount ?? 0;
+
   const licitacoesCardData = {
     title: "Licitações e Contratos",
     linkText: "Detalhes →",
     linkHref: routeUrl("/licitacoes"),
     items: [
+      {
+        count: countComprasAndamento,
+        label:
+          countComprasAndamento === 1
+            ? "Compra em andamento"
+            : "Compras em andamento",
+      },
       {
         count: acimaLimiteCount,
         label: "Acima do limite s/ licitação",

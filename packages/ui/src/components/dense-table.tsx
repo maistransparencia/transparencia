@@ -56,6 +56,7 @@ export interface DenseTableProps<T> {
   exportFilename?: string;
   csvButtonLabel?: string;
   recordLabel?: string;
+  renderMobileCard?: (row: T) => React.ReactNode;
 }
 
 function getAriaSort(
@@ -103,6 +104,7 @@ export function DenseTable<T extends Record<string, any>>({
   exportFilename = "lancamentos.csv",
   csvButtonLabel = "Baixar CSV",
   recordLabel = "registros",
+  renderMobileCard,
 }: DenseTableProps<T>) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -345,7 +347,23 @@ export function DenseTable<T extends Record<string, any>>({
           )}
         </div>
       )}
-      <div className="overflow-x-auto">
+
+      {renderMobileCard && displayedData.length > 0 && (
+        <div className="block divide-y divide-borderLine border-borderLine border-b bg-white sm:hidden">
+          {displayedData.map((row, idx) => (
+            <div key={rowKey ? String(row[rowKey]) : idx} className="p-3.5">
+              {renderMobileCard(row)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "overflow-x-auto",
+          renderMobileCard && displayedData.length > 0 && "hidden sm:block",
+        )}
+      >
         <table className="w-full border-collapse text-left text-xs">
           <thead>
             <tr className="border-borderLine border-b bg-gray-100/70 font-semibold text-subtleText uppercase tracking-wider">

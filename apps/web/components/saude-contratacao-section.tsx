@@ -5,10 +5,12 @@ import {
   fmtCurrency,
   fmtDate,
   fmtLicitacaoModalidade,
+  fmtLicitacaoSituacao,
   fmtPercent,
   KPICard,
+  TruncatedCellWithModal,
 } from "@transparencia/ui";
-import { Calendar, Coins } from "lucide-react";
+import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
 import Link from "next/link";
 import { KPIGrid } from "@/components/kpi-grid";
 
@@ -218,53 +220,174 @@ export function SaudeContratacaoSection({
 
         {Array.isArray(licitacoesEmAndamento) &&
         licitacoesEmAndamento.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {licitacoesEmAndamento.slice(0, 6).map((lic) => {
-              const valorTxt = (() => {
-                const val = lic.valorEstimado ?? lic.valor;
-                if (typeof val === "number" && val > 0) {
-                  return fmtCurrency(val);
+              const valorEst = lic.valorEstimado ?? lic.valor;
+              const valorHom = lic.valorHomologado;
+              const economia = (() => {
+                if (valorEst && valorHom && valorHom < valorEst) {
+                  return ((valorEst - valorHom) / valorEst) * 100;
                 }
-                return "Valor não divulgado";
+                return null;
               })();
 
               return (
-                <div
+                <article
                   key={lic.licitacaoId}
-                  className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-4 text-xs"
+                  className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs transition-shadow hover:shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold font-mono text-slate-900">
-                      Processo {lic.licitacaoNumero || "S/N"}
-                    </span>
-                    <Badge variant="accent">
-                      {fmtLicitacaoModalidade(lic.modalidade)}
-                    </Badge>
-                  </div>
-                  <p
-                    className="line-clamp-2 font-medium text-slate-700"
-                    title={lic.objeto}
-                  >
-                    {lic.objeto}
-                  </p>
-                  <div className="flex items-center justify-between border-slate-200/60 border-t pt-2 text-[11px] text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" aria-hidden="true" />
-                      <span>
-                        {lic.dataAbertura
-                          ? fmtDate(lic.dataAbertura)
-                          : "Abertura não informada"}
-                      </span>
+                  <div className="space-y-3">
+                    {/* Linha 1: Badges horizontais com wrap */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant="accent">
+                        {fmtLicitacaoModalidade(lic.modalidade)}
+                      </Badge>
+                      <Badge variant="warning">
+                        {fmtLicitacaoSituacao(lic.situacao)}
+                      </Badge>
+                      {lic.fonteObjeto === "pncp" && (
+                        <span
+                          className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
+                          title="Objeto des-truncado via PNCP"
+                        >
+                          PNCP
+                        </span>
+                      )}
+                      {lic.fonteObjeto === "contrato_local" && (
+                        <span
+                          className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
+                          title="Objeto des-truncado via contrato local"
+                        >
+                          Contrato Local
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 font-bold font-serif text-slate-900">
-                      <Coins
-                        className="h-3 w-3 text-slate-400"
+
+                    {/* Linha 2: Processo e Órgão empilhados verticalmente */}
+                    <div>
+                      <span className="font-bold text-slate-900 text-sm">
+                        Processo {lic.licitacaoNumero || "S/N"}
+                      </span>
+                      {lic.entidadeNome && (
+                        <p className="mt-0.5 truncate text-slate-500 text-xs">
+                          {lic.entidadeNome}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Linha 3: Objeto com modal */}
+                    <div>
+                      <TruncatedCellWithModal
+                        text={lic.objeto}
+                        modalTitle={`Processo ${lic.licitacaoNumero || "S/N"} — Objeto da Licitação (Saúde)`}
+                        characterThreshold={120}
+                        maxLines={3}
+                        badge={(() => {
+                          if (lic.fonteObjeto === "pncp") return "PNCP";
+                          if (lic.fonteObjeto === "contrato_local")
+                            return "Contrato Local";
+                          return undefined;
+                        })()}
+                        secondaryText={
+                          lic.discriminacao && lic.discriminacao !== lic.objeto
+                            ? lic.discriminacao
+                            : undefined
+                        }
+                        externalUrl={lic.linkSistemaOrigem}
+                        externalLabel="Sala de Disputa"
+                      />
+                    </div>
+
+                    {/* Linha 4: Data de abertura */}
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+                      <Calendar
+                        className="h-3.5 w-3.5 shrink-0"
                         aria-hidden="true"
                       />
-                      <span>{valorTxt}</span>
+                      <span>
+                        Abertura:{" "}
+                        {lic.dataAbertura
+                          ? fmtDate(lic.dataAbertura)
+                          : "Não informada"}
+                      </span>
+                    </div>
+
+                    {/* Linha 5: Grade financeira 2 colunas */}
+                    <div className="grid grid-cols-2 gap-2 border-slate-100 border-t pt-2.5 text-xs">
+                      <div>
+                        <span className="block text-[11px] text-slate-400">
+                          Valor Estimado
+                        </span>
+                        <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-slate-900">
+                          <Coins
+                            className="h-3.5 w-3.5 text-slate-400"
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">
+                            {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-[11px] text-slate-400">
+                          Homologado
+                        </span>
+                        {valorHom ? (
+                          <div className="mt-0.5 flex items-center justify-end gap-1">
+                            <span className="font-bold font-serif text-emerald-700">
+                              {fmtCurrency(valorHom)}
+                            </span>
+                            {economia !== null && (
+                              <span className="inline-block rounded bg-emerald-50 px-1 py-0.5 font-semibold text-[10px] text-emerald-700">
+                                -{Math.round(economia)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="mt-0.5 flex justify-end">
+                            <span
+                              className="inline-block rounded bg-amber-50 px-1.5 py-0.5 font-medium text-[10px] text-amber-800"
+                              title="Em disputa pública ou aguardando adjudicação/homologação"
+                            >
+                              Em disputa
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Linha 6: Ações no rodapé */}
+                  <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
+                    <Link
+                      href={
+                        lic.licitacaoNumero
+                          ? `/${portalSlug}/licitacoes?numero=${encodeURIComponent(lic.licitacaoNumero)}#itens`
+                          : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
+                      }
+                      className="inline-flex items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
+                    >
+                      <Package
+                        className="h-3.5 w-3.5 text-slate-400"
+                        aria-hidden="true"
+                      />
+                      <span>Ver Itens Licitados</span>
+                    </Link>
+
+                    {lic.linkSistemaOrigem && (
+                      <a
+                        href={lic.linkSistemaOrigem}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded bg-blue-50 px-2.5 py-1 font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                        title="Acessar sala de disputa pública externa"
+                      >
+                        <span>Sala de Disputa</span>
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                </article>
               );
             })}
           </div>

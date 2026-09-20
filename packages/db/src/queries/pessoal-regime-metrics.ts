@@ -137,3 +137,78 @@ export async function getCountDivergenciasCadastraisPessoal(
 
   return parseInt(result?.total ?? "0", 10) || 0;
 }
+
+export interface ServidorDivergenciaCadastralDTO {
+  matricula: string;
+  cargo: string | null;
+  formaProvimento: string | null;
+  orgaoNome: string;
+  categoriaFuncional: string | null;
+  vinculo: string | null;
+  categoriaRegime: CategoriaRegime;
+  proventos: number;
+}
+
+/**
+ * Retorna a listagem nominal completa dos servidores com divergências cadastrais
+ * para auditoria cívica (Art. 37 da CF/88).
+ */
+export async function getServidoresDivergenciasCadastraisPessoal(
+  portalSlug: string,
+  ano: number,
+  options?: { empresaIds?: string[] | null },
+): Promise<ServidorDivergenciaCadastralDTO[]> {
+  if (!portalSlug || !ano || Number.isNaN(ano)) return [];
+  if (Array.isArray(options?.empresaIds) && options.empresaIds.length === 0) {
+    return [];
+  }
+
+  let query = db
+    .selectFrom("fct_pessoal as p")
+    .leftJoin("dim_orgao as o", (join) =>
+      join
+        .onRef("o.portal_slug", "=", "p.portal_slug")
+        .onRef("o.empresa_id", "=", "p.empresa_id"),
+    )
+    .select([
+      "p.matricula",
+      "p.cargo",
+      "p.forma_provimento",
+      "o.orgao_nome",
+      "p.categoria_funcional",
+      "p.vinculo",
+      "p.categoria_regime",
+      "p.proventos",
+    ])
+    .where("p.portal_slug", "=", portalSlug)
+    .where("p.ano", "=", ano)
+    .where((eb) =>
+      eb.or([
+        eb("p.vinculo", "ilike", "%agente%politico%"),
+        eb("p.categoria_funcional", "ilike", "%excepcional interesse%"),
+      ]),
+    )
+    .where("p.categoria_regime", "in", ["comissionado", "contrato_temporario"]);
+
+  if (options?.empresaIds && options.empresaIds.length > 0) {
+    query = query.where("p.empresa_id", "in", options.empresaIds);
+  }
+
+  const rows = await query
+    .orderBy("p.cargo", "asc")
+    .orderBy("p.matricula", "asc")
+    .execute();
+
+  return rows.map((r) => ({
+    matricula: String(r.matricula ?? "—"),
+    cargo: r.cargo ? String(r.cargo) : null,
+    formaProvimento: r.forma_provimento ? String(r.forma_provimento) : null,
+    orgaoNome: String(r.orgao_nome ?? "Prefeitura Municipal"),
+    categoriaFuncional: r.categoria_funcional
+      ? String(r.categoria_funcional)
+      : null,
+    vinculo: r.vinculo ? String(r.vinculo) : null,
+    categoriaRegime: (r.categoria_regime ?? "outros") as CategoriaRegime,
+    proventos: parseFloat(String(r.proventos ?? "0")) || 0,
+  }));
+}

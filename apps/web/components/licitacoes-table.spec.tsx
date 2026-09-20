@@ -190,7 +190,9 @@ describe("LicitacoesTable", () => {
     // Confirma que está na página 2 (botão 2 ativo e itens com menores valores visíveis na página 2)
     const page2Btn = screen.getByRole("button", { name: "Página 2" });
     expect(page2Btn).toHaveClass("bg-[#2b6cb0]");
-    expect(screen.getByText("Fornecedor A")).toBeInTheDocument();
+    expect(screen.getAllByText("Fornecedor A").length).toBeGreaterThanOrEqual(
+      1,
+    );
 
     // Reordena por fornecedor (A-Z asc)
     const fornecedorBtn = screen.getByRole("button", { name: /FORNECEDOR/i });
@@ -199,7 +201,9 @@ describe("LicitacoesTable", () => {
     // Deve resetar para página 1
     const page1Btn = screen.getByRole("button", { name: "Página 1" });
     expect(page1Btn).toHaveClass("bg-[#2b6cb0]");
-    expect(screen.getByText("Fornecedor A")).toBeInTheDocument();
+    expect(screen.getAllByText("Fornecedor A").length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(screen.queryByText("Fornecedor L")).not.toBeInTheDocument();
   });
 

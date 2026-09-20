@@ -317,6 +317,30 @@ describe("licitacoes-metrics", () => {
       expect(semOrgaoItem?.valor).toBe(120000);
     });
 
+    it("deve mapear valorEstimado e valorHomologado quando presentes na licitacao", async () => {
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        empresaId: "1",
+        licitacaoNumero: "015/2024",
+        modalidade: "Pregao Eletronico",
+        objeto: "Aquisição de computadores",
+        valor: 100000,
+        valorEstimado: 100000,
+        valorHomologado: 85000,
+        situacao: "em_andamento",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2024,
+      });
+
+      const item = resultado.find((r) => r.licitacaoNumero === "015/2024");
+      expect(item).toBeDefined();
+      expect(item?.valorEstimado).toBe(100000);
+      expect(item?.valorHomologado).toBe(85000);
+    });
+
     it("deve carregar fonteObjeto e linkSistemaOrigem da licitacao", async () => {
       await seedLicitacao({
         portalSlug: FIXTURE_PORTAL,

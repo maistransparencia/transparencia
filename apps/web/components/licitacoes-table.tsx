@@ -1,7 +1,13 @@
 "use client";
 
-import { type Column, cn, DenseTable, fmtCurrency } from "@transparencia/ui";
-import { useMemo } from "react";
+import {
+  type Column,
+  cn,
+  DenseTable,
+  fmtCurrency,
+  TruncatedCellWithModal,
+} from "@transparencia/ui";
+import { useEffect, useMemo, useState } from "react";
 
 export type SortColumn =
   | "fornecedor"
@@ -55,6 +61,19 @@ export function LicitacoesTable({
   pageSize = 6,
   className,
 }: LicitacoesTableProps) {
+  const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const numero = urlParams.get("numero");
+    if (numero) {
+      setHighlightedNumero(numero);
+    }
+  }, []);
+
   const columns: Column<ContratoSemLicitacaoItem>[] = useMemo(
     () => [
       {
@@ -84,6 +103,18 @@ export function LicitacoesTable({
         sortable: true,
         align: "left",
         className: "max-w-xs text-slate-600 leading-normal whitespace-normal",
+        renderCell: (row) => (
+          <TruncatedCellWithModal
+            text={row.objeto}
+            modalTitle={`Contrato ${row.numero} — ${row.fornecedor}`}
+            characterThreshold={120}
+            maxLines={2}
+            badge={row.modalidade || "Dispensa"}
+            secondaryText={
+              row.fundlegal ? `Fundamento legal: ${row.fundlegal}` : undefined
+            }
+          />
+        ),
       },
       {
         header: "MODALIDADE",
@@ -147,10 +178,86 @@ export function LicitacoesTable({
     [fracionamentoVendors],
   );
 
+  const renderContratoMobileCard = (row: ContratoSemLicitacaoItem) => {
+    const isHighlighted = highlightedNumero && row.numero === highlightedNumero;
+    const fracCount = fracionamentoVendors[row.fornecedor] || 0;
+    const valNum =
+      typeof row.valorContrato === "number"
+        ? row.valorContrato
+        : parseFloat(String(row.valorContrato ?? "0").replace(",", ".")) || 0;
+
+    return (
+      <article
+        key={row.numero}
+        id={`contrato-card-${row.numero}`}
+        className={cn(
+          "flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs transition-all",
+          isHighlighted && "animate-pulse ring-2 ring-accent ring-offset-2",
+        )}
+      >
+        <div className="space-y-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <span className="font-bold text-slate-900 text-sm">
+                Contrato {row.numero}
+              </span>
+              <p className="font-medium text-slate-600 text-xs">
+                {row.fornecedor}
+              </p>
+            </div>
+            <span
+              className={cn(
+                "inline-block rounded-md border px-2 py-0.5 font-semibold text-[10px]",
+                getModalidadeBadgeVariant(row.modalidade),
+              )}
+            >
+              {row.modalidade || "Dispensa"}
+            </span>
+          </div>
+
+          {fracCount >= 3 && (
+            <div className="inline-flex items-center gap-1 rounded border border-[#feebc8] bg-[#fffaf0] px-2 py-0.5 font-medium text-[#9c4221] text-[11px]">
+              <span>⚠️</span> {fracCount} contratos próximos ao teto
+            </div>
+          )}
+
+          <div>
+            <TruncatedCellWithModal
+              text={row.objeto}
+              modalTitle={`Contrato ${row.numero} — ${row.fornecedor}`}
+              characterThreshold={120}
+              maxLines={3}
+              badge={row.modalidade || "Dispensa"}
+              secondaryText={
+                row.fundlegal ? `Fundamento legal: ${row.fundlegal}` : undefined
+              }
+            />
+          </div>
+
+          <div className="flex items-baseline justify-between border-slate-100 border-t pt-2 text-xs">
+            <div>
+              <span className="block text-[11px] text-slate-400">Período</span>
+              <span className="font-medium text-slate-600">
+                {row.periodo || "—"}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="block text-[11px] text-slate-400">Valor</span>
+              <span className="font-bold font-serif text-slate-900 text-sm">
+                {fmtCurrency(valNum)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
   return (
     <DenseTable
       data={data}
       columns={columns}
+      renderMobileCard={renderContratoMobileCard}
       rowKey="numero"
       searchPlaceholder="Buscar fornecedor, objeto ou modalidade..."
       searchableKeys={["fornecedor", "objeto", "modalidade", "numero"]}

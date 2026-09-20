@@ -1,13 +1,23 @@
-import type { PessoalRegimeMetricsDTO } from "@transparencia/db";
+"use client";
+
+import type {
+  PessoalRegimeMetricsDTO,
+  ServidorDivergenciaCadastralDTO,
+} from "@transparencia/db";
 import {
+  type Column,
   cn,
+  DenseTable,
   fmtCompact,
   fmtCurrency,
   fmtNumber,
   fmtPercent,
+  ModalDialog,
   Tooltip,
 } from "@transparencia/ui";
-import { ExternalLink, Info } from "lucide-react";
+import { ExternalLink, Info, UserCheck } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PessoalRegimeItem extends PessoalRegimeMetricsDTO {
@@ -21,6 +31,7 @@ export interface PessoalRegimeSectionProps {
   ano: number;
   portalSlug?: string;
   totalDivergencias?: number;
+  servidoresDivergentes?: ServidorDivergenciaCadastralDTO[];
   className?: string;
 }
 
@@ -91,8 +102,145 @@ export function PessoalRegimeSection({
   ano,
   portalSlug,
   totalDivergencias,
+  servidoresDivergentes = [],
   className = "",
 }: PessoalRegimeSectionProps) {
+  const [isDivergenciasModalOpen, setIsDivergenciasModalOpen] = useState(false);
+
+  const divergenciasColumns: Column<ServidorDivergenciaCadastralDTO>[] =
+    useMemo(
+      () => [
+        {
+          header: "Matrícula",
+          accessorKey: "matricula",
+          sortable: true,
+          className: "whitespace-nowrap font-mono text-xs text-slate-500",
+          renderCell: (row) => row.matricula || "—",
+        },
+        {
+          header: "Cargo / Função",
+          accessorKey: "cargo",
+          sortable: true,
+          className: "min-w-[160px] font-semibold text-slate-900",
+          renderCell: (row) => row.cargo || "—",
+        },
+        {
+          header: "Órgão",
+          accessorKey: "orgaoNome",
+          sortable: true,
+          className: "min-w-[140px] text-slate-600",
+          renderCell: (row) => row.orgaoNome || "—",
+        },
+        {
+          header: "Vínculo Declarado",
+          accessorKey: "vinculo",
+          sortable: true,
+          className: "whitespace-nowrap",
+          renderCell: (row) => (
+            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
+              {row.vinculo || row.categoriaFuncional || "Não especificado"}
+            </span>
+          ),
+        },
+        {
+          header: "Regime Harmonizado",
+          accessorKey: "categoriaRegime",
+          sortable: true,
+          className: "whitespace-nowrap",
+          renderCell: (row) => {
+            const style = getRegimeStyle(row.categoriaRegime);
+            const rotulo =
+              CATEGORIA_REGIME_LABELS[
+                row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
+              ] ?? row.categoriaRegime;
+            return (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[11px]",
+                  style.badge,
+                )}
+              >
+                {rotulo}
+              </span>
+            );
+          },
+        },
+        {
+          header: "Proventos",
+          accessorKey: "proventos",
+          sortable: true,
+          align: "right",
+          isSerifNumeric: true,
+          renderCell: (row) => (
+            <span className="font-bold font-serif text-slate-900">
+              {fmtCurrency(row.proventos)}
+            </span>
+          ),
+        },
+      ],
+      [],
+    );
+
+  const renderDivergenciaMobileCard = (
+    row: ServidorDivergenciaCadastralDTO,
+  ) => {
+    const style = getRegimeStyle(row.categoriaRegime);
+    const rotulo =
+      CATEGORIA_REGIME_LABELS[
+        row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
+      ] ?? row.categoriaRegime;
+    return (
+      <article className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs">
+        <div className="space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <span className="font-bold text-slate-900 text-sm">
+                {row.cargo || "Cargo não informado"}
+              </span>
+              {row.matricula && (
+                <span className="ml-1.5 font-mono text-[11px] text-slate-400">
+                  #{row.matricula}
+                </span>
+              )}
+            </div>
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[10px]",
+                style.badge,
+              )}
+            >
+              {rotulo}
+            </span>
+          </div>
+
+          <div className="text-slate-600 text-xs">
+            {row.orgaoNome && (
+              <span className="block text-[11px] text-slate-500">
+                {row.orgaoNome}
+              </span>
+            )}
+          </div>
+
+          <div className="rounded-lg bg-slate-50 p-2 text-xs">
+            <span className="block font-semibold text-[10px] text-slate-400 uppercase">
+              Vínculo Declarado na Origem
+            </span>
+            <span className="font-medium text-slate-700">
+              {row.vinculo || row.categoriaFuncional || "Não especificado"}
+            </span>
+          </div>
+
+          <div className="flex items-baseline justify-between border-slate-100 border-t pt-2 text-xs">
+            <span className="text-[11px] text-slate-400">Proventos Brutos</span>
+            <span className="font-bold font-serif text-slate-900 text-sm">
+              {fmtCurrency(row.proventos)}
+            </span>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
   if (!data || data.length === 0) {
     return (
       <section
@@ -127,6 +275,7 @@ export function PessoalRegimeSection({
 
   return (
     <section
+      id="regime"
       aria-label="Quadro e Folha por Regime Jurídico"
       className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
     >
@@ -375,7 +524,7 @@ export function PessoalRegimeSection({
             className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
             aria-hidden="true"
           />
-          <div className="space-y-1 text-xs leading-relaxed">
+          <div className="space-y-2 text-xs leading-relaxed">
             <h4 className="font-semibold text-slate-900 text-sm">
               Harmonização de Vínculos Cadastrais
             </h4>
@@ -402,9 +551,68 @@ export function PessoalRegimeSection({
               </a>
               .
             </p>
+            {servidoresDivergentes && servidoresDivergentes.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsDivergenciasModalOpen(true)}
+                  className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-700 text-xs shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <UserCheck className="h-3.5 w-3.5 text-slate-500" />
+                  <span>
+                    Ver lista de profissionais auditados (
+                    {servidoresDivergentes.length})
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : null}
+
+      {/* Modal de Auditoria Nominal de Inconsistências de Vínculos */}
+      <ModalDialog
+        isOpen={isDivergenciasModalOpen}
+        onClose={() => setIsDivergenciasModalOpen(false)}
+        title={`Profissionais com Divergência Cadastral Auditada — ${ano}`}
+        subtitle={`Relação dos ${servidoresDivergentes.length} servidores municipais com harmonização de regime jurídico em ${ano}.`}
+        maxWidth="5xl"
+        footer={
+          <div className="flex w-full items-center justify-between text-slate-500 text-xs">
+            <span>{servidoresDivergentes.length} profissionais listados</span>
+            <button
+              type="button"
+              onClick={() => setIsDivergenciasModalOpen(false)}
+              className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200"
+            >
+              Fechar
+            </button>
+          </div>
+        }
+      >
+        <DenseTable
+          data={servidoresDivergentes}
+          columns={divergenciasColumns}
+          renderMobileCard={renderDivergenciaMobileCard}
+          searchPlaceholder="Buscar por matrícula, cargo ou órgão..."
+          searchableKeys={[
+            "matricula",
+            "cargo",
+            "orgaoNome",
+            "vinculo",
+            "categoriaFuncional",
+            "categoriaRegime",
+          ]}
+          pageSize={10}
+          sortable={true}
+          defaultSortKey="proventos"
+          defaultSortDir="desc"
+          enableExportCsv={true}
+          exportFilename={`divergencias_cadastrais_pessoal_${ano}.csv`}
+          recordLabel="profissionais"
+          rowKey="matricula"
+        />
+      </ModalDialog>
     </section>
   );
 }

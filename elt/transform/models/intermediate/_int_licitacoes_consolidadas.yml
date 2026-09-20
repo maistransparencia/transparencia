@@ -30,6 +30,10 @@ models:
         data_type: text
       - name: valor
         data_type: numeric
+      - name: valor_estimado
+        data_type: numeric
+      - name: valor_homologado
+        data_type: numeric
       - name: data_abertura
         data_type: date
       - name: carona

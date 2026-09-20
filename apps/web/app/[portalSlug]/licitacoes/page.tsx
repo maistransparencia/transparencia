@@ -2,7 +2,6 @@ import { cn, fmtCurrency, fmtPercent, KPICard } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
-import { DistribucaoModalidadesChart } from "@/components/distribuicao-modalidades-chart";
 import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { LicitacoesTable } from "@/components/licitacoes-table";
@@ -53,7 +52,6 @@ export default async function LicitacoesPage({
     gaps,
     adesao,
     adesaoExterna,
-    modalidades,
     acimaLimiteGaps,
     limiteDispensaComprasServicos,
     fracionamentoVendorsMap,
@@ -235,25 +233,6 @@ export default async function LicitacoesPage({
 
       {/* Section: Contratos de Serviços Vigentes */}
       <ContratosServicosVigentesSection contratos={contratosServicosVigentes} />
-
-      <div className="flex items-baseline justify-between border-ink border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-slate-900 text-xl">
-          Distribuição de contratos por modalidade
-        </h2>
-        <span className="font-medium text-slate-400 text-xs">
-          valor contratado · quantidade
-        </span>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
-        {modalidades.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 text-xs italic">
-            Nenhuma informação de modalidade disponível para o período.
-          </div>
-        ) : (
-          <DistribucaoModalidadesChart data={modalidades} />
-        )}
-      </div>
 
       {/* Section 2: Contratos acima do limite, sem licitação */}
       <section className="space-y-4">
