@@ -121,7 +121,7 @@ export function EntidadeSelectCompact({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-fit max-w-[130px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400 sm:max-w-[150px]",
+        "relative w-fit max-w-[200px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400 sm:max-w-[260px]",
         className,
       )}
     >

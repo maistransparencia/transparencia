@@ -203,7 +203,7 @@ export function RadarAnomaliaCard({
 
         {/* Tabela de métricas comparativas harmoniosa */}
         <div className="mt-4 rounded-xl border border-slate-200/80 bg-[#f8f9fb] p-3 text-xs">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-3">
             <div>
               <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                 Observado
@@ -220,7 +220,7 @@ export function RadarAnomaliaCard({
                 {card.valorEsperadoFormatted}
               </span>
             </div>
-            <div>
+            <div className="col-span-2 border-slate-200/60 border-t pt-2 sm:col-span-1 sm:border-0 sm:pt-0">
               <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                 Variação
               </span>
@@ -255,9 +255,9 @@ export function RadarAnomaliaCard({
           href={card.ctaUrl}
           onClick={handleCtaClick}
           data-testid="radar-cta-link"
-          className="inline-flex min-w-0 items-center gap-1 truncate font-semibold text-accent text-xs hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
+          className="inline-flex min-w-0 items-center gap-1 font-semibold text-accent text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
         >
-          <span className="truncate">{card.ctaLabel}</span>
+          <span>{card.ctaLabel}</span>
           <ArrowRight className="h-3.5 w-3.5 shrink-0" />
         </Link>
 

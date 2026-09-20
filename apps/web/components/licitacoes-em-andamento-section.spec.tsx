@@ -328,12 +328,10 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(screen.getAllByText("-25%").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("exibe 'Em disputa / Aguardando homologação' quando valorHomologado é nulo", () => {
+  it("exibe badge 'Em disputa' quando valorHomologado é nulo", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={[sampleItems[0]]} />);
 
-    expect(
-      screen.getAllByText(/Aguardando homologação/i).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Em disputa/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it("abre automaticamente o modal de itens quando URL possui ?numero=...#itens", () => {

@@ -54,12 +54,17 @@ export function TruncatedCellWithModal({
     return <span className={className}>—</span>;
   }
 
-  const isTruncated = text.length > characterThreshold;
+  const isTruncated = text.length > characterThreshold || text.includes("\n");
 
   if (!isTruncated) {
     return (
-      <div className={className}>
-        <span>{text}</span>
+      <div
+        className={cn(
+          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          className,
+        )}
+      >
+        <span className="text-inherit leading-relaxed">{text}</span>
         {secondaryText && (
           <p
             className="line-clamp-1 pt-0.5 text-[11px] text-slate-400 italic"
@@ -89,7 +94,12 @@ export function TruncatedCellWithModal({
 
   return (
     <>
-      <div className={cn("text-left", className)}>
+      <div
+        className={cn(
+          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          className,
+        )}
+      >
         <p
           style={{
             display: "-webkit-box",
@@ -97,7 +107,7 @@ export function TruncatedCellWithModal({
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
-          className="text-inherit leading-snug"
+          className="text-inherit leading-relaxed"
         >
           {text}
         </p>

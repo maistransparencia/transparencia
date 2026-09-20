@@ -102,15 +102,13 @@ export function ContratoServicoVigenteCard({
               modalTitle={`Contrato — ${fornecedorNome}`}
               characterThreshold={100}
               maxLines={2}
+              className="font-normal text-slate-700 text-xs leading-relaxed"
               badge={(() => {
                 if (contrato.statusExecucao === "inexecutado")
                   return "Não Executado";
                 if (contrato.statusExecucao === "concluido") return "Concluído";
                 return "Em Execução";
               })()}
-              secondaryText={
-                vigenciaText ? `Vigência: ${vigenciaText}` : undefined
-              }
             />
           </div>
         )}

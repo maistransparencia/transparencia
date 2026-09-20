@@ -330,24 +330,42 @@ export function LicitacoesEmAndamentoSection({
           isHighlighted && "animate-pulse ring-2 ring-accent ring-offset-2",
         )}
       >
-        <div className="space-y-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <span className="font-bold text-slate-900 text-sm">
-                Processo {row.licitacaoNumero || "S/N"}
+        <div className="space-y-3">
+          {/* Linha 1: Badges horizontais com wrap */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="accent">{row.modalidadeFormatada}</Badge>
+            <Badge variant="warning">{row.situacaoFormatada}</Badge>
+            {row.fonteObjeto === "pncp" && (
+              <span
+                className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
+                title="Objeto des-truncado via PNCP"
+              >
+                PNCP
               </span>
-              {row.entidadeNome && (
-                <p className="max-w-[200px] truncate text-slate-500 text-xs">
-                  {row.entidadeNome}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-1">
-              <Badge variant="accent">{row.modalidadeFormatada}</Badge>
-              <Badge variant="warning">{row.situacaoFormatada}</Badge>
-            </div>
+            )}
+            {row.fonteObjeto === "contrato_local" && (
+              <span
+                className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
+                title="Objeto des-truncado via contrato local"
+              >
+                Contrato Local
+              </span>
+            )}
           </div>
 
+          {/* Linha 2: Processo e Órgão empilhados verticalmente */}
+          <div>
+            <span className="font-bold text-slate-900 text-sm">
+              Processo {row.licitacaoNumero || "S/N"}
+            </span>
+            {row.entidadeNome && (
+              <p className="mt-0.5 truncate text-slate-500 text-xs">
+                {row.entidadeNome}
+              </p>
+            )}
+          </div>
+
+          {/* Linha 3: Objeto com modal */}
           <div>
             <TruncatedCellWithModal
               text={row.objeto}
@@ -365,7 +383,8 @@ export function LicitacoesEmAndamentoSection({
             />
           </div>
 
-          <div className="flex items-center gap-1.5 pt-1 text-slate-500 text-xs">
+          {/* Linha 4: Data de abertura */}
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs">
             <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>
               Abertura:{" "}
@@ -373,21 +392,28 @@ export function LicitacoesEmAndamentoSection({
             </span>
           </div>
 
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-slate-100 border-t pt-2 text-xs">
+          {/* Linha 5: Grade financeira 2 colunas */}
+          <div className="grid grid-cols-2 gap-2 border-slate-100 border-t pt-2.5 text-xs">
             <div>
               <span className="block text-[11px] text-slate-400">
                 Valor Estimado
               </span>
-              <span className="font-bold font-serif text-slate-900">
-                {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
-              </span>
-            </div>
-            {valorHom ? (
-              <div className="text-right">
-                <span className="block text-[11px] text-slate-400">
-                  Homologado
+              <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-slate-900">
+                <Coins
+                  className="h-3.5 w-3.5 text-slate-400"
+                  aria-hidden="true"
+                />
+                <span className="truncate">
+                  {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
                 </span>
-                <div className="flex items-center justify-end gap-1">
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="block text-[11px] text-slate-400">
+                Homologado
+              </span>
+              {valorHom ? (
+                <div className="mt-0.5 flex items-center justify-end gap-1">
                   <span className="font-bold font-serif text-emerald-700">
                     {fmtCurrency(valorHom)}
                   </span>
@@ -397,21 +423,22 @@ export function LicitacoesEmAndamentoSection({
                     </span>
                   )}
                 </div>
-              </div>
-            ) : (
-              <div className="text-right">
-                <span className="block text-[11px] text-slate-400">
-                  Homologado
-                </span>
-                <span className="text-slate-400 text-xs italic">
-                  Em disputa / Aguardando homologação
-                </span>
-              </div>
-            )}
+              ) : (
+                <div className="mt-0.5 flex justify-end">
+                  <span
+                    className="inline-block rounded bg-amber-50 px-1.5 py-0.5 font-medium text-[10px] text-amber-800"
+                    title="Em disputa pública ou aguardando adjudicação/homologação"
+                  >
+                    Em disputa
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2 text-xs">
+        {/* Linha 6: Ações no rodapé */}
+        <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
           <button
             type="button"
             onClick={() => setSelectedLicitacaoForItens(row)}
@@ -545,65 +572,65 @@ export function LicitacoesEmAndamentoSection({
                       className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm"
                     >
                       <div className="space-y-3">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:justify-end">
-                            <Badge variant="accent">
-                              {fmtLicitacaoModalidade(item.modalidade)}
-                            </Badge>
-                            <Badge variant="warning">
-                              {fmtLicitacaoSituacao(item.situacao)}
-                            </Badge>
-                            {item.fonteObjeto === "pncp" && (
-                              <span
-                                className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
-                                title="Objeto des-truncado via PNCP"
-                              >
-                                PNCP
-                              </span>
-                            )}
-                            {item.fonteObjeto === "contrato_local" && (
-                              <span
-                                className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
-                                title="Objeto des-truncado via contrato local"
-                              >
-                                Contrato Local
-                              </span>
-                            )}
-                          </div>
+                        {/* Linha 1: Badges horizontais com wrap */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="accent">
+                            {fmtLicitacaoModalidade(item.modalidade)}
+                          </Badge>
+                          <Badge variant="warning">
+                            {fmtLicitacaoSituacao(item.situacao)}
+                          </Badge>
+                          {item.fonteObjeto === "pncp" && (
+                            <span
+                              className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
+                              title="Objeto des-truncado via PNCP"
+                            >
+                              PNCP
+                            </span>
+                          )}
+                          {item.fonteObjeto === "contrato_local" && (
+                            <span
+                              className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
+                              title="Objeto des-truncado via contrato local"
+                            >
+                              Contrato Local
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex min-w-0 flex-1 items-center justify-between">
+                        {/* Linha 2: Processo e Órgão empilhados verticalmente */}
+                        <div>
                           <span className="font-bold text-slate-900 text-sm">
                             Processo {item.licitacaoNumero || "S/N"}
                           </span>
                           {item.entidadeNome && (
-                            <div className="mt-0.5 flex items-center gap-1 text-slate-500 text-xs">
-                              <span className="truncate">
-                                {item.entidadeNome}
-                              </span>
-                            </div>
+                            <p className="mt-0.5 truncate text-slate-500 text-xs">
+                              {item.entidadeNome}
+                            </p>
                           )}
                         </div>
 
-                        <TruncatedCellWithModal
-                          text={item.objeto}
-                          modalTitle={`Processo ${item.licitacaoNumero || "S/N"} — Objeto da Licitação`}
-                          characterThreshold={120}
-                          maxLines={3}
-                          badge={getFonteObjetoBadge(item.fonteObjeto)}
-                          secondaryText={
-                            item.discriminacao &&
-                            item.discriminacao !== item.objeto
-                              ? item.discriminacao
-                              : undefined
-                          }
-                          externalUrl={item.linkSistemaOrigem}
-                          externalLabel="Sala de Disputa"
-                        />
-                      </div>
+                        {/* Linha 3: Objeto com modal */}
+                        <div>
+                          <TruncatedCellWithModal
+                            text={item.objeto}
+                            modalTitle={`Processo ${item.licitacaoNumero || "S/N"} — Objeto da Licitação`}
+                            characterThreshold={120}
+                            maxLines={3}
+                            badge={getFonteObjetoBadge(item.fonteObjeto)}
+                            secondaryText={
+                              item.discriminacao &&
+                              item.discriminacao !== item.objeto
+                                ? item.discriminacao
+                                : undefined
+                            }
+                            externalUrl={item.linkSistemaOrigem}
+                            externalLabel="Sala de Disputa"
+                          />
+                        </div>
 
-                      <div className="mt-4 space-y-2 border-slate-100 border-t pt-3 text-xs">
-                        <div className="flex items-center gap-1.5 text-slate-500">
+                        {/* Linha 4: Data de abertura */}
+                        <div className="flex items-center gap-1.5 text-slate-500 text-xs">
                           <Calendar
                             className="h-3.5 w-3.5 shrink-0"
                             aria-hidden="true"
@@ -611,29 +638,30 @@ export function LicitacoesEmAndamentoSection({
                           <span>Abertura: {dataAberturaTexto}</span>
                         </div>
 
-                        <div className="flex flex-wrap items-baseline justify-between gap-2 pt-1">
+                        {/* Linha 5: Grade financeira 2 colunas */}
+                        <div className="grid grid-cols-2 gap-2 border-slate-100 border-t pt-2.5 text-xs">
                           <div>
                             <span className="block text-[11px] text-slate-400">
                               Valor Estimado
                             </span>
-                            <div className="flex items-center gap-1 font-bold font-serif text-slate-900">
+                            <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-slate-900">
                               <Coins
                                 className="h-3.5 w-3.5 text-slate-400"
                                 aria-hidden="true"
                               />
-                              <span>
+                              <span className="truncate">
                                 {valorEst
                                   ? fmtCurrency(valorEst)
                                   : "Não divulgado"}
                               </span>
                             </div>
                           </div>
-                          {valorHom ? (
-                            <div className="text-right">
-                              <span className="block text-[11px] text-slate-400">
-                                Homologado
-                              </span>
-                              <div className="flex items-center justify-end gap-1">
+                          <div className="text-right">
+                            <span className="block text-[11px] text-slate-400">
+                              Homologado
+                            </span>
+                            {valorHom ? (
+                              <div className="mt-0.5 flex items-center justify-end gap-1">
                                 <span className="font-bold font-serif text-emerald-700">
                                   {fmtCurrency(valorHom)}
                                 </span>
@@ -643,21 +671,22 @@ export function LicitacoesEmAndamentoSection({
                                   </span>
                                 )}
                               </div>
-                            </div>
-                          ) : (
-                            <div className="text-right">
-                              <span className="block text-[11px] text-slate-400">
-                                Homologado
-                              </span>
-                              <span className="text-slate-400 text-xs italic">
-                                Em disputa / Aguardando homologação
-                              </span>
-                            </div>
-                          )}
+                            ) : (
+                              <div className="mt-0.5 flex justify-end">
+                                <span
+                                  className="inline-block rounded bg-amber-50 px-1.5 py-0.5 font-medium text-[10px] text-amber-800"
+                                  title="Em disputa pública ou aguardando adjudicação/homologação"
+                                >
+                                  Em disputa
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2 text-xs">
+                      {/* Linha 6: Ações no rodapé */}
+                      <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
                         <button
                           type="button"
                           onClick={() =>
