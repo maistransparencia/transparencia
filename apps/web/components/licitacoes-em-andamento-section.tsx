@@ -125,24 +125,56 @@ export function LicitacoesEmAndamentoSection({
   }, [sortedByRelevance]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || hasCheckedDeepLinkRef.current) return;
+    if (typeof window === "undefined") return;
     if (tableData.length === 0) return;
 
-    hasCheckedDeepLinkRef.current = true;
-    const urlParams = new URLSearchParams(window.location.search);
-    const numero = urlParams.get("numero");
-    const hash = window.location.hash;
-    if (numero) {
+    const checkAndOpenLicitacao = (targetNumero?: string | null) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const numero = targetNumero ?? urlParams.get("numero");
+      if (!numero) return;
+
       setHighlightedNumero(numero);
-      if (hash === "#itens") {
-        const match = tableData.find(
-          (t) => t.licitacaoNumero === numero || t.licitacaoId === numero,
-        );
-        if (match) {
-          setSelectedLicitacaoForItens(match);
+      const cleanNum = numero.trim();
+      const match = tableData.find((t) => {
+        if (!t) return false;
+        if (t.licitacaoNumero === cleanNum || t.licitacaoId === cleanNum)
+          return true;
+        if (t.licitacaoNumero && cleanNum) {
+          return (
+            t.licitacaoNumero.replace(/^0+/, "") === cleanNum.replace(/^0+/, "")
+          );
         }
+        return false;
+      });
+
+      if (match) {
+        setSelectedLicitacaoForItens(match);
       }
+    };
+
+    if (!hasCheckedDeepLinkRef.current) {
+      hasCheckedDeepLinkRef.current = true;
+      checkAndOpenLicitacao();
     }
+
+    const handleCustomSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{ numero?: string; id?: string }>;
+      const num = customEvent.detail?.numero || customEvent.detail?.id;
+      if (num) {
+        checkAndOpenLicitacao(num);
+      }
+    };
+
+    const handlePopState = () => {
+      checkAndOpenLicitacao();
+    };
+
+    window.addEventListener("licitacao:selected", handleCustomSelect);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("licitacao:selected", handleCustomSelect);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [tableData]);
 
   const columns: Column<LicitacaoTableRow>[] = [

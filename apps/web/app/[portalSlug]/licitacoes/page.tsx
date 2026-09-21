@@ -88,7 +88,7 @@ export default async function LicitacoesPage({
         </p>
 
         {/* Global Spotlight Search Bar */}
-        <div className="mt-5 max-w-2xl">
+        <div className="mt-5 w-full">
           <LicitacoesSearchBar portalSlug={portalSlug} ano={selectedYear} />
         </div>
       </div>

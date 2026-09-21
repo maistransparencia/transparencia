@@ -145,6 +145,11 @@ export function LicitacoesSpotlightModal({
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
       onClose();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("licitacao:selected", { detail: item }),
+        );
+      }
       if (onSelect) {
         onSelect(item);
       } else if (router) {

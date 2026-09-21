@@ -52,7 +52,7 @@ export function LicitacoesSearchBar({
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="hidden items-center gap-1 sm:flex">
             <kbd className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-medium font-mono text-[11px] text-slate-500 shadow-2xs group-hover:border-slate-300">
               {isMac ? "⌘K" : "Ctrl+K"}
             </kbd>
