@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
 import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
+import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -85,6 +86,11 @@ export default async function LicitacoesPage({
           </strong>
           , que exigem justificativa formal.
         </p>
+
+        {/* Global Spotlight Search Bar */}
+        <div className="mt-5 max-w-2xl">
+          <LicitacoesSearchBar portalSlug={portalSlug} ano={selectedYear} />
+        </div>
       </div>
 
       <KPIGrid columns={5}>

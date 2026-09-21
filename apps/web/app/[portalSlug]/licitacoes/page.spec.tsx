@@ -336,4 +336,17 @@ describe("LicitacoesPage", () => {
       screen.getAllByRole("button", { name: /ver itens licitados/i })[0],
     ).toBeInTheDocument();
   });
+
+  it("renderiza a barra de busca global de licitações e contratos no hero", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+
+    const element = await LicitacoesPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("button", {
+        name: /abrir busca global de licitações e contratos/i,
+      }),
+    ).toBeInTheDocument();
+  });
 });

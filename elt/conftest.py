@@ -33,6 +33,7 @@ def _create_raw_schema(eng) -> None:
 
     with eng.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
         conn.execute(
             text(

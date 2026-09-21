@@ -162,7 +162,7 @@ export function ContratosServicosVigentesSection({
   ];
 
   return (
-    <section className="space-y-6">
+    <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col justify-between gap-1 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
         <div>

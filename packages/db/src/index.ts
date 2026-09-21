@@ -9,6 +9,7 @@ export * from "./queries/export-raw-data";
 export * from "./queries/fontes-receita-metrics";
 export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-saude-metrics";
+export * from "./queries/licitacoes-contratos-search";
 export * from "./queries/licitacoes-metrics";
 export * from "./queries/metadata";
 export * from "./queries/newsletter";
