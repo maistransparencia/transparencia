@@ -413,4 +413,60 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
+
+  it("renderiza controles de navegação e rolagem horizontal na tabela de itens", async () => {
+    const itensMock = [
+      {
+        itemId: "item-1",
+        licitacaoNumero: "PE 001/2025",
+        ano: 2025,
+        portalSlug: "porciuncula_prefeitura",
+        numeroItem: 1,
+        descricao: "Item de Teste Scroll",
+        quantidade: 10,
+        unidadeMedida: "UN",
+        valorUnitarioEstimado: 100,
+        valorTotalEstimado: 1000,
+        valorUnitarioHomologado: null,
+        valorTotalHomologado: null,
+        percentualDesconto: null,
+        situacaoItem: "em_andamento",
+        fornecedorNome: null,
+        fornecedorCpfCnpj: null,
+      },
+    ];
+
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula/licitacoes"),
+    });
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        itensByLicitacao={{
+          "PE 001/2025": itensMock,
+          "CP 002/2025": itensMock,
+        }}
+      />,
+    );
+
+    const btnItens = screen.getAllByRole("button", {
+      name: /ver itens licitados/i,
+    })[0];
+    fireEvent.click(btnItens);
+
+    const btnScrollLeft = await screen.findByRole("button", {
+      name: /rolar tabela para a esquerda/i,
+    });
+    const btnScrollRight = screen.getByRole("button", {
+      name: /rolar tabela para a direita/i,
+    });
+
+    expect(btnScrollLeft).toBeInTheDocument();
+    expect(btnScrollRight).toBeInTheDocument();
+
+    fireEvent.click(btnScrollRight);
+    fireEvent.click(btnScrollLeft);
+  });
 });

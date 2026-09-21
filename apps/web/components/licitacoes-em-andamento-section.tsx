@@ -16,7 +16,14 @@ import {
   ModalDialog,
   TruncatedCellWithModal,
 } from "@transparencia/ui";
-import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  ExternalLink,
+  Package,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
@@ -52,6 +59,7 @@ export function LicitacoesEmAndamentoSection({
     null,
   );
   const hasCheckedDeepLinkRef = useRef(false);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
 
   // Ordena primeiro por valor decrescente (destaque para compras mais caras)
   const sortedByRelevance = useMemo(() => {
@@ -811,7 +819,7 @@ export function LicitacoesEmAndamentoSection({
         zIndex={openedFromSearch ? "z-[60]" : undefined}
         title={`Itens Licitados — Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
         subtitle={selectedLicitacaoForItens?.objeto}
-        maxWidth="4xl"
+        maxWidth="6xl"
         footer={
           selectedLicitacaoForItens ? (
             <div className="flex w-full items-center justify-between text-xs">
@@ -875,117 +883,168 @@ export function LicitacoesEmAndamentoSection({
             }
 
             return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-slate-600 text-xs">
-                  <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
-                    <tr>
-                      <th className="px-3 py-2 text-center">Item</th>
-                      <th className="px-3 py-2">Descrição</th>
-                      <th className="px-3 py-2 text-center">Qtd / Un</th>
-                      <th className="px-3 py-2 text-right">Valor Estimado</th>
-                      <th className="px-3 py-2 text-right">Homologado</th>
-                      <th className="px-3 py-2 text-center">Desconto</th>
-                      <th className="px-3 py-2">Fornecedor Vencedor</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {itens.map((it) => (
-                      <tr key={it.itemId} className="hover:bg-slate-50/80">
-                        <td className="px-3 py-2.5 text-center font-bold text-slate-900">
-                          {it.numeroItem}
-                        </td>
-                        <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
-                          {it.descricao || "—"}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.quantidade != null ? it.quantidade : "—"}{" "}
-                          {it.unidadeMedida || ""}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalEstimado ??
-                              (it.valorUnitarioEstimado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioEstimado * it.quantidade
-                                : it.valorUnitarioEstimado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioEstimado != null && (
-                                      <span className="block font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(it.valorUnitarioEstimado)}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalHomologado ??
-                              (it.valorUnitarioHomologado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioHomologado * it.quantidade
-                                : it.valorUnitarioHomologado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioHomologado != null && (
-                                      <span className="block font-normal font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(
-                                          it.valorUnitarioHomologado,
-                                        )}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.percentualDesconto != null ? (
-                            <span className="font-semibold text-emerald-700">
-                              {it.percentualDesconto}%
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="min-w-[150px] px-3 py-2.5">
-                          {it.fornecedorNome ? (
-                            <div>
-                              <span className="font-medium text-slate-800">
-                                {it.fornecedorNome}
-                              </span>
-                              {it.fornecedorCpfCnpj && (
-                                <span className="block text-[10px] text-slate-400">
-                                  {it.fornecedorCpfCnpj}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 italic">
-                              Pendente / Não homologado
-                            </span>
-                          )}
-                        </td>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-slate-500 text-xs">
+                  <span className="font-medium text-slate-600">
+                    {itens.length}{" "}
+                    {itens.length === 1 ? "item listado" : "itens listados"}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden font-medium text-[11px] text-slate-400 sm:inline">
+                      Navegar colunas:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = tableScrollRef.current;
+                        if (!el) return;
+                        if (typeof el.scrollBy === "function") {
+                          el.scrollBy({ left: -240, behavior: "smooth" });
+                        } else {
+                          el.scrollLeft -= 240;
+                        }
+                      }}
+                      aria-label="Rolar tabela para a esquerda"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = tableScrollRef.current;
+                        if (!el) return;
+                        if (typeof el.scrollBy === "function") {
+                          el.scrollBy({ left: 240, behavior: "smooth" });
+                        } else {
+                          el.scrollLeft += 240;
+                        }
+                      }}
+                      aria-label="Rolar tabela para a direita"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={tableScrollRef}
+                  className="overflow-x-auto rounded-xl border border-slate-200 bg-white"
+                >
+                  <table className="w-full min-w-[780px] text-left text-slate-600 text-xs">
+                    <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-3 py-2 text-center">Item</th>
+                        <th className="px-3 py-2">Descrição</th>
+                        <th className="px-3 py-2 text-center">Qtd / Un</th>
+                        <th className="px-3 py-2 text-right">Valor Estimado</th>
+                        <th className="px-3 py-2 text-right">Homologado</th>
+                        <th className="px-3 py-2 text-center">Desconto</th>
+                        <th className="px-3 py-2">Fornecedor Vencedor</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {itens.map((it) => (
+                        <tr key={it.itemId} className="hover:bg-slate-50/80">
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-900">
+                            {it.numeroItem}
+                          </td>
+                          <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
+                            {it.descricao || "—"}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                            {it.quantidade != null ? it.quantidade : "—"}{" "}
+                            {it.unidadeMedida || ""}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
+                            {(() => {
+                              const valorExibicao =
+                                it.valorTotalEstimado ??
+                                (it.valorUnitarioEstimado != null &&
+                                it.quantidade != null
+                                  ? it.valorUnitarioEstimado * it.quantidade
+                                  : it.valorUnitarioEstimado);
+                              if (valorExibicao != null) {
+                                return (
+                                  <>
+                                    <span>{fmtCurrency(valorExibicao)}</span>
+                                    {it.quantidade != null &&
+                                      it.quantidade > 1 &&
+                                      it.valorUnitarioEstimado != null && (
+                                        <span className="block font-sans text-[10px] text-slate-400">
+                                          {fmtCurrency(
+                                            it.valorUnitarioEstimado,
+                                          )}{" "}
+                                          / un
+                                        </span>
+                                      )}
+                                  </>
+                                );
+                              }
+                              return "—";
+                            })()}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
+                            {(() => {
+                              const valorExibicao =
+                                it.valorTotalHomologado ??
+                                (it.valorUnitarioHomologado != null &&
+                                it.quantidade != null
+                                  ? it.valorUnitarioHomologado * it.quantidade
+                                  : it.valorUnitarioHomologado);
+                              if (valorExibicao != null) {
+                                return (
+                                  <>
+                                    <span>{fmtCurrency(valorExibicao)}</span>
+                                    {it.quantidade != null &&
+                                      it.quantidade > 1 &&
+                                      it.valorUnitarioHomologado != null && (
+                                        <span className="block font-normal font-sans text-[10px] text-slate-400">
+                                          {fmtCurrency(
+                                            it.valorUnitarioHomologado,
+                                          )}{" "}
+                                          / un
+                                        </span>
+                                      )}
+                                  </>
+                                );
+                              }
+                              return "—";
+                            })()}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                            {it.percentualDesconto != null ? (
+                              <span className="font-semibold text-emerald-700">
+                                {it.percentualDesconto}%
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="min-w-[150px] px-3 py-2.5">
+                            {it.fornecedorNome ? (
+                              <div>
+                                <span className="font-medium text-slate-800">
+                                  {it.fornecedorNome}
+                                </span>
+                                {it.fornecedorCpfCnpj && (
+                                  <span className="block text-[10px] text-slate-400">
+                                    {it.fornecedorCpfCnpj}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">
+                                Pendente / Não homologado
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })()}

@@ -15,7 +15,17 @@ export interface ModalDialogProps {
   badge?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  maxWidth?:
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "6xl"
+    | "full";
   className?: string;
   ariaLabel?: string;
   zIndex?: string;
@@ -33,6 +43,8 @@ const MAX_WIDTH_MAP: Record<
   "3xl": "sm:max-w-3xl",
   "4xl": "sm:max-w-4xl",
   "5xl": "sm:max-w-5xl",
+  "6xl": "sm:max-w-6xl",
+  full: "sm:max-w-[95vw]",
 };
 
 export function ModalDialog({

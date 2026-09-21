@@ -390,13 +390,13 @@ export function LicitacoesSpotlightModal({
                       onClick={() => handleSelect(item)}
                       onMouseEnter={() => setSelectedIndex(globalIdx)}
                       className={cn(
-                        "flex w-full cursor-pointer items-start justify-between gap-3 rounded-xl p-3 text-left transition-colors",
+                        "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-xl p-3 text-left transition-colors",
                         isSelected
                           ? "bg-accent/10 text-slate-900"
                           : "text-slate-700 hover:bg-slate-50",
                       )}
                     >
-                      <div className="flex items-start gap-2.5">
+                      <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         <FileText
                           className={cn(
                             "mt-0.5 h-4 w-4 shrink-0",
@@ -404,7 +404,7 @@ export function LicitacoesSpotlightModal({
                           )}
                           aria-hidden="true"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-semibold text-slate-900 text-xs sm:text-sm">
                               {item.numero || "S/N"}
@@ -421,14 +421,14 @@ export function LicitacoesSpotlightModal({
                               · {item.ano}
                             </span>
                           </div>
-                          <p className="mt-1 line-clamp-2 text-slate-600 text-xs leading-relaxed">
+                          <p className="mt-1 line-clamp-2 break-words text-slate-600 text-xs leading-relaxed">
                             {item.objeto}
                           </p>
                         </div>
                       </div>
 
-                      <div className="shrink-0 text-right">
-                        <span className="font-medium font-serif text-slate-900 text-xs sm:text-sm">
+                      <div className="ml-2 shrink-0 text-right">
+                        <span className="whitespace-nowrap font-medium font-serif text-slate-900 text-xs sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isSelected && (
@@ -465,13 +465,13 @@ export function LicitacoesSpotlightModal({
                       onClick={() => handleSelect(item)}
                       onMouseEnter={() => setSelectedIndex(globalIdx)}
                       className={cn(
-                        "flex w-full cursor-pointer items-start justify-between gap-3 rounded-xl p-3 text-left transition-colors",
+                        "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-xl p-3 text-left transition-colors",
                         isSelected
                           ? "bg-accent/10 text-slate-900"
                           : "text-slate-700 hover:bg-slate-50",
                       )}
                     >
-                      <div className="flex items-start gap-2.5">
+                      <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         <FileCheck
                           className={cn(
                             "mt-0.5 h-4 w-4 shrink-0",
@@ -479,7 +479,7 @@ export function LicitacoesSpotlightModal({
                           )}
                           aria-hidden="true"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-semibold text-slate-900 text-xs sm:text-sm">
                               Contrato {item.numero || "S/N"}
@@ -506,18 +506,18 @@ export function LicitacoesSpotlightModal({
                             </span>
                           </div>
                           {item.fornecedorNome && (
-                            <p className="mt-0.5 font-medium text-slate-700 text-xs">
+                            <p className="mt-0.5 break-words font-medium text-slate-700 text-xs">
                               Fornecedor: {item.fornecedorNome}
                             </p>
                           )}
-                          <p className="mt-1 line-clamp-2 text-slate-600 text-xs leading-relaxed">
+                          <p className="mt-1 line-clamp-2 break-words text-slate-600 text-xs leading-relaxed">
                             {item.objeto}
                           </p>
                         </div>
                       </div>
 
-                      <div className="shrink-0 text-right">
-                        <span className="font-medium font-serif text-slate-900 text-xs sm:text-sm">
+                      <div className="ml-2 shrink-0 text-right">
+                        <span className="whitespace-nowrap font-medium font-serif text-slate-900 text-xs sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isSelected && (
