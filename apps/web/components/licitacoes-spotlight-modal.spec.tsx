@@ -297,6 +297,21 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       });
     });
 
+    it("deve ocultar atalhos de teclado no mobile aplicando classe responsiva", () => {
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+        />,
+      );
+
+      const navText = screen.getByText(/para navegar/i);
+      const shortcutsContainer = navText.closest("div");
+      expect(shortcutsContainer).toHaveClass("hidden");
+      expect(shortcutsContainer).toHaveClass("sm:flex");
+    });
+
     it("deve bloquear o scroll do body enquanto o modal estiver aberto e restaurar ao desmontar", () => {
       const { unmount } = render(
         <LicitacoesSpotlightModal

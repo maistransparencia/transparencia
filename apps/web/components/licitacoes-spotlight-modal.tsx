@@ -516,8 +516,8 @@ export function LicitacoesSpotlightModal({
         </div>
 
         {/* Rodapé com atalhos e contagem amigável (sem ternários aninhados) */}
-        <div className="flex items-center justify-between border-slate-100 border-t bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center border-slate-100 border-t bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500 sm:justify-between">
+          <div className="hidden items-center gap-3 sm:flex">
             <span className="flex items-center gap-1">
               <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px]">
                 ↑
