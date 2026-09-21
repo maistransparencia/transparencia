@@ -312,6 +312,75 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       expect(shortcutsContainer).toHaveClass("sm:flex");
     });
 
+    it("deve fechar o modal ao clicar no botão Cancelar no mobile", () => {
+      const onClose = vi.fn();
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={onClose}
+          portalSlug="porciuncula_prefeitura"
+        />,
+      );
+
+      const cancelBtn = screen.getByRole("button", { name: "Cancelar" });
+      expect(cancelBtn).toBeInTheDocument();
+      fireEvent.click(cancelBtn);
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it("deve manter o modal de busca aberto ao selecionar uma licitação do mesmo ano para navegação em camadas", async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          licitacoes: [
+            {
+              id: "lic-1",
+              tipo: "licitacao",
+              numero: "0043/24",
+              objeto: "Locação de veículos escolares",
+              fornecedorNome: null,
+              valor: 150000,
+              status: "em_andamento",
+              modalidade: "Pregão Eletrônico",
+              ano: 2024,
+              portalSlug: "porciuncula_prefeitura",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2024&numero=0043%2F24#licitacoes-em-andamento",
+            },
+          ],
+          contratos: [],
+          total: 1,
+        }),
+      });
+
+      const onClose = vi.fn();
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={onClose}
+          portalSlug="porciuncula_prefeitura"
+          ano={2024}
+        />,
+      );
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "0043/24" } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Licitações Encontradas \(1\)/i),
+        ).toBeInTheDocument();
+      });
+
+      const licItem = screen.getByRole("option", {
+        name: /Locação de veículos escolares/i,
+      });
+
+      fireEvent.click(licItem);
+
+      // Não deve fechar o modal de busca, permitindo que a camada de detalhes abra por cima
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
     it("deve bloquear o scroll do body enquanto o modal estiver aberto e restaurar ao desmontar", () => {
       const { unmount } = render(
         <LicitacoesSpotlightModal

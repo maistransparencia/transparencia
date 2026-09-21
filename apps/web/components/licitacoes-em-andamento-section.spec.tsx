@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import { LicitacoesEmAndamentoSection } from "./licitacoes-em-andamento-section";
@@ -377,5 +383,34 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       screen.getByRole("heading", { name: /Itens Licitados/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Item de Teste Deep Link")).toBeInTheDocument();
+  });
+
+  it("exibe botão de voltar aos resultados e fecha o modal ao clicar quando aberto a partir da busca", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula/licitacoes"),
+    });
+
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "PE 001/2025",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const backButton = await screen.findByRole("button", {
+      name: /voltar aos resultados da busca/i,
+    });
+    expect(backButton).toBeInTheDocument();
+
+    fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });

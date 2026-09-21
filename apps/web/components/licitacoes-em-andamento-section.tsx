@@ -47,6 +47,7 @@ export function LicitacoesEmAndamentoSection({
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
     useState<LicitacaoTableRow | null>(null);
+  const [openedFromSearch, setOpenedFromSearch] = useState(false);
   const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
     null,
   );
@@ -158,9 +159,16 @@ export function LicitacoesEmAndamentoSection({
     }
 
     const handleCustomSelect = (e: Event) => {
-      const customEvent = e as CustomEvent<{ numero?: string; id?: string }>;
+      const customEvent = e as CustomEvent<{
+        numero?: string;
+        id?: string;
+        fromSearch?: boolean;
+      }>;
       const num = customEvent.detail?.numero || customEvent.detail?.id;
       if (num) {
+        if (customEvent.detail?.fromSearch) {
+          setOpenedFromSearch(true);
+        }
         checkAndOpenLicitacao(num);
       }
     };
@@ -203,7 +211,10 @@ export function LicitacoesEmAndamentoSection({
             )}
             <button
               type="button"
-              onClick={() => setSelectedLicitacaoForItens(row)}
+              onClick={() => {
+                setOpenedFromSearch(false);
+                setSelectedLicitacaoForItens(row);
+              }}
               className="inline-flex items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
               title="Visualizar itens licitados"
             >
@@ -784,7 +795,20 @@ export function LicitacoesEmAndamentoSection({
       {/* Diálogo / Modal de Itens Licitados via ModalDialog */}
       <ModalDialog
         isOpen={!!selectedLicitacaoForItens}
-        onClose={() => setSelectedLicitacaoForItens(null)}
+        onClose={() => {
+          setSelectedLicitacaoForItens(null);
+          setOpenedFromSearch(false);
+        }}
+        onBack={
+          openedFromSearch
+            ? () => {
+                setSelectedLicitacaoForItens(null);
+                setOpenedFromSearch(false);
+              }
+            : undefined
+        }
+        backLabel="Voltar aos resultados da busca"
+        zIndex={openedFromSearch ? "z-[60]" : undefined}
         title={`Itens Licitados — Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
         subtitle={selectedLicitacaoForItens?.objeto}
         maxWidth="4xl"

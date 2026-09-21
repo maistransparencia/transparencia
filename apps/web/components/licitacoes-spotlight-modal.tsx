@@ -144,21 +144,41 @@ export function LicitacoesSpotlightModal({
 
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
-      onClose();
+      const isLicitacao = item.tipo === "licitacao";
+      const isSameAno = !item.ano || !ano || item.ano === ano;
+
+      // Se for licitação no mesmo ano, mantemos o modal de busca aberto por baixo
+      // para permitir navegação em camadas (Master-Detail).
+      // Se for contrato ou outro ano, fechamos a busca para navegar para a tabela.
+      if (!isLicitacao || !isSameAno) {
+        onClose();
+      }
+
       if (typeof window !== "undefined") {
         window.dispatchEvent(
-          new CustomEvent("licitacao:selected", { detail: item }),
+          new CustomEvent("licitacao:selected", {
+            detail: { ...item, fromSearch: true },
+          }),
         );
       }
+
       if (onSelect) {
         onSelect(item);
       } else if (router) {
-        router.push(item.href);
+        if (isLicitacao && isSameAno) {
+          window.history.replaceState(null, "", item.href);
+        } else {
+          router.push(item.href);
+        }
       } else if (typeof window !== "undefined") {
-        window.location.href = item.href;
+        if (isLicitacao && isSameAno) {
+          window.history.replaceState(null, "", item.href);
+        } else {
+          window.location.href = item.href;
+        }
       }
     },
-    [onClose, onSelect, router],
+    [ano, onClose, onSelect, router],
   );
 
   // Navegação por teclado
@@ -265,10 +285,10 @@ export function LicitacoesSpotlightModal({
                 setErrorMessage(null);
                 inputRef.current?.focus();
               }}
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-full bg-slate-200/80 p-1 text-slate-500 transition-colors hover:bg-slate-300 hover:text-slate-700"
               aria-label="Limpar termo de busca"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
 
@@ -276,10 +296,9 @@ export function LicitacoesSpotlightModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar busca"
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 sm:hidden"
+            className="font-medium text-slate-600 text-sm transition-colors hover:text-slate-900 sm:hidden"
           >
-            <X className="h-5 w-5" />
+            Cancelar
           </button>
 
           <kbd className="hidden rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium font-mono text-[10px] text-slate-400 sm:inline-block">
