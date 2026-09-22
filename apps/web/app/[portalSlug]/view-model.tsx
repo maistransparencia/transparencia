@@ -468,6 +468,10 @@ export function getBadgeMetodologia(
     return "Harmonização Cadastral";
   }
 
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Art. 11 da LRF";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -525,6 +529,9 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
     return "Inconsistência em Vínculos de Pessoal";
   }
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Dependência de Transferências Externas";
+  }
   return "Indicador em Destaque";
 }
 
@@ -564,6 +571,9 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
     return "Auditar Vínculos Cadastrais";
+  }
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Analisar Fontes de Receita";
   }
   return "Ver detalhes";
 }
@@ -606,6 +616,9 @@ export function getCardCtaUrl(
   }
   if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
     return `/${portalSlug}/pessoal?ano=${ano}#regime`;
+  }
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return `/${portalSlug}/receitas?ano=${ano}`;
   }
   return `/${portalSlug}`;
 }
@@ -696,6 +709,9 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
         return "Padrão Constitucional";
       }
+      if (alerta.tipoAnomalia === "dependencia_transferencias") {
+        return "Parâmetro LRF";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -729,6 +745,12 @@ export function buildRadarCivicoCards(
           url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
         };
       }
+      if (alerta.tipoAnomalia === "dependencia_transferencias") {
+        return {
+          label: "Art. 11 da LRF",
+          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+        };
+      }
       return undefined;
     })();
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
@@ -746,7 +768,8 @@ export function buildRadarCivicoCards(
       if (
         alerta.tipoAnomalia === "rombo_caixa" ||
         alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
-        alerta.tipoAnomalia === "desconto_nulo_pregao"
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "dependencia_transferencias"
       ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
@@ -765,7 +788,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "concentracao_dispensa" ||
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
+        alerta.tipoAnomalia === "dependencia_transferencias"
       ) {
         return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
@@ -783,7 +807,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "concentracao_dispensa" ||
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
+        alerta.tipoAnomalia === "dependencia_transferencias"
       ) {
         return `${formatPercentNumber(alerta.valorEsperado)}%`;
       }

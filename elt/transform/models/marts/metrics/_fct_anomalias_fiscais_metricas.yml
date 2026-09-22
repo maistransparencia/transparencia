@@ -31,7 +31,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal']
+              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal', 'dependencia_transferencias']
 
       - name: dimensao_referencia
         description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal)."
@@ -116,6 +116,8 @@ unit_tests:
         rows: []
       - input: ref('fct_pessoal')
         rows: []
+      - input: ref('fct_fontes_receita_metricas')
+        rows: []
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
@@ -139,6 +141,8 @@ unit_tests:
       - input: ref('fct_historia_caprem_metricas')
         rows: []
       - input: ref('fct_pessoal')
+        rows: []
+      - input: ref('fct_fontes_receita_metricas')
         rows: []
       - input: ref('fct_licitacoes')
         rows:
@@ -180,6 +184,8 @@ unit_tests:
       - input: ref('fct_licitacoes')
         rows: []
       - input: ref('fct_licitacoes_itens')
+        rows: []
+      - input: ref('fct_fontes_receita_metricas')
         rows: []
       - input: ref('fct_pessoal')
         rows:
@@ -234,3 +240,37 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 31.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2026#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "alto", desvio_percentual: 100.00, valor_observado: 8.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2025#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "moderado", desvio_percentual: 100.00, valor_observado: 2.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2024#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
+
+  - name: test_fct_anomalias_fiscais_dependencia_transferencias
+    description: "Valida deteccao de anomalias de dependencia de transferencias sob Art. 11 da LRF para anos fechados"
+    model: fct_anomalias_fiscais_metricas
+    given:
+      - input: ref('fct_despesas')
+        rows: []
+      - input: ref('fct_pessoal_regime_metricas')
+        rows: []
+      - input: ref('fct_saldo_caixa_siconfi')
+        rows: []
+      - input: ref('fct_licitacoes')
+        rows: []
+      - input: ref('fct_opacidade_contabil_metricas')
+        rows: []
+      - input: ref('fct_caprem_tendencia_atuarial_metricas')
+        rows: []
+      - input: ref('fct_historia_caprem_metricas')
+        rows: []
+      - input: ref('fct_licitacoes_itens')
+        rows: []
+      - input: ref('fct_pessoal')
+        rows: []
+      - input: ref('fct_fontes_receita_metricas')
+        rows:
+          # 2024: ano fechado com receita propria 5% (< 10% => anomalia critica)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, total_arrecadado: 1000000.00, receita_propria_arrecadado: 50000.00, total_previsto: 1000000.00, receita_propria_previsto: 50000.00 }
+          # 2023: ano fechado com receita propria 15% (>= 10% => sem anomalia)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2023, total_arrecadado: 1000000.00, receita_propria_arrecadado: 150000.00, total_previsto: 1000000.00, receita_propria_previsto: 150000.00 }
+          # 2026: ano corrente em andamento com 4% (< 10% mas corrente => sem anomalia)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, total_arrecadado: 1000000.00, receita_propria_arrecadado: 40000.00, total_previsto: 1000000.00, receita_propria_previsto: 40000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "dependencia_transferencias", dimensao_referencia: "receita_propria", grau_severidade: "critico", desvio_percentual: 5.00, valor_observado: 5.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/receitas?ano=2024", metodo_deteccao: "art11_lrf_arrecadacao_propria" }

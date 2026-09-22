@@ -15,6 +15,7 @@ const PORTAL = createFixturePortalSlug();
 
 afterEach(async () => {
   await cleanupFixtures(PORTAL);
+  await cleanupFixtures(`${PORTAL}_outro`);
 });
 
 describe("radar-civico-alertas", () => {
@@ -511,6 +512,36 @@ describe("radar-civico-alertas", () => {
       );
       expect(vinculoAlerta?.metodoDeteccao).toBe("harmonizacao_vinculo_art37");
     });
+
+    it("deve carregar e mapear corretamente anomalia de dependência de transferências externas sob Art. 11 da LRF", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "dependencia_transferencias",
+        dimensaoReferencia: "receita_propria",
+        grauSeveridade: "critico",
+        desvioPercentual: 5.0,
+        valorObservado: 5.0,
+        valorEsperado: 10.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        deepLinkRota: `/${PORTAL}/receitas?ano=2024`,
+        metodoDeteccao: "art11_lrf_arrecadacao_propria",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const alerta = alertas[0];
+      expect(alerta?.tipoAnomalia).toBe("dependencia_transferencias");
+      expect(alerta?.dimensaoReferencia).toBe("receita_propria");
+      expect(alerta?.grauSeveridade).toBe("critico");
+      expect(alerta?.desvioPercentual).toBe(5.0);
+      expect(alerta?.valorObservado).toBe(5.0);
+      expect(alerta?.valorEsperado).toBe(10.0);
+      expect(alerta?.deepLinkRota).toBe(`/${PORTAL}/receitas?ano=2024`);
+      expect(alerta?.metodoDeteccao).toBe("art11_lrf_arrecadacao_propria");
+    });
   });
 
   describe("getRadarAnomaliasCount", () => {
@@ -585,12 +616,12 @@ describe("radar-civico-alertas", () => {
 
       // Anomalia crítica em outro portal
       await seedAnomaliaFiscal({
-        portalSlug: "outro_municipio",
+        portalSlug: `${PORTAL}_outro`,
         ano: 2024,
         tipoAnomalia: "rombo_caixa",
         dimensaoReferencia: "deficit",
         grauSeveridade: "critico",
-        deepLinkRota: "/outro_municipio/posicao-fiscal",
+        deepLinkRota: `/${PORTAL}_outro/posicao-fiscal`,
       });
 
       const count2024 = await getRadarAnomaliasCount({
