@@ -51,7 +51,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: "Saúde", href: "/saude", icon: HeartPulse },
       { name: "CAPREM", href: "/caprem", icon: Landmark },
-      { name: "Radar Cívico", href: "/radar", icon: ShieldAlert },
     ],
   },
 ];
@@ -76,6 +75,7 @@ export interface SidebarProps {
   mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
+  radarAlertCount?: number;
 }
 
 function YearSelect({
@@ -163,6 +163,7 @@ export function Sidebar({
   mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
+  radarAlertCount,
 }: SidebarProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
@@ -243,6 +244,20 @@ export function Sidebar({
     pathname === "/" ||
     pathname === `/${portalSlug}` ||
     pathname === `/${portalSlug}/`;
+
+  const radarTargetPath = portalSlug ? `/${portalSlug}/radar` : "/radar";
+  const isRadarActive =
+    pathname === "/radar" ||
+    pathname === radarTargetPath ||
+    (pathname
+      ? pathname.startsWith(radarTargetPath) || pathname.startsWith("/radar")
+      : false);
+  const radarHref = buildNavUrl({
+    path: "/radar",
+    slug: portalSlug,
+    exercice: currentExercice,
+    entidades: currentEntidades,
+  });
 
   return (
     <>
@@ -384,8 +399,8 @@ export function Sidebar({
 
           {/* Navegação Principal */}
           <nav className="space-y-4 p-4">
-            {/* Opção "Visão geral" isolada no topo sem cabeçalho de grupo */}
-            <div>
+            {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
+            <div className="space-y-1">
               <Link
                 href={visaoGeralHref}
                 onClick={() => setIsMobileOpen(false)}
@@ -406,6 +421,43 @@ export function Sidebar({
                   )}
                 />
                 <span>Visão geral</span>
+              </Link>
+
+              <Link
+                href={radarHref}
+                onClick={() => setIsMobileOpen(false)}
+                className={cn(
+                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                  isRadarActive
+                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
+                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                )}
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <ShieldAlert
+                    strokeWidth={1.6}
+                    className={cn(
+                      "h-4 w-4 shrink-0",
+                      isRadarActive
+                        ? "text-[oklch(0.55_0.11_250)]"
+                        : "text-mutedText",
+                    )}
+                  />
+                  <span className="truncate">Radar Cívico</span>
+                </div>
+                {typeof radarAlertCount === "number" && radarAlertCount > 0 && (
+                  <span
+                    role="status"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 font-semibold text-[11px] text-red-700"
+                    aria-label={`${radarAlertCount} alertas críticos apurados`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-1.5 w-1.5 rounded-full bg-red-600 motion-safe:animate-pulse motion-reduce:animate-none"
+                    />
+                    <span className="tabular-nums">{radarAlertCount}</span>
+                  </span>
+                )}
               </Link>
             </div>
 
@@ -439,22 +491,24 @@ export function Sidebar({
                       href={itemHref}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
-                        "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
                         isActive
                           ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                           : "text-subtleText hover:bg-gray-50 hover:text-ink",
                       )}
                     >
-                      <Icon
-                        strokeWidth={1.6}
-                        className={cn(
-                          "h-4 w-4 shrink-0",
-                          isActive
-                            ? "text-[oklch(0.55_0.11_250)]"
-                            : "text-mutedText",
-                        )}
-                      />
-                      <span>{item.name}</span>
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <Icon
+                          strokeWidth={1.6}
+                          className={cn(
+                            "h-4 w-4 shrink-0",
+                            isActive
+                              ? "text-[oklch(0.55_0.11_250)]"
+                              : "text-mutedText",
+                          )}
+                        />
+                        <span className="truncate">{item.name}</span>
+                      </div>
                     </Link>
                   );
                 })}

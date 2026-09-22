@@ -376,6 +376,7 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
     3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
     4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
     5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+  - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.
   - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
 
 ---

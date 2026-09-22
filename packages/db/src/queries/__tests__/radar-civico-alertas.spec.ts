@@ -4,7 +4,12 @@ import {
   createFixturePortalSlug,
   seedAnomaliaFiscal,
 } from "../../../tests/fixtures/seed";
-import { enrichDeepLink, getRadarCivicoAlertas } from "../radar-civico-alertas";
+import {
+  enrichDeepLink,
+  getRadarAnomaliasCount,
+  getRadarAnomaliasCountByYear,
+  getRadarCivicoAlertas,
+} from "../radar-civico-alertas";
 
 const PORTAL = createFixturePortalSlug();
 
@@ -505,6 +510,172 @@ describe("radar-civico-alertas", () => {
         `/${PORTAL}/pessoal?ano=2026#regime`,
       );
       expect(vinculoAlerta?.metodoDeteccao).toBe("harmonizacao_vinculo_art37");
+    });
+  });
+
+  describe("getRadarAnomaliasCount", () => {
+    it("deve retornar 0 se portalSlug for vazio ou inválido", async () => {
+      expect(await getRadarAnomaliasCount({ portalSlug: "" })).toBe(0);
+      expect(await getRadarAnomaliasCount({ portalSlug: "   " })).toBe(0);
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCount({ portalSlug: null })).toBe(0);
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCount({ portalSlug: undefined })).toBe(0);
+    });
+
+    it("deve retornar 0 se ano for NaN", async () => {
+      expect(
+        await getRadarAnomaliasCount({
+          portalSlug: PORTAL,
+          ano: Number.NaN,
+        }),
+      ).toBe(0);
+    });
+
+    it("deve contar apenas anomalias com severidade crítico no ano especificado", async () => {
+      // Anomalia crítica em 2024
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/posicao-fiscal`,
+      });
+
+      // Segunda anomalia crítica em 2024
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/pessoal`,
+      });
+
+      // Anomalia de severidade alta em 2024 (não deve ser contabilizada)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "pico_despesa_homologa",
+        dimensaoReferencia: "despesas",
+        grauSeveridade: "alto",
+        deepLinkRota: `/${PORTAL}/despesas`,
+      });
+
+      // Anomalia de severidade moderada em 2024 (não deve ser contabilizada)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "concentracao_dispensa",
+        dimensaoReferencia: "dispensas",
+        grauSeveridade: "moderado",
+        deepLinkRota: `/${PORTAL}/licitacoes`,
+      });
+
+      // Anomalia crítica em 2025 (outro ano)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2025,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/posicao-fiscal`,
+      });
+
+      // Anomalia crítica em outro portal
+      await seedAnomaliaFiscal({
+        portalSlug: "outro_municipio",
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+        deepLinkRota: "/outro_municipio/posicao-fiscal",
+      });
+
+      const count2024 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2024,
+      });
+      expect(count2024).toBe(2);
+
+      const count2025 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2025,
+      });
+      expect(count2025).toBe(1);
+
+      const count2026 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2026,
+      });
+      expect(count2026).toBe(0);
+
+      // Sem especificar ano, conta todos os críticos do portal
+      const countTotal = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+      });
+      expect(countTotal).toBe(3);
+    });
+  });
+
+  describe("getRadarAnomaliasCountByYear", () => {
+    it("deve retornar objeto vazio se portalSlug for inválido", async () => {
+      expect(await getRadarAnomaliasCountByYear({ portalSlug: "" })).toEqual(
+        {},
+      );
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCountByYear({ portalSlug: null })).toEqual(
+        {},
+      );
+    });
+
+    it("deve retornar mapa consolidado de alertas críticos por ano", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2023,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/posicao-fiscal`,
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/posicao-fiscal`,
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+        deepLinkRota: `/${PORTAL}/pessoal`,
+      });
+
+      // Não crítico
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "concentracao_dispensa",
+        dimensaoReferencia: "dispensas",
+        grauSeveridade: "moderado",
+        deepLinkRota: `/${PORTAL}/licitacoes`,
+      });
+
+      const mapByYear = await getRadarAnomaliasCountByYear({
+        portalSlug: PORTAL,
+      });
+
+      expect(mapByYear).toEqual({
+        2023: 1,
+        2024: 2,
+      });
     });
   });
 });
