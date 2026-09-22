@@ -133,7 +133,7 @@ export function MultiSelect({
       </button>
 
       {isOpen && hasOptions && (
-        <div className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-md border border-borderLine bg-white py-1 text-xs shadow-lg sm:w-max sm:min-w-[280px] sm:max-w-[340px]">
+        <div className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-md border border-borderLine bg-white py-1 text-xs shadow-lg">
           <button
             type="button"
             onClick={handleToggleAll}
@@ -194,11 +194,16 @@ export function MultiSelect({
                   onClick={() => handleSelectOnly(opt.id)}
                   aria-label={`Selecionar apenas ${toTitleCase(opt.nome)}`}
                   title={`Selecionar apenas ${toTitleCase(opt.nome)}`}
-                  className="flex min-w-0 flex-1 cursor-pointer items-center justify-between rounded-sm py-1 pr-1 pl-1.5 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
+                  className="relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1.5 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
                 >
                   <span className="truncate">{toTitleCase(opt.nome)}</span>
-                  <span className="ml-1.5 hidden shrink-0 font-medium text-[#1d64d8] text-[10px] group-hover:sm:inline">
-                    apenas
+                  <span
+                    className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-gray-100 via-gray-100/95 to-transparent pr-1 pl-6 group-hover:sm:flex"
+                    aria-hidden="true"
+                  >
+                    <span className="rounded border border-blue-200/60 bg-blue-50/90 px-1.5 py-0.5 font-medium text-[#1d64d8] text-[10px] shadow-xs">
+                      apenas
+                    </span>
                   </span>
                 </button>
               </div>
