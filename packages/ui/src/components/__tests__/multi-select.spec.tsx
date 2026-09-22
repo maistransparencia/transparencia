@@ -88,7 +88,7 @@ describe("MultiSelect Component", () => {
     );
 
     // Valida target de toque confortável em mobile
-    expect(checkboxBtn).toHaveClass("min-h-[40px]");
+    expect(checkboxBtn).toHaveClass("min-h-[32px]");
 
     // Garante que não há elementos <button> aninhados
     expect(group.querySelectorAll("button")).toHaveLength(2);

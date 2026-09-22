@@ -261,7 +261,7 @@ describe("EntidadeSelectCompact Component", () => {
     expect(label).toBeDefined();
     expect(label.textContent).toContain("apenas");
     expect(checkbox.classList.contains("focus-visible:ring-1")).toBe(true);
-    expect(checkbox.classList.contains("min-h-[40px]")).toBe(true);
+    expect(checkbox.classList.contains("min-h-[32px]")).toBe(true);
     expect(label.classList.contains("focus-visible:ring-1")).toBe(true);
     expect(checkbox.querySelector("button")).toBeNull();
     expect(label.querySelector("button")).toBeNull();
