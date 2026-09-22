@@ -746,6 +746,106 @@ export async function getLicitacoesEmAndamentoMetrics(
 }
 
 /**
+ * Retorna os detalhes de uma licitação específica por número ou ID, independentemente da situação.
+ */
+export async function getLicitacaoByNumero(
+  portalSlug: string,
+  licitacaoNumeroOuId: string,
+  ano?: number,
+): Promise<LicitacaoEmAndamentoDTO | null> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !licitacaoNumeroOuId ||
+    typeof licitacaoNumeroOuId !== "string" ||
+    licitacaoNumeroOuId.trim() === ""
+  ) {
+    return null;
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const cleanTerm = licitacaoNumeroOuId.trim();
+
+  let query = db
+    .selectFrom("fct_licitacoes as l")
+    .leftJoin("dim_orgao as o", (join) =>
+      join
+        .onRef("o.portal_slug", "=", "l.portal_slug")
+        .onRef("o.empresa_id", "=", "l.empresa_id"),
+    )
+    .select([
+      "l.licitacao_id",
+      "l.portal_slug",
+      "l.ano",
+      "l.empresa_id",
+      "o.orgao_nome as entidade_nome",
+      "l.licitacao_numero",
+      "l.modalidade",
+      "l.objeto",
+      "l.discriminacao",
+      "l.valor",
+      "l.valor_estimado",
+      "l.valor_homologado",
+      "l.situacao",
+      "l.data_abertura",
+      "l.carona",
+      "l.fonte_objeto",
+      "l.link_sistema_origem",
+    ])
+    .where("l.portal_slug", "=", cleanSlug)
+    .where((eb) =>
+      eb.or([
+        eb("l.licitacao_numero", "=", cleanTerm),
+        eb("l.licitacao_id", "=", cleanTerm),
+      ]),
+    );
+
+  if (ano !== undefined && !Number.isNaN(ano)) {
+    query = query.where("l.ano", "=", ano);
+  }
+
+  const r = await query.orderBy("l.ano", "desc").limit(1).executeTakeFirst();
+  if (!r) return null;
+
+  const valorNumerico = r.valor != null ? parseFloat(String(r.valor)) : null;
+  const valorEstimado =
+    r.valor_estimado != null
+      ? parseFloat(String(r.valor_estimado))
+      : valorNumerico;
+  const valorHomologado =
+    r.valor_homologado != null ? parseFloat(String(r.valor_homologado)) : null;
+
+  return {
+    licitacaoId: String(r.licitacao_id),
+    portalSlug: String(r.portal_slug),
+    ano: Number(r.ano),
+    empresaId: String(r.empresa_id ?? ""),
+    entidadeNome: r.entidade_nome ? String(r.entidade_nome) : null,
+    licitacaoNumero: String(r.licitacao_numero ?? ""),
+    modalidade: String(r.modalidade ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_"),
+    objeto: String(r.objeto ?? ""),
+    discriminacao: r.discriminacao ? String(r.discriminacao) : null,
+    valor: valorNumerico,
+    valorEstimado,
+    valorHomologado,
+    situacao: String(r.situacao ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_"),
+    dataAbertura: toIsoDateString(r.data_abertura),
+    carona: r.carona ? String(r.carona) : null,
+    fonteObjeto: r.fonte_objeto ? String(r.fonte_objeto) : "municipal",
+    linkSistemaOrigem: r.link_sistema_origem
+      ? String(r.link_sistema_origem)
+      : null,
+  };
+}
+
+/**
  * Retorna os itens licitados de um processo a partir do mart `fct_licitacoes_itens`.
  */
 export async function getLicitacaoItens(

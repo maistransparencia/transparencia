@@ -16,7 +16,14 @@ import {
   ModalDialog,
   TruncatedCellWithModal,
 } from "@transparencia/ui";
-import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  ExternalLink,
+  Package,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
@@ -24,6 +31,8 @@ export { fmtLicitacaoSituacao };
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
+  portalSlug?: string;
+  ano?: number;
   className?: string;
 }
 
@@ -43,14 +52,22 @@ function getFonteObjetoBadge(fonteObjeto?: string | null): string | undefined {
 export function LicitacoesEmAndamentoSection({
   licitacoes = [],
   itensByLicitacao,
+  portalSlug,
+  ano,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
     useState<LicitacaoTableRow | null>(null);
+  const [openedFromSearch, setOpenedFromSearch] = useState(false);
   const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
     null,
   );
+  const [dynamicItensByLicitacao, setDynamicItensByLicitacao] = useState<
+    Record<string, LicitacaoItemDTO[]>
+  >({});
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const hasCheckedDeepLinkRef = useRef(false);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
 
   // Ordena primeiro por valor decrescente (destaque para compras mais caras)
   const sortedByRelevance = useMemo(() => {
@@ -125,25 +142,155 @@ export function LicitacoesEmAndamentoSection({
   }, [sortedByRelevance]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || hasCheckedDeepLinkRef.current) return;
+    if (typeof window === "undefined") return;
     if (tableData.length === 0) return;
 
-    hasCheckedDeepLinkRef.current = true;
-    const urlParams = new URLSearchParams(window.location.search);
-    const numero = urlParams.get("numero");
-    const hash = window.location.hash;
-    if (numero) {
+    const checkAndOpenLicitacao = async (
+      targetNumero?: string | null,
+      searchDetail?: {
+        id?: string;
+        numero?: string;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
+      },
+    ) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const numero = targetNumero ?? urlParams.get("numero");
+      if (!numero) return;
+
       setHighlightedNumero(numero);
-      if (hash === "#itens") {
-        const match = tableData.find(
-          (t) => t.licitacaoNumero === numero || t.licitacaoId === numero,
-        );
-        if (match) {
-          setSelectedLicitacaoForItens(match);
+      const cleanNum = numero.trim();
+      const match = tableData.find((t) => {
+        if (!t) return false;
+        if (t.licitacaoNumero === cleanNum || t.licitacaoId === cleanNum)
+          return true;
+        if (t.licitacaoNumero && cleanNum) {
+          return (
+            t.licitacaoNumero.replace(/^0+/, "") === cleanNum.replace(/^0+/, "")
+          );
+        }
+        return false;
+      });
+
+      if (match) {
+        setSelectedLicitacaoForItens(match);
+        return;
+      }
+
+      // Se não estiver na tabela pré-carregada (ex: processo já homologado), busca via API ou constrói a partir dos dados do evento
+      const targetSlug = searchDetail?.portalSlug || portalSlug;
+      const targetAno = searchDetail?.ano || ano;
+
+      if (targetSlug) {
+        setLoadingDetails(true);
+        try {
+          const res = await fetch(
+            `/api/${encodeURIComponent(targetSlug)}/licitacoes/details?numero=${encodeURIComponent(cleanNum)}${targetAno ? `&ano=${targetAno}` : ""}`,
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.licitacao) {
+              const item = data.licitacao;
+              const modalidadeFmt = fmtLicitacaoModalidade(item.modalidade);
+              const situacaoFmt = fmtLicitacaoSituacao(item.situacao);
+              const tableRow: LicitacaoTableRow = {
+                ...item,
+                modalidadeFormatada: modalidadeFmt,
+                situacaoFormatada: situacaoFmt,
+                valorFinal: item.valorEstimado ?? item.valor ?? null,
+                buscaNormalizada: "",
+              };
+              if (Array.isArray(data.itens) && data.itens.length > 0) {
+                setDynamicItensByLicitacao((prev) => ({
+                  ...prev,
+                  [item.licitacaoNumero]: data.itens,
+                }));
+              }
+              setSelectedLicitacaoForItens(tableRow);
+              return;
+            }
+          }
+        } catch (_err) {
+          // Fallback silencioso para dados de busca se a requisição falhar
+        } finally {
+          setLoadingDetails(false);
         }
       }
+
+      // Fallback gracioso com dados da busca caso a API falhe ou não tenha portalSlug
+      if (searchDetail && (searchDetail.numero || searchDetail.objeto)) {
+        const modalidadeFmt = fmtLicitacaoModalidade(searchDetail.modalidade);
+        const situacaoFmt = fmtLicitacaoSituacao(searchDetail.status);
+        const fallbackRow: LicitacaoTableRow = {
+          licitacaoId: searchDetail.id || cleanNum,
+          portalSlug: targetSlug || "",
+          ano: targetAno || new Date().getFullYear(),
+          empresaId: "",
+          entidadeNome: null,
+          licitacaoNumero: searchDetail.numero || cleanNum,
+          modalidade: searchDetail.modalidade || "",
+          objeto: searchDetail.objeto || "",
+          discriminacao: null,
+          valor: searchDetail.valor ?? null,
+          valorEstimado: searchDetail.valor ?? null,
+          valorHomologado: searchDetail.valor ?? null,
+          situacao: searchDetail.status || "homologada",
+          dataAbertura: null,
+          carona: null,
+          fonteObjeto: "municipal",
+          linkSistemaOrigem: searchDetail.linkSistemaOrigem || null,
+          modalidadeFormatada: modalidadeFmt,
+          situacaoFormatada: situacaoFmt,
+          valorFinal: searchDetail.valor ?? null,
+          buscaNormalizada: "",
+        };
+        setSelectedLicitacaoForItens(fallbackRow);
+      }
+    };
+
+    if (!hasCheckedDeepLinkRef.current) {
+      hasCheckedDeepLinkRef.current = true;
+      checkAndOpenLicitacao();
     }
-  }, [tableData]);
+
+    const handleCustomSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        numero?: string;
+        id?: string;
+        fromSearch?: boolean;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
+      }>;
+      const num = customEvent.detail?.numero || customEvent.detail?.id;
+      if (num) {
+        if (customEvent.detail?.fromSearch) {
+          setOpenedFromSearch(true);
+        }
+        checkAndOpenLicitacao(num, customEvent.detail);
+      }
+    };
+
+    const handlePopState = () => {
+      checkAndOpenLicitacao();
+    };
+
+    window.addEventListener("licitacao:selected", handleCustomSelect);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("licitacao:selected", handleCustomSelect);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [tableData, portalSlug, ano]);
 
   const columns: Column<LicitacaoTableRow>[] = [
     {
@@ -171,7 +318,10 @@ export function LicitacoesEmAndamentoSection({
             )}
             <button
               type="button"
-              onClick={() => setSelectedLicitacaoForItens(row)}
+              onClick={() => {
+                setOpenedFromSearch(false);
+                setSelectedLicitacaoForItens(row);
+              }}
               className="inline-flex items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
               title="Visualizar itens licitados"
             >
@@ -752,16 +902,33 @@ export function LicitacoesEmAndamentoSection({
       {/* Diálogo / Modal de Itens Licitados via ModalDialog */}
       <ModalDialog
         isOpen={!!selectedLicitacaoForItens}
-        onClose={() => setSelectedLicitacaoForItens(null)}
+        onClose={() => {
+          setSelectedLicitacaoForItens(null);
+          setOpenedFromSearch(false);
+        }}
+        onBack={
+          openedFromSearch
+            ? () => {
+                setSelectedLicitacaoForItens(null);
+                setOpenedFromSearch(false);
+              }
+            : undefined
+        }
+        backLabel="Voltar aos resultados da busca"
+        zIndex={openedFromSearch ? "z-[60]" : undefined}
         title={`Itens Licitados — Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
         subtitle={selectedLicitacaoForItens?.objeto}
-        maxWidth="4xl"
+        maxWidth="6xl"
         footer={
           selectedLicitacaoForItens ? (
             <div className="flex w-full items-center justify-between text-xs">
               <span className="text-slate-500">
-                {itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
-                  ?.length || 0}{" "}
+                {(
+                  dynamicItensByLicitacao[
+                    selectedLicitacaoForItens.licitacaoNumero
+                  ] ??
+                  itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
+                )?.length || 0}{" "}
                 itens listados
               </span>
               {selectedLicitacaoForItens.linkSistemaOrigem && (
@@ -782,6 +949,9 @@ export function LicitacoesEmAndamentoSection({
         {selectedLicitacaoForItens &&
           (() => {
             const itens =
+              dynamicItensByLicitacao[
+                selectedLicitacaoForItens.licitacaoNumero
+              ] ??
               itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero] ??
               [];
             if (itens.length === 0) {
@@ -792,7 +962,9 @@ export function LicitacoesEmAndamentoSection({
                     aria-hidden="true"
                   />
                   <p className="mt-3 font-medium text-slate-700 text-sm">
-                    Nenhum item individual cadastrado para este processo.
+                    {loadingDetails
+                      ? "Carregando detalhes e itens da contratação..."
+                      : "Nenhum item individual cadastrado para este processo."}
                   </p>
                   <p className="mt-1 text-slate-400 text-xs">
                     Os detalhes da contratação podem ser consultados no edital
@@ -819,117 +991,168 @@ export function LicitacoesEmAndamentoSection({
             }
 
             return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-slate-600 text-xs">
-                  <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
-                    <tr>
-                      <th className="px-3 py-2 text-center">Item</th>
-                      <th className="px-3 py-2">Descrição</th>
-                      <th className="px-3 py-2 text-center">Qtd / Un</th>
-                      <th className="px-3 py-2 text-right">Valor Estimado</th>
-                      <th className="px-3 py-2 text-right">Homologado</th>
-                      <th className="px-3 py-2 text-center">Desconto</th>
-                      <th className="px-3 py-2">Fornecedor Vencedor</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {itens.map((it) => (
-                      <tr key={it.itemId} className="hover:bg-slate-50/80">
-                        <td className="px-3 py-2.5 text-center font-bold text-slate-900">
-                          {it.numeroItem}
-                        </td>
-                        <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
-                          {it.descricao || "—"}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.quantidade != null ? it.quantidade : "—"}{" "}
-                          {it.unidadeMedida || ""}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalEstimado ??
-                              (it.valorUnitarioEstimado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioEstimado * it.quantidade
-                                : it.valorUnitarioEstimado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioEstimado != null && (
-                                      <span className="block font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(it.valorUnitarioEstimado)}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalHomologado ??
-                              (it.valorUnitarioHomologado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioHomologado * it.quantidade
-                                : it.valorUnitarioHomologado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioHomologado != null && (
-                                      <span className="block font-normal font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(
-                                          it.valorUnitarioHomologado,
-                                        )}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.percentualDesconto != null ? (
-                            <span className="font-semibold text-emerald-700">
-                              {it.percentualDesconto}%
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="min-w-[150px] px-3 py-2.5">
-                          {it.fornecedorNome ? (
-                            <div>
-                              <span className="font-medium text-slate-800">
-                                {it.fornecedorNome}
-                              </span>
-                              {it.fornecedorCpfCnpj && (
-                                <span className="block text-[10px] text-slate-400">
-                                  {it.fornecedorCpfCnpj}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 italic">
-                              Pendente / Não homologado
-                            </span>
-                          )}
-                        </td>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-slate-500 text-xs">
+                  <span className="font-medium text-slate-600">
+                    {itens.length}{" "}
+                    {itens.length === 1 ? "item listado" : "itens listados"}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden font-medium text-[11px] text-slate-400 sm:inline">
+                      Navegar colunas:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = tableScrollRef.current;
+                        if (!el) return;
+                        if (typeof el.scrollBy === "function") {
+                          el.scrollBy({ left: -240, behavior: "smooth" });
+                        } else {
+                          el.scrollLeft -= 240;
+                        }
+                      }}
+                      aria-label="Rolar tabela para a esquerda"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = tableScrollRef.current;
+                        if (!el) return;
+                        if (typeof el.scrollBy === "function") {
+                          el.scrollBy({ left: 240, behavior: "smooth" });
+                        } else {
+                          el.scrollLeft += 240;
+                        }
+                      }}
+                      aria-label="Rolar tabela para a direita"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={tableScrollRef}
+                  className="overflow-x-auto rounded-xl border border-slate-200 bg-white"
+                >
+                  <table className="w-full min-w-[780px] text-left text-slate-600 text-xs">
+                    <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-3 py-2 text-center">Item</th>
+                        <th className="px-3 py-2">Descrição</th>
+                        <th className="px-3 py-2 text-center">Qtd / Un</th>
+                        <th className="px-3 py-2 text-right">Valor Estimado</th>
+                        <th className="px-3 py-2 text-right">Homologado</th>
+                        <th className="px-3 py-2 text-center">Desconto</th>
+                        <th className="px-3 py-2">Fornecedor Vencedor</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {itens.map((it) => (
+                        <tr key={it.itemId} className="hover:bg-slate-50/80">
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-900">
+                            {it.numeroItem}
+                          </td>
+                          <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
+                            {it.descricao || "—"}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                            {it.quantidade != null ? it.quantidade : "—"}{" "}
+                            {it.unidadeMedida || ""}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
+                            {(() => {
+                              const valorExibicao =
+                                it.valorTotalEstimado ??
+                                (it.valorUnitarioEstimado != null &&
+                                it.quantidade != null
+                                  ? it.valorUnitarioEstimado * it.quantidade
+                                  : it.valorUnitarioEstimado);
+                              if (valorExibicao != null) {
+                                return (
+                                  <>
+                                    <span>{fmtCurrency(valorExibicao)}</span>
+                                    {it.quantidade != null &&
+                                      it.quantidade > 1 &&
+                                      it.valorUnitarioEstimado != null && (
+                                        <span className="block font-sans text-[10px] text-slate-400">
+                                          {fmtCurrency(
+                                            it.valorUnitarioEstimado,
+                                          )}{" "}
+                                          / un
+                                        </span>
+                                      )}
+                                  </>
+                                );
+                              }
+                              return "—";
+                            })()}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
+                            {(() => {
+                              const valorExibicao =
+                                it.valorTotalHomologado ??
+                                (it.valorUnitarioHomologado != null &&
+                                it.quantidade != null
+                                  ? it.valorUnitarioHomologado * it.quantidade
+                                  : it.valorUnitarioHomologado);
+                              if (valorExibicao != null) {
+                                return (
+                                  <>
+                                    <span>{fmtCurrency(valorExibicao)}</span>
+                                    {it.quantidade != null &&
+                                      it.quantidade > 1 &&
+                                      it.valorUnitarioHomologado != null && (
+                                        <span className="block font-normal font-sans text-[10px] text-slate-400">
+                                          {fmtCurrency(
+                                            it.valorUnitarioHomologado,
+                                          )}{" "}
+                                          / un
+                                        </span>
+                                      )}
+                                  </>
+                                );
+                              }
+                              return "—";
+                            })()}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                            {it.percentualDesconto != null ? (
+                              <span className="font-semibold text-emerald-700">
+                                {it.percentualDesconto}%
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="min-w-[150px] px-3 py-2.5">
+                            {it.fornecedorNome ? (
+                              <div>
+                                <span className="font-medium text-slate-800">
+                                  {it.fornecedorNome}
+                                </span>
+                                {it.fornecedorCpfCnpj && (
+                                  <span className="block text-[10px] text-slate-400">
+                                    {it.fornecedorCpfCnpj}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">
+                                Pendente / Não homologado
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })()}
