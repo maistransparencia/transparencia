@@ -202,7 +202,7 @@ export function EntidadeSelectCompact({
                   key={opt.id}
                   role="group"
                   aria-label={toTitleCase(opt.nome)}
-                  className="group flex w-full items-center justify-between rounded-md px-1 py-0.5 text-ink text-xs transition-colors hover:bg-gray-100/80"
+                  className="group/row flex w-full items-center justify-between rounded-md px-1 py-0.5 text-ink text-xs transition-colors hover:bg-gray-100/80"
                 >
                   {/* biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button inside popover list */}
                   <button
@@ -232,11 +232,11 @@ export function EntidadeSelectCompact({
                     onClick={() => handleSelectOnly(opt.id)}
                     aria-label={`Selecionar apenas ${toTitleCase(opt.nome)}`}
                     title={`Selecionar apenas ${toTitleCase(opt.nome)}`}
-                    className="relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
+                    className="group/label relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
                   >
                     <span className="truncate">{toTitleCase(opt.nome)}</span>
                     <span
-                      className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-gray-100 via-gray-100/95 to-transparent pr-1 pl-6 group-hover:sm:flex"
+                      className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-gray-100 via-gray-100/95 to-transparent pr-1 pl-6 group-hover/label:sm:flex"
                       aria-hidden="true"
                     >
                       <span className="rounded border border-blue-200/60 bg-blue-50/90 px-1.5 py-0.5 font-medium text-[#1d64d8] text-[10px] shadow-xs">
