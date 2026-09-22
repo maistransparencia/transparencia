@@ -1,4 +1,5 @@
 import { getPartialYearPeriod } from "@transparencia/ui";
+import { buildRadarCivicoCards } from "../view-model";
 import type { loadReceitasData } from "./loader";
 
 type ReceitasRawData = Awaited<ReturnType<typeof loadReceitasData>>;
@@ -144,6 +145,15 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     return "Orçamento aprovado";
   })();
 
+  const radarCards = buildRadarCivicoCards(raw.radarAlertas, raw.portalSlug, {
+    portalName: raw.portalConfig?.displayName,
+    anoContexto: raw.context.selectedYear,
+  });
+
+  const cardDependencia =
+    radarCards.find((c) => c.tipoAnomalia === "dependencia_transferencias") ??
+    null;
+
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
@@ -158,5 +168,6 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     tableData,
     totalExtraOrcamentario: rec.receitaExtraOrcamentariaArrecadado,
     variationText,
+    cardDependencia,
   };
 }

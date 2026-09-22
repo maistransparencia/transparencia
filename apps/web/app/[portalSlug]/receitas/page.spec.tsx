@@ -68,32 +68,51 @@ describe("ReceitasPage", () => {
     expect(screen.getByText("Total Arrecadado Real")).toBeInTheDocument();
   });
 
-  it("não exibe o alerta de dependência quando alertaDependencia é falso", async () => {
-    loadReceitasDataMock.mockResolvedValue(
-      makeRaw({ fonte: makeFonte({ alertaDependencia: false }) }),
-    );
+  it("não exibe o card de anomalia de dependência quando não há alerta", async () => {
+    loadReceitasDataMock.mockResolvedValue(makeRaw({ radarAlertas: [] }));
 
     const element = await ReceitasPage(props);
     render(element);
 
+    expect(screen.queryByTestId("radar-anomalia-card")).not.toBeInTheDocument();
     expect(
       screen.queryByText(/Alta Dependência de Transferências Externas/),
     ).not.toBeInTheDocument();
   });
 
-  it("exibe o alerta de vulnerabilidade fiscal quando alertaDependencia é verdadeiro", async () => {
+  it("exibe o RadarAnomaliaCard canônico quando há anomalia de dependência apurada", async () => {
     loadReceitasDataMock.mockResolvedValue(
       makeRaw({
-        fonte: makeFonte({ alertaDependencia: true, pctPropria: 12 }),
+        radarAlertas: [
+          {
+            anomaliaId: "anomalia-dep-1",
+            portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
+            tipoAnomalia: "dependencia_transferencias",
+            dimensaoReferencia: "receita_propria",
+            grauSeveridade: "critico",
+            desvioPercentual: 5.0,
+            valorObservado: 5.0,
+            valorEsperado: 10.0,
+            mesInicial: 1,
+            mesFinal: 12,
+            deepLinkRota: "/porciuncula_prefeitura/receitas?ano=2024",
+            metodoDeteccao: "art11_lrf_arrecadacao_propria",
+          },
+        ],
       }),
     );
 
     const element = await ReceitasPage(props);
     render(element);
 
+    expect(screen.getByTestId("radar-anomalia-card")).toBeInTheDocument();
     expect(
-      screen.getByText(/Alta Dependência de Transferências Externas/),
+      screen.getByText("Dependência de Transferências Externas"),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Alta Dependência de Transferências Externas/),
+    ).not.toBeInTheDocument();
   });
 
   it("não quebra quando não há fonte de receita disponível (loader retorna undefined)", async () => {

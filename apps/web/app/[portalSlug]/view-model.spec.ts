@@ -593,6 +593,47 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para dependência de transferências externas com fundamentação no Art. 11 da LRF", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-dependencia",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "dependencia_transferencias",
+          dimensaoReferencia: "receita_propria",
+          grauSeveridade: "critico",
+          desvioPercentual: 5.0,
+          valorObservado: 5.0,
+          valorEsperado: 10.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          deepLinkRota: "/porciuncula/receitas?ano=2024",
+          metodoDeteccao: "art11_lrf_arrecadacao_propria",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Dependência de Transferências Externas");
+    expect(card.metodologiaBadge).toBe("Art. 11 da LRF");
+    expect(card.esperadoLabel).toBe("Parâmetro LRF");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("5%");
+    expect(card.valorEsperadoFormatted).toBe("10%");
+    expect(card.desvioPercentualFormatted).toBe("-5%");
+    expect(card.ctaLabel).toBe("Analisar Fontes de Receita");
+    expect(card.ctaUrl).toBe("/porciuncula/receitas?ano=2024");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 11 da LRF",
+      url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+    });
+    expect(card.textoFactual).toContain(
+      "a receita própria representou apenas 5% da arrecadação, patamar inferior ao parâmetro referencial de 10% preconizado pelo Art. 11 da LRF.",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

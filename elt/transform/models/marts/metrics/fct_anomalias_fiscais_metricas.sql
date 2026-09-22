@@ -367,6 +367,58 @@ pessoal_divergencias_anomalias as (
     having count(*) > 0
 ),
 
+dependencia_transferencias_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'dependencia_transferencias'::text as tipo_anomalia,
+        'receita_propria'::text as dimensao_referencia,
+        case
+            when sum(total_arrecadado) > 0
+            then (sum(receita_propria_arrecadado) / sum(total_arrecadado)) * 100.0
+            else
+                case
+                    when sum(total_previsto) > 0
+                    then (sum(receita_propria_previsto) / sum(total_previsto)) * 100.0
+                    else 0.0
+                end
+        end::numeric as valor_observado,
+        10.00::numeric as valor_esperado,
+        round(
+            case
+                when sum(total_arrecadado) > 0
+                then (10.00 - ((sum(receita_propria_arrecadado) / sum(total_arrecadado)) * 100.0))
+                else
+                    case
+                        when sum(total_previsto) > 0
+                        then (10.00 - ((sum(receita_propria_previsto) / sum(total_previsto)) * 100.0))
+                        else 10.00
+                    end
+            end::numeric,
+            2
+        ) as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        ('/' || portal_slug || '/receitas?ano=' || ano)::text as deep_link_rota,
+        'art11_lrf_arrecadacao_propria'::text as metodo_deteccao
+    from {{ ref('fct_fontes_receita_metricas') }}
+    where ano < extract(year from current_date)
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano
+    having (
+        case
+            when sum(total_arrecadado) > 0
+            then (sum(receita_propria_arrecadado) / sum(total_arrecadado)) * 100.0
+            else
+                case
+                    when sum(total_previsto) > 0
+                    then (sum(receita_propria_previsto) / sum(total_previsto)) * 100.0
+                    else 0.0
+                end
+        end
+    ) < 10.0
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -387,6 +439,8 @@ todas_anomalias as (
     select * from desagio_extremo_anomalias
     union all
     select * from pessoal_divergencias_anomalias
+    union all
+    select * from dependencia_transferencias_anomalias
 )
 
 select
@@ -396,7 +450,7 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
-        when tipo_anomalia = 'retencao_patronal_rpps' then 'critico'
+        when tipo_anomalia in ('retencao_patronal_rpps', 'dependencia_transferencias') then 'critico'
         when tipo_anomalia = 'inadimplencia_aporte_rpps' then
             case
                 when desvio_percentual > 30.0 then 'critico'

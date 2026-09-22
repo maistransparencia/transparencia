@@ -42,6 +42,7 @@ describe("radar-civico-narrative", () => {
         "Contribuição Patronal (RPPS)",
       );
       expect(formatarDimensao("quadro_pessoal")).toBe("Quadro de Pessoal");
+      expect(formatarDimensao("receita_propria")).toBe("Receita Própria");
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
@@ -335,6 +336,23 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2022, foram identificados 1 profissional cadastrado com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+      );
+    });
+
+    it("formats dependencia_transferencias with observed percentage, expected and legal basis", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "dependencia_transferencias",
+          ano: 2024,
+          valorObservado: 5.0,
+          valorEsperado: 10.0,
+          desvioPercentual: 5.0,
+          dimensaoReferencia: "receita_propria",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, a receita própria representou apenas 5% da arrecadação, patamar inferior ao parâmetro referencial de 10% preconizado pelo Art. 11 da LRF.",
       );
     });
 

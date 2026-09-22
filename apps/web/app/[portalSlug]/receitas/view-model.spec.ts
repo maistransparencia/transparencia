@@ -100,4 +100,40 @@ describe("buildReceitasViewModel", () => {
     const vm = buildReceitasViewModel(makeRaw({ fonte: undefined }));
     expect(vm.rec.emendasTotalEmpenhado).toBe(0);
   });
+
+  it("resolve cardDependencia como null quando não há alertas de dependência", () => {
+    const vm = buildReceitasViewModel(makeRaw({ radarAlertas: [] }));
+    expect(vm.cardDependencia).toBeNull();
+  });
+
+  it("resolve cardDependencia a partir do radarAlertas quando há anomalia de dependência de transferências", () => {
+    const vm = buildReceitasViewModel(
+      makeRaw({
+        radarAlertas: [
+          {
+            anomaliaId: "anomalia-dep-1",
+            portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
+            tipoAnomalia: "dependencia_transferencias",
+            dimensaoReferencia: "receita_propria",
+            grauSeveridade: "critico",
+            desvioPercentual: 5.0,
+            valorObservado: 5.0,
+            valorEsperado: 10.0,
+            mesInicial: 1,
+            mesFinal: 12,
+            deepLinkRota: "/porciuncula_prefeitura/receitas?ano=2024",
+            metodoDeteccao: "art11_lrf_arrecadacao_propria",
+          },
+        ],
+      }),
+    );
+    expect(vm.cardDependencia).not.toBeNull();
+    expect(vm.cardDependencia?.tipoAnomalia).toBe("dependencia_transferencias");
+    expect(vm.cardDependencia?.titulo).toBe(
+      "Dependência de Transferências Externas",
+    );
+    expect(vm.cardDependencia?.valorObservadoFormatted).toBe("5%");
+    expect(vm.cardDependencia?.valorEsperadoFormatted).toBe("10%");
+  });
 });
