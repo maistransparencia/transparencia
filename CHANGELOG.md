@@ -5,6 +5,13 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### ✨ Novas Funcionalidades (Added)
+* **Visibilidade e Sinalização do Radar Cívico na Navegação (`Sidebar` e `MobileBottomNav`):** Indicador visual não-intrusivo e acessível para anomalias fiscais críticas ativas no exercício selecionado. No menu lateral desktop (`Sidebar`), o "Radar Cívico" foi promovido para o bloco superior da navegação (logo abaixo de "Visão geral"), garantindo visibilidade imediata sem scroll tanto no desktop quanto na abertura do drawer móvel. Exibe badge com indicador em pulso suave (`motion-safe:animate-pulse`, respeitando `motion-reduce:animate-none`), `role="status"` e contagem numérica em `tabular-nums` sem emojis ou sirenes. No mobile (`MobileBottomNav`), adiciona um dot luminoso discreto sobre a aba "Mais", preservando a Topbar limpa e ocultando-se automaticamente quando o menu lateral estiver aberto.
+* **Consulta Atômica e Endpoint Público de Alertas do Radar (`getRadarAnomaliasCount` e `/api/[portalSlug]/radar/count`):** Nova consulta atômica na camada `@transparencia/db` com agregação rápida de anomalias com severidade `'critico'`, cache de layout com tolerância a falhas via `unstable_cache` (`getRadarAnomaliasCountByYear`), e endpoint REST público com rate limiting (60 req/min) e cabeçalhos `Cache-Control`.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Sincronização dos Guias de Consumo de IA (`llms.txt` e `llms-full.txt`):** Inclusão da rota pública `/api/[portalSlug]/radar/count` e documentação dos sinalizadores cívicos de navegação para consulta automatizada por assistentes de IA (Regra 12 do AGENTS.md).
+
 ### 🐛 Correções & Refinamentos (Fixed & Polish)
 * **Handshake de Conexão e Estabilidade em Servidores Serverless (`@transparencia/db`):** Configuração determinística do parâmetro `options: "-c search_path=analytics,public"` nos pools de conexão do PostgreSQL (`pool` e `writePool`). A injeção direta no pacote de inicialização (`StartupMessage`) elimina a condição de corrida assíncrona do evento não-bloqueante `pool.on("connect")` durante cold starts de funções serverless na Vercel, prevenindo falhas intermitentes de tabela inexistente (`42P01: relation does not exist`) em consultas ao schema `analytics` através de poolers em modo de transação.
 
