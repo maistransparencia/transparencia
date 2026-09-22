@@ -13,6 +13,7 @@ export interface SearchResultItem {
   ano: number;
   portalSlug: string;
   href: string;
+  linkSistemaOrigem?: string | null;
 }
 
 export interface SearchLicitacoesParams {
@@ -129,6 +130,9 @@ export async function searchLicitacoesEContratos(
         ano,
         portalSlug: slug,
         href: `/${slug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(num)}#licitacoes-em-andamento`,
+        linkSistemaOrigem: r.link_sistema_origem
+          ? String(r.link_sistema_origem)
+          : null,
       };
     });
   };

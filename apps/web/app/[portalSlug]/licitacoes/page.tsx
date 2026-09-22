@@ -235,6 +235,8 @@ export default async function LicitacoesPage({
       <LicitacoesEmAndamentoSection
         licitacoes={licitacoesEmAndamento}
         itensByLicitacao={itensByLicitacao}
+        portalSlug={portalSlug}
+        ano={selectedYear}
       />
 
       {/* Section: Contratos de Serviços Vigentes */}

@@ -469,4 +469,35 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     fireEvent.click(btnScrollRight);
     fireEvent.click(btnScrollLeft);
   });
+
+  it("abre modal mesmo para licitação que não está na lista em andamento (ex: homologada da busca)", async () => {
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "000397",
+          id: "lic-homologada-397",
+          objeto: "Locação de tenda para a feira do livro",
+          modalidade: "DISPENSA",
+          status: "Homologada",
+          valor: 3200,
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText(/Processo 000397/i)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Locação de tenda para a feira do livro/i),
+    ).toBeInTheDocument();
+  });
 });

@@ -31,6 +31,8 @@ export { fmtLicitacaoSituacao };
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
+  portalSlug?: string;
+  ano?: number;
   className?: string;
 }
 
@@ -50,6 +52,8 @@ function getFonteObjetoBadge(fonteObjeto?: string | null): string | undefined {
 export function LicitacoesEmAndamentoSection({
   licitacoes = [],
   itensByLicitacao,
+  portalSlug,
+  ano,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
@@ -58,6 +62,10 @@ export function LicitacoesEmAndamentoSection({
   const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
     null,
   );
+  const [dynamicItensByLicitacao, setDynamicItensByLicitacao] = useState<
+    Record<string, LicitacaoItemDTO[]>
+  >({});
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const hasCheckedDeepLinkRef = useRef(false);
   const tableScrollRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +145,20 @@ export function LicitacoesEmAndamentoSection({
     if (typeof window === "undefined") return;
     if (tableData.length === 0) return;
 
-    const checkAndOpenLicitacao = (targetNumero?: string | null) => {
+    const checkAndOpenLicitacao = async (
+      targetNumero?: string | null,
+      searchDetail?: {
+        id?: string;
+        numero?: string;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
+      },
+    ) => {
       const urlParams = new URLSearchParams(window.location.search);
       const numero = targetNumero ?? urlParams.get("numero");
       if (!numero) return;
@@ -158,6 +179,77 @@ export function LicitacoesEmAndamentoSection({
 
       if (match) {
         setSelectedLicitacaoForItens(match);
+        return;
+      }
+
+      // Se não estiver na tabela pré-carregada (ex: processo já homologado), busca via API ou constrói a partir dos dados do evento
+      const targetSlug = searchDetail?.portalSlug || portalSlug;
+      const targetAno = searchDetail?.ano || ano;
+
+      if (targetSlug) {
+        setLoadingDetails(true);
+        try {
+          const res = await fetch(
+            `/api/${encodeURIComponent(targetSlug)}/licitacoes/details?numero=${encodeURIComponent(cleanNum)}${targetAno ? `&ano=${targetAno}` : ""}`,
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.licitacao) {
+              const item = data.licitacao;
+              const modalidadeFmt = fmtLicitacaoModalidade(item.modalidade);
+              const situacaoFmt = fmtLicitacaoSituacao(item.situacao);
+              const tableRow: LicitacaoTableRow = {
+                ...item,
+                modalidadeFormatada: modalidadeFmt,
+                situacaoFormatada: situacaoFmt,
+                valorFinal: item.valorEstimado ?? item.valor ?? null,
+                buscaNormalizada: "",
+              };
+              if (Array.isArray(data.itens) && data.itens.length > 0) {
+                setDynamicItensByLicitacao((prev) => ({
+                  ...prev,
+                  [item.licitacaoNumero]: data.itens,
+                }));
+              }
+              setSelectedLicitacaoForItens(tableRow);
+              return;
+            }
+          }
+        } catch (_err) {
+          // Fallback silencioso para dados de busca se a requisição falhar
+        } finally {
+          setLoadingDetails(false);
+        }
+      }
+
+      // Fallback gracioso com dados da busca caso a API falhe ou não tenha portalSlug
+      if (searchDetail && (searchDetail.numero || searchDetail.objeto)) {
+        const modalidadeFmt = fmtLicitacaoModalidade(searchDetail.modalidade);
+        const situacaoFmt = fmtLicitacaoSituacao(searchDetail.status);
+        const fallbackRow: LicitacaoTableRow = {
+          licitacaoId: searchDetail.id || cleanNum,
+          portalSlug: targetSlug || "",
+          ano: targetAno || new Date().getFullYear(),
+          empresaId: "",
+          entidadeNome: null,
+          licitacaoNumero: searchDetail.numero || cleanNum,
+          modalidade: searchDetail.modalidade || "",
+          objeto: searchDetail.objeto || "",
+          discriminacao: null,
+          valor: searchDetail.valor ?? null,
+          valorEstimado: searchDetail.valor ?? null,
+          valorHomologado: searchDetail.valor ?? null,
+          situacao: searchDetail.status || "homologada",
+          dataAbertura: null,
+          carona: null,
+          fonteObjeto: "municipal",
+          linkSistemaOrigem: searchDetail.linkSistemaOrigem || null,
+          modalidadeFormatada: modalidadeFmt,
+          situacaoFormatada: situacaoFmt,
+          valorFinal: searchDetail.valor ?? null,
+          buscaNormalizada: "",
+        };
+        setSelectedLicitacaoForItens(fallbackRow);
       }
     };
 
@@ -171,13 +263,20 @@ export function LicitacoesEmAndamentoSection({
         numero?: string;
         id?: string;
         fromSearch?: boolean;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
       }>;
       const num = customEvent.detail?.numero || customEvent.detail?.id;
       if (num) {
         if (customEvent.detail?.fromSearch) {
           setOpenedFromSearch(true);
         }
-        checkAndOpenLicitacao(num);
+        checkAndOpenLicitacao(num, customEvent.detail);
       }
     };
 
@@ -191,7 +290,7 @@ export function LicitacoesEmAndamentoSection({
       window.removeEventListener("licitacao:selected", handleCustomSelect);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [tableData]);
+  }, [tableData, portalSlug, ano]);
 
   const columns: Column<LicitacaoTableRow>[] = [
     {
@@ -824,8 +923,12 @@ export function LicitacoesEmAndamentoSection({
           selectedLicitacaoForItens ? (
             <div className="flex w-full items-center justify-between text-xs">
               <span className="text-slate-500">
-                {itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
-                  ?.length || 0}{" "}
+                {(
+                  dynamicItensByLicitacao[
+                    selectedLicitacaoForItens.licitacaoNumero
+                  ] ??
+                  itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
+                )?.length || 0}{" "}
                 itens listados
               </span>
               {selectedLicitacaoForItens.linkSistemaOrigem && (
@@ -846,6 +949,9 @@ export function LicitacoesEmAndamentoSection({
         {selectedLicitacaoForItens &&
           (() => {
             const itens =
+              dynamicItensByLicitacao[
+                selectedLicitacaoForItens.licitacaoNumero
+              ] ??
               itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero] ??
               [];
             if (itens.length === 0) {
@@ -856,7 +962,9 @@ export function LicitacoesEmAndamentoSection({
                     aria-hidden="true"
                   />
                   <p className="mt-3 font-medium text-slate-700 text-sm">
-                    Nenhum item individual cadastrado para este processo.
+                    {loadingDetails
+                      ? "Carregando detalhes e itens da contratação..."
+                      : "Nenhum item individual cadastrado para este processo."}
                   </p>
                   <p className="mt-1 text-slate-400 text-xs">
                     Os detalhes da contratação podem ser consultados no edital
