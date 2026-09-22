@@ -185,6 +185,88 @@ describe("EntidadeSelectCompact Component", () => {
     expect(handleChange).toHaveBeenCalledWith(["2"]);
   });
 
+  it("deve selecionar exclusivamente uma entidade ao clicar no botão de texto/label ('Apenas Esta')", () => {
+    const handleChange = vi.fn();
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["1", "2"]}
+        onChange={handleChange}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const labelBtn = screen.getByRole("button", {
+      name: /selecionar apenas fundo municipal de saúde/i,
+    });
+    fireEvent.click(labelBtn);
+
+    expect(handleChange).toHaveBeenCalledWith(["2"]);
+  });
+
+  it("deve selecionar exclusivamente uma entidade a partir do estado consolidado ao clicar no label", () => {
+    const handleChange = vi.fn();
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={[]}
+        onChange={handleChange}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const labelBtn = screen.getByRole("button", {
+      name: /selecionar apenas câmara municipal/i,
+    });
+    fireEvent.click(labelBtn);
+
+    expect(handleChange).toHaveBeenCalledWith(["3"]);
+  });
+
+  it("deve segregar cada opção em container role='group' com dois botões irmãos e indicador 'apenas'", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["1"]}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /filtrar entidades públicas municipais/i,
+    });
+    fireEvent.click(trigger);
+
+    const group = screen.getByRole("group", { name: "Prefeitura Municipal" });
+    expect(group).toBeDefined();
+
+    const buttons = group.querySelectorAll("button");
+    expect(buttons.length).toBe(2);
+
+    const checkbox = screen.getByRole("checkbox", {
+      name: /prefeitura municipal/i,
+    });
+    const label = screen.getByRole("button", {
+      name: /selecionar apenas prefeitura municipal/i,
+    });
+
+    expect(checkbox).toBeDefined();
+    expect(label).toBeDefined();
+    expect(label.textContent).toContain("apenas");
+    expect(checkbox.classList.contains("focus-visible:ring-1")).toBe(true);
+    expect(checkbox.classList.contains("min-h-[40px]")).toBe(true);
+    expect(label.classList.contains("focus-visible:ring-1")).toBe(true);
+    expect(checkbox.querySelector("button")).toBeNull();
+    expect(label.querySelector("button")).toBeNull();
+  });
+
   it("deve desativar o gatilho quando disabled ou sem entidades", () => {
     render(
       <EntidadeSelectCompact

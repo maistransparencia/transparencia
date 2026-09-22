@@ -65,6 +65,10 @@ export function EntidadeSelectCompact({
     setIsOpen(false);
   };
 
+  const handleSelectOnly = (id: string) => {
+    onChange?.([id]);
+  };
+
   const handleToggleOption = (id: string) => {
     if (!onChange) return;
 
@@ -188,34 +192,53 @@ export function EntidadeSelectCompact({
             </button>
           </div>
 
-          {/* Lista de Entidades com Checkboxes Semânticos */}
+          {/* Lista de Entidades com Checkboxes Semânticos e Seleção Rápida */}
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {entidades.map((opt) => {
               const isChecked = isAllSelected || validSelected.includes(opt.id);
               return (
-                // biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button inside popover list
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={isChecked}
+                // biome-ignore lint/a11y/useSemanticElements: custom styled option group containing sibling buttons
+                <div
                   key={opt.id}
-                  onClick={() => handleToggleOption(opt.id)}
-                  className="flex w-full cursor-pointer items-center gap-2 rounded-md p-1.5 text-left text-ink text-xs transition-colors hover:bg-gray-100/80"
+                  role="group"
+                  aria-label={toTitleCase(opt.nome)}
+                  className="group flex w-full items-center justify-between rounded-md p-0.5 text-ink text-xs transition-colors hover:bg-gray-100/80"
                 >
-                  <div
-                    className={cn(
-                      "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border border-borderLine transition-colors",
-                      isChecked
-                        ? "border-[#1d64d8] bg-[#1d64d8] text-white"
-                        : "bg-white",
-                    )}
+                  {/* biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button inside popover list */}
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isChecked}
+                    aria-label={`Alternar seleção de ${toTitleCase(opt.nome)}`}
+                    onClick={() => handleToggleOption(opt.id)}
+                    className="flex min-h-[40px] shrink-0 cursor-pointer items-center justify-center rounded-sm p-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8] sm:min-h-0 sm:p-1"
                   >
-                    {isChecked && (
-                      <Check strokeWidth={2.5} className="h-2.5 w-2.5" />
-                    )}
-                  </div>
-                  <span className="truncate">{toTitleCase(opt.nome)}</span>
-                </button>
+                    <div
+                      className={cn(
+                        "flex h-3.5 w-3.5 items-center justify-center rounded border border-borderLine transition-colors",
+                        isChecked
+                          ? "border-[#1d64d8] bg-[#1d64d8] text-white"
+                          : "bg-white",
+                      )}
+                    >
+                      {isChecked && (
+                        <Check strokeWidth={2.5} className="h-2.5 w-2.5" />
+                      )}
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOnly(opt.id)}
+                    aria-label={`Selecionar apenas ${toTitleCase(opt.nome)}`}
+                    className="flex min-w-0 flex-1 cursor-pointer items-center justify-between rounded-sm py-1 pr-1 pl-1 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
+                  >
+                    <span className="truncate">{toTitleCase(opt.nome)}</span>
+                    <span className="ml-2 hidden shrink-0 font-medium text-[10px] text-mutedText opacity-0 transition-opacity group-hover:text-[#1d64d8] group-hover:opacity-100 sm:inline">
+                      apenas
+                    </span>
+                  </button>
+                </div>
               );
             })}
           </div>
