@@ -20,6 +20,8 @@ interface SidebarWrapperProps {
   brasaoAsset?: string;
   entidades?: MultiSelectOption[];
   portalSlug?: string;
+  radarAlertsCountByYear?: Record<number, number>;
+  radarAlertCount?: number;
 }
 
 export function SidebarWrapper({
@@ -32,6 +34,8 @@ export function SidebarWrapper({
   brasaoAsset,
   entidades,
   portalSlug,
+  radarAlertsCountByYear,
+  radarAlertCount,
 }: SidebarWrapperProps) {
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
@@ -70,6 +74,20 @@ export function SidebarWrapper({
     }
   };
 
+  const activeRadarAlertCount = (() => {
+    if (radarAlertsCountByYear) {
+      const yearNum = Number.parseInt(ano, 10);
+      if (
+        Number.isFinite(yearNum) &&
+        radarAlertsCountByYear[yearNum] !== undefined
+      ) {
+        return radarAlertsCountByYear[yearNum];
+      }
+      return 0;
+    }
+    return radarAlertCount ?? 0;
+  })();
+
   return (
     <>
       <Sidebar
@@ -104,6 +122,7 @@ export function SidebarWrapper({
         }
         isMobileOpen={isMenuOpen}
         onMobileOpenChange={setIsMenuOpen}
+        radarAlertCount={activeRadarAlertCount}
       />
       <NewsletterModal
         isOpen={isNewsletterOpen}

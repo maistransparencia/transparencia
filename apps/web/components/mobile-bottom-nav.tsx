@@ -109,10 +109,14 @@ export interface MobileBottomNavProps {
   portalSlug?: string;
   anoInicial?: number;
   entidades?: MultiSelectOption[] | string[];
+  radarAlertCount?: number;
+  radarAlertsCountByYear?: Record<number, number>;
 }
 
 export function MobileBottomNav({
   portalSlug = "porciuncula_prefeitura",
+  radarAlertCount,
+  radarAlertsCountByYear,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const { isMenuOpen, toggleMenu } = useMobileNav();
@@ -130,6 +134,20 @@ export function MobileBottomNav({
   const selectedEntidades = entidadesParam
     ? entidadesParam.split(",").filter(Boolean)
     : [];
+
+  const activeAlertCount = (() => {
+    if (radarAlertsCountByYear) {
+      const yearNum = Number.parseInt(ano, 10);
+      if (
+        Number.isFinite(yearNum) &&
+        radarAlertsCountByYear[yearNum] !== undefined
+      ) {
+        return radarAlertsCountByYear[yearNum];
+      }
+      return 0;
+    }
+    return radarAlertCount ?? 0;
+  })();
 
   const activeIndex = resolveActiveTabIndex(pathname, portalSlug);
   const isMoreActive = activeIndex === PRIMARY_NAV_TABS.length || isMenuOpen;
@@ -195,20 +213,33 @@ export function MobileBottomNav({
               : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
           )}
         >
-          {isMenuOpen ? (
-            <X
-              className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.55_0.11_250)] transition-transform"
-              strokeWidth={2.2}
-            />
-          ) : (
-            <Menu
-              className={cn(
-                "h-5 w-5 shrink-0 transition-transform",
-                isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
-              )}
-              strokeWidth={isMoreActive ? 2.2 : 1.8}
-            />
-          )}
+          <div className="relative inline-flex items-center justify-center">
+            {isMenuOpen ? (
+              <X
+                className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.55_0.11_250)] transition-transform"
+                strokeWidth={2.2}
+              />
+            ) : (
+              <Menu
+                className={cn(
+                  "h-5 w-5 shrink-0 transition-transform",
+                  isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                )}
+                strokeWidth={isMoreActive ? 2.2 : 1.8}
+              />
+            )}
+            {activeAlertCount > 0 && !isMenuOpen && (
+              <span
+                role="status"
+                data-testid="radar-alert-dot"
+                className="absolute -top-0.5 -right-0.5 flex h-2 w-2"
+                aria-label={`${activeAlertCount} alertas críticos no Radar`}
+              >
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600 motion-safe:animate-pulse motion-reduce:animate-none" />
+              </span>
+            )}
+          </div>
           <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
             {isMenuOpen ? "Fechar" : "Mais"}
           </span>

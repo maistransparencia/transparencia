@@ -181,3 +181,84 @@ export async function getRadarCivicoAlertas(
     };
   });
 }
+
+export interface GetRadarAnomaliasCountOptions {
+  portalSlug: string;
+  ano?: number;
+}
+
+export interface GetRadarAnomaliasCountByYearOptions {
+  portalSlug: string;
+}
+
+/**
+ * Retorna a contagem atômica de anomalias fiscais com grau de severidade 'critico'
+ * para o portal e exercício especificados.
+ */
+export async function getRadarAnomaliasCount(
+  options: GetRadarAnomaliasCountOptions,
+): Promise<number> {
+  const { portalSlug, ano } = options ?? {};
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === ""
+  ) {
+    return 0;
+  }
+
+  if (
+    ano !== undefined &&
+    (typeof ano !== "number" ||
+      !Number.isInteger(ano) ||
+      Math.abs(ano) > 2147483647)
+  ) {
+    return 0;
+  }
+
+  const cleanSlug = portalSlug.trim();
+
+  let query = db
+    .selectFrom("fct_anomalias_fiscais_metricas")
+    .select(sql<number>`count(*)::int`.as("total"))
+    .where("portal_slug", "=", cleanSlug)
+    .where("grau_severidade", "=", "critico");
+
+  if (ano !== undefined) {
+    query = query.where("ano", "=", ano);
+  }
+
+  const row = await query.executeTakeFirst();
+  return Number(row?.total ?? 0);
+}
+
+/**
+ * Retorna um mapa consolidado com a contagem de anomalias fiscais críticas
+ * agrupadas por ano para o portal informado.
+ */
+export async function getRadarAnomaliasCountByYear(
+  options: GetRadarAnomaliasCountByYearOptions,
+): Promise<Record<number, number>> {
+  const { portalSlug } = options ?? {};
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === ""
+  ) {
+    return {};
+  }
+
+  const cleanSlug = portalSlug.trim();
+
+  const rows = await db
+    .selectFrom("fct_anomalias_fiscais_metricas")
+    .select(["ano", sql<number>`count(*)::int`.as("total")])
+    .where("portal_slug", "=", cleanSlug)
+    .where("grau_severidade", "=", "critico")
+    .groupBy("ano")
+    .execute();
+
+  return Object.fromEntries(
+    rows.map((r) => [Number(r.ano), Number(r.total ?? 0)]),
+  );
+}

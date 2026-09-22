@@ -1,4 +1,8 @@
-import { getEntidades, getPortalConfig } from "@transparencia/db";
+import {
+  getEntidades,
+  getPortalConfig,
+  getRadarAnomaliasCountByYear,
+} from "@transparencia/db";
 import { Ribbon } from "@transparencia/ui";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -41,6 +45,18 @@ const getCachedEntidades = unstable_cache(
   () => getEntidades(),
   [`entidades-v${version}`],
   { revalidate: 86400 },
+);
+
+const getCachedRadarAlertsCountByYear = unstable_cache(
+  async (slug: string) => {
+    try {
+      return await getRadarAnomaliasCountByYear({ portalSlug: slug });
+    } catch {
+      return {};
+    }
+  },
+  [`radar-alerts-count-by-year-v${version}`],
+  { revalidate: 3600 },
 );
 
 export const metadata: Metadata = {
@@ -128,6 +144,10 @@ export default async function RootLayout({
     getCachedEntidades(),
   ]);
 
+  const portalSlug = portalConfig?.portalSlug ?? "porciuncula_prefeitura";
+  const radarAlertsCountByYear =
+    await getCachedRadarAlertsCountByYear(portalSlug);
+
   const governmentOrganizationSchema = generateGovernmentOrganizationSchema({
     displayName: portalConfig?.displayName,
     stateUF: portalConfig?.uf,
@@ -165,6 +185,7 @@ export default async function RootLayout({
                 officialPortalUrl={portalConfig?.portalUrl}
                 entidades={entidades}
                 portalSlug={portalConfig?.portalSlug}
+                radarAlertsCountByYear={radarAlertsCountByYear}
               />
             </Suspense>
             <div className="flex min-w-0 flex-1 flex-col">
@@ -190,6 +211,7 @@ export default async function RootLayout({
                 portalSlug={portalConfig?.portalSlug}
                 anoInicial={portalConfig?.anoInicial}
                 entidades={entidades}
+                radarAlertsCountByYear={radarAlertsCountByYear}
               />
             </Suspense>
           </MobileNavProvider>
