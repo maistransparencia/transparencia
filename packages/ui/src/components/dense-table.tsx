@@ -7,7 +7,7 @@ import {
   Download,
   Search,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import {
   fmtCompact,
@@ -106,6 +106,7 @@ export function DenseTable<T extends Record<string, any>>({
   recordLabel = "registros",
   renderMobileCard,
 }: DenseTableProps<T>) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<keyof T | null>(
@@ -188,6 +189,18 @@ export function DenseTable<T extends Record<string, any>>({
     ? Math.max(1, Math.ceil(sortedData.length / pageSize))
     : 1;
   const currentPage = Math.min(page, totalPages);
+
+  const handlePageChange = (newPage: number) => {
+    const targetPage = Math.max(1, Math.min(newPage, totalPages));
+    if (targetPage === currentPage) return;
+    setPage(targetPage);
+    if (typeof containerRef.current?.scrollIntoView === "function") {
+      containerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   const displayedData = useMemo(() => {
     if (!pageSize) return sortedData;
@@ -309,8 +322,9 @@ export function DenseTable<T extends Record<string, any>>({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "overflow-hidden rounded-xl border border-borderLine bg-white shadow-xs",
+        "scroll-mt-20 overflow-hidden rounded-xl border border-borderLine bg-white shadow-xs sm:scroll-mt-24",
         className,
       )}
     >
@@ -497,7 +511,7 @@ export function DenseTable<T extends Record<string, any>>({
                 type="button"
                 aria-label="Página anterior"
                 disabled={currentPage <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => handlePageChange(currentPage - 1)}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &larr;
@@ -516,7 +530,7 @@ export function DenseTable<T extends Record<string, any>>({
                     key={`page-btn-${pageNum}`}
                     type="button"
                     aria-label={`Página ${pageNum}`}
-                    onClick={() => setPage(pageNum)}
+                    onClick={() => handlePageChange(pageNum)}
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-lg font-semibold text-xs transition-colors sm:h-7 sm:w-7",
                       pageNum === currentPage
@@ -533,7 +547,7 @@ export function DenseTable<T extends Record<string, any>>({
                 type="button"
                 aria-label="Próxima página"
                 disabled={currentPage >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => handlePageChange(currentPage + 1)}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &rarr;
