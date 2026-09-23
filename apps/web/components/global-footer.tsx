@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { SocialLinks } from "./social-links";
 
 export interface GlobalFooterProps {
@@ -26,12 +27,26 @@ export function GlobalFooter({
       <div className="mx-auto flex max-w-[1000px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <p className="font-bold font-serif text-slate-800 text-xs">
-            MaisTransparência — {portalName}
+            MaisTransparencia — {portalName}
           </p>
           <p className="text-[11px] text-mutedText">
             Plataforma cívica independente de controle social e auditoria fiscal
             das contas públicas municipais.
           </p>
+          <nav aria-label="Links institucionais" className="flex gap-3 pt-0.5">
+            <Link
+              href="/termos"
+              className="text-[11px] text-mutedText hover:underline"
+            >
+              Termos de Uso
+            </Link>
+            <Link
+              href="/privacidade"
+              className="text-[11px] text-mutedText hover:underline"
+            >
+              Política de Privacidade
+            </Link>
+          </nav>
           {normalizedUrl && (
             <a
               href={normalizedUrl}
