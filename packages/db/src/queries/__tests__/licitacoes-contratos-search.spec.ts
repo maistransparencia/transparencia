@@ -374,6 +374,56 @@ describe("searchLicitacoesEContratos", () => {
     );
   });
 
+  it("deve encontrar licitação por fornecedor com código numérico PNCP ('2') em fct_licitacoes_itens", async () => {
+    await seedLicitacao({
+      portalSlug: FIXTURE_PORTAL,
+      ano: 2026,
+      licitacaoNumero: "LIC-PNCP-02/26",
+      objeto: "Construção de pavimentação asfáltica",
+      situacao: "homologada",
+    });
+
+    await seedLicitacaoItem({
+      portalSlug: FIXTURE_PORTAL,
+      ano: 2026,
+      licitacaoNumero: "LIC-PNCP-02/26",
+      numeroItem: 1,
+      descricao: "Massa asfáltica CBUQ",
+      fornecedorNome: "DOHA EMPREENDIMENTOS E SERVICOS LTDA",
+      fornecedorCpfCnpj: "25.404.758/0001-16",
+      situacaoItem: "2", // Código oficial PNCP para homologado/adjudicado
+    });
+
+    const result = await searchLicitacoesEContratos({
+      portalSlug: FIXTURE_PORTAL,
+      termo: "doha",
+      tipo: "licitacao",
+    });
+    expect(result.licitacoes.some((l) => l.numero === "LIC-PNCP-02/26")).toBe(
+      true,
+    );
+    const item = result.licitacoes.find((l) => l.numero === "LIC-PNCP-02/26");
+    expect(item?.fornecedorNome).toContain("DOHA EMPREENDIMENTOS");
+  });
+
+  it("deve encontrar licitação com busca de termos compostos no objeto como 'novo pac'", async () => {
+    await seedLicitacao({
+      portalSlug: FIXTURE_PORTAL,
+      ano: 2026,
+      licitacaoNumero: "003/2026",
+      objeto:
+        "Execução de obra habitacional no âmbito do Programa Minha Casa, Minha Vida Novo PAC",
+      situacao: "homologada",
+    });
+
+    const result = await searchLicitacoesEContratos({
+      portalSlug: FIXTURE_PORTAL,
+      termo: "novo pac",
+      tipo: "licitacao",
+    });
+    expect(result.licitacoes.some((l) => l.numero === "003/2026")).toBe(true);
+  });
+
   it("não deve gerar falso positivo trigramático para termos curtos (ex: 'doha' vs preposição 'do')", async () => {
     // Licitação que contém a palavra 'do' no objeto, mas nenhum termo com 'doha'
     await seedLicitacao({

@@ -112,7 +112,7 @@ export async function searchLicitacoesEContratos(
                 coalesce(l.licitacao_numero, '') || ' ' || 
                 coalesce(itens.fornecedor_nome, '') || ' ' || 
                 coalesce(itens.fornecedor_cpf_cnpj, '') || ' ' ||
-                regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+                regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
               )),
               websearch_to_tsquery('portuguese', unaccent(${cleanTermo}))
             ),
@@ -123,13 +123,13 @@ export async function searchLicitacoesEContratos(
                 coalesce(l.licitacao_numero, '') || ' ' || 
                 coalesce(itens.fornecedor_nome, '') || ' ' || 
                 coalesce(itens.fornecedor_cpf_cnpj, '') || ' ' ||
-                regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+                regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
               )),
               websearch_to_tsquery('portuguese', unaccent(${normTermo}))
             )
           ) + greatest(
-            similarity(unaccent(coalesce(l.objeto, '') || ' ' || coalesce(l.licitacao_numero, '') || ' ' || coalesce(itens.fornecedor_nome, '')), unaccent(${cleanTermo})),
-            word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(l.objeto, '') || ' ' || coalesce(itens.fornecedor_nome, '')))
+            similarity(unaccent(coalesce(l.objeto, l.discriminacao, '') || ' ' || coalesce(l.licitacao_numero, '') || ' ' || coalesce(itens.fornecedor_nome, '')), unaccent(${cleanTermo})),
+            word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(l.objeto, l.discriminacao, '') || ' ' || coalesce(itens.fornecedor_nome, '')))
           )
         ) AS rank
       FROM analytics.fct_licitacoes l
@@ -142,7 +142,8 @@ export async function searchLicitacoesEContratos(
           string_agg(DISTINCT fornecedor_cpf_cnpj, ' ') AS fornecedor_cpf_cnpj
         FROM analytics.fct_licitacoes_itens
         WHERE portal_slug = ${cleanSlug}
-          AND (situacao_item IS NULL OR situacao_item = 'homologado')
+          AND fornecedor_nome IS NOT NULL
+          AND (situacao_item IS NULL OR situacao_item IN ('homologado', 'adjudicado', '2', '1') OR situacao_item NOT IN ('5', 'cancelado', 'fracassado', 'deserto'))
           ${filterAno !== null ? sql`AND ano = ${filterAno}` : sql``}
         GROUP BY portal_slug, ano, licitacao_numero
       ) itens ON itens.portal_slug = l.portal_slug AND itens.ano = l.ano AND itens.licitacao_numero = l.licitacao_numero
@@ -155,7 +156,7 @@ export async function searchLicitacoesEContratos(
             coalesce(l.licitacao_numero, '') || ' ' || 
             coalesce(itens.fornecedor_nome, '') || ' ' || 
             coalesce(itens.fornecedor_cpf_cnpj, '') || ' ' ||
-            regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+            regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
           )) @@ websearch_to_tsquery('portuguese', unaccent(${cleanTermo}))
           OR to_tsvector('portuguese', unaccent(
             coalesce(l.objeto, '') || ' ' || 
@@ -163,19 +164,21 @@ export async function searchLicitacoesEContratos(
             coalesce(l.licitacao_numero, '') || ' ' || 
             coalesce(itens.fornecedor_nome, '') || ' ' || 
             coalesce(itens.fornecedor_cpf_cnpj, '') || ' ' ||
-            regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+            regexp_replace(regexp_replace(coalesce(itens.fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
           )) @@ websearch_to_tsquery('portuguese', unaccent(${normTermo}))
           OR unaccent(coalesce(l.licitacao_numero, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
-          OR unaccent(coalesce(l.objeto, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
+          OR unaccent(coalesce(l.objeto, l.discriminacao, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
+          OR unaccent(coalesce(l.objeto, l.discriminacao, '')) ILIKE ('%' || unaccent(${normTermo}) || '%')
           OR unaccent(coalesce(itens.fornecedor_nome, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
+          OR unaccent(coalesce(itens.fornecedor_nome, '')) ILIKE ('%' || unaccent(${normTermo}) || '%')
           OR unaccent(coalesce(itens.fornecedor_cpf_cnpj, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
-          OR regexp_replace(regexp_replace(unaccent(coalesce(itens.fornecedor_nome, '')), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g') ILIKE ('%' || unaccent(${normTermo}) || '%')
+          OR regexp_replace(regexp_replace(unaccent(coalesce(itens.fornecedor_nome, '')), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g') ILIKE ('%' || unaccent(${normTermo}) || '%')
           ${hasDigitsDoc ? sql`OR regexp_replace(coalesce(itens.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') ILIKE ('%' || ${digitsTermo} || '%')` : sql``}
           ${
             enableTrigram
               ? sql`
-                OR word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(l.objeto, '') || ' ' || coalesce(itens.fornecedor_nome, ''))) > 0.50
-                OR similarity(unaccent(coalesce(l.objeto, '') || ' ' || coalesce(itens.fornecedor_nome, '')), unaccent(${cleanTermo})) > 0.50
+                OR word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(l.objeto, l.discriminacao, '') || ' ' || coalesce(itens.fornecedor_nome, ''))) > 0.50
+                OR similarity(unaccent(coalesce(l.objeto, l.discriminacao, '') || ' ' || coalesce(itens.fornecedor_nome, '')), unaccent(${cleanTermo})) > 0.50
               `
               : sql``
           }
@@ -244,7 +247,7 @@ export async function searchLicitacoesEContratos(
                 coalesce(fornecedor_cpf_cnpj, '') || ' ' || 
                 coalesce(contrato_numero, '') || ' ' || 
                 coalesce(licitacao_numero, '') || ' ' ||
-                regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+                regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
               )),
               websearch_to_tsquery('portuguese', unaccent(${cleanTermo}))
             ),
@@ -256,13 +259,13 @@ export async function searchLicitacoesEContratos(
                 coalesce(fornecedor_cpf_cnpj, '') || ' ' || 
                 coalesce(contrato_numero, '') || ' ' || 
                 coalesce(licitacao_numero, '') || ' ' ||
-                regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+                regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
               )),
               websearch_to_tsquery('portuguese', unaccent(${normTermo}))
             )
           ) + greatest(
-            similarity(unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, '') || ' ' || coalesce(contrato_numero, '')), unaccent(${cleanTermo})),
-            word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, '')))
+            similarity(unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, objeto_completo, '') || ' ' || coalesce(contrato_numero, '')), unaccent(${cleanTermo})),
+            word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, objeto_completo, '')))
           )
         ) AS rank
       FROM analytics.fct_contratos
@@ -283,7 +286,7 @@ export async function searchLicitacoesEContratos(
             coalesce(fornecedor_cpf_cnpj, '') || ' ' || 
             coalesce(contrato_numero, '') || ' ' || 
             coalesce(licitacao_numero, '') || ' ' ||
-            regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+            regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
           )) @@ websearch_to_tsquery('portuguese', unaccent(${cleanTermo}))
           OR to_tsvector('portuguese', unaccent(
             coalesce(objeto, '') || ' ' || 
@@ -292,20 +295,22 @@ export async function searchLicitacoesEContratos(
             coalesce(fornecedor_cpf_cnpj, '') || ' ' || 
             coalesce(contrato_numero, '') || ' ' || 
             coalesce(licitacao_numero, '') || ' ' ||
-            regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
+            regexp_replace(regexp_replace(coalesce(fornecedor_nome, ''), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g')
           )) @@ websearch_to_tsquery('portuguese', unaccent(${normTermo}))
           OR unaccent(coalesce(contrato_numero, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
           OR unaccent(coalesce(fornecedor_nome, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
+          OR unaccent(coalesce(fornecedor_nome, '')) ILIKE ('%' || unaccent(${normTermo}) || '%')
           OR unaccent(coalesce(fornecedor_cpf_cnpj, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
           OR unaccent(coalesce(licitacao_numero, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
-          OR unaccent(coalesce(objeto, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
-          OR regexp_replace(regexp_replace(unaccent(coalesce(fornecedor_nome, '')), '[.\\-/]', ' ', 'g'), '[[:space:]]+', ' ', 'g') ILIKE ('%' || unaccent(${normTermo}) || '%')
+          OR unaccent(coalesce(objeto, objeto_completo, '')) ILIKE ('%' || unaccent(${cleanTermo}) || '%')
+          OR unaccent(coalesce(objeto, objeto_completo, '')) ILIKE ('%' || unaccent(${normTermo}) || '%')
+          OR regexp_replace(regexp_replace(unaccent(coalesce(fornecedor_nome, '')), '[-./]', ' ', 'g'), '[[:space:]]+', ' ', 'g') ILIKE ('%' || unaccent(${normTermo}) || '%')
           ${hasDigitsDoc ? sql`OR regexp_replace(coalesce(fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') ILIKE ('%' || ${digitsTermo} || '%')` : sql``}
           ${
             enableTrigram
               ? sql`
-                OR word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, ''))) > 0.50
-                OR similarity(unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, '')), unaccent(${cleanTermo})) > 0.50
+                OR word_similarity(unaccent(${cleanTermo}), unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, objeto_completo, ''))) > 0.50
+                OR similarity(unaccent(coalesce(fornecedor_nome, '') || ' ' || coalesce(objeto, objeto_completo, '')), unaccent(${cleanTermo})) > 0.50
               `
               : sql``
           }
