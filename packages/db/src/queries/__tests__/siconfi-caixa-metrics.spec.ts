@@ -316,4 +316,66 @@ describe("getSiconfiPosicaoFinanceira", () => {
     expect(result?.previdencia[0].poderOrgao).toBe("10132");
     expect(result?.previdencia[0].saldoCaixaBancos).toBe(67000);
   });
+
+  it("consolida disponibilidades de caixa e carteira de investimentos do RPPS em totalCaixaPrevidencia sem impactar totalCaixaGeral", async () => {
+    // Executivo: Prefeitura (recursos livres)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA MUNICIPAL",
+      entidadeNome: "PREFEITURA MUNICIPAL",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 4500000,
+      saldoRecursosLivres: 4500000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // RPPS (CAPREM - 10132): Saldo consolidado proveniente da MSC (caixa 111% + carteira de investimentos 114%)
+    // Ex: R$ 350.000 em conta corrente (111%) + R$ 64.650.000 em aplicações financeiras/investimentos (114%) = R$ 65.000.000
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10132",
+      grupoDestinacao: "previdencia",
+      empresaId: "4",
+      orgaoNome: "CAPREM",
+      entidadeNome: "CAPREM",
+      cnpj: "33444555000166",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 65000000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 65000000,
+      ultimaCompetenciaFlag: true,
+    });
+
+    const result = await getSiconfiPosicaoFinanceira(PORTAL, 2024);
+
+    expect(result).not.toBeNull();
+    // Executivo permanece estritamente isolado com apenas seu próprio saldo
+    expect(result?.totalCaixaGeral).toBe(4500000);
+    expect(result?.totalRecursosLivres).toBe(4500000);
+    expect(result?.totalRecursosVinculados).toBe(0);
+
+    // Total da previdência reflete o patrimônio financeiro integral consolidado
+    expect(result?.totalCaixaPrevidencia).toBe(65000000);
+    expect(result?.totalRecursosPrevidencia).toBe(65000000);
+
+    // Entidades do executivo não contêm o RPPS
+    expect(result?.entidades).toHaveLength(1);
+    expect(result?.entidades[0].poderOrgao).toBe("10131");
+
+    // Previdência possui registro consolidado com valor integral
+    expect(result?.previdencia).toHaveLength(1);
+    expect(result?.previdencia[0].poderOrgao).toBe("10132");
+    expect(result?.previdencia[0].saldoCaixaBancos).toBe(65000000);
+    expect(result?.previdencia[0].saldoRecursosVinculados).toBe(65000000);
+    expect(result?.previdencia[0].saldoRecursosLivres).toBe(0);
+  });
 });
