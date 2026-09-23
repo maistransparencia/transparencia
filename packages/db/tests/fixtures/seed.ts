@@ -586,7 +586,7 @@ export interface AnomaliaFiscalRow {
   valorEsperado?: number;
   mesInicial?: number;
   mesFinal?: number;
-  deepLinkRota: string;
+  licitacaoNumero?: string | null;
   metodoDeteccao?: string | null;
 }
 
@@ -607,7 +607,7 @@ export async function seedAnomaliaFiscal(
       valor_esperado: row.valorEsperado ?? 0,
       mes_inicial: row.mesInicial ?? 1,
       mes_final: row.mesFinal ?? 12,
-      deep_link_rota: row.deepLinkRota,
+      licitacao_numero: row.licitacaoNumero ?? null,
       metodo_deteccao: row.metodoDeteccao ?? "iqr_fluxo_homologo",
     })
     .execute();

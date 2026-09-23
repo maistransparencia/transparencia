@@ -24,9 +24,7 @@ export async function loadRadarData(
   const [portalConfig, entidades, alertas] = await Promise.all([
     getPortalConfig(tenantSlug),
     getEntidades(tenantSlug),
-    getRadarCivicoAlertas(tenantSlug, {
-      entidade: searchParams.entidades,
-    }),
+    getRadarCivicoAlertas(tenantSlug),
   ]);
 
   return {
@@ -34,5 +32,6 @@ export async function loadRadarData(
     portalConfig,
     entidades,
     alertas,
+    entidade: searchParams.entidades,
   };
 }

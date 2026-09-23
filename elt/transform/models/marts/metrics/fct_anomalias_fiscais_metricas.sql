@@ -48,7 +48,7 @@ despesas_anomalias as (
         end::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || h.portal_slug || '/despesas?ano=' || h.ano)::text as deep_link_rota,
+        null::text as licitacao_numero,
         'iqr_fluxo_homologo'::text as metodo_deteccao
     from despesas_anuais h
     join despesas_stats s on h.portal_slug = s.portal_slug and h.funcao_nome = s.funcao_nome
@@ -103,7 +103,7 @@ comissionados_anomalias as (
         end::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || c.portal_slug || '/pessoal?ano=' || c.ano || '#comissionados')::text as deep_link_rota,
+        null::text as licitacao_numero,
         case
             when c.valor_observado > s.q3 + 1.5 * (s.q3 - s.q1) then 'iqr_estoque'
             else 'desvio_mediana_estoque'
@@ -153,7 +153,7 @@ caixa_anomalias as (
         end::numeric as desvio_percentual,
         c.mes_referencia::integer as mes_inicial,
         c.mes_referencia::integer as mes_final,
-        ('/' || c.portal_slug || '/receitas?ano=' || c.ano || '#saldo-caixa')::text as deep_link_rota,
+        null::text as licitacao_numero,
         'iqr_estoque'::text as metodo_deteccao
     from caixa c
     join caixa_stats s on c.portal_slug = s.portal_slug
@@ -217,7 +217,7 @@ dispensas_anomalias as (
         end::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || d.portal_slug || '/licitacoes?ano=' || d.ano)::text as deep_link_rota,
+        null::text as licitacao_numero,
         'iqr_processos'::text as metodo_deteccao
     from dispensas_calc d
     join dispensas_stats s on d.portal_slug = s.portal_slug
@@ -239,7 +239,7 @@ opacidade_anomalias as (
         (taxa_valor_opacidade_pct - 30.00)::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/despesas?ano=' || ano || '#gastos-genericos')::text as deep_link_rota,
+        null::text as licitacao_numero,
         'limite_normativo_opacidade'::text as metodo_deteccao
     from {{ ref('fct_opacidade_contabil_metricas') }}
     where taxa_valor_opacidade_pct > 30.00
@@ -257,7 +257,7 @@ caprem_atuarial_anomalias as (
         (100.00 - taxa_adimplencia)::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/caprem?ano=' || ano || '#atuarial')::text as deep_link_rota,
+        null::text as licitacao_numero,
         'limite_normativo_adimplencia'::text as metodo_deteccao
     from {{ ref('fct_caprem_tendencia_atuarial_metricas') }}
     where aporte_exigido > 0
@@ -276,7 +276,7 @@ caprem_patronal_anomalias as (
         100.00::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/caprem?ano=' || ano || '#patronal')::text as deep_link_rota,
+        null::text as licitacao_numero,
         'fluxo_patronal_em_aberto'::text as metodo_deteccao
     from {{ ref('fct_historia_caprem_metricas') }}
     where rombo_patronal_nao_repassado > 20000.00
@@ -317,7 +317,7 @@ desconto_nulo_anomalias as (
         round((10.00 - desconto_global)::numeric, 2) as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/licitacoes?ano=' || ano || '&numero=' || licitacao_numero || '#itens')::text as deep_link_rota,
+        licitacao_numero::text as licitacao_numero,
         'limite_competitividade_pregao'::text as metodo_deteccao
     from licitacoes_itens_agrupadas
     where {{ target.schema }}.unaccent(lower(modalidade)) like '%pregao%'
@@ -336,7 +336,7 @@ desagio_extremo_anomalias as (
         round((desconto_global - 50.00)::numeric, 2) as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/licitacoes?ano=' || ano || '&numero=' || licitacao_numero || '#itens')::text as deep_link_rota,
+        licitacao_numero::text as licitacao_numero,
         'limite_inexequibilidade_art59'::text as metodo_deteccao
     from licitacoes_itens_agrupadas
     where desconto_global >= 50.00
@@ -354,7 +354,7 @@ pessoal_divergencias_anomalias as (
         100.00::numeric as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/pessoal?ano=' || ano || '#regime')::text as deep_link_rota,
+        null::text as licitacao_numero,
         'harmonizacao_cadastral_art37'::text as metodo_deteccao
     from {{ ref('fct_pessoal') }}
     where (
@@ -399,7 +399,7 @@ dependencia_transferencias_anomalias as (
         ) as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        ('/' || portal_slug || '/receitas?ano=' || ano)::text as deep_link_rota,
+        null::text as licitacao_numero,
         'art11_lrf_arrecadacao_propria'::text as metodo_deteccao
     from {{ ref('fct_fontes_receita_metricas') }}
     where ano < extract(year from current_date)
@@ -481,6 +481,6 @@ select
     valor_esperado::numeric(18, 2) as valor_esperado,
     mes_inicial,
     mes_final,
-    deep_link_rota,
+    licitacao_numero,
     metodo_deteccao
 from todas_anomalias

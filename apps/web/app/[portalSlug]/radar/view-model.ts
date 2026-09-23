@@ -85,6 +85,7 @@ export function buildRadarHistoricoViewModel(
       const cards = buildRadarCivicoCards(alertasDoAno, portalSlug, {
         portalName,
         anoContexto: ano,
+        entidade: raw.entidade,
       });
 
       const alertasCriticos = cards.filter(

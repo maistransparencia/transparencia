@@ -34,11 +34,10 @@ describe("radar/loader", () => {
 
     expect(dbModule.getPortalConfig).toHaveBeenCalledWith("porciuncula");
     expect(dbModule.getEntidades).toHaveBeenCalledWith("porciuncula");
-    expect(dbModule.getRadarCivicoAlertas).toHaveBeenCalledWith("porciuncula", {
-      entidade: "3",
-    });
+    expect(dbModule.getRadarCivicoAlertas).toHaveBeenCalledWith("porciuncula");
 
     expect(result.portalSlug).toBe("porciuncula");
     expect(result.alertas).toHaveLength(1);
+    expect(result.entidade).toBe("3");
   });
 });
