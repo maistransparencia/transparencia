@@ -31,7 +31,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal', 'dependencia_transferencias']
+              arguments:
+                values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal', 'dependencia_transferencias']
 
       - name: dimensao_referencia
         description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal)."
@@ -45,7 +46,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['critico', 'alto', 'moderado']
+              arguments:
+                values: ['critico', 'alto', 'moderado']
 
       - name: desvio_percentual
         description: "Percentual de desvio em relação ao valor esperado."
