@@ -315,7 +315,7 @@ export function DenseTable<T extends Record<string, any>>({
       )}
     >
       {(searchableKeys !== undefined || enableExportCsv) && (
-        <div className="flex flex-col gap-2 border-borderLine border-b bg-gray-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-2 border-borderLine border-b bg-gray-50/50 p-3">
           {searchableKeys !== undefined ? (
             <div className="flex flex-1 items-center gap-2">
               <Search className="h-4 w-4 shrink-0 text-mutedText" />
@@ -335,15 +335,26 @@ export function DenseTable<T extends Record<string, any>>({
           )}
 
           {enableExportCsv && (
-            <button
-              type="button"
-              onClick={handleExportCsv}
-              disabled={sortedData.length === 0}
-              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-medium text-slate-700 text-xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:min-h-0 sm:py-1.5"
-            >
-              <Download className="h-3.5 w-3.5 text-slate-500" />
-              <span>{csvButtonLabel}</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={sortedData.length === 0}
+                aria-label={csvButtonLabel}
+                className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:hidden"
+              >
+                <Download className="h-3.5 w-3.5 text-slate-500" />
+              </button>
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={sortedData.length === 0}
+                className="hidden shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 text-xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:inline-flex"
+              >
+                <Download className="h-3.5 w-3.5 text-slate-500" />
+                <span>{csvButtonLabel}</span>
+              </button>
+            </>
           )}
         </div>
       )}
