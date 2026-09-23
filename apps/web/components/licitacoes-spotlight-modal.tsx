@@ -4,7 +4,7 @@ import type {
   SearchLicitacoesResult,
   SearchResultItem,
 } from "@transparencia/db";
-import { Badge, cn, fmtCurrency } from "@transparencia/ui";
+import { Badge, cn, fmtCurrency, fmtDate } from "@transparencia/ui";
 import {
   AlertCircle,
   CornerDownLeft,
@@ -430,6 +430,14 @@ export function LicitacoesSpotlightModal({
                               · {item.ano}
                             </span>
                           </div>
+                          {item.fornecedorNome && (
+                            <p className="mt-0.5 line-clamp-2 break-words font-medium text-slate-700 text-xs">
+                              {item.fornecedorNome.includes(";")
+                                ? "Fornecedores homologados:"
+                                : "Fornecedor:"}{" "}
+                              {item.fornecedorNome}
+                            </p>
+                          )}
                           <p className="mt-1 line-clamp-2 break-words text-slate-600 text-xs leading-relaxed">
                             {item.objeto}
                           </p>
@@ -463,6 +471,13 @@ export function LicitacoesSpotlightModal({
                 {results.contratos.map((item) => {
                   const globalIdx = allResults.indexOf(item);
                   const isSelected = globalIdx === selectedIndex;
+                  const isAnoAnterior =
+                    item.ano > 0 &&
+                    ((ano && item.ano < ano) ||
+                      (!ano && item.ano < new Date().getFullYear()));
+                  const isContratoVigenteAnoAnterior =
+                    item.status === "vigente" && isAnoAnterior;
+
                   return (
                     <button
                       type="button"
@@ -510,15 +525,35 @@ export function LicitacoesSpotlightModal({
                                   : "Encerrado"}
                               </span>
                             )}
-                            <span className="text-[11px] text-slate-400">
-                              · {item.ano}
-                            </span>
+                            {isContratoVigenteAnoAnterior ? (
+                              <Badge variant="warning">
+                                Celebrado em {item.anoCelebracao ?? item.ano}
+                              </Badge>
+                            ) : (
+                              <span className="text-[11px] text-slate-400">
+                                · {item.ano}
+                              </span>
+                            )}
                           </div>
                           {item.fornecedorNome && (
                             <p className="mt-0.5 break-words font-medium text-slate-700 text-xs">
                               Fornecedor: {item.fornecedorNome}
                             </p>
                           )}
+                          {isContratoVigenteAnoAnterior &&
+                            (item.dataInicio || item.vencimentoAtual) && (
+                              <p className="mt-0.5 font-medium text-amber-800 text-xs">
+                                {(() => {
+                                  if (item.dataInicio && item.vencimentoAtual) {
+                                    return `Vigência: ${fmtDate(item.dataInicio)} a ${fmtDate(item.vencimentoAtual)}`;
+                                  }
+                                  if (item.vencimentoAtual) {
+                                    return `Vigência até ${fmtDate(item.vencimentoAtual)}`;
+                                  }
+                                  return `Vigência a partir de ${fmtDate(item.dataInicio)}`;
+                                })()}
+                              </p>
+                            )}
                           <p className="mt-1 line-clamp-2 break-words text-slate-600 text-xs leading-relaxed">
                             {item.objeto}
                           </p>
