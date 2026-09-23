@@ -434,7 +434,7 @@ ${textoFactual}
 🔍 Confira os dados oficiais e audite as contas no portal da transparência:
 ${link}
 
-#MaisTransparência #RadarCívico #ControleSocial #TransparênciaFiscal${tagMunicipio}`;
+#MaisTransparencia #RadarCívico #ControleSocial #TransparênciaFiscal${tagMunicipio}`;
 
   return { message, link };
 }
