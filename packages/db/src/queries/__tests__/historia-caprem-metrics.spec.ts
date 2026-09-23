@@ -129,6 +129,7 @@ describe("getCapremPatrimonioHistoricoMetrics", () => {
     expect(series[0].saldoCaixa).toBe(4587826.77);
     expect(series[0].saldoAplicacoes).toBe(55780952.2);
     expect(series[0].patrimonioTotal).toBe(60368778.97);
+    expect(series[0].inconsistenciaDeclaracaoFlag).toBe(false);
     expect(series[0].variacaoAbs).toBeNull();
     expect(series[0].variacaoPct).toBeNull();
 
@@ -137,8 +138,48 @@ describe("getCapremPatrimonioHistoricoMetrics", () => {
     expect(series[1].saldoCaixa).toBe(333572.3);
     expect(series[1].saldoAplicacoes).toBe(35644993.45);
     expect(series[1].patrimonioTotal).toBe(35978565.75);
+    expect(series[1].inconsistenciaDeclaracaoFlag).toBe(false);
     expect(series[1].variacaoAbs).toBe(-3105708.03);
     expect(series[1].variacaoPct).toBe(-7.95);
+  });
+
+  it("identifica inconsistência contábil de declaração e quebra de série", async () => {
+    await seedCapremPatrimonioHistorico({
+      portalSlug: PORTAL,
+      ano: 2022,
+      mesReferencia: 12,
+      saldoCaixa: 722576.49,
+      saldoAplicacoes: 0,
+      patrimonioTotal: 722576.49,
+      inconsistenciaDeclaracaoFlag: true,
+      variacaoAbs: null,
+      variacaoPct: null,
+    });
+
+    await seedCapremPatrimonioHistorico({
+      portalSlug: PORTAL,
+      ano: 2023,
+      mesReferencia: 12,
+      saldoCaixa: 27652.25,
+      saldoAplicacoes: 45389092.39,
+      patrimonioTotal: 45416744.64,
+      inconsistenciaDeclaracaoFlag: false,
+      variacaoAbs: null,
+      variacaoPct: null,
+    });
+
+    const series = await getCapremPatrimonioHistoricoMetrics(PORTAL);
+    expect(series).toHaveLength(2);
+
+    expect(series[0].ano).toBe(2022);
+    expect(series[0].inconsistenciaDeclaracaoFlag).toBe(true);
+    expect(series[0].variacaoAbs).toBeNull();
+    expect(series[0].variacaoPct).toBeNull();
+
+    expect(series[1].ano).toBe(2023);
+    expect(series[1].inconsistenciaDeclaracaoFlag).toBe(false);
+    expect(series[1].variacaoAbs).toBeNull();
+    expect(series[1].variacaoPct).toBeNull();
   });
 
   it("retorna array vazio para portal desconhecido", async () => {
@@ -175,6 +216,7 @@ describe("getCapremActuarialTrendMetrics enriquecido", () => {
       saldoCaixa: 333572.3,
       saldoAplicacoes: 35644993.45,
       patrimonioTotal: 35978565.75,
+      inconsistenciaDeclaracaoFlag: false,
       variacaoAbs: -3105708.03,
       variacaoPct: -7.95,
     });
@@ -187,6 +229,7 @@ describe("getCapremActuarialTrendMetrics enriquecido", () => {
     expect(trend[0].aporteQuitado).toBe(871311.17);
     expect(trend[0].amortizacaoDivida).toBe(144369.96);
     expect(trend[0].patrimonioFinanceiroTotal).toBe(35978565.75);
+    expect(trend[0].inconsistenciaDeclaracaoFlag).toBe(false);
     expect(trend[0].variacaoPatrimonioAbs).toBe(-3105708.03);
     expect(trend[0].variacaoPatrimonioPct).toBe(-7.95);
   });
@@ -199,6 +242,7 @@ describe("getCapremActuarialTrendMetrics enriquecido", () => {
       saldoCaixa: 4587826.77,
       saldoAplicacoes: 55780952.2,
       patrimonioTotal: 60368778.97,
+      inconsistenciaDeclaracaoFlag: false,
       variacaoAbs: null,
       variacaoPct: null,
     });
@@ -210,6 +254,7 @@ describe("getCapremActuarialTrendMetrics enriquecido", () => {
       saldoCaixa: 333572.3,
       saldoAplicacoes: 35644993.45,
       patrimonioTotal: 35978565.75,
+      inconsistenciaDeclaracaoFlag: false,
       variacaoAbs: -3105708.03,
       variacaoPct: -7.95,
     });
@@ -232,9 +277,11 @@ describe("getCapremActuarialTrendMetrics enriquecido", () => {
     expect(trend[0].taxaAdimplencia).toBe(100);
     expect(trend[0].amortizacaoDivida).toBe(0);
     expect(trend[0].patrimonioFinanceiroTotal).toBe(60368778.97);
+    expect(trend[0].inconsistenciaDeclaracaoFlag).toBe(false);
 
     expect(trend[1].ano).toBe(2025);
     expect(trend[1].aporteExigido).toBe(871311.17);
     expect(trend[1].patrimonioFinanceiroTotal).toBe(35978565.75);
+    expect(trend[1].inconsistenciaDeclaracaoFlag).toBe(false);
   });
 });

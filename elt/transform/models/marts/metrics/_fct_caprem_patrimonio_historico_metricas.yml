@@ -60,6 +60,13 @@ models:
         tests:
           - not_null
           - positive_values
+      - name: inconsistencia_declaracao_flag
+        data_type: boolean
+        constraints:
+          - type: not_null
+        description: "Indica se o exercício fiscal apresentou inconsistência contábil de declaração na MSC (omissão/inversão de saldo nas contas de investimentos)"
+        tests:
+          - not_null
       - name: variacao_abs
         data_type: numeric(15, 2)
         description: "Variação nominal absoluta do patrimônio total em relação ao exercício anterior"
@@ -83,5 +90,23 @@ unit_tests:
           - { ano: 2025, mes_referencia: 6, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 10000000.00, patrimonio_total: 10000000.00, variacao_abs: null, variacao_pct: null }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes_referencia: 12, saldo_caixa: 1000000.00, saldo_aplicacoes: 8000000.00, patrimonio_total: 9000000.00, variacao_abs: -1000000.00, variacao_pct: -10.0 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 10000000.00, patrimonio_total: 10000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes_referencia: 12, saldo_caixa: 1000000.00, saldo_aplicacoes: 8000000.00, patrimonio_total: 9000000.00, inconsistencia_declaracao_flag: false, variacao_abs: -1000000.00, variacao_pct: -10.0 }
+
+  - name: test_caprem_patrimonio_historico_inconsistencia_quebra_serie
+    description: "Valida detecção de inconsistência contábil de declaração e quebra de série nas variações"
+    model: fct_caprem_patrimonio_historico_metricas
+    given:
+      - input: ref('stg_siconfi_msc_patrimonial')
+        rows:
+          - { ano: 2021, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 20000000.00 }
+          - { ano: 2022, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
+          - { ano: 2023, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 15000000.00 }
+          - { ano: 2024, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 12000000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2021, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 20000000.00, patrimonio_total: 20000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2022, mes_referencia: 12, saldo_caixa: 500000.00, saldo_aplicacoes: 0.00, patrimonio_total: 500000.00, inconsistencia_declaracao_flag: true, variacao_abs: null, variacao_pct: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2023, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 15000000.00, patrimonio_total: 15000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 12000000.00, patrimonio_total: 12000000.00, inconsistencia_declaracao_flag: false, variacao_abs: -3000000.00, variacao_pct: -20.0 }
+

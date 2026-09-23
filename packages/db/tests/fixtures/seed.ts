@@ -135,6 +135,7 @@ export interface CapremPatrimonioHistoricoRow {
   saldoCaixa?: number;
   saldoAplicacoes?: number;
   patrimonioTotal?: number;
+  inconsistenciaDeclaracaoFlag?: boolean;
   variacaoAbs?: number | null;
   variacaoPct?: number | null;
 }
@@ -155,6 +156,7 @@ export async function seedCapremPatrimonioHistorico(
       saldo_caixa: saldoCaixa,
       saldo_aplicacoes: saldoAplicacoes,
       patrimonio_total: patrimonioTotal,
+      inconsistencia_declaracao_flag: row.inconsistenciaDeclaracaoFlag ?? false,
       variacao_abs: row.variacaoAbs ?? null,
       variacao_pct: row.variacaoPct ?? null,
     })

@@ -43,6 +43,24 @@ com_totais as (
     from competencias_finais
 ),
 
+com_inconsistencia as (
+    select
+        portal_slug,
+        ano,
+        mes_referencia,
+        saldo_caixa,
+        saldo_aplicacoes,
+        patrimonio_total,
+        case
+            when saldo_aplicacoes = 0 and (
+                lag(saldo_aplicacoes) over (partition by portal_slug order by ano) > 10000000
+                or lead(saldo_aplicacoes) over (partition by portal_slug order by ano) > 10000000
+            ) then true
+            else false
+        end as inconsistencia_declaracao_flag
+    from com_totais
+),
+
 com_variacoes as (
     select
         portal_slug,
@@ -51,8 +69,17 @@ com_variacoes as (
         saldo_caixa,
         saldo_aplicacoes,
         patrimonio_total,
-        (patrimonio_total - lag(patrimonio_total) over (partition by portal_slug order by ano))::numeric(15, 2) as variacao_abs,
+        inconsistencia_declaracao_flag,
         case
+            when inconsistencia_declaracao_flag
+                or lag(inconsistencia_declaracao_flag) over (partition by portal_slug order by ano) = true
+            then null
+            else (patrimonio_total - lag(patrimonio_total) over (partition by portal_slug order by ano))
+        end::numeric(15, 2) as variacao_abs,
+        case
+            when inconsistencia_declaracao_flag
+                or lag(inconsistencia_declaracao_flag) over (partition by portal_slug order by ano) = true
+            then null
             when lag(patrimonio_total) over (partition by portal_slug order by ano) is not null
                 and lag(patrimonio_total) over (partition by portal_slug order by ano) != 0
             then round(
@@ -62,7 +89,7 @@ com_variacoes as (
             )
             else null
         end::numeric(15, 2) as variacao_pct
-    from com_totais
+    from com_inconsistencia
 )
 
 select
@@ -73,6 +100,7 @@ select
     saldo_caixa,
     saldo_aplicacoes,
     patrimonio_total,
+    inconsistencia_declaracao_flag,
     variacao_abs,
     variacao_pct
 from com_variacoes

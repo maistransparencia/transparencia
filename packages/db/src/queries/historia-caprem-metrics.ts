@@ -272,6 +272,7 @@ export interface CapremActuarialTrendDTO {
   taxaAdimplencia: number;
   amortizacaoDivida: number;
   patrimonioFinanceiroTotal?: number | null;
+  inconsistenciaDeclaracaoFlag?: boolean;
   variacaoPatrimonioAbs?: number | null;
   variacaoPatrimonioPct?: number | null;
 }
@@ -294,6 +295,7 @@ export async function getCapremActuarialTrendMetrics(
         "t.taxa_adimplencia as taxaAdimplencia",
         "t.amortizacao_divida as amortizacaoDivida",
         "p.patrimonio_total as patrimonioTotal",
+        "p.inconsistencia_declaracao_flag as inconsistenciaDeclaracaoFlag",
         "p.variacao_abs as variacaoAbs",
         "p.variacao_pct as variacaoPct",
       ])
@@ -310,6 +312,9 @@ export async function getCapremActuarialTrendMetrics(
         amortizacaoDivida: Number(r.amortizacaoDivida ?? 0),
         patrimonioFinanceiroTotal:
           r.patrimonioTotal != null ? Number(r.patrimonioTotal) : null,
+        inconsistenciaDeclaracaoFlag: Boolean(
+          r.inconsistenciaDeclaracaoFlag ?? false,
+        ),
         variacaoPatrimonioAbs:
           r.variacaoAbs != null ? Number(r.variacaoAbs) : null,
         variacaoPatrimonioPct:
@@ -355,6 +360,7 @@ export async function getCapremActuarialTrendMetrics(
         taxaAdimplencia: exigido > 0 ? (quitado / exigido) * 100 : 100,
         amortizacaoDivida: Number(r.amortizacao_divida ?? 0),
         patrimonioFinanceiroTotal: null,
+        inconsistenciaDeclaracaoFlag: false,
         variacaoPatrimonioAbs: null,
         variacaoPatrimonioPct: null,
       };
@@ -372,6 +378,7 @@ export interface CapremPatrimonioHistoricoDTO {
   saldoCaixa: number;
   saldoAplicacoes: number;
   patrimonioTotal: number;
+  inconsistenciaDeclaracaoFlag: boolean;
   variacaoAbs: number | null;
   variacaoPct: number | null;
 }
@@ -390,6 +397,7 @@ export async function getCapremPatrimonioHistoricoMetrics(
         "saldo_caixa as saldoCaixa",
         "saldo_aplicacoes as saldoAplicacoes",
         "patrimonio_total as patrimonioTotal",
+        "inconsistencia_declaracao_flag as inconsistenciaDeclaracaoFlag",
         "variacao_abs as variacaoAbs",
         "variacao_pct as variacaoPct",
       ])
@@ -405,6 +413,7 @@ export async function getCapremPatrimonioHistoricoMetrics(
       saldoCaixa: Number(r.saldoCaixa ?? 0),
       saldoAplicacoes: Number(r.saldoAplicacoes ?? 0),
       patrimonioTotal: Number(r.patrimonioTotal ?? 0),
+      inconsistenciaDeclaracaoFlag: Boolean(r.inconsistenciaDeclaracaoFlag),
       variacaoAbs: r.variacaoAbs != null ? Number(r.variacaoAbs) : null,
       variacaoPct: r.variacaoPct != null ? Number(r.variacaoPct) : null,
     }));

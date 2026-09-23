@@ -293,11 +293,11 @@ def test_fct_saldo_caixa_siconfi_consolida_investimentos_caprem(conn):
 
 @pytest.mark.usefixtures("seed_msc_patrimonial")
 def test_fct_caprem_patrimonio_historico_metricas_plurianual(conn):
-    """Valida a série histórica plurianual da CAPREM, seleção da última competência anual e variações."""
+    """Valida a série histórica plurianual da CAPREM, seleção da última competência anual, flag de consistência e variações."""
     rows = conn.execute(
         text(
             """
-            SELECT portal_slug, ano, mes_referencia, saldo_caixa, saldo_aplicacoes, patrimonio_total, variacao_abs, variacao_pct
+            SELECT portal_slug, ano, mes_referencia, saldo_caixa, saldo_aplicacoes, patrimonio_total, inconsistencia_declaracao_flag, variacao_abs, variacao_pct
             FROM analytics.fct_caprem_patrimonio_historico_metricas
             ORDER BY ano
             """
@@ -314,8 +314,9 @@ def test_fct_caprem_patrimonio_historico_metricas_plurianual(conn):
     assert float(r2024[3]) == 25000000.0  # 111110600
     assert float(r2024[4]) == 50000000.0  # 35M (114) + 5M (114) + 10M (1213)
     assert float(r2024[5]) == 75000000.0  # Total
-    assert r2024[6] is None
+    assert r2024[6] is False  # inconsistencia_declaracao_flag
     assert r2024[7] is None
+    assert r2024[8] is None
 
     # 2025: segundo ano com mes_referencia = 12 (ignora mes 6) e variações calculadas
     r2025 = rows[1]
@@ -325,5 +326,6 @@ def test_fct_caprem_patrimonio_historico_metricas_plurianual(conn):
     assert float(r2025[3]) == 15000000.0  # 111110600
     assert float(r2025[4]) == 45000000.0  # 121310902
     assert float(r2025[5]) == 60000000.0  # Total
-    assert float(r2025[6]) == -15000000.0  # 60M - 75M
-    assert float(r2025[7]) == -20.0  # (-15M / 75M) * 100
+    assert r2025[6] is False  # inconsistencia_declaracao_flag
+    assert float(r2025[7]) == -15000000.0  # 60M - 75M
+    assert float(r2025[8]) == -20.0  # (-15M / 75M) * 100
