@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Column, DenseTable } from "../dense-table";
 
 interface TestItem {
@@ -180,5 +180,159 @@ describe("DenseTable - botão CSV adaptativo", () => {
       .getAllByRole("button", { hidden: true })
       .find((btn) => btn.getAttribute("aria-label") === "Exportar dados");
     expect(mobileBtn).toBeInTheDocument();
+  });
+});
+
+describe("DenseTable - paginação e scroll suave automático", () => {
+  const columns: Column<TestItem>[] = [
+    { header: "Nome", accessorKey: "nome" },
+    { header: "Valor", accessorKey: "valor" },
+  ];
+
+  const generateData = (count: number): TestItem[] =>
+    Array.from({ length: count }, (_, i) => ({
+      id: String(i + 1),
+      nome: `Item ${i + 1}`,
+      valor: (i + 1) * 100,
+    }));
+
+  const testData = generateData(25);
+
+  let originalScrollIntoView: typeof window.HTMLElement.prototype.scrollIntoView;
+
+  beforeEach(() => {
+    originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+  });
+
+  afterEach(() => {
+    if (originalScrollIntoView !== undefined) {
+      window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+    } else {
+      delete (window.HTMLElement.prototype as { scrollIntoView?: unknown })
+        .scrollIntoView;
+    }
+    vi.restoreAllMocks();
+  });
+
+  it("possui as classes utilitárias de scroll margin (scroll-mt-20 sm:scroll-mt-24) no container raiz", () => {
+    const { container } = render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    const rootElement = container.firstElementChild;
+    expect(rootElement).toHaveClass("scroll-mt-20");
+    expect(rootElement).toHaveClass("sm:scroll-mt-24");
+  });
+
+  it("não dispara scrollIntoView na montagem inicial", () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+  });
+
+  it("dispara scroll suave para o container raiz ao clicar no botão de uma página diferente", () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    const page2Button = screen.getByRole("button", { name: "Página 2" });
+    fireEvent.click(page2Button);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+
+  it("não dispara scrollIntoView ao clicar na página que já está ativa", () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    const page1Button = screen.getByRole("button", { name: "Página 1" });
+    fireEvent.click(page1Button);
+
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+  });
+
+  it("dispara scroll suave ao navegar para a próxima página e página anterior", () => {
+    const scrollIntoViewMock = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    const nextButton = screen.getByRole("button", { name: "Próxima página" });
+    fireEvent.click(nextButton);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    const prevButton = screen.getByRole("button", { name: "Página anterior" });
+    fireEvent.click(prevButton);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledTimes(2);
+    expect(scrollIntoViewMock).toHaveBeenLastCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+
+  it("trata defensivamente ambientes sem suporte a scrollIntoView sem lançar erro", () => {
+    // @ts-expect-error teste defensivo para ambiente sem scrollIntoView
+    delete window.HTMLElement.prototype.scrollIntoView;
+
+    render(
+      <DenseTable
+        data={testData}
+        columns={columns}
+        rowKey="id"
+        pageSize={10}
+      />,
+    );
+
+    const page2Button = screen.getByRole("button", { name: "Página 2" });
+    expect(() => fireEvent.click(page2Button)).not.toThrow();
   });
 });
