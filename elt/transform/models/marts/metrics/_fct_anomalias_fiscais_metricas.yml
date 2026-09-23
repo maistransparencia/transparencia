@@ -71,11 +71,9 @@ models:
         tests:
           - not_null
 
-      - name: deep_link_rota
-        description: "Rota canônica de redirecionamento no portal web."
+      - name: licitacao_numero
+        description: "Número do processo licitatório relacionado à anomalia (preenchido exclusivamente para anomalias de compras públicas)."
         data_type: text
-        tests:
-          - not_null
 
       - name: metodo_deteccao
         description: "Método estatístico utilizado para detectar a anomalia."
@@ -120,9 +118,9 @@ unit_tests:
         rows: []
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "retencao_patronal_rpps", dimensao_referencia: "contribuicao_patronal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 50000.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2024#patronal", metodo_deteccao: "fluxo_patronal_em_aberto" }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2023, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "alto", desvio_percentual: 20.00, valor_observado: 400000.00, valor_esperado: 500000.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/caprem?ano=2023#atuarial", metodo_deteccao: "limite_normativo_adimplencia" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "limite_normativo_adimplencia" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "retencao_patronal_rpps", dimensao_referencia: "contribuicao_patronal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 50000.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "fluxo_patronal_em_aberto" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2023, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "alto", desvio_percentual: 20.00, valor_observado: 400000.00, valor_esperado: 500000.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "limite_normativo_adimplencia" }
 
   - name: test_fct_anomalias_fiscais_licitacoes_pncp
     description: "Valida deteccao de anomalias licitatorias de desconto nulo em pregao e desagio extremo"
@@ -162,8 +160,8 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, licitacao_numero: "000200", numero_item: 1, valor_total_estimado: 5000.00, valor_total_homologado: 5000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desconto_nulo_pregao", dimensao_referencia: "licitacao_000517", grau_severidade: "critico", desvio_percentual: 10.00, valor_observado: 0.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/licitacoes?ano=2026&numero=000517#itens", metodo_deteccao: "limite_competitividade_pregao" }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desagio_extremo_inexequibilidade", dimensao_referencia: "licitacao_000290", grau_severidade: "critico", desvio_percentual: 20.00, valor_observado: 70.00, valor_esperado: 50.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/licitacoes?ano=2026&numero=000290#itens", metodo_deteccao: "limite_inexequibilidade_art59" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desconto_nulo_pregao", dimensao_referencia: "licitacao_000517", grau_severidade: "critico", desvio_percentual: 10.00, valor_observado: 0.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, licitacao_numero: "000517", metodo_deteccao: "limite_competitividade_pregao" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "desagio_extremo_inexequibilidade", dimensao_referencia: "licitacao_000290", grau_severidade: "critico", desvio_percentual: 20.00, valor_observado: 70.00, valor_esperado: 50.00, mes_inicial: 1, mes_final: 12, licitacao_numero: "000290", metodo_deteccao: "limite_inexequibilidade_art59" }
 
   - name: test_fct_anomalias_fiscais_pessoal_divergencias
     description: "Valida deteccao de anomalias de harmonizacao cadastral de pessoal sob Art. 37 da CF/88"
@@ -237,9 +235,9 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2023, matricula: "m01", vinculo: "Efetivo", categoria_funcional: "Efetivo", categoria_regime: "estatutario" }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 31.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2026#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "alto", desvio_percentual: 100.00, valor_observado: 8.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2025#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
-        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "moderado", desvio_percentual: 100.00, valor_observado: 2.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/pessoal?ano=2024#regime", metodo_deteccao: "harmonizacao_cadastral_art37" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "critico", desvio_percentual: 100.00, valor_observado: 31.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "harmonizacao_cadastral_art37" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "alto", desvio_percentual: 100.00, valor_observado: 8.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "harmonizacao_cadastral_art37" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inconsistencia_vinculo_pessoal", dimensao_referencia: "quadro_pessoal", grau_severidade: "moderado", desvio_percentual: 100.00, valor_observado: 2.00, valor_esperado: 0.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "harmonizacao_cadastral_art37" }
 
   - name: test_fct_anomalias_fiscais_dependencia_transferencias
     description: "Valida deteccao de anomalias de dependencia de transferencias sob Art. 11 da LRF para anos fechados"
@@ -273,4 +271,4 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, total_arrecadado: 1000000.00, receita_propria_arrecadado: 40000.00, total_previsto: 1000000.00, receita_propria_previsto: 40000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "dependencia_transferencias", dimensao_referencia: "receita_propria", grau_severidade: "critico", desvio_percentual: 5.00, valor_observado: 5.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, deep_link_rota: "/porciuncula_prefeitura/receitas?ano=2024", metodo_deteccao: "art11_lrf_arrecadacao_propria" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "dependencia_transferencias", dimensao_referencia: "receita_propria", grau_severidade: "critico", desvio_percentual: 5.00, valor_observado: 5.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "art11_lrf_arrecadacao_propria" }

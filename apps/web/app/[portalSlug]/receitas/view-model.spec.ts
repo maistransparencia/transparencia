@@ -122,7 +122,7 @@ describe("buildReceitasViewModel", () => {
             valorEsperado: 10.0,
             mesInicial: 1,
             mesFinal: 12,
-            deepLinkRota: "/porciuncula_prefeitura/receitas?ano=2024",
+            licitacaoNumero: null,
             metodoDeteccao: "art11_lrf_arrecadacao_propria",
           },
         ],

@@ -130,8 +130,7 @@ describe("VisaoGeralPage", () => {
             valorEsperado: 100,
             mesInicial: 1,
             mesFinal: 12,
-            deepLinkRota:
-              "/porciuncula_prefeitura/pessoal?ano=2024#comissionados",
+            licitacaoNumero: null,
             metodoDeteccao: "iqr_estoque",
           },
         ],
