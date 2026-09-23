@@ -128,6 +128,65 @@ export async function seedHistoriaCaprem(
     .execute();
 }
 
+export interface CapremPatrimonioHistoricoRow {
+  portalSlug: string;
+  ano: number;
+  mesReferencia: number;
+  saldoCaixa?: number;
+  saldoAplicacoes?: number;
+  patrimonioTotal?: number;
+  variacaoAbs?: number | null;
+  variacaoPct?: number | null;
+}
+
+export async function seedCapremPatrimonioHistorico(
+  row: CapremPatrimonioHistoricoRow,
+): Promise<void> {
+  const saldoCaixa = row.saldoCaixa ?? 0;
+  const saldoAplicacoes = row.saldoAplicacoes ?? 0;
+  const patrimonioTotal = row.patrimonioTotal ?? saldoCaixa + saldoAplicacoes;
+  await db
+    .insertInto("fct_caprem_patrimonio_historico_metricas")
+    .values({
+      caprem_patrimonio_historico_id: nextId("cph"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      mes_referencia: row.mesReferencia,
+      saldo_caixa: saldoCaixa,
+      saldo_aplicacoes: saldoAplicacoes,
+      patrimonio_total: patrimonioTotal,
+      variacao_abs: row.variacaoAbs ?? null,
+      variacao_pct: row.variacaoPct ?? null,
+    })
+    .execute();
+}
+
+export interface CapremTendenciaAtuarialRow {
+  portalSlug: string;
+  ano: number;
+  aporteExigido?: number;
+  aporteQuitado?: number;
+  taxaAdimplencia?: number;
+  amortizacaoDivida?: number;
+}
+
+export async function seedCapremTendenciaAtuarial(
+  row: CapremTendenciaAtuarialRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_caprem_tendencia_atuarial_metricas")
+    .values({
+      caprem_tendencia_id: nextId("cta"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      aporte_exigido: row.aporteExigido ?? 0,
+      aporte_quitado: row.aporteQuitado ?? 0,
+      taxa_adimplencia: row.taxaAdimplencia ?? 100,
+      amortizacao_divida: row.amortizacaoDivida ?? 0,
+    })
+    .execute();
+}
+
 export interface OpacidadeMetricasRow {
   portalSlug: string;
   ano: number;
@@ -834,6 +893,14 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_saldo_caixa_siconfi")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_caprem_patrimonio_historico_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_caprem_tendencia_atuarial_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

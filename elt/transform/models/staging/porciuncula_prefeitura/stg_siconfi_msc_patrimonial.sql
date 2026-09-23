@@ -25,8 +25,8 @@ filtered_and_cast as (
         data_extracao
     from source
     where classe_conta::int = 1 -- somente contas patrimoniais
-        and (conta_contabil like '111%' or (conta_contabil like '114%' and trim(poder_orgao) = '10132'))
-        and (financeiro_permanente::int = 1 or (conta_contabil like '114%' and trim(poder_orgao) = '10132')) -- contas financeiras em geral e totalidade dos investimentos do RPPS
+        and (conta_contabil like '111%' or ((conta_contabil like '114%' or conta_contabil like '1213%') and trim(poder_orgao) = '10132'))
+        and (financeiro_permanente::int = 1 or ((conta_contabil like '114%' or conta_contabil like '1213%') and trim(poder_orgao) = '10132')) -- contas financeiras em geral e totalidade dos investimentos do RPPS
         and tipo_valor = 'ending_balance' -- somente o saldo final do mês
         and trim(poder_orgao) != '20231' -- camara municipal esta fora do escopo
 )

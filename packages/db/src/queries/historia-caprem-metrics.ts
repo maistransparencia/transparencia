@@ -271,6 +271,9 @@ export interface CapremActuarialTrendDTO {
   aporteQuitado: number;
   taxaAdimplencia: number;
   amortizacaoDivida: number;
+  patrimonioFinanceiroTotal?: number | null;
+  variacaoPatrimonioAbs?: number | null;
+  variacaoPatrimonioPct?: number | null;
 }
 
 export async function getCapremActuarialTrendMetrics(
@@ -278,16 +281,24 @@ export async function getCapremActuarialTrendMetrics(
 ): Promise<CapremActuarialTrendDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_tendencia_atuarial_metricas")
+      .selectFrom("fct_caprem_patrimonio_historico_metricas as p")
+      .leftJoin("fct_caprem_tendencia_atuarial_metricas as t", (join) =>
+        join
+          .onRef("t.portal_slug", "=", "p.portal_slug")
+          .onRef("t.ano", "=", "p.ano"),
+      )
       .select([
-        "ano",
-        "aporte_exigido as aporteExigido",
-        "aporte_quitado as aporteQuitado",
-        "taxa_adimplencia as taxaAdimplencia",
-        "amortizacao_divida as amortizacaoDivida",
+        "p.ano",
+        "t.aporte_exigido as aporteExigido",
+        "t.aporte_quitado as aporteQuitado",
+        "t.taxa_adimplencia as taxaAdimplencia",
+        "t.amortizacao_divida as amortizacaoDivida",
+        "p.patrimonio_total as patrimonioTotal",
+        "p.variacao_abs as variacaoAbs",
+        "p.variacao_pct as variacaoPct",
       ])
-      .where("portal_slug", "=", portalSlug)
-      .orderBy("ano", "asc")
+      .where("p.portal_slug", "=", portalSlug)
+      .orderBy("p.ano", "asc")
       .execute();
 
     if (rows.length > 0) {
@@ -295,8 +306,14 @@ export async function getCapremActuarialTrendMetrics(
         ano: Number(r.ano),
         aporteExigido: Number(r.aporteExigido ?? 0),
         aporteQuitado: Number(r.aporteQuitado ?? 0),
-        taxaAdimplencia: Number(r.taxaAdimplencia ?? 0),
+        taxaAdimplencia: Number(r.taxaAdimplencia ?? 100),
         amortizacaoDivida: Number(r.amortizacaoDivida ?? 0),
+        patrimonioFinanceiroTotal:
+          r.patrimonioTotal != null ? Number(r.patrimonioTotal) : null,
+        variacaoPatrimonioAbs:
+          r.variacaoAbs != null ? Number(r.variacaoAbs) : null,
+        variacaoPatrimonioPct:
+          r.variacaoPct != null ? Number(r.variacaoPct) : null,
       }));
     }
   } catch {
@@ -337,8 +354,60 @@ export async function getCapremActuarialTrendMetrics(
         aporteQuitado: quitado,
         taxaAdimplencia: exigido > 0 ? (quitado / exigido) * 100 : 100,
         amortizacaoDivida: Number(r.amortizacao_divida ?? 0),
+        patrimonioFinanceiroTotal: null,
+        variacaoPatrimonioAbs: null,
+        variacaoPatrimonioPct: null,
       };
     });
+  } catch {
+    return [];
+  }
+}
+
+export interface CapremPatrimonioHistoricoDTO {
+  capremPatrimonioHistoricoId: string;
+  portalSlug: string;
+  ano: number;
+  mesReferencia: number;
+  saldoCaixa: number;
+  saldoAplicacoes: number;
+  patrimonioTotal: number;
+  variacaoAbs: number | null;
+  variacaoPct: number | null;
+}
+
+export async function getCapremPatrimonioHistoricoMetrics(
+  portalSlug: string,
+): Promise<CapremPatrimonioHistoricoDTO[]> {
+  try {
+    const rows = await db
+      .selectFrom("fct_caprem_patrimonio_historico_metricas")
+      .select([
+        "caprem_patrimonio_historico_id as capremPatrimonioHistoricoId",
+        "portal_slug as portalSlug",
+        "ano",
+        "mes_referencia as mesReferencia",
+        "saldo_caixa as saldoCaixa",
+        "saldo_aplicacoes as saldoAplicacoes",
+        "patrimonio_total as patrimonioTotal",
+        "variacao_abs as variacaoAbs",
+        "variacao_pct as variacaoPct",
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .orderBy("ano", "asc")
+      .execute();
+
+    return rows.map((r) => ({
+      capremPatrimonioHistoricoId: r.capremPatrimonioHistoricoId,
+      portalSlug: r.portalSlug,
+      ano: Number(r.ano),
+      mesReferencia: Number(r.mesReferencia),
+      saldoCaixa: Number(r.saldoCaixa ?? 0),
+      saldoAplicacoes: Number(r.saldoAplicacoes ?? 0),
+      patrimonioTotal: Number(r.patrimonioTotal ?? 0),
+      variacaoAbs: r.variacaoAbs != null ? Number(r.variacaoAbs) : null,
+      variacaoPct: r.variacaoPct != null ? Number(r.variacaoPct) : null,
+    }));
   } catch {
     return [];
   }
