@@ -336,4 +336,51 @@ describe("LicitacoesPage", () => {
       screen.getAllByRole("button", { name: /ver itens licitados/i })[0],
     ).toBeInTheDocument();
   });
+
+  it("renderiza a barra de busca global de licitações e contratos no hero", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+
+    const element = await LicitacoesPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("button", {
+        name: /abrir busca global de licitações e contratos/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza a seção de contratos de serviços vigentes quando há contratos nos dados", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        contratosServicosVigentes: [
+          {
+            contratoServicoId: "1",
+            portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
+            contratoNumero: "0010/24",
+            fornecedorNome: "Empresa Limpeza XYZ LTDA",
+            fornecedorCnpj: "12345678000199",
+            objetoDescricao: "Prestação de serviços contínuos de limpeza",
+            totalEmpenhado: 50000,
+            totalLiquidado: 30000,
+            totalPago: 20000,
+            saldoPendente: 30000,
+            percentualPago: 40,
+            statusExecucao: "em_execucao",
+          },
+        ],
+      }),
+    );
+
+    const element = await LicitacoesPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", { name: "Contratos de Serviços Vigentes" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Empresa Limpeza XYZ LTDA")[0],
+    ).toBeInTheDocument();
+  });
 });

@@ -16,6 +16,7 @@ function makeRawRadarData(overrides: Partial<RawData> = {}): RawData {
     } as unknown as RawData["portalConfig"],
     entidades: [],
     alertas: [],
+    entidade: undefined,
     ...overrides,
   };
 }
@@ -48,7 +49,7 @@ describe("buildRadarHistoricoViewModel", () => {
           valorEsperado: 30,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/licitacoes?ano=2023",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_processos",
         },
         // Alertas de 2026
@@ -64,7 +65,7 @@ describe("buildRadarHistoricoViewModel", () => {
           valorEsperado: 30.0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/despesas?ano=2026#gastos-genericos",
+          licitacaoNumero: null,
           metodoDeteccao: "limite_normativo",
         },
         {
@@ -79,7 +80,7 @@ describe("buildRadarHistoricoViewModel", () => {
           valorEsperado: 80,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/pessoal?ano=2026#comissionados",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_estoque",
         },
         // Alerta de 2024
@@ -95,7 +96,7 @@ describe("buildRadarHistoricoViewModel", () => {
           valorEsperado: 1500000,
           mesInicial: 12,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/receitas?ano=2024#saldo-caixa",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_estoque",
         },
       ],
@@ -127,6 +128,31 @@ describe("buildRadarHistoricoViewModel", () => {
     const sec2023 = vm.secoes[2];
     expect(sec2023.totalAlertas).toBe(1);
     expect(sec2023.alertasModerados).toBe(1);
+  });
+
+  it("repassa raw.entidade para os cards do radar histórico", () => {
+    const raw = makeRawRadarData({
+      entidade: "saude",
+      alertas: [
+        {
+          anomaliaId: "anomalia-2026-1",
+          portalSlug: "porciuncula",
+          ano: 2026,
+          tipoAnomalia: "opacidade_gastos_genericos",
+          dimensaoReferencia: "gastos_genericos",
+          grauSeveridade: "alto",
+          desvioPercentual: 1.03,
+          valorObservado: 30.31,
+          valorEsperado: 30.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          licitacaoNumero: null,
+          metodoDeteccao: "limite_normativo",
+        },
+      ],
+    });
+    const vm = buildRadarHistoricoViewModel(raw);
+    expect(vm.secoes[0].cards[0].ctaUrl).toContain("&entidade=saude");
   });
 });
 

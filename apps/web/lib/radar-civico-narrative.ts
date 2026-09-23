@@ -63,6 +63,7 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   aporte_atuarial: "Aporte Atuarial (RPPS)",
   contribuicao_patronal: "Contribuição Patronal (RPPS)",
   quadro_pessoal: "Quadro de Pessoal",
+  receita_propria: "Receita Própria",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -232,6 +233,13 @@ export function formatFactualNarrative(
         ? "profissional cadastrado"
         : "profissionais cadastrados";
     return `Em ${ano}, foram identificados ${obs} ${plural} com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.`;
+  }
+
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 10);
+    return `Em ${ano}, a receita própria representou apenas ${obs}% da arrecadação, patamar inferior ao parâmetro referencial de ${esp}% preconizado pelo Art. 11 da LRF.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

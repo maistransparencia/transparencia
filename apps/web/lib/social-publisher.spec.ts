@@ -5,6 +5,7 @@ import {
   buildCivicAnomalyFacebookPost,
   buildCivicAnomalyTweet,
   publishSocial,
+  resolveAnomalyLink,
 } from "./social-publisher";
 import * as xBot from "./x-bot";
 
@@ -230,7 +231,7 @@ describe("social-publisher module", () => {
       valorEsperado: 100,
       mesInicial: 1,
       mesFinal: 12,
-      deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+      licitacaoNumero: null,
       metodoDeteccao: "iqr_estoque",
     };
 
@@ -302,7 +303,7 @@ describe("social-publisher module", () => {
         valorEsperado: 100,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        licitacaoNumero: null,
         metodoDeteccao: "iqr_estoque",
       },
     });
@@ -328,7 +329,7 @@ describe("social-publisher module", () => {
         valorEsperado: 100,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        licitacaoNumero: null,
         metodoDeteccao: "iqr_estoque",
       },
     });
@@ -387,5 +388,20 @@ describe("social-publisher module", () => {
       }),
       expect.any(Object),
     );
+  });
+
+  it("resolveAnomalyLink sanitiza baseUrl com barra final sem duplicar barras", () => {
+    const link = resolveAnomalyLink(
+      {
+        tipoAnomalia: "explosao_comissionados",
+        ano: 2025,
+      },
+      "https://maistransparencia.com/",
+      "porciuncula_prefeitura",
+    );
+    expect(link).toBe(
+      "https://maistransparencia.com/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+    );
+    expect(link).not.toContain(".com//");
   });
 });

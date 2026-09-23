@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPartialYearPeriod } from "../formatters";
+import { fmtCpfCnpj, getPartialYearPeriod } from "../formatters";
 
 describe("getPartialYearPeriod", () => {
   it("deve retornar apenas 'Jan' quando a referência for janeiro", () => {
@@ -66,5 +66,33 @@ describe("getPartialYearPeriod", () => {
     expect(getPartialYearPeriod(null)).toBe("");
     expect(getPartialYearPeriod("data-invalida")).toBe("");
     expect(getPartialYearPeriod(new Date("invalid"))).toBe("");
+  });
+});
+
+describe("fmtCpfCnpj", () => {
+  it("deve formatar CNPJ com 14 dígitos numéricos", () => {
+    expect(fmtCpfCnpj("12345678000190")).toBe("12.345.678/0001-90");
+    expect(fmtCpfCnpj("11111111000111")).toBe("11.111.111/0001-11");
+  });
+
+  it("deve formatar CPF com 11 dígitos numéricos", () => {
+    expect(fmtCpfCnpj("12345678901")).toBe("123.456.789-01");
+  });
+
+  it("deve manter CNPJ ou CPF já formatado", () => {
+    expect(fmtCpfCnpj("12.345.678/0001-90")).toBe("12.345.678/0001-90");
+    expect(fmtCpfCnpj("123.456.789-01")).toBe("123.456.789-01");
+  });
+
+  it("deve retornar string vazia para nulo, indefinido ou vazio", () => {
+    expect(fmtCpfCnpj(null)).toBe("");
+    expect(fmtCpfCnpj(undefined)).toBe("");
+    expect(fmtCpfCnpj("")).toBe("");
+    expect(fmtCpfCnpj("   ")).toBe("");
+  });
+
+  it("deve retornar a string original se não tiver 11 ou 14 dígitos", () => {
+    expect(fmtCpfCnpj("12345")).toBe("12345");
+    expect(fmtCpfCnpj("ESTRANGEIRO-99")).toBe("ESTRANGEIRO-99");
   });
 });

@@ -269,7 +269,7 @@ describe("POST /api/ingestion/webhook", () => {
         valorEsperado: 100,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        licitacaoNumero: null,
         metodoDeteccao: "iqr_estoque",
       },
     ]);

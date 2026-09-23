@@ -18,6 +18,7 @@ import {
   formatFactualNarrative,
   formatPercentNumber,
 } from "./radar-civico-narrative";
+import { type AlertaUrlInput, buildAlertaUrl } from "./radar-url";
 import {
   buildCustomTweet,
   buildExtractionTweet,
@@ -328,20 +329,13 @@ export async function publishSocial(
  * Resolve rota ou URL canônica para o alerta cívico (sem ternários aninhados).
  */
 export function resolveAnomalyLink(
-  alerta: Pick<RadarCivicoAlertaDTO, "deepLinkRota">,
+  alerta: AlertaUrlInput,
   baseUrl: string,
   portalSlug: string,
 ): string {
-  if (!alerta.deepLinkRota) {
-    return `${baseUrl}/${portalSlug}/radar`;
-  }
-  if (alerta.deepLinkRota.startsWith("http")) {
-    return alerta.deepLinkRota;
-  }
-  const path = alerta.deepLinkRota.startsWith("/")
-    ? alerta.deepLinkRota
-    : `/${alerta.deepLinkRota}`;
-  return `${baseUrl}${path}`;
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  const path = buildAlertaUrl(alerta, { portalSlug });
+  return `${cleanBase}${path}`;
 }
 
 /**
@@ -434,7 +428,7 @@ ${textoFactual}
 🔍 Confira os dados oficiais e audite as contas no portal da transparência:
 ${link}
 
-#MaisTransparência #RadarCívico #ControleSocial #TransparênciaFiscal${tagMunicipio}`;
+#MaisTransparencia #RadarCívico #ControleSocial #TransparênciaFiscal${tagMunicipio}`;
 
   return { message, link };
 }

@@ -220,6 +220,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
 - **Valores Empenhados e Pagos por Contrato:** O acompanhamento financeiro de quanto do valor do contrato já foi empenhado e quanto já foi efetivamente pago.
 - **Contratos de Serviços Vigentes e Plurianuais:** Monitoramento dos principais contratos de serviços de terceiros no município, incluindo vigência (data de início e vencimento atualizado), celebração, indicador de contrato plurianual, mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`), fornecedor, status de execução (`em_execucao`, `concluido`, `inexecutado`), totais empenhado, liquidado e pago, percentual quitado e saldo pendente financeiro.
+- **Deep-Link e Visão 360° de Contratos:** Suporte a links diretos na URL (`/[portalSlug]/licitacoes?contratoNumero=...` ou `?contratoId=...` ou `?numero=...#contratos-servicos-vigentes`) e integração com a busca global Spotlight com retenção do termo pesquisado em camadas (`zIndex="z-[60]"`). Modal analítico com identificação completa, status semântico, fornecedor, CNPJ formatado (`fmtCpfCnpj`), objeto integral des-truncado, vigência e métricas financeiras completas (empenhado, liquidado, pago, saldo pendente e percentual pago). Conta com endpoint público sob demanda em `/api/[portalSlug]/contratos/details` (com rate limit de 60 req/min).
 
 ---
 
@@ -316,7 +317,7 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
 - **Redes Sociais Oficiais e Disseminação Cívica Automatizada:**
   - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
     - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias, indicadores de transparência e alertas cívicos de severidade crítica (`civic_anomaly`), rigorosamente limitados a 280 caracteres ponderados e com links canônicos de validação.
-    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
+    - **Facebook:** Página oficial [MaisTransparencia](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
     - **Cartões Sociais Dinâmicos (OpenGraph):** Templates dinâmicos de alta resolução para renderização em tempo real de metadados visuais ao compartilhar links no WhatsApp e redes sociais, com badges de severidade crítica do Radar Cívico (`/[portalSlug]/radar/opengraph-image`).
     - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
 
@@ -376,6 +377,7 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
     3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
     4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
     5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+  - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.
   - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
 
 ---
@@ -393,7 +395,7 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
 8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
-10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
+10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparencia](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
 12. **Fornecimento de Links de Download Direto CSV ("Show Your Work"):**
     - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente:
@@ -413,3 +415,28 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
     - Quando questionado sobre as contas do município, explique se os dados apresentados referem-se à visão **Consolidada** (toda a prefeitura somada a fundos municipais como Saúde e Previdência) ou a um órgão específico filtrado. Essa distinção é fundamental para que o cidadão compreenda a real magnitude do orçamento municipal.
 15. **Orientação sobre Navegação Móvel Contínua:**
     - Para cidadãos acessando o portal em celulares ou tablets, instrua sobre a barra fixa inferior com 5 abas ergonômicas (Início, Receitas, Despesas, Licitações e o botão "Mais" para abrir as demais seções como Orçamento, Pessoal, Saúde e Previdência), além do seletor de ano no cabeçalho superior sincronizado via URL (`?ano=YYYY`).
+
+## Governança, Privacidade e Transparência Institucional
+
+### Termos de Uso (`/termos`)
+
+Página estática com amparo jurídico formal da plataforma MaisTransparencia, cobrindo:
+
+- **Natureza Cívica e Independência:** Plataforma sem vínculo com partidos políticos, governos ou empresas contratadas pelo poder público. Código aberto auditável no GitHub.
+- **Base Legal para Publicação de Dados:**
+  - [Lei 12.527/2011 — LAI](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm): Direito de acesso à informação pública.
+  - [LC 131/2009](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp131.htm): Transparência ativa em tempo real da execução orçamentária.
+  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas.
+  - **Tema 483 do STF (RE 1.143.261):** Divulgação de remunerações de agentes públicos como imperativo constitucional de transparência.
+- **Limitações:** Os dados são fornecidos "como estão" a partir de fontes oficiais, sem responsabilidade por erros nas bases originais.
+
+### Política de Privacidade (`/privacidade`)
+
+Página estática descrevendo o tratamento de dados pessoais em conformidade com a [LGPD — Lei 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm):
+
+- **Coleta Mínima:** Apenas endereço de e-mail (voluntário, com double opt-in), para envio de boletim cívico informativo.
+- **Finalidade Exclusiva (LGPD, Art. 7.º, I):** Envio de boletins informativos sobre execução orçamentária e alertas fiscais — nenhum outro uso.
+- **Telemetria Anônima:** Métricas agregadas de navegação via PostHog, sem identificação pessoal, sem rastreamento cross-site e sem repasse a anunciantes.
+- **Não-Comercialização:** Dados de contato jamais são vendidos, cedidos ou utilizados para fins político-partidários ou comerciais.
+- **Direitos do Titular (LGPD, Art. 18):** Cancelamento em 1 clique (RFC 8058), acesso, correção, eliminação e revogação do consentimento.
+- **Contato:** privacidade@maistransparencia.com

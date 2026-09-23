@@ -586,7 +586,7 @@ export interface AnomaliaFiscalRow {
   valorEsperado?: number;
   mesInicial?: number;
   mesFinal?: number;
-  deepLinkRota: string;
+  licitacaoNumero?: string | null;
   metodoDeteccao?: string | null;
 }
 
@@ -607,7 +607,7 @@ export async function seedAnomaliaFiscal(
       valor_esperado: row.valorEsperado ?? 0,
       mes_inicial: row.mesInicial ?? 1,
       mes_final: row.mesFinal ?? 12,
-      deep_link_rota: row.deepLinkRota,
+      licitacao_numero: row.licitacaoNumero ?? null,
       metodo_deteccao: row.metodoDeteccao ?? "iqr_fluxo_homologo",
     })
     .execute();
@@ -704,6 +704,60 @@ export async function seedLicitacaoItem(row: LicitacaoItemRow): Promise<void> {
     .execute();
 }
 
+export interface ContratoRow {
+  contratoId?: string;
+  portalSlug: string;
+  ano: number;
+  empresaId?: string;
+  contratoNumero?: string;
+  fornecedorNome?: string;
+  fornecedorCpfCnpj?: string;
+  objeto?: string;
+  objetoCompleto?: string;
+  valorContrato?: number;
+  valorAditado?: number;
+  licitacaoNumero?: string;
+  modalidade?: string;
+  mes?: string;
+  tipoObra?: string;
+  numeroObra?: string;
+  fundlegal?: string;
+  empenhado?: number;
+  dataInicio?: string | null;
+  vencimentoAtual?: string | null;
+  saldoAEmpenhar?: number;
+}
+
+export async function seedContrato(row: ContratoRow): Promise<void> {
+  await db
+    .insertInto("fct_contratos")
+    .values({
+      contrato_id: row.contratoId ?? nextId("ctr"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empresa_id: row.empresaId ?? "1",
+      contrato_numero: row.contratoNumero ?? "001/2024",
+      fornecedor_nome: row.fornecedorNome ?? "FORNECEDOR PADRAO",
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+      objeto: row.objeto ?? "Objeto do contrato",
+      objeto_completo: row.objetoCompleto ?? null,
+      valor_contrato:
+        row.valorContrato !== undefined ? row.valorContrato : 50000,
+      valor_aditado: row.valorAditado ?? null,
+      licitacao_numero: row.licitacaoNumero ?? null,
+      modalidade: row.modalidade ?? "dispensa",
+      mes: row.mes ?? null,
+      tipo_obra: row.tipoObra ?? null,
+      numero_obra: row.numeroObra ?? null,
+      fundlegal: row.fundlegal ?? null,
+      empenhado: row.empenhado ?? null,
+      data_inicio: row.dataInicio ? row.dataInicio : null,
+      vencimento_atual: row.vencimentoAtual ? row.vencimentoAtual : null,
+      saldo_a_empenhar: row.saldoAEmpenhar ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -716,6 +770,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_licitacoes")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_contratos")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

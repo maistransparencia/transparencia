@@ -1,5 +1,6 @@
 -- Extensões necessárias
 CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Schemas
 CREATE SCHEMA IF NOT EXISTS analytics;
