@@ -217,7 +217,7 @@ export async function searchLicitacoesEContratos(
         modalidade: r.modalidade ? String(r.modalidade) : null,
         ano,
         portalSlug: slug,
-        href: `/${slug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(num)}#contratos-servicos-vigentes`,
+        href: `/${slug}/licitacoes?ano=${ano}&contratoNumero=${encodeURIComponent(num)}#contratos-servicos-vigentes`,
       };
     });
   };

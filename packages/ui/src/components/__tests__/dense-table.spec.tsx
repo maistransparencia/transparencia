@@ -335,4 +335,24 @@ describe("DenseTable - paginação e scroll suave automático", () => {
     const page2Button = screen.getByRole("button", { name: "Página 2" });
     expect(() => fireEvent.click(page2Button)).not.toThrow();
   });
+
+  it("aplica rowClassName dinâmico nas linhas tr da tabela", () => {
+    render(
+      <DenseTable
+        data={testData.slice(0, 3)}
+        columns={columns}
+        rowKey="id"
+        rowClassName={(row) =>
+          row.id === "2" ? "bg-amber-100 highlight-test" : undefined
+        }
+      />,
+    );
+
+    const rows = screen.getAllByRole("row");
+    // row 0 is the header row
+    expect(rows[2]).toHaveClass("bg-amber-100");
+    expect(rows[2]).toHaveClass("highlight-test");
+    expect(rows[1]).not.toHaveClass("highlight-test");
+    expect(rows[3]).not.toHaveClass("highlight-test");
+  });
 });

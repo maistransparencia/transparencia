@@ -232,9 +232,9 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
               valor: 24000,
               status: "vigente",
               modalidade: "Dispensa",
-              ano: 2024,
+              ano: 2023,
               portalSlug: "porciuncula_prefeitura",
-              href: "/porciuncula_prefeitura/licitacoes?ano=2024&numero=0043%2F24#contratos-servicos-vigentes",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2023&contratoNumero=0043%2F24#contratos-servicos-vigentes",
             },
           ],
           total: 2,
@@ -259,16 +259,13 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
         ).toBeInTheDocument();
       });
 
-      const dialog = screen.getByRole("dialog");
-
-      // Pressiona ArrowDown para descer ao segundo item (Contrato)
-      fireEvent.keyDown(dialog, { key: "ArrowDown" });
-
-      // Pressiona Enter no item selecionado
-      fireEvent.keyDown(dialog, { key: "Enter" });
+      const contratoOption = screen.getByRole("option", {
+        name: /JUSTINA REGINA R. MONTEIRO/i,
+      });
+      fireEvent.click(contratoOption);
 
       expect(mockPush).toHaveBeenCalledWith(
-        "/porciuncula_prefeitura/licitacoes?ano=2024&numero=0043%2F24#contratos-servicos-vigentes",
+        "/porciuncula_prefeitura/licitacoes?ano=2023&contratoNumero=0043%2F24#contratos-servicos-vigentes",
       );
     });
 
@@ -379,6 +376,68 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
 
       // Não deve fechar o modal de busca, permitindo que a camada de detalhes abra por cima
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("deve manter o modal de busca aberto ao selecionar um contrato do mesmo ano para navegação em camadas e disparar contrato:selected", async () => {
+      const listenerMock = vi.fn();
+      window.addEventListener("contrato:selected", listenerMock);
+
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          licitacoes: [],
+          contratos: [
+            {
+              id: "ctr-2",
+              tipo: "contrato",
+              numero: "0010/26",
+              objeto: "Prestação de serviços contínuos",
+              fornecedorNome: "EMPRESA MODELO LTDA",
+              valor: 50000,
+              status: "vigente",
+              modalidade: "Pregão",
+              ano: 2026,
+              portalSlug: "porciuncula_prefeitura",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2026&contratoNumero=0010%2F26#contratos-servicos-vigentes",
+            },
+          ],
+          total: 1,
+        }),
+      });
+
+      const onClose = vi.fn();
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={onClose}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+        />,
+      );
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "0010/26" } });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Contratos \(1\)/i)).toBeInTheDocument();
+      });
+
+      const contratoItem = screen.getByRole("option", {
+        name: /Prestação de serviços contínuos/i,
+      });
+
+      fireEvent.click(contratoItem);
+
+      // Não deve fechar o modal de busca (openedFromSearch = true com sobreposição em camadas)
+      expect(onClose).not.toHaveBeenCalled();
+
+      // Deve disparar o evento contrato:selected
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      const eventDetail = listenerMock.mock.calls[0][0].detail;
+      expect(eventDetail.numero).toBe("0010/26");
+      expect(eventDetail.fromSearch).toBe(true);
+
+      window.removeEventListener("contrato:selected", listenerMock);
     });
 
     it("deve bloquear o scroll do body enquanto o modal estiver aberto e restaurar ao desmontar", () => {

@@ -2,18 +2,23 @@
 
 import type { ContratoServicoVigente } from "@transparencia/db";
 import {
+  cn,
   fmtCurrency,
   fmtDate,
   fmtPercent,
   TruncatedCellWithModal,
 } from "@transparencia/ui";
 
-interface ContratoServicoVigenteCardProps {
+export interface ContratoServicoVigenteCardProps {
   contrato: ContratoServicoVigente;
+  onOpenDetails?: () => void;
+  isHighlighted?: boolean;
 }
 
 export function ContratoServicoVigenteCard({
   contrato,
+  onOpenDetails,
+  isHighlighted = false,
 }: ContratoServicoVigenteCardProps) {
   const {
     fornecedorNome,
@@ -50,16 +55,38 @@ export function ContratoServicoVigenteCard({
   })();
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-sm">
+    <div
+      className={cn(
+        "flex flex-col justify-between rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-all hover:shadow-sm",
+        isHighlighted && "ring-2 ring-blue-500 ring-offset-2",
+      )}
+    >
       <div className="space-y-2.5">
-        {/* Header: Nome do Fornecedor + Badges */}
+        {/* Header: Nome do Fornecedor + Número do Contrato + Badges */}
         <div className="flex min-h-[40px] items-start justify-between gap-2">
-          <h3
-            className="line-clamp-2 font-semibold text-ink text-sm leading-snug"
-            title={fornecedorNome}
-          >
-            {fornecedorNome}
-          </h3>
+          <div className="min-w-0 flex-1">
+            <h3
+              className="line-clamp-2 font-semibold text-ink text-sm leading-snug"
+              title={fornecedorNome}
+            >
+              {onOpenDetails ? (
+                <button
+                  type="button"
+                  onClick={onOpenDetails}
+                  className="cursor-pointer text-left font-semibold text-ink text-sm leading-snug hover:text-blue-600 hover:underline"
+                >
+                  {fornecedorNome}
+                </button>
+              ) : (
+                fornecedorNome
+              )}
+            </h3>
+            {contrato.contratoNumero && (
+              <span className="font-mono text-slate-500 text-xs">
+                Contrato nº {contrato.contratoNumero}
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center justify-end gap-1">
             {(() => {
               if (contrato.statusExecucao === "inexecutado") {
@@ -168,6 +195,18 @@ export function ContratoServicoVigenteCard({
             </span>
           )}
         </div>
+
+        {onOpenDetails && (
+          <div className="flex justify-end border-slate-100 border-t pt-2">
+            <button
+              type="button"
+              onClick={onOpenDetails}
+              className="cursor-pointer rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium text-blue-600 text-xs shadow-2xs hover:bg-slate-50 hover:text-blue-700"
+            >
+              Detalhes
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
