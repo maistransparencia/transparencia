@@ -454,5 +454,104 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       unmount();
       expect(document.body.style.overflow).toBe("");
     });
+
+    it("deve exibir fornecedor homologado em licitações quando presente no resultado", async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          licitacoes: [
+            {
+              id: "lic-homol-1",
+              tipo: "licitacao",
+              numero: "LIC-001/26",
+              objeto: "Aquisição de mobiliário escolar",
+              fornecedorNome: "DOHA EMPREENDIMENTOS E SERVICOS LTDA",
+              valor: 75000,
+              status: "homologada",
+              modalidade: "Pregão Eletrônico",
+              ano: 2026,
+              portalSlug: "porciuncula_prefeitura",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2026&numero=LIC-001%2F26#licitacoes-em-andamento",
+            },
+          ],
+          contratos: [],
+          total: 1,
+        }),
+      });
+
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+        />,
+      );
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "DOHA" } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Licitações Encontradas \(1\)/i),
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText("Fornecedor: DOHA EMPREENDIMENTOS E SERVICOS LTDA"),
+      ).toBeInTheDocument();
+    });
+
+    it("deve exibir badge de ano de celebração e período de vigência formatado para contratos vigentes de anos anteriores", async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          licitacoes: [],
+          contratos: [
+            {
+              id: "ctr-pluri-1",
+              tipo: "contrato",
+              numero: "0012/24",
+              objeto: "Construção de ponte vicinal",
+              fornecedorNome: "CONSTRUTORA HORIZONTE LTDA",
+              valor: 350000,
+              status: "vigente",
+              modalidade: "Concorrência",
+              ano: 2024,
+              anoCelebracao: 2024,
+              dataInicio: "2024-03-15",
+              vencimentoAtual: "2027-03-15",
+              portalSlug: "porciuncula_prefeitura",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2024&contratoNumero=0012%2F24#contratos-servicos-vigentes",
+            },
+          ],
+          total: 1,
+        }),
+      });
+
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+        />,
+      );
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "ponte" } });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Contratos \(1\)/i)).toBeInTheDocument();
+      });
+
+      // Deve exibir o badge de ano de celebração
+      expect(screen.getByText("Celebrado em 2024")).toBeInTheDocument();
+
+      // Deve exibir a vigência formatada
+      expect(
+        screen.getByText("Vigência: 15/03/2024 a 15/03/2027"),
+      ).toBeInTheDocument();
+    });
   });
 });
