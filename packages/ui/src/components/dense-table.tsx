@@ -57,6 +57,7 @@ export interface DenseTableProps<T> {
   csvButtonLabel?: string;
   recordLabel?: string;
   renderMobileCard?: (row: T) => React.ReactNode;
+  rowClassName?: (row: T, index: number) => string | undefined;
 }
 
 function getAriaSort(
@@ -105,6 +106,7 @@ export function DenseTable<T extends Record<string, any>>({
   csvButtonLabel = "Baixar CSV",
   recordLabel = "registros",
   renderMobileCard,
+  rowClassName,
 }: DenseTableProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -456,7 +458,10 @@ export function DenseTable<T extends Record<string, any>>({
                 return (
                   <tr
                     key={`tr-${rKey}`}
-                    className="transition-colors hover:bg-gray-50/80"
+                    className={cn(
+                      "transition-colors hover:bg-gray-50/80",
+                      rowClassName?.(row, index),
+                    )}
                   >
                     {columns.map((col) => (
                       <td

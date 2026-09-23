@@ -240,7 +240,11 @@ export default async function LicitacoesPage({
       />
 
       {/* Section: Contratos de Serviços Vigentes */}
-      <ContratosServicosVigentesSection contratos={contratosServicosVigentes} />
+      <ContratosServicosVigentesSection
+        contratos={contratosServicosVigentes}
+        portalSlug={portalSlug}
+        ano={selectedYear}
+      />
 
       {/* Section 2: Contratos acima do limite, sem licitação */}
       <section className="space-y-4">

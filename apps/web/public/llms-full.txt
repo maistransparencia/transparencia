@@ -220,6 +220,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
 - **Valores Empenhados e Pagos por Contrato:** O acompanhamento financeiro de quanto do valor do contrato já foi empenhado e quanto já foi efetivamente pago.
 - **Contratos de Serviços Vigentes e Plurianuais:** Monitoramento dos principais contratos de serviços de terceiros no município, incluindo vigência (data de início e vencimento atualizado), celebração, indicador de contrato plurianual, mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`), fornecedor, status de execução (`em_execucao`, `concluido`, `inexecutado`), totais empenhado, liquidado e pago, percentual quitado e saldo pendente financeiro.
+- **Deep-Link e Visão 360° de Contratos:** Suporte a links diretos na URL (`/[portalSlug]/licitacoes?contratoNumero=...` ou `?contratoId=...` ou `?numero=...#contratos-servicos-vigentes`) e integração com a busca global Spotlight com retenção do termo pesquisado em camadas (`zIndex="z-[60]"`). Modal analítico com identificação completa, status semântico, fornecedor, CNPJ formatado (`fmtCpfCnpj`), objeto integral des-truncado, vigência e métricas financeiras completas (empenhado, liquidado, pago, saldo pendente e percentual pago). Conta com endpoint público sob demanda em `/api/[portalSlug]/contratos/details` (com rate limit de 60 req/min).
 
 ---
 

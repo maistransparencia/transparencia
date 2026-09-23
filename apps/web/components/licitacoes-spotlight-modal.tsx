@@ -145,33 +145,42 @@ export function LicitacoesSpotlightModal({
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
       const isLicitacao = item.tipo === "licitacao";
+      const isContrato = item.tipo === "contrato";
       const isSameAno = !item.ano || !ano || item.ano === ano;
 
-      // Se for licitação no mesmo ano, mantemos o modal de busca aberto por baixo
+      // Se for licitação ou contrato no mesmo ano, mantemos o modal de busca aberto por baixo
       // para permitir navegação em camadas (Master-Detail).
-      // Se for contrato ou outro ano, fechamos a busca para navegar para a tabela.
-      if (!isLicitacao || !isSameAno) {
+      // Se for outro ano, fechamos a busca para navegar para a página correspondente.
+      if (!isSameAno) {
         onClose();
       }
 
       if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("licitacao:selected", {
-            detail: { ...item, fromSearch: true },
-          }),
-        );
+        if (isContrato) {
+          window.dispatchEvent(
+            new CustomEvent("contrato:selected", {
+              detail: { ...item, fromSearch: true },
+            }),
+          );
+        } else if (isLicitacao) {
+          window.dispatchEvent(
+            new CustomEvent("licitacao:selected", {
+              detail: { ...item, fromSearch: true },
+            }),
+          );
+        }
       }
 
       if (onSelect) {
         onSelect(item);
       } else if (router) {
-        if (isLicitacao && isSameAno) {
+        if (isSameAno) {
           window.history.replaceState(null, "", item.href);
         } else {
           router.push(item.href);
         }
       } else if (typeof window !== "undefined") {
-        if (isLicitacao && isSameAno) {
+        if (isSameAno) {
           window.history.replaceState(null, "", item.href);
         } else {
           window.location.href = item.href;
