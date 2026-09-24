@@ -258,6 +258,19 @@ Esta seção traz a prestação de contas do instituto de previdência dos servi
   - *Recursos 100% Vinculados:* Alocação exclusiva das disponibilidades para pagamento de benefícios previdenciários e formação de reserva atuarial.
   - *Variação Anual:* Indicador percentual comparativo frente ao encerramento do exercício anterior.
   - *Exportação dos Dados Brutos:* Download em formato CSV dos lançamentos contábeis do RPPS homologados na STN (`tipo=saldo_caixa_siconfi&entidades=previdencia`).
+- **Evolução do Patrimônio Financeiro da Previdência (2021–2026) e Diagnóstico de Queima (`#patrimonio`):** Painel analítico plurianual confrontando a trajetória das reservas financeiras da previdência com as causas estruturais do déficit atuarial:
+  - *Curva de Desidratação da Poupança:* Gráfico interativo de área demonstrando a evolução consolidada do patrimônio financeiro (disponibilidade em caixa + aplicações financeiras na MSC do SICONFI/STN).
+  - *Três KPIs de Topo:*
+    1. *Pico Histórico:* Montante máximo registrado na série em exercícios válidos (ex: R$ 60,4M em 2021).
+    2. *Patrimônio Atual:* Saldo financeiro mais recente disponível acompanhado da taxa de retração percentual acumulada frente ao pico histórico (ex: -44,7%).
+    3. *Queima Média Anual:* Taxa média de consumo de reservas dividida pelos anos transcorridos entre o pico e o exercício mais recente (ex: ~R$ 5,4M/ano).
+  - *Transparência Metodológica e Quebra de Série:*
+    1. *Inconsistência de Declaração na MSC (2022):* Identificação técnica da omissão das aplicações financeiras na remessa contábil enviada pelo ente ao SICONFI em 2022, mantendo o dado factual publicado com badge e tooltip explicativo.
+    2. *Quebra de Série Metodológica (2023):* Exibição de variação percentual interanual como "N/D", expurgando cálculo estatístico artificial superior a +6.000% decorrente da regularização da declaração subsequente.
+  - *Diagnóstico Estrutural das Três Causas:*
+    1. *Déficit de Contribuição e Aportes Atuariais:* Confronto entre os aportes devidos e quitados para cobertura do passivo atuarial, com fundamentação na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
+    2. *Cota Patronal em Atraso:* Apuração de retenções no repasse ordinário da contribuição patronal devida pelo município ao fundo próprio, com fundamentação no [Art. 40 da Constituição Federal de 1988](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40).
+    3. *Diluição da Base de Efetivos:* Análise da proporção entre servidores temporários/comissionados e concursados efetivos, esclarecendo que temporários recolhem obrigatoriamente ao INSS/RGPS e não geram receita contributiva para o RPPS municipal.
 
 ---
 

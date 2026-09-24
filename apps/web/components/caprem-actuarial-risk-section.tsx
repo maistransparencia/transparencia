@@ -11,6 +11,7 @@ export interface ActuarialRiskSummary {
   romboAporteNaoRepassado: number;
   taxaAdimplenciaAporte: number;
   totalEmpenhadoPatronal?: number;
+  totalLiquidadoPatronal?: number;
   totalPagoPatronal?: number;
   romboPatronalNaoRepassado?: number;
   deficitMedioMensal?: number;
