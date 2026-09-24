@@ -123,10 +123,9 @@ export default async function CapremPage({
         />
       )}
 
-      {/* Seção 3: Diagnóstico de Sustentabilidade Atuarial & Risco Previdenciário */}
+      {/* Seção: Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência) */}
       <CapremActuarialRiskSection
         ano={selectedYear}
-        risk={caprem.actuarialRisk}
         trend={caprem.actuarialTrend}
         cadprev={caprem.cadprevParcelamentos}
       />

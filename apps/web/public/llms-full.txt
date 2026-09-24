@@ -271,6 +271,11 @@ Esta seção traz a prestação de contas do instituto de previdência dos servi
     1. *Déficit de Contribuição e Aportes Atuariais:* Confronto entre os aportes devidos e quitados para cobertura do passivo atuarial, com fundamentação na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
     2. *Cota Patronal em Atraso:* Apuração de retenções no repasse ordinário da contribuição patronal devida pelo município ao fundo próprio, com fundamentação no [Art. 40 da Constituição Federal de 1988](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40).
     3. *Diluição da Base de Efetivos:* Análise da proporção entre servidores temporários/comissionados e concursados efetivos, esclarecendo que temporários recolhem obrigatoriamente ao INSS/RGPS e não geram receita contributiva para o RPPS municipal.
+- **Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência):** Painel documental estrito dedicado à fiscalização dos acordos formais de repactuação e amortização de dívidas previdenciárias:
+  - *Foco Documental Sem Redundâncias:* Eliminação de cards duplicados de causa atuarial (centralizados em `#patrimonio`), priorizando a consulta dos termos oficiais e sua liquidação.
+  - *Tabela Oficial de Parcelamentos CADPREV (Elemento 71):* Relação exaustiva dos termos formalizados perante o Ministério da Previdência, identificando número do registro CADPREV, objeto pactuado, montante empenhado e valores efetivamente pagos pelo ente no exercício.
+  - *Série Histórica de Cobertura Atuarial e Resgate de Dívidas (2021–2026):* Tabela plurianual consolidando o histórico anual de aportes atuariais exigidos vs quitados (Elemento 97), taxa de adimplência e amortização de dívidas repactuadas.
+
 
 ---
 

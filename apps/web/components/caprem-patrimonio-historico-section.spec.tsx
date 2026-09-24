@@ -177,12 +177,15 @@ describe("CapremPatrimonioHistoricoSection", () => {
   });
 
   it("renderiza os 3 cards de diagnóstico estrutural com hyperlinks legais oficiais do Planalto", () => {
-    render(
+    const { container } = render(
       <CapremPatrimonioHistoricoSection
         resumo={mockResumo}
         selectedYear={2026}
       />,
     );
+
+    expect(container.querySelector("#atuarial")).toBeInTheDocument();
+    expect(container.querySelector("#patronal")).toBeInTheDocument();
 
     // Card 1: Déficit Atuarial / Aporte
     expect(

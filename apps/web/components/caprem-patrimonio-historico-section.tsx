@@ -542,7 +542,10 @@ export function CapremPatrimonioHistoricoSection({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Card 1: Déficit Atuarial / Aporte */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div
+            id="atuarial"
+            className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -612,7 +615,10 @@ export function CapremPatrimonioHistoricoSection({
           </div>
 
           {/* Card 2: Cota Patronal em Atraso */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div
+            id="patronal"
+            className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
