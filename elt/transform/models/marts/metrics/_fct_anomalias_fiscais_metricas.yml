@@ -32,10 +32,10 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal', 'dependencia_transferencias']
+                values: ['explosao_comissionados', 'rombo_caixa', 'pico_despesa_homologa', 'concentracao_dispensa', 'opacidade_gastos_genericos', 'inadimplencia_aporte_rpps', 'retencao_patronal_rpps', 'desconto_nulo_pregao', 'desagio_extremo_inexequibilidade', 'inconsistencia_vinculo_pessoal', 'dependencia_transferencias', 'desidratacao_patrimonio_rpps']
 
       - name: dimensao_referencia
-        description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal)."
+        description: "Dimensão temática ou discriminador em snake_case que sofreu a anomalia (ex: saude, educacao, comissionados, recursos_livres, dispensas, aporte_atuarial, contribuicao_patronal, patrimonio_previdenciario)."
         data_type: text
         tests:
           - not_null
@@ -118,6 +118,8 @@ unit_tests:
         rows: []
       - input: ref('fct_fontes_receita_metricas')
         rows: []
+      - input: ref('fct_caprem_patrimonio_historico_metricas')
+        rows: []
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "inadimplencia_aporte_rpps", dimensao_referencia: "aporte_atuarial", grau_severidade: "critico", desvio_percentual: 35.00, valor_observado: 650000.00, valor_esperado: 1000000.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "limite_normativo_adimplencia" }
@@ -143,6 +145,8 @@ unit_tests:
       - input: ref('fct_pessoal')
         rows: []
       - input: ref('fct_fontes_receita_metricas')
+        rows: []
+      - input: ref('fct_caprem_patrimonio_historico_metricas')
         rows: []
       - input: ref('fct_licitacoes')
         rows:
@@ -186,6 +190,8 @@ unit_tests:
       - input: ref('fct_licitacoes_itens')
         rows: []
       - input: ref('fct_fontes_receita_metricas')
+        rows: []
+      - input: ref('fct_caprem_patrimonio_historico_metricas')
         rows: []
       - input: ref('fct_pessoal')
         rows:
@@ -271,6 +277,51 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2023, total_arrecadado: 1000000.00, receita_propria_arrecadado: 150000.00, total_previsto: 1000000.00, receita_propria_previsto: 150000.00 }
           # 2026: ano corrente em andamento com 4% (< 10% mas corrente => sem anomalia)
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, total_arrecadado: 1000000.00, receita_propria_arrecadado: 40000.00, total_previsto: 1000000.00, receita_propria_previsto: 40000.00 }
+      - input: ref('fct_caprem_patrimonio_historico_metricas')
+        rows: []
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_anomalia: "dependencia_transferencias", dimensao_referencia: "receita_propria", grau_severidade: "critico", desvio_percentual: 5.00, valor_observado: 5.00, valor_esperado: 10.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "art11_lrf_arrecadacao_propria" }
+
+  - name: test_fct_anomalias_fiscais_desidratacao_patrimonio_rpps
+    description: "Valida deteccao de desidratacao de patrimonio do RPPS superior a 20% em janela trienal para anos fechados"
+    model: fct_anomalias_fiscais_metricas
+    given:
+      - input: ref('fct_despesas')
+        rows: []
+      - input: ref('fct_pessoal_regime_metricas')
+        rows: []
+      - input: ref('fct_saldo_caixa_siconfi')
+        rows: []
+      - input: ref('fct_licitacoes')
+        rows: []
+      - input: ref('fct_opacidade_contabil_metricas')
+        rows: []
+      - input: ref('fct_caprem_tendencia_atuarial_metricas')
+        rows: []
+      - input: ref('fct_historia_caprem_metricas')
+        rows: []
+      - input: ref('fct_licitacoes_itens')
+        rows: []
+      - input: ref('fct_pessoal')
+        rows: []
+      - input: ref('fct_fontes_receita_metricas')
+        rows: []
+      - input: ref('fct_caprem_patrimonio_historico_metricas')
+        rows:
+          # 2021: base inicial do historico
+          - { portal_slug: "porciuncula_prefeitura", ano: 2021, patrimonio_total: 60000000.00, inconsistencia_declaracao_flag: false }
+          # 2022: ano com inconsistencia na declaracao -> deve ser expurgado da janela
+          - { portal_slug: "porciuncula_prefeitura", ano: 2022, patrimonio_total: 0.00, inconsistencia_declaracao_flag: true }
+          # 2023: exercicio valido (patrimonio 45.42M)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2023, patrimonio_total: 45420000.00, inconsistencia_declaracao_flag: false }
+          # 2024: compara com 2021 (lag 2 nos validos: 2021, 2023, 2024) -> 55M vs 60M = -8.33% (sem anomalia)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, patrimonio_total: 55000000.00, inconsistencia_declaracao_flag: false }
+          # 2025: compara com 2023 (lag 2 nos validos) -> 35.98M vs 45.42M = -20.78% (< -20% em ano fechado => critico)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, patrimonio_total: 35980000.00, inconsistencia_declaracao_flag: false }
+          # 2026: ano corrente -> deve ser ignorado pelo filtro ano < extract(year from current_date)
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, patrimonio_total: 20000000.00, inconsistencia_declaracao_flag: false }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, tipo_anomalia: "desidratacao_patrimonio_rpps", dimensao_referencia: "patrimonio_previdenciario", grau_severidade: "critico", desvio_percentual: 20.78, valor_observado: 35980000.00, valor_esperado: 45420000.00, mes_inicial: 1, mes_final: 12, licitacao_numero: null, metodo_deteccao: "variacao_trienal_patrimonio" }
+
