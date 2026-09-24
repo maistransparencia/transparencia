@@ -187,4 +187,5 @@ db/fixture/check:
 	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
 
 db/test/restore:
+	psql -v ON_ERROR_STOP=1 "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" -c "CREATE EXTENSION IF NOT EXISTS unaccent; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"

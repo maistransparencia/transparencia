@@ -364,7 +364,12 @@ export async function searchLicitacoesEContratos(
       contratos,
       total: licitacoes.length + contratos.length,
     };
-  } catch (_error) {
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: registrar o erro é fundamental para diagnosticar falhas de query/extensões no Postgres
+    console.error(
+      "[searchLicitacoesEContratos] Falha ao executar busca:",
+      error,
+    );
     return {
       licitacoes: [],
       contratos: [],
