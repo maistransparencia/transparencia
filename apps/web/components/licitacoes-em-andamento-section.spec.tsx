@@ -294,7 +294,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     );
 
     const buttons = screen.getAllByRole("button", {
-      name: /ver itens licitados/i,
+      name: /detalhes/i,
     });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
 
@@ -452,7 +452,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     );
 
     const btnItens = screen.getAllByRole("button", {
-      name: /ver itens licitados/i,
+      name: /detalhes/i,
     })[0];
     fireEvent.click(btnItens);
 
@@ -499,5 +499,30 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(
       within(dialog).getByText(/Locação de tenda para a feira do livro/i),
     ).toBeInTheDocument();
+  });
+
+  it("abre o modal completo 360° ao clicar no botão do número do processo na tabela", async () => {
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    const processoButtons = screen.getAllByRole("button", {
+      name: "PE 001/2025",
+    });
+    expect(processoButtons.length).toBeGreaterThan(0);
+
+    fireEvent.click(processoButtons[0]);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Processo PE 001\/2025/i),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getAllByText(/Fundo Municipal de Saúde/i).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      within(dialog).getByText(/Aquisição de medicamentos hospitalares/i),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("Valor Estimado")).toBeInTheDocument();
+    expect(within(dialog).getByText("R$ 250.000,00")).toBeInTheDocument();
   });
 });
