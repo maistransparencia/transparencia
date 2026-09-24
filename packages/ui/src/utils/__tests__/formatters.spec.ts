@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { fmtCpfCnpj, getPartialYearPeriod } from "../formatters";
+import {
+  fmtCpfCnpj,
+  fmtLicitacaoModalidade,
+  getPartialYearPeriod,
+} from "../formatters";
 
 describe("getPartialYearPeriod", () => {
   it("deve retornar apenas 'Jan' quando a referência for janeiro", () => {
@@ -94,5 +98,49 @@ describe("fmtCpfCnpj", () => {
   it("deve retornar a string original se não tiver 11 ou 14 dígitos", () => {
     expect(fmtCpfCnpj("12345")).toBe("12345");
     expect(fmtCpfCnpj("ESTRANGEIRO-99")).toBe("ESTRANGEIRO-99");
+  });
+});
+
+describe("fmtLicitacaoModalidade", () => {
+  it("deve formatar modalidades mapeadas com acentuação e títulos corretos", () => {
+    expect(fmtLicitacaoModalidade("pregao_eletronico")).toBe(
+      "Pregão Eletrônico",
+    );
+    expect(fmtLicitacaoModalidade("pregao_presencial")).toBe(
+      "Pregão Presencial",
+    );
+    expect(fmtLicitacaoModalidade("concorrencia")).toBe("Concorrência");
+    expect(fmtLicitacaoModalidade("concorrencia_eletronica")).toBe(
+      "Concorrência Eletrônica",
+    );
+    expect(fmtLicitacaoModalidade("dispensa")).toBe("Dispensa de Licitação");
+    expect(fmtLicitacaoModalidade("dispensa_eletronica")).toBe(
+      "Dispensa Eletrônica",
+    );
+    expect(fmtLicitacaoModalidade("inexigibilidade")).toBe(
+      "Inexigibilidade de Licitação",
+    );
+    expect(fmtLicitacaoModalidade("leilao_eletronico")).toBe(
+      "Leilão Eletrônico",
+    );
+    expect(fmtLicitacaoModalidade("dialogo_competitivo")).toBe(
+      "Diálogo Competitivo",
+    );
+    expect(fmtLicitacaoModalidade("adesao_ata_externa")).toBe(
+      "Adesão a Ata (Externa)",
+    );
+  });
+
+  it("deve retornar 'Outros' para valores nulos, vazios ou indefinidos", () => {
+    expect(fmtLicitacaoModalidade(null)).toBe("Outros");
+    expect(fmtLicitacaoModalidade(undefined)).toBe("Outros");
+    expect(fmtLicitacaoModalidade("")).toBe("Outros");
+    expect(fmtLicitacaoModalidade("   ")).toBe("Outros");
+  });
+
+  it("deve capitalizar palavras para modalidades não catalogadas com underscore", () => {
+    expect(fmtLicitacaoModalidade("outra_modalidade_customizada")).toBe(
+      "Outra Modalidade Customizada",
+    );
   });
 });
