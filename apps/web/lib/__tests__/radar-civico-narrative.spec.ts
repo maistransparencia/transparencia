@@ -43,6 +43,9 @@ describe("radar-civico-narrative", () => {
       );
       expect(formatarDimensao("quadro_pessoal")).toBe("Quadro de Pessoal");
       expect(formatarDimensao("receita_propria")).toBe("Receita Própria");
+      expect(formatarDimensao("patrimonio_previdenciario")).toBe(
+        "Patrimônio Previdenciário (RPPS)",
+      );
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
@@ -353,6 +356,40 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2024, a receita própria representou apenas 5% da arrecadação, patamar inferior ao parâmetro referencial de 10% preconizado pelo Art. 11 da LRF.",
+      );
+    });
+
+    it("formats desidratacao_patrimonio_rpps with observed, consumed amount and estimated horizon", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desidratacao_patrimonio_rpps",
+          ano: 2025,
+          valorObservado: 35980000,
+          valorEsperado: 45420000,
+          desvioPercentual: 20.8,
+          dimensaoReferencia: "patrimonio_previdenciario",
+        },
+        2025,
+      );
+      expect(narrative).toBe(
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36.0mi, registrando retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 7.6 anos.",
+      );
+    });
+
+    it("formats desidratacao_patrimonio_rpps with singular 'ano' when horizon rounds to 1", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "desidratacao_patrimonio_rpps",
+          ano: 2025,
+          valorObservado: 1000000,
+          valorEsperado: 3000000,
+          desvioPercentual: 66.7,
+          dimensaoReferencia: "patrimonio_previdenciario",
+        },
+        2025,
+      );
+      expect(narrative).toBe(
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 1.0mi, registrando retração de 66.7% e consumo de R$ 2.0mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 1 ano.",
       );
     });
 

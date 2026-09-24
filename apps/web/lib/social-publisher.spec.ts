@@ -404,4 +404,46 @@ describe("social-publisher module", () => {
     );
     expect(link).not.toContain(".com//");
   });
+
+  it("resolveAnomalyLink gera deep link correto para desidratacao_patrimonio_rpps", () => {
+    const link = resolveAnomalyLink(
+      {
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        ano: 2025,
+      },
+      "https://maistransparencia.com",
+      "porciuncula_prefeitura",
+    );
+    expect(link).toBe(
+      "https://maistransparencia.com/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
+    );
+  });
+
+  it("buildCivicAnomalyFacebookPost formata sinal negativo para desidratacao_patrimonio_rpps", () => {
+    const post = buildCivicAnomalyFacebookPost({
+      portalSlug: "porciuncula_prefeitura",
+      municipioNome: "Porciúncula",
+      alerta: {
+        anomaliaId: "crit-desidratacao",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        dimensaoReferencia: "patrimonio_previdenciario",
+        grauSeveridade: "critico",
+        desvioPercentual: 20.8,
+        valorObservado: 35980000,
+        valorEsperado: 45420000,
+        mesInicial: 1,
+        mesFinal: 12,
+        licitacaoNumero: null,
+        metodoDeteccao: "variacao_trienal_patrimonio",
+      },
+    });
+
+    expect(post.message).toContain("-20.8%");
+    expect(post.message).toContain("patrimônio financeiro da previdência");
+    expect(post.link).toContain(
+      "/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
+    );
+  });
 });

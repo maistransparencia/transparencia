@@ -32,6 +32,8 @@ function getAnomalyRouteConfig(tipoAnomalia: TipoAnomalia): AnomalyRouteConfig {
       return { path: "/caprem", anchor: "#atuarial" };
     case "retencao_patronal_rpps":
       return { path: "/caprem", anchor: "#patronal" };
+    case "desidratacao_patrimonio_rpps":
+      return { path: "/caprem", anchor: "#patrimonio" };
     case "concentracao_dispensa":
       return { path: "/licitacoes" };
     case "desconto_nulo_pregao":
