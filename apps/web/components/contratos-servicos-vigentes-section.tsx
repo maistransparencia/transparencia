@@ -10,7 +10,6 @@ import {
   fmtDate,
   fmtPercent,
   ModalDialog,
-  TruncatedCellWithModal,
 } from "@transparencia/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
@@ -313,20 +312,27 @@ export function ContratosServicosVigentesSection({
       header: "Objeto",
       accessorKey: "objetoDescricao",
       sortable: true,
-      className: "min-w-[220px] max-w-[300px]",
+      className: "min-w-[220px] max-w-[320px]",
       renderCell: (row) => (
-        <TruncatedCellWithModal
-          text={row.objetoDescricao}
-          modalTitle={`Contrato — ${row.fornecedorNome}`}
-          characterThreshold={100}
-          maxLines={2}
-          badge={row.statusLabel}
-          secondaryText={
-            row.vigenciaFormatada
-              ? `Vigência: ${row.vigenciaFormatada}`
-              : undefined
-          }
-        />
+        <div className="space-y-1">
+          <p
+            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
+            title={row.objetoDescricao}
+          >
+            {row.objetoDescricao || "—"}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedContrato(row);
+              setOpenedFromSearch(false);
+            }}
+            className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
+            title="Abrir detalhes completos do contrato"
+          >
+            <span>Detalhes</span>
+          </button>
+        </div>
       ),
     },
     {
@@ -382,25 +388,6 @@ export function ContratosServicosVigentesSection({
       align: "right",
       sortable: true,
       isSerifNumeric: true,
-    },
-    {
-      header: "Ações",
-      accessorKey: "contratoNumero",
-      align: "center",
-      className: "w-20 whitespace-nowrap",
-      renderCell: (row) => (
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedContrato(row);
-            setOpenedFromSearch(false);
-          }}
-          className="cursor-pointer rounded-md border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 text-xs shadow-2xs hover:bg-slate-50 hover:text-blue-600"
-          title="Abrir detalhes 360°"
-        >
-          Detalhes
-        </button>
-      ),
     },
   ];
 
@@ -638,11 +625,11 @@ export function ContratosServicosVigentesSection({
             </div>
 
             {/* Bloco 2: Objeto Integral */}
-            <div>
+            <div className="min-w-0">
               <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
                 Objeto Integral do Contrato
               </span>
-              <div className="mt-1.5 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-4 text-slate-800 text-sm leading-relaxed shadow-2xs">
+              <div className="mt-1.5 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3.5 text-slate-800 text-sm leading-relaxed shadow-2xs [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
                 {selectedContrato.objetoDescricao || "Objeto não informado."}
               </div>
             </div>
