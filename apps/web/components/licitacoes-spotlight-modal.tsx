@@ -4,7 +4,13 @@ import type {
   SearchLicitacoesResult,
   SearchResultItem,
 } from "@transparencia/db";
-import { Badge, cn, fmtCurrency, fmtDate } from "@transparencia/ui";
+import {
+  Badge,
+  cn,
+  fmtCurrency,
+  fmtDate,
+  fmtLicitacaoModalidade,
+} from "@transparencia/ui";
 import {
   AlertCircle,
   CornerDownLeft,
@@ -419,7 +425,9 @@ export function LicitacoesSpotlightModal({
                               {item.numero || "S/N"}
                             </span>
                             <Badge variant="accent">
-                              {item.modalidade || "Licitação"}
+                              {item.modalidade
+                                ? fmtLicitacaoModalidade(item.modalidade)
+                                : "Licitação"}
                             </Badge>
                             {item.status && (
                               <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">

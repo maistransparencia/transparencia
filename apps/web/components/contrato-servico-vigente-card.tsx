@@ -1,13 +1,7 @@
 "use client";
 
 import type { ContratoServicoVigente } from "@transparencia/db";
-import {
-  cn,
-  fmtCurrency,
-  fmtDate,
-  fmtPercent,
-  TruncatedCellWithModal,
-} from "@transparencia/ui";
+import { cn, fmtCurrency, fmtDate, fmtPercent } from "@transparencia/ui";
 
 export interface ContratoServicoVigenteCardProps {
   contrato: ContratoServicoVigente;
@@ -62,32 +56,11 @@ export function ContratoServicoVigenteCard({
       )}
     >
       <div className="space-y-2.5">
-        {/* Header: Nome do Fornecedor + Número do Contrato + Badges */}
-        <div className="flex min-h-[40px] items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h3
-              className="line-clamp-2 font-semibold text-ink text-sm leading-snug"
-              title={fornecedorNome}
-            >
-              {onOpenDetails ? (
-                <button
-                  type="button"
-                  onClick={onOpenDetails}
-                  className="cursor-pointer text-left font-semibold text-ink text-sm leading-snug hover:text-blue-600 hover:underline"
-                >
-                  {fornecedorNome}
-                </button>
-              ) : (
-                fornecedorNome
-              )}
-            </h3>
-            {contrato.contratoNumero && (
-              <span className="font-mono text-slate-500 text-xs">
-                Contrato nº {contrato.contratoNumero}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-1">
+        {/* Row 1: Badges de Status e Aditamento */}
+        {(contrato.statusExecucao === "inexecutado" ||
+          contrato.statusExecucao === "concluido" ||
+          (valorAditado && valorAditado > 0)) && (
+          <div className="flex flex-wrap items-center gap-1.5">
             {(() => {
               if (contrato.statusExecucao === "inexecutado") {
                 return (
@@ -120,24 +93,40 @@ export function ContratoServicoVigenteCard({
               </span>
             ) : null}
           </div>
+        )}
+
+        {/* Row 2: Nome do Fornecedor + Número do Contrato */}
+        <div className="min-w-0">
+          <h3
+            className="line-clamp-2 font-semibold text-ink text-sm leading-snug"
+            title={fornecedorNome}
+          >
+            {onOpenDetails ? (
+              <button
+                type="button"
+                onClick={onOpenDetails}
+                className="cursor-pointer text-left font-semibold text-ink text-sm leading-snug hover:text-blue-600 hover:underline"
+              >
+                {fornecedorNome}
+              </button>
+            ) : (
+              fornecedorNome
+            )}
+          </h3>
+          {contrato.contratoNumero && (
+            <span className="block font-mono text-slate-500 text-xs">
+              Contrato nº {contrato.contratoNumero}
+            </span>
+          )}
         </div>
 
         {contrato.objetoDescricao && (
-          <div className="pt-0.5">
-            <TruncatedCellWithModal
-              text={contrato.objetoDescricao}
-              modalTitle={`Contrato — ${fornecedorNome}`}
-              characterThreshold={100}
-              maxLines={2}
-              className="font-normal text-slate-700 text-xs leading-relaxed"
-              badge={(() => {
-                if (contrato.statusExecucao === "inexecutado")
-                  return "Não Executado";
-                if (contrato.statusExecucao === "concluido") return "Concluído";
-                return "Em Execução";
-              })()}
-            />
-          </div>
+          <p
+            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
+            title={contrato.objetoDescricao}
+          >
+            {contrato.objetoDescricao}
+          </p>
         )}
 
         {/* Vigência */}

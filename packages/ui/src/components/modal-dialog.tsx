@@ -183,7 +183,7 @@ export function ModalDialog({
         )}
       >
         {/* Header Estruturado */}
-        <div className="flex items-start justify-between border-slate-200/80 border-b bg-slate-50/90 px-5 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex items-start justify-between border-slate-200/80 border-b bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0 flex-1 pr-3">
             {onBack && (
               <div className="mb-2">
@@ -200,7 +200,7 @@ export function ModalDialog({
             <div className="flex flex-wrap items-center gap-2">
               <h2
                 id={titleId}
-                className="font-bold font-serif text-base text-slate-900 sm:text-lg"
+                className="break-words font-bold font-serif text-base text-slate-900 [overflow-wrap:anywhere] sm:text-lg"
               >
                 {title}
               </h2>
@@ -223,13 +223,13 @@ export function ModalDialog({
         </div>
 
         {/* Corpo do Diálogo */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-3.5 sm:px-6 sm:py-5">
           {children}
         </div>
 
         {/* Rodapé Opcional */}
         {footer && (
-          <div className="border-slate-200/80 border-t bg-slate-50/70 px-5 py-3 sm:px-6 sm:py-3.5">
+          <div className="border-slate-200/80 border-t bg-slate-50/70 px-4 py-2.5 sm:px-6 sm:py-3.5">
             {footer}
           </div>
         )}

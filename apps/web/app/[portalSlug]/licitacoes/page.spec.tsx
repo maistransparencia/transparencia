@@ -333,7 +333,7 @@ describe("LicitacoesPage", () => {
       screen.getAllByRole("link", { name: /sala de disputa/i })[0],
     ).toHaveAttribute("href", "https://pncp.gov.br/app/editais/123/2024/1");
     expect(
-      screen.getAllByRole("button", { name: /ver itens licitados/i })[0],
+      screen.getAllByRole("button", { name: /detalhes/i })[0],
     ).toBeInTheDocument();
   });
 
