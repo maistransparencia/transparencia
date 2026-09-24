@@ -349,10 +349,15 @@ export interface RadarCivicoCardItem {
   ctaUrl: string;
   whatsappShareUrl: string;
   whatsappShareText?: string;
-  fundamentacaoLegal?: {
-    label: string;
-    url: string;
-  };
+  fundamentacaoLegal?:
+    | {
+        label: string;
+        url: string;
+      }
+    | Array<{
+        label: string;
+        url: string;
+      }>;
 }
 
 export interface RadarCivicoFeedViewModel {
@@ -474,6 +479,10 @@ export function getBadgeMetodologia(
     return "Art. 11 da LRF";
   }
 
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Variação Trienal";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -534,6 +543,9 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "dependencia_transferencias") {
     return "Dependência de Transferências Externas";
   }
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Desidratação do Patrimônio (RPPS)";
+  }
   return "Indicador em Destaque";
 }
 
@@ -576,6 +588,9 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "dependencia_transferencias") {
     return "Analisar Fontes de Receita";
+  }
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Auditar Patrimônio Previdenciário";
   }
   return "Ver detalhes";
 }
@@ -690,6 +705,9 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "dependencia_transferencias") {
         return "Parâmetro LRF";
       }
+      if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+        return "Saldo Inicial (Triênio)";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -729,6 +747,18 @@ export function buildRadarCivicoCards(
           url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
         };
       }
+      if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+        return [
+          {
+            label: "Resolução CMN nº 4.963/2021",
+            url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+          },
+          {
+            label: "Lei nº 9.717/1998",
+            url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+          },
+        ];
+      }
       return undefined;
     })();
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
@@ -757,7 +787,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "rombo_caixa" ||
         alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-        alerta.tipoAnomalia === "dependencia_transferencias"
+        alerta.tipoAnomalia === "dependencia_transferencias" ||
+        alerta.tipoAnomalia === "desidratacao_patrimonio_rpps"
       ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
