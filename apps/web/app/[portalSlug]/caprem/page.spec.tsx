@@ -157,4 +157,100 @@ describe("CapremPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
   });
+
+  it("renderiza a seção de evolução do patrimônio histórico da previdência (Story 14.3)", async () => {
+    loadCapremDataMock.mockResolvedValue(
+      makeRaw({
+        caprem: {
+          actuarialTrend: [
+            {
+              ano: 2021,
+              patrimonioFinanceiroTotal: 60368778.97,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: null,
+              variacaoPatrimonioPct: null,
+            },
+            {
+              ano: 2022,
+              patrimonioFinanceiroTotal: 588266.38,
+              inconsistenciaDeclaracaoFlag: true,
+              variacaoPatrimonioAbs: -59780512.59,
+              variacaoPatrimonioPct: -99.03,
+            },
+            {
+              ano: 2023,
+              patrimonioFinanceiroTotal: 36971987.89,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: null,
+              variacaoPatrimonioPct: null,
+            },
+            {
+              ano: 2026,
+              patrimonioFinanceiroTotal: 33383702.66,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: -2594863.09,
+              variacaoPatrimonioPct: -7.21,
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await CapremPage(props);
+    const { container } = render(element);
+
+    expect(container.querySelector("#patrimonio")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /evolução do patrimônio financeiro da previdência/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Pico Histórico").length).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(screen.getByText("R$ 60.4mi")).toBeInTheDocument();
+    expect(screen.getByText("Queima Média Anual")).toBeInTheDocument();
+  });
+
+  it("renderiza a seção de acordos CADPREV sem os cards de KPI redundantes", async () => {
+    loadCapremDataMock.mockResolvedValue(
+      makeRaw({
+        caprem: {
+          cadprevParcelamentos: [
+            {
+              numeroCadprev: "00999/2024",
+              descricao: "Termo de Confissão Cadprev Teste",
+              elemento: "71",
+              empenhado: 50000,
+              pago: 45000,
+            },
+          ],
+        },
+      }),
+    );
+
+    const element = await CapremPage(props);
+    render(element);
+
+    expect(
+      screen.getByRole("heading", {
+        name: /acordos de parcelamento e dívidas previdenciárias \(cadprev \/ ministério da previdência\)/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Termo de Confissão Cadprev Teste"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Aporte Déficit Atuarial \(2024\)/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Déficit de Repasse Mensal \(2024\)/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Amortização de Dívidas/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Base de Contribuintes/i),
+    ).not.toBeInTheDocument();
+  });
 });

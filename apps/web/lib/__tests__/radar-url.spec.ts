@@ -111,6 +111,15 @@ describe("buildAlertaUrl", () => {
     expect(url).toBe("/porciuncula/caprem?ano=2024#patronal");
   });
 
+  it("deve gerar rota correta para desidratação do patrimônio do RPPS com âncora #patrimonio", () => {
+    const url = buildAlertaUrl({
+      tipoAnomalia: "desidratacao_patrimonio_rpps",
+      ano: 2025,
+      portalSlug: "porciuncula",
+    });
+    expect(url).toBe("/porciuncula/caprem?ano=2025#patrimonio");
+  });
+
   it("deve gerar rota correta para inconsistência de vínculo de pessoal com âncora #regime", () => {
     const url = buildAlertaUrl({
       tipoAnomalia: "inconsistencia_vinculo_pessoal",

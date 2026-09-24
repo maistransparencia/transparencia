@@ -435,6 +435,35 @@ describe("radar-civico-alertas", () => {
       expect(alerta?.licitacaoNumero).toBeNull();
       expect(alerta?.metodoDeteccao).toBe("art11_lrf_arrecadacao_propria");
     });
+
+    it("deve carregar e mapear corretamente anomalia de desidratação do patrimônio do RPPS", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2025,
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        dimensaoReferencia: "patrimonio_previdenciario",
+        grauSeveridade: "critico",
+        desvioPercentual: 20.78,
+        valorObservado: 35980000.0,
+        valorEsperado: 45420000.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        metodoDeteccao: "variacao_trienal_patrimonio",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const alerta = alertas[0];
+      expect(alerta?.tipoAnomalia).toBe("desidratacao_patrimonio_rpps");
+      expect(alerta?.dimensaoReferencia).toBe("patrimonio_previdenciario");
+      expect(alerta?.grauSeveridade).toBe("critico");
+      expect(alerta?.desvioPercentual).toBe(20.78);
+      expect(alerta?.valorObservado).toBe(35980000.0);
+      expect(alerta?.valorEsperado).toBe(45420000.0);
+      expect(alerta?.licitacaoNumero).toBeNull();
+      expect(alerta?.metodoDeteccao).toBe("variacao_trienal_patrimonio");
+    });
   });
 
   describe("getRadarAnomaliasCount", () => {

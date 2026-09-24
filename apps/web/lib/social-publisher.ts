@@ -404,7 +404,8 @@ export function buildCivicAnomalyFacebookPost(
   const sinalDesvio = (() => {
     if (
       alerta.tipoAnomalia === "rombo_caixa" ||
-      alerta.tipoAnomalia === "inadimplencia_aporte_rpps"
+      alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
+      alerta.tipoAnomalia === "desidratacao_patrimonio_rpps"
     ) {
       return "-";
     }

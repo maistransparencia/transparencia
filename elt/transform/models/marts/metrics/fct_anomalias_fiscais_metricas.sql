@@ -419,6 +419,48 @@ dependencia_transferencias_anomalias as (
     ) < 10.0
 ),
 
+caprem_desidratacao_base as (
+    select
+        portal_slug,
+        ano,
+        patrimonio_total
+    from {{ ref('fct_caprem_patrimonio_historico_metricas') }}
+    where not inconsistencia_declaracao_flag
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
+caprem_desidratacao_janela as (
+    select
+        portal_slug,
+        ano,
+        patrimonio_total as valor_observado,
+        lag(patrimonio_total, 2) over (partition by portal_slug order by ano) as valor_esperado,
+        lag(ano, 2) over (partition by portal_slug order by ano) as ano_esperado
+    from caprem_desidratacao_base
+),
+
+caprem_desidratacao_anomalias as (
+    select
+        portal_slug,
+        ano,
+        'desidratacao_patrimonio_rpps'::text as tipo_anomalia,
+        'patrimonio_previdenciario'::text as dimensao_referencia,
+        valor_observado::numeric as valor_observado,
+        valor_esperado::numeric as valor_esperado,
+        round((((valor_observado - valor_esperado) / valor_esperado) * 100.0)::numeric, 2) as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        null::text as licitacao_numero,
+        'variacao_trienal_patrimonio'::text as metodo_deteccao
+    from caprem_desidratacao_janela
+    where valor_esperado is not null
+      and valor_esperado > 0
+      and ano_esperado is not null
+      and ano - ano_esperado <= 3
+      and ano < extract(year from current_date)
+      and (((valor_observado - valor_esperado) / valor_esperado) * 100.0) < -20.00
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -441,6 +483,8 @@ todas_anomalias as (
     select * from pessoal_divergencias_anomalias
     union all
     select * from dependencia_transferencias_anomalias
+    union all
+    select * from caprem_desidratacao_anomalias
 )
 
 select
@@ -450,7 +494,7 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
-        when tipo_anomalia in ('retencao_patronal_rpps', 'dependencia_transferencias') then 'critico'
+        when tipo_anomalia in ('retencao_patronal_rpps', 'dependencia_transferencias', 'desidratacao_patrimonio_rpps') then 'critico'
         when tipo_anomalia = 'inadimplencia_aporte_rpps' then
             case
                 when desvio_percentual > 30.0 then 'critico'
