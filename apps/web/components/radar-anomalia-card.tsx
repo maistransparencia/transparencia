@@ -232,21 +232,43 @@ export function RadarAnomaliaCard({
         </div>
 
         {/* Fundamentação Legal Acessível (Regra 20) */}
-        {card.fundamentacaoLegal && (
-          <div className="mt-3 flex items-center text-slate-500 text-xs">
-            <span className="mr-1">Base legal:</span>
-            <a
-              href={card.fundamentacaoLegal.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="radar-legal-link"
-              className="inline-flex items-center gap-1 font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-accent hover:decoration-accent"
-            >
-              <span>{card.fundamentacaoLegal.label}</span>
-              <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-            </a>
-          </div>
-        )}
+        {(() => {
+          if (!card.fundamentacaoLegal) return null;
+          const links = Array.isArray(card.fundamentacaoLegal)
+            ? card.fundamentacaoLegal
+            : [card.fundamentacaoLegal];
+          if (links.length === 0) return null;
+          return (
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-xs">
+              <span className="mr-0.5">Base legal:</span>
+              {links.map((link, idx) => (
+                <span key={link.url} className="inline-flex items-center">
+                  {idx > 0 && (
+                    <>
+                      <span className="mx-1 text-slate-300" aria-hidden="true">
+                        •
+                      </span>
+                      <span className="sr-only">; </span>
+                    </>
+                  )}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="radar-legal-link"
+                    className="inline-flex items-center gap-1 font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-accent hover:decoration-accent"
+                  >
+                    <span>{link.label}</span>
+                    <ExternalLink
+                      className="h-3 w-3 shrink-0"
+                      aria-hidden="true"
+                    />
+                  </a>
+                </span>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Ações / Rodapé perfeitamente balanceado */}

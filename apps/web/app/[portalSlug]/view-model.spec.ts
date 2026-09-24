@@ -634,6 +634,54 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para desidratação do patrimônio do RPPS com fundamentação na Resolução CMN 4.963/2021 e Lei 9.717/1998", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desidratacao",
+          portalSlug: "porciuncula",
+          ano: 2025,
+          tipoAnomalia: "desidratacao_patrimonio_rpps",
+          dimensaoReferencia: "patrimonio_previdenciario",
+          grauSeveridade: "critico",
+          desvioPercentual: 20.78,
+          valorObservado: 35980000,
+          valorEsperado: 45420000,
+          mesInicial: 1,
+          mesFinal: 12,
+          licitacaoNumero: null,
+          metodoDeteccao: "variacao_trienal_patrimonio",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Desidratação do Patrimônio (RPPS)");
+    expect(card.metodologiaBadge).toBe("Variação Trienal");
+    expect(card.esperadoLabel).toBe("Saldo Inicial (Triênio)");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.grauSeveridade).toBe("critico");
+    expect(card.valorObservadoFormatted).toBe("R$ 36.0mi");
+    expect(card.valorEsperadoFormatted).toBe("R$ 45.4mi");
+    expect(card.desvioPercentualFormatted).toBe("-20.8%");
+    expect(card.ctaLabel).toBe("Auditar Patrimônio Previdenciário");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2025#patrimonio");
+    expect(card.fundamentacaoLegal).toEqual([
+      {
+        label: "Resolução CMN nº 4.963/2021",
+        url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+      },
+      {
+        label: "Lei nº 9.717/1998",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+      },
+    ]);
+    expect(card.textoFactual).toContain(
+      "retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

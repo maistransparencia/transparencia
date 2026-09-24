@@ -250,6 +250,68 @@ describe("RadarAnomaliaCard", () => {
     expect(legalLink).toHaveTextContent("Art. 40 da CF/88");
   });
 
+  it("renderiza múltiplos links na fundamentação legal para desidratação do patrimônio do RPPS (CMN 4.963 e Lei 9.717)", () => {
+    const mockItemDesidratacao: RadarCivicoCardItem = {
+      anomaliaId: "anomalia-desidratacao",
+      tipoAnomalia: "desidratacao_patrimonio_rpps",
+      titulo: "Desidratação do Patrimônio (RPPS)",
+      dimensaoReferencia: "patrimonio_previdenciario",
+      grauSeveridade: "critico",
+      metodologiaBadge: "Variação Trienal",
+      tipoMetodologia: "estoque",
+      esperadoLabel: "Saldo Inicial (Triênio)",
+      textoFactual:
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36.0mi, registrando retração de 20.8% e consumo de R$ 9.4mi em 3 exercícios.",
+      desvioPercentual: 20.78,
+      desvioPercentualFormatted: "-20.8%",
+      valorObservadoFormatted: "R$ 36.0mi",
+      valorEsperadoFormatted: "R$ 45.4mi",
+      ctaLabel: "Auditar Patrimônio Previdenciário",
+      ctaUrl: "/porciuncula/caprem?ano=2025#patrimonio",
+      whatsappShareUrl: "https://api.whatsapp.com/send?text=Desidratacao",
+      fundamentacaoLegal: [
+        {
+          label: "Resolução CMN nº 4.963/2021",
+          url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+        },
+        {
+          label: "Lei nº 9.717/1998",
+          url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+        },
+      ],
+    };
+
+    render(<RadarAnomaliaCard item={mockItemDesidratacao} />);
+
+    expect(
+      screen.getByText("Desidratação do Patrimônio (RPPS)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Variação Trienal")).toBeInTheDocument();
+    expect(screen.getByText("Saldo Inicial (Triênio)")).toBeInTheDocument();
+    expect(screen.getByText("R$ 36.0mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 45.4mi")).toBeInTheDocument();
+    expect(screen.getByText("-20.8%")).toBeInTheDocument();
+
+    const legalLinks = screen.getAllByTestId("radar-legal-link");
+    expect(legalLinks).toHaveLength(2);
+
+    expect(legalLinks[0]).toHaveAttribute(
+      "href",
+      "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+    );
+    expect(legalLinks[0]).toHaveAttribute("target", "_blank");
+    expect(legalLinks[0]).toHaveAttribute("rel", "noopener noreferrer");
+    expect(legalLinks[0]).toHaveTextContent("Resolução CMN nº 4.963/2021");
+
+    expect(legalLinks[1]).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+    );
+    expect(legalLinks[1]).toHaveAttribute("target", "_blank");
+    expect(legalLinks[1]).toHaveAttribute("rel", "noopener noreferrer");
+    expect(legalLinks[1]).toHaveTextContent("Lei nº 9.717/1998");
+  });
+
   it("dispara evento civic_radar_card_viewed no carregamento do card", () => {
     render(<RadarAnomaliaCard item={mockItemCritico} />);
 
