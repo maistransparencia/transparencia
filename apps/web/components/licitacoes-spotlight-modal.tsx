@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -74,6 +75,11 @@ export function LicitacoesSpotlightModal({
     setLoading(false);
     setErrorMessage(null);
 
+    posthog.capture("licitacoes_search_opened", {
+      portal_slug: portalSlug,
+      ano,
+    });
+
     const focusTimer = setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
@@ -83,7 +89,7 @@ export function LicitacoesSpotlightModal({
       clearTimeout(focusTimer);
       abortControllerRef.current?.abort();
     };
-  }, [isOpen]);
+  }, [isOpen, portalSlug, ano]);
 
   // Busca assíncrona debounced com AbortController
   useEffect(() => {
@@ -115,6 +121,12 @@ export function LicitacoesSpotlightModal({
         );
 
         if (!res.ok) {
+          posthog.capture("licitacoes_search_failed", {
+            portal_slug: portalSlug,
+            ano,
+            query_length: clean.length,
+            status: res.status,
+          });
           if (res.status === 429) {
             throw new Error(
               "Muitas buscas consecutivas. Por favor, aguarde alguns instantes.",
@@ -127,6 +139,14 @@ export function LicitacoesSpotlightModal({
 
         const data: SearchLicitacoesResult = await res.json();
         setResults(data);
+        posthog.capture("licitacoes_search_performed", {
+          portal_slug: portalSlug,
+          ano,
+          query_length: clean.length,
+          results_total: data.total,
+          licitacoes_count: data.licitacoes.length,
+          contratos_count: data.contratos.length,
+        });
         setSelectedIndex(0);
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
@@ -153,6 +173,15 @@ export function LicitacoesSpotlightModal({
       const isLicitacao = item.tipo === "licitacao";
       const isContrato = item.tipo === "contrato";
       const isSameAno = !item.ano || !ano || item.ano === ano;
+
+      posthog.capture("licitacoes_search_result_opened", {
+        portal_slug: portalSlug,
+        ano,
+        tipo: item.tipo,
+        position: allResults.indexOf(item),
+        query_length: searchTerm.trim().length,
+        results_total: results.total,
+      });
 
       // Se for licitação ou contrato no mesmo ano, mantemos o modal de busca aberto por baixo
       // para permitir navegação em camadas (Master-Detail).
@@ -193,7 +222,16 @@ export function LicitacoesSpotlightModal({
         }
       }
     },
-    [ano, onClose, onSelect, router],
+    [
+      ano,
+      onClose,
+      onSelect,
+      router,
+      portalSlug,
+      allResults,
+      searchTerm,
+      results.total,
+    ],
   );
 
   // Navegação por teclado
