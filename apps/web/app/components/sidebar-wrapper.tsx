@@ -3,12 +3,10 @@
 import { type MultiSelectOption, Sidebar } from "@transparencia/ui";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
-import { useState } from "react";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
-import { NewsletterModal } from "@/components/newsletter-modal";
 import { PushNotificationSettings } from "@/components/push-notification-settings";
-import { PushNotificationTopbarButton } from "@/components/push-notification-topbar-button";
+import { PwaInstallButton } from "@/components/pwa-installer";
 
 interface SidebarWrapperProps {
   portalName?: string;
@@ -38,7 +36,6 @@ export function SidebarWrapper({
   radarAlertCount,
 }: SidebarWrapperProps) {
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
-  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const currentYear = String(new Date().getFullYear());
   const [ano, setAno] = useQueryState(
     "ano",
@@ -89,48 +86,34 @@ export function SidebarWrapper({
   })();
 
   return (
-    <>
-      <Sidebar
-        portalName={portalName}
-        stateUF={stateUF}
-        portalTitle={portalTitle}
-        anoInicial={anoInicial}
-        lastExtractionDate={lastExtractionDate}
-        officialPortalUrl={officialPortalUrl}
-        brasaoAsset={brasaoAsset}
-        entidades={entidades}
-        portalSlug={portalSlug}
-        selectedExercice={ano}
-        onExerciceChange={handleExerciceChange}
-        selectedEntidades={selectedEntidades}
-        onEntidadesChange={handleEntidadesChange}
-        onOpenNewsletter={() => setIsNewsletterOpen(true)}
-        pushNotificationSlot={
-          <PushNotificationSettings portalSlug={portalSlug} />
-        }
-        mobileHeaderActionSlot={
-          <PushNotificationTopbarButton portalSlug={portalSlug} />
-        }
-        mobileHeaderRightSlot={
-          entidades && entidades.length > 0 ? (
-            <EntidadeSelectCompact
-              entidades={entidades}
-              selectedEntidades={selectedEntidades}
-              onChange={handleEntidadesChange}
-            />
-          ) : undefined
-        }
-        isMobileOpen={isMenuOpen}
-        onMobileOpenChange={setIsMenuOpen}
-        radarAlertCount={activeRadarAlertCount}
-      />
-      <NewsletterModal
-        isOpen={isNewsletterOpen}
-        onClose={() => setIsNewsletterOpen(false)}
-        portalSlug={portalSlug}
-        municipioNome={portalName}
-        stateUF={stateUF}
-      />
-    </>
+    <Sidebar
+      portalName={portalName}
+      stateUF={stateUF}
+      portalTitle={portalTitle}
+      anoInicial={anoInicial}
+      brasaoAsset={brasaoAsset}
+      entidades={entidades}
+      portalSlug={portalSlug}
+      selectedExercice={ano}
+      onExerciceChange={handleExerciceChange}
+      selectedEntidades={selectedEntidades}
+      onEntidadesChange={handleEntidadesChange}
+      pushNotificationSlot={
+        <PushNotificationSettings portalSlug={portalSlug} />
+      }
+      pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
+      mobileHeaderRightSlot={
+        entidades && entidades.length > 0 ? (
+          <EntidadeSelectCompact
+            entidades={entidades}
+            selectedEntidades={selectedEntidades}
+            onChange={handleEntidadesChange}
+          />
+        ) : undefined
+      }
+      isMobileOpen={isMenuOpen}
+      onMobileOpenChange={setIsMenuOpen}
+      radarAlertCount={activeRadarAlertCount}
+    />
   );
 }

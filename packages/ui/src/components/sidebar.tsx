@@ -2,12 +2,10 @@
 
 import {
   ChevronDown,
-  ExternalLink,
   FileText,
   HeartPulse,
   Landmark,
   LayoutDashboard,
-  Mail,
   PieChart,
   Receipt,
   ShieldAlert,
@@ -19,7 +17,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
-import { fmtDate } from "../utils/formatters";
 import { buildNavUrl } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 
@@ -71,6 +68,7 @@ export interface SidebarProps {
   portalSlug?: string;
   onOpenNewsletter?: () => void;
   pushNotificationSlot?: React.ReactNode;
+  pwaInstallSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
   isMobileOpen?: boolean;
@@ -149,16 +147,14 @@ export function Sidebar({
   portalTitle,
   anoInicial,
   entidades = [],
-  lastExtractionDate,
-  officialPortalUrl,
   brasaoAsset,
   selectedExercice,
   onExerciceChange,
   selectedEntidades,
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
-  onOpenNewsletter,
   pushNotificationSlot,
+  pwaInstallSlot,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
   isMobileOpen: controlledMobileOpen,
@@ -231,8 +227,6 @@ export function Sidebar({
     if (!brasaoAsset) return "/brasao-porciuncula.svg";
     return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
   })();
-
-  const displayExtractionDate = fmtDate(lastExtractionDate);
 
   const visaoGeralHref = buildNavUrl({
     path: "/",
@@ -517,47 +511,13 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Newsletter, Push, Social Links e Data de Extração */}
-        <div className="space-y-3 border-borderLine border-t bg-gray-50/50 p-4">
-          {pushNotificationSlot}
-
-          {onOpenNewsletter && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsMobileOpen(false);
-                onOpenNewsletter();
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.55_0.11_250)]/10 px-3 py-2.5 font-semibold text-[oklch(0.55_0.11_250)] text-xs transition-colors hover:bg-[oklch(0.55_0.11_250)]/20 active:scale-[0.99]"
-            >
-              <Mail strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0" />
-              <span>Receber Alertas por E-mail</span>
-            </button>
-          )}
-
-          <div className="space-y-1.5 border-borderLine/60 border-t pt-2">
-            {officialPortalUrl && (
-              <a
-                href={officialPortalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between font-medium text-ink text-xs transition-colors hover:text-[#1d64d8]"
-              >
-                <span>Portal oficial</span>
-                <ExternalLink
-                  strokeWidth={1.6}
-                  className="h-3.5 w-3.5 text-mutedText"
-                />
-              </a>
-            )}
-            <div className="space-y-0.5 text-[10px] text-mutedText">
-              <p>Dados extraídos do Portal Oficial</p>
-              <p className="font-mono text-[9.5px]">
-                Última extração: {displayExtractionDate}
-              </p>
-            </div>
+        {/* Rodapé com Notificações e Instalação do App */}
+        {(pushNotificationSlot || pwaInstallSlot) && (
+          <div className="space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4">
+            {pushNotificationSlot}
+            {pwaInstallSlot}
           </div>
-        </div>
+        )}
       </aside>
     </>
   );

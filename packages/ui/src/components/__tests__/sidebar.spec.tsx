@@ -64,4 +64,18 @@ describe("Sidebar Component", () => {
 
     expect(screen.getByText("Radar Cívico")).toBeInTheDocument();
   });
+
+  it("renderiza pwaInstallSlot quando fornecido", () => {
+    render(
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        pwaInstallSlot={<button type="button">Instalar App Teste</button>}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Instalar App Teste" }),
+    ).toBeInTheDocument();
+  });
 });
