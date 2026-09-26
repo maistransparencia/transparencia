@@ -7,12 +7,16 @@ import {
 } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PwaInstaller } from "./pwa-installer";
+import { PwaInstallButton, PwaInstaller } from "./pwa-installer";
 
 vi.mock("posthog-js", () => ({
   default: {
     capture: vi.fn(),
   },
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/porciuncula_prefeitura",
 }));
 
 describe("PwaInstaller Component", () => {
@@ -59,9 +63,28 @@ describe("PwaInstaller Component", () => {
     expect(navigator.serviceWorker.register).toHaveBeenCalledWith("/sw.js");
   });
 
-  it("renders install banner when beforeinstallprompt event fires", async () => {
+  it("does not render floating banner by default when beforeinstallprompt event fires", () => {
     const promptMock = vi.fn();
     render(<PwaInstaller />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    expect(
+      screen.queryByText("Instale o App MaisTransparencia no seu dispositivo"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders install banner when beforeinstallprompt event fires and showFloatingPrompt is true", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstaller showFloatingPrompt={true} />);
 
     const beforeInstallEvent = new Event("beforeinstallprompt");
     Object.assign(beforeInstallEvent, {
@@ -141,7 +164,7 @@ describe("PwaInstaller Component", () => {
 
   it("persists dismissal when close button is clicked and suppresses banner on subsequent events", async () => {
     const promptMock = vi.fn();
-    render(<PwaInstaller />);
+    render(<PwaInstaller showFloatingPrompt={true} />);
 
     const beforeInstallEvent = new Event("beforeinstallprompt");
     Object.assign(beforeInstallEvent, {
@@ -172,7 +195,7 @@ describe("PwaInstaller Component", () => {
 
   it("captures the native prompt outcome after the user answers it", async () => {
     const promptMock = vi.fn();
-    render(<PwaInstaller />);
+    render(<PwaInstaller showFloatingPrompt={true} />);
 
     const beforeInstallEvent = new Event("beforeinstallprompt");
     Object.assign(beforeInstallEvent, {
@@ -192,6 +215,30 @@ describe("PwaInstaller Component", () => {
         { outcome: "dismissed" },
       );
     });
+  });
+
+  it("renders discrete PwaInstallButton when beforeinstallprompt fires and installs on click", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstallButton />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    const button = await screen.findByRole("button", {
+      name: "Instalar Aplicativo",
+    });
+    expect(button).toBeInTheDocument();
+
+    fireEvent.click(button);
+    expect(promptMock).toHaveBeenCalled();
+    expect(posthog.capture).toHaveBeenCalledWith("pwa_install_clicked");
   });
 
   it("captures pwa_installed when the browser reports a completed install", () => {
@@ -217,6 +264,104 @@ describe("PwaInstaller Component", () => {
 
     expect(
       screen.queryByText("Instale o App MaisTransparencia no seu dispositivo"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders PwaInstallButton with variant='sidebar' and calls install with source metadata", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstallButton variant="sidebar" />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    const button = await screen.findByRole("button", {
+      name: /Instalar Aplicativo/i,
+    });
+    expect(button).toBeInTheDocument();
+
+    fireEvent.click(button);
+    expect(promptMock).toHaveBeenCalled();
+    expect(posthog.capture).toHaveBeenCalledWith("pwa_install_clicked", {
+      source: "sidebar",
+    });
+  });
+
+  it("renders mobile banner when minPageViews is reached and suppresses when push prompt is open", async () => {
+    sessionStorage.setItem("session_page_views", "2");
+
+    const promptMock = vi.fn();
+    render(
+      <PwaInstaller showMobileBanner={true} minPageViews={2} delayMs={0} />,
+    );
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    // Deve exibir o banner mobile
+    expect(
+      await screen.findByRole("complementary", {
+        name: "Instalação do aplicativo",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Instale o MaisTransparência")).toBeInTheDocument();
+
+    // Se o evento push-prompt:state indicar que o prompt de push abriu, deve ocultar o banner de PWA
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("push-prompt:state", { detail: { isOpen: true } }),
+      );
+    });
+
+    expect(
+      screen.queryByRole("complementary", {
+        name: "Instalação do aplicativo",
+      }),
+    ).not.toBeInTheDocument();
+
+    // Quando o prompt de push fechar, deve reexibir
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("push-prompt:state", { detail: { isOpen: false } }),
+      );
+    });
+
+    expect(
+      await screen.findByRole("complementary", {
+        name: "Instalação do aplicativo",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render mobile banner when page views are below minPageViews", () => {
+    sessionStorage.setItem("session_page_views", "1");
+
+    render(
+      <PwaInstaller showMobileBanner={true} minPageViews={2} delayMs={0} />,
+    );
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    expect(
+      screen.queryByRole("complementary", {
+        name: "Instalação do aplicativo",
+      }),
     ).not.toBeInTheDocument();
   });
 });
