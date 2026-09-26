@@ -16,9 +16,9 @@ describe("GlobalFooter", () => {
     expect(link).toHaveAttribute("href", "/termos");
   });
 
-  it("renderiza link 'Política de Privacidade' apontando para /privacidade", () => {
+  it("renderiza link 'Privacidade' apontando para /privacidade", () => {
     render(<GlobalFooter />);
-    const link = screen.getByRole("link", { name: /política de privacidade/i });
+    const link = screen.getByRole("link", { name: /privacidade/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/privacidade");
   });
@@ -27,7 +27,7 @@ describe("GlobalFooter", () => {
     render(<GlobalFooter />);
     const termosLink = screen.getByRole("link", { name: /termos de uso/i });
     const privacidadeLink = screen.getByRole("link", {
-      name: /política de privacidade/i,
+      name: /privacidade/i,
     });
     expect(termosLink).not.toHaveAttribute("target", "_blank");
     expect(privacidadeLink).not.toHaveAttribute("target", "_blank");
@@ -56,15 +56,13 @@ describe("GlobalFooter", () => {
     );
 
     const portalLink = screen.getByRole("link", {
-      name: /portal oficial da prefeitura/i,
+      name: /portal oficial/i,
     });
     expect(portalLink).toBeInTheDocument();
     expect(portalLink).toHaveAttribute("href", "https://porciuncula.rj.gov.br");
     expect(portalLink).toHaveAttribute("target", "_blank");
     expect(portalLink).toHaveAttribute("rel", "noopener noreferrer");
 
-    expect(
-      screen.getByText(/Dados extraídos do Portal Oficial em/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dados extraídos em/i)).toBeInTheDocument();
   });
 });

@@ -37,63 +37,45 @@ receitas_agregadas as (
     group by portal_slug, empresa_id, ano
 ),
 
-despesas_correntes_agregadas as (
+despesas_agregadas as (
     select
         portal_slug,
         empresa_id,
         ano,
-        sum(coalesce(pago, 0)) as despesas_pagas
+        sum(case when fonte = 'exercicio' then coalesce(pago, 0) else 0 end) as despesas_pagas,
+        sum(case when fonte = 'restos_a_pagar' then coalesce(liquidado, 0) else 0 end) as restos_liquidados_no_ano,
+        sum(case when fonte = 'restos_a_pagar' then coalesce(pago, 0) else 0 end) as restos_pagos_no_ano,
+        sum(case when fonte = 'restos_a_pagar' then coalesce(empenhado, 0) - coalesce(pago, 0) else 0 end) as restos_pendentes_total
     from {{ ref('fct_despesas') }}
-    where fonte = 'exercicio'
+    where fonte in ('exercicio', 'restos_a_pagar')
     group by portal_slug, empresa_id, ano
 ),
 
-restos_pagos_agregados as (
-    select
-        portal_slug,
-        empresa_id,
-        ano,
-        sum(coalesce(liquidado, 0)) as restos_liquidados_no_ano,
-        sum(coalesce(pago, 0)) as restos_pagos_no_ano
-    from {{ ref('fct_despesas') }}
-    where fonte = 'restos_a_pagar'
-    group by portal_slug, empresa_id, ano
-),
-
-restos_pendentes_agregados as (
+despesas_com_gestao as (
     select
         d.portal_slug,
         d.empresa_id,
         d.ano,
-        sum(
-            case
-                when d.ano < coalesce(m.ano_inicio_gestao, 2025)
-                then coalesce(d.empenhado, 0) - coalesce(d.pago, 0)
-                else 0
-            end
-        ) as restos_pendentes_adm_anterior,
-        sum(
-            case
-                when d.ano >= coalesce(m.ano_inicio_gestao, 2025)
-                then coalesce(d.empenhado, 0) - coalesce(d.pago, 0)
-                else 0
-            end
-        ) as restos_pendentes_adm_atual
-    from {{ ref('fct_despesas') }} d
+        d.despesas_pagas,
+        d.restos_liquidados_no_ano,
+        d.restos_pagos_no_ano,
+        case
+            when d.ano < coalesce(m.ano_inicio_gestao, 2025) then d.restos_pendentes_total
+            else 0
+        end as restos_pendentes_adm_anterior,
+        case
+            when d.ano >= coalesce(m.ano_inicio_gestao, 2025) then d.restos_pendentes_total
+            else 0
+        end as restos_pendentes_adm_atual
+    from despesas_agregadas d
     left join metadata_gestao m
         on d.portal_slug = m.portal_slug
-    where d.fonte = 'restos_a_pagar'
-    group by d.portal_slug, d.empresa_id, d.ano
 ),
 
 chaves_base as (
     select portal_slug, empresa_id, ano from receitas_agregadas
     union
-    select portal_slug, empresa_id, ano from despesas_correntes_agregadas
-    union
-    select portal_slug, empresa_id, ano from restos_pagos_agregados
-    union
-    select portal_slug, empresa_id, ano from restos_pendentes_agregados
+    select portal_slug, empresa_id, ano from despesas_com_gestao
 )
 
 select
@@ -102,26 +84,18 @@ select
     cb.empresa_id,
     cb.ano,
     coalesce(r.total_arrecadado, 0)::numeric(15, 2) as total_arrecadado,
-    coalesce(dc.despesas_pagas, 0)::numeric(15, 2) as despesas_pagas,
-    coalesce(rp.restos_liquidados_no_ano, 0)::numeric(15, 2) as restos_liquidados_no_ano,
-    coalesce(rp.restos_pagos_no_ano, 0)::numeric(15, 2) as restos_pagos_no_ano,
-    coalesce(rp_pend.restos_pendentes_adm_anterior, 0)::numeric(15, 2) as restos_pendentes_adm_anterior,
-    coalesce(rp_pend.restos_pendentes_adm_atual, 0)::numeric(15, 2) as restos_pendentes_adm_atual,
-    (coalesce(r.total_arrecadado, 0) - (coalesce(dc.despesas_pagas, 0) + coalesce(rp.restos_pagos_no_ano, 0)))::numeric(15, 2) as saldo_estimado
+    coalesce(d.despesas_pagas, 0)::numeric(15, 2) as despesas_pagas,
+    coalesce(d.restos_liquidados_no_ano, 0)::numeric(15, 2) as restos_liquidados_no_ano,
+    coalesce(d.restos_pagos_no_ano, 0)::numeric(15, 2) as restos_pagos_no_ano,
+    coalesce(d.restos_pendentes_adm_anterior, 0)::numeric(15, 2) as restos_pendentes_adm_anterior,
+    coalesce(d.restos_pendentes_adm_atual, 0)::numeric(15, 2) as restos_pendentes_adm_atual,
+    (coalesce(r.total_arrecadado, 0) - (coalesce(d.despesas_pagas, 0) + coalesce(d.restos_pagos_no_ano, 0)))::numeric(15, 2) as saldo_estimado
 from chaves_base cb
 left join receitas_agregadas r
     on cb.portal_slug = r.portal_slug
     and cb.empresa_id = r.empresa_id
     and cb.ano = r.ano
-left join despesas_correntes_agregadas dc
-    on cb.portal_slug = dc.portal_slug
-    and cb.empresa_id = dc.empresa_id
-    and cb.ano = dc.ano
-left join restos_pagos_agregados rp
-    on cb.portal_slug = rp.portal_slug
-    and cb.empresa_id = rp.empresa_id
-    and cb.ano = rp.ano
-left join restos_pendentes_agregados rp_pend
-    on cb.portal_slug = rp_pend.portal_slug
-    and cb.empresa_id = rp_pend.empresa_id
-    and cb.ano = rp_pend.ano
+left join despesas_com_gestao d
+    on cb.portal_slug = d.portal_slug
+    and cb.empresa_id = d.empresa_id
+    and cb.ano = d.ano
