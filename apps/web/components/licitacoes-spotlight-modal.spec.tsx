@@ -1,7 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import posthog from "posthog-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LicitacoesSearchBar } from "./licitacoes-search-bar";
 import { LicitacoesSpotlightModal } from "./licitacoes-spotlight-modal";
+
+vi.mock("posthog-js", () => ({
+  default: {
+    capture: vi.fn(),
+  },
+}));
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -267,6 +274,32 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       expect(mockPush).toHaveBeenCalledWith(
         "/porciuncula_prefeitura/licitacoes?ano=2023&contratoNumero=0043%2F24#contratos-servicos-vigentes",
       );
+      expect(posthog.capture).toHaveBeenCalledWith("licitacoes_search_opened", {
+        portal_slug: "porciuncula_prefeitura",
+        ano: 2024,
+      });
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "licitacoes_search_performed",
+        {
+          portal_slug: "porciuncula_prefeitura",
+          ano: 2024,
+          query_length: 7,
+          results_total: 2,
+          licitacoes_count: 1,
+          contratos_count: 1,
+        },
+      );
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "licitacoes_search_result_opened",
+        {
+          portal_slug: "porciuncula_prefeitura",
+          ano: 2024,
+          tipo: "contrato",
+          position: 1,
+          query_length: 7,
+          results_total: 2,
+        },
+      );
     });
 
     it("deve exibir banner de erro amigável quando a API retornar 429 ou 500", async () => {
@@ -291,6 +324,12 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
         expect(
           screen.getByText(/Muitas buscas consecutivas/i),
         ).toBeInTheDocument();
+      });
+      expect(posthog.capture).toHaveBeenCalledWith("licitacoes_search_failed", {
+        portal_slug: "porciuncula_prefeitura",
+        ano: undefined,
+        query_length: 20,
+        status: 429,
       });
     });
 
