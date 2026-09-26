@@ -204,6 +204,9 @@ export default async function RootLayout({
               <GlobalFooter
                 portalName={portalConfig?.displayName}
                 officialPortalUrl={portalConfig?.portalUrl}
+                lastExtractionDate={portalConfig?.dataExtracao}
+                portalSlug={portalConfig?.portalSlug}
+                stateUF={portalConfig?.uf}
               />
             </div>
             <Suspense fallback={null}>
@@ -216,8 +219,12 @@ export default async function RootLayout({
             </Suspense>
           </MobileNavProvider>
         </NuqsAdapter>
-        <PwaInstaller />
-        <PushNotificationPrompt portalSlug={portalConfig?.portalSlug} />
+        <PwaInstaller minPageViews={2} delayMs={25000} />
+        <PushNotificationPrompt
+          portalSlug={portalConfig?.portalSlug}
+          minPageViews={2}
+          delayMs={20000}
+        />
         <Analytics />
         <SpeedInsights />
       </body>
