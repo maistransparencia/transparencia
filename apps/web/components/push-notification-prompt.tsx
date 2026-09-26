@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
@@ -8,6 +9,8 @@ import { usePushNotifications } from "@/hooks/use-push-notifications";
 export interface PushNotificationPromptProps {
   portalSlug?: string;
   cooldownDays?: number;
+  minPageViews?: number;
+  delayMs?: number;
 }
 
 const DEFAULT_COOLDOWN_DAYS = 30;
@@ -34,10 +37,31 @@ function safeSetLocalStorage(key: string, value: string): void {
   }
 }
 
+function safeGetSessionStorage(key: string): string | null {
+  try {
+    return typeof window !== "undefined" ? sessionStorage.getItem(key) : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeSetSessionStorage(key: string, value: string): void {
+  try {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore storage quota or security errors
+  }
+}
+
 export function PushNotificationPrompt({
   portalSlug = "porciuncula_prefeitura",
   cooldownDays = DEFAULT_COOLDOWN_DAYS,
+  minPageViews = 0,
+  delayMs = 0,
 }: PushNotificationPromptProps) {
+  const pathname = usePathname();
   const { isSupported, isSubscribed, permission, isLoading, subscribe } =
     usePushNotifications({ portalSlug });
 
@@ -47,7 +71,14 @@ export function PushNotificationPrompt({
   const storageKey = getDismissedStorageKey(portalSlug);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !pathname) return;
+    const rawViews = safeGetSessionStorage("session_page_views");
+    const nextViews = (rawViews ? Number(rawViews) : 0) + 1;
+    safeSetSessionStorage("session_page_views", String(nextViews));
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !pathname) return;
 
     if (!isSupported || isLoading) {
       setIsDismissed(true);
@@ -72,25 +103,77 @@ export function PushNotificationPrompt({
       }
     }
 
-    setIsDismissed(false);
-    if (!impressionCapturedRef.current) {
-      impressionCapturedRef.current = true;
-      posthog.capture("push_prompt_impression", {
-        portal_slug: portalSlug,
-      });
+    // Se minPageViews estiver configurado, exige que o usuário tenha navegado o mínimo de páginas
+    if (minPageViews > 0) {
+      const currentViews = Number(
+        safeGetSessionStorage("session_page_views") ?? "0",
+      );
+      if (currentViews < minPageViews) {
+        setIsDismissed(true);
+        return;
+      }
     }
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const showPrompt = () => {
+      setIsDismissed(false);
+      safeSetSessionStorage("is_push_prompt_open", "true");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("push-prompt:state", { detail: { isOpen: true } }),
+        );
+      }
+      if (!impressionCapturedRef.current) {
+        impressionCapturedRef.current = true;
+        posthog.capture("push_prompt_impression", {
+          portal_slug: portalSlug,
+        });
+      }
+    };
+
+    if (delayMs > 0) {
+      timer = setTimeout(showPrompt, delayMs);
+      return () => {
+        if (timer) clearTimeout(timer);
+        safeSetSessionStorage("is_push_prompt_open", "false");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("push-prompt:state", { detail: { isOpen: false } }),
+          );
+        }
+      };
+    }
+
+    showPrompt();
+    return () => {
+      safeSetSessionStorage("is_push_prompt_open", "false");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("push-prompt:state", { detail: { isOpen: false } }),
+        );
+      }
+    };
   }, [
     isSupported,
     isSubscribed,
     permission,
     isLoading,
     cooldownDays,
+    minPageViews,
+    delayMs,
+    pathname,
     portalSlug,
     storageKey,
   ]);
 
   const handleDismiss = useCallback(() => {
     safeSetLocalStorage(storageKey, String(Date.now()));
+    safeSetSessionStorage("is_push_prompt_open", "false");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("push-prompt:state", { detail: { isOpen: false } }),
+      );
+    }
     setIsDismissed(true);
     posthog.capture("push_prompt_dismissed", {
       portal_slug: portalSlug,
@@ -105,6 +188,12 @@ export function PushNotificationPrompt({
       });
 
       const success = await subscribe();
+      safeSetSessionStorage("is_push_prompt_open", "false");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("push-prompt:state", { detail: { isOpen: false } }),
+        );
+      }
       if (success) {
         setIsDismissed(true);
       } else {

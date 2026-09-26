@@ -10,6 +10,7 @@ import { BarChartH } from "@/components/bar-chart-h";
 import { CapremActuarialRiskSection } from "@/components/caprem-actuarial-risk-section";
 import { CapremEntidadesDonut } from "@/components/caprem-entidades-donut";
 import { CapremHeroSection } from "@/components/caprem-hero-section";
+import { CapremPatrimonioHistoricoSection } from "@/components/caprem-patrimonio-historico-section";
 import { CapremSaldoCaixaCard } from "@/components/caprem-saldo-caixa-card";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SectionHeader } from "@/components/section-header";
@@ -114,10 +115,17 @@ export default async function CapremPage({
         portalSlug={portalSlug}
       />
 
-      {/* Seção 3: Diagnóstico de Sustentabilidade Atuarial & Risco Previdenciário */}
+      {/* Seção: Trajetória do Patrimônio Financeiro da Previdência (CAPREM) */}
+      {viewModel.patrimonioHistoricoResumo && (
+        <CapremPatrimonioHistoricoSection
+          resumo={viewModel.patrimonioHistoricoResumo}
+          selectedYear={selectedYear}
+        />
+      )}
+
+      {/* Seção: Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência) */}
       <CapremActuarialRiskSection
         ano={selectedYear}
-        risk={caprem.actuarialRisk}
         trend={caprem.actuarialTrend}
         cadprev={caprem.cadprevParcelamentos}
       />

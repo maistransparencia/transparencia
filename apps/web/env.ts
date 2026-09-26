@@ -64,6 +64,14 @@ const parsedEnv = createEnv({
       .string()
       .min(1)
       .default("https://facebook.com/profile.php?id="),
+    NEXT_PUBLIC_INSTAGRAM_URL: z
+      .string()
+      .min(1)
+      .default("https://instagram.com/maistransparencia.ig"),
+    NEXT_PUBLIC_INSTAGRAM_HANDLE: z
+      .string()
+      .min(1)
+      .default("maistransparencia.ig"),
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z.string().min(1).optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z
       .string()
@@ -81,6 +89,8 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_X_HANDLE: process.env.NEXT_PUBLIC_X_HANDLE,
     NEXT_PUBLIC_GITHUB_URL: process.env.NEXT_PUBLIC_GITHUB_URL,
     NEXT_PUBLIC_FACEBOOK_URL: process.env.NEXT_PUBLIC_FACEBOOK_URL,
+    NEXT_PUBLIC_INSTAGRAM_URL: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+    NEXT_PUBLIC_INSTAGRAM_HANDLE: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE,
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN:
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,

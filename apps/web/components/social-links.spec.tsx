@@ -49,6 +49,20 @@ describe("SocialLinks component", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
+  it("deve renderizar link do Instagram com valores padrão", () => {
+    render(<SocialLinks />);
+    const link = screen.getByRole("link", {
+      name: /perfil oficial no instagram/i,
+    });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      "href",
+      "https://instagram.com/maistransparencia.ig",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("deve disparar telemetria PostHog ao clicar no link do X", () => {
     render(<SocialLinks />);
     const link = screen.getByRole("link", { name: /@mtransparenciax/i });
@@ -57,6 +71,19 @@ describe("SocialLinks component", () => {
       platform: "x",
       handle: "@mtransparenciax",
       url: "https://x.com/mtransparenciax",
+    });
+  });
+
+  it("deve disparar telemetria PostHog ao clicar no link do Instagram", () => {
+    render(<SocialLinks />);
+    const link = screen.getByRole("link", {
+      name: /perfil oficial no instagram/i,
+    });
+    fireEvent.click(link);
+    expect(posthog.capture).toHaveBeenCalledWith("social_link_clicked", {
+      platform: "instagram",
+      handle: "maistransparencia.ig",
+      url: "https://instagram.com/maistransparencia.ig",
     });
   });
 
@@ -76,19 +103,29 @@ describe("SocialLinks component", () => {
     render(
       <SocialLinks
         xUrl="https://x.com/custom_transparencia"
-        xHandle="@custom_handle"
+        xHandle="@custom_x_handle"
         githubUrl="https://github.com/custom/repo"
         facebookUrl="https://facebook.com/custom_transparencia"
+        instagramUrl="https://instagram.com/custom_transparencia"
+        instagramHandle="custom_ig_handle"
       />,
     );
 
-    const xLink = screen.getByRole("link", { name: /@custom_handle/i });
+    const xLink = screen.getByRole("link", { name: /@custom_x_handle/i });
     expect(xLink).toHaveAttribute("href", "https://x.com/custom_transparencia");
 
     const ghLink = screen.getByRole("link", {
       name: /código aberto no github/i,
     });
     expect(ghLink).toHaveAttribute("href", "https://github.com/custom/repo");
+
+    const igLink = screen.getByRole("link", {
+      name: /perfil oficial no instagram \(@custom_ig_handle\)/i,
+    });
+    expect(igLink).toHaveAttribute(
+      "href",
+      "https://instagram.com/custom_transparencia",
+    );
 
     const fbLink = screen.getByRole("link", {
       name: /página oficial no facebook/i,

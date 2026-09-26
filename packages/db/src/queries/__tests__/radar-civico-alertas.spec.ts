@@ -4,66 +4,20 @@ import {
   createFixturePortalSlug,
   seedAnomaliaFiscal,
 } from "../../../tests/fixtures/seed";
-import { enrichDeepLink, getRadarCivicoAlertas } from "../radar-civico-alertas";
+import {
+  getRadarAnomaliasCount,
+  getRadarAnomaliasCountByYear,
+  getRadarCivicoAlertas,
+} from "../radar-civico-alertas";
 
 const PORTAL = createFixturePortalSlug();
 
 afterEach(async () => {
   await cleanupFixtures(PORTAL);
+  await cleanupFixtures(`${PORTAL}_outro`);
 });
 
 describe("radar-civico-alertas", () => {
-  describe("enrichDeepLink", () => {
-    it("deve retornar a rota intacta quando não houver parâmetros adicionais", () => {
-      expect(
-        enrichDeepLink("/porciuncula/pessoal?ano=2024#comissionados"),
-      ).toBe("/porciuncula/pessoal?ano=2024#comissionados");
-      expect(enrichDeepLink("/porciuncula/despesas", {})).toBe(
-        "/porciuncula/despesas",
-      );
-      expect(enrichDeepLink("")).toBe("");
-    });
-
-    it("deve preservar searchParams e âncoras temáticas ao adicionar parâmetros", () => {
-      const result = enrichDeepLink("/[slug]/pessoal?ano=2024#comissionados", {
-        entidade: "1",
-      });
-      expect(result).toBe("/[slug]/pessoal?ano=2024&entidade=1#comissionados");
-    });
-
-    it("deve atualizar parâmetro existente sem duplicar", () => {
-      const result = enrichDeepLink(
-        "/porciuncula/pessoal?ano=2024&entidade=1#comissionados",
-        { entidade: "2" },
-      );
-      expect(result).toBe(
-        "/porciuncula/pessoal?ano=2024&entidade=2#comissionados",
-      );
-    });
-
-    it("deve ignorar valores vazios, undefined ou nulos", () => {
-      const result = enrichDeepLink(
-        "/porciuncula/pessoal?ano=2024#comissionados",
-        { entidade: undefined, orgao: null, outro: "" },
-      );
-      expect(result).toBe("/porciuncula/pessoal?ano=2024#comissionados");
-    });
-
-    it("deve preservar âncoras temáticas do CAPREM (#atuarial e #patronal) ao enriquecer deep link", () => {
-      expect(
-        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#atuarial`, {
-          entidade: "1",
-        }),
-      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=1#atuarial`);
-
-      expect(
-        enrichDeepLink(`/${PORTAL}/caprem?ano=2024#patronal`, {
-          entidade: "2",
-        }),
-      ).toBe(`/${PORTAL}/caprem?ano=2024&entidade=2#patronal`);
-    });
-  });
-
   describe("getRadarCivicoAlertas", () => {
     it("deve retornar array vazio se portalSlug for vazio ou inválido", async () => {
       expect(await getRadarCivicoAlertas("")).toEqual([]);
@@ -92,7 +46,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 40000,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/licitacoes?ano=2024`,
       });
 
       await seedAnomaliaFiscal({
@@ -106,7 +59,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 72,
         mesInicial: 1,
         mesFinal: 8,
-        deepLinkRota: `/${PORTAL}/pessoal?ano=2024#comissionados`,
       });
 
       await seedAnomaliaFiscal({
@@ -120,7 +72,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 240000,
         mesInicial: 1,
         mesFinal: 8,
-        deepLinkRota: `/${PORTAL}/despesas?ano=2024`,
       });
 
       await seedAnomaliaFiscal({
@@ -134,7 +85,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 100000,
         mesInicial: 1,
         mesFinal: 8,
-        deepLinkRota: `/${PORTAL}/posicao-fiscal?ano=2024`,
       });
 
       const alertas = await getRadarCivicoAlertas(PORTAL);
@@ -168,7 +118,7 @@ describe("radar-civico-alertas", () => {
       expect(primeiro.valorEsperado).toBe(100000);
       expect(primeiro.mesInicial).toBe(1);
       expect(primeiro.mesFinal).toBe(8);
-      expect(primeiro.deepLinkRota).toBe(`/${PORTAL}/posicao-fiscal?ano=2024`);
+      expect(primeiro.licitacaoNumero).toBeNull();
     });
 
     it("deve filtrar por ano e severidade mínima corretamente", async () => {
@@ -181,7 +131,6 @@ describe("radar-civico-alertas", () => {
         desvioPercentual: 55,
         valorObservado: 100,
         valorEsperado: 64,
-        deepLinkRota: `/${PORTAL}/pessoal?ano=2023`,
       });
 
       await seedAnomaliaFiscal({
@@ -193,7 +142,6 @@ describe("radar-civico-alertas", () => {
         desvioPercentual: 20,
         valorObservado: 50000,
         valorEsperado: 41000,
-        deepLinkRota: `/${PORTAL}/licitacoes?ano=2024`,
       });
 
       await seedAnomaliaFiscal({
@@ -205,7 +153,6 @@ describe("radar-civico-alertas", () => {
         desvioPercentual: 42,
         valorObservado: 400000,
         valorEsperado: 280000,
-        deepLinkRota: `/${PORTAL}/despesas?ano=2024`,
       });
 
       await seedAnomaliaFiscal({
@@ -217,7 +164,6 @@ describe("radar-civico-alertas", () => {
         desvioPercentual: 75,
         valorObservado: -100000,
         valorEsperado: 50000,
-        deepLinkRota: `/${PORTAL}/posicao-fiscal?ano=2024`,
       });
 
       // Filtro por ano 2024 e severidade mínima alto (alto + critico)
@@ -245,34 +191,6 @@ describe("radar-civico-alertas", () => {
       expect(alertas2020).toEqual([]);
     });
 
-    it("deve enriquecer deepLinkRota com entidade preservando parâmetros existentes", async () => {
-      await seedAnomaliaFiscal({
-        portalSlug: PORTAL,
-        ano: 2024,
-        tipoAnomalia: "explosao_comissionados",
-        dimensaoReferencia: "comissionados",
-        grauSeveridade: "critico",
-        desvioPercentual: 60,
-        valorObservado: 110,
-        valorEsperado: 70,
-        deepLinkRota: `/${PORTAL}/pessoal?ano=2024#comissionados`,
-      });
-
-      const alertasComEntidade = await getRadarCivicoAlertas(PORTAL, {
-        entidade: "1",
-      });
-
-      expect(alertasComEntidade).toHaveLength(1);
-      expect(alertasComEntidade[0].deepLinkRota).toBe(
-        `/${PORTAL}/pessoal?ano=2024&entidade=1#comissionados`,
-      );
-
-      const alertasSemEntidade = await getRadarCivicoAlertas(PORTAL);
-      expect(alertasSemEntidade[0].deepLinkRota).toBe(
-        `/${PORTAL}/pessoal?ano=2024#comissionados`,
-      );
-    });
-
     it("deve respeitar a opção limite", async () => {
       await seedAnomaliaFiscal({
         portalSlug: PORTAL,
@@ -281,7 +199,6 @@ describe("radar-civico-alertas", () => {
         dimensaoReferencia: "recursos_livres",
         grauSeveridade: "critico",
         desvioPercentual: 90,
-        deepLinkRota: `/${PORTAL}/posicao-fiscal`,
       });
 
       await seedAnomaliaFiscal({
@@ -291,7 +208,6 @@ describe("radar-civico-alertas", () => {
         dimensaoReferencia: "comissionados",
         grauSeveridade: "critico",
         desvioPercentual: 80,
-        deepLinkRota: `/${PORTAL}/pessoal`,
       });
 
       await seedAnomaliaFiscal({
@@ -301,7 +217,6 @@ describe("radar-civico-alertas", () => {
         dimensaoReferencia: "saude",
         grauSeveridade: "alto",
         desvioPercentual: 40,
-        deepLinkRota: `/${PORTAL}/despesas`,
       });
 
       const alertas = await getRadarCivicoAlertas(PORTAL, { limite: 2 });
@@ -323,7 +238,6 @@ describe("radar-civico-alertas", () => {
         dimensaoReferencia: "comissionados",
         grauSeveridade: "alto",
         desvioPercentual: 50,
-        deepLinkRota: `/${PORTAL}/pessoal`,
       });
 
       await seedAnomaliaFiscal({
@@ -334,7 +248,6 @@ describe("radar-civico-alertas", () => {
         dimensaoReferencia: "saude",
         grauSeveridade: "alto",
         desvioPercentual: 50,
-        deepLinkRota: `/${PORTAL}/despesas`,
       });
 
       const alertas = await getRadarCivicoAlertas(`  ${PORTAL}  `);
@@ -355,7 +268,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 1000000,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/caprem?ano=2024#atuarial`,
         metodoDeteccao: "limite_normativo_adimplencia",
       });
 
@@ -370,7 +282,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 0,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/caprem?ano=2024#patronal`,
         metodoDeteccao: "fluxo_patronal_em_aberto",
       });
 
@@ -386,9 +297,7 @@ describe("radar-civico-alertas", () => {
       expect(atuarial?.desvioPercentual).toBe(35.0);
       expect(atuarial?.valorObservado).toBe(650000);
       expect(atuarial?.valorEsperado).toBe(1000000);
-      expect(atuarial?.deepLinkRota).toBe(
-        `/${PORTAL}/caprem?ano=2024#atuarial`,
-      );
+      expect(atuarial?.licitacaoNumero).toBeNull();
       expect(atuarial?.metodoDeteccao).toBe("limite_normativo_adimplencia");
 
       const patronal = alertas.find(
@@ -400,9 +309,7 @@ describe("radar-civico-alertas", () => {
       expect(patronal?.desvioPercentual).toBe(100.0);
       expect(patronal?.valorObservado).toBe(50000);
       expect(patronal?.valorEsperado).toBe(0);
-      expect(patronal?.deepLinkRota).toBe(
-        `/${PORTAL}/caprem?ano=2024#patronal`,
-      );
+      expect(patronal?.licitacaoNumero).toBeNull();
       expect(patronal?.metodoDeteccao).toBe("fluxo_patronal_em_aberto");
     });
 
@@ -418,7 +325,7 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 10.0,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
+        licitacaoNumero: "000517",
         metodoDeteccao: "limite_competitividade_pregao",
       });
 
@@ -433,7 +340,7 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 50.0,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
+        licitacaoNumero: "000290",
         metodoDeteccao: "limite_inexequibilidade_art59",
       });
 
@@ -449,9 +356,7 @@ describe("radar-civico-alertas", () => {
       expect(descontoNulo?.desvioPercentual).toBe(10.0);
       expect(descontoNulo?.valorObservado).toBe(0.0);
       expect(descontoNulo?.valorEsperado).toBe(10.0);
-      expect(descontoNulo?.deepLinkRota).toBe(
-        `/${PORTAL}/licitacoes?ano=2026&numero=000517#itens`,
-      );
+      expect(descontoNulo?.licitacaoNumero).toBe("000517");
       expect(descontoNulo?.metodoDeteccao).toBe(
         "limite_competitividade_pregao",
       );
@@ -465,9 +370,7 @@ describe("radar-civico-alertas", () => {
       expect(desagioExtremo?.desvioPercentual).toBe(22.37);
       expect(desagioExtremo?.valorObservado).toBe(72.37);
       expect(desagioExtremo?.valorEsperado).toBe(50.0);
-      expect(desagioExtremo?.deepLinkRota).toBe(
-        `/${PORTAL}/licitacoes?ano=2026&numero=000290#itens`,
-      );
+      expect(desagioExtremo?.licitacaoNumero).toBe("000290");
       expect(desagioExtremo?.metodoDeteccao).toBe(
         "limite_inexequibilidade_art59",
       );
@@ -485,7 +388,6 @@ describe("radar-civico-alertas", () => {
         valorEsperado: 0.0,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: `/${PORTAL}/pessoal?ano=2026#regime`,
         metodoDeteccao: "harmonizacao_vinculo_art37",
       });
 
@@ -501,10 +403,222 @@ describe("radar-civico-alertas", () => {
       expect(vinculoAlerta?.desvioPercentual).toBe(100.0);
       expect(vinculoAlerta?.valorObservado).toBe(187.0);
       expect(vinculoAlerta?.valorEsperado).toBe(0.0);
-      expect(vinculoAlerta?.deepLinkRota).toBe(
-        `/${PORTAL}/pessoal?ano=2026#regime`,
-      );
+      expect(vinculoAlerta?.licitacaoNumero).toBeNull();
       expect(vinculoAlerta?.metodoDeteccao).toBe("harmonizacao_vinculo_art37");
+    });
+
+    it("deve carregar e mapear corretamente anomalia de dependência de transferências externas sob Art. 11 da LRF", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "dependencia_transferencias",
+        dimensaoReferencia: "receita_propria",
+        grauSeveridade: "critico",
+        desvioPercentual: 5.0,
+        valorObservado: 5.0,
+        valorEsperado: 10.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        metodoDeteccao: "art11_lrf_arrecadacao_propria",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const alerta = alertas[0];
+      expect(alerta?.tipoAnomalia).toBe("dependencia_transferencias");
+      expect(alerta?.dimensaoReferencia).toBe("receita_propria");
+      expect(alerta?.grauSeveridade).toBe("critico");
+      expect(alerta?.desvioPercentual).toBe(5.0);
+      expect(alerta?.valorObservado).toBe(5.0);
+      expect(alerta?.valorEsperado).toBe(10.0);
+      expect(alerta?.licitacaoNumero).toBeNull();
+      expect(alerta?.metodoDeteccao).toBe("art11_lrf_arrecadacao_propria");
+    });
+
+    it("deve carregar e mapear corretamente anomalia de desidratação do patrimônio do RPPS", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2025,
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        dimensaoReferencia: "patrimonio_previdenciario",
+        grauSeveridade: "critico",
+        desvioPercentual: 20.78,
+        valorObservado: 35980000.0,
+        valorEsperado: 45420000.0,
+        mesInicial: 1,
+        mesFinal: 12,
+        metodoDeteccao: "variacao_trienal_patrimonio",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL);
+      expect(alertas).toHaveLength(1);
+
+      const alerta = alertas[0];
+      expect(alerta?.tipoAnomalia).toBe("desidratacao_patrimonio_rpps");
+      expect(alerta?.dimensaoReferencia).toBe("patrimonio_previdenciario");
+      expect(alerta?.grauSeveridade).toBe("critico");
+      expect(alerta?.desvioPercentual).toBe(20.78);
+      expect(alerta?.valorObservado).toBe(35980000.0);
+      expect(alerta?.valorEsperado).toBe(45420000.0);
+      expect(alerta?.licitacaoNumero).toBeNull();
+      expect(alerta?.metodoDeteccao).toBe("variacao_trienal_patrimonio");
+    });
+  });
+
+  describe("getRadarAnomaliasCount", () => {
+    it("deve retornar 0 se portalSlug for vazio ou inválido", async () => {
+      expect(await getRadarAnomaliasCount({ portalSlug: "" })).toBe(0);
+      expect(await getRadarAnomaliasCount({ portalSlug: "   " })).toBe(0);
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCount({ portalSlug: null })).toBe(0);
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCount({ portalSlug: undefined })).toBe(0);
+    });
+
+    it("deve retornar 0 se ano for NaN", async () => {
+      expect(
+        await getRadarAnomaliasCount({
+          portalSlug: PORTAL,
+          ano: Number.NaN,
+        }),
+      ).toBe(0);
+    });
+
+    it("deve contar apenas anomalias com severidade crítico no ano especificado", async () => {
+      // Anomalia crítica em 2024
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+      });
+
+      // Segunda anomalia crítica em 2024
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+      });
+
+      // Anomalia de severidade alta em 2024 (não deve ser contabilizada)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "pico_despesa_homologa",
+        dimensaoReferencia: "despesas",
+        grauSeveridade: "alto",
+      });
+
+      // Anomalia de severidade moderada em 2024 (não deve ser contabilizada)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "concentracao_dispensa",
+        dimensaoReferencia: "dispensas",
+        grauSeveridade: "moderado",
+      });
+
+      // Anomalia crítica em 2025 (outro ano)
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2025,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+      });
+
+      // Anomalia crítica em outro portal
+      await seedAnomaliaFiscal({
+        portalSlug: `${PORTAL}_outro`,
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+      });
+
+      const count2024 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2024,
+      });
+      expect(count2024).toBe(2);
+
+      const count2025 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2025,
+      });
+      expect(count2025).toBe(1);
+
+      const count2026 = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+        ano: 2026,
+      });
+      expect(count2026).toBe(0);
+
+      // Sem especificar ano, conta todos os críticos do portal
+      const countTotal = await getRadarAnomaliasCount({
+        portalSlug: PORTAL,
+      });
+      expect(countTotal).toBe(3);
+    });
+  });
+
+  describe("getRadarAnomaliasCountByYear", () => {
+    it("deve retornar objeto vazio se portalSlug for inválido", async () => {
+      expect(await getRadarAnomaliasCountByYear({ portalSlug: "" })).toEqual(
+        {},
+      );
+      // @ts-expect-error teste com valor inválido
+      expect(await getRadarAnomaliasCountByYear({ portalSlug: null })).toEqual(
+        {},
+      );
+    });
+
+    it("deve retornar mapa consolidado de alertas críticos por ano", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2023,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "rombo_caixa",
+        dimensaoReferencia: "deficit",
+        grauSeveridade: "critico",
+      });
+
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "explosao_comissionados",
+        dimensaoReferencia: "comissionados",
+        grauSeveridade: "critico",
+      });
+
+      // Não crítico
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "concentracao_dispensa",
+        dimensaoReferencia: "dispensas",
+        grauSeveridade: "moderado",
+      });
+
+      const mapByYear = await getRadarAnomaliasCountByYear({
+        portalSlug: PORTAL,
+      });
+
+      expect(mapByYear).toEqual({
+        2023: 1,
+        2024: 2,
+      });
     });
   });
 });

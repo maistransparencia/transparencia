@@ -38,7 +38,7 @@ def test_fetch_page_success(sample_payload):
         assert call_kwargs["params"]["id_tv"] == "ending_balance"
         assert call_kwargs["headers"]["User-Agent"] == "TransparenciaPublica/1.0"
 
-        assert len(result["items"]) == 5
+        assert len(result["items"]) == 7
         assert result["items"][0]["valor"] == 5000000.0
 
 
@@ -67,7 +67,7 @@ def test_fetch_page_retry_on_rate_limit(sample_payload):
         with patch("time.sleep"):  # don't wait during test
             result = extractor.fetch_page(ibge=DEFAULT_IBGE_PORCIUNCULA, ano=2024, mes=12)
             assert mock_get.call_count == 2
-            assert len(result["items"]) == 5
+            assert len(result["items"]) == 7
 
 
 def test_fetch_page_max_retries_exceeded():

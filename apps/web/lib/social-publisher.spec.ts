@@ -5,6 +5,7 @@ import {
   buildCivicAnomalyFacebookPost,
   buildCivicAnomalyTweet,
   publishSocial,
+  resolveAnomalyLink,
 } from "./social-publisher";
 import * as xBot from "./x-bot";
 
@@ -230,7 +231,7 @@ describe("social-publisher module", () => {
       valorEsperado: 100,
       mesInicial: 1,
       mesFinal: 12,
-      deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+      licitacaoNumero: null,
       metodoDeteccao: "iqr_estoque",
     };
 
@@ -302,7 +303,7 @@ describe("social-publisher module", () => {
         valorEsperado: 100,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        licitacaoNumero: null,
         metodoDeteccao: "iqr_estoque",
       },
     });
@@ -328,7 +329,7 @@ describe("social-publisher module", () => {
         valorEsperado: 100,
         mesInicial: 1,
         mesFinal: 12,
-        deepLinkRota: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+        licitacaoNumero: null,
         metodoDeteccao: "iqr_estoque",
       },
     });
@@ -386,6 +387,63 @@ describe("social-publisher module", () => {
         message: expect.stringContaining("45.5%"),
       }),
       expect.any(Object),
+    );
+  });
+
+  it("resolveAnomalyLink sanitiza baseUrl com barra final sem duplicar barras", () => {
+    const link = resolveAnomalyLink(
+      {
+        tipoAnomalia: "explosao_comissionados",
+        ano: 2025,
+      },
+      "https://maistransparencia.com/",
+      "porciuncula_prefeitura",
+    );
+    expect(link).toBe(
+      "https://maistransparencia.com/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
+    );
+    expect(link).not.toContain(".com//");
+  });
+
+  it("resolveAnomalyLink gera deep link correto para desidratacao_patrimonio_rpps", () => {
+    const link = resolveAnomalyLink(
+      {
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        ano: 2025,
+      },
+      "https://maistransparencia.com",
+      "porciuncula_prefeitura",
+    );
+    expect(link).toBe(
+      "https://maistransparencia.com/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
+    );
+  });
+
+  it("buildCivicAnomalyFacebookPost formata sinal negativo para desidratacao_patrimonio_rpps", () => {
+    const post = buildCivicAnomalyFacebookPost({
+      portalSlug: "porciuncula_prefeitura",
+      municipioNome: "Porciúncula",
+      alerta: {
+        anomaliaId: "crit-desidratacao",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        tipoAnomalia: "desidratacao_patrimonio_rpps",
+        dimensaoReferencia: "patrimonio_previdenciario",
+        grauSeveridade: "critico",
+        desvioPercentual: 20.8,
+        valorObservado: 35980000,
+        valorEsperado: 45420000,
+        mesInicial: 1,
+        mesFinal: 12,
+        licitacaoNumero: null,
+        metodoDeteccao: "variacao_trienal_patrimonio",
+      },
+    });
+
+    expect(post.message).toContain("-20.8%");
+    expect(post.message).toContain("patrimônio financeiro da previdência");
+    expect(post.link).toContain(
+      "/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
     );
   });
 });

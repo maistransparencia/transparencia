@@ -247,5 +247,93 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
       rerender(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
       expect(screen.getByText("Fechar")).toBeInTheDocument();
     });
+
+    it("deve exibir dot de notificação no botão Mais quando radarAlertCount > 0", () => {
+      render(
+        <MobileBottomNav
+          portalSlug="porciuncula_prefeitura"
+          radarAlertCount={3}
+        />,
+      );
+
+      const dot = screen.getByTestId("radar-alert-dot");
+      expect(dot).toBeInTheDocument();
+      expect(dot).toHaveAttribute("aria-label", "3 alertas críticos no Radar");
+
+      const innerPulse = dot.querySelector(".motion-safe\\:animate-pulse");
+      expect(innerPulse).toBeInTheDocument();
+      expect(innerPulse).toHaveClass("motion-reduce:animate-none");
+    });
+
+    it("não deve exibir dot de notificação quando radarAlertCount for 0 ou indefinido", () => {
+      const { rerender } = render(
+        <MobileBottomNav
+          portalSlug="porciuncula_prefeitura"
+          radarAlertCount={0}
+        />,
+      );
+
+      expect(screen.queryByTestId("radar-alert-dot")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText(/alertas críticos no Radar/i),
+      ).not.toBeInTheDocument();
+
+      rerender(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+      expect(screen.queryByTestId("radar-alert-dot")).not.toBeInTheDocument();
+    });
+
+    it("deve reagir ao ano selecionado quando radarAlertsCountByYear for fornecido", () => {
+      // Mock ano = 2024 (onde há alertas)
+      mockUseQueryState.mockImplementation(((key: string) => {
+        if (key === "ano") return ["2024", vi.fn()];
+        return [null, vi.fn()];
+      }) as unknown as typeof useQueryState);
+
+      const { rerender } = render(
+        <MobileBottomNav
+          portalSlug="porciuncula_prefeitura"
+          radarAlertsCountByYear={{ 2024: 4, 2026: 0 }}
+        />,
+      );
+
+      expect(screen.getByTestId("radar-alert-dot")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("4 alertas críticos no Radar"),
+      ).toBeInTheDocument();
+
+      // Troca para 2026 (onde contagem é 0)
+      mockUseQueryState.mockImplementation(((key: string) => {
+        if (key === "ano") return ["2026", vi.fn()];
+        return [null, vi.fn()];
+      }) as unknown as typeof useQueryState);
+
+      rerender(
+        <MobileBottomNav
+          portalSlug="porciuncula_prefeitura"
+          radarAlertsCountByYear={{ 2024: 4, 2026: 0 }}
+        />,
+      );
+
+      expect(screen.queryByTestId("radar-alert-dot")).not.toBeInTheDocument();
+    });
+
+    it("não deve exibir dot de notificação quando o menu lateral estiver aberto (isMenuOpen === true)", () => {
+      vi.spyOn(MobileNavContextModule, "useMobileNav").mockReturnValue({
+        isMenuOpen: true,
+        setIsMenuOpen: vi.fn(),
+        toggleMenu: vi.fn(),
+        closeMenu: vi.fn(),
+      });
+
+      render(
+        <MobileBottomNav
+          portalSlug="porciuncula_prefeitura"
+          radarAlertCount={3}
+        />,
+      );
+
+      expect(screen.queryByTestId("radar-alert-dot")).not.toBeInTheDocument();
+      expect(screen.getByText("Fechar")).toBeInTheDocument();
+    });
   });
 });

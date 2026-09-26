@@ -65,6 +65,31 @@ export function fmtLicitacaoModalidade(
   modalidade: string | null | undefined,
 ): string {
   const MODALIDADE_LABELS: Record<string, string> = {
+    pregao: "Pregão",
+    pregao_eletronico: "Pregão Eletrônico",
+    pregao_presencial: "Pregão Presencial",
+    concorrencia: "Concorrência",
+    concorrencia_eletronica: "Concorrência Eletrônica",
+    concorrencia_presencial: "Concorrência Presencial",
+    concurso: "Concurso",
+    leilao: "Leilão",
+    leilao_eletronico: "Leilão Eletrônico",
+    leilao_presencial: "Leilão Presencial",
+    dialogo_competitivo: "Diálogo Competitivo",
+    dispensa: "Dispensa de Licitação",
+    dispensa_eletronica: "Dispensa Eletrônica",
+    dispensa_de_licitacao: "Dispensa de Licitação",
+    inexigibilidade: "Inexigibilidade de Licitação",
+    inexigibilidade_de_licitacao: "Inexigibilidade de Licitação",
+    tomada_de_precos: "Tomada de Preços",
+    tomada_precos: "Tomada de Preços",
+    carta_convite: "Carta Convite",
+    convite: "Convite",
+    rdc: "Regime Diferenciado de Contratações (RDC)",
+    regime_diferenciado_contratacoes:
+      "Regime Diferenciado de Contratações (RDC)",
+    adesao_ata: "Adesão a Ata",
+    adesao_ata_registro_precos: "Adesão a Ata de Registro de Preços",
     adesao_ata_interna: "Adesão a Ata (Carona Interna)",
     adesao_ata_externa: "Adesão a Ata (Externa)",
     sem_licitacao: "Sem Licitação",
@@ -154,4 +179,20 @@ export function getPartialYearPeriod(
 
   const currentMonth = formatMonth(monthIndex);
   return `${jan}–${currentMonth}`;
+}
+
+export function fmtCpfCnpj(val: string | null | undefined): string {
+  if (!val) return "";
+  const trimmed = val.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 14) {
+    return digits.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      "$1.$2.$3/$4-$5",
+    );
+  }
+  if (digits.length === 11) {
+    return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  }
+  return trimmed;
 }

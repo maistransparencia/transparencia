@@ -134,6 +134,7 @@ export async function loadCapremData(
       romboAporteNaoRepassado,
       taxaAdimplenciaAporte,
       totalEmpenhadoPatronal,
+      totalLiquidadoPatronal,
       totalPagoPatronal,
       romboPatronalNaoRepassado,
       deficitMedioMensal,

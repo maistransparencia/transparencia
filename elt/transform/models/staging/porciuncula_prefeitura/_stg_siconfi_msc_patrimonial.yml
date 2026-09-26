@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_siconfi_msc_patrimonial
-    description: "Staging da Matriz de Saldos Contábeis (MSC) Patrimonial do SICONFI (Classe 1 - Ativo Disponível 111%), excluindo o Poder Legislativo (Câmara Municipal)"
+    description: "Staging da Matriz de Saldos Contábeis (MSC) Patrimonial do SICONFI (Classe 1 - Disponível 111% geral e Aplicações/Investimentos 114% para Previdência), excluindo o Poder Legislativo (Câmara Municipal)"
     columns:
       - name: ano
         description: "Exercício contábil de referência da matriz"

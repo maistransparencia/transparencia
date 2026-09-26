@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getPartialYearPeriod } from "../formatters";
+import {
+  fmtCpfCnpj,
+  fmtLicitacaoModalidade,
+  getPartialYearPeriod,
+} from "../formatters";
 
 describe("getPartialYearPeriod", () => {
   it("deve retornar apenas 'Jan' quando a referência for janeiro", () => {
@@ -66,5 +70,77 @@ describe("getPartialYearPeriod", () => {
     expect(getPartialYearPeriod(null)).toBe("");
     expect(getPartialYearPeriod("data-invalida")).toBe("");
     expect(getPartialYearPeriod(new Date("invalid"))).toBe("");
+  });
+});
+
+describe("fmtCpfCnpj", () => {
+  it("deve formatar CNPJ com 14 dígitos numéricos", () => {
+    expect(fmtCpfCnpj("12345678000190")).toBe("12.345.678/0001-90");
+    expect(fmtCpfCnpj("11111111000111")).toBe("11.111.111/0001-11");
+  });
+
+  it("deve formatar CPF com 11 dígitos numéricos", () => {
+    expect(fmtCpfCnpj("12345678901")).toBe("123.456.789-01");
+  });
+
+  it("deve manter CNPJ ou CPF já formatado", () => {
+    expect(fmtCpfCnpj("12.345.678/0001-90")).toBe("12.345.678/0001-90");
+    expect(fmtCpfCnpj("123.456.789-01")).toBe("123.456.789-01");
+  });
+
+  it("deve retornar string vazia para nulo, indefinido ou vazio", () => {
+    expect(fmtCpfCnpj(null)).toBe("");
+    expect(fmtCpfCnpj(undefined)).toBe("");
+    expect(fmtCpfCnpj("")).toBe("");
+    expect(fmtCpfCnpj("   ")).toBe("");
+  });
+
+  it("deve retornar a string original se não tiver 11 ou 14 dígitos", () => {
+    expect(fmtCpfCnpj("12345")).toBe("12345");
+    expect(fmtCpfCnpj("ESTRANGEIRO-99")).toBe("ESTRANGEIRO-99");
+  });
+});
+
+describe("fmtLicitacaoModalidade", () => {
+  it("deve formatar modalidades mapeadas com acentuação e títulos corretos", () => {
+    expect(fmtLicitacaoModalidade("pregao_eletronico")).toBe(
+      "Pregão Eletrônico",
+    );
+    expect(fmtLicitacaoModalidade("pregao_presencial")).toBe(
+      "Pregão Presencial",
+    );
+    expect(fmtLicitacaoModalidade("concorrencia")).toBe("Concorrência");
+    expect(fmtLicitacaoModalidade("concorrencia_eletronica")).toBe(
+      "Concorrência Eletrônica",
+    );
+    expect(fmtLicitacaoModalidade("dispensa")).toBe("Dispensa de Licitação");
+    expect(fmtLicitacaoModalidade("dispensa_eletronica")).toBe(
+      "Dispensa Eletrônica",
+    );
+    expect(fmtLicitacaoModalidade("inexigibilidade")).toBe(
+      "Inexigibilidade de Licitação",
+    );
+    expect(fmtLicitacaoModalidade("leilao_eletronico")).toBe(
+      "Leilão Eletrônico",
+    );
+    expect(fmtLicitacaoModalidade("dialogo_competitivo")).toBe(
+      "Diálogo Competitivo",
+    );
+    expect(fmtLicitacaoModalidade("adesao_ata_externa")).toBe(
+      "Adesão a Ata (Externa)",
+    );
+  });
+
+  it("deve retornar 'Outros' para valores nulos, vazios ou indefinidos", () => {
+    expect(fmtLicitacaoModalidade(null)).toBe("Outros");
+    expect(fmtLicitacaoModalidade(undefined)).toBe("Outros");
+    expect(fmtLicitacaoModalidade("")).toBe("Outros");
+    expect(fmtLicitacaoModalidade("   ")).toBe("Outros");
+  });
+
+  it("deve capitalizar palavras para modalidades não catalogadas com underscore", () => {
+    expect(fmtLicitacaoModalidade("outra_modalidade_customizada")).toBe(
+      "Outra Modalidade Customizada",
+    );
   });
 });

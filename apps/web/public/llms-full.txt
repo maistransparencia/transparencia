@@ -40,8 +40,9 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
   - *Desconto Nulo em Pregão (`desconto_nulo_pregao`):* Identifica pregões homologados com ausência de disputa real ou desconto irrisório (< 1,00% em relação ao valor estimado) em certames com valor homologado relevante (>= R$ 20.000,00). Dispara severidade crítica para valores homologados a partir de R$ 100.000,00 ou desconto <= 0,20%, com fundamentação jurídica oficial no [Art. 5º da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5) e deep link contextual para `/[portalSlug]/licitacoes?ano=[ano]&numero=[numero]#itens`.
   - *Deságio Extremo e Inexequibilidade (`desagio_extremo_inexequibilidade`):* Alerta para certames homologados com deságio excessivo (desconto global >= 50,00% sobre o valor estimado) em contratações expressivas (>= R$ 20.000,00), exigindo comprovação de exequibilidade da proposta. Possui severidade crítica quando o deságio atinge ou supera 65,00%, com fundamentação jurídica oficial no [Art. 59, III da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59) e deep link para os itens do processo.
   - *Inconsistência em Vínculos de Pessoal (`inconsistencia_vinculo_pessoal`):* Identifica servidores públicos cadastrados com categorias funcionais atípicas no portal de origem (como agentes políticos ou excepcional interesse alocados indevidamente em comissionados ou contratos temporários), exigindo harmonização cadastral. Dispara severidade crítica para mais de 30 divergências, alta para 6 a 30 e moderada para até 5, com fundamentação jurídica oficial no [Art. 37 da Constituição Federal](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37) e deep link contextual para `/[portalSlug]/pessoal?ano=[ano]#regime`.
+  - *Desidratação do Patrimônio do RPPS (`desidratacao_patrimonio_rpps`):* Alerta para a retração acumulada do patrimônio financeiro do Regime Próprio (CAPREM) superior a 20,00% em janela móvel de 3 exercícios fechados, expurgando anos com inconsistência contábil de declaração na MSC. Possui severidade crítica mandatória, fundamentação jurídica oficial na [Resolução CMN nº 4.963/2021](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963) e na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm), e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#patrimonio`.
 - **Badges Semânticos de Atenção e Acompanhamento:**
-  - *Atenção Especial (Crítico):* Variações de maior magnitude ou infrações que demandam acompanhamento prioritário da sociedade civil (ex: saltos atípicos em comissionados, rombo de caixa, retenção de contribuição patronal, inadimplência atuarial severa, deságio extremo com risco grave de inexequibilidade, pregão de grande vulto com desconto nulo ou contingente expressivo de vínculos inconsistentes).
+  - *Atenção Especial (Crítico):* Variações de maior magnitude ou infrações que demandam acompanhamento prioritário da sociedade civil (ex: saltos atípicos em comissionados, rombo de caixa, retenção de contribuição patronal, desidratação do patrimônio do RPPS, inadimplência atuarial severa, deságio extremo com risco grave de inexequibilidade, pregão de grande vulto com desconto nulo ou contingente expressivo de vínculos inconsistentes).
   - *Atenção (Alto):* Variações relevantes frente aos padrões médios ou limites de referência (ex: aporte atuarial com adimplência entre 70% e 90%, deságio entre 50% e 65%, desconto nulo em pregão de menor porte, divergências cadastrais moderadas de pessoal, opacidade elevada ou picos atípicos em funções administrativas).
   - *Acompanhamento (Moderado):* Oscilações moderadas para monitoramento orçamentário rotineiro.
 - **Contexto Temporal e Metodologia Declarada:**
@@ -50,6 +51,7 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
   - *Meta Atuarial / Fluxo em Aberto:* Apuração estrutural de conformidade do plano de amortização e repasses correntes da previdência própria.
   - *Competitividade PNCP / Risco de Inexequibilidade:* Análise granular de itens homologados e lances vencedores via integração com a base de dados do Portal Nacional de Contratações Públicas.
   - *Harmonização Cadastral:* Confronto entre categorias de regime jurídico reportadas e atribuições funcionais descritas no cadastro do servidor perante os preceitos do Art. 37 da CF/88.
+  - *Variação Trienal:* Avaliação da oscilação patrimonial acumulada em janela móvel de 3 exercícios financeiros.
 - **Narrativa Factual e Tom Neutro:** Descrições objetivas baseadas em evidências numéricas e dados oficiais, isentas de adjetivações valorativas ou acusações subjetivas.
 - **Métricas Comparativas e Fundamentação Jurídica Acessível:** Exibição clara do valor observado versus valor esperado/normativo e disponibilização de hyperlink oficial da Casa Civil / Planalto para o dispositivo legal pertinente com ícone acessível (`ExternalLink`), permitindo validação da norma com um clique.
 - **Funil de Aprofundamento e Compartilhamento:**
@@ -220,6 +222,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
 - **Valores Empenhados e Pagos por Contrato:** O acompanhamento financeiro de quanto do valor do contrato já foi empenhado e quanto já foi efetivamente pago.
 - **Contratos de Serviços Vigentes e Plurianuais:** Monitoramento dos principais contratos de serviços de terceiros no município, incluindo vigência (data de início e vencimento atualizado), celebração, indicador de contrato plurianual, mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`), fornecedor, status de execução (`em_execucao`, `concluido`, `inexecutado`), totais empenhado, liquidado e pago, percentual quitado e saldo pendente financeiro.
+- **Deep-Link e Visão 360° de Contratos:** Suporte a links diretos na URL (`/[portalSlug]/licitacoes?contratoNumero=...` ou `?contratoId=...` ou `?numero=...#contratos-servicos-vigentes`) e integração com a busca global Spotlight com retenção do termo pesquisado em camadas (`zIndex="z-[60]"`). Modal analítico com identificação completa, status semântico, fornecedor, CNPJ formatado (`fmtCpfCnpj`), objeto integral des-truncado, vigência e métricas financeiras completas (empenhado, liquidado, pago, saldo pendente e percentual pago). Conta com endpoint público sob demanda em `/api/[portalSlug]/contratos/details` (com rate limit de 60 req/min).
 
 ---
 
@@ -257,6 +260,24 @@ Esta seção traz a prestação de contas do instituto de previdência dos servi
   - *Recursos 100% Vinculados:* Alocação exclusiva das disponibilidades para pagamento de benefícios previdenciários e formação de reserva atuarial.
   - *Variação Anual:* Indicador percentual comparativo frente ao encerramento do exercício anterior.
   - *Exportação dos Dados Brutos:* Download em formato CSV dos lançamentos contábeis do RPPS homologados na STN (`tipo=saldo_caixa_siconfi&entidades=previdencia`).
+- **Evolução do Patrimônio Financeiro da Previdência (2021–2026) e Diagnóstico de Queima (`#patrimonio`):** Painel analítico plurianual confrontando a trajetória das reservas financeiras da previdência com as causas estruturais do déficit atuarial:
+  - *Curva de Desidratação da Poupança:* Gráfico interativo de área demonstrando a evolução consolidada do patrimônio financeiro (disponibilidade em caixa + aplicações financeiras na MSC do SICONFI/STN).
+  - *Três KPIs de Topo:*
+    1. *Pico Histórico:* Montante máximo registrado na série em exercícios válidos (ex: R$ 60,4M em 2021).
+    2. *Patrimônio Atual:* Saldo financeiro mais recente disponível acompanhado da taxa de retração percentual acumulada frente ao pico histórico (ex: -44,7%).
+    3. *Queima Média Anual:* Taxa média de consumo de reservas dividida pelos anos transcorridos entre o pico e o exercício mais recente (ex: ~R$ 5,4M/ano).
+  - *Transparência Metodológica e Quebra de Série:*
+    1. *Inconsistência de Declaração na MSC (2022):* Identificação técnica da omissão das aplicações financeiras na remessa contábil enviada pelo ente ao SICONFI em 2022, mantendo o dado factual publicado com badge e tooltip explicativo.
+    2. *Quebra de Série Metodológica (2023):* Exibição de variação percentual interanual como "N/D", expurgando cálculo estatístico artificial superior a +6.000% decorrente da regularização da declaração subsequente.
+  - *Diagnóstico Estrutural das Três Causas:*
+    1. *Déficit de Contribuição e Aportes Atuariais:* Confronto entre os aportes devidos e quitados para cobertura do passivo atuarial, com fundamentação na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
+    2. *Cota Patronal em Atraso:* Apuração de retenções no repasse ordinário da contribuição patronal devida pelo município ao fundo próprio, com fundamentação no [Art. 40 da Constituição Federal de 1988](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40).
+    3. *Diluição da Base de Efetivos:* Análise da proporção entre servidores temporários/comissionados e concursados efetivos, esclarecendo que temporários recolhem obrigatoriamente ao INSS/RGPS e não geram receita contributiva para o RPPS municipal.
+- **Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência):** Painel documental estrito dedicado à fiscalização dos acordos formais de repactuação e amortização de dívidas previdenciárias:
+  - *Foco Documental Sem Redundâncias:* Eliminação de cards duplicados de causa atuarial (centralizados em `#patrimonio`), priorizando a consulta dos termos oficiais e sua liquidação.
+  - *Tabela Oficial de Parcelamentos CADPREV (Elemento 71):* Relação exaustiva dos termos formalizados perante o Ministério da Previdência, identificando número do registro CADPREV, objeto pactuado, montante empenhado e valores efetivamente pagos pelo ente no exercício.
+  - *Série Histórica de Cobertura Atuarial e Resgate de Dívidas (2021–2026):* Tabela plurianual consolidando o histórico anual de aportes atuariais exigidos vs quitados (Elemento 97), taxa de adimplência e amortização de dívidas repactuadas.
+
 
 ---
 
@@ -316,7 +337,7 @@ Para aproximar a prestação de contas dos cidadãos e viabilizar o controle soc
 - **Redes Sociais Oficiais e Disseminação Cívica Automatizada:**
   - O portal integra-se a redes sociais para democratizar o acesso aos dados orçamentários:
     - **X.com (Twitter):** Perfil oficial [@mtransparenciax](https://x.com/mtransparenciax), com publicações automáticas contendo sínteses de fechamentos fiscais, atualizações orçamentárias, indicadores de transparência e alertas cívicos de severidade crítica (`civic_anomaly`), rigorosamente limitados a 280 caracteres ponderados e com links canônicos de validação.
-    - **Facebook:** Página oficial [MaisTransparência](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
+    - **Facebook:** Página oficial [MaisTransparencia](https://facebook.com/maistransparencia), compartilhando informativos em linguagem clara, estruturados em tópicos didáticos com métricas observadas vs. esperadas para a comunidade local e conselhos municipais.
     - **Cartões Sociais Dinâmicos (OpenGraph):** Templates dinâmicos de alta resolução para renderização em tempo real de metadados visuais ao compartilhar links no WhatsApp e redes sociais, com badges de severidade crítica do Radar Cívico (`/[portalSlug]/radar/opengraph-image`).
     - **GitHub (Código Aberto):** Repositório comunitário [transparencia](https://github.com/maistransparencia/transparencia), garantindo reprodutibilidade pública dos cálculos e fórmulas fiscais.
 
@@ -376,6 +397,7 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
     3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
     4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
     5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+  - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.
   - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
 
 ---
@@ -393,7 +415,7 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
 8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
-10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparência](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
+10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparencia](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
 12. **Fornecimento de Links de Download Direto CSV ("Show Your Work"):**
     - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente:
@@ -413,3 +435,28 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
     - Quando questionado sobre as contas do município, explique se os dados apresentados referem-se à visão **Consolidada** (toda a prefeitura somada a fundos municipais como Saúde e Previdência) ou a um órgão específico filtrado. Essa distinção é fundamental para que o cidadão compreenda a real magnitude do orçamento municipal.
 15. **Orientação sobre Navegação Móvel Contínua:**
     - Para cidadãos acessando o portal em celulares ou tablets, instrua sobre a barra fixa inferior com 5 abas ergonômicas (Início, Receitas, Despesas, Licitações e o botão "Mais" para abrir as demais seções como Orçamento, Pessoal, Saúde e Previdência), além do seletor de ano no cabeçalho superior sincronizado via URL (`?ano=YYYY`).
+
+## Governança, Privacidade e Transparência Institucional
+
+### Termos de Uso (`/termos`)
+
+Página estática com amparo jurídico formal da plataforma MaisTransparencia, cobrindo:
+
+- **Natureza Cívica e Independência:** Plataforma sem vínculo com partidos políticos, governos ou empresas contratadas pelo poder público. Código aberto auditável no GitHub.
+- **Base Legal para Publicação de Dados:**
+  - [Lei 12.527/2011 — LAI](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm): Direito de acesso à informação pública.
+  - [LC 131/2009](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp131.htm): Transparência ativa em tempo real da execução orçamentária.
+  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas.
+  - **Tema 483 do STF (RE 1.143.261):** Divulgação de remunerações de agentes públicos como imperativo constitucional de transparência.
+- **Limitações:** Os dados são fornecidos "como estão" a partir de fontes oficiais, sem responsabilidade por erros nas bases originais.
+
+### Política de Privacidade (`/privacidade`)
+
+Página estática descrevendo o tratamento de dados pessoais em conformidade com a [LGPD — Lei 13.709/2018](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm):
+
+- **Coleta Mínima:** Apenas endereço de e-mail (voluntário, com double opt-in), para envio de boletim cívico informativo.
+- **Finalidade Exclusiva (LGPD, Art. 7.º, I):** Envio de boletins informativos sobre execução orçamentária e alertas fiscais — nenhum outro uso.
+- **Telemetria Anônima:** Métricas agregadas de navegação via PostHog, sem identificação pessoal, sem rastreamento cross-site e sem repasse a anunciantes.
+- **Não-Comercialização:** Dados de contato jamais são vendidos, cedidos ou utilizados para fins político-partidários ou comerciais.
+- **Direitos do Titular (LGPD, Art. 18):** Cancelamento em 1 clique (RFC 8058), acesso, correção, eliminação e revogação do consentimento.
+- **Contato:** privacidade@maistransparencia.com

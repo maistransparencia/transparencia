@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useId, useRef } from "react";
 import { cn } from "../utils/cn";
@@ -8,14 +8,27 @@ import { cn } from "../utils/cn";
 export interface ModalDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onBack?: () => void;
+  backLabel?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   badge?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  maxWidth?:
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "5xl"
+    | "6xl"
+    | "full";
   className?: string;
   ariaLabel?: string;
+  zIndex?: string;
 }
 
 const MAX_WIDTH_MAP: Record<
@@ -30,11 +43,15 @@ const MAX_WIDTH_MAP: Record<
   "3xl": "sm:max-w-3xl",
   "4xl": "sm:max-w-4xl",
   "5xl": "sm:max-w-5xl",
+  "6xl": "sm:max-w-6xl",
+  full: "sm:max-w-[95vw]",
 };
 
 export function ModalDialog({
   isOpen,
   onClose,
+  onBack,
+  backLabel,
   title,
   subtitle,
   badge,
@@ -43,6 +60,7 @@ export function ModalDialog({
   maxWidth = "2xl",
   className,
   ariaLabel,
+  zIndex,
 }: ModalDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -135,7 +153,12 @@ export function ModalDialog({
   const maxWidthClass = MAX_WIDTH_MAP[maxWidth] || MAX_WIDTH_MAP["2xl"];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div
+      className={cn(
+        "fixed inset-0 flex items-end justify-center p-0 sm:items-center sm:p-4",
+        zIndex ?? "z-50",
+      )}
+    >
       <button
         type="button"
         tabIndex={-1}
@@ -160,12 +183,24 @@ export function ModalDialog({
         )}
       >
         {/* Header Estruturado */}
-        <div className="flex items-start justify-between border-slate-200/80 border-b bg-slate-50/90 px-5 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex items-start justify-between border-slate-200/80 border-b bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0 flex-1 pr-3">
+            {onBack && (
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-700 text-xs shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>{backLabel ?? "Voltar"}</span>
+                </button>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <h2
                 id={titleId}
-                className="font-bold font-serif text-base text-slate-900 sm:text-lg"
+                className="break-words font-bold font-serif text-base text-slate-900 [overflow-wrap:anywhere] sm:text-lg"
               >
                 {title}
               </h2>
@@ -188,13 +223,13 @@ export function ModalDialog({
         </div>
 
         {/* Corpo do Diálogo */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-3.5 sm:px-6 sm:py-5">
           {children}
         </div>
 
         {/* Rodapé Opcional */}
         {footer && (
-          <div className="border-slate-200/80 border-t bg-slate-50/70 px-5 py-3 sm:px-6 sm:py-3.5">
+          <div className="border-slate-200/80 border-t bg-slate-50/70 px-4 py-2.5 sm:px-6 sm:py-3.5">
             {footer}
           </div>
         )}

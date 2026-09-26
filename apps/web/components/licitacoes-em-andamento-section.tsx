@@ -14,9 +14,15 @@ import {
   fmtLicitacaoModalidade,
   fmtLicitacaoSituacao,
   ModalDialog,
-  TruncatedCellWithModal,
 } from "@transparencia/ui";
-import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  ExternalLink,
+  Package,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
@@ -24,6 +30,8 @@ export { fmtLicitacaoSituacao };
 export interface LicitacoesEmAndamentoSectionProps {
   licitacoes: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
+  portalSlug?: string;
+  ano?: number;
   className?: string;
 }
 
@@ -43,14 +51,22 @@ function getFonteObjetoBadge(fonteObjeto?: string | null): string | undefined {
 export function LicitacoesEmAndamentoSection({
   licitacoes = [],
   itensByLicitacao,
+  portalSlug,
+  ano,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
     useState<LicitacaoTableRow | null>(null);
+  const [openedFromSearch, setOpenedFromSearch] = useState(false);
   const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
     null,
   );
+  const [dynamicItensByLicitacao, setDynamicItensByLicitacao] = useState<
+    Record<string, LicitacaoItemDTO[]>
+  >({});
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const hasCheckedDeepLinkRef = useRef(false);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
 
   // Ordena primeiro por valor decrescente (destaque para compras mais caras)
   const sortedByRelevance = useMemo(() => {
@@ -63,11 +79,6 @@ export function LicitacoesEmAndamentoSection({
       return dataB.localeCompare(dataA);
     });
   }, [licitacoes]);
-
-  // Top 4 para cards de destaque
-  const topDestaques = useMemo(() => {
-    return sortedByRelevance.slice(0, 4);
-  }, [sortedByRelevance]);
 
   // Mapeamento enriquecido para a tabela
   const tableData: LicitacaoTableRow[] = useMemo(() => {
@@ -124,26 +135,161 @@ export function LicitacoesEmAndamentoSection({
     });
   }, [sortedByRelevance]);
 
+  // Top 4 para cards de destaque
+  const topDestaques: LicitacaoTableRow[] = useMemo(() => {
+    return tableData.slice(0, 4);
+  }, [tableData]);
+
   useEffect(() => {
-    if (typeof window === "undefined" || hasCheckedDeepLinkRef.current) return;
+    if (typeof window === "undefined") return;
     if (tableData.length === 0) return;
 
-    hasCheckedDeepLinkRef.current = true;
-    const urlParams = new URLSearchParams(window.location.search);
-    const numero = urlParams.get("numero");
-    const hash = window.location.hash;
-    if (numero) {
+    const checkAndOpenLicitacao = async (
+      targetNumero?: string | null,
+      searchDetail?: {
+        id?: string;
+        numero?: string;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
+      },
+    ) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const numero = targetNumero ?? urlParams.get("numero");
+      if (!numero) return;
+
       setHighlightedNumero(numero);
-      if (hash === "#itens") {
-        const match = tableData.find(
-          (t) => t.licitacaoNumero === numero || t.licitacaoId === numero,
-        );
-        if (match) {
-          setSelectedLicitacaoForItens(match);
+      const cleanNum = numero.trim();
+      const match = tableData.find((t) => {
+        if (!t) return false;
+        if (t.licitacaoNumero === cleanNum || t.licitacaoId === cleanNum)
+          return true;
+        if (t.licitacaoNumero && cleanNum) {
+          return (
+            t.licitacaoNumero.replace(/^0+/, "") === cleanNum.replace(/^0+/, "")
+          );
+        }
+        return false;
+      });
+
+      if (match) {
+        setSelectedLicitacaoForItens(match);
+        return;
+      }
+
+      // Se não estiver na tabela pré-carregada (ex: processo já homologado), busca via API ou constrói a partir dos dados do evento
+      const targetSlug = searchDetail?.portalSlug || portalSlug;
+      const targetAno = searchDetail?.ano || ano;
+
+      if (targetSlug) {
+        setLoadingDetails(true);
+        try {
+          const res = await fetch(
+            `/api/${encodeURIComponent(targetSlug)}/licitacoes/details?numero=${encodeURIComponent(cleanNum)}${targetAno ? `&ano=${targetAno}` : ""}`,
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.licitacao) {
+              const item = data.licitacao;
+              const modalidadeFmt = fmtLicitacaoModalidade(item.modalidade);
+              const situacaoFmt = fmtLicitacaoSituacao(item.situacao);
+              const tableRow: LicitacaoTableRow = {
+                ...item,
+                modalidadeFormatada: modalidadeFmt,
+                situacaoFormatada: situacaoFmt,
+                valorFinal: item.valorEstimado ?? item.valor ?? null,
+                buscaNormalizada: "",
+              };
+              if (Array.isArray(data.itens) && data.itens.length > 0) {
+                setDynamicItensByLicitacao((prev) => ({
+                  ...prev,
+                  [item.licitacaoNumero]: data.itens,
+                }));
+              }
+              setSelectedLicitacaoForItens(tableRow);
+              return;
+            }
+          }
+        } catch (_err) {
+          // Fallback silencioso para dados de busca se a requisição falhar
+        } finally {
+          setLoadingDetails(false);
         }
       }
+
+      // Fallback gracioso com dados da busca caso a API falhe ou não tenha portalSlug
+      if (searchDetail && (searchDetail.numero || searchDetail.objeto)) {
+        const modalidadeFmt = fmtLicitacaoModalidade(searchDetail.modalidade);
+        const situacaoFmt = fmtLicitacaoSituacao(searchDetail.status);
+        const fallbackRow: LicitacaoTableRow = {
+          licitacaoId: searchDetail.id || cleanNum,
+          portalSlug: targetSlug || "",
+          ano: targetAno || new Date().getFullYear(),
+          empresaId: "",
+          entidadeNome: null,
+          licitacaoNumero: searchDetail.numero || cleanNum,
+          modalidade: searchDetail.modalidade || "",
+          objeto: searchDetail.objeto || "",
+          discriminacao: null,
+          valor: searchDetail.valor ?? null,
+          valorEstimado: searchDetail.valor ?? null,
+          valorHomologado: searchDetail.valor ?? null,
+          situacao: searchDetail.status || "homologada",
+          dataAbertura: null,
+          carona: null,
+          fonteObjeto: "municipal",
+          linkSistemaOrigem: searchDetail.linkSistemaOrigem || null,
+          modalidadeFormatada: modalidadeFmt,
+          situacaoFormatada: situacaoFmt,
+          valorFinal: searchDetail.valor ?? null,
+          buscaNormalizada: "",
+        };
+        setSelectedLicitacaoForItens(fallbackRow);
+      }
+    };
+
+    if (!hasCheckedDeepLinkRef.current) {
+      hasCheckedDeepLinkRef.current = true;
+      checkAndOpenLicitacao();
     }
-  }, [tableData]);
+
+    const handleCustomSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        numero?: string;
+        id?: string;
+        fromSearch?: boolean;
+        objeto?: string;
+        modalidade?: string | null;
+        status?: string | null;
+        valor?: number;
+        linkSistemaOrigem?: string | null;
+        ano?: number;
+        portalSlug?: string;
+      }>;
+      const num = customEvent.detail?.numero || customEvent.detail?.id;
+      if (num) {
+        if (customEvent.detail?.fromSearch) {
+          setOpenedFromSearch(true);
+        }
+        checkAndOpenLicitacao(num, customEvent.detail);
+      }
+    };
+
+    const handlePopState = () => {
+      checkAndOpenLicitacao();
+    };
+
+    window.addEventListener("licitacao:selected", handleCustomSelect);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("licitacao:selected", handleCustomSelect);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [tableData, portalSlug, ano]);
 
   const columns: Column<LicitacaoTableRow>[] = [
     {
@@ -153,9 +299,17 @@ export function LicitacoesEmAndamentoSection({
       className: "whitespace-nowrap font-semibold text-slate-900",
       renderCell: (row) => (
         <div className="space-y-1">
-          <span className="font-semibold text-slate-900">
+          <button
+            type="button"
+            onClick={() => {
+              setOpenedFromSearch(false);
+              setSelectedLicitacaoForItens(row);
+            }}
+            className="cursor-pointer text-left font-semibold text-slate-900 hover:text-blue-600 hover:underline"
+            title="Ver detalhes da licitação"
+          >
             {row.licitacaoNumero || "S/N"}
-          </span>
+          </button>
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {row.linkSistemaOrigem && (
               <a
@@ -171,12 +325,14 @@ export function LicitacoesEmAndamentoSection({
             )}
             <button
               type="button"
-              onClick={() => setSelectedLicitacaoForItens(row)}
-              className="inline-flex items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
-              title="Visualizar itens licitados"
+              onClick={() => {
+                setOpenedFromSearch(false);
+                setSelectedLicitacaoForItens(row);
+              }}
+              className="inline-flex cursor-pointer items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
+              title="Visualizar detalhes da licitação"
             >
-              <Package className="h-2.5 w-2.5" aria-hidden="true" />
-              <span>Itens</span>
+              <span>Detalhes</span>
             </button>
           </div>
         </div>
@@ -205,20 +361,22 @@ export function LicitacoesEmAndamentoSection({
       sortable: true,
       className: "min-w-[220px] max-w-[340px] text-slate-700",
       renderCell: (row) => (
-        <TruncatedCellWithModal
-          text={row.objeto}
-          modalTitle={`Processo ${row.licitacaoNumero || "S/N"} — Objeto da Licitação`}
-          characterThreshold={120}
-          maxLines={2}
-          badge={getFonteObjetoBadge(row.fonteObjeto)}
-          secondaryText={
-            row.discriminacao && row.discriminacao !== row.objeto
-              ? row.discriminacao
-              : undefined
-          }
-          externalUrl={row.linkSistemaOrigem}
-          externalLabel="Sala de Disputa"
-        />
+        <div className="space-y-1">
+          <p
+            className="line-clamp-2 text-slate-700 text-xs leading-relaxed"
+            title={row.objeto}
+          >
+            {row.objeto || "—"}
+          </p>
+          {((fonteObjeto) =>
+            fonteObjeto && (
+              <div className="flex items-center gap-2">
+                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
+                  {getFonteObjetoBadge(row.fonteObjeto)}
+                </span>
+              </div>
+            ))(getFonteObjetoBadge(row.fonteObjeto))}
+        </div>
       ),
     },
     {
@@ -343,9 +501,14 @@ export function LicitacoesEmAndamentoSection({
 
           {/* Linha 2: Processo e Órgão empilhados verticalmente */}
           <div>
-            <span className="font-bold text-slate-900 text-sm">
+            <button
+              type="button"
+              onClick={() => setSelectedLicitacaoForItens(row)}
+              className="cursor-pointer text-left font-bold text-slate-900 text-sm hover:text-blue-600 hover:underline"
+              title="Ver detalhes da licitação"
+            >
               Processo {row.licitacaoNumero || "S/N"}
-            </span>
+            </button>
             {row.entidadeNome && (
               <p className="mt-0.5 truncate text-slate-500 text-xs">
                 {row.entidadeNome}
@@ -353,22 +516,14 @@ export function LicitacoesEmAndamentoSection({
             )}
           </div>
 
-          {/* Linha 3: Objeto com modal */}
+          {/* Linha 3: Objeto */}
           <div>
-            <TruncatedCellWithModal
-              text={row.objeto}
-              modalTitle={`Processo ${row.licitacaoNumero || "S/N"} — Objeto da Licitação`}
-              characterThreshold={120}
-              maxLines={3}
-              badge={getFonteObjetoBadge(row.fonteObjeto)}
-              secondaryText={
-                row.discriminacao && row.discriminacao !== row.objeto
-                  ? row.discriminacao
-                  : undefined
-              }
-              externalUrl={row.linkSistemaOrigem}
-              externalLabel="Sala de Disputa"
-            />
+            <p
+              className="line-clamp-3 text-slate-700 text-xs leading-relaxed"
+              title={row.objeto}
+            >
+              {row.objeto}
+            </p>
           </div>
 
           {/* Linha 4: Data de abertura */}
@@ -430,13 +585,14 @@ export function LicitacoesEmAndamentoSection({
           <button
             type="button"
             onClick={() => setSelectedLicitacaoForItens(row)}
-            className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900"
+            className="inline-flex cursor-pointer items-center gap-1 font-medium text-slate-600 hover:text-slate-900"
+            title="Visualizar detalhes da licitação"
           >
             <Package
               className="h-3.5 w-3.5 text-slate-400"
               aria-hidden="true"
             />
-            <span>Ver Itens Licitados</span>
+            <span>Detalhes</span>
           </button>
 
           {row.linkSistemaOrigem && (
@@ -563,10 +719,12 @@ export function LicitacoesEmAndamentoSection({
                         {/* Linha 1: Badges horizontais com wrap */}
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge variant="accent">
-                            {fmtLicitacaoModalidade(item.modalidade)}
+                            {item.modalidadeFormatada ||
+                              fmtLicitacaoModalidade(item.modalidade)}
                           </Badge>
                           <Badge variant="warning">
-                            {fmtLicitacaoSituacao(item.situacao)}
+                            {item.situacaoFormatada ||
+                              fmtLicitacaoSituacao(item.situacao)}
                           </Badge>
                           {item.fonteObjeto === "pncp" && (
                             <span
@@ -588,9 +746,14 @@ export function LicitacoesEmAndamentoSection({
 
                         {/* Linha 2: Processo e Órgão empilhados verticalmente */}
                         <div>
-                          <span className="font-bold text-slate-900 text-sm">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLicitacaoForItens(item)}
+                            className="cursor-pointer text-left font-bold text-slate-900 text-sm hover:text-blue-600 hover:underline"
+                            title="Ver detalhes da licitação"
+                          >
                             Processo {item.licitacaoNumero || "S/N"}
-                          </span>
+                          </button>
                           {item.entidadeNome && (
                             <p className="mt-0.5 truncate text-slate-500 text-xs">
                               {item.entidadeNome}
@@ -598,23 +761,14 @@ export function LicitacoesEmAndamentoSection({
                           )}
                         </div>
 
-                        {/* Linha 3: Objeto com modal */}
+                        {/* Linha 3: Objeto */}
                         <div>
-                          <TruncatedCellWithModal
-                            text={item.objeto}
-                            modalTitle={`Processo ${item.licitacaoNumero || "S/N"} — Objeto da Licitação`}
-                            characterThreshold={120}
-                            maxLines={3}
-                            badge={getFonteObjetoBadge(item.fonteObjeto)}
-                            secondaryText={
-                              item.discriminacao &&
-                              item.discriminacao !== item.objeto
-                                ? item.discriminacao
-                                : undefined
-                            }
-                            externalUrl={item.linkSistemaOrigem}
-                            externalLabel="Sala de Disputa"
-                          />
+                          <p
+                            className="line-clamp-3 text-slate-700 text-xs leading-relaxed"
+                            title={item.objeto}
+                          >
+                            {item.objeto}
+                          </p>
                         </div>
 
                         {/* Linha 4: Data de abertura */}
@@ -677,18 +831,15 @@ export function LicitacoesEmAndamentoSection({
                       <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
                         <button
                           type="button"
-                          onClick={() =>
-                            setSelectedLicitacaoForItens(
-                              item as LicitacaoTableRow,
-                            )
-                          }
-                          className="inline-flex items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
+                          onClick={() => setSelectedLicitacaoForItens(item)}
+                          className="inline-flex cursor-pointer items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
+                          title="Visualizar detalhes da licitação"
                         >
                           <Package
                             className="h-3.5 w-3.5 text-slate-400"
                             aria-hidden="true"
                           />
-                          <span>Ver Itens Licitados</span>
+                          <span>Detalhes</span>
                         </button>
 
                         {item.linkSistemaOrigem && (
@@ -752,16 +903,52 @@ export function LicitacoesEmAndamentoSection({
       {/* Diálogo / Modal de Itens Licitados via ModalDialog */}
       <ModalDialog
         isOpen={!!selectedLicitacaoForItens}
-        onClose={() => setSelectedLicitacaoForItens(null)}
-        title={`Itens Licitados — Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
-        subtitle={selectedLicitacaoForItens?.objeto}
-        maxWidth="4xl"
+        onClose={() => {
+          setSelectedLicitacaoForItens(null);
+          setOpenedFromSearch(false);
+        }}
+        onBack={
+          openedFromSearch
+            ? () => {
+                setSelectedLicitacaoForItens(null);
+                setOpenedFromSearch(false);
+              }
+            : undefined
+        }
+        backLabel="Voltar aos resultados da busca"
+        zIndex={openedFromSearch ? "z-[60]" : undefined}
+        title={`Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
+        subtitle={
+          selectedLicitacaoForItens?.entidadeNome || "Licitação Pública"
+        }
+        badge={(() => {
+          if (!selectedLicitacaoForItens) return undefined;
+          const sit =
+            selectedLicitacaoForItens.situacaoFormatada ||
+            selectedLicitacaoForItens.situacao;
+          if (sit?.toLowerCase().includes("homologad")) {
+            return <Badge variant="success">Homologada</Badge>;
+          }
+          if (
+            sit?.toLowerCase().includes("abert") ||
+            sit?.toLowerCase().includes("andamento") ||
+            sit?.toLowerCase().includes("disputa")
+          ) {
+            return <Badge variant="accent">{sit}</Badge>;
+          }
+          return <Badge variant="default">{sit || "Em andamento"}</Badge>;
+        })()}
+        maxWidth="5xl"
         footer={
           selectedLicitacaoForItens ? (
             <div className="flex w-full items-center justify-between text-xs">
               <span className="text-slate-500">
-                {itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
-                  ?.length || 0}{" "}
+                {(
+                  dynamicItensByLicitacao[
+                    selectedLicitacaoForItens.licitacaoNumero
+                  ] ??
+                  itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero]
+                )?.length || 0}{" "}
                 itens listados
               </span>
               {selectedLicitacaoForItens.linkSistemaOrigem && (
@@ -771,7 +958,7 @@ export function LicitacoesEmAndamentoSection({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  <span>Abrir Sala de Disputa</span>
+                  <span>Abrir Sala de Disputa no PNCP</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
                 </a>
               )}
@@ -782,154 +969,381 @@ export function LicitacoesEmAndamentoSection({
         {selectedLicitacaoForItens &&
           (() => {
             const itens =
+              dynamicItensByLicitacao[
+                selectedLicitacaoForItens.licitacaoNumero
+              ] ??
               itensByLicitacao?.[selectedLicitacaoForItens.licitacaoNumero] ??
               [];
-            if (itens.length === 0) {
-              return (
-                <div className="py-12 text-center">
-                  <Package
-                    className="mx-auto h-10 w-10 text-slate-300"
-                    aria-hidden="true"
-                  />
-                  <p className="mt-3 font-medium text-slate-700 text-sm">
-                    Nenhum item individual cadastrado para este processo.
-                  </p>
-                  <p className="mt-1 text-slate-400 text-xs">
-                    Os detalhes da contratação podem ser consultados no edital
-                    completo ou na sala de disputa pública.
-                  </p>
-                  {selectedLicitacaoForItens.linkSistemaOrigem && (
-                    <div className="mt-4">
-                      <a
-                        href={selectedLicitacaoForItens.linkSistemaOrigem}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white text-xs shadow-xs transition-colors hover:bg-blue-700"
-                      >
-                        <span>Acessar Sala de Disputa no PNCP</span>
-                        <ExternalLink
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              );
-            }
 
             return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-slate-600 text-xs">
-                  <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
-                    <tr>
-                      <th className="px-3 py-2 text-center">Item</th>
-                      <th className="px-3 py-2">Descrição</th>
-                      <th className="px-3 py-2 text-center">Qtd / Un</th>
-                      <th className="px-3 py-2 text-right">Valor Estimado</th>
-                      <th className="px-3 py-2 text-right">Homologado</th>
-                      <th className="px-3 py-2 text-center">Desconto</th>
-                      <th className="px-3 py-2">Fornecedor Vencedor</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {itens.map((it) => (
-                      <tr key={it.itemId} className="hover:bg-slate-50/80">
-                        <td className="px-3 py-2.5 text-center font-bold text-slate-900">
-                          {it.numeroItem}
-                        </td>
-                        <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
-                          {it.descricao || "—"}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.quantidade != null ? it.quantidade : "—"}{" "}
-                          {it.unidadeMedida || ""}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalEstimado ??
-                              (it.valorUnitarioEstimado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioEstimado * it.quantidade
-                                : it.valorUnitarioEstimado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioEstimado != null && (
-                                      <span className="block font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(it.valorUnitarioEstimado)}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
-                          {(() => {
-                            const valorExibicao =
-                              it.valorTotalHomologado ??
-                              (it.valorUnitarioHomologado != null &&
-                              it.quantidade != null
-                                ? it.valorUnitarioHomologado * it.quantidade
-                                : it.valorUnitarioHomologado);
-                            if (valorExibicao != null) {
-                              return (
-                                <>
-                                  <span>{fmtCurrency(valorExibicao)}</span>
-                                  {it.quantidade != null &&
-                                    it.quantidade > 1 &&
-                                    it.valorUnitarioHomologado != null && (
-                                      <span className="block font-normal font-sans text-[10px] text-slate-400">
-                                        {fmtCurrency(
-                                          it.valorUnitarioHomologado,
-                                        )}{" "}
-                                        / un
-                                      </span>
-                                    )}
-                                </>
-                              );
-                            }
-                            return "—";
-                          })()}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-center">
-                          {it.percentualDesconto != null ? (
-                            <span className="font-semibold text-emerald-700">
-                              {it.percentualDesconto}%
+              <div className="space-y-6 py-2">
+                {/* Bloco 1: Órgão, Modalidade, Abertura e Ano */}
+                <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 sm:grid-cols-2 sm:gap-6 sm:p-4 lg:grid-cols-4">
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                      Órgão Licitante
+                    </span>
+                    <p className="mt-0.5 break-words font-semibold text-slate-900 text-sm [overflow-wrap:anywhere] [word-break:break-word]">
+                      {selectedLicitacaoForItens.entidadeNome ||
+                        "Não informado"}
+                    </p>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                      Modalidade
+                    </span>
+                    <p className="mt-0.5 break-words font-medium text-slate-900 text-sm [overflow-wrap:anywhere] [word-break:break-word]">
+                      {selectedLicitacaoForItens.modalidadeFormatada ||
+                        fmtLicitacaoModalidade(
+                          selectedLicitacaoForItens.modalidade,
+                        )}
+                    </p>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                      Data de Abertura
+                    </span>
+                    <p className="mt-0.5 font-medium text-slate-900 text-sm">
+                      {selectedLicitacaoForItens.dataAbertura
+                        ? fmtDate(selectedLicitacaoForItens.dataAbertura)
+                        : "Não informada"}
+                    </p>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                      Exercício
+                    </span>
+                    <p className="mt-0.5 font-medium text-slate-900 text-sm">
+                      {selectedLicitacaoForItens.ano || "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bloco 2: Objeto Integral da Licitação */}
+                <div className="min-w-0">
+                  <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                    Objeto Integral da Licitação
+                  </span>
+                  <div className="mt-1.5 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3.5 text-slate-800 text-sm leading-relaxed shadow-2xs [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
+                    {selectedLicitacaoForItens.objeto ||
+                      "Objeto não informado."}
+                  </div>
+                  {selectedLicitacaoForItens.discriminacao &&
+                    selectedLicitacaoForItens.discriminacao !==
+                      selectedLicitacaoForItens.objeto && (
+                      <div className="mt-2 break-words text-slate-500 text-xs [overflow-wrap:anywhere] [word-break:break-word]">
+                        <span className="font-semibold text-slate-600">
+                          Detalhamento complementar:{" "}
+                        </span>
+                        <span>{selectedLicitacaoForItens.discriminacao}</span>
+                      </div>
+                    )}
+                </div>
+
+                {/* Bloco 3: Grid de Valores Financeiros */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                  <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                    <span className="font-medium text-slate-500 text-xs">
+                      Valor Estimado
+                    </span>
+                    <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+                      {selectedLicitacaoForItens.valorFinal
+                        ? fmtCurrency(selectedLicitacaoForItens.valorFinal)
+                        : selectedLicitacaoForItens.valorEstimado
+                          ? fmtCurrency(selectedLicitacaoForItens.valorEstimado)
+                          : selectedLicitacaoForItens.valor
+                            ? fmtCurrency(selectedLicitacaoForItens.valor)
+                            : "Não divulgado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                    <span className="font-medium text-slate-500 text-xs">
+                      Valor Homologado
+                    </span>
+                    <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+                      {selectedLicitacaoForItens.valorHomologado
+                        ? fmtCurrency(selectedLicitacaoForItens.valorHomologado)
+                        : "Em disputa / Pendente"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                    <span className="font-medium text-slate-500 text-xs">
+                      Economia Obtida
+                    </span>
+                    {(() => {
+                      const est =
+                        selectedLicitacaoForItens.valorFinal ??
+                        selectedLicitacaoForItens.valorEstimado ??
+                        selectedLicitacaoForItens.valor;
+                      const hom = selectedLicitacaoForItens.valorHomologado;
+                      if (est && hom && est > hom) {
+                        const diff = est - hom;
+                        const pct = (diff / est) * 100;
+                        return (
+                          <p className="mt-1 font-semibold font-serif text-base text-emerald-700 sm:text-lg">
+                            {fmtCurrency(diff)}{" "}
+                            <span className="font-sans text-xs">
+                              (-{pct.toFixed(1)}%)
                             </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="min-w-[150px] px-3 py-2.5">
-                          {it.fornecedorNome ? (
-                            <div>
-                              <span className="font-medium text-slate-800">
-                                {it.fornecedorNome}
-                              </span>
-                              {it.fornecedorCpfCnpj && (
-                                <span className="block text-[10px] text-slate-400">
-                                  {it.fornecedorCpfCnpj}
-                                </span>
-                              )}
+                          </p>
+                        );
+                      }
+                      return (
+                        <p className="mt-1 font-semibold text-slate-400 text-sm">
+                          —
+                        </p>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Bloco 4: Itens Licitados */}
+                <div className="space-y-2.5">
+                  <h3 className="font-semibold text-slate-900 text-sm">
+                    Itens Licitados
+                  </h3>
+                  {(() => {
+                    if (itens.length === 0) {
+                      return (
+                        <div className="rounded-xl border border-slate-200 bg-white py-10 text-center">
+                          <Package
+                            className="mx-auto h-9 w-9 text-slate-300"
+                            aria-hidden="true"
+                          />
+                          <p className="mt-2.5 font-medium text-slate-700 text-sm">
+                            {loadingDetails
+                              ? "Carregando detalhes e itens da contratação..."
+                              : "Nenhum item individual cadastrado para este processo."}
+                          </p>
+                          <p className="mt-1 text-slate-400 text-xs">
+                            Os detalhes da contratação podem ser consultados no
+                            edital completo ou na sala de disputa pública.
+                          </p>
+                          {selectedLicitacaoForItens.linkSistemaOrigem && (
+                            <div className="mt-4">
+                              <a
+                                href={
+                                  selectedLicitacaoForItens.linkSistemaOrigem
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 font-semibold text-white text-xs shadow-xs transition-colors hover:bg-blue-700"
+                              >
+                                <span>Acessar Sala de Disputa no PNCP</span>
+                                <ExternalLink
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />
+                              </a>
                             </div>
-                          ) : (
-                            <span className="text-slate-400 italic">
-                              Pendente / Não homologado
-                            </span>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between text-slate-500 text-xs">
+                          <span className="font-medium text-slate-600">
+                            {itens.length}{" "}
+                            {itens.length === 1
+                              ? "item listado"
+                              : "itens listados"}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="hidden font-medium text-[11px] text-slate-400 sm:inline">
+                              Navegar colunas:
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const el = tableScrollRef.current;
+                                if (!el) return;
+                                if (typeof el.scrollBy === "function") {
+                                  el.scrollBy({
+                                    left: -240,
+                                    behavior: "smooth",
+                                  });
+                                } else {
+                                  el.scrollLeft -= 240;
+                                }
+                              }}
+                              aria-label="Rolar tabela para a esquerda"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const el = tableScrollRef.current;
+                                if (!el) return;
+                                if (typeof el.scrollBy === "function") {
+                                  el.scrollBy({
+                                    left: 240,
+                                    behavior: "smooth",
+                                  });
+                                } else {
+                                  el.scrollLeft += 240;
+                                }
+                              }}
+                              aria-label="Rolar tabela para a direita"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div
+                          ref={tableScrollRef}
+                          className="overflow-x-auto rounded-xl border border-slate-200 bg-white"
+                        >
+                          <table className="w-full min-w-[780px] text-left text-slate-600 text-xs">
+                            <thead className="border-slate-200 border-b bg-slate-100/75 font-semibold text-slate-800 uppercase tracking-wider">
+                              <tr>
+                                <th className="px-3 py-2 text-center">Item</th>
+                                <th className="px-3 py-2">Descrição</th>
+                                <th className="px-3 py-2 text-center">
+                                  Qtd / Un
+                                </th>
+                                <th className="px-3 py-2 text-right">
+                                  Valor Estimado
+                                </th>
+                                <th className="px-3 py-2 text-right">
+                                  Homologado
+                                </th>
+                                <th className="px-3 py-2 text-center">
+                                  Desconto
+                                </th>
+                                <th className="px-3 py-2">
+                                  Fornecedor Vencedor
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {itens.map((it) => (
+                                <tr
+                                  key={it.itemId}
+                                  className="hover:bg-slate-50/80"
+                                >
+                                  <td className="px-3 py-2.5 text-center font-bold text-slate-900">
+                                    {it.numeroItem}
+                                  </td>
+                                  <td className="min-w-[200px] px-3 py-2.5 font-medium text-slate-800">
+                                    {it.descricao || "—"}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                                    {it.quantidade != null
+                                      ? it.quantidade
+                                      : "—"}{" "}
+                                    {it.unidadeMedida || ""}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
+                                    {(() => {
+                                      const valorExibicao =
+                                        it.valorTotalEstimado ??
+                                        (it.valorUnitarioEstimado != null &&
+                                        it.quantidade != null
+                                          ? it.valorUnitarioEstimado *
+                                            it.quantidade
+                                          : it.valorUnitarioEstimado);
+                                      if (valorExibicao != null) {
+                                        return (
+                                          <>
+                                            <span>
+                                              {fmtCurrency(valorExibicao)}
+                                            </span>
+                                            {it.quantidade != null &&
+                                              it.quantidade > 1 &&
+                                              it.valorUnitarioEstimado !=
+                                                null && (
+                                                <span className="block font-sans text-[10px] text-slate-400">
+                                                  {fmtCurrency(
+                                                    it.valorUnitarioEstimado,
+                                                  )}{" "}
+                                                  / un
+                                                </span>
+                                              )}
+                                          </>
+                                        );
+                                      }
+                                      return "—";
+                                    })()}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-slate-900">
+                                    {(() => {
+                                      const valorExibicao =
+                                        it.valorTotalHomologado ??
+                                        (it.valorUnitarioHomologado != null &&
+                                        it.quantidade != null
+                                          ? it.valorUnitarioHomologado *
+                                            it.quantidade
+                                          : it.valorUnitarioHomologado);
+                                      if (valorExibicao != null) {
+                                        return (
+                                          <>
+                                            <span>
+                                              {fmtCurrency(valorExibicao)}
+                                            </span>
+                                            {it.quantidade != null &&
+                                              it.quantidade > 1 &&
+                                              it.valorUnitarioHomologado !=
+                                                null && (
+                                                <span className="block font-normal font-sans text-[10px] text-slate-400">
+                                                  {fmtCurrency(
+                                                    it.valorUnitarioHomologado,
+                                                  )}{" "}
+                                                  / un
+                                                </span>
+                                              )}
+                                          </>
+                                        );
+                                      }
+                                      return "—";
+                                    })()}
+                                  </td>
+                                  <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                                    {it.percentualDesconto != null ? (
+                                      <span className="font-semibold text-emerald-700">
+                                        {it.percentualDesconto}%
+                                      </span>
+                                    ) : (
+                                      "—"
+                                    )}
+                                  </td>
+                                  <td className="min-w-[150px] px-3 py-2.5">
+                                    {it.fornecedorNome ? (
+                                      <div>
+                                        <span className="font-medium text-slate-800">
+                                          {it.fornecedorNome}
+                                        </span>
+                                        {it.fornecedorCpfCnpj && (
+                                          <span className="block text-[10px] text-slate-400">
+                                            {it.fornecedorCpfCnpj}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-400 italic">
+                                        Pendente / Não homologado
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
             );
           })()}

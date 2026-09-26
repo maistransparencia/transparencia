@@ -200,7 +200,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 100,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/pessoal?ano=2024#comissionados",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_estoque",
         },
         {
@@ -215,7 +215,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 2500000,
           mesInicial: 12,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/receitas?ano=2024#saldo-caixa",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_estoque",
         },
         {
@@ -230,7 +230,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 10700000,
           mesInicial: 1,
           mesFinal: 8,
-          deepLinkRota: "/porciuncula/despesas?ano=2024",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_fluxo_homologo",
         },
         {
@@ -245,7 +245,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 25.0,
           mesInicial: 1,
           mesFinal: 8,
-          deepLinkRota: "/porciuncula/licitacoes?ano=2024",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_fluxo_homologo",
         },
       ],
@@ -330,7 +330,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 105000,
           mesInicial: 1,
           mesFinal: 8,
-          deepLinkRota: "/porciuncula/despesas?ano=2024",
+          licitacaoNumero: null,
           metodoDeteccao: "iqr_fluxo_homologo",
         },
       ],
@@ -363,7 +363,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 30.0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/despesas?ano=2026#gastos-genericos",
+          licitacaoNumero: null,
           metodoDeteccao: "limite_prudencial",
         },
       ],
@@ -399,7 +399,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 1000000,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/caprem?ano=2024#atuarial",
+          licitacaoNumero: null,
           metodoDeteccao: "limite_normativo_adimplencia",
         },
       ],
@@ -440,7 +440,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/caprem?ano=2024#patronal",
+          licitacaoNumero: null,
           metodoDeteccao: "fluxo_patronal_em_aberto",
         },
       ],
@@ -481,7 +481,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 10.0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000517#itens",
+          licitacaoNumero: "000517",
           metodoDeteccao: "limite_competitividade_pregao",
         },
       ],
@@ -524,7 +524,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 50.0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/licitacoes?ano=2026&numero=000290#itens",
+          licitacaoNumero: "000290",
           metodoDeteccao: "limite_inexequibilidade_art59",
         },
       ],
@@ -567,7 +567,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
           valorEsperado: 0,
           mesInicial: 1,
           mesFinal: 12,
-          deepLinkRota: "/porciuncula/pessoal?ano=2026#regime",
+          licitacaoNumero: null,
           metodoDeteccao: "harmonizacao_vinculo_art37",
         },
       ],
@@ -590,6 +590,95 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     });
     expect(card.textoFactual).toContain(
       "foram identificados 187 profissionais cadastrados com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.",
+    );
+  });
+
+  it("monta card para dependência de transferências externas com fundamentação no Art. 11 da LRF", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-dependencia",
+          portalSlug: "porciuncula",
+          ano: 2024,
+          tipoAnomalia: "dependencia_transferencias",
+          dimensaoReferencia: "receita_propria",
+          grauSeveridade: "critico",
+          desvioPercentual: 5.0,
+          valorObservado: 5.0,
+          valorEsperado: 10.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          licitacaoNumero: null,
+          metodoDeteccao: "art11_lrf_arrecadacao_propria",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Dependência de Transferências Externas");
+    expect(card.metodologiaBadge).toBe("Art. 11 da LRF");
+    expect(card.esperadoLabel).toBe("Parâmetro LRF");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.valorObservadoFormatted).toBe("5%");
+    expect(card.valorEsperadoFormatted).toBe("10%");
+    expect(card.desvioPercentualFormatted).toBe("-5%");
+    expect(card.ctaLabel).toBe("Analisar Fontes de Receita");
+    expect(card.ctaUrl).toBe("/porciuncula/receitas?ano=2024");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 11 da LRF",
+      url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+    });
+    expect(card.textoFactual).toContain(
+      "a receita própria representou apenas 5% da arrecadação, patamar inferior ao parâmetro referencial de 10% preconizado pelo Art. 11 da LRF.",
+    );
+  });
+
+  it("monta card para desidratação do patrimônio do RPPS com fundamentação na Resolução CMN 4.963/2021 e Lei 9.717/1998", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-desidratacao",
+          portalSlug: "porciuncula",
+          ano: 2025,
+          tipoAnomalia: "desidratacao_patrimonio_rpps",
+          dimensaoReferencia: "patrimonio_previdenciario",
+          grauSeveridade: "critico",
+          desvioPercentual: 20.78,
+          valorObservado: 35980000,
+          valorEsperado: 45420000,
+          mesInicial: 1,
+          mesFinal: 12,
+          licitacaoNumero: null,
+          metodoDeteccao: "variacao_trienal_patrimonio",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Desidratação do Patrimônio (RPPS)");
+    expect(card.metodologiaBadge).toBe("Variação Trienal");
+    expect(card.esperadoLabel).toBe("Saldo Inicial (Triênio)");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.grauSeveridade).toBe("critico");
+    expect(card.valorObservadoFormatted).toBe("R$ 36.0mi");
+    expect(card.valorEsperadoFormatted).toBe("R$ 45.4mi");
+    expect(card.desvioPercentualFormatted).toBe("-20.8%");
+    expect(card.ctaLabel).toBe("Auditar Patrimônio Previdenciário");
+    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2025#patrimonio");
+    expect(card.fundamentacaoLegal).toEqual([
+      {
+        label: "Resolução CMN nº 4.963/2021",
+        url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+      },
+      {
+        label: "Lei nº 9.717/1998",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+      },
+    ]);
+    expect(card.textoFactual).toContain(
+      "retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio",
     );
   });
 

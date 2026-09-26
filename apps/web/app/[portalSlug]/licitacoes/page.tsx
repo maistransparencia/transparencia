@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
 import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
+import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -85,6 +86,11 @@ export default async function LicitacoesPage({
           </strong>
           , que exigem justificativa formal.
         </p>
+
+        {/* Global Spotlight Search Bar */}
+        <div className="mt-5 w-full">
+          <LicitacoesSearchBar portalSlug={portalSlug} ano={selectedYear} />
+        </div>
       </div>
 
       <KPIGrid columns={5}>
@@ -229,10 +235,16 @@ export default async function LicitacoesPage({
       <LicitacoesEmAndamentoSection
         licitacoes={licitacoesEmAndamento}
         itensByLicitacao={itensByLicitacao}
+        portalSlug={portalSlug}
+        ano={selectedYear}
       />
 
       {/* Section: Contratos de Serviços Vigentes */}
-      <ContratosServicosVigentesSection contratos={contratosServicosVigentes} />
+      <ContratosServicosVigentesSection
+        contratos={contratosServicosVigentes}
+        portalSlug={portalSlug}
+        ano={selectedYear}
+      />
 
       {/* Section 2: Contratos acima do limite, sem licitação */}
       <section className="space-y-4">
