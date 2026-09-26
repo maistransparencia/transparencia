@@ -28,6 +28,10 @@ describe("apps/web/env (validação centralizada com t3-env e Zod)", () => {
       expect(env.NEXT_PUBLIC_FACEBOOK_URL).toBe(
         "https://facebook.com/profile.php?id=",
       );
+      expect(env.NEXT_PUBLIC_INSTAGRAM_URL).toBe(
+        "https://instagram.com/maistransparencia.ig",
+      );
+      expect(env.NEXT_PUBLIC_INSTAGRAM_HANDLE).toBe("maistransparencia.ig");
     });
 
     it("deve carregar o host padrão do PostHog", () => {
