@@ -1,9 +1,0 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "transparencia-ingestion-cron",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-09-01",
-  "triggers": {
-    "crons": ["0 23 * * 5"]
-  }
-}

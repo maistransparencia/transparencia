@@ -63,6 +63,9 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   aporte_atuarial: "Aporte Atuarial (RPPS)",
   contribuicao_patronal: "Contribuição Patronal (RPPS)",
   quadro_pessoal: "Quadro de Pessoal",
+  receita_propria: "Receita Própria",
+  patrimonio_previdenciario: "Patrimônio Previdenciário (RPPS)",
+  patrimonio_liquido: "Patrimônio Previdenciário (RPPS)",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -232,6 +235,30 @@ export function formatFactualNarrative(
         ? "profissional cadastrado"
         : "profissionais cadastrados";
     return `Em ${ano}, foram identificados ${obs} ${plural} com categorias funcionais atípicas no portal de origem, exigindo harmonização com base no Art. 37 da Constituição Federal.`;
+  }
+
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    const ano = alerta.ano || anoContexto;
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 10);
+    return `Em ${ano}, a receita própria representou apenas ${obs}% da arrecadação, patamar inferior ao parâmetro referencial de ${esp}% preconizado pelo Art. 11 da LRF.`;
+  }
+
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    const ano = alerta.ano || anoContexto;
+    const obs = fmtCompact(alerta.valorObservado ?? 0);
+    const espVal = alerta.valorEsperado ?? 0;
+    const obsVal = alerta.valorObservado ?? 0;
+    const consumoVal = Math.max(0, espVal - obsVal);
+    const consumo = fmtCompact(consumoVal);
+    const desvio = formatDesvioPercentual(alerta.desvioPercentual ?? 0);
+    const queimaAnual = consumoVal / 2;
+    const anosEstimados =
+      obsVal > 0 && queimaAnual > 0 ? obsVal / queimaAnual : 0;
+    const anosArredondados = Number(anosEstimados.toFixed(1));
+    const anosFormatados = formatPercentNumber(anosArredondados);
+    const anosTexto = `${anosFormatados} ${anosArredondados === 1 ? "ano" : "anos"}`;
+    return `Em ${ano}, o patrimônio financeiro da previdência encerrou em ${obs}, registrando retração de ${desvio}% e consumo de ${consumo} ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de ${anosTexto}.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

@@ -30,9 +30,27 @@ describe("ExtractionNotificationBanner Component", () => {
     vi.restoreAllMocks();
   });
 
-  it("does not render when lastExtractionDate is missing or matches localStorage", () => {
+  it("silently saves extraction date and does not render banner on first ever visit (when localStorage is empty)", () => {
     const { container } = render(
-      <ExtractionNotificationBanner portalName="Prefeitura de Porciúncula" />,
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(localStorage.getItem("last_seen_extraction")).toBe("2026-08-19");
+    expect(posthog.capture).not.toHaveBeenCalled();
+  });
+
+  it("does not render when lastExtractionDate is missing or matches localStorage", () => {
+    localStorage.setItem("last_seen_extraction", "2026-08-19");
+
+    const { container } = render(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -80,51 +98,5 @@ describe("ExtractionNotificationBanner Component", () => {
         portal_name: "Prefeitura de Porciúncula",
       },
     );
-  });
-
-  it("exibe atalho contextual de notificações quando push é suportado e permissão é default", () => {
-    localStorage.setItem("last_seen_extraction", "2026-08-01");
-    mockPushState.isSupported = true;
-    mockPushState.isSubscribed = false;
-    mockPushState.permission = "default";
-
-    render(
-      <ExtractionNotificationBanner
-        lastExtractionDate="2026-08-19"
-        portalName="Prefeitura de Porciúncula"
-      />,
-    );
-
-    expect(
-      screen.getByText(
-        /Deseja receber avisos automáticos de novas contas públicas\?/i,
-      ),
-    ).toBeInTheDocument();
-
-    const optInButton = screen.getByRole("button", {
-      name: "Ativar notificações",
-    });
-    fireEvent.click(optInButton);
-    expect(mockSubscribe).toHaveBeenCalledTimes(1);
-  });
-
-  it("não exibe atalho contextual de notificações se o usuário já estiver inscrito", () => {
-    localStorage.setItem("last_seen_extraction", "2026-08-01");
-    mockPushState.isSupported = true;
-    mockPushState.isSubscribed = true;
-    mockPushState.permission = "granted";
-
-    render(
-      <ExtractionNotificationBanner
-        lastExtractionDate="2026-08-19"
-        portalName="Prefeitura de Porciúncula"
-      />,
-    );
-
-    expect(
-      screen.queryByText(
-        /Deseja receber avisos automáticos de novas contas públicas\?/i,
-      ),
-    ).not.toBeInTheDocument();
   });
 });

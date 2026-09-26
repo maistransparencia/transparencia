@@ -23,6 +23,7 @@ function makeRaw(overrides: Partial<RawData> = {}): RawData {
     } as unknown as RawData["portalConfig"],
     entidades: [],
     alertas: [],
+    entidade: undefined,
     ...overrides,
   };
 }
@@ -65,7 +66,7 @@ describe("RadarPage", () => {
             valorEsperado: 30.0,
             mesInicial: 1,
             mesFinal: 12,
-            deepLinkRota: "/porciuncula/despesas?ano=2026#gastos-genericos",
+            licitacaoNumero: null,
             metodoDeteccao: "limite_normativo",
           },
           {
@@ -80,7 +81,7 @@ describe("RadarPage", () => {
             valorEsperado: 1500000,
             mesInicial: 12,
             mesFinal: 12,
-            deepLinkRota: "/porciuncula/receitas?ano=2024#saldo-caixa",
+            licitacaoNumero: null,
             metodoDeteccao: "iqr_estoque",
           },
         ],

@@ -1,13 +1,9 @@
-import {
-  AlertBox,
-  DenseTable,
-  fmtCompact,
-  fmtPercent,
-} from "@transparencia/ui";
+import { DenseTable, fmtCompact, fmtPercent } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
+import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadReceitasData } from "./loader";
 import { buildReceitasViewModel } from "./view-model";
@@ -58,6 +54,7 @@ export default async function ReceitasPage({
     origensData,
     tableData,
     variationText,
+    cardDependencia,
   } = viewModel;
 
   const tableCols = [
@@ -199,16 +196,11 @@ export default async function ReceitasPage({
       </div>
 
       {/* Alerta de Vulnerabilidade Fiscal caso exista */}
-      {rec.alertaDependencia && (
-        <AlertBox
-          type="danger"
-          title="Alerta: Alta Dependência de Transferências Externas"
-        >
-          A receita própria representa apenas {fmtPercent(rec.pctPropria)} do
-          total arrecadado. O município apresenta elevada vulnerabilidade fiscal
-          a repasses constitucionais federais e estaduais para manter o custeio
-          público.
-        </AlertBox>
+      {cardDependencia && (
+        <RadarAnomaliaCard
+          card={cardDependencia}
+          funnelSource="receitas_anomalia"
+        />
       )}
     </div>
   );

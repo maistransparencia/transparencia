@@ -7,6 +7,7 @@ import { z } from "zod";
 import { env } from "@/env";
 import { dispatchPushNotification } from "@/lib/push-dispatcher";
 import { formatFactualNarrative } from "@/lib/radar-civico-narrative";
+import { buildAlertaUrl } from "@/lib/radar-url";
 
 /**
  * Endpoint de Webhook de Ingestão de Dados.
@@ -147,7 +148,9 @@ export async function POST(req: Request) {
             portalSlug: payload.portalSlug,
             title: `🚨 Alerta Crítico - Radar Cívico (${portalName})`,
             body: resumoFactual,
-            url: alertaCritico.deepLinkRota,
+            url: buildAlertaUrl(alertaCritico, {
+              portalSlug: payload.portalSlug,
+            }),
           });
         } else {
           await dispatchPushNotification({

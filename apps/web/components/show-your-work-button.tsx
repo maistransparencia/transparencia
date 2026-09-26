@@ -169,7 +169,7 @@ export function ShowYourWorkButton({
           setIsOpen((prev) => !prev);
           setErrorMessage(null);
         }}
-        className="flex h-8 min-h-[44px] w-8 min-w-[44px] cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 sm:min-h-8 sm:min-w-8"
+        className="flex size-7 min-h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
         aria-label="Opções de auditoria"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -181,7 +181,7 @@ export function ShowYourWorkButton({
       {/* Menu Dropdown Suspenso */}
       {isOpen && (
         <div
-          className="absolute top-full right-0 z-40 mt-1.5 min-w-[240px] rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
+          className="absolute top-full right-0 z-40 mt-1.5 min-w-60 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
           role="menu"
         >
           <div className="mb-1 border-slate-100 border-b px-2 pb-1.5">

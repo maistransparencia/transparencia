@@ -151,20 +151,50 @@ class PncpExtractor:
         cnpj: str,
         ano: int,
         sequencial: int,
-        pagina: int = 1,
+        pagina: int | None = None,
+        tamanho_pagina: int = 50,
         session: requests.Session | None = None,
     ) -> list[dict[str, Any]]:
-        """Busca os itens licitados de uma compra específica."""
+        """Busca os itens licitados de uma compra específica.
+
+        Se pagina for informada, busca apenas a página especificada.
+        Caso contrário, itera sobre todas as páginas até exaurir os itens.
+        """
         endpoint = f"v1/orgaos/{cnpj}/compras/{ano}/{sequencial}/itens"
-        params = {"pagina": pagina}
-        res = self._request(endpoint, params=params, session=session)
         raw_items: list[dict[str, Any]] = []
-        if isinstance(res, list):
-            raw_items = res
-        elif isinstance(res, dict) and "items" in res and isinstance(res["items"], list):
-            raw_items = res["items"]
-        elif isinstance(res, dict) and "data" in res and isinstance(res["data"], list):
-            raw_items = res["data"]
+
+        if pagina is not None:
+            params = {"pagina": pagina, "tamanhoPagina": tamanho_pagina}
+            res = self._request(endpoint, params=params, session=session)
+            if isinstance(res, list):
+                raw_items = res
+            elif isinstance(res, dict) and "items" in res and isinstance(res["items"], list):
+                raw_items = res["items"]
+            elif isinstance(res, dict) and "data" in res and isinstance(res["data"], list):
+                raw_items = res["data"]
+        else:
+            curr_page = 1
+            max_pages = 200
+            while curr_page <= max_pages:
+                params = {"pagina": curr_page, "tamanhoPagina": tamanho_pagina}
+                res = self._request(endpoint, params=params, session=session)
+                page_items: list[dict[str, Any]] = []
+                if isinstance(res, list):
+                    page_items = res
+                elif isinstance(res, dict) and "items" in res and isinstance(res["items"], list):
+                    page_items = res["items"]
+                elif isinstance(res, dict) and "data" in res and isinstance(res["data"], list):
+                    page_items = res["data"]
+
+                if not page_items:
+                    break
+
+                raw_items.extend(page_items)
+
+                if len(page_items) < min(10, tamanho_pagina):
+                    break
+
+                curr_page += 1
 
         ctrl = f"{cnpj}-1-{sequencial:06d}/{ano}"
         num_compra = f"{sequencial:03d}/{ano}"

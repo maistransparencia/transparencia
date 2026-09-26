@@ -22,6 +22,10 @@ vi.mock("posthog-js", () => ({
   },
 }));
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/porciuncula_prefeitura",
+}));
+
 vi.mock("@/hooks/use-push-notifications", () => ({
   usePushNotifications: () => mockHookState,
 }));
@@ -29,6 +33,7 @@ vi.mock("@/hooks/use-push-notifications", () => ({
 describe("PushNotificationPrompt", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
     mockHookState = {
       isSupported: true,
@@ -162,5 +167,35 @@ describe("PushNotificationPrompt", () => {
     expect(posthog.capture).toHaveBeenCalledWith("push_prompt_dismissed", {
       portal_slug: "porciuncula_prefeitura",
     });
+  });
+
+  it("não renderiza na primeira página quando minPageViews for 2", () => {
+    // Primeira visualização (session_page_views = 0 antes do mount, vira 1)
+    const { container } = render(
+      <PushNotificationPrompt
+        portalSlug="porciuncula_prefeitura"
+        minPageViews={2}
+      />,
+    );
+    expect(container).toBeEmptyDOMElement();
+    expect(
+      screen.queryByText(/Notificações de Contas Públicas/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renderiza quando minPageViews for atingido na sessão", () => {
+    // Simula que o usuário já navegou por 1 página prévia
+    sessionStorage.setItem("session_page_views", "1");
+
+    render(
+      <PushNotificationPrompt
+        portalSlug="porciuncula_prefeitura"
+        minPageViews={2}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Notificações de Contas Públicas/i),
+    ).toBeInTheDocument();
   });
 });

@@ -84,10 +84,44 @@
       "valor": 450000.0,
       "natureza_conta": "D",
       "tipo_valor": "ending_balance"
+    },
+    {
+      "tipo_matriz": "MSCC",
+      "cod_ibge": 3304102,
+      "classe_conta": 1,
+      "conta_contabil": "114110100",
+      "poder_orgao": "10132",
+      "financeiro_permanente": 1,
+      "ano_fonte_recursos": 1,
+      "fonte_recursos": "1800",
+      "exercicio": 2024,
+      "mes_referencia": 12,
+      "data_referencia": "2024-12-31T00:00:00Z",
+      "entrada_msc": 585,
+      "valor": 35000000.0,
+      "natureza_conta": "D",
+      "tipo_valor": "ending_balance"
+    },
+    {
+      "tipo_matriz": "MSCC",
+      "cod_ibge": 3304102,
+      "classe_conta": 1,
+      "conta_contabil": "114110100",
+      "poder_orgao": "10131",
+      "financeiro_permanente": 1,
+      "ano_fonte_recursos": 1,
+      "fonte_recursos": "1500",
+      "exercicio": 2024,
+      "mes_referencia": 12,
+      "data_referencia": "2024-12-31T00:00:00Z",
+      "entrada_msc": 586,
+      "valor": 1000000.0,
+      "natureza_conta": "D",
+      "tipo_valor": "ending_balance"
     }
   ],
   "hasMore": false,
   "limit": 5000,
   "offset": 0,
-  "count": 5
+  "count": 7
 }

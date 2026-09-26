@@ -49,6 +49,46 @@ def test_pncp_extractor_fetch_compra_and_itens():
         assert itens[0]["descricaoItem"] == "Item A"
 
 
+def test_pncp_extractor_fetch_itens_pagination():
+    extractor = PncpExtractor(min_interval_seconds=0)
+
+    page1_items = [{"numeroItem": i, "descricaoItem": f"Item {i}"} for i in range(1, 11)]
+    page2_items = [{"numeroItem": i, "descricaoItem": f"Item {i}"} for i in range(11, 16)]
+
+    mock_resp_p1 = MagicMock()
+    mock_resp_p1.status_code = 200
+    mock_resp_p1.json.return_value = page1_items
+
+    mock_resp_p2 = MagicMock()
+    mock_resp_p2.status_code = 200
+    mock_resp_p2.json.return_value = page2_items
+
+    with patch("requests.get", side_effect=[mock_resp_p1, mock_resp_p2]) as mock_get:
+        itens = extractor.fetch_itens(DEFAULT_CNPJ_PORCIUNCULA, 2024, 1)
+        assert len(itens) == 15
+        assert itens[0]["numeroItem"] == 1
+        assert itens[14]["numeroItem"] == 15
+        assert mock_get.call_count == 2
+
+
+def test_pncp_extractor_fetch_itens_explicit_page():
+    extractor = PncpExtractor(min_interval_seconds=0)
+
+    page2_items = [{"numeroItem": i, "descricaoItem": f"Item {i}"} for i in range(11, 21)]
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = page2_items
+
+    with patch("requests.get", return_value=mock_resp) as mock_get:
+        itens = extractor.fetch_itens(DEFAULT_CNPJ_PORCIUNCULA, 2024, 1, pagina=2)
+        assert len(itens) == 10
+        assert itens[0]["numeroItem"] == 11
+        assert mock_get.call_count == 1
+        call_kwargs = mock_get.call_args.kwargs
+        assert call_kwargs["params"]["pagina"] == 2
+
+
 def test_pncp_normalization():
     compra_raw = {
         "numeroControlePNCP": "28920999000106-1-000001/2024",

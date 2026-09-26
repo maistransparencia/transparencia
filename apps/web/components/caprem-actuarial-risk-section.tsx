@@ -1,25 +1,7 @@
 "use client";
 
-import { Badge, DenseTable, fmtCurrency, fmtPercent } from "@transparencia/ui";
-import { AlertTriangle, CheckCircle2, TrendingUp, Users } from "lucide-react";
-import { KPIGrid } from "@/components/kpi-grid";
+import { DenseTable } from "@transparencia/ui";
 import { SectionHeader } from "@/components/section-header";
-
-export interface ActuarialRiskSummary {
-  totalAporteExigido: number;
-  totalAporteQuitado: number;
-  romboAporteNaoRepassado: number;
-  taxaAdimplenciaAporte: number;
-  totalEmpenhadoPatronal?: number;
-  totalPagoPatronal?: number;
-  romboPatronalNaoRepassado?: number;
-  deficitMedioMensal?: number;
-  totalAmortizacaoDivida: number;
-  variacaoAmortizacaoPct: number;
-  servidoresEfetivos: number;
-  servidoresTemporariosComissionados: number;
-  razaoTemporariosEfetivosPct: number;
-}
 
 export interface AnnualActuarialTrend {
   ano: number;
@@ -40,22 +22,17 @@ export interface CadprevParcelamentoItem {
 
 export interface CapremActuarialRiskSectionProps {
   ano: number;
-  risk: ActuarialRiskSummary;
-  trend: AnnualActuarialTrend[];
+  trend?: AnnualActuarialTrend[];
   cadprev?: CadprevParcelamentoItem[];
   className?: string;
 }
 
 export function CapremActuarialRiskSection({
   ano,
-  risk,
-  trend,
+  trend = [],
   cadprev = [],
   className,
 }: CapremActuarialRiskSectionProps) {
-  const hasDeficitPatronal = (risk.romboPatronalNaoRepassado ?? 0) > 0;
-  const hasDeficitAporte = (risk.romboAporteNaoRepassado ?? 0) > 0;
-
   const trendCols = [
     { header: "Exercício / Ano", accessorKey: "ano" as const },
     {
@@ -110,159 +87,53 @@ export function CapremActuarialRiskSection({
   ];
 
   return (
-    <section className={`space-y-6 ${className || ""}`}>
+    <section id="cadprev" className={`space-y-6 ${className || ""}`}>
       <SectionHeader
-        title="Sustentabilidade Atuarial e Diagnóstico Previdenciário"
-        description="Monitoramento do equilíbrio de longo prazo, cobertura do déficit atuarial (Elemento 97), parcelamentos formalizados no CADPREV (Elemento 71) e retenção de repasses patronais."
+        title="Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)"
+        description="Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência (CADPREV) e cumprimento histórico dos aportes atuariais."
       />
 
-      {/* Grid de KPIs de Risco Atuarial */}
-      <KPIGrid columns={3}>
-        {/* Indicador de Aporte Atuarial (Elemento 97) */}
-        <div
-          id="atuarial"
-          className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
-        >
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
-              Aporte Déficit Atuarial ({ano})
-            </span>
-            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-          </div>
-          <div className="font-bold font-serif text-2xl text-ink">
-            {fmtCurrency(risk.totalAporteQuitado)}{" "}
-            <span className="font-normal font-sans text-mutedText text-xs">
-              pagos
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-mutedText">
-              Exigido: {fmtCurrency(risk.totalAporteExigido)}
-            </span>
-            {hasDeficitAporte ? (
-              <Badge variant="danger">
-                Inadimplência: {fmtCurrency(risk.romboAporteNaoRepassado)} (
-                {fmtPercent(risk.taxaAdimplenciaAporte)} adimplente)
-              </Badge>
-            ) : (
-              <Badge variant="success">100% Adimplente</Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Indicador de Retenção de Contribuição Patronal (Elemento 13) */}
-        <div
-          id="patronal"
-          className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
-        >
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
-              Déficit de Repasse Mensal ({ano})
-            </span>
-            {hasDeficitPatronal ? (
-              <AlertTriangle className="h-5 w-5 shrink-0 text-rose-500" />
-            ) : (
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
-            )}
-          </div>
-          <div className="font-bold font-serif text-2xl text-ink">
-            {fmtCurrency(risk.deficitMedioMensal ?? 0)}{" "}
-            <span className="font-normal font-sans text-mutedText text-xs">
-              /mês retidos
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            {hasDeficitPatronal ? (
-              <Badge variant="danger">
-                Retenção Patronal:{" "}
-                {fmtCurrency(risk.romboPatronalNaoRepassado ?? 0)}
-              </Badge>
-            ) : (
-              <Badge variant="success">Repasses Patronais em Dia</Badge>
-            )}
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
-              Amortização de Dívidas ({ano})
-            </span>
-            <TrendingUp className="h-5 w-5 shrink-0 text-blue-500" />
-          </div>
-          <div className="font-bold font-serif text-2xl text-ink">
-            {fmtCurrency(risk.totalAmortizacaoDivida)}
-          </div>
-          <div className="mt-2 text-mutedText text-xs">
-            {risk.variacaoAmortizacaoPct > 0 ? (
-              <span className="font-semibold text-amber-700">
-                +{risk.variacaoAmortizacaoPct.toFixed(1)}% vs exercício anterior
-              </span>
-            ) : (
-              <span>Resgate de dívidas de parcelamentos repactuados</span>
-            )}
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden rounded-xl border border-borderLine bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-semibold text-subtleText text-xs uppercase tracking-wider">
-              Base de Contribuintes ({ano})
-            </span>
-            <Users className="h-5 w-5 shrink-0 text-indigo-500" />
-          </div>
-          <div className="font-bold font-serif text-2xl text-ink">
-            {risk.servidoresEfetivos}{" "}
-            <span className="font-normal font-sans text-mutedText text-sm">
-              Servidores Efetivos (RPPS)
-            </span>
-          </div>
-          <div className="mt-2 text-mutedText text-xs">
-            <span className="font-medium text-slate-700">
-              {risk.servidoresTemporariosComissionados}{" "}
-              temporários/comissionados
-            </span>
-            <div className="text-xs">
-              ({fmtPercent(risk.razaoTemporariosEfetivosPct)} recolhem ao
-              INSS/RGPS)
-            </div>
-          </div>
-        </div>
-      </KPIGrid>
-
       {/* Tabela de Acordos de Confissão e Parcelamento no CADPREV */}
-      {cadprev.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <h4 className="font-semibold font-serif text-slate-800 text-sm">
-              Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV /
-              Ministério da Previdência)
-            </h4>
-          </div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold font-serif text-slate-800 text-sm">
+            Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV /
+            Ministério da Previdência)
+          </h3>
+        </div>
+
+        {cadprev.length > 0 ? (
           <DenseTable
             data={cadprev}
             columns={cadprevCols}
             searchableKeys={["numeroCadprev", "descricao"]}
+            exportFilename={`cadprev-parcelamentos-${ano}.csv`}
           />
-          <p className="text-mutedText text-xs">
-            Não inclui multas ou penalidades tributárias pagas a outros credores
-            (ex: Receita Federal), mesmo quando relacionadas à contribuição
-            previdenciária — apenas acordos formais junto ao CAPREM.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="rounded-xl border border-slate-200 border-dashed bg-slate-50/50 p-6 text-center text-mutedText text-xs">
+            Nenhum termo de parcelamento ou confissão de dívida registrado no
+            CADPREV para o exercício de {ano}.
+          </div>
+        )}
+        <p className="text-mutedText text-xs">
+          Não inclui multas ou penalidades tributárias pagas a outros credores
+          (ex: Receita Federal), mesmo quando relacionadas à contribuição
+          previdenciária — apenas acordos formais junto ao CAPREM.
+        </p>
+      </div>
 
       {/* Tabela Histórica da Adimplência do Aporte Atuarial */}
       {trend.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-semibold font-serif text-slate-800 text-sm">
+          <h3 className="font-semibold font-serif text-slate-800 text-sm">
             Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas
-            (2021-2026)
-          </h4>
+            (2021–2026)
+          </h3>
           <DenseTable
             data={trend}
             columns={trendCols}
             searchableKeys={["ano"]}
+            exportFilename="cobertura-atuarial-historica.csv"
           />
         </div>
       )}

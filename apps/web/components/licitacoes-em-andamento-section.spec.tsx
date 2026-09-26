@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import { LicitacoesEmAndamentoSection } from "./licitacoes-em-andamento-section";
@@ -288,7 +294,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     );
 
     const buttons = screen.getAllByRole("button", {
-      name: /ver itens licitados/i,
+      name: /detalhes/i,
     });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
 
@@ -377,5 +383,146 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       screen.getByRole("heading", { name: /Itens Licitados/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Item de Teste Deep Link")).toBeInTheDocument();
+  });
+
+  it("exibe botão de voltar aos resultados e fecha o modal ao clicar quando aberto a partir da busca", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula/licitacoes"),
+    });
+
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "PE 001/2025",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const backButton = await screen.findByRole("button", {
+      name: /voltar aos resultados da busca/i,
+    });
+    expect(backButton).toBeInTheDocument();
+
+    fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("renderiza controles de navegação e rolagem horizontal na tabela de itens", async () => {
+    const itensMock = [
+      {
+        itemId: "item-1",
+        licitacaoNumero: "PE 001/2025",
+        ano: 2025,
+        portalSlug: "porciuncula_prefeitura",
+        numeroItem: 1,
+        descricao: "Item de Teste Scroll",
+        quantidade: 10,
+        unidadeMedida: "UN",
+        valorUnitarioEstimado: 100,
+        valorTotalEstimado: 1000,
+        valorUnitarioHomologado: null,
+        valorTotalHomologado: null,
+        percentualDesconto: null,
+        situacaoItem: "em_andamento",
+        fornecedorNome: null,
+        fornecedorCpfCnpj: null,
+      },
+    ];
+
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula/licitacoes"),
+    });
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        itensByLicitacao={{
+          "PE 001/2025": itensMock,
+          "CP 002/2025": itensMock,
+        }}
+      />,
+    );
+
+    const btnItens = screen.getAllByRole("button", {
+      name: /detalhes/i,
+    })[0];
+    fireEvent.click(btnItens);
+
+    const btnScrollLeft = await screen.findByRole("button", {
+      name: /rolar tabela para a esquerda/i,
+    });
+    const btnScrollRight = screen.getByRole("button", {
+      name: /rolar tabela para a direita/i,
+    });
+
+    expect(btnScrollLeft).toBeInTheDocument();
+    expect(btnScrollRight).toBeInTheDocument();
+
+    fireEvent.click(btnScrollRight);
+    fireEvent.click(btnScrollLeft);
+  });
+
+  it("abre modal mesmo para licitação que não está na lista em andamento (ex: homologada da busca)", async () => {
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "000397",
+          id: "lic-homologada-397",
+          objeto: "Locação de tenda para a feira do livro",
+          modalidade: "DISPENSA",
+          status: "Homologada",
+          valor: 3200,
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText(/Processo 000397/i)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Locação de tenda para a feira do livro/i),
+    ).toBeInTheDocument();
+  });
+
+  it("abre o modal completo 360° ao clicar no botão do número do processo na tabela", async () => {
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    const processoButtons = screen.getAllByRole("button", {
+      name: "PE 001/2025",
+    });
+    expect(processoButtons.length).toBeGreaterThan(0);
+
+    fireEvent.click(processoButtons[0]);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Processo PE 001\/2025/i),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getAllByText(/Fundo Municipal de Saúde/i).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      within(dialog).getByText(/Aquisição de medicamentos hospitalares/i),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("Valor Estimado")).toBeInTheDocument();
+    expect(within(dialog).getByText("R$ 250.000,00")).toBeInTheDocument();
   });
 });

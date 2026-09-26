@@ -8,7 +8,10 @@ import {
   getPartialYearPeriod,
 } from "@transparencia/ui";
 import { env } from "@/env";
+import { buildAlertaUrl } from "@/lib/radar-url";
 import type { loadVisaoGeralData } from "./loader";
+
+export { buildAlertaUrl } from "@/lib/radar-url";
 
 type VisaoGeralRawData = Awaited<ReturnType<typeof loadVisaoGeralData>>;
 
@@ -344,13 +347,17 @@ export interface RadarCivicoCardItem {
   valorEsperadoFormatted: string;
   ctaLabel: string;
   ctaUrl: string;
-  deepLinkRota?: string;
   whatsappShareUrl: string;
   whatsappShareText?: string;
-  fundamentacaoLegal?: {
-    label: string;
-    url: string;
-  };
+  fundamentacaoLegal?:
+    | {
+        label: string;
+        url: string;
+      }
+    | Array<{
+        label: string;
+        url: string;
+      }>;
 }
 
 export interface RadarCivicoFeedViewModel {
@@ -468,6 +475,14 @@ export function getBadgeMetodologia(
     return "Harmonização Cadastral";
   }
 
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Art. 11 da LRF";
+  }
+
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Variação Trienal";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -525,6 +540,12 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
     return "Inconsistência em Vínculos de Pessoal";
   }
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Dependência de Transferências Externas";
+  }
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Desidratação do Patrimônio (RPPS)";
+  }
   return "Indicador em Destaque";
 }
 
@@ -565,49 +586,29 @@ export function getCardCtaLabel(
   if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
     return "Auditar Vínculos Cadastrais";
   }
+  if (alerta.tipoAnomalia === "dependencia_transferencias") {
+    return "Analisar Fontes de Receita";
+  }
+  if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+    return "Auditar Patrimônio Previdenciário";
+  }
   return "Ver detalhes";
 }
 
 export function getCardCtaUrl(
-  alerta: Pick<RadarCivicoAlertaDTO, "deepLinkRota" | "tipoAnomalia" | "ano">,
+  alerta: Pick<RadarCivicoAlertaDTO, "tipoAnomalia"> &
+    Partial<
+      Pick<RadarCivicoAlertaDTO, "portalSlug" | "ano" | "licitacaoNumero">
+    >,
   portalSlug: string,
-  anoContexto: number,
+  anoContexto?: number,
 ): string {
-  if (alerta.deepLinkRota?.trim()) {
-    return alerta.deepLinkRota.trim();
-  }
-  const ano = alerta.ano || anoContexto;
-  if (alerta.tipoAnomalia === "explosao_comissionados") {
-    return `/${portalSlug}/pessoal?ano=${ano}#comissionados`;
-  }
-  if (alerta.tipoAnomalia === "rombo_caixa") {
-    return `/${portalSlug}/receitas?ano=${ano}#saldo-caixa`;
-  }
-  if (alerta.tipoAnomalia === "pico_despesa_homologa") {
-    return `/${portalSlug}/despesas?ano=${ano}`;
-  }
-  if (alerta.tipoAnomalia === "concentracao_dispensa") {
-    return `/${portalSlug}/licitacoes?ano=${ano}`;
-  }
-  if (alerta.tipoAnomalia === "opacidade_gastos_genericos") {
-    return `/${portalSlug}/despesas?ano=${ano}#gastos-genericos`;
-  }
-  if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
-    return `/${portalSlug}/caprem?ano=${ano}#atuarial`;
-  }
-  if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
-    return `/${portalSlug}/caprem?ano=${ano}#patronal`;
-  }
-  if (
-    alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-    alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
-  ) {
-    return `/${portalSlug}/licitacoes?ano=${ano}#itens`;
-  }
-  if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
-    return `/${portalSlug}/pessoal?ano=${ano}#regime`;
-  }
-  return `/${portalSlug}`;
+  return buildAlertaUrl({
+    portalSlug: alerta.portalSlug || portalSlug,
+    tipoAnomalia: alerta.tipoAnomalia,
+    ano: alerta.ano || anoContexto,
+    licitacaoNumero: alerta.licitacaoNumero,
+  });
 }
 
 function resolveCanonicalUrl(ctaUrl: string, cleanBase: string): string {
@@ -652,6 +653,7 @@ export function buildWhatsAppShareUrl(options: {
 export interface BuildRadarCivicoCardsOptions {
   portalName?: string;
   anoContexto?: number;
+  entidade?: string;
 }
 
 export function buildRadarCivicoCards(
@@ -659,7 +661,11 @@ export function buildRadarCivicoCards(
   portalSlug: string,
   options: BuildRadarCivicoCardsOptions = {},
 ): RadarCivicoCardItem[] {
-  const { portalName, anoContexto = new Date().getFullYear() } = options;
+  const {
+    portalName,
+    anoContexto = new Date().getFullYear(),
+    entidade,
+  } = options;
   if (!alertas || alertas.length === 0) {
     return [];
   }
@@ -696,6 +702,12 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
         return "Padrão Constitucional";
       }
+      if (alerta.tipoAnomalia === "dependencia_transferencias") {
+        return "Parâmetro LRF";
+      }
+      if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+        return "Saldo Inicial (Triênio)";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -729,10 +741,38 @@ export function buildRadarCivicoCards(
           url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
         };
       }
+      if (alerta.tipoAnomalia === "dependencia_transferencias") {
+        return {
+          label: "Art. 11 da LRF",
+          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+        };
+      }
+      if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
+        return [
+          {
+            label: "Resolução CMN nº 4.963/2021",
+            url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963",
+          },
+          {
+            label: "Lei nº 9.717/1998",
+            url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+          },
+        ];
+      }
       return undefined;
     })();
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
-    const ctaUrl = getCardCtaUrl(alerta, portalSlug, anoContexto);
+    const ctaUrl = buildAlertaUrl(
+      {
+        portalSlug: alerta.portalSlug || portalSlug,
+        tipoAnomalia: alerta.tipoAnomalia,
+        ano: alerta.ano || anoContexto,
+        licitacaoNumero: alerta.licitacaoNumero,
+      },
+      {
+        entidade,
+      },
+    );
     const ctaLabel = getCardCtaLabel(alerta);
     const { whatsappShareUrl, whatsappShareText } = buildWhatsAppShareUrl({
       textoFactual,
@@ -746,7 +786,9 @@ export function buildRadarCivicoCards(
       if (
         alerta.tipoAnomalia === "rombo_caixa" ||
         alerta.tipoAnomalia === "inadimplencia_aporte_rpps" ||
-        alerta.tipoAnomalia === "desconto_nulo_pregao"
+        alerta.tipoAnomalia === "desconto_nulo_pregao" ||
+        alerta.tipoAnomalia === "dependencia_transferencias" ||
+        alerta.tipoAnomalia === "desidratacao_patrimonio_rpps"
       ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
@@ -765,7 +807,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "concentracao_dispensa" ||
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
+        alerta.tipoAnomalia === "dependencia_transferencias"
       ) {
         return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
@@ -783,7 +826,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "concentracao_dispensa" ||
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
-        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade"
+        alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
+        alerta.tipoAnomalia === "dependencia_transferencias"
       ) {
         return `${formatPercentNumber(alerta.valorEsperado)}%`;
       }
@@ -815,7 +859,6 @@ export function buildRadarCivicoCards(
       valorEsperadoFormatted,
       ctaLabel,
       ctaUrl,
-      deepLinkRota: ctaUrl,
       whatsappShareUrl,
       whatsappShareText,
       fundamentacaoLegal,

@@ -2,7 +2,6 @@
 
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 interface ExtractionNotificationBannerProps {
   lastExtractionDate?: string;
@@ -58,24 +57,23 @@ function formatDateBR(dateStr?: string): string {
 export function ExtractionNotificationBanner({
   lastExtractionDate,
   portalName = "Prefeitura de Porciúncula",
-  portalSlug = "porciuncula_prefeitura",
 }: ExtractionNotificationBannerProps) {
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
-  const {
-    isSupported,
-    isSubscribed,
-    permission,
-    isLoading: isPushLoading,
-    subscribe,
-  } = usePushNotifications({ portalSlug });
 
   useEffect(() => {
     if (!lastExtractionDate || typeof window === "undefined") return;
 
     const storedExtractionDate = safeGetLocalStorage("last_seen_extraction");
 
-    // Show banner if no date was previously saved or if a newer extraction is detected
-    if (!storedExtractionDate || storedExtractionDate !== lastExtractionDate) {
+    // No primeiro acesso (quando o usuário nunca viu o portal antes),
+    // salva silenciosamente a data atual sem poluir a tela com aviso de "novos dados"
+    if (!storedExtractionDate) {
+      safeSetLocalStorage("last_seen_extraction", lastExtractionDate);
+      return;
+    }
+
+    // Em visitas futuras, se a data de extração for diferente da última registrada, exibe o aviso
+    if (storedExtractionDate !== lastExtractionDate) {
       setShowNotificationBanner(true);
 
       posthog.capture("extraction_banner_viewed", {
@@ -85,7 +83,7 @@ export function ExtractionNotificationBanner({
 
       const formattedDate = formatDateBR(lastExtractionDate);
 
-      // Trigger OS/Browser native notification safely via Service Worker registration if granted
+      // Dispara notificação nativa com segurança via Service Worker se a permissão já estiver concedida
       if ("Notification" in window && Notification.permission === "granted") {
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready
@@ -121,8 +119,8 @@ export function ExtractionNotificationBanner({
   const formattedDate = formatDateBR(lastExtractionDate);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-blue-200 border-b bg-blue-50 px-4 py-2.5 text-blue-950 text-sm shadow-sm">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-blue-200 border-b bg-blue-50 px-4 py-2 text-blue-950 text-xs shadow-xs sm:text-sm">
+      <div className="flex items-center gap-2">
         <span aria-hidden="true">📢</span>
         <span>
           <strong>Novos dados disponíveis!</strong> A última extração de contas
@@ -130,24 +128,6 @@ export function ExtractionNotificationBanner({
           <span className="font-semibold text-blue-700">{portalName}</span> foi
           atualizada ({formattedDate}).
         </span>
-        {isSupported && !isSubscribed && permission === "default" && (
-          <span className="inline-flex items-center gap-1.5 text-blue-900 text-xs">
-            <span className="hidden sm:inline">•</span>
-            <span>
-              Deseja receber avisos automáticos de novas contas públicas?
-            </span>
-            <button
-              type="button"
-              onClick={async () => {
-                await subscribe();
-              }}
-              disabled={isPushLoading}
-              className="cursor-pointer font-semibold text-blue-700 underline transition-colors hover:text-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isPushLoading ? "Ativando..." : "Ativar notificações"}
-            </button>
-          </span>
-        )}
       </div>
       <button
         type="button"

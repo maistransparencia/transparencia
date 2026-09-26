@@ -12,6 +12,7 @@ import {
   getAdesaoExternaMetrics,
   getAnomaliasContratuaisMetrics,
   getDistribucaoModalidadesMetrics,
+  getLicitacaoByNumero,
   getLicitacaoGapsMetrics,
   getLicitacaoItens,
   getLicitacoesEmAndamentoMetrics,
@@ -509,6 +510,43 @@ describe("licitacoes-metrics", () => {
       expect(toIsoDateString(null)).toBeNull();
       expect(toIsoDateString(undefined)).toBeNull();
       expect(toIsoDateString("not-a-date")).toBeNull();
+    });
+  });
+
+  describe("getLicitacaoByNumero", () => {
+    it("deve retornar null para parâmetros vazios ou inválidos", async () => {
+      expect(await getLicitacaoByNumero("", "0001")).toBeNull();
+      expect(await getLicitacaoByNumero("   ", "0001")).toBeNull();
+      expect(await getLicitacaoByNumero(FIXTURE_PORTAL, "")).toBeNull();
+      expect(await getLicitacaoByNumero(FIXTURE_PORTAL, "   ")).toBeNull();
+    });
+
+    it("deve retornar a licitação correspondente mesmo se estiver homologada", async () => {
+      await seedDimOrgao({
+        portalSlug: FIXTURE_PORTAL,
+        empresaId: "1",
+        orgaoNome: "Secretaria de Testes",
+      });
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        licitacaoId: "lic-homologada-1",
+        ano: 2026,
+        empresaId: "1",
+        licitacaoNumero: "000397",
+        modalidade: "DISPENSA",
+        objeto: "Locação de tendas para feira",
+        situacao: "Homologada",
+        valor: 3200,
+        valorHomologado: 3200,
+      });
+
+      const lic = await getLicitacaoByNumero(FIXTURE_PORTAL, "000397", 2026);
+      expect(lic).not.toBeNull();
+      expect(lic?.licitacaoNumero).toBe("000397");
+      expect(lic?.situacao).toBe("homologada");
+      expect(lic?.objeto).toBe("Locação de tendas para feira");
+      expect(lic?.valorHomologado).toBe(3200);
+      expect(lic?.entidadeNome).toBe("Secretaria de Testes");
     });
   });
 });
