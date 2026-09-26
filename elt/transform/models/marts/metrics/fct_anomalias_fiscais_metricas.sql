@@ -1,26 +1,33 @@
 {{ config(materialized='view' if var('test_mode', false) else 'table') }}
 
-with max_ano_despesas as (
-    select
-        d.portal_slug,
-        max(d.ano) as max_ano
-    from {{ ref('fct_despesas') }} d
-    where d.fonte = 'exercicio'
-    group by d.portal_slug
-),
-
-despesas_anuais as (
+with despesas_anuais_raw as (
     select
         d.portal_slug,
         d.ano,
         coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função') as funcao_nome,
         sum(d.empenhado_liquido) as valor_observado
     from {{ ref('fct_despesas') }} d
-    join max_ano_despesas m on d.portal_slug = m.portal_slug
     where d.fonte = 'exercicio'
-      and d.ano < m.max_ano
       and d.ano >= {{ var('ano_inicial_historico', 2021) }}
     group by d.portal_slug, d.ano, coalesce(nullif(trim(d.funcao_nome), ''), 'Sem Função')
+),
+
+despesas_anuais as (
+    select
+        portal_slug,
+        ano,
+        funcao_nome,
+        valor_observado
+    from (
+        select
+            portal_slug,
+            ano,
+            funcao_nome,
+            valor_observado,
+            max(ano) over (partition by portal_slug) as max_ano
+        from despesas_anuais_raw
+    ) sub
+    where ano < max_ano
 ),
 
 despesas_stats as (
@@ -161,23 +168,31 @@ caixa_anomalias as (
        or c.valor_observado < s.q1 - 1.5 * (s.q3 - s.q1)
 ),
 
+licitacoes_base as (
+    select
+        portal_slug,
+        ano,
+        {{ target.schema }}.unaccent(lower(coalesce(modalidade, ''))) as modalidade_clean
+    from {{ ref('fct_licitacoes') }}
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
 licitacoes_anuais as (
     select
-        l.portal_slug,
-        l.ano,
+        portal_slug,
+        ano,
         count(*)::integer as total_processos,
         count(
             case
-                when {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%dispensa%'
-                  or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%inexigibilidade%'
-                  or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%adesao%ata%'
-                  or {{ target.schema }}.unaccent(lower(coalesce(l.modalidade, ''))) like '%sem%licitacao%'
+                when modalidade_clean like '%dispensa%'
+                  or modalidade_clean like '%inexigibilidade%'
+                  or modalidade_clean like '%adesao%ata%'
+                  or modalidade_clean like '%sem%licitacao%'
                 then 1
             end
         )::integer as dispensas_processos
-    from {{ ref('fct_licitacoes') }} l
-    where l.ano >= {{ var('ano_inicial_historico', 2021) }}
-    group by l.portal_slug, l.ano
+    from licitacoes_base
+    group by portal_slug, ano
 ),
 
 dispensas_calc as (
@@ -285,44 +300,52 @@ caprem_patronal_anomalias as (
 
 licitacoes_itens_agrupadas as (
     select
-        i.portal_slug,
-        i.ano,
-        i.licitacao_numero,
-        coalesce(l.modalidade, '') as modalidade,
-        sum(i.valor_total_estimado) as total_estimado,
-        sum(i.valor_total_homologado) as total_homologado,
+        portal_slug,
+        ano,
+        licitacao_numero,
+        sum(valor_total_estimado) as total_estimado,
+        sum(valor_total_homologado) as total_homologado,
         case
-            when sum(i.valor_total_estimado) > 0
-            then round(((sum(i.valor_total_estimado) - sum(i.valor_total_homologado)) / sum(i.valor_total_estimado) * 100.0)::numeric, 2)
+            when sum(valor_total_estimado) > 0
+            then round(((sum(valor_total_estimado) - sum(valor_total_homologado)) / sum(valor_total_estimado) * 100.0)::numeric, 2)
             else 0.00
         end as desconto_global
-    from {{ ref('fct_licitacoes_itens') }} i
-    left join {{ ref('fct_licitacoes') }} l
-        on l.portal_slug = i.portal_slug
-       and l.ano = i.ano
-       and l.licitacao_numero = i.licitacao_numero
-    where i.valor_total_homologado is not null
-      and i.ano >= {{ var('ano_inicial_historico', 2021) }}
-    group by i.portal_slug, i.ano, i.licitacao_numero, coalesce(l.modalidade, '')
+    from {{ ref('fct_licitacoes_itens') }}
+    where valor_total_homologado is not null
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano, licitacao_numero
+),
+
+pregoes as (
+    select distinct
+        portal_slug,
+        ano,
+        licitacao_numero
+    from {{ ref('fct_licitacoes') }}
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
+      and {{ target.schema }}.unaccent(lower(coalesce(modalidade, ''))) like '%pregao%'
 ),
 
 desconto_nulo_anomalias as (
     select
-        portal_slug,
-        ano,
+        i.portal_slug,
+        i.ano,
         'desconto_nulo_pregao'::text as tipo_anomalia,
-        ('licitacao_' || lower(regexp_replace(trim(licitacao_numero), '[^a-zA-Z0-9]+', '_', 'g')))::text as dimensao_referencia,
-        desconto_global::numeric as valor_observado,
+        ('licitacao_' || lower(regexp_replace(trim(i.licitacao_numero), '[^a-zA-Z0-9]+', '_', 'g')))::text as dimensao_referencia,
+        i.desconto_global::numeric as valor_observado,
         10.00::numeric as valor_esperado,
-        round((10.00 - desconto_global)::numeric, 2) as desvio_percentual,
+        round((10.00 - i.desconto_global)::numeric, 2) as desvio_percentual,
         1::integer as mes_inicial,
         12::integer as mes_final,
-        licitacao_numero::text as licitacao_numero,
+        i.licitacao_numero::text as licitacao_numero,
         'limite_competitividade_pregao'::text as metodo_deteccao
-    from licitacoes_itens_agrupadas
-    where {{ target.schema }}.unaccent(lower(modalidade)) like '%pregao%'
-      and desconto_global < 1.00
-      and total_homologado >= 20000.00
+    from licitacoes_itens_agrupadas i
+    join pregoes p
+        on p.portal_slug = i.portal_slug
+       and p.ano = i.ano
+       and p.licitacao_numero = i.licitacao_numero
+    where i.desconto_global < 1.00
+      and i.total_homologado >= 20000.00
 ),
 
 desagio_extremo_anomalias as (
@@ -343,6 +366,17 @@ desagio_extremo_anomalias as (
       and total_estimado >= 20000.00
 ),
 
+pessoal_filtrado as (
+    select
+        portal_slug,
+        ano,
+        vinculo,
+        categoria_funcional
+    from {{ ref('fct_pessoal') }}
+    where categoria_regime in ('comissionado', 'contrato_temporario')
+      and ano >= {{ var('ano_inicial_historico', 2021) }}
+),
+
 pessoal_divergencias_anomalias as (
     select
         portal_slug,
@@ -356,13 +390,9 @@ pessoal_divergencias_anomalias as (
         12::integer as mes_final,
         null::text as licitacao_numero,
         'harmonizacao_cadastral_art37'::text as metodo_deteccao
-    from {{ ref('fct_pessoal') }}
-    where (
-        {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%agente%politico%'
-        or {{ target.schema }}.unaccent(lower(coalesce(categoria_funcional, ''))) like '%excepcional interesse%'
-    )
-      and categoria_regime in ('comissionado', 'contrato_temporario')
-      and ano >= {{ var('ano_inicial_historico', 2021) }}
+    from pessoal_filtrado
+    where {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%agente%politico%'
+       or {{ target.schema }}.unaccent(lower(coalesce(categoria_funcional, ''))) like '%excepcional interesse%'
     group by portal_slug, ano
     having count(*) > 0
 ),

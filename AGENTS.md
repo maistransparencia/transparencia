@@ -157,4 +157,13 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Validação Automatizada de Paridade:** Antes de submeter commits ou pull requests, execute `make db/fixture/check` (ou `make test`) para validar se o fixture restaurado no banco de testes está em 100% de paridade de tabelas, colunas, tipos de dados e registros estáticos de seed com a estrutura gerada pelo dbt.
 - **Fail-Fast no CI:** O pipeline de integração contínua rejeitará automaticamente qualquer PR que contenha discrepâncias entre as definições analíticas do dbt e o fixture de banco de dados utilizado pela camada TypeScript (`packages/db`).
 
+---
+
+## 22. PADRÕES DE ALTA PERFORMANCE EM QUERIES SQL (dbt MARTS & ANALYTICS)
+
+- **Aggregate First, Join Later (Prevenção de Fan-Out):** Nunca execute joins entre tabelas fatos volumosas ou relações 1:N (ex: `fct_licitacoes_itens` com `fct_licitacoes`) antes de agregar. Realize primeiro o `GROUP BY` no grão desejado na tabela filha antes de cruzar com o cabeçalho, prevenindo multiplicação de linhas intermediárias e timeouts de execução.
+- **Single-Scan em Janelas Temporais:** Evite escanear a mesma tabela fato múltiplas vezes para calcular o ano corrente/máximo e o histórico (ex: subqueries ou CTEs separadas com `MAX(ano)`). Utilize funções de janela analíticas como `MAX(ano) OVER (PARTITION BY portal_slug)` em um CTE base único para filtrar o grão mais recente sem re-scans.
+- **Predicate Pushdown Pré-`unaccent`:** Funções textuais de normalização (`unaccent`, `lower`, `regex`) em grandes volumes são custosas e impedem otimizações de plano de execução. Aplique primeiro predicados estruturados e de particionamento (`ano >= 2021`, `categoria_regime IN (...)`) antes de invocar `unaccent()` em descrições e títulos.
+- **CTEs de Consumo Especializado (Anti-Monólito):** Não crie CTEs amplos que realizam joins pesados para alimentar múltiplos indicadores se apenas uma das métricas precisa daquele cruzamento. Isole projeções e joins caros estritamente no CTE que calcula o indicador específico.
+
 
