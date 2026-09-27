@@ -29,6 +29,7 @@ describe("LicitacoesSearchBar", () => {
     class MockIntersectionObserver implements IntersectionObserver {
       readonly root: Element | Document | null = null;
       readonly rootMargin: string = "";
+      readonly scrollMargin: string = "";
       readonly thresholds: ReadonlyArray<number> = [];
       constructor(callback: IntersectionObserverCallback) {
         observerCallback = callback;
@@ -113,12 +114,15 @@ describe("LicitacoesSearchBar", () => {
 
     // Simula o scroll ultrapassando o campo de busca (fora de interseção e topo < 0)
     act(() => {
-      observerCallback([
-        {
-          isIntersecting: false,
-          boundingClientRect: { top: -150 } as DOMRectReadOnly,
-        } as IntersectionObserverEntry,
-      ]);
+      observerCallback(
+        [
+          {
+            isIntersecting: false,
+            boundingClientRect: { top: -150 } as DOMRectReadOnly,
+          } as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      );
     });
 
     // Agora deve estar visível
@@ -146,12 +150,15 @@ describe("LicitacoesSearchBar", () => {
 
     // Simula scroll passado
     act(() => {
-      observerCallback([
-        {
-          isIntersecting: false,
-          boundingClientRect: { top: -150 } as DOMRectReadOnly,
-        } as IntersectionObserverEntry,
-      ]);
+      observerCallback(
+        [
+          {
+            isIntersecting: false,
+            boundingClientRect: { top: -150 } as DOMRectReadOnly,
+          } as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      );
     });
 
     const floatingButton = screen.getByLabelText(

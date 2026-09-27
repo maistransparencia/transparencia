@@ -86,6 +86,7 @@ export function LicitacoesSearchBar({
 
       {/* Pílula flutuante no mobile quando o scroll ultrapassa o campo de busca */}
       <div
+        aria-hidden={!showFloatingPill}
         className={cn(
           "fixed bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] left-1/2 z-30 -translate-x-1/2 transition-all duration-300 ease-out md:hidden",
           showFloatingPill
@@ -95,6 +96,7 @@ export function LicitacoesSearchBar({
       >
         <button
           type="button"
+          tabIndex={showFloatingPill ? 0 : -1}
           onClick={() => setIsModalOpen(true)}
           aria-label="Abrir busca rápida de licitações e contratos"
           className="flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-lg shadow-slate-900/10 backdrop-blur-md transition-transform active:scale-95"

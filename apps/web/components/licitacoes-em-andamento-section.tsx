@@ -1043,17 +1043,16 @@ export function LicitacoesEmAndamentoSection({
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedLicitacaoForItens.fontesRecursos
                         .split(";")
-                        .map((fonte) => {
-                          const cleanFonte = fonte.trim();
-                          return (
-                            <span
-                              key={cleanFonte}
-                              className="inline-flex items-center rounded-md border border-blue-200 bg-white px-2.5 py-1 font-medium text-blue-900 text-xs shadow-2xs"
-                            >
-                              {cleanFonte}
-                            </span>
-                          );
-                        })}
+                        .map((fonte) => fonte.trim())
+                        .filter((cleanFonte) => cleanFonte.length > 0)
+                        .map((cleanFonte) => (
+                          <span
+                            key={cleanFonte}
+                            className="inline-flex items-center rounded-md border border-blue-200 bg-white px-2.5 py-1 font-medium text-blue-900 text-xs shadow-2xs"
+                          >
+                            {cleanFonte}
+                          </span>
+                        ))}
                     </div>
                   </div>
                 )}

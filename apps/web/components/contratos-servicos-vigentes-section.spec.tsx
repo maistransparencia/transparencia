@@ -244,7 +244,7 @@ describe("ContratosServicosVigentesSection", () => {
           statusExecucao: "em_execucao",
         },
       }),
-    });
+    } as unknown as Response);
 
     render(
       <ContratosServicosVigentesSection
