@@ -32,7 +32,13 @@ export interface LicitacoesSpotlightModalProps {
   onSelect?: (item: SearchResultItem) => void;
 }
 
-const QUICK_SUGGESTIONS = ["0043/24", "Locação", "Veículos", "Saúde"];
+const QUICK_SUGGESTIONS = [
+  "0043/24",
+  "Locação",
+  "Veículos",
+  "Saúde",
+  "Merenda",
+];
 
 export function LicitacoesSpotlightModal({
   isOpen,
@@ -279,7 +285,7 @@ export function LicitacoesSpotlightModal({
                 : undefined
             }
             aria-label="Buscar licitações e contratos"
-            placeholder="Buscar por objeto, número do processo (ex: 0043/24) ou fornecedor..."
+            placeholder="Buscar por objeto, número (ex: 0043/24), fornecedor ou recurso..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-transparent text-slate-800 text-sm outline-hidden placeholder:text-slate-400 sm:text-base"
@@ -437,6 +443,11 @@ export function LicitacoesSpotlightModal({
                             <span className="text-[11px] text-slate-400">
                               · {item.ano}
                             </span>
+                            {item.programaNome && (
+                              <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
+                                {item.programaNome}
+                              </span>
+                            )}
                           </div>
                           {item.fornecedorNome && (
                             <p className="mt-0.5 line-clamp-2 break-words font-medium text-slate-700 text-xs">
@@ -444,6 +455,13 @@ export function LicitacoesSpotlightModal({
                                 ? "Fornecedores homologados:"
                                 : "Fornecedor:"}{" "}
                               {item.fornecedorNome}
+                            </p>
+                          )}
+                          {(item.orgaoNome || item.fontePrincipal) && (
+                            <p className="mt-0.5 line-clamp-1 break-words text-[11px] text-slate-500">
+                              {[item.orgaoNome, item.fontePrincipal]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           )}
                           <p className="mt-1 line-clamp-2 break-words text-slate-600 text-xs leading-relaxed">
@@ -542,10 +560,22 @@ export function LicitacoesSpotlightModal({
                                 · {item.ano}
                               </span>
                             )}
+                            {item.programaNome && (
+                              <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
+                                {item.programaNome}
+                              </span>
+                            )}
                           </div>
                           {item.fornecedorNome && (
                             <p className="mt-0.5 break-words font-medium text-slate-700 text-xs">
                               Fornecedor: {item.fornecedorNome}
+                            </p>
+                          )}
+                          {(item.orgaoNome || item.fontePrincipal) && (
+                            <p className="mt-0.5 line-clamp-1 break-words text-[11px] text-slate-500">
+                              {[item.orgaoNome, item.fontePrincipal]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           )}
                           {isContratoVigenteAnoAnterior &&
