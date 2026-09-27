@@ -24,6 +24,7 @@ export interface ContratoServicoVigente {
   objetoDescricao: string;
   dataInicio: string | null;
   vencimentoAtual: string | null;
+  valorContrato?: number;
   valorAditado?: number;
   totalEmpenhado: number;
   totalLiquidado: number;
@@ -59,6 +60,7 @@ type ContratoRow = {
   objeto_descricao?: string | null;
   data_inicio?: string | Date | null;
   vencimento_atual?: string | Date | null;
+  valor_contrato?: string | number | null;
   valor_aditado?: string | number | null;
   total_empenhado?: string | number | null;
   total_liquidado?: string | number | null;
@@ -69,6 +71,7 @@ type ContratoRow = {
 function mapRowToContratoServicoVigente(
   row: ContratoRow,
 ): ContratoServicoVigente {
+  const valorContrato = Number(row.valor_contrato ?? 0);
   const totalEmpenhado = Number(row.total_empenhado ?? 0);
   const totalLiquidado = Number(row.total_liquidado ?? 0);
   const totalPago = Number(row.total_pago ?? 0);
@@ -118,6 +121,7 @@ function mapRowToContratoServicoVigente(
       row.objeto_descricao != null ? String(row.objeto_descricao) : "",
     dataInicio: toIsoDateString(row.data_inicio),
     vencimentoAtual: vencimentoAtualStr,
+    valorContrato: valorContrato > 0 ? valorContrato : undefined,
     valorAditado: valorAditado > 0 ? valorAditado : undefined,
     totalEmpenhado,
     totalLiquidado,
@@ -176,6 +180,9 @@ export async function getContratosServicosVigentes(
         "csv.objeto_descricao",
         "csv.data_inicio",
         "csv.vencimento_atual",
+        sql<number>`coalesce(cr.valor_contrato, c.valor_contrato, 0)`.as(
+          "valor_contrato",
+        ),
         "csv.valor_aditado",
         "csv.total_empenhado",
         "csv.total_liquidado",
@@ -262,6 +269,9 @@ export async function getContratoByNumero(
         "csv.objeto_descricao",
         "csv.data_inicio",
         "csv.vencimento_atual",
+        sql<number>`coalesce(cr.valor_contrato, c.valor_contrato, 0)`.as(
+          "valor_contrato",
+        ),
         "csv.valor_aditado",
         "csv.total_empenhado",
         "csv.total_liquidado",

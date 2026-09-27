@@ -119,7 +119,6 @@ export function LicitacoesSpotlightModal({
       try {
         const queryParams = new URLSearchParams({
           q: clean,
-          ...(ano ? { ano: String(ano) } : {}),
         });
         const res = await fetch(
           `/api/${encodeURIComponent(portalSlug)}/licitacoes/search?${queryParams.toString()}`,
