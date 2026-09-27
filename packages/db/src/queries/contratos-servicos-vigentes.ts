@@ -10,8 +10,15 @@ export interface ContratoServicoVigente {
   contratoServicoId?: string;
   portalSlug: string;
   empresaId?: string;
+  orgaoNome?: string | null;
   ano?: number;
   contratoNumero?: string;
+  licitacaoNumero?: string | null;
+  fontePrincipal?: string | null;
+  fontesRecursos?: string | null;
+  programaNome?: string | null;
+  projetoAtividadeNome?: string | null;
+  funcaoNome?: string | null;
   fornecedorNome: string;
   fornecedorCnpj: string;
   objetoDescricao: string;
@@ -38,8 +45,15 @@ type ContratoRow = {
   contrato_servico_id?: string | number | null;
   portal_slug?: string | null;
   empresa_id?: string | number | null;
+  orgao_nome?: string | null;
   ano?: string | number | null;
   contrato_numero?: string | null;
+  licitacao_numero?: string | null;
+  fonte_principal?: string | null;
+  fontes_recursos?: string | null;
+  programa_nome?: string | null;
+  projeto_atividade_nome?: string | null;
+  funcao_nome?: string | null;
   fornecedor_nome?: string | null;
   fornecedor_cnpj?: string | null;
   objeto_descricao?: string | null;
@@ -79,9 +93,23 @@ function mapRowToContratoServicoVigente(
         : undefined,
     portalSlug: row.portal_slug != null ? String(row.portal_slug) : "",
     empresaId: row.empresa_id != null ? String(row.empresa_id) : undefined,
+    orgaoNome: row.orgao_nome != null ? String(row.orgao_nome) : undefined,
     ano: rowAno,
     contratoNumero:
       row.contrato_numero != null ? String(row.contrato_numero) : undefined,
+    licitacaoNumero:
+      row.licitacao_numero != null ? String(row.licitacao_numero) : undefined,
+    fontePrincipal:
+      row.fonte_principal != null ? String(row.fonte_principal) : undefined,
+    fontesRecursos:
+      row.fontes_recursos != null ? String(row.fontes_recursos) : undefined,
+    programaNome:
+      row.programa_nome != null ? String(row.programa_nome) : undefined,
+    projetoAtividadeNome:
+      row.projeto_atividade_nome != null
+        ? String(row.projeto_atividade_nome)
+        : undefined,
+    funcaoNome: row.funcao_nome != null ? String(row.funcao_nome) : undefined,
     fornecedorNome:
       row.fornecedor_nome != null ? String(row.fornecedor_nome) : "",
     fornecedorCnpj:
@@ -107,33 +135,66 @@ export async function getContratosServicosVigentes(
 ): Promise<ContratoServicoVigente[]> {
   try {
     let query = db
-      .selectFrom("fct_contratos_servicos_vigentes")
+      .selectFrom("fct_contratos_servicos_vigentes as csv")
+      .leftJoin("dim_orgao as o", (join) =>
+        join
+          .onRef("o.portal_slug", "=", "csv.portal_slug")
+          .onRef("o.empresa_id", "=", "csv.empresa_id"),
+      )
+      .leftJoin("fct_contratos as c", (join) =>
+        join
+          .onRef("c.portal_slug", "=", "csv.portal_slug")
+          .onRef("c.empresa_id", "=", "csv.empresa_id")
+          .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
+      )
+      .leftJoin("fct_contratos_recursos as cr", (join) =>
+        join
+          .onRef("cr.portal_slug", "=", "csv.portal_slug")
+          .onRef("cr.empresa_id", "=", "csv.empresa_id")
+          .onRef("cr.ano", "=", "csv.ano")
+          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
+      )
       .select([
-        "contrato_servico_id",
-        "portal_slug",
-        "empresa_id",
-        "ano",
-        "contrato_numero",
-        "fornecedor_nome",
-        "fornecedor_cnpj",
-        "objeto_descricao",
-        "data_inicio",
-        "vencimento_atual",
-        "valor_aditado",
-        "total_empenhado",
-        "total_liquidado",
-        "total_pago",
-        "status_execucao",
+        "csv.contrato_servico_id",
+        "csv.portal_slug",
+        "csv.empresa_id",
+        sql<string>`coalesce(cr.orgao_nome, o.orgao_nome, 'Órgão não identificado')`.as(
+          "orgao_nome",
+        ),
+        "csv.ano",
+        "csv.contrato_numero",
+        sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
+          "licitacao_numero",
+        ),
+        "cr.fonte_principal",
+        "cr.fontes_recursos",
+        "cr.principal_programa as programa_nome",
+        "cr.principal_acao as projeto_atividade_nome",
+        "cr.principal_funcao as funcao_nome",
+        "csv.fornecedor_nome",
+        "csv.fornecedor_cnpj",
+        "csv.objeto_descricao",
+        "csv.data_inicio",
+        "csv.vencimento_atual",
+        "csv.valor_aditado",
+        "csv.total_empenhado",
+        "csv.total_liquidado",
+        "csv.total_pago",
+        "csv.status_execucao",
       ])
-      .where("portal_slug", "=", portalSlug)
-      .where("ano", "=", ano);
+      .where("csv.portal_slug", "=", portalSlug)
+      .where("csv.ano", "=", ano);
 
     if (empresaIds && empresaIds.length > 0) {
-      query = query.where("empresa_id", "in", empresaIds);
+      query = query.where("csv.empresa_id", "in", empresaIds);
     }
 
-    const rows = await query.orderBy("total_empenhado", "desc").execute();
-    return rows.map((row) => mapRowToContratoServicoVigente(row));
+    const rows = await query
+      .orderBy("csv.total_pago", "asc")
+      .orderBy(sql`csv.total_empenhado - csv.total_pago`, "desc")
+      .execute();
+
+    return rows.map((r) => mapRowToContratoServicoVigente(r as ContratoRow));
   } catch {
     return [];
   }
@@ -146,10 +207,8 @@ export async function getContratoByNumero(
 ): Promise<ContratoServicoVigente | null> {
   if (
     !portalSlug ||
-    typeof portalSlug !== "string" ||
     portalSlug.trim() === "" ||
     !contratoNumeroOuId ||
-    typeof contratoNumeroOuId !== "string" ||
     contratoNumeroOuId.trim() === ""
   ) {
     return null;
@@ -162,48 +221,77 @@ export async function getContratoByNumero(
 
   try {
     let query = db
-      .selectFrom("fct_contratos_servicos_vigentes")
+      .selectFrom("fct_contratos_servicos_vigentes as csv")
+      .leftJoin("dim_orgao as o", (join) =>
+        join
+          .onRef("o.portal_slug", "=", "csv.portal_slug")
+          .onRef("o.empresa_id", "=", "csv.empresa_id"),
+      )
+      .leftJoin("fct_contratos as c", (join) =>
+        join
+          .onRef("c.portal_slug", "=", "csv.portal_slug")
+          .onRef("c.empresa_id", "=", "csv.empresa_id")
+          .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
+      )
+      .leftJoin("fct_contratos_recursos as cr", (join) =>
+        join
+          .onRef("cr.portal_slug", "=", "csv.portal_slug")
+          .onRef("cr.empresa_id", "=", "csv.empresa_id")
+          .onRef("cr.ano", "=", "csv.ano")
+          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
+      )
       .select([
-        "contrato_servico_id",
-        "portal_slug",
-        "empresa_id",
-        "ano",
-        "contrato_numero",
-        "fornecedor_nome",
-        "fornecedor_cnpj",
-        "objeto_descricao",
-        "data_inicio",
-        "vencimento_atual",
-        "valor_aditado",
-        "total_empenhado",
-        "total_liquidado",
-        "total_pago",
-        "status_execucao",
+        "csv.contrato_servico_id",
+        "csv.portal_slug",
+        "csv.empresa_id",
+        sql<string>`coalesce(cr.orgao_nome, o.orgao_nome, 'Órgão não identificado')`.as(
+          "orgao_nome",
+        ),
+        "csv.ano",
+        "csv.contrato_numero",
+        sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
+          "licitacao_numero",
+        ),
+        "cr.fonte_principal",
+        "cr.fontes_recursos",
+        "cr.principal_programa as programa_nome",
+        "cr.principal_acao as projeto_atividade_nome",
+        "cr.principal_funcao as funcao_nome",
+        "csv.fornecedor_nome",
+        "csv.fornecedor_cnpj",
+        "csv.objeto_descricao",
+        "csv.data_inicio",
+        "csv.vencimento_atual",
+        "csv.valor_aditado",
+        "csv.total_empenhado",
+        "csv.total_liquidado",
+        "csv.total_pago",
+        "csv.status_execucao",
       ])
-      .where("portal_slug", "=", cleanSlug)
+      .where("csv.portal_slug", "=", cleanSlug)
       .where((eb) =>
         eb.or([
-          eb("contrato_numero", "=", cleanTerm),
-          eb("contrato_servico_id", "=", cleanTerm),
+          eb("csv.contrato_numero", "=", cleanTerm),
+          eb("csv.contrato_servico_id", "=", cleanTerm),
           ...(canLtrim
             ? [
-                sql<boolean>`contrato_numero is not null and ltrim(contrato_numero, '0') = ${ltrimmedTerm}`,
+                sql<boolean>`csv.contrato_numero is not null and ltrim(csv.contrato_numero, '0') = ${ltrimmedTerm}`,
               ]
             : []),
         ]),
       );
 
     if (ano !== undefined && !Number.isNaN(ano)) {
-      query = query.where("ano", "=", ano);
+      query = query.where("csv.ano", "=", ano);
     }
 
-    const row = await query.orderBy("ano", "desc").executeTakeFirst();
+    const row = await query.orderBy("csv.ano", "desc").executeTakeFirst();
 
     if (!row) {
       return null;
     }
 
-    return mapRowToContratoServicoVigente(row);
+    return mapRowToContratoServicoVigente(row as ContratoRow);
   } catch {
     return null;
   }

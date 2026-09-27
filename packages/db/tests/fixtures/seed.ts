@@ -819,8 +819,69 @@ export async function seedContrato(row: ContratoRow): Promise<void> {
     .execute();
 }
 
+export interface ContratoRecursoSeedRow {
+  contratoRecursoId?: string;
+  contratoId: string;
+  portalSlug: string;
+  ano: number;
+  empresaId: string;
+  orgaoId?: string | null;
+  orgaoNome?: string | null;
+  contratoNumero?: string | null;
+  licitacaoNumero?: string | null;
+  fornecedorNome?: string | null;
+  fornecedorCpfCnpj?: string | null;
+  valorContrato?: number;
+  valorAditado?: number;
+  totalEmpenhado?: number;
+  totalLiquidado?: number;
+  totalPago?: number;
+  saldoAPagar?: number;
+  fontePrincipal?: string | null;
+  fontesRecursos?: string | null;
+  principalFuncao?: string | null;
+  principalPrograma?: string | null;
+  principalAcao?: string | null;
+}
+
+export async function seedContratoRecurso(
+  row: ContratoRecursoSeedRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_contratos_recursos")
+    .values({
+      contrato_recurso_id: row.contratoRecursoId ?? nextId("cr"),
+      contrato_id: row.contratoId,
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empresa_id: row.empresaId,
+      orgao_id: row.orgaoId ?? null,
+      orgao_nome: row.orgaoNome ?? "Órgão não identificado",
+      contrato_numero: row.contratoNumero ?? null,
+      licitacao_numero: row.licitacaoNumero ?? null,
+      fornecedor_nome: row.fornecedorNome ?? null,
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+      valor_contrato: row.valorContrato ?? 0,
+      valor_aditado: row.valorAditado ?? 0,
+      total_empenhado: row.totalEmpenhado ?? 0,
+      total_liquidado: row.totalLiquidado ?? 0,
+      total_pago: row.totalPago ?? 0,
+      saldo_a_pagar: row.saldoAPagar ?? 0,
+      fonte_principal: row.fontePrincipal ?? "Recursos Próprios / Ordinários",
+      fontes_recursos: row.fontesRecursos ?? "Recursos Próprios / Ordinários",
+      principal_funcao: row.principalFuncao ?? "Administração Geral",
+      principal_programa: row.principalPrograma ?? null,
+      principal_acao: row.principalAcao ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_contratos_recursos")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_anomalias_fiscais_metricas")
     .where("portal_slug", "=", portalSlug)
