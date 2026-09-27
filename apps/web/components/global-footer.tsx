@@ -54,7 +54,7 @@ export function GlobalFooter({
 
   return (
     <>
-      <footer className="mt-auto border-borderLine border-t bg-white/60 pb-20 md:pb-0">
+      <footer className="mt-auto border-borderLine border-t bg-white/60 pb-[calc(env(safe-area-inset-bottom,0px)+9rem)] md:pb-0">
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
           {/* Bloco principal */}
           <div className="flex flex-col gap-6 py-8 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
