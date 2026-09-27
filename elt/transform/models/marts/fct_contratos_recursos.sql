@@ -7,6 +7,11 @@ with despesas_por_licitacao as (
         portal_slug,
         empresa_id,
         split_part(licitacao_numero, '/', 1) as licitacao_clean,
+        case
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{2}$' then 2000 + split_part(licitacao_numero, '/', 2)::int
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{4}$' then split_part(licitacao_numero, '/', 2)::int
+            else ano
+        end as licitacao_ano,
         regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g') as cnpj_clean,
         sum(empenhado_liquido) as total_empenhado,
         sum(liquidado) as total_liquidado,
@@ -18,10 +23,13 @@ with despesas_por_licitacao as (
         (array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1] as principal_acao
     from {{ ref('fct_despesas') }}
     where licitacao_numero is not null
+        and trim(licitacao_numero) != '/'
+        and trim(licitacao_numero) != ''
     group by
         portal_slug,
         empresa_id,
         split_part(licitacao_numero, '/', 1),
+        4,
         regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')
 ),
 
@@ -100,6 +108,7 @@ left join despesas_por_licitacao dl
     and c.empresa_id = dl.empresa_id
     and c.licitacao_clean = dl.licitacao_clean
     and c.cnpj_clean = dl.cnpj_clean
+    and dl.licitacao_ano between c.ano - 1 and c.ano
 left join despesas_por_fornecedor df
     on c.licitacao_numero is null
     and c.portal_slug = df.portal_slug
