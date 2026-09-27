@@ -2,7 +2,7 @@
 
 import { cn } from "@transparencia/ui";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LicitacoesSpotlightModal } from "./licitacoes-spotlight-modal";
 
 export interface LicitacoesSearchBarProps {
@@ -18,6 +18,8 @@ export function LicitacoesSearchBar({
 }: LicitacoesSearchBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMac, setIsMac] = useState(false);
+  const [isScrolledPast, setIsScrolledPast] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
@@ -35,9 +37,31 @@ export function LicitacoesSearchBar({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Se não estiver intersectando e o topo for menor que 0, rolou para além da barra
+        const passed =
+          !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        setIsScrolledPast(passed);
+      },
+      {
+        threshold: 0,
+      },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const showFloatingPill = isScrolledPast && !isModalOpen;
+
   return (
     <>
-      <div className={cn("relative w-full", className)}>
+      <div ref={containerRef} className={cn("relative w-full", className)}>
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
@@ -57,6 +81,31 @@ export function LicitacoesSearchBar({
               {isMac ? "⌘K" : "Ctrl+K"}
             </kbd>
           </div>
+        </button>
+      </div>
+
+      {/* Pílula flutuante no mobile quando o scroll ultrapassa o campo de busca */}
+      <div
+        className={cn(
+          "fixed bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] left-1/2 z-30 -translate-x-1/2 transition-all duration-300 ease-out md:hidden",
+          showFloatingPill
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-4 opacity-0",
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Abrir busca rápida de licitações e contratos"
+          className="flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-lg shadow-slate-900/10 backdrop-blur-md transition-transform active:scale-95"
+        >
+          <Search className="h-4 w-4 shrink-0 text-accent" />
+          <span className="whitespace-nowrap font-medium text-slate-700 text-xs">
+            Buscar licitações e contratos
+          </span>
+          <span className="rounded-full bg-accent/10 px-2 py-0.5 font-semibold text-[10px] text-accent">
+            Buscar
+          </span>
         </button>
       </div>
 
