@@ -659,6 +659,11 @@ export async function getLicitacoesEmAndamentoMetrics(
           sql<string>`split_part(licitacao_numero, '/', 1)`.as(
             "licitacao_clean",
           ),
+          sql<number>`case 
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{2}$' then 2000 + split_part(licitacao_numero, '/', 2)::int
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{4}$' then split_part(licitacao_numero, '/', 2)::int
+            else ano 
+          end`.as("licitacao_ano"),
           sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
             "fontes_recursos",
           ),
@@ -669,13 +674,23 @@ export async function getLicitacoesEmAndamentoMetrics(
           "portal_slug",
           "empresa_id",
           sql`split_part(licitacao_numero, '/', 1)`,
+          sql`case 
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{2}$' then 2000 + split_part(licitacao_numero, '/', 2)::int
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{4}$' then split_part(licitacao_numero, '/', 2)::int
+            else ano 
+          end`,
         ])
         .as("fd"),
       (join) =>
         join
           .onRef("fd.portal_slug", "=", "l.portal_slug")
           .onRef("fd.empresa_id", "=", "l.empresa_id")
-          .onRef(sql`fd.licitacao_clean`, "=", "l.licitacao_numero"),
+          .onRef(
+            sql`fd.licitacao_clean`,
+            "=",
+            sql`split_part(l.licitacao_numero, '/', 1)`,
+          )
+          .onRef("fd.licitacao_ano", "=", "l.ano"),
     )
     .select([
       "l.licitacao_id",
@@ -810,20 +825,41 @@ export async function getLicitacaoByNumero(
         .select([
           "portal_slug",
           "empresa_id",
-          "licitacao_numero",
+          sql<string>`split_part(licitacao_numero, '/', 1)`.as(
+            "licitacao_clean",
+          ),
+          sql<number>`case 
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{2}$' then 2000 + split_part(licitacao_numero, '/', 2)::int
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{4}$' then split_part(licitacao_numero, '/', 2)::int
+            else ano 
+          end`.as("licitacao_ano"),
           sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
             "fontes_recursos",
           ),
         ])
         .where("licitacao_numero", "is not", null)
         .where("fonte_recurso_desc", "is not", null)
-        .groupBy(["portal_slug", "empresa_id", "licitacao_numero"])
+        .groupBy([
+          "portal_slug",
+          "empresa_id",
+          sql`split_part(licitacao_numero, '/', 1)`,
+          sql`case 
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{2}$' then 2000 + split_part(licitacao_numero, '/', 2)::int
+            when split_part(licitacao_numero, '/', 2) ~ '^[0-9]{4}$' then split_part(licitacao_numero, '/', 2)::int
+            else ano 
+          end`,
+        ])
         .as("fd"),
       (join) =>
         join
           .onRef("fd.portal_slug", "=", "l.portal_slug")
           .onRef("fd.empresa_id", "=", "l.empresa_id")
-          .onRef("fd.licitacao_numero", "=", "l.licitacao_numero"),
+          .onRef(
+            sql`fd.licitacao_clean`,
+            "=",
+            sql`split_part(l.licitacao_numero, '/', 1)`,
+          )
+          .onRef("fd.licitacao_ano", "=", "l.ano"),
     )
     .select([
       "l.licitacao_id",

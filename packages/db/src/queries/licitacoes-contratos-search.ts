@@ -178,7 +178,7 @@ export async function searchLicitacoesEContratos(
         GROUP BY 1, 2, 3, 4
       ) desp ON desp.portal_slug = l.portal_slug 
         AND desp.empresa_id = l.empresa_id 
-        AND desp.lic_num = l.licitacao_numero
+        AND desp.lic_num = split_part(l.licitacao_numero, '/', 1)
         AND desp.lic_ano = l.ano
       LEFT JOIN (
         SELECT 

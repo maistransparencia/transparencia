@@ -147,174 +147,30 @@ export async function getContratosServicosVigentes(
           .onRef("c.empresa_id", "=", "csv.empresa_id")
           .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
       )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql<string>`split_part(licitacao_numero, '/', 1)`.as(
-              "licitacao_clean",
-            ),
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is not", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql`split_part(licitacao_numero, '/', 1)`,
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd"),
-        (join) =>
-          join
-            .onRef("fd.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd.empresa_id", "=", "csv.empresa_id")
-            .onRef("fd.ano", "=", "csv.ano")
-            .onRef(sql`fd.licitacao_clean`, "=", "c.licitacao_numero")
-            .onRef(
-              sql`fd.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
-      )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            sql<string>`split_part(licitacao_numero, '/', 1)`.as(
-              "licitacao_clean",
-            ),
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is not", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            sql`split_part(licitacao_numero, '/', 1)`,
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd_all"),
-        (join) =>
-          join
-            .onRef("fd_all.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd_all.empresa_id", "=", "csv.empresa_id")
-            .onRef(sql`fd_all.licitacao_clean`, "=", "c.licitacao_numero")
-            .onRef(
-              sql`fd_all.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
-      )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd_sem_lic"),
-        (join) =>
-          join
-            .onRef("fd_sem_lic.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd_sem_lic.empresa_id", "=", "csv.empresa_id")
-            .onRef("fd_sem_lic.ano", "=", "csv.ano")
-            .onRef(
-              sql`fd_sem_lic.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
+      .leftJoin("fct_contratos_recursos as cr", (join) =>
+        join
+          .onRef("cr.portal_slug", "=", "csv.portal_slug")
+          .onRef("cr.empresa_id", "=", "csv.empresa_id")
+          .onRef("cr.ano", "=", "csv.ano")
+          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
       )
       .select([
         "csv.contrato_servico_id",
         "csv.portal_slug",
         "csv.empresa_id",
-        "o.orgao_nome",
+        sql<string>`coalesce(cr.orgao_nome, o.orgao_nome, 'Órgão não identificado')`.as(
+          "orgao_nome",
+        ),
         "csv.ano",
         "csv.contrato_numero",
-        "c.licitacao_numero",
-        sql<string>`coalesce(fd.fonte_principal, fd_all.fonte_principal, fd_sem_lic.fonte_principal)`.as(
-          "fonte_principal",
+        sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
+          "licitacao_numero",
         ),
-        sql<string>`coalesce(fd.fontes_recursos, fd_all.fontes_recursos, fd_sem_lic.fontes_recursos)`.as(
-          "fontes_recursos",
-        ),
-        sql<string>`coalesce(fd.programa_nome, fd_all.programa_nome, fd_sem_lic.programa_nome)`.as(
-          "programa_nome",
-        ),
-        sql<string>`coalesce(fd.projeto_atividade_nome, fd_all.projeto_atividade_nome, fd_sem_lic.projeto_atividade_nome)`.as(
-          "projeto_atividade_nome",
-        ),
-        sql<string>`coalesce(fd.funcao_nome, fd_all.funcao_nome, fd_sem_lic.funcao_nome)`.as(
-          "funcao_nome",
-        ),
+        "cr.fonte_principal",
+        "cr.fontes_recursos",
+        "cr.principal_programa as programa_nome",
+        "cr.principal_acao as projeto_atividade_nome",
+        "cr.principal_funcao as funcao_nome",
         "csv.fornecedor_nome",
         "csv.fornecedor_cnpj",
         "csv.objeto_descricao",
@@ -377,174 +233,30 @@ export async function getContratoByNumero(
           .onRef("c.empresa_id", "=", "csv.empresa_id")
           .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
       )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql<string>`split_part(licitacao_numero, '/', 1)`.as(
-              "licitacao_clean",
-            ),
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is not", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql`split_part(licitacao_numero, '/', 1)`,
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd"),
-        (join) =>
-          join
-            .onRef("fd.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd.empresa_id", "=", "csv.empresa_id")
-            .onRef("fd.ano", "=", "csv.ano")
-            .onRef(sql`fd.licitacao_clean`, "=", "c.licitacao_numero")
-            .onRef(
-              sql`fd.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
-      )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            sql<string>`split_part(licitacao_numero, '/', 1)`.as(
-              "licitacao_clean",
-            ),
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is not", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            sql`split_part(licitacao_numero, '/', 1)`,
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd_all"),
-        (join) =>
-          join
-            .onRef("fd_all.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd_all.empresa_id", "=", "csv.empresa_id")
-            .onRef(sql`fd_all.licitacao_clean`, "=", "c.licitacao_numero")
-            .onRef(
-              sql`fd_all.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
-      )
-      .leftJoin(
-        db
-          .selectFrom("fct_despesas")
-          .select([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql<string>`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`.as(
-              "cnpj_clean",
-            ),
-            sql<string>`string_agg(distinct fonte_recurso_desc, '; ') filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != '')`.as(
-              "fontes_recursos",
-            ),
-            sql<string>`(array_agg(fonte_recurso_desc order by empenhado_liquido desc) filter (where fonte_recurso_desc is not null and trim(fonte_recurso_desc) != ''))[1]`.as(
-              "fonte_principal",
-            ),
-            sql<string>`(array_agg(funcao_nome order by empenhado_liquido desc) filter (where funcao_nome is not null))[1]`.as(
-              "funcao_nome",
-            ),
-            sql<string>`(array_agg(programa_nome order by empenhado_liquido desc) filter (where programa_nome is not null))[1]`.as(
-              "programa_nome",
-            ),
-            sql<string>`(array_agg(projeto_atividade_nome order by empenhado_liquido desc) filter (where projeto_atividade_nome is not null))[1]`.as(
-              "projeto_atividade_nome",
-            ),
-          ])
-          .where("licitacao_numero", "is", null)
-          .where("fonte_recurso_desc", "is not", null)
-          .groupBy([
-            "portal_slug",
-            "empresa_id",
-            "ano",
-            sql`regexp_replace(fornecedor_cpf_cnpj, '[^\d]', '', 'g')`,
-          ])
-          .as("fd_sem_lic"),
-        (join) =>
-          join
-            .onRef("fd_sem_lic.portal_slug", "=", "csv.portal_slug")
-            .onRef("fd_sem_lic.empresa_id", "=", "csv.empresa_id")
-            .onRef("fd_sem_lic.ano", "=", "csv.ano")
-            .onRef(
-              sql`fd_sem_lic.cnpj_clean`,
-              "=",
-              sql`regexp_replace(csv.fornecedor_cnpj, '[^\d]', '', 'g')`,
-            ),
+      .leftJoin("fct_contratos_recursos as cr", (join) =>
+        join
+          .onRef("cr.portal_slug", "=", "csv.portal_slug")
+          .onRef("cr.empresa_id", "=", "csv.empresa_id")
+          .onRef("cr.ano", "=", "csv.ano")
+          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
       )
       .select([
         "csv.contrato_servico_id",
         "csv.portal_slug",
         "csv.empresa_id",
-        "o.orgao_nome",
+        sql<string>`coalesce(cr.orgao_nome, o.orgao_nome, 'Órgão não identificado')`.as(
+          "orgao_nome",
+        ),
         "csv.ano",
         "csv.contrato_numero",
-        "c.licitacao_numero",
-        sql<string>`coalesce(fd.fonte_principal, fd_all.fonte_principal, fd_sem_lic.fonte_principal)`.as(
-          "fonte_principal",
+        sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
+          "licitacao_numero",
         ),
-        sql<string>`coalesce(fd.fontes_recursos, fd_all.fontes_recursos, fd_sem_lic.fontes_recursos)`.as(
-          "fontes_recursos",
-        ),
-        sql<string>`coalesce(fd.programa_nome, fd_all.programa_nome, fd_sem_lic.programa_nome)`.as(
-          "programa_nome",
-        ),
-        sql<string>`coalesce(fd.projeto_atividade_nome, fd_all.projeto_atividade_nome, fd_sem_lic.projeto_atividade_nome)`.as(
-          "projeto_atividade_nome",
-        ),
-        sql<string>`coalesce(fd.funcao_nome, fd_all.funcao_nome, fd_sem_lic.funcao_nome)`.as(
-          "funcao_nome",
-        ),
+        "cr.fonte_principal",
+        "cr.fontes_recursos",
+        "cr.principal_programa as programa_nome",
+        "cr.principal_acao as projeto_atividade_nome",
+        "cr.principal_funcao as funcao_nome",
         "csv.fornecedor_nome",
         "csv.fornecedor_cnpj",
         "csv.objeto_descricao",
