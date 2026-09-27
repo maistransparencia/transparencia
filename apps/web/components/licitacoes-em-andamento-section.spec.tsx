@@ -27,6 +27,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       valorHomologado: null,
       valor: 250000,
       carona: null,
+      fontesRecursos: "1.600 - Transferências do SUS; 1.500 - Recursos Livres",
     },
     {
       licitacaoId: "lic-002",
@@ -524,5 +525,11 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     ).toBeInTheDocument();
     expect(within(dialog).getByText("Valor Estimado")).toBeInTheDocument();
     expect(within(dialog).getByText("R$ 250.000,00")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.600 - Transferências do SUS"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.500 - Recursos Livres"),
+    ).toBeInTheDocument();
   });
 });

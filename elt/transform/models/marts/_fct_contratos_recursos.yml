@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: fct_contratos_recursos
+    description: "Visão analítica de contratos vinculada aos órgãos responsáveis e fontes de recursos orçamentários"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: contrato_recurso_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Chave surrogate MD5 (portal_slug | ano | empresa_id | contrato_id)"
+        tests:
+          - not_null
+          - unique
+      - name: contrato_id
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: empresa_id
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: orgao_id
+        data_type: text
+      - name: orgao_nome
+        data_type: text
+      - name: contrato_numero
+        data_type: text
+      - name: licitacao_numero
+        data_type: text
+      - name: fornecedor_nome
+        data_type: text
+      - name: fornecedor_cpf_cnpj
+        data_type: text
+      - name: valor_contrato
+        data_type: numeric(15, 2)
+      - name: valor_aditado
+        data_type: numeric(15, 2)
+      - name: total_empenhado
+        data_type: numeric(15, 2)
+      - name: total_liquidado
+        data_type: numeric(15, 2)
+      - name: total_pago
+        data_type: numeric(15, 2)
+      - name: saldo_a_pagar
+        data_type: numeric(15, 2)
+      - name: fonte_principal
+        data_type: text
+      - name: fontes_recursos
+        data_type: text
+      - name: principal_funcao
+        data_type: text
+      - name: principal_programa
+        data_type: text
+      - name: principal_acao
+        data_type: text
+
+unit_tests:
+  - name: test_contratos_recursos_vinculo_licitacao_e_orgao
+    description: "Valida vínculo do contrato ao órgão e agregação de fontes de despesa via licitacao_numero"
+    model: fct_contratos_recursos
+    given:
+      - input: ref('dim_orgao')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", orgao_id: "org-pref-7", orgao_nome: "PREFEITURA MUNICIPAL DE PORCIUNCULA", cnpj: "28920999000106" }
+      - input: ref('fct_contratos')
+        rows:
+          - { contrato_id: "c-001", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0010/26", licitacao_numero: "0005/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "FORNECEDOR A", valor_contrato: 100000.00, valor_aditado: 0.00, empenhado: 100000.00 }
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, licitacao_numero: "0005/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", empenhado_liquido: 100000.00, liquidado: 60000.00, pago: 50000.00, fonte_recurso_desc: "1.540 - FUNDEB", funcao_nome: "Educação", programa_nome: "PROGRAMA EDUCACAO", projeto_atividade_nome: "ACAO ESCOLAR" }
+    expect:
+      rows:
+        - { contrato_id: "c-001", portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "7", orgao_id: "org-pref-7", orgao_nome: "PREFEITURA MUNICIPAL DE PORCIUNCULA", contrato_numero: "0010/26", licitacao_numero: "0005/26", fornecedor_nome: "FORNECEDOR A", fornecedor_cpf_cnpj: "11.111.111/0001-11", valor_contrato: 100000.00, valor_aditado: 0.00, total_empenhado: 100000.00, total_liquidado: 60000.00, total_pago: 50000.00, saldo_a_pagar: 50000.00, fonte_principal: "1.540 - FUNDEB", fontes_recursos: "1.540 - FUNDEB", principal_funcao: "Educação", principal_programa: "PROGRAMA EDUCACAO", principal_acao: "ACAO ESCOLAR" }
+
+  - name: test_contratos_recursos_fallback_sem_licitacao
+    description: "Valida fallback por fornecedor_cpf_cnpj quando o contrato não tem licitacao_numero"
+    model: fct_contratos_recursos
+    given:
+      - input: ref('dim_orgao')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", orgao_id: "org-saude-2", orgao_nome: "FUNDO MUNICIPAL DE SAUDE", cnpj: "12097798000110" }
+      - input: ref('fct_contratos')
+        rows:
+          - { contrato_id: "c-002", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0020/26", licitacao_numero: null, fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "FORNECEDOR DISPENSA", valor_contrato: 30000.00, valor_aditado: 0.00, empenhado: 30000.00 }
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, licitacao_numero: null, fornecedor_cpf_cnpj: "22.222.222/0001-22", empenhado_liquido: 30000.00, liquidado: 30000.00, pago: 30000.00, fonte_recurso_desc: "1.600 - SUS", funcao_nome: "Saúde", programa_nome: "PROGRAMA SAUDE", projeto_atividade_nome: "ACAO SAUDE" }
+    expect:
+      rows:
+        - { contrato_id: "c-002", portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", orgao_id: "org-saude-2", orgao_nome: "FUNDO MUNICIPAL DE SAUDE", contrato_numero: "0020/26", licitacao_numero: null, fornecedor_nome: "FORNECEDOR DISPENSA", fornecedor_cpf_cnpj: "22.222.222/0001-22", valor_contrato: 30000.00, valor_aditado: 0.00, total_empenhado: 30000.00, total_liquidado: 30000.00, total_pago: 30000.00, saldo_a_pagar: 0.00, fonte_principal: "1.600 - SUS", fontes_recursos: "1.600 - SUS", principal_funcao: "Saúde", principal_programa: "PROGRAMA SAUDE", principal_acao: "ACAO SAUDE" }

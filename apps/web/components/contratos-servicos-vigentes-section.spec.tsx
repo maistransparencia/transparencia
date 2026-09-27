@@ -14,8 +14,15 @@ describe("ContratosServicosVigentesSection", () => {
     {
       contratoServicoId: "ctr-1",
       portalSlug: "porciuncula_prefeitura",
+      empresaId: "2",
+      orgaoNome: "Fundo Municipal de Saúde",
       ano: 2024,
       contratoNumero: "0043/24",
+      licitacaoNumero: "0015/24",
+      fontePrincipal: "1.500 - Recursos Livres",
+      fontesRecursos: "1.500 - Recursos Livres; 1.600 - Transferências do SUS",
+      programaNome: "ATENÇÃO BÁSICA EM SAÚDE",
+      projetoAtividadeNome: "Manutenção dos Postos de Saúde da Família",
       fornecedorNome: "JUSTINA REGINA R. MONTEIRO",
       fornecedorCnpj: "12345678000190",
       objetoDescricao:
@@ -132,6 +139,18 @@ describe("ContratosServicosVigentesSection", () => {
     expect(within(dialog).getByText("R$ 6.000,00")).toBeInTheDocument(); // Saldo Pendente
     expect(within(dialog).getByText(/75[.,]00%/)).toBeInTheDocument(); // % Pago
 
+    // Validar rastreabilidade de órgão e recursos
+    expect(
+      within(dialog).getByText("Fundo Municipal de Saúde"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("0015/24")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.500 - Recursos Livres"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.600 - Transferências do SUS"),
+    ).toBeInTheDocument();
+
     // Verifica scroll suave
     expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
   });
@@ -204,7 +223,7 @@ describe("ContratosServicosVigentesSection", () => {
   });
 
   it("busca detalhes via API quando o contrato não constar na lista pré-carregada", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         contrato: {
@@ -225,7 +244,7 @@ describe("ContratosServicosVigentesSection", () => {
           statusExecucao: "em_execucao",
         },
       }),
-    });
+    } as unknown as Response);
 
     render(
       <ContratosServicosVigentesSection
@@ -306,5 +325,43 @@ describe("ContratosServicosVigentesSection", () => {
     );
     expect(highlightedRow).toBeDefined();
     expect(highlightedRow).toHaveClass("bg-amber-50/70");
+  });
+
+  it("exibe a fonte principal em destaque e a destinação orçamentária no modal de detalhes", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?contratoNumero=0043%2F24",
+    );
+
+    render(
+      <ContratosServicosVigentesSection
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2024}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByText(/Fonte de Recursos & Destinação Orçamentária/i),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.500 - Recursos Livres"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("Principal")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("1.600 - Transferências do SUS"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("ATENÇÃO BÁSICA EM SAÚDE"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Manutenção dos Postos de Saúde da Família"),
+    ).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedContrato,
+  seedContratoRecurso,
   seedLicitacao,
   seedLicitacaoItem,
 } from "../../../tests/fixtures/seed";
@@ -610,5 +611,69 @@ describe("searchLicitacoesEContratos", () => {
     expect(globalResult.total).toBeGreaterThanOrEqual(2);
     expect(globalResult.licitacoes.length).toBeGreaterThanOrEqual(1);
     expect(globalResult.contratos.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("deve encontrar contrato pelo programa orçamentário vinculado (ex: 'merenda escolar' -> 0443/25) e retornar metadados de recursos", async () => {
+    const contratoId = "ctr-merenda-0443";
+    await seedContrato({
+      contratoId,
+      portalSlug: FIXTURE_PORTAL,
+      ano: 2025,
+      contratoNumero: "0443/25",
+      fornecedorNome: "POLIANA GOMES",
+      objeto:
+        "AQUISIÇÃO DE GÊNEROS ALIMENTÍCIOS DA AGRICULTURA FAMILIAR E EMPREENDEDOR FAMILIAR RURAL, DESTINADO AO ATENDIMENTO DO PNAE.",
+      valorContrato: 45000,
+      vencimentoAtual: "2026-10-15",
+    });
+
+    await seedContratoRecurso({
+      contratoId,
+      portalSlug: FIXTURE_PORTAL,
+      ano: 2025,
+      empresaId: "3",
+      orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      contratoNumero: "0443/25",
+      fornecedorNome: "POLIANA GOMES",
+      valorContrato: 45000,
+      fontePrincipal: "PNAE",
+      fontesRecursos: "PNAE",
+      principalFuncao: "Educação",
+      principalPrograma: "MERENDA ESCOLAR",
+      principalAcao: "Merenda Escolar - Agricultura Familiar",
+    });
+
+    const result = await searchLicitacoesEContratos({
+      portalSlug: FIXTURE_PORTAL,
+      termo: "merenda escolar",
+      tipo: "contrato",
+    });
+
+    expect(result.contratos.length).toBeGreaterThanOrEqual(1);
+    const contrato = result.contratos.find((c) => c.numero === "0443/25");
+    expect(contrato).toBeDefined();
+    expect(contrato?.fornecedorNome).toBe("POLIANA GOMES");
+    expect(contrato?.orgaoNome).toBe("FUNDO MUNICIPAL DE EDUCAÇÃO");
+    expect(contrato?.fontePrincipal).toBe("PNAE");
+    expect(contrato?.fontesRecursos).toBe("PNAE");
+    expect(contrato?.programaNome).toBe("MERENDA ESCOLAR");
+    expect(contrato?.projetoAtividadeNome).toBe(
+      "Merenda Escolar - Agricultura Familiar",
+    );
+  });
+
+  it("deve retornar o contrato 0443/25 ao buscar por 'merenda escolar' no portal porciuncula_prefeitura se dados reais existirem", async () => {
+    const result = await searchLicitacoesEContratos({
+      portalSlug: "porciuncula_prefeitura",
+      termo: "merenda escolar",
+      tipo: "contrato",
+    });
+
+    if (result.contratos.length > 0) {
+      const contrato0443 = result.contratos.find((c) => c.numero === "0443/25");
+      expect(contrato0443).toBeDefined();
+      expect(contrato0443?.programaNome).toBe("MERENDA ESCOLAR");
+      expect(contrato0443?.fontePrincipal).toBe("PNAE");
+    }
   });
 });

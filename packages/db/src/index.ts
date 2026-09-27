@@ -2,6 +2,7 @@ export { closeDb, db, dbWrite } from "./client";
 export * from "./constants";
 export * from "./migrator";
 export * from "./queries/analise-despesas-metrics";
+export * from "./queries/contratos-recursos";
 export * from "./queries/contratos-servicos-vigentes";
 export * from "./queries/despesas-metrics";
 export * from "./queries/execucao-orcamentaria-metrics";

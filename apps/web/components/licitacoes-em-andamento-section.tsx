@@ -1022,6 +1022,41 @@ export function LicitacoesEmAndamentoSection({
                   </div>
                 </div>
 
+                {/* Bloco de Rastreabilidade Orçamentária e Fonte de Recursos */}
+                {selectedLicitacaoForItens.fontesRecursos && (
+                  <div className="rounded-xl border border-blue-200/80 bg-blue-50/50 p-3.5 sm:p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                        Fonte de Recursos / Destinação Orçamentária
+                      </span>
+                      <a
+                        href="https://www.planalto.gov.br/ccivil_03/_ato2021-2024/2021/lei/l14133.htm#art18"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs hover:underline"
+                        title="Art. 18, VIII da Lei 14.133/2021"
+                      >
+                        <span>Art. 18 da Lei 14.133/21</span>
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </a>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedLicitacaoForItens.fontesRecursos
+                        .split(";")
+                        .map((fonte) => fonte.trim())
+                        .filter((cleanFonte) => cleanFonte.length > 0)
+                        .map((cleanFonte) => (
+                          <span
+                            key={cleanFonte}
+                            className="inline-flex items-center rounded-md border border-blue-200 bg-white px-2.5 py-1 font-medium text-blue-900 text-xs shadow-2xs"
+                          >
+                            {cleanFonte}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Bloco 2: Objeto Integral da Licitação */}
                 <div className="min-w-0">
                   <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">

@@ -5,6 +5,41 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-09-27
+
+### 🌟 Destaques da Versão (Rastreabilidade Orçamentária de Contratações e Usabilidade Mobile da Busca)
+* **Rastreabilidade de Recursos Orçamentários e Órgãos Responsáveis:** Integração contábil completa entre compras públicas e a execução orçamentária (MCASP/STN). O cidadão agora identifica com clareza a origem dos recursos (ex: FUNDEB, Transferências do SUS, Recursos Próprios) e o órgão contratante responsável tanto nos modais detalhados de licitações e contratos quanto no motor de busca rápida.
+* **Busca Rápida Acessível e Flutuante no Mobile:** Ao navegar e rolar longas páginas de certames ou contratos em dispositivos móveis, uma pílula flutuante de busca surge suavemente na tela, garantindo acesso instantâneo ao Spotlight modal (`Cmd+K` / busca global) sem exigir retorno manual ao topo da página.
+* **Métricas de Execução Financeira e Saldos a Pagar em Contratos:** Visualização consolidada da execução de cada contratação nos modais (total contratado, aditado, empenhado, liquidado, pago e saldo residual a pagar), com fundamentação legal direta nos artigos da Nova Lei de Licitações (Lei nº 14.133/2021) e Lei nº 4.320/1964.
+
+### ✨ Novas Funcionalidades (Added)
+* **Detalhamento de Recursos e Órgão Contratante nos Modais 360:**
+  - *Modal de Contratos*: exibição do órgão responsável (ex: Secretaria de Educação, Fundo Municipal de Saúde), discriminação das fontes orçamentárias STN e comparativo financeiro entre valores empenhados, liquidados e pagos com saldo a pagar.
+  - *Modal de Licitações*: bloco informativo destacando as fontes de recursos vinculadas ao certame com link oficial para o Art. 18, VIII da [Lei nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2021-2024/2021/lei/l14133.htm#art18).
+* **Indexação Orçamentária na Busca Global (`searchLicitacoesEContratos`):** O motor de pesquisa textual agora indexa a descrição das fontes de recursos, nomes de programas, ações orçamentárias e órgãos responsáveis, permitindo que buscas como `"merenda escolar"`, `"sus"` ou `"fundeb"` retornem diretamente os contratos e licitações correspondentes.
+* **Pílula Flutuante de Busca Móvel (`LicitacoesSearchBar`):** Botão flutuante responsivo no mobile posicionado acima da barra de navegação, com detecção de rolagem via `IntersectionObserver`, respeitando áreas seguras (`safe-area-inset-bottom`) e acessibilidade via teclado/leitores de tela.
+* **Telemetria de Busca de Compras com PostHog:** Instrumentação de eventos de analytics (`licitacoes_search_performed`, `licitacoes_search_result_clicked`) para monitoramento do comportamento de pesquisa do cidadão com respeito à privacidade.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Novo Mart Analítico `fct_contratos_recursos`:** Modelo dimensional pré-agregado consolidando `fct_contratos`, `dim_orgao` e `fct_despesas` com regra de "Aggregate First, Join Later", agregando despesas por licitação e fornecedor com ordenação de volume financeiro para identificar fonte de recursos e função orçamentária principais.
+* **Correspondência Temporal Anti-Contaminação:** Extração da competência temporal da licitação (`licitacao_ano`) a partir da despesa com amarração por janela (`dl.licitacao_ano BETWEEN c.ano - 1 AND c.ano`), prevenindo que certames de exercícios anteriores com idêntico número sequencial contaminem contratos de exercícios subsequentes.
+* **Sincronização Rigorosa de Fixtures de Teste:** Atualização do fixture [schema.sql.gz](file:///packages/db/tests/fixtures/schema.sql.gz) contendo o novo mart e verificação de paridade estrutural automatizada via `make db/fixture/dump` e `make db/fixture/check`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Aproveitamento de Mart e Desacoplamento em Runtime (`contratos-servicos-vigentes`):** Substituição de 6 subqueries inline custosas executadas diretamente sobre `fct_despesas` em tempo de requisição por um `leftJoin` direto com o mart `fct_contratos_recursos`, reduzindo drasticamente o tempo de resposta das consultas da API de contratos vigentes.
+* **Normalização de Cruzamentos de Licitação (`split_part`):** Padronização das comparações de número de processo licitatório em consultas Kysely (`licitacoes-metrics.ts` e `licitacoes-contratos-search.ts`), normalizando sufixos com barra e vinculando obrigatoriamente o ano do certame.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Acessibilidade do Botão Flutuante Móvel:** Configuração de `tabIndex={showFloatingPill ? 0 : -1}` e `aria-hidden={!showFloatingPill}`, evitando retenção indevida do foco por navegadores acessíveis quando a pílula estiver oculta.
+* **Sanitização de Badges de Recursos na Interface:** Inclusão de filtro defensivo para strings vazias em `fontesRecursos.split(";")`, prevenindo badges em branco e avisos de chaves duplicadas no React.
+* **Margem Inferior do Rodapé Institucional:** Expansão do espaçamento inferior do rodapé no mobile (`pb-24`), assegurando que a barra de navegação flutuante não sobreponha os links legais de Termos de Uso e Política de Privacidade.
+* **Testes Determinísticos em `@transparencia/db`:** Refatoração da suíte de testes de contratos e recursos para utilizar isolamento por fixture (`createFixturePortalSlug()`) e semente determinística com `seedContratoRecurso()`, eliminando asserções condicionais vacuosas.
+
+## [1.11.1] - 2026-09-26
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Otimização de Alta Performance em Queries dbt Marts (Regra 22):** Aplicação de técnicas de "Aggregate First, Join Later", single-scan em janelas temporais de exercícios e pushdown de predicados estruturados antes de funções de texto (`unaccent`) nos modelos `fct_licitacoes_metricas`, `fct_posicao_fiscal_metricas` e `fct_anomalias_fiscais_metricas`, eliminando riscos de timeout de execução analítica.
+
 ## [1.11.0] - 2026-09-25
 
 ### 🌟 Destaques da Versão (Epics 13 e 14: Busca Global de Contratações, Diagnóstico do RPPS e Usabilidade Cívica)

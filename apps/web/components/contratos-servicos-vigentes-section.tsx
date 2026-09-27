@@ -11,6 +11,7 @@ import {
   fmtPercent,
   ModalDialog,
 } from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
@@ -574,7 +575,7 @@ export function ContratosServicosVigentesSection({
           maxWidth="4xl"
         >
           <div className="space-y-6 py-2">
-            {/* Bloco 1: Fornecedor, CNPJ, Vigência e Ano */}
+            {/* Bloco 1: Fornecedor, Órgão, Vigência, Licitação de Origem e Ano */}
             <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-2 sm:gap-6">
               <div>
                 <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
@@ -590,6 +591,14 @@ export function ContratosServicosVigentesSection({
                       "Não informado"}
                   </span>
                 </p>
+                {selectedContrato.orgaoNome && (
+                  <p className="mt-1 text-slate-600 text-xs">
+                    Órgão Responsável:{" "}
+                    <span className="font-semibold text-slate-800">
+                      {selectedContrato.orgaoNome}
+                    </span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -621,8 +630,108 @@ export function ContratosServicosVigentesSection({
                     </span>
                   </p>
                 )}
+                {selectedContrato.licitacaoNumero && (
+                  <p className="mt-1 text-slate-600 text-xs">
+                    Processo Licitatório:{" "}
+                    <span className="font-semibold text-slate-800">
+                      {selectedContrato.licitacaoNumero}
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Bloco de Rastreabilidade Orçamentária e Fonte de Recursos */}
+            {(selectedContrato.fontePrincipal ||
+              selectedContrato.fontesRecursos ||
+              selectedContrato.programaNome ||
+              selectedContrato.projetoAtividadeNome) && (
+              <div className="rounded-xl border border-blue-200/80 bg-blue-50/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                    Fonte de Recursos &amp; Destinação Orçamentária
+                  </span>
+                  <a
+                    href="https://www.planalto.gov.br/ccivil_03/_ato2021-2024/2021/lei/l14133.htm#art92"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs hover:underline"
+                    title="Art. 92, VIII da Lei 14.133/2021"
+                  >
+                    <span>Art. 92 da Lei 14.133/21</span>
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  </a>
+                </div>
+
+                {/* Origem dos Recursos */}
+                {(selectedContrato.fontePrincipal ||
+                  selectedContrato.fontesRecursos) && (
+                  <div className="mt-2.5 space-y-1.5">
+                    <span className="font-medium text-slate-600 text-xs">
+                      Origem dos Recursos:
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {selectedContrato.fontePrincipal && (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-white px-2.5 py-1 font-semibold text-blue-950 text-xs shadow-2xs">
+                          <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-600" />
+                          {selectedContrato.fontePrincipal}
+                          <span className="rounded bg-blue-100 px-1 py-0.5 font-normal text-[10px] text-blue-800">
+                            Principal
+                          </span>
+                        </span>
+                      )}
+                      {(() => {
+                        const raw = selectedContrato.fontesRecursos ?? "";
+                        const allFontes = raw
+                          .split(";")
+                          .map((f) => f.trim())
+                          .filter(
+                            (f) =>
+                              f.length > 0 &&
+                              f !== selectedContrato.fontePrincipal,
+                          );
+                        if (allFontes.length === 0) return null;
+                        return allFontes.map((fonte) => (
+                          <span
+                            key={fonte}
+                            className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 font-normal text-slate-700 text-xs"
+                          >
+                            {fonte}
+                          </span>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Destinação Orçamentária / Programática */}
+                {(selectedContrato.programaNome ||
+                  selectedContrato.projetoAtividadeNome) && (
+                  <div className="mt-3.5 grid grid-cols-1 gap-2.5 border-blue-200/60 border-t pt-3 text-xs sm:grid-cols-2">
+                    {selectedContrato.programaNome && (
+                      <div>
+                        <span className="font-medium text-[10px] text-slate-500 uppercase tracking-wider">
+                          Programa Orçamentário
+                        </span>
+                        <p className="mt-0.5 font-medium text-slate-800 leading-snug">
+                          {selectedContrato.programaNome}
+                        </p>
+                      </div>
+                    )}
+                    {selectedContrato.projetoAtividadeNome && (
+                      <div>
+                        <span className="font-medium text-[10px] text-slate-500 uppercase tracking-wider">
+                          Ação / Projeto-Atividade
+                        </span>
+                        <p className="mt-0.5 font-medium text-slate-800 leading-snug">
+                          {selectedContrato.projetoAtividadeNome}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Bloco 2: Objeto Integral */}
             <div className="min-w-0">
