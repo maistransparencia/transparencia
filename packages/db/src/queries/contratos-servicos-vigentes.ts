@@ -151,12 +151,32 @@ export async function getContratosServicosVigentes(
           .onRef("c.empresa_id", "=", "csv.empresa_id")
           .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
       )
-      .leftJoin("fct_contratos_recursos as cr", (join) =>
-        join
-          .onRef("cr.portal_slug", "=", "csv.portal_slug")
-          .onRef("cr.empresa_id", "=", "csv.empresa_id")
-          .onRef("cr.ano", "=", "csv.ano")
-          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
+      .leftJoin(
+        db
+          .selectFrom("fct_contratos_recursos")
+          .select([
+            "portal_slug",
+            "empresa_id",
+            "contrato_numero",
+            "orgao_nome",
+            "licitacao_numero",
+            "fonte_principal",
+            "fontes_recursos",
+            "principal_programa",
+            "principal_acao",
+            "principal_funcao",
+            "valor_contrato",
+            sql<number>`row_number() over (partition by portal_slug, empresa_id, contrato_numero order by ano desc)`.as(
+              "rn",
+            ),
+          ])
+          .as("cr"),
+        (join) =>
+          join
+            .onRef("cr.portal_slug", "=", "csv.portal_slug")
+            .onRef("cr.empresa_id", "=", "csv.empresa_id")
+            .onRef("cr.contrato_numero", "=", "csv.contrato_numero")
+            .on("cr.rn", "=", 1),
       )
       .select([
         "csv.contrato_servico_id",
@@ -240,12 +260,32 @@ export async function getContratoByNumero(
           .onRef("c.empresa_id", "=", "csv.empresa_id")
           .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
       )
-      .leftJoin("fct_contratos_recursos as cr", (join) =>
-        join
-          .onRef("cr.portal_slug", "=", "csv.portal_slug")
-          .onRef("cr.empresa_id", "=", "csv.empresa_id")
-          .onRef("cr.ano", "=", "csv.ano")
-          .onRef("cr.contrato_numero", "=", "csv.contrato_numero"),
+      .leftJoin(
+        db
+          .selectFrom("fct_contratos_recursos")
+          .select([
+            "portal_slug",
+            "empresa_id",
+            "contrato_numero",
+            "orgao_nome",
+            "licitacao_numero",
+            "fonte_principal",
+            "fontes_recursos",
+            "principal_programa",
+            "principal_acao",
+            "principal_funcao",
+            "valor_contrato",
+            sql<number>`row_number() over (partition by portal_slug, empresa_id, contrato_numero order by ano desc)`.as(
+              "rn",
+            ),
+          ])
+          .as("cr"),
+        (join) =>
+          join
+            .onRef("cr.portal_slug", "=", "csv.portal_slug")
+            .onRef("cr.empresa_id", "=", "csv.empresa_id")
+            .onRef("cr.contrato_numero", "=", "csv.contrato_numero")
+            .on("cr.rn", "=", 1),
       )
       .select([
         "csv.contrato_servico_id",

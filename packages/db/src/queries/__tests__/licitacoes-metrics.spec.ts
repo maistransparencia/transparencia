@@ -548,5 +548,32 @@ describe("licitacoes-metrics", () => {
       expect(lic?.valorHomologado).toBe(3200);
       expect(lic?.entidadeNome).toBe("Secretaria de Testes");
     });
+
+    it("deve realizar fallback para o exercício de ocorrência quando solicitado com ano diferente", async () => {
+      await seedDimOrgao({
+        portalSlug: FIXTURE_PORTAL,
+        empresaId: "2",
+        orgaoNome: "Fundo de Saúde",
+      });
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        licitacaoId: "lic-2025-1",
+        ano: 2025,
+        empresaId: "2",
+        licitacaoNumero: "001103",
+        modalidade: "ADESÃO A ATA DE REGISTRO DE PREÇOS",
+        objeto: "Aquisição de medicamentos",
+        situacao: "Em Andamento",
+        valor: 3000000,
+        valorEstimado: 3000000,
+      });
+
+      // Solicita com ano 2026, mas o processo só existe em 2025
+      const lic = await getLicitacaoByNumero(FIXTURE_PORTAL, "001103", 2026);
+      expect(lic).not.toBeNull();
+      expect(lic?.licitacaoNumero).toBe("001103");
+      expect(lic?.ano).toBe(2025);
+      expect(lic?.objeto).toBe("Aquisição de medicamentos");
+    });
   });
 });
