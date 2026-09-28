@@ -37,6 +37,20 @@ export function ContratosServicosVigentesSection({
 
   const hasCheckedDeepLinkRef = useRef(false);
 
+  const handleOpenContratoDetails = useCallback((c: ContratoServicoVigente) => {
+    setSelectedContrato(c);
+    setOpenedFromSearch(false);
+    if (typeof window !== "undefined") {
+      const term = c.contratoNumero || c.contratoServicoId;
+      if (term) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("contratoNumero", term);
+        url.hash = "contratos-servicos-vigentes";
+        window.history.pushState({}, "", url.pathname + url.search + url.hash);
+      }
+    }
+  }, []);
+
   const checkAndOpenContrato = useCallback(
     async (
       targetTerm?: string | null,
@@ -298,10 +312,7 @@ export function ContratosServicosVigentesSection({
       renderCell: (row) => (
         <button
           type="button"
-          onClick={() => {
-            setSelectedContrato(row);
-            setOpenedFromSearch(false);
-          }}
+          onClick={() => handleOpenContratoDetails(row)}
           className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
           title="Ver detalhes do contrato"
         >
@@ -324,10 +335,7 @@ export function ContratosServicosVigentesSection({
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSelectedContrato(row);
-              setOpenedFromSearch(false);
-            }}
+            onClick={() => handleOpenContratoDetails(row)}
             className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
             title="Abrir detalhes completos do contrato"
           >
@@ -493,10 +501,7 @@ export function ContratosServicosVigentesSection({
                 `${c.fornecedorNome}-${c.fornecedorCnpj}-${idx}`
               }
               contrato={c}
-              onOpenDetails={() => {
-                setSelectedContrato(c);
-                setOpenedFromSearch(false);
-              }}
+              onOpenDetails={() => handleOpenContratoDetails(c)}
               isHighlighted={
                 Boolean(highlightedId) &&
                 (c.contratoServicoId === highlightedId ||
@@ -518,10 +523,7 @@ export function ContratosServicosVigentesSection({
         renderMobileCard={(row) => (
           <ContratoServicoVigenteCard
             contrato={row}
-            onOpenDetails={() => {
-              setSelectedContrato(row);
-              setOpenedFromSearch(false);
-            }}
+            onOpenDetails={() => handleOpenContratoDetails(row)}
             isHighlighted={
               Boolean(highlightedId) &&
               (row.contratoServicoId === highlightedId ||
@@ -638,13 +640,34 @@ export function ContratosServicosVigentesSection({
                       onClick={() => {
                         const licNum = selectedContrato.licitacaoNumero;
                         if (!licNum) return;
+                        const contratoNum = selectedContrato.contratoNumero;
+                        const contratoAno = selectedContrato.ano;
+
+                        if (typeof window !== "undefined") {
+                          const url = new URL(window.location.href);
+                          url.searchParams.delete("contratoNumero");
+                          url.searchParams.delete("contratoId");
+                          url.searchParams.set("numero", licNum);
+                          url.hash = "licitacoes-em-andamento";
+                          window.history.pushState(
+                            {},
+                            "",
+                            url.pathname + url.search + url.hash,
+                          );
+                        }
+
                         setSelectedContrato(null);
                         window.dispatchEvent(
                           new CustomEvent("licitacao:selected", {
                             detail: {
                               numero: licNum,
                               portalSlug,
-                              fromSearch: true,
+                              ano: contratoAno,
+                              fromContrato: {
+                                contratoNumero: contratoNum,
+                                ano: contratoAno,
+                                portalSlug,
+                              },
                             },
                           }),
                         );
