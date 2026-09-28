@@ -5,6 +5,26 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-09-27
+
+### 🌟 Destaques da Versão (Acurácia Financeira de Contratos Plurianuais e Navegação Fluida entre Certames)
+* **Acurácia Estrita da Execução Orçamentária de Contratos:** Vínculo direto e cirúrgico entre as despesas empenhadas/liquidadas e o processo licitatório correspondente no mart analítico, eliminando distorções de rateio generalizado por CNPJ e refletindo no centavo a execução real de contratos plurianuais (como compras contínuas de medicamentos e insumos de saúde).
+* **Navegação Bidirecional e Fluida entre Contratos e Licitações:** Transição contextual intuitiva com botão "Voltar ao Contrato nº {número}" ao inspecionar certames vinculados a partir de um contrato, combinada com sincronização total com o botão "Voltar" do navegador (`popstate`/`pushState`).
+* **Resolução Temporal Contínua de Processos Licitatórios:** Resolução automática de processos licitatórios multianuais, garantindo que contratos celebrados em exercícios subsequentes exibam integralmente os detalhes, itens cotados, modalidade e dotações orçamentárias originárias da licitação-base.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Vínculo Fiel por Licitação em `fct_contratos_servicos_vigentes`:** O cálculo financeiro de execução anual (`empenhado_calc`, `liquidado_calc` e `pago_calc`) agora prioriza o cruzamento pelo número do certame (`split_part(licitacao_numero, '/', 1)`), restringindo o rateio genérico por fornecedor estritamente a contratações sem licitação formal (dispensas e inexigibilidades).
+* **Tratamento de Contratos Plurianuais Ativos:** Ajuste na regra de status para que contratos vigentes com vencimento futuro não sejam precocemente marcados como inexecutados antes do término do seu período de vigência.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Preservação de Fontes em Contratos Plurianuais (`contratos-servicos-vigentes`):** O leitor dimensional de contratos agora preserva a especificação de fontes de recursos (`TRANSF. SUS`, `FUNDEB`, etc.) e programas de trabalho para todos os exercícios em que o contrato permanecer vigente, evitando a supressão do bloco orçamentário em exercícios posteriores à contratação.
+* **Fallback Temporal Inteligente em Licitações (`licitacoes-metrics`):** As funções `getLicitacaoByNumero` e `getLicitacaoItens` agora realizam fallback temporal para o exercício de ocorrência do certame caso a consulta seja originada a partir de uma rota filtrada por exercício posterior, eliminando registros vazios ou 404 em contratações decorrentes.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Rótulo e Destino Contextual do Botão Voltar:** Ao navegar de um contrato para os detalhes do processo licitatório, o botão superior esquerdo passa a indicar expressamente o retorno ao contrato de origem em vez da mensagem genérica de busca.
+* **Sincronização com o Histórico do Navegador:** Corrigido o manipulador de `popstate` em `licitacoes-em-andamento-section.tsx` para fechar o modal e limpar o estado quando o parâmetro `numero` for desempilhado da URL pelo botão "Voltar" do navegador.
+* **Exibição do Valor Contratado Global:** Restauração do valor total homologado/contratado no cabeçalho financeiro do modal de contratos, permitindo a comparação imediata contra o saldo pendente de execução.
+
 ## [1.12.0] - 2026-09-27
 
 ### 🌟 Destaques da Versão (Rastreabilidade Orçamentária de Contratações e Usabilidade Mobile da Busca)
