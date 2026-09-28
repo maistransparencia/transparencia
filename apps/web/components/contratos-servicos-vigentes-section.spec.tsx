@@ -364,4 +364,52 @@ describe("ContratosServicosVigentesSection", () => {
       within(dialog).getByText("Manutenção dos Postos de Saúde da Família"),
     ).toBeInTheDocument();
   });
+
+  it("permite navegar para o processo licitatório vinculado a partir do modal do contrato", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?contratoNumero=0043%2F24",
+    );
+
+    const licitacaoSelectedListener = vi.fn();
+    window.addEventListener("licitacao:selected", licitacaoSelectedListener);
+
+    render(
+      <ContratosServicosVigentesSection
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2024}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    const licitacaoButton = screen.getByRole("button", {
+      name: /0015\/24/i,
+    });
+    expect(licitacaoButton).toBeInTheDocument();
+
+    fireEvent.click(licitacaoButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(licitacaoSelectedListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            numero: "0015/24",
+            portalSlug: "porciuncula_prefeitura",
+            fromContrato: expect.objectContaining({
+              contratoNumero: "0043/24",
+              ano: 2024,
+            }),
+          }),
+        }),
+      );
+    });
+
+    window.removeEventListener("licitacao:selected", licitacaoSelectedListener);
+  });
 });

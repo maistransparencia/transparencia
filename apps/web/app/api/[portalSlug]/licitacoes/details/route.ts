@@ -42,13 +42,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const ano = anoParam ? Number.parseInt(anoParam, 10) : undefined;
   const parsedAno = !Number.isNaN(ano) ? ano : undefined;
 
-  const [licitacao, itens] = await Promise.all([
-    getLicitacaoByNumero(portalSlug, numero, parsedAno),
-    getLicitacaoItens(portalSlug, {
-      licitacaoNumero: numero,
-      ano: parsedAno,
-    }),
-  ]);
+  const licitacao = await getLicitacaoByNumero(portalSlug, numero, parsedAno);
 
   if (!licitacao) {
     return NextResponse.json(
@@ -56,6 +50,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       { status: 404 },
     );
   }
+
+  const itens = await getLicitacaoItens(portalSlug, {
+    licitacaoNumero: numero,
+    ano: licitacao.ano,
+  });
 
   return NextResponse.json({
     licitacao,

@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { LicitacoesEmAndamentoSection } from "./licitacoes-em-andamento-section";
 
 describe("LicitacoesEmAndamentoSection Component", () => {
@@ -409,6 +409,91 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(backButton).toBeInTheDocument();
 
     fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("exibe botão 'Voltar ao Contrato' e reabre o contrato ao clicar quando aberto a partir de um contrato", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula_prefeitura/licitacoes"),
+    });
+
+    const contratoSelectedListener = vi.fn();
+    window.addEventListener("contrato:selected", contratoSelectedListener);
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "PE 001/2025",
+          portalSlug: "porciuncula_prefeitura",
+          fromContrato: {
+            contratoNumero: "0462/25",
+            ano: 2025,
+            portalSlug: "porciuncula_prefeitura",
+          },
+        },
+      }),
+    );
+
+    const backButton = await screen.findByRole("button", {
+      name: /voltar ao contrato nº 0462\/25/i,
+    });
+    expect(backButton).toBeInTheDocument();
+
+    fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(contratoSelectedListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            contratoNumero: "0462/25",
+            ano: 2025,
+            portalSlug: "porciuncula_prefeitura",
+          }),
+        }),
+      );
+    });
+
+    window.removeEventListener("contrato:selected", contratoSelectedListener);
+  });
+
+  it("fecha o modal da licitação ao disparar evento popstate sem numero na URL", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL(
+        "http://localhost:3000/porciuncula_prefeitura/licitacoes?numero=PE 001/2025",
+      ),
+    });
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    // Simula clique em voltar no navegador: a URL muda e remove o param ?numero=
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula_prefeitura/licitacoes"),
+    });
+
+    window.dispatchEvent(new PopStateEvent("popstate"));
 
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

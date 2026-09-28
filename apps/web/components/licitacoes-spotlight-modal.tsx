@@ -119,7 +119,6 @@ export function LicitacoesSpotlightModal({
       try {
         const queryParams = new URLSearchParams({
           q: clean,
-          ...(ano ? { ano: String(ano) } : {}),
         });
         const res = await fetch(
           `/api/${encodeURIComponent(portalSlug)}/licitacoes/search?${queryParams.toString()}`,
@@ -216,13 +215,13 @@ export function LicitacoesSpotlightModal({
         onSelect(item);
       } else if (router) {
         if (isSameAno) {
-          window.history.replaceState(null, "", item.href);
+          window.history.pushState(null, "", item.href);
         } else {
           router.push(item.href);
         }
       } else if (typeof window !== "undefined") {
         if (isSameAno) {
-          window.history.replaceState(null, "", item.href);
+          window.history.pushState(null, "", item.href);
         } else {
           window.location.href = item.href;
         }

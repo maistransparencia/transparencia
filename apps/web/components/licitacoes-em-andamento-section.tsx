@@ -23,7 +23,7 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
 
@@ -48,6 +48,12 @@ function getFonteObjetoBadge(fonteObjeto?: string | null): string | undefined {
   return undefined;
 }
 
+interface FromContratoState {
+  contratoNumero?: string;
+  ano?: number;
+  portalSlug?: string;
+}
+
 export function LicitacoesEmAndamentoSection({
   licitacoes = [],
   itensByLicitacao,
@@ -58,9 +64,75 @@ export function LicitacoesEmAndamentoSection({
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
     useState<LicitacaoTableRow | null>(null);
   const [openedFromSearch, setOpenedFromSearch] = useState(false);
+  const [fromContrato, setFromContrato] = useState<FromContratoState | null>(
+    null,
+  );
   const [highlightedNumero, setHighlightedNumero] = useState<string | null>(
     null,
   );
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedLicitacaoForItens(null);
+    setOpenedFromSearch(false);
+    setFromContrato(null);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("numero")) {
+        url.searchParams.delete("numero");
+        window.history.replaceState(
+          {},
+          "",
+          url.pathname + (url.search ? url.search : "") + (url.hash || ""),
+        );
+      }
+    }
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (fromContrato) {
+      const contratoInfo = { ...fromContrato };
+      setSelectedLicitacaoForItens(null);
+      setOpenedFromSearch(false);
+      setFromContrato(null);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("numero");
+        if (contratoInfo.contratoNumero) {
+          url.searchParams.set("contratoNumero", contratoInfo.contratoNumero);
+        }
+        url.hash = "contratos-servicos-vigentes";
+        window.history.replaceState(
+          {},
+          "",
+          url.pathname + url.search + url.hash,
+        );
+      }
+      window.dispatchEvent(
+        new CustomEvent("contrato:selected", {
+          detail: {
+            numero: contratoInfo.contratoNumero,
+            contratoNumero: contratoInfo.contratoNumero,
+            ano: contratoInfo.ano,
+            portalSlug: contratoInfo.portalSlug || portalSlug,
+          },
+        }),
+      );
+    } else if (openedFromSearch) {
+      handleCloseModal();
+    }
+  }, [fromContrato, openedFromSearch, handleCloseModal, portalSlug]);
+
+  const handleOpenRowDetails = useCallback((row: LicitacaoTableRow) => {
+    setOpenedFromSearch(false);
+    setFromContrato(null);
+    setSelectedLicitacaoForItens(row);
+    if (typeof window !== "undefined" && row.licitacaoNumero) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("numero", row.licitacaoNumero);
+      url.hash = "licitacoes-em-andamento";
+      window.history.pushState({}, "", url.pathname + url.search + url.hash);
+    }
+  }, []);
   const [dynamicItensByLicitacao, setDynamicItensByLicitacao] = useState<
     Record<string, LicitacaoItemDTO[]>
   >({});
@@ -158,8 +230,18 @@ export function LicitacoesEmAndamentoSection({
         portalSlug?: string;
       },
     ) => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const numero = targetNumero ?? urlParams.get("numero");
+      const urlParams =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search)
+          : null;
+      const numero = targetNumero ?? urlParams?.get("numero");
+      if (!numero && !searchDetail) {
+        setSelectedLicitacaoForItens(null);
+        setOpenedFromSearch(false);
+        setFromContrato(null);
+        setHighlightedNumero(null);
+        return;
+      }
       if (!numero) return;
 
       setHighlightedNumero(numero);
@@ -262,6 +344,7 @@ export function LicitacoesEmAndamentoSection({
         numero?: string;
         id?: string;
         fromSearch?: boolean;
+        fromContrato?: FromContratoState;
         objeto?: string;
         modalidade?: string | null;
         status?: string | null;
@@ -272,14 +355,33 @@ export function LicitacoesEmAndamentoSection({
       }>;
       const num = customEvent.detail?.numero || customEvent.detail?.id;
       if (num) {
-        if (customEvent.detail?.fromSearch) {
+        if (customEvent.detail?.fromContrato) {
+          setFromContrato(customEvent.detail.fromContrato);
+          setOpenedFromSearch(false);
+        } else if (customEvent.detail?.fromSearch) {
           setOpenedFromSearch(true);
+          setFromContrato(null);
+        } else {
+          setOpenedFromSearch(false);
+          setFromContrato(null);
         }
         checkAndOpenLicitacao(num, customEvent.detail);
       }
     };
 
     const handlePopState = () => {
+      const urlParams =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search)
+          : null;
+      const numero = urlParams?.get("numero");
+      if (!numero) {
+        setSelectedLicitacaoForItens(null);
+        setOpenedFromSearch(false);
+        setFromContrato(null);
+        setHighlightedNumero(null);
+        return;
+      }
       checkAndOpenLicitacao();
     };
 
@@ -301,10 +403,7 @@ export function LicitacoesEmAndamentoSection({
         <div className="space-y-1">
           <button
             type="button"
-            onClick={() => {
-              setOpenedFromSearch(false);
-              setSelectedLicitacaoForItens(row);
-            }}
+            onClick={() => handleOpenRowDetails(row)}
             className="cursor-pointer text-left font-semibold text-slate-900 hover:text-blue-600 hover:underline"
             title="Ver detalhes da licitação"
           >
@@ -325,10 +424,7 @@ export function LicitacoesEmAndamentoSection({
             )}
             <button
               type="button"
-              onClick={() => {
-                setOpenedFromSearch(false);
-                setSelectedLicitacaoForItens(row);
-              }}
+              onClick={() => handleOpenRowDetails(row)}
               className="inline-flex cursor-pointer items-center gap-0.5 font-medium text-[11px] text-slate-500 hover:text-slate-800"
               title="Visualizar detalhes da licitação"
             >
@@ -503,7 +599,7 @@ export function LicitacoesEmAndamentoSection({
           <div>
             <button
               type="button"
-              onClick={() => setSelectedLicitacaoForItens(row)}
+              onClick={() => handleOpenRowDetails(row)}
               className="cursor-pointer text-left font-bold text-slate-900 text-sm hover:text-blue-600 hover:underline"
               title="Ver detalhes da licitação"
             >
@@ -584,7 +680,7 @@ export function LicitacoesEmAndamentoSection({
         <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
           <button
             type="button"
-            onClick={() => setSelectedLicitacaoForItens(row)}
+            onClick={() => handleOpenRowDetails(row)}
             className="inline-flex cursor-pointer items-center gap-1 font-medium text-slate-600 hover:text-slate-900"
             title="Visualizar detalhes da licitação"
           >
@@ -748,7 +844,7 @@ export function LicitacoesEmAndamentoSection({
                         <div>
                           <button
                             type="button"
-                            onClick={() => setSelectedLicitacaoForItens(item)}
+                            onClick={() => handleOpenRowDetails(item)}
                             className="cursor-pointer text-left font-bold text-slate-900 text-sm hover:text-blue-600 hover:underline"
                             title="Ver detalhes da licitação"
                           >
@@ -831,7 +927,7 @@ export function LicitacoesEmAndamentoSection({
                       <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
                         <button
                           type="button"
-                          onClick={() => setSelectedLicitacaoForItens(item)}
+                          onClick={() => handleOpenRowDetails(item)}
                           className="inline-flex cursor-pointer items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
                           title="Visualizar detalhes da licitação"
                         >
@@ -903,20 +999,14 @@ export function LicitacoesEmAndamentoSection({
       {/* Diálogo / Modal de Itens Licitados via ModalDialog */}
       <ModalDialog
         isOpen={!!selectedLicitacaoForItens}
-        onClose={() => {
-          setSelectedLicitacaoForItens(null);
-          setOpenedFromSearch(false);
-        }}
-        onBack={
-          openedFromSearch
-            ? () => {
-                setSelectedLicitacaoForItens(null);
-                setOpenedFromSearch(false);
-              }
-            : undefined
+        onClose={handleCloseModal}
+        onBack={fromContrato || openedFromSearch ? handleBack : undefined}
+        backLabel={
+          fromContrato
+            ? `Voltar ao Contrato${fromContrato.contratoNumero ? ` nº ${fromContrato.contratoNumero}` : ""}`
+            : "Voltar aos resultados da busca"
         }
-        backLabel="Voltar aos resultados da busca"
-        zIndex={openedFromSearch ? "z-[60]" : undefined}
+        zIndex={openedFromSearch || fromContrato ? "z-[60]" : undefined}
         title={`Processo ${selectedLicitacaoForItens?.licitacaoNumero || "S/N"}`}
         subtitle={
           selectedLicitacaoForItens?.entidadeNome || "Licitação Pública"
