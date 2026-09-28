@@ -37,6 +37,20 @@ export function ContratosServicosVigentesSection({
 
   const hasCheckedDeepLinkRef = useRef(false);
 
+  const handleOpenContratoDetails = useCallback((c: ContratoServicoVigente) => {
+    setSelectedContrato(c);
+    setOpenedFromSearch(false);
+    if (typeof window !== "undefined") {
+      const term = c.contratoNumero || c.contratoServicoId;
+      if (term) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("contratoNumero", term);
+        url.hash = "contratos-servicos-vigentes";
+        window.history.pushState({}, "", url.pathname + url.search + url.hash);
+      }
+    }
+  }, []);
+
   const checkAndOpenContrato = useCallback(
     async (
       targetTerm?: string | null,
@@ -298,10 +312,7 @@ export function ContratosServicosVigentesSection({
       renderCell: (row) => (
         <button
           type="button"
-          onClick={() => {
-            setSelectedContrato(row);
-            setOpenedFromSearch(false);
-          }}
+          onClick={() => handleOpenContratoDetails(row)}
           className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
           title="Ver detalhes do contrato"
         >
@@ -324,10 +335,7 @@ export function ContratosServicosVigentesSection({
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSelectedContrato(row);
-              setOpenedFromSearch(false);
-            }}
+            onClick={() => handleOpenContratoDetails(row)}
             className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
             title="Abrir detalhes completos do contrato"
           >
@@ -493,10 +501,7 @@ export function ContratosServicosVigentesSection({
                 `${c.fornecedorNome}-${c.fornecedorCnpj}-${idx}`
               }
               contrato={c}
-              onOpenDetails={() => {
-                setSelectedContrato(c);
-                setOpenedFromSearch(false);
-              }}
+              onOpenDetails={() => handleOpenContratoDetails(c)}
               isHighlighted={
                 Boolean(highlightedId) &&
                 (c.contratoServicoId === highlightedId ||
@@ -518,10 +523,7 @@ export function ContratosServicosVigentesSection({
         renderMobileCard={(row) => (
           <ContratoServicoVigenteCard
             contrato={row}
-            onOpenDetails={() => {
-              setSelectedContrato(row);
-              setOpenedFromSearch(false);
-            }}
+            onOpenDetails={() => handleOpenContratoDetails(row)}
             isHighlighted={
               Boolean(highlightedId) &&
               (row.contratoServicoId === highlightedId ||
@@ -631,12 +633,52 @@ export function ContratosServicosVigentesSection({
                   </p>
                 )}
                 {selectedContrato.licitacaoNumero && (
-                  <p className="mt-1 text-slate-600 text-xs">
-                    Processo Licitatório:{" "}
-                    <span className="font-semibold text-slate-800">
-                      {selectedContrato.licitacaoNumero}
-                    </span>
-                  </p>
+                  <div className="mt-1 flex items-center gap-1.5 text-slate-600 text-xs">
+                    <span>Processo Licitatório:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const licNum = selectedContrato.licitacaoNumero;
+                        if (!licNum) return;
+                        const contratoNum = selectedContrato.contratoNumero;
+                        const contratoAno = selectedContrato.ano;
+
+                        if (typeof window !== "undefined") {
+                          const url = new URL(window.location.href);
+                          url.searchParams.delete("contratoNumero");
+                          url.searchParams.delete("contratoId");
+                          url.searchParams.set("numero", licNum);
+                          url.hash = "licitacoes-em-andamento";
+                          window.history.pushState(
+                            {},
+                            "",
+                            url.pathname + url.search + url.hash,
+                          );
+                        }
+
+                        setSelectedContrato(null);
+                        window.dispatchEvent(
+                          new CustomEvent("licitacao:selected", {
+                            detail: {
+                              numero: licNum,
+                              portalSlug,
+                              ano: contratoAno,
+                              fromContrato: {
+                                contratoNumero: contratoNum,
+                                ano: contratoAno,
+                                portalSlug,
+                              },
+                            },
+                          }),
+                        );
+                      }}
+                      className="inline-flex cursor-pointer items-center gap-1 font-semibold text-blue-700 underline decoration-blue-300 hover:text-blue-900 hover:decoration-blue-500"
+                      title="Ver detalhes do processo licitatório vinculado"
+                    >
+                      <span>{selectedContrato.licitacaoNumero}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -745,9 +787,22 @@ export function ContratosServicosVigentesSection({
 
             {/* Bloco 3: Grid de Métricas Fiscais e Execução Financeira */}
             <div>
-              <h3 className="mb-3 font-semibold text-slate-900 text-sm">
-                Execução Financeira e Orçamentária
-              </h3>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold text-slate-900 text-sm">
+                  Execução Financeira e Orçamentária
+                </h3>
+                {selectedContrato.valorContrato !== undefined &&
+                  selectedContrato.valorContrato > 0 && (
+                    <div className="flex items-baseline gap-1.5 rounded-lg border border-blue-200/80 bg-blue-50/60 px-3 py-1 text-right">
+                      <span className="font-semibold text-[11px] text-blue-900 uppercase tracking-wider">
+                        Valor Contratado:
+                      </span>
+                      <span className="font-bold font-serif text-base text-blue-950 sm:text-lg">
+                        {fmtCurrency(selectedContrato.valorContrato)}
+                      </span>
+                    </div>
+                  )}
+              </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
                   <span className="font-medium text-slate-500 text-xs">

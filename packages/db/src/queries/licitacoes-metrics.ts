@@ -812,7 +812,7 @@ export async function getLicitacaoByNumero(
   const cleanSlug = portalSlug.trim();
   const cleanTerm = licitacaoNumeroOuId.trim();
 
-  let query = db
+  const query = db
     .selectFrom("fct_licitacoes as l")
     .leftJoin("dim_orgao as o", (join) =>
       join
@@ -889,11 +889,22 @@ export async function getLicitacaoByNumero(
       ]),
     );
 
-  if (ano !== undefined && !Number.isNaN(ano)) {
-    query = query.where("l.ano", "=", ano);
+  const baseQuery = query;
+
+  let r =
+    ano !== undefined && !Number.isNaN(ano)
+      ? await baseQuery
+          .where("l.ano", "=", ano)
+          .orderBy("l.ano", "desc")
+          .limit(1)
+          .executeTakeFirst()
+      : await baseQuery.orderBy("l.ano", "desc").limit(1).executeTakeFirst();
+
+  if (!r && ano !== undefined && !Number.isNaN(ano)) {
+    // Fallback: se o processo licitatório ocorreu em outro exercício (ex: contrato plurianual), busca pelo mais recente
+    r = await baseQuery.orderBy("l.ano", "desc").limit(1).executeTakeFirst();
   }
 
-  const r = await query.orderBy("l.ano", "desc").limit(1).executeTakeFirst();
   if (!r) return null;
 
   const valorNumerico = r.valor != null ? parseFloat(String(r.valor)) : null;
@@ -963,7 +974,7 @@ export async function getLicitacaoItens(
     return [];
   }
 
-  let query = db
+  const query = db
     .selectFrom("fct_licitacoes_itens")
     .select([
       "item_id",
@@ -986,13 +997,22 @@ export async function getLicitacaoItens(
     .where("portal_slug", "=", cleanSlug)
     .where("licitacao_numero", "=", cleanNumero);
 
-  if (options.ano !== undefined) {
-    query = query.where("ano", "=", options.ano);
+  const baseQuery = query;
+
+  let rows =
+    options.ano !== undefined
+      ? await baseQuery
+          .where("ano", "=", options.ano)
+          .orderBy("numero_item", "asc")
+          .execute()
+      : await baseQuery.orderBy("numero_item", "asc").execute();
+
+  if (rows.length === 0 && options.ano !== undefined) {
+    rows = await baseQuery
+      .orderBy("ano", "desc")
+      .orderBy("numero_item", "asc")
+      .execute();
   }
-
-  query = query.orderBy("numero_item", "asc");
-
-  const rows = await query.execute();
 
   return rows.map((r) => ({
     itemId: String(r.item_id),
