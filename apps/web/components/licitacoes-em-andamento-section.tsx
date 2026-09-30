@@ -1,5 +1,6 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import type {
   LicitacaoEmAndamentoDTO,
   LicitacaoItemDTO,
@@ -274,6 +275,12 @@ export function LicitacoesEmAndamentoSection({
 
       if (match) {
         setSelectedLicitacaoForItens(match);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("licitacao:loaded", { detail: { id: cleanNum } }),
+          );
+          BProgress.done();
+        }
         return;
       }
 
@@ -286,6 +293,9 @@ export function LicitacoesEmAndamentoSection({
 
       if (targetSlug) {
         setLoadingDetails(true);
+        if (typeof window !== "undefined") {
+          BProgress.start();
+        }
         try {
           const res = await fetch(
             `/api/${encodeURIComponent(targetSlug)}/licitacoes/details?numero=${encodeURIComponent(cleanNum)}${targetAno ? `&ano=${targetAno}` : ""}`,
@@ -310,6 +320,13 @@ export function LicitacoesEmAndamentoSection({
                 }));
               }
               setSelectedLicitacaoForItens(tableRow);
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("licitacao:loaded", {
+                    detail: { id: cleanNum },
+                  }),
+                );
+              }
               return;
             }
           }
@@ -317,6 +334,9 @@ export function LicitacoesEmAndamentoSection({
           // Fallback silencioso para dados de busca se a requisição falhar
         } finally {
           setLoadingDetails(false);
+          if (typeof window !== "undefined") {
+            BProgress.done();
+          }
         }
       }
 
@@ -348,6 +368,12 @@ export function LicitacoesEmAndamentoSection({
           buscaNormalizada: "",
         };
         setSelectedLicitacaoForItens(fallbackRow);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("licitacao:loaded", { detail: { id: cleanNum } }),
+          );
+          BProgress.done();
+        }
       }
     };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import type {
   SearchLicitacoesResult,
   SearchResultItem,
@@ -57,6 +58,7 @@ export function LicitacoesSpotlightModal({
     total: 0,
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,36 @@ export function LicitacoesSpotlightModal({
     [portalSlug, ano],
   );
 
+  // Limpa estado de carregamento e finaliza BProgress quando o detalhe é aberto com sucesso
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleLoaded = () => {
+      setLoadingItemId(null);
+      BProgress.done();
+    };
+
+    window.addEventListener("licitacao:loaded", handleLoaded);
+    window.addEventListener("contrato:loaded", handleLoaded);
+
+    return () => {
+      window.removeEventListener("licitacao:loaded", handleLoaded);
+      window.removeEventListener("contrato:loaded", handleLoaded);
+    };
+  }, []);
+
+  // Safety timer para redefinir loadingItemId caso o carregamento falhe silenciosamente
+  useEffect(() => {
+    if (!loadingItemId) return;
+    const timer = setTimeout(() => {
+      setLoadingItemId(null);
+      if (typeof window !== "undefined") {
+        BProgress.done();
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [loadingItemId]);
+
   // Bloqueia scroll do body e reseta estados ao abrir/fechar
   useEffect(() => {
     if (!isOpen) return;
@@ -92,6 +124,7 @@ export function LicitacoesSpotlightModal({
     setSelectedIndex(0);
     setLoading(false);
     setErrorMessage(null);
+    setLoadingItemId(null);
 
     posthog.capture("licitacoes_search_opened", {
       portal_slug: portalSlug,
@@ -106,6 +139,10 @@ export function LicitacoesSpotlightModal({
       document.body.style.overflow = originalOverflow;
       clearTimeout(focusTimer);
       abortControllerRef.current?.abort();
+      setLoadingItemId(null);
+      if (typeof window !== "undefined") {
+        BProgress.done();
+      }
     };
   }, [isOpen, portalSlug, ano]);
 
@@ -192,6 +229,13 @@ export function LicitacoesSpotlightModal({
 
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
+      if (loadingItemId === item.id) return;
+
+      setLoadingItemId(item.id);
+      if (typeof window !== "undefined") {
+        BProgress.start();
+      }
+
       const isLicitacao = item.tipo === "licitacao";
       const isContrato = item.tipo === "contrato";
 
@@ -230,7 +274,16 @@ export function LicitacoesSpotlightModal({
         window.history.pushState(null, "", item.href);
       }
     },
-    [ano, onSelect, portalSlug, allResults, searchTerm, results.total, scope],
+    [
+      ano,
+      onSelect,
+      portalSlug,
+      allResults,
+      searchTerm,
+      results.total,
+      scope,
+      loadingItemId,
+    ],
   );
 
   // Navegação por teclado
@@ -472,6 +525,7 @@ export function LicitacoesSpotlightModal({
                 {results.licitacoes.map((item) => {
                   const globalIdx = allResults.indexOf(item);
                   const isSelected = globalIdx === selectedIndex;
+                  const isLoadingItem = loadingItemId === item.id;
                   return (
                     <button
                       type="button"
@@ -480,23 +534,37 @@ export function LicitacoesSpotlightModal({
                       data-index={globalIdx}
                       role="option"
                       aria-selected={isSelected}
+                      aria-busy={isLoadingItem}
+                      disabled={loadingItemId !== null && !isLoadingItem}
                       onClick={() => handleSelect(item)}
                       onMouseEnter={() => setSelectedIndex(globalIdx)}
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-xl p-3 text-left transition-colors",
-                        isSelected
-                          ? "bg-accent/10 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-50",
+                        isLoadingItem
+                          ? "cursor-wait bg-accent/15 text-slate-900 ring-1 ring-accent/30"
+                          : isSelected
+                            ? "bg-accent/10 text-slate-900"
+                            : "text-slate-700 hover:bg-slate-50",
+                        loadingItemId !== null &&
+                          !isLoadingItem &&
+                          "cursor-not-allowed opacity-60",
                       )}
                     >
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                        <FileText
-                          className={cn(
-                            "mt-0.5 h-4 w-4 shrink-0",
-                            isSelected ? "text-accent" : "text-slate-400",
-                          )}
-                          aria-hidden="true"
-                        />
+                        {isLoadingItem ? (
+                          <Loader2
+                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <FileText
+                            className={cn(
+                              "mt-0.5 h-4 w-4 shrink-0",
+                              isSelected ? "text-accent" : "text-slate-400",
+                            )}
+                            aria-hidden="true"
+                          />
+                        )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-semibold text-slate-900 text-xs sm:text-sm">
@@ -552,11 +620,16 @@ export function LicitacoesSpotlightModal({
                         <span className="whitespace-nowrap font-medium font-serif text-slate-900 text-xs sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
-                        {isSelected && (
+                        {isLoadingItem ? (
+                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-accent">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>Abrindo...</span>
+                          </div>
+                        ) : isSelected ? (
                           <div className="mt-1 flex items-center justify-end text-[10px] text-accent">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </button>
                   );
@@ -575,6 +648,7 @@ export function LicitacoesSpotlightModal({
                 {results.contratos.map((item) => {
                   const globalIdx = allResults.indexOf(item);
                   const isSelected = globalIdx === selectedIndex;
+                  const isLoadingItem = loadingItemId === item.id;
                   const isAnoAnterior =
                     item.ano > 0 &&
                     ((ano && item.ano < ano) ||
@@ -590,23 +664,37 @@ export function LicitacoesSpotlightModal({
                       data-index={globalIdx}
                       role="option"
                       aria-selected={isSelected}
+                      aria-busy={isLoadingItem}
+                      disabled={loadingItemId !== null && !isLoadingItem}
                       onClick={() => handleSelect(item)}
                       onMouseEnter={() => setSelectedIndex(globalIdx)}
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-xl p-3 text-left transition-colors",
-                        isSelected
-                          ? "bg-accent/10 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-50",
+                        isLoadingItem
+                          ? "cursor-wait bg-accent/15 text-slate-900 ring-1 ring-accent/30"
+                          : isSelected
+                            ? "bg-accent/10 text-slate-900"
+                            : "text-slate-700 hover:bg-slate-50",
+                        loadingItemId !== null &&
+                          !isLoadingItem &&
+                          "cursor-not-allowed opacity-60",
                       )}
                     >
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                        <FileCheck
-                          className={cn(
-                            "mt-0.5 h-4 w-4 shrink-0",
-                            isSelected ? "text-accent" : "text-slate-400",
-                          )}
-                          aria-hidden="true"
-                        />
+                        {isLoadingItem ? (
+                          <Loader2
+                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <FileCheck
+                            className={cn(
+                              "mt-0.5 h-4 w-4 shrink-0",
+                              isSelected ? "text-accent" : "text-slate-400",
+                            )}
+                            aria-hidden="true"
+                          />
+                        )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-semibold text-slate-900 text-xs sm:text-sm">
@@ -693,11 +781,16 @@ export function LicitacoesSpotlightModal({
                         <span className="whitespace-nowrap font-medium font-serif text-slate-900 text-xs sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
-                        {isSelected && (
+                        {isLoadingItem ? (
+                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-accent">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>Abrindo...</span>
+                          </div>
+                        ) : isSelected ? (
                           <div className="mt-1 flex items-center justify-end text-[10px] text-accent">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </button>
                   );

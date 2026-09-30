@@ -20,6 +20,7 @@ import {
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { MobileNavProvider } from "@/components/mobile-nav-context";
 import { NewsletterFeedbackBanner } from "@/components/newsletter-feedback-banner";
+import { ProgressProvider } from "@/components/progress-provider";
 import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { env } from "@/env";
@@ -169,64 +170,66 @@ export default async function RootLayout({
         <JsonLd schema={dataCatalogSchema} />
       </head>
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased md:flex-row">
-        <NuqsAdapter>
-          <MobileNavProvider>
-            <Suspense fallback={null}>
-              <SidebarWrapper
-                portalName={portalConfig?.displayName}
-                stateUF={portalConfig?.uf}
-                portalTitle={
-                  portalConfig
-                    ? `Contas da ${portalConfig.displayName}`
-                    : undefined
-                }
-                anoInicial={portalConfig?.anoInicial}
-                lastExtractionDate={portalConfig?.dataExtracao}
-                officialPortalUrl={portalConfig?.portalUrl}
-                entidades={entidades}
-                portalSlug={portalConfig?.portalSlug}
-                radarAlertsCountByYear={radarAlertsCountByYear}
-              />
-            </Suspense>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Ribbon portalName={portalConfig?.displayName} />
+        <ProgressProvider>
+          <NuqsAdapter>
+            <MobileNavProvider>
               <Suspense fallback={null}>
-                <NewsletterFeedbackBanner />
+                <SidebarWrapper
+                  portalName={portalConfig?.displayName}
+                  stateUF={portalConfig?.uf}
+                  portalTitle={
+                    portalConfig
+                      ? `Contas da ${portalConfig.displayName}`
+                      : undefined
+                  }
+                  anoInicial={portalConfig?.anoInicial}
+                  lastExtractionDate={portalConfig?.dataExtracao}
+                  officialPortalUrl={portalConfig?.portalUrl}
+                  entidades={entidades}
+                  portalSlug={portalConfig?.portalSlug}
+                  radarAlertsCountByYear={radarAlertsCountByYear}
+                />
               </Suspense>
-              <ExtractionNotificationBanner
-                lastExtractionDate={portalConfig?.dataExtracao}
-                portalName={portalConfig?.displayName}
-                portalSlug={portalConfig?.portalSlug}
-              />
-              <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
-                {children}
-              </main>
-              <GlobalFooter
-                portalName={portalConfig?.displayName}
-                officialPortalUrl={portalConfig?.portalUrl}
-                lastExtractionDate={portalConfig?.dataExtracao}
-                portalSlug={portalConfig?.portalSlug}
-                stateUF={portalConfig?.uf}
-              />
-            </div>
-            <Suspense fallback={null}>
-              <MobileBottomNav
-                portalSlug={portalConfig?.portalSlug}
-                anoInicial={portalConfig?.anoInicial}
-                entidades={entidades}
-                radarAlertsCountByYear={radarAlertsCountByYear}
-              />
-            </Suspense>
-          </MobileNavProvider>
-        </NuqsAdapter>
-        <PwaInstaller minPageViews={2} delayMs={25000} />
-        <PushNotificationPrompt
-          portalSlug={portalConfig?.portalSlug}
-          minPageViews={2}
-          delayMs={20000}
-        />
-        <Analytics />
-        <SpeedInsights />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <Ribbon portalName={portalConfig?.displayName} />
+                <Suspense fallback={null}>
+                  <NewsletterFeedbackBanner />
+                </Suspense>
+                <ExtractionNotificationBanner
+                  lastExtractionDate={portalConfig?.dataExtracao}
+                  portalName={portalConfig?.displayName}
+                  portalSlug={portalConfig?.portalSlug}
+                />
+                <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
+                  {children}
+                </main>
+                <GlobalFooter
+                  portalName={portalConfig?.displayName}
+                  officialPortalUrl={portalConfig?.portalUrl}
+                  lastExtractionDate={portalConfig?.dataExtracao}
+                  portalSlug={portalConfig?.portalSlug}
+                  stateUF={portalConfig?.uf}
+                />
+              </div>
+              <Suspense fallback={null}>
+                <MobileBottomNav
+                  portalSlug={portalConfig?.portalSlug}
+                  anoInicial={portalConfig?.anoInicial}
+                  entidades={entidades}
+                  radarAlertsCountByYear={radarAlertsCountByYear}
+                />
+              </Suspense>
+            </MobileNavProvider>
+          </NuqsAdapter>
+          <PwaInstaller minPageViews={2} delayMs={25000} />
+          <PushNotificationPrompt
+            portalSlug={portalConfig?.portalSlug}
+            minPageViews={2}
+            delayMs={20000}
+          />
+          <Analytics />
+          <SpeedInsights />
+        </ProgressProvider>
       </body>
     </html>
   );
