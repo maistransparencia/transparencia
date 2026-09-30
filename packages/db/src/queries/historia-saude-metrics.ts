@@ -22,6 +22,19 @@ export interface HistoriaSaudeMetricsDTO {
   hhiConcentracaoFornecedores: number;
 }
 
+export interface EmendaEmpenhoItemDTO {
+  empenhoId: string;
+  dataEmpenho: string | null;
+  fornecedorNome: string;
+  fornecedorCpfCnpj: string | null;
+  licitacaoNumero: string | null;
+  licitacaoModalidade: string | null;
+  valorEmpenhado: number;
+  valorLiquidado: number;
+  valorPago: number;
+  descricao: string;
+}
+
 export interface EmendaSaudeDTO {
   id: string;
   numero: string;
@@ -33,6 +46,8 @@ export interface EmendaSaudeDTO {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
+  qtdEmpenhos: number;
+  empenhos: EmendaEmpenhoItemDTO[];
 }
 
 export interface EmendasStatsSaudeDTO {
@@ -147,22 +162,78 @@ export async function getSaudeEmendasMetrics(
       )
       .execute();
 
-    let totalAutorizado = 0;
-    let totalEmpenhado = 0;
-    let maiorEmenda = 0;
-    const lista: EmendaSaudeDTO[] = [];
+    if (rows.length === 0) return empty;
 
-    for (const r of rows) {
+    const empenhosRows = await db
+      .selectFrom("fct_despesas as d")
+      .innerJoin("fct_emendas as e", (join) =>
+        join
+          .onRef("e.portal_slug", "=", "d.portal_slug")
+          .onRef("e.empresa_id", "=", "d.empresa_id")
+          .onRef("e.ano", "=", "d.ano")
+          .on((eb) =>
+            eb.or([
+              sql<boolean>`length(e.numero_emenda) >= 6 and d.descricao like '%' || e.numero_emenda || '%'`,
+              sql<boolean>`length(e.numero_emenda) >= 12 and d.descricao like '%' || substring(e.numero_emenda from 1 for 10) || '%'`,
+            ]),
+          ),
+      )
+      .select([
+        "e.numero_emenda as emenda_numero",
+        "d.empenho_id",
+        sql<string>`to_char(d.data_empenho, 'YYYY-MM-DD')`.as("data_empenho"),
+        "d.fornecedor_nome",
+        "d.fornecedor_cpf_cnpj",
+        "d.licitacao_numero",
+        "d.licitacao_modalidade",
+        "d.empenhado",
+        "d.liquidado",
+        "d.pago",
+        "d.descricao",
+      ])
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "=", ano)
+      .where("d.empresa_id", "in", empresaIds)
+      .where("d.empenhado", ">", 0)
+      .orderBy("d.data_empenho", "desc")
+      .orderBy("d.empenhado", "desc")
+      .execute();
+
+    const empenhosPorEmenda = empenhosRows.reduce<
+      Record<string, EmendaEmpenhoItemDTO[]>
+    >((acc, er) => {
+      const num = String(er.emenda_numero ?? "");
+      if (!acc[num]) acc[num] = [];
+      acc[num].push({
+        empenhoId: String(er.empenho_id ?? ""),
+        dataEmpenho: er.data_empenho ?? null,
+        fornecedorNome: String(er.fornecedor_nome ?? "Não informado"),
+        fornecedorCpfCnpj: er.fornecedor_cpf_cnpj
+          ? String(er.fornecedor_cpf_cnpj)
+          : null,
+        licitacaoNumero: er.licitacao_numero
+          ? String(er.licitacao_numero)
+          : null,
+        licitacaoModalidade: er.licitacao_modalidade
+          ? String(er.licitacao_modalidade)
+          : null,
+        valorEmpenhado: Number(er.empenhado ?? 0),
+        valorLiquidado: Number(er.liquidado ?? 0),
+        valorPago: Number(er.pago ?? 0),
+        descricao: String(er.descricao ?? ""),
+      });
+      return acc;
+    }, {});
+
+    const lista: EmendaSaudeDTO[] = rows.map((r, index) => {
       const valAut = Number(r.valor_total ?? 0);
       const emp = Number(r.empenhado ?? 0);
+      const num = String(r.numero_emenda ?? "");
+      const empenhos = empenhosPorEmenda[num] ?? [];
 
-      totalAutorizado += valAut;
-      totalEmpenhado += emp;
-      if (valAut > maiorEmenda) maiorEmenda = valAut;
-
-      lista.push({
-        id: `${r.autor ?? ""}-${r.resumo ?? ""}-${r.numero_emenda ?? ""}-${lista.length}`,
-        numero: String(r.numero_emenda ?? ""),
+      return {
+        id: `${r.autor ?? ""}-${r.resumo ?? ""}-${num}-${index}`,
+        numero: num,
         objeto: String(r.resumo ?? ""),
         valorAutorizado: valAut,
         empenhado: emp > 0 ? emp : null,
@@ -171,8 +242,23 @@ export async function getSaudeEmendasMetrics(
         esferaOrigem: String(r.esfera_origem ?? ""),
         atoNormativo: String(r.ato_normativo ?? ""),
         destinacao: String(r.destinacao ?? ""),
-      });
-    }
+        qtdEmpenhos: empenhos.length,
+        empenhos,
+      };
+    });
+
+    const totalAutorizado = lista.reduce(
+      (sum, item) => sum + item.valorAutorizado,
+      0,
+    );
+    const totalEmpenhado = lista.reduce(
+      (sum, item) => sum + (item.empenhado ?? 0),
+      0,
+    );
+    const maiorEmenda = lista.reduce(
+      (max, item) => Math.max(max, item.valorAutorizado),
+      0,
+    );
 
     return {
       totalAutorizado,
