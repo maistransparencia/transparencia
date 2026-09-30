@@ -2,6 +2,9 @@
 const nextConfig = {
   transpilePackages: ["@transparencia/ui", "@transparencia/db"],
   serverExternalPackages: ["pg", "kysely"],
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts"],
+  },
   async rewrites() {
     return [
       {
