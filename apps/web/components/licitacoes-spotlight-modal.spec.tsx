@@ -315,6 +315,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
         {
           portal_slug: "porciuncula_prefeitura",
           ano: 2024,
+          scope: "todos",
           tipo: "contrato",
           position: 1,
           query_length: 7,
@@ -654,6 +655,15 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
 
       // Alterna para apenas 2026
       fireEvent.click(apenasAnoButton);
+
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "licitacoes_search_scope_changed",
+        {
+          portal_slug: "porciuncula_prefeitura",
+          ano: 2026,
+          new_scope: "ano_atual",
+        },
+      );
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(

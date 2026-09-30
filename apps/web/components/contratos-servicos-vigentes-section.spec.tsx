@@ -414,12 +414,11 @@ describe("ContratosServicosVigentesSection", () => {
   });
 
   it("exibe aviso de exercício diferente e restaura o ano base na URL ao fechar contrato aberto via busca", async () => {
-    Object.defineProperty(window, "location", {
-      writable: true,
-      value: new URL(
-        "http://localhost:3000/porciuncula_prefeitura/licitacoes?ano=2026",
-      ),
-    });
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?ano=2026",
+    );
 
     render(
       <ContratosServicosVigentesSection
@@ -447,9 +446,19 @@ describe("ContratosServicosVigentesSection", () => {
     expect(banner).toBeInTheDocument();
     expect(banner).toHaveTextContent("2024");
     expect(banner).toHaveTextContent("2026");
-    expect(
-      screen.getByRole("link", { name: /mudar painel para 2024/i }),
-    ).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /mudar painel para 2024/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      "href",
+      "/porciuncula_prefeitura/licitacoes?ano=2024&contratoNumero=0099%2F24#contratos-servicos-vigentes",
+    );
+
+    // Simula a URL intermediária aplicada pelo Spotlight ao selecionar o item de 2024
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?ano=2024&contratoNumero=0099%2F24#contratos-servicos-vigentes",
+    );
 
     const backButton = screen.getByRole("button", {
       name: /voltar aos resultados da busca/i,
@@ -463,5 +472,31 @@ describe("ContratosServicosVigentesSection", () => {
     const currentUrl = new URL(window.location.href);
     expect(currentUrl.searchParams.get("ano")).toBe("2026");
     expect(currentUrl.searchParams.has("contratoNumero")).toBe(false);
+  });
+
+  it("desambigua exercício e não seleciona contrato homônimo pré-carregado de ano divergente", async () => {
+    render(
+      <ContratosServicosVigentesSection
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    // Dispara busca por contrato com mesmo número 0043/24, mas de ano 2023
+    window.dispatchEvent(
+      new CustomEvent("contrato:selected", {
+        detail: {
+          contratoNumero: "0043/24",
+          ano: 2023,
+          objeto: "Contrato de 2023",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const banner = await screen.findByText(/pertence ao exercício de/i);
+    expect(banner).toHaveTextContent("2023");
+    expect(banner).not.toHaveTextContent("2024");
   });
 });

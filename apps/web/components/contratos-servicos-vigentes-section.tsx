@@ -12,6 +12,7 @@ import {
   ModalDialog,
 } from "@transparencia/ui";
 import { AlertCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
@@ -124,7 +125,11 @@ export function ContratosServicosVigentesSection({
       // 1. Tentar encontrar nos contratos pré-carregados
       const match = (contratos || []).find((c) => {
         if (!c) return false;
-        if (searchDetail?.ano && c.ano && c.ano !== searchDetail.ano) {
+        if (
+          searchDetail?.ano &&
+          (c.ano ?? ano) &&
+          (c.ano ?? ano) !== searchDetail.ano
+        ) {
           return false;
         }
         if (c.contratoServicoId && c.contratoServicoId === cleanTerm)
@@ -145,8 +150,11 @@ export function ContratosServicosVigentesSection({
       }
 
       // 2. Buscar via API caso não conste na lista
+      const urlAno = urlParams?.get("ano")
+        ? Number(urlParams.get("ano"))
+        : undefined;
       const targetSlug = searchDetail?.portalSlug || portalSlug;
-      const targetAno = searchDetail?.ano || ano;
+      const targetAno = searchDetail?.ano || urlAno || ano;
 
       if (targetSlug) {
         setLoadingDetails(true);
@@ -202,6 +210,31 @@ export function ContratosServicosVigentesSection({
     },
     [contratos, portalSlug, ano, statusFilter],
   );
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedContrato(null);
+    setOpenedFromSearch(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (
+        url.searchParams.has("contratoNumero") ||
+        url.searchParams.has("contratoId")
+      ) {
+        url.searchParams.delete("contratoNumero");
+        url.searchParams.delete("contratoId");
+      }
+      if (ano) {
+        url.searchParams.set("ano", String(ano));
+      } else {
+        url.searchParams.delete("ano");
+      }
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + (url.search ? url.search : "") + (url.hash || ""),
+      );
+    }
+  }, [ano]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -403,29 +436,6 @@ export function ContratosServicosVigentesSection({
     },
   ];
 
-  const handleCloseModal = () => {
-    setSelectedContrato(null);
-    setOpenedFromSearch(false);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      if (
-        url.searchParams.has("contratoNumero") ||
-        url.searchParams.has("contratoId")
-      ) {
-        url.searchParams.delete("contratoNumero");
-        url.searchParams.delete("contratoId");
-      }
-      if (ano) {
-        url.searchParams.set("ano", String(ano));
-      }
-      window.history.replaceState(
-        {},
-        "",
-        url.pathname + (url.search ? url.search : "") + (url.hash || ""),
-      );
-    }
-  };
-
   return (
     <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
       {/* Header */}
@@ -596,12 +606,12 @@ export function ContratosServicosVigentesSection({
                     <strong className="font-semibold">{ano}</strong>).
                   </span>
                 </div>
-                <a
+                <Link
                   href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedContrato.ano}&contratoNumero=${encodeURIComponent(selectedContrato.contratoNumero || selectedContrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
                   className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
                 >
                   <span>Mudar painel para {selectedContrato.ano}</span>
-                </a>
+                </Link>
               </div>
             )}
 

@@ -198,6 +198,7 @@ export function LicitacoesSpotlightModal({
       posthog.capture("licitacoes_search_result_opened", {
         portal_slug: portalSlug,
         ano,
+        scope,
         tipo: item.tipo,
         position: allResults.indexOf(item),
         query_length: searchTerm.trim().length,
@@ -229,7 +230,7 @@ export function LicitacoesSpotlightModal({
         window.history.pushState(null, "", item.href);
       }
     },
-    [ano, onSelect, portalSlug, allResults, searchTerm, results.total],
+    [ano, onSelect, portalSlug, allResults, searchTerm, results.total, scope],
   );
 
   // Navegação por teclado
@@ -363,7 +364,11 @@ export function LicitacoesSpotlightModal({
             <span className="font-medium text-[11px] text-slate-500">
               Escopo:
             </span>
-            <div className="inline-flex rounded-lg bg-slate-200/70 p-0.5 text-xs">
+            <div
+              role="radiogroup"
+              aria-label="Escopo da busca"
+              className="inline-flex rounded-lg bg-slate-200/70 p-0.5 text-xs"
+            >
               <button
                 type="button"
                 onClick={() => handleScopeChange("todos")}
@@ -624,19 +629,28 @@ export function LicitacoesSpotlightModal({
                                   : "Encerrado"}
                               </span>
                             )}
-                            {isContratoVigenteAnoAnterior ? (
-                              <Badge variant="warning">
-                                Celebrado em {item.anoCelebracao ?? item.ano}
-                              </Badge>
-                            ) : ano && item.ano && item.ano !== ano ? (
-                              <Badge variant="warning">
-                                Exercício {item.ano}
-                              </Badge>
-                            ) : (
-                              <span className="text-[11px] text-slate-400">
-                                · {item.ano}
-                              </span>
-                            )}
+                            {(() => {
+                              if (isContratoVigenteAnoAnterior) {
+                                return (
+                                  <Badge variant="warning">
+                                    Celebrado em{" "}
+                                    {item.anoCelebracao ?? item.ano}
+                                  </Badge>
+                                );
+                              }
+                              if (ano && item.ano && item.ano !== ano) {
+                                return (
+                                  <Badge variant="warning">
+                                    Exercício {item.ano}
+                                  </Badge>
+                                );
+                              }
+                              return (
+                                <span className="text-[11px] text-slate-400">
+                                  · {item.ano}
+                                </span>
+                              );
+                            })()}
                             {item.programaNome && (
                               <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
                                 {item.programaNome}

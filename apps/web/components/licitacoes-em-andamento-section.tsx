@@ -24,6 +24,7 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
@@ -83,6 +84,8 @@ export function LicitacoesEmAndamentoSection({
       }
       if (ano) {
         url.searchParams.set("ano", String(ano));
+      } else {
+        url.searchParams.delete("ano");
       }
       window.history.replaceState(
         {},
@@ -252,7 +255,11 @@ export function LicitacoesEmAndamentoSection({
       const cleanNum = numero.trim();
       const match = tableData.find((t) => {
         if (!t) return false;
-        if (searchDetail?.ano && t.ano && t.ano !== searchDetail.ano) {
+        if (
+          searchDetail?.ano &&
+          (t.ano ?? ano) &&
+          (t.ano ?? ano) !== searchDetail.ano
+        ) {
           return false;
         }
         if (t.licitacaoNumero === cleanNum || t.licitacaoId === cleanNum)
@@ -271,8 +278,11 @@ export function LicitacoesEmAndamentoSection({
       }
 
       // Se não estiver na tabela pré-carregada (ex: processo já homologado), busca via API ou constrói a partir dos dados do evento
+      const urlAno = urlParams?.get("ano")
+        ? Number(urlParams.get("ano"))
+        : undefined;
       const targetSlug = searchDetail?.portalSlug || portalSlug;
-      const targetAno = searchDetail?.ano || ano;
+      const targetAno = searchDetail?.ano || urlAno || ano;
 
       if (targetSlug) {
         setLoadingDetails(true);
@@ -1089,14 +1099,14 @@ export function LicitacoesEmAndamentoSection({
                           <strong className="font-semibold">{ano}</strong>).
                         </span>
                       </div>
-                      <a
+                      <Link
                         href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
                         className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
                       >
                         <span>
                           Mudar painel para {selectedLicitacaoForItens.ano}
                         </span>
-                      </a>
+                      </Link>
                     </div>
                   )}
 
