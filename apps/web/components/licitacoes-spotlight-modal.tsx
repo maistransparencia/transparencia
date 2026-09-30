@@ -20,7 +20,6 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -48,7 +47,6 @@ export function LicitacoesSpotlightModal({
   ano,
   onSelect,
 }: LicitacoesSpotlightModalProps) {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -177,7 +175,6 @@ export function LicitacoesSpotlightModal({
     (item: SearchResultItem) => {
       const isLicitacao = item.tipo === "licitacao";
       const isContrato = item.tipo === "contrato";
-      const isSameAno = !item.ano || !ano || item.ano === ano;
 
       posthog.capture("licitacoes_search_result_opened", {
         portal_slug: portalSlug,
@@ -188,13 +185,9 @@ export function LicitacoesSpotlightModal({
         results_total: results.total,
       });
 
-      // Se for licitação ou contrato no mesmo ano, mantemos o modal de busca aberto por baixo
-      // para permitir navegação em camadas (Master-Detail).
-      // Se for outro ano, fechamos a busca para navegar para a página correspondente.
-      if (!isSameAno) {
-        onClose();
-      }
-
+      // Mantemos o modal de busca aberto por baixo para navegação em camadas (Master-Detail),
+      // independentemente de o item pertencer ao mesmo exercício ou a anos anteriores.
+      // O modal de detalhes abre sobreposto (z-[60]), preservando o estado da busca e o ano original.
       if (typeof window !== "undefined") {
         if (isContrato) {
           window.dispatchEvent(
@@ -213,30 +206,11 @@ export function LicitacoesSpotlightModal({
 
       if (onSelect) {
         onSelect(item);
-      } else if (router) {
-        if (isSameAno) {
-          window.history.pushState(null, "", item.href);
-        } else {
-          router.push(item.href);
-        }
       } else if (typeof window !== "undefined") {
-        if (isSameAno) {
-          window.history.pushState(null, "", item.href);
-        } else {
-          window.location.href = item.href;
-        }
+        window.history.pushState(null, "", item.href);
       }
     },
-    [
-      ano,
-      onClose,
-      onSelect,
-      router,
-      portalSlug,
-      allResults,
-      searchTerm,
-      results.total,
-    ],
+    [ano, onSelect, portalSlug, allResults, searchTerm, results.total],
   );
 
   // Navegação por teclado

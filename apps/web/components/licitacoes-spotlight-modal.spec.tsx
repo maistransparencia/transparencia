@@ -210,7 +210,11 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       });
     });
 
-    it("deve navegar entre itens com ArrowDown/ArrowUp e acionar router.push quando onSelect for omitido", async () => {
+    it("deve navegar entre itens com ArrowDown/ArrowUp e manter o modal aberto acionando pushState e disparando contrato:selected mesmo para outro ano", async () => {
+      const listenerMock = vi.fn();
+      window.addEventListener("contrato:selected", listenerMock);
+      const pushStateSpy = vi.spyOn(window.history, "pushState");
+
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -248,10 +252,11 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
         }),
       });
 
+      const onClose = vi.fn();
       render(
         <LicitacoesSpotlightModal
           isOpen={true}
-          onClose={vi.fn()}
+          onClose={onClose}
           portalSlug="porciuncula_prefeitura"
           ano={2024}
         />,
@@ -271,9 +276,24 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       });
       fireEvent.click(contratoOption);
 
-      expect(mockPush).toHaveBeenCalledWith(
+      expect(onClose).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(pushStateSpy).toHaveBeenCalledWith(
+        null,
+        "",
         "/porciuncula_prefeitura/licitacoes?ano=2023&contratoNumero=0043%2F24#contratos-servicos-vigentes",
       );
+      expect(listenerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            numero: "0043/24",
+            ano: 2023,
+            fromSearch: true,
+          }),
+        }),
+      );
+      window.removeEventListener("contrato:selected", listenerMock);
+      pushStateSpy.mockRestore();
       expect(posthog.capture).toHaveBeenCalledWith("licitacoes_search_opened", {
         portal_slug: "porciuncula_prefeitura",
         ano: 2024,
