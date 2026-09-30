@@ -412,4 +412,56 @@ describe("ContratosServicosVigentesSection", () => {
 
     window.removeEventListener("licitacao:selected", licitacaoSelectedListener);
   });
+
+  it("exibe aviso de exercício diferente e restaura o ano base na URL ao fechar contrato aberto via busca", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL(
+        "http://localhost:3000/porciuncula_prefeitura/licitacoes?ano=2026",
+      ),
+    });
+
+    render(
+      <ContratosServicosVigentesSection
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("contrato:selected", {
+        detail: {
+          contratoNumero: "0099/24",
+          numero: "0099/24",
+          ano: 2024,
+          objeto: "Reforma de unidade escolar",
+          fornecedorNome: "CONSTRUTORA ALVORADA LTDA",
+          valor: 120000,
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const banner = await screen.findByText(/pertence ao exercício de/i);
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent("2024");
+    expect(banner).toHaveTextContent("2026");
+    expect(
+      screen.getByRole("link", { name: /mudar painel para 2024/i }),
+    ).toBeInTheDocument();
+
+    const backButton = screen.getByRole("button", {
+      name: /voltar aos resultados da busca/i,
+    });
+    fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    const currentUrl = new URL(window.location.href);
+    expect(currentUrl.searchParams.get("ano")).toBe("2026");
+    expect(currentUrl.searchParams.has("contratoNumero")).toBe(false);
+  });
 });
