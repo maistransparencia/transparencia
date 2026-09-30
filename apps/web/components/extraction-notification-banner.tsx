@@ -1,5 +1,6 @@
 "use client";
 
+import { Megaphone } from "lucide-react";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
@@ -124,9 +125,10 @@ export function ExtractionNotificationBanner({
       className="fixed right-4 bottom-4 z-50 max-w-md rounded-lg border border-blue-200 bg-blue-50/95 p-3.5 text-blue-950 text-xs shadow-lg backdrop-blur-xs transition-all sm:text-sm"
     >
       <div className="flex items-start gap-2.5">
-        <span aria-hidden="true" className="select-none text-base">
-          📢
-        </span>
+        <Megaphone
+          aria-hidden="true"
+          className="mt-0.5 size-4 shrink-0 text-blue-600"
+        />
         <div className="flex-1 space-y-2">
           <p className="leading-snug">
             <strong>Novos dados disponíveis!</strong> A última extração de
