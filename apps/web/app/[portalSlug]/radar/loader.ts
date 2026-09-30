@@ -3,6 +3,7 @@ import {
   getPortalConfig,
   getRadarCivicoAlertas,
 } from "@transparencia/db";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface RadarSearchParams {
   entidades?: string;
@@ -16,7 +17,7 @@ export function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-export async function loadRadarData(
+async function fetchRawRadarData(
   portalSlug: string,
   searchParams: RadarSearchParams = {},
 ) {
@@ -35,3 +36,5 @@ export async function loadRadarData(
     entidade: searchParams.entidades,
   };
 }
+
+export const loadRadarData = createCachedDataLoader(fetchRawRadarData, "radar");

@@ -14,7 +14,7 @@ export function createCachedDataLoader<T, Args extends unknown[]>(
   revalidateSeconds: number = 86400,
 ) {
   return (...args: Args): Promise<T> => {
-    if (env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
       return fn(...args);
     }
     const key = `${keyPrefix}-v${version}-${JSON.stringify(args)}`;
