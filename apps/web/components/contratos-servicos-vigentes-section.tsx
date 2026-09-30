@@ -1,5 +1,6 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import type { ContratoServicoVigente } from "@transparencia/db";
 import {
   Badge,
@@ -146,6 +147,12 @@ export function ContratosServicosVigentesSection({
       if (match) {
         setSelectedContrato(match);
         scrollAndHighlight(match);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("contrato:loaded", { detail: { id: cleanTerm } }),
+          );
+          BProgress.done();
+        }
         return;
       }
 
@@ -158,6 +165,9 @@ export function ContratosServicosVigentesSection({
 
       if (targetSlug) {
         setLoadingDetails(true);
+        if (typeof window !== "undefined") {
+          BProgress.start();
+        }
         try {
           const res = await fetch(
             `/api/${encodeURIComponent(targetSlug)}/contratos/details?numero=${encodeURIComponent(cleanTerm)}${targetAno ? `&ano=${targetAno}` : ""}`,
@@ -167,6 +177,13 @@ export function ContratosServicosVigentesSection({
             if (data.contrato) {
               setSelectedContrato(data.contrato);
               scrollAndHighlight(data.contrato);
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("contrato:loaded", {
+                    detail: { id: cleanTerm },
+                  }),
+                );
+              }
               return;
             }
           }
@@ -174,6 +191,9 @@ export function ContratosServicosVigentesSection({
           // fallback gracioso
         } finally {
           setLoadingDetails(false);
+          if (typeof window !== "undefined") {
+            BProgress.done();
+          }
         }
       }
 
@@ -206,6 +226,12 @@ export function ContratosServicosVigentesSection({
         };
         setSelectedContrato(fallbackContrato);
         scrollAndHighlight(fallbackContrato);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("contrato:loaded", { detail: { id: cleanTerm } }),
+          );
+          BProgress.done();
+        }
       }
     },
     [contratos, portalSlug, ano, statusFilter],
@@ -692,6 +718,10 @@ export function ContratosServicosVigentesSection({
                             "",
                             url.pathname + url.search + url.hash,
                           );
+                        }
+
+                        if (typeof window !== "undefined") {
+                          BProgress.start();
                         }
 
                         setSelectedContrato(null);

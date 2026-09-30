@@ -18,6 +18,8 @@
     "push:dry-run": "tsx bin/dispatch-push.ts --dry-run"
   },
   "dependencies": {
+    "@bprogress/core": "1.3.4",
+    "@bprogress/next": "3.2.12",
     "@react-email/components": "1.0.12",
     "@t3-oss/env-nextjs": "0.13.11",
     "@transparencia/db": "workspace:*",
