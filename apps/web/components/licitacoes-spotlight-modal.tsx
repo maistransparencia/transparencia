@@ -48,6 +48,7 @@ export function LicitacoesSpotlightModal({
   onSelect,
 }: LicitacoesSpotlightModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [scope, setScope] = useState<"todos" | "ano_atual">("todos");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [results, setResults] = useState<SearchLicitacoesResult>({
@@ -66,6 +67,18 @@ export function LicitacoesSpotlightModal({
     return [...results.licitacoes, ...results.contratos];
   }, [results]);
 
+  const handleScopeChange = useCallback(
+    (newScope: "todos" | "ano_atual") => {
+      setScope(newScope);
+      posthog.capture("licitacoes_search_scope_changed", {
+        portal_slug: portalSlug,
+        ano,
+        new_scope: newScope,
+      });
+    },
+    [portalSlug, ano],
+  );
+
   // Bloqueia scroll do body e reseta estados ao abrir/fechar
   useEffect(() => {
     if (!isOpen) return;
@@ -74,6 +87,7 @@ export function LicitacoesSpotlightModal({
     document.body.style.overflow = "hidden";
 
     setSearchTerm("");
+    setScope("todos");
     setResults({ licitacoes: [], contratos: [], total: 0 });
     setSelectedIndex(0);
     setLoading(false);
@@ -118,6 +132,9 @@ export function LicitacoesSpotlightModal({
         const queryParams = new URLSearchParams({
           q: clean,
         });
+        if (scope === "ano_atual" && ano) {
+          queryParams.set("ano", String(ano));
+        }
         const res = await fetch(
           `/api/${encodeURIComponent(portalSlug)}/licitacoes/search?${queryParams.toString()}`,
           { signal: controller.signal },
@@ -127,6 +144,7 @@ export function LicitacoesSpotlightModal({
           posthog.capture("licitacoes_search_failed", {
             portal_slug: portalSlug,
             ano,
+            scope,
             query_length: clean.length,
             status: res.status,
           });
@@ -145,6 +163,7 @@ export function LicitacoesSpotlightModal({
         posthog.capture("licitacoes_search_performed", {
           portal_slug: portalSlug,
           ano,
+          scope,
           query_length: clean.length,
           results_total: data.total,
           licitacoes_count: data.licitacoes.length,
@@ -169,7 +188,7 @@ export function LicitacoesSpotlightModal({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [searchTerm, portalSlug, ano]);
+  }, [searchTerm, portalSlug, ano, scope]);
 
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
@@ -338,6 +357,43 @@ export function LicitacoesSpotlightModal({
           </kbd>
         </div>
 
+        {/* Seletor de Escopo de Exercício */}
+        {ano && (
+          <div className="flex items-center gap-2 border-slate-100 border-b bg-slate-50/70 px-4 py-2 text-xs">
+            <span className="font-medium text-[11px] text-slate-500">
+              Escopo:
+            </span>
+            <div className="inline-flex rounded-lg bg-slate-200/70 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => handleScopeChange("todos")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  scope === "todos"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900",
+                )}
+                aria-pressed={scope === "todos"}
+              >
+                Todos os anos
+              </button>
+              <button
+                type="button"
+                onClick={() => handleScopeChange("ano_atual")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  scope === "ano_atual"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900",
+                )}
+                aria-pressed={scope === "ano_atual"}
+              >
+                Apenas {ano}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Banner de Erro (429/500) */}
         {errorMessage && (
           <div
@@ -451,9 +507,15 @@ export function LicitacoesSpotlightModal({
                                 {item.status}
                               </span>
                             )}
-                            <span className="text-[11px] text-slate-400">
-                              · {item.ano}
-                            </span>
+                            {ano && item.ano && item.ano !== ano ? (
+                              <Badge variant="warning">
+                                Exercício {item.ano}
+                              </Badge>
+                            ) : (
+                              <span className="text-[11px] text-slate-400">
+                                · {item.ano}
+                              </span>
+                            )}
                             {item.programaNome && (
                               <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
                                 {item.programaNome}
@@ -565,6 +627,10 @@ export function LicitacoesSpotlightModal({
                             {isContratoVigenteAnoAnterior ? (
                               <Badge variant="warning">
                                 Celebrado em {item.anoCelebracao ?? item.ano}
+                              </Badge>
+                            ) : ano && item.ano && item.ano !== ano ? (
+                              <Badge variant="warning">
+                                Exercício {item.ano}
                               </Badge>
                             ) : (
                               <span className="text-[11px] text-slate-400">

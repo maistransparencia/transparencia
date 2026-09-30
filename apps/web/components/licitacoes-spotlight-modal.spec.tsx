@@ -303,6 +303,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
         {
           portal_slug: "porciuncula_prefeitura",
           ano: 2024,
+          scope: "todos",
           query_length: 7,
           results_total: 2,
           licitacoes_count: 1,
@@ -348,6 +349,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       expect(posthog.capture).toHaveBeenCalledWith("licitacoes_search_failed", {
         portal_slug: "porciuncula_prefeitura",
         ano: undefined,
+        scope: "todos",
         query_length: 20,
         status: 429,
       });
@@ -611,6 +613,95 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       expect(
         screen.getByText("Vigência: 15/03/2024 a 15/03/2027"),
       ).toBeInTheDocument();
+    });
+
+    it("deve permitir alternar o escopo da busca entre 'Todos os anos' e 'Apenas 2026' filtrando requisição por ano", async () => {
+      (global.fetch as any).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          licitacoes: [],
+          contratos: [],
+          total: 0,
+        }),
+      });
+
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+        />,
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Todos os anos" }),
+      ).toBeInTheDocument();
+      const apenasAnoButton = screen.getByRole("button", {
+        name: "Apenas 2026",
+      });
+      expect(apenasAnoButton).toBeInTheDocument();
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "serviço" } });
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("q=servi%C3%A7o"),
+          expect.anything(),
+        );
+      });
+
+      // Alterna para apenas 2026
+      fireEvent.click(apenasAnoButton);
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("ano=2026"),
+          expect.anything(),
+        );
+      });
+    });
+
+    it("deve exibir badge de aviso 'Exercício 2024' para licitação de outro ano nos resultados do Spotlight", async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          licitacoes: [
+            {
+              id: "lic-2024",
+              tipo: "licitacao",
+              numero: "PE 010/24",
+              objeto: "Reforma de escola",
+              fornecedorNome: null,
+              valor: 100000,
+              status: "em_andamento",
+              modalidade: "Pregão Eletrônico",
+              ano: 2024,
+              portalSlug: "porciuncula_prefeitura",
+              href: "/porciuncula_prefeitura/licitacoes?ano=2024&numero=PE%20010%2F24#licitacoes-em-andamento",
+            },
+          ],
+          contratos: [],
+          total: 1,
+        }),
+      });
+
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+        />,
+      );
+
+      const input = screen.getByRole("combobox");
+      fireEvent.change(input, { target: { value: "escola" } });
+
+      await waitFor(() => {
+        expect(screen.getByText("Exercício 2024")).toBeInTheDocument();
+      });
     });
   });
 });
