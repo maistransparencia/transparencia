@@ -9,6 +9,7 @@ import {
   getPortalConfig,
   getServidoresDivergenciasCadastraisPessoal,
 } from "@transparencia/db";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface PessoalSearchParams {
   ano?: string;
@@ -62,7 +63,7 @@ async function resolveEmpresaIds(
   return entidades.map((entidade) => entidade.id).filter(Boolean);
 }
 
-export async function loadPessoalData(
+async function fetchRawPessoalData(
   portalSlug: string,
   searchParams: PessoalSearchParams,
 ) {
@@ -119,3 +120,8 @@ export async function loadPessoalData(
     servidoresDivergentes,
   };
 }
+
+export const loadPessoalData = createCachedDataLoader(
+  fetchRawPessoalData,
+  "pessoal",
+);

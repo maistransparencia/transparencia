@@ -13,6 +13,7 @@ import {
   getRadarCivicoAlertas,
   type LicitacaoItemDTO,
 } from "@transparencia/db";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface LicitacoesSearchParams {
   ano?: string;
@@ -66,7 +67,7 @@ async function resolveEmpresaIds(
   return entidades.map((entidade) => entidade.id).filter(Boolean);
 }
 
-export async function loadLicitacoesData(
+async function fetchRawLicitacoesData(
   portalSlug: string,
   searchParams: LicitacoesSearchParams,
 ) {
@@ -133,3 +134,8 @@ export async function loadLicitacoesData(
     alertasRadar,
   };
 }
+
+export const loadLicitacoesData = createCachedDataLoader(
+  fetchRawLicitacoesData,
+  "licitacoes",
+);

@@ -43,6 +43,8 @@ if (token) {
     // Turn on debug in development mode
     debug: env.NODE_ENV === "development",
     before_send: dropAndroidWebViewBridgeErrors,
+    // Disable session recording to eliminate DOM mutation observers and keep main thread responsive (INP)
+    disable_session_recording: true,
   });
 }
 

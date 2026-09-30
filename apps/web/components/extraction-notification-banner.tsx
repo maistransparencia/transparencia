@@ -1,5 +1,6 @@
 "use client";
 
+import { Megaphone } from "lucide-react";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
@@ -119,23 +120,33 @@ export function ExtractionNotificationBanner({
   const formattedDate = formatDateBR(lastExtractionDate);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-blue-200 border-b bg-blue-50 px-4 py-2 text-blue-950 text-xs shadow-xs sm:text-sm">
-      <div className="flex items-center gap-2">
-        <span aria-hidden="true">📢</span>
-        <span>
-          <strong>Novos dados disponíveis!</strong> A última extração de contas
-          públicas de{" "}
-          <span className="font-semibold text-blue-700">{portalName}</span> foi
-          atualizada ({formattedDate}).
-        </span>
+    <aside
+      aria-label="Aviso de novos dados disponíveis"
+      className="fixed right-4 bottom-20 left-4 z-50 max-w-md rounded-lg border border-blue-200 bg-blue-50/95 p-3.5 text-blue-950 text-xs shadow-lg backdrop-blur-xs transition-all sm:right-4 sm:bottom-4 sm:left-auto sm:text-sm"
+    >
+      <div className="flex items-start gap-2.5">
+        <Megaphone
+          aria-hidden="true"
+          className="mt-0.5 size-4 shrink-0 text-blue-600"
+        />
+        <div className="flex-1 space-y-2">
+          <p className="leading-snug">
+            <strong>Novos dados disponíveis!</strong> A última extração de
+            contas públicas de{" "}
+            <span className="font-semibold text-blue-700">{portalName}</span>{" "}
+            foi atualizada ({formattedDate}).
+          </p>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="rounded bg-blue-600 px-3 py-1 font-semibold text-white text-xs shadow-xs transition-colors hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
       </div>
-      <button
-        type="button"
-        onClick={handleDismiss}
-        className="ml-auto shrink-0 rounded px-2.5 py-1 font-semibold text-blue-700 text-xs transition-colors hover:bg-blue-100"
-      >
-        Entendido
-      </button>
-    </div>
+    </aside>
   );
 }

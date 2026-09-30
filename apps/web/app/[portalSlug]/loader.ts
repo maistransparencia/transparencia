@@ -15,6 +15,7 @@ import {
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { notFound } from "next/navigation";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface PortalRouteSearchParams {
   ano?: string;
@@ -139,7 +140,7 @@ function mapFontesMetricToLegacy(
   };
 }
 
-export async function loadVisaoGeralData(
+async function fetchRawVisaoGeralData(
   portalSlug: string,
   searchParams: PortalRouteSearchParams,
 ) {
@@ -241,3 +242,8 @@ export async function loadVisaoGeralData(
     licitacoesEmAndamentoCount: licitacoesEmAndamento.length,
   };
 }
+
+export const loadVisaoGeralData = createCachedDataLoader(
+  fetchRawVisaoGeralData,
+  "visao-geral",
+);
