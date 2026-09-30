@@ -11,6 +11,9 @@ import { KPIGrid } from "@/components/kpi-grid";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
+import { createPortalMetadata } from "@/lib/metadata";
+import { loadSaudeData } from "./loader";
+import { buildSaudeViewModel } from "./view-model";
 
 const SaudeFontesDonut = nextDynamic(
   () =>
@@ -33,10 +36,6 @@ const SaudeTrendChart = nextDynamic(
     ),
   },
 );
-
-import { createPortalMetadata } from "@/lib/metadata";
-import { loadSaudeData } from "./loader";
-import { buildSaudeViewModel } from "./view-model";
 
 export const dynamic = "force-dynamic";
 

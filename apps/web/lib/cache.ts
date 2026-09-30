@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { env } from "@/env";
-import { version } from "../package.json";
+import { version } from "../../../package.json";
 
 /**
  * Helper para criar funções com cache de 24h versionado pelo package.json.

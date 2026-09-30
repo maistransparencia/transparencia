@@ -122,7 +122,7 @@ export function ExtractionNotificationBanner({
   return (
     <aside
       aria-label="Aviso de novos dados disponíveis"
-      className="fixed right-4 bottom-4 z-50 max-w-md rounded-lg border border-blue-200 bg-blue-50/95 p-3.5 text-blue-950 text-xs shadow-lg backdrop-blur-xs transition-all sm:text-sm"
+      className="fixed right-4 bottom-20 left-4 z-50 max-w-md rounded-lg border border-blue-200 bg-blue-50/95 p-3.5 text-blue-950 text-xs shadow-lg backdrop-blur-xs transition-all sm:right-4 sm:bottom-4 sm:left-auto sm:text-sm"
     >
       <div className="flex items-start gap-2.5">
         <Megaphone

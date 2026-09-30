@@ -12,6 +12,11 @@ import { CapremActuarialRiskSection } from "@/components/caprem-actuarial-risk-s
 import { CapremHeroSection } from "@/components/caprem-hero-section";
 import { CapremPatrimonioHistoricoSection } from "@/components/caprem-patrimonio-historico-section";
 import { CapremSaldoCaixaCard } from "@/components/caprem-saldo-caixa-card";
+import { KPIGrid } from "@/components/kpi-grid";
+import { SectionHeader } from "@/components/section-header";
+import { createPortalMetadata } from "@/lib/metadata";
+import { loadCapremData } from "./loader";
+import { buildCapremViewModel } from "./view-model";
 
 const CapremEntidadesDonut = nextDynamic(
   () =>
@@ -24,12 +29,6 @@ const CapremEntidadesDonut = nextDynamic(
     ),
   },
 );
-
-import { KPIGrid } from "@/components/kpi-grid";
-import { SectionHeader } from "@/components/section-header";
-import { createPortalMetadata } from "@/lib/metadata";
-import { loadCapremData } from "./loader";
-import { buildCapremViewModel } from "./view-model";
 
 export const dynamic = "force-dynamic";
 
