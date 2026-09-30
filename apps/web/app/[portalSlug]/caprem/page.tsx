@@ -6,12 +6,25 @@ import {
   KPICard,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { BarChartH } from "@/components/bar-chart-h";
 import { CapremActuarialRiskSection } from "@/components/caprem-actuarial-risk-section";
-import { CapremEntidadesDonut } from "@/components/caprem-entidades-donut";
 import { CapremHeroSection } from "@/components/caprem-hero-section";
 import { CapremPatrimonioHistoricoSection } from "@/components/caprem-patrimonio-historico-section";
 import { CapremSaldoCaixaCard } from "@/components/caprem-saldo-caixa-card";
+
+const CapremEntidadesDonut = nextDynamic(
+  () =>
+    import("@/components/caprem-entidades-donut").then(
+      (mod) => mod.CapremEntidadesDonut,
+    ),
+  {
+    loading: () => (
+      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+    ),
+  },
+);
+
 import { KPIGrid } from "@/components/kpi-grid";
 import { SectionHeader } from "@/components/section-header";
 import { createPortalMetadata } from "@/lib/metadata";
