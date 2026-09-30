@@ -11,7 +11,8 @@ import {
   fmtPercent,
   ModalDialog,
 } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { AlertCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
@@ -124,6 +125,13 @@ export function ContratosServicosVigentesSection({
       // 1. Tentar encontrar nos contratos pré-carregados
       const match = (contratos || []).find((c) => {
         if (!c) return false;
+        if (
+          searchDetail?.ano &&
+          (c.ano ?? ano) &&
+          (c.ano ?? ano) !== searchDetail.ano
+        ) {
+          return false;
+        }
         if (c.contratoServicoId && c.contratoServicoId === cleanTerm)
           return true;
         if (c.contratoNumero && c.contratoNumero === cleanTerm) return true;
@@ -142,8 +150,11 @@ export function ContratosServicosVigentesSection({
       }
 
       // 2. Buscar via API caso não conste na lista
+      const urlAno = urlParams?.get("ano")
+        ? Number(urlParams.get("ano"))
+        : undefined;
       const targetSlug = searchDetail?.portalSlug || portalSlug;
-      const targetAno = searchDetail?.ano || ano;
+      const targetAno = searchDetail?.ano || urlAno || ano;
 
       if (targetSlug) {
         setLoadingDetails(true);
@@ -199,6 +210,31 @@ export function ContratosServicosVigentesSection({
     },
     [contratos, portalSlug, ano, statusFilter],
   );
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedContrato(null);
+    setOpenedFromSearch(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (
+        url.searchParams.has("contratoNumero") ||
+        url.searchParams.has("contratoId")
+      ) {
+        url.searchParams.delete("contratoNumero");
+        url.searchParams.delete("contratoId");
+      }
+      if (ano) {
+        url.searchParams.set("ano", String(ano));
+      } else {
+        url.searchParams.delete("ano");
+      }
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + (url.search ? url.search : "") + (url.hash || ""),
+      );
+    }
+  }, [ano]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -400,26 +436,6 @@ export function ContratosServicosVigentesSection({
     },
   ];
 
-  const handleCloseModal = () => {
-    setSelectedContrato(null);
-    setOpenedFromSearch(false);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      if (
-        url.searchParams.has("contratoNumero") ||
-        url.searchParams.has("contratoId")
-      ) {
-        url.searchParams.delete("contratoNumero");
-        url.searchParams.delete("contratoId");
-        window.history.replaceState(
-          {},
-          "",
-          url.pathname + (url.search ? url.search : "") + (url.hash || ""),
-        );
-      }
-    }
-  };
-
   return (
     <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
       {/* Header */}
@@ -577,6 +593,28 @@ export function ContratosServicosVigentesSection({
           maxWidth="4xl"
         >
           <div className="space-y-6 py-2">
+            {selectedContrato.ano && ano && selectedContrato.ano !== ano && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-amber-900 text-xs shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                  <span>
+                    Este contrato pertence ao exercício de{" "}
+                    <strong className="font-semibold">
+                      {selectedContrato.ano}
+                    </strong>{" "}
+                    (você está navegando no painel de{" "}
+                    <strong className="font-semibold">{ano}</strong>).
+                  </span>
+                </div>
+                <Link
+                  href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedContrato.ano}&contratoNumero=${encodeURIComponent(selectedContrato.contratoNumero || selectedContrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
+                  className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
+                >
+                  <span>Mudar painel para {selectedContrato.ano}</span>
+                </Link>
+              </div>
+            )}
+
             {/* Bloco 1: Fornecedor, Órgão, Vigência, Licitação de Origem e Ano */}
             <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-2 sm:gap-6">
               <div>

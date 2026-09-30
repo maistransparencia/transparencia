@@ -415,6 +415,103 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     });
   });
 
+  it("exibe aviso de exercício diferente e restaura o ano base na URL ao fechar detalhe aberto via busca", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?ano=2026",
+    );
+
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "PE 001/2024",
+          ano: 2024,
+          objeto: "Contratação de internet escolar",
+          modalidade: "Pregão Eletrônico",
+          status: "Em andamento",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const banner = await screen.findByText(/pertence ao exercício de/i);
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent("2024");
+    expect(banner).toHaveTextContent("2026");
+    const link = screen.getByRole("link", { name: /mudar painel para 2024/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      "href",
+      "/porciuncula_prefeitura/licitacoes?ano=2024&numero=PE%20001%2F2024#licitacoes-em-andamento",
+    );
+
+    // Simula a URL intermediária aplicada pelo Spotlight ao selecionar o item de 2024
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL(
+        "http://localhost:3000/porciuncula_prefeitura/licitacoes?ano=2024&numero=PE%20001%2F2024#licitacoes-em-andamento",
+      ),
+    });
+
+    const replaceStateSpy = vi.spyOn(window.history, "replaceState");
+
+    const backButton = screen.getByRole("button", {
+      name: /voltar aos resultados da busca/i,
+    });
+    fireEvent.click(backButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      {},
+      "",
+      expect.stringContaining("ano=2026"),
+    );
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      {},
+      "",
+      expect.not.stringContaining("numero="),
+    );
+    replaceStateSpy.mockRestore();
+  });
+
+  it("desambigua exercício e não seleciona processo homônimo pré-carregado de ano divergente", async () => {
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={sampleItems}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    // Dispara busca por processo com mesmo número PE 001/2025, mas ano 2024
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "PE 001/2025",
+          ano: 2024,
+          objeto: "Processo de 2024",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const banner = await screen.findByText(/pertence ao exercício de/i);
+    expect(banner).toHaveTextContent("2024");
+    expect(banner).not.toHaveTextContent("2025");
+  });
+
   it("exibe botão 'Voltar ao Contrato' e reabre o contrato ao clicar quando aberto a partir de um contrato", async () => {
     Object.defineProperty(window, "location", {
       writable: true,

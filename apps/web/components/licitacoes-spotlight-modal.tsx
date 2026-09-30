@@ -20,7 +20,6 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -48,8 +47,8 @@ export function LicitacoesSpotlightModal({
   ano,
   onSelect,
 }: LicitacoesSpotlightModalProps) {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [scope, setScope] = useState<"todos" | "ano_atual">("todos");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [results, setResults] = useState<SearchLicitacoesResult>({
@@ -68,6 +67,18 @@ export function LicitacoesSpotlightModal({
     return [...results.licitacoes, ...results.contratos];
   }, [results]);
 
+  const handleScopeChange = useCallback(
+    (newScope: "todos" | "ano_atual") => {
+      setScope(newScope);
+      posthog.capture("licitacoes_search_scope_changed", {
+        portal_slug: portalSlug,
+        ano,
+        new_scope: newScope,
+      });
+    },
+    [portalSlug, ano],
+  );
+
   // Bloqueia scroll do body e reseta estados ao abrir/fechar
   useEffect(() => {
     if (!isOpen) return;
@@ -76,6 +87,7 @@ export function LicitacoesSpotlightModal({
     document.body.style.overflow = "hidden";
 
     setSearchTerm("");
+    setScope("todos");
     setResults({ licitacoes: [], contratos: [], total: 0 });
     setSelectedIndex(0);
     setLoading(false);
@@ -120,6 +132,9 @@ export function LicitacoesSpotlightModal({
         const queryParams = new URLSearchParams({
           q: clean,
         });
+        if (scope === "ano_atual" && ano) {
+          queryParams.set("ano", String(ano));
+        }
         const res = await fetch(
           `/api/${encodeURIComponent(portalSlug)}/licitacoes/search?${queryParams.toString()}`,
           { signal: controller.signal },
@@ -129,6 +144,7 @@ export function LicitacoesSpotlightModal({
           posthog.capture("licitacoes_search_failed", {
             portal_slug: portalSlug,
             ano,
+            scope,
             query_length: clean.length,
             status: res.status,
           });
@@ -147,6 +163,7 @@ export function LicitacoesSpotlightModal({
         posthog.capture("licitacoes_search_performed", {
           portal_slug: portalSlug,
           ano,
+          scope,
           query_length: clean.length,
           results_total: data.total,
           licitacoes_count: data.licitacoes.length,
@@ -171,30 +188,26 @@ export function LicitacoesSpotlightModal({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [searchTerm, portalSlug, ano]);
+  }, [searchTerm, portalSlug, ano, scope]);
 
   const handleSelect = useCallback(
     (item: SearchResultItem) => {
       const isLicitacao = item.tipo === "licitacao";
       const isContrato = item.tipo === "contrato";
-      const isSameAno = !item.ano || !ano || item.ano === ano;
 
       posthog.capture("licitacoes_search_result_opened", {
         portal_slug: portalSlug,
         ano,
+        scope,
         tipo: item.tipo,
         position: allResults.indexOf(item),
         query_length: searchTerm.trim().length,
         results_total: results.total,
       });
 
-      // Se for licitação ou contrato no mesmo ano, mantemos o modal de busca aberto por baixo
-      // para permitir navegação em camadas (Master-Detail).
-      // Se for outro ano, fechamos a busca para navegar para a página correspondente.
-      if (!isSameAno) {
-        onClose();
-      }
-
+      // Mantemos o modal de busca aberto por baixo para navegação em camadas (Master-Detail),
+      // independentemente de o item pertencer ao mesmo exercício ou a anos anteriores.
+      // O modal de detalhes abre sobreposto (z-[60]), preservando o estado da busca e o ano original.
       if (typeof window !== "undefined") {
         if (isContrato) {
           window.dispatchEvent(
@@ -213,30 +226,11 @@ export function LicitacoesSpotlightModal({
 
       if (onSelect) {
         onSelect(item);
-      } else if (router) {
-        if (isSameAno) {
-          window.history.pushState(null, "", item.href);
-        } else {
-          router.push(item.href);
-        }
       } else if (typeof window !== "undefined") {
-        if (isSameAno) {
-          window.history.pushState(null, "", item.href);
-        } else {
-          window.location.href = item.href;
-        }
+        window.history.pushState(null, "", item.href);
       }
     },
-    [
-      ano,
-      onClose,
-      onSelect,
-      router,
-      portalSlug,
-      allResults,
-      searchTerm,
-      results.total,
-    ],
+    [ano, onSelect, portalSlug, allResults, searchTerm, results.total, scope],
   );
 
   // Navegação por teclado
@@ -364,6 +358,47 @@ export function LicitacoesSpotlightModal({
           </kbd>
         </div>
 
+        {/* Seletor de Escopo de Exercício */}
+        {ano && (
+          <div className="flex items-center gap-2 border-slate-100 border-b bg-slate-50/70 px-4 py-2 text-xs">
+            <span className="font-medium text-[11px] text-slate-500">
+              Escopo:
+            </span>
+            <div
+              role="radiogroup"
+              aria-label="Escopo da busca"
+              className="inline-flex rounded-lg bg-slate-200/70 p-0.5 text-xs"
+            >
+              <button
+                type="button"
+                onClick={() => handleScopeChange("todos")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  scope === "todos"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900",
+                )}
+                aria-pressed={scope === "todos"}
+              >
+                Todos os anos
+              </button>
+              <button
+                type="button"
+                onClick={() => handleScopeChange("ano_atual")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  scope === "ano_atual"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900",
+                )}
+                aria-pressed={scope === "ano_atual"}
+              >
+                Apenas {ano}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Banner de Erro (429/500) */}
         {errorMessage && (
           <div
@@ -477,9 +512,15 @@ export function LicitacoesSpotlightModal({
                                 {item.status}
                               </span>
                             )}
-                            <span className="text-[11px] text-slate-400">
-                              · {item.ano}
-                            </span>
+                            {ano && item.ano && item.ano !== ano ? (
+                              <Badge variant="warning">
+                                Exercício {item.ano}
+                              </Badge>
+                            ) : (
+                              <span className="text-[11px] text-slate-400">
+                                · {item.ano}
+                              </span>
+                            )}
                             {item.programaNome && (
                               <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
                                 {item.programaNome}
@@ -588,15 +629,28 @@ export function LicitacoesSpotlightModal({
                                   : "Encerrado"}
                               </span>
                             )}
-                            {isContratoVigenteAnoAnterior ? (
-                              <Badge variant="warning">
-                                Celebrado em {item.anoCelebracao ?? item.ano}
-                              </Badge>
-                            ) : (
-                              <span className="text-[11px] text-slate-400">
-                                · {item.ano}
-                              </span>
-                            )}
+                            {(() => {
+                              if (isContratoVigenteAnoAnterior) {
+                                return (
+                                  <Badge variant="warning">
+                                    Celebrado em{" "}
+                                    {item.anoCelebracao ?? item.ano}
+                                  </Badge>
+                                );
+                              }
+                              if (ano && item.ano && item.ano !== ano) {
+                                return (
+                                  <Badge variant="warning">
+                                    Exercício {item.ano}
+                                  </Badge>
+                                );
+                              }
+                              return (
+                                <span className="text-[11px] text-slate-400">
+                                  · {item.ano}
+                                </span>
+                              );
+                            })()}
                             {item.programaNome && (
                               <span className="rounded bg-sky-50 px-1.5 py-0.5 font-medium text-[10px] text-sky-800">
                                 {item.programaNome}
