@@ -22,6 +22,19 @@ export interface HistoriaSaudeMetricsDTO {
   hhiConcentracaoFornecedores: number;
 }
 
+export interface EmendaEmpenhoItemDTO {
+  empenhoId: string;
+  dataEmpenho: string | null;
+  fornecedorNome: string;
+  fornecedorCpfCnpj: string | null;
+  licitacaoNumero: string | null;
+  licitacaoModalidade: string | null;
+  valorEmpenhado: number;
+  valorLiquidado: number;
+  valorPago: number;
+  descricao: string;
+}
+
 export interface EmendaSaudeDTO {
   id: string;
   numero: string;
@@ -33,6 +46,8 @@ export interface EmendaSaudeDTO {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
+  qtdEmpenhos: number;
+  empenhos: EmendaEmpenhoItemDTO[];
 }
 
 export interface EmendasStatsSaudeDTO {
@@ -147,22 +162,16 @@ export async function getSaudeEmendasMetrics(
       )
       .execute();
 
-    let totalAutorizado = 0;
-    let totalEmpenhado = 0;
-    let maiorEmenda = 0;
-    const lista: EmendaSaudeDTO[] = [];
+    if (rows.length === 0) return empty;
 
-    for (const r of rows) {
+    const lista: EmendaSaudeDTO[] = rows.map((r, index) => {
       const valAut = Number(r.valor_total ?? 0);
       const emp = Number(r.empenhado ?? 0);
+      const num = String(r.numero_emenda ?? "");
 
-      totalAutorizado += valAut;
-      totalEmpenhado += emp;
-      if (valAut > maiorEmenda) maiorEmenda = valAut;
-
-      lista.push({
-        id: `${r.autor ?? ""}-${r.resumo ?? ""}-${r.numero_emenda ?? ""}-${lista.length}`,
-        numero: String(r.numero_emenda ?? ""),
+      return {
+        id: `${r.autor ?? ""}-${r.resumo ?? ""}-${num}-${index}`,
+        numero: num,
         objeto: String(r.resumo ?? ""),
         valorAutorizado: valAut,
         empenhado: emp > 0 ? emp : null,
@@ -171,15 +180,50 @@ export async function getSaudeEmendasMetrics(
         esferaOrigem: String(r.esfera_origem ?? ""),
         atoNormativo: String(r.ato_normativo ?? ""),
         destinacao: String(r.destinacao ?? ""),
-      });
-    }
+        qtdEmpenhos: 0,
+        empenhos: [],
+      };
+    });
+
+    const sortedLista = [...lista].sort((a, b) => {
+      const aEmp = a.empenhado ?? 0;
+      const bEmp = b.empenhado ?? 0;
+      const aHas = aEmp > 0;
+      const bHas = bEmp > 0;
+
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+
+      if (aHas && bHas && bEmp !== aEmp) {
+        return bEmp - aEmp;
+      }
+
+      if (b.valorAutorizado !== a.valorAutorizado) {
+        return b.valorAutorizado - a.valorAutorizado;
+      }
+
+      return a.autor.localeCompare(b.autor, "pt-BR");
+    });
+
+    const totalAutorizado = sortedLista.reduce(
+      (sum, item) => sum + item.valorAutorizado,
+      0,
+    );
+    const totalEmpenhado = sortedLista.reduce(
+      (sum, item) => sum + (item.empenhado ?? 0),
+      0,
+    );
+    const maiorEmenda = sortedLista.reduce(
+      (max, item) => Math.max(max, item.valorAutorizado),
+      0,
+    );
 
     return {
       totalAutorizado,
       totalEmpenhado,
       taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
       maiorEmenda,
-      lista,
+      lista: sortedLista,
     };
   } catch {
     return empty;

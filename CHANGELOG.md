@@ -5,6 +5,40 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-30
+
+### 🌟 Destaques da Versão (Otimização de Performance, Navegação Temporal e Emendas da Saúde)
+* **Navegação Temporal Contínua e Busca Rápida Multi-Ano (Spotlight):** O motor de busca rápida agora conta com seletor de escopo temporal por ano e preservação contextual do exercício nas rotas SPA de licitações e contratos, exibindo alertas informativos quando um certame ou contrato pertencer a exercício anterior sem perder a navegação original.
+* **Salto de Performance e Redução Expressiva de JavaScript:** Otimização arquitetural com carregamento assíncrono sob demanda de gráficos (Recharts), expurgo de bibliotecas pesadas não utilizadas (ECharts), desacoplamento de banners dinâmicos para zerar Layout Shift (CLS = 0) e envolvimento de data loaders em cache versionado com barra de progresso responsiva (`BProgress`) em transições assíncronas.
+* **Painel Aprimorado de Emendas Parlamentares da Saúde:** Priorização e ordenação automática de emendas com recursos já executados/empenhados, expansão de histórico do objeto em linha e renderização em cartões responsivos no mobile, mantendo total neutralidade e fidelidade aos registros oficiais dos portais.
+
+### ✨ Novas Funcionalidades (Added)
+* **Seletor de Escopo Temporal no Spotlight de Licitações:** Adição de filtro por exercício (`Ano Atual` vs `Todos os Anos`) no modal de busca global rápida (`Cmd+K`), com badges identificando o ano de competência de cada processo e contrato retornado.
+* **Barra de Progresso em Transições SPA (`ProgressProvider`):** Integração do `@bprogress/next` no layout raiz, fornecendo feedback visual imediato ao cidadão durante a transição de páginas e buscas de dados sem travamento da interface.
+* **Cartões Responsivos e Expansão de Histórico em Emendas da Saúde (`SaudeEmendasSection`):** Novo layout mobile via `renderMobileCard` para visualização clara de emendas parlamentares em smartphones e componente expansível `EmpenhoDescricaoCell` para leitura na íntegra de objetos extensos sem quebrar o layout da tabela.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Fidelidade Oficial em `fct_emendas`:** Simplificação e blindagem do modelo dimensional `fct_emendas`, mantendo a integridade dos dados oficiais provenientes de `int_emendas_consolidadas` e eliminando heurísticas textuais artificiais de cruzamento com despesas.
+* **Sincronização de Fixtures de Teste:** Atualização e validação das definições estruturais compactadas no fixture [schema.sql.gz](file:///packages/db/tests/fixtures/schema.sql.gz) para garantir paridade total entre modelos analíticos e testes Kysely em `@transparencia/db`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Carregamento Assíncrono de Gráficos Recharts:** Dynamic imports com `ssr: false` nas seções de Previdência (`/caprem`) e Saúde Pública (`/saude`), reduzindo substancialmente o tamanho do pacote JavaScript inicial (First Load JS) carregado pelo navegador.
+* **Expurgo de Dependências e Otimização de Pacotes:** Remoção completa dos pacotes `echarts` e `echarts-for-react`, inclusão de `optimizePackageImports` para `recharts`, `lucide-react` e `@transparencia/ui` em `next.config.js`, e desativação do session recording do PostHog para poupar banda e processamento do usuário.
+* **Cache Versionado em Rotas Dinâmicas:** Envolvimento dos data loaders em `apps/web/lib/cache.ts` com identificadores de versão de cache, acelerando a resposta de requisições subsequentes para Visão Geral, Licitações, Pessoal, CAPREM, Saúde e Radar.
+* **Precedência de Emendas com Empenho na Saúde:** Ordenação do loader e DTOs de emendas em `historia-saude-metrics.ts` dando prioridade de exibição àquelas com recursos efetivamente empenhados ou liquidados.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de Leitura Pública para Inteligência Artificial (`llms.txt` e `llms-full.txt`):** Atualização das orientações para agentes externos e LLMs sobre o painel de emendas parlamentares da saúde, detalhando a correlação com empenhos, propostas FNS/SISMOB e processos licitatórios municipais.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Erradicação de Layout Shift no Banner de Extração:** Posicionamento desacoplado do fluxo estático do DOM em `ExtractionNotificationBanner`, eliminando o Cumulative Layout Shift (CLS) durante o carregamento assíncrono do status de sincronização de dados.
+* **Preservação de Contexto Temporal na Navegação:** Correção no fluxo de abertura de certames e contratos de exercícios anteriores para manter o ano de navegação ativo na URL, acompanhado de alerta contextual discreto informando o exercício de origem do certame.
+* **Persistência de Camadas no Spotlight Modal:** Prevenção do fechamento indevido do modal de busca ao selecionar processos ou contratos abertos a partir de atalhos rápidos.
+* **Substituição de Emojis por Ícones Semânticos:** Substituição de emoji no banner de extração pelo ícone vetorial acessível `Megaphone` da biblioteca Lucide.
+
+### 🗑️ Depreciações & Remoções (Removed)
+* **Remoção de Middleware Proxy Não Utilizado:** Expurgo do arquivo legado `apps/web/proxy.ts`, simplificando a infraestrutura de borda do Next.js.
+
 ## [1.12.1] - 2026-09-27
 
 ### 🌟 Destaques da Versão (Acurácia Financeira de Contratos Plurianuais e Navegação Fluida entre Certames)

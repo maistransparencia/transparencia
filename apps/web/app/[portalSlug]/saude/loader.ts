@@ -10,6 +10,7 @@ import {
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
 } from "@transparencia/db";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface SaudeSearchParams {
   ano?: string;
@@ -85,7 +86,7 @@ export function classifyHhi(hhi: number): FarmaceuticaConcentracao {
   };
 }
 
-export async function loadSaudeData(
+async function fetchRawSaudeData(
   portalSlug: string,
   searchParams: SaudeSearchParams,
 ) {
@@ -192,3 +193,5 @@ export async function loadSaudeData(
     saude,
   };
 }
+
+export const loadSaudeData = createCachedDataLoader(fetchRawSaudeData, "saude");

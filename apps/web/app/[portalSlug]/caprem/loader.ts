@@ -7,6 +7,7 @@ import {
   getPortalConfig,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
+import { createCachedDataLoader } from "@/lib/cache";
 
 export interface CapremSearchParams {
   ano?: string;
@@ -43,7 +44,7 @@ function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-export async function loadCapremData(
+async function fetchRawCapremData(
   portalSlug: string,
   searchParams: CapremSearchParams,
 ) {
@@ -156,3 +157,8 @@ export async function loadCapremData(
     posicaoFinanceira,
   };
 }
+
+export const loadCapremData = createCachedDataLoader(
+  fetchRawCapremData,
+  "caprem",
+);

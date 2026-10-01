@@ -6,15 +6,36 @@ import {
   KPICard,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
-import { SaudeFontesDonut } from "@/components/saude-fontes-donut";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
-import { SaudeTrendChart } from "@/components/saude-trend-chart";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
+
+const SaudeFontesDonut = nextDynamic(
+  () =>
+    import("@/components/saude-fontes-donut").then(
+      (mod) => mod.SaudeFontesDonut,
+    ),
+  {
+    loading: () => (
+      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+    ),
+  },
+);
+
+const SaudeTrendChart = nextDynamic(
+  () =>
+    import("@/components/saude-trend-chart").then((mod) => mod.SaudeTrendChart),
+  {
+    loading: () => (
+      <div className="h-[320px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+    ),
+  },
+);
 
 export const dynamic = "force-dynamic";
 
@@ -225,6 +246,7 @@ export default async function SaudePage({
       <SaudeEmendasSection
         ano={selectedYear}
         emendasStats={saude.emendasStats}
+        portalSlug={portalSlug}
       />
     </div>
   );

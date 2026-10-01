@@ -1,5 +1,6 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import type {
   LicitacaoEmAndamentoDTO,
   LicitacaoItemDTO,
@@ -16,6 +17,7 @@ import {
   ModalDialog,
 } from "@transparencia/ui";
 import {
+  AlertCircle,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -23,6 +25,7 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export { fmtLicitacaoSituacao };
@@ -79,14 +82,19 @@ export function LicitacoesEmAndamentoSection({
       const url = new URL(window.location.href);
       if (url.searchParams.has("numero")) {
         url.searchParams.delete("numero");
-        window.history.replaceState(
-          {},
-          "",
-          url.pathname + (url.search ? url.search : "") + (url.hash || ""),
-        );
       }
+      if (ano) {
+        url.searchParams.set("ano", String(ano));
+      } else {
+        url.searchParams.delete("ano");
+      }
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + (url.search ? url.search : "") + (url.hash || ""),
+      );
     }
-  }, []);
+  }, [ano]);
 
   const handleBack = useCallback(() => {
     if (fromContrato) {
@@ -248,6 +256,13 @@ export function LicitacoesEmAndamentoSection({
       const cleanNum = numero.trim();
       const match = tableData.find((t) => {
         if (!t) return false;
+        if (
+          searchDetail?.ano &&
+          (t.ano ?? ano) &&
+          (t.ano ?? ano) !== searchDetail.ano
+        ) {
+          return false;
+        }
         if (t.licitacaoNumero === cleanNum || t.licitacaoId === cleanNum)
           return true;
         if (t.licitacaoNumero && cleanNum) {
@@ -260,15 +275,27 @@ export function LicitacoesEmAndamentoSection({
 
       if (match) {
         setSelectedLicitacaoForItens(match);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("licitacao:loaded", { detail: { id: cleanNum } }),
+          );
+          BProgress.done();
+        }
         return;
       }
 
       // Se não estiver na tabela pré-carregada (ex: processo já homologado), busca via API ou constrói a partir dos dados do evento
+      const urlAno = urlParams?.get("ano")
+        ? Number(urlParams.get("ano"))
+        : undefined;
       const targetSlug = searchDetail?.portalSlug || portalSlug;
-      const targetAno = searchDetail?.ano || ano;
+      const targetAno = searchDetail?.ano || urlAno || ano;
 
       if (targetSlug) {
         setLoadingDetails(true);
+        if (typeof window !== "undefined") {
+          BProgress.start();
+        }
         try {
           const res = await fetch(
             `/api/${encodeURIComponent(targetSlug)}/licitacoes/details?numero=${encodeURIComponent(cleanNum)}${targetAno ? `&ano=${targetAno}` : ""}`,
@@ -293,6 +320,13 @@ export function LicitacoesEmAndamentoSection({
                 }));
               }
               setSelectedLicitacaoForItens(tableRow);
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("licitacao:loaded", {
+                    detail: { id: cleanNum },
+                  }),
+                );
+              }
               return;
             }
           }
@@ -300,6 +334,9 @@ export function LicitacoesEmAndamentoSection({
           // Fallback silencioso para dados de busca se a requisição falhar
         } finally {
           setLoadingDetails(false);
+          if (typeof window !== "undefined") {
+            BProgress.done();
+          }
         }
       }
 
@@ -331,6 +368,12 @@ export function LicitacoesEmAndamentoSection({
           buscaNormalizada: "",
         };
         setSelectedLicitacaoForItens(fallbackRow);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("licitacao:loaded", { detail: { id: cleanNum } }),
+          );
+          BProgress.done();
+        }
       }
     };
 
@@ -1067,6 +1110,32 @@ export function LicitacoesEmAndamentoSection({
 
             return (
               <div className="space-y-6 py-2">
+                {selectedLicitacaoForItens.ano &&
+                  ano &&
+                  selectedLicitacaoForItens.ano !== ano && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-amber-900 text-xs shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                        <span>
+                          Este processo pertence ao exercício de{" "}
+                          <strong className="font-semibold">
+                            {selectedLicitacaoForItens.ano}
+                          </strong>{" "}
+                          (você está navegando no painel de{" "}
+                          <strong className="font-semibold">{ano}</strong>).
+                        </span>
+                      </div>
+                      <Link
+                        href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
+                        className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
+                      >
+                        <span>
+                          Mudar painel para {selectedLicitacaoForItens.ano}
+                        </span>
+                      </Link>
+                    </div>
+                  )}
+
                 {/* Bloco 1: Órgão, Modalidade, Abertura e Ano */}
                 <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 sm:grid-cols-2 sm:gap-6 sm:p-4 lg:grid-cols-4">
                   <div className="min-w-0">
