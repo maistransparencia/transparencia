@@ -19,6 +19,10 @@ select
     p.ano_inicial,
     p.empresa_padrao,
     p.brasao_asset,
+    p.previdencia_habilitado,
+    p.previdencia_sigla,
+    p.previdencia_nome,
+    p.highlights_json,
     coalesce(m.value, current_date) as data_extracao
 from portais p
 left join max_extracao m on p.portal_slug = m.portal_slug

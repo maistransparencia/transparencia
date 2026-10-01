@@ -1,6 +1,19 @@
 import { sql } from "kysely";
 import { db } from "../client";
 
+export interface PrevidenciaConfig {
+  habilitado: boolean;
+  sigla: string;
+  nome: string;
+}
+
+export interface HighlightItem {
+  slug: string;
+  titulo: string;
+  descricao?: string;
+  icone: string;
+}
+
 export interface PortalConfig {
   portalSlug: string;
   displayName: string;
@@ -13,6 +26,8 @@ export interface PortalConfig {
   brasaoAsset: string;
   dataExtracao: string;
   dataExtracaoDate: Date | null;
+  previdencia: PrevidenciaConfig;
+  highlights: HighlightItem[];
 }
 
 export interface EntidadeItem {
@@ -67,6 +82,39 @@ export async function getPortalConfig(
         dataExtracaoStr = String(row.data_extracao).split("T")[0];
       }
 
+      const previdenciaHabilitado = Boolean(
+        row.previdencia_habilitado === true ||
+          row.previdencia_habilitado === "true" ||
+          row.previdencia_habilitado === 1,
+      );
+
+      const previdencia: PrevidenciaConfig = {
+        habilitado: previdenciaHabilitado,
+        sigla: String(row.previdencia_sigla || ""),
+        nome: String(row.previdencia_nome || ""),
+      };
+
+      const highlights: HighlightItem[] = (() => {
+        if (!row.highlights_json) return [];
+        try {
+          const raw =
+            typeof row.highlights_json === "string"
+              ? JSON.parse(row.highlights_json)
+              : row.highlights_json;
+          if (Array.isArray(raw)) {
+            return raw.map((item) => ({
+              slug: String(item.slug || ""),
+              titulo: String(item.titulo || ""),
+              descricao: item.descricao ? String(item.descricao) : undefined,
+              icone: String(item.icone || ""),
+            }));
+          }
+        } catch {
+          return [];
+        }
+        return [];
+      })();
+
       return {
         portalSlug: String(row.portal_slug || ""),
         displayName: String(row.display_name || ""),
@@ -79,6 +127,8 @@ export async function getPortalConfig(
         brasaoAsset: String(row.brasao_asset || ""),
         dataExtracao: dataExtracaoStr,
         dataExtracaoDate,
+        previdencia,
+        highlights,
       };
     }
   } catch (_error) {}
