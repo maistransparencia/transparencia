@@ -83,10 +83,10 @@ describe("SaudeEmendasSection", () => {
     expect(
       screen.getByText("Emendas parlamentares destinadas à Saúde"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Daniela Carneiro")).toBeInTheDocument();
-    expect(screen.getByText("Daniel Soranz")).toBeInTheDocument();
-    expect(screen.getByText("2 empenhos")).toBeInTheDocument();
-    expect(screen.getByText("Bloco Orçamentário")).toBeInTheDocument();
+    expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Daniel Soranz").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/2 empenhos/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Bloco Orçamentário").length).toBeGreaterThan(0);
   });
 
   it("abre modal com rastreabilidade ao clicar no botão de empenhos", () => {
@@ -98,7 +98,8 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    const button = screen.getByRole("button", { name: /2 empenhos/i });
+    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
     // Modal deve ser exibido com os detalhes da emenda e dos empenhos
@@ -126,7 +127,10 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    const authorBtn = screen.getByRole("button", { name: "Daniela Carneiro" });
+    const authorBtn = screen.getAllByRole("button", {
+      name: "Daniela Carneiro",
+    })[0];
+    if (!authorBtn) throw new Error("Botão de autor não encontrado");
     fireEvent.click(authorBtn);
 
     expect(
@@ -166,7 +170,8 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    const button = screen.getByRole("button", { name: /2 empenhos/i });
+    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
     // O botão de expansão do histórico deve estar disponível
@@ -189,5 +194,24 @@ describe("SaudeEmendasSection", () => {
     expect(
       screen.getAllByRole("button", { name: /ler histórico completo/i }).length,
     ).toBeGreaterThan(0);
+  });
+
+  it("renderiza cartões mobile com dados de emendas e badges", () => {
+    render(
+      <SaudeEmendasSection
+        ano={2026}
+        emendasStats={mockStats}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    // No card mobile, exibe Proposta nº e botão de auditar
+    expect(
+      screen.getByText("Proposta nº 63000759632202600"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Proposta nº 202643380001")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /auditar 2 empenhos vinculados/i }),
+    ).toBeInTheDocument();
   });
 });
