@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { db } from "../client";
 
 export interface HistoriaCapremMetricsDTO {
+  previdenciaHistoriaId: string;
   historiaCapremId: string;
   portalSlug: string;
   ano: number;
@@ -22,18 +23,16 @@ export interface HistoriaCapremMetricsDTO {
 }
 
 /**
- * Retorna as métricas da história previdenciária (CAPREM) para o portal de Porciúncula e ano.
+ * Retorna as métricas da história previdenciária para o portal e ano.
  *
- * A história da CAPREM é um apanhado geral atômico exclusivo da Prefeitura de Porciúncula,
- * não possuindo filtro por `empresaIds` (consolida todas as entidades) e retornando `null`
- * para qualquer outro portal.
+ * Consolida todas as entidades do portal e retorna `null` caso não haja registros.
  */
 export async function getHistoriaCapremMetrics(
   portalSlug: string,
   ano: number,
 ): Promise<HistoriaCapremMetricsDTO | null> {
   const result = await db
-    .selectFrom("fct_historia_caprem_metricas")
+    .selectFrom("fct_previdencia_historia_metricas")
     .selectAll()
     .where("portal_slug", "=", portalSlug)
     .where("ano", "=", ano)
@@ -42,7 +41,8 @@ export async function getHistoriaCapremMetrics(
   if (!result) return null;
 
   return {
-    historiaCapremId: result.historia_caprem_id,
+    previdenciaHistoriaId: result.previdencia_historia_id as string,
+    historiaCapremId: result.previdencia_historia_id as string,
     portalSlug: result.portal_slug,
     ano: Number(result.ano),
     totalAporteExigido: Number(result.total_aporte_exigido ?? 0),
@@ -76,7 +76,7 @@ export async function getCapremEntidadesMetrics(
 ): Promise<EntityCapremDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_entidades_metricas")
+      .selectFrom("fct_previdencia_entidades_metricas")
       .select(["entidade", "empenhado", "liquidado", "pago", "taxa_execucao"])
       .where("portal_slug", "=", portalSlug)
       .where("ano", "=", ano)
@@ -111,7 +111,7 @@ export async function getCapremNaturezaMetrics(
 ): Promise<CapremNaturezaMetricDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_natureza_metricas")
+      .selectFrom("fct_previdencia_natureza_metricas")
       .select([
         "elemento",
         "natureza_despesa as naturezaDespesa",
@@ -138,6 +138,7 @@ export async function getCapremNaturezaMetrics(
         }
         return {
           elemento: r.elemento ?? "",
+          naturezaDespesa: r.naturezaDespesa ?? undefined,
           descricao:
             r.naturezaDespesa ||
             (r.elemento ? `Elemento ${r.elemento}` : "Despesa Previdenciária"),
@@ -150,7 +151,7 @@ export async function getCapremNaturezaMetrics(
       });
     }
   } catch {
-    // Fallback para fct_despesas caso a tabela fct_caprem_natureza_metricas ainda não tenha sido criada via dbt run
+    // Fallback para fct_despesas caso a tabela fct_previdencia_natureza_metricas ainda não tenha sido criada via dbt run
   }
 
   try {
@@ -226,9 +227,9 @@ export async function getCapremNaturezaMetrics(
       ) {
         destino = "plano_saude_casp";
       } else if (elemento === "97") {
-        destino = "aporte_atuarial_caprem";
+        destino = "aporte_atuarial_rpps";
       } else if (elemento === "71") {
-        destino = "amortizacao_divida_caprem";
+        destino = "amortizacao_divida_rpps";
       } else if (
         naturezaDesc.toLowerCase().includes("inss") ||
         naturezaDesc.toLowerCase().includes("rgps")
@@ -237,9 +238,15 @@ export async function getCapremNaturezaMetrics(
       } else if (
         elemento === "13" ||
         fornecedor.toLowerCase().includes("caprem") ||
-        descText.toLowerCase().includes("caprem")
+        descText.toLowerCase().includes("caprem") ||
+        fornecedor.toLowerCase().includes("ipamn") ||
+        descText.toLowerCase().includes("ipamn") ||
+        fornecedor.toLowerCase().includes("funprev") ||
+        descText.toLowerCase().includes("funprev") ||
+        fornecedor.toLowerCase().includes("rpps") ||
+        descText.toLowerCase().includes("rpps")
       ) {
-        destino = "rpps_caprem";
+        destino = "rpps_contribuicao_patronal";
       }
 
       let cleanDate: string | undefined;
@@ -282,8 +289,8 @@ export async function getCapremActuarialTrendMetrics(
 ): Promise<CapremActuarialTrendDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_patrimonio_historico_metricas as p")
-      .leftJoin("fct_caprem_tendencia_atuarial_metricas as t", (join) =>
+      .selectFrom("fct_previdencia_patrimonio_historico_metricas as p")
+      .leftJoin("fct_previdencia_tendencia_atuarial_metricas as t", (join) =>
         join
           .onRef("t.portal_slug", "=", "p.portal_slug")
           .onRef("t.ano", "=", "p.ano"),
@@ -371,6 +378,7 @@ export async function getCapremActuarialTrendMetrics(
 }
 
 export interface CapremPatrimonioHistoricoDTO {
+  previdenciaPatrimonioHistoricoId: string;
   capremPatrimonioHistoricoId: string;
   portalSlug: string;
   ano: number;
@@ -388,9 +396,9 @@ export async function getCapremPatrimonioHistoricoMetrics(
 ): Promise<CapremPatrimonioHistoricoDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_patrimonio_historico_metricas")
+      .selectFrom("fct_previdencia_patrimonio_historico_metricas")
       .select([
-        "caprem_patrimonio_historico_id as capremPatrimonioHistoricoId",
+        "previdencia_patrimonio_historico_id as previdenciaPatrimonioHistoricoId",
         "portal_slug as portalSlug",
         "ano",
         "mes_referencia as mesReferencia",
@@ -406,7 +414,8 @@ export async function getCapremPatrimonioHistoricoMetrics(
       .execute();
 
     return rows.map((r) => ({
-      capremPatrimonioHistoricoId: r.capremPatrimonioHistoricoId,
+      previdenciaPatrimonioHistoricoId: r.previdenciaPatrimonioHistoricoId,
+      capremPatrimonioHistoricoId: r.previdenciaPatrimonioHistoricoId,
       portalSlug: r.portalSlug,
       ano: Number(r.ano),
       mesReferencia: Number(r.mesReferencia),
@@ -467,7 +476,7 @@ export async function getCapremCadprevMetrics(
 ): Promise<CadprevParcelamentoItemDTO[]> {
   try {
     const rows = await db
-      .selectFrom("fct_caprem_cadprev_metricas")
+      .selectFrom("fct_previdencia_cadprev_metricas")
       .select([
         "empenho_id as empenhoId",
         "descricao",
@@ -482,7 +491,7 @@ export async function getCapremCadprevMetrics(
 
     return rows.map(toCadprevDTO);
   } catch {
-    // Fallback para fct_despesas caso a tabela fct_caprem_cadprev_metricas ainda não tenha sido criada via dbt run
+    // Fallback para fct_despesas caso a tabela fct_previdencia_cadprev_metricas ainda não tenha sido criada via dbt run
   }
 
   try {
