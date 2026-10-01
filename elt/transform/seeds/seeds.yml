@@ -10,6 +10,24 @@ seeds:
         nome: text
         cnpj: text
 
+  - name: seed_natividade_prefeitura_orgaos
+    description: "Entidades municipais de Natividade"
+    config:
+      column_types:
+        portal_slug: text
+        empresa_id: text
+        nome: text
+        cnpj: text
+
+  - name: seed_bom_jesus_itabapoana_prefeitura_orgaos
+    description: "Entidades municipais de Bom Jesus do Itabapoana"
+    config:
+      column_types:
+        portal_slug: text
+        empresa_id: text
+        nome: text
+        cnpj: text
+
   - name: seed_porciuncula_prefeitura_siconfi_orgaos
     description: "Vínculo entre grupos de destinação contábil da MSC SICONFI e órgãos de Porciúncula"
     config:

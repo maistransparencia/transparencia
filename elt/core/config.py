@@ -2,6 +2,7 @@ import csv
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -19,6 +20,8 @@ class PortalConfig:
     assets: dict[str, str]
     cod_ibge: int = 3304102
     github_url: str | None = None
+    provider: str = "sigcorp"
+    rpps: dict[str, Any] | None = None
 
     @property
     def raw_schema(self) -> str:
@@ -26,7 +29,8 @@ class PortalConfig:
 
     @property
     def orgaos_csv_path(self) -> Path:
-        return Path("elt/transform/seeds") / f"seed_{self.slug}_orgaos.csv"
+        root = Path(__file__).resolve().parent.parent.parent
+        return root / "elt" / "transform" / "seeds" / f"seed_{self.slug}_orgaos.csv"
 
     def load_orgaos(self) -> dict[str, str]:
         """Returns {empresa_id: nome} from the seed CSV."""
@@ -41,5 +45,9 @@ class PortalConfig:
         # Default hardcoded until multi-portal support is added (URL/host-based routing)
         slug = slug or os.environ.get("PORTAL_SLUG", "porciuncula_prefeitura")
         path = Path(__file__).parent.parent / "portals" / f"{slug}.yml"
+        if not path.exists():
+            raise FileNotFoundError(f"Arquivo de configuração do portal '{slug}' não encontrado em {path}")
         data = yaml.safe_load(path.read_text())
+        if not data:
+            raise ValueError(f"Configuração vazia no arquivo {path}")
         return cls(**data)

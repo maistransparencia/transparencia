@@ -104,15 +104,27 @@ class DataExtractor:
         extractor_cls,
         base_url: str = "",
     ):
-        return extractor_cls(
-            base_path=base_path,
-            listagem=listagem,
-            table=table,
-            key_cols=key_cols,
-            extra=extra,
-            post_process=post_process,
-            base_url=base_url or BASE_HOST,
-        )
+        try:
+            return extractor_cls(
+                base_path=base_path,
+                listagem=listagem,
+                table=table,
+                key_cols=key_cols,
+                extra=extra,
+                post_process=post_process,
+                base_url=base_url or BASE_HOST,
+                portal_slug=_portal.slug,
+            )
+        except TypeError:
+            return extractor_cls(
+                base_path=base_path,
+                listagem=listagem,
+                table=table,
+                key_cols=key_cols,
+                extra=extra,
+                post_process=post_process,
+                base_url=base_url or BASE_HOST,
+            )
 
     @classmethod
     def log_failed_request(
