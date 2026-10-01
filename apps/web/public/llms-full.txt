@@ -288,6 +288,8 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 - **Percentual de Aplicação em Saúde:** O percentual das receitas de impostos e transferências efetivamente investido na saúde pública (compara-se ao piso constitucional de 15% estabelecido pela Lei Complementar nº 141/2012).
 - **Total Investido na Saúde:** O montante financeiro consolidado alocado no custeio e investimentos da rede municipal de saúde.
 - **Compras e Licitações da Saúde em Andamento:** Monitoramento de compras abertas específicas do Fundo Municipal de Saúde (medicamentos essenciais, insumos hospitalares e equipamentos médicos) dentro da seção "Como o Fundo contrata", permitindo controle prévio pelo cidadão e fornecedores locais.
+- **Painel de Emendas Parlamentares Destinadas à Saúde:** Mapeamento integral das emendas federais e estaduais com autor, tipo de emenda (Individual, Bancada, Comissão), número da proposta no FNS/SISMOB, valor autorizado e execução orçamentária.
+- **Rastreabilidade até Notas de Empenho e Contratações:** Modal analítico de auditoria cidadã que vincula formalmente cada emenda parlamentar às notas de empenho executadas pelo Fundo Municipal de Saúde, detalhando credores/fornecedores com CNPJ/CPF, número da nota, data, valores (empenhado líquido, liquidado, pago), saldo a executar, histórico do objeto e deep-link direto para as licitações e processos de compra vinculados.
 
 ---
 
