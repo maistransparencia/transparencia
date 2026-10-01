@@ -292,13 +292,13 @@ def test_fct_saldo_caixa_siconfi_consolida_investimentos_caprem(conn):
 
 
 @pytest.mark.usefixtures("seed_msc_patrimonial")
-def test_fct_caprem_patrimonio_historico_metricas_plurianual(conn):
-    """Valida a série histórica plurianual da CAPREM, seleção da última competência anual, flag de consistência e variações."""
+def test_fct_previdencia_patrimonio_historico_metricas_plurianual(conn):
+    """Valida a série histórica plurianual de previdência, seleção da última competência anual, flag de consistência e variações."""
     rows = conn.execute(
         text(
             """
             SELECT portal_slug, ano, mes_referencia, saldo_caixa, saldo_aplicacoes, patrimonio_total, inconsistencia_declaracao_flag, variacao_abs, variacao_pct
-            FROM analytics.fct_caprem_patrimonio_historico_metricas
+            FROM analytics.fct_previdencia_patrimonio_historico_metricas
             ORDER BY ano
             """
         )
