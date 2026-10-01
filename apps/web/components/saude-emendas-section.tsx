@@ -205,7 +205,10 @@ export function SaudeEmendasSection({
       (acc, e) => acc + e.valorPago,
       0,
     );
-    const empenhadoRef = selectedEmenda.empenhado ?? totalEmpenhadoModal;
+    const empenhadoRef = Math.max(
+      selectedEmenda.empenhado ?? 0,
+      totalEmpenhadoModal,
+    );
     const saldoDisponivel = Math.max(
       0,
       selectedEmenda.valorAutorizado - empenhadoRef,
@@ -670,11 +673,21 @@ export function SaudeEmendasSection({
                           </span>
                         )}
                       </div>
-                      {e.licitacaoNumero && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[11px] text-slate-700">
-                          {e.licitacaoNumero}
-                        </span>
-                      )}
+                      {e.licitacaoNumero &&
+                        (portalSlug ? (
+                          <Link
+                            href={`/${portalSlug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(e.licitacaoNumero)}#licitacoes-em-andamento`}
+                            className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[11px] text-blue-700 underline decoration-blue-300 hover:text-blue-900"
+                            title="Ver detalhes da licitação"
+                          >
+                            <span>{e.licitacaoNumero}</span>
+                            <ExternalLink className="h-2.5 w-2.5 shrink-0" />
+                          </Link>
+                        ) : (
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[11px] text-slate-700">
+                            {e.licitacaoNumero}
+                          </span>
+                        ))}
                     </div>
 
                     <div>
