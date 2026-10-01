@@ -7,14 +7,12 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [1.13.0] - 2026-09-30
 
-### 🌟 Destaques da Versão (Auditoria de Contratos, Otimização de Performance e Navegação Temporal)
-* **Auditoria Cidadã de Contratos com Vínculo Direto a Empenhos:** Os detalhes de cada contratação municipal agora rastreiam e exibem diretamente as notas de empenho executadas no exercício, detalhando credor, número do empenho, liquidações, pagamentos e processo de compra vinculado, assegurando transparência centavo a centavo.
+### 🌟 Destaques da Versão (Otimização de Performance, Navegação Temporal e Emendas da Saúde)
 * **Navegação Temporal Contínua e Busca Rápida Multi-Ano (Spotlight):** O motor de busca rápida agora conta com seletor de escopo temporal por ano e preservação contextual do exercício nas rotas SPA de licitações e contratos, exibindo alertas informativos quando um certame ou contrato pertencer a exercício anterior sem perder a navegação original.
 * **Salto de Performance e Redução Expressiva de JavaScript:** Otimização arquitetural com carregamento assíncrono sob demanda de gráficos (Recharts), expurgo de bibliotecas pesadas não utilizadas (ECharts), desacoplamento de banners dinâmicos para zerar Layout Shift (CLS = 0) e envolvimento de data loaders em cache versionado com barra de progresso responsiva (`BProgress`) em transições assíncronas.
 * **Painel Aprimorado de Emendas Parlamentares da Saúde:** Priorização e ordenação automática de emendas com recursos já executados/empenhados, expansão de histórico do objeto em linha e renderização em cartões responsivos no mobile, mantendo total neutralidade e fidelidade aos registros oficiais dos portais.
 
 ### ✨ Novas Funcionalidades (Added)
-* **Vínculo de Notas de Empenho aos Contratos (`getContratoByNumero`):** Associação automática entre as contratações vigentes e as despesas executadas em `fct_despesas`, permitindo auditar número de empenho, datas, credor, valores empenhados, liquidados e pagos para cada contrato.
 * **Seletor de Escopo Temporal no Spotlight de Licitações:** Adição de filtro por exercício (`Ano Atual` vs `Todos os Anos`) no modal de busca global rápida (`Cmd+K`), com badges identificando o ano de competência de cada processo e contrato retornado.
 * **Barra de Progresso em Transições SPA (`ProgressProvider`):** Integração do `@bprogress/next` no layout raiz, fornecendo feedback visual imediato ao cidadão durante a transição de páginas e buscas de dados sem travamento da interface.
 * **Cartões Responsivos e Expansão de Histórico em Emendas da Saúde (`SaudeEmendasSection`):** Novo layout mobile via `renderMobileCard` para visualização clara de emendas parlamentares em smartphones e componente expansível `EmpenhoDescricaoCell` para leitura na íntegra de objetos extensos sem quebrar o layout da tabela.
