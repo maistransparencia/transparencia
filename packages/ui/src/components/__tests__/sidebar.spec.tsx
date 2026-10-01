@@ -78,4 +78,45 @@ describe("Sidebar Component", () => {
       screen.getByRole("button", { name: "Instalar App Teste" }),
     ).toBeInTheDocument();
   });
+
+  it("renderiza o item de previdência com a sigla correspondente quando habilitado", () => {
+    render(
+      <Sidebar
+        portalName="Natividade"
+        portalSlug="natividade"
+        previdencia={{
+          habilitado: true,
+          sigla: "IPAMN",
+          nome: "Instituto de Previdência de Natividade",
+        }}
+      />,
+    );
+
+    const prevLink = screen.getByRole("link", { name: /IPAMN/i });
+    expect(prevLink).toBeInTheDocument();
+    expect(prevLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/natividade/previdencia"),
+    );
+  });
+
+  it("oculta o item de previdência quando previdencia.habilitado for false", () => {
+    render(
+      <Sidebar
+        portalName="Município Sem RPPS"
+        portalSlug="sem_rpps"
+        previdencia={{
+          habilitado: false,
+          sigla: "INSS",
+        }}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: /INSS/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /previdência/i }),
+    ).not.toBeInTheDocument();
+  });
 });

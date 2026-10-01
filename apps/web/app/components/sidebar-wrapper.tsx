@@ -1,6 +1,10 @@
 "use client";
 
-import { type MultiSelectOption, Sidebar } from "@transparencia/ui";
+import {
+  type MultiSelectOption,
+  type PrevidenciaNavConfig,
+  Sidebar,
+} from "@transparencia/ui";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
@@ -20,6 +24,7 @@ interface SidebarWrapperProps {
   portalSlug?: string;
   radarAlertsCountByYear?: Record<number, number>;
   radarAlertCount?: number;
+  previdencia?: PrevidenciaNavConfig;
 }
 
 export function SidebarWrapper({
@@ -34,6 +39,7 @@ export function SidebarWrapper({
   portalSlug,
   radarAlertsCountByYear,
   radarAlertCount,
+  previdencia,
 }: SidebarWrapperProps) {
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
   const currentYear = String(new Date().getFullYear());
@@ -114,6 +120,7 @@ export function SidebarWrapper({
       isMobileOpen={isMenuOpen}
       onMobileOpenChange={setIsMenuOpen}
       radarAlertCount={activeRadarAlertCount}
+      previdencia={previdencia}
     />
   );
 }

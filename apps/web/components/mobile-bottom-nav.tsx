@@ -111,12 +111,18 @@ export interface MobileBottomNavProps {
   entidades?: MultiSelectOption[] | string[];
   radarAlertCount?: number;
   radarAlertsCountByYear?: Record<number, number>;
+  previdencia?: {
+    habilitado: boolean;
+    sigla: string;
+    nome?: string;
+  };
 }
 
 export function MobileBottomNav({
   portalSlug = "porciuncula_prefeitura",
   radarAlertCount,
   radarAlertsCountByYear,
+  previdencia: _previdencia,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const { isMenuOpen, toggleMenu } = useMobileNav();

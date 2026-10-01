@@ -188,6 +188,7 @@ export default async function RootLayout({
                   entidades={entidades}
                   portalSlug={portalConfig?.portalSlug}
                   radarAlertsCountByYear={radarAlertsCountByYear}
+                  previdencia={portalConfig?.previdencia}
                 />
               </Suspense>
               <div className="flex min-w-0 flex-1 flex-col">
@@ -217,6 +218,7 @@ export default async function RootLayout({
                   anoInicial={portalConfig?.anoInicial}
                   entidades={entidades}
                   radarAlertsCountByYear={radarAlertsCountByYear}
+                  previdencia={portalConfig?.previdencia}
                 />
               </Suspense>
             </MobileNavProvider>

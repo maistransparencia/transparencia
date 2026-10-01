@@ -32,25 +32,11 @@ export interface NavGroup {
   }[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Administrativo",
-    items: [
-      { name: "Receitas", href: "/receitas", icon: TrendingUp },
-      { name: "Execução Orçamentária", href: "/orcamento", icon: PieChart },
-      { name: "Despesas Detalhadas", href: "/despesas", icon: Receipt },
-      { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
-      { name: "Pessoal", href: "/pessoal", icon: Users },
-    ],
-  },
-  {
-    label: "Temas",
-    items: [
-      { name: "Saúde", href: "/saude", icon: HeartPulse },
-      { name: "CAPREM", href: "/caprem", icon: Landmark },
-    ],
-  },
-];
+export interface PrevidenciaNavConfig {
+  habilitado: boolean;
+  sigla: string;
+  nome?: string;
+}
 
 export interface SidebarProps {
   portalName?: string;
@@ -74,6 +60,7 @@ export interface SidebarProps {
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
   radarAlertCount?: number;
+  previdencia?: PrevidenciaNavConfig;
 }
 
 function YearSelect({
@@ -160,6 +147,7 @@ export function Sidebar({
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
   radarAlertCount,
+  previdencia,
 }: SidebarProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
@@ -252,6 +240,37 @@ export function Sidebar({
     exercice: currentExercice,
     entidades: currentEntidades,
   });
+
+  const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
+  const temasItems = [
+    { name: "Saúde", href: "/saude", icon: HeartPulse },
+    ...(isPrevidenciaEnabled
+      ? [
+          {
+            name: previdencia?.sigla || "Previdência",
+            href: "/previdencia",
+            icon: Landmark,
+          },
+        ]
+      : []),
+  ];
+
+  const navGroups: NavGroup[] = [
+    {
+      label: "Administrativo",
+      items: [
+        { name: "Receitas", href: "/receitas", icon: TrendingUp },
+        { name: "Execução Orçamentária", href: "/orcamento", icon: PieChart },
+        { name: "Despesas Detalhadas", href: "/despesas", icon: Receipt },
+        { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
+        { name: "Pessoal", href: "/pessoal", icon: Users },
+      ],
+    },
+    {
+      label: "Temas",
+      items: temasItems,
+    },
+  ];
 
   return (
     <>
@@ -456,7 +475,7 @@ export function Sidebar({
             </div>
 
             {/* Demais Grupos de Navegação */}
-            {NAV_GROUPS.map((group) => (
+            {navGroups.map((group) => (
               <div key={group.label} className="space-y-1">
                 <p className="mb-1.5 px-3 font-semibold text-[11px] text-mutedText">
                   {group.label}
@@ -465,12 +484,21 @@ export function Sidebar({
                   const targetPath = portalSlug
                     ? `/${portalSlug}${item.href}`
                     : item.href;
+                  const isPrevidenciaItem = item.href === "/previdencia";
                   const isActive =
                     pathname === item.href ||
                     pathname === targetPath ||
                     (pathname
                       ? pathname.startsWith(targetPath) ||
-                        pathname.startsWith(item.href)
+                        pathname.startsWith(item.href) ||
+                        (isPrevidenciaItem &&
+                          (pathname === "/caprem" ||
+                            pathname.startsWith("/caprem") ||
+                            Boolean(
+                              portalSlug &&
+                                (pathname === `/${portalSlug}/caprem` ||
+                                  pathname.startsWith(`/${portalSlug}/caprem`)),
+                            )))
                       : false);
                   const itemHref = buildNavUrl({
                     path: item.href,

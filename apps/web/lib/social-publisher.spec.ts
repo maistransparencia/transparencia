@@ -415,7 +415,7 @@ describe("social-publisher module", () => {
       "porciuncula_prefeitura",
     );
     expect(link).toBe(
-      "https://maistransparencia.com/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
+      "https://maistransparencia.com/porciuncula_prefeitura/previdencia?ano=2025#patrimonio",
     );
   });
 
@@ -443,7 +443,7 @@ describe("social-publisher module", () => {
     expect(post.message).toContain("-20.8%");
     expect(post.message).toContain("patrimônio financeiro da previdência");
     expect(post.link).toContain(
-      "/porciuncula_prefeitura/caprem?ano=2025#patrimonio",
+      "/porciuncula_prefeitura/previdencia?ano=2025#patrimonio",
     );
   });
 });
