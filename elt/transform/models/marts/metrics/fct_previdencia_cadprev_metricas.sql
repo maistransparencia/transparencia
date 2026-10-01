@@ -16,6 +16,10 @@ with cadprev_despesas as (
         d.elemento = '71'
         and (
             lower(unaccent(d.fornecedor_nome)) ilike '%caprem%'
+            or lower(unaccent(d.fornecedor_nome)) ilike '%natprevi%'
+            or lower(unaccent(d.fornecedor_nome)) ilike '%ipamn%'
+            or lower(unaccent(d.fornecedor_nome)) ilike '%funprev%'
+            or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
             or lower(unaccent(d.descricao)) ilike '%cadprev%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
@@ -35,7 +39,7 @@ agregado as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'empenho_id']) }} as caprem_cadprev_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'empenho_id']) }} as previdencia_cadprev_id,
     portal_slug,
     ano,
     empenho_id,

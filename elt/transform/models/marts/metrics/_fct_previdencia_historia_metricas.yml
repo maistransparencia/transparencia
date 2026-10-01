@@ -1,18 +1,18 @@
 version: 2
 
 models:
-  - name: fct_historia_caprem_metricas
-    description: "Mart de métricas agregadas atuariais do RPPS e CAPREM por portal e ano"
+  - name: fct_previdencia_historia_metricas
+    description: "Mart de métricas agregadas atuariais do RPPS por portal e ano"
     config:
       contract:
         enforced: true
     tests:
       - dbt_utils.expression_is_true:
-          name: historia_caprem_invariante_lrf
+          name: previdencia_historia_invariante_lrf
           arguments:
             expression: "total_empenhado >= total_liquidado AND total_liquidado >= total_pago"
     columns:
-      - name: historia_caprem_id
+      - name: previdencia_historia_id
         data_type: text
         constraints:
           - type: not_null
@@ -27,6 +27,10 @@ models:
         description: "Dimensão de tenant isolada por portal"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
       - name: ano
         data_type: integer
         constraints:
@@ -101,21 +105,21 @@ models:
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Total empenhado consolidado do domínio CAPREM/CASP"
+        description: "Total empenhado consolidado do domínio previdenciário"
         tests:
           - not_null
       - name: total_liquidado
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Total liquidado consolidado do domínio CAPREM/CASP"
+        description: "Total liquidado consolidado do domínio previdenciário"
         tests:
           - not_null
       - name: total_pago
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Total pago consolidado do domínio CAPREM/CASP"
+        description: "Total pago consolidado do domínio previdenciário"
         tests:
           - not_null
       - name: servidores_efetivos
@@ -134,9 +138,9 @@ models:
           - not_null
 
 unit_tests:
-  - name: test_historia_caprem_metricas_calculos
-    description: "Valida se aportes atuariais, adimplência e rombo patronal são calculados corretamente para fonte exercicio e fornecedores CAPREM"
-    model: fct_historia_caprem_metricas
+  - name: test_previdencia_historia_metricas_calculos
+    description: "Valida se aportes atuariais, adimplência e rombo patronal são calculados corretamente para fonte exercicio e previdência municipal"
+    model: fct_previdencia_historia_metricas
     given:
       - input: ref('fct_despesas')
         rows:

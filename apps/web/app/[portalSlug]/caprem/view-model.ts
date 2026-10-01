@@ -3,6 +3,9 @@ import type { loadCapremData } from "./loader";
 type CapremRawData = Awaited<ReturnType<typeof loadCapremData>>;
 
 const DESTINO_LABELS: Record<string, string> = {
+  rpps_contribuicao_patronal: "RPPS (Contribuição Patronal)",
+  aporte_atuarial_rpps: "Aporte Atuarial (RPPS)",
+  amortizacao_divida_rpps: "Amortização Dívida (RPPS)",
   rpps_caprem: "RPPS (CAPREM)",
   aporte_atuarial_caprem: "Aporte Atuarial (CAPREM)",
   amortizacao_divida_caprem: "Amortização Dívida (CAPREM)",
@@ -12,6 +15,9 @@ const DESTINO_LABELS: Record<string, string> = {
 };
 
 const DESTINO_COLORS: Record<string, string> = {
+  "RPPS (Contribuição Patronal)": "oklch(0.55 0.14 250)",
+  "Aporte Atuarial (RPPS)": "oklch(0.60 0.18 30)",
+  "Amortização Dívida (RPPS)": "oklch(0.55 0.15 45)",
   "RPPS (CAPREM)": "oklch(0.55 0.14 250)",
   "Aporte Atuarial (CAPREM)": "oklch(0.60 0.18 30)",
   "Amortização Dívida (CAPREM)": "oklch(0.55 0.15 45)",

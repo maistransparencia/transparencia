@@ -16,7 +16,7 @@ with tendencias as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as caprem_tendencia_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as previdencia_tendencia_id,
     portal_slug,
     ano,
     aporte_exigido::numeric(15, 2) as aporte_exigido,

@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 
-with caprem_despesas as (
+with previdencia_despesas as (
     select
         d.portal_slug,
         d.ano,
@@ -12,10 +12,10 @@ with caprem_despesas as (
         d.data_empenho,
         case
             when d.fornecedor_nome ilike '%CASP%' or d.descricao ilike '%CASP%' or d.natureza_despesa ilike '%CASP%' or d.fornecedor_cpf_cnpj = '07.573.075/0001-00' then 'plano_saude_casp'
-            when d.elemento = '97' then 'aporte_atuarial_caprem'
-            when d.elemento = '71' then 'amortizacao_divida_caprem'
+            when d.elemento = '97' then 'aporte_atuarial_rpps'
+            when d.elemento = '71' then 'amortizacao_divida_rpps'
             when d.natureza_despesa ilike '%INSS%' or d.natureza_despesa ilike '%RGPS%' then 'inss_rgps'
-            when d.elemento = '13' or d.fornecedor_nome ilike '%CAPREM%' or d.descricao ilike '%CAPREM%' then 'rpps_caprem'
+            when d.elemento = '13' or d.fornecedor_nome ilike '%CAPREM%' or d.descricao ilike '%CAPREM%' or d.fornecedor_nome ilike '%NATPREVI%' or d.descricao ilike '%NATPREVI%' or d.fornecedor_nome ilike '%IPAMN%' or d.descricao ilike '%IPAMN%' or d.fornecedor_nome ilike '%FUNPREV%' or d.descricao ilike '%FUNPREV%' or d.fornecedor_nome ilike '%RPPS%' or d.descricao ilike '%RPPS%' or d.natureza_despesa ilike '%RPPS%' then 'rpps_contribuicao_patronal'
             else 'encargo_patronal_geral'
         end as destino,
         coalesce(d.empenhado_liquido, 0) as empenhado,
@@ -31,10 +31,18 @@ with caprem_despesas as (
             or d.orgao_codigo = '1061'
             or d.credor_id = '1061'
             or d.fornecedor_nome ilike '%CAPREM%'
+            or d.fornecedor_nome ilike '%NATPREVI%'
+            or d.fornecedor_nome ilike '%IPAMN%'
+            or d.fornecedor_nome ilike '%FUNPREV%'
             or d.fornecedor_nome ilike '%CASP%'
             or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
             or d.descricao ilike '%CAPREM%'
+            or d.descricao ilike '%NATPREVI%'
+            or d.descricao ilike '%IPAMN%'
+            or d.descricao ilike '%FUNPREV%'
             or d.descricao ilike '%CASP%'
+            or d.descricao ilike '%RPPS%'
+            or d.natureza_despesa ilike '%RPPS%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
 ),
@@ -52,7 +60,7 @@ agregado as (
         sum(empenhado) as empenhado,
         sum(liquidado) as liquidado,
         sum(pago) as pago
-    from caprem_despesas
+    from previdencia_despesas
     group by
         portal_slug,
         ano,
@@ -63,7 +71,7 @@ agregado as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'empenho_id', 'elemento', 'natureza_despesa', 'destino']) }} as caprem_natureza_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'empenho_id', 'elemento', 'natureza_despesa', 'destino']) }} as previdencia_natureza_id,
     portal_slug,
     ano,
     empenho_id,

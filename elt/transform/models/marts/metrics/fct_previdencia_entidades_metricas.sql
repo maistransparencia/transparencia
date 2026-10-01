@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 
-with caprem_entidades as (
+with previdencia_entidades as (
     select
         f.portal_slug,
         f.ano,
@@ -19,10 +19,17 @@ with caprem_entidades as (
             or f.orgao_codigo = '1061'
             or f.credor_id = '1061'
             or f.fornecedor_nome ilike '%CAPREM%'
+            or f.fornecedor_nome ilike '%NATPREVI%'
+            or f.fornecedor_nome ilike '%IPAMN%'
+            or f.fornecedor_nome ilike '%FUNPREV%'
             or f.fornecedor_nome ilike '%CASP%'
             or f.fornecedor_cpf_cnpj = '07.573.075/0001-00'
             or f.descricao ilike '%CAPREM%'
+            or f.descricao ilike '%NATPREVI%'
+            or f.descricao ilike '%IPAMN%'
+            or f.descricao ilike '%FUNPREV%'
             or f.descricao ilike '%CASP%'
+            or f.descricao ilike '%RPPS%'
         )
         and (f.tipo_empenho is null or f.tipo_empenho != 'AN')
     group by
@@ -32,7 +39,7 @@ with caprem_entidades as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'entidade']) }} as caprem_entidade_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'entidade']) }} as previdencia_entidade_id,
     portal_slug,
     ano,
     entidade,
@@ -43,4 +50,4 @@ select
         when empenhado > 0 then (pago / empenhado) * 100
         else 0
     end::numeric(15, 2) as taxa_execucao
-from caprem_entidades
+from previdencia_entidades

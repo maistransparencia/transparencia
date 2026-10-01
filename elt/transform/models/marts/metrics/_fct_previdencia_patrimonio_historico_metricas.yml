@@ -1,13 +1,13 @@
 version: 2
 
 models:
-  - name: fct_caprem_patrimonio_historico_metricas
-    description: "Mart analítico da evolução anual do patrimônio financeiro consolidado do RPPS (CAPREM) a partir da MSC Patrimonial"
+  - name: fct_previdencia_patrimonio_historico_metricas
+    description: "Mart analítico da evolução anual do patrimônio financeiro consolidado do RPPS a partir da MSC Patrimonial"
     config:
       contract:
         enforced: true
     columns:
-      - name: caprem_patrimonio_historico_id
+      - name: previdencia_patrimonio_historico_id
         data_type: text
         constraints:
           - type: not_null
@@ -22,6 +22,10 @@ models:
         description: "Slug identificador do portal municipal"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
       - name: ano
         data_type: integer
         constraints:
@@ -75,9 +79,9 @@ models:
         description: "Variação percentual do patrimônio total em relação ao exercício anterior"
 
 unit_tests:
-  - name: test_caprem_patrimonio_historico_metricas_variacao
+  - name: test_previdencia_patrimonio_historico_metricas_variacao
     description: "Valida consolidação de caixa, aplicações (incluindo 1213%) e cálculo das variações interanuais"
-    model: fct_caprem_patrimonio_historico_metricas
+    model: fct_previdencia_patrimonio_historico_metricas
     given:
       - input: ref('stg_siconfi_msc_patrimonial')
         rows:
@@ -93,9 +97,9 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 10000000.00, patrimonio_total: 10000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, mes_referencia: 12, saldo_caixa: 1000000.00, saldo_aplicacoes: 8000000.00, patrimonio_total: 9000000.00, inconsistencia_declaracao_flag: false, variacao_abs: -1000000.00, variacao_pct: -10.0 }
 
-  - name: test_caprem_patrimonio_historico_inconsistencia_quebra_serie
+  - name: test_previdencia_patrimonio_inconsistencia_quebra_serie
     description: "Valida detecção de inconsistência contábil de declaração e quebra de série nas variações"
-    model: fct_caprem_patrimonio_historico_metricas
+    model: fct_previdencia_patrimonio_historico_metricas
     given:
       - input: ref('stg_siconfi_msc_patrimonial')
         rows:
@@ -109,4 +113,3 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2022, mes_referencia: 12, saldo_caixa: 500000.00, saldo_aplicacoes: 0.00, patrimonio_total: 500000.00, inconsistencia_declaracao_flag: true, variacao_abs: null, variacao_pct: null }
         - { portal_slug: "porciuncula_prefeitura", ano: 2023, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 15000000.00, patrimonio_total: 15000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 12000000.00, patrimonio_total: 12000000.00, inconsistencia_declaracao_flag: false, variacao_abs: -3000000.00, variacao_pct: -20.0 }
-

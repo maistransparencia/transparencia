@@ -1,13 +1,13 @@
 version: 2
 
 models:
-  - name: fct_caprem_cadprev_metricas
-    description: "Mart de acordos de confissão e parcelamento de dívida previdenciária junto ao CAPREM (Elemento 71), filtrados para excluir outras despesas de amortização não relacionadas (ex: multas de INSS/RGPS à Receita Federal que também usam o Elemento 71)"
+  - name: fct_previdencia_cadprev_metricas
+    description: "Mart de acordos de confissão e parcelamento de dívida previdenciária junto ao RPPS (Elemento 71), filtrados para excluir outras despesas de amortização não relacionadas (ex: multas de INSS/RGPS à Receita Federal que também usam o Elemento 71)"
     config:
       contract:
         enforced: true
     columns:
-      - name: caprem_cadprev_id
+      - name: previdencia_cadprev_id
         data_type: text
         constraints:
           - type: not_null
@@ -22,6 +22,10 @@ models:
         description: "Dimensão de tenant isolada por portal"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
       - name: ano
         data_type: integer
         constraints:
@@ -54,9 +58,9 @@ models:
           - not_null
 
 unit_tests:
-  - name: test_caprem_cadprev_metricas_filtro_fornecedor
-    description: "Valida que apenas lançamentos do CAPREM (fornecedor ou descrição com CADPREV) são incluídos, excluindo outras despesas de Elemento 71 não relacionadas (ex: multa de INSS à Receita Federal)"
-    model: fct_caprem_cadprev_metricas
+  - name: test_previdencia_cadprev_metricas_filtro_fornecedor
+    description: "Valida que apenas lançamentos da previdência (fornecedor ou descrição com CADPREV) são incluídos, excluindo outras despesas de Elemento 71 não relacionadas (ex: multa de INSS à Receita Federal)"
+    model: fct_previdencia_cadprev_metricas
     given:
       - input: ref('fct_despesas')
         rows:
