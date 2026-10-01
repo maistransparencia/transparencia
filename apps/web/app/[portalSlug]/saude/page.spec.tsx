@@ -110,7 +110,7 @@ describe("SaudePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Baixa")).toBeInTheDocument();
     expect(screen.getByText("Origem")).toBeInTheDocument();
-    expect(screen.getByText("Federal")).toBeInTheDocument();
+    expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {

@@ -246,6 +246,7 @@ export default async function SaudePage({
       <SaudeEmendasSection
         ano={selectedYear}
         emendasStats={saude.emendasStats}
+        portalSlug={portalSlug}
       />
     </div>
   );

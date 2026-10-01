@@ -6,6 +6,17 @@ export type StatusExecucaoContrato =
   | "concluido"
   | "inexecutado";
 
+export interface ContratoEmpenhoItemDTO {
+  empenhoId: string;
+  dataEmpenho: string | null;
+  credorNome: string;
+  valorEmpenhado: number;
+  valorLiquidado: number;
+  valorPago: number;
+  descricao: string;
+  licitacaoNumero: string | null;
+}
+
 export interface ContratoServicoVigente {
   contratoServicoId?: string;
   portalSlug: string;
@@ -32,6 +43,8 @@ export interface ContratoServicoVigente {
   saldoPendente: number;
   percentualPago: number;
   statusExecucao: StatusExecucaoContrato;
+  empenhos?: ContratoEmpenhoItemDTO[];
+  qtdEmpenhos?: number;
 }
 
 function toIsoDateString(val: unknown): string | null {
@@ -341,7 +354,92 @@ export async function getContratoByNumero(
       return null;
     }
 
-    return mapRowToContratoServicoVigente(row as ContratoRow);
+    const contrato = mapRowToContratoServicoVigente(row as ContratoRow);
+
+    const cleanCnpj = (contrato.fornecedorCnpj || "").replace(/\D/g, "");
+    const cleanLicitacao = (contrato.licitacaoNumero || "")
+      .split("/")[0]
+      ?.trim();
+    const ltrimmedLicitacao = cleanLicitacao
+      ? cleanLicitacao.replace(/^0+/, "")
+      : "";
+    const contratoNum = contrato.contratoNumero?.trim();
+    const ltrimmedContratoNum = contratoNum
+      ? contratoNum.replace(/^0+/, "")
+      : "";
+
+    let empenhosQuery = db
+      .selectFrom("fct_despesas as d")
+      .select([
+        "d.empenho_id",
+        "d.data_empenho",
+        sql<string>`coalesce(d.fornecedor_nome, '')`.as("credor_nome"),
+        sql<number>`coalesce(d.empenhado, 0)`.as("valor_empenhado"),
+        sql<number>`coalesce(d.liquidado, 0)`.as("valor_liquidado"),
+        sql<number>`coalesce(d.pago, 0)`.as("valor_pago"),
+        sql<string>`coalesce(d.descricao, '')`.as("descricao"),
+        "d.licitacao_numero",
+      ])
+      .where("d.portal_slug", "=", cleanSlug);
+
+    if (cleanCnpj.length >= 8) {
+      empenhosQuery = empenhosQuery.where(
+        sql<boolean>`regexp_replace(d.fornecedor_cpf_cnpj, '[^\\d]', '', 'g') = ${cleanCnpj}`,
+      );
+    } else if (contrato.fornecedorNome) {
+      empenhosQuery = empenhosQuery.where(
+        sql<boolean>`lower(trim(d.fornecedor_nome)) = lower(trim(${contrato.fornecedorNome}))`,
+      );
+    }
+
+    empenhosQuery = empenhosQuery.where((eb) => {
+      const orConditions = [];
+      if (cleanLicitacao) {
+        orConditions.push(
+          sql<boolean>`(
+            d.licitacao_numero is not null and (
+              split_part(d.licitacao_numero, '/', 1) = ${cleanLicitacao}
+              or ltrim(split_part(d.licitacao_numero, '/', 1), '0') = ${ltrimmedLicitacao}
+            )
+          )`,
+        );
+      }
+      if (contratoNum) {
+        orConditions.push(
+          sql<boolean>`d.descricao ilike ${`%${contratoNum}%`}`,
+        );
+        if (ltrimmedContratoNum && ltrimmedContratoNum !== contratoNum) {
+          orConditions.push(
+            sql<boolean>`d.descricao ilike ${`%${ltrimmedContratoNum}%`}`,
+          );
+        }
+      }
+      if (orConditions.length === 0) {
+        return eb(sql`1`, "=", sql`0`);
+      }
+      return eb.or(orConditions);
+    });
+
+    const empenhosRows = await empenhosQuery
+      .orderBy("d.data_empenho", "desc")
+      .orderBy("d.empenho_id", "desc")
+      .execute();
+
+    const empenhos: ContratoEmpenhoItemDTO[] = empenhosRows.map((r) => ({
+      empenhoId: String(r.empenho_id ?? ""),
+      dataEmpenho: toIsoDateString(r.data_empenho),
+      credorNome: String(r.credor_nome ?? ""),
+      valorEmpenhado: Number(r.valor_empenhado ?? 0),
+      valorLiquidado: Number(r.valor_liquidado ?? 0),
+      valorPago: Number(r.valor_pago ?? 0),
+      descricao: String(r.descricao ?? ""),
+      licitacaoNumero: r.licitacao_numero ? String(r.licitacao_numero) : null,
+    }));
+
+    contrato.empenhos = empenhos;
+    contrato.qtdEmpenhos = empenhos.length;
+
+    return contrato;
   } catch {
     return null;
   }
