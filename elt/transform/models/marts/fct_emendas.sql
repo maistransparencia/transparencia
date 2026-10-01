@@ -1,7 +1,7 @@
 -- Fato: emendas consolidadas de todos os portais
 
 with emendas as (
-    select
+    select distinct
         portal_slug,
         ano,
         empresa_id,
@@ -17,23 +17,32 @@ with emendas as (
     from {{ ref('int_emendas_consolidadas') }}
 ),
 
+despesas_exercicio as (
+    select
+        portal_slug,
+        ano,
+        descricao,
+        empenhado_liquido
+    from {{ ref('fct_despesas') }}
+    where fonte = 'exercicio'
+        and empenhado_liquido > 0
+),
+
 empenhos_despesas_agrupados as (
     select
         e.portal_slug,
         e.ano,
         e.empresa_id,
         e.numero_emenda,
-        sum(d.empenhado) as empenhado_despesa
+        sum(d.empenhado_liquido) as empenhado_despesa
     from emendas e
-    inner join {{ ref('int_despesas_consolidadas') }} d
+    inner join despesas_exercicio d
         on d.portal_slug = e.portal_slug
-        and d.empresa_id = e.empresa_id
         and d.ano = e.ano
         and (
-            (length(e.numero_emenda) >= 6 and d.descricao like '%' || e.numero_emenda || '%')
-            or (length(e.numero_emenda) >= 12 and d.descricao like '%' || substring(e.numero_emenda from 1 for 10) || '%')
+            (length(e.numero_emenda) >= 6 and {{ target.schema }}.unaccent(lower(d.descricao)) like '%' || {{ target.schema }}.unaccent(lower(e.numero_emenda)) || '%')
+            or (length(e.numero_emenda) >= 12 and {{ target.schema }}.unaccent(lower(d.descricao)) like '%' || substring(e.numero_emenda from 1 for 10) || '%')
         )
-    where d.empenhado > 0
     group by 1, 2, 3, 4
 ),
 
