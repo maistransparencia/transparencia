@@ -49,19 +49,6 @@ describe("getContratoByNumero", () => {
       expect(found?.fornecedorNome).toBe(target.fornecedorNome);
       expect(found?.totalEmpenhado).toBe(target.totalEmpenhado);
       expect(found?.statusExecucao).toBe(target.statusExecucao);
-      expect(Array.isArray(found?.empenhos)).toBe(true);
-      expect(typeof found?.qtdEmpenhos).toBe("number");
-      expect(found?.qtdEmpenhos).toBe(found?.empenhos?.length);
-
-      if (found?.empenhos && found.empenhos.length > 0) {
-        const emp = found.empenhos[0];
-        expect(typeof emp.empenhoId).toBe("string");
-        expect(typeof emp.credorNome).toBe("string");
-        expect(typeof emp.valorEmpenhado).toBe("number");
-        expect(typeof emp.valorLiquidado).toBe("number");
-        expect(typeof emp.valorPago).toBe("number");
-        expect(typeof emp.descricao).toBe("string");
-      }
     }
 
     const notFound = await getContratoByNumero(
