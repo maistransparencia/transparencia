@@ -64,5 +64,19 @@ describe("getSaudeEmendasMetrics", () => {
         expect(typeof emp.valorPago).toBe("number");
       }
     }
+
+    // Deve dar precedência a emendas que têm empenho
+    let foundWithoutEmpenho = false;
+    for (const emenda of res.lista) {
+      const hasEmpenho = (emenda.empenhado ?? 0) > 0 || emenda.qtdEmpenhos > 0;
+      if (!hasEmpenho) {
+        foundWithoutEmpenho = true;
+      }
+      if (foundWithoutEmpenho && hasEmpenho) {
+        throw new Error(
+          "Emenda com empenho encontrada após emenda sem empenho na lista!",
+        );
+      }
+    }
   });
 });

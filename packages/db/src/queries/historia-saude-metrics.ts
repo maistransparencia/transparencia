@@ -164,7 +164,7 @@ export async function getSaudeEmendasMetrics(
 
     if (rows.length === 0) return empty;
 
-    const emendaIds = rows.map((r: any) => r.emenda_id);
+    const emendaIds = rows.map((r) => r.emenda_id);
 
     const empenhosRows = await db
       .selectFrom("fct_despesas as d")
@@ -264,15 +264,35 @@ export async function getSaudeEmendasMetrics(
       };
     });
 
-    const totalAutorizado = lista.reduce(
+    const sortedLista = [...lista].sort((a, b) => {
+      const aEmp = a.empenhado ?? 0;
+      const bEmp = b.empenhado ?? 0;
+      const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
+      const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
+
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+
+      if (aHas && bHas && bEmp !== aEmp) {
+        return bEmp - aEmp;
+      }
+
+      if (b.valorAutorizado !== a.valorAutorizado) {
+        return b.valorAutorizado - a.valorAutorizado;
+      }
+
+      return a.autor.localeCompare(b.autor, "pt-BR");
+    });
+
+    const totalAutorizado = sortedLista.reduce(
       (sum, item) => sum + item.valorAutorizado,
       0,
     );
-    const totalEmpenhado = lista.reduce(
+    const totalEmpenhado = sortedLista.reduce(
       (sum, item) => sum + (item.empenhado ?? 0),
       0,
     );
-    const maiorEmenda = lista.reduce(
+    const maiorEmenda = sortedLista.reduce(
       (max, item) => Math.max(max, item.valorAutorizado),
       0,
     );
@@ -282,7 +302,7 @@ export async function getSaudeEmendasMetrics(
       totalEmpenhado,
       taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
       maiorEmenda,
-      lista,
+      lista: sortedLista,
     };
   } catch {
     return empty;
