@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 
-with despesas_caprem as (
+with despesas_previdencia as (
     select
         d.portal_slug,
         d.ano,
@@ -8,21 +8,69 @@ with despesas_caprem as (
         sum(case when d.elemento = '97' then coalesce(d.pago, 0) else 0 end) as total_aporte_quitado,
         sum(
             case
-                when d.elemento = '13' and (d.fornecedor_nome ilike '%CAPREM%' or d.natureza_despesa ilike '%RPPS%' or d.natureza_despesa ilike '%CAPREM%' or d.descricao ilike '%CAPREM%')
+                when d.elemento = '13' and (
+                    d.fornecedor_nome ilike '%CAPREM%'
+                    or d.fornecedor_nome ilike '%NATPREVI%'
+                    or d.fornecedor_nome ilike '%IPAMN%'
+                    or d.fornecedor_nome ilike '%FUNPREV%'
+                    or d.fornecedor_nome ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%CAPREM%'
+                    or d.natureza_despesa ilike '%NATPREVI%'
+                    or d.natureza_despesa ilike '%IPAMN%'
+                    or d.natureza_despesa ilike '%FUNPREV%'
+                    or d.descricao ilike '%CAPREM%'
+                    or d.descricao ilike '%NATPREVI%'
+                    or d.descricao ilike '%IPAMN%'
+                    or d.descricao ilike '%FUNPREV%'
+                    or d.descricao ilike '%RPPS%'
+                )
                 then coalesce(d.empenhado_liquido, 0)
                 else 0
             end
         ) as total_empenhado_patronal,
         sum(
             case
-                when d.elemento = '13' and (d.fornecedor_nome ilike '%CAPREM%' or d.natureza_despesa ilike '%RPPS%' or d.natureza_despesa ilike '%CAPREM%' or d.descricao ilike '%CAPREM%')
+                when d.elemento = '13' and (
+                    d.fornecedor_nome ilike '%CAPREM%'
+                    or d.fornecedor_nome ilike '%NATPREVI%'
+                    or d.fornecedor_nome ilike '%IPAMN%'
+                    or d.fornecedor_nome ilike '%FUNPREV%'
+                    or d.fornecedor_nome ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%CAPREM%'
+                    or d.natureza_despesa ilike '%NATPREVI%'
+                    or d.natureza_despesa ilike '%IPAMN%'
+                    or d.natureza_despesa ilike '%FUNPREV%'
+                    or d.descricao ilike '%CAPREM%'
+                    or d.descricao ilike '%NATPREVI%'
+                    or d.descricao ilike '%IPAMN%'
+                    or d.descricao ilike '%FUNPREV%'
+                    or d.descricao ilike '%RPPS%'
+                )
                 then coalesce(d.liquidado, 0)
                 else 0
             end
         ) as total_liquidado_patronal,
         sum(
             case
-                when d.elemento = '13' and (d.fornecedor_nome ilike '%CAPREM%' or d.natureza_despesa ilike '%RPPS%' or d.natureza_despesa ilike '%CAPREM%' or d.descricao ilike '%CAPREM%')
+                when d.elemento = '13' and (
+                    d.fornecedor_nome ilike '%CAPREM%'
+                    or d.fornecedor_nome ilike '%NATPREVI%'
+                    or d.fornecedor_nome ilike '%IPAMN%'
+                    or d.fornecedor_nome ilike '%FUNPREV%'
+                    or d.fornecedor_nome ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%RPPS%'
+                    or d.natureza_despesa ilike '%CAPREM%'
+                    or d.natureza_despesa ilike '%NATPREVI%'
+                    or d.natureza_despesa ilike '%IPAMN%'
+                    or d.natureza_despesa ilike '%FUNPREV%'
+                    or d.descricao ilike '%CAPREM%'
+                    or d.descricao ilike '%NATPREVI%'
+                    or d.descricao ilike '%IPAMN%'
+                    or d.descricao ilike '%FUNPREV%'
+                    or d.descricao ilike '%RPPS%'
+                )
                 then coalesce(d.pago, 0)
                 else 0
             end
@@ -46,16 +94,24 @@ with despesas_caprem as (
             or d.orgao_codigo = '1061'
             or d.credor_id = '1061'
             or d.fornecedor_nome ilike '%CAPREM%'
+            or d.fornecedor_nome ilike '%NATPREVI%'
+            or d.fornecedor_nome ilike '%IPAMN%'
+            or d.fornecedor_nome ilike '%FUNPREV%'
             or d.fornecedor_nome ilike '%CASP%'
             or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
             or d.descricao ilike '%CAPREM%'
+            or d.descricao ilike '%NATPREVI%'
+            or d.descricao ilike '%IPAMN%'
+            or d.descricao ilike '%FUNPREV%'
             or d.descricao ilike '%CASP%'
+            or d.descricao ilike '%RPPS%'
+            or d.natureza_despesa ilike '%RPPS%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
     group by d.portal_slug, d.ano
 ),
 
-pessoal_caprem as (
+pessoal_previdencia as (
     select
         portal_slug,
         ano,
@@ -87,14 +143,14 @@ calculos as (
         d.total_pago::numeric(15, 2) as total_pago,
         coalesce(p.servidores_efetivos, 0)::integer as servidores_efetivos,
         coalesce(p.servidores_temporarios, 0)::integer as servidores_temporarios
-    from despesas_caprem d
-    left join pessoal_caprem p
+    from despesas_previdencia d
+    left join pessoal_previdencia p
         on d.portal_slug = p.portal_slug
         and d.ano = p.ano
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as historia_caprem_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as previdencia_historia_id,
     portal_slug,
     ano,
     total_aporte_exigido,

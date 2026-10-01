@@ -1,13 +1,13 @@
 version: 2
 
 models:
-  - name: fct_caprem_entidades_metricas
-    description: "Mart de repasses e contribuições ao CAPREM por entidade municipal"
+  - name: fct_previdencia_entidades_metricas
+    description: "Mart de repasses e contribuições ao RPPS por entidade municipal"
     config:
       contract:
         enforced: true
     columns:
-      - name: caprem_entidade_id
+      - name: previdencia_entidade_id
         data_type: text
         constraints:
           - type: not_null
@@ -22,6 +22,10 @@ models:
         description: "Dimensão de tenant isolada por portal"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
       - name: ano
         data_type: integer
         constraints:
@@ -40,21 +44,21 @@ models:
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Valor total empenhado à entidade CAPREM/CASP"
+        description: "Valor total empenhado à entidade de previdência"
         tests:
           - not_null
       - name: liquidado
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Valor total liquidado à entidade CAPREM/CASP"
+        description: "Valor total liquidado à entidade de previdência"
         tests:
           - not_null
       - name: pago
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Valor total pago à entidade CAPREM/CASP"
+        description: "Valor total pago à entidade de previdência"
         tests:
           - not_null
       - name: taxa_execucao
@@ -66,9 +70,9 @@ models:
           - not_null
 
 unit_tests:
-  - name: test_caprem_entidades_metricas_taxa_execucao
+  - name: test_previdencia_entidades_metricas_taxa_execucao
     description: "Valida agregação por entidade e cálculo da taxa de execução de repasses"
-    model: fct_caprem_entidades_metricas
+    model: fct_previdencia_entidades_metricas
     given:
       - input: ref('fct_despesas')
         rows:

@@ -93,7 +93,7 @@ com_variacoes as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as caprem_patrimonio_historico_id,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano']) }} as previdencia_patrimonio_historico_id,
     portal_slug,
     ano,
     mes_referencia,
