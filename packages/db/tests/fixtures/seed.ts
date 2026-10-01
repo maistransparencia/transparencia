@@ -128,6 +128,9 @@ export async function seedHistoriaCaprem(
     .execute();
 }
 
+export type PrevidenciaHistoriaRow = HistoriaCapremRow;
+export const seedPrevidenciaHistoria = seedHistoriaCaprem;
+
 export interface CapremPatrimonioHistoricoRow {
   portalSlug: string;
   ano: number;
@@ -163,6 +166,9 @@ export async function seedCapremPatrimonioHistorico(
     .execute();
 }
 
+export type PrevidenciaPatrimonioHistoricoRow = CapremPatrimonioHistoricoRow;
+export const seedPrevidenciaPatrimonioHistorico = seedCapremPatrimonioHistorico;
+
 export interface CapremTendenciaAtuarialRow {
   portalSlug: string;
   ano: number;
@@ -188,6 +194,9 @@ export async function seedCapremTendenciaAtuarial(
     })
     .execute();
 }
+
+export type PrevidenciaTendenciaAtuarialRow = CapremTendenciaAtuarialRow;
+export const seedPrevidenciaTendenciaAtuarial = seedCapremTendenciaAtuarial;
 
 export interface PrevidenciaCadprevRow {
   portalSlug: string;

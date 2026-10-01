@@ -33,6 +33,10 @@ seeds:
         ano_inicial: integer
         empresa_padrao: text
         brasao_asset: text
+        previdencia_habilitado: boolean
+        previdencia_sigla: text
+        previdencia_nome: text
+        highlights_json: text
 
   - name: seed_elemento_despesa
     description: "Catálogo exaustivo oficial de 99 elementos de despesa (STN/MCASP)"
