@@ -164,12 +164,13 @@ export async function getSaudeEmendasMetrics(
 
     if (rows.length === 0) return empty;
 
+    const emendaIds = rows.map((r: any) => r.emenda_id);
+
     const empenhosRows = await db
       .selectFrom("fct_despesas as d")
       .innerJoin("fct_emendas as e", (join) =>
         join
           .onRef("e.portal_slug", "=", "d.portal_slug")
-          .onRef("e.empresa_id", "=", "d.empresa_id")
           .onRef("e.ano", "=", "d.ano")
           .on((eb) =>
             eb.or([
@@ -179,6 +180,7 @@ export async function getSaudeEmendasMetrics(
           ),
       )
       .select([
+        "e.emenda_id as emenda_pk",
         "e.numero_emenda as emenda_numero",
         "d.empenho_id",
         sql<string>`to_char(d.data_empenho, 'YYYY-MM-DD')`.as("data_empenho"),
@@ -186,7 +188,7 @@ export async function getSaudeEmendasMetrics(
         "d.fornecedor_cpf_cnpj",
         "d.licitacao_numero",
         "d.licitacao_modalidade",
-        "d.empenhado",
+        sql<number>`coalesce(d.empenhado_liquido, d.empenhado)`.as("empenhado"),
         "d.liquidado",
         "d.pago",
         "d.descricao",
@@ -194,7 +196,11 @@ export async function getSaudeEmendasMetrics(
       .where("d.portal_slug", "=", portalSlug)
       .where("d.ano", "=", ano)
       .where("d.empresa_id", "in", empresaIds)
-      .where("d.empenhado", ">", 0)
+      .where("d.fonte", "=", "exercicio")
+      .where("e.emenda_id", "in", emendaIds)
+      .where((eb) =>
+        eb.or([eb("d.empenhado_liquido", ">", 0), eb("d.empenhado", ">", 0)]),
+      )
       .orderBy("d.data_empenho", "desc")
       .orderBy("d.empenhado", "desc")
       .execute();
@@ -202,9 +208,9 @@ export async function getSaudeEmendasMetrics(
     const empenhosPorEmenda = empenhosRows.reduce<
       Record<string, EmendaEmpenhoItemDTO[]>
     >((acc, er) => {
+      const emendaPk = String(er.emenda_pk ?? "");
       const num = String(er.emenda_numero ?? "");
-      if (!acc[num]) acc[num] = [];
-      acc[num].push({
+      const item: EmendaEmpenhoItemDTO = {
         empenhoId: String(er.empenho_id ?? ""),
         dataEmpenho: er.data_empenho ?? null,
         fornecedorNome: String(er.fornecedor_nome ?? "Não informado"),
@@ -221,7 +227,16 @@ export async function getSaudeEmendasMetrics(
         valorLiquidado: Number(er.liquidado ?? 0),
         valorPago: Number(er.pago ?? 0),
         descricao: String(er.descricao ?? ""),
-      });
+      };
+
+      if (emendaPk) {
+        if (!acc[emendaPk]) acc[emendaPk] = [];
+        acc[emendaPk].push(item);
+      }
+      if (num && !emendaPk) {
+        if (!acc[num]) acc[num] = [];
+        acc[num].push(item);
+      }
       return acc;
     }, {});
 
@@ -229,7 +244,9 @@ export async function getSaudeEmendasMetrics(
       const valAut = Number(r.valor_total ?? 0);
       const emp = Number(r.empenhado ?? 0);
       const num = String(r.numero_emenda ?? "");
-      const empenhos = empenhosPorEmenda[num] ?? [];
+      const emendaPk = String(r.emenda_id ?? "");
+      const empenhos =
+        empenhosPorEmenda[emendaPk] ?? empenhosPorEmenda[num] ?? [];
 
       return {
         id: `${r.autor ?? ""}-${r.resumo ?? ""}-${num}-${index}`,

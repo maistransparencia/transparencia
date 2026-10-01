@@ -43,23 +43,25 @@ describe("getSaudeEmendasMetrics", () => {
     expect(res.lista).toEqual([]);
   });
 
-  it("deve retornar emendas e empenhos vinculados para o exercício", async () => {
+  it("deve retornar emendas e estrutura consistente de empenhos vinculados para o exercício", async () => {
     const res = await getSaudeEmendasMetrics(PORTAL_SLUG, 2026, ["2"]);
+    expect(res).toBeDefined();
     expect(typeof res.totalAutorizado).toBe("number");
     expect(typeof res.totalEmpenhado).toBe("number");
     expect(Array.isArray(res.lista)).toBe(true);
 
-    if (res.lista.length > 0) {
-      const emendaComEmpenho = res.lista.find((e) => (e.empenhado ?? 0) > 0);
-      if (emendaComEmpenho) {
-        expect(typeof emendaComEmpenho.qtdEmpenhos).toBe("number");
-        expect(Array.isArray(emendaComEmpenho.empenhos)).toBe(true);
-        if (emendaComEmpenho.qtdEmpenhos > 0) {
-          const primeiroEmpenho = emendaComEmpenho.empenhos[0];
-          expect(primeiroEmpenho.empenhoId).toBeTruthy();
-          expect(primeiroEmpenho.fornecedorNome).toBeTruthy();
-          expect(primeiroEmpenho.valorEmpenhado).toBeGreaterThan(0);
-        }
+    for (const emenda of res.lista) {
+      expect(typeof emenda.numero).toBe("string");
+      expect(typeof emenda.valorAutorizado).toBe("number");
+      expect(typeof emenda.qtdEmpenhos).toBe("number");
+      expect(Array.isArray(emenda.empenhos)).toBe(true);
+      expect(emenda.qtdEmpenhos).toBe(emenda.empenhos.length);
+
+      for (const emp of emenda.empenhos) {
+        expect(emp.empenhoId).toBeTruthy();
+        expect(typeof emp.valorEmpenhado).toBe("number");
+        expect(typeof emp.valorLiquidado).toBe("number");
+        expect(typeof emp.valorPago).toBe("number");
       }
     }
   });
