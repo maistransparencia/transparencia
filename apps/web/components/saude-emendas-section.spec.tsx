@@ -214,4 +214,70 @@ describe("SaudeEmendasSection", () => {
       screen.getByRole("button", { name: /auditar 2 empenhos vinculados/i }),
     ).toBeInTheDocument();
   });
+
+  it("ordena a tabela dando precedência a emendas que possuem empenho", () => {
+    const unorderedStats: SaudeEmendasStatsProps = {
+      totalAutorizado: 1500000,
+      totalEmpenhado: 200000,
+      taxaEmpenho: 200000 / 1500000,
+      maiorEmenda: 1000000,
+      lista: [
+        {
+          id: "sem-empenho",
+          numero: "000001",
+          objeto: "Sem empenho mas valor alto",
+          valorAutorizado: 1000000,
+          empenhado: null,
+          autor: "AUTOR SEM EMPENHO",
+          tipoEmenda: "INDIVIDUAL",
+          esferaOrigem: "FEDERAL",
+          atoNormativo: "",
+          destinacao: "Atenção Primária",
+          qtdEmpenhos: 0,
+          empenhos: [],
+        },
+        {
+          id: "com-empenho",
+          numero: "000002",
+          objeto: "Com empenho vinculado",
+          valorAutorizado: 500000,
+          empenhado: 200000,
+          autor: "AUTOR COM EMPENHO",
+          tipoEmenda: "INDIVIDUAL",
+          esferaOrigem: "FEDERAL",
+          atoNormativo: "",
+          destinacao: "Média Complexidade",
+          qtdEmpenhos: 1,
+          empenhos: [
+            {
+              empenhoId: "999",
+              dataEmpenho: "2026-01-01",
+              fornecedorNome: "TESTE",
+              fornecedorCpfCnpj: null,
+              licitacaoNumero: null,
+              licitacaoModalidade: null,
+              valorEmpenhado: 200000,
+              valorLiquidado: 0,
+              valorPago: 0,
+              descricao: "Teste",
+            },
+          ],
+        },
+      ],
+    };
+
+    const { container } = render(
+      <SaudeEmendasSection
+        ano={2026}
+        emendasStats={unorderedStats}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(2);
+    // A primeira linha deve ser do autor que possui empenho
+    expect(rows[0]?.textContent).toContain("Autor com Empenho");
+    expect(rows[1]?.textContent).toContain("Autor Sem Empenho");
+  });
 });

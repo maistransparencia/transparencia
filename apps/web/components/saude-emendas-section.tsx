@@ -132,6 +132,13 @@ export function SaudeEmendasSection({
       accessorKey: "qtdEmpenhos" as const,
       align: "center" as const,
       className: "whitespace-nowrap",
+      defaultSortDir: "desc" as const,
+      sortValue: (row: SaudeEmendaItem) => {
+        const qtd = row.qtdEmpenhos ?? 0;
+        if (qtd > 0) return 1000 + qtd;
+        if (row.empenhado && row.empenhado > 0) return 500;
+        return 0;
+      },
       renderCell: (row: SaudeEmendaItem) => {
         const qtd = row.qtdEmpenhos ?? 0;
         if (qtd > 0) {
@@ -181,12 +188,15 @@ export function SaudeEmendasSection({
       accessorKey: "valorAutorizado" as const,
       align: "right" as const,
       format: "currency" as const,
+      defaultSortDir: "desc" as const,
     },
     {
       header: "Empenhado",
       accessorKey: "empenhado" as const,
       align: "right" as const,
       format: "currency" as const,
+      defaultSortDir: "desc" as const,
+      sortValue: (row: SaudeEmendaItem) => row.empenhado ?? -1,
     },
   ];
 
@@ -323,14 +333,35 @@ export function SaudeEmendasSection({
       <div className="space-y-2">
         <DenseTable
           sortable
-          data={emendasStats.lista.map((item) => ({
-            ...item,
-            autor: toTitleCase(item.autor),
-            origem: item.esferaOrigem
-              ? toTitleCase(item.esferaOrigem)
-              : "Não informada",
-            objeto: toTitleCase(item.objeto),
-          }))}
+          data={emendasStats.lista
+            .slice()
+            .sort((a, b) => {
+              const aEmp = a.empenhado ?? 0;
+              const bEmp = b.empenhado ?? 0;
+              const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
+              const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
+
+              if (aHas && !bHas) return -1;
+              if (!aHas && bHas) return 1;
+
+              if (aHas && bHas && bEmp !== aEmp) {
+                return bEmp - aEmp;
+              }
+
+              if (b.valorAutorizado !== a.valorAutorizado) {
+                return b.valorAutorizado - a.valorAutorizado;
+              }
+
+              return a.autor.localeCompare(b.autor, "pt-BR");
+            })
+            .map((item) => ({
+              ...item,
+              autor: toTitleCase(item.autor),
+              origem: item.esferaOrigem
+                ? toTitleCase(item.esferaOrigem)
+                : "Não informada",
+              objeto: toTitleCase(item.objeto),
+            }))}
           columns={emendasCols}
           searchableKeys={["autor", "objeto", "origem"]}
           rowKey="id"
