@@ -20,19 +20,21 @@ export interface CadprevParcelamentoItem {
   dataEmpenho?: string;
 }
 
-export interface CapremActuarialRiskSectionProps {
+export interface PrevidenciaActuarialRiskSectionProps {
   ano: number;
   trend?: AnnualActuarialTrend[];
   cadprev?: CadprevParcelamentoItem[];
   className?: string;
+  previdenciaSigla?: string;
 }
 
-export function CapremActuarialRiskSection({
+export function PrevidenciaActuarialRiskSection({
   ano,
   trend = [],
   cadprev = [],
   className,
-}: CapremActuarialRiskSectionProps) {
+  previdenciaSigla = "RPPS",
+}: PrevidenciaActuarialRiskSectionProps) {
   const trendCols = [
     { header: "Exercício / Ano", accessorKey: "ano" as const },
     {
@@ -118,7 +120,7 @@ export function CapremActuarialRiskSection({
         <p className="text-mutedText text-xs">
           Não inclui multas ou penalidades tributárias pagas a outros credores
           (ex: Receita Federal), mesmo quando relacionadas à contribuição
-          previdenciária — apenas acordos formais junto ao CAPREM.
+          previdenciária — apenas acordos formais junto ao {previdenciaSigla}.
         </p>
       </div>
 
@@ -140,3 +142,8 @@ export function CapremActuarialRiskSection({
     </section>
   );
 }
+
+// Aliases para compatibilidade retroativa
+export type CapremActuarialRiskSectionProps =
+  PrevidenciaActuarialRiskSectionProps;
+export const CapremActuarialRiskSection = PrevidenciaActuarialRiskSection;

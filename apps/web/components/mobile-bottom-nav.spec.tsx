@@ -123,6 +123,12 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
           "porciuncula_prefeitura",
         ),
       ).toBe(4);
+      expect(
+        resolveActiveTabIndex(
+          "/porciuncula_prefeitura/previdencia",
+          "porciuncula_prefeitura",
+        ),
+      ).toBe(4);
     });
   });
 

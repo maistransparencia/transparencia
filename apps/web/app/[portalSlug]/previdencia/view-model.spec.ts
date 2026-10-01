@@ -1,25 +1,46 @@
 import { describe, expect, it } from "vitest";
-import type { loadCapremData } from "./loader";
-import { buildCapremViewModel } from "./view-model";
+import type { loadPrevidenciaData } from "./loader";
+import { buildPrevidenciaViewModel } from "./view-model";
 
-type RawData = Awaited<ReturnType<typeof loadCapremData>>;
+type RawData = Awaited<ReturnType<typeof loadPrevidenciaData>>;
 
 function makeRaw(
-  overrides: { caprem?: Record<string, unknown> } & Record<
+  overrides: { previdencia?: Record<string, unknown> } & Record<
     string,
     unknown
   > = {},
 ): RawData {
-  const { caprem: capremOverride, ...rest } = overrides;
+  const { previdencia: prevOverride, ...rest } = overrides;
   return {
     context: { selectedYear: 2024, isCurrentYear: false },
-    portalConfig: {
-      portalSlug: "porciuncula_prefeitura",
-      previdencia: {
-        habilitado: true,
-        sigla: "CAPREM",
-        nome: "Caixa de Previdência dos Servidores Municipais de Porciúncula",
+    previdencia: {
+      entidades: [],
+      natureza: [],
+      cadprevParcelamentos: [],
+      actuarialTrend: [],
+      totalEmpenhado: 0,
+      totalLiquidado: 0,
+      totalPago: 0,
+      taxaExecucao: 0,
+      totalAporteAtuarial: 0,
+      totalDividaResgatada: 0,
+      totalCaspPlanoSaude: 0,
+      actuarialRisk: {
+        totalAporteExigido: 0,
+        totalAporteQuitado: 0,
+        romboAporteNaoRepassado: 0,
+        taxaAdimplenciaAporte: 100,
+        totalEmpenhadoPatronal: 0,
+        totalPagoPatronal: 0,
+        romboPatronalNaoRepassado: 0,
+        deficitMedioMensal: 0,
+        totalAmortizacaoDivida: 0,
+        variacaoAmortizacaoPct: 0,
+        servidoresEfetivos: 0,
+        servidoresTemporariosComissionados: 0,
+        razaoTemporariosEfetivosPct: 0,
       },
+      ...prevOverride,
     },
     caprem: {
       entidades: [],
@@ -48,17 +69,17 @@ function makeRaw(
         servidoresTemporariosComissionados: 0,
         razaoTemporariosEfetivosPct: 0,
       },
-      ...capremOverride,
+      ...prevOverride,
     },
     ...rest,
   } as unknown as RawData;
 }
 
-describe("buildCapremViewModel", () => {
-  it("traduz destino conhecido para o rótulo amigável", () => {
-    const vm = buildCapremViewModel(
+describe("buildPrevidenciaViewModel", () => {
+  it("traduz destino conhecido para o rótulo amigável com sigla padrão RPPS", () => {
+    const vm = buildPrevidenciaViewModel(
       makeRaw({
-        caprem: {
+        previdencia: {
           natureza: [
             {
               elemento: "97",
@@ -71,13 +92,44 @@ describe("buildCapremViewModel", () => {
         },
       }),
     );
-    expect(vm.caprem.natureza[0].destino).toBe("Aporte Atuarial (CAPREM)");
+    expect(vm.previdencia.natureza[0].destino).toBe("Aporte Atuarial (RPPS)");
+    expect(vm.previdenciaSigla).toBe("RPPS");
+  });
+
+  it("dinamiza a sigla da autarquia informada em portalConfig.previdencia.sigla", () => {
+    const vm = buildPrevidenciaViewModel(
+      makeRaw({
+        portalConfig: {
+          portalSlug: "natividade",
+          previdencia: {
+            habilitado: true,
+            sigla: "IPAMN",
+            nome: "Instituto de Previdência de Natividade",
+          },
+        },
+        previdencia: {
+          natureza: [
+            {
+              elemento: "97",
+              descricao: "Aporte",
+              destino: "aporte_atuarial_caprem",
+              empenhado: 100,
+              pago: 100,
+            },
+          ],
+        },
+      }),
+    );
+    expect(vm.previdenciaSigla).toBe("IPAMN");
+    expect(vm.previdenciaNome).toBe("Instituto de Previdência de Natividade");
+    expect(vm.previdencia.natureza[0].destino).toBe("Aporte Atuarial (IPAMN)");
+    expect(vm.naturezaChartData[0].label).toBe("Aporte Atuarial (IPAMN)");
   });
 
   it("mantém a chave original quando o destino é desconhecido", () => {
-    const vm = buildCapremViewModel(
+    const vm = buildPrevidenciaViewModel(
       makeRaw({
-        caprem: {
+        previdencia: {
           natureza: [
             {
               elemento: "1",
@@ -90,13 +142,13 @@ describe("buildCapremViewModel", () => {
         },
       }),
     );
-    expect(vm.caprem.natureza[0].destino).toBe("destino_nao_mapeado");
+    expect(vm.previdencia.natureza[0].destino).toBe("destino_nao_mapeado");
   });
 
   it("agrega naturezaChartData por destino somando pago, ordenado desc", () => {
-    const vm = buildCapremViewModel(
+    const vm = buildPrevidenciaViewModel(
       makeRaw({
-        caprem: {
+        previdencia: {
           natureza: [
             {
               elemento: "97",
@@ -126,12 +178,12 @@ describe("buildCapremViewModel", () => {
 
     expect(vm.naturezaChartData).toEqual([
       {
-        label: "Amortização Dívida (CAPREM)",
+        label: "Amortização Dívida (RPPS)",
         value: 200,
         barColor: expect.any(String),
       },
       {
-        label: "Aporte Atuarial (CAPREM)",
+        label: "Aporte Atuarial (RPPS)",
         value: 150,
         barColor: expect.any(String),
       },
@@ -141,7 +193,7 @@ describe("buildCapremViewModel", () => {
   it("calcula patrimonioHistoricoResumo com pico histórico, quebra de série e queima média anual", () => {
     const raw = makeRaw({
       context: { selectedYear: 2026, isCurrentYear: true },
-      caprem: {
+      previdencia: {
         actuarialTrend: [
           {
             ano: 2021,
@@ -170,7 +222,7 @@ describe("buildCapremViewModel", () => {
             patrimonioFinanceiroTotal: 36971987.89,
             inconsistenciaDeclaracaoFlag: false,
             variacaoPatrimonioAbs: 36383721.51,
-            variacaoPatrimonioPct: 6185.25, // Deve ser anulado por quebra de série
+            variacaoPatrimonioPct: 6185.25,
             aporteExigido: 500000,
             aporteQuitado: 500000,
             taxaAdimplencia: 100,
@@ -228,7 +280,7 @@ describe("buildCapremViewModel", () => {
       },
     });
 
-    const vm = buildCapremViewModel(raw);
+    const vm = buildPrevidenciaViewModel(raw);
     const resumo = vm.patrimonioHistoricoResumo;
 
     expect(resumo.patrimonioPico).toBe(60368778.97);
@@ -236,13 +288,9 @@ describe("buildCapremViewModel", () => {
     expect(resumo.patrimonioAtual).toBe(33383702.66);
     expect(resumo.anoAtual).toBe(2026);
 
-    // Variação percentual acumulada sobre o pico: -44.70%
     expect(resumo.variacaoPicoPct).toBeCloseTo(-44.7, 1);
-
-    // Queima média anual: (60.368.778,97 - 33.383.702,66) / 5 = ~5.397.015,26/ano (~5.4M)
     expect(resumo.queimaMediaAnual).toBeCloseTo(5397015.26, 0);
 
-    // Quebra de série no exercício subsequente (2023) à inconsistência (2022)
     const ponto2022 = resumo.serie.find((p) => p.ano === 2022);
     expect(ponto2022?.inconsistenciaDeclaracaoFlag).toBe(true);
 
@@ -250,7 +298,6 @@ describe("buildCapremViewModel", () => {
     expect(ponto2023?.quebraSerieFlag).toBe(true);
     expect(ponto2023?.variacaoPatrimonioPct).toBeNull();
 
-    // Diagnóstico
     expect(resumo.diagnostico.hasDeficitAporte).toBe(true);
     expect(resumo.diagnostico.romboAporteNaoRepassado).toBe(400000);
     expect(resumo.diagnostico.hasRetencaoPatronal).toBe(true);
@@ -262,12 +309,12 @@ describe("buildCapremViewModel", () => {
 
   it("trata graciosa e defensivamente actuarialTrend vazia", () => {
     const raw = makeRaw({
-      caprem: {
+      previdencia: {
         actuarialTrend: [],
       },
     });
 
-    const vm = buildCapremViewModel(raw);
+    const vm = buildPrevidenciaViewModel(raw);
     const resumo = vm.patrimonioHistoricoResumo;
 
     expect(resumo.patrimonioPico).toBe(0);
@@ -280,7 +327,7 @@ describe("buildCapremViewModel", () => {
 
   it("ignora anos com inconsistência na declaração ao determinar o patrimônio atual válido", () => {
     const raw = makeRaw({
-      caprem: {
+      previdencia: {
         actuarialTrend: [
           {
             ano: 2021,
@@ -295,7 +342,7 @@ describe("buildCapremViewModel", () => {
           },
           {
             ano: 2022,
-            patrimonioFinanceiroTotal: 500000, // Dado com omissão na MSC
+            patrimonioFinanceiroTotal: 500000,
             inconsistenciaDeclaracaoFlag: true,
             variacaoPatrimonioAbs: -49500000,
             variacaoPatrimonioPct: -99,
@@ -308,10 +355,9 @@ describe("buildCapremViewModel", () => {
       },
     });
 
-    const vm = buildCapremViewModel(raw);
+    const vm = buildPrevidenciaViewModel(raw);
     const resumo = vm.patrimonioHistoricoResumo;
 
-    // Seleciona o último exercício VÁLIDO (2021) em vez do exercício com declaração inconsistente (2022)
     expect(resumo.patrimonioAtual).toBe(50000000);
     expect(resumo.anoAtual).toBe(2021);
     expect(resumo.queimaMediaAnual).toBe(0);

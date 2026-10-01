@@ -4,7 +4,7 @@ import {
   getPartialYearPeriod,
 } from "@transparencia/ui";
 
-export interface CapremHeroSectionProps {
+export interface PrevidenciaHeroSectionProps {
   ano: number;
   isCurrentYear: boolean;
   totalEmpenhado: number;
@@ -14,9 +14,11 @@ export interface CapremHeroSectionProps {
   totalAporteAtuarial: number;
   totalDividaResgatada: number;
   dataExtracao?: Date | string | null;
+  previdenciaSigla?: string;
+  previdenciaNome?: string;
 }
 
-export function CapremHeroSection({
+export function PrevidenciaHeroSection({
   ano,
   isCurrentYear,
   totalEmpenhado,
@@ -26,7 +28,9 @@ export function CapremHeroSection({
   totalAporteAtuarial,
   totalDividaResgatada,
   dataExtracao,
-}: CapremHeroSectionProps) {
+  previdenciaSigla = "RPPS",
+  previdenciaNome,
+}: PrevidenciaHeroSectionProps) {
   const liquidadoRatio =
     totalEmpenhado > 0
       ? Math.min(100, Math.max(0, (totalLiquidado / totalEmpenhado) * 100))
@@ -42,10 +46,19 @@ export function CapremHeroSection({
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
       {/* Coluna Esquerda: Narrativa Institucional do RPPS */}
       <div className="space-y-4 lg:col-span-7">
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-          TEMAS · PREVIDÊNCIA MUNICIPAL (CAPREM) · {ano}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
+        <div className="space-y-1">
+          <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+            TEMAS · PREVIDÊNCIA MUNICIPAL ({previdenciaSigla}) · {ano}
+            {isCurrentYear && partialPeriod
+              ? ` (PARCIAL, ${partialPeriod})`
+              : ""}
+          </span>
+          {previdenciaNome ? (
+            <p className="font-medium text-slate-500 text-xs sm:text-sm">
+              {previdenciaNome}
+            </p>
+          ) : null}
+        </div>
 
         <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
           Garantia do futuro dos servidores:{" "}
@@ -56,14 +69,14 @@ export function CapremHeroSection({
         <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
           {isCurrentYear ? (
             <>
-              A Prefeitura e os Fundos Municipais de Porciúncula já empenharam{" "}
+              A Prefeitura e os Fundos Municipais já empenharam{" "}
               <strong className="font-bold text-slate-900">
                 {fmtCompact(totalEmpenhado)}
               </strong>{" "}
-              em obrigações previdenciárias e aportes ao CAPREM em {ano}. O
-              cumprimento rigoroso dos repasses patronais e amortizações
-              assegura o pagamento de aposentadorias e pensões aos servidores
-              públicos.
+              em obrigações previdenciárias e aportes ao {previdenciaSigla} em{" "}
+              {ano}. O cumprimento rigoroso dos repasses patronais e
+              amortizações assegura o pagamento de aposentadorias e pensões aos
+              servidores públicos.
             </>
           ) : (
             <>
@@ -72,7 +85,7 @@ export function CapremHeroSection({
               <strong className="font-bold text-slate-900">
                 {fmtCompact(totalEmpenhado)}
               </strong>{" "}
-              em repasses previdenciários ao CAPREM, quitando{" "}
+              em repasses previdenciários ao {previdenciaSigla}, quitando{" "}
               {fmtPercent(taxaExecucao * 100)} dos compromissos pactuados.
             </>
           )}
@@ -94,7 +107,7 @@ export function CapremHeroSection({
       <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-sm lg:col-span-5">
         <div className="mb-4 flex items-center justify-between gap-2">
           <span className="font-medium text-slate-500 text-xs">
-            Total Empenhado para o CAPREM
+            Total Empenhado para o {previdenciaSigla}
           </span>
           <span className="inline-flex shrink-0 items-center rounded-md border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 font-medium text-[11px] text-emerald-800">
             Adimplência {fmtPercent(taxaExecucao * 100)}
@@ -168,3 +181,7 @@ export function CapremHeroSection({
     </div>
   );
 }
+
+// Aliases para compatibilidade retroativa
+export type CapremHeroSectionProps = PrevidenciaHeroSectionProps;
+export const CapremHeroSection = PrevidenciaHeroSection;

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   type AnnualActuarialTrend,
   type CadprevParcelamentoItem,
-  CapremActuarialRiskSection,
-} from "./caprem-actuarial-risk-section";
+  PrevidenciaActuarialRiskSection,
+} from "./previdencia-actuarial-risk-section";
 
 const mockCadprev: CadprevParcelamentoItem[] = [
   {
@@ -56,10 +56,10 @@ const mockTrend: AnnualActuarialTrend[] = [
   },
 ];
 
-describe("CapremActuarialRiskSection", () => {
+describe("PrevidenciaActuarialRiskSection", () => {
   it("renderiza o cabeçalho reestruturado com a âncora id='cadprev' e descrição adequada", () => {
     const { container } = render(
-      <CapremActuarialRiskSection
+      <PrevidenciaActuarialRiskSection
         ano={2024}
         trend={mockTrend}
         cadprev={mockCadprev}
@@ -84,7 +84,7 @@ describe("CapremActuarialRiskSection", () => {
 
   it("não renderiza mais os cards de KPI antigos que eram redundantes", () => {
     render(
-      <CapremActuarialRiskSection
+      <PrevidenciaActuarialRiskSection
         ano={2024}
         trend={mockTrend}
         cadprev={mockCadprev}
@@ -113,7 +113,7 @@ describe("CapremActuarialRiskSection", () => {
 
   it("renderiza a tabela oficial CADPREV em destaque no topo quando houver dados", () => {
     render(
-      <CapremActuarialRiskSection
+      <PrevidenciaActuarialRiskSection
         ano={2024}
         trend={mockTrend}
         cadprev={mockCadprev}
@@ -149,7 +149,11 @@ describe("CapremActuarialRiskSection", () => {
 
   it("renderiza aviso discreto quando não houver acordos CADPREV registrados no exercício, mantendo a nota explicativa", () => {
     render(
-      <CapremActuarialRiskSection ano={2024} trend={mockTrend} cadprev={[]} />,
+      <PrevidenciaActuarialRiskSection
+        ano={2024}
+        trend={mockTrend}
+        cadprev={[]}
+      />,
     );
 
     expect(
@@ -168,7 +172,6 @@ describe("CapremActuarialRiskSection", () => {
       screen.queryByText("Registro CADPREV / Ministério da Previdência"),
     ).not.toBeInTheDocument();
 
-    // A nota explicativa continua presente mesmo no estado vazio
     expect(
       screen.getByText(
         /Não inclui multas ou penalidades tributárias pagas a outros credores/i,
@@ -178,7 +181,7 @@ describe("CapremActuarialRiskSection", () => {
 
   it("renderiza a tabela de evolução histórica quando trend possuir dados", () => {
     render(
-      <CapremActuarialRiskSection
+      <PrevidenciaActuarialRiskSection
         ano={2024}
         trend={mockTrend}
         cadprev={mockCadprev}
@@ -203,7 +206,9 @@ describe("CapremActuarialRiskSection", () => {
   });
 
   it("omite a tabela de evolução histórica sem quebrar layout quando trend estiver vazia ou omitida", () => {
-    render(<CapremActuarialRiskSection ano={2024} cadprev={mockCadprev} />);
+    render(
+      <PrevidenciaActuarialRiskSection ano={2024} cadprev={mockCadprev} />,
+    );
 
     expect(
       screen.queryByRole("heading", {
@@ -211,7 +216,6 @@ describe("CapremActuarialRiskSection", () => {
       }),
     ).not.toBeInTheDocument();
 
-    // A tabela CADPREV ainda deve estar visível
     expect(
       screen.getByRole("heading", {
         name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",

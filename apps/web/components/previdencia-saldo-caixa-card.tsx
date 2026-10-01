@@ -3,11 +3,12 @@ import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, ShieldCheck } from "lucide-react";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
-export interface CapremSaldoCaixaCardProps {
+export interface PrevidenciaSaldoCaixaCardProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
   ano: number;
   portalSlug?: string;
   className?: string;
+  previdenciaSigla?: string;
 }
 
 const MESES_NOMES: Record<number, string> = {
@@ -39,12 +40,13 @@ function getVariacaoBadgeClass(variacao: number): string {
   return "bg-slate-100 text-slate-600";
 }
 
-export function CapremSaldoCaixaCard({
+export function PrevidenciaSaldoCaixaCard({
   posicaoFinanceira,
   ano,
   portalSlug,
   className = "",
-}: CapremSaldoCaixaCardProps) {
+  previdenciaSigla = "RPPS",
+}: PrevidenciaSaldoCaixaCardProps) {
   const previdenciaItems = posicaoFinanceira?.previdencia ?? [];
   const temDados = Boolean(posicaoFinanceira) && previdenciaItems.length > 0;
 
@@ -147,7 +149,7 @@ export function CapremSaldoCaixaCard({
               ano={ano}
               tipo="saldo_caixa_siconfi"
               entidades="previdencia"
-              tituloContexto="Previdência Municipal (CAPREM)"
+              tituloContexto={`Previdência Municipal (${previdenciaSigla})`}
             />
           )}
         </div>
@@ -246,10 +248,24 @@ export function CapremSaldoCaixaCard({
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-blue-600" />
           <span>
             Patrimônio financeiro exclusivo da previdência própria, segregado do
-            caixa geral do município (CF art. 167, XI).
+            caixa geral do município (
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art167"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium underline underline-offset-2 hover:text-ink"
+            >
+              <span>CF art. 167, XI</span>
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            ).
           </span>
         </div>
       </div>
     </section>
   );
 }
+
+// Aliases para compatibilidade retroativa
+export type CapremSaldoCaixaCardProps = PrevidenciaSaldoCaixaCardProps;
+export const CapremSaldoCaixaCard = PrevidenciaSaldoCaixaCard;

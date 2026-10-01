@@ -1,187 +1,24 @@
-import {
-  DenseTable,
-  fmtCompact,
-  fmtCurrency,
-  fmtPercent,
-  KPICard,
-} from "@transparencia/ui";
-import type { Metadata } from "next";
-import nextDynamic from "next/dynamic";
-import { BarChartH } from "@/components/bar-chart-h";
-import { CapremActuarialRiskSection } from "@/components/caprem-actuarial-risk-section";
-import { CapremHeroSection } from "@/components/caprem-hero-section";
-import { CapremPatrimonioHistoricoSection } from "@/components/caprem-patrimonio-historico-section";
-import { CapremSaldoCaixaCard } from "@/components/caprem-saldo-caixa-card";
-import { KPIGrid } from "@/components/kpi-grid";
-import { SectionHeader } from "@/components/section-header";
-import { createPortalMetadata } from "@/lib/metadata";
-import { loadCapremData } from "./loader";
-import { buildCapremViewModel } from "./view-model";
+import { permanentRedirect } from "next/navigation";
 
-const CapremEntidadesDonut = nextDynamic(
-  () =>
-    import("@/components/caprem-entidades-donut").then(
-      (mod) => mod.CapremEntidadesDonut,
-    ),
-  {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
-  },
-);
-
-export const dynamic = "force-dynamic";
-
-interface CapremPageProps {
-  params: Promise<{ portalSlug: string }>;
-  searchParams: Promise<{ ano?: string; empresa?: string }>;
-}
-
-export async function generateMetadata({
-  params,
-}: CapremPageProps): Promise<Metadata> {
-  const { portalSlug } = await params;
-  return createPortalMetadata("CAPREM", portalSlug, {
-    description:
-      "Prestação de contas e saúde atuarial do fundo previdenciário municipal (CAPREM), contribuições patronais e dos servidores.",
-    path: "/caprem",
-    keywords: [
-      "CAPREM",
-      "previdência municipal",
-      "fundo previdenciário",
-      "contribuição previdenciária",
-      "saúde atuarial",
-    ],
-  });
-}
-
-export default async function CapremPage({
+export default async function CapremRedirectPage({
   params,
   searchParams,
-}: CapremPageProps) {
+}: {
+  params: Promise<{ portalSlug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { portalSlug } = await params;
-  const sParams = await searchParams;
-  const rawData = await loadCapremData(portalSlug, sParams);
-  const viewModel = buildCapremViewModel(rawData);
-  const {
-    selectedYear,
-    isCurrentYear,
-    caprem,
-    naturezaCols,
-    naturezaChartData,
-  } = viewModel;
-
-  return (
-    <div className="space-y-12 pb-12">
-      {/* Seção 1: Hero Especializado do Tema */}
-      <CapremHeroSection
-        ano={selectedYear}
-        isCurrentYear={isCurrentYear}
-        totalEmpenhado={caprem.totalEmpenhado}
-        totalLiquidado={caprem.totalLiquidado}
-        totalPago={caprem.totalPago}
-        taxaExecucao={caprem.taxaExecucao}
-        totalAporteAtuarial={caprem.totalAporteAtuarial}
-        totalDividaResgatada={caprem.totalDividaResgatada}
-        dataExtracao={
-          viewModel.portalConfig?.dataExtracaoDate ??
-          viewModel.portalConfig?.dataExtracao
-        }
-      />
-
-      {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Total Empenhado"
-          value={fmtCompact(caprem.totalEmpenhado)}
-          subtext="Compromissos previdenciários"
-          accent
-        />
-        <KPICard
-          title="Total Repassado / Pago"
-          value={fmtCompact(caprem.totalPago)}
-          subtext="Efetivamente transferido"
-        />
-        <KPICard
-          title="Aporte Déficit Atuarial"
-          value={fmtCompact(caprem.totalAporteAtuarial)}
-          subtext="Elemento 97 (Equilíbrio RPPS)"
-        />
-        <KPICard
-          title="Índice de Adimplência"
-          value={fmtPercent(caprem.taxaExecucao * 100)}
-          subtext="% Quitado do Empenhado"
-        />
-      </KPIGrid>
-
-      {caprem.entidades.length > 0 && (
-        <section className="">
-          <CapremEntidadesDonut data={caprem.entidades} ano={selectedYear} />
-        </section>
-      )}
-
-      {/* Seção de Disponibilidade em Caixa e Aplicações do RPPS (SICONFI / STN) */}
-      <CapremSaldoCaixaCard
-        posicaoFinanceira={viewModel.posicaoFinanceira}
-        ano={selectedYear}
-        portalSlug={portalSlug}
-      />
-
-      {/* Seção: Trajetória do Patrimônio Financeiro da Previdência (CAPREM) */}
-      {viewModel.patrimonioHistoricoResumo && (
-        <CapremPatrimonioHistoricoSection
-          resumo={viewModel.patrimonioHistoricoResumo}
-          selectedYear={selectedYear}
-        />
-      )}
-
-      {/* Seção: Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência) */}
-      <CapremActuarialRiskSection
-        ano={selectedYear}
-        trend={caprem.actuarialTrend}
-        cadprev={caprem.cadprevParcelamentos}
-      />
-
-      {/* Seção 5: Composição Contábil dos Repasses (Gráfico Barras + Tabela Paginada) */}
-      {caprem.natureza.length > 0 && (
-        <section className="space-y-6">
-          <SectionHeader
-            title="Composição Contábil dos Repasses"
-            description="Detalhamento das obrigações por elemento de despesa (Contribuições patronais ordinárias, aportes de equilíbrio atuarial, amortização de dívidas e previdência)"
-          />
-
-          {naturezaChartData.length > 0 && (
-            <div className="space-y-4 rounded-xl border border-borderLine bg-white p-5">
-              <div className="flex items-center justify-between border-gray-100 border-b pb-3">
-                <h4 className="font-semibold font-serif text-slate-800 text-sm">
-                  Distribuição por Destino Contábil e Regime ({selectedYear})
-                </h4>
-                <span className="font-medium text-slate-500 text-xs">
-                  Total Repassado: {fmtCurrency(caprem.totalPago)}
-                </span>
-              </div>
-              <BarChartH data={naturezaChartData} />
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <h4 className="font-semibold font-serif text-slate-800 text-sm">
-              Detalhamento de Lançamentos Contábeis (Paginado)
-            </h4>
-            <DenseTable
-              data={caprem.natureza.map((item) => ({
-                ...item,
-                descricao: `${item.elemento} - ${item.descricao}`,
-              }))}
-              columns={naturezaCols}
-              searchableKeys={["descricao", "elemento", "destino"]}
-              pageSize={10}
-              sortable
-              exportFilename={`lancamentos_contabeis_caprem_${selectedYear}.csv`}
-            />
-          </div>
-        </section>
-      )}
-    </div>
-  );
+  const sParams = (await searchParams) ?? {};
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(sParams)) {
+    if (typeof v === "string") {
+      sp.set(k, v);
+    } else if (Array.isArray(v)) {
+      for (const val of v) {
+        sp.append(k, val);
+      }
+    }
+  }
+  const qs = sp.toString();
+  permanentRedirect(`/${portalSlug}/previdencia${qs ? `?${qs}` : ""}`);
 }

@@ -3,17 +3,18 @@
 import { fmtCompact, fmtCurrency, toTitleCase } from "@transparencia/ui";
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-export interface EntityCapremItem {
+export interface EntityPrevidenciaItem {
   entidade: string;
   empenhado: number;
   liquidado: number;
   pago: number;
 }
 
-export interface CapremEntidadesDonutProps {
-  data: EntityCapremItem[];
+export interface PrevidenciaEntidadesDonutProps {
+  data: EntityPrevidenciaItem[];
   ano: number;
   className?: string;
+  previdenciaSigla?: string;
 }
 
 const COLOR_PALETTE = [
@@ -26,11 +27,12 @@ const COLOR_PALETTE = [
   "#64748b", // Slate
 ];
 
-export function CapremEntidadesDonut({
+export function PrevidenciaEntidadesDonut({
   data,
   ano,
   className = "",
-}: CapremEntidadesDonutProps) {
+  previdenciaSigla = "RPPS",
+}: PrevidenciaEntidadesDonutProps) {
   const totalPago = data.reduce((acc, item) => acc + item.pago, 0);
 
   const pieData = data
@@ -50,7 +52,7 @@ export function CapremEntidadesDonut({
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-bold font-serif text-base text-slate-900">
-            Repasses por Entidade ao CAPREM
+            Repasses por Entidade ao {previdenciaSigla}
           </h3>
           <p className="font-medium text-slate-500 text-xs">
             Distribuição dos recursos repassados pelos órgãos municipais · {ano}
@@ -130,3 +132,8 @@ export function CapremEntidadesDonut({
     </div>
   );
 }
+
+// Aliases para compatibilidade retroativa
+export type EntityCapremItem = EntityPrevidenciaItem;
+export type CapremEntidadesDonutProps = PrevidenciaEntidadesDonutProps;
+export const CapremEntidadesDonut = PrevidenciaEntidadesDonut;

@@ -20,27 +20,28 @@ import {
   YAxis,
 } from "recharts";
 import type {
-  CapremPatrimonioHistoricoPonto,
-  CapremPatrimonioHistoricoResumo,
-} from "@/app/[portalSlug]/caprem/view-model";
+  PrevidenciaPatrimonioHistoricoPonto,
+  PrevidenciaPatrimonioHistoricoResumo,
+} from "@/app/[portalSlug]/previdencia/view-model";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SectionHeader } from "@/components/section-header";
 
-export interface CapremPatrimonioHistoricoSectionProps {
-  resumo: CapremPatrimonioHistoricoResumo;
+export interface PrevidenciaPatrimonioHistoricoSectionProps {
+  resumo: PrevidenciaPatrimonioHistoricoResumo;
   selectedYear: number;
   className?: string;
+  previdenciaSigla?: string;
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: ReadonlyArray<{
     value?: unknown;
-    payload?: CapremPatrimonioHistoricoPonto;
+    payload?: PrevidenciaPatrimonioHistoricoPonto;
   }>;
 }
 
-function formatVariacaoTooltip(ponto: CapremPatrimonioHistoricoPonto) {
+function formatVariacaoTooltip(ponto: PrevidenciaPatrimonioHistoricoPonto) {
   if (ponto.quebraSerieFlag) {
     return (
       <span className="font-semibold text-slate-700">
@@ -121,7 +122,7 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
-function renderVariacaoTabela(p: CapremPatrimonioHistoricoPonto) {
+function renderVariacaoTabela(p: PrevidenciaPatrimonioHistoricoPonto) {
   if (p.quebraSerieFlag) {
     return <span className="font-semibold text-slate-600">N/D</span>;
   }
@@ -142,7 +143,7 @@ function renderVariacaoTabela(p: CapremPatrimonioHistoricoPonto) {
   );
 }
 
-function renderNotaMetodologica(p: CapremPatrimonioHistoricoPonto) {
+function renderNotaMetodologica(p: PrevidenciaPatrimonioHistoricoPonto) {
   if (p.inconsistenciaDeclaracaoFlag) {
     return (
       <div className="flex flex-col items-start gap-1 py-0.5">
@@ -180,11 +181,12 @@ function renderNotaMetodologica(p: CapremPatrimonioHistoricoPonto) {
   );
 }
 
-export function CapremPatrimonioHistoricoSection({
+export function PrevidenciaPatrimonioHistoricoSection({
   resumo,
   selectedYear,
   className = "",
-}: CapremPatrimonioHistoricoSectionProps) {
+  previdenciaSigla = "RPPS",
+}: PrevidenciaPatrimonioHistoricoSectionProps) {
   const gradientId = useId();
   const serie = resumo.serie;
   const anoMin = serie.length > 0 ? serie[0].ano : undefined;
@@ -209,7 +211,7 @@ export function CapremPatrimonioHistoricoSection({
   return (
     <section
       id="patrimonio"
-      aria-label="Trajetória do Patrimônio Financeiro da Previdência (CAPREM)"
+      aria-label={`Trajetória do Patrimônio Financeiro da Previdência (${previdenciaSigla})`}
       className={cn("space-y-6", className)}
     >
       <SectionHeader
@@ -713,7 +715,7 @@ export function CapremPatrimonioHistoricoSection({
                 Contratados temporários e comissionados recolhem
                 obrigatoriamente ao INSS/RGPS e não vertem ao RPPS municipal,
                 reduzindo a proporção de servidores ativos que sustentam os
-                benefícios do CAPREM.
+                benefícios do {previdenciaSigla}.
               </p>
 
               <div className="space-y-1.5 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs">
@@ -762,3 +764,9 @@ export function CapremPatrimonioHistoricoSection({
     </section>
   );
 }
+
+// Aliases para compatibilidade retroativa
+export type CapremPatrimonioHistoricoSectionProps =
+  PrevidenciaPatrimonioHistoricoSectionProps;
+export const CapremPatrimonioHistoricoSection =
+  PrevidenciaPatrimonioHistoricoSection;

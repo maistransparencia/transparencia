@@ -21,6 +21,20 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/:portalSlug/caprem",
+        destination: "/:portalSlug/previdencia",
+        permanent: true,
+      },
+      {
+        source: "/:portalSlug/caprem/:path*",
+        destination: "/:portalSlug/previdencia/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

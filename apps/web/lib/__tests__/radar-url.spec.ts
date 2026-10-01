@@ -99,7 +99,7 @@ describe("buildAlertaUrl", () => {
       ano: 2024,
       portalSlug: "porciuncula",
     });
-    expect(url).toBe("/porciuncula/caprem?ano=2024#atuarial");
+    expect(url).toBe("/porciuncula/previdencia?ano=2024#atuarial");
   });
 
   it("deve gerar rota correta para retenção patronal do RPPS com âncora #patronal", () => {
@@ -108,7 +108,7 @@ describe("buildAlertaUrl", () => {
       ano: 2024,
       portalSlug: "porciuncula",
     });
-    expect(url).toBe("/porciuncula/caprem?ano=2024#patronal");
+    expect(url).toBe("/porciuncula/previdencia?ano=2024#patronal");
   });
 
   it("deve gerar rota correta para desidratação do patrimônio do RPPS com âncora #patrimonio", () => {
@@ -117,7 +117,7 @@ describe("buildAlertaUrl", () => {
       ano: 2025,
       portalSlug: "porciuncula",
     });
-    expect(url).toBe("/porciuncula/caprem?ano=2025#patrimonio");
+    expect(url).toBe("/porciuncula/previdencia?ano=2025#patrimonio");
   });
 
   it("deve gerar rota correta para inconsistência de vínculo de pessoal com âncora #regime", () => {

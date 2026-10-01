@@ -172,6 +172,15 @@ describe("OpenGraph Image Route Handlers", () => {
     expect(response).toHaveProperty("jsx");
   });
 
+  it("gera o card da Previdência (/previdencia)", async () => {
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/previdencia/opengraph-image"
+    );
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+  });
+
   it("gera o card do Radar Cívico com anomalias críticas destacadas", async () => {
     const { getRadarCivicoAlertas } = await import("@transparencia/db");
     vi.mocked(getRadarCivicoAlertas).mockResolvedValueOnce([

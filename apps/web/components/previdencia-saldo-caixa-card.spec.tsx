@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
-import { CapremSaldoCaixaCard } from "./caprem-saldo-caixa-card";
+import { PrevidenciaSaldoCaixaCard } from "./previdencia-saldo-caixa-card";
 
 const samplePosicao: SiconfiPosicaoFinanceiraDTO = {
   portalSlug: "porciuncula_prefeitura",
@@ -34,10 +34,10 @@ const samplePosicao: SiconfiPosicaoFinanceiraDTO = {
   ],
 };
 
-describe("CapremSaldoCaixaCard", () => {
-  it("renderiza cabeçalho, selo de segregação constitucional e valores do RPPS", () => {
+describe("PrevidenciaSaldoCaixaCard", () => {
+  it("renderiza cabeçalho, selo de segregação constitucional com link para CF art. 167, XI e valores do RPPS", () => {
     render(
-      <CapremSaldoCaixaCard
+      <PrevidenciaSaldoCaixaCard
         posicaoFinanceira={samplePosicao}
         ano={2024}
         portalSlug="porciuncula_prefeitura"
@@ -52,6 +52,16 @@ describe("CapremSaldoCaixaCard", () => {
     expect(
       screen.getByText(/segregado do caixa geral do município/i),
     ).toBeInTheDocument();
+
+    const legalLink = screen.getByRole("link", { name: /CF art\. 167, XI/i });
+    expect(legalLink).toBeInTheDocument();
+    expect(legalLink).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art167",
+    );
+    expect(legalLink).toHaveAttribute("target", "_blank");
+    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
+
     expect(screen.getByText("Total em Caixa e Aplicações")).toBeInTheDocument();
     expect(
       screen.getByText(/Recursos Vinculados \(RPPS\)/i),
@@ -74,7 +84,7 @@ describe("CapremSaldoCaixaCard", () => {
     };
 
     render(
-      <CapremSaldoCaixaCard posicaoFinanceira={posicaoQueda} ano={2024} />,
+      <PrevidenciaSaldoCaixaCard posicaoFinanceira={posicaoQueda} ano={2024} />,
     );
     expect(screen.getAllByText("-8.5% vs. 2023").length).toBeGreaterThanOrEqual(
       1,
@@ -93,7 +103,7 @@ describe("CapremSaldoCaixaCard", () => {
     };
 
     render(
-      <CapremSaldoCaixaCard
+      <PrevidenciaSaldoCaixaCard
         posicaoFinanceira={posicaoComDescoberto}
         ano={2024}
       />,
@@ -105,7 +115,7 @@ describe("CapremSaldoCaixaCard", () => {
   });
 
   it("renderiza fallback pedagógico quando posicaoFinanceira for nula ou não tiver previdência", () => {
-    render(<CapremSaldoCaixaCard posicaoFinanceira={null} ano={2024} />);
+    render(<PrevidenciaSaldoCaixaCard posicaoFinanceira={null} ano={2024} />);
 
     expect(
       screen.getByText(
