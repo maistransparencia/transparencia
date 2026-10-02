@@ -1,4 +1,5 @@
 import {
+  getAllPortais,
   getEntidades,
   getPortalConfig,
   getRadarAnomaliasCountByYear,
@@ -45,6 +46,12 @@ const getCachedPortalConfig = unstable_cache(
 const getCachedEntidades = unstable_cache(
   () => getEntidades(),
   [`entidades-v${version}`],
+  { revalidate: 86400 },
+);
+
+const getCachedAllPortais = unstable_cache(
+  () => getAllPortais(),
+  [`all-portais-v${version}`],
   { revalidate: 86400 },
 );
 
@@ -140,14 +147,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [portalConfig, entidades] = await Promise.all([
+  const [portalConfig, entidades, portais] = await Promise.all([
     getCachedPortalConfig(),
     getCachedEntidades(),
+    getCachedAllPortais(),
   ]);
 
   const portalSlug = portalConfig?.portalSlug ?? "porciuncula_prefeitura";
   const radarAlertsCountByYear =
     await getCachedRadarAlertsCountByYear(portalSlug);
+
+  const portalOptions = portais.map((p) => ({
+    portalSlug: p.portalSlug,
+    displayName: p.displayName,
+    uf: p.uf,
+    brasaoAsset: p.brasaoAsset,
+  }));
 
   const governmentOrganizationSchema = generateGovernmentOrganizationSchema({
     displayName: portalConfig?.displayName,
@@ -187,6 +202,7 @@ export default async function RootLayout({
                   officialPortalUrl={portalConfig?.portalUrl}
                   entidades={entidades}
                   portalSlug={portalConfig?.portalSlug}
+                  portais={portalOptions}
                   radarAlertsCountByYear={radarAlertsCountByYear}
                   previdencia={portalConfig?.previdencia}
                 />

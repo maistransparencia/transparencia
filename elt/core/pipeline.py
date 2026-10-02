@@ -12,7 +12,7 @@ from elt.core.db import create_tables, get_engine, set_metadata, upsert
 from elt.extract.base import EndpointConfig
 
 _portal = PortalConfig.load()
-_extractor_module = importlib.import_module(f"elt.extract.{_portal.slug}.api_endpoints")
+_extractor_module = importlib.import_module(f"elt.extract.{_portal.provider}.{_portal.slug}.api_endpoints")
 ENDPOINT_CONFIGS: list[EndpointConfig] = _extractor_module.ENDPOINT_CONFIGS
 START_YEAR = _portal.ano_inicial
 BASE_HOST = _portal.base_host

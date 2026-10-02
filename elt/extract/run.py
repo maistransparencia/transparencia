@@ -35,7 +35,7 @@ def main() -> None:
 
     portal = PortalConfig.load(args.portal)
     try:
-        mod = importlib.import_module(f"elt.extract.{portal.slug}.api_endpoints")
+        mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
         endpoints = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
     except ModuleNotFoundError:
         logger.info(

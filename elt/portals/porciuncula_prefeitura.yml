@@ -7,7 +7,7 @@ base_host: https://transparencia.porciuncula.rj.gov.br
 cidade_clean: PORCIUNCULA
 ano_inicial: 2021
 empresa_padrao: "7"
-github_url: https://github.com/juliobetta/transparencia
+github_url: https://github.com/maistransparencia/transparencia
 provider: fiorilli
 assets:
   brasao: assets/brasao-porciuncula.svg

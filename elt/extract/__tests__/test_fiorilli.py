@@ -30,7 +30,7 @@ from elt.extract.fiorilli.extractor import (
     SigcorpExtractor,
     TransferenciasExtractor,
 )
-from elt.extract.porciuncula_prefeitura.extractor import PorciunculaExtractor
+from elt.extract.fiorilli.porciuncula_prefeitura.extractor import PorciunculaExtractor
 
 
 @pytest.fixture(autouse=True)
@@ -103,32 +103,19 @@ def test_fiorilli_extractor_validation_errors():
 
 
 def test_portal_config_declarative_loading():
-    """Valida carregamento tipado de Natividade, Bom Jesus do Itabapoana e Porciúncula."""
+    """Valida carregamento tipado de Natividade e Porciúncula."""
     # Natividade
     cfg_nat = PortalConfig.load("natividade_prefeitura")
     assert cfg_nat.slug == "natividade_prefeitura"
     assert cfg_nat.cod_ibge == 3303401
-    assert cfg_nat.base_host == "https://transparencia.natividade.rj.gov.br"
-    assert cfg_nat.empresa_padrao == "1"
+    assert cfg_nat.base_host == "https://portal-pm-natividade.transpgp.com.br"
+    assert cfg_nat.empresa_padrao == "6"
     assert cfg_nat.provider == "fiorilli"
     assert cfg_nat.rpps is not None
-    assert cfg_nat.rpps.get("sigla") == "IPAMN"
+    assert cfg_nat.rpps.get("sigla") == "NATPREVI"
     orgaos_nat = cfg_nat.load_orgaos()
-    assert "1" in orgaos_nat
-    assert "NATIVIDADE" in orgaos_nat["1"]
-
-    # Bom Jesus do Itabapoana
-    cfg_bj = PortalConfig.load("bom_jesus_itabapoana_prefeitura")
-    assert cfg_bj.slug == "bom_jesus_itabapoana_prefeitura"
-    assert cfg_bj.cod_ibge == 3300605
-    assert cfg_bj.base_host == "https://transparencia.bomjesus.rj.gov.br"
-    assert cfg_bj.empresa_padrao == "1"
-    assert cfg_bj.provider == "fiorilli"
-    assert cfg_bj.rpps is not None
-    assert cfg_bj.rpps.get("sigla") == "FUNPREV"
-    orgaos_bj = cfg_bj.load_orgaos()
-    assert "1" in orgaos_bj
-    assert "BOM JESUS DO ITABAPOANA" in orgaos_bj["1"]
+    assert "6" in orgaos_nat
+    assert "NATIVIDADE" in orgaos_nat["6"].upper()
 
     # Porciúncula
     cfg_porc = PortalConfig.load("porciuncula_prefeitura")
@@ -344,22 +331,16 @@ def test_get_endpoint_configs_factory():
 
 
 def test_municipal_endpoints_modules():
-    """Valida módulos específicos de endpoints de cada município."""
-    from elt.extract.bom_jesus_itabapoana_prefeitura.api_endpoints import (
-        ENDPOINT_CONFIGS as BJ_CONFIGS,
-    )
-    from elt.extract.natividade_prefeitura.api_endpoints import (
+    """Valida módulos específicos de endpoints de cada município sob fiorilli e aliases."""
+    from elt.extract.fiorilli.natividade_prefeitura.api_endpoints import (
         ENDPOINT_CONFIGS as NAT_CONFIGS,
     )
-    from elt.extract.porciuncula_prefeitura.api_endpoints import (
+    from elt.extract.fiorilli.porciuncula_prefeitura.api_endpoints import (
         ENDPOINT_CONFIGS as PORC_CONFIGS,
     )
 
     assert len(NAT_CONFIGS) == 20
-    assert NAT_CONFIGS[0].base_url == "https://transparencia.natividade.rj.gov.br"
-
-    assert len(BJ_CONFIGS) == 20
-    assert BJ_CONFIGS[0].base_url == "https://transparencia.bomjesus.rj.gov.br"
+    assert NAT_CONFIGS[0].base_url == "https://portal-pm-natividade.transpgp.com.br"
 
     assert len(PORC_CONFIGS) == 20
     assert PORC_CONFIGS[0].base_url == "https://transparencia.porciuncula.rj.gov.br"

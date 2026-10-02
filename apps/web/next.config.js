@@ -22,7 +22,31 @@ const nextConfig = {
     ];
   },
   async redirects() {
+    const portalRedirects = [
+      { from: "/porciuncula", to: "/porciuncula_prefeitura" },
+      { from: "/porciuncula-prefeitura", to: "/porciuncula_prefeitura" },
+      { from: "/natividade", to: "/natividade_prefeitura" },
+      { from: "/natividade-prefeitura", to: "/natividade_prefeitura" },
+    ].filter(
+      (item, index, self) =>
+        index === self.findIndex((t) => t.from === item.from),
+    );
+
+    const generatedPortalRedirects = portalRedirects.flatMap(({ from, to }) => [
+      {
+        source: from,
+        destination: to,
+        permanent: true,
+      },
+      {
+        source: `${from}/:path*`,
+        destination: `${to}/:path*`,
+        permanent: true,
+      },
+    ]);
+
     return [
+      ...generatedPortalRedirects,
       {
         source: "/:portalSlug/caprem",
         destination: "/:portalSlug/previdencia",

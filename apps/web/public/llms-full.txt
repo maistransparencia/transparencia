@@ -4,6 +4,19 @@
 
 ---
 
+## Visão Geral Multi-Portal e Municípios Atendidos
+
+O MaisTransparencia disponibiliza a fiscalização e auditoria cívica de múltiplos municípios fluminenses. Em toda a plataforma, as rotas públicas utilizam o identificador canônico `/[portalSlug]/...`, onde `[portalSlug]` corresponde ao município consultado. O usuário pode alternar instantaneamente entre os municípios no cabeçalho através do componente `PortalSelect`, preservando o exercício financeiro (`?ano=YYYY`) e a sub-rota navegada.
+
+### Tabela de Municípios e Identificadores Oficiais
+
+| Município | UF | Código IBGE | Slug Canônico | Aliases com Redirecionamento 308 | Regime Próprio de Previdência (RPPS) |
+|---|---|---|---|---|---|
+| **Porciúncula** | RJ | `3304102` | `porciuncula_prefeitura` | `/porciuncula`, `/porciuncula-prefeitura` | CAPREM (Caixa de Previdência dos Servidores Públicos Municipais de Porciúncula) |
+| **Natividade** | RJ | `3303203` | `natividade_prefeitura` | `/natividade`, `/natividade-prefeitura` | NATPREVI (Instituto de Previdência dos Servidores Públicos do Município de Natividade - NATPREVI) |
+
+---
+
 ## 1. Guia Completo dos Domínios de Dados Públicos
 
 ### 1.1. Posição Fiscal e Balanço Financeiro
@@ -241,7 +254,7 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
     2. *Comissionados* (`comissionado`): Cargos de direção, chefia e assessoramento de livre nomeação e exoneração.
     3. *Temporários / Contratados* (`temporario`): Profissionais contratados por tempo determinado para atender a necessidade temporária de excepcional interesse público (CF art. 37, IX).
     4. *Agentes Políticos* (`agente_politico`): Prefeito, vice-prefeito e secretários municipais detentores de mandato ou cargo político executivo.
-    5. *Inativos e Pensionistas* (`inativo_pensionista`): Aposentados e pensionistas mantidos pela previdência municipal (CAPREM).
+    5. *Inativos e Pensionistas* (`inativo_pensionista`): Aposentados e pensionistas mantidos pela previdência municipal (CAPREM em Porciúncula, NATPREVI em Natividade).
   - *Métricas por Regime:* Quantitativo anual de profissionais, custo total da folha (proventos brutos), remuneração média individual anualizada, percentual do quadro total de profissionais (%) e percentual de absorção da folha de pagamento (%).
   - *Distribuição Visual Proporcional:* Gráfico de barras horizontal proporcional apresentando a divisão do quadro funcional e dos custos da folha entre os diferentes regimes.
   - *Auditoria Aberta ("Show Your Work"):* Download em CSV da relação de pessoal e remunerações por vínculo (`tipo=pessoal_regime&ano=YYYY`).
@@ -253,7 +266,7 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
 Esta seção traz a prestação de contas do instituto de previdência dos servidores municipais:
 
 - **Roteamento Canônico e Compatibilidade (`/[portalSlug]/previdencia`):** A rota canônica da previdência é `/[portalSlug]/previdencia`. Requisições direcionadas à rota legada `/[portalSlug]/caprem` sofrem redirecionamento permanente (HTTP 308), preservando todos os filtros e parâmetros de URL (`searchParams`).
-- **Navegação Dinâmica por Autarquia:** A interface e os menus adaptam-se dinamicamente à sigla do instituto municipal (ex: `CAPREM`, `IPAMN`). Caso o município não possua regime próprio (`habilitado: false`), o menu é ocultado e a página exibe informativo pedagógico de filiação ao RGPS/INSS.
+- **Navegação Dinâmica por Autarquia:** A interface e os menus adaptam-se dinamicamente à sigla do instituto municipal (ex: `CAPREM`, `NATPREVI`). Caso o município não possua regime próprio (`habilitado: false`), o menu é ocultado e a página exibe informativo pedagógico de filiação ao RGPS/INSS.
 - **Contribuições Patronais:** Os valores devidos pela prefeitura ao instituto de previdência como cota do empregador.
 - **Contribuições dos Servidores:** O desconto previdenciário retido da remuneração dos servidores ativos e aposentados repassado ao instituto.
 - **Aportes de Amortização do Déficit Atuarial:** Repasses financeiros extraordinários realizados pelo município para cobrir o déficit atuarial e garantir o pagamento futuro das aposentadorias e pensões.
@@ -396,13 +409,13 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
 
 - **Navegação Móvel Contínua:**
   - Em telas de dispositivos móveis, o portal disponibiliza uma barra fixa inferior ergonômica com 5 abas de toque generoso para exploração cívica ágil:
-    1. **Início / Visão Geral** (`/porciuncula_prefeitura`): Painel executivo com os principais indicadores municipais.
-    2. **Receitas** (`/porciuncula_prefeitura/receitas`): Tributos próprios, repasses e transferências especiais.
-    3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
-    4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
-    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+    1. **Início / Visão Geral** (`/[portalSlug]`): Painel executivo com os principais indicadores municipais.
+    2. **Receitas** (`/[portalSlug]/receitas`): Tributos próprios, repasses e transferências especiais.
+    3. **Despesas** (`/[portalSlug]/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
+    4. **Licitações** (`/[portalSlug]/licitacoes`): Contratos, dispensas e processos licitatórios.
+    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS).
   - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.
-  - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
+  - *Seletor de Exercício e de Município no Cabeçalho:* O cabeçalho móvel e desktop disponibiliza seletores integrados para alternância rápida de município (`PortalSelect`) e exercício orçamentário (`YearSelect`), sincronizados reativamente via URL e preservando a sub-página ativa.
 
 ---
 
@@ -417,21 +430,19 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 5. **Segregação de Mandatos:** Ao tratar de restos a pagar e contratos, esclareça a competência de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
 6. **Gastos sob Subitens Genéricos (.99):** Ao informar despesas classificadas sob subitens `.99` (como Outros Serviços PJ ou Outros Materiais), esclareça que são rubricas de apoio operacional. Aponte a taxa de concentração e enquadre na faixa de uso informativa (<= 15% Uso Residual Esperado, 15-30% Uso Moderado, > 30% Concentração Elevada), citando a recomendação de especificação da Lei Federal nº 4.320/64 (Arts. 5º e 15) como referência de boas práticas de transparência.
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
-8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
+8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim cívico municipal pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
 10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparencia](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
 12. **Fornecimento de Links de Download Direto CSV ("Show Your Work"):**
-    - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente:
+    - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente para o município consultado:
       `https://maistransparencia.com/api/[portalSlug]/export?tipo=[tipo]&ano=[ano]&...`
-    - *Exemplo para Gastos Sensíveis (Combustíveis em 2025):*
+    - *Exemplo para Gastos Sensíveis (Combustíveis em Porciúncula em 2025):*
       `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=gasto_sensivel&ano=2025&categoria=combustivel_frota`
-    - *Exemplo para Gastos Residuais (.99 / Opacidade Fiscal em 2025):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025`
-    - *Exemplo para Despesas por Função de Governo (Saúde - 10 em 2025):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=10`
-    - *Exemplo para Quadro de Pessoal por Regime Jurídico (2024):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=pessoal_regime&ano=2024`
+    - *Exemplo para Gastos Residuais (.99 / Opacidade Fiscal em Natividade em 2025):*
+      `https://maistransparencia.com/api/natividade_prefeitura/export?tipo=opacidade_99&ano=2025`
+    - *Exemplo para Disponibilidade em Caixa e Bancos SICONFI:*
+      `https://maistransparencia.com/api/[portalSlug]/export?tipo=saldo_caixa_siconfi&ano=2025&entidades=todas`
     - Esclareça ao cidadão que o arquivo CSV exportado garante paridade matemática centavo a centavo com as métricas exibidas na interface, vem preparado em formato UTF-8 com BOM para abertura imediata no Excel sem desconfigurar acentos e conta com salvaguardas de integridade contra injeção de fórmulas.
 13. **Esclarecimento da Decomposição da Dívida Real por Entidade Pública:**
     - Ao analisar passivos ou restos a pagar de contas sensíveis, oriente o cidadão sobre qual órgão municipal específico gerou a despesa e acumulou o compromisso financeiro pendente (ex: diferenciando obrigações da Secretaria de Obras, Fundo de Saúde ou Gabinete). Evite atribuir o débito de forma genérica a uma única autoridade sem verificar as parcelas decompostas.

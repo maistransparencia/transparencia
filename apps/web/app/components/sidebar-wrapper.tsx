@@ -2,9 +2,12 @@
 
 import {
   type MultiSelectOption,
+  type PortalOption,
   type PrevidenciaNavConfig,
+  resolvePortalSlug,
   Sidebar,
 } from "@transparencia/ui";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
@@ -22,6 +25,7 @@ interface SidebarWrapperProps {
   brasaoAsset?: string;
   entidades?: MultiSelectOption[];
   portalSlug?: string;
+  portais?: PortalOption[];
   radarAlertsCountByYear?: Record<number, number>;
   radarAlertCount?: number;
   previdencia?: PrevidenciaNavConfig;
@@ -37,11 +41,15 @@ export function SidebarWrapper({
   brasaoAsset,
   entidades,
   portalSlug,
+  portais,
   radarAlertsCountByYear,
   radarAlertCount,
   previdencia,
 }: SidebarWrapperProps) {
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const currentYear = String(new Date().getFullYear());
   const [ano, setAno] = useQueryState(
     "ano",
@@ -56,11 +64,35 @@ export function SidebarWrapper({
     ? entidadesParam.split(",").filter(Boolean)
     : [];
 
+  const segments = (pathname || "").split("/").filter(Boolean);
+  const activePortalSlug = (() => {
+    if (segments.length > 0) {
+      const firstSegment = segments[0];
+      const match = portais?.find(
+        (p) =>
+          p.portalSlug === firstSegment ||
+          p.portalSlug === resolvePortalSlug(firstSegment),
+      );
+      if (match) return match.portalSlug;
+    }
+    return portalSlug || "porciuncula_prefeitura";
+  })();
+
+  const activePortal = portais?.find((p) => p.portalSlug === activePortalSlug);
+  const effectivePortalName = activePortal?.displayName || portalName;
+  const effectiveStateUF = activePortal?.uf || stateUF;
+  const effectiveAnoInicial = activePortal?.anoInicial ?? anoInicial;
+  const effectiveBrasaoAsset = activePortal?.brasaoAsset || brasaoAsset;
+  const effectivePrevidencia = activePortal?.previdencia ?? previdencia;
+  const effectivePortalTitle = effectivePortalName
+    ? `Contas da ${effectivePortalName}`
+    : portalTitle;
+
   const handleExerciceChange = (val: string) => {
     posthog.capture("year_filter_changed", {
       selected_year: val,
       previous_year: ano,
-      portal_slug: portalSlug,
+      portal_slug: activePortalSlug,
     });
     setAno(val);
   };
@@ -68,13 +100,61 @@ export function SidebarWrapper({
   const handleEntidadesChange = (ids: string[]) => {
     posthog.capture("entity_filter_changed", {
       selected_count: ids.length,
-      portal_slug: portalSlug,
+      portal_slug: activePortalSlug,
     });
     if (ids.length === 0) {
       setEntidadesParam(null);
     } else {
       setEntidadesParam(ids.join(","));
     }
+  };
+
+  const handlePortalChange = (newPortalSlug: string) => {
+    if (!newPortalSlug || newPortalSlug === activePortalSlug) return;
+    posthog.capture("portal_changed", {
+      from_portal: activePortalSlug,
+      to_portal: newPortalSlug,
+    });
+
+    const isStaticRootPage =
+      pathname === "/termos" ||
+      pathname === "/privacidade" ||
+      pathname?.startsWith("/termos") ||
+      pathname?.startsWith("/privacidade");
+
+    let newPath: string;
+
+    if (isStaticRootPage || segments.length === 0) {
+      newPath = `/${newPortalSlug}`;
+    } else {
+      const currentSegment = segments[0];
+      const isKnownPortal =
+        currentSegment === activePortalSlug ||
+        portais?.some((p) => p.portalSlug === currentSegment);
+
+      if (isKnownPortal) {
+        const isPrevidenciaSubroute =
+          segments[1] === "previdencia" || segments[1] === "caprem";
+        const targetPortal = portais?.find(
+          (p) => p.portalSlug === newPortalSlug,
+        );
+        if (
+          isPrevidenciaSubroute &&
+          targetPortal?.previdencia?.habilitado === false
+        ) {
+          newPath = `/${newPortalSlug}`;
+        } else {
+          segments[0] = newPortalSlug;
+          newPath = `/${segments.join("/")}`;
+        }
+      } else {
+        newPath = `/${newPortalSlug}`;
+      }
+    }
+
+    const queryYear = searchParams?.get("ano");
+    const targetUrl = queryYear ? `${newPath}?ano=${queryYear}` : newPath;
+    router.push(targetUrl);
   };
 
   const activeRadarAlertCount = (() => {
@@ -93,19 +173,21 @@ export function SidebarWrapper({
 
   return (
     <Sidebar
-      portalName={portalName}
-      stateUF={stateUF}
-      portalTitle={portalTitle}
-      anoInicial={anoInicial}
-      brasaoAsset={brasaoAsset}
+      portalName={effectivePortalName}
+      stateUF={effectiveStateUF}
+      portalTitle={effectivePortalTitle}
+      anoInicial={effectiveAnoInicial}
+      brasaoAsset={effectiveBrasaoAsset}
       entidades={entidades}
-      portalSlug={portalSlug}
+      portalSlug={activePortalSlug}
+      portais={portais}
+      onPortalChange={handlePortalChange}
       selectedExercice={ano}
       onExerciceChange={handleExerciceChange}
       selectedEntidades={selectedEntidades}
       onEntidadesChange={handleEntidadesChange}
       pushNotificationSlot={
-        <PushNotificationSettings portalSlug={portalSlug} />
+        <PushNotificationSettings portalSlug={activePortalSlug} />
       }
       pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
       mobileHeaderRightSlot={
@@ -120,7 +202,7 @@ export function SidebarWrapper({
       isMobileOpen={isMenuOpen}
       onMobileOpenChange={setIsMenuOpen}
       radarAlertCount={activeRadarAlertCount}
-      previdencia={previdencia}
+      previdencia={effectivePrevidencia}
     />
   );
 }

@@ -2,7 +2,7 @@
 -- Enriquecimento hierárquico de objetos: PNCP (1ª) -> Contrato local (2ª) -> TCE-RJ (3ª) -> Municipal (4ª).
 -- Para adicionar novo portal: incluir novo CTE + union all abaixo.
 
-with porciuncula_base as (
+with licitacoes_municipais as (
     select
         'porciuncula_prefeitura' as portal_slug,
         ano,
@@ -18,10 +18,29 @@ with porciuncula_base as (
         edital_numero,
         processo
     from {{ ref('stg_porciuncula_prefeitura__licitacoes') }}
+
+    union all
+
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        licitacao_numero,
+        modalidade,
+        objeto,
+        discriminacao,
+        valor,
+        situacao,
+        data_abertura,
+        carona,
+        edital_numero,
+        processo
+    from {{ ref('stg_natividade_prefeitura__licitacoes') }}
 ),
 
 contratos_dedup as (
     select
+        portal_slug,
         ano,
         empresa_id,
         licitacao_numero,
@@ -29,16 +48,17 @@ contratos_dedup as (
         objeto
     from (
         select
+            portal_slug,
             ano,
             empresa_id,
             licitacao_numero,
             objeto_completo,
             objeto,
             row_number() over (
-                partition by ano, empresa_id, licitacao_numero
+                partition by portal_slug, ano, empresa_id, licitacao_numero
                 order by length(coalesce(objeto_completo, objeto, '')) desc, contrato_numero asc
             ) as rn
-        from {{ ref('stg_porciuncula_prefeitura__contratos') }}
+        from {{ ref('int_contratos_consolidados') }}
         where licitacao_numero is not null
           and coalesce(objeto_completo, objeto) is not null
     ) sub
@@ -85,7 +105,7 @@ pncp_dedup as (
     where rn = 1
 ),
 
-porciuncula_enriched as (
+licitacoes_enriched as (
     select
         l.portal_slug,
         l.ano,
@@ -123,9 +143,10 @@ porciuncula_enriched as (
                 end asc,
                 length(coalesce(p.objeto_compra, c.objeto_completo, c.objeto, l.objeto, '')) desc
         ) as dedupe_rn
-    from porciuncula_base l
+    from licitacoes_municipais l
     left join contratos_dedup c
-        on c.ano = l.ano
+        on c.portal_slug = l.portal_slug
+       and c.ano = l.ano
        and c.empresa_id = l.empresa_id
        and (
            c.licitacao_numero = l.licitacao_numero
@@ -200,7 +221,7 @@ select
     carona,
     fonte_objeto,
     link_sistema_origem
-from porciuncula_enriched
+from licitacoes_enriched
 where dedupe_rn = 1
 
 union all

@@ -144,7 +144,7 @@ def main() -> None:
     args = parser.parse_args()
 
     portal = PortalConfig.load(args.portal)
-    mod = importlib.import_module(f"elt.extract.{portal.slug}.api_endpoints")
+    mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
     schema = portal.raw_schema
 

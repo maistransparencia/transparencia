@@ -1,9 +1,15 @@
 -- Intermediário: consolida pessoal de todos os portais via union all.
--- Para adicionar novo portal: incluir novo CTE + union all abaixo.
+-- Para adicionar novo portal: incluir novo select em pessoal_unificado abaixo.
 
-with porciuncula as (
+with pessoal_unificado as (
+    select 'porciuncula_prefeitura' as portal_slug, * from {{ ref('stg_porciuncula_prefeitura__pessoal') }}
+    union all
+    select 'natividade_prefeitura' as portal_slug, * from {{ ref('stg_natividade_prefeitura__pessoal') }}
+),
+
+classificado as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        portal_slug,
         ano,
         mes,
         empresa_id,
@@ -74,7 +80,9 @@ with porciuncula as (
             when {{ target.schema }}.unaccent(lower(coalesce(tipo_regime_raw, ''))) like '%proprio%'
                 or {{ target.schema }}.unaccent(lower(coalesce(tipo_regime_raw, ''))) like '%rpps%'
                 or {{ target.schema }}.unaccent(lower(coalesce(tipo_regime_raw, ''))) like '%caprem%'
+                or {{ target.schema }}.unaccent(lower(coalesce(tipo_regime_raw, ''))) like '%natprevi%'
                 or {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%caprem%'
+                or {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%natprevi%'
                 or {{ target.schema }}.unaccent(lower(coalesce(vinculo, ''))) like '%rpps%'
                 then 'rpps'
             when {{ target.schema }}.unaccent(lower(coalesce(tipo_regime_raw, ''))) like '%geral%'
@@ -83,7 +91,7 @@ with porciuncula as (
                 then 'rgps'
             else 'sem_regime'
         end as regime_previdenciario
-    from {{ ref('stg_porciuncula_prefeitura__pessoal') }}
+    from pessoal_unificado
 )
 
 select
@@ -99,4 +107,4 @@ select
     matricula,
     categoria_regime,
     regime_previdenciario
-from porciuncula
+from classificado

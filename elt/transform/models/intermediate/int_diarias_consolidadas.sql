@@ -14,6 +14,21 @@ with porciuncula as (
         unidade,
         descricao
     from {{ ref('stg_porciuncula_prefeitura__diarias') }}
+),
+
+natividade as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        diaria_id,
+        valor,
+        favorecido,
+        cargo,
+        data,
+        unidade,
+        descricao
+    from {{ ref('stg_natividade_prefeitura__diarias') }}
 )
 
 select
@@ -28,3 +43,18 @@ select
     unidade,
     descricao
 from porciuncula
+
+union all
+
+select
+    portal_slug,
+    ano,
+    empresa_id,
+    diaria_id,
+    valor,
+    favorecido,
+    cargo,
+    data,
+    unidade,
+    descricao
+from natividade
