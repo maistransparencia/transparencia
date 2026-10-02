@@ -6,8 +6,8 @@ from elt.extract import base
 from elt.extract.base import BaseExtractor
 
 
-class SigcorpExtractor(BaseExtractor):
-    """Extrator genérico para portais de transparência municipais baseados no sistema Sigcorp."""
+class FiorilliExtractor(BaseExtractor):
+    """Extrator genérico para portais de transparência municipais baseados no sistema Fiorilli."""
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class SigcorpExtractor(BaseExtractor):
         }
 
 
-class DespesasExtractor(SigcorpExtractor):
+class DespesasExtractor(FiorilliExtractor):
     def get_params(self, empresa_id: str, year: int) -> dict[str, Any]:
         params = super().get_params(empresa_id, year)
         if self.listagem == "DespesasporExigibilidade":
@@ -76,7 +76,7 @@ class DespesasExtractor(SigcorpExtractor):
         return params
 
 
-class ReceitasExtractor(SigcorpExtractor):
+class ReceitasExtractor(FiorilliExtractor):
     def extract(self, empresa_id: str, year: int) -> list[dict]:
         current_year = date.today().year
         if year != current_year:
@@ -91,11 +91,11 @@ class ReceitasExtractor(SigcorpExtractor):
         return super().extract(empresa_id, year)
 
 
-class LicitacoesExtractor(SigcorpExtractor):
+class LicitacoesExtractor(FiorilliExtractor):
     pass
 
 
-class EmendasExtractor(SigcorpExtractor):
+class EmendasExtractor(FiorilliExtractor):
     def get_params(self, empresa_id: str, year: int) -> dict[str, Any]:
         if self.listagem in ["EmendasImpositivasArt166A", "CadEmendasImpositivas"]:
             return {
@@ -108,11 +108,11 @@ class EmendasExtractor(SigcorpExtractor):
         return super().get_params(empresa_id, year)
 
 
-class TransferenciasExtractor(SigcorpExtractor):
+class TransferenciasExtractor(FiorilliExtractor):
     pass
 
 
-class PessoalExtractor(SigcorpExtractor):
+class PessoalExtractor(FiorilliExtractor):
     def build_url(self, empresa_id: str, year: int, mes: str = "01") -> str:
         params = {
             "ConectarExercicio": str(year),
@@ -157,3 +157,7 @@ class PessoalExtractor(SigcorpExtractor):
                 if year >= current_year:
                     break
         return all_rows
+
+
+# Alias retrocompatível
+SigcorpExtractor = FiorilliExtractor

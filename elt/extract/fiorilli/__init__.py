@@ -1,4 +1,4 @@
-from elt.extract.sigcorp.api_endpoints import (
+from elt.extract.fiorilli.api_endpoints import (
     ENDPOINT_NAMES,
     get_endpoint_configs,
     post_process_contratos,
@@ -13,9 +13,10 @@ from elt.extract.sigcorp.api_endpoints import (
     post_process_receita_orcamentaria,
     post_process_transferencias,
 )
-from elt.extract.sigcorp.extractor import (
+from elt.extract.fiorilli.extractor import (
     DespesasExtractor,
     EmendasExtractor,
+    FiorilliExtractor,
     LicitacoesExtractor,
     PessoalExtractor,
     ReceitasExtractor,
@@ -24,6 +25,7 @@ from elt.extract.sigcorp.extractor import (
 )
 
 __all__ = [
+    "FiorilliExtractor",
     "SigcorpExtractor",
     "DespesasExtractor",
     "ReceitasExtractor",

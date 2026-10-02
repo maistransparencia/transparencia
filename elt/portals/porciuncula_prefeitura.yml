@@ -8,5 +8,6 @@ cidade_clean: PORCIUNCULA
 ano_inicial: 2021
 empresa_padrao: "7"
 github_url: https://github.com/juliobetta/transparencia
+provider: fiorilli
 assets:
   brasao: assets/brasao-porciuncula.svg

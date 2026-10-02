@@ -39,10 +39,10 @@ def main() -> None:
         endpoints = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
     except ModuleNotFoundError:
         logger.info(
-            "Módulo de endpoints específico para %s não encontrado. Usando fallback genérico Sigcorp.",
+            "Módulo de endpoints específico para %s não encontrado. Usando fallback genérico Fiorilli.",
             portal.slug,
         )
-        from elt.extract.sigcorp.api_endpoints import get_endpoint_configs
+        from elt.extract.fiorilli.api_endpoints import get_endpoint_configs
 
         endpoints = get_endpoint_configs(
             base_url=portal.base_host,

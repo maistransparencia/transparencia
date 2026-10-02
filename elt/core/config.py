@@ -20,7 +20,7 @@ class PortalConfig:
     assets: dict[str, str]
     cod_ibge: int = 3304102
     github_url: str | None = None
-    provider: str = "sigcorp"
+    provider: str = "fiorilli"
     rpps: dict[str, Any] | None = None
 
     @property

@@ -8,7 +8,7 @@ cidade_clean: NATIVIDADE
 ano_inicial: 2021
 empresa_padrao: "1"
 github_url: https://github.com/juliobetta/transparencia
-provider: sigcorp
+provider: fiorilli
 rpps:
   sigla: IPAMN
   nome: Instituto de Previdência e Assistência dos Municipiários de Natividade

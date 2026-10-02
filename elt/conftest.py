@@ -65,8 +65,8 @@ def _create_raw_schema(eng) -> None:
 
 
 @pytest.fixture
-def sigcorp_synthetic_payload() -> dict[str, list[dict]]:
-    """Fixture sintética local para testes de extratores Sigcorp sem requisições à rede."""
+def fiorilli_synthetic_payload() -> dict[str, list[dict]]:
+    """Fixture sintética local para testes de extratores Fiorilli sem requisições à rede."""
     return {
         "DespesasPorOrgao": [
             {
@@ -167,17 +167,29 @@ def sigcorp_synthetic_payload() -> dict[str, list[dict]]:
 
 
 @pytest.fixture
-def mock_sigcorp_fetch(monkeypatch, sigcorp_synthetic_payload):
+def mock_fiorilli_fetch(monkeypatch, fiorilli_synthetic_payload):
     """Interceptador que impede qualquer chamada HTTP e retorna dados sintéticos locais."""
 
     def _fake_fetch(url: str) -> list[dict]:
-        for listagem, rows in sigcorp_synthetic_payload.items():
+        for listagem, rows in fiorilli_synthetic_payload.items():
             if f"Listagem={listagem}" in url or listagem.lower() in url.lower():
                 return [dict(r) for r in rows]
         return []
 
     monkeypatch.setattr("elt.extract.base.fetch", _fake_fetch)
     return _fake_fetch
+
+
+@pytest.fixture
+def sigcorp_synthetic_payload(fiorilli_synthetic_payload):
+    """Alias retrocompatível para fiorilli_synthetic_payload."""
+    return fiorilli_synthetic_payload
+
+
+@pytest.fixture
+def mock_sigcorp_fetch(mock_fiorilli_fetch):
+    """Alias retrocompatível para mock_fiorilli_fetch."""
+    return mock_fiorilli_fetch
 
 
 def _run_dbt(pg_url: str, *args: str) -> None:

@@ -5,8 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from elt.core.config import PortalConfig
 from elt.extract.base import EndpointConfig
-from elt.extract.porciuncula_prefeitura.extractor import PorciunculaExtractor
-from elt.extract.sigcorp.api_endpoints import (
+from elt.extract.fiorilli.api_endpoints import (
     ENDPOINT_NAMES,
     get_endpoint_configs,
     post_process_contratos,
@@ -21,15 +20,17 @@ from elt.extract.sigcorp.api_endpoints import (
     post_process_receita_orcamentaria,
     post_process_transferencias,
 )
-from elt.extract.sigcorp.extractor import (
+from elt.extract.fiorilli.extractor import (
     DespesasExtractor,
     EmendasExtractor,
+    FiorilliExtractor,
     LicitacoesExtractor,
     PessoalExtractor,
     ReceitasExtractor,
     SigcorpExtractor,
     TransferenciasExtractor,
 )
+from elt.extract.porciuncula_prefeitura.extractor import PorciunculaExtractor
 
 
 @pytest.fixture(autouse=True)
@@ -56,9 +57,9 @@ def test_network_blocker_triggers_on_external_attempt():
             s.connect(("8.8.8.8", 80))
 
 
-def test_sigcorp_extractor_dynamic_parametrization():
-    """Valida que SigcorpExtractor constrói URLs e parâmetros com host e slug específicos."""
-    extractor = SigcorpExtractor(
+def test_fiorilli_extractor_dynamic_parametrization():
+    """Valida que FiorilliExtractor constrói URLs e parâmetros com host e slug específicos."""
+    extractor = FiorilliExtractor(
         base_url="https://transparencia.natividade.rj.gov.br",
         portal_slug="natividade_prefeitura",
         base_path="/Transparencia/VersaoJson/Despesas/",
@@ -75,26 +76,26 @@ def test_sigcorp_extractor_dynamic_parametrization():
     assert "Filtro=Ativo" in url
 
 
-def test_sigcorp_extractor_validation_errors():
+def test_fiorilli_extractor_validation_errors():
     """Valida que parâmetros obrigatórios vazios disparam ValueError precocemente."""
     with pytest.raises(ValueError, match="base_url é obrigatório"):
-        SigcorpExtractor(base_url="", portal_slug="natividade_prefeitura")
+        FiorilliExtractor(base_url="", portal_slug="natividade_prefeitura")
 
     with pytest.raises(ValueError, match="base_url é obrigatório"):
-        SigcorpExtractor(base_url="   ", portal_slug="natividade_prefeitura")
+        FiorilliExtractor(base_url="   ", portal_slug="natividade_prefeitura")
 
     with pytest.raises(ValueError, match="portal_slug é obrigatório"):
-        SigcorpExtractor(base_url="https://transparencia.natividade.rj.gov.br", portal_slug="")
+        FiorilliExtractor(base_url="https://transparencia.natividade.rj.gov.br", portal_slug="")
 
     with pytest.raises(ValueError, match="base_path é obrigatório"):
-        SigcorpExtractor(
+        FiorilliExtractor(
             base_url="https://transparencia.natividade.rj.gov.br",
             portal_slug="natividade_prefeitura",
             base_path="",
         )
 
     with pytest.raises(ValueError, match="listagem é obrigatório"):
-        SigcorpExtractor(
+        FiorilliExtractor(
             base_url="https://transparencia.natividade.rj.gov.br",
             portal_slug="natividade_prefeitura",
             listagem="",
@@ -109,7 +110,7 @@ def test_portal_config_declarative_loading():
     assert cfg_nat.cod_ibge == 3303401
     assert cfg_nat.base_host == "https://transparencia.natividade.rj.gov.br"
     assert cfg_nat.empresa_padrao == "1"
-    assert cfg_nat.provider == "sigcorp"
+    assert cfg_nat.provider == "fiorilli"
     assert cfg_nat.rpps is not None
     assert cfg_nat.rpps.get("sigla") == "IPAMN"
     orgaos_nat = cfg_nat.load_orgaos()
@@ -122,7 +123,7 @@ def test_portal_config_declarative_loading():
     assert cfg_bj.cod_ibge == 3300605
     assert cfg_bj.base_host == "https://transparencia.bomjesus.rj.gov.br"
     assert cfg_bj.empresa_padrao == "1"
-    assert cfg_bj.provider == "sigcorp"
+    assert cfg_bj.provider == "fiorilli"
     assert cfg_bj.rpps is not None
     assert cfg_bj.rpps.get("sigla") == "FUNPREV"
     orgaos_bj = cfg_bj.load_orgaos()
@@ -133,7 +134,7 @@ def test_portal_config_declarative_loading():
     cfg_porc = PortalConfig.load("porciuncula_prefeitura")
     assert cfg_porc.slug == "porciuncula_prefeitura"
     assert cfg_porc.cod_ibge == 3304102
-    assert cfg_porc.provider == "sigcorp"
+    assert cfg_porc.provider == "fiorilli"
 
     # Inexistente
     with pytest.raises(FileNotFoundError):
@@ -205,7 +206,7 @@ def test_despesas_extractor_exigibilidade_params():
 
 
 def test_receitas_extractor_year_guard():
-    """Valida que ReceitasExtractor rejeita anos anteriores ao corrente por bug conhecido da API Sigcorp."""
+    """Valida que ReceitasExtractor rejeita anos anteriores ao corrente por bug conhecido da API Fiorilli."""
     extractor = ReceitasExtractor(
         base_path="/Transparencia/VersaoJson/Receitas/",
         listagem="ReceitaOrcamentaria",
@@ -308,6 +309,7 @@ def test_post_processors():
 
 def test_porciuncula_backward_compatibility():
     """Valida compatibilidade reversa total com PorciunculaExtractor."""
+    assert issubclass(PorciunculaExtractor, FiorilliExtractor)
     assert issubclass(PorciunculaExtractor, SigcorpExtractor)
 
     extractor = PorciunculaExtractor()
@@ -330,7 +332,7 @@ def test_get_endpoint_configs_factory():
     for cfg in configs:
         assert isinstance(cfg, EndpointConfig)
         assert cfg.base_url == "https://transparencia.natividade.rj.gov.br"
-        assert issubclass(cfg.extractor_cls, SigcorpExtractor)
+        assert issubclass(cfg.extractor_cls, FiorilliExtractor)
 
     table_names = {cfg.table for cfg in configs}
     assert "despesas_gerais" in table_names
@@ -369,18 +371,20 @@ def test_licitacoes_and_transferencias_extractors():
         base_url="https://transparencia.natividade.rj.gov.br",
         portal_slug="natividade_prefeitura",
     )
+    assert isinstance(lic, FiorilliExtractor)
     assert isinstance(lic, SigcorpExtractor)
 
     transf = TransferenciasExtractor(
         base_url="https://transparencia.bomjesus.rj.gov.br",
         portal_slug="bom_jesus_itabapoana_prefeitura",
     )
+    assert isinstance(transf, FiorilliExtractor)
     assert isinstance(transf, SigcorpExtractor)
     assert "DespesasGerais" in ENDPOINT_NAMES
 
 
-def test_extractors_with_mock_sigcorp_fetch(mock_sigcorp_fetch, sigcorp_synthetic_payload):
-    """Valida execução do método extract() contra a fixture sintética mock_sigcorp_fetch."""
+def test_extractors_with_mock_fiorilli_fetch(mock_fiorilli_fetch, fiorilli_synthetic_payload):
+    """Valida execução do método extract() contra a fixture sintética mock_fiorilli_fetch."""
     desp = DespesasExtractor(
         base_path="/Transparencia/VersaoJson/Despesas/",
         listagem="DespesasPorOrgao",
@@ -389,7 +393,7 @@ def test_extractors_with_mock_sigcorp_fetch(mock_sigcorp_fetch, sigcorp_syntheti
         portal_slug="natividade_prefeitura",
     )
     rows_desp = desp.extract(empresa_id="1", year=2024)
-    assert len(rows_desp) == len(sigcorp_synthetic_payload["DespesasPorOrgao"])
+    assert len(rows_desp) == len(fiorilli_synthetic_payload["DespesasPorOrgao"])
     assert rows_desp[0]["codigo"] == "01"
 
     lic = LicitacoesExtractor(
@@ -400,7 +404,7 @@ def test_extractors_with_mock_sigcorp_fetch(mock_sigcorp_fetch, sigcorp_syntheti
         portal_slug="bom_jesus_itabapoana_prefeitura",
     )
     rows_lic = lic.extract(empresa_id="1", year=2024)
-    assert len(rows_lic) == len(sigcorp_synthetic_payload["Licitacoes"])
+    assert len(rows_lic) == len(fiorilli_synthetic_payload["Licitacoes"])
     assert rows_lic[0]["numero"] == "001/2024"
 
     emendas = EmendasExtractor(
@@ -411,7 +415,7 @@ def test_extractors_with_mock_sigcorp_fetch(mock_sigcorp_fetch, sigcorp_syntheti
         portal_slug="natividade_prefeitura",
     )
     rows_emendas = emendas.extract(empresa_id="1", year=2024)
-    assert len(rows_emendas) == len(sigcorp_synthetic_payload["EmendasImpositivasArt166A"])
+    assert len(rows_emendas) == len(fiorilli_synthetic_payload["EmendasImpositivasArt166A"])
 
     transf = TransferenciasExtractor(
         base_path="/Transparencia/VersaoJson/Transferencias/",
@@ -421,11 +425,11 @@ def test_extractors_with_mock_sigcorp_fetch(mock_sigcorp_fetch, sigcorp_syntheti
         portal_slug="bom_jesus_itabapoana_prefeitura",
     )
     rows_transf = transf.extract(empresa_id="1", year=2024)
-    assert len(rows_transf) == len(sigcorp_synthetic_payload["Transf"])
+    assert len(rows_transf) == len(fiorilli_synthetic_payload["Transf"])
 
 
-def test_extract_run_cli_with_sigcorp_endpoint(tmp_path, monkeypatch):
-    """Valida execução da CLI elt.extract.run.main() com endpoint municipal Sigcorp."""
+def test_extract_run_cli_with_fiorilli_endpoint(tmp_path, monkeypatch):
+    """Valida execução da CLI elt.extract.run.main() com endpoint municipal Fiorilli."""
     from elt.extract import run as extract_run
 
     fake_payload = [{"ano": 2024, "empresa": "1", "codigo": "01", "empenhado": "500"}]

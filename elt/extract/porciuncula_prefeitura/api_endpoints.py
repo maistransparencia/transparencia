@@ -1,5 +1,5 @@
 from elt.core.config import PortalConfig
-from elt.extract.sigcorp.api_endpoints import (
+from elt.extract.fiorilli.api_endpoints import (
     get_endpoint_configs,
     post_process_contratos,
     post_process_despesas_extra_orcamentaria,
@@ -13,9 +13,10 @@ from elt.extract.sigcorp.api_endpoints import (
     post_process_receita_orcamentaria,
     post_process_transferencias,
 )
-from elt.extract.sigcorp.extractor import (
+from elt.extract.fiorilli.extractor import (
     DespesasExtractor,
     EmendasExtractor,
+    FiorilliExtractor,
     LicitacoesExtractor,
     PessoalExtractor,
     ReceitasExtractor,
@@ -48,6 +49,7 @@ ENDPOINT_CONFIGS = get_endpoint_configs(
 
 __all__ = [
     "ENDPOINT_CONFIGS",
+    "FiorilliExtractor",
     "SigcorpExtractor",
     "DespesasExtractor",
     "ReceitasExtractor",

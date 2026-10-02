@@ -1,11 +1,11 @@
 from typing import Any
 
 from elt.core.config import PortalConfig
-from elt.extract.sigcorp.extractor import SigcorpExtractor
+from elt.extract.fiorilli.extractor import FiorilliExtractor
 
 
-class PorciunculaExtractor(SigcorpExtractor):
-    """Alias retrocompatível para o extrator genérico Sigcorp."""
+class PorciunculaExtractor(FiorilliExtractor):
+    """Alias retrocompatível para o extrator genérico Fiorilli."""
 
     def __init__(
         self,

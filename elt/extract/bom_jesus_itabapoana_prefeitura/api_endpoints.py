@@ -1,5 +1,5 @@
 from elt.core.config import PortalConfig
-from elt.extract.sigcorp.api_endpoints import get_endpoint_configs
+from elt.extract.fiorilli.api_endpoints import get_endpoint_configs
 
 _portal = PortalConfig.load("bom_jesus_itabapoana_prefeitura")
 ENDPOINT_CONFIGS = get_endpoint_configs(

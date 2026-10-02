@@ -1,7 +1,7 @@
 from typing import Any
 
 from elt.extract.base import EndpointConfig
-from elt.extract.sigcorp.extractor import (
+from elt.extract.fiorilli.extractor import (
     DespesasExtractor,
     EmendasExtractor,
     LicitacoesExtractor,
