@@ -1,0 +1,16 @@
+slug: natividade_prefeitura
+display_name: Prefeitura de Natividade
+uf: RJ
+cod_ibge: 3303401
+portal_url: http://179.109.158.34:8079/transparencia/
+base_host: http://179.109.158.34:8079
+cidade_clean: NATIVIDADE
+ano_inicial: 2021
+empresa_padrao: "1"
+github_url: https://github.com/juliobetta/transparencia
+provider: fiorilli
+rpps:
+  sigla: IPAMN
+  nome: Instituto de Previdência e Assistência dos Municipiários de Natividade
+assets:
+  brasao: assets/brasao-natividade.svg

@@ -4,13 +4,14 @@ from elt.core import db
 def test_create_tables_creates_expected_tables(conn):
     from sqlalchemy import text
 
-    rows = conn.execute(
-        text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'raw_porciuncula_prefeitura'")
-    ).fetchall()
-    table_names = {r[0] for r in rows}
-    assert "despesas_por_orgao" in table_names
-    assert "licitacoes" in table_names
-    assert "pessoal" in table_names
+    for schema in ["raw_porciuncula_prefeitura", "raw_natividade_prefeitura", "raw_bom_jesus_itabapoana_prefeitura"]:
+        rows = conn.execute(
+            text(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema}'")
+        ).fetchall()
+        table_names = {r[0] for r in rows}
+        assert "despesas_por_orgao" in table_names
+        assert "licitacoes" in table_names
+        assert "pessoal" in table_names
 
 
 def test_upsert_inserts_rows(conn):

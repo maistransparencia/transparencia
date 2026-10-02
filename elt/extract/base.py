@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional
 from urllib.parse import urlencode
 
-from elt.core.scraper import fetch
-
 
 @dataclass
 class EndpointConfig:
@@ -17,6 +15,13 @@ class EndpointConfig:
     extractor_cls: Any
     base_url: str = ""
     post_process: Optional[Callable] = None
+    portal_slug: str = ""
+
+
+def fetch(url: str) -> list[dict]:
+    from elt.core.scraper import fetch as _fetch
+
+    return _fetch(url)
 
 
 class BaseExtractor(ABC):
