@@ -2,8 +2,8 @@ slug: natividade_prefeitura
 display_name: Prefeitura de Natividade
 uf: RJ
 cod_ibge: 3303401
-portal_url: https://transparencia.natividade.rj.gov.br/transparencia/
-base_host: https://transparencia.natividade.rj.gov.br
+portal_url: http://179.109.158.34:8079/transparencia/
+base_host: http://179.109.158.34:8079
 cidade_clean: NATIVIDADE
 ano_inicial: 2021
 empresa_padrao: "1"

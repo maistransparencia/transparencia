@@ -2,8 +2,8 @@ slug: bom_jesus_itabapoana_prefeitura
 display_name: Prefeitura de Bom Jesus do Itabapoana
 uf: RJ
 cod_ibge: 3300605
-portal_url: https://transparencia.bomjesus.rj.gov.br/transparencia/
-base_host: https://transparencia.bomjesus.rj.gov.br
+portal_url: http://transparencia.bomjesus.rj.gov.br:8079/transparencia/
+base_host: http://transparencia.bomjesus.rj.gov.br:8079
 cidade_clean: BOM JESUS DO ITABAPOANA
 ano_inicial: 2021
 empresa_padrao: "1"
