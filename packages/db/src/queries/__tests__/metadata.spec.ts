@@ -30,6 +30,7 @@ describe("metadata", () => {
       expect(config.previdencia.habilitado).toBe(true);
       expect(config.previdencia.sigla).toBe("CAPREM");
       expect(config.previdencia.nome).toContain("Porciúncula");
+      expect(config.previdencia.cnpj).toBe("01180031000134");
 
       // Highlights
       expect(Array.isArray(config.highlights)).toBe(true);
