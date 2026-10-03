@@ -230,7 +230,7 @@ export default async function SaudePage({
                   {concentracao.label}
                 </span>
                 <span
-                  className="font-medium font-mono text-[11px] text-slate-500"
+                  className="font-medium text-[11px] text-slate-500"
                   title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
                 >
                   Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}

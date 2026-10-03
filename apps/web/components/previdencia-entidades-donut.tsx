@@ -132,8 +132,3 @@ export function PrevidenciaEntidadesDonut({
     </div>
   );
 }
-
-// Aliases para compatibilidade retroativa
-export type EntityCapremItem = EntityPrevidenciaItem;
-export type CapremEntidadesDonutProps = PrevidenciaEntidadesDonutProps;
-export const CapremEntidadesDonut = PrevidenciaEntidadesDonut;

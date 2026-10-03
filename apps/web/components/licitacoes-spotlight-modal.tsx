@@ -406,7 +406,7 @@ export function LicitacoesSpotlightModal({
             Cancelar
           </button>
 
-          <kbd className="hidden rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium font-mono text-[10px] text-slate-400 sm:inline-block">
+          <kbd className="hidden rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-[10px] text-slate-400 sm:inline-block">
             ESC
           </kbd>
         </div>
@@ -804,16 +804,16 @@ export function LicitacoesSpotlightModal({
         <div className="flex items-center justify-center border-slate-100 border-t bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500 sm:justify-between">
           <div className="hidden items-center gap-3 sm:flex">
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">
                 ↑
               </kbd>
-              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">
                 ↓
               </kbd>{" "}
               para navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">
                 ↵
               </kbd>{" "}
               para selecionar

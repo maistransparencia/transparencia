@@ -49,12 +49,12 @@ resultados as (
 
 select
     {{ dbt_utils.generate_surrogate_key([
-        "'porciuncula_prefeitura'",
+        "coalesce(c.portal_slug, i.portal_slug, 'porciuncula_prefeitura')",
         "coalesce(i.ano_compra, c.ano_compra)",
         "coalesce(l.licitacao_numero, i.numero_compra, c.numero_compra, c.processo, lpad(coalesce(i.sequencial_compra, c.sequencial_compra)::text, 3, '0') || '/' || coalesce(i.ano_compra, c.ano_compra)::text, '')",
         "i.numero_item"
     ]) }} as item_id,
-    'porciuncula_prefeitura' as portal_slug,
+    coalesce(c.portal_slug, i.portal_slug, 'porciuncula_prefeitura') as portal_slug,
     coalesce(i.ano_compra, c.ano_compra)::integer as ano,
     coalesce(l.licitacao_numero, i.numero_compra, c.numero_compra, c.processo, lpad(coalesce(i.sequencial_compra, c.sequencial_compra)::text, 3, '0') || '/' || coalesce(i.ano_compra, c.ano_compra)::text) as licitacao_numero,
     i.numero_item::integer as numero_item,
@@ -77,7 +77,8 @@ from itens i
 left join compras c
     on c.numero_controle_pncp = i.numero_controle_pncp
 left join licitacoes_municipais l
-    on l.ano = coalesce(i.ano_compra, c.ano_compra)
+    on l.portal_slug = coalesce(c.portal_slug, i.portal_slug)
+   and l.ano = coalesce(i.ano_compra, c.ano_compra)
    and l.sequencial_compra = coalesce(i.sequencial_compra, c.sequencial_compra)
 left join resultados r
     on r.numero_controle_pncp = i.numero_controle_pncp

@@ -1,6 +1,8 @@
 "use client";
 
+import { type PortalOption, resolvePortalSlug } from "@transparencia/ui";
 import { Megaphone } from "lucide-react";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
@@ -8,6 +10,7 @@ interface ExtractionNotificationBannerProps {
   lastExtractionDate?: string;
   portalName?: string;
   portalSlug?: string;
+  portais?: PortalOption[];
 }
 
 function safeGetLocalStorage(key: string): string | null {
@@ -58,42 +61,63 @@ function formatDateBR(dateStr?: string): string {
 export function ExtractionNotificationBanner({
   lastExtractionDate,
   portalName = "Prefeitura de Porciúncula",
+  portalSlug = "porciuncula_prefeitura",
+  portais,
 }: ExtractionNotificationBannerProps) {
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const pathname = usePathname();
+
+  const segments = (pathname || "").split("/").filter(Boolean);
+  const activePortal = (() => {
+    if (segments.length > 0) {
+      const first = segments[0];
+      return portais?.find(
+        (p) =>
+          p.portalSlug === first || p.portalSlug === resolvePortalSlug(first),
+      );
+    }
+    return undefined;
+  })();
+
+  const effectivePortalName = activePortal?.displayName || portalName;
+  const effectivePortalSlug = activePortal?.portalSlug || portalSlug;
+  const effectiveExtractionDate =
+    activePortal?.dataExtracao || lastExtractionDate;
+
+  const storageKey =
+    effectivePortalSlug && effectivePortalSlug !== "porciuncula_prefeitura"
+      ? `last_seen_extraction_${effectivePortalSlug}`
+      : "last_seen_extraction";
 
   useEffect(() => {
-    if (!lastExtractionDate || typeof window === "undefined") return;
+    if (!effectiveExtractionDate || typeof window === "undefined") return;
 
-    const storedExtractionDate = safeGetLocalStorage("last_seen_extraction");
+    const storedExtractionDate = safeGetLocalStorage(storageKey);
 
-    // No primeiro acesso (quando o usuário nunca viu o portal antes),
-    // salva silenciosamente a data atual sem poluir a tela com aviso de "novos dados"
     if (!storedExtractionDate) {
-      safeSetLocalStorage("last_seen_extraction", lastExtractionDate);
+      safeSetLocalStorage(storageKey, effectiveExtractionDate);
       return;
     }
 
-    // Em visitas futuras, se a data de extração for diferente da última registrada, exibe o aviso
-    if (storedExtractionDate !== lastExtractionDate) {
+    if (storedExtractionDate !== effectiveExtractionDate) {
       setShowNotificationBanner(true);
 
       posthog.capture("extraction_banner_viewed", {
-        last_extraction_date: lastExtractionDate,
-        portal_name: portalName,
+        last_extraction_date: effectiveExtractionDate,
+        portal_name: effectivePortalName,
       });
 
-      const formattedDate = formatDateBR(lastExtractionDate);
+      const formattedDate = formatDateBR(effectiveExtractionDate);
 
-      // Dispara notificação nativa com segurança via Service Worker se a permissão já estiver concedida
       if ("Notification" in window && Notification.permission === "granted") {
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready
             .then((registration) => {
               registration.showNotification("Novos Dados Fiscais Publicados", {
-                body: `Novos dados de contas públicas foram carregados para ${portalName}. Data de extração: ${formattedDate}`,
+                body: `Novos dados de contas públicas foram carregados para ${effectivePortalName}. Data de extração: ${formattedDate}`,
                 icon: "/favicon-192.png",
                 badge: "/favicon-192.png",
-                data: { url: "/" },
+                data: { url: `/${effectivePortalSlug}` },
               });
             })
             .catch(() => {
@@ -102,22 +126,27 @@ export function ExtractionNotificationBanner({
         }
       }
     }
-  }, [lastExtractionDate, portalName]);
+  }, [
+    effectiveExtractionDate,
+    effectivePortalName,
+    effectivePortalSlug,
+    storageKey,
+  ]);
 
   const handleDismiss = () => {
     posthog.capture("extraction_banner_dismissed", {
-      last_extraction_date: lastExtractionDate,
-      portal_name: portalName,
+      last_extraction_date: effectiveExtractionDate,
+      portal_name: effectivePortalName,
     });
-    if (lastExtractionDate) {
-      safeSetLocalStorage("last_seen_extraction", lastExtractionDate);
+    if (effectiveExtractionDate) {
+      safeSetLocalStorage(storageKey, effectiveExtractionDate);
     }
     setShowNotificationBanner(false);
   };
 
   if (!showNotificationBanner) return null;
 
-  const formattedDate = formatDateBR(lastExtractionDate);
+  const formattedDate = formatDateBR(effectiveExtractionDate);
 
   return (
     <aside
@@ -133,7 +162,9 @@ export function ExtractionNotificationBanner({
           <p className="leading-snug">
             <strong>Novos dados disponíveis!</strong> A última extração de
             contas públicas de{" "}
-            <span className="font-semibold text-blue-700">{portalName}</span>{" "}
+            <span className="font-semibold text-blue-700">
+              {effectivePortalName}
+            </span>{" "}
             foi atualizada ({formattedDate}).
           </p>
           <div className="flex justify-end">

@@ -240,10 +240,8 @@ export async function getPrevidenciaNaturezaMetrics(
         elemento === "13" ||
         fornecedor.toLowerCase().includes("caprem") ||
         descText.toLowerCase().includes("caprem") ||
-        fornecedor.toLowerCase().includes("ipamn") ||
-        descText.toLowerCase().includes("ipamn") ||
-        fornecedor.toLowerCase().includes("funprev") ||
-        descText.toLowerCase().includes("funprev") ||
+        fornecedor.toLowerCase().includes("natprevi") ||
+        descText.toLowerCase().includes("natprev") ||
         fornecedor.toLowerCase().includes("rpps") ||
         descText.toLowerCase().includes("rpps")
       ) {

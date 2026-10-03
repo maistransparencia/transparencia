@@ -31,8 +31,7 @@ export default function GlobalError({
           </p>
           {error.digest && (
             <p className="text-mutedText text-xs">
-              Código de referência:{" "}
-              <span className="font-mono">{error.digest}</span>
+              Código de referência: <span>{error.digest}</span>
             </p>
           )}
           <button

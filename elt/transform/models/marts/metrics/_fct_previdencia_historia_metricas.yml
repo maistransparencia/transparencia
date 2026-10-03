@@ -155,8 +155,8 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento: "13", fornecedor_nome: "INSS RECEITA FEDERAL", natureza_despesa: "INSS GERAL", descricao: "INSS FOLHA DIVERSA", fornecedor_cpf_cnpj: "00.000.000/0001-00", empenhado_liquido: 500000.00, liquidado: 500000.00, pago: 500000.00, tipo_empenho: "OR", fonte: "exercicio" }
       - input: ref('fct_pessoal')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, categoria_funcional: "Efetivo Estatutario" }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, categoria_funcional: "Comissionado" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, categoria_regime: "efetivo_concurso" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, categoria_regime: "comissionado" }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, total_aporte_exigido: 100000.00, total_aporte_quitado: 80000.00, taxa_adimplencia_aporte: 80.0000, total_empenhado_patronal: 90000.00, total_liquidado_patronal: 50000.00, total_pago_patronal: 30000.00, rombo_patronal_nao_repassado: 20000.00, total_amortizacao_divida: 20000.00, total_casp_plano_saude: 0.00, total_empenhado: 710000.00, total_liquidado: 670000.00, total_pago: 630000.00, servidores_efetivos: 1, servidores_temporarios: 1 }

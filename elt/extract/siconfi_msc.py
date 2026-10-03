@@ -272,10 +272,16 @@ def ensure_siconfi_table(engine: Connectable, schema: str = "raw_porciuncula_pre
         engine.execute(text(ddl))
 
 
-def load_siconfi_msc(db: Connectable, rows: list[dict[str, Any]]) -> int:
+def load_siconfi_msc(
+    db: Connectable,
+    rows: list[dict[str, Any]],
+    schema: str | None = None,
+) -> int:
     """Insere ou atualiza os registros de MSC Patrimonial na tabela raw_<portal>.siconfi_msc_patrimonial."""
     if not rows:
         return 0
+    if schema:
+        return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS, schema=schema)
     return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS)
 
 

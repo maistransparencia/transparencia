@@ -23,6 +23,7 @@ export interface PrevidenciaPatrimonioHistoricoPonto {
   variacaoPatrimonioAbs: number | null;
   variacaoPatrimonioPct: number | null;
   quebraSerieFlag: boolean;
+  anoInconsistenciaAnterior?: number | null;
 }
 
 export interface PrevidenciaPatrimonioHistoricoDiagnostico {
@@ -189,6 +190,9 @@ export function buildPrevidenciaViewModel(raw: PrevidenciaRawData) {
           ? null
           : (t.variacaoPatrimonioPct ?? null),
         quebraSerieFlag: isAfterInconsistent,
+        anoInconsistenciaAnterior: isAfterInconsistent
+          ? (prev?.ano ?? null)
+          : null,
       };
     },
   );

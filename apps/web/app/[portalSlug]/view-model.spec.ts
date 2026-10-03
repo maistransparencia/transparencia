@@ -462,7 +462,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
     });
     expect(card.textoFactual).toContain(
-      "não repassadas tempestivamente ao RPPS/CAPREM",
+      "não repassadas tempestivamente ao RPPS",
     );
   });
 

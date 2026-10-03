@@ -17,8 +17,6 @@ with cadprev_despesas as (
         and (
             lower(unaccent(d.fornecedor_nome)) ilike '%caprem%'
             or lower(unaccent(d.fornecedor_nome)) ilike '%natprevi%'
-            or lower(unaccent(d.fornecedor_nome)) ilike '%ipamn%'
-            or lower(unaccent(d.fornecedor_nome)) ilike '%funprev%'
             or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
             or lower(unaccent(d.descricao)) ilike '%cadprev%'
         )

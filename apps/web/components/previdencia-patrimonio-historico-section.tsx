@@ -115,7 +115,9 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
       )}
       {ponto.quebraSerieFlag && (
         <p className="mt-1 rounded bg-slate-100 p-1.5 text-[10px] text-slate-600 leading-tight">
-          Série normalizada após omissão contábil de 2022.
+          {ponto.anoInconsistenciaAnterior
+            ? `Série normalizada após omissão contábil de ${ponto.anoInconsistenciaAnterior}.`
+            : "Série normalizada após omissão contábil anterior."}
         </p>
       )}
     </div>
@@ -160,6 +162,9 @@ function renderNotaMetodologica(p: PrevidenciaPatrimonioHistoricoPonto) {
     );
   }
   if (p.quebraSerieFlag) {
+    const textoQuebra = p.anoInconsistenciaAnterior
+      ? `Série normalizada após omissão contábil de ${p.anoInconsistenciaAnterior}`
+      : "Série normalizada após omissão contábil anterior";
     return (
       <div className="flex flex-col items-start gap-1 py-0.5">
         <Badge
@@ -169,7 +174,7 @@ function renderNotaMetodologica(p: PrevidenciaPatrimonioHistoricoPonto) {
           Quebra de Série Metodológica
         </Badge>
         <span className="text-[11px] text-slate-600 leading-snug">
-          Série normalizada após omissão contábil de 2022
+          {textoQuebra}
         </span>
       </div>
     );
@@ -207,6 +212,35 @@ export function PrevidenciaPatrimonioHistoricoSection({
   }));
 
   const diagnostico = resumo.diagnostico;
+
+  const anosComInconsistencia = serie
+    .filter((p) => p.inconsistenciaDeclaracaoFlag)
+    .map((p) => p.ano);
+  const anosComQuebra = serie
+    .filter((p) => p.quebraSerieFlag)
+    .map((p) => p.ano);
+  const temInconsistenciaNaSerie =
+    anosComInconsistencia.length > 0 || anosComQuebra.length > 0;
+
+  const anosInconsistenciaTexto = (() => {
+    if (anosComInconsistencia.length === 1) {
+      return `No exercício de ${anosComInconsistencia[0]}`;
+    }
+    if (anosComInconsistencia.length > 1) {
+      return `Nos exercícios de ${anosComInconsistencia.join(", ")}`;
+    }
+    return "Em exercícios anteriores";
+  })();
+
+  const anosQuebraTexto = (() => {
+    if (anosComQuebra.length === 1) {
+      return `em ${anosComQuebra[0]}`;
+    }
+    if (anosComQuebra.length > 1) {
+      return `nos exercícios de ${anosComQuebra.join(", ")}`;
+    }
+    return "no exercício subsequente";
+  })();
 
   return (
     <section
@@ -479,7 +513,9 @@ export function PrevidenciaPatrimonioHistoricoSection({
                             Quebra de Série Metodológica
                           </Badge>
                           <span className="text-slate-700 leading-snug">
-                            Série normalizada após omissão contábil de 2022.
+                            {p.anoInconsistenciaAnterior
+                              ? `Série normalizada após omissão contábil de ${p.anoInconsistenciaAnterior}.`
+                              : "Série normalizada após omissão contábil anterior."}
                           </span>
                         </div>
                       )}
@@ -492,53 +528,57 @@ export function PrevidenciaPatrimonioHistoricoSection({
         </div>
 
         {/* Mini-Banner Informativo de Transparência Metodológica */}
-        <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-slate-700 text-xs">
-          <Info
-            className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
-            aria-hidden="true"
-          />
-          <div className="space-y-1">
-            <p className="font-semibold text-slate-900">
-              Transparência Metodológica e Integridade da Matriz de Saldos
-              Contábeis (SICONFI / STN)
-            </p>
-            <p className="text-slate-600 leading-relaxed">
-              O patrimônio financeiro da previdência consolida a disponibilidade
-              em caixa estrita somada às aplicações financeiras declaradas pelo
-              ente no SICONFI. No exercício de 2022, a remessa da MSC omitiu a
-              carteira de investimentos do fundo, gerando aparente retração
-              abrupta e consequente quebra de série metodológica em 2023. O
-              portal mantém os dados factuais públicos, assinalando a omissão e
-              suprimindo variações artificiais superiores a +6.000% para não
-              distorcer a percepção cidadã.
-            </p>
-            <div className="pt-1">
-              <a
-                href="https://siconfi.tesouro.gov.br/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-blue-700 underline hover:text-blue-900"
-              >
-                <span>
-                  Acessar portal SICONFI / Secretaria do Tesouro Nacional
-                </span>
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                <span className="sr-only">(abre em nova aba)</span>
-              </a>
+        {temInconsistenciaNaSerie && (
+          <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-slate-700 text-xs">
+            <Info
+              className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
+              aria-hidden="true"
+            />
+            <div className="space-y-1">
+              <p className="font-semibold text-slate-900">
+                Transparência Metodológica e Integridade da Matriz de Saldos
+                Contábeis (SICONFI / STN)
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                O patrimônio financeiro da previdência consolida a
+                disponibilidade em caixa estrita somada às aplicações
+                financeiras declaradas pelo ente no SICONFI.{" "}
+                {anosInconsistenciaTexto}, a remessa da MSC omitiu a carteira de
+                investimentos do fundo, gerando aparente retração abrupta e
+                consequente quebra de série metodológica {anosQuebraTexto}. O
+                portal mantém os dados factuais públicos, assinalando a omissão
+                e suprimindo variações percentuais distorcidas para não
+                comprometer a análise da série histórica.
+              </p>
+              <div className="pt-1">
+                <a
+                  href="https://siconfi.tesouro.gov.br/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-blue-700 underline hover:text-blue-900"
+                >
+                  <span>
+                    Acessar portal SICONFI / Secretaria do Tesouro Nacional
+                  </span>
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  <span className="sr-only">(abre em nova aba)</span>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Grid de Diagnóstico Estrutural das Três Causas */}
       <div className="space-y-4 pt-2">
         <div>
           <h3 className="font-bold font-serif text-lg text-slate-900">
-            Diagnóstico das Causas Estruturais da Desidratação Patrimonial
+            Diagnóstico de Sustentabilidade e Riscos Estruturais do RPPS
           </h3>
           <p className="text-subtleText text-xs">
-            Fatores técnicos e contábeis que explicam o consumo acelerado das
-            reservas financeiras e o déficit atuarial da previdência municipal:
+            Indicadores contábeis e demográficos que impactam a liquidez
+            corrente, a base contributiva e o equilíbrio atuarial do fundo
+            municipal:
           </p>
         </div>
 

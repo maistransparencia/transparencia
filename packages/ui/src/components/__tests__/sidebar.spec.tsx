@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Sidebar } from "../sidebar";
 
@@ -83,20 +83,20 @@ describe("Sidebar Component", () => {
     render(
       <Sidebar
         portalName="Natividade"
-        portalSlug="natividade"
+        portalSlug="natividade_prefeitura"
         previdencia={{
           habilitado: true,
-          sigla: "IPAMN",
-          nome: "Instituto de Previdência de Natividade",
+          sigla: "NATPREVI",
+          nome: "Instituto de Previdência de Natividade - NATPREVI",
         }}
       />,
     );
 
-    const prevLink = screen.getByRole("link", { name: /IPAMN/i });
+    const prevLink = screen.getByRole("link", { name: /NATPREVI/i });
     expect(prevLink).toBeInTheDocument();
     expect(prevLink).toHaveAttribute(
       "href",
-      expect.stringContaining("/natividade/previdencia"),
+      expect.stringContaining("/natividade_prefeitura/previdencia"),
     );
   });
 
@@ -118,5 +118,45 @@ describe("Sidebar Component", () => {
     expect(
       screen.queryByRole("link", { name: /previdência/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("renderiza o seletor de municípios e dispara onPortalChange ao selecionar novo portal", () => {
+    const onPortalChange = vi.fn();
+    const mockPortais = [
+      {
+        portalSlug: "porciuncula_prefeitura",
+        displayName: "Porciúncula",
+        uf: "RJ",
+      },
+      {
+        portalSlug: "natividade_prefeitura",
+        displayName: "Natividade",
+        uf: "RJ",
+      },
+      {
+        portalSlug: "sao_fidelis_prefeitura",
+        displayName: "São Fidélis",
+        uf: "RJ",
+      },
+    ];
+
+    render(
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        portais={mockPortais}
+        onPortalChange={onPortalChange}
+      />,
+    );
+
+    const selectors = screen.getAllByLabelText(/selecionar município/i);
+    expect(selectors.length).toBeGreaterThan(0);
+
+    const desktopSelect = selectors[0];
+    fireEvent.change(desktopSelect, {
+      target: { value: "natividade_prefeitura" },
+    });
+
+    expect(onPortalChange).toHaveBeenCalledWith("natividade_prefeitura");
   });
 });

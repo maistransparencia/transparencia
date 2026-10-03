@@ -23,6 +23,7 @@ select
     p.previdencia_sigla,
     p.previdencia_nome,
     p.highlights_json,
+    p.cod_ibge,
     coalesce(m.value, current_date) as data_extracao
 from portais p
 left join max_extracao m on p.portal_slug = m.portal_slug

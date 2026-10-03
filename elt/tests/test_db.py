@@ -4,7 +4,10 @@ from elt.core import db
 def test_create_tables_creates_expected_tables(conn):
     from sqlalchemy import text
 
-    for schema in ["raw_porciuncula_prefeitura", "raw_natividade_prefeitura", "raw_bom_jesus_itabapoana_prefeitura"]:
+    for schema in [
+        "raw_porciuncula_prefeitura",
+        "raw_natividade_prefeitura",
+    ]:
         rows = conn.execute(
             text(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema}'")
         ).fetchall()

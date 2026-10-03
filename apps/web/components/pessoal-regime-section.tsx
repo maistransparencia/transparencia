@@ -137,7 +137,7 @@ export function PessoalRegimeSection({
           header: "Matrícula",
           accessorKey: "matricula",
           sortable: true,
-          className: "whitespace-nowrap font-mono text-xs text-slate-500",
+          className: "whitespace-nowrap text-xs text-slate-500",
           renderCell: (row) => row.matricula || "—",
         },
         {
@@ -221,7 +221,7 @@ export function PessoalRegimeSection({
                 {row.cargo || "Cargo não informado"}
               </span>
               {row.matricula && (
-                <span className="ml-1.5 font-mono text-[11px] text-slate-400">
+                <span className="ml-1.5 text-[11px] text-slate-400">
                   #{row.matricula}
                 </span>
               )}

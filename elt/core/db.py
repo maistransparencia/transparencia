@@ -30,15 +30,15 @@ def create_tables(engine: Engine) -> None:
     pass  # tabelas raw criadas dinamicamente pelo elt/load; noop mantido para compatibilidade
 
 
-def _get_table(db: Connectable, table_name: str) -> Table:
+def _get_table(db: Connectable, table_name: str, schema: str | None = None) -> Table:
     engine = db.engine if isinstance(db, Connection) else db
-    schema = PortalConfig.load().raw_schema
-    key = (str(engine.url), f"{schema}.{table_name}")
+    target_schema = schema or PortalConfig.load().raw_schema
+    key = (str(engine.url), f"{target_schema}.{table_name}")
     if key not in _table_cache:
         meta = MetaData()
         with engine.connect() as conn:
-            meta.reflect(bind=conn, schema=schema, only=[table_name])
-        _table_cache[key] = meta.tables[f"{schema}.{table_name}"]
+            meta.reflect(bind=conn, schema=target_schema, only=[table_name])
+        _table_cache[key] = meta.tables[f"{target_schema}.{table_name}"]
     return _table_cache[key]
 
 
@@ -52,10 +52,16 @@ def _execute(db: Connectable, stmt, params=None):
         return db.execute(stmt, params or {})
 
 
-def upsert(db: Connectable, table_name: str, rows: list[dict], key_cols: list[str]) -> int:
+def upsert(
+    db: Connectable,
+    table_name: str,
+    rows: list[dict],
+    key_cols: list[str],
+    schema: str | None = None,
+) -> int:
     if not rows:
         return 0
-    table = _get_table(db, table_name)
+    table = _get_table(db, table_name, schema=schema)
     valid_cols = {col.name for col in table.columns}
     filtered = [{k: v for k, v in r.items() if k in valid_cols} for r in rows]
     filtered = [r for r in filtered if r and all(r.get(k) is not None for k in key_cols)]
