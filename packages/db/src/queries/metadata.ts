@@ -5,6 +5,7 @@ export interface PrevidenciaConfig {
   habilitado: boolean;
   sigla: string;
   nome: string;
+  cnpj?: string;
 }
 
 export interface HighlightItem {
@@ -64,6 +65,7 @@ const FALLBACK_PORCIUNCULA: PortalConfig = {
     habilitado: true,
     sigla: "CAPREM",
     nome: "Caixa de Aposentadoria e Pensões dos Servidores Públicos de Porciúncula",
+    cnpj: "01180031000134",
   },
   highlights: [
     {
@@ -129,6 +131,7 @@ function parseRowToPortalConfig(row: Record<string, unknown>): PortalConfig {
     habilitado: previdenciaHabilitado,
     sigla: String(row.previdencia_sigla || ""),
     nome: String(row.previdencia_nome || ""),
+    cnpj: row.previdencia_cnpj ? String(row.previdencia_cnpj) : undefined,
   };
 
   const highlights: HighlightItem[] = (() => {

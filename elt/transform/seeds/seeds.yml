@@ -55,6 +55,7 @@ seeds:
         previdencia_habilitado: boolean
         previdencia_sigla: text
         previdencia_nome: text
+        previdencia_cnpj: text
         highlights_json: text
         cod_ibge: integer
 

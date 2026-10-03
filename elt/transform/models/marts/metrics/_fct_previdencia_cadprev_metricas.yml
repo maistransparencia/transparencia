@@ -62,6 +62,9 @@ unit_tests:
     description: "Valida que apenas lançamentos da previdência (fornecedor ou descrição com CADPREV) são incluídos, excluindo outras despesas de Elemento 71 não relacionadas (ex: multa de INSS à Receita Federal)"
     model: fct_previdencia_cadprev_metricas
     given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", previdencia_sigla: "CAPREM", previdencia_cnpj: "01180031000134" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empenho_id: "E-200", elemento: "71", fornecedor_nome: "CAPREM-CAIXA DE PREVIDENCIA MUNICIPAL", descricao: "PAGAMENTO REFERENTE AO ACORDO DE PARCELAMENTO (CADPREV Nº01065/2025)", data_empenho: "2025-05-04", empenhado_liquido: 100000.00, liquidado: 50000.00, pago: 50000.00, tipo_empenho: "ES", fonte: "exercicio" }

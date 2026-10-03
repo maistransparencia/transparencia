@@ -181,6 +181,11 @@ export function MobileBottomNav({
   const activeIndex = resolveActiveTabIndex(pathname, activePortalSlug);
   const isMoreActive = activeIndex === PRIMARY_NAV_TABS.length || isMenuOpen;
 
+  const isRootPage = !pathname || pathname === "/";
+  if (isRootPage) {
+    return null;
+  }
+
   return (
     <nav
       aria-label="Navegação móvel"

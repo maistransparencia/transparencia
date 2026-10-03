@@ -68,7 +68,12 @@ export function ExtractionNotificationBanner({
   const pathname = usePathname();
 
   const segments = (pathname || "").split("/").filter(Boolean);
+  const isRootPage = !pathname || pathname === "/";
+
   const activePortal = (() => {
+    if (isRootPage) {
+      return undefined;
+    }
     if (segments.length > 0) {
       const first = segments[0];
       return portais?.find(
@@ -90,7 +95,13 @@ export function ExtractionNotificationBanner({
       : "last_seen_extraction";
 
   useEffect(() => {
-    if (!effectiveExtractionDate || typeof window === "undefined") return;
+    if (
+      isRootPage ||
+      !effectiveExtractionDate ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
 
     const storedExtractionDate = safeGetLocalStorage(storageKey);
 
@@ -127,6 +138,7 @@ export function ExtractionNotificationBanner({
       }
     }
   }, [
+    isRootPage,
     effectiveExtractionDate,
     effectivePortalName,
     effectivePortalSlug,
@@ -144,7 +156,9 @@ export function ExtractionNotificationBanner({
     setShowNotificationBanner(false);
   };
 
-  if (!showNotificationBanner) return null;
+  if (isRootPage || !showNotificationBanner || !effectiveExtractionDate) {
+    return null;
+  }
 
   const formattedDate = formatDateBR(effectiveExtractionDate);
 

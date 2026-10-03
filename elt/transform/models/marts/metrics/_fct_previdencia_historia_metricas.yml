@@ -142,6 +142,9 @@ unit_tests:
     description: "Valida se aportes atuariais, adimplência e rombo patronal são calculados corretamente para fonte exercicio e previdência municipal"
     model: fct_previdencia_historia_metricas
     given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", previdencia_sigla: "CAPREM", previdencia_cnpj: "01180031000134" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, elemento: "97", fornecedor_nome: "CAPREM", natureza_despesa: "APORTE ATUARIAL", descricao: "COBERTURA DEFICIT ATUARIAL", fornecedor_cpf_cnpj: "07.573.075/0001-00", empenhado_liquido: 100000.00, liquidado: 100000.00, pago: 80000.00, tipo_empenho: "OR", fonte: "exercicio" }

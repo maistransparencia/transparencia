@@ -1,114 +1,91 @@
 {{ config(materialized='table') }}
 
-with despesas_previdencia as (
+with portais as (
+    select
+        portal_slug,
+        previdencia_sigla,
+        previdencia_cnpj
+    from {{ ref('dim_portais') }}
+),
+
+despesas_filtradas as (
     select
         d.portal_slug,
         d.ano,
-        sum(case when d.elemento = '97' then coalesce(d.empenhado_liquido, 0) else 0 end) as total_aporte_exigido,
-        sum(case when d.elemento = '97' then coalesce(d.pago, 0) else 0 end) as total_aporte_quitado,
-        sum(
-            case
-                when d.elemento = '13' and (
-                    d.fornecedor_nome ilike '%CAPREM%'
-                    or d.fornecedor_nome ilike '%NATPREVI%'
-                    or d.fornecedor_nome ilike '%IPAMN%'
-                    or d.fornecedor_nome ilike '%FUNPREV%'
-                    or d.fornecedor_nome ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%CAPREM%'
-                    or d.natureza_despesa ilike '%NATPREVI%'
-                    or d.natureza_despesa ilike '%IPAMN%'
-                    or d.natureza_despesa ilike '%FUNPREV%'
-                    or d.descricao ilike '%CAPREM%'
-                    or d.descricao ilike '%NATPREVI%'
-                    or d.descricao ilike '%IPAMN%'
-                    or d.descricao ilike '%FUNPREV%'
-                    or d.descricao ilike '%RPPS%'
+        d.elemento,
+        coalesce(d.empenhado_liquido, 0) as empenhado_liquido,
+        coalesce(d.liquidado, 0) as liquidado,
+        coalesce(d.pago, 0) as pago,
+        (
+            d.elemento = '13' and (
+                (
+                    p.previdencia_sigla is not null and (
+                        d.fornecedor_nome ilike '%' || p.previdencia_sigla || '%'
+                        or d.natureza_despesa ilike '%' || p.previdencia_sigla || '%'
+                        or d.descricao ilike '%' || p.previdencia_sigla || '%'
+                    )
                 )
-                then coalesce(d.empenhado_liquido, 0)
-                else 0
-            end
-        ) as total_empenhado_patronal,
-        sum(
-            case
-                when d.elemento = '13' and (
-                    d.fornecedor_nome ilike '%CAPREM%'
-                    or d.fornecedor_nome ilike '%NATPREVI%'
-                    or d.fornecedor_nome ilike '%IPAMN%'
-                    or d.fornecedor_nome ilike '%FUNPREV%'
-                    or d.fornecedor_nome ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%CAPREM%'
-                    or d.natureza_despesa ilike '%NATPREVI%'
-                    or d.natureza_despesa ilike '%IPAMN%'
-                    or d.natureza_despesa ilike '%FUNPREV%'
-                    or d.descricao ilike '%CAPREM%'
-                    or d.descricao ilike '%NATPREVI%'
-                    or d.descricao ilike '%IPAMN%'
-                    or d.descricao ilike '%FUNPREV%'
-                    or d.descricao ilike '%RPPS%'
+                or (
+                    p.previdencia_cnpj is not null
+                    and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj
                 )
-                then coalesce(d.liquidado, 0)
-                else 0
-            end
-        ) as total_liquidado_patronal,
-        sum(
-            case
-                when d.elemento = '13' and (
-                    d.fornecedor_nome ilike '%CAPREM%'
-                    or d.fornecedor_nome ilike '%NATPREVI%'
-                    or d.fornecedor_nome ilike '%IPAMN%'
-                    or d.fornecedor_nome ilike '%FUNPREV%'
-                    or d.fornecedor_nome ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%RPPS%'
-                    or d.natureza_despesa ilike '%CAPREM%'
-                    or d.natureza_despesa ilike '%NATPREVI%'
-                    or d.natureza_despesa ilike '%IPAMN%'
-                    or d.natureza_despesa ilike '%FUNPREV%'
-                    or d.descricao ilike '%CAPREM%'
-                    or d.descricao ilike '%NATPREVI%'
-                    or d.descricao ilike '%IPAMN%'
-                    or d.descricao ilike '%FUNPREV%'
-                    or d.descricao ilike '%RPPS%'
-                )
-                then coalesce(d.pago, 0)
-                else 0
-            end
-        ) as total_pago_patronal,
-        sum(case when d.elemento = '71' then coalesce(d.pago, 0) else 0 end) as total_amortizacao_divida,
-        sum(
-            case
-                when d.elemento not in ('13', '71', '97') and (d.fornecedor_nome ilike '%CASP%' or d.natureza_despesa ilike '%CASP%' or d.descricao ilike '%CASP%' or d.fornecedor_cpf_cnpj = '07.573.075/0001-00')
-                then coalesce(d.empenhado_liquido, 0)
-                else 0
-            end
-        ) as total_casp_plano_saude,
-        sum(coalesce(d.empenhado_liquido, 0)) as total_empenhado,
-        sum(coalesce(d.liquidado, 0)) as total_liquidado,
-        sum(coalesce(d.pago, 0)) as total_pago
+                or d.fornecedor_nome ilike '%RPPS%'
+                or d.natureza_despesa ilike '%RPPS%'
+                or d.descricao ilike '%RPPS%'
+            )
+        ) as is_patronal,
+        (
+            d.elemento not in ('13', '71', '97') and (
+                d.fornecedor_nome ilike '%CASP%'
+                or d.natureza_despesa ilike '%CASP%'
+                or d.descricao ilike '%CASP%'
+                or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
+            )
+        ) as is_casp
     from {{ ref('fct_despesas') }} d
+    join portais p on d.portal_slug = p.portal_slug
     where
         d.fonte = 'exercicio'
         and (
             d.elemento in ('13', '71', '97')
             or d.orgao_codigo = '1061'
             or d.credor_id = '1061'
-            or d.fornecedor_nome ilike '%CAPREM%'
-            or d.fornecedor_nome ilike '%NATPREVI%'
-            or d.fornecedor_nome ilike '%IPAMN%'
-            or d.fornecedor_nome ilike '%FUNPREV%'
+            or (
+                p.previdencia_sigla is not null and (
+                    d.fornecedor_nome ilike '%' || p.previdencia_sigla || '%'
+                    or d.natureza_despesa ilike '%' || p.previdencia_sigla || '%'
+                    or d.descricao ilike '%' || p.previdencia_sigla || '%'
+                )
+            )
+            or (
+                p.previdencia_cnpj is not null
+                and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj
+            )
             or d.fornecedor_nome ilike '%CASP%'
             or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
-            or d.descricao ilike '%CAPREM%'
-            or d.descricao ilike '%NATPREVI%'
-            or d.descricao ilike '%IPAMN%'
-            or d.descricao ilike '%FUNPREV%'
             or d.descricao ilike '%CASP%'
             or d.descricao ilike '%RPPS%'
             or d.natureza_despesa ilike '%RPPS%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
-    group by d.portal_slug, d.ano
+),
+
+despesas_previdencia as (
+    select
+        portal_slug,
+        ano,
+        sum(case when elemento = '97' then empenhado_liquido else 0 end) as total_aporte_exigido,
+        sum(case when elemento = '97' then pago else 0 end) as total_aporte_quitado,
+        sum(case when is_patronal then empenhado_liquido else 0 end) as total_empenhado_patronal,
+        sum(case when is_patronal then liquidado else 0 end) as total_liquidado_patronal,
+        sum(case when is_patronal then pago else 0 end) as total_pago_patronal,
+        sum(case when elemento = '71' then pago else 0 end) as total_amortizacao_divida,
+        sum(case when is_casp then empenhado_liquido else 0 end) as total_casp_plano_saude,
+        sum(empenhado_liquido) as total_empenhado,
+        sum(liquidado) as total_liquidado,
+        sum(pago) as total_pago
+    from despesas_filtradas
+    group by portal_slug, ano
 ),
 
 pessoal_previdencia as (

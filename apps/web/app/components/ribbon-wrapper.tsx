@@ -31,5 +31,10 @@ export function RibbonWrapper({
 
   const effectivePortalName = activePortal?.displayName || portalName;
 
+  const isRootPage = !pathname || pathname === "/";
+  if (isRootPage) {
+    return null;
+  }
+
   return <Ribbon portalName={effectivePortalName} />;
 }
