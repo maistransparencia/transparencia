@@ -160,7 +160,7 @@ export function PortalSelect({
           aria-label="Selecionar Município"
           value={selectedSlug}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[44px] w-full cursor-pointer appearance-none truncate pr-5 pl-0 font-bold font-serif text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5"
+          className="min-h-[24px] w-full cursor-pointer appearance-none truncate pr-5 pl-0 font-bold font-serif text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5"
         >
           {portais.map((p) => (
             <option
