@@ -24,10 +24,12 @@ interface SidebarWrapperProps {
   officialPortalUrl?: string;
   brasaoAsset?: string;
   entidades?: MultiSelectOption[];
-  portalSlug?: string;
   portais?: PortalOption[];
+  portalSlug?: string;
+  radarAlertsByPortal?: Record<string, Record<number, number>>;
   radarAlertsCountByYear?: Record<number, number>;
   radarAlertCount?: number;
+  entidadesByPortal?: Record<string, MultiSelectOption[]>;
   previdencia?: PrevidenciaNavConfig;
 }
 
@@ -42,8 +44,10 @@ export function SidebarWrapper({
   entidades,
   portalSlug,
   portais,
+  radarAlertsByPortal,
   radarAlertsCountByYear,
   radarAlertCount,
+  entidadesByPortal,
   previdencia,
 }: SidebarWrapperProps) {
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
@@ -133,8 +137,7 @@ export function SidebarWrapper({
         portais?.some((p) => p.portalSlug === currentSegment);
 
       if (isKnownPortal) {
-        const isPrevidenciaSubroute =
-          segments[1] === "previdencia" || segments[1] === "caprem";
+        const isPrevidenciaSubroute = segments[1] === "previdencia";
         const targetPortal = portais?.find(
           (p) => p.portalSlug === newPortalSlug,
         );
@@ -157,14 +160,16 @@ export function SidebarWrapper({
     router.push(targetUrl);
   };
 
+  const effectiveEntidades =
+    entidadesByPortal?.[activePortalSlug] ?? entidades ?? [];
+
   const activeRadarAlertCount = (() => {
-    if (radarAlertsCountByYear) {
+    const alertsMap =
+      radarAlertsByPortal?.[activePortalSlug] ?? radarAlertsCountByYear;
+    if (alertsMap) {
       const yearNum = Number.parseInt(ano, 10);
-      if (
-        Number.isFinite(yearNum) &&
-        radarAlertsCountByYear[yearNum] !== undefined
-      ) {
-        return radarAlertsCountByYear[yearNum];
+      if (Number.isFinite(yearNum) && alertsMap[yearNum] !== undefined) {
+        return alertsMap[yearNum];
       }
       return 0;
     }
@@ -178,7 +183,7 @@ export function SidebarWrapper({
       portalTitle={effectivePortalTitle}
       anoInicial={effectiveAnoInicial}
       brasaoAsset={effectiveBrasaoAsset}
-      entidades={entidades}
+      entidades={effectiveEntidades}
       portalSlug={activePortalSlug}
       portais={portais}
       onPortalChange={handlePortalChange}
@@ -191,9 +196,9 @@ export function SidebarWrapper({
       }
       pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
       mobileHeaderRightSlot={
-        entidades && entidades.length > 0 ? (
+        effectiveEntidades && effectiveEntidades.length > 0 ? (
           <EntidadeSelectCompact
-            entidades={entidades}
+            entidades={effectiveEntidades}
             selectedEntidades={selectedEntidades}
             onChange={handleEntidadesChange}
           />

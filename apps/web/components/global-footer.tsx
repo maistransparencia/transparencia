@@ -1,8 +1,13 @@
 "use client";
 
-import { fmtDate } from "@transparencia/ui";
+import {
+  fmtDate,
+  type PortalOption,
+  resolvePortalSlug,
+} from "@transparencia/ui";
 import { ArrowUpRight, Mail } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { env } from "@/env";
 import { NewsletterModal } from "./newsletter-modal";
@@ -15,6 +20,7 @@ export interface GlobalFooterProps {
   lastExtractionDate?: string;
   portalSlug?: string;
   stateUF?: string;
+  portais?: PortalOption[];
 }
 
 const linkClass =
@@ -26,17 +32,38 @@ export function GlobalFooter({
   lastExtractionDate,
   portalSlug = "porciuncula_prefeitura",
   stateUF = "RJ",
+  portais,
 }: GlobalFooterProps) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const pathname = usePathname();
 
-  const normalizedUrl = officialPortalUrl
-    ? /^https?:\/\//.test(officialPortalUrl)
-      ? officialPortalUrl
-      : `https://${officialPortalUrl}`
+  const segments = (pathname || "").split("/").filter(Boolean);
+  const activePortal = (() => {
+    if (segments.length > 0) {
+      const first = segments[0];
+      return portais?.find(
+        (p) =>
+          p.portalSlug === first || p.portalSlug === resolvePortalSlug(first),
+      );
+    }
+    return undefined;
+  })();
+
+  const effectivePortalName = activePortal?.displayName || portalName;
+  const effectivePortalUrl = activePortal?.portalUrl || officialPortalUrl;
+  const effectivePortalSlug = activePortal?.portalSlug || portalSlug;
+  const effectiveStateUF = activePortal?.uf || stateUF;
+  const effectiveExtractionDate =
+    activePortal?.dataExtracao || lastExtractionDate;
+
+  const normalizedUrl = effectivePortalUrl
+    ? /^https?:\/\//.test(effectivePortalUrl)
+      ? effectivePortalUrl
+      : `https://${effectivePortalUrl}`
     : null;
 
-  const displayExtractionDate = lastExtractionDate
-    ? fmtDate(lastExtractionDate)
+  const displayExtractionDate = effectiveExtractionDate
+    ? fmtDate(effectiveExtractionDate)
     : null;
 
   const officialLink = normalizedUrl && (
@@ -64,8 +91,8 @@ export function GlobalFooter({
                   {env.NEXT_PUBLIC_PROJECT_NAME}
                 </p>
                 <p className="text-slate-600 text-xs">
-                  {portalName}
-                  <span className="text-mutedText"> / {stateUF}</span>
+                  {effectivePortalName}
+                  <span className="text-mutedText"> / {effectiveStateUF}</span>
                 </p>
               </div>
               <p className="pt-1 text-mutedText text-xs leading-relaxed">
@@ -105,7 +132,7 @@ export function GlobalFooter({
                     <>
                       Dados extraídos em{" "}
                       <time
-                        dateTime={lastExtractionDate}
+                        dateTime={effectiveExtractionDate}
                         className="font-medium text-slate-600 tabular-nums"
                       >
                         {displayExtractionDate}
@@ -138,9 +165,9 @@ export function GlobalFooter({
       <NewsletterModal
         isOpen={isNewsletterOpen}
         onClose={() => setIsNewsletterOpen(false)}
-        portalSlug={portalSlug}
-        municipioNome={portalName}
-        stateUF={stateUF}
+        portalSlug={effectivePortalSlug}
+        municipioNome={effectivePortalName}
+        stateUF={effectiveStateUF}
       />
     </>
   );
