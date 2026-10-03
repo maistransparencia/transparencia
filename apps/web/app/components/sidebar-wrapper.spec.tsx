@@ -154,6 +154,9 @@ describe("SidebarWrapper Component", () => {
     expect(mockPush).toHaveBeenCalledWith(
       "/natividade_prefeitura/receitas?ano=2024",
     );
+    expect(window.localStorage.getItem("preferred_portal")).toBe(
+      "natividade_prefeitura",
+    );
     expect(posthog.capture).toHaveBeenCalledWith("portal_changed", {
       from_portal: "porciuncula_prefeitura",
       to_portal: "natividade_prefeitura",
@@ -269,5 +272,20 @@ describe("SidebarWrapper Component", () => {
     });
 
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("não deve renderizar a sidebar quando estiver na página raiz ('/')", () => {
+    currentPathname = "/";
+
+    const { container } = render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+
+    expect(container.firstChild).toBeNull();
   });
 });

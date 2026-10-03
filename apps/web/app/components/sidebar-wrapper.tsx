@@ -10,6 +10,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
+import { useEffect } from "react";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
 import { PushNotificationSettings } from "@/components/push-notification-settings";
@@ -38,8 +39,8 @@ export function SidebarWrapper({
   stateUF,
   portalTitle,
   anoInicial,
-  lastExtractionDate,
-  officialPortalUrl,
+  lastExtractionDate: _lastExtractionDate,
+  officialPortalUrl: _officialPortalUrl,
   brasaoAsset,
   entidades,
   portalSlug,
@@ -53,6 +54,7 @@ export function SidebarWrapper({
   const { isMenuOpen, setIsMenuOpen } = useMobileNav();
   const router = useRouter();
   const pathname = usePathname();
+  const isRootPage = !pathname || pathname === "/";
   const searchParams = useSearchParams();
   const currentYear = String(new Date().getFullYear());
   const [ano, setAno] = useQueryState(
@@ -92,6 +94,18 @@ export function SidebarWrapper({
     ? `Contas da ${effectivePortalName}`
     : portalTitle;
 
+  useEffect(() => {
+    if (activePortalSlug && !isRootPage) {
+      try {
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("preferred_portal", activePortalSlug);
+          // biome-ignore lint/suspicious/noDocumentCookie: cookie de preferencia do portal
+          document.cookie = `preferred_portal=${activePortalSlug}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+      } catch {}
+    }
+  }, [activePortalSlug, isRootPage]);
+
   const handleExerciceChange = (val: string) => {
     posthog.capture("year_filter_changed", {
       selected_year: val,
@@ -115,6 +129,14 @@ export function SidebarWrapper({
 
   const handlePortalChange = (newPortalSlug: string) => {
     if (!newPortalSlug || newPortalSlug === activePortalSlug) return;
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("preferred_portal", newPortalSlug);
+        // biome-ignore lint/suspicious/noDocumentCookie: cookie de preferencia do portal
+        document.cookie = `preferred_portal=${newPortalSlug}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    } catch {}
+
     posthog.capture("portal_changed", {
       from_portal: activePortalSlug,
       to_portal: newPortalSlug,
@@ -175,6 +197,10 @@ export function SidebarWrapper({
     }
     return radarAlertCount ?? 0;
   })();
+
+  if (isRootPage) {
+    return null;
+  }
 
   return (
     <Sidebar

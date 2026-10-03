@@ -1,6 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GlobalFooter } from "./global-footer";
+
+let mockPathname = "/porciuncula_prefeitura";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => mockPathname,
+}));
 
 vi.mock("posthog-js", () => ({
   default: {
@@ -9,6 +15,10 @@ vi.mock("posthog-js", () => ({
 }));
 
 describe("GlobalFooter", () => {
+  beforeEach(() => {
+    mockPathname = "/porciuncula_prefeitura";
+  });
+
   it("renderiza link 'Termos de Uso' apontando para /termos", () => {
     render(<GlobalFooter />);
     const link = screen.getByRole("link", { name: /termos de uso/i });
@@ -46,7 +56,8 @@ describe("GlobalFooter", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza link do portal oficial e data de extração quando informados", () => {
+  it("renderiza link do portal oficial e data de extração quando informados em página de portal", () => {
+    mockPathname = "/porciuncula_prefeitura";
     render(
       <GlobalFooter
         portalName="Porciúncula"
@@ -64,5 +75,25 @@ describe("GlobalFooter", () => {
     expect(portalLink).toHaveAttribute("rel", "noopener noreferrer");
 
     expect(screen.getByText(/Dados extraídos em/i)).toBeInTheDocument();
+  });
+
+  it("não renderiza link para portal oficial nem nome de prefeitura na página raiz ('/')", () => {
+    mockPathname = "/";
+    render(
+      <GlobalFooter
+        portalName="Prefeitura de Porciúncula"
+        officialPortalUrl="porciuncula.rj.gov.br"
+        lastExtractionDate="2026-09-20T10:00:00Z"
+      />,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: /portal oficial/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Prefeitura de Porciúncula/i),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dados extraídos em/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Lei de Acesso à Informação/i)).toBeInTheDocument();
   });
 });
