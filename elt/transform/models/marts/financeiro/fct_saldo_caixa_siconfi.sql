@@ -6,8 +6,22 @@ fontes as (
     select * from {{ ref('seed_fontes_recursos_stn') }}
 ),
 
-vinculos as (
+vinculos_porciuncula as (
     select * from {{ ref('seed_porciuncula_prefeitura_siconfi_orgaos') }}
+),
+
+vinculos_natividade as (
+    select * from {{ ref('seed_natividade_prefeitura_siconfi_orgaos') }}
+),
+
+vinculos as (
+    select * from vinculos_porciuncula
+    union all
+    select * from vinculos_natividade
+),
+
+portais as (
+    select * from {{ ref('dim_portais') }}
 ),
 
 stg_com_fonte as (
@@ -41,23 +55,26 @@ stg_com_fonte as (
 
 agregado_siconfi as (
     select
-        'porciuncula_prefeitura' as portal_slug,
-        cod_ibge,
-        ano,
-        mes_referencia,
-        poder_orgao,
-        grupo_destinacao,
-        max(data_referencia) as data_referencia,
-        coalesce(sum(saldo_valor), 0)::numeric(18, 2) as saldo_caixa_bancos,
-        coalesce(sum(case when not recurso_vinculado_flag then saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_livres,
-        coalesce(sum(case when recurso_vinculado_flag then saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_vinculados
-    from stg_com_fonte
+        p.portal_slug,
+        s.cod_ibge,
+        s.ano,
+        s.mes_referencia,
+        s.poder_orgao,
+        s.grupo_destinacao,
+        max(s.data_referencia) as data_referencia,
+        coalesce(sum(s.saldo_valor), 0)::numeric(18, 2) as saldo_caixa_bancos,
+        coalesce(sum(case when not s.recurso_vinculado_flag then s.saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_livres,
+        coalesce(sum(case when s.recurso_vinculado_flag then s.saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_vinculados
+    from stg_com_fonte s
+    inner join portais p
+        on p.cod_ibge = s.cod_ibge
     group by
-        cod_ibge,
-        ano,
-        mes_referencia,
-        poder_orgao,
-        grupo_destinacao
+        p.portal_slug,
+        s.cod_ibge,
+        s.ano,
+        s.mes_referencia,
+        s.poder_orgao,
+        s.grupo_destinacao
 ),
 
 orgaos as (
@@ -84,7 +101,7 @@ associado as (
         o.orgao_nome,
         case
             when o.orgao_nome is not null then o.orgao_nome
-            when a.poder_orgao = '10132' then 'Instituto de Previdência dos Servidores (CAPREM)'
+            when a.poder_orgao = '10132' then 'Instituto de Previdência dos Servidores (' || coalesce(p.previdencia_sigla, 'RPPS') || ')'
             else initcap(replace(a.grupo_destinacao, '_', ' '))
         end as entidade_nome,
         o.cnpj,
@@ -97,12 +114,14 @@ associado as (
             else false
         end as ultima_competencia_flag
     from agregado_siconfi a
+    inner join portais p
+        on p.portal_slug = a.portal_slug
     left join vinculos v
         on v.portal_slug = a.portal_slug
         and v.poder_orgao = a.poder_orgao
         and v.grupo_destinacao = a.grupo_destinacao
     left join orgaos o
-        on o.portal_slug = v.portal_slug
+        on o.portal_slug = a.portal_slug
         and o.empresa_id = v.empresa_id
 )
 

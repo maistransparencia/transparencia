@@ -115,8 +115,8 @@ pessoal_previdencia as (
     select
         portal_slug,
         ano,
-        sum(case when categoria_funcional ilike '%efetiv%' and categoria_funcional not ilike '%cedido%' then 1 else 0 end) as servidores_efetivos,
-        sum(case when categoria_funcional ilike '%comissionad%' or categoria_funcional ilike '%contrata%' or categoria_funcional ilike '%excepcional%' then 1 else 0 end) as servidores_temporarios
+        sum(case when categoria_regime in ('efetivo_concurso', 'efetivo_comissao') then 1 else 0 end) as servidores_efetivos,
+        sum(case when categoria_regime in ('comissionado', 'contrato_temporario') then 1 else 0 end) as servidores_temporarios
     from {{ ref('fct_pessoal') }}
     group by portal_slug, ano
 ),

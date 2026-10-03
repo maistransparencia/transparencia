@@ -6,7 +6,7 @@ portal_url: https://portal-pm-natividade.transpgp.com.br/transparencia
 base_host: https://portal-pm-natividade.transpgp.com.br
 cidade_clean: NATIVIDADE
 ano_inicial: 2021
-empresa_padrao: "6"
+empresa_padrao: "1"
 github_url: https://github.com/maistransparencia/transparencia
 provider: fiorilli
 rpps:

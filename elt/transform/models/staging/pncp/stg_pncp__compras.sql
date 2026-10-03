@@ -5,6 +5,28 @@ with source as (
     select * from {{ source('raw_pncp', 'compras') }}
 ),
 
+orgaos as (
+    select
+        portal_slug,
+        empresa_id::text as empresa_id,
+        regexp_replace(cnpj, '[^0-9]', '', 'g') as cnpj_clean
+    from {{ ref('seed_porciuncula_prefeitura_orgaos') }}
+    union all
+    select
+        portal_slug,
+        empresa_id::text as empresa_id,
+        regexp_replace(cnpj, '[^0-9]', '', 'g') as cnpj_clean
+    from {{ ref('seed_natividade_prefeitura_orgaos') }}
+),
+
+orgaos_dedup as (
+    select distinct on (cnpj_clean)
+        portal_slug,
+        empresa_id,
+        cnpj_clean
+    from orgaos
+),
+
 renamed as (
     select
         nullif(trim(numero_controle_pncp::text), '') as numero_controle_pncp,
@@ -47,22 +69,32 @@ renamed as (
 )
 
 select
-    numero_controle_pncp,
-    cnpj_orgao,
-    ano_compra,
-    sequencial_compra,
-    numero_compra,
-    processo,
-    objeto_compra,
-    link_sistema_origem,
-    modalidade_id,
-    modalidade_nome,
-    situacao_compra_id,
-    situacao_compra_nome,
-    data_publicacao_pncp,
-    data_abertura_proposta,
-    valor_total_estimado,
-    valor_total_homologado,
-    informacao_complementar,
-    srp
-from renamed
+    r.numero_controle_pncp,
+    r.cnpj_orgao,
+    coalesce(o.portal_slug, case
+        when regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g') = '28920304000196' then 'natividade_prefeitura'
+        else 'porciuncula_prefeitura'
+    end) as portal_slug,
+    coalesce(o.empresa_id, case
+        when regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g') = '28920304000196' then '6'
+        else '7'
+    end) as empresa_id,
+    r.ano_compra,
+    r.sequencial_compra,
+    r.numero_compra,
+    r.processo,
+    r.objeto_compra,
+    r.link_sistema_origem,
+    r.modalidade_id,
+    r.modalidade_nome,
+    r.situacao_compra_id,
+    r.situacao_compra_nome,
+    r.data_publicacao_pncp,
+    r.data_abertura_proposta,
+    r.valor_total_estimado,
+    r.valor_total_homologado,
+    r.informacao_complementar,
+    r.srp
+from renamed r
+left join orgaos_dedup o
+    on o.cnpj_clean = regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g')

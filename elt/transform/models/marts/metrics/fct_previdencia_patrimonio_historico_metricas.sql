@@ -1,12 +1,14 @@
 with msc_base as (
     select
-        'porciuncula_prefeitura' as portal_slug,
-        ano,
-        mes_referencia,
-        conta_contabil,
-        saldo_valor
-    from {{ ref('stg_siconfi_msc_patrimonial') }}
-    where poder_orgao = '10132'
+        p.portal_slug,
+        s.ano,
+        s.mes_referencia,
+        s.conta_contabil,
+        s.saldo_valor
+    from {{ ref('stg_siconfi_msc_patrimonial') }} s
+    inner join {{ ref('dim_portais') }} p
+        on p.cod_ibge = s.cod_ibge
+    where s.poder_orgao = '10132'
 ),
 
 msc as (

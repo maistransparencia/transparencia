@@ -176,7 +176,7 @@ def main() -> None:
 
                 ensure_siconfi_table(engine, schema)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_msc(engine, rows)
+                count = load_siconfi_msc(engine, rows, schema=schema)
                 logger.info(
                     "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
                     json_file.name,

@@ -5,6 +5,28 @@ with source as (
     select * from {{ source('raw_pncp', 'itens') }}
 ),
 
+orgaos as (
+    select
+        portal_slug,
+        empresa_id::text as empresa_id,
+        regexp_replace(cnpj, '[^0-9]', '', 'g') as cnpj_clean
+    from {{ ref('seed_porciuncula_prefeitura_orgaos') }}
+    union all
+    select
+        portal_slug,
+        empresa_id::text as empresa_id,
+        regexp_replace(cnpj, '[^0-9]', '', 'g') as cnpj_clean
+    from {{ ref('seed_natividade_prefeitura_orgaos') }}
+),
+
+orgaos_dedup as (
+    select distinct on (cnpj_clean)
+        portal_slug,
+        empresa_id,
+        cnpj_clean
+    from orgaos
+),
+
 renamed as (
     select
         nullif(trim(numero_controle_pncp::text), '') as numero_controle_pncp,
@@ -37,18 +59,28 @@ renamed as (
 )
 
 select
-    numero_controle_pncp,
-    cnpj_orgao,
-    ano_compra,
-    sequencial_compra,
-    numero_compra,
-    numero_item,
-    descricao,
-    material_ou_servico,
-    quantidade,
-    unidade_medida,
-    valor_unitario_estimado,
-    valor_total_estimado,
-    situacao_item,
-    criterio_julgamento
-from renamed
+    r.numero_controle_pncp,
+    r.cnpj_orgao,
+    coalesce(o.portal_slug, case
+        when regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g') = '28920304000196' then 'natividade_prefeitura'
+        else 'porciuncula_prefeitura'
+    end) as portal_slug,
+    coalesce(o.empresa_id, case
+        when regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g') = '28920304000196' then '6'
+        else '7'
+    end) as empresa_id,
+    r.ano_compra,
+    r.sequencial_compra,
+    r.numero_compra,
+    r.numero_item,
+    r.descricao,
+    r.material_ou_servico,
+    r.quantidade,
+    r.unidade_medida,
+    r.valor_unitario_estimado,
+    r.valor_total_estimado,
+    r.situacao_item,
+    r.criterio_julgamento
+from renamed r
+left join orgaos_dedup o
+    on o.cnpj_clean = regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g')

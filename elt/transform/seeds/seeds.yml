@@ -29,6 +29,16 @@ seeds:
         empresa_id: text
         descricao: text
 
+  - name: seed_natividade_prefeitura_siconfi_orgaos
+    description: "Vínculo entre grupos de destinação contábil da MSC SICONFI e órgãos de Natividade"
+    config:
+      column_types:
+        portal_slug: text
+        poder_orgao: text
+        grupo_destinacao: text
+        empresa_id: text
+        descricao: text
+
   - name: seed_portais
     description: "Configurações e metadados dos portais de transparência"
     config:
@@ -46,6 +56,7 @@ seeds:
         previdencia_sigla: text
         previdencia_nome: text
         highlights_json: text
+        cod_ibge: integer
 
   - name: seed_elemento_despesa
     description: "Catálogo exaustivo oficial de 99 elementos de despesa (STN/MCASP)"

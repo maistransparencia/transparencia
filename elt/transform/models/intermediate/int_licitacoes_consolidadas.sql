@@ -77,6 +77,8 @@ pncp_mapeamento as (
 
 pncp_dedup as (
     select
+        portal_slug,
+        empresa_id,
         ano_compra,
         sequencial_compra,
         numero_compra,
@@ -87,6 +89,8 @@ pncp_dedup as (
         valor_total_homologado
     from (
         select
+            portal_slug,
+            empresa_id,
             ano_compra,
             sequencial_compra,
             numero_compra,
@@ -96,11 +100,12 @@ pncp_dedup as (
             valor_total_estimado,
             valor_total_homologado,
             row_number() over (
-                partition by ano_compra, coalesce(numero_compra, sequencial_compra::text)
+                partition by portal_slug, ano_compra, coalesce(numero_compra, sequencial_compra::text)
                 order by length(coalesce(objeto_compra, '')) desc
             ) as rn
         from {{ ref('stg_pncp__compras') }}
         where objeto_compra is not null
+          and portal_slug is not null
     ) sub
     where rn = 1
 ),
@@ -161,26 +166,30 @@ licitacoes_enriched as (
        and m.ano = l.ano
        and m.licitacao_numero = l.licitacao_numero
     left join pncp_dedup p
-        on (
-            m.licitacao_numero is not null
-            and p.ano_compra = m.ano_compra
-            and p.sequencial_compra = m.sequencial_compra
-        )
-        or (
-            m.licitacao_numero is null
-            and p.ano_compra = l.ano
-            and (
-                p.numero_compra = l.licitacao_numero
-                or (l.processo is not null and p.processo = l.processo)
+        on p.portal_slug = l.portal_slug
+       and (
+            (
+                m.licitacao_numero is not null
+                and p.ano_compra = m.ano_compra
+                and p.sequencial_compra = m.sequencial_compra
+            )
+            or (
+                m.licitacao_numero is null
+                and p.ano_compra = l.ano
+                and (
+                    p.numero_compra = l.licitacao_numero
+                    or (l.processo is not null and p.processo = l.processo)
+                    or (l.edital_numero is not null and p.numero_compra like l.edital_numero || '/%')
+                )
             )
         )
 ),
 
 pncp_exclusivas as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        c.portal_slug,
         c.ano_compra as ano,
-        '7' as empresa_id,
+        c.empresa_id,
         coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text) as licitacao_numero,
         coalesce(nullif(c.modalidade_nome, ''), 'OUTROS') as modalidade,
         c.objeto_compra as objeto,
@@ -194,15 +203,26 @@ pncp_exclusivas as (
         'pncp' as fonte_objeto,
         c.link_sistema_origem,
         row_number() over (
-            partition by c.ano_compra, coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text)
+            partition by c.portal_slug, c.ano_compra, coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text)
             order by c.sequencial_compra asc
         ) as dedupe_rn
     from {{ ref('stg_pncp__compras') }} c
     left join pncp_mapeamento m
-        on m.ano_compra = c.ano_compra
+        on m.portal_slug = c.portal_slug
+       and m.ano_compra = c.ano_compra
        and m.sequencial_compra = c.sequencial_compra
+    left join licitacoes_municipais l
+        on l.portal_slug = c.portal_slug
+       and l.ano = c.ano_compra
+       and (
+           l.licitacao_numero = c.numero_compra
+           or (c.processo is not null and l.processo = c.processo)
+           or (l.edital_numero is not null and c.numero_compra like l.edital_numero || '/%')
+       )
     where m.licitacao_numero is null
+      and l.licitacao_numero is null
       and c.objeto_compra is not null
+      and c.portal_slug is not null
 )
 
 select
