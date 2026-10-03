@@ -35,6 +35,7 @@ const mockResumo: PrevidenciaPatrimonioHistoricoResumo = {
       variacaoPatrimonioAbs: null,
       variacaoPatrimonioPct: null,
       quebraSerieFlag: true,
+      anoInconsistenciaAnterior: 2022,
     },
     {
       ano: 2024,
@@ -109,6 +110,11 @@ describe("PrevidenciaPatrimonioHistoricoSection", () => {
     );
 
     expect(
+      screen.getByRole("heading", {
+        name: "Diagnóstico de Sustentabilidade e Riscos Estruturais do RPPS",
+      }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("heading", { name: "1. Déficit Atuarial e Aportes" }),
     ).toBeInTheDocument();
     expect(
@@ -135,5 +141,56 @@ describe("PrevidenciaPatrimonioHistoricoSection", () => {
       "href",
       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
     );
+  });
+
+  it("renderiza o banner de transparência metodológica com anos dinâmicos quando há inconsistência", () => {
+    render(
+      <PrevidenciaPatrimonioHistoricoSection
+        resumo={mockResumo}
+        selectedYear={2026}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Transparência Metodológica e Integridade da Matriz de Saldos Contábeis (SICONFI / STN)",
+      ),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        /No exercício de 2022, a remessa da MSC omitiu a carteira de investimentos do fundo.*quebra de série metodológica em 2023/i,
+      ),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getAllByText("Série normalizada após omissão contábil de 2022")
+        .length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it("não renderiza o banner de transparência metodológica quando a série é íntegra", () => {
+    const cleanResumo: PrevidenciaPatrimonioHistoricoResumo = {
+      ...mockResumo,
+      serie: mockResumo.serie.map((p) => ({
+        ...p,
+        inconsistenciaDeclaracaoFlag: false,
+        quebraSerieFlag: false,
+        anoInconsistenciaAnterior: null,
+      })),
+    };
+
+    render(
+      <PrevidenciaPatrimonioHistoricoSection
+        resumo={cleanResumo}
+        selectedYear={2026}
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        "Transparência Metodológica e Integridade da Matriz de Saldos Contábeis (SICONFI / STN)",
+      ),
+    ).not.toBeInTheDocument();
   });
 });

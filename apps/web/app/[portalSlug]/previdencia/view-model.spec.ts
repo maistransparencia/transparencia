@@ -296,6 +296,7 @@ describe("buildPrevidenciaViewModel", () => {
 
     const ponto2023 = resumo.serie.find((p) => p.ano === 2023);
     expect(ponto2023?.quebraSerieFlag).toBe(true);
+    expect(ponto2023?.anoInconsistenciaAnterior).toBe(2022);
     expect(ponto2023?.variacaoPatrimonioPct).toBeNull();
 
     expect(resumo.diagnostico.hasDeficitAporte).toBe(true);
