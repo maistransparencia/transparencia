@@ -181,7 +181,3 @@ export function PrevidenciaHeroSection({
     </div>
   );
 }
-
-// Aliases para compatibilidade retroativa
-export type CapremHeroSectionProps = PrevidenciaHeroSectionProps;
-export const CapremHeroSection = PrevidenciaHeroSection;

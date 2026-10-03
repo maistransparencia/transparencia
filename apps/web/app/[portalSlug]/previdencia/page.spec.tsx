@@ -31,7 +31,7 @@ vi.mock("@transparencia/db", () => ({
         displayName: "Prefeitura de Natividade",
         previdencia: {
           habilitado: true,
-          sigla: "IPAMN",
+          sigla: "NATPREVI",
           nome: "Instituto de Previdência de Natividade",
         },
       });
@@ -146,7 +146,7 @@ describe("PrevidenciaPage", () => {
     expect(screen.getByText("Índice de Adimplência")).toBeInTheDocument();
   });
 
-  it("renderiza sigla institucional dinâmica da autarquia (ex: IPAMN)", async () => {
+  it("renderiza sigla institucional dinâmica da autarquia (ex: NATPREVI)", async () => {
     loadPrevidenciaDataMock.mockResolvedValue(
       makeRaw({
         portalConfig: {
@@ -154,7 +154,7 @@ describe("PrevidenciaPage", () => {
           displayName: "Prefeitura de Natividade",
           previdencia: {
             habilitado: true,
-            sigla: "IPAMN",
+            sigla: "NATPREVI",
             nome: "Instituto de Previdência de Natividade",
           },
         },
@@ -168,10 +168,10 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText(/Total Empenhado para o IPAMN/i),
+      screen.getByText(/Total Empenhado para o NATPREVI/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/TEMAS · PREVIDÊNCIA MUNICIPAL \(IPAMN\)/i),
+      screen.getByText(/TEMAS · PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
     ).toBeInTheDocument();
   });
 
@@ -393,15 +393,15 @@ describe("generateMetadata", () => {
     expect(meta.keywords).toContain("RPPS");
   });
 
-  it("gera metadata dinâmica para outra autarquia (ex: IPAMN)", async () => {
+  it("gera metadata dinâmica para outra autarquia (ex: NATPREVI)", async () => {
     const meta = await generateMetadata({
       params: Promise.resolve({ portalSlug: "natividade" }),
       searchParams: Promise.resolve({}),
     });
 
-    expect(meta.title).toBe("IPAMN | Prefeitura de Natividade");
-    expect(meta.description).toContain("IPAMN");
-    expect(meta.keywords).toContain("IPAMN");
+    expect(meta.title).toBe("NATPREVI | Prefeitura de Natividade");
+    expect(meta.description).toContain("NATPREVI");
+    expect(meta.keywords).toContain("NATPREVI");
   });
 
   it("gera metadata com fallback quando previdência está desabilitada (habilitado === false)", async () => {

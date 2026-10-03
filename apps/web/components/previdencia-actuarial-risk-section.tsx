@@ -142,8 +142,3 @@ export function PrevidenciaActuarialRiskSection({
     </section>
   );
 }
-
-// Aliases para compatibilidade retroativa
-export type CapremActuarialRiskSectionProps =
-  PrevidenciaActuarialRiskSectionProps;
-export const CapremActuarialRiskSection = PrevidenciaActuarialRiskSection;

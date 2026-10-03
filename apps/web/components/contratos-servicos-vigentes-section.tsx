@@ -652,7 +652,7 @@ export function ContratosServicosVigentesSection({
                 </p>
                 <p className="text-slate-600 text-xs">
                   CNPJ/CPF:{" "}
-                  <span className="font-mono text-slate-800">
+                  <span className="text-slate-800">
                     {fmtCpfCnpj(selectedContrato.fornecedorCnpj) ||
                       "Não informado"}
                   </span>

@@ -172,7 +172,7 @@ export function CardsSecundariosVisaoGeral({
                         )}
                         style={{ height: `${totalPct}%` }}
                       />
-                      <span className="mt-1 font-mono text-[9px] text-mutedText">
+                      <span className="mt-1 text-[9px] text-mutedText">
                         {bar.year}
                       </span>
                     </div>
@@ -223,7 +223,7 @@ export function CardsSecundariosVisaoGeral({
                         />
                       )}
                     </div>
-                    <span className="mt-1 font-mono text-[9px] text-mutedText">
+                    <span className="mt-1 text-[9px] text-mutedText">
                       {bar.year}
                     </span>
                   </div>

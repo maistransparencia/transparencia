@@ -265,7 +265,3 @@ export function PrevidenciaSaldoCaixaCard({
     </section>
   );
 }
-
-// Aliases para compatibilidade retroativa
-export type CapremSaldoCaixaCardProps = PrevidenciaSaldoCaixaCardProps;
-export const CapremSaldoCaixaCard = PrevidenciaSaldoCaixaCard;
