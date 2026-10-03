@@ -109,13 +109,13 @@ def test_portal_config_declarative_loading():
     assert cfg_nat.slug == "natividade_prefeitura"
     assert cfg_nat.cod_ibge == 3303401
     assert cfg_nat.base_host == "https://portal-pm-natividade.transpgp.com.br"
-    assert cfg_nat.empresa_padrao == "6"
+    assert cfg_nat.empresa_padrao == "1"
     assert cfg_nat.provider == "fiorilli"
     assert cfg_nat.rpps is not None
     assert cfg_nat.rpps.get("sigla") == "NATPREVI"
     orgaos_nat = cfg_nat.load_orgaos()
-    assert "6" in orgaos_nat
-    assert "NATIVIDADE" in orgaos_nat["6"].upper()
+    assert "1" in orgaos_nat
+    assert "NATIVIDADE" in orgaos_nat["1"].upper()
 
     # Porciúncula
     cfg_porc = PortalConfig.load("porciuncula_prefeitura")

@@ -2,7 +2,15 @@
     materialized='table'
 ) }}
 
-with cadprev_despesas as (
+with portais as (
+    select
+        portal_slug,
+        previdencia_sigla,
+        previdencia_cnpj
+    from {{ ref('dim_portais') }}
+),
+
+cadprev_despesas as (
     select
         d.portal_slug,
         d.ano,
@@ -12,11 +20,12 @@ with cadprev_despesas as (
         coalesce(d.empenhado_liquido, 0) as empenhado,
         coalesce(d.pago, 0) as pago
     from {{ ref('fct_despesas') }} d
+    join portais p on d.portal_slug = p.portal_slug
     where
         d.elemento = '71'
         and (
-            lower(unaccent(d.fornecedor_nome)) ilike '%caprem%'
-            or lower(unaccent(d.fornecedor_nome)) ilike '%natprevi%'
+            (p.previdencia_sigla is not null and lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%')
+            or (p.previdencia_cnpj is not null and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj)
             or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
             or lower(unaccent(d.descricao)) ilike '%cadprev%'
         )
