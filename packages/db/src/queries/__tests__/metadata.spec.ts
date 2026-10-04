@@ -32,6 +32,14 @@ describe("metadata", () => {
       expect(config.previdencia.nome).toContain("Porciúncula");
       expect(config.previdencia.cnpj).toBe("01180031000134");
 
+      // Plano de Saúde
+      expect(config.planoSaude).toBeDefined();
+      expect(typeof config.planoSaude?.habilitado).toBe("boolean");
+      expect(config.planoSaude?.habilitado).toBe(true);
+      expect(config.planoSaude?.sigla).toBe("CASP");
+      expect(config.planoSaude?.nome).toContain("Caixa de Assistência");
+      expect(config.planoSaude?.cnpj).toBe("07573075000100");
+
       // Highlights
       expect(Array.isArray(config.highlights)).toBe(true);
       expect(config.highlights.length).toBeGreaterThan(0);

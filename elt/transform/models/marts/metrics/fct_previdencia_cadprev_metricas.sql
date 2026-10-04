@@ -24,8 +24,8 @@ cadprev_despesas as (
     where
         d.elemento = '71'
         and (
-            (p.previdencia_sigla is not null and lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%')
-            or (p.previdencia_cnpj is not null and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj)
+            (nullif(trim(p.previdencia_sigla), '') is not null and lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%')
+            or (nullif(trim(p.previdencia_cnpj), '') is not null and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj)
             or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
             or lower(unaccent(d.descricao)) ilike '%cadprev%'
         )

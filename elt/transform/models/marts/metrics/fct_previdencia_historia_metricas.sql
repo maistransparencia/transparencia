@@ -4,7 +4,10 @@ with portais as (
     select
         portal_slug,
         previdencia_sigla,
-        previdencia_cnpj
+        previdencia_cnpj,
+        plano_saude_habilitado,
+        plano_saude_sigla,
+        plano_saude_cnpj
     from {{ ref('dim_portais') }}
 ),
 
@@ -19,27 +22,36 @@ despesas_filtradas as (
         (
             d.elemento = '13' and (
                 (
-                    p.previdencia_sigla is not null and (
-                        d.fornecedor_nome ilike '%' || p.previdencia_sigla || '%'
-                        or d.natureza_despesa ilike '%' || p.previdencia_sigla || '%'
-                        or d.descricao ilike '%' || p.previdencia_sigla || '%'
+                    nullif(trim(p.previdencia_sigla), '') is not null and (
+                        lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                        or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                        or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                     )
                 )
                 or (
-                    p.previdencia_cnpj is not null
+                    nullif(trim(p.previdencia_cnpj), '') is not null
                     and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj
                 )
-                or d.fornecedor_nome ilike '%RPPS%'
-                or d.natureza_despesa ilike '%RPPS%'
-                or d.descricao ilike '%RPPS%'
+                or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
+                or lower(unaccent(d.natureza_despesa)) ilike '%rpps%'
+                or lower(unaccent(d.descricao)) ilike '%rpps%'
             )
         ) as is_patronal,
         (
-            d.elemento not in ('13', '71', '97') and (
-                d.fornecedor_nome ilike '%CASP%'
-                or d.natureza_despesa ilike '%CASP%'
-                or d.descricao ilike '%CASP%'
-                or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
+            p.plano_saude_habilitado = true
+            and d.elemento not in ('13', '71', '97')
+            and (
+                (
+                    nullif(trim(p.plano_saude_sigla), '') is not null and (
+                        lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                        or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                        or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                    )
+                )
+                or (
+                    nullif(trim(p.plano_saude_cnpj), '') is not null
+                    and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.plano_saude_cnpj
+                )
             )
         ) as is_casp
     from {{ ref('fct_despesas') }} d
@@ -48,24 +60,34 @@ despesas_filtradas as (
         d.fonte = 'exercicio'
         and (
             d.elemento in ('13', '71', '97')
-            or d.orgao_codigo = '1061'
-            or d.credor_id = '1061'
             or (
-                p.previdencia_sigla is not null and (
-                    d.fornecedor_nome ilike '%' || p.previdencia_sigla || '%'
-                    or d.natureza_despesa ilike '%' || p.previdencia_sigla || '%'
-                    or d.descricao ilike '%' || p.previdencia_sigla || '%'
+                nullif(trim(p.previdencia_sigla), '') is not null and (
+                    lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                    or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                    or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                 )
             )
             or (
-                p.previdencia_cnpj is not null
+                nullif(trim(p.previdencia_cnpj), '') is not null
                 and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj
             )
-            or d.fornecedor_nome ilike '%CASP%'
-            or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
-            or d.descricao ilike '%CASP%'
-            or d.descricao ilike '%RPPS%'
-            or d.natureza_despesa ilike '%RPPS%'
+            or (
+                p.plano_saude_habilitado = true and (
+                    (
+                        nullif(trim(p.plano_saude_sigla), '') is not null and (
+                            lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                            or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                            or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                        )
+                    )
+                    or (
+                        nullif(trim(p.plano_saude_cnpj), '') is not null
+                        and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.plano_saude_cnpj
+                    )
+                )
+            )
+            or lower(unaccent(d.descricao)) ilike '%rpps%'
+            or lower(unaccent(d.natureza_despesa)) ilike '%rpps%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
 ),

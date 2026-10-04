@@ -8,6 +8,13 @@ export interface PrevidenciaConfig {
   cnpj?: string;
 }
 
+export interface PlanoSaudeConfig {
+  habilitado: boolean;
+  sigla: string;
+  nome: string;
+  cnpj?: string;
+}
+
 export interface HighlightItem {
   slug: string;
   titulo: string;
@@ -28,6 +35,7 @@ export interface PortalConfig {
   dataExtracao: string;
   dataExtracaoDate: Date | null;
   previdencia: PrevidenciaConfig;
+  planoSaude?: PlanoSaudeConfig;
   highlights: HighlightItem[];
 }
 
@@ -66,6 +74,12 @@ const FALLBACK_PORCIUNCULA: PortalConfig = {
     sigla: "CAPREM",
     nome: "Caixa de Aposentadoria e Pensões dos Servidores Públicos de Porciúncula",
     cnpj: "01180031000134",
+  },
+  planoSaude: {
+    habilitado: true,
+    sigla: "CASP",
+    nome: "Caixa de Assistência a Saúde dos Servidores Municipais de Porciúncula",
+    cnpj: "07573075000100",
   },
   highlights: [
     {
@@ -134,6 +148,19 @@ function parseRowToPortalConfig(row: Record<string, unknown>): PortalConfig {
     cnpj: row.previdencia_cnpj ? String(row.previdencia_cnpj) : undefined,
   };
 
+  const planoSaudeHabilitado = Boolean(
+    row.plano_saude_habilitado === true ||
+      row.plano_saude_habilitado === "true" ||
+      row.plano_saude_habilitado === 1,
+  );
+
+  const planoSaude: PlanoSaudeConfig = {
+    habilitado: planoSaudeHabilitado,
+    sigla: String(row.plano_saude_sigla || ""),
+    nome: String(row.plano_saude_nome || ""),
+    cnpj: row.plano_saude_cnpj ? String(row.plano_saude_cnpj) : undefined,
+  };
+
   const highlights: HighlightItem[] = (() => {
     if (!row.highlights_json) return [];
     try {
@@ -168,6 +195,7 @@ function parseRowToPortalConfig(row: Record<string, unknown>): PortalConfig {
     dataExtracao: dataExtracaoStr,
     dataExtracaoDate,
     previdencia,
+    planoSaude,
     highlights,
   };
 }
