@@ -2,6 +2,7 @@
 
 import type { PortalConfig } from "@transparencia/db";
 import { ArrowRight, Search } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -30,12 +31,20 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
           window.localStorage.getItem("last_seen_extraction") ||
           window.localStorage.getItem("pwa_installed");
 
-        const targetSlug =
-          preferred && portais.some((p) => p.portalSlug === preferred)
-            ? preferred
-            : legacyMarker
-              ? "porciuncula_prefeitura"
+        const targetSlug = (() => {
+          if (preferred) {
+            return portais.some((p) => p.portalSlug === preferred)
+              ? preferred
               : null;
+          }
+          if (
+            legacyMarker &&
+            portais.some((p) => p.portalSlug === "porciuncula_prefeitura")
+          ) {
+            return "porciuncula_prefeitura";
+          }
+          return null;
+        })();
 
         if (targetSlug) {
           // biome-ignore lint/suspicious/noDocumentCookie: cookie de preferencia do portal
@@ -165,10 +174,15 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
         className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2"
       >
         {filteredPortais.map((portal) => {
-          const cityName = portal.displayName.replace(/^Prefeitura de\s+/i, "");
-          const brasaoSrc = portal.brasaoAsset.startsWith("/")
-            ? portal.brasaoAsset
-            : `/${portal.brasaoAsset}`;
+          const cityName = portal.displayName.replace(
+            /^Prefeitura (Municipal )?de\s+/i,
+            "",
+          );
+          const brasaoSrc = (() => {
+            const asset = portal.brasaoAsset?.trim();
+            if (!asset) return "/brasao-porciuncula.png";
+            return asset.startsWith("/") ? asset : `/${asset}`;
+          })();
 
           const tags = [
             "Orçamento",
@@ -180,9 +194,9 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
           ].filter(Boolean) as string[];
 
           return (
-            <button
+            <Link
               key={portal.portalSlug}
-              type="button"
+              href={`/${portal.portalSlug}`}
               onClick={() => handleSelectPortal(portal.portalSlug)}
               className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-borderLine bg-cardBg text-left shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-accent hover:shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
@@ -226,7 +240,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </div>
-            </button>
+            </Link>
           );
         })}
       </section>

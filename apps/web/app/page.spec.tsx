@@ -11,13 +11,14 @@ const mockReplace = vi.fn();
 const mockRedirect = vi.fn();
 const mockCookiesGet = vi.fn();
 const mockLocationReplace = vi.fn();
+const mockUseSearchParams = vi.fn(() => new URLSearchParams(""));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
     replace: mockReplace,
   }),
-  useSearchParams: () => new URLSearchParams(""),
+  useSearchParams: () => mockUseSearchParams(),
   redirect: (url: string) => {
     mockRedirect(url);
     throw new Error(`NEXT_REDIRECT: ${url}`);
@@ -94,6 +95,7 @@ describe("RootPage (Landing Page Cívica Dinâmica e Redirecionamento)", () => {
     // biome-ignore lint/suspicious/noDocumentCookie: teste unitario
     document.cookie = "";
     mockCookiesGet.mockReturnValue(undefined);
+    mockUseSearchParams.mockReturnValue(new URLSearchParams(""));
     vi.mocked(getAllPortais).mockResolvedValue(mockPortais);
     Object.defineProperty(window, "location", {
       writable: true,
@@ -266,14 +268,24 @@ describe("RootPage (Landing Page Cívica Dinâmica e Redirecionamento)", () => {
     );
   });
 
+  it("não deve redirecionar no cliente se o usuário passar ?select=true mesmo com preferred_portal no localStorage", () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("select=true"));
+    window.localStorage.setItem("preferred_portal", "natividade_prefeitura");
+
+    render(<MunicipalLandingClient portais={mockPortais} />);
+
+    expect(mockLocationReplace).not.toHaveBeenCalled();
+    expect(screen.getByText("Natividade")).toBeInTheDocument();
+  });
+
   it("deve salvar preferência em cookie e localStorage ao clicar no card de Natividade", async () => {
     const pageElement = await RootPage({});
     render(pageElement);
 
-    const natividadeButton = screen.getByRole("button", {
+    const natividadeLink = screen.getByRole("link", {
       name: /natividade/i,
     });
-    fireEvent.click(natividadeButton);
+    fireEvent.click(natividadeLink);
 
     expect(window.localStorage.getItem("preferred_portal")).toBe(
       "natividade_prefeitura",

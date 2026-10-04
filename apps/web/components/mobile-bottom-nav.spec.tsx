@@ -133,6 +133,14 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
   });
 
   describe("Renderização e Interações da Barra", () => {
+    it("não deve renderizar na página raiz (landing page)", () => {
+      mockUsePathname.mockReturnValue("/");
+      const { container } = render(
+        <MobileBottomNav portalSlug="porciuncula_prefeitura" />,
+      );
+      expect(container.firstChild).toBeNull();
+    });
+
     it("deve renderizar as 4 abas primárias e o botão Mais", () => {
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
