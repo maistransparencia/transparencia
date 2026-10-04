@@ -58,7 +58,7 @@ const FALLBACK_PORCIUNCULA: PortalConfig = {
   cidadeClean: "PORCIUNCULA",
   anoInicial: 2021,
   empresaPadrao: "7",
-  brasaoAsset: "brasao-porciuncula.svg",
+  brasaoAsset: "brasao-porciuncula.png",
   dataExtracao: "",
   dataExtracaoDate: null,
   previdencia: {
