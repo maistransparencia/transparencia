@@ -13,6 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -293,7 +294,7 @@ export function Sidebar({
   );
 
   const normalizedBrasao = (() => {
-    if (!brasaoAsset) return "/brasao-porciuncula.svg";
+    if (!brasaoAsset) return "/brasao-porciuncula.png";
     return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
   })();
 
@@ -361,12 +362,13 @@ export function Sidebar({
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
               {!imgError && normalizedBrasao ? (
-                /* biome-ignore lint/performance/noImgElement: brasao asset */
-                <img
+                <Image
                   src={normalizedBrasao}
                   alt={`Brasão de ${portalName}`}
                   className="h-full w-full object-contain"
                   onError={() => setImgError(true)}
+                  width={32}
+                  height={32}
                 />
               ) : (
                 <Landmark
@@ -437,11 +439,13 @@ export function Sidebar({
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
                   {!imgError && normalizedBrasao ? (
                     /* biome-ignore lint/performance/noImgElement: brasao asset */
-                    <img
+                    <Image
                       src={normalizedBrasao}
                       alt={`Brasão de ${portalName}`}
                       className="h-full w-full object-contain"
                       onError={() => setImgError(true)}
+                      width={32}
+                      height={32}
                     />
                   ) : (
                     <Landmark

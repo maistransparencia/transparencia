@@ -2,6 +2,7 @@
 
 import type { PortalConfig } from "@transparencia/db";
 import { ArrowRight, Search } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -190,10 +191,12 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-canvas p-2.5 shadow-2xs">
                     {/* biome-ignore lint/performance/noImgElement: brasao asset */}
-                    <img
+                    <Image
                       src={brasaoSrc}
                       alt={`Brasão oficial de ${cityName}`}
                       className="h-full w-full object-contain"
+                      width={64}
+                      height={64}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
