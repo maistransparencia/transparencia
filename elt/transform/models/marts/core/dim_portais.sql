@@ -23,6 +23,10 @@ select
     p.previdencia_sigla,
     p.previdencia_nome,
     p.previdencia_cnpj,
+    p.plano_saude_habilitado,
+    p.plano_saude_nome,
+    p.plano_saude_sigla,
+    p.plano_saude_cnpj,
     p.highlights_json,
     p.cod_ibge,
     coalesce(m.value, current_date) as data_extracao

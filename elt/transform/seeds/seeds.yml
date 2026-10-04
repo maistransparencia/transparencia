@@ -58,6 +58,10 @@ seeds:
         previdencia_cnpj: text
         highlights_json: text
         cod_ibge: integer
+        plano_saude_habilitado: boolean
+        plano_saude_nome: text
+        plano_saude_sigla: text
+        plano_saude_cnpj: text
 
   - name: seed_elemento_despesa
     description: "Catálogo exaustivo oficial de 99 elementos de despesa (STN/MCASP)"

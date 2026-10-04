@@ -38,6 +38,14 @@ models:
         data_type: text
       - name: previdencia_cnpj
         data_type: text
+      - name: plano_saude_habilitado
+        data_type: boolean
+      - name: plano_saude_nome
+        data_type: text
+      - name: plano_saude_sigla
+        data_type: text
+      - name: plano_saude_cnpj
+        data_type: text
       - name: highlights_json
         data_type: text
       - name: cod_ibge
