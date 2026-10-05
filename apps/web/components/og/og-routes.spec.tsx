@@ -214,6 +214,46 @@ describe("OpenGraph Image Route Handlers", () => {
     expect(response).toHaveProperty("jsx");
   });
 
+  it("executa as queries da Visão Geral uma por vez (sem esgotar o pool)", async () => {
+    const db = await import("@transparencia/db");
+    let queriesEmAndamento = 0;
+    let maximoQueriesSimultaneas = 0;
+    const rastrearConcorrencia = async <T,>(resultado: T): Promise<T> => {
+      queriesEmAndamento += 1;
+      maximoQueriesSimultaneas = Math.max(
+        maximoQueriesSimultaneas,
+        queriesEmAndamento,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      queriesEmAndamento -= 1;
+      return resultado;
+    };
+    vi.mocked(db.getPortalConfig).mockImplementationOnce(() =>
+      rastrearConcorrencia({ displayName: "Prefeitura", uf: "RJ" } as any),
+    );
+    vi.mocked(db.getEntidades).mockImplementationOnce(() =>
+      rastrearConcorrencia([{ id: "1", nome: "Prefeitura" }] as any),
+    );
+    vi.mocked(db.getPosicaoFiscalMetrics).mockImplementationOnce(() =>
+      rastrearConcorrencia(null as any),
+    );
+    vi.mocked(db.getExecucaoOrcamentariaMetrics).mockImplementationOnce(() =>
+      rastrearConcorrencia([] as any),
+    );
+    vi.mocked(db.getFolhaVsServicosMetrics).mockImplementationOnce(() =>
+      rastrearConcorrencia([] as any),
+    );
+    vi.mocked(db.getLimiteMaximoLrfPessoal).mockImplementationOnce(() =>
+      rastrearConcorrencia(54 as any),
+    );
+
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/opengraph-image"
+    );
+    await generateImage({ params });
+    expect(maximoQueriesSimultaneas).toBe(1);
+  });
+
   it("captura exceção no PostHog e retorna card fallback quando ocorre erro", async () => {
     const { getPortalConfig } = await import("@transparencia/db");
     vi.mocked(getPortalConfig).mockRejectedValueOnce(

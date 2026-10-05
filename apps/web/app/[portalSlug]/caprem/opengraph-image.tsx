@@ -5,11 +5,20 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgCapremData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const caprem = await getHistoriaCapremMetrics(portalSlug, currentYear);
+  return { portalConfig, caprem };
+}
+
+const loadOgCapremData = createCachedDataLoader(fetchOgCapremData, "og-caprem");
 
 export default async function Image({
   params,
@@ -20,10 +29,10 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, caprem] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getHistoriaCapremMetrics(portalSlug, currentYear),
-    ]);
+    const { portalConfig, caprem } = await loadOgCapremData(
+      portalSlug,
+      currentYear,
+    );
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";

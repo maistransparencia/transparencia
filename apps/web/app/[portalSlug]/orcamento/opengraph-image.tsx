@@ -9,11 +9,32 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgOrcamentoData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const entidades = await getEntidades(portalSlug);
+  const empresaIds = entidades.map((e) => e.id).filter(Boolean);
+  const execucao =
+    empresaIds.length > 0
+      ? await getExecucaoOrcamentariaMetrics(
+          portalSlug,
+          currentYear,
+          empresaIds,
+        )
+      : [];
+  return { portalConfig, execucao };
+}
+
+const loadOgOrcamentoData = createCachedDataLoader(
+  fetchOgOrcamentoData,
+  "og-orcamento",
+);
 
 export default async function Image({
   params,
@@ -24,20 +45,10 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, entidades] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getEntidades(portalSlug),
-    ]);
-
-    const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const execucao =
-      empresaIds.length > 0
-        ? await getExecucaoOrcamentariaMetrics(
-            portalSlug,
-            currentYear,
-            empresaIds,
-          )
-        : [];
+    const { portalConfig, execucao } = await loadOgOrcamentoData(
+      portalSlug,
+      currentYear,
+    );
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
