@@ -2,7 +2,7 @@
 -- Enriquecimento hierárquico de objetos: PNCP (1ª) -> Contrato local (2ª) -> TCE-RJ (3ª) -> Municipal (4ª).
 -- Para adicionar novo portal: incluir novo CTE + union all abaixo.
 
-with porciuncula_base as (
+with licitacoes_municipais as (
     select
         'porciuncula_prefeitura' as portal_slug,
         ano,
@@ -18,10 +18,29 @@ with porciuncula_base as (
         edital_numero,
         processo
     from {{ ref('stg_porciuncula_prefeitura__licitacoes') }}
+
+    union all
+
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        licitacao_numero,
+        modalidade,
+        objeto,
+        discriminacao,
+        valor,
+        situacao,
+        data_abertura,
+        carona,
+        edital_numero,
+        processo
+    from {{ ref('stg_natividade_prefeitura__licitacoes') }}
 ),
 
 contratos_dedup as (
     select
+        portal_slug,
         ano,
         empresa_id,
         licitacao_numero,
@@ -29,16 +48,17 @@ contratos_dedup as (
         objeto
     from (
         select
+            portal_slug,
             ano,
             empresa_id,
             licitacao_numero,
             objeto_completo,
             objeto,
             row_number() over (
-                partition by ano, empresa_id, licitacao_numero
+                partition by portal_slug, ano, empresa_id, licitacao_numero
                 order by length(coalesce(objeto_completo, objeto, '')) desc, contrato_numero asc
             ) as rn
-        from {{ ref('stg_porciuncula_prefeitura__contratos') }}
+        from {{ ref('int_contratos_consolidados') }}
         where licitacao_numero is not null
           and coalesce(objeto_completo, objeto) is not null
     ) sub
@@ -57,6 +77,8 @@ pncp_mapeamento as (
 
 pncp_dedup as (
     select
+        portal_slug,
+        empresa_id,
         ano_compra,
         sequencial_compra,
         numero_compra,
@@ -67,6 +89,8 @@ pncp_dedup as (
         valor_total_homologado
     from (
         select
+            portal_slug,
+            empresa_id,
             ano_compra,
             sequencial_compra,
             numero_compra,
@@ -76,16 +100,17 @@ pncp_dedup as (
             valor_total_estimado,
             valor_total_homologado,
             row_number() over (
-                partition by ano_compra, coalesce(numero_compra, sequencial_compra::text)
+                partition by portal_slug, ano_compra, coalesce(numero_compra, sequencial_compra::text)
                 order by length(coalesce(objeto_compra, '')) desc
             ) as rn
         from {{ ref('stg_pncp__compras') }}
         where objeto_compra is not null
+          and portal_slug is not null
     ) sub
     where rn = 1
 ),
 
-porciuncula_enriched as (
+licitacoes_enriched as (
     select
         l.portal_slug,
         l.ano,
@@ -123,9 +148,10 @@ porciuncula_enriched as (
                 end asc,
                 length(coalesce(p.objeto_compra, c.objeto_completo, c.objeto, l.objeto, '')) desc
         ) as dedupe_rn
-    from porciuncula_base l
+    from licitacoes_municipais l
     left join contratos_dedup c
-        on c.ano = l.ano
+        on c.portal_slug = l.portal_slug
+       and c.ano = l.ano
        and c.empresa_id = l.empresa_id
        and (
            c.licitacao_numero = l.licitacao_numero
@@ -140,26 +166,30 @@ porciuncula_enriched as (
        and m.ano = l.ano
        and m.licitacao_numero = l.licitacao_numero
     left join pncp_dedup p
-        on (
-            m.licitacao_numero is not null
-            and p.ano_compra = m.ano_compra
-            and p.sequencial_compra = m.sequencial_compra
-        )
-        or (
-            m.licitacao_numero is null
-            and p.ano_compra = l.ano
-            and (
-                p.numero_compra = l.licitacao_numero
-                or (l.processo is not null and p.processo = l.processo)
+        on p.portal_slug = l.portal_slug
+       and (
+            (
+                m.licitacao_numero is not null
+                and p.ano_compra = m.ano_compra
+                and p.sequencial_compra = m.sequencial_compra
+            )
+            or (
+                m.licitacao_numero is null
+                and p.ano_compra = l.ano
+                and (
+                    p.numero_compra = l.licitacao_numero
+                    or (l.processo is not null and p.processo = l.processo)
+                    or (l.edital_numero is not null and p.numero_compra like l.edital_numero || '/%')
+                )
             )
         )
 ),
 
 pncp_exclusivas as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        c.portal_slug,
         c.ano_compra as ano,
-        '7' as empresa_id,
+        c.empresa_id,
         coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text) as licitacao_numero,
         coalesce(nullif(c.modalidade_nome, ''), 'OUTROS') as modalidade,
         c.objeto_compra as objeto,
@@ -173,15 +203,26 @@ pncp_exclusivas as (
         'pncp' as fonte_objeto,
         c.link_sistema_origem,
         row_number() over (
-            partition by c.ano_compra, coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text)
+            partition by c.portal_slug, c.ano_compra, coalesce(nullif(c.numero_compra, ''), lpad(c.sequencial_compra::text, 3, '0') || '/' || c.ano_compra::text)
             order by c.sequencial_compra asc
         ) as dedupe_rn
     from {{ ref('stg_pncp__compras') }} c
     left join pncp_mapeamento m
-        on m.ano_compra = c.ano_compra
+        on m.portal_slug = c.portal_slug
+       and m.ano_compra = c.ano_compra
        and m.sequencial_compra = c.sequencial_compra
+    left join licitacoes_municipais l
+        on l.portal_slug = c.portal_slug
+       and l.ano = c.ano_compra
+       and (
+           l.licitacao_numero = c.numero_compra
+           or (c.processo is not null and l.processo = c.processo)
+           or (l.edital_numero is not null and c.numero_compra like l.edital_numero || '/%')
+       )
     where m.licitacao_numero is null
+      and l.licitacao_numero is null
       and c.objeto_compra is not null
+      and c.portal_slug is not null
 )
 
 select
@@ -200,7 +241,7 @@ select
     carona,
     fonte_objeto,
     link_sistema_origem
-from porciuncula_enriched
+from licitacoes_enriched
 where dedupe_rn = 1
 
 union all

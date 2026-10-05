@@ -108,7 +108,7 @@ export function generateDataCatalogSchema({
       },
       {
         "@type": "Dataset",
-        name: "Situação Atuarial e RPPS (CAPREM)",
+        name: "Situação Atuarial e RPPS",
         description:
           "Indicadores de amortização de déficit atuarial e aportes previdenciários do instituto de previdência municipal.",
         license: "https://creativecommons.org/licenses/by/4.0/",

@@ -105,9 +105,9 @@ export async function seedHistoriaCaprem(
   row: HistoriaCapremRow,
 ): Promise<void> {
   await db
-    .insertInto("fct_historia_caprem_metricas")
+    .insertInto("fct_previdencia_historia_metricas")
     .values({
-      historia_caprem_id: nextId("hc"),
+      previdencia_historia_id: nextId("hc"),
       portal_slug: row.portalSlug,
       ano: row.ano,
       total_aporte_exigido: row.totalAporteExigido ?? 0,
@@ -128,6 +128,9 @@ export async function seedHistoriaCaprem(
     .execute();
 }
 
+export type PrevidenciaHistoriaRow = HistoriaCapremRow;
+export const seedPrevidenciaHistoria = seedHistoriaCaprem;
+
 export interface CapremPatrimonioHistoricoRow {
   portalSlug: string;
   ano: number;
@@ -147,9 +150,9 @@ export async function seedCapremPatrimonioHistorico(
   const saldoAplicacoes = row.saldoAplicacoes ?? 0;
   const patrimonioTotal = row.patrimonioTotal ?? saldoCaixa + saldoAplicacoes;
   await db
-    .insertInto("fct_caprem_patrimonio_historico_metricas")
+    .insertInto("fct_previdencia_patrimonio_historico_metricas")
     .values({
-      caprem_patrimonio_historico_id: nextId("cph"),
+      previdencia_patrimonio_historico_id: nextId("cph"),
       portal_slug: row.portalSlug,
       ano: row.ano,
       mes_referencia: row.mesReferencia,
@@ -162,6 +165,9 @@ export async function seedCapremPatrimonioHistorico(
     })
     .execute();
 }
+
+export type PrevidenciaPatrimonioHistoricoRow = CapremPatrimonioHistoricoRow;
+export const seedPrevidenciaPatrimonioHistorico = seedCapremPatrimonioHistorico;
 
 export interface CapremTendenciaAtuarialRow {
   portalSlug: string;
@@ -176,15 +182,110 @@ export async function seedCapremTendenciaAtuarial(
   row: CapremTendenciaAtuarialRow,
 ): Promise<void> {
   await db
-    .insertInto("fct_caprem_tendencia_atuarial_metricas")
+    .insertInto("fct_previdencia_tendencia_atuarial_metricas")
     .values({
-      caprem_tendencia_id: nextId("cta"),
+      previdencia_tendencia_id: nextId("cta"),
       portal_slug: row.portalSlug,
       ano: row.ano,
       aporte_exigido: row.aporteExigido ?? 0,
       aporte_quitado: row.aporteQuitado ?? 0,
       taxa_adimplencia: row.taxaAdimplencia ?? 100,
       amortizacao_divida: row.amortizacaoDivida ?? 0,
+    })
+    .execute();
+}
+
+export type PrevidenciaTendenciaAtuarialRow = CapremTendenciaAtuarialRow;
+export const seedPrevidenciaTendenciaAtuarial = seedCapremTendenciaAtuarial;
+
+export interface PrevidenciaCadprevRow {
+  portalSlug: string;
+  ano: number;
+  empenhoId?: string;
+  descricao?: string;
+  dataEmpenho?: string;
+  empenhado?: number;
+  pago?: number;
+}
+
+export async function seedPrevidenciaCadprev(
+  row: PrevidenciaCadprevRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_previdencia_cadprev_metricas")
+    .values({
+      previdencia_cadprev_id: nextId("pcp"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empenho_id: row.empenhoId ?? "E-001",
+      descricao: row.descricao ?? "Parcelamento CADPREV",
+      data_empenho: row.dataEmpenho ?? "2025-01-01",
+      empenhado: row.empenhado ?? 0,
+      pago: row.pago ?? 0,
+    })
+    .execute();
+}
+
+export interface PrevidenciaEntidadesRow {
+  portalSlug: string;
+  ano: number;
+  entidade: string;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+  taxaExecucao?: number;
+}
+
+export async function seedPrevidenciaEntidades(
+  row: PrevidenciaEntidadesRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_previdencia_entidades_metricas")
+    .values({
+      previdencia_entidade_id: nextId("pen"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      entidade: row.entidade,
+      empenhado: row.empenhado ?? 0,
+      liquidado: row.liquidado ?? 0,
+      pago: row.pago ?? 0,
+      taxa_execucao: row.taxaExecucao ?? 0,
+    })
+    .execute();
+}
+
+export interface PrevidenciaNaturezaRow {
+  portalSlug: string;
+  ano: number;
+  empenhoId?: string;
+  elemento: string;
+  naturezaDespesa: string;
+  destino: string;
+  descricao?: string;
+  dataEmpenho?: string;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+}
+
+export async function seedPrevidenciaNatureza(
+  row: PrevidenciaNaturezaRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_previdencia_natureza_metricas")
+    .values({
+      previdencia_natureza_id: nextId("pnt"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empenho_id: row.empenhoId ?? "E-001",
+      elemento: row.elemento,
+      natureza_despesa: row.naturezaDespesa,
+      destino: row.destino,
+      descricao: row.descricao ?? "Despesa previdenciária",
+      data_empenho: row.dataEmpenho ?? "2025-01-01",
+      empenhado: row.empenhado ?? 0,
+      liquidado: row.liquidado ?? 0,
+      pago: row.pago ?? 0,
     })
     .execute();
 }
@@ -919,7 +1020,7 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
-    .deleteFrom("fct_historia_caprem_metricas")
+    .deleteFrom("fct_previdencia_historia_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
@@ -959,11 +1060,23 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
-    .deleteFrom("fct_caprem_patrimonio_historico_metricas")
+    .deleteFrom("fct_previdencia_patrimonio_historico_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
-    .deleteFrom("fct_caprem_tendencia_atuarial_metricas")
+    .deleteFrom("fct_previdencia_tendencia_atuarial_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_previdencia_cadprev_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_previdencia_entidades_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_previdencia_natureza_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
 }

@@ -339,5 +339,5 @@ def test_load_run_siconfi(tmp_path):
     ):
         load_run.main()
         mock_ensure.assert_called_once()
-        mock_load.assert_called_once_with(mock_engine.return_value, sample_rows)
+        mock_load.assert_called_once_with(mock_engine.return_value, sample_rows, schema="raw_porciuncula_prefeitura")
         mock_upsert_raw.assert_called_once()

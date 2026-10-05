@@ -1,6 +1,12 @@
 "use client";
 
-import { buildNavUrl, cn, type MultiSelectOption } from "@transparencia/ui";
+import {
+  buildNavUrl,
+  cn,
+  type MultiSelectOption,
+  type PortalOption,
+  resolvePortalSlug,
+} from "@transparencia/ui";
 import {
   FileText,
   LayoutDashboard,
@@ -111,12 +117,22 @@ export interface MobileBottomNavProps {
   entidades?: MultiSelectOption[] | string[];
   radarAlertCount?: number;
   radarAlertsCountByYear?: Record<number, number>;
+  radarAlertsByPortal?: Record<string, Record<number, number>>;
+  portais?: PortalOption[];
+  previdencia?: {
+    habilitado: boolean;
+    sigla: string;
+    nome?: string;
+  };
 }
 
 export function MobileBottomNav({
   portalSlug = "porciuncula_prefeitura",
   radarAlertCount,
   radarAlertsCountByYear,
+  radarAlertsByPortal,
+  portais,
+  previdencia: _previdencia,
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const { isMenuOpen, toggleMenu } = useMobileNav();
@@ -135,22 +151,40 @@ export function MobileBottomNav({
     ? entidadesParam.split(",").filter(Boolean)
     : [];
 
+  const segments = (pathname || "").split("/").filter(Boolean);
+  const activePortalSlug = (() => {
+    if (segments.length > 0) {
+      const firstSegment = segments[0];
+      const match = portais?.find(
+        (p) =>
+          p.portalSlug === firstSegment ||
+          p.portalSlug === resolvePortalSlug(firstSegment),
+      );
+      if (match) return match.portalSlug;
+    }
+    return portalSlug || "porciuncula_prefeitura";
+  })();
+
   const activeAlertCount = (() => {
-    if (radarAlertsCountByYear) {
+    const alertsMap =
+      radarAlertsByPortal?.[activePortalSlug] ?? radarAlertsCountByYear;
+    if (alertsMap) {
       const yearNum = Number.parseInt(ano, 10);
-      if (
-        Number.isFinite(yearNum) &&
-        radarAlertsCountByYear[yearNum] !== undefined
-      ) {
-        return radarAlertsCountByYear[yearNum];
+      if (Number.isFinite(yearNum) && alertsMap[yearNum] !== undefined) {
+        return alertsMap[yearNum];
       }
       return 0;
     }
     return radarAlertCount ?? 0;
   })();
 
-  const activeIndex = resolveActiveTabIndex(pathname, portalSlug);
+  const activeIndex = resolveActiveTabIndex(pathname, activePortalSlug);
   const isMoreActive = activeIndex === PRIMARY_NAV_TABS.length || isMenuOpen;
+
+  const isRootPage = !pathname || pathname === "/";
+  if (isRootPage) {
+    return null;
+  }
 
   return (
     <nav
@@ -163,7 +197,7 @@ export function MobileBottomNav({
           const Icon = tab.icon;
           const href = buildNavUrl({
             path: tab.path,
-            slug: portalSlug,
+            slug: activePortalSlug,
             exercice: ano,
             entidades: selectedEntidades,
           });

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Sidebar } from "../sidebar";
 
@@ -77,5 +77,86 @@ describe("Sidebar Component", () => {
     expect(
       screen.getByRole("button", { name: "Instalar App Teste" }),
     ).toBeInTheDocument();
+  });
+
+  it("renderiza o item de previdência com a sigla correspondente quando habilitado", () => {
+    render(
+      <Sidebar
+        portalName="Natividade"
+        portalSlug="natividade_prefeitura"
+        previdencia={{
+          habilitado: true,
+          sigla: "NATPREVI",
+          nome: "Instituto de Previdência de Natividade - NATPREVI",
+        }}
+      />,
+    );
+
+    const prevLink = screen.getByRole("link", { name: /NATPREVI/i });
+    expect(prevLink).toBeInTheDocument();
+    expect(prevLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/natividade_prefeitura/previdencia"),
+    );
+  });
+
+  it("oculta o item de previdência quando previdencia.habilitado for false", () => {
+    render(
+      <Sidebar
+        portalName="Município Sem RPPS"
+        portalSlug="sem_rpps"
+        previdencia={{
+          habilitado: false,
+          sigla: "INSS",
+        }}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: /INSS/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /previdência/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renderiza o seletor de municípios e dispara onPortalChange ao selecionar novo portal", () => {
+    const onPortalChange = vi.fn();
+    const mockPortais = [
+      {
+        portalSlug: "porciuncula_prefeitura",
+        displayName: "Porciúncula",
+        uf: "RJ",
+      },
+      {
+        portalSlug: "natividade_prefeitura",
+        displayName: "Natividade",
+        uf: "RJ",
+      },
+      {
+        portalSlug: "sao_fidelis_prefeitura",
+        displayName: "São Fidélis",
+        uf: "RJ",
+      },
+    ];
+
+    render(
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        portais={mockPortais}
+        onPortalChange={onPortalChange}
+      />,
+    );
+
+    const selectors = screen.getAllByLabelText(/selecionar município/i);
+    expect(selectors.length).toBeGreaterThan(0);
+
+    const desktopSelect = selectors[0];
+    fireEvent.change(desktopSelect, {
+      target: { value: "natividade_prefeitura" },
+    });
+
+    expect(onPortalChange).toHaveBeenCalledWith("natividade_prefeitura");
   });
 });

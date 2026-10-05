@@ -2,7 +2,7 @@
 
 with despesas_agregadas as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        portal_slug,
         empresa as empresa_id,
         ano,
         coalesce(codigo, '00') as orgao_codigo,
@@ -16,6 +16,7 @@ with despesas_agregadas as (
         sum(coalesce(pago, 0)) as total_pago
     from {{ ref('fct_despesas_por_orgao') }}
     group by
+        portal_slug,
         empresa,
         ano,
         codigo

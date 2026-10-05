@@ -270,7 +270,7 @@ describe("radar-civico-narrative", () => {
         2024,
       );
       expect(narrative).toBe(
-        "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.",
+        "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS.",
       );
     });
 

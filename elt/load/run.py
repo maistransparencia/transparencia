@@ -144,7 +144,7 @@ def main() -> None:
     args = parser.parse_args()
 
     portal = PortalConfig.load(args.portal)
-    mod = importlib.import_module(f"elt.extract.{portal.slug}.api_endpoints")
+    mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
     schema = portal.raw_schema
 
@@ -176,7 +176,7 @@ def main() -> None:
 
                 ensure_siconfi_table(engine, schema)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_msc(engine, rows)
+                count = load_siconfi_msc(engine, rows, schema=schema)
                 logger.info(
                     "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
                     json_file.name,

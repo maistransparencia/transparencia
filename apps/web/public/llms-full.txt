@@ -4,6 +4,19 @@
 
 ---
 
+## Visão Geral Multi-Portal e Municípios Atendidos
+
+O MaisTransparencia disponibiliza a fiscalização e auditoria cívica de múltiplos municípios fluminenses. Em toda a plataforma, as rotas públicas utilizam o identificador canônico `/[portalSlug]/...`, onde `[portalSlug]` corresponde ao município consultado. O usuário pode alternar instantaneamente entre os municípios no cabeçalho através do componente `PortalSelect`, preservando o exercício financeiro (`?ano=YYYY`) e a sub-rota navegada.
+
+### Tabela de Municípios e Identificadores Oficiais
+
+| Município | UF | Código IBGE | Slug Canônico | Aliases com Redirecionamento 308 | Regime Próprio de Previdência (RPPS) |
+|---|---|---|---|---|---|
+| **Porciúncula** | RJ | `3304102` | `porciuncula_prefeitura` | `/porciuncula`, `/porciuncula-prefeitura` | CAPREM (Caixa de Previdência dos Servidores Públicos Municipais de Porciúncula) |
+| **Natividade** | RJ | `3303203` | `natividade_prefeitura` | `/natividade`, `/natividade-prefeitura` | NATPREVI (Instituto de Previdência dos Servidores Públicos do Município de Natividade - NATPREVI) |
+
+---
+
 ## 1. Guia Completo dos Domínios de Dados Públicos
 
 ### 1.1. Posição Fiscal e Balanço Financeiro
@@ -35,12 +48,12 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
   - *Pico de Despesa Homóloga (`pico_despesa_homologa`):* Compara períodos homólogos equivalentes mês-a-mês em despesas setoriais, excluindo áreas essenciais de investimento social e pisos constitucionais (Saúde, Educação e Assistência Social).
   - *Concentração de Dispensas (`concentracao_dispensa`):* Acompanha a proporção de contratações diretas em relação ao volume total de processos licitatórios.
   - *Opacidade em Gastos Genéricos (`opacidade_gastos_genericos`):* Monitora alocação de despesas pagas em subitens residuais `.99` acima da quota prudencial de 30%.
-  - *Inadimplência de Aporte Atuarial (`inadimplencia_aporte_rpps`):* Identifica recolhimento insuficiente dos aportes exigidos por lei municipal para equacionamento do déficit atuarial do Regime Próprio (Elemento 97). Dispara alerta de severidade alta quando a adimplência é inferior a 90% e crítica quando inferior a 70%, com fundamentação jurídica oficial na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm) e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#atuarial`.
-  - *Retenção Patronal Não Repassada (`retencao_patronal_rpps`):* Detecta passivo de contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM (Elemento 13) acima do piso de materialidade de R$ 20.000,00. Possui severidade crítica mandatória, fundamentação jurídica no [Art. 40 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40) e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#patronal`.
+  - *Inadimplência de Aporte Atuarial (`inadimplencia_aporte_rpps`):* Identifica recolhimento insuficiente dos aportes exigidos por lei municipal para equacionamento do déficit atuarial do Regime Próprio (Elemento 97). Dispara alerta de severidade alta quando a adimplência é inferior a 90% e crítica quando inferior a 70%, com fundamentação jurídica oficial na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm) e deep link contextual para `/[portalSlug]/previdencia?ano=[ano]#atuarial`.
+  - *Retenção Patronal Não Repassada (`retencao_patronal_rpps`):* Detecta passivo de contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS (Elemento 13) acima do piso de materialidade de R$ 20.000,00. Possui severidade crítica mandatória, fundamentação jurídica no [Art. 40 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40) e deep link contextual para `/[portalSlug]/previdencia?ano=[ano]#patronal`.
   - *Desconto Nulo em Pregão (`desconto_nulo_pregao`):* Identifica pregões homologados com ausência de disputa real ou desconto irrisório (< 1,00% em relação ao valor estimado) em certames com valor homologado relevante (>= R$ 20.000,00). Dispara severidade crítica para valores homologados a partir de R$ 100.000,00 ou desconto <= 0,20%, com fundamentação jurídica oficial no [Art. 5º da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5) e deep link contextual para `/[portalSlug]/licitacoes?ano=[ano]&numero=[numero]#itens`.
   - *Deságio Extremo e Inexequibilidade (`desagio_extremo_inexequibilidade`):* Alerta para certames homologados com deságio excessivo (desconto global >= 50,00% sobre o valor estimado) em contratações expressivas (>= R$ 20.000,00), exigindo comprovação de exequibilidade da proposta. Possui severidade crítica quando o deságio atinge ou supera 65,00%, com fundamentação jurídica oficial no [Art. 59, III da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59) e deep link para os itens do processo.
   - *Inconsistência em Vínculos de Pessoal (`inconsistencia_vinculo_pessoal`):* Identifica servidores públicos cadastrados com categorias funcionais atípicas no portal de origem (como agentes políticos ou excepcional interesse alocados indevidamente em comissionados ou contratos temporários), exigindo harmonização cadastral. Dispara severidade crítica para mais de 30 divergências, alta para 6 a 30 e moderada para até 5, com fundamentação jurídica oficial no [Art. 37 da Constituição Federal](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37) e deep link contextual para `/[portalSlug]/pessoal?ano=[ano]#regime`.
-  - *Desidratação do Patrimônio do RPPS (`desidratacao_patrimonio_rpps`):* Alerta para a retração acumulada do patrimônio financeiro do Regime Próprio (CAPREM) superior a 20,00% em janela móvel de 3 exercícios fechados, expurgando anos com inconsistência contábil de declaração na MSC. Possui severidade crítica mandatória, fundamentação jurídica oficial na [Resolução CMN nº 4.963/2021](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963) e na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm), e deep link contextual para `/[portalSlug]/caprem?ano=[ano]#patrimonio`.
+  - *Desidratação do Patrimônio do RPPS (`desidratacao_patrimonio_rpps`):* Alerta para a retração acumulada do patrimônio financeiro do Regime Próprio (CAPREM) superior a 20,00% em janela móvel de 3 exercícios fechados, expurgando anos com inconsistência contábil de declaração na MSC. Possui severidade crítica mandatória, fundamentação jurídica oficial na [Resolução CMN nº 4.963/2021](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4963) e na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm), e deep link contextual para `/[portalSlug]/previdencia?ano=[ano]#patrimonio`.
 - **Badges Semânticos de Atenção e Acompanhamento:**
   - *Atenção Especial (Crítico):* Variações de maior magnitude ou infrações que demandam acompanhamento prioritário da sociedade civil (ex: saltos atípicos em comissionados, rombo de caixa, retenção de contribuição patronal, desidratação do patrimônio do RPPS, inadimplência atuarial severa, deságio extremo com risco grave de inexequibilidade, pregão de grande vulto com desconto nulo ou contingente expressivo de vínculos inconsistentes).
   - *Atenção (Alto):* Variações relevantes frente aos padrões médios ou limites de referência (ex: aporte atuarial com adimplência entre 70% e 90%, deságio entre 50% e 65%, desconto nulo em pregão de menor porte, divergências cadastrais moderadas de pessoal, opacidade elevada ou picos atípicos em funções administrativas).
@@ -56,7 +69,7 @@ Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** 
 - **Métricas Comparativas e Fundamentação Jurídica Acessível:** Exibição clara do valor observado versus valor esperado/normativo e disponibilização de hyperlink oficial da Casa Civil / Planalto para o dispositivo legal pertinente com ícone acessível (`ExternalLink`), permitindo validação da norma com um clique.
 - **Funil de Aprofundamento e Compartilhamento:**
   - *Pílula de Alerta de Compras Abertas:* Quando houver processos licitatórios atualmente em andamento no município, o cabeçalho do Radar Cívico exibe uma pílula de alerta indicando o volume de compras abertas com deep link direto para auditoria prévia em `/[portalSlug]/licitacoes#licitacoes-em-andamento`.
-  - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`, `/caprem`) para investigação detalhada no contexto do alerta.
+  - *Botão de Ação Direta (CTA):* Encaminha o cidadão diretamente para a página analítica aprofundada (`/pessoal`, `/despesas`, `/receitas`, `/licitacoes`, `/previdencia`) para investigação detalhada no contexto do alerta.
   - *Compartilhar no WhatsApp:* Mensagem pré-formatada contendo síntese factual, valor apurado e link canônico do portal para circulação comunitária.
   - *Estado Vazio Reafirmante:* Quando nenhuma anomalia é detectada para o exercício selecionado, exibe mensagem confirmando a regularidade dos parâmetros monitorados.
 
@@ -241,21 +254,23 @@ Esta seção apresenta as informações relativas aos servidores públicos munic
     2. *Comissionados* (`comissionado`): Cargos de direção, chefia e assessoramento de livre nomeação e exoneração.
     3. *Temporários / Contratados* (`temporario`): Profissionais contratados por tempo determinado para atender a necessidade temporária de excepcional interesse público (CF art. 37, IX).
     4. *Agentes Políticos* (`agente_politico`): Prefeito, vice-prefeito e secretários municipais detentores de mandato ou cargo político executivo.
-    5. *Inativos e Pensionistas* (`inativo_pensionista`): Aposentados e pensionistas mantidos pela previdência municipal (CAPREM).
+    5. *Inativos e Pensionistas* (`inativo_pensionista`): Aposentados e pensionistas mantidos pela previdência municipal (CAPREM em Porciúncula, NATPREVI em Natividade).
   - *Métricas por Regime:* Quantitativo anual de profissionais, custo total da folha (proventos brutos), remuneração média individual anualizada, percentual do quadro total de profissionais (%) e percentual de absorção da folha de pagamento (%).
   - *Distribuição Visual Proporcional:* Gráfico de barras horizontal proporcional apresentando a divisão do quadro funcional e dos custos da folha entre os diferentes regimes.
   - *Auditoria Aberta ("Show Your Work"):* Download em CSV da relação de pessoal e remunerações por vínculo (`tipo=pessoal_regime&ano=YYYY`).
 
 ---
 
-### 1.6. Regime Próprio de Previdência Social (CAPREM)
+### 1.6. Regime Próprio de Previdência Social (RPPS)
 
 Esta seção traz a prestação de contas do instituto de previdência dos servidores municipais:
 
+- **Roteamento Canônico e Compatibilidade (`/[portalSlug]/previdencia`):** A rota canônica da previdência é `/[portalSlug]/previdencia`. Requisições direcionadas à rota legada `/[portalSlug]/caprem` sofrem redirecionamento permanente (HTTP 308), preservando todos os filtros e parâmetros de URL (`searchParams`).
+- **Navegação Dinâmica por Autarquia:** A interface e os menus adaptam-se dinamicamente à sigla do instituto municipal (ex: `CAPREM`, `NATPREVI`). Caso o município não possua regime próprio (`habilitado: false`), o menu é ocultado e a página exibe informativo pedagógico de filiação ao RGPS/INSS.
 - **Contribuições Patronais:** Os valores devidos pela prefeitura ao instituto de previdência como cota do empregador.
 - **Contribuições dos Servidores:** O desconto previdenciário retido da remuneração dos servidores ativos e aposentados repassado ao instituto.
 - **Aportes de Amortização do Déficit Atuarial:** Repasses financeiros extraordinários realizados pelo município para cobrir o déficit atuarial e garantir o pagamento futuro das aposentadorias e pensões.
-- **Disponibilidade em Caixa e Aplicações do RPPS (SICONFI / STN):** Demonstração do patrimônio financeiro exclusivo do fundo previdenciário municipal (CAPREM) mantido em contas bancárias e carteira de investimentos, conforme a Matriz de Saldos Contábeis homologada pelo Tesouro Nacional:
+- **Disponibilidade em Caixa e Aplicações do RPPS (SICONFI / STN):** Demonstração do patrimônio financeiro exclusivo do fundo previdenciário municipal mantido em contas bancárias e carteira de investimentos, conforme a Matriz de Saldos Contábeis homologada pelo Tesouro Nacional:
   - *Segregação Constitucional Obrigatória:* Cumprimento estrito do artigo 167, XI da Constituição Federal e artigo 50, IV da LRF, garantindo a incomunicabilidade entre o caixa da previdência e o caixa geral da prefeitura.
   - *Recursos 100% Vinculados:* Alocação exclusiva das disponibilidades para pagamento de benefícios previdenciários e formação de reserva atuarial.
   - *Variação Anual:* Indicador percentual comparativo frente ao encerramento do exercício anterior.
@@ -267,9 +282,9 @@ Esta seção traz a prestação de contas do instituto de previdência dos servi
     2. *Patrimônio Atual:* Saldo financeiro mais recente disponível acompanhado da taxa de retração percentual acumulada frente ao pico histórico (ex: -44,7%).
     3. *Queima Média Anual:* Taxa média de consumo de reservas dividida pelos anos transcorridos entre o pico e o exercício mais recente (ex: ~R$ 5,4M/ano).
   - *Transparência Metodológica e Quebra de Série:*
-    1. *Inconsistência de Declaração na MSC (2022):* Identificação técnica da omissão das aplicações financeiras na remessa contábil enviada pelo ente ao SICONFI em 2022, mantendo o dado factual publicado com badge e tooltip explicativo.
-    2. *Quebra de Série Metodológica (2023):* Exibição de variação percentual interanual como "N/D", expurgando cálculo estatístico artificial superior a +6.000% decorrente da regularização da declaração subsequente.
-  - *Diagnóstico Estrutural das Três Causas:*
+    1. *Inconsistência de Declaração na MSC:* Identificação técnica de eventuais omissões de aplicações financeiras na remessa contábil enviada pelo ente ao SICONFI em determinados exercícios, mantendo o dado factual publicado com badge e tooltip explicativo.
+    2. *Quebra de Série Metodológica:* Exibição de variação percentual interanual como "N/D" no exercício imediatamente posterior a uma omissão contábil, expurgando cálculos estatísticos distorcidos decorrentes da regularização subsequente da declaração.
+  - *Diagnóstico de Sustentabilidade e Riscos Estruturais do RPPS:*
     1. *Déficit de Contribuição e Aportes Atuariais:* Confronto entre os aportes devidos e quitados para cobertura do passivo atuarial, com fundamentação na [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
     2. *Cota Patronal em Atraso:* Apuração de retenções no repasse ordinário da contribuição patronal devida pelo município ao fundo próprio, com fundamentação no [Art. 40 da Constituição Federal de 1988](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40).
     3. *Diluição da Base de Efetivos:* Análise da proporção entre servidores temporários/comissionados e concursados efetivos, esclarecendo que temporários recolhem obrigatoriamente ao INSS/RGPS e não geram receita contributiva para o RPPS municipal.
@@ -304,7 +319,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 - `/[portalSlug]/orcamento/opengraph-image`: **Card de Orçamento** — Dotação Atualizada da LOA, Total Empenhado, Total Liquidado e Total Pago.
 - `/[portalSlug]/pessoal/opengraph-image`: **Card de Pessoal** — Total da Folha de Pagamento, Comprometimento da LRF com Pessoal, Total Pago e Percentual de Chefias Ocupadas por Servidores Efetivos.
 - `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde (com valor empenhado no detalhe).
-- `/[portalSlug]/caprem/opengraph-image`: **Card Previdenciário (CAPREM)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados.
+- `/[portalSlug]/previdencia/opengraph-image`: **Card Previdenciário (RPPS)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados (alias permanente para retrocompatibilidade: `/[portalSlug]/caprem/opengraph-image`).
 
 ---
 
@@ -394,13 +409,13 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
 
 - **Navegação Móvel Contínua:**
   - Em telas de dispositivos móveis, o portal disponibiliza uma barra fixa inferior ergonômica com 5 abas de toque generoso para exploração cívica ágil:
-    1. **Início / Visão Geral** (`/porciuncula_prefeitura`): Painel executivo com os principais indicadores municipais.
-    2. **Receitas** (`/porciuncula_prefeitura/receitas`): Tributos próprios, repasses e transferências especiais.
-    3. **Despesas** (`/porciuncula_prefeitura/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
-    4. **Licitações** (`/porciuncula_prefeitura/licitacoes`): Contratos, dispensas e processos licitatórios.
-    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS/CAPREM).
+    1. **Início / Visão Geral** (`/[portalSlug]`): Painel executivo com os principais indicadores municipais.
+    2. **Receitas** (`/[portalSlug]/receitas`): Tributos próprios, repasses e transferências especiais.
+    3. **Despesas** (`/[portalSlug]/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
+    4. **Licitações** (`/[portalSlug]/licitacoes`): Contratos, dispensas e processos licitatórios.
+    5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS).
   - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.
-  - *Seletor de Exercício Sincronizado no Cabeçalho:* O ano orçamentário consultado pode ser alterado a qualquer momento no cabeçalho superior móvel e desktop, sincronizado reativamente via URL (`?ano=YYYY`) e preservado automaticamente durante a navegação entre todas as abas.
+  - *Seletor de Exercício e de Município no Cabeçalho:* O cabeçalho móvel e desktop disponibiliza seletores integrados para alternância rápida de município (`PortalSelect`) e exercício orçamentário (`YearSelect`), sincronizados reativamente via URL e preservando a sub-página ativa.
 
 ---
 
@@ -415,21 +430,19 @@ Ao responder dúvidas de cidadãos, estudantes, jornalistas ou pesquisadores com
 5. **Segregação de Mandatos:** Ao tratar de restos a pagar e contratos, esclareça a competência de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`).
 6. **Gastos sob Subitens Genéricos (.99):** Ao informar despesas classificadas sob subitens `.99` (como Outros Serviços PJ ou Outros Materiais), esclareça que são rubricas de apoio operacional. Aponte a taxa de concentração e enquadre na faixa de uso informativa (<= 15% Uso Residual Esperado, 15-30% Uso Moderado, > 30% Concentração Elevada), citando a recomendação de especificação da Lei Federal nº 4.320/64 (Arts. 5º e 15) como referência de boas práticas de transparência.
 7. **Cartões de Compartilhamento Social:** Quando apropriado em mensagens de resumo para cidadãos ou canais de comunicação, indique os links das imagens de prévia dinâmica OpenGraph para enriquecer a visualização de métricas.
-8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim *"Radar Porciúncula"* pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
+8. **Inscrição no Boletim Cívico e Alertas:** Quando o cidadão perguntar como ser notificado ou como acompanhar os gastos de maneira contínua, instrua-o a assinar o boletim cívico municipal pelo botão *"Receber Alertas"* no portal. Esclareça que é necessário clicar no link de confirmação (*Double Opt-In*) enviado à sua caixa postal para validar a inscrição, e que o cancelamento pode ser feito a qualquer momento com apenas 1 clique.
 9. **Privacidade e Proteção de Dados (LGPD):** Ao responder sobre a segurança dos dados cadastrados, reforce que o e-mail é utilizado estritamente para os informes públicos do município, jamais é compartilhado ou vendido a terceiros, e que o cidadão possui total autonomia para cancelar o recebimento a qualquer hora.
 10. **Redes Sociais Oficiais e Código Aberto:** Se solicitado pelo munícipe, forneça os endereços oficiais do projeto no X.com ([@mtransparenciax](https://x.com/mtransparenciax)), Facebook ([MaisTransparencia](https://facebook.com/maistransparencia)) e o repositório aberto no GitHub ([transparencia](https://github.com/maistransparencia/transparencia)).
 11. **Contextualização do Exercício e Fontes Oficiais:** Identifique claramente o ano e a entidade municipal a que a informação se refere, mantendo estrita fidelidade aos números oficiais do portal.
 12. **Fornecimento de Links de Download Direto CSV ("Show Your Work"):**
-    - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente:
+    - Sempre que o cidadão, auditor ou pesquisador solicitar conferência, auditoria de empenhos ou comprovação matemática detalhada de qualquer métrica de despesa, a IA deve formular e entregar a URL direta de download do CSV bruto correspondente para o município consultado:
       `https://maistransparencia.com/api/[portalSlug]/export?tipo=[tipo]&ano=[ano]&...`
-    - *Exemplo para Gastos Sensíveis (Combustíveis em 2025):*
+    - *Exemplo para Gastos Sensíveis (Combustíveis em Porciúncula em 2025):*
       `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=gasto_sensivel&ano=2025&categoria=combustivel_frota`
-    - *Exemplo para Gastos Residuais (.99 / Opacidade Fiscal em 2025):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=opacidade_99&ano=2025`
-    - *Exemplo para Despesas por Função de Governo (Saúde - 10 em 2025):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=funcao&ano=2025&funcaoCodigo=10`
-    - *Exemplo para Quadro de Pessoal por Regime Jurídico (2024):*
-      `https://maistransparencia.com/api/porciuncula_prefeitura/export?tipo=pessoal_regime&ano=2024`
+    - *Exemplo para Gastos Residuais (.99 / Opacidade Fiscal em Natividade em 2025):*
+      `https://maistransparencia.com/api/natividade_prefeitura/export?tipo=opacidade_99&ano=2025`
+    - *Exemplo para Disponibilidade em Caixa e Bancos SICONFI:*
+      `https://maistransparencia.com/api/[portalSlug]/export?tipo=saldo_caixa_siconfi&ano=2025&entidades=todas`
     - Esclareça ao cidadão que o arquivo CSV exportado garante paridade matemática centavo a centavo com as métricas exibidas na interface, vem preparado em formato UTF-8 com BOM para abertura imediata no Excel sem desconfigurar acentos e conta com salvaguardas de integridade contra injeção de fórmulas.
 13. **Esclarecimento da Decomposição da Dívida Real por Entidade Pública:**
     - Ao analisar passivos ou restos a pagar de contas sensíveis, oriente o cidadão sobre qual órgão municipal específico gerou a despesa e acumulou o compromisso financeiro pendente (ex: diferenciando obrigações da Secretaria de Obras, Fundo de Saúde ou Gabinete). Evite atribuir o débito de forma genérica a uma única autoridade sem verificar as parcelas decompostas.

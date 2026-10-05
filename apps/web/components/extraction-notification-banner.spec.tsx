@@ -3,6 +3,12 @@ import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExtractionNotificationBanner } from "./extraction-notification-banner";
 
+let mockPathname = "/porciuncula_prefeitura";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => mockPathname,
+}));
+
 vi.mock("posthog-js", () => ({
   default: {
     capture: vi.fn(),
@@ -26,6 +32,7 @@ vi.mock("@/hooks/use-push-notifications", () => ({
 
 describe("ExtractionNotificationBanner Component", () => {
   beforeEach(() => {
+    mockPathname = "/porciuncula_prefeitura";
     localStorage.clear();
     vi.restoreAllMocks();
   });
@@ -98,5 +105,52 @@ describe("ExtractionNotificationBanner Component", () => {
         portal_name: "Prefeitura de Porciúncula",
       },
     );
+  });
+
+  it("does not render and does not touch localStorage when on root page ('/')", () => {
+    mockPathname = "/";
+    localStorage.setItem("last_seen_extraction", "2026-08-01");
+
+    const { container } = render(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(localStorage.getItem("last_seen_extraction")).toBe("2026-08-01");
+    expect(posthog.capture).not.toHaveBeenCalled();
+  });
+
+  it("transitions seamlessly from root ('/') to portal ('/porciuncula_prefeitura') without hook errors", () => {
+    mockPathname = "/";
+    localStorage.setItem("last_seen_extraction", "2026-08-01");
+
+    const { rerender } = render(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(
+      screen.queryByText(/Novos dados disponíveis!/i),
+    ).not.toBeInTheDocument();
+
+    // Now transition to municipal route
+    mockPathname = "/porciuncula_prefeitura";
+    rerender(
+      <ExtractionNotificationBanner
+        lastExtractionDate="2026-08-19"
+        portalName="Prefeitura de Porciúncula"
+      />,
+    );
+
+    expect(screen.getByText(/Novos dados disponíveis!/i)).toBeInTheDocument();
+    expect(posthog.capture).toHaveBeenCalledWith("extraction_banner_viewed", {
+      last_extraction_date: "2026-08-19",
+      portal_name: "Prefeitura de Porciúncula",
+    });
   });
 });

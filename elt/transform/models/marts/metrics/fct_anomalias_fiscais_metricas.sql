@@ -274,7 +274,7 @@ caprem_atuarial_anomalias as (
         12::integer as mes_final,
         null::text as licitacao_numero,
         'limite_normativo_adimplencia'::text as metodo_deteccao
-    from {{ ref('fct_caprem_tendencia_atuarial_metricas') }}
+    from {{ ref('fct_previdencia_tendencia_atuarial_metricas') }}
     where aporte_exigido > 0
       and taxa_adimplencia < 90.00
       and ano >= {{ var('ano_inicial_historico', 2021) }}
@@ -293,7 +293,7 @@ caprem_patronal_anomalias as (
         12::integer as mes_final,
         null::text as licitacao_numero,
         'fluxo_patronal_em_aberto'::text as metodo_deteccao
-    from {{ ref('fct_historia_caprem_metricas') }}
+    from {{ ref('fct_previdencia_historia_metricas') }}
     where rombo_patronal_nao_repassado > 20000.00
       and ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
@@ -454,7 +454,7 @@ caprem_desidratacao_base as (
         portal_slug,
         ano,
         patrimonio_total
-    from {{ ref('fct_caprem_patrimonio_historico_metricas') }}
+    from {{ ref('fct_previdencia_patrimonio_historico_metricas') }}
     where not inconsistencia_declaracao_flag
       and ano >= {{ var('ano_inicial_historico', 2021) }}
 ),

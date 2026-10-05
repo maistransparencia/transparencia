@@ -1,0 +1,16 @@
+slug: natividade_prefeitura
+display_name: Prefeitura de Natividade
+uf: RJ
+cod_ibge: 3303401
+portal_url: https://portal-pm-natividade.transpgp.com.br/transparencia
+base_host: https://portal-pm-natividade.transpgp.com.br
+cidade_clean: NATIVIDADE
+ano_inicial: 2021
+empresa_padrao: "1"
+github_url: https://github.com/maistransparencia/transparencia
+provider: fiorilli
+rpps:
+  sigla: NATPREVI
+  nome: Instituto de Previdência dos Servidores Públicos do Município de Natividade - NATPREVI
+assets:
+  brasao: assets/brasao-natividade.png
