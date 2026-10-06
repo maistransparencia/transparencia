@@ -59,7 +59,15 @@ describe("createCachedDataLoader", () => {
     expect(mockUnstableCache).toHaveBeenCalledWith(
       expect.any(Function),
       [expectedKey],
-      { revalidate: 3600 },
+      {
+        revalidate: 3600,
+        tags: [
+          "visao-geral",
+          "portal-data",
+          "portal:porciuncula_prefeitura",
+          "visao-geral:porciuncula_prefeitura",
+        ],
+      },
     );
     expect(innerCachedFn).toHaveBeenCalledTimes(1);
 
@@ -83,7 +91,10 @@ describe("createCachedDataLoader", () => {
     expect(mockUnstableCache).toHaveBeenCalledWith(
       expect.any(Function),
       [`default-ttl-v${version}-[]`],
-      { revalidate: 86400 },
+      {
+        revalidate: 86400,
+        tags: ["default-ttl", "portal-data"],
+      },
     );
   });
 });

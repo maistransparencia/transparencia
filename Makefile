@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/load elt/load-csv elt/siconfi elt/pncp dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -61,15 +61,17 @@ ifndef PORTAL
 endif
 	PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $(PORTAL) $(if $(DIR),--dir $(DIR))
 
+elt/extract-csv:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/extract-csv PORTAL=porciuncula_prefeitura)
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/fiorilli/$(PORTAL)/receitas_csv.py
+
 elt/load-csv:
 ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/load-csv PORTAL=porciuncula_prefeitura)
 endif
-ifeq ($(PORTAL),porciuncula_prefeitura)
-	PYTHONPATH=. uv run --project elt python elt/load/porciuncula_prefeitura/load_receitas_csv.py
-else
-	$(error No load-csv script available for portal '$(PORTAL)')
-endif
+	PYTHONPATH=. uv run --project elt python elt/load/fiorilli/$(PORTAL)/load_receitas_csv.py
 
 elt/siconfi:
 ifndef PORTAL
@@ -79,6 +81,18 @@ endif
 
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
+
+# CACHE REVALIDATION
+
+cache/revalidate:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make cache/revalidate PORTAL=porciuncula_prefeitura [WEBHOOK_URL=...])
+endif
+	@curl -s -f -X POST "$${WEBHOOK_URL:-http://localhost:3001/api/ingestion/webhook}" \
+		-H "Authorization: Bearer $${INTERNAL_API_SECRET}" \
+		-H "Content-Type: application/json" \
+		-d '{"portalSlug":"$(PORTAL)","status":"success","skipNotification":true,"timestamp":"'$$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
+		&& echo "\nCache revalidado com sucesso para $(PORTAL)!" || (echo "\nFalha ao revalidar cache" && exit 1)
 
 # DOCKER ELT
 

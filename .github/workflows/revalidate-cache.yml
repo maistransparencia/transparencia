@@ -1,0 +1,62 @@
+name: Revalidate Portal Cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      portal:
+        description: "Slug do portal municipal (ou 'all' para todos os portais)"
+        required: true
+        default: "porciuncula_prefeitura"
+      skip_notification:
+        description: "Pular envio de Web Push (apenas revalidar cache)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: revalidate-cache-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  revalidate:
+    name: Revalidate Next.js Data Cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Ingestion Revalidation Webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+          APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          PORTAL_SLUG: ${{ github.event.inputs.portal }}
+          SKIP_NOTIFICATION: ${{ github.event.inputs.skip_notification }}
+        run: |
+          TARGET_URL="${WEBHOOK_URL:-${APP_URL:+${APP_URL}/api/ingestion/webhook}}"
+          if [ -z "$TARGET_URL" ]; then
+            echo "::error::Nem WEBHOOK_URL nem NEXT_PUBLIC_APP_URL configurados nos secrets do repositório."
+            exit 1
+          fi
+
+          if [ -z "$INTERNAL_API_SECRET" ]; then
+            echo "::error::INTERNAL_API_SECRET não configurado nos secrets do repositório."
+            exit 1
+          fi
+
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          echo "Disparando revalidação para portal '${PORTAL_SLUG}' em ${TARGET_URL}..."
+
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TARGET_URL" \
+            -H "Authorization: Bearer $INTERNAL_API_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "{\"portalSlug\":\"$PORTAL_SLUG\",\"status\":\"success\",\"skipNotification\":$SKIP_NOTIFICATION,\"timestamp\":\"$TIMESTAMP\"}")
+
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+
+          echo "Resposta HTTP ($HTTP_STATUS): $RESPONSE_BODY"
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✅ Cache revalidado com sucesso!"
+          else
+            echo "::error::Falha ao revalidar cache (HTTP $HTTP_STATUS): $RESPONSE_BODY"
+            exit 1
+          fi

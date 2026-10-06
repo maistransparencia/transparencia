@@ -5,6 +5,9 @@ import {
   seedCapremPatrimonioHistorico,
   seedCapremTendenciaAtuarial,
   seedHistoriaCaprem,
+  seedPrevidenciaCadprev,
+  seedPrevidenciaEntidades,
+  seedPrevidenciaNatureza,
 } from "../../../tests/fixtures/seed";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
 import {
@@ -94,6 +97,76 @@ describe("getCapremEntidadesMetrics / getCapremNaturezaMetrics / getCapremActuar
 
     const patrimonio = await getCapremPatrimonioHistoricoMetrics(PORTAL_SLUG);
     expect(Array.isArray(patrimonio)).toBe(true);
+  });
+
+  it("retorna dados mapeados corretamente a partir de fct_previdencia_entidades_metricas", async () => {
+    await seedPrevidenciaEntidades({
+      portalSlug: PORTAL,
+      ano: 2025,
+      entidade: "Prefeitura Municipal",
+      empenhado: 500000,
+      liquidado: 450000,
+      pago: 400000,
+      taxaExecucao: 80,
+    });
+
+    const entidades = await getCapremEntidadesMetrics(PORTAL, 2025);
+    expect(entidades).toHaveLength(1);
+    expect(entidades[0]).toEqual({
+      entidade: "Prefeitura Municipal",
+      empenhado: 500000,
+      liquidado: 450000,
+      pago: 400000,
+      taxaExecucao: 80,
+    });
+  });
+
+  it("retorna dados mapeados corretamente a partir de fct_previdencia_natureza_metricas", async () => {
+    await seedPrevidenciaNatureza({
+      portalSlug: PORTAL,
+      ano: 2025,
+      elemento: "97",
+      naturezaDespesa: "Aporte Atuarial",
+      destino: "aporte_atuarial_rpps",
+      descricao: "Aporte atuarial RPPS",
+      dataEmpenho: "2025-02-15",
+      empenhado: 100000,
+      liquidado: 100000,
+      pago: 90000,
+    });
+
+    const natureza = await getCapremNaturezaMetrics(PORTAL, 2025);
+    expect(natureza).toHaveLength(1);
+    expect(natureza[0]).toMatchObject({
+      elemento: "97",
+      naturezaDespesa: "Aporte Atuarial",
+      destino: "aporte_atuarial_rpps",
+      empenhado: 100000,
+      liquidado: 100000,
+      pago: 90000,
+    });
+  });
+
+  it("retorna dados mapeados corretamente a partir de fct_previdencia_cadprev_metricas", async () => {
+    await seedPrevidenciaCadprev({
+      portalSlug: PORTAL,
+      ano: 2025,
+      empenhoId: "EMP-2025-01",
+      descricao: "Acordo CADPREV 123/2025",
+      dataEmpenho: "2025-03-01",
+      empenhado: 30000,
+      pago: 30000,
+    });
+
+    const cadprev = await getCapremCadprevMetrics(PORTAL, 2025);
+    expect(cadprev).toHaveLength(1);
+    expect(cadprev[0]).toMatchObject({
+      numeroCadprev: "CADPREV Nº 123/2025",
+      descricao: "Acordo CADPREV 123/2025",
+      elemento: "71",
+      empenhado: 30000,
+      pago: 30000,
+    });
   });
 });
 

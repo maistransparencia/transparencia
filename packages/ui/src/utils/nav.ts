@@ -24,3 +24,16 @@ export function buildNavUrl({
   const queryString = params.toString();
   return queryString ? `${basePath}?${queryString}` : basePath;
 }
+
+export const PORTAL_ALIASES: Record<string, string> = {
+  porciuncula: "porciuncula_prefeitura",
+  "porciuncula-prefeitura": "porciuncula_prefeitura",
+  natividade: "natividade_prefeitura",
+  "natividade-prefeitura": "natividade_prefeitura",
+};
+
+export function resolvePortalSlug(slug?: string | null): string {
+  if (!slug || typeof slug !== "string") return "porciuncula_prefeitura";
+  const normalized = slug.trim().toLowerCase();
+  return PORTAL_ALIASES[normalized] || normalized;
+}

@@ -7,7 +7,7 @@ import json
 import logging
 from datetime import date, datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from elt.core.config import PortalConfig
 from elt.extract.base import EndpointConfig
@@ -34,8 +34,22 @@ def main() -> None:
     args = parser.parse_args()
 
     portal = PortalConfig.load(args.portal)
-    mod = importlib.import_module(f"elt.extract.{portal.slug}.api_endpoints")
-    endpoints = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
+    try:
+        mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
+        endpoints = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
+    except ModuleNotFoundError:
+        logger.info(
+            "Módulo de endpoints específico para %s não encontrado. Usando fallback genérico Fiorilli.",
+            portal.slug,
+        )
+        from elt.extract.fiorilli.api_endpoints import get_endpoint_configs
+
+        endpoints = get_endpoint_configs(
+            base_url=portal.base_host,
+            portal_slug=portal.slug,
+            cod_ibge=portal.cod_ibge,
+            ano_inicial=portal.ano_inicial,
+        )
 
     years = args.years or list(range(portal.ano_inicial, date.today().year + 1))
 
@@ -55,15 +69,28 @@ def main() -> None:
     entities = portal.load_orgaos()
 
     for config in endpoints:
-        extractor = config.extractor_cls(
-            config.base_path,
-            config.listagem,
-            config.table,
-            [],
-            config.extra,
-            None,
-            base_url=config.base_url,
-        )
+        effective_base_url = config.base_url or portal.base_host
+        try:
+            extractor = config.extractor_cls(
+                config.base_path,
+                config.listagem,
+                config.table,
+                [],
+                config.extra,
+                None,
+                base_url=effective_base_url,
+                portal_slug=portal.slug,
+            )
+        except TypeError:
+            extractor = config.extractor_cls(
+                config.base_path,
+                config.listagem,
+                config.table,
+                [],
+                config.extra,
+                None,
+                base_url=effective_base_url,
+            )
         for empresa_id, empresa_name in entities.items():
             for year in years:
                 try:
@@ -106,14 +133,28 @@ def main() -> None:
     if not args.only or args.only in pncp_keys:
         from elt.extract.pncp import extract_and_load_pncp
 
-        logger.info("Extracting PNCP data for %s...", portal.slug)
+        portal_cnpj = None
         try:
-            extract_and_load_pncp(
-                years=years,
-                run_dir=run_dir,
-                save_raw=True,
-                db=None,
-            )
+            with open(portal.orgaos_csv_path, newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    if r.get("empresa_id") == str(portal.empresa_padrao):
+                        portal_cnpj = r.get("cnpj")
+                        break
+        except Exception:
+            pass
+
+        logger.info("Extracting PNCP data for %s (CNPJ: %s)...", portal.slug, portal_cnpj or "default")
+        try:
+            pncp_kwargs: dict[str, Any] = {
+                "years": years,
+                "run_dir": run_dir,
+                "save_raw": True,
+                "db": None,
+            }
+            if portal_cnpj:
+                pncp_kwargs["cnpj"] = portal_cnpj
+            extract_and_load_pncp(**pncp_kwargs)
             logger.info("Extracted PNCP data for %s", portal.slug)
         except Exception as exc:
             logger.warning("Failed: pncp / %s: %s", portal.slug, exc)

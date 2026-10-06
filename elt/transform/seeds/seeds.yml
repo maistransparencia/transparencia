@@ -10,8 +10,27 @@ seeds:
         nome: text
         cnpj: text
 
+  - name: seed_natividade_prefeitura_orgaos
+    description: "Entidades municipais de Natividade"
+    config:
+      column_types:
+        portal_slug: text
+        empresa_id: text
+        nome: text
+        cnpj: text
+
   - name: seed_porciuncula_prefeitura_siconfi_orgaos
     description: "Vínculo entre grupos de destinação contábil da MSC SICONFI e órgãos de Porciúncula"
+    config:
+      column_types:
+        portal_slug: text
+        poder_orgao: text
+        grupo_destinacao: text
+        empresa_id: text
+        descricao: text
+
+  - name: seed_natividade_prefeitura_siconfi_orgaos
+    description: "Vínculo entre grupos de destinação contábil da MSC SICONFI e órgãos de Natividade"
     config:
       column_types:
         portal_slug: text
@@ -33,6 +52,16 @@ seeds:
         ano_inicial: integer
         empresa_padrao: text
         brasao_asset: text
+        previdencia_habilitado: boolean
+        previdencia_sigla: text
+        previdencia_nome: text
+        previdencia_cnpj: text
+        highlights_json: text
+        cod_ibge: integer
+        plano_saude_habilitado: boolean
+        plano_saude_nome: text
+        plano_saude_sigla: text
+        plano_saude_cnpj: text
 
   - name: seed_elemento_despesa
     description: "Catálogo exaustivo oficial de 99 elementos de despesa (STN/MCASP)"

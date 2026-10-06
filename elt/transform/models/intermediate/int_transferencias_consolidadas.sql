@@ -12,6 +12,19 @@ with porciuncula as (
         repasse,
         devolucao
     from {{ ref('stg_porciuncula_prefeitura__transferencias') }}
+),
+
+natividade as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        mes,
+        entidade_pagadora,
+        entidade_recebedora,
+        repasse,
+        devolucao
+    from {{ ref('stg_natividade_prefeitura__transferencias') }}
 )
 
 select
@@ -24,3 +37,16 @@ select
     repasse,
     devolucao
 from porciuncula
+
+union all
+
+select
+    portal_slug,
+    ano,
+    empresa_id,
+    mes,
+    entidade_pagadora,
+    entidade_recebedora,
+    repasse,
+    devolucao
+from natividade

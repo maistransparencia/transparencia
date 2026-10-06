@@ -95,7 +95,7 @@ function ElementoResidualRow({
       {/* Topo: Código, Descrição e Badge de Classificação */}
       <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <span className="shrink-0 font-bold font-mono text-[11px] text-slate-700">
+          <span className="shrink-0 font-bold text-[11px] text-slate-700">
             {elem.elementoCodigo}.99
           </span>
           <span
@@ -410,7 +410,7 @@ export function TermometroOpacidadeFiscal({
                         ({fmtPercent(elemPrincipal.percentualDoResidual99)}) de
                         todos os gastos sob subitens genéricos está concentrada
                         no código{" "}
-                        <strong className="font-mono font-semibold text-amber-900">
+                        <strong className="font-semibold text-amber-900">
                           {elemPrincipal.elementoCodigo}.99 (
                           {elemPrincipal.elementoDescricao})
                         </strong>
@@ -580,7 +580,7 @@ export function TermometroOpacidadeFiscal({
                         <div className="font-semibold text-slate-900">
                           {credor.credorNome}
                         </div>
-                        <div className="font-mono text-[11px] text-slate-400">
+                        <div className="text-[11px] text-slate-400">
                           {credor.credorCodigo}
                         </div>
                       </td>

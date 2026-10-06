@@ -16,6 +16,23 @@ with porciuncula as (
         ato_normativo,
         destinacao
     from {{ ref('stg_porciuncula_prefeitura__emendas_cad') }}
+),
+
+natividade as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        numero_emenda,
+        resumo,
+        valor_total,
+        empenhado,
+        autor,
+        tipo_emenda,
+        esfera_origem,
+        ato_normativo,
+        destinacao
+    from {{ ref('stg_natividade_prefeitura__emendas_cad') }}
 )
 
 select
@@ -32,3 +49,20 @@ select
     ato_normativo,
     destinacao
 from porciuncula
+
+union all
+
+select
+    portal_slug,
+    ano,
+    empresa_id,
+    numero_emenda,
+    resumo,
+    valor_total,
+    empenhado,
+    autor,
+    tipo_emenda,
+    esfera_origem,
+    ato_normativo,
+    destinacao
+from natividade

@@ -173,7 +173,7 @@ describe("RadarAnomaliaCard", () => {
       valorObservadoFormatted: "R$ 650.0mil",
       valorEsperadoFormatted: "R$ 1.0mi",
       ctaLabel: "Auditar Aporte Atuarial",
-      ctaUrl: "/porciuncula/caprem?ano=2024#atuarial",
+      ctaUrl: "/porciuncula/previdencia?ano=2024#atuarial",
       whatsappShareUrl: "https://api.whatsapp.com/send?text=Atuarial",
       fundamentacaoLegal: {
         label: "Lei nº 9.717/1998",
@@ -220,7 +220,7 @@ describe("RadarAnomaliaCard", () => {
       valorObservadoFormatted: "R$ 50.0mil",
       valorEsperadoFormatted: "R$ 0",
       ctaLabel: "Verificar Repasse Patronal",
-      ctaUrl: "/porciuncula/caprem?ano=2024#patronal",
+      ctaUrl: "/porciuncula/previdencia?ano=2024#patronal",
       whatsappShareUrl: "https://api.whatsapp.com/send?text=Patronal",
       fundamentacaoLegal: {
         label: "Art. 40 da CF/88",
@@ -267,7 +267,7 @@ describe("RadarAnomaliaCard", () => {
       valorObservadoFormatted: "R$ 36.0mi",
       valorEsperadoFormatted: "R$ 45.4mi",
       ctaLabel: "Auditar Patrimônio Previdenciário",
-      ctaUrl: "/porciuncula/caprem?ano=2025#patrimonio",
+      ctaUrl: "/porciuncula/previdencia?ano=2025#patrimonio",
       whatsappShareUrl: "https://api.whatsapp.com/send?text=Desidratacao",
       fundamentacaoLegal: [
         {

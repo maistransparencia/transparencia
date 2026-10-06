@@ -24,6 +24,31 @@ with porciuncula as (
         vencimento_atual,
         saldo_a_empenhar
     from {{ ref('stg_porciuncula_prefeitura__contratos') }}
+),
+
+natividade as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        ano,
+        empresa_id,
+        contrato_numero,
+        fornecedor_nome,
+        fornecedor_cpf_cnpj,
+        objeto,
+        objeto_completo,
+        valor_contrato,
+        valor_aditado,
+        licitacao_numero,
+        modalidade,
+        mes,
+        tipo_obra,
+        numero_obra,
+        fundlegal,
+        empenhado,
+        data_inicio,
+        vencimento_atual,
+        saldo_a_empenhar
+    from {{ ref('stg_natividade_prefeitura__contratos') }}
 )
 
 select
@@ -48,3 +73,28 @@ select
     vencimento_atual,
     saldo_a_empenhar
 from porciuncula
+
+union all
+
+select
+    portal_slug,
+    ano,
+    empresa_id,
+    contrato_numero,
+    fornecedor_nome,
+    fornecedor_cpf_cnpj,
+    objeto,
+    objeto_completo,
+    valor_contrato,
+    valor_aditado,
+    licitacao_numero,
+    modalidade,
+    mes,
+    tipo_obra,
+    numero_obra,
+    fundlegal,
+    empenhado,
+    data_inicio,
+    vencimento_atual,
+    saldo_a_empenhar
+from natividade

@@ -114,7 +114,7 @@ export function ContratoServicoVigenteCard({
             )}
           </h3>
           {contrato.contratoNumero && (
-            <span className="block font-mono text-slate-500 text-xs">
+            <span className="block text-slate-500 text-xs">
               Contrato nº {contrato.contratoNumero}
             </span>
           )}
