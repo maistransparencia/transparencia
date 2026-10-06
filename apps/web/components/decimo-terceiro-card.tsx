@@ -1,4 +1,4 @@
-import { fmtCompact } from "@transparencia/ui";
+import { fmtCompact, fmtCurrency } from "@transparencia/ui";
 
 interface DecimoTerceiroCardProps {
   empenhado: number;
@@ -26,7 +26,10 @@ export function DecimoTerceiroCard({
           <span className="mb-1 block text-slate-500 text-xs">
             Total reservado (ajustado)
           </span>
-          <span className="font-bold font-serif text-2xl text-slate-900">
+          <span
+            className="font-bold font-serif text-2xl text-slate-900"
+            title={fmtCurrency(empenhado)}
+          >
             {fmtCompact(empenhado)}
           </span>
         </div>
@@ -35,7 +38,10 @@ export function DecimoTerceiroCard({
           <span className="mb-1 block text-slate-500 text-xs">
             Efetivamente pago
           </span>
-          <span className="font-bold font-serif text-2xl text-slate-900">
+          <span
+            className="font-bold font-serif text-2xl text-slate-900"
+            title={fmtCurrency(pago)}
+          >
             {fmtCompact(pago)}
           </span>
         </div>
