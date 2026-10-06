@@ -415,7 +415,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.valorEsperadoFormatted).toBe("R$ 1.0mi");
     expect(card.desvioPercentualFormatted).toBe("-35%");
     expect(card.ctaLabel).toBe("Auditar Aporte Atuarial");
-    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#atuarial");
+    expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2024#atuarial");
     expect(card.fundamentacaoLegal).toEqual({
       label: "Lei nº 9.717/1998",
       url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
@@ -456,13 +456,13 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.valorEsperadoFormatted).toBe("R$ 0");
     expect(card.desvioPercentualFormatted).toBe("+100%");
     expect(card.ctaLabel).toBe("Verificar Repasse Patronal");
-    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2024#patronal");
+    expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2024#patronal");
     expect(card.fundamentacaoLegal).toEqual({
       label: "Art. 40 da CF/88",
       url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
     });
     expect(card.textoFactual).toContain(
-      "não repassadas tempestivamente ao RPPS/CAPREM",
+      "não repassadas tempestivamente ao RPPS",
     );
   });
 
@@ -666,7 +666,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.valorEsperadoFormatted).toBe("R$ 45.4mi");
     expect(card.desvioPercentualFormatted).toBe("-20.8%");
     expect(card.ctaLabel).toBe("Auditar Patrimônio Previdenciário");
-    expect(card.ctaUrl).toBe("/porciuncula/caprem?ano=2025#patrimonio");
+    expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2025#patrimonio");
     expect(card.fundamentacaoLegal).toEqual([
       {
         label: "Resolução CMN nº 4.963/2021",

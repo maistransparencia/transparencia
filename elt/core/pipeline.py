@@ -12,7 +12,7 @@ from elt.core.db import create_tables, get_engine, set_metadata, upsert
 from elt.extract.base import EndpointConfig
 
 _portal = PortalConfig.load()
-_extractor_module = importlib.import_module(f"elt.extract.{_portal.slug}.api_endpoints")
+_extractor_module = importlib.import_module(f"elt.extract.{_portal.provider}.{_portal.slug}.api_endpoints")
 ENDPOINT_CONFIGS: list[EndpointConfig] = _extractor_module.ENDPOINT_CONFIGS
 START_YEAR = _portal.ano_inicial
 BASE_HOST = _portal.base_host
@@ -104,15 +104,27 @@ class DataExtractor:
         extractor_cls,
         base_url: str = "",
     ):
-        return extractor_cls(
-            base_path=base_path,
-            listagem=listagem,
-            table=table,
-            key_cols=key_cols,
-            extra=extra,
-            post_process=post_process,
-            base_url=base_url or BASE_HOST,
-        )
+        try:
+            return extractor_cls(
+                base_path=base_path,
+                listagem=listagem,
+                table=table,
+                key_cols=key_cols,
+                extra=extra,
+                post_process=post_process,
+                base_url=base_url or BASE_HOST,
+                portal_slug=_portal.slug,
+            )
+        except TypeError:
+            return extractor_cls(
+                base_path=base_path,
+                listagem=listagem,
+                table=table,
+                key_cols=key_cols,
+                extra=extra,
+                post_process=post_process,
+                base_url=base_url or BASE_HOST,
+            )
 
     @classmethod
     def log_failed_request(

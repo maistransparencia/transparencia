@@ -104,7 +104,7 @@ export function SaldoCaixaEntidadesSection({
       ? "Disponibilidade em Caixa e Aplicações do RPPS"
       : "Disponibilidade Financeira em Caixa e Bancos";
     const subtituloVazio = isPrevidencia
-      ? "Contas bancárias e carteira de investimentos exclusivos do Regime Próprio de Previdência Social (CAPREM), conforme Matriz de Saldos Contábeis homologada pelo Tesouro Nacional."
+      ? "Contas bancárias e carteira de investimentos exclusivos do Regime Próprio de Previdência Social (RPPS), conforme Matriz de Saldos Contábeis homologada pelo Tesouro Nacional."
       : "Contas bancárias ativas e aplicações de liquidez imediata declaradas mensalmente ao Tesouro Nacional.";
     const mensagemVazia = isPrevidencia
       ? `Aguardando homologação da remessa MSC pelo Tesouro Nacional para o fundo previdenciário no exercício ${ano}.`
@@ -192,7 +192,7 @@ export function SaldoCaixaEntidadesSection({
     : "Disponibilidade Financeira em Caixa e Bancos";
 
   const subtituloSecao = isPrevidencia
-    ? "Patrimônio financeiro exclusivo da previdência própria (CAPREM), segregado do caixa geral do município (CF art. 167, XI)."
+    ? "Patrimônio financeiro exclusivo da previdência própria (RPPS), segregado do caixa geral do município (CF art. 167, XI)."
     : "Contas bancárias ativas e aplicações de liquidez imediata declaradas mensalmente ao Tesouro Nacional.";
 
   const tituloEntidades = isPrevidencia
@@ -232,7 +232,7 @@ export function SaldoCaixaEntidadesSection({
                 entidades={isPrevidencia ? "previdencia" : "executivo"}
                 tituloContexto={
                   isPrevidencia
-                    ? "Previdência Municipal (CAPREM)"
+                    ? "Previdência Municipal (RPPS)"
                     : "Disponibilidade Financeira SICONFI"
                 }
               />
@@ -251,7 +251,7 @@ export function SaldoCaixaEntidadesSection({
               <span className="font-semibold text-blue-900">
                 Segregação Constitucional (CF art. 167, XI):
               </span>{" "}
-              Os recursos do Regime Próprio de Previdência Social (CAPREM) são
+              Os recursos do Regime Próprio de Previdência Social (RPPS) são
               legalmente vinculados ao custeio de aposentadorias e pensões e à
               formação de reservas atuariais. É terminantemente proibida sua
               utilização para cobrir despesas de outros órgãos da Prefeitura.
@@ -395,7 +395,7 @@ export function SaldoCaixaEntidadesSection({
                         <h4 className="line-clamp-2 min-h-12 font-bold text-base text-ink">
                           {toTitleCase(
                             entidade.entidadeNome ??
-                              (isPrevidencia ? "CAPREM" : "Entidade Municipal"),
+                              (isPrevidencia ? "RPPS" : "Entidade Municipal"),
                           )}
                         </h4>
                         {entidade.saldoDescobertoFlag && (

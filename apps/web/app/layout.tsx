@@ -1,9 +1,10 @@
 import {
+  getAllPortais,
   getEntidades,
   getPortalConfig,
   getRadarAnomaliasCountByYear,
 } from "@transparencia/db";
-import { Ribbon } from "@transparencia/ui";
+import type { MultiSelectOption, PortalOption } from "@transparencia/ui";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
@@ -26,6 +27,7 @@ import { PwaInstaller } from "@/components/pwa-installer";
 import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
+import { RibbonWrapper } from "./components/ribbon-wrapper";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
@@ -39,13 +41,31 @@ const defaultBaseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
 const getCachedPortalConfig = unstable_cache(
   () => getPortalConfig(),
   [`portal-config-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["portal-config", "portal-data"] },
 );
 
 const getCachedEntidades = unstable_cache(
   () => getEntidades(),
   [`entidades-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["entidades", "portal-data"] },
+);
+
+const getCachedEntidadesByPortal = unstable_cache(
+  async (slug: string) => {
+    try {
+      return await getEntidades(slug);
+    } catch {
+      return [];
+    }
+  },
+  [`entidades-by-portal-v${version}`],
+  { revalidate: 86400, tags: ["entidades", "portal-data"] },
+);
+
+const getCachedAllPortais = unstable_cache(
+  () => getAllPortais(),
+  [`all-portais-v${version}`],
+  { revalidate: 86400, tags: ["all-portais", "portal-data"] },
 );
 
 const getCachedRadarAlertsCountByYear = unstable_cache(
@@ -57,7 +77,7 @@ const getCachedRadarAlertsCountByYear = unstable_cache(
     }
   },
   [`radar-alerts-count-by-year-v${version}`],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: ["radar-alerts", "portal-data"] },
 );
 
 export const metadata: Metadata = {
@@ -140,14 +160,44 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [portalConfig, entidades] = await Promise.all([
+  const [portalConfig, entidades, portais] = await Promise.all([
     getCachedPortalConfig(),
     getCachedEntidades(),
+    getCachedAllPortais(),
   ]);
+
+  const portalSlugs = portais.map((p) => p.portalSlug);
+
+  const [radarAlertsList, entidadesList] = await Promise.all([
+    Promise.all(
+      portalSlugs.map((slug) => getCachedRadarAlertsCountByYear(slug)),
+    ),
+    Promise.all(portalSlugs.map((slug) => getCachedEntidadesByPortal(slug))),
+  ]);
+
+  const radarAlertsByPortal: Record<string, Record<number, number>> = {};
+  const entidadesByPortal: Record<string, MultiSelectOption[]> = {};
+
+  portalSlugs.forEach((slug, idx) => {
+    radarAlertsByPortal[slug] = radarAlertsList[idx] || {};
+    entidadesByPortal[slug] = entidadesList[idx] || [];
+  });
 
   const portalSlug = portalConfig?.portalSlug ?? "porciuncula_prefeitura";
   const radarAlertsCountByYear =
-    await getCachedRadarAlertsCountByYear(portalSlug);
+    radarAlertsByPortal[portalSlug] ??
+    (await getCachedRadarAlertsCountByYear(portalSlug));
+
+  const portalOptions: PortalOption[] = portais.map((p) => ({
+    portalSlug: p.portalSlug,
+    displayName: p.displayName,
+    uf: p.uf,
+    portalUrl: p.portalUrl,
+    brasaoAsset: p.brasaoAsset,
+    anoInicial: p.anoInicial,
+    dataExtracao: p.dataExtracao,
+    previdencia: p.previdencia,
+  }));
 
   const governmentOrganizationSchema = generateGovernmentOrganizationSchema({
     displayName: portalConfig?.displayName,
@@ -187,11 +237,18 @@ export default async function RootLayout({
                   officialPortalUrl={portalConfig?.portalUrl}
                   entidades={entidades}
                   portalSlug={portalConfig?.portalSlug}
+                  portais={portalOptions}
+                  radarAlertsByPortal={radarAlertsByPortal}
                   radarAlertsCountByYear={radarAlertsCountByYear}
+                  entidadesByPortal={entidadesByPortal}
+                  previdencia={portalConfig?.previdencia}
                 />
               </Suspense>
               <div className="flex min-w-0 flex-1 flex-col">
-                <Ribbon portalName={portalConfig?.displayName} />
+                <RibbonWrapper
+                  portais={portalOptions}
+                  portalName={portalConfig?.displayName}
+                />
                 <Suspense fallback={null}>
                   <NewsletterFeedbackBanner />
                 </Suspense>
@@ -199,6 +256,7 @@ export default async function RootLayout({
                   lastExtractionDate={portalConfig?.dataExtracao}
                   portalName={portalConfig?.displayName}
                   portalSlug={portalConfig?.portalSlug}
+                  portais={portalOptions}
                 />
                 <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                   {children}
@@ -209,6 +267,7 @@ export default async function RootLayout({
                   lastExtractionDate={portalConfig?.dataExtracao}
                   portalSlug={portalConfig?.portalSlug}
                   stateUF={portalConfig?.uf}
+                  portais={portalOptions}
                 />
               </div>
               <Suspense fallback={null}>
@@ -216,7 +275,10 @@ export default async function RootLayout({
                   portalSlug={portalConfig?.portalSlug}
                   anoInicial={portalConfig?.anoInicial}
                   entidades={entidades}
+                  portais={portalOptions}
+                  radarAlertsByPortal={radarAlertsByPortal}
                   radarAlertsCountByYear={radarAlertsCountByYear}
+                  previdencia={portalConfig?.previdencia}
                 />
               </Suspense>
             </MobileNavProvider>

@@ -1,0 +1,7 @@
+portal_slug,poder_orgao,grupo_destinacao,empresa_id,descricao
+natividade_prefeitura,10131,livre,1,Recursos Livres e Ordinários da Prefeitura
+natividade_prefeitura,10131,saude,3,Fundo Municipal de Saúde
+natividade_prefeitura,10131,educacao,5,Fundo Municipal de Educação e Cultura
+natividade_prefeitura,10131,assistencia_social,4,Fundo Municipal de Assistência Social
+natividade_prefeitura,10131,meio_ambiente,9,Fundo Municipal de Meio Ambiente
+natividade_prefeitura,10131,outros_vinculados,1,Convênios e Outras Vinculações da Prefeitura

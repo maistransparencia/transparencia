@@ -56,6 +56,58 @@ porciuncula_extra_orcamentaria as (
     from {{ ref('stg_porciuncula_prefeitura__receita_extra_orcamentaria') }}
 ),
 
+natividade_orcamentaria as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        'orcamentaria' as tipo_receita,
+        ano,
+        empresa_id,
+        codigo,
+        descricao,
+        previsao_atualizada,
+        arrecadado_efetivo
+    from {{ ref('stg_natividade_prefeitura__receita_orcamentaria') }}
+),
+
+natividade_uniao as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        'uniao' as tipo_receita,
+        ano,
+        empresa_id,
+        codigo,
+        descricao,
+        previsao_atualizada,
+        arrecadado_efetivo
+    from {{ ref('stg_natividade_prefeitura__receita_uniao') }}
+),
+
+natividade_estado as (
+    select
+        'natividade_prefeitura' as portal_slug,
+        'estado' as tipo_receita,
+        ano,
+        empresa_id,
+        codigo,
+        descricao,
+        previsao_atualizada,
+        arrecadado_efetivo
+    from {{ ref('stg_natividade_prefeitura__receita_estado') }}
+),
+
+natividade_extra_orcamentaria as (
+    select
+        portal_slug,
+        'extra_orcamentaria' as tipo_receita,
+        ano,
+        empresa_id,
+        codigo,
+        descricao,
+        0.00 as previsao_atualizada,
+        coalesce(valor_arrecadado, 0.00) as arrecadado_efetivo
+    from {{ ref('stg_natividade_prefeitura__receita_extra_orcamentaria') }}
+),
+
 combined as (
     select * from porciuncula_orcamentaria
     union all
@@ -64,6 +116,14 @@ combined as (
     select * from porciuncula_estado
     union all
     select * from porciuncula_extra_orcamentaria
+    union all
+    select * from natividade_orcamentaria
+    union all
+    select * from natividade_uniao
+    union all
+    select * from natividade_estado
+    union all
+    select * from natividade_extra_orcamentaria
 )
 
 select

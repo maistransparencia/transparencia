@@ -13,6 +13,14 @@ function makeRaw(
   const { caprem: capremOverride, ...rest } = overrides;
   return {
     context: { selectedYear: 2024, isCurrentYear: false },
+    portalConfig: {
+      portalSlug: "porciuncula_prefeitura",
+      previdencia: {
+        habilitado: true,
+        sigla: "CAPREM",
+        nome: "Caixa de Previdência dos Servidores Municipais de Porciúncula",
+      },
+    },
     caprem: {
       entidades: [],
       natureza: [],
@@ -240,6 +248,7 @@ describe("buildCapremViewModel", () => {
 
     const ponto2023 = resumo.serie.find((p) => p.ano === 2023);
     expect(ponto2023?.quebraSerieFlag).toBe(true);
+    expect(ponto2023?.anoInconsistenciaAnterior).toBe(2022);
     expect(ponto2023?.variacaoPatrimonioPct).toBeNull();
 
     // Diagnóstico

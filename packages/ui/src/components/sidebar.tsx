@@ -13,6 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -32,25 +33,22 @@ export interface NavGroup {
   }[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Administrativo",
-    items: [
-      { name: "Receitas", href: "/receitas", icon: TrendingUp },
-      { name: "Execução Orçamentária", href: "/orcamento", icon: PieChart },
-      { name: "Despesas Detalhadas", href: "/despesas", icon: Receipt },
-      { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
-      { name: "Pessoal", href: "/pessoal", icon: Users },
-    ],
-  },
-  {
-    label: "Temas",
-    items: [
-      { name: "Saúde", href: "/saude", icon: HeartPulse },
-      { name: "CAPREM", href: "/caprem", icon: Landmark },
-    ],
-  },
-];
+export interface PrevidenciaNavConfig {
+  habilitado: boolean;
+  sigla: string;
+  nome?: string;
+}
+
+export interface PortalOption {
+  portalSlug: string;
+  displayName: string;
+  uf?: string;
+  portalUrl?: string;
+  brasaoAsset?: string;
+  anoInicial?: number;
+  dataExtracao?: string;
+  previdencia?: PrevidenciaNavConfig;
+}
 
 export interface SidebarProps {
   portalName?: string;
@@ -66,6 +64,8 @@ export interface SidebarProps {
   selectedEntidades?: string[];
   onEntidadesChange?: (selectedIds: string[]) => void;
   portalSlug?: string;
+  portais?: PortalOption[];
+  onPortalChange?: (portalSlug: string) => void;
   onOpenNewsletter?: () => void;
   pushNotificationSlot?: React.ReactNode;
   pwaInstallSlot?: React.ReactNode;
@@ -74,6 +74,7 @@ export interface SidebarProps {
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
   radarAlertCount?: number;
+  previdencia?: PrevidenciaNavConfig;
 }
 
 function YearSelect({
@@ -141,6 +142,72 @@ function YearSelect({
   );
 }
 
+export function PortalSelect({
+  portais,
+  selectedSlug,
+  onChange,
+  variant = "default",
+}: {
+  portais: PortalOption[];
+  selectedSlug: string;
+  onChange: (slug: string) => void;
+  variant?: "default" | "compact";
+}) {
+  if (variant === "compact") {
+    return (
+      <div className="relative w-fit max-w-[200px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
+        <select
+          id="portal-select-mobile"
+          aria-label="Selecionar Município"
+          value={selectedSlug}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-h-[24px] w-full cursor-pointer appearance-none truncate pr-5 pl-0 font-bold font-serif text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5"
+        >
+          {portais.map((p) => (
+            <option
+              key={p.portalSlug}
+              value={p.portalSlug}
+              className="bg-white py-2 font-medium font-sans text-base text-ink sm:text-sm"
+            >
+              {p.displayName}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          strokeWidth={1.6}
+          className="pointer-events-none absolute top-1/2 right-0.5 h-3.5 w-3.5 -translate-y-1/2 text-mutedText"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full">
+      <select
+        id="portal-select-desktop"
+        aria-label="Selecionar Município"
+        value={selectedSlug}
+        onChange={(e) => onChange(e.target.value)}
+        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-lg border border-borderLine bg-white py-1.5 pr-8 pl-2.5 font-bold font-serif text-ink text-sm shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none"
+      >
+        {portais.map((p) => (
+          <option
+            key={p.portalSlug}
+            value={p.portalSlug}
+            className="bg-white py-2 font-medium font-sans text-base text-ink sm:text-sm"
+          >
+            {p.displayName}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        strokeWidth={1.6}
+        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mutedText"
+      />
+    </div>
+  );
+}
+
 export function Sidebar({
   portalName,
   stateUF,
@@ -153,6 +220,8 @@ export function Sidebar({
   selectedEntidades,
   onEntidadesChange,
   portalSlug = "porciuncula_prefeitura",
+  portais,
+  onPortalChange,
   pushNotificationSlot,
   pwaInstallSlot,
   mobileHeaderRightSlot,
@@ -160,6 +229,7 @@ export function Sidebar({
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
   radarAlertCount,
+  previdencia,
 }: SidebarProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
@@ -224,7 +294,7 @@ export function Sidebar({
   );
 
   const normalizedBrasao = (() => {
-    if (!brasaoAsset) return "/brasao-porciuncula.svg";
+    if (!brasaoAsset) return "/brasao-porciuncula.png";
     return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
   })();
 
@@ -253,20 +323,52 @@ export function Sidebar({
     entidades: currentEntidades,
   });
 
+  const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
+  const temasItems = [
+    { name: "Saúde", href: "/saude", icon: HeartPulse },
+    ...(isPrevidenciaEnabled
+      ? [
+          {
+            name: previdencia?.sigla || "Previdência",
+            href: "/previdencia",
+            icon: Landmark,
+          },
+        ]
+      : []),
+  ];
+
+  const navGroups: NavGroup[] = [
+    {
+      label: "Administrativo",
+      items: [
+        { name: "Receitas", href: "/receitas", icon: TrendingUp },
+        { name: "Execução Orçamentária", href: "/orcamento", icon: PieChart },
+        { name: "Despesas Detalhadas", href: "/despesas", icon: Receipt },
+        { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
+        { name: "Pessoal", href: "/pessoal", icon: Users },
+      ],
+    },
+    {
+      label: "Temas",
+      items: temasItems,
+    },
+  ];
+
   return (
     <>
       {/* Top Header Móvel (< md) */}
       <div className="sticky top-0 z-30 w-full border-borderLine border-b bg-white px-4 py-2 shadow-xs md:hidden">
         <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
               {!imgError && normalizedBrasao ? (
-                /* biome-ignore lint/performance/noImgElement: brasao asset */
-                <img
+                <Image
                   src={normalizedBrasao}
                   alt={`Brasão de ${portalName}`}
                   className="h-full w-full object-contain"
                   onError={() => setImgError(true)}
+                  width={32}
+                  height={32}
                 />
               ) : (
                 <Landmark
@@ -275,9 +377,18 @@ export function Sidebar({
                 />
               )}
             </div>
-            <span className="truncate font-bold font-serif text-ink text-sm leading-none">
-              {displayTitle}
-            </span>
+            {portais && portais.length > 0 && onPortalChange ? (
+              <PortalSelect
+                portais={portais}
+                selectedSlug={portalSlug || (portais[0]?.portalSlug ?? "")}
+                onChange={onPortalChange}
+                variant="compact"
+              />
+            ) : (
+              <span className="truncate font-bold font-serif text-ink text-sm leading-none">
+                {displayTitle}
+              </span>
+            )}
           </div>
 
           {mobileHeaderActionSlot && (
@@ -324,15 +435,17 @@ export function Sidebar({
           {/* Marca Superior / Brasão Municipal */}
           <div className="border-borderLine border-b p-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 overflow-hidden">
+              <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
                   {!imgError && normalizedBrasao ? (
                     /* biome-ignore lint/performance/noImgElement: brasao asset */
-                    <img
+                    <Image
                       src={normalizedBrasao}
                       alt={`Brasão de ${portalName}`}
                       className="h-full w-full object-contain"
                       onError={() => setImgError(true)}
+                      width={32}
+                      height={32}
                     />
                   ) : (
                     <Landmark
@@ -341,13 +454,32 @@ export function Sidebar({
                     />
                   )}
                 </div>
-                <div>
-                  <h1 className="font-bold font-serif text-base text-ink leading-tight">
-                    {displayTitle}
-                  </h1>
-                  <p className="text-[11px] text-mutedText">
-                    Orçamento municipal · {stateUF}
-                  </p>
+                <div className="min-w-0 flex-1">
+                  {portais && portais.length > 0 && onPortalChange ? (
+                    <div className="space-y-1">
+                      <h1 className="sr-only">{displayTitle}</h1>
+                      <PortalSelect
+                        portais={portais}
+                        selectedSlug={
+                          portalSlug || (portais[0]?.portalSlug ?? "")
+                        }
+                        onChange={onPortalChange}
+                        variant="compact"
+                      />
+                      <p className="text-[11px] text-mutedText">
+                        Orçamento municipal · {stateUF}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <h1 className="font-bold font-serif text-base text-ink leading-tight">
+                        {displayTitle}
+                      </h1>
+                      <p className="text-[11px] text-mutedText">
+                        Orçamento municipal · {stateUF}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
               <button
@@ -456,7 +588,7 @@ export function Sidebar({
             </div>
 
             {/* Demais Grupos de Navegação */}
-            {NAV_GROUPS.map((group) => (
+            {navGroups.map((group) => (
               <div key={group.label} className="space-y-1">
                 <p className="mb-1.5 px-3 font-semibold text-[11px] text-mutedText">
                   {group.label}
@@ -465,12 +597,21 @@ export function Sidebar({
                   const targetPath = portalSlug
                     ? `/${portalSlug}${item.href}`
                     : item.href;
+                  const isPrevidenciaItem = item.href === "/previdencia";
                   const isActive =
                     pathname === item.href ||
                     pathname === targetPath ||
                     (pathname
                       ? pathname.startsWith(targetPath) ||
-                        pathname.startsWith(item.href)
+                        pathname.startsWith(item.href) ||
+                        (isPrevidenciaItem &&
+                          (pathname === "/caprem" ||
+                            pathname.startsWith("/caprem") ||
+                            Boolean(
+                              portalSlug &&
+                                (pathname === `/${portalSlug}/caprem` ||
+                                  pathname.startsWith(`/${portalSlug}/caprem`)),
+                            )))
                       : false);
                   const itemHref = buildNavUrl({
                     path: item.href,

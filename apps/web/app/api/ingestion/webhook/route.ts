@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
 import { getPortalConfig, getRadarCivicoAlertas } from "@transparencia/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/env";
@@ -64,6 +64,7 @@ export const ingestionWebhookSchema = z
     durationMs: z.number().int().nonnegative().optional(),
     recordsProcessed: z.number().int().nonnegative().optional(),
     errorMessage: z.string().min(1).optional(),
+    skipNotification: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.status === "failure" && !data.errorMessage?.trim()) {
@@ -114,58 +115,78 @@ export async function POST(req: Request) {
       );
 
       try {
-        revalidatePath(`/${payload.portalSlug}`, "layout");
+        const purgeTag = (tag: string) => revalidateTag(tag, { expire: 0 });
+
+        if (payload.portalSlug === "all") {
+          purgeTag("portal-data");
+          purgeTag("all-portais");
+          purgeTag("portal-config");
+          purgeTag("entidades");
+          purgeTag("radar-alerts");
+          revalidatePath("/", "layout");
+        } else {
+          purgeTag(`portal:${payload.portalSlug}`);
+          purgeTag("portal-data");
+          purgeTag("all-portais");
+          purgeTag("portal-config");
+          purgeTag("entidades");
+          purgeTag("radar-alerts");
+          revalidatePath(`/${payload.portalSlug}`, "layout");
+          revalidatePath("/", "layout");
+        }
       } catch (err) {
-        // biome-ignore lint/suspicious/noConsole: Log de aviso caso revalidatePath falhe fora de contexto de request
+        // biome-ignore lint/suspicious/noConsole: Log de aviso caso revalidate falhe fora de contexto de request
         console.warn(`[INGESTION_WEBHOOK] Aviso ao revalidar cache: ${err}`);
       }
 
       // Disparo de notificação cívica via Web Push aos cidadãos inscritos
       // em observância ao princípio da tempestividade (Art. 48-A da LC 101/2000 - LRF:
       // https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art48a)
-      try {
-        const portalConfig = await getPortalConfig(payload.portalSlug).catch(
-          () => null,
-        );
-        const portalName = portalConfig?.displayName ?? payload.portalSlug;
-
-        const ingestionYear = new Date(payload.timestamp).getFullYear();
-        const alertas = await getRadarCivicoAlertas(payload.portalSlug, {
-          ano: ingestionYear,
-          severidadeMinima: "critico",
-        }).catch(() => []);
-
-        const alertaCritico = alertas.find(
-          (a) => a.grauSeveridade === "critico",
-        );
-
-        if (alertaCritico) {
-          const resumoFactual = formatFactualNarrative(
-            alertaCritico,
-            alertaCritico.ano,
+      if (!payload.skipNotification && payload.portalSlug !== "all") {
+        try {
+          const portalConfig = await getPortalConfig(payload.portalSlug).catch(
+            () => null,
           );
-          await dispatchPushNotification({
-            portalSlug: payload.portalSlug,
-            title: `🚨 Alerta Crítico - Radar Cívico (${portalName})`,
-            body: resumoFactual,
-            url: buildAlertaUrl(alertaCritico, {
+          const portalName = portalConfig?.displayName ?? payload.portalSlug;
+
+          const ingestionYear = new Date(payload.timestamp).getFullYear();
+          const alertas = await getRadarCivicoAlertas(payload.portalSlug, {
+            ano: ingestionYear,
+            severidadeMinima: "critico",
+          }).catch(() => []);
+
+          const alertaCritico = alertas.find(
+            (a) => a.grauSeveridade === "critico",
+          );
+
+          if (alertaCritico) {
+            const resumoFactual = formatFactualNarrative(
+              alertaCritico,
+              alertaCritico.ano,
+            );
+            await dispatchPushNotification({
               portalSlug: payload.portalSlug,
-            }),
-          });
-        } else {
-          await dispatchPushNotification({
-            portalSlug: payload.portalSlug,
-            title: `MaisTransparencia - Atualização Fiscal (${portalName})`,
-            body: `Novos dados fiscais foram disponibilizados no portal em conformidade com o Art. 48-A da LC 101/2000 (LRF).`,
-            url: `/${payload.portalSlug}`,
-            topic: "extracoes",
-          });
+              title: `🚨 Alerta Crítico - Radar Cívico (${portalName})`,
+              body: resumoFactual,
+              url: buildAlertaUrl(alertaCritico, {
+                portalSlug: payload.portalSlug,
+              }),
+            });
+          } else {
+            await dispatchPushNotification({
+              portalSlug: payload.portalSlug,
+              title: `MaisTransparencia - Atualização Fiscal (${portalName})`,
+              body: `Novos dados fiscais foram disponibilizados no portal em conformidade com o Art. 48-A da LC 101/2000 (LRF).`,
+              url: `/${payload.portalSlug}`,
+              topic: "extracoes",
+            });
+          }
+        } catch (pushErr) {
+          // biome-ignore lint/suspicious/noConsole: Log de aviso caso o envio de push falhe sem invalidar a ingestão
+          console.warn(
+            `[INGESTION_WEBHOOK] Falha não-bloqueante ao despachar Web Push: ${pushErr}`,
+          );
         }
-      } catch (pushErr) {
-        // biome-ignore lint/suspicious/noConsole: Log de aviso caso o envio de push falhe sem invalidar a ingestão
-        console.warn(
-          `[INGESTION_WEBHOOK] Falha não-bloqueante ao despachar Web Push: ${pushErr}`,
-        );
       }
 
       return NextResponse.json(

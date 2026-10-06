@@ -29,11 +29,11 @@ function getAnomalyRouteConfig(tipoAnomalia: TipoAnomalia): AnomalyRouteConfig {
     case "dependencia_transferencias":
       return { path: "/receitas" };
     case "inadimplencia_aporte_rpps":
-      return { path: "/caprem", anchor: "#atuarial" };
+      return { path: "/previdencia", anchor: "#atuarial" };
     case "retencao_patronal_rpps":
-      return { path: "/caprem", anchor: "#patronal" };
+      return { path: "/previdencia", anchor: "#patronal" };
     case "desidratacao_patrimonio_rpps":
-      return { path: "/caprem", anchor: "#patrimonio" };
+      return { path: "/previdencia", anchor: "#patrimonio" };
     case "concentracao_dispensa":
       return { path: "/licitacoes" };
     case "desconto_nulo_pregao":

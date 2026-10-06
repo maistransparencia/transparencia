@@ -210,7 +210,7 @@ export function formatFactualNarrative(
   if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
     const ano = alerta.ano || anoContexto;
     const obs = fmtCompact(alerta.valorObservado ?? 0);
-    return `Em ${ano}, foram apurados ${obs} em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS/CAPREM.`;
+    return `Em ${ano}, foram apurados ${obs} em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS.`;
   }
 
   if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
