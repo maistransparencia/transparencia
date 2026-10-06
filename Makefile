@@ -194,7 +194,7 @@ db/fixture/dump:
 			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'analytics.seed_*' ; \
 		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
 			--data-only --inserts --no-owner --no-privileges --no-comments \
-			-t 'analytics.seed_*' \
+			-t 'analytics.seed_*' -t 'analytics.dim_portais' -t 'analytics.dim_orgao' ; \
 	) | grep -v -E '^(\\restrict|\\unrestrict|SET transaction_timeout = 0;)' | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
 
 db/fixture/check:
