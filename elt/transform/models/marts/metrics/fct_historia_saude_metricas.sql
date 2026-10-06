@@ -10,13 +10,14 @@ with orgaos_saude as (
 
 dotacao_saude_orgao as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        d.portal_slug,
         d.ano,
         sum(coalesce(d.dotacao_atualizada, 0)) as dotacao_total
     from {{ ref('fct_despesas_por_orgao') }} d
     join orgaos_saude o
-        on d.empresa = o.empresa_id
-    group by d.ano
+        on d.portal_slug = o.portal_slug
+        and d.empresa = o.empresa_id
+    group by d.portal_slug, d.ano
 ),
 
 linhas_saude as (

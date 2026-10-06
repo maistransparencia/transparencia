@@ -87,7 +87,7 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "13", empenhado_liquido: 50000.00, pago: 50000.00 }
       - input: ref('fct_despesas_por_fornecedor')
         rows:
-          - { ano: 2025, descricao: "LOJA LOCAL", fornecedor_cidade_clean: "PORCIUNCULA" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, descricao: "LOJA LOCAL", fornecedor_cidade_clean: "PORCIUNCULA" }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_codigo: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fornecedor_cidade_clean: "PORCIUNCULA", total_empenhado: 3000.00, total_pago: 2300.00 }
