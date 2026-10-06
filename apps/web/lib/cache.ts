@@ -18,8 +18,15 @@ export function createCachedDataLoader<T, Args extends unknown[]>(
       return fn(...args);
     }
     const key = `${keyPrefix}-v${version}-${JSON.stringify(args)}`;
+    const tags = [keyPrefix, "portal-data"];
+    if (typeof args[0] === "string" && args[0].trim().length > 0) {
+      const portalSlug = args[0].trim();
+      tags.push(`portal:${portalSlug}`, `${keyPrefix}:${portalSlug}`);
+    }
+
     const cachedFn = unstable_cache(() => fn(...args), [key], {
       revalidate: revalidateSeconds,
+      tags,
     });
     return cachedFn();
   };

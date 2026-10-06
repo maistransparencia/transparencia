@@ -8,7 +8,7 @@ import { MunicipalLandingClient } from "./municipal-landing-client";
 const getCachedAllPortais = unstable_cache(
   () => getAllPortais(),
   [`all-portais-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["all-portais", "portal-data"] },
 );
 
 interface RootPageProps {
