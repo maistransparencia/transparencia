@@ -5,6 +5,29 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-10-06
+
+### 🌟 Destaques da Versão (Isolamento Multi-Tenant Estrito, Integridade Analítica e Formatação UI)
+* **Blindagem Multi-Tenant e Eliminação de Cross-Tenant Leakage:** Eliminação de fallbacks e literais fixos de municípios nos modelos de analytics, garantindo particionamento e cruzamento estrito por `portal_slug` em fornecedores, licitações, saúde e pessoal.
+* **Testes Automatizados de Isolamento Multi-Tenant:** Implementação de suíte de testes de integridade em Python/pytest validando que nenhum modelo dimensional misture ou vaze dados entre municípios com códigos internos idênticos.
+* **Legibilidade e Acessibilidade em Folha de Pagamento:** Formatação monetária completa via tooltip no cartão de 13º salário (`DecimoTerceiroCard`), permitindo ao cidadão visualizar o valor exato reservado e pago além do formato compacto.
+
+### ✨ Novas Funcionalidades (Added)
+* **Tooltip com Valor Monetário Integral no Cartão de 13º Salário (`DecimoTerceiroCard`):** Inclusão de formatação em moeda corrente (`fmtCurrency`) no atributo `title` dos valores compacto (`fmtCompact`), permitindo consulta do valor exato em reais ao passar o cursor ou tocar no cartão.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Particionamento Multi-Tenant em Despesas por Fornecedor (`fct_despesas_por_fornecedor`):** Unificação das bases de Porciúncula e Natividade com `portal_slug` explícito em nível de mart analítico.
+* **Isolamento de Cruzamento e Chave Substituta em Itens de Licitação (`fct_licitacoes_itens`):** Remoção de fallback hardcoded municipal na geração do `item_id` e na coluna `portal_slug`.
+* **Propagação de `portal_slug` em Marts de Métricas:** Ajustes de particionamento e join por `portal_slug` em `fct_despesas_fornecedores_metricas`, `fct_historia_saude_metricas`, `fct_pessoal_departamento_metricas` e `fct_pessoal_folha_metricas`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Diretriz Canônica de Isolamento Multi-Tenant em `AGENTS.md`:** Formalização da regra mandatória proibindo literais de tenants hard-coded e exigindo junções obrigatórias por `portal_slug`.
+* **Exportação Aprimorada de Fixtures de Teste (`Makefile`):** Atualização da receita `db/fixture/dump` para incluir `analytics.dim_portais` e `analytics.dim_orgao` com dados na extração compactada de teste.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Suíte de Testes de Integridade Multi-Tenant (`elt/tests/test_multitenant_integrity.py`):** Criação de testes de integridade em dbt models assegurando que dados de portais distintos permaneçam mutuamente isolados.
+* **Sincronização de Fixtures de Teste (`schema.sql.gz`):** Atualização do fixture [schema.sql.gz](file:///packages/db/tests/fixtures/schema.sql.gz) para garantir paridade total com as tabelas e dados analíticos.
+
 ## [1.14.0] - 2026-10-05
 
 ### 🌟 Destaques da Versão (Epic 15: Expansão Regional Noroeste Fluminense, RPPS Canônico e Arquitetura Multi-Portal)

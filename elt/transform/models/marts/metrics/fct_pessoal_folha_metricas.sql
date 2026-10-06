@@ -94,12 +94,12 @@ with despesas_folha as (
 
 despesas_orgao as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        portal_slug,
         ano,
         coalesce(nullif(ltrim(empresa, '0'), ''), '0') as empresa_id,
         sum(coalesce(pago, 0)) as total_pago
     from {{ ref('fct_despesas_por_orgao') }}
-    group by ano, coalesce(nullif(ltrim(empresa, '0'), ''), '0')
+    group by portal_slug, ano, coalesce(nullif(ltrim(empresa, '0'), ''), '0')
 ),
 
 pessoal_stats as (

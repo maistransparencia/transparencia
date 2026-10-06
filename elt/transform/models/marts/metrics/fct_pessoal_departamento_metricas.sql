@@ -1,8 +1,8 @@
 {{ config(materialized='table') }}
 
 select
-    {{ dbt_utils.generate_surrogate_key(["'porciuncula_prefeitura'", 'ano', "coalesce(nullif(ltrim(empresa, '0'), ''), '0')", 'descricao']) }} as departamento_metricas_id,
-    'porciuncula_prefeitura' as portal_slug,
+    {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', "coalesce(nullif(ltrim(empresa, '0'), ''), '0')", 'descricao']) }} as departamento_metricas_id,
+    portal_slug,
     ano,
     coalesce(nullif(ltrim(empresa, '0'), ''), '0') as empresa_id,
     descricao,
@@ -13,6 +13,7 @@ where
     or descricao ilike '%E OUTROS%'
     or descricao ilike '%E OUTRO%'
 group by
+    portal_slug,
     ano,
     coalesce(nullif(ltrim(empresa, '0'), ''), '0'),
     descricao

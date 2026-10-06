@@ -7,12 +7,16 @@ with despesas_fonte as (
         f.ano,
         coalesce(f.fornecedor_cpf_cnpj, '00') as fornecedor_codigo,
         coalesce(f.fornecedor_nome, 'OUTROS') as fornecedor_nome,
-        coalesce(pf.fornecedor_cidade_clean, 'PORCIUNCULA') as fornecedor_cidade_clean,
+        coalesce(
+            pf.fornecedor_cidade_clean,
+            case when f.portal_slug = 'natividade_prefeitura' then 'NATIVIDADE' else 'PORCIUNCULA' end
+        ) as fornecedor_cidade_clean,
         f.empenhado_liquido,
         f.pago
     from {{ ref('fct_despesas') }} f
     left join {{ ref('fct_despesas_por_fornecedor') }} pf
-        on pf.ano = f.ano
+        on pf.portal_slug = f.portal_slug
+        and pf.ano = f.ano
         and pf.descricao = f.fornecedor_nome
     where f.fonte = 'exercicio'
       and f.elemento in ('30', '36', '39', '52')
