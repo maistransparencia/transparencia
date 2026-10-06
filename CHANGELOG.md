@@ -5,6 +5,44 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-05
+
+### 🌟 Destaques da Versão (Epic 15: Expansão Regional Noroeste Fluminense, RPPS Canônico e Arquitetura Multi-Portal)
+* **Expansão Regional e Rollout Multi-Portal:** Desacoplamento estrutural da plataforma para suportar múltiplos municípios de forma escalável, viabilizando o ingresso oficial de Natividade (RPPS IPAMN) e Bom Jesus do Itabapoana (RPPS FUNPREV), além de infraestrutura de conectores para São Fidélis (RPPS FASP), estendendo a transparência fiscal ativa a mais de 90 mil cidadãos do Noroeste Fluminense.
+* **RPPS Canônico e Desacoplamento Institucional:** Generalização de toda a camada analítica de previdência própria municipal — migrando de referências locais hardcoded (`CAPREM`) para modelos e rotas canônicas (`fct_previdencia_*` e `/[portalSlug]/previdencia`), com preservação de compatibilidade e redirecionamento permanente HTTP 308.
+* **Página de Entrada Municipal e Navegação Contextual:** Nova landing page (`/`) com catálogo visual, cartões dos municípios, busca dinâmica e seletor global reativo no cabeçalho, barra lateral e rodapé, permitindo transição contínua entre cidades preservando o exercício temporal e o contexto cívico.
+* **Invalidação de Cache sob Demanda via Webhooks:** Implementação de pipeline de revalidação granular de cache no Next.js (`/api/ingestion/webhook`), garantindo que atualizações nas tabelas analíticas dbt reflitam instantaneamente na interface pública sem dependência de revalidações manuais.
+
+### ✨ Novas Funcionalidades (Added)
+* **Portal Landing Page com Seletor Municipal (`/`):** Implementação de tela inicial interativa com catálogo de municípios atendidos, busca em tempo real por nome ou sigla, exibição de brasões municipais em alta resolução, atalhos para os principais módulos e redirecionamento automático/manual.
+* **Rota Canônica de Previdência (`/[portalSlug]/previdencia`):** Padronização da rota de previdência com suporte multi-portal dinâmico, exibindo a denominação e sigla de cada instituto (CAPREM, IPAMN, FUNPREV, FASP), acompanhada de redirecionamento HTTP 308 permanente para links legados `/caprem`.
+* **Navegação Contextual Multi-Portal:** Integração de seletor dinâmico de municípios na `Sidebar` e `GlobalFooter`, com exibição condicional de menus de acordo com os módulos habilitados em cada município (ex.: Previdência e Plano de Saúde).
+* **Revalidação de Cache sob Demanda por Webhook (`/api/ingestion/webhook`):** Endpoint seguro para expurgo de tags de cache (`revalidateTag`) acionado automaticamente ao final das rotinas de ingestão ELT, acompanhado de workflow dedicado no GitHub Actions (`.github/workflows/revalidate-cache.yml`) e atalho via `make cache/revalidate`.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Modelos Dimensionais Canônicos de Previdência (`fct_previdencia_*`):** Migração e padronização dos marts analíticos de RPPS (`fct_previdencia_historia_metricas`, `fct_previdencia_patrimonio_historico_metricas`, `fct_previdencia_tendencia_atuarial_metricas`, `fct_previdencia_cadprev_metricas`, `fct_previdencia_entidades_metricas`, `fct_previdencia_natureza_metricas`), com particionamento multi-portal estrito (`portal_slug`) e regras de agregação compatíveis com múltiplos regimes previdenciários.
+* **Extrator Genérico Fiorilli/Sigcorp (`elt/extract/fiorilli/`):** Generalização do extrator de dados orçamentários baseado em manifestos declarativos YAML (`elt/portals/<slug>.yml`), parametrizando portas, hosts, códigos IBGE (`3303401` Natividade, `3300605` Bom Jesus do Itabapoana, `3304805` São Fidélis) e códigos de empresa.
+* **Parametrização de Metadados em `seed_portais.csv` e `dim_portais`:** Desnormalização eficiente com colunas de configuração modular (`previdencia_habilitado`, `previdencia_sigla`, `previdencia_nome`, `plano_saude_habilitado`, `plano_saude_sigla`, `plano_saude_nome`, `highlights_json`), permitindo ativação declarativa de recursos por município.
+* **Modelos Staging e Integração SICONFI Multi-Portal:** Consolidação de fontes orçamentárias e fiscais para suporte simultâneo a múltiplos municípios em `stg_fiorilli_*` e tabelas de conformidade STN/SICONFI.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Otimização de Imagens e Renderização de Brasões:** Substituição de arquivos vetoriais pesados por formatos otimizados PNG e uso do componente `next/image` na sidebar e na landing page, reduzindo tempo de carregamento e eliminando inconsistências visuais de renderização SVG.
+* **Desacoplamento de Filtros Hardcoded nos Marts de Métricas:** Remoção de condições fixas por entidade municipal em `fct_previdencia_historia_metricas` e `fct_previdencia_cadprev_metricas`, substituindo-as por filtros dinâmicos acoplados aos metadados do portal.
+* **Camada de Dados Kysely (@transparencia/db):** Modularização das consultas sob a ótica canônica de previdência (`packages/db/src/queries/previdencia.ts`), com tipagem estrita em `camelCase`, suporte a listagem dinâmica de portais (`listPortais()`) e extração centralizada de configurações em `getPortalConfig()`.
+* **Estratégia de Cache e Revalidação Segura:** Atualização das rotinas de cache em `apps/web/lib/cache.ts` com tags dedicadas por portal (`portal-${slug}` e tags de entidade), garantindo isolamento total durante a invalidação de dados.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Sincronização de Fixtures Compactados (`schema.sql.gz`):** Atualização do fixture [schema.sql.gz](file:///packages/db/tests/fixtures/schema.sql.gz) com todas as novas tabelas dimensionais de previdência e colunas de metadados, validando paridade estrutural contínua via `make db/fixture/check`.
+* **Guias Públicos para Modelos de IA (`llms.txt` e `llms-full.txt`):** Atualização das rotas canônicas e expansão do catálogo de municípios e siglas dos regimes próprios de previdência social (RPPS) atendidos pela plataforma.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Correção da Ordem de Hooks e Layout na Rota Raiz:** Ajuste estrutural em `sidebar-wrapper.tsx`, `global-footer.tsx`, `ribbon-wrapper.tsx` e `extraction-notification-banner.tsx` para assegurar conformidade com as regras do React e evitar renderizações redundantes na página inicial (`/`).
+* **Ajuste de Altura Mínima no Seletor da Sidebar:** Adequação de espaçamento e altura mínima no dropdown de seleção municipal em telas menores.
+* **Parametrização Temporal da Série Histórica da Previdência:** Correção nos cálculos de anos com inconsistência declarada e normalização de períodos em `view-model.ts` de previdência.
+
+### 🗑️ Depreciações & Remoções (Removed)
+* **Expurgo de Componentes Legados Caprem:** Remoção e substituição completa dos componentes e arquivos denominados com o prefixo legado `caprem-*` em favor dos equivalentes canônicos `previdencia-*`.
+
 ## [1.13.0] - 2026-09-30
 
 ### 🌟 Destaques da Versão (Otimização de Performance, Navegação Temporal e Emendas da Saúde)
