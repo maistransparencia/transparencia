@@ -4,6 +4,13 @@ import { POST } from "../route";
 const mockDispatchPushNotification = vi.fn();
 const mockGetPortalConfig = vi.fn();
 const mockGetRadarCivicoAlertas = vi.fn();
+const mockRevalidatePath = vi.fn();
+const mockRevalidateTag = vi.fn();
+
+vi.mock("next/cache", () => ({
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
+  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
+}));
 
 vi.mock("@/lib/push-dispatcher", () => ({
   dispatchPushNotification: (...args: unknown[]) =>
@@ -302,5 +309,97 @@ describe("POST /api/ingestion/webhook", () => {
       body: expect.stringContaining("cargos comissionados"),
       url: "/porciuncula_prefeitura/pessoal?ano=2025#comissionados",
     });
+  });
+
+  it("invalida tags de cache e caminhos no Next.js ao receber evento de sucesso", async () => {
+    const req = new Request("http://localhost/api/ingestion/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-internal-secret",
+      },
+      body: JSON.stringify({
+        portalSlug: "porciuncula_prefeitura",
+        status: "success",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    expect(mockRevalidateTag).toHaveBeenCalledWith(
+      "portal:porciuncula_prefeitura",
+      { expire: 0 },
+    );
+    expect(mockRevalidateTag).toHaveBeenCalledWith("portal-data", {
+      expire: 0,
+    });
+    expect(mockRevalidateTag).toHaveBeenCalledWith("portal-config", {
+      expire: 0,
+    });
+    expect(mockRevalidateTag).toHaveBeenCalledWith("entidades", { expire: 0 });
+    expect(mockRevalidateTag).toHaveBeenCalledWith("all-portais", {
+      expire: 0,
+    });
+    expect(mockRevalidateTag).toHaveBeenCalledWith("radar-alerts", {
+      expire: 0,
+    });
+
+    expect(mockRevalidatePath).toHaveBeenCalledWith(
+      "/porciuncula_prefeitura",
+      "layout",
+    );
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/", "layout");
+  });
+
+  it("não dispara notificações Web Push quando skipNotification for true", async () => {
+    const req = new Request("http://localhost/api/ingestion/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-internal-secret",
+      },
+      body: JSON.stringify({
+        portalSlug: "porciuncula_prefeitura",
+        status: "success",
+        skipNotification: true,
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockRevalidateTag).toHaveBeenCalledWith(
+      "portal:porciuncula_prefeitura",
+      { expire: 0 },
+    );
+    expect(mockDispatchPushNotification).not.toHaveBeenCalled();
+  });
+
+  it("invalida cache global e não dispara Web Push quando portalSlug for 'all'", async () => {
+    const req = new Request("http://localhost/api/ingestion/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-internal-secret",
+      },
+      body: JSON.stringify({
+        portalSlug: "all",
+        status: "success",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockRevalidateTag).toHaveBeenCalledWith("portal-data", {
+      expire: 0,
+    });
+    expect(mockRevalidateTag).toHaveBeenCalledWith("all-portais", {
+      expire: 0,
+    });
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/", "layout");
+    expect(mockDispatchPushNotification).not.toHaveBeenCalled();
   });
 });

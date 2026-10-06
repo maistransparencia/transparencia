@@ -41,13 +41,13 @@ const defaultBaseUrl = formatBaseUrl(env.NEXT_PUBLIC_APP_URL);
 const getCachedPortalConfig = unstable_cache(
   () => getPortalConfig(),
   [`portal-config-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["portal-config", "portal-data"] },
 );
 
 const getCachedEntidades = unstable_cache(
   () => getEntidades(),
   [`entidades-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["entidades", "portal-data"] },
 );
 
 const getCachedEntidadesByPortal = unstable_cache(
@@ -59,13 +59,13 @@ const getCachedEntidadesByPortal = unstable_cache(
     }
   },
   [`entidades-by-portal-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["entidades", "portal-data"] },
 );
 
 const getCachedAllPortais = unstable_cache(
   () => getAllPortais(),
   [`all-portais-v${version}`],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ["all-portais", "portal-data"] },
 );
 
 const getCachedRadarAlertsCountByYear = unstable_cache(
@@ -77,7 +77,7 @@ const getCachedRadarAlertsCountByYear = unstable_cache(
     }
   },
   [`radar-alerts-count-by-year-v${version}`],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: ["radar-alerts", "portal-data"] },
 );
 
 export const metadata: Metadata = {

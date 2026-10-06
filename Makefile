@@ -82,6 +82,18 @@ endif
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
 
+# CACHE REVALIDATION
+
+cache/revalidate:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make cache/revalidate PORTAL=porciuncula_prefeitura [WEBHOOK_URL=...])
+endif
+	@curl -s -f -X POST "$${WEBHOOK_URL:-http://localhost:3001/api/ingestion/webhook}" \
+		-H "Authorization: Bearer $${INTERNAL_API_SECRET}" \
+		-H "Content-Type: application/json" \
+		-d '{"portalSlug":"$(PORTAL)","status":"success","skipNotification":true,"timestamp":"'$$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
+		&& echo "\nCache revalidado com sucesso para $(PORTAL)!" || (echo "\nFalha ao revalidar cache" && exit 1)
+
 # DOCKER ELT
 
 docker/elt/build:
