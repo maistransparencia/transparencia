@@ -166,4 +166,13 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Predicate Pushdown Pré-`unaccent`:** Funções textuais de normalização (`unaccent`, `lower`, `regex`) em grandes volumes são custosas e impedem otimizações de plano de execução. Aplique primeiro predicados estruturados e de particionamento (`ano >= 2021`, `categoria_regime IN (...)`) antes de invocar `unaccent()` em descrições e títulos.
 - **CTEs de Consumo Especializado (Anti-Monólito):** Não crie CTEs amplos que realizam joins pesados para alimentar múltiplos indicadores se apenas uma das métricas precisa daquele cruzamento. Isole projeções e joins caros estritamente no CTE que calcula o indicador específico.
 
+---
+
+## 23. ISOLAMENTO MULTI-TENANT E PROIBIÇÃO DE LITERAIS DE TENANT (ZERO TENANT LEAKAGE)
+
+- **Proibição de Slugs/Tenants Hard-Coded:** É **estritamente proibido** utilizar literais de municípios ou portais (como `'porciuncula_prefeitura'`, `'natividade_prefeitura'`, etc.) de forma hard-coded em projeções analíticas, CTEs intermediárias, cálculos de surrogate keys (`dbt_utils.generate_surrogate_key`), cláusulas `WHERE` ou fallbacks de `COALESCE` em modelos marts (`models/marts/`) e métricas (`models/marts/metrics/`). A única exceção admitida são os modelos de união de fontes/staging ou seeds (`int_*_consolidadas.sql`), onde as tabelas de origem distintas recebem sua respectiva tag de tenant para consolidação inicial.
+- **Isolamento Mandatório em Joins (Anti Cross-Tenant):** Todo cruzamento (`JOIN` / `LEFT JOIN`) entre tabelas ou CTEs analíticas que contenham o atributo `portal_slug` deve **obrigatoriamente** incluir o predicado de tenant: `ON a.portal_slug = b.portal_slug AND a.outra_chave = b.outra_chave`. É expressamente proibido cruzar apenas por entidades secundárias (`empresa_id`, `ano`, `fornecedor_codigo`), sob pena de provocar vazamento e contaminação de dados (*tenant leakage*) entre prefeituras com os mesmos códigos internos.
+- **Preservação de `portal_slug` em Agrupamentos:** Toda agregação (`GROUP BY`) em modelos marts ou métricas derivadas deve incluir `portal_slug` no grão de particionamento, garantindo que nenhum indicador misture ou unifique métricas de municípios distintos.
+- **Fallbacks e Defaults Neutros:** Nunca defina fallbacks com nomes ou cidades fixas de um tenant específico (ex: proibido `coalesce(cidade, 'PORCIUNCULA')` ou `coalesce(portal_slug, 'porciuncula_prefeitura')`). Utilize sempre condicionais dinâmicas baseadas no próprio `portal_slug` ou valores nulos/neutros (`'OUTROS'`, `'NAO_INFORMADO'`).
+
 

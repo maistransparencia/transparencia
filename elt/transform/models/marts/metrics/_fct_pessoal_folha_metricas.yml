@@ -39,7 +39,7 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, elemento: "01", pago: 10000.00, empenhado_liquido: 10000.00, empenhado: 10000.00, liquidado: 10000.00, descricao: "13 SALARIO", tipo_empenho: "OR" }
       - input: ref('fct_despesas_por_orgao')
         rows:
-          - { ano: 2025, empresa: "1", pago: 60000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "1", pago: 60000.00 }
       - input: ref('fct_pessoal')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "001", vinculo: "FG1", categoria_funcional: "Efetivo", categoria_regime: "efetivo_comissao", proventos: 3000.00 }

@@ -161,7 +161,7 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "91", empresa_id: "2", fornecedor_nome: "FORNECEDOR B", dotacao_atualizada: 100000.00, empenhado_liquido: 50000.00, liquidado: 40000.00, pago: 30000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
       - input: ref('fct_despesas_por_orgao')
         rows:
-          - { ano: 2025, empresa: "2", dotacao_atualizada: 300000.00, empenhado: 150000.00, liquidado: 120000.00, pago: 90000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "2", dotacao_atualizada: 300000.00, empenhado: 150000.00, liquidado: 120000.00, pago: 90000.00 }
       - input: ref('fct_emendas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "2", destinacao: "EQUIPAMENTOS SAUDE", resumo: "EMENDA SAUDE", valor_total: 50000.00, empenhado: 50000.00 }

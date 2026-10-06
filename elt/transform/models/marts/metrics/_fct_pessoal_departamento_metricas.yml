@@ -35,8 +35,8 @@ unit_tests:
     given:
       - input: ref('fct_despesas_por_fornecedor')
         rows:
-          - { ano: 2025, empresa: "1", descricao: "FOLHA DE PAGAMENTO E OUTROS", pago: 120000.00 }
-          - { ano: 2025, empresa: "1", descricao: "FORNECEDOR COMUM LTDA", pago: 50000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "1", descricao: "FOLHA DE PAGAMENTO E OUTROS", pago: 120000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "1", descricao: "FORNECEDOR COMUM LTDA", pago: 50000.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "1", descricao: "FOLHA DE PAGAMENTO E OUTROS", total_pago: 120000.00 }
