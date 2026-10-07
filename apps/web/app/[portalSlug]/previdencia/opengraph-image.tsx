@@ -8,11 +8,26 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgPrevidenciaData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const previdencia = await getHistoriaPrevidenciaMetrics(
+    portalSlug,
+    currentYear,
+  );
+  return { portalConfig, previdencia };
+}
+
+const loadOgPrevidenciaData = createCachedDataLoader(
+  fetchOgPrevidenciaData,
+  "og-previdencia",
+);
 
 export default async function Image({
   params,
@@ -23,10 +38,10 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, previdencia] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getHistoriaPrevidenciaMetrics(portalSlug, currentYear),
-    ]);
+    const { portalConfig, previdencia } = await loadOgPrevidenciaData(
+      portalSlug,
+      currentYear,
+    );
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
