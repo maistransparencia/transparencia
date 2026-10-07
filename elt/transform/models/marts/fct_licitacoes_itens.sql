@@ -49,12 +49,12 @@ resultados as (
 
 select
     {{ dbt_utils.generate_surrogate_key([
-        "coalesce(c.portal_slug, i.portal_slug, 'porciuncula_prefeitura')",
+        "coalesce(c.portal_slug, i.portal_slug)",
         "coalesce(i.ano_compra, c.ano_compra)",
         "coalesce(l.licitacao_numero, i.numero_compra, c.numero_compra, c.processo, lpad(coalesce(i.sequencial_compra, c.sequencial_compra)::text, 3, '0') || '/' || coalesce(i.ano_compra, c.ano_compra)::text, '')",
         "i.numero_item"
     ]) }} as item_id,
-    coalesce(c.portal_slug, i.portal_slug, 'porciuncula_prefeitura') as portal_slug,
+    coalesce(c.portal_slug, i.portal_slug) as portal_slug,
     coalesce(i.ano_compra, c.ano_compra)::integer as ano,
     coalesce(l.licitacao_numero, i.numero_compra, c.numero_compra, c.processo, lpad(coalesce(i.sequencial_compra, c.sequencial_compra)::text, 3, '0') || '/' || coalesce(i.ano_compra, c.ano_compra)::text) as licitacao_numero,
     i.numero_item::integer as numero_item,

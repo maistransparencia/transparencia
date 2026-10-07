@@ -1,7 +1,7 @@
 {
   "name": "transparencia-monorepo",
   "private": true,
-  "version": "1.14.0",
+  "version": "1.14.1",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
@@ -11,8 +11,8 @@
     "test": "turbo test"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
-    "turbo": "2.11.2",
+    "@biomejs/biome": "2.5.15",
+    "turbo": "2.11.7",
     "typescript": "7.0.2"
   },
   "packageManager": "pnpm@11.17.0"
