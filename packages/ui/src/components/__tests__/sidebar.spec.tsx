@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Sidebar } from "../sidebar";
 
@@ -158,5 +158,77 @@ describe("Sidebar Component", () => {
     });
 
     expect(onPortalChange).toHaveBeenCalledWith("natividade_prefeitura");
+  });
+
+  it("renderiza os botões de compartilhamento no cabeçalho mobile e no rodapé do sidebar", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const mobileShare = screen.getByRole("button", {
+      name: "Compartilhar página",
+    });
+    expect(mobileShare).toBeInTheDocument();
+
+    const desktopShare = screen.getByRole("button", {
+      name: "Compartilhar página atual",
+    });
+    expect(desktopShare).toBeInTheDocument();
+  });
+
+  it("permite customização via mobileShareSlot e desktopShareSlot", () => {
+    render(
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        mobileShareSlot={<button type="button">Custom Mobile Share</button>}
+        desktopShareSlot={<button type="button">Custom Desktop Share</button>}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Custom Mobile Share" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Custom Desktop Share" }),
+    ).toBeInTheDocument();
+  });
+
+  it("dispara callback onShare ao clicar no botão de compartilhamento móvel", async () => {
+    const onShare = vi.fn();
+    const originalNavigator = window.navigator;
+    Object.defineProperty(window, "navigator", {
+      value: {
+        ...originalNavigator,
+        clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      render(
+        <Sidebar
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+          onShare={onShare}
+        />,
+      );
+
+      const mobileShare = screen.getByRole("button", {
+        name: "Compartilhar página",
+      });
+      fireEvent.click(mobileShare);
+
+      await waitFor(() => {
+        expect(onShare).toHaveBeenCalled();
+      });
+    } finally {
+      Object.defineProperty(window, "navigator", {
+        value: originalNavigator,
+        writable: true,
+        configurable: true,
+      });
+    }
   });
 });

@@ -114,6 +114,17 @@ export function SidebarWrapper({
     }
   };
 
+  const handleShare = (payload: {
+    method: "native" | "clipboard";
+    url: string;
+  }) => {
+    posthog.capture("page_shared", {
+      portal_slug: activePortalSlug,
+      method: payload.method,
+      url: payload.url,
+    });
+  };
+
   const handlePortalChange = (newPortalSlug: string) => {
     if (!newPortalSlug || newPortalSlug === activePortalSlug) return;
     try {
@@ -221,6 +232,7 @@ export function SidebarWrapper({
       onMobileOpenChange={setIsMenuOpen}
       radarAlertCount={activeRadarAlertCount}
       previdencia={effectivePrevidencia}
+      onShare={handleShare}
     />
   );
 }
