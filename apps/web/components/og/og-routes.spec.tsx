@@ -1,9 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@transparencia/db", () => ({
+  getAllPortais: vi.fn().mockResolvedValue([
+    {
+      portalSlug: "porciuncula_prefeitura",
+      displayName: "Prefeitura de Porciúncula",
+      uf: "RJ",
+      brasaoAsset: "brasao-porciuncula.png",
+    },
+    {
+      portalSlug: "natividade_prefeitura",
+      displayName: "Prefeitura de Natividade",
+      uf: "RJ",
+      brasaoAsset: "brasao-natividade.png",
+    },
+  ]),
   getPortalConfig: vi.fn().mockResolvedValue({
     displayName: "Prefeitura de Porciúncula",
     uf: "RJ",
+    brasaoAsset: "brasao-porciuncula.png",
   }),
   getEntidades: vi.fn().mockResolvedValue([{ id: "1", nome: "Prefeitura" }]),
   getPosicaoFiscalMetrics: vi.fn().mockResolvedValue({
@@ -96,8 +111,55 @@ vi.mock("@/posthog-server", () => ({
   })),
 }));
 
+type MockResponse = {
+  jsx: {
+    props: {
+      cities?: unknown[];
+      brasaoAsset?: string;
+    };
+  };
+  options: unknown;
+};
+
 describe("OpenGraph Image Route Handlers", () => {
   const params = Promise.resolve({ portalSlug: "porciuncula_prefeitura" });
+
+  it("gera o card da Página Inicial (Landing Page)", async () => {
+    const { default: generateImage } = await import(
+      "../../app/opengraph-image"
+    );
+    const response = await generateImage();
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+    expect(response).toHaveProperty("options");
+    expect((response as unknown as MockResponse).jsx.props.cities).toHaveLength(
+      2,
+    );
+  });
+
+  it("captura exceção no PostHog e retorna card fallback na Página Inicial quando getAllPortais rejeita", async () => {
+    const { getAllPortais } = await import("@transparencia/db");
+    vi.mocked(getAllPortais).mockRejectedValueOnce(
+      new Error("DB Connection Error"),
+    );
+
+    const { default: generateImage } = await import(
+      "../../app/opengraph-image"
+    );
+    const response = await generateImage();
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+    expect(
+      (response as unknown as MockResponse).jsx.props.cities,
+    ).toBeUndefined();
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      undefined,
+      expect.objectContaining({
+        route: "og:landing",
+      }),
+    );
+  });
 
   it("gera o card da Visão Geral (Homepage)", async () => {
     const { default: generateImage } = await import(
@@ -107,6 +169,9 @@ describe("OpenGraph Image Route Handlers", () => {
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
     expect(response).toHaveProperty("options");
+    expect((response as unknown as MockResponse).jsx.props.brasaoAsset).toBe(
+      "brasao-porciuncula.png",
+    );
   });
 
   it("gera o card de Despesas", async () => {
@@ -116,6 +181,9 @@ describe("OpenGraph Image Route Handlers", () => {
     const response = await generateImage({ params });
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
+    expect((response as unknown as MockResponse).jsx.props.brasaoAsset).toBe(
+      "brasao-porciuncula.png",
+    );
   });
 
   it("gera o card de Licitações", async () => {
