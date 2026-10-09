@@ -89,6 +89,7 @@ export default async function Image({
         badgeText="Regime Próprio (RPPS)"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

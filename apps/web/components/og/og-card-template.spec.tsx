@@ -120,4 +120,53 @@ describe("OGCardTemplate", () => {
       screen.getByText("transparencia.exemplo.gov.br"),
     ).toBeInTheDocument();
   });
+
+  it("renderiza o brasão municipal quando brasaoAsset é fornecido", () => {
+    render(
+      <OGCardTemplate
+        portalDisplayName="Prefeitura de Porciúncula"
+        portalUf="RJ"
+        pageTitle="Visão Geral"
+        brasaoAsset="brasao-porciuncula.png"
+        metrics={[
+          {
+            label: "Total Arrecadado",
+            value: "R$ 42M",
+          },
+        ]}
+      />,
+    );
+
+    const img = screen.getByRole("img", {
+      name: "Brasão de Prefeitura de Porciúncula",
+    });
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute(
+      "src",
+      expect.stringMatching(/^data:image\/png;base64,/),
+    );
+  });
+
+  it("renderiza o brasão municipal customizado quando brasaoDataUrl é fornecido diretamente", () => {
+    render(
+      <OGCardTemplate
+        portalDisplayName="Prefeitura de Natividade"
+        portalUf="RJ"
+        pageTitle="Visão Geral"
+        brasaoDataUrl="data:image/png;base64,custom-base64"
+        metrics={[
+          {
+            label: "Total Arrecadado",
+            value: "R$ 30M",
+          },
+        ]}
+      />,
+    );
+
+    const img = screen.getByRole("img", {
+      name: "Brasão de Prefeitura de Natividade",
+    });
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute("src", "data:image/png;base64,custom-base64");
+  });
 });

@@ -86,6 +86,7 @@ export default async function Image({
         badgeText={badgeText}
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

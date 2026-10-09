@@ -131,6 +131,7 @@ export default async function Image({
         badgeText="Posição Consolidada"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );
