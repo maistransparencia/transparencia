@@ -14,6 +14,7 @@ describe("ShareButton Component", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    document.title = "";
     Object.defineProperty(window, "location", {
       value: new URL(
         "https://transparencia.app/porciuncula_prefeitura?ano=2024",
@@ -25,6 +26,7 @@ describe("ShareButton Component", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    document.title = "";
     Object.defineProperty(window, "location", {
       value: originalLocation,
       writable: true,
@@ -111,7 +113,7 @@ describe("ShareButton Component", () => {
 
     await waitFor(() => {
       expect(mockShare).toHaveBeenCalledWith({
-        title: "MaisTransparência",
+        title: "MaisTransparencia",
         url: "https://transparencia.app/outra_rota?ano=2023",
       });
     });
@@ -271,7 +273,7 @@ describe("ShareButton Component", () => {
   });
 
   it("bloqueia cliques concorrentes enquanto uma operação de compartilhamento estiver em andamento", async () => {
-    let resolveShare: () => void;
+    let resolveShare: () => void = () => {};
     const pendingSharePromise = new Promise<void>((resolve) => {
       resolveShare = resolve;
     });
