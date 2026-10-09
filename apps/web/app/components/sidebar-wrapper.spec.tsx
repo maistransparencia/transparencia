@@ -1,7 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useQueryState } from "nuqs";
 import posthog from "posthog-js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileNavProvider } from "@/components/mobile-nav-context";
 import { SidebarWrapper } from "./sidebar-wrapper";
 
@@ -36,10 +36,20 @@ vi.mock("nuqs", () => ({
 const mockUseQueryState = vi.mocked(useQueryState);
 
 describe("SidebarWrapper Component", () => {
+  const originalNavigator = window.navigator;
+
   beforeEach(() => {
     vi.clearAllMocks();
     currentPathname = "/porciuncula_prefeitura";
     currentSearchParams = new URLSearchParams("");
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, "navigator", {
+      value: originalNavigator,
+      writable: true,
+      configurable: true,
+    });
   });
 
   it("deve repassar radarAlertCount correspondente ao ano selecionado a partir de radarAlertsCountByYear", () => {
@@ -287,5 +297,75 @@ describe("SidebarWrapper Component", () => {
     );
 
     expect(container.firstChild).toBeNull();
+  });
+
+  it("deve disparar evento de telemetria page_shared no PostHog ao compartilhar", async () => {
+    const mockClipboardWrite = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window, "navigator", {
+      value: {
+        clipboard: { writeText: mockClipboardWrite },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+
+    const shareButton = screen.getByRole("button", {
+      name: "Compartilhar página atual",
+    });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => {
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "page_shared",
+        expect.objectContaining({
+          portal_slug: "porciuncula_prefeitura",
+          method: "clipboard",
+        }),
+      );
+    });
+  });
+
+  it("deve disparar evento de telemetria ao compartilhar através do botão móvel", async () => {
+    const mockClipboardWrite = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window, "navigator", {
+      value: {
+        clipboard: { writeText: mockClipboardWrite },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+
+    const mobileShareButton = screen.getByRole("button", {
+      name: "Compartilhar página",
+    });
+    fireEvent.click(mobileShareButton);
+
+    await waitFor(() => {
+      expect(posthog.capture).toHaveBeenCalledWith(
+        "page_shared",
+        expect.objectContaining({
+          portal_slug: "porciuncula_prefeitura",
+          method: "clipboard",
+        }),
+      );
+    });
   });
 });

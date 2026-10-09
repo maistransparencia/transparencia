@@ -5,6 +5,7 @@ export * from "./components/kpi-card";
 export * from "./components/modal-dialog";
 export * from "./components/multi-select";
 export * from "./components/ribbon";
+export * from "./components/share-button";
 export * from "./components/sidebar";
 export * from "./components/tooltip";
 export * from "./components/truncated-cell-with-modal";
