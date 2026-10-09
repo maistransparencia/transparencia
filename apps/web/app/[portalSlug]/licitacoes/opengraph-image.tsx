@@ -102,6 +102,7 @@ export default async function Image({
         badgeText="Painel de Compras"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

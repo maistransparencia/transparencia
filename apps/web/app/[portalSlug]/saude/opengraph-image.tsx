@@ -99,6 +99,7 @@ export default async function Image({
         badgeText="Painel da Saúde"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

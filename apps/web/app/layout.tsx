@@ -118,21 +118,12 @@ export const metadata: Metadata = {
     siteName: "MaisTransparencia",
     locale: "pt_BR",
     type: "website",
-    images: [
-      {
-        url: `${defaultBaseUrl}/favicon.svg`,
-        width: 1200,
-        height: 630,
-        alt: "MaisTransparencia",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MaisTransparencia",
     description:
       "Portal de Transparência Pública Municipal - Consulta de despesas, receitas, orçamentos, licitações, pessoal e previdência pública.",
-    images: [`${defaultBaseUrl}/favicon.svg`],
   },
   icons: {
     icon: [

@@ -119,6 +119,7 @@ export default async function Image({
         badgeText="Radar de Despesas"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );
