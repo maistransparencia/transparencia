@@ -11,11 +11,46 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgPessoalData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const entidades = await getEntidades(portalSlug);
+  const empresaIds = entidades.map((e) => e.id).filter(Boolean);
+  const folhaMetrics =
+    empresaIds.length > 0
+      ? await getFolhaVsServicosMetrics({
+          years: [currentYear],
+          empresaIds,
+          portalSlug,
+        })
+      : [];
+  const limiteMaximoLrf = await getLimiteMaximoLrfPessoal(currentYear);
+  const percentualChefiasEfetivas =
+    empresaIds.length > 0
+      ? await getPercentualChefiasEfetivasMetrics(
+          portalSlug,
+          currentYear,
+          empresaIds,
+        )
+      : null;
+  return {
+    portalConfig,
+    folhaMetrics,
+    limiteMaximoLrf,
+    percentualChefiasEfetivas,
+  };
+}
+
+const loadOgPessoalData = createCachedDataLoader(
+  fetchOgPessoalData,
+  "og-pessoal",
+);
 
 export default async function Image({
   params,
@@ -26,30 +61,12 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, entidades] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getEntidades(portalSlug),
-    ]);
-
-    const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [folhaMetrics, limiteMaximoLrf, percentualChefiasEfetivas] =
-      await Promise.all([
-        empresaIds.length > 0
-          ? getFolhaVsServicosMetrics({
-              years: [currentYear],
-              empresaIds,
-              portalSlug,
-            })
-          : [],
-        getLimiteMaximoLrfPessoal(currentYear),
-        empresaIds.length > 0
-          ? getPercentualChefiasEfetivasMetrics(
-              portalSlug,
-              currentYear,
-              empresaIds,
-            )
-          : null,
-      ]);
+    const {
+      portalConfig,
+      folhaMetrics,
+      limiteMaximoLrf,
+      percentualChefiasEfetivas,
+    } = await loadOgPessoalData(portalSlug, currentYear);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -105,6 +122,7 @@ export default async function Image({
         badgeText="Gestão de Pessoal"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

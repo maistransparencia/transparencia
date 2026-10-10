@@ -1,5 +1,6 @@
 import type { CSSProperties, FC } from "react";
 import { env } from "@/env";
+import { getBrasaoDataUrl, resolveBrandDomain } from "@/lib/og-assets";
 
 export type MetricVariant = "default" | "warning" | "success" | "danger";
 
@@ -21,6 +22,8 @@ export interface OGCardTemplateProps {
   lastExtractionDate?: string;
   brandName?: string;
   brandDomain?: string;
+  brasaoAsset?: string;
+  brasaoDataUrl?: string;
 }
 
 function getVariantColor(variant?: MetricVariant): string {
@@ -66,27 +69,6 @@ function formatPortalSource(name?: string): string {
   return `Dados Abertos Extraídos • ${trimmed}`;
 }
 
-function resolveBrandDomain(customDomain?: string): string {
-  const cleanDomain = (domain?: string): string | null => {
-    if (!domain?.trim()) return null;
-    return domain
-      .trim()
-      .replace(/^https?:\/\//, "")
-      .replace(/\/.*$/, "");
-  };
-
-  const fromCustom = cleanDomain(customDomain);
-  if (fromCustom) return fromCustom;
-
-  const envDomain = cleanDomain(env.NEXT_PUBLIC_SITE_DOMAIN);
-  if (envDomain) return envDomain;
-
-  const envAppUrl = cleanDomain(env.NEXT_PUBLIC_APP_URL);
-  if (envAppUrl) return envAppUrl;
-
-  return "maistransparencia.com";
-}
-
 export const OGCardTemplate: FC<OGCardTemplateProps> = ({
   portalDisplayName,
   portalUf,
@@ -98,10 +80,13 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
   lastExtractionDate,
   brandName = env.NEXT_PUBLIC_SITE_NAME,
   brandDomain,
+  brasaoAsset,
+  brasaoDataUrl,
 }) => {
   const finalBrandDomain = resolveBrandDomain(brandDomain);
   const formattedExtractionDate = formatExtractionDate(lastExtractionDate);
   const portalSourceText = formatPortalSource(portalDisplayName);
+  const finalBrasaoDataUrl = brasaoDataUrl || getBrasaoDataUrl(brasaoAsset);
 
   const containerStyle: CSSProperties = {
     width: "1200px",
@@ -247,7 +232,22 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
         </div>
 
         <div style={municipalityBadgeStyle}>
-          <div style={pulseDotStyle} />
+          {finalBrasaoDataUrl ? (
+            /* biome-ignore lint/performance/noImgElement: og image asset */
+            <img
+              src={finalBrasaoDataUrl}
+              alt={
+                portalDisplayName
+                  ? `Brasão de ${portalDisplayName}`
+                  : "Brasão municipal"
+              }
+              width={22}
+              height={22}
+              style={{ width: "22px", height: "22px", objectFit: "contain" }}
+            />
+          ) : (
+            <div style={pulseDotStyle} />
+          )}
           <span>{municipalityText}</span>
         </div>
       </div>

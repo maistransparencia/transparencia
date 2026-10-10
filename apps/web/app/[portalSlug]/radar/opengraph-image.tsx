@@ -4,11 +4,20 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgRadarData(portalSlug: string) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const alertas = await getRadarCivicoAlertas(portalSlug);
+  return { portalConfig, alertas };
+}
+
+const loadOgRadarData = createCachedDataLoader(fetchOgRadarData, "og-radar");
 
 export default async function Image({
   params,
@@ -18,10 +27,7 @@ export default async function Image({
   const { portalSlug } = await params;
 
   try {
-    const [portalConfig, alertas] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getRadarCivicoAlertas(portalSlug),
-    ]);
+    const { portalConfig, alertas } = await loadOgRadarData(portalSlug);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -80,6 +86,7 @@ export default async function Image({
         badgeText={badgeText}
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

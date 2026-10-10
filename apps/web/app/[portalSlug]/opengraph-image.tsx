@@ -12,11 +12,51 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgHomepageData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const entidades = await getEntidades(portalSlug);
+  const empresaIds = entidades.map((e) => e.id).filter(Boolean);
+  const posicaoFiscal =
+    empresaIds.length > 0
+      ? await getPosicaoFiscalMetrics(portalSlug, currentYear, empresaIds)
+      : null;
+  const execucaoList =
+    empresaIds.length > 0
+      ? await getExecucaoOrcamentariaMetrics(
+          portalSlug,
+          currentYear,
+          empresaIds,
+        )
+      : [];
+  const folhaList =
+    empresaIds.length > 0
+      ? await getFolhaVsServicosMetrics({
+          years: [currentYear],
+          empresaIds,
+          portalSlug,
+        })
+      : [];
+  const limiteMaximoLrf = await getLimiteMaximoLrfPessoal(currentYear);
+  return {
+    portalConfig,
+    posicaoFiscal,
+    execucaoList,
+    folhaList,
+    limiteMaximoLrf,
+  };
+}
+
+const loadOgHomepageData = createCachedDataLoader(
+  fetchOgHomepageData,
+  "og-homepage",
+);
 
 export default async function Image({
   params,
@@ -27,29 +67,13 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, entidades] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getEntidades(portalSlug),
-    ]);
-
-    const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [posicaoFiscal, execucaoList, folhaList, limiteMaximoLrf] =
-      await Promise.all([
-        empresaIds.length > 0
-          ? getPosicaoFiscalMetrics(portalSlug, currentYear, empresaIds)
-          : null,
-        empresaIds.length > 0
-          ? getExecucaoOrcamentariaMetrics(portalSlug, currentYear, empresaIds)
-          : [],
-        empresaIds.length > 0
-          ? getFolhaVsServicosMetrics({
-              years: [currentYear],
-              empresaIds,
-              portalSlug,
-            })
-          : [],
-        getLimiteMaximoLrfPessoal(currentYear),
-      ]);
+    const {
+      portalConfig,
+      posicaoFiscal,
+      execucaoList,
+      folhaList,
+      limiteMaximoLrf,
+    } = await loadOgHomepageData(portalSlug, currentYear);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -107,6 +131,7 @@ export default async function Image({
         badgeText="Posição Consolidada"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

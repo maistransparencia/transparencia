@@ -11,11 +11,37 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgDespesasData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const entidades = await getEntidades(portalSlug);
+  const empresaIds = entidades.map((e) => e.id).filter(Boolean);
+  const analiseDespesas =
+    empresaIds.length > 0
+      ? await getAnaliseDespesasMetrics(portalSlug, currentYear, empresaIds)
+      : [];
+  const opacidade = await getOpacidadeContabilMetrics(portalSlug, currentYear);
+  const radarSensiveis =
+    empresaIds.length > 0
+      ? await getRadarGastosSensiveisMetrics(
+          portalSlug,
+          currentYear,
+          empresaIds,
+        )
+      : null;
+  return { portalConfig, analiseDespesas, opacidade, radarSensiveis };
+}
+
+const loadOgDespesasData = createCachedDataLoader(
+  fetchOgDespesasData,
+  "og-despesas",
+);
 
 export default async function Image({
   params,
@@ -26,21 +52,8 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, entidades] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getEntidades(portalSlug),
-    ]);
-
-    const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [analiseDespesas, opacidade, radarSensiveis] = await Promise.all([
-      empresaIds.length > 0
-        ? getAnaliseDespesasMetrics(portalSlug, currentYear, empresaIds)
-        : [],
-      getOpacidadeContabilMetrics(portalSlug, currentYear),
-      empresaIds.length > 0
-        ? getRadarGastosSensiveisMetrics(portalSlug, currentYear, empresaIds)
-        : null,
-    ]);
+    const { portalConfig, analiseDespesas, opacidade, radarSensiveis } =
+      await loadOgDespesasData(portalSlug, currentYear);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -106,6 +119,7 @@ export default async function Image({
         badgeText="Radar de Despesas"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

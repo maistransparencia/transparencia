@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import { buildNavUrl } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
+import { ShareButton } from "./share-button";
 
 export interface NavGroup {
   label: string;
@@ -71,6 +72,9 @@ export interface SidebarProps {
   pwaInstallSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
+  mobileShareSlot?: React.ReactNode;
+  desktopShareSlot?: React.ReactNode;
+  onShare?: (payload: { method: "native" | "clipboard"; url: string }) => void;
   isMobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
   radarAlertCount?: number;
@@ -226,6 +230,9 @@ export function Sidebar({
   pwaInstallSlot,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
+  mobileShareSlot,
+  desktopShareSlot,
+  onShare,
   isMobileOpen: controlledMobileOpen,
   onMobileOpenChange,
   radarAlertCount,
@@ -396,14 +403,21 @@ export function Sidebar({
           )}
         </div>
 
-        <div className="mt-2 flex items-center gap-3 border-slate-100 border-t pt-1.5 text-subtleText text-xs">
-          <YearSelect
-            years={years}
-            selectedYear={currentExercice}
-            onChange={handleExerciceChange}
-            variant="compact"
-          />
-          {mobileHeaderRightSlot}
+        <div className="mt-2 flex items-center justify-between gap-2 border-slate-100 border-t pt-1.5 text-subtleText text-xs">
+          <div className="flex items-center gap-3">
+            <YearSelect
+              years={years}
+              selectedYear={currentExercice}
+              onChange={handleExerciceChange}
+              variant="compact"
+            />
+            {mobileHeaderRightSlot}
+          </div>
+          <div className="shrink-0">
+            {mobileShareSlot ?? (
+              <ShareButton variant="compact" onShare={onShare} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -652,13 +666,21 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Notificações e Instalação do App */}
-        {(pushNotificationSlot || pwaInstallSlot) && (
-          <div className="space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4">
-            {pushNotificationSlot}
-            {pwaInstallSlot}
+        {/* Rodapé com Compartilhamento, Notificações e Instalação do App */}
+        <div
+          className={cn(
+            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4",
+            !pushNotificationSlot && !pwaInstallSlot && "hidden md:block",
+          )}
+        >
+          <div className="hidden md:block">
+            {desktopShareSlot ?? (
+              <ShareButton variant="sidebar" onShare={onShare} />
+            )}
           </div>
-        )}
+          {pushNotificationSlot}
+          {pwaInstallSlot}
+        </div>
       </aside>
     </>
   );

@@ -5,6 +5,41 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-10-09
+
+### 🌟 Destaques da Versão (Pipeline ELT Escalável com Cloudflare R2, Compartilhamento Cívico e Identidade Visual Dinâmica)
+* **Pipeline de Ingestão com Fan-In e Cloudflare R2:** Reestruturação da ingestão agendada no GitHub Actions com execução paralela dos extratores municipais e sincronização de artefatos brutos via Cloudflare R2 (storage S3-compatível), garantindo persistência sem limites de disco local e carregamento consolidado (*fan-in*).
+* **Desacoplamento e Modularização da Camada ELT:** Segregação estrita entre extração e carregamento para fontes nacionais (SICONFI e PNCP) em módulos autônomos (`elt/load/siconfi.py` e `elt/load/pncp.py`), eliminando acoplamento direto com o banco nos extratores e facilitando a testabilidade isolada.
+* **Engajamento e Compartilhamento Cívico Ativo (`ShareButton`):** Novo botão de compartilhamento acessível integrado à barra lateral (`Sidebar`) com suporte nativo à Web Share API em dispositivos móveis e fallback com cópia instantânea da URL na área de transferência e feedback visual ("Link copiado!").
+* **Descoberta Visual no Radar Cívico:** Implementação de indicador de rolagem horizontal responsivo no carrossel de alertas fiscais (`RadarCivicoFeed`), sinalizando visualmente quando há múltiplos apontamentos e viabilizando a navegação intuitiva entre os achados.
+* **OpenGraph Dinâmico e Identidade Visual Municipal:** Geração sob demanda de cartões sociais dinâmicos para a página inicial (`/opengraph-image.tsx`) e inclusão automatizada de brasões municipais em base64 com proporção harmônica em todas as rotas de compartilhamento das redes sociais, com cache versionado e queries sequenciais.
+
+### ✨ Novas Funcionalidades (Added)
+* **Sincronização com Cloudflare R2 (`elt/scripts/sync_r2.py`):** Script utilitário em Python e comandos no Makefile (`make elt/r2/sync`, `make elt/r2/download`) para upload e download de artefatos de dados brutos e parquet em buckets S3-compatíveis.
+* **Botão de Compartilhamento Cívico na Barra Lateral (`ShareButton`):** Componente interativo em `@transparencia/ui` acoplado ao `Sidebar` e `SidebarWrapper`, permitindo ao usuário compartilhar o link da visão ativa por redes sociais ou copiar o link com um clique, com total suporte a acessibilidade e notificações de feedback.
+* **Indicador de Rolagem no Feed do Radar Cívico (`RadarCivicoFeed`):** Sinalizador visual dinâmico com botões de navegação lateral e indicadores de posição quando a quantidade de alertas fiscais extrapola o contêiner visível no desktop e no mobile.
+* **Social Card Dinâmico da Página Inicial (`/opengraph-image`):** Template institucional de imagem social (`og-home-card-template.tsx`) exibindo catálogo resumido de municípios integrados, indicador de transparência ativa e métricas do portal com renderização vetorial no servidor via `@vercel/og` / Edge runtime.
+* **Brasões Municipais em Cards Sociais de Todas as Rotas:** Inclusão do brasão oficial do município em alta fidelidade nos cards sociais de Visão Geral, Despesas, Receitas, Orçamento, Licitações, Pessoal, Previdência, Saúde e Radar Cívico.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Modularização de Carregadores SICONFI e PNCP (`elt/load/`):** Criação dos módulos dedicados `elt/load/siconfi.py` e `elt/load/pncp.py`, isolando a lógica de inserção/upsert no PostgreSQL e desacoplando os extratores (`elt/extract/siconfi_msc.py` e `elt/extract/pncp.py`).
+* **Pipeline de Ingestão Agendada com Fan-In no GitHub Actions (`scheduled-ingestion.yml`):** Refatoração do workflow para paralelizar a extração entre portais (matrix strategy) com sincronização em bucket Cloudflare R2 e job final consolidado de carga e transformação dbt.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Cache Versionado e Queries Sequenciais nas Rotas OG:** Todas as rotas de pré-visualização de imagem social (`[portalSlug]/*/opengraph-image.tsx`) agora utilizam o loader com cache versionado (`createCachedDataLoader`), garantindo que requisições repetidas de indexadores não atinjam o PostgreSQL e executem queries sequencialmente para limitar o consumo a no máximo uma conexão por requisição.
+* **Pipeline de Checagem Estática de Tipos (`turbo typecheck`):** Padronização do script `typecheck` no Turborepo e nos manifests `package.json` de todos os pacotes (`apps/web`, `packages/db`, `packages/ui`), assegurando validação de tipos consistente e paralela no pipeline de CI/CD.
+* **Utilitário Centralizado de Assets em Base64 (`og-assets.ts`):** Módulo utilitário dedicado para carregar e converter brasões municipais em base64 com verificação defensiva de existência de arquivos e prevenção de quebras em tempo de execução.
+* **Atualização e Sincronização de Dependências:** Atualização do lockfile `elt/uv.lock`, dependências npm e atualização do `urllib3` para 2.8.0.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Diretriz de Proibição de Listas Hard-Coded de Municípios (`AGENTS.md`):** Atualização formal da regra de Isolamento Multi-Tenant estendendo a proibição de arrays, literais ou fallbacks fixos de municípios para todos os componentes frontend, templates de páginas, hooks e geradores de cards sociais.
+* **Variáveis de Ambiente para Storage S3/R2 (`.env.example`):** Documentação das chaves de configuração `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` e `R2_ENDPOINT_URL`.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Testes Unitários dos Carregadores e Extratores SICONFI (`elt/extract/__tests__/test_siconfi_msc.py`):** Ampliação da cobertura de testes para a rotina modularizada de extração do SICONFI MSC.
+* **Blindagem e Cobertura de Testes Unitários de Compartilhamento:** Criação de suíte completa de testes para `ShareButton`, `SidebarWrapper` e `Sidebar`, cobrindo cenários de sucesso, erro, negação de permissão da Web Share API e fallbacks de clipboard.
+* **Adequação do Layout Raiz para Metadata Social:** Limpeza de metadados estáticos legados no `layout.tsx` em favor da geração dinâmica por rota e por município via geradores de imagem OpenGraph dedicados.
+
 ## [1.14.1] - 2026-10-06
 
 ### 🌟 Destaques da Versão (Isolamento Multi-Tenant Estrito, Integridade Analítica e Formatação UI)

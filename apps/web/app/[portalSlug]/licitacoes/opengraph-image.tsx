@@ -10,11 +10,37 @@ import {
   OGCardTemplate,
   type OGMetricItem,
 } from "@/components/og/og-card-template";
+import { createCachedDataLoader } from "@/lib/cache";
 import { getPostHogServer } from "@/posthog-server";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+async function fetchOgLicitacoesData(portalSlug: string, currentYear: number) {
+  const portalConfig = await getPortalConfig(portalSlug);
+  const entidades = await getEntidades(portalSlug);
+  const empresaIds = entidades.map((e) => e.id).filter(Boolean);
+  const modalidades =
+    empresaIds.length > 0
+      ? await getDistribucaoModalidadesMetrics(
+          portalSlug,
+          currentYear,
+          empresaIds,
+        )
+      : [];
+  const contratosVigentes = await getContratosServicosVigentes(
+    portalSlug,
+    currentYear,
+    empresaIds,
+  );
+  return { portalConfig, modalidades, contratosVigentes };
+}
+
+const loadOgLicitacoesData = createCachedDataLoader(
+  fetchOgLicitacoesData,
+  "og-licitacoes",
+);
 
 export default async function Image({
   params,
@@ -25,18 +51,8 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const [portalConfig, entidades] = await Promise.all([
-      getPortalConfig(portalSlug),
-      getEntidades(portalSlug),
-    ]);
-
-    const empresaIds = entidades.map((e) => e.id).filter(Boolean);
-    const [modalidades, contratosVigentes] = await Promise.all([
-      empresaIds.length > 0
-        ? getDistribucaoModalidadesMetrics(portalSlug, currentYear, empresaIds)
-        : [],
-      getContratosServicosVigentes(portalSlug, currentYear, empresaIds),
-    ]);
+    const { portalConfig, modalidades, contratosVigentes } =
+      await loadOgLicitacoesData(portalSlug, currentYear);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -86,6 +102,7 @@ export default async function Image({
         badgeText="Painel de Compras"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       { ...size },
     );

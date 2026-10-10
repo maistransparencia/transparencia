@@ -8,19 +8,20 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "migrate": "tsx src/bin/migrate.ts",
     "test": "vitest run"
   },
   "dependencies": {
-    "dotenv": "18.0.1",
+    "dotenv": "18.0.5",
     "kysely": "0.29.6",
-    "pg": "8.23.0"
+    "pg": "8.23.1"
   },
   "devDependencies": {
-    "@types/node": "26.6.2",
+    "@types/node": "26.6.4",
     "@types/pg": "8.23.1",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vitest": "5.0.1"
+    "vitest": "5.0.3"
   }
 }

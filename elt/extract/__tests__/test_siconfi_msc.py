@@ -200,10 +200,17 @@ def test_load_siconfi_msc():
         }
     ]
 
-    with patch("elt.extract.siconfi_msc.upsert", return_value=1) as mock_upsert:
+    with patch("elt.load.siconfi.upsert", return_value=1) as mock_upsert:
         res = load_siconfi_msc(mock_db, rows)
         assert res == 1
         mock_upsert.assert_called_once_with(mock_db, "siconfi_msc_patrimonial", rows, KEY_COLS)
+
+    with patch("elt.load.siconfi.upsert", return_value=1) as mock_upsert:
+        res = load_siconfi_msc(mock_db, rows, schema="raw_natividade_prefeitura")
+        assert res == 1
+        mock_upsert.assert_called_once_with(
+            mock_db, "siconfi_msc_patrimonial", rows, KEY_COLS, schema="raw_natividade_prefeitura"
+        )
 
 
 def test_ensure_siconfi_table():
@@ -282,6 +289,34 @@ def test_main_cli(tmp_path):
         assert kwargs["run_dir"] == tmp_path
 
 
+def test_main_cli_with_db(tmp_path):
+    from elt.extract.siconfi_msc import main
+
+    test_args = [
+        "siconfi_msc.py",
+        "--portal",
+        "porciuncula_prefeitura",
+        "--years",
+        "2024",
+        "--with-db",
+        "--dir",
+        str(tmp_path),
+    ]
+
+    mock_engine = MagicMock()
+    with (
+        patch("sys.argv", test_args),
+        patch("elt.extract.siconfi_msc.get_engine", return_value=mock_engine),
+        patch("elt.extract.siconfi_msc.extract_and_load_siconfi", return_value=5) as mock_extract_load,
+    ):
+        main()
+        mock_extract_load.assert_called_once()
+        kwargs = mock_extract_load.call_args.kwargs
+        assert kwargs["years"] == [2024]
+        assert kwargs["db"] == mock_engine
+        assert kwargs["run_dir"] == tmp_path
+
+
 def test_extract_run_only_siconfi(tmp_path, monkeypatch):
     import elt.extract.run as extract_run
 
@@ -334,8 +369,8 @@ def test_load_run_siconfi(tmp_path):
         patch("sys.argv", test_args),
         patch("elt.load.run.get_engine") as mock_engine,
         patch("elt.load.run._upsert_raw") as mock_upsert_raw,
-        patch("elt.extract.siconfi_msc.ensure_siconfi_table") as mock_ensure,
-        patch("elt.extract.siconfi_msc.load_siconfi_msc", return_value=1) as mock_load,
+        patch("elt.load.siconfi.ensure_siconfi_table") as mock_ensure,
+        patch("elt.load.siconfi.load_siconfi_msc", return_value=1) as mock_load,
     ):
         load_run.main()
         mock_ensure.assert_called_once()

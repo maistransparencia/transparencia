@@ -2,14 +2,18 @@ name: Scheduled Ingestion Pipeline
 
 on:
   schedule:
-    # Toda sexta-feira às 20:00 BRT (23:00 UTC)
-    - cron: "0 23 * * 5"
+    # Toda sexta-feira às 22:00 BRT (Sábado às 01:00 UTC)
+    - cron: "0 1 * * 6"
   workflow_dispatch:
     inputs:
       portal:
-        description: "Slug do portal de transparência"
-        required: true
-        default: "porciuncula_prefeitura"
+        description: "Slug do portal específico (ou 'all' para todos os cadastrados)"
+        required: false
+        default: "all"
+      years:
+        description: "Anos para extrair (ex: 2026, ou vazio para o ano atual)"
+        required: false
+        default: ""
       dry_run:
         description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
         type: boolean
@@ -20,10 +24,54 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ingestion:
-    name: Run Municipal ELT Ingestion
+  # ==========================================================
+  # FASE 0: Descoberta Dinâmica de Portais
+  # ==========================================================
+  setup:
+    name: Discover Portals
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    outputs:
+      portals: ${{ steps.discover.outputs.portals }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Target Portals
+        id: discover
+        run: |
+          PORTAL_INPUT="${{ github.event.inputs.portal }}"
+          PORTALS_JSON=$(python3 -c "
+          import json, sys
+          from pathlib import Path
+
+          portal_input = sys.argv[1].strip() if len(sys.argv) > 1 else ''
+          available_portals = sorted([p.stem for p in Path('elt/portals').glob('*.yml')])
+
+          if portal_input and portal_input != 'all':
+              if portal_input not in available_portals:
+                  raise ValueError(f'Portal \"{portal_input}\" não encontrado em elt/portals/')
+              selected = [portal_input]
+          else:
+              selected = available_portals
+
+          print(json.dumps(selected))
+          " "$PORTAL_INPUT")
+
+          echo "Portais selecionados para execução: $PORTALS_JSON"
+          echo "portals=$PORTALS_JSON" >> "$GITHUB_OUTPUT"
+
+  # ==========================================================
+  # FASE 1: Extração Paralela (Fan-out)
+  # ==========================================================
+  extract:
+    name: "Extract: ${{ matrix.portal }}"
+    needs: [setup]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        portal: ${{ fromJson(needs.setup.outputs.portals) }}
 
     services:
       flaresolverr:
@@ -42,28 +90,141 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install uv and sync ELT dependencies
+      - name: Install uv and sync dependencies
         run: |
           pip install uv
           uv sync --project elt --no-dev
 
+      - name: Extract Raw Municipal Data
+        run: |
+          TARGET_YEAR="${{ github.event.inputs.years }}"
+          if [ -z "$TARGET_YEAR" ]; then
+            TARGET_YEAR=$(date +%Y)
+          fi
+          echo "Iniciando extração do portal ${{ matrix.portal }} para o ano: $TARGET_YEAR"
+          uv run --project elt python -m elt.extract.run --portal "${{ matrix.portal }}" --years $TARGET_YEAR
+        env:
+          FLARESOLVERR_URL: http://localhost:8191/v1
+
+      - name: Sync Raw Data to Cloudflare R2 (Bronze Layer)
+        if: secrets.R2_ACCOUNT_ID != '' && secrets.R2_BUCKET_NAME != ''
+        run: |
+          if [ -d "data/raw_runs/${{ matrix.portal }}" ]; then
+            echo "Sincronizando dados brutos para o Cloudflare R2..."
+            aws s3 sync "data/raw_runs/${{ matrix.portal }}" "s3://${{ secrets.R2_BUCKET_NAME }}/raw_runs/${{ matrix.portal }}" \
+              --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          else
+            echo "Nenhum diretório raw encontrado para ${{ matrix.portal }}."
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+
+      - name: Upload Raw Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-data-${{ matrix.portal }}
+          path: data/raw_runs/${{ matrix.portal }}/
+          retention-days: 7
+
+  # ==========================================================
+  # FASE 2: Carga no Banco e Transformação dbt (Fan-in)
+  # ==========================================================
+  load_and_transform:
+    name: Load to PostgreSQL & dbt Transform
+    needs: [setup, extract]
+    if: !cancelled() && needs.setup.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv and sync dependencies
+        run: |
+          pip install uv
+          uv sync --project elt --no-dev
+
+      - name: Download all Raw Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: raw-data-*
+          path: downloaded_artifacts/
+
+      - name: Reorganize Raw Directory Structure
+        run: |
+          shopt -s nullglob
+          mkdir -p data/raw_runs
+          for dir in downloaded_artifacts/raw-data-*; do
+            if [ -d "$dir" ]; then
+              portal_name="${dir#downloaded_artifacts/raw-data-}"
+              target_dir="data/raw_runs/$portal_name"
+              mkdir -p "$target_dir"
+              files=("$dir"/*)
+              if [ ${#files[@]} -gt 0 ]; then
+                cp -r "$dir"/* "$target_dir"/
+              fi
+            fi
+          done
+          rm -rf downloaded_artifacts
+          echo "Estrutura final de data/raw_runs/:"
+          ls -la data/raw_runs/
+
+      - name: Load Data into PostgreSQL
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
+            if [ -d "data/raw_runs/$portal" ]; then
+              echo "=== Carregando dados no Postgres para: $portal ==="
+              uv run --project elt python -m elt.load.run --portal "$portal"
+            else
+              echo "Aviso: Sem dados brutos baixados para $portal. Pulando load."
+            fi
+          done
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Install dbt packages
+        if: github.event.inputs.dry_run != 'true'
         run: |
           uv run --project elt python elt/scripts/run_dbt.py deps
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/postgres' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Execute Orchestrator Pipeline
+      - name: Run dbt Transformations
+        if: github.event.inputs.dry_run != 'true'
         run: |
-          EXTRA_ARGS=""
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            EXTRA_ARGS="--dry-run"
-          fi
-          PORTAL="${{ github.event.inputs.portal || 'porciuncula_prefeitura' }}"
-          uv run --project elt python -m elt.orchestrator --portal "$PORTAL" $EXTRA_ARGS
+          uv run --project elt python elt/scripts/run_dbt.py run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          FLARESOLVERR_URL: http://localhost:8191/v1
+
+      - name: Run dbt Tests
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          uv run --project elt python elt/scripts/run_dbt.py test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Notify Webhook / Revalidate Cache
+        if: success() && github.event.inputs.dry_run != 'true' && secrets.WEBHOOK_URL != ''
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
+            echo "Notificando webhook para o portal: $portal"
+            curl -s -f -X POST "${{ secrets.WEBHOOK_URL }}" \
+              -H "Authorization: Bearer ${{ secrets.INTERNAL_API_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"portalSlug\": \"$portal\", \"status\": \"success\", \"timestamp\": \"$TIMESTAMP\"}" || echo "Aviso: Falha ao notificar webhook para $portal"
+          done
+        env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
-          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}

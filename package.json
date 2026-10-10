@@ -1,18 +1,19 @@
 {
   "name": "transparencia-monorepo",
   "private": true,
-  "version": "1.14.1",
+  "version": "1.15.0",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "db:migrate": "pnpm --filter @transparencia/db migrate",
     "lint": "biome check --diagnostic-level=error .",
     "lint:fix": "biome check --write --unsafe .",
-    "test": "turbo test"
+    "test": "turbo test",
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
-    "turbo": "2.11.2",
+    "@biomejs/biome": "2.5.15",
+    "turbo": "2.11.7",
     "typescript": "7.0.2"
   },
   "packageManager": "pnpm@11.17.0"
