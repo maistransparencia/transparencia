@@ -83,15 +83,18 @@ unit_tests:
     description: "Valida consolidação de caixa, aplicações (incluindo 1213%) e cálculo das variações interanuais"
     model: fct_previdencia_patrimonio_historico_metricas
     given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cod_ibge: 3304102 }
       - input: ref('stg_siconfi_msc_patrimonial')
         rows:
-          - { ano: 2024, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 10000000.00 }
-          - { ano: 2025, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 1000000.00 }
-          - { ano: 2025, mes_referencia: 12, conta_contabil: "121310902", poder_orgao: "10132", saldo_valor: 8000000.00 }
+          - { cod_ibge: 3304102, ano: 2024, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 10000000.00 }
+          - { cod_ibge: 3304102, ano: 2025, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 1000000.00 }
+          - { cod_ibge: 3304102, ano: 2025, mes_referencia: 12, conta_contabil: "121310902", poder_orgao: "10132", saldo_valor: 8000000.00 }
           # Registro de outro órgão (deve ser descartado)
-          - { ano: 2025, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10131", saldo_valor: 5000000.00 }
+          - { cod_ibge: 3304102, ano: 2025, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10131", saldo_valor: 5000000.00 }
           # Mês intermediário de 2025 (deve ser descartado pelo max(mes_referencia))
-          - { ano: 2025, mes_referencia: 6, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
+          - { cod_ibge: 3304102, ano: 2025, mes_referencia: 6, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2024, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 10000000.00, patrimonio_total: 10000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
@@ -101,12 +104,15 @@ unit_tests:
     description: "Valida detecção de inconsistência contábil de declaração e quebra de série nas variações"
     model: fct_previdencia_patrimonio_historico_metricas
     given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cod_ibge: 3304102 }
       - input: ref('stg_siconfi_msc_patrimonial')
         rows:
-          - { ano: 2021, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 20000000.00 }
-          - { ano: 2022, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
-          - { ano: 2023, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 15000000.00 }
-          - { ano: 2024, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 12000000.00 }
+          - { cod_ibge: 3304102, ano: 2021, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 20000000.00 }
+          - { cod_ibge: 3304102, ano: 2022, mes_referencia: 12, conta_contabil: "111110200", poder_orgao: "10132", saldo_valor: 500000.00 }
+          - { cod_ibge: 3304102, ano: 2023, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 15000000.00 }
+          - { cod_ibge: 3304102, ano: 2024, mes_referencia: 12, conta_contabil: "114110100", poder_orgao: "10132", saldo_valor: 12000000.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2021, mes_referencia: 12, saldo_caixa: 0.00, saldo_aplicacoes: 20000000.00, patrimonio_total: 20000000.00, inconsistencia_declaracao_flag: false, variacao_abs: null, variacao_pct: null }
