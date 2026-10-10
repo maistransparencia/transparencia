@@ -136,7 +136,7 @@ jobs:
   load_and_transform:
     name: Load to PostgreSQL & dbt Transform
     needs: [setup, extract]
-    if: !cancelled() && needs.setup.result == 'success'
+    if: ${{ !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
