@@ -21,6 +21,7 @@ KEY_COLS = [
     "financeiro_permanente",
     "tipo_valor",
     "natureza_conta",
+    "entrada_msc",
 ]
 
 
@@ -42,9 +43,11 @@ def ensure_siconfi_table(engine: Connectable, schema: str) -> None:
         valor NUMERIC NOT NULL,
         natureza_conta TEXT NOT NULL,
         tipo_valor TEXT NOT NULL,
+        entrada_msc INTEGER NOT NULL DEFAULT 0,
+        complemento_fonte TEXT,
         data_referencia TEXT,
         data_extracao TEXT,
-        PRIMARY KEY (ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta)
+        PRIMARY KEY (ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta, entrada_msc)
     );
     """
     if isinstance(engine, Engine):
