@@ -172,7 +172,7 @@ def main() -> None:
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
             if table == "siconfi_msc_patrimonial":
-                from elt.extract.siconfi_msc import ensure_siconfi_table, load_siconfi_msc
+                from elt.load.siconfi import ensure_siconfi_table, load_siconfi_msc
 
                 ensure_siconfi_table(engine, schema)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
@@ -183,6 +183,7 @@ def main() -> None:
                     count,
                     schema,
                 )
+                continue
             if table == "pncp":
                 from elt.load.pncp import (
                     ensure_pncp_tables,

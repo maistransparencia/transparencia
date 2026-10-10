@@ -77,10 +77,10 @@ elt/siconfi:
 ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
-	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --with-db --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
 
 elt/pncp:
-	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
+	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py --with-db $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
 
 # CACHE REVALIDATION
 

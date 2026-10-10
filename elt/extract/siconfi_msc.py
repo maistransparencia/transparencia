@@ -7,30 +7,16 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from sqlalchemy import text
-from sqlalchemy.engine import Connection, Engine
 
 from elt.core.config import PortalConfig
-from elt.core.db import Connectable, get_engine, upsert
+from elt.core.db import Connectable, get_engine
+from elt.load.siconfi import KEY_COLS, ensure_siconfi_table, load_siconfi_msc  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
 SICONFI_BASE_URL = "https://apidatalake.tesouro.gov.br/ords/siconfi/tt/msc_patrimonial"
 DEFAULT_USER_AGENT = "TransparenciaPublica/1.0"
 DEFAULT_IBGE_PORCIUNCULA = 3304102
-
-KEY_COLS = [
-    "ano",
-    "mes_referencia",
-    "cod_ibge",
-    "conta_contabil",
-    "poder_orgao",
-    "fonte_recursos",
-    "ano_fonte_recursos",
-    "financeiro_permanente",
-    "tipo_valor",
-    "natureza_conta",
-]
 
 
 class SiconfiMscExtractor:
@@ -242,49 +228,6 @@ class SiconfiMscExtractor:
         }
 
 
-def ensure_siconfi_table(engine: Connectable, schema: str = "raw_porciuncula_prefeitura") -> None:
-    """Garante a existência da tabela raw de MSC Patrimonial no schema especificado."""
-    ddl = f"""
-    CREATE SCHEMA IF NOT EXISTS "{schema}";
-    CREATE TABLE IF NOT EXISTS "{schema}"."siconfi_msc_patrimonial" (
-        ano INTEGER NOT NULL,
-        mes_referencia INTEGER NOT NULL,
-        cod_ibge INTEGER NOT NULL,
-        tipo_matriz TEXT NOT NULL,
-        classe_conta INTEGER NOT NULL,
-        conta_contabil TEXT NOT NULL,
-        poder_orgao TEXT NOT NULL,
-        financeiro_permanente INTEGER NOT NULL,
-        ano_fonte_recursos INTEGER NOT NULL,
-        fonte_recursos TEXT NOT NULL,
-        valor NUMERIC NOT NULL,
-        natureza_conta TEXT NOT NULL,
-        tipo_valor TEXT NOT NULL,
-        data_referencia TEXT,
-        data_extracao TEXT,
-        PRIMARY KEY (ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta)
-    );
-    """
-    if isinstance(engine, Engine):
-        with engine.begin() as conn:
-            conn.execute(text(ddl))
-    elif isinstance(engine, Connection):
-        engine.execute(text(ddl))
-
-
-def load_siconfi_msc(
-    db: Connectable,
-    rows: list[dict[str, Any]],
-    schema: str | None = None,
-) -> int:
-    """Insere ou atualiza os registros de MSC Patrimonial na tabela raw_<portal>.siconfi_msc_patrimonial."""
-    if not rows:
-        return 0
-    if schema:
-        return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS, schema=schema)
-    return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS)
-
-
 def extract_and_load_siconfi(
     portal: PortalConfig,
     years: list[int] | None = None,
@@ -327,7 +270,14 @@ def main() -> None:
         "--portal", default="porciuncula_prefeitura", help="Portal slug (default: porciuncula_prefeitura)"
     )
     parser.add_argument("--years", nargs="+", type=int, help="Anos a extrair (default: todos desde ano_inicial)")
-    parser.add_argument("--raw-only", action="store_true", help="Apenas salva o arquivo JSON cru sem carregar no banco")
+    parser.add_argument(
+        "--with-db",
+        action="store_true",
+        help="Também carrega no banco de dados após a extração (desaconselhado; prefira elt.load.run)",
+    )
+    parser.add_argument(
+        "--raw-only", action="store_true", help="Compatibilidade legada: extração pura sem tocar no banco"
+    )
     parser.add_argument("--load-only", action="store_true", help="Apenas carrega arquivos JSON já existentes no banco")
     parser.add_argument("--dir", help="Diretório customizado de saída ou entrada para raw JSON")
     args = parser.parse_args()
@@ -344,7 +294,7 @@ def main() -> None:
         for json_file in sorted(run_dir.rglob("*.json")):
             if json_file.parent.name == "siconfi_msc_patrimonial":
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                loaded = load_siconfi_msc(engine, rows)
+                loaded = load_siconfi_msc(engine, rows, schema=portal.raw_schema)
                 logger.info("Carregados %d registros de %s", loaded, json_file)
                 total += loaded
         logger.info("Carga concluída. Total: %d registros.", total)
@@ -354,7 +304,7 @@ def main() -> None:
     run_dir = Path(args.dir) if args.dir else Path(f"data/raw_runs/{portal.slug}/{timestamp}")
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    db_engine: Connectable | None = None if args.raw_only else get_engine()
+    db_engine: Connectable | None = get_engine() if (args.with_db and not args.raw_only) else None
     total = extract_and_load_siconfi(
         portal=portal,
         years=args.years,

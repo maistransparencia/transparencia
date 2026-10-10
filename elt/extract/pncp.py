@@ -493,17 +493,27 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Extrai e carrega contratações, itens e resultados do PNCP")
     parser.add_argument("--cnpj", default=DEFAULT_CNPJ_PORCIUNCULA, help="CNPJ do órgão (default: 28920999000106)")
     parser.add_argument("--years", nargs="+", type=int, help="Anos a extrair (default: 2024 2025 2026)")
-    parser.add_argument("--raw-only", action="store_true", help="Apenas salva os arquivos JSON sem carregar no banco")
+    parser.add_argument(
+        "--with-db",
+        action="store_true",
+        help="Também carrega no banco de dados após a extração (desaconselhado; prefira elt.load.run)",
+    )
+    parser.add_argument(
+        "--raw-only", action="store_true", help="Compatibilidade legada: extração pura sem tocar no banco"
+    )
     parser.add_argument("--dir", help="Diretório de saída para raw JSON")
     args = parser.parse_args()
-
-    from elt.core.db import get_engine
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = Path(args.dir) if args.dir else Path(f"data/raw_runs/pncp/{timestamp}")
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    db_engine = None if args.raw_only else get_engine()
+    db_engine = None
+    if args.with_db and not args.raw_only:
+        from elt.core.db import get_engine
+
+        db_engine = get_engine()
+
     counts = extract_and_load_pncp(
         cnpj=args.cnpj,
         years=args.years,
