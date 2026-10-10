@@ -66,6 +66,7 @@ export const DIMENSAO_NOMES: Record<string, string> = {
   receita_propria: "Receita Própria",
   patrimonio_previdenciario: "Patrimônio Previdenciário (RPPS)",
   patrimonio_liquido: "Patrimônio Previdenciário (RPPS)",
+  limite_maximo_executivo: "Limite Máximo LRF (Executivo)",
 };
 
 export const FUNCOES_INVESTIMENTO_SOCIAL = new Set([
@@ -259,6 +260,16 @@ export function formatFactualNarrative(
     const anosFormatados = formatPercentNumber(anosArredondados);
     const anosTexto = `${anosFormatados} ${anosArredondados === 1 ? "ano" : "anos"}`;
     return `Em ${ano}, o patrimônio financeiro da previdência encerrou em ${obs}, registrando retração de ${desvio}% e consumo de ${consumo} ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de ${anosTexto}.`;
+  }
+
+  if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+    const ano = alerta.ano || anoContexto || "Exercício recente";
+    const obs = formatPercentNumber(alerta.valorObservado ?? 0);
+    const esp = formatPercentNumber(alerta.valorEsperado ?? 54);
+    const desvioVal = alerta.desvioPercentual ?? 0;
+    const sinal = desvioVal >= 0 ? "+" : "-";
+    const desvio = `${sinal}${formatPercentNumber(Math.abs(desvioVal))}`;
+    return `Em ${ano}, as despesas com pessoal comprometeram ${obs}% da Receita Corrente Líquida, superando o teto legal de ${esp}% em ${desvio} p.p. nos termos do Art. 20 da LRF.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;
