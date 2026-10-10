@@ -163,3 +163,46 @@ def load_pncp_itens_resultados(engine: Connectable, rows: list[dict[str, Any]], 
         rows=rows,
         key_cols=["numero_controle_pncp", "numero_item", "sequencial_resultado"],
     )
+
+
+def main() -> None:
+    import argparse
+    import json
+    from pathlib import Path
+
+    from elt.core.db import get_engine
+
+    parser = argparse.ArgumentParser(description="Carrega arquivos JSON do PNCP no banco de dados")
+    parser.add_argument("--dir", required=True, help="Diretório contendo compras.json, itens.json, etc.")
+    parser.add_argument("--schema", default="raw_pncp", help="Schema alvo (padrão: raw_pncp)")
+    args = parser.parse_args()
+
+    run_dir = Path(args.dir)
+    if not run_dir.exists():
+        raise FileNotFoundError(f"Diretório {run_dir} não encontrado")
+
+    data_dir = run_dir / "pncp" if (run_dir / "pncp").is_dir() else run_dir
+
+    engine = get_engine()
+    ensure_pncp_tables(engine, schema=args.schema)
+
+    compras_file = data_dir / "compras.json"
+    if compras_file.exists():
+        count = load_pncp_compras(engine, json.loads(compras_file.read_text(encoding="utf-8")), schema=args.schema)
+        print(f"Carregadas {count} compras em {args.schema}.compras")
+
+    itens_file = data_dir / "itens.json"
+    if itens_file.exists():
+        count = load_pncp_itens(engine, json.loads(itens_file.read_text(encoding="utf-8")), schema=args.schema)
+        print(f"Carregados {count} itens em {args.schema}.itens")
+
+    resultados_file = data_dir / "itens_resultados.json"
+    if resultados_file.exists():
+        count = load_pncp_itens_resultados(
+            engine, json.loads(resultados_file.read_text(encoding="utf-8")), schema=args.schema
+        )
+        print(f"Carregados {count} resultados em {args.schema}.itens_resultados")
+
+
+if __name__ == "__main__":
+    main()
