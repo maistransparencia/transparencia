@@ -72,4 +72,111 @@ describe("ModalDialog", () => {
     unmount();
     expect(document.body.style.overflow).toBe("");
   });
+
+  it("deve renderizar botão de compartilhamento por padrão no cabeçalho", () => {
+    render(
+      <ModalDialog isOpen={true} onClose={() => {}} title="Título">
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /compartilhar página/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("não deve renderizar botão de compartilhamento quando showShareButton for false", () => {
+    render(
+      <ModalDialog
+        isOpen={true}
+        onClose={() => {}}
+        title="Título"
+        showShareButton={false}
+      >
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /compartilhar página/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("deve permitir customizar slot de compartilhamento com shareSlot e suprimir o botão padrão", () => {
+    render(
+      <ModalDialog
+        isOpen={true}
+        onClose={() => {}}
+        title="Título"
+        shareSlot={<button type="button">Custom Share</button>}
+      >
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Custom Share" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /compartilhar página/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("não deve renderizar botão de compartilhamento quando shareSlot for explicitamente null", () => {
+    render(
+      <ModalDialog
+        isOpen={true}
+        onClose={() => {}}
+        title="Título"
+        shareSlot={null}
+      >
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /compartilhar página/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("deve repassar shareUrl, shareTitle e onShare para o ShareButton", async () => {
+    const handleShare = vi.fn();
+    const shareMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window, "navigator", {
+      value: { share: shareMock },
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <ModalDialog
+        isOpen={true}
+        onClose={() => {}}
+        title="Título Base"
+        shareUrl="/detalhe?id=42"
+        shareTitle="Contrato 42/2024"
+        onShare={handleShare}
+      >
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    const shareBtn = screen.getByRole("button", {
+      name: /compartilhar página/i,
+    });
+    fireEvent.click(shareBtn);
+
+    expect(shareMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Contrato 42/2024",
+      }),
+    );
+    await vi.waitFor(() => {
+      expect(handleShare).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "native",
+        }),
+      );
+    });
+  });
 });
