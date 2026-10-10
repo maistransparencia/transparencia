@@ -491,6 +491,46 @@ caprem_desidratacao_anomalias as (
       and (((valor_observado - valor_esperado) / valor_esperado) * 100.0) < -20.00
 ),
 
+despesa_pessoal_anual as (
+    select
+        portal_slug,
+        ano,
+        sum(despesa_total_pessoal_lrf) as despesa_pessoal_total
+    from {{ ref('fct_pessoal_folha_metricas') }}
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano
+),
+
+rcl_anual as (
+    select
+        portal_slug,
+        ano,
+        sum(receita_corrente_liquida) as rcl_total
+    from {{ ref('fct_fontes_receita_metricas') }}
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
+    group by portal_slug, ano
+),
+
+despesa_pessoal_anomalias as (
+    select
+        p.portal_slug,
+        p.ano,
+        'despesa_pessoal_limite_lrf'::text as tipo_anomalia,
+        'limite_maximo_executivo'::text as dimensao_referencia,
+        round((p.despesa_pessoal_total / nullif(r.rcl_total, 0) * 100.0), 2)::numeric as valor_observado,
+        54.00::numeric as valor_esperado,
+        round(((p.despesa_pessoal_total / nullif(r.rcl_total, 0) * 100.0) - 54.00), 2)::numeric as desvio_percentual,
+        1::integer as mes_inicial,
+        12::integer as mes_final,
+        null::text as licitacao_numero,
+        'art20_lrf_limite_maximo'::text as metodo_deteccao
+    from despesa_pessoal_anual p
+    join rcl_anual r on p.portal_slug = r.portal_slug and p.ano = r.ano
+    where p.ano < extract(year from current_date)
+      and r.rcl_total > 0
+      and round((p.despesa_pessoal_total / nullif(r.rcl_total, 0) * 100.0), 2) > 54.00
+),
+
 todas_anomalias as (
     select * from despesas_anomalias
     union all
@@ -515,6 +555,8 @@ todas_anomalias as (
     select * from dependencia_transferencias_anomalias
     union all
     select * from caprem_desidratacao_anomalias
+    union all
+    select * from despesa_pessoal_anomalias
 )
 
 select
@@ -524,7 +566,7 @@ select
     tipo_anomalia,
     dimensao_referencia,
     case
-        when tipo_anomalia in ('retencao_patronal_rpps', 'dependencia_transferencias', 'desidratacao_patrimonio_rpps') then 'critico'
+        when tipo_anomalia in ('retencao_patronal_rpps', 'dependencia_transferencias', 'desidratacao_patrimonio_rpps', 'despesa_pessoal_limite_lrf') then 'critico'
         when tipo_anomalia = 'inadimplencia_aporte_rpps' then
             case
                 when desvio_percentual > 30.0 then 'critico'
