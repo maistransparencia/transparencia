@@ -231,4 +231,13 @@ describe("buildAlertaUrl", () => {
     });
     expect(urlFloat).toBe("/porciuncula/despesas");
   });
+
+  it("deve gerar rota correta para extrapolação do limite da LRF para despesas com pessoal", () => {
+    const url = buildAlertaUrl({
+      tipoAnomalia: "despesa_pessoal_limite_lrf",
+      ano: 2024,
+      portalSlug: "natividade",
+    });
+    expect(url).toBe("/natividade/pessoal?ano=2024");
+  });
 });

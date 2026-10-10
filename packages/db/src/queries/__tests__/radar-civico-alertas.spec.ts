@@ -620,5 +620,35 @@ describe("radar-civico-alertas", () => {
         2024: 2,
       });
     });
+
+    it("deve carregar e mapear corretamente anomalia de despesa com pessoal acima do limite da LRF", async () => {
+      await seedAnomaliaFiscal({
+        portalSlug: PORTAL,
+        ano: 2024,
+        tipoAnomalia: "despesa_pessoal_limite_lrf",
+        dimensaoReferencia: "limite_maximo_executivo",
+        grauSeveridade: "critico",
+        desvioPercentual: 2.58,
+        valorObservado: 56.58,
+        valorEsperado: 54.0,
+        metodoDeteccao: "art20_lrf_limite_maximo",
+      });
+
+      const alertas = await getRadarCivicoAlertas(PORTAL, { ano: 2024 });
+      const pessoalLrfAlerta = alertas.find(
+        (a) => a.tipoAnomalia === "despesa_pessoal_limite_lrf",
+      );
+
+      expect(pessoalLrfAlerta).toBeDefined();
+      expect(pessoalLrfAlerta?.tipoAnomalia).toBe("despesa_pessoal_limite_lrf");
+      expect(pessoalLrfAlerta?.dimensaoReferencia).toBe(
+        "limite_maximo_executivo",
+      );
+      expect(pessoalLrfAlerta?.grauSeveridade).toBe("critico");
+      expect(pessoalLrfAlerta?.valorObservado).toBe(56.58);
+      expect(pessoalLrfAlerta?.valorEsperado).toBe(54.0);
+      expect(pessoalLrfAlerta?.desvioPercentual).toBe(2.58);
+      expect(pessoalLrfAlerta?.metodoDeteccao).toBe("art20_lrf_limite_maximo");
+    });
   });
 });

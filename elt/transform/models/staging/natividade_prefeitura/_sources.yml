@@ -410,6 +410,7 @@ sources:
       - financeiro_permanente
       - tipo_valor
       - natureza_conta
+      - entrada_msc
     columns:
     - name: ano
     - name: mes_referencia
@@ -424,5 +425,7 @@ sources:
     - name: valor
     - name: natureza_conta
     - name: tipo_valor
+    - name: entrada_msc
+    - name: complemento_fonte
     - name: data_referencia
     - name: data_extracao

@@ -5,6 +5,32 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-10-10
+
+### 🌟 Destaques da Versão (Detecção de Extrapolação do Teto de Pessoal da LRF e Resiliência na MSC SICONFI)
+* **Alerta Crítico de Extrapolação de Gastos com Pessoal (Art. 20 da LRF):** Implementação da detecção analítica de anomalia fiscal quando a despesa líquida com pessoal do Poder Executivo ultrapassa o teto legal de 54% da Receita Corrente Líquida (RCL) em exercícios fiscais encerrados, destacando desvios em pontos percentuais (`p.p.`) e fundamentação jurídica direta no Radar Cívico.
+* **Integridade Granular na Matriz de Saldos Contábeis (SICONFI MSC):** Inclusão dos discriminadores `entrada_msc` e `complemento_fonte` na chave primária e nos modelos de extração, carga e staging da MSC Patrimonial, prevenindo deduplicações indevidas e preservando lançamentos patrimoniais detalhados.
+* **Refinamento de Narrativa e Navegação Cívica:** Aprimoramento da narrativa textual com desvio formatado em pontos percentuais (`+X.XX p.p.`), badge crítico com fundamentação no Art. 20 da LRF e direcionamento do cidadão diretamente à visualização analítica de despesas com pessoal (`/pessoal`).
+
+### ✨ Novas Funcionalidades (Added)
+* **Alerta de Teto de Pessoal no Radar Cívico (`apps/web`):** Novo card analítico para anomalia `despesa_pessoal_limite_lrf`, exibindo valor observado, teto legal (54,00%), desvio em pontos percentuais e atalho direto para a página de Pessoal com query params do exercício.
+* **Narrativa Cívica Normativa (`radar-civico-narrative.ts`):** Narrativa parametrizada para despesas de pessoal acima do limite prudencial/máximo da Lei de Responsabilidade Fiscal, com sinalização de desvio em `p.p.`.
+* **Suporte a `despesa_pessoal_limite_lrf` na Camada de Dados (`@transparencia/db`):** Tipagem e mapeamento do novo discriminador no enumerador `TipoAnomaliaFiscal` em `radar-civico-alertas.ts`.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Detecção Analítica em `fct_anomalias_fiscais_metricas`:** Cruzamento anual entre `fct_pessoal_folha_metricas` e `fct_fontes_receita_metricas` com categorização como severidade `critico`, método `art20_lrf_limite_maximo` e valor esperado fixado em 54,00%.
+* **Granularidade da MSC Patrimonial em Staging (`stg_*__siconfi_msc_patrimonial`):** Propagação do campo `entrada_msc` nas tabelas staging de Porciúncula e Natividade e sincronização das declarações em `_sources.yml` e testes unitários.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Chave Composta na Extração e Carga da MSC (`elt/extract/siconfi_msc.py` e `elt/load/siconfi.py`):** Inclusão de `entrada_msc` e `complemento_fonte` no conjunto identificador de linhas contábeis.
+* **Sincronização de Fixtures e Modelos de Teste:** Atualização do fixture serializado `schema.sql.gz` e suíte de testes unitários dbt cobrindo casos de ultrapassagem do teto legal e exercícios em aberto.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guia de Consumo por IA (`llms.txt` e `llms-full.txt`):** Inclusão da anomalia `despesa_pessoal_limite_lrf` no catálogo de indicadores públicos e regras de negócio do Radar Cívico.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Formatação de Desvio em Pontos Percentuais (`view-model.tsx`):** Ajuste na renderização de badges e métricas para exibir explicitamente o sufixo `p.p.` em vez de porcentagem (`%`) quando a anomalia for relativa ao teto de pessoal da LRF.
+
 ## [1.16.0] - 2026-10-10
 
 ### 🌟 Destaques da Versão (Compartilhamento Cívico em Modais, Ingestão Diária e Atualização de Dependências)

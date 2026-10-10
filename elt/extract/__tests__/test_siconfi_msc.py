@@ -154,6 +154,8 @@ def test_normalize_item_fields():
         "valor": 9791641.21,
         "natureza_conta": "D",
         "tipo_valor": "ending_balance",
+        "entrada_msc": 580,
+        "complemento_fonte": "1001",
         "data_referencia": "2024-12-31T00:00:00Z",
     }
 
@@ -174,6 +176,8 @@ def test_normalize_item_fields():
     assert normalized["valor"] == 9791641.21
     assert normalized["natureza_conta"] == "D"
     assert normalized["tipo_valor"] == "ending_balance"
+    assert normalized["entrada_msc"] == 580
+    assert normalized["complemento_fonte"] == "1001"
     assert normalized["data_referencia"] == "2024-12-31T00:00:00Z"
     assert normalized["data_extracao"] == "2026-09-06T12:00:00Z"
 
@@ -195,6 +199,8 @@ def test_load_siconfi_msc():
             "valor": 1000.0,
             "natureza_conta": "D",
             "tipo_valor": "ending_balance",
+            "entrada_msc": 580,
+            "complemento_fonte": None,
             "data_referencia": "2024-12-31T00:00:00Z",
             "data_extracao": "2026-09-06T12:00:00Z",
         }
@@ -256,7 +262,7 @@ def test_extract_and_load_siconfi(tmp_path):
         assert total == 1
         mock_ensure.assert_called_once_with(mock_db, "raw_porciuncula_prefeitura")
         mock_extract.assert_called_once_with(3304102, 2024, session=None)
-        mock_load.assert_called_once_with(mock_db, sample_rows)
+        mock_load.assert_called_once_with(mock_db, sample_rows, schema="raw_porciuncula_prefeitura")
 
         saved_file = tmp_path / "siconfi_msc_patrimonial" / "3304102_2024.json"
         assert saved_file.exists()

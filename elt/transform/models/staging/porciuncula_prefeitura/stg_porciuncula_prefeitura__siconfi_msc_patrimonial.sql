@@ -17,6 +17,8 @@ filtered_and_cast as (
         valor::numeric as valor_original,
         natureza_conta,
         tipo_valor,
+        entrada_msc::int as entrada_msc,
+        complemento_fonte,
         case
             when upper(natureza_conta) = 'C' then -valor::numeric
             else valor::numeric

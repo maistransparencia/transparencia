@@ -209,6 +209,7 @@ class SiconfiMscExtractor:
         item_ibge = cls._safe_int(item.get("cod_ibge") or item.get("id_ente"), ibge)
         fonte = item.get("fonte_recursos")
 
+        complemento = item.get("complemento_fonte")
         return {
             "ano": item_ano,
             "mes_referencia": item_mes,
@@ -223,6 +224,10 @@ class SiconfiMscExtractor:
             "valor": cls._safe_float(item.get("valor"), 0.0),
             "natureza_conta": str(item.get("natureza_conta") or "D"),
             "tipo_valor": str(item.get("tipo_valor") or "ending_balance"),
+            "entrada_msc": cls._safe_int(item.get("entrada_msc"), 0),
+            "complemento_fonte": str(complemento).strip()
+            if complemento is not None and str(complemento).strip() != ""
+            else None,
             "data_referencia": str(item.get("data_referencia") or ""),
             "data_extracao": extracted_at or datetime.now(timezone.utc).isoformat(),
         }
@@ -256,7 +261,7 @@ def extract_and_load_siconfi(
             logger.info("Arquivo raw salvo em %s", out_file)
 
         if db is not None and rows:
-            loaded = load_siconfi_msc(db, rows)
+            loaded = load_siconfi_msc(db, rows, schema=portal.raw_schema)
             logger.info("Inseridos/atualizados %d registros na tabela siconfi_msc_patrimonial", loaded)
             total_loaded += loaded
 

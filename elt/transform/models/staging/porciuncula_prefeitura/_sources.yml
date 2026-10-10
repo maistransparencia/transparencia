@@ -359,7 +359,7 @@ sources:
       - name: siconfi_msc_patrimonial
         description: "Matriz de Saldos Contábeis (MSC) Patrimonial - Classe 1 (Caixa, Bancos e Aplicações Financeiras) do SICONFI/STN"
         meta:
-          primary_key: [ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta]
+          primary_key: [ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta, entrada_msc]
         columns:
           - name: ano
           - name: mes_referencia
@@ -374,6 +374,8 @@ sources:
           - name: valor
           - name: natureza_conta
           - name: tipo_valor
+          - name: entrada_msc
+          - name: complemento_fonte
           - name: data_referencia
           - name: data_extracao
 
