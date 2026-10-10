@@ -129,9 +129,9 @@ unit_tests:
     given:
       - input: ref('fct_despesas_por_orgao')
         rows:
-          - { empresa: "1", ano: 2025, codigo: "02", descricao: "SECRETARIA MUNICIPAL DE ADMINISTRACAO", dotacao_atualizada: 100000.00, empenhado: 60000.00, liquidado: 50000.00, pago: 40000.00 }
-          - { empresa: "1", ano: 2025, codigo: "02", descricao: "SECRETARIA MUNICIPAL DE ADMINISTRACAO", dotacao_atualizada: 50000.00, empenhado: 0.00, liquidado: 0.00, pago: 0.00 }
-          - { empresa: "1", ano: 2025, codigo: "03", descricao: "FUNDO MUNICIPAL DE SAUDE", dotacao_atualizada: 100000.00, empenhado: 20000.00, liquidado: 15000.00, pago: 10000.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa: "1", ano: 2025, codigo: "02", descricao: "SECRETARIA MUNICIPAL DE ADMINISTRACAO", dotacao_atualizada: 100000.00, empenhado: 60000.00, liquidado: 50000.00, pago: 40000.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa: "1", ano: 2025, codigo: "02", descricao: "SECRETARIA MUNICIPAL DE ADMINISTRACAO", dotacao_atualizada: 50000.00, empenhado: 0.00, liquidado: 0.00, pago: 0.00 }
+          - { portal_slug: "porciuncula_prefeitura", empresa: "1", ano: 2025, codigo: "03", descricao: "FUNDO MUNICIPAL DE SAUDE", dotacao_atualizada: 100000.00, empenhado: 20000.00, liquidado: 15000.00, pago: 10000.00 }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, orgao_codigo: "02", orgao_nome: "SECRETARIA MUNICIPAL DE ADMINISTRACAO", unidade_codigo: "00", funcao_codigo: "00", subfuncao_codigo: "00", total_dotacao_atualizada: 150000.00, total_empenhado: 60000.00, total_liquidado: 50000.00, total_pago: 40000.00, saldo_orcamentario: 90000.00, taxa_execucao: 0.4000, alerta_execucao: "normal" }

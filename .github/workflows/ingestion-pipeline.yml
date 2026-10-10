@@ -196,10 +196,11 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Install dbt packages
+      - name: Install dbt packages & seeds
         if: github.event.inputs.dry_run != 'true'
         run: |
           uv run --project elt python elt/scripts/run_dbt.py deps
+          uv run --project elt python elt/scripts/run_dbt.py seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
