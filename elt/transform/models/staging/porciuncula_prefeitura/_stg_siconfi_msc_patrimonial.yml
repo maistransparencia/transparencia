@@ -65,6 +65,14 @@ models:
         data_type: text
         tests:
           - not_null
+      - name: entrada_msc
+        description: "Sequencial único da linha da MSC no SICONFI/STN"
+        data_type: integer
+        tests:
+          - not_null
+      - name: complemento_fonte
+        description: "Código de detalhamento ou subfonte da Portaria STN"
+        data_type: text
       - name: saldo_valor
         description: "Saldo financeiro com sinal contábil ajustado (negativo para contas com saldo credor C)"
         data_type: numeric
