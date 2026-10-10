@@ -483,6 +483,10 @@ export function getBadgeMetodologia(
     return "Variação Trienal";
   }
 
+  if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+    return "Teto LRF (54%)";
+  }
+
   const mesFinal = alerta.mesFinal;
   if (
     alerta.tipoAnomalia === "pico_despesa_homologa" ||
@@ -546,6 +550,9 @@ export function getCardTitulo(
   if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
     return "Desidratação do Patrimônio (RPPS)";
   }
+  if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+    return "Extrapolação do Limite de Pessoal (LRF)";
+  }
   return "Indicador em Destaque";
 }
 
@@ -591,6 +598,9 @@ export function getCardCtaLabel(
   }
   if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
     return "Auditar Patrimônio Previdenciário";
+  }
+  if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+    return "Examinar Folha e Limite da LRF";
   }
   return "Ver detalhes";
 }
@@ -708,6 +718,9 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
         return "Saldo Inicial (Triênio)";
       }
+      if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+        return "Teto Máximo Legal";
+      }
       return "Média Histórica";
     })();
     const fundamentacaoLegal = (() => {
@@ -759,6 +772,12 @@ export function buildRadarCivicoCards(
           },
         ];
       }
+      if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+        return {
+          label: "Art. 20, III, b da LRF",
+          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
+        };
+      }
       return undefined;
     })();
     const textoFactual = formatFactualNarrative(alerta, anoContexto);
@@ -792,6 +811,9 @@ export function buildRadarCivicoCards(
       ) {
         return `-${formatDesvioPercentual(val)}%`;
       }
+      if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+        return `+${formatPercentNumber(val)} p.p.`;
+      }
       const sinal = val > 0 ? "+" : "-";
       return `${sinal}${formatDesvioPercentual(val)}%`;
     })();
@@ -808,7 +830,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
         alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
-        alerta.tipoAnomalia === "dependencia_transferencias"
+        alerta.tipoAnomalia === "dependencia_transferencias" ||
+        alerta.tipoAnomalia === "despesa_pessoal_limite_lrf"
       ) {
         return `${formatPercentNumber(alerta.valorObservado)}%`;
       }
@@ -827,7 +850,8 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "opacidade_gastos_genericos" ||
         alerta.tipoAnomalia === "desconto_nulo_pregao" ||
         alerta.tipoAnomalia === "desagio_extremo_inexequibilidade" ||
-        alerta.tipoAnomalia === "dependencia_transferencias"
+        alerta.tipoAnomalia === "dependencia_transferencias" ||
+        alerta.tipoAnomalia === "despesa_pessoal_limite_lrf"
       ) {
         return `${formatPercentNumber(alerta.valorEsperado)}%`;
       }

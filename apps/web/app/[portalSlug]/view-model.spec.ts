@@ -682,6 +682,48 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     );
   });
 
+  it("monta card para extrapolação do limite de despesa com pessoal da LRF com fundamentação legal", () => {
+    const raw = makeRawVisaoGeral({
+      radarAlertas: [
+        {
+          anomaliaId: "anomalia-pessoal-lrf-2024",
+          portalSlug: "natividade",
+          ano: 2024,
+          tipoAnomalia: "despesa_pessoal_limite_lrf",
+          dimensaoReferencia: "limite_maximo_executivo",
+          grauSeveridade: "critico",
+          desvioPercentual: 2.58,
+          valorObservado: 56.58,
+          valorEsperado: 54.0,
+          mesInicial: 1,
+          mesFinal: 12,
+          licitacaoNumero: null,
+          metodoDeteccao: "art20_lrf_limite_maximo",
+        },
+      ],
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+    const card = vm.radarCivicoFeedData[0];
+    expect(card.titulo).toBe("Extrapolação do Limite de Pessoal (LRF)");
+    expect(card.metodologiaBadge).toBe("Teto LRF (54%)");
+    expect(card.esperadoLabel).toBe("Teto Máximo Legal");
+    expect(card.tipoMetodologia).toBe("estoque");
+    expect(card.grauSeveridade).toBe("critico");
+    expect(card.valorObservadoFormatted).toBe("56.6%");
+    expect(card.valorEsperadoFormatted).toBe("54%");
+    expect(card.desvioPercentualFormatted).toBe("+2.6 p.p.");
+    expect(card.ctaLabel).toBe("Examinar Folha e Limite da LRF");
+    expect(card.ctaUrl).toBe("/natividade/pessoal?ano=2024");
+    expect(card.fundamentacaoLegal).toEqual({
+      label: "Art. 20, III, b da LRF",
+      url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
+    });
+    expect(card.textoFactual).toContain(
+      "comprometeram 56.6% da Receita Corrente Líquida, superando o teto legal de 54% em +2.6 p.p. nos termos do Art. 20 da LRF",
+    );
+  });
+
   it("retorna array vazio quando não houver alertas", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);

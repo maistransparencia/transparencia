@@ -46,6 +46,9 @@ describe("radar-civico-narrative", () => {
       expect(formatarDimensao("patrimonio_previdenciario")).toBe(
         "Patrimônio Previdenciário (RPPS)",
       );
+      expect(formatarDimensao("limite_maximo_executivo")).toBe(
+        "Limite Máximo LRF (Executivo)",
+      );
     });
 
     it("formats unmapped snake_case strings to Title Case", () => {
@@ -390,6 +393,23 @@ describe("radar-civico-narrative", () => {
       );
       expect(narrative).toBe(
         "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 1.0mi, registrando retração de 66.7% e consumo de R$ 2.0mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 1 ano.",
+      );
+    });
+
+    it("formats despesa_pessoal_limite_lrf with legal basis citation to Art. 20 of LRF", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "despesa_pessoal_limite_lrf",
+          ano: 2024,
+          valorObservado: 56.58,
+          valorEsperado: 54.0,
+          desvioPercentual: 2.58,
+          dimensaoReferencia: "limite_maximo_executivo",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, as despesas com pessoal comprometeram 56.6% da Receita Corrente Líquida, superando o teto legal de 54% em +2.6 p.p. nos termos do Art. 20 da LRF.",
       );
     });
 

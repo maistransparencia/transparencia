@@ -24,6 +24,8 @@ function getAnomalyRouteConfig(tipoAnomalia: TipoAnomalia): AnomalyRouteConfig {
       return { path: "/pessoal", anchor: "#comissionados" };
     case "inconsistencia_vinculo_pessoal":
       return { path: "/pessoal", anchor: "#regime" };
+    case "despesa_pessoal_limite_lrf":
+      return { path: "/pessoal" };
     case "rombo_caixa":
       return { path: "/receitas", anchor: "#saldo-caixa" };
     case "dependencia_transferencias":
