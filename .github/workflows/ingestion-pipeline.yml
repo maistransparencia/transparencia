@@ -2,8 +2,8 @@ name: Scheduled Ingestion Pipeline
 
 on:
   schedule:
-    # Toda sexta-feira às 22:00 BRT (Sábado às 01:00 UTC)
-    - cron: "0 1 * * 6"
+    # Todos os dias as 23:00 UTC (20:00 BRT)
+    - cron: "0 23 * * *"
   workflow_dispatch:
     inputs:
       portal:

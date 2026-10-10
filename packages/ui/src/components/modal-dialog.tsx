@@ -4,6 +4,7 @@ import { ArrowLeft, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useId, useRef } from "react";
 import { cn } from "../utils/cn";
+import { ShareButton } from "./share-button";
 
 export interface ModalDialogProps {
   isOpen: boolean;
@@ -29,6 +30,11 @@ export interface ModalDialogProps {
   className?: string;
   ariaLabel?: string;
   zIndex?: string;
+  showShareButton?: boolean;
+  shareUrl?: string;
+  shareTitle?: string;
+  onShare?: (payload: { method: "native" | "clipboard"; url: string }) => void;
+  shareSlot?: React.ReactNode;
 }
 
 const MAX_WIDTH_MAP: Record<
@@ -61,6 +67,11 @@ export function ModalDialog({
   className,
   ariaLabel,
   zIndex,
+  showShareButton = true,
+  shareUrl,
+  shareTitle,
+  onShare,
+  shareSlot,
 }: ModalDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -212,14 +223,31 @@ export function ModalDialog({
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar modal"
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 active:bg-slate-300"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {shareSlot !== undefined
+              ? shareSlot
+              : showShareButton && (
+                  <ShareButton
+                    variant="compact"
+                    url={shareUrl}
+                    title={
+                      shareTitle ??
+                      (typeof title === "string" && title.trim().length > 0
+                        ? title
+                        : undefined)
+                    }
+                    onShare={onShare}
+                  />
+                )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar modal"
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 active:bg-slate-300"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {/* Corpo do Diálogo */}

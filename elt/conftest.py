@@ -222,7 +222,10 @@ def pg():
 @pytest.fixture(scope="session")
 def engine(pg):
     pg_url = pg.url()
-    eng = create_engine(pg_url)
+    eng_url = (
+        pg_url.replace("postgresql://", "postgresql+psycopg2://", 1) if pg_url.startswith("postgresql://") else pg_url
+    )
+    eng = create_engine(eng_url)
     # Raw schema e tabelas derivadas de _sources.yml
     _create_raw_schema(eng)
     # dbt cria staging/intermediate (views) em public e marts (views em test_mode) em analytics

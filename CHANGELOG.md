@@ -5,6 +5,49 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-10-10
+
+### 🌟 Destaques da Versão (Compartilhamento Cívico em Modais, Ingestão Diária e Atualização de Dependências)
+* **Compartilhamento Cívico Integrado aos Diálogos Modais (`ModalDialog`):** Expansão do componente `ShareButton` diretamente no cabeçalho de todas as caixas modais do ecossistema `@transparencia/ui`, permitindo ao cidadão compartilhar achados detalhados de despesas, licitações, pessoal e previdência via Web Share API nativa ou cópia para área de transferência.
+* **Cadência Diária na Extração e Ingestão de Dados Públicos:** Transição do agendamento semanal do pipeline no GitHub Actions para execução diária automática às 20:00 BRT (23:00 UTC), garantindo atualização constante das bases contábeis, orçamentárias e licitatórias.
+* **Gravação de Sessão Condicionada a Produção no PostHog:** Otimização do monitoramento analítico habilitando gravação de sessões estritamente no ambiente de produção e desativando-a em desenvolvimento e testes para poupar consumo de rede e preservar a performance do thread principal.
+* **Modernização do Ecossistema Core (Next.js 16.4 e Ruff 0.17):** Atualização de pacotes centrais de frontend e backend, incluindo Next.js 16.4.0, Lucide React 1.54.0, Nuqs 2.10.2, PostHog 1.438.7, Ruff 0.17.0 e SQLModel 0.0.48.
+
+### ✨ Novas Funcionalidades (Added)
+* **Ações de Compartilhamento em `ModalDialog` (`packages/ui`):** Suporte nativo às propriedades `showShareButton`, `shareUrl`, `shareTitle`, `onShare` e `shareSlot`, inserindo o botão compacto de compartilhamento no cabeçalho do diálogo modal adjacente ao botão de fechar.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Frequência Diária de Ingestão (`.github/workflows/ingestion-pipeline.yml`):** Atualização do cron schedule para `0 23 * * *` (todos os dias às 20:00 BRT).
+* **Condicionamento de Gravação de Sessões no PostHog (`apps/web/instrumentation-client.ts`):** Gravação de sessões ativada somente quando `isProduction` for verdadeiro (`disable_session_recording: !isProduction`).
+* **Compatibilidade com Dialeto SQLAlchemy em PostgreSQL (`elt/core/db.py` e `elt/conftest.py`):** Normalização de URLs `postgresql://` para `postgresql+psycopg2://` garantindo conexão estável nos ambientes de execução e testes.
+* **Atualização de Dependências Monorepo e ELT:** Atualização de `next` (16.4.0), `lucide-react` (1.54.0), `nuqs` (2.10.2), `posthog-js` (1.438.7), `resend` (6.32.1), `dotenv` (18.0.7), `sqlmodel` (0.0.48), `ruff` (0.17.0) e sincronização dos lockfiles `pnpm-lock.yaml` e `elt/uv.lock`.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Suíte de Testes Unitários de ModalDialog (`modal-dialog.spec.tsx`):** Cobertura abrangente para renderização de compartilhamento em modais, fallback para título da modal, customização de URL e renderização de slots arbitrários via `shareSlot`.
+
+## [1.15.2] - 2026-10-10
+
+### 🌟 Destaques da Versão (Correções em Testes dbt e Resiliência do Pipeline de Ingestão)
+* **Ampliação da Faixa Temporal em Licitações:** Ajuste da validação de integridade nos modelos `_int_licitacoes_consolidadas.yml` e `_fct_licitacoes.yml` permitindo registros históricos a partir do ano 2000.
+* **Correção de Testes Unitários em Métricas dbt:** Alinhamento dos inputs de testes com `portal_slug` e `dim_portais` em `fct_execucao_orcamentaria_metricas` e `fct_previdencia_patrimonio_historico_metricas`.
+* **Execução Obrigatória de Seeds no Pipeline:** Inclusão explícita da etapa `run_dbt.py seed` no workflow do GitHub Actions antes da transformação dos marts.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Sincronização de Sementes e Pacotes:** Execução de `dbt seed` automatizada no job `load_and_transform` da ingestão programada.
+* **Validação de Anos Históricos:** Faixa mínima de ano reduzida de 2010 para 2000 nos contratos e licitações consolidadas.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Blindagem de Testes Unitários de Execução Orçamentária e Previdência:** Inclusão de `portal_slug` e semente `dim_portais` com código IBGE nos dados simulados dos testes dbt.
+
+## [1.15.1] - 2026-10-10
+
+### 🌟 Destaques da Versão (Resiliência de Workflows no GitHub Actions)
+* **Ajuste em Condicionais de CI/CD:** Correção na sintaxe de validação de secrets e condicionais do runner no pipeline de ingestão programada.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Tratamento Seguro de Secrets Ausentes (`ingestion-pipeline.yml`):** Substituição de condicionais `if` que acessavam secrets por verificações no script bash, prevenindo falhas de compilação do workflow.
+* **Renomeação de Workflow:** Padronização do nome do pipeline para `Scheduled Ingestion Pipeline`.
+
 ## [1.15.0] - 2026-10-09
 
 ### 🌟 Destaques da Versão (Pipeline ELT Escalável com Cloudflare R2, Compartilhamento Cívico e Identidade Visual Dinâmica)
