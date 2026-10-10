@@ -263,11 +263,13 @@ export function formatFactualNarrative(
   }
 
   if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
-    const ano = alerta.ano || anoContexto;
+    const ano = alerta.ano || anoContexto || "Exercício recente";
     const obs = formatPercentNumber(alerta.valorObservado ?? 0);
     const esp = formatPercentNumber(alerta.valorEsperado ?? 54);
-    const desvio = formatPercentNumber(alerta.desvioPercentual ?? 0);
-    return `Em ${ano}, as despesas com pessoal comprometeram ${obs}% da Receita Corrente Líquida, superando o teto legal de ${esp}% em +${desvio} p.p. nos termos do Art. 20 da LRF.`;
+    const desvioVal = alerta.desvioPercentual ?? 0;
+    const sinal = desvioVal >= 0 ? "+" : "-";
+    const desvio = `${sinal}${formatPercentNumber(Math.abs(desvioVal))}`;
+    return `Em ${ano}, as despesas com pessoal comprometeram ${obs}% da Receita Corrente Líquida, superando o teto legal de ${esp}% em ${desvio} p.p. nos termos do Art. 20 da LRF.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

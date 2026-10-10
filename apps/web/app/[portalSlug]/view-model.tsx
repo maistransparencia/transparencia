@@ -801,6 +801,11 @@ export function buildRadarCivicoCards(
 
     const desvioPercentualFormatted = (() => {
       const val = alerta.desvioPercentual ?? 0;
+      if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
+        if (val === 0) return "0 p.p.";
+        const s = val > 0 ? "+" : "-";
+        return `${s}${formatPercentNumber(Math.abs(val))} p.p.`;
+      }
       if (val === 0) return "0%";
       if (
         alerta.tipoAnomalia === "rombo_caixa" ||
@@ -810,9 +815,6 @@ export function buildRadarCivicoCards(
         alerta.tipoAnomalia === "desidratacao_patrimonio_rpps"
       ) {
         return `-${formatDesvioPercentual(val)}%`;
-      }
-      if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
-        return `+${formatPercentNumber(val)} p.p.`;
       }
       const sinal = val > 0 ? "+" : "-";
       return `${sinal}${formatDesvioPercentual(val)}%`;
