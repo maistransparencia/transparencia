@@ -22,6 +22,8 @@ def get_engine() -> Engine:
         url = os.environ.get("DATABASE_URL")
         if not url:
             raise RuntimeError("DATABASE_URL environment variable is not set")
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
         _engine = create_engine(url)
     return _engine
 

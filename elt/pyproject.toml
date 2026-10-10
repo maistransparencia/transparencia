@@ -10,7 +10,7 @@ dependencies = [
     "matplotlib==3.11.2",
     "pytest==9.1.1",
     "plotly==7.1.0",
-    "sqlmodel==0.0.47",
+    "sqlmodel==0.0.48",
     "psycopg2-binary==2.9.13",
     "python-dotenv==1.2.4",
     "fpdf2==2.8.9",
@@ -25,7 +25,7 @@ dev = [
     "pre-commit==4.6.2",
     "mypy==2.4.0",
     "vulture==2.16",
-    "ruff==0.16.10",
+    "ruff==0.17.0",
     "testing-postgresql==1.3.0",
     "types-PyYAML==6.0.12.20260906",
 ]
