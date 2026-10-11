@@ -18,12 +18,17 @@ const mockMarker = {
   openPopup: vi.fn(),
 };
 
+const mockScrollWheelZoom = {
+  _onWheelScroll: vi.fn(),
+};
+
 const mockMap = {
   setView: vi.fn(),
   flyTo: vi.fn(),
   fitBounds: vi.fn(),
   remove: vi.fn(),
   invalidateSize: vi.fn(),
+  scrollWheelZoom: mockScrollWheelZoom,
 };
 
 const mockLayerGroup = {
@@ -175,5 +180,64 @@ describe("ObrasMapaInterativo", () => {
     clickListeners[0]();
 
     expect(onSelectObra).toHaveBeenCalledWith("OBR-10");
+  });
+
+  it("exibe aviso de zoom quando o usuário rola sem tecla modificadora (Cmd/Ctrl)", async () => {
+    const originalHandler = vi.fn();
+    mockScrollWheelZoom._onWheelScroll = originalHandler;
+
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    // Simula scroll sem tecla modificadora
+    const wheelEventWithoutModifier = new WheelEvent("wheel", {
+      deltaY: 100,
+      metaKey: false,
+      ctrlKey: false,
+    });
+
+    mockScrollWheelZoom._onWheelScroll(wheelEventWithoutModifier);
+
+    // O aviso deve ser exibido
+    await waitFor(() => {
+      expect(screen.getByTestId("obras-mapa-zoom-hint")).toBeInTheDocument();
+      expect(
+        screen.getByText(/scroll para aplicar zoom no mapa/i),
+      ).toBeInTheDocument();
+    });
+
+    // O handler original de zoom do Leaflet não deve ter sido acionado
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("permite zoom e oculta aviso quando a tecla modificadora (Cmd ou Ctrl) está pressionada", async () => {
+    const originalHandler = vi.fn();
+    mockScrollWheelZoom._onWheelScroll = originalHandler;
+
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    // Simula scroll com tecla modificadora
+    const wheelEventWithModifier = new WheelEvent("wheel", {
+      deltaY: 100,
+      metaKey: true,
+      ctrlKey: false,
+    });
+
+    mockScrollWheelZoom._onWheelScroll(wheelEventWithModifier);
+
+    // O aviso não deve estar presente
+    expect(
+      screen.queryByTestId("obras-mapa-zoom-hint"),
+    ).not.toBeInTheDocument();
+
+    // O handler original de zoom do Leaflet deve ter sido acionado
+    expect(originalHandler).toHaveBeenCalledWith(wheelEventWithModifier);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import type { ObraMarkerItem } from "@/app/[portalSlug]/obras/view-model";
 
@@ -42,6 +42,52 @@ export function ObrasMapaInterativo({
   const markersMapRef = useRef<Map<string, import("leaflet").Marker>>(
     new Map(),
   );
+  const [isMac, setIsMac] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showZoomHint = useCallback(() => {
+    setShowHint(true);
+    if (hintTimeoutRef.current) {
+      clearTimeout(hintTimeoutRef.current);
+    }
+    hintTimeoutRef.current = setTimeout(() => {
+      setShowHint(false);
+    }, 1500);
+  }, []);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      const platform =
+        (navigator as unknown as { userAgentData?: { platform?: string } })
+          .userAgentData?.platform ||
+        navigator.platform ||
+        navigator.userAgent ||
+        "";
+      setIsMac(/Mac|iPhone|iPod|iPad/i.test(platform));
+    }
+
+    const container = containerRef.current;
+    const handleMouseLeave = () => {
+      setShowHint(false);
+      if (hintTimeoutRef.current) {
+        clearTimeout(hintTimeoutRef.current);
+      }
+    };
+
+    if (container) {
+      container.addEventListener("mouseleave", handleMouseLeave);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener("mouseleave", handleMouseLeave);
+      }
+      if (hintTimeoutRef.current) {
+        clearTimeout(hintTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Função para desenhar os marcadores redondos minimalistas
   const renderMarkers = useCallback(
@@ -142,6 +188,33 @@ export function ObrasMapaInterativo({
         scrollWheelZoom: true,
       });
 
+      // Cooperative gesture handling: exige ⌘ (macOS) ou Ctrl (geral) para aplicar zoom via scroll wheel
+      const scrollWheelHandler = (
+        map as unknown as {
+          scrollWheelZoom?: {
+            _onWheelScroll?: (e: WheelEvent) => void;
+          };
+        }
+      ).scrollWheelZoom;
+
+      if (
+        scrollWheelHandler &&
+        typeof scrollWheelHandler._onWheelScroll === "function"
+      ) {
+        const originalOnWheel =
+          scrollWheelHandler._onWheelScroll.bind(scrollWheelHandler);
+
+        scrollWheelHandler._onWheelScroll = (e: WheelEvent) => {
+          const hasModifier = e.metaKey || e.ctrlKey;
+          if (hasModifier) {
+            setShowHint(false);
+            originalOnWheel(e);
+          } else {
+            showZoomHint();
+          }
+        };
+      }
+
       // Tiles Esri World Light Gray Base (exatamente como no mockup Tiles © Esri)
       L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
@@ -231,6 +304,22 @@ export function ObrasMapaInterativo({
       className={`relative h-full w-full overflow-hidden bg-[#e5e5e5] ${className}`}
     >
       <div ref={containerRef} className="h-full min-h-[580px] w-full" />
+      {showHint && (
+        <div
+          data-testid="obras-mapa-zoom-hint"
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center bg-black/45 backdrop-blur-[2px] transition-opacity duration-200"
+        >
+          <div className="rounded-xl border border-white/20 bg-slate-900/90 px-4 py-2.5 text-center font-medium text-sm text-white shadow-xl">
+            Use{" "}
+            <span className="font-semibold text-amber-400">
+              {isMac ? "⌘ (Command)" : "Ctrl"}
+            </span>{" "}
+            + scroll para aplicar zoom no mapa
+          </div>
+        </div>
+      )}
       {markers.length === 0 && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/75 backdrop-blur-xs">
           <p className="font-medium text-slate-500 text-sm">
