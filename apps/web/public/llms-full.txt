@@ -324,7 +324,7 @@ Mapeamento cartográfico e fiscalização das obras públicas municipais em exec
 
 ### 1.7.2. Detalhes da Obra e Auditoria Físico-Financeira (`/[portalSlug]/obras?idProjeto=[idProjeto]`)
 
-Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual (`ModalDialog`)** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:
+Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual sobreposto** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:
 
 - **Auditoria de Avanço Físico vs. Financeiro:** Comparativo gráfico em barras duplas:
   - *Execução Física Oficial (%):* Boletim técnico de medição presencial no canteiro extraído diretamente do ObrasGov.br/CIPI, acompanhado da data da última aferição técnica realizada em campo.
