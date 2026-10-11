@@ -25,7 +25,9 @@ export interface ObraDTO {
   orgaoResponsavel: string | null;
   valorInvestimentoPrevisto: number;
   percentualExecucaoFisica: number | null;
+  percentualExecucaoFinanceira?: number | null;
   dataUltimaMedicao: string | null;
+  dataParalisacao?: string | null;
   latitude: number | null;
   longitude: number | null;
   motivoParalisacao: string | null;
@@ -95,7 +97,9 @@ type ObraRow = {
   orgao_responsavel?: string | null;
   valor_investimento_previsto?: string | number | null;
   percentual_execucao_fisica?: string | number | null;
+  percentual_execucao_financeira?: string | number | null;
   data_ultima_medicao?: string | Date | null;
+  data_paralisacao?: string | Date | null;
   latitude?: string | number | null;
   longitude?: string | number | null;
   motivo_paralisacao?: string | null;
@@ -112,6 +116,11 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
   const percentualExecucaoFisica =
     row.percentual_execucao_fisica != null
       ? Number(row.percentual_execucao_fisica)
+      : null;
+
+  const percentualExecucaoFinanceira =
+    row.percentual_execucao_financeira != null
+      ? Number(row.percentual_execucao_financeira)
       : null;
 
   const rawLat = row.latitude != null ? Number(row.latitude) : null;
@@ -156,7 +165,13 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
       !Number.isNaN(percentualExecucaoFisica)
         ? percentualExecucaoFisica
         : null,
+    percentualExecucaoFinanceira:
+      percentualExecucaoFinanceira != null &&
+      !Number.isNaN(percentualExecucaoFinanceira)
+        ? percentualExecucaoFinanceira
+        : null,
     dataUltimaMedicao: toIsoDateString(row.data_ultima_medicao),
+    dataParalisacao: toIsoDateString(row.data_paralisacao),
     latitude,
     longitude,
     motivoParalisacao:
