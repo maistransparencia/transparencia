@@ -14,9 +14,11 @@ import {
   useTransition,
 } from "react";
 import type {
+  ObraItemViewModel,
   ObraMarkerItem,
   ObrasViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
+import { ObrasDetalheModal } from "./obras-detalhe-modal";
 
 function normalizeText(text: string): string {
   return text
@@ -147,6 +149,9 @@ export function ObrasInteractiveSection({
   const [internalSelectedObraId, setInternalSelectedObraId] = useState<
     string | null
   >(null);
+  const [detalheModalObra, setDetalheModalObra] =
+    useState<ObraItemViewModel | null>(null);
+  const hasCheckedDeepLinkRef = useRef(false);
   const [viewMode, setViewMode] = useState<"urbana" | "territorio">("urbana");
   const [mobileTab, setMobileTab] = useState<"mapa" | "lista">("mapa");
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -276,6 +281,93 @@ export function ObrasInteractiveSection({
     },
     [activeSelectedObraId, externalOnSelectObra],
   );
+
+  const handleOpenDetalheModal = useCallback((obra: ObraItemViewModel) => {
+    setDetalheModalObra(obra);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("idProjeto", obra.idProjeto);
+      window.history.pushState({}, "", url.pathname + url.search + url.hash);
+    }
+  }, []);
+
+  const handleCloseDetalheModal = useCallback(() => {
+    setDetalheModalObra(null);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("idProjeto")) {
+        url.searchParams.delete("idProjeto");
+        window.history.replaceState(
+          {},
+          "",
+          url.pathname + (url.search ? url.search : "") + (url.hash || ""),
+        );
+      }
+    }
+  }, []);
+
+  // Deep linking para abrir o modal de detalhes diretamente via query string ?idProjeto=...
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkUrlDeepLink = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idProjetoParam = urlParams.get("idProjeto");
+      if (idProjetoParam) {
+        const found = viewModel.obras.find(
+          (o) => o.idProjeto === idProjetoParam,
+        );
+        if (found) {
+          setDetalheModalObra(found);
+          handleSelectObra(found.idProjeto);
+        }
+      }
+    };
+
+    if (!hasCheckedDeepLinkRef.current) {
+      hasCheckedDeepLinkRef.current = true;
+      checkUrlDeepLink();
+    }
+
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idProjetoParam = urlParams.get("idProjeto");
+      if (idProjetoParam) {
+        const found = viewModel.obras.find(
+          (o) => o.idProjeto === idProjetoParam,
+        );
+        if (found) {
+          setDetalheModalObra(found);
+        }
+      } else {
+        setDetalheModalObra(null);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [viewModel.obras, handleSelectObra]);
+
+  // Escuta evento para abrir modal a partir de outros componentes (ex: ObrasParalisadasSection)
+  useEffect(() => {
+    const handleCustomDetalhes = (e: Event) => {
+      const customEvent = e as CustomEvent<{ idProjeto: string }>;
+      if (customEvent.detail?.idProjeto) {
+        const found = viewModel.obras.find(
+          (o) => o.idProjeto === customEvent.detail.idProjeto,
+        );
+        if (found) {
+          handleOpenDetalheModal(found);
+        }
+      }
+    };
+    window.addEventListener("obra:abrir-detalhes", handleCustomDetalhes);
+    return () => {
+      window.removeEventListener("obra:abrir-detalhes", handleCustomDetalhes);
+    };
+  }, [viewModel.obras, handleOpenDetalheModal]);
 
   // Permite que seções externas (como ObrasParalisadasSection) acionem a seleção de obra no mapa
   useEffect(() => {
@@ -599,13 +691,22 @@ export function ObrasInteractiveSection({
                             </div>
                           </div>
 
-                          {/* Link Oficial para o Cadastro de Obras */}
-                          <div className="border-slate-100 border-t pt-2">
+                          {/* Ações: Detalhes da Obra + Link Oficial ObrasGov */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-slate-100 border-t pt-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDetalheModal(obra)}
+                              className="inline-flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-800 hover:underline"
+                            >
+                              <span>Ver detalhes</span>
+                              <span aria-hidden="true">&rarr;</span>
+                            </button>
+
                             <a
                               href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
+                              className="inline-flex items-center gap-1 font-medium text-slate-500 text-xs hover:text-slate-800 hover:underline"
                             >
                               <span>Ver no Cadastro de Obras</span>
                               <ExternalLink className="h-3 w-3" />
@@ -743,16 +844,17 @@ export function ObrasInteractiveSection({
                           <span className="font-bold text-slate-900 text-sm tabular-nums">
                             {fmtCompact(obra.valorInvestimentoPrevisto)}
                           </span>
-                          <a
-                            href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDetalheModal(obra);
+                            }}
                             className="inline-flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-700"
                           >
-                            <span>Detalhes</span>
+                            <span>Ver detalhes</span>
                             <span aria-hidden="true">&rarr;</span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     );
@@ -768,6 +870,14 @@ export function ObrasInteractiveSection({
           </div>
         </div>
       </div>
+
+      {/* Modal de Detalhes da Obra vinculado à URL ?idProjeto=... */}
+      <ObrasDetalheModal
+        isOpen={Boolean(detalheModalObra)}
+        onClose={handleCloseDetalheModal}
+        obra={detalheModalObra}
+        portalSlug={viewModel.portalSlug}
+      />
     </section>
   );
 }

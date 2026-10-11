@@ -407,3 +407,181 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
     totalNaoGeorreferenciadas,
   };
 }
+
+export interface ObraDetalheViewModel {
+  idProjeto: string;
+  portalSlug: string;
+  nomeObra: string;
+  situacao: SituacaoObra;
+  situacaoVisual: SituacaoVisual;
+  orgaoResponsavel: string;
+  valorInvestimentoPrevisto: number;
+  valorInvestimentoFormatado: string;
+  percentualExecucaoFisica: number | null;
+  percentualFisicoFormatado: string;
+  percentualExecucaoFinanceira: number | null;
+  percentualFinanceiroFormatado: string;
+  dataUltimaMedicao: string | null;
+  dataUltimaMedicaoFormatada: string;
+  dataParalisacao: string | null;
+  dataParalisacaoFormatada: string;
+  dataInicioPrevista: string | null;
+  dataInicioPrevistaFormatada: string;
+  dataFimPrevista: string | null;
+  dataFimPrevistaFormatada: string;
+  motivoParalisacao: string;
+  isParalisada: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  hasCoordinates: boolean;
+  alertaDescompasso: {
+    temDescompasso: boolean;
+    diferencaPercentual: number;
+    mensagem: string;
+  };
+  linkObrasGov: string;
+  linkLegislacao: string;
+}
+
+export function buildObraDetalheViewModel(
+  obra: ObraDTO,
+  portalSlug: string,
+): ObraDetalheViewModel {
+  const situacaoVisual = getSituacaoVisual(obra.situacao);
+  const isParalisada = obra.situacao === "paralisada";
+
+  const valorInvestimentoPrevisto = obra.valorInvestimentoPrevisto ?? 0;
+  const valorInvestimentoFormatado = fmtCurrency(valorInvestimentoPrevisto);
+
+  const percentualExecucaoFisica =
+    obra.percentualExecucaoFisica !== null &&
+    obra.percentualExecucaoFisica !== undefined &&
+    !Number.isNaN(obra.percentualExecucaoFisica)
+      ? Number(obra.percentualExecucaoFisica)
+      : null;
+
+  const percentualFisicoFormatado = (() => {
+    if (percentualExecucaoFisica === null) {
+      return "Sem medição técnica registrada";
+    }
+    return fmtPercent(percentualExecucaoFisica);
+  })();
+
+  const percentualExecucaoFinanceira =
+    obra.percentualExecucaoFinanceira !== null &&
+    obra.percentualExecucaoFinanceira !== undefined &&
+    !Number.isNaN(obra.percentualExecucaoFinanceira)
+      ? Number(obra.percentualExecucaoFinanceira)
+      : null;
+
+  const percentualFinanceiroFormatado = (() => {
+    if (percentualExecucaoFinanceira === null) {
+      return "Em apuração contábil";
+    }
+    return fmtPercent(percentualExecucaoFinanceira);
+  })();
+
+  const dataUltimaMedicaoFormatada = (() => {
+    if (!obra.dataUltimaMedicao) return "Sem registro oficial";
+    return fmtDate(obra.dataUltimaMedicao);
+  })();
+
+  const dataParalisacaoFormatada = (() => {
+    if (obra.dataParalisacao) return fmtDate(obra.dataParalisacao);
+    return "Data não informada";
+  })();
+
+  const dataInicioPrevistaFormatada = (() => {
+    if (!obra.dataInicioPrevista) return "Não informada";
+    return fmtDate(obra.dataInicioPrevista);
+  })();
+
+  const dataFimPrevistaFormatada = (() => {
+    if (!obra.dataFimPrevista) return "Não informada";
+    return fmtDate(obra.dataFimPrevista);
+  })();
+
+  const motivoParalisacao = (() => {
+    if (!isParalisada) return "";
+    if (obra.motivoParalisacao && obra.motivoParalisacao.trim().length > 0) {
+      return obra.motivoParalisacao.trim();
+    }
+    return "Justificativa oficial não registrada no sistema governamental";
+  })();
+
+  const hasCoordinates =
+    obra.latitude !== null &&
+    obra.longitude !== null &&
+    !Number.isNaN(obra.latitude) &&
+    !Number.isNaN(obra.longitude);
+
+  const alertaDescompasso = (() => {
+    if (
+      percentualExecucaoFisica === null ||
+      percentualExecucaoFinanceira === null
+    ) {
+      return {
+        temDescompasso: false,
+        diferencaPercentual: 0,
+        mensagem: "",
+      };
+    }
+
+    const diff = Math.round(
+      percentualExecucaoFinanceira - percentualExecucaoFisica,
+    );
+
+    if (diff > 15) {
+      return {
+        temDescompasso: true,
+        diferencaPercentual: diff,
+        mensagem: `Atenção: O desembolso financeiro acumulado supera em ${diff}% o avanço físico medido em campo.`,
+      };
+    }
+
+    return {
+      temDescompasso: false,
+      diferencaPercentual: 0,
+      mensagem: "",
+    };
+  })();
+
+  const linkObrasGov = `https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(
+    obra.idProjeto,
+  )}`;
+
+  const linkLegislacao =
+    "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6";
+
+  return {
+    idProjeto: obra.idProjeto,
+    portalSlug: obra.portalSlug || portalSlug,
+    nomeObra: obra.nomeObra || "Obra pública sem denominação cadastrada",
+    situacao: obra.situacao,
+    situacaoVisual,
+    orgaoResponsavel:
+      obra.orgaoResponsavel || "Órgão municipal responsável não informado",
+    valorInvestimentoPrevisto,
+    valorInvestimentoFormatado,
+    percentualExecucaoFisica,
+    percentualFisicoFormatado,
+    percentualExecucaoFinanceira,
+    percentualFinanceiroFormatado,
+    dataUltimaMedicao: obra.dataUltimaMedicao,
+    dataUltimaMedicaoFormatada,
+    dataParalisacao: obra.dataParalisacao ?? null,
+    dataParalisacaoFormatada,
+    dataInicioPrevista: obra.dataInicioPrevista,
+    dataInicioPrevistaFormatada,
+    dataFimPrevista: obra.dataFimPrevista,
+    dataFimPrevistaFormatada,
+    motivoParalisacao,
+    isParalisada,
+    latitude: hasCoordinates ? obra.latitude : null,
+    longitude: hasCoordinates ? obra.longitude : null,
+    hasCoordinates,
+    alertaDescompasso,
+    linkObrasGov,
+    linkLegislacao,
+  };
+}

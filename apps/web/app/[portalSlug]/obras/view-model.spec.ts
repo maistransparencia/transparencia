@@ -1,5 +1,7 @@
+import type { ObraDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
+  buildObraDetalheViewModel,
   buildObrasViewModel,
   getMapCenter,
   getSituacaoVisual,
@@ -197,6 +199,179 @@ describe("obras/view-model", () => {
         "Recisão contratual com a empreiteira",
       );
       expect(obraParalisada.mesesParalisada).toBeGreaterThan(0);
+    });
+  });
+
+  describe("buildObraDetalheViewModel", () => {
+    const baseObra: ObraDTO = {
+      idProjeto: "OBR-101",
+      portalSlug: "porciuncula_prefeitura",
+      nomeObra: "Reforma da Unidade Básica de Saúde",
+      situacao: "em_execucao",
+      orgaoResponsavel: "Secretaria Municipal de Saúde",
+      valorInvestimentoPrevisto: 350000,
+      percentualExecucaoFisica: 50,
+      percentualExecucaoFinanceira: 45,
+      dataUltimaMedicao: "2024-06-15",
+      latitude: -20.9625,
+      longitude: -42.0412,
+      motivoParalisacao: null,
+      dataInicioPrevista: "2024-01-10",
+      dataFimPrevista: "2024-12-20",
+    };
+
+    it("deve mapear corretamente uma obra ativa sem descompasso", () => {
+      const vm = buildObraDetalheViewModel(baseObra, "porciuncula_prefeitura");
+
+      expect(vm.idProjeto).toBe("OBR-101");
+      expect(vm.portalSlug).toBe("porciuncula_prefeitura");
+      expect(vm.nomeObra).toBe("Reforma da Unidade Básica de Saúde");
+      expect(vm.situacao).toBe("em_execucao");
+      expect(vm.situacaoVisual.label).toBe("Em Execução");
+      expect(vm.orgaoResponsavel).toBe("Secretaria Municipal de Saúde");
+      expect(vm.valorInvestimentoPrevisto).toBe(350000);
+      expect(vm.percentualExecucaoFisica).toBe(50);
+      expect(vm.percentualExecucaoFinanceira).toBe(45);
+      expect(vm.isParalisada).toBe(false);
+      expect(vm.motivoParalisacao).toBe("");
+      expect(vm.alertaDescompasso.temDescompasso).toBe(false);
+      expect(vm.hasCoordinates).toBe(true);
+      expect(vm.linkObrasGov).toBe(
+        "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/OBR-101",
+      );
+      expect(vm.linkLegislacao).toContain("planalto.gov.br");
+    });
+
+    it("deve detectar descompasso físico-financeiro quando financeiro > físico + 15%", () => {
+      const obraComDescompasso: ObraDTO = {
+        ...baseObra,
+        percentualExecucaoFisica: 20,
+        percentualExecucaoFinanceira: 45,
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraComDescompasso,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.alertaDescompasso.temDescompasso).toBe(true);
+      expect(vm.alertaDescompasso.diferencaPercentual).toBe(25);
+      expect(vm.alertaDescompasso.mensagem).toBe(
+        "Atenção: O desembolso financeiro acumulado supera em 25% o avanço físico medido em campo.",
+      );
+    });
+
+    it("não deve disparar alerta de descompasso quando a diferença for de 15% ou menor", () => {
+      const obraLimite: ObraDTO = {
+        ...baseObra,
+        percentualExecucaoFisica: 20,
+        percentualExecucaoFinanceira: 35,
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraLimite,
+        "porciuncula_prefeitura",
+      );
+      expect(vm.alertaDescompasso.temDescompasso).toBe(false);
+    });
+
+    it("deve tratar obra paralisada com motivo oficial", () => {
+      const obraParalisada: ObraDTO = {
+        ...baseObra,
+        situacao: "paralisada",
+        motivoParalisacao:
+          "Inadimplência da empresa contratada e rescisão unilateral",
+        dataParalisacao: "2024-04-10",
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraParalisada,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.isParalisada).toBe(true);
+      expect(vm.motivoParalisacao).toBe(
+        "Inadimplência da empresa contratada e rescisão unilateral",
+      );
+      expect(vm.dataParalisacaoFormatada).toBe("10/04/2024");
+    });
+
+    it("deve fornecer fallback amigável quando obra paralisada não possuir motivo registrado", () => {
+      const obraSemMotivo: ObraDTO = {
+        ...baseObra,
+        situacao: "paralisada",
+        motivoParalisacao: null,
+        dataParalisacao: null,
+        dataUltimaMedicao: null,
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraSemMotivo,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.isParalisada).toBe(true);
+      expect(vm.motivoParalisacao).toBe(
+        "Justificativa oficial não registrada no sistema governamental",
+      );
+      expect(vm.dataParalisacaoFormatada).toBe("Data não informada");
+    });
+
+    it("não deve disparar descompasso se percentualExecucaoFisica for nulo", () => {
+      const obraSemFisico: ObraDTO = {
+        ...baseObra,
+        percentualExecucaoFisica: null,
+        percentualExecucaoFinanceira: 80,
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraSemFisico,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.alertaDescompasso.temDescompasso).toBe(false);
+    });
+
+    it("deve tratar percentuais e datas nulas graciosamente", () => {
+      const obraNula: ObraDTO = {
+        ...baseObra,
+        percentualExecucaoFisica: null,
+        percentualExecucaoFinanceira: null,
+        dataUltimaMedicao: null,
+        dataInicioPrevista: null,
+        dataFimPrevista: null,
+        latitude: null,
+        longitude: null,
+      };
+
+      const vm = buildObraDetalheViewModel(obraNula, "porciuncula_prefeitura");
+
+      expect(vm.percentualExecucaoFisica).toBeNull();
+      expect(vm.percentualFisicoFormatado).toBe(
+        "Sem medição técnica registrada",
+      );
+      expect(vm.percentualExecucaoFinanceira).toBeNull();
+      expect(vm.percentualFinanceiroFormatado).toBe("Em apuração contábil");
+      expect(vm.dataUltimaMedicaoFormatada).toBe("Sem registro oficial");
+      expect(vm.dataInicioPrevistaFormatada).toBe("Não informada");
+      expect(vm.dataFimPrevistaFormatada).toBe("Não informada");
+      expect(vm.hasCoordinates).toBe(false);
+      expect(vm.alertaDescompasso.temDescompasso).toBe(false);
+    });
+
+    it("deve codificar caracteres especiais no link do ObrasGov.br", () => {
+      const obraIdEspecial: ObraDTO = {
+        ...baseObra,
+        idProjeto: "12345/ABC DEF",
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraIdEspecial,
+        "porciuncula_prefeitura",
+      );
+      expect(vm.linkObrasGov).toBe(
+        "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/12345%2FABC%20DEF",
+      );
     });
   });
 });

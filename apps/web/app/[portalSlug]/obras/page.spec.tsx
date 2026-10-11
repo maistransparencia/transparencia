@@ -293,6 +293,18 @@ describe("ObrasPage Component", () => {
       "href",
       "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/OBR-001",
     );
+
+    const detalhesBtns = screen.getAllByRole("button", {
+      name: /Ver detalhes/i,
+    });
+    expect(detalhesBtns.length).toBeGreaterThan(0);
+    fireEvent.click(detalhesBtns[0]);
+
+    // Modal de Detalhes da Obra deve ser aberto
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText("Auditoria de Avanço Físico vs. Financeiro"),
+    ).toBeInTheDocument();
   });
 
   it("permite alternar abas mobile entre Mapa e Lista e usar o botão flutuante de território", async () => {
