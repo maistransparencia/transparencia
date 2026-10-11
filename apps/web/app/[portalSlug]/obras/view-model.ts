@@ -8,6 +8,7 @@ import {
   fmtCurrency,
   fmtDate,
   fmtPercent,
+  getPartialYearPeriod,
 } from "@transparencia/ui";
 import type { RawObrasData } from "./loader";
 
@@ -24,10 +25,10 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
     case "em_execucao":
       return {
         label: "Em Execução",
-        colorHex: "#059669",
-        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        bgClass: "bg-emerald-500",
-        textClass: "text-emerald-700",
+        colorHex: "#2563eb",
+        badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+        bgClass: "bg-blue-600",
+        textClass: "text-blue-700",
       };
     case "paralisada":
       return {
@@ -40,14 +41,14 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
     case "concluida":
       return {
         label: "Concluída",
-        colorHex: "#2563eb",
-        badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
-        bgClass: "bg-sky-500",
-        textClass: "text-sky-700",
+        colorHex: "#16a34a",
+        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        bgClass: "bg-emerald-600",
+        textClass: "text-emerald-700",
       };
     case "cadastrada":
       return {
-        label: "Cadastrada",
+        label: "Não iniciada",
         colorHex: "#64748b",
         badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
         bgClass: "bg-slate-400",
@@ -63,7 +64,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       };
     default:
       return {
-        label: "Cadastrada",
+        label: "Não iniciada",
         colorHex: "#64748b",
         badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
         bgClass: "bg-slate-400",
@@ -90,7 +91,9 @@ export interface ObraItemViewModel {
   latitude: number | null;
   longitude: number | null;
   hasCoordinates: boolean;
+  isUrbana: boolean;
   motivoParalisacao: string | null;
+  mesesParalisada: number | null;
   dataInicioPrevista: string | null;
   dataInicioPrevistaFormatada: string;
   dataFimPrevista: string | null;
@@ -105,6 +108,7 @@ export interface ObraMarkerItem {
   situacaoColorHex: string;
   latitude: number;
   longitude: number;
+  isUrbana: boolean;
   valorInvestimentoFormatado: string;
   percentualExecucaoFormatado: string;
   orgaoResponsavel: string;
@@ -121,33 +125,95 @@ export interface ObrasKpisViewModel {
   valorTotalInvestimento: number;
   valorTotalInvestimentoFormatado: string;
   valorTotalInvestimentoCompacto: string;
+  valorEmExecucao: number;
+  valorEmExecucaoCompacto: string;
+  valorParalisadas: number;
+  valorParalisadasCompacto: string;
+  valorConcluidas: number;
+  valorConcluidasCompacto: string;
+  valorCadastradas: number;
+  valorCadastradasCompacto: string;
   percentualMedioExecucaoFisica: number | null;
   percentualMedioExecucaoFormatado: string;
+  obrasSemMedicaoCount: number;
 }
 
 export interface ObrasViewModel {
   portalSlug: string;
   municipioNome: string;
   municipioUf: string;
+  selectedYear: number;
+  isCurrentYear: boolean;
+  partialPeriod: string;
   kpis: ObrasKpisViewModel;
   filtros: {
     status: SituacaoObraFiltro;
     busca?: string;
   };
   obras: ObraItemViewModel[];
+  paralisadasObras: ObraItemViewModel[];
   markers: ObraMarkerItem[];
+  urbanCenter: [number, number];
+  urbanBounds: [[number, number], [number, number]] | null;
+  territorioBounds: [[number, number], [number, number]] | null;
   mapCenter: [number, number];
+  obrasForaUrbanaCount: number;
   totalGeorreferenciadas: number;
   totalNaoGeorreferenciadas: number;
 }
 
+export function haversineDistanceKm(
+  origem: { lat: number; lng: number },
+  destino: { lat: number; lng: number },
+): number {
+  const R = 6371;
+  const dLat = ((destino.lat - origem.lat) * Math.PI) / 180;
+  const dLon = ((destino.lng - origem.lng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((origem.lat * Math.PI) / 180) *
+      Math.cos((destino.lat * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function getMedianCenter(
+  coords: { latitude: number; longitude: number }[],
+): [number, number] {
+  if (coords.length === 0) return [-21.0, -42.0];
+  const sortedLats = [...coords.map((c) => c.latitude)].sort((a, b) => a - b);
+  const sortedLngs = [...coords.map((c) => c.longitude)].sort((a, b) => a - b);
+  const mid = Math.floor(coords.length / 2);
+  return [sortedLats[mid], sortedLngs[mid]];
+}
+
+export function computeBounds(
+  coords: { latitude: number; longitude: number }[],
+): [[number, number], [number, number]] | null {
+  if (coords.length === 0) return null;
+  const lats = coords.map((c) => c.latitude);
+  const lngs = coords.map((c) => c.longitude);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  if (minLat === maxLat && minLng === maxLng) {
+    return [
+      [minLat - 0.01, minLng - 0.01],
+      [maxLat + 0.01, maxLng + 0.01],
+    ];
+  }
+  return [
+    [minLat, minLng],
+    [maxLat, maxLng],
+  ];
+}
+
 export function getMapCenter(markers: ObraMarkerItem[]): [number, number] {
   if (markers.length > 0) {
-    const sum = markers.reduce(
-      (acc, m) => ({ lat: acc.lat + m.latitude, lng: acc.lng + m.longitude }),
-      { lat: 0, lng: 0 },
-    );
-    return [sum.lat / markers.length, sum.lng / markers.length];
+    return getMedianCenter(markers);
   }
   return [-21.0, -42.0];
 }
@@ -159,13 +225,40 @@ function formatPercentual(val: number | null): string {
   return fmtPercent(val);
 }
 
-function mapObraToViewModel(obra: ObraDTO): ObraItemViewModel {
+function calcularMesesParalisada(
+  dataUltimaMedicao: string | null,
+): number | null {
+  if (!dataUltimaMedicao) return null;
+  const data = new Date(dataUltimaMedicao);
+  if (Number.isNaN(data.getTime())) return null;
+  const diffMs = Date.now() - data.getTime();
+  const meses = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.4375));
+  return Math.max(1, meses);
+}
+
+function mapObraToViewModel(
+  obra: ObraDTO,
+  centerLat: number,
+  centerLng: number,
+): ObraItemViewModel {
   const visual = getSituacaoVisual(obra.situacao);
   const hasCoordinates =
     obra.latitude !== null &&
     obra.longitude !== null &&
     !Number.isNaN(obra.latitude) &&
     !Number.isNaN(obra.longitude);
+
+  const isUrbana = hasCoordinates
+    ? haversineDistanceKm(
+        { lat: centerLat, lng: centerLng },
+        { lat: obra.latitude as number, lng: obra.longitude as number },
+      ) <= 10
+    : false;
+
+  const mesesParalisada =
+    obra.situacao === "paralisada"
+      ? calcularMesesParalisada(obra.dataUltimaMedicao)
+      : null;
 
   return {
     idProjeto: obra.idProjeto,
@@ -187,7 +280,9 @@ function mapObraToViewModel(obra: ObraDTO): ObraItemViewModel {
     latitude: obra.latitude,
     longitude: obra.longitude,
     hasCoordinates,
+    isUrbana,
     motivoParalisacao: obra.motivoParalisacao,
+    mesesParalisada,
     dataInicioPrevista: obra.dataInicioPrevista,
     dataInicioPrevistaFormatada: fmtDate(obra.dataInicioPrevista),
     dataFimPrevista: obra.dataFimPrevista,
@@ -196,9 +291,27 @@ function mapObraToViewModel(obra: ObraDTO): ObraItemViewModel {
 }
 
 export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
-  const { portalSlug, portalConfig, filtros, resumo, obras } = rawData;
+  const { portalSlug, portalConfig, context, filtros, resumo, obras } = rawData;
 
-  const obrasViewModels = obras.map(mapObraToViewModel);
+  // Extrai coordenadas válidas para calcular o centro mediano
+  const validCoords = obras
+    .filter(
+      (o) =>
+        o.latitude !== null &&
+        o.longitude !== null &&
+        !Number.isNaN(o.latitude) &&
+        !Number.isNaN(o.longitude),
+    )
+    .map((o) => ({
+      latitude: o.latitude as number,
+      longitude: o.longitude as number,
+    }));
+
+  const [centerLat, centerLng] = getMedianCenter(validCoords);
+
+  const obrasViewModels = obras.map((o) =>
+    mapObraToViewModel(o, centerLat, centerLng),
+  );
 
   const markers: ObraMarkerItem[] = obrasViewModels
     .filter(
@@ -212,6 +325,7 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
       situacaoColorHex: o.situacaoColorHex,
       latitude: o.latitude as number,
       longitude: o.longitude as number,
+      isUrbana: o.isUrbana,
       valorInvestimentoFormatado: o.valorInvestimentoFormatado,
       percentualExecucaoFormatado: o.percentualExecucaoFormatado,
       orgaoResponsavel: o.orgaoResponsavel,
@@ -221,7 +335,23 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
   const totalGeorreferenciadas = markers.length;
   const totalNaoGeorreferenciadas =
     obrasViewModels.length - totalGeorreferenciadas;
-  const mapCenter = getMapCenter(markers);
+
+  const urbanCoords = markers
+    .filter((m) => m.isUrbana)
+    .map((m) => ({ latitude: m.latitude, longitude: m.longitude }));
+
+  const allCoords = markers.map((m) => ({
+    latitude: m.latitude,
+    longitude: m.longitude,
+  }));
+
+  const urbanBounds = computeBounds(urbanCoords);
+  const territorioBounds = computeBounds(allCoords);
+  const obrasForaUrbanaCount = markers.filter((m) => !m.isUrbana).length;
+
+  const paralisadasObras = obrasViewModels.filter(
+    (o) => o.situacao === "paralisada",
+  );
 
   const kpis: ObrasKpisViewModel = {
     totalObras: resumo.totalObras,
@@ -233,25 +363,46 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
     valorTotalInvestimento: resumo.valorTotalInvestimento,
     valorTotalInvestimentoFormatado: fmtCurrency(resumo.valorTotalInvestimento),
     valorTotalInvestimentoCompacto: fmtCompact(resumo.valorTotalInvestimento),
+    valorEmExecucao: resumo.valorEmExecucao,
+    valorEmExecucaoCompacto: fmtCompact(resumo.valorEmExecucao),
+    valorParalisadas: resumo.valorParalisadas,
+    valorParalisadasCompacto: fmtCompact(resumo.valorParalisadas),
+    valorConcluidas: resumo.valorConcluidas,
+    valorConcluidasCompacto: fmtCompact(resumo.valorConcluidas),
+    valorCadastradas: resumo.valorCadastradas,
+    valorCadastradasCompacto: fmtCompact(resumo.valorCadastradas),
     percentualMedioExecucaoFisica: resumo.percentualMedioExecucaoFisica,
     percentualMedioExecucaoFormatado:
       resumo.percentualMedioExecucaoFisica !== null
         ? fmtPercent(resumo.percentualMedioExecucaoFisica)
         : "0,00%",
+    obrasSemMedicaoCount: resumo.obrasSemMedicaoCount,
   };
 
   const municipioNome = portalConfig?.displayName?.trim() || "Município";
   const municipioUf = portalConfig?.uf || "RJ";
 
+  const partialPeriod = getPartialYearPeriod(
+    portalConfig?.dataExtracaoDate ?? portalConfig?.dataExtracao,
+  );
+
   return {
     portalSlug,
     municipioNome,
     municipioUf,
+    selectedYear: context.selectedYear,
+    isCurrentYear: context.isCurrentYear,
+    partialPeriod,
     kpis,
     filtros,
     obras: obrasViewModels,
+    paralisadasObras,
     markers,
-    mapCenter,
+    urbanCenter: [centerLat, centerLng],
+    urbanBounds,
+    territorioBounds,
+    mapCenter: [centerLat, centerLng],
+    obrasForaUrbanaCount,
     totalGeorreferenciadas,
     totalNaoGeorreferenciadas,
   };

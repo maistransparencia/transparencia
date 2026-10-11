@@ -21,6 +21,7 @@ const mockMarker = {
 const mockMap = {
   setView: vi.fn(),
   flyTo: vi.fn(),
+  fitBounds: vi.fn(),
   remove: vi.fn(),
   invalidateSize: vi.fn(),
 };
@@ -53,7 +54,7 @@ describe("ObrasMapaInterativo", () => {
     expect(container).toBeInTheDocument();
     expect(
       screen.getByText(
-        /nenhuma obra georreferenciada para os filtros selecionados/i,
+        /nenhuma obra com localização cadastrada|nenhuma obra georreferenciada/i,
       ),
     ).toBeInTheDocument();
   });
@@ -68,6 +69,7 @@ describe("ObrasMapaInterativo", () => {
         situacaoColorHex: "#059669",
         latitude: -20.9634,
         longitude: -42.0408,
+        isUrbana: true,
         valorInvestimentoFormatado: "R$ 500.000",
         percentualExecucaoFormatado: "60%",
         orgaoResponsavel: "Sec Obras",
@@ -105,6 +107,7 @@ describe("ObrasMapaInterativo", () => {
         situacaoColorHex: "#059669",
         latitude: -20.9634,
         longitude: -42.0408,
+        isUrbana: true,
         valorInvestimentoFormatado: "R$ 500.000",
         percentualExecucaoFormatado: "60%",
         orgaoResponsavel: "Sec Obras",
@@ -149,6 +152,7 @@ describe("ObrasMapaInterativo", () => {
         situacaoColorHex: "#059669",
         latitude: -20.9634,
         longitude: -42.0408,
+        isUrbana: true,
         valorInvestimentoFormatado: "R$ 500.000",
         percentualExecucaoFormatado: "60%",
         orgaoResponsavel: "Sec Obras",

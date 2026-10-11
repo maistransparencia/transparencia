@@ -281,7 +281,7 @@ describe("obras queries", () => {
       expect(pagFloat).toHaveLength(3);
     });
 
-    it("deve validar limites de coordenadas geográficas e filtrar dummy (0, 0)", async () => {
+    it("deve validar limites de coordenadas brasileiras e filtrar dummy (0, 0), positivas (África/oceanos) e espelhadas", async () => {
       await seedObra({
         portalSlug: PORTAL_A,
         idProjeto: "proj_valido",
@@ -300,6 +300,12 @@ describe("obras queries", () => {
         latitude: 99.99,
         longitude: -200,
       });
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "proj_africa_positiva",
+        latitude: -22.048,
+        longitude: 22.048,
+      });
 
       const detalheValido = await getObraDetalhe(PORTAL_A, "proj_valido");
       expect(detalheValido?.latitude).toBe(-20.75);
@@ -312,6 +318,13 @@ describe("obras queries", () => {
       const detalheFora = await getObraDetalhe(PORTAL_A, "proj_fora_limite");
       expect(detalheFora?.latitude).toBeNull();
       expect(detalheFora?.longitude).toBeNull();
+
+      const detalheAfrica = await getObraDetalhe(
+        PORTAL_A,
+        "proj_africa_positiva",
+      );
+      expect(detalheAfrica?.latitude).toBeNull();
+      expect(detalheAfrica?.longitude).toBeNull();
     });
 
     it("deve formatar data sem deslocamento de timezone", async () => {
@@ -421,7 +434,12 @@ describe("obras queries", () => {
         cadastradas: 0,
         canceladas: 0,
         valorTotalInvestimento: 0,
+        valorEmExecucao: 0,
+        valorParalisadas: 0,
+        valorConcluidas: 0,
+        valorCadastradas: 0,
         percentualMedioExecucaoFisica: null,
+        obrasSemMedicaoCount: 0,
       };
 
       expect(await getResumoObrasPorPortal("")).toEqual(zerado);
@@ -440,7 +458,12 @@ describe("obras queries", () => {
         cadastradas: 0,
         canceladas: 0,
         valorTotalInvestimento: 0,
+        valorEmExecucao: 0,
+        valorParalisadas: 0,
+        valorConcluidas: 0,
+        valorCadastradas: 0,
         percentualMedioExecucaoFisica: null,
+        obrasSemMedicaoCount: 0,
       });
     });
 
@@ -502,8 +525,48 @@ describe("obras queries", () => {
       expect(resumo.cadastradas).toBe(1);
       expect(resumo.canceladas).toBe(1);
       expect(resumo.valorTotalInvestimento).toBe(825000);
+      expect(resumo.valorEmExecucao).toBe(500000);
+      expect(resumo.valorParalisadas).toBe(150000);
+      expect(resumo.valorConcluidas).toBe(100000);
+      expect(resumo.valorCadastradas).toBe(50000);
+      expect(resumo.obrasSemMedicaoCount).toBe(2);
       // Média de percentual (50 + 70 + 20 + 100) / 4 = 240 / 4 = 60
       expect(resumo.percentualMedioExecucaoFisica).toBe(60);
+    });
+
+    it("deve filtrar obras e resumo por ano de início previsto", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "ob_2024",
+        situacao: "em_execucao",
+        valorInvestimentoPrevisto: 100000,
+        dataInicioPrevista: "2024-03-01",
+      });
+
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "ob_2026",
+        situacao: "em_execucao",
+        valorInvestimentoPrevisto: 200000,
+        dataInicioPrevista: "2026-02-15",
+      });
+
+      // Em 2024, só ob_2024 deve aparecer
+      const obras2024 = await getObrasPorPortal(PORTAL_A, { ano: 2024 });
+      expect(obras2024).toHaveLength(1);
+      expect(obras2024[0].idProjeto).toBe("ob_2024");
+
+      const resumo2024 = await getResumoObrasPorPortal(PORTAL_A, { ano: 2024 });
+      expect(resumo2024.totalObras).toBe(1);
+      expect(resumo2024.valorTotalInvestimento).toBe(100000);
+
+      // Em 2026, ambas devem aparecer
+      const obras2026 = await getObrasPorPortal(PORTAL_A, { ano: 2026 });
+      expect(obras2026).toHaveLength(2);
+
+      const resumo2026 = await getResumoObrasPorPortal(PORTAL_A, { ano: 2026 });
+      expect(resumo2026.totalObras).toBe(2);
+      expect(resumo2026.valorTotalInvestimento).toBe(300000);
     });
 
     it("deve isolar agregados por município", async () => {

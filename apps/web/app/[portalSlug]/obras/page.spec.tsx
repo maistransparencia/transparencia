@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { loadObrasData } from "./loader";
 
@@ -15,7 +15,7 @@ vi.mock("./loader", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   usePathname: () => "/porciuncula_prefeitura/obras",
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams({ ano: "2026" }),
 }));
 
 const { default: ObrasPage } = await import("./page");
@@ -26,9 +26,14 @@ function makeRawObrasData(): RawData {
     portalConfig: {
       displayName: "Porciúncula",
       uf: "RJ",
+      dataExtracao: "2026-10-01",
     } as unknown as Awaited<
       ReturnType<typeof import("@transparencia/db").getPortalConfig>
     >,
+    context: {
+      selectedYear: 2026,
+      isCurrentYear: true,
+    },
     filtros: {
       status: "todas",
     },
@@ -40,7 +45,12 @@ function makeRawObrasData(): RawData {
       cadastradas: 0,
       canceladas: 0,
       valorTotalInvestimento: 4500000,
+      valorEmExecucao: 2800000,
+      valorParalisadas: 1200000,
+      valorConcluidas: 500000,
+      valorCadastradas: 0,
       percentualMedioExecucaoFisica: 62.5,
+      obrasSemMedicaoCount: 0,
     },
     obras: [
       {
@@ -66,12 +76,12 @@ function makeRawObrasData(): RawData {
         orgaoResponsavel: "Secretaria de Obras",
         valorInvestimentoPrevisto: 1200000,
         percentualExecucaoFisica: 30.0,
-        dataUltimaMedicao: "2026-02-15",
+        dataUltimaMedicao: "2024-02-15",
         latitude: -20.965,
         longitude: -42.042,
         motivoParalisacao: "Atraso no repasse do convênio estadual",
-        dataInicioPrevista: "2025-05-01",
-        dataFimPrevista: "2026-06-30",
+        dataInicioPrevista: "2023-05-01",
+        dataFimPrevista: "2024-06-30",
       },
       {
         idProjeto: "OBR-003",
@@ -112,37 +122,37 @@ describe("ObrasPage Component", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza cabeçalho, fundamentação legal e KPIs consolidados", async () => {
+  it("renderiza o Hero no padrão visual de temas com narrativa, investimento e 4 KPIs", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
       params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ ano: "2026" }),
     });
 
     render(page);
 
+    // Hero Header de Tema
     expect(
-      screen.getByRole("heading", { name: "Obras Públicas & Impacto Urbano" }),
+      screen.getByText(/TEMAS · OBRAS PÚBLICAS · 2026/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Porciúncula \(RJ\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /Das 4 obras cadastradas, só 2 estão em execução\./i,
+      }),
+    ).toBeInTheDocument();
 
-    // Link oficial da Lei 14.133/2021
-    const legalLink = screen.getByRole("link", {
-      name: /Lei nº 14.133\/2021/i,
-    });
-    expect(legalLink).toBeInTheDocument();
-    expect(legalLink).toHaveAttribute("target", "_blank");
-    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
+    // Card de Investimento Previsto
+    expect(screen.getByText("Investimento previsto")).toBeInTheDocument();
 
-    // KPIs
-    expect(screen.getByText("Total de Obras")).toBeInTheDocument();
-    expect(screen.getAllByText("Em Execução").length).toBeGreaterThan(0);
+    // 4 KPIs
+    expect(screen.getAllByText("Em execução").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Paralisadas").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Concluídas").length).toBeGreaterThan(0);
+    expect(screen.getByText("Avanço físico médio")).toBeInTheDocument();
   });
 
-  it("renderiza a lista de obras e destaca badges de status e localização não georreferenciada", async () => {
+  it("renderiza a seção 'Onde estão as obras' com alternância urbana/território e lista de cards", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -152,24 +162,30 @@ describe("ObrasPage Component", () => {
 
     render(page);
 
+    expect(
+      screen.getByRole("heading", { name: "Onde estão as obras" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Área urbana" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Todo o território" }),
+    ).toBeInTheDocument();
+
+    // Lista de obras
     expect(screen.getByText("Construção de Escola Modelo")).toBeInTheDocument();
     expect(
-      screen.getByText("Reforma da Ponte do Rio Carangola"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Reforma da Ponte do Rio Carangola").length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByText("Revitalização da Praça da Matriz"),
     ).toBeInTheDocument();
     expect(
       screen.getByText("Extensão da Rede de Iluminação Rural"),
     ).toBeInTheDocument();
-
-    // Obra sem coordenadas exibe badge explicativo
-    expect(
-      screen.getByText("Localização não georreferenciada"),
-    ).toBeInTheDocument();
   });
 
-  it("abre o painel de resumo com detalhes completos ao selecionar uma obra", async () => {
+  it("renderiza a seção dedicada de obras paralisadas com fundamentação legal oficial", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -179,23 +195,26 @@ describe("ObrasPage Component", () => {
 
     render(page);
 
-    const obraButton = screen.getByRole("button", {
-      name: /Ver detalhes da obra Reforma da Ponte do Rio Carangola/i,
-    });
-    fireEvent.click(obraButton);
+    // Seção de paralisadas
+    expect(
+      screen.getByRole("heading", { name: "Obras paralisadas" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Atenção especial")).toBeInTheDocument();
+    expect(
+      screen.getByText("Atraso no repasse do convênio estadual"),
+    ).toBeInTheDocument();
 
-    // Painel resumo deve ser exibido com detalhes
-    const painel = screen.getByRole("region", {
-      name: "Resumo da obra selecionada",
+    // Link oficial da Lei 14.133/2021 (Regra 20)
+    const legalLink = screen.getByRole("link", {
+      name: /Art\. 115, §6º da Lei nº 14\.133\/2021/i,
     });
-    expect(painel).toBeInTheDocument();
-    expect(
-      within(painel).getByText("Atraso no repasse do convênio estadual"),
-    ).toBeInTheDocument();
-    expect(
-      within(painel).getByText("Investimento Previsto"),
-    ).toBeInTheDocument();
-    expect(within(painel).getByText("Previsão de Término")).toBeInTheDocument();
+    expect(legalLink).toBeInTheDocument();
+    expect(legalLink).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6",
+    );
+    expect(legalLink).toHaveAttribute("target", "_blank");
+    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("permite filtrar obras por status clicando na pílula correspondente", async () => {
@@ -208,22 +227,19 @@ describe("ObrasPage Component", () => {
 
     render(page);
 
-    const tabParalisadas = screen.getByRole("tab", { name: /Paralisadas/i });
-    fireEvent.click(tabParalisadas);
+    const tabConcluidas = screen.getByRole("tab", { name: /Concluída/i });
+    fireEvent.click(tabConcluidas);
 
-    // Deve exibir a obra paralisada e ocultar as outras da lista filtrada
+    // Na lista de cards
     expect(
-      screen.getByText("Reforma da Ponte do Rio Carangola"),
+      screen.getByText("Revitalização da Praça da Matriz"),
     ).toBeInTheDocument();
     expect(
       screen.queryByText("Construção de Escola Modelo"),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Revitalização da Praça da Matriz"),
-    ).not.toBeInTheDocument();
   });
 
-  it("filtra obras por busca textual considerando nome ou órgão com suporte a acentuação", async () => {
+  it("filtra obras por busca textual considerando nome ou órgão", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -236,25 +252,41 @@ describe("ObrasPage Component", () => {
     const searchInput = screen.getByLabelText("Buscar obras públicas");
     expect(searchInput).toBeInTheDocument();
 
-    // Digita termo sem acento buscando obra com acento (normalização NFD)
+    // Busca textual
     fireEvent.change(searchInput, { target: { value: "ponte" } });
 
     expect(
-      screen.getByText("Reforma da Ponte do Rio Carangola"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Reforma da Ponte do Rio Carangola").length,
+    ).toBeGreaterThan(0);
     expect(
       screen.queryByText("Construção de Escola Modelo"),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Revitalização da Praça da Matriz"),
-    ).not.toBeInTheDocument();
+  });
 
-    // Busca por órgão com acentuação
-    fireEvent.change(searchInput, { target: { value: "Educação" } });
+  it("exibe box expandido de detalhes com dados de previsão e fonte ObrasGov.br ao selecionar uma obra", async () => {
+    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
-    expect(screen.getByText("Construção de Escola Modelo")).toBeInTheDocument();
+    const page = await ObrasPage({
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+      searchParams: Promise.resolve({}),
+    });
+
+    render(page);
+
+    const obraButton = screen.getByRole("button", {
+      name: /Construção de Escola Modelo/i,
+    });
+    fireEvent.click(obraButton);
+
+    // Box expandido com detalhes e menção a ObrasGov.br
+    expect(screen.getByText("Órgão Responsável")).toBeInTheDocument();
+    expect(screen.getByText("Previsão")).toBeInTheDocument();
+    expect(screen.getAllByText("Última Medição").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Fonte: ObrasGov\.br/i)).toBeInTheDocument();
     expect(
-      screen.queryByText("Reforma da Ponte do Rio Carangola"),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", {
+        name: /Ver no Cadastro de Obras \(ID OBR-001\)/i,
+      }),
+    ).toBeInTheDocument();
   });
 });

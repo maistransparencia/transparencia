@@ -7,8 +7,28 @@ import {
 import { createCachedDataLoader } from "@/lib/cache";
 
 export interface ObrasSearchParams {
+  ano?: string;
   status?: string;
   busca?: string;
+}
+
+export interface ObrasContext {
+  selectedYear: number;
+  isCurrentYear: boolean;
+}
+
+export function parseObrasContext(
+  searchParams: ObrasSearchParams,
+): ObrasContext {
+  const currentYear = new Date().getFullYear();
+  const parsed = searchParams.ano ? Number(searchParams.ano) : currentYear;
+  const selectedYear =
+    Number.isInteger(parsed) && parsed > 1900 ? parsed : currentYear;
+
+  return {
+    selectedYear,
+    isCurrentYear: selectedYear === currentYear,
+  };
 }
 
 export function parseObrasSearchParams(params: ObrasSearchParams): {
@@ -49,17 +69,19 @@ export async function fetchRawObrasData(
   searchParams: ObrasSearchParams = {},
 ) {
   const tenantSlug = requirePortalSlug(portalSlug);
+  const context = parseObrasContext(searchParams);
   const filtros = parseObrasSearchParams(searchParams);
 
   const [portalConfig, resumo, obras] = await Promise.all([
     getPortalConfig(tenantSlug),
-    getResumoObrasPorPortal(tenantSlug),
-    getObrasPorPortal(tenantSlug),
+    getResumoObrasPorPortal(tenantSlug, { ano: context.selectedYear }),
+    getObrasPorPortal(tenantSlug, { ano: context.selectedYear }),
   ]);
 
   return {
     portalSlug: tenantSlug,
     portalConfig,
+    context,
     filtros,
     resumo,
     obras,

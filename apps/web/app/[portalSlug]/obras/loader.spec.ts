@@ -2,6 +2,7 @@ import * as dbModule from "@transparencia/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   loadObrasData,
+  parseObrasContext,
   parseObrasSearchParams,
   requirePortalSlug,
 } from "./loader";
@@ -27,6 +28,25 @@ describe("obras/loader", () => {
       expect(requirePortalSlug(" porciuncula_prefeitura ")).toBe(
         "porciuncula_prefeitura",
       );
+    });
+  });
+
+  describe("parseObrasContext", () => {
+    it("extrai ano válido e identifica se é o ano corrente", () => {
+      const currentYear = new Date().getFullYear();
+      const ctx = parseObrasContext({ ano: "2024" });
+      expect(ctx.selectedYear).toBe(2024);
+      expect(ctx.isCurrentYear).toBe(2024 === currentYear);
+    });
+
+    it("usa fallback para o ano corrente se não informado ou inválido", () => {
+      const currentYear = new Date().getFullYear();
+      const ctx = parseObrasContext({});
+      expect(ctx.selectedYear).toBe(currentYear);
+      expect(ctx.isCurrentYear).toBe(true);
+
+      const ctxInvalido = parseObrasContext({ ano: "invalido" });
+      expect(ctxInvalido.selectedYear).toBe(currentYear);
     });
   });
 
@@ -62,7 +82,7 @@ describe("obras/loader", () => {
   });
 
   describe("loadObrasData", () => {
-    it("carrega dados agregados e lista de obras filtrada", async () => {
+    it("carrega dados agregados e lista de obras filtrada respeitando o contexto de ano", async () => {
       vi.mocked(dbModule.getPortalConfig).mockResolvedValue({
         displayName: "Porciúncula",
         uf: "RJ",
@@ -76,7 +96,12 @@ describe("obras/loader", () => {
         cadastradas: 0,
         canceladas: 0,
         valorTotalInvestimento: 5000000,
+        valorEmExecucao: 2500000,
+        valorParalisadas: 1000000,
+        valorConcluidas: 1500000,
+        valorCadastradas: 0,
         percentualMedioExecucaoFisica: 65.5,
+        obrasSemMedicaoCount: 0,
       });
 
       vi.mocked(dbModule.getObrasPorPortal).mockResolvedValue([
@@ -98,6 +123,7 @@ describe("obras/loader", () => {
       ]);
 
       const result = await loadObrasData("porciuncula_prefeitura", {
+        ano: "2026",
         status: "em_execucao",
         busca: "UBS",
       });
@@ -107,12 +133,15 @@ describe("obras/loader", () => {
       );
       expect(dbModule.getResumoObrasPorPortal).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
+        { ano: 2026 },
       );
       expect(dbModule.getObrasPorPortal).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
+        { ano: 2026 },
       );
 
       expect(result.portalSlug).toBe("porciuncula_prefeitura");
+      expect(result.context.selectedYear).toBe(2026);
       expect(result.resumo.totalObras).toBe(5);
       expect(result.obras).toHaveLength(1);
       expect(result.obras[0].idProjeto).toBe("OBR-001");

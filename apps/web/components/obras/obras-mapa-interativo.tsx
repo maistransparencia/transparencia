@@ -8,6 +8,9 @@ export interface ObrasMapaInterativoProps {
   markers: ObraMarkerItem[];
   center: [number, number];
   zoom?: number;
+  urbanBounds?: [[number, number], [number, number]] | null;
+  territorioBounds?: [[number, number], [number, number]] | null;
+  viewMode?: "urbana" | "territorio";
   selectedObraId?: string | null;
   onSelectObra?: (idProjeto: string) => void;
   className?: string;
@@ -26,6 +29,9 @@ export function ObrasMapaInterativo({
   markers,
   center,
   zoom = 13,
+  urbanBounds,
+  territorioBounds,
+  viewMode = "urbana",
   selectedObraId,
   onSelectObra,
   className = "",
@@ -37,7 +43,7 @@ export function ObrasMapaInterativo({
     new Map(),
   );
 
-  // Função para desenhar os marcadores
+  // Função para desenhar os marcadores redondos minimalistas
   const renderMarkers = useCallback(
     (
       L: typeof import("leaflet"),
@@ -49,8 +55,11 @@ export function ObrasMapaInterativo({
 
       markers.forEach((m) => {
         const isSelected = selectedObraId === m.idProjeto;
-        const size = isSelected ? 32 : 24;
-        const innerSize = isSelected ? 12 : 8;
+        const size = isSelected ? 20 : 14;
+        const border = isSelected ? "3px solid #ffffff" : "2px solid #ffffff";
+        const shadow = isSelected
+          ? "0 0 0 3px rgba(37,99,235,0.45), 0 2px 6px rgba(0,0,0,0.35)"
+          : "0 1px 4px rgba(0,0,0,0.35)";
 
         const html = `
         <div style="
@@ -58,15 +67,10 @@ export function ObrasMapaInterativo({
           height: ${size}px;
           background-color: ${m.situacaoColorHex};
           border-radius: 50%;
-          border: ${isSelected ? "3px solid #ffffff" : "2px solid #ffffff"};
-          box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border: ${border};
+          box-shadow: ${shadow};
           cursor: pointer;
-        ">
-          <div style="width: ${innerSize}px; height: ${innerSize}px; background-color: #ffffff; border-radius: 50%;"></div>
-        </div>
+        "></div>
       `;
 
         const icon = L.divIcon({
@@ -89,7 +93,7 @@ export function ObrasMapaInterativo({
         const dataFimEscaped = escapeHtml(m.dataFimPrevistaFormatada);
 
         const popupHtml = `
-        <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 200px;">
+        <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 220px;">
           <div style="font-weight: 700; margin-bottom: 3px; color: #0f172a;">${nomeObraEscaped}</div>
           <div style="color: #64748b; font-size: 11px; margin-bottom: 6px;">${orgaoEscaped}</div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
@@ -98,7 +102,7 @@ export function ObrasMapaInterativo({
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
             <span style="color: #64748b;">Avanço:</span>
-            <span style="font-weight: 600; color: #059669;">${percentualEscaped}</span>
+            <span style="font-weight: 600; color: #2563eb;">${percentualEscaped}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: #64748b;">
             <span>Previsão:</span>
@@ -120,7 +124,7 @@ export function ObrasMapaInterativo({
     [markers, selectedObraId, onSelectObra],
   );
 
-  // Inicializa o mapa Leaflet
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mapa Leaflet deve inicializar apenas na montagem
   useEffect(() => {
     let isMounted = true;
 
@@ -138,11 +142,15 @@ export function ObrasMapaInterativo({
         scrollWheelZoom: true,
       });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(map);
+      // Tiles Esri World Light Gray Base (exatamente como no mockup Tiles © Esri)
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution:
+            'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener noreferrer">Esri</a>',
+          maxZoom: 16,
+        },
+      ).addTo(map);
 
       map.invalidateSize();
       setTimeout(() => {
@@ -169,7 +177,8 @@ export function ObrasMapaInterativo({
         markersMapRef.current.clear();
       }
     };
-  }, [renderMarkers, center, zoom]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: mapa Leaflet deve inicializar apenas na montagem
+  }, []);
 
   // Atualiza marcadores quando a lista de marcadores ou a seleção mudar
   useEffect(() => {
@@ -177,35 +186,56 @@ export function ObrasMapaInterativo({
       if (!mapInstanceRef.current || !markersGroupRef.current) return;
       const L = (await import("leaflet")).default;
       renderMarkers(L, mapInstanceRef.current, markersGroupRef.current);
+
+      if (selectedObraId) {
+        const selectedMarker = markersMapRef.current.get(selectedObraId);
+        if (selectedMarker) {
+          const latLng = selectedMarker.getLatLng();
+          mapInstanceRef.current.flyTo(latLng, 16, {
+            animate: true,
+            duration: 0.8,
+          });
+          selectedMarker.openPopup();
+        }
+      }
     }
     updateMarkers();
-  }, [renderMarkers]);
+  }, [renderMarkers, selectedObraId]);
 
-  // Centraliza e abre popup da obra selecionada
+  // Alterna visualização entre Área Urbana e Todo o Território
   useEffect(() => {
-    if (!selectedObraId || !mapInstanceRef.current) return;
-
-    const selectedMarker = markersMapRef.current.get(selectedObraId);
-    if (selectedMarker) {
-      const latLng = selectedMarker.getLatLng();
-      mapInstanceRef.current.flyTo(latLng, 15, {
-        animate: true,
-        duration: 0.8,
-      });
-      selectedMarker.openPopup();
+    if (
+      !mapInstanceRef.current ||
+      typeof mapInstanceRef.current.fitBounds !== "function"
+    ) {
+      return;
     }
-  }, [selectedObraId]);
+    if (viewMode === "urbana" && urbanBounds) {
+      mapInstanceRef.current.fitBounds(urbanBounds, {
+        padding: [35, 35],
+        maxZoom: 15,
+        animate: true,
+      });
+    } else if (viewMode === "territorio" && territorioBounds) {
+      mapInstanceRef.current.fitBounds(territorioBounds, {
+        padding: [35, 35],
+        maxZoom: 14,
+        animate: true,
+      });
+    }
+  }, [viewMode, urbanBounds, territorioBounds]);
 
   return (
     <div
       data-testid="obras-mapa-container"
-      className={`relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 ${className}`}
+      className={`relative h-full w-full overflow-hidden bg-[#e5e5e5] ${className}`}
     >
-      <div ref={containerRef} className="h-full min-h-[380px] w-full" />
+      <div ref={containerRef} className="h-full min-h-[580px] w-full" />
       {markers.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-xs">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/75 backdrop-blur-xs">
           <p className="font-medium text-slate-500 text-sm">
-            Nenhuma obra georreferenciada para os filtros selecionados.
+            Nenhuma obra com localização cadastrada para os filtros
+            selecionados.
           </p>
         </div>
       )}
