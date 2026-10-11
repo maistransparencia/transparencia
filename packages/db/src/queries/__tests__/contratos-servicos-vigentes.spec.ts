@@ -65,4 +65,12 @@ describe("getContratoByNumero", () => {
     );
     expect(zeroNotFound).toBeNull();
   });
+
+  it("deve encontrar contrato de outro exercício quando ano informado não possui o contrato (fallback plurianual)", async () => {
+    // 2939/24 existe em 2024 e 2025, mas não em 2026
+    const found = await getContratoByNumero(PORTAL_SLUG, "2939/24", 2026);
+    expect(found).not.toBeNull();
+    expect(found?.contratoNumero).toBe("2939/24");
+    expect(found?.ano).toBe(2025);
+  });
 });

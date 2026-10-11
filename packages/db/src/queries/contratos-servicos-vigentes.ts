@@ -247,7 +247,7 @@ export async function getContratoByNumero(
   const canLtrim = ltrimmedTerm.length > 0;
 
   try {
-    let query = db
+    const query = db
       .selectFrom("fct_contratos_servicos_vigentes as csv")
       .leftJoin("dim_orgao as o", (join) =>
         join
@@ -331,11 +331,27 @@ export async function getContratoByNumero(
         ]),
       );
 
-    if (ano !== undefined && !Number.isNaN(ano)) {
-      query = query.where("csv.ano", "=", ano);
-    }
+    const baseQuery = query;
 
-    const row = await query.orderBy("csv.ano", "desc").executeTakeFirst();
+    let row =
+      ano !== undefined && !Number.isNaN(ano)
+        ? await baseQuery
+            .where("csv.ano", "=", ano)
+            .orderBy("csv.ano", "desc")
+            .limit(1)
+            .executeTakeFirst()
+        : await baseQuery
+            .orderBy("csv.ano", "desc")
+            .limit(1)
+            .executeTakeFirst();
+
+    if (!row && ano !== undefined && !Number.isNaN(ano)) {
+      // Fallback: se o contrato ocorreu em outro exercício (ex: plurianual ou deep-link sem ano exato), busca pelo mais recente
+      row = await baseQuery
+        .orderBy("csv.ano", "desc")
+        .limit(1)
+        .executeTakeFirst();
+    }
 
     if (!row) {
       return null;
