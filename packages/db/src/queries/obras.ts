@@ -355,11 +355,28 @@ export async function getContratosPorObra(
       SELECT
         portal_slug,
         id_projeto,
-        nome_obra
+        nome_obra,
+        data_fim_prevista,
+        situacao
       FROM fct_obras
       WHERE portal_slug = ${cleanSlug}
         AND id_projeto = ${cleanId}
       LIMIT 1
+    ),
+    obra_meta AS (
+      SELECT
+        portal_slug,
+        id_projeto,
+        nome_obra,
+        data_fim_prevista,
+        situacao,
+        trim(regexp_replace(
+          unaccent(lower(coalesce(nome_obra, ''))),
+          '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
+          ' ',
+          'g'
+        )) AS nucleo_obra
+      FROM obra_alvo
     )
     SELECT DISTINCT ON (c.contrato_numero)
       c.contrato_id,
@@ -379,7 +396,7 @@ export async function getContratosPorObra(
       c.objeto,
       c.ano
     FROM fct_contratos c
-    INNER JOIN obra_alvo o
+    INNER JOIN obra_meta o
       ON c.portal_slug = o.portal_slug
     WHERE
       (c.numero_obra IS NOT NULL AND c.numero_obra = o.id_projeto)
@@ -387,20 +404,23 @@ export async function getContratosPorObra(
         length(o.id_projeto) >= 4
         AND NOT (o.id_projeto ~ '^[0-9]{4}$')
         AND (
-          unaccent(lower(coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower(o.id_projeto)) || '%'
-          OR unaccent(lower(coalesce(c.objeto_completo, ''))) LIKE '%' || unaccent(lower(o.id_projeto)) || '%'
+          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower(o.id_projeto)) || '%'
         )
       )
       OR (
-        unaccent(lower(coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
-        OR unaccent(lower(coalesce(c.objeto_completo, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
+        unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
       )
       OR (
-        o.nome_obra IS NOT NULL
-        AND length(trim(o.nome_obra)) >= 5
+        length(o.nucleo_obra) >= 5
         AND (
-          word_similarity(unaccent(lower(o.nome_obra)), unaccent(lower(coalesce(c.objeto, c.objeto_completo, '')))) > 0.40
-          OR similarity(unaccent(lower(o.nome_obra)), unaccent(lower(coalesce(c.objeto, c.objeto_completo, '')))) > 0.40
+          (o.data_fim_prevista IS NULL OR c.ano <= (EXTRACT(YEAR FROM o.data_fim_prevista) + 2))
+        )
+        AND (
+          word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55
+        )
+        AND (
+          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|reapeamento|infraestrutura|projeto)\y'
+          OR coalesce(c.modalidade, '') ~* 'concorrencia|tomada_de_precos'
         )
       )
     ORDER BY

@@ -580,6 +580,70 @@ describe("obras queries", () => {
       expect(contratos[0].contratoNumero).toBe("CTR-040/2024");
     });
 
+    it("deve correlacionar obra com contrato cujo objeto resumido é truncado mas objeto_completo contém os termos da obra", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "16868.33-35",
+        nomeObra: "Sistema de Esgotamento Sanitário",
+      });
+
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "2937/24",
+        fornecedorNome: "L.PHILIPPE CONSTRUCOES LTDA",
+        objeto: "Contratação de empresa especializada para realização de obra",
+        objetoCompleto:
+          "Contratação de empresa especializada para realização de obras e serviços de esgotamento sanitário no Município de Porciúncula",
+        valorContrato: 24698277.36,
+        modalidade: "concorrencia",
+        vencimentoAtual: "2099-12-31",
+      });
+
+      const contratos = await getContratosPorObra(PORTAL_A, "16868.33-35");
+      expect(contratos).toHaveLength(1);
+      expect(contratos[0].contratoNumero).toBe("2937/24");
+      expect(contratos[0].fornecedorNome).toBe("L.PHILIPPE CONSTRUCOES LTDA");
+    });
+
+    it("deve evitar falsos positivos operacionais e anacrônicos para obras com nomes genéricos (ex: IMPLANTACAO UBS)", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "150213.33-18",
+        nomeObra: "IMPLANTACAO UBS",
+        dataFimPrevista: "2018-12-31",
+        situacao: "concluida",
+      });
+
+      // Contrato operacional de SAMU (ano 2024, sem relação com obra civil da UBS)
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "0192/24",
+        fornecedorNome: "CONSORCIO PUBLICO SAMU 192",
+        objeto: "CONT. RATEIO DE IMPLANTAÇÃO E CUSTEIO DO SAMU 192 NOROESTE",
+        valorContrato: 290403.79,
+        modalidade: "dispensa",
+        vencimentoAtual: "2024-12-31",
+      });
+
+      // Contrato de software (ano 2025)
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+        contratoNumero: "0293/25",
+        fornecedorNome: "LEIS LTDA",
+        objeto:
+          "Contratação de empresa para Implantação da Plataforma de Legislação",
+        valorContrato: 58350.0,
+        modalidade: "dispensa",
+        vencimentoAtual: "2025-12-31",
+      });
+
+      const contratos = await getContratosPorObra(PORTAL_A, "150213.33-18");
+      expect(contratos).toHaveLength(0);
+    });
+
     it("deve garantir estrito isolamento multi-tenant impedindo cross-tenant data leakage", async () => {
       await seedObra({
         portalSlug: PORTAL_A,
