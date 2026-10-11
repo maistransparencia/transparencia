@@ -141,6 +141,8 @@ export function ObrasInteractiveSection({
     string | null
   >(null);
   const [viewMode, setViewMode] = useState<"urbana" | "territorio">("urbana");
+  const [_mobileTab, _setMobileTab] = useState<"mapa" | "lista">("mapa");
+  const _mobileCarouselRef = useRef<HTMLDivElement | null>(null);
 
   const activeSelectedObraId =
     externalSelectedObraId !== undefined
@@ -245,11 +247,19 @@ export function ObrasInteractiveSection({
       setInternalSelectedObraId(idProjeto);
     }
 
-    // Scroll suave do item na lista se selecionado pelo mapa
+    // Scroll suave do item na lista ou carrossel se selecionado pelo mapa
     setTimeout(() => {
       const el = document.getElementById(`obra-item-${idProjeto}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      const mobileCard = document.getElementById(`mobile-card-${idProjeto}`);
+      if (mobileCard) {
+        mobileCard.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
       }
     }, 50);
   };
