@@ -14,6 +14,12 @@ with projetos as (
         data_inicio_prevista,
         data_fim_prevista
     from {{ ref('stg_obrasgov__projetos') }}
+    where not (
+        {{ target.schema }}.unaccent(lower(coalesce(orgao_responsavel, ''))) like '%dnit%'
+        or {{ target.schema }}.unaccent(lower(coalesce(orgao_responsavel, ''))) like '%departamento nacional de infraestrutura de transportes%'
+        or {{ target.schema }}.unaccent(lower(coalesce(nome_obra, ''))) like '%caminhos do acucar%'
+        or {{ target.schema }}.unaccent(lower(coalesce(nome_obra, ''))) like '%malha federal%'
+    )
 ),
 
 coords as (
