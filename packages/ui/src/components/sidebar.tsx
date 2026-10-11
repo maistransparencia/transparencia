@@ -3,6 +3,7 @@
 import {
   ChevronDown,
   FileText,
+  HardHat,
   HeartPulse,
   Landmark,
   LayoutDashboard,
@@ -333,6 +334,7 @@ export function Sidebar({
   const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
   const temasItems = [
     { name: "Saúde", href: "/saude", icon: HeartPulse },
+    { name: "Obras Públicas", href: "/obras", icon: HardHat },
     ...(isPrevidenciaEnabled
       ? [
           {
@@ -452,7 +454,6 @@ export function Sidebar({
               <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
                   {!imgError && normalizedBrasao ? (
-                    /* biome-ignore lint/performance/noImgElement: brasao asset */
                     <Image
                       src={normalizedBrasao}
                       alt={`Brasão de ${portalName}`}

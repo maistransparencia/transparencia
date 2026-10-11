@@ -65,6 +65,19 @@ describe("Sidebar Component", () => {
     expect(screen.getByText("Radar Cívico")).toBeInTheDocument();
   });
 
+  it("renderiza o item de navegação Obras Públicas", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const obrasLink = screen.getByRole("link", { name: /Obras Públicas/i });
+    expect(obrasLink).toBeInTheDocument();
+    expect(obrasLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/porciuncula_prefeitura/obras"),
+    );
+  });
+
   it("renderiza pwaInstallSlot quando fornecido", () => {
     render(
       <Sidebar
