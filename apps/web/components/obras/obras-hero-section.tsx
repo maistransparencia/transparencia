@@ -6,6 +6,7 @@ export interface ObrasHeroSectionProps {
   ano: number;
   isCurrentYear: boolean;
   partialPeriod: string;
+  municipioNome?: string;
   kpis: ObrasKpisViewModel;
 }
 
@@ -13,6 +14,7 @@ export function ObrasHeroSection({
   ano,
   isCurrentYear,
   partialPeriod,
+  municipioNome = "município",
   kpis,
 }: ObrasHeroSectionProps) {
   // Proporções para a barra empilhada de investimento
@@ -40,17 +42,34 @@ export function ObrasHeroSection({
           </span>
 
           <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
-            Das {kpis.totalObras} obras cadastradas, só {kpis.emExecucao} estão
-            em execução.{" "}
+            Do planejamento ao canteiro:{" "}
             <span className="text-accent">
-              {kpis.cadastradas} ainda não saíram do papel.
-            </span>
+              fiscalize onde os recursos públicos ganham forma
+            </span>{" "}
+            no município.
           </h1>
 
           <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
-            Acompanhe a evolução física, os valores contratados e a localização
-            das intervenções urbanas no município. Dados integrados do
-            ObrasGov.br e do portal da transparência municipal.
+            {(() => {
+              if (kpis.totalObras === 0) {
+                return `Nenhuma intervenção pública registrada com movimentação para o exercício de ${ano}. Acompanhe o histórico completo nos demais anos ou acesse a base do ObrasGov.br.`;
+              }
+              const obrasTexto =
+                kpis.totalObras === 1
+                  ? "1 obra mapeada"
+                  : `${kpis.totalObras} obras mapeadas`;
+              const execucaoTexto =
+                kpis.emExecucao === 0
+                  ? "nenhuma em execução ativa no momento"
+                  : kpis.emExecucao === 1
+                    ? "1 em execução ativa"
+                    : `${kpis.emExecucao} em execução ativa`;
+              const paralisadasTexto =
+                kpis.paralisadas > 0
+                  ? `, com ${kpis.paralisadas} sob alerta de paralisação`
+                  : "";
+              return `São ${obrasTexto} somando ${kpis.valorTotalInvestimentoCompacto} em investimentos previstos (${execucaoTexto}${paralisadasTexto}). Acompanhe a evolução física, os valores contratados e a localização territorial de cada intervenção.`;
+            })()}
           </p>
         </div>
 

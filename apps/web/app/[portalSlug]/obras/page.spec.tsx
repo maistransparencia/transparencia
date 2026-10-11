@@ -138,7 +138,7 @@ describe("ObrasPage Component", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /Das 4 obras cadastradas, só 2 estão em execução\./i,
+        name: /Do planejamento ao canteiro/i,
       }),
     ).toBeInTheDocument();
 
