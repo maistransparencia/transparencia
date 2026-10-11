@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: fct_obras
+    description: "Fato de obras públicas consolidadas do ObrasGov.br"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - id_projeto
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: id_projeto
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: nome_obra
+        data_type: text
+      - name: situacao
+        data_type: text
+      - name: orgao_responsavel
+        data_type: text
+      - name: valor_investimento_previsto
+        data_type: numeric(15, 2)
+      - name: percentual_execucao_fisica
+        data_type: numeric(5, 2)
+      - name: data_ultima_medicao
+        data_type: date
+      - name: latitude
+        data_type: numeric(12, 8)
+      - name: longitude
+        data_type: numeric(12, 8)
+      - name: motivo_paralisacao
+        data_type: text
+      - name: data_inicio_prevista
+        data_type: date
+      - name: data_fim_prevista
+        data_type: date
