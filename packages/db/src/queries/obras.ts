@@ -196,8 +196,10 @@ export async function getObrasPorPortal(
   if (filtros?.ano !== undefined && Number.isInteger(filtros.ano)) {
     query = query.where((eb) =>
       eb.or([
-        sql`extract(year from data_inicio_prevista) <= ${filtros.ano}`,
-        sql`data_inicio_prevista is null`,
+        sql`extract(year from data_inicio_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_fim_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_ultima_medicao) = ${filtros.ano}`,
+        sql`(data_inicio_prevista is not null and data_fim_prevista is not null and extract(year from data_inicio_prevista) <= ${filtros.ano} and extract(year from data_fim_prevista) >= ${filtros.ano})`,
       ]),
     );
   }
@@ -362,8 +364,10 @@ export async function getResumoObrasPorPortal(
   if (filtros?.ano !== undefined && Number.isInteger(filtros.ano)) {
     query = query.where((eb) =>
       eb.or([
-        sql`extract(year from data_inicio_prevista) <= ${filtros.ano}`,
-        sql`data_inicio_prevista is null`,
+        sql`extract(year from data_inicio_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_fim_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_ultima_medicao) = ${filtros.ano}`,
+        sql`(data_inicio_prevista is not null and data_fim_prevista is not null and extract(year from data_inicio_prevista) <= ${filtros.ano} and extract(year from data_fim_prevista) >= ${filtros.ano})`,
       ]),
     );
   }

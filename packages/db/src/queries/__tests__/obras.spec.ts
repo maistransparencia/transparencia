@@ -534,13 +534,14 @@ describe("obras queries", () => {
       expect(resumo.percentualMedioExecucaoFisica).toBe(60);
     });
 
-    it("deve filtrar obras e resumo por ano de início previsto", async () => {
+    it("deve filtrar obras e resumo pelo exercício ativo (ano de início, fim ou medição)", async () => {
       await seedObra({
         portalSlug: PORTAL_A,
         idProjeto: "ob_2024",
         situacao: "em_execucao",
         valorInvestimentoPrevisto: 100000,
         dataInicioPrevista: "2024-03-01",
+        dataFimPrevista: "2024-12-31",
       });
 
       await seedObra({
@@ -549,9 +550,10 @@ describe("obras queries", () => {
         situacao: "em_execucao",
         valorInvestimentoPrevisto: 200000,
         dataInicioPrevista: "2026-02-15",
+        dataFimPrevista: "2026-11-30",
       });
 
-      // Em 2024, só ob_2024 deve aparecer
+      // Em 2024, só ob_2024 está ativa
       const obras2024 = await getObrasPorPortal(PORTAL_A, { ano: 2024 });
       expect(obras2024).toHaveLength(1);
       expect(obras2024[0].idProjeto).toBe("ob_2024");
@@ -560,13 +562,14 @@ describe("obras queries", () => {
       expect(resumo2024.totalObras).toBe(1);
       expect(resumo2024.valorTotalInvestimento).toBe(100000);
 
-      // Em 2026, ambas devem aparecer
+      // Em 2026, só ob_2026 está ativa (ob_2024 encerrou em 2024)
       const obras2026 = await getObrasPorPortal(PORTAL_A, { ano: 2026 });
-      expect(obras2026).toHaveLength(2);
+      expect(obras2026).toHaveLength(1);
+      expect(obras2026[0].idProjeto).toBe("ob_2026");
 
       const resumo2026 = await getResumoObrasPorPortal(PORTAL_A, { ano: 2026 });
-      expect(resumo2026.totalObras).toBe(2);
-      expect(resumo2026.valorTotalInvestimento).toBe(300000);
+      expect(resumo2026.totalObras).toBe(1);
+      expect(resumo2026.valorTotalInvestimento).toBe(200000);
     });
 
     it("deve isolar agregados por município", async () => {
