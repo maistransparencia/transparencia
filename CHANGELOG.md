@@ -5,6 +5,18 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.16.2] - 2026-10-10
+
+### 🌟 Destaques da Versão (Correção do Código IBGE de Natividade)
+* **Correção Cadastral e Analítica do Município de Natividade:** Ajuste do código oficial do IBGE de Natividade de `3303401` para `3303104`, garantindo a correta sincronização e correspondência nos filtros analíticos e integrações de dados municipais.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Ajuste em Staging de Natividade (`stg_natividade_prefeitura__siconfi_msc_patrimonial`):** Atualização do filtro de `cod_ibge` para `3303104` na consolidação de saldos patrimoniais da Matriz de Saldos Contábeis (SICONFI MSC).
+* **Atualização do Seed de Portais (`seed_portais.csv`):** Correção do identificador `cod_ibge` associado ao portal `natividade_prefeitura`.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Configurações e Fixtures de Teste:** Atualização do manifesto declarativo `elt/portals/natividade_prefeitura.yml`, dos testes unitários de extração (`test_fiorilli.py`) e regeneração do fixture de banco de dados `schema.sql.gz`.
+
 ## [1.16.1] - 2026-10-10
 
 ### 🌟 Destaques da Versão (Detecção de Extrapolação do Teto de Pessoal da LRF e Resiliência na MSC SICONFI)
