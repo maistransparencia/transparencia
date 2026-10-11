@@ -30,6 +30,15 @@ export function ObrasParalisadasSection({
     }
   };
 
+  const handleVerDetalhes = (idProjeto: string) => {
+    onSelectObra?.(idProjeto);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("obra:abrir-detalhes", { detail: { idProjeto } }),
+      );
+    }
+  };
+
   return (
     <section
       aria-labelledby="titulo-obras-paralisadas"
@@ -129,8 +138,8 @@ export function ObrasParalisadasSection({
                 </div>
               </div>
 
-              {/* Rodapé com Base Legal e Ação Ver no Mapa */}
-              <div className="mt-5 flex items-center justify-between border-slate-100 border-t pt-3 text-xs">
+              {/* Rodapé com Base Legal e Ações */}
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-slate-100 border-t pt-3 text-xs">
                 <div className="flex items-center gap-1 text-slate-500">
                   <span>Base legal:</span>
                   <a
@@ -144,16 +153,26 @@ export function ObrasParalisadasSection({
                   </a>
                 </div>
 
-                {obra.hasCoordinates && (
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => handleVerNoMapa(obra.idProjeto)}
-                    className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    onClick={() => handleVerDetalhes(obra.idProjeto)}
+                    className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 hover:underline"
                   >
-                    <span>Ver no mapa</span>
+                    <span>Ver detalhes</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
-                )}
+
+                  {obra.hasCoordinates && (
+                    <button
+                      type="button"
+                      onClick={() => handleVerNoMapa(obra.idProjeto)}
+                      className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 hover:underline"
+                    >
+                      <span>Ver no mapa</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );

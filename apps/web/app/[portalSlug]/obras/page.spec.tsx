@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { loadObrasData } from "./loader";
 
@@ -293,6 +293,51 @@ describe("ObrasPage Component", () => {
       "href",
       "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/OBR-001",
     );
+
+    const detalhesBtns = screen.getAllByRole("button", {
+      name: /Ver detalhes/i,
+    });
+    expect(detalhesBtns.length).toBeGreaterThan(0);
+    fireEvent.click(detalhesBtns[0]);
+
+    // Modal de Detalhes da Obra deve ser aberto
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Auditoria de Avanço Físico vs. Financeiro"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Execução Física Oficial"),
+    ).toBeInTheDocument();
+  });
+
+  it("abre o modal de detalhes ao acionar Ver detalhes na seção de obras paralisadas", async () => {
+    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
+
+    const page = await ObrasPage({
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+      searchParams: Promise.resolve({}),
+    });
+
+    render(page);
+
+    const paralisadasSection = screen.getByRole("region", {
+      name: /Obras Paralisadas/i,
+    });
+    const verDetalhesParalisadaBtn = within(paralisadasSection).getByRole(
+      "button",
+      { name: /Ver detalhes/i },
+    );
+    fireEvent.click(verDetalhesParalisadaBtn);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Atenção Cívica: Obra Paralisada"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Atraso no repasse do convênio estadual"),
+    ).toBeInTheDocument();
   });
 
   it("permite alternar abas mobile entre Mapa e Lista e usar o botão flutuante de território", async () => {

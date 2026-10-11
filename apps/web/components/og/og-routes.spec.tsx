@@ -97,6 +97,7 @@ vi.mock("@transparencia/db", () => ({
     valorTotalInvestimento: 5_000_000,
     percentualMedioExecucaoFisica: 50,
   }),
+  getObraDetalhe: vi.fn().mockResolvedValue(null),
   getRadarCivicoAlertas: vi.fn().mockResolvedValue([]),
 }));
 
@@ -266,6 +267,9 @@ describe("OpenGraph Image Route Handlers", () => {
     const response = await generateImage({ params });
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
+    expect((response as unknown as MockResponse).jsx.props.brasaoAsset).toBe(
+      "brasao-porciuncula.png",
+    );
   });
 
   it("gera o card do Radar Cívico com anomalias críticas destacadas", async () => {

@@ -322,6 +322,20 @@ Mapeamento cartográfico e fiscalização das obras públicas municipais em exec
 
 ---
 
+### 1.7.2. Detalhes da Obra e Auditoria Físico-Financeira (`/[portalSlug]/obras?idProjeto=[idProjeto]`)
+
+Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual sobreposto** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:
+
+- **Auditoria de Avanço Físico vs. Financeiro:** Comparativo gráfico em barras duplas:
+  - *Execução Física Oficial (%):* Boletim técnico de medição presencial no canteiro extraído diretamente do ObrasGov.br/CIPI, acompanhado da data da última aferição técnica realizada em campo.
+  - *Execução Financeira (%):* Relação entre os desembolsos contábeis acumulados e o valor total contratado/previsto da obra.
+  - *Detecção de Descompasso Físico-Financeiro:* Alerta contextual disparado automaticamente quando o desembolso financeiro supera o avanço físico medido em campo por margem superior a 15% (`financeiro > físico + 15%`), resguardando contra pagamentos desproporcionais sem contraprestação da obra.
+- **Auditoria Especial de Obras Paralisadas:** Banner de alerta cívico destacado para empreendimentos com situação `paralisada`, expondo a data de paralisação e a justificativa oficial cadastrada pelo órgão no sistema governamental (ex: rescisão contratual, atraso de repasses, embargo ou readequação de projeto).
+- **Fundamentação Legal Canônica:** Hiperlink direto para o [Art. 115, § 6º da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6) no portal do Planalto, além de link oficial para a ficha de intervenção no CIPI / ObrasGov.br (`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${idProjeto}`).
+- **Georreferenciamento e Conexão:** Exibição das coordenadas geográficas homologadas e fechamento ágil com retorno instantâneo à visualização do mapa municipal.
+
+---
+
 ### 1.8. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:

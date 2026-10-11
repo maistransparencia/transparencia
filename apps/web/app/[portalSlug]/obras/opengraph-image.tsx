@@ -73,6 +73,8 @@ export default async function Image({
         subtitle="Mapeamento e fiscalização dos projetos e investimentos de infraestrutura"
         badgeText="Painel de Obras"
         metrics={metrics}
+        lastExtractionDate={portalConfig?.dataExtracao}
+        brasaoAsset={portalConfig?.brasaoAsset}
       />,
       {
         ...size,
