@@ -269,7 +269,10 @@ export function ObrasInteractiveSection({
   })();
 
   return (
-    <section id="secao-mapa-obras" className="space-y-4">
+    <section
+      id="secao-mapa-obras"
+      className="space-y-4 border-ink border-t-2 pt-8"
+    >
       {/* Cabeçalho Externo: Título + Subtexto/Fonte à Esquerda | Seletor de Território à Direita */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -291,7 +294,7 @@ export function ObrasInteractiveSection({
         </div>
 
         {/* Botões de alternância Área Urbana / Todo o Território */}
-        <div className="flex shrink-0 items-center rounded-lg border border-slate-200 bg-slate-100 p-1">
+        <div className="flex shrink-0 items-center space-x-1 rounded-lg border border-slate-200 bg-slate-100 p-1">
           <button
             type="button"
             onClick={() => setViewMode("urbana")}
@@ -436,9 +439,9 @@ export function ObrasInteractiveSection({
                               className="mt-1 h-2 w-2 shrink-0 rounded-full"
                               style={{ backgroundColor: obra.situacaoColorHex }}
                             />
-                            <h3 className="line-clamp-2 font-bold font-serif text-slate-900 text-xs leading-snug sm:text-sm">
+                            <div className="line-clamp-2 font-bold text-slate-900 text-xs leading-snug sm:text-sm">
                               {obra.nomeObra}
-                            </h3>
+                            </div>
                           </div>
 
                           <span className="shrink-0 font-bold text-slate-900 text-xs tabular-nums sm:text-sm">

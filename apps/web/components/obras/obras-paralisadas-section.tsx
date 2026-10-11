@@ -26,7 +26,10 @@ export function ObrasParalisadasSection({
   };
 
   return (
-    <section aria-labelledby="titulo-obras-paralisadas" className="space-y-4">
+    <section
+      aria-labelledby="titulo-obras-paralisadas"
+      className="space-y-4 border-ink border-t-2 pt-8"
+    >
       <div>
         <h2
           id="titulo-obras-paralisadas"
