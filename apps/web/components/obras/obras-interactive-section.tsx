@@ -5,7 +5,14 @@ import { fmtCompact } from "@transparencia/ui";
 import { ExternalLink, MapPinOff, X } from "lucide-react";
 import nextDynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type {
   ObraMarkerItem,
   ObrasViewModel,
@@ -240,40 +247,60 @@ export function ObrasInteractiveSection({
     updateUrlParams(selectedStatus, "");
   };
 
-  const handleSelectObra = (idProjeto: string) => {
-    if (externalOnSelectObra) {
-      externalOnSelectObra(idProjeto);
-    } else {
-      setInternalSelectedObraId(idProjeto);
-    }
+  const handleSelectObra = useCallback(
+    (idProjeto: string) => {
+      const nextId = activeSelectedObraId === idProjeto ? null : idProjeto;
+      if (externalOnSelectObra) {
+        externalOnSelectObra(nextId);
+      } else {
+        setInternalSelectedObraId(nextId);
+      }
 
-    // Scroll suave do item na lista ou carrossel se selecionado pelo mapa
-    setTimeout(() => {
-      const el = document.getElementById(`obra-item-${idProjeto}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (!nextId) return;
+
+      // Scroll suave do item na lista ou carrossel se selecionado pelo mapa
+      setTimeout(() => {
+        const el = document.getElementById(`obra-item-${idProjeto}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+        const mobileCard = document.getElementById(`mobile-card-${idProjeto}`);
+        if (mobileCard) {
+          mobileCard.scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest",
+          });
+        }
+      }, 50);
+    },
+    [activeSelectedObraId, externalOnSelectObra],
+  );
+
+  // Permite que seções externas (como ObrasParalisadasSection) acionem a seleção de obra no mapa
+  useEffect(() => {
+    const handleCustomSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{ idProjeto: string }>;
+      if (customEvent.detail?.idProjeto) {
+        handleSelectObra(customEvent.detail.idProjeto);
       }
-      const mobileCard = document.getElementById(`mobile-card-${idProjeto}`);
-      if (mobileCard) {
-        mobileCard.scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-          block: "nearest",
-        });
-      }
-    }, 50);
-  };
+    };
+    window.addEventListener("obra-selecionada", handleCustomSelect);
+    return () => {
+      window.removeEventListener("obra-selecionada", handleCustomSelect);
+    };
+  }, [handleSelectObra]);
 
   const subtextoTerritorio = (() => {
     if (viewMode === "territorio") {
-      return "Inclui obras em rodovias federais e estaduais que atravessam o município.";
+      return "Exibe todas as intervenções mapeadas no território municipal e em rodovias.";
     }
     const count = viewModel.obrasForaUrbanaCount;
     if (count === 1) {
-      return `1 obra de órgãos federais e estaduais fica fora da área urbana e não aparece neste enquadramento.`;
+      return `1 obra localizada fora do perímetro urbano central.`;
     }
     if (count > 1) {
-      return `${count} obras de órgãos federais e estaduais ficam fora da área urbana e não aparecem neste enquadramento.`;
+      return `${count} obras localizadas fora do perímetro urbano central.`;
     }
     return `Obras georreferenciadas na área urbana do município.`;
   })();
@@ -309,7 +336,12 @@ export function ObrasInteractiveSection({
           <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-1 lg:hidden">
             <button
               type="button"
-              onClick={() => setMobileTab("mapa")}
+              onClick={() => {
+                setMobileTab("mapa");
+                setTimeout(() => {
+                  window.dispatchEvent(new Event("resize"));
+                }, 50);
+              }}
               className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
                 mobileTab === "mapa"
                   ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
@@ -523,7 +555,19 @@ export function ObrasInteractiveSection({
 
                       {/* BOX EXPANDIDO DE DETALHES (quando selecionado) */}
                       {isSelected && (
-                        <div className="mt-3 ml-4 space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 text-xs shadow-2xs">
+                        <div className="relative mt-3 ml-4 space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 pr-8 text-xs shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectObra(obra.idProjeto);
+                            }}
+                            aria-label="Fechar detalhes da obra"
+                            className="absolute top-2.5 right-2.5 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+
                           <div>
                             <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                               Órgão Responsável
@@ -588,7 +632,7 @@ export function ObrasInteractiveSection({
             {/* Container do Mapa Leaflet */}
             <div className="relative h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
               {/* Botão flutuante toggle no mapa (visível no mobile para alternar área urbana / território) */}
-              <div className="absolute top-3 left-3 z-[400] lg:hidden">
+              <div className="absolute top-3 left-15 z-10 lg:hidden">
                 <button
                   type="button"
                   onClick={() =>

@@ -58,12 +58,12 @@ export function ObrasHeroSection({
                 kpis.totalObras === 1
                   ? "1 obra mapeada"
                   : `${kpis.totalObras} obras mapeadas`;
-              const execucaoTexto =
-                kpis.emExecucao === 0
-                  ? "nenhuma em execução ativa no momento"
-                  : kpis.emExecucao === 1
-                    ? "1 em execução ativa"
-                    : `${kpis.emExecucao} em execução ativa`;
+              const getExecucaoTexto = (count: number) => {
+                if (count === 0) return "nenhuma em execução ativa no momento";
+                if (count === 1) return "1 em execução ativa";
+                return `${count} em execução ativa`;
+              };
+              const execucaoTexto = getExecucaoTexto(kpis.emExecucao);
               const paralisadasTexto =
                 kpis.paralisadas > 0
                   ? `, com ${kpis.paralisadas} sob alerta de paralisação`

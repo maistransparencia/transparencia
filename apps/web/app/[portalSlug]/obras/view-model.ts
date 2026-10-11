@@ -380,7 +380,7 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
   };
 
   const municipioNome = portalConfig?.displayName?.trim() || "Município";
-  const municipioUf = portalConfig?.uf || "RJ";
+  const municipioUf = portalConfig?.uf?.trim() || "";
 
   const partialPeriod = getPartialYearPeriod(
     portalConfig?.dataExtracaoDate ?? portalConfig?.dataExtracao,

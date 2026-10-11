@@ -19,6 +19,11 @@ export function ObrasParalisadasSection({
 
   const handleVerNoMapa = (idProjeto: string) => {
     onSelectObra?.(idProjeto);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("obra-selecionada", { detail: { idProjeto } }),
+      );
+    }
     const mapElement = document.getElementById("secao-mapa-obras");
     if (mapElement) {
       mapElement.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -38,18 +43,29 @@ export function ObrasParalisadasSection({
           Obras paralisadas
         </h2>
         <p className="mt-1 text-slate-600 text-sm">
-          A Lei nº 14.133/2021 exige que o motivo da paralisação seja divulgado
-          em sítio oficial.
+          A{" "}
+          <a
+            href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-0.5 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Lei nº 14.133/2021
+            <ExternalLink className="h-3 w-3" />
+          </a>{" "}
+          exige que o motivo da paralisação seja divulgado em sítio oficial.
         </p>
       </div>
 
       {/* Grid de 2 Colunas no estilo dos alertas do Radar Cívico */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {obras.map((obra) => {
-          const tempoParalisada =
-            typeof obra.mesesParalisada === "number"
-              ? `Paralisada há ${obra.mesesParalisada} ${obra.mesesParalisada === 1 ? "mês" : "meses"}`
-              : "Paralisada";
+          const getTempoParalisada = (meses: number | null | undefined) => {
+            if (typeof meses !== "number") return "Paralisada";
+            const sufixo = meses === 1 ? "mês" : "meses";
+            return `Paralisada há ${meses} ${sufixo}`;
+          };
+          const tempoParalisada = getTempoParalisada(obra.mesesParalisada);
 
           return (
             <div
@@ -87,7 +103,7 @@ export function ObrasParalisadasSection({
                       <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                         Execução Física
                       </span>
-                      <span className="mt-1 block font-bold font-serif text-lg text-slate-900 sm:text-xl">
+                      <span className="mt-1 block font-bold text-slate-900 text-sm">
                         {obra.percentualExecucaoFormatado}
                       </span>
                     </div>
@@ -96,7 +112,7 @@ export function ObrasParalisadasSection({
                       <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                         Última Medição
                       </span>
-                      <span className="mt-1 block font-bold font-serif text-lg text-slate-900 sm:text-xl">
+                      <span className="mt-1 block font-bold text-slate-900 text-sm">
                         {obra.dataUltimaMedicaoFormatada || "N/D"}
                       </span>
                     </div>
@@ -105,7 +121,7 @@ export function ObrasParalisadasSection({
                       <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
                         Previsto
                       </span>
-                      <span className="mt-1 block font-bold font-serif text-lg text-slate-900 sm:text-xl">
+                      <span className="mt-1 block font-bold text-slate-900 text-sm">
                         {fmtCompact(obra.valorInvestimentoPrevisto)}
                       </span>
                     </div>
