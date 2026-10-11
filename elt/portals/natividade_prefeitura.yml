@@ -1,7 +1,7 @@
 slug: natividade_prefeitura
 display_name: Prefeitura de Natividade
 uf: RJ
-cod_ibge: 3303401
+cod_ibge: 3303104
 portal_url: https://portal-pm-natividade.transpgp.com.br/transparencia
 base_host: https://portal-pm-natividade.transpgp.com.br
 cidade_clean: NATIVIDADE

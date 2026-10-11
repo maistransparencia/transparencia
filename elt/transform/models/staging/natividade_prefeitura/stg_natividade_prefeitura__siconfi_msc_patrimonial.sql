@@ -31,7 +31,7 @@ filtered_and_cast as (
         and (financeiro_permanente::int = 1 or ((conta_contabil like '114%' or conta_contabil like '1213%') and trim(poder_orgao) = '10132')) -- contas financeiras em geral e totalidade dos investimentos do RPPS
         and tipo_valor = 'ending_balance' -- somente o saldo final do mês
         and trim(poder_orgao) != '20231' -- camara municipal esta fora do escopo
-        and cod_ibge::int = 3303401 -- Natividade
+        and cod_ibge::int = 3303104 -- Natividade
 )
 
 select * from filtered_and_cast

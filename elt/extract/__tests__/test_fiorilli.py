@@ -107,7 +107,7 @@ def test_portal_config_declarative_loading():
     # Natividade
     cfg_nat = PortalConfig.load("natividade_prefeitura")
     assert cfg_nat.slug == "natividade_prefeitura"
-    assert cfg_nat.cod_ibge == 3303401
+    assert cfg_nat.cod_ibge == 3303104
     assert cfg_nat.base_host == "https://portal-pm-natividade.transpgp.com.br"
     assert cfg_nat.empresa_padrao == "1"
     assert cfg_nat.provider == "fiorilli"
