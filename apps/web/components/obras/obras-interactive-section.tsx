@@ -19,7 +19,7 @@ function normalizeText(text: string): string {
 }
 
 function formatMonthYear(isoDate: string | null): string {
-  if (!isoDate) return "—";
+  if (!isoDate) return "N/D";
   const parts = isoDate.split("-");
   if (parts.length < 2) return isoDate;
   const meses = [
@@ -56,7 +56,7 @@ export function formatarPrevisao(
   if (dataInicio) {
     return `a partir de ${formatMonthYear(dataInicio)}`;
   }
-  return "—";
+  return "N/D";
 }
 
 const ObrasMapaInterativo = nextDynamic(
@@ -270,24 +270,35 @@ export function ObrasInteractiveSection({
 
   return (
     <section id="secao-mapa-obras" className="space-y-4">
-      {/* Cabeçalho Externo: Título + Subtexto à Esquerda | Seletor de Território à Direita */}
+      {/* Cabeçalho Externo: Título + Subtexto/Fonte à Esquerda | Seletor de Território à Direita */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="font-bold font-serif text-2xl text-slate-900">
-            Onde estão as obras
-          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-bold font-serif text-2xl text-slate-900">
+              Onde estão as obras
+            </h2>
+            <a
+              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-[11px] text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <span>Fonte: ObrasGov.br</span>
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
           <p className="mt-1 text-slate-600 text-sm">{subtextoTerritorio}</p>
         </div>
 
         {/* Botões de alternância Área Urbana / Todo o Território */}
-        <div className="flex shrink-0 items-center rounded-lg bg-slate-100 p-1">
+        <div className="flex shrink-0 items-center rounded-lg border border-slate-200 bg-slate-100 p-1">
           <button
             type="button"
             onClick={() => setViewMode("urbana")}
-            className={`rounded-md px-3 py-1 font-medium text-xs transition-colors ${
+            className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
               viewMode === "urbana"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             Área urbana
@@ -295,10 +306,10 @@ export function ObrasInteractiveSection({
           <button
             type="button"
             onClick={() => setViewMode("territorio")}
-            className={`rounded-md px-3 py-1 font-medium text-xs transition-colors ${
+            className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
               viewMode === "territorio"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             Todo o território
@@ -490,25 +501,22 @@ export function ObrasInteractiveSection({
                                 Última Medição
                               </span>
                               <span className="font-medium text-slate-900 text-xs">
-                                {obra.dataUltimaMedicaoFormatada || "—"}
+                                {obra.dataUltimaMedicaoFormatada || "N/D"}
                               </span>
                             </div>
                           </div>
 
-                          {/* Link Oficial e Fonte Explícita ObrasGov */}
-                          <div className="flex items-center justify-between border-slate-100 border-t pt-2">
+                          {/* Link Oficial para o Cadastro de Obras */}
+                          <div className="border-slate-100 border-t pt-2">
                             <a
-                              href="https://www.obrasgov.gestao.gov.br/"
+                              href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
                             >
-                              Ver no Cadastro de Obras (ID {obra.idProjeto})
+                              <span>Ver no Cadastro de Obras</span>
                               <ExternalLink className="h-3 w-3" />
                             </a>
-                            <span className="font-medium text-[10px] text-slate-400">
-                              Fonte: ObrasGov.br
-                            </span>
                           </div>
                         </div>
                       )}

@@ -94,7 +94,7 @@ export function ObrasParalisadasSection({
                         Última Medição
                       </span>
                       <span className="mt-1 block font-bold font-serif text-lg text-slate-900 sm:text-xl">
-                        {obra.dataUltimaMedicaoFormatada || "—"}
+                        {obra.dataUltimaMedicaoFormatada || "N/D"}
                       </span>
                     </div>
 

@@ -283,10 +283,13 @@ describe("ObrasPage Component", () => {
     expect(screen.getByText("Previsão")).toBeInTheDocument();
     expect(screen.getAllByText("Última Medição").length).toBeGreaterThan(0);
     expect(screen.getByText(/Fonte: ObrasGov\.br/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", {
-        name: /Ver no Cadastro de Obras \(ID OBR-001\)/i,
-      }),
-    ).toBeInTheDocument();
+    const cipiLink = screen.getByRole("link", {
+      name: /Ver no Cadastro de Obras/i,
+    });
+    expect(cipiLink).toBeInTheDocument();
+    expect(cipiLink).toHaveAttribute(
+      "href",
+      "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/OBR-001",
+    );
   });
 });
