@@ -1,10 +1,11 @@
-import type { ObraDTO } from "@transparencia/db";
+import type { ObraContratoDTO, ObraDTO } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
   buildObraDetalheViewModel,
   buildObrasViewModel,
   getMapCenter,
   getSituacaoVisual,
+  mapContratoToViewModel,
 } from "./view-model";
 
 describe("obras/view-model", () => {
@@ -372,6 +373,149 @@ describe("obras/view-model", () => {
       expect(vm.linkObrasGov).toBe(
         "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/12345%2FABC%20DEF",
       );
+    });
+
+    it("deve mapear contratos correlacionados para a ObraDetalheViewModel", () => {
+      const mockContrato: ObraContratoDTO = {
+        contratoId: "ctr-1",
+        contratoNumero: "001/2024",
+        fornecedorNome: "EMPRESA DE OBRAS LTDA",
+        fornecedorCpfCnpj: "12345678000190",
+        valorContrato: 450000,
+        modalidade: "concorrencia_eletronica",
+        licitacaoNumero: "010/2024",
+        status: "vigente",
+        dataInicio: "2024-02-01",
+        vencimentoAtual: "2025-02-01",
+      };
+
+      const obraComContratos: ObraDTO = {
+        ...baseObra,
+        contratos: [mockContrato],
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraComContratos,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.contratos).toHaveLength(1);
+      const c = vm.contratos[0];
+      expect(c.contratoNumero).toBe("001/2024");
+      expect(c.fornecedorNome).toBe("EMPRESA DE OBRAS LTDA");
+      expect(c.fornecedorCpfCnpjMascarado).toBe("12.***.***/0001-90");
+      expect(c.valorContratoFormatado).toContain("450.000");
+      expect(c.modalidadeLabel).toBe("Concorrência Eletrônica");
+      expect(c.statusLabel).toBe("Vigente");
+      expect(c.statusBadgeClasses).toContain("text-emerald-700");
+      expect(c.linkContrato).toBe(
+        "/porciuncula_prefeitura/contratos?numero=001%2F2024",
+      );
+      expect(c.linkLicitacao).toBe(
+        "/porciuncula_prefeitura/licitacoes?numero=010%2F2024#licitacoes-em-andamento",
+      );
+    });
+
+    it("deve retornar contratos como array vazio quando a obra não possuir contratos vinculados", () => {
+      const vm = buildObraDetalheViewModel(baseObra, "porciuncula_prefeitura");
+      expect(vm.contratos).toEqual([]);
+    });
+  });
+
+  describe("mapContratoToViewModel", () => {
+    it("deve mapear contrato vigente com fornecedor mascarado e links corretos", () => {
+      const contrato: ObraContratoDTO = {
+        contratoId: "ctr-123",
+        contratoNumero: "CTR-99/2024",
+        fornecedorNome: "CONSTRUTORA EXEMPLO",
+        fornecedorCpfCnpj: "11222333000144",
+        valorContrato: 250000,
+        modalidade: "dispensa",
+        licitacaoNumero: "DISP-01/2024",
+        status: "vigente",
+        dataInicio: "2024-03-01",
+        vencimentoAtual: "2099-12-31",
+      };
+
+      const vm = mapContratoToViewModel(contrato, "porciuncula_prefeitura");
+
+      expect(vm.contratoId).toBe("ctr-123");
+      expect(vm.contratoNumero).toBe("CTR-99/2024");
+      expect(vm.fornecedorNome).toBe("CONSTRUTORA EXEMPLO");
+      expect(vm.fornecedorCpfCnpjMascarado).toBe("11.***.***/0001-44");
+      expect(vm.statusLabel).toBe("Vigente");
+      expect(vm.statusBadgeClasses).toContain("text-emerald-700");
+      expect(vm.modalidadeLabel).toBe("Dispensa de Licitação");
+      expect(vm.linkContrato).toBe(
+        "/porciuncula_prefeitura/contratos?numero=CTR-99%2F2024",
+      );
+      expect(vm.linkLicitacao).toBe(
+        "/porciuncula_prefeitura/licitacoes?numero=DISP-01%2F2024#licitacoes-em-andamento",
+      );
+    });
+
+    it("não deve gerar barra dupla se portalSlug for vazio", () => {
+      const contrato: ObraContratoDTO = {
+        contratoId: "ctr-empty-slug",
+        contratoNumero: "CTR-01/2024",
+        fornecedorNome: "EMPRESA",
+        fornecedorCpfCnpj: null,
+        valorContrato: 1000,
+        modalidade: null,
+        licitacaoNumero: "LIC-01/2024",
+        status: "vigente",
+        dataInicio: null,
+        vencimentoAtual: null,
+      };
+
+      const vm = mapContratoToViewModel(contrato, "");
+      expect(vm.linkContrato).toBe("/contratos?numero=CTR-01%2F2024");
+      expect(vm.linkLicitacao).toBe(
+        "/licitacoes?numero=LIC-01%2F2024#licitacoes-em-andamento",
+      );
+    });
+
+    it("deve mapear contrato encerrado e CPF de pessoa física mascarado", () => {
+      const contrato: ObraContratoDTO = {
+        contratoId: "ctr-456",
+        contratoNumero: "CTR-12/2023",
+        fornecedorNome: "JOAO ENGENHEIRO",
+        fornecedorCpfCnpj: "12345678900",
+        valorContrato: 50000,
+        modalidade: "inexigibilidade",
+        licitacaoNumero: null,
+        status: "encerrado",
+        dataInicio: "2023-01-01",
+        vencimentoAtual: "2023-12-31",
+      };
+
+      const vm = mapContratoToViewModel(contrato, "porciuncula_prefeitura");
+
+      expect(vm.fornecedorCpfCnpjMascarado).toBe("123.***.***-00");
+      expect(vm.statusLabel).toBe("Encerrado");
+      expect(vm.statusBadgeClasses).toContain("text-slate-700");
+      expect(vm.linkLicitacao).toBeNull();
+    });
+
+    it("deve tratar documento não informado graciosamente", () => {
+      const contrato: ObraContratoDTO = {
+        contratoId: "ctr-789",
+        contratoNumero: "CTR-01/2024",
+        fornecedorNome: "EMPRESA SEM DOC",
+        fornecedorCpfCnpj: null,
+        valorContrato: 10000,
+        modalidade: null,
+        licitacaoNumero: null,
+        status: "vigente",
+        dataInicio: null,
+        vencimentoAtual: null,
+      };
+
+      const vm = mapContratoToViewModel(contrato, "porciuncula_prefeitura");
+
+      expect(vm.fornecedorCpfCnpjMascarado).toBe("Não informado");
+      expect(vm.dataInicioFormatada).toBe("Não informada");
+      expect(vm.vencimentoAtualFormatado).toBe("Não informada");
     });
   });
 });

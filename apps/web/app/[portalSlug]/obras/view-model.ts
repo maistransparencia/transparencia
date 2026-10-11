@@ -1,4 +1,5 @@
 import type {
+  ObraContratoDTO,
   ObraDTO,
   SituacaoObra,
   SituacaoObraFiltro,
@@ -7,8 +8,10 @@ import {
   fmtCompact,
   fmtCurrency,
   fmtDate,
+  fmtLicitacaoModalidade,
   fmtPercent,
   getPartialYearPeriod,
+  maskCpfCnpj,
 } from "@transparencia/ui";
 import type { RawObrasData } from "./loader";
 
@@ -73,6 +76,93 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
   }
 }
 
+export interface ObraContratoViewModel {
+  contratoId: string;
+  contratoNumero: string;
+  fornecedorNome: string;
+  fornecedorCpfCnpj: string | null;
+  fornecedorCpfCnpjMascarado: string;
+  valorContrato: number;
+  valorContratoFormatado: string;
+  modalidade: string | null;
+  modalidadeLabel: string;
+  licitacaoNumero: string | null;
+  status: "vigente" | "encerrado" | string;
+  statusLabel: string;
+  statusBadgeClasses: string;
+  dataInicio: string | null;
+  dataInicioFormatada: string;
+  vencimentoAtual: string | null;
+  vencimentoAtualFormatado: string;
+  ano?: number | null;
+  linkContrato: string;
+  linkLicitacao: string | null;
+}
+
+export function mapContratoToViewModel(
+  contrato: ObraContratoDTO,
+  portalSlug: string,
+): ObraContratoViewModel {
+  const cleanPortalSlug = (portalSlug || "").trim();
+  const rawStatus = (contrato.status ?? "vigente").toLowerCase().trim();
+  const isVigente = rawStatus === "vigente";
+
+  const statusLabel = (() => {
+    if (isVigente) return "Vigente";
+    if (rawStatus === "encerrado") return "Encerrado";
+    return "Vigente";
+  })();
+
+  const statusBadgeClasses = (() => {
+    if (isVigente) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (rawStatus === "encerrado")
+      return "bg-slate-50 text-slate-700 border-slate-200";
+    return "bg-slate-50 text-slate-700 border-slate-200";
+  })();
+
+  const fornecedorCpfCnpjMascarado = (() => {
+    if (contrato.fornecedorCpfCnpj) {
+      const masked = maskCpfCnpj(contrato.fornecedorCpfCnpj);
+      if (masked.length > 0) return masked;
+    }
+    return "Não informado";
+  })();
+
+  const basePath = cleanPortalSlug ? `/${cleanPortalSlug}` : "";
+  const linkContrato = `${basePath}/contratos?numero=${encodeURIComponent(contrato.contratoNumero)}`;
+
+  const linkLicitacao = contrato.licitacaoNumero
+    ? `${basePath}/licitacoes?numero=${encodeURIComponent(contrato.licitacaoNumero)}#licitacoes-em-andamento`
+    : null;
+
+  return {
+    contratoId: contrato.contratoId,
+    contratoNumero: contrato.contratoNumero,
+    fornecedorNome: contrato.fornecedorNome || "Fornecedor não informado",
+    fornecedorCpfCnpj: contrato.fornecedorCpfCnpj ?? null,
+    fornecedorCpfCnpjMascarado,
+    valorContrato: contrato.valorContrato ?? 0,
+    valorContratoFormatado: fmtCurrency(contrato.valorContrato ?? 0),
+    modalidade: contrato.modalidade ?? null,
+    modalidadeLabel: fmtLicitacaoModalidade(contrato.modalidade),
+    licitacaoNumero: contrato.licitacaoNumero ?? null,
+    status: contrato.status,
+    statusLabel,
+    statusBadgeClasses,
+    dataInicio: contrato.dataInicio ?? null,
+    dataInicioFormatada: contrato.dataInicio
+      ? fmtDate(contrato.dataInicio)
+      : "Não informada",
+    vencimentoAtual: contrato.vencimentoAtual ?? null,
+    vencimentoAtualFormatado: contrato.vencimentoAtual
+      ? fmtDate(contrato.vencimentoAtual)
+      : "Não informada",
+    ano: contrato.ano ?? null,
+    linkContrato,
+    linkLicitacao,
+  };
+}
+
 export interface ObraItemViewModel {
   idProjeto: string;
   portalSlug: string;
@@ -100,6 +190,7 @@ export interface ObraItemViewModel {
   dataInicioPrevistaFormatada: string;
   dataFimPrevista: string | null;
   dataFimPrevistaFormatada: string;
+  contratos?: ObraContratoViewModel[];
 }
 
 export interface ObraMarkerItem {
@@ -291,6 +382,9 @@ function mapObraToViewModel(
     dataInicioPrevistaFormatada: fmtDate(obra.dataInicioPrevista),
     dataFimPrevista: obra.dataFimPrevista,
     dataFimPrevistaFormatada: fmtDate(obra.dataFimPrevista),
+    contratos: (obra.contratos ?? []).map((c) =>
+      mapContratoToViewModel(c, obra.portalSlug || ""),
+    ),
   };
 }
 
@@ -445,6 +539,7 @@ export interface ObraDetalheViewModel {
   };
   linkObrasGov: string;
   linkLegislacao: string;
+  contratos: ObraContratoViewModel[];
 }
 
 export function buildObraDetalheViewModel(
@@ -557,9 +652,14 @@ export function buildObraDetalheViewModel(
   const linkLegislacao =
     "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6";
 
+  const cleanPortalSlug = obra.portalSlug || portalSlug;
+  const contratos = (obra.contratos ?? []).map((c) =>
+    mapContratoToViewModel(c, cleanPortalSlug),
+  );
+
   return {
     idProjeto: obra.idProjeto,
-    portalSlug: obra.portalSlug || portalSlug,
+    portalSlug: cleanPortalSlug,
     nomeObra: obra.nomeObra || "Obra pública sem denominação cadastrada",
     situacao: obra.situacao,
     situacaoVisual,
@@ -587,5 +687,6 @@ export function buildObraDetalheViewModel(
     alertaDescompasso,
     linkObrasGov,
     linkLegislacao,
+    contratos,
   };
 }

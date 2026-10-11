@@ -196,3 +196,23 @@ export function fmtCpfCnpj(val: string | null | undefined): string {
   }
   return trimmed;
 }
+
+/**
+ * Mascara CPF ou CNPJ preservando privacidade do fornecedor em conformidade com as diretrizes de transparência pública.
+ * - CPF (11 dígitos): 123.***.***-00 (preserva 3 primeiros e 2 últimos dígitos)
+ * - CNPJ (14 dígitos): 12.***.*** / 0001-90 (preserva 2 primeiros dígitos, filial e 2 dígitos verificadores)
+ */
+export function maskCpfCnpj(val: string | null | undefined): string {
+  if (!val) return "";
+  const trimmed = val.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  const normalizedDigits =
+    digits.length === 10 ? digits.padStart(11, "0") : digits;
+  if (normalizedDigits.length === 11) {
+    return `${normalizedDigits.slice(0, 3)}.***.***-${normalizedDigits.slice(9, 11)}`;
+  }
+  if (normalizedDigits.length === 14) {
+    return `${normalizedDigits.slice(0, 2)}.***.***/${normalizedDigits.slice(8, 12)}-${normalizedDigits.slice(12, 14)}`;
+  }
+  return trimmed;
+}

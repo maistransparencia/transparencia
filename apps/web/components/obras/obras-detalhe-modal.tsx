@@ -15,6 +15,7 @@ import {
   type ObraDetalheViewModel,
   type ObraItemViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
+import { ObrasContratosVinculados } from "./obras-contratos-vinculados";
 import { ObrasGraficoAvancoDuplo } from "./obras-grafico-avanco-duplo";
 
 export interface ObrasDetalheModalProps {
@@ -32,28 +33,35 @@ export function ObrasDetalheModal({
 }: ObrasDetalheModalProps) {
   const viewModel: ObraDetalheViewModel | null = useMemo(() => {
     if (!obra) return null;
-    if ("alertaDescompasso" in obra) {
+    if ("alertaDescompasso" in obra && "contratos" in obra) {
       return obra as ObraDetalheViewModel;
     }
 
-    const obraDTO = {
-      idProjeto: obra.idProjeto,
-      portalSlug: obra.portalSlug || portalSlug,
-      nomeObra: obra.nomeObra,
-      situacao: obra.situacao,
-      orgaoResponsavel: obra.orgaoResponsavel,
-      valorInvestimentoPrevisto: obra.valorInvestimentoPrevisto,
-      percentualExecucaoFisica: obra.percentualExecucaoFisica,
-      percentualExecucaoFinanceira: obra.percentualExecucaoFinanceira ?? null,
-      dataUltimaMedicao: obra.dataUltimaMedicao,
-      dataParalisacao: obra.dataParalisacao ?? null,
-      latitude: obra.latitude,
-      longitude: obra.longitude,
-      motivoParalisacao: obra.motivoParalisacao,
-      dataInicioPrevista: obra.dataInicioPrevista,
-      dataFimPrevista: obra.dataFimPrevista,
+    const baseDetalhe = buildObraDetalheViewModel(
+      {
+        idProjeto: obra.idProjeto,
+        portalSlug: obra.portalSlug || portalSlug,
+        nomeObra: obra.nomeObra,
+        situacao: obra.situacao,
+        orgaoResponsavel: obra.orgaoResponsavel,
+        valorInvestimentoPrevisto: obra.valorInvestimentoPrevisto,
+        percentualExecucaoFisica: obra.percentualExecucaoFisica,
+        percentualExecucaoFinanceira: obra.percentualExecucaoFinanceira ?? null,
+        dataUltimaMedicao: obra.dataUltimaMedicao,
+        dataParalisacao: obra.dataParalisacao ?? null,
+        latitude: obra.latitude,
+        longitude: obra.longitude,
+        motivoParalisacao: obra.motivoParalisacao,
+        dataInicioPrevista: obra.dataInicioPrevista,
+        dataFimPrevista: obra.dataFimPrevista,
+      },
+      portalSlug,
+    );
+
+    return {
+      ...baseDetalhe,
+      contratos: Array.isArray(obra.contratos) ? obra.contratos : [],
     };
-    return buildObraDetalheViewModel(obraDTO, portalSlug);
   }, [obra, portalSlug]);
 
   if (!viewModel) {
@@ -209,6 +217,12 @@ export function ObrasDetalheModal({
             </p>
           </div>
         </div>
+
+        {/* Seção Dedicada de Contratos e Licitações Vinculados */}
+        <ObrasContratosVinculados
+          contratos={viewModel.contratos}
+          portalSlug={viewModel.portalSlug}
+        />
 
         {/* Identificador Oficial e Legislação de Regência */}
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 text-xs">
