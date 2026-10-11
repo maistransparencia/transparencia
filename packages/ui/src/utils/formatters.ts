@@ -34,9 +34,9 @@ export function fmtNumber(value: number): string {
 }
 
 export function fmtDate(val: string | Date | null | undefined): string {
-  if (!val) return "--/--/----";
+  if (!val) return "N/D";
   if (val instanceof Date) {
-    if (Number.isNaN(val.getTime())) return "--/--/----";
+    if (Number.isNaN(val.getTime())) return "N/D";
     const dd = String(val.getUTCDate()).padStart(2, "0");
     const mm = String(val.getUTCMonth() + 1).padStart(2, "0");
     const yyyy = val.getUTCFullYear();

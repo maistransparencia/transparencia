@@ -309,6 +309,19 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 ---
 
+### 1.7.1. Obras Públicas e Impacto Urbano (`/[portalSlug]/obras`)
+
+Mapeamento cartográfico e fiscalização das obras públicas municipais em execução, paralisadas ou concluídas no território da cidade:
+
+- **Mapa Interativo Georreferenciado:** Renderização geoespacial com marcadores codificados por situação das obras (🟢 Em Execução, 🔴 Paralisada, 🔵 Concluída, ⚪ Cadastrada / Planejada), centralização automática no município e fly-to interativo ao selecionar um empreendimento.
+- **Painel Resumo e Detalhamento da Obra:** Visualização detalhada com nome popular/técnico da obra, órgão responsável, montante financeiro previsto de investimento, data prevista de término, percentual de avanço físico acumulado e data da última medição registrada.
+- **Fiscalização de Obras Paralisadas:** Identificação prioritária de canteiros com paralisação, destacando em vermelho o motivo de paralisação (recisão, atraso de repasse, licença ambiental) para auditoria e controle social.
+- **Filtros Dinâmicos e Busca:** Pílulas de filtro rápido por situação (`todas`, `em_execucao`, `paralisada`, `concluida`, `cadastrada`) e busca textual por nome, identificador ou secretaria executora.
+- **Obras sem Coordenadas:** Tratamento transparente de projetos sem coordenadas geográficas homologadas, exibidos na lista vertical com sinalização de "Localização não georreferenciada".
+- **Fundamentação Legal:** Acompanhamento físico-financeiro em consonância com a [Lei Federal nº 14.133/2021 (Nova Lei de Licitações e Contratos)](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm).
+
+---
+
 ### 1.8. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:
@@ -321,6 +334,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 - `/[portalSlug]/pessoal/opengraph-image`: **Card de Pessoal** — Total da Folha de Pagamento, Comprometimento da LRF com Pessoal, Total Pago e Percentual de Chefias Ocupadas por Servidores Efetivos.
 - `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde (com valor empenhado no detalhe).
 - `/[portalSlug]/previdencia/opengraph-image`: **Card Previdenciário (RPPS)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados (alias permanente para retrocompatibilidade: `/[portalSlug]/caprem/opengraph-image`).
+- `/[portalSlug]/obras/opengraph-image`: **Card de Obras Públicas** — Total de Obras, Canteiros em Execução, Obras Paralisadas e Total Previsto de Investimento em Infraestrutura.
 
 ---
 

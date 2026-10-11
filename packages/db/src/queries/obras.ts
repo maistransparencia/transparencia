@@ -36,6 +36,7 @@ export interface ObraDTO {
 export interface GetObrasFiltros {
   status?: SituacaoObraFiltro;
   busca?: string;
+  ano?: number;
   limite?: number;
   offset?: number;
 }
@@ -48,7 +49,12 @@ export interface ResumoObrasDTO {
   cadastradas: number;
   canceladas: number;
   valorTotalInvestimento: number;
+  valorEmExecucao: number;
+  valorParalisadas: number;
+  valorConcluidas: number;
+  valorCadastradas: number;
   percentualMedioExecucaoFisica: number | null;
+  obrasSemMedicaoCount: number;
 }
 
 const OBRA_SELECT_COLUMNS = [
@@ -111,18 +117,27 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
   const rawLat = row.latitude != null ? Number(row.latitude) : null;
   const rawLng = row.longitude != null ? Number(row.longitude) : null;
 
-  const validLat =
-    rawLat != null && !Number.isNaN(rawLat) && rawLat >= -90 && rawLat <= 90
-      ? rawLat
-      : null;
-  const validLng =
-    rawLng != null && !Number.isNaN(rawLng) && rawLng >= -180 && rawLng <= 180
-      ? rawLng
-      : null;
+  const isFiniteCoords =
+    rawLat != null &&
+    rawLng != null &&
+    !Number.isNaN(rawLat) &&
+    !Number.isNaN(rawLng);
 
-  const isDummyZero = validLat === 0 && validLng === 0;
-  const latitude = isDummyZero ? null : validLat;
-  const longitude = isDummyZero ? null : validLng;
+  // Longitude no Brasil é estritamente negativa entre -75° e -34°.
+  // Latitude no Brasil fica entre -35° e +6°.
+  // Rejeita dummy (0,0), valores positivos (ex: África/Oceanos) e dados corrompidos
+  // onde a latitude foi espelhada ou copiada no campo de longitude (abs(lat) == abs(lon)).
+  const isValidBrazilianCoord =
+    isFiniteCoords &&
+    !(rawLat === 0 && rawLng === 0) &&
+    rawLng < -34 &&
+    rawLng > -75 &&
+    rawLat > -35 &&
+    rawLat < 6 &&
+    Math.abs(Math.abs(rawLat) - Math.abs(rawLng)) >= 0.001;
+
+  const latitude = isValidBrazilianCoord ? rawLat : null;
+  const longitude = isValidBrazilianCoord ? rawLng : null;
 
   const situacao = (row.situacao ?? "cadastrada") as SituacaoObra;
 
@@ -176,6 +191,17 @@ export async function getObrasPorPortal(
 
   if (filtros?.status && filtros.status !== "todas") {
     query = query.where("situacao", "=", filtros.status);
+  }
+
+  if (filtros?.ano !== undefined && Number.isInteger(filtros.ano)) {
+    query = query.where((eb) =>
+      eb.or([
+        sql`extract(year from data_inicio_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_fim_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_ultima_medicao) = ${filtros.ano}`,
+        sql`(data_inicio_prevista is not null and data_fim_prevista is not null and extract(year from data_inicio_prevista) <= ${filtros.ano} and extract(year from data_fim_prevista) >= ${filtros.ano})`,
+      ]),
+    );
   }
 
   if (filtros?.busca && filtros.busca.trim().length >= 2) {
@@ -254,6 +280,7 @@ export async function getObraDetalhe(
  */
 export async function getResumoObrasPorPortal(
   portalSlug: string,
+  filtros?: { ano?: number },
 ): Promise<ResumoObrasDTO> {
   const zerado: ResumoObrasDTO = {
     totalObras: 0,
@@ -263,7 +290,12 @@ export async function getResumoObrasPorPortal(
     cadastradas: 0,
     canceladas: 0,
     valorTotalInvestimento: 0,
+    valorEmExecucao: 0,
+    valorParalisadas: 0,
+    valorConcluidas: 0,
+    valorCadastradas: 0,
     percentualMedioExecucaoFisica: null,
+    obrasSemMedicaoCount: 0,
   };
 
   if (
@@ -276,7 +308,7 @@ export async function getResumoObrasPorPortal(
 
   const cleanSlug = portalSlug.trim();
 
-  const res = await db
+  let query = db
     .selectFrom("fct_obras")
     .select([
       sql<number>`count(*)::int`.as("total_obras"),
@@ -298,12 +330,49 @@ export async function getResumoObrasPorPortal(
       sql<string | number>`coalesce(sum(valor_investimento_previsto), 0)`.as(
         "valor_total_investimento",
       ),
-      sql<string | number | null>`avg(percentual_execucao_fisica)`.as(
+      sql<
+        string | number
+      >`coalesce(sum(valor_investimento_previsto) filter (where situacao = 'em_execucao'), 0)`.as(
+        "valor_em_execucao",
+      ),
+      sql<
+        string | number
+      >`coalesce(sum(valor_investimento_previsto) filter (where situacao = 'paralisada'), 0)`.as(
+        "valor_paralisadas",
+      ),
+      sql<
+        string | number
+      >`coalesce(sum(valor_investimento_previsto) filter (where situacao = 'concluida'), 0)`.as(
+        "valor_concluidas",
+      ),
+      sql<
+        string | number
+      >`coalesce(sum(valor_investimento_previsto) filter (where situacao = 'cadastrada'), 0)`.as(
+        "valor_cadastradas",
+      ),
+      sql<number>`count(*) filter (where data_ultima_medicao is null and percentual_execucao_fisica is null)::int`.as(
+        "obras_sem_medicao",
+      ),
+      sql<
+        string | number | null
+      >`avg(percentual_execucao_fisica) filter (where situacao in ('em_execucao', 'paralisada', 'concluida'))`.as(
         "percentual_medio_execucao_fisica",
       ),
     ])
-    .where("portal_slug", "=", cleanSlug)
-    .executeTakeFirst();
+    .where("portal_slug", "=", cleanSlug);
+
+  if (filtros?.ano !== undefined && Number.isInteger(filtros.ano)) {
+    query = query.where((eb) =>
+      eb.or([
+        sql`extract(year from data_inicio_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_fim_prevista) = ${filtros.ano}`,
+        sql`extract(year from data_ultima_medicao) = ${filtros.ano}`,
+        sql`(data_inicio_prevista is not null and data_fim_prevista is not null and extract(year from data_inicio_prevista) <= ${filtros.ano} and extract(year from data_fim_prevista) >= ${filtros.ano})`,
+      ]),
+    );
+  }
+
+  const res = await query.executeTakeFirst();
 
   if (!res || Number(res.total_obras ?? 0) === 0) {
     return zerado;
@@ -327,6 +396,11 @@ export async function getResumoObrasPorPortal(
     valorTotalInvestimento: Number(
       Number(res.valor_total_investimento ?? 0).toFixed(2),
     ),
+    valorEmExecucao: Number(Number(res.valor_em_execucao ?? 0).toFixed(2)),
+    valorParalisadas: Number(Number(res.valor_paralisadas ?? 0).toFixed(2)),
+    valorConcluidas: Number(Number(res.valor_concluidas ?? 0).toFixed(2)),
+    valorCadastradas: Number(Number(res.valor_cadastradas ?? 0).toFixed(2)),
     percentualMedioExecucaoFisica,
+    obrasSemMedicaoCount: Number(res.obras_sem_medicao ?? 0),
   };
 }

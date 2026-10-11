@@ -87,6 +87,16 @@ vi.mock("@transparencia/db", () => ({
     totalPagoPatronal: 2_000_000,
     servidoresEfetivos: 120,
   }),
+  getResumoObrasPorPortal: vi.fn().mockResolvedValue({
+    totalObras: 5,
+    emExecucao: 2,
+    paralisadas: 1,
+    concluidas: 2,
+    cadastradas: 0,
+    canceladas: 0,
+    valorTotalInvestimento: 5_000_000,
+    percentualMedioExecucaoFisica: 50,
+  }),
   getRadarCivicoAlertas: vi.fn().mockResolvedValue([]),
 }));
 
@@ -243,6 +253,15 @@ describe("OpenGraph Image Route Handlers", () => {
   it("gera o card da Previdência (/previdencia)", async () => {
     const { default: generateImage } = await import(
       "../../app/[portalSlug]/previdencia/opengraph-image"
+    );
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+  });
+
+  it("gera o card de Obras Públicas (/obras)", async () => {
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/obras/opengraph-image"
     );
     const response = await generateImage({ params });
     expect(response).toBeDefined();
