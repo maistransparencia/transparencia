@@ -141,8 +141,8 @@ export function ObrasInteractiveSection({
     string | null
   >(null);
   const [viewMode, setViewMode] = useState<"urbana" | "territorio">("urbana");
-  const [_mobileTab, _setMobileTab] = useState<"mapa" | "lista">("mapa");
-  const _mobileCarouselRef = useRef<HTMLDivElement | null>(null);
+  const [mobileTab, setMobileTab] = useState<"mapa" | "lista">("mapa");
+  const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
 
   const activeSelectedObraId =
     externalSelectedObraId !== undefined
@@ -303,30 +303,59 @@ export function ObrasInteractiveSection({
           <p className="mt-1 text-slate-600 text-sm">{subtextoTerritorio}</p>
         </div>
 
-        {/* Botões de alternância Área Urbana / Todo o Território */}
-        <div className="flex shrink-0 items-center space-x-1 rounded-lg border border-slate-200 bg-slate-100 p-1">
-          <button
-            type="button"
-            onClick={() => setViewMode("urbana")}
-            className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-              viewMode === "urbana"
-                ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
-            }`}
-          >
-            Área urbana
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("territorio")}
-            className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-              viewMode === "territorio"
-                ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
-            }`}
-          >
-            Todo o território
-          </button>
+        {/* Controles à Direita: Mobile Toggle [Mapa | Lista] ou Desktop Selector [Área urbana | Todo o território] */}
+        <div className="flex items-center gap-2">
+          {/* Mobile Toggle: [Mapa | Lista] (apenas em telas < lg) */}
+          <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-1 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileTab("mapa")}
+              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                mobileTab === "mapa"
+                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+              }`}
+            >
+              Mapa
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTab("lista")}
+              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                mobileTab === "lista"
+                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+              }`}
+            >
+              Lista
+            </button>
+          </div>
+
+          {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
+          <div className="hidden shrink-0 items-center space-x-1 rounded-lg border border-slate-200 bg-slate-100 p-1 lg:flex">
+            <button
+              type="button"
+              onClick={() => setViewMode("urbana")}
+              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                viewMode === "urbana"
+                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+              }`}
+            >
+              Área urbana
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("territorio")}
+              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                viewMode === "territorio"
+                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+              }`}
+            >
+              Todo o território
+            </button>
+          </div>
         </div>
       </div>
 
@@ -399,8 +428,15 @@ export function ObrasInteractiveSection({
 
         {/* Área Principal Integrada: Lista na Esquerda | Mapa na Direita */}
         <div className="grid min-h-[580px] grid-cols-1 lg:grid-cols-12">
-          {/* Coluna Esquerda: Lista de Obras */}
-          <div className="flex flex-col border-slate-200 border-r lg:col-span-5">
+          {/* Coluna de Lista:
+              - No desktop (lg+): sempre visível ocupando 5 colunas com borda à direita
+              - No mobile (< lg): visível apenas se mobileTab === "lista", ocupando largura total (100%)
+          */}
+          <div
+            className={`flex-col border-slate-200 lg:col-span-5 lg:flex lg:border-r ${
+              mobileTab === "lista" ? "flex w-full" : "hidden"
+            }`}
+          >
             {/* Sub-cabeçalho da Lista */}
             <div className="flex items-center justify-between border-slate-100 border-b px-4 py-2.5 text-slate-500 text-xs">
               <span className="font-medium tabular-nums">
@@ -485,7 +521,7 @@ export function ObrasInteractiveSection({
                         </div>
                       </button>
 
-                      {/* BOX EXPANDIDO DE DETALHES (quando selecionado - Conforme Screenshot 1) */}
+                      {/* BOX EXPANDIDO DE DETALHES (quando selecionado) */}
                       {isSelected && (
                         <div className="mt-3 ml-4 space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 text-xs shadow-2xs">
                           <div>
@@ -540,17 +576,151 @@ export function ObrasInteractiveSection({
             </div>
           </div>
 
-          {/* Coluna Direita: Mapa Leaflet Integrado */}
-          <div className="relative h-full min-h-[580px] lg:col-span-7">
-            <ObrasMapaInterativo
-              markers={activeMarkers}
-              center={viewModel.mapCenter}
-              urbanBounds={viewModel.urbanBounds}
-              territorioBounds={viewModel.territorioBounds}
-              viewMode={viewMode}
-              selectedObraId={activeSelectedObraId}
-              onSelectObra={handleSelectObra}
-            />
+          {/* Coluna do Mapa:
+              - No desktop (lg+): sempre visível ocupando 7 colunas
+              - No mobile (< lg): visível apenas se mobileTab === "mapa", com carrossel horizontal de cards abaixo
+          */}
+          <div
+            className={`flex-col lg:col-span-7 lg:flex ${
+              mobileTab === "mapa" ? "flex w-full" : "hidden"
+            }`}
+          >
+            {/* Container do Mapa Leaflet */}
+            <div className="relative h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
+              {/* Botão flutuante toggle no mapa (visível no mobile para alternar área urbana / território) */}
+              <div className="absolute top-3 left-3 z-[400] lg:hidden">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewMode((prev) =>
+                      prev === "urbana" ? "territorio" : "urbana",
+                    )
+                  }
+                  className="rounded-lg border border-slate-200/90 bg-white/95 px-3 py-1.5 font-semibold text-slate-800 text-xs shadow-sm backdrop-blur-xs transition-colors hover:bg-white hover:text-slate-950"
+                >
+                  {viewMode === "urbana"
+                    ? "Ver todo o território"
+                    : "Ver área urbana"}
+                </button>
+              </div>
+
+              <ObrasMapaInterativo
+                markers={activeMarkers}
+                center={viewModel.mapCenter}
+                urbanBounds={viewModel.urbanBounds}
+                territorioBounds={viewModel.territorioBounds}
+                viewMode={viewMode}
+                selectedObraId={activeSelectedObraId}
+                onSelectObra={handleSelectObra}
+              />
+            </div>
+
+            {/* Carrossel Horizontal Mobile de Cards (apenas no mobile quando o mapa está ativo) */}
+            <div className="border-slate-200 border-t bg-slate-50/60 p-4 lg:hidden">
+              <div
+                ref={mobileCarouselRef}
+                className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
+              >
+                {filteredObras.length === 0 ? (
+                  <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
+                    <p className="font-medium text-slate-700 text-xs">
+                      Nenhuma obra encontrada
+                    </p>
+                  </div>
+                ) : (
+                  filteredObras.map((obra, idx) => {
+                    const isSelected = activeSelectedObraId === obra.idProjeto;
+                    const pct = obra.percentualExecucaoFisica ?? 0;
+
+                    return (
+                      <div
+                        key={obra.idProjeto}
+                        id={`mobile-card-${obra.idProjeto}`}
+                        className={`w-[85%] max-w-[320px] shrink-0 snap-center rounded-2xl border bg-white p-4 shadow-xs transition-all ${
+                          isSelected
+                            ? "border-blue-500 ring-2 ring-blue-500/20"
+                            : "border-slate-200"
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSelectObra(obra.idProjeto)}
+                          className="w-full text-left"
+                        >
+                          {/* Topo do Card: Dot + Status | Contador X/Total */}
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{
+                                  backgroundColor: obra.situacaoColorHex,
+                                }}
+                              />
+                              <span>{obra.situacaoLabel}</span>
+                            </div>
+                            <span className="text-slate-400 tabular-nums">
+                              {idx + 1}/{filteredObras.length}
+                            </span>
+                          </div>
+
+                          {/* Título da Obra (2 linhas) */}
+                          <h3 className="mt-2.5 line-clamp-2 min-h-[2.5rem] font-bold font-serif text-slate-900 text-sm leading-snug">
+                            {obra.nomeObra}
+                          </h3>
+
+                          {/* Órgão */}
+                          <p className="mt-1 truncate text-slate-500 text-xs">
+                            {obra.orgaoResponsavel}
+                          </p>
+
+                          {/* Barra de Progresso Físico */}
+                          <div className="mt-3">
+                            <div className="mb-1 flex items-center justify-end text-[11px] text-slate-500">
+                              <span>
+                                {obra.percentualExecucaoFisica !== null
+                                  ? `${Math.round(pct)}% físico`
+                                  : "Sem medição"}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, pct))}%`,
+                                  backgroundColor: obra.situacaoColorHex,
+                                }}
+                                className="h-full transition-all duration-300"
+                              />
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Rodapé: Valor à esquerda + Link Detalhes à direita */}
+                        <div className="mt-3.5 flex items-center justify-between border-slate-100 border-t pt-3">
+                          <span className="font-bold text-slate-900 text-sm tabular-nums">
+                            {fmtCompact(obra.valorInvestimentoPrevisto)}
+                          </span>
+                          <a
+                            href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-700"
+                          >
+                            <span>Detalhes</span>
+                            <span aria-hidden="true">&rarr;</span>
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Legenda de apoio */}
+              <p className="mt-2 text-center text-slate-500 text-xs">
+                Deslize os cards ou toque num ponto do mapa
+              </p>
+            </div>
           </div>
         </div>
       </div>

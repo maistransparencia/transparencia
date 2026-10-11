@@ -173,16 +173,18 @@ describe("ObrasPage Component", () => {
     ).toBeInTheDocument();
 
     // Lista de obras
-    expect(screen.getByText("Construção de Escola Modelo")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Construção de Escola Modelo").length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getAllByText("Reforma da Ponte do Rio Carangola").length,
     ).toBeGreaterThan(0);
     expect(
-      screen.getByText("Revitalização da Praça da Matriz"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Revitalização da Praça da Matriz").length,
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByText("Extensão da Rede de Iluminação Rural"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Extensão da Rede de Iluminação Rural").length,
+    ).toBeGreaterThan(0);
   });
 
   it("renderiza a seção dedicada de obras paralisadas com fundamentação legal oficial", async () => {
@@ -232,8 +234,8 @@ describe("ObrasPage Component", () => {
 
     // Na lista de cards
     expect(
-      screen.getByText("Revitalização da Praça da Matriz"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Revitalização da Praça da Matriz").length,
+    ).toBeGreaterThan(0);
     expect(
       screen.queryByText("Construção de Escola Modelo"),
     ).not.toBeInTheDocument();
@@ -273,10 +275,10 @@ describe("ObrasPage Component", () => {
 
     render(page);
 
-    const obraButton = screen.getByRole("button", {
+    const obraButtons = screen.getAllByRole("button", {
       name: /Construção de Escola Modelo/i,
     });
-    fireEvent.click(obraButton);
+    fireEvent.click(obraButtons[0]);
 
     // Box expandido com detalhes e menção a ObrasGov.br
     expect(screen.getByText("Órgão Responsável")).toBeInTheDocument();
@@ -291,5 +293,43 @@ describe("ObrasPage Component", () => {
       "href",
       "https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/OBR-001",
     );
+  });
+
+  it("permite alternar abas mobile entre Mapa e Lista e usar o botão flutuante de território", async () => {
+    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
+
+    const page = await ObrasPage({
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+      searchParams: Promise.resolve({}),
+    });
+
+    render(page);
+
+    // Botões mobile Mapa e Lista
+    const btnMapa = screen.getByRole("button", { name: "Mapa" });
+    const btnLista = screen.getByRole("button", { name: "Lista" });
+    expect(btnMapa).toBeInTheDocument();
+    expect(btnLista).toBeInTheDocument();
+
+    // No modo Mapa (padrão mobile), o carrossel horizontal de cards e instrução estão visíveis
+    expect(
+      screen.getByText("Deslize os cards ou toque num ponto do mapa"),
+    ).toBeInTheDocument();
+
+    // Botão flutuante de território mobile
+    const floatingTerritorioBtn = screen.getByRole("button", {
+      name: "Ver todo o território",
+    });
+    expect(floatingTerritorioBtn).toBeInTheDocument();
+
+    // Ao clicar no botão flutuante, altera o modo para 'territorio' e atualiza o label
+    fireEvent.click(floatingTerritorioBtn);
+    expect(
+      screen.getByRole("button", { name: "Ver área urbana" }),
+    ).toBeInTheDocument();
+
+    // Ao alternar para a aba 'Lista' no mobile
+    fireEvent.click(btnLista);
+    expect(screen.getByText("Maior valor primeiro")).toBeInTheDocument();
   });
 });
