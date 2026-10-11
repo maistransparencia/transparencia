@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 
 export interface ObrasGraficoAvancoDuploProps {
   percentualExecucaoFisica: number | null;
@@ -167,10 +167,19 @@ export function ObrasGraficoAvancoDuplo({
             Critério de Auditoria Cívica:
           </strong>{" "}
           De acordo com as boas práticas de controle dos Tribunais de Contas e
-          da Lei nº 14.133/2021, o pagamento financeiro deve acompanhar
-          rigorosamente o ateste presencial das medições físicas, resguardando o
-          erário público contra pagamentos antecipados sem contraprestação da
-          obra em campo.
+          da{" "}
+          <a
+            href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-0.5 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            <span>Lei nº 14.133/2021</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
+          , o pagamento financeiro deve acompanhar rigorosamente o ateste
+          presencial das medições físicas, resguardando o erário público contra
+          pagamentos antecipados sem contraprestação da obra em campo.
         </p>
       </div>
     </div>

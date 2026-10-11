@@ -36,9 +36,6 @@ export function ObrasParalisadasSection({
       window.dispatchEvent(
         new CustomEvent("obra:abrir-detalhes", { detail: { idProjeto } }),
       );
-      const url = new URL(window.location.href);
-      url.searchParams.set("idProjeto", idProjeto);
-      window.history.pushState({}, "", url.pathname + url.search + url.hash);
     }
   };
 
@@ -172,7 +169,7 @@ export function ObrasParalisadasSection({
                       onClick={() => handleVerNoMapa(obra.idProjeto)}
                       className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 hover:underline"
                     >
-                      <span>No mapa</span>
+                      <span>Ver no mapa</span>
                     </button>
                   )}
                 </div>

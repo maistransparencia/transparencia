@@ -88,6 +88,8 @@ export interface ObraItemViewModel {
   percentualExecucaoFormatado: string;
   dataUltimaMedicao: string | null;
   dataUltimaMedicaoFormatada: string;
+  percentualExecucaoFinanceira?: number | null;
+  dataParalisacao?: string | null;
   latitude: number | null;
   longitude: number | null;
   hasCoordinates: boolean;
@@ -277,6 +279,8 @@ function mapObraToViewModel(
     ),
     dataUltimaMedicao: obra.dataUltimaMedicao,
     dataUltimaMedicaoFormatada: fmtDate(obra.dataUltimaMedicao),
+    percentualExecucaoFinanceira: obra.percentualExecucaoFinanceira ?? null,
+    dataParalisacao: obra.dataParalisacao ?? null,
     latitude: obra.latitude,
     longitude: obra.longitude,
     hasCoordinates,
