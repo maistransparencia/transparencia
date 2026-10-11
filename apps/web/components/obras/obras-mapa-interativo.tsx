@@ -75,19 +75,94 @@ export function ObrasMapaInterativo({
       }
     };
 
+    let accumulatedDelta = 0;
+    let zoomDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastMousePoint: import("leaflet").Point | null = null;
+
+    const handleWheel = (e: WheelEvent) => {
+      const hasModifier = e.metaKey || e.ctrlKey;
+
+      if (!hasModifier) {
+        // Sem Cmd/Ctrl: o scroll da página continua normal, exibe aviso
+        showZoomHint();
+        return;
+      }
+
+      // Com Cmd/Ctrl: intercepta e aplica zoom no mapa Leaflet
+      e.preventDefault();
+      e.stopPropagation();
+      setShowHint(false);
+
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      lastMousePoint = map.mouseEventToContainerPoint(e);
+      accumulatedDelta += e.deltaY;
+
+      // Executa imediatamente para deltas grandes (ex: clique da roda do mouse)
+      if (Math.abs(accumulatedDelta) >= 60) {
+        if (zoomDebounceTimer) {
+          clearTimeout(zoomDebounceTimer);
+          zoomDebounceTimer = null;
+        }
+        const zoomDelta = accumulatedDelta < 0 ? 1 : -1;
+        accumulatedDelta = 0;
+        const currentZoom = map.getZoom();
+        const nextZoom = Math.max(
+          map.getMinZoom(),
+          Math.min(map.getMaxZoom(), currentZoom + zoomDelta),
+        );
+        if (nextZoom !== currentZoom && lastMousePoint) {
+          map.setZoomAround(lastMousePoint, nextZoom, { animate: true });
+        }
+        return;
+      }
+
+      // Debounce para gestos contínuos de trackpad
+      if (zoomDebounceTimer) {
+        clearTimeout(zoomDebounceTimer);
+      }
+      zoomDebounceTimer = setTimeout(() => {
+        if (
+          Math.abs(accumulatedDelta) >= 20 &&
+          mapInstanceRef.current &&
+          lastMousePoint
+        ) {
+          const m = mapInstanceRef.current;
+          const zoomDelta = accumulatedDelta < 0 ? 1 : -1;
+          accumulatedDelta = 0;
+          const currentZoom = m.getZoom();
+          const nextZoom = Math.max(
+            m.getMinZoom(),
+            Math.min(m.getMaxZoom(), currentZoom + zoomDelta),
+          );
+          if (nextZoom !== currentZoom) {
+            m.setZoomAround(lastMousePoint, nextZoom, { animate: true });
+          }
+        } else {
+          accumulatedDelta = 0;
+        }
+      }, 60);
+    };
+
     if (container) {
+      container.addEventListener("wheel", handleWheel, { passive: false });
       container.addEventListener("mouseleave", handleMouseLeave);
     }
 
     return () => {
       if (container) {
+        container.removeEventListener("wheel", handleWheel);
         container.removeEventListener("mouseleave", handleMouseLeave);
+      }
+      if (zoomDebounceTimer) {
+        clearTimeout(zoomDebounceTimer);
       }
       if (hintTimeoutRef.current) {
         clearTimeout(hintTimeoutRef.current);
       }
     };
-  }, []);
+  }, [showZoomHint]);
 
   // Função para desenhar os marcadores redondos minimalistas
   const renderMarkers = useCallback(
@@ -185,35 +260,8 @@ export function ObrasMapaInterativo({
         center,
         zoom,
         zoomControl: true,
-        scrollWheelZoom: true,
+        scrollWheelZoom: false,
       });
-
-      // Cooperative gesture handling: exige ⌘ (macOS) ou Ctrl (geral) para aplicar zoom via scroll wheel
-      const scrollWheelHandler = (
-        map as unknown as {
-          scrollWheelZoom?: {
-            _onWheelScroll?: (e: WheelEvent) => void;
-          };
-        }
-      ).scrollWheelZoom;
-
-      if (
-        scrollWheelHandler &&
-        typeof scrollWheelHandler._onWheelScroll === "function"
-      ) {
-        const originalOnWheel =
-          scrollWheelHandler._onWheelScroll.bind(scrollWheelHandler);
-
-        scrollWheelHandler._onWheelScroll = (e: WheelEvent) => {
-          const hasModifier = e.metaKey || e.ctrlKey;
-          if (hasModifier) {
-            setShowHint(false);
-            originalOnWheel(e);
-          } else {
-            showZoomHint();
-          }
-        };
-      }
 
       // Tiles Esri World Light Gray Base (exatamente como no mockup Tiles © Esri)
       L.tileLayer(

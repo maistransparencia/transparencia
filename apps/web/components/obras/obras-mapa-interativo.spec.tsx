@@ -18,17 +18,17 @@ const mockMarker = {
   openPopup: vi.fn(),
 };
 
-const mockScrollWheelZoom = {
-  _onWheelScroll: vi.fn(),
-};
-
 const mockMap = {
   setView: vi.fn(),
   flyTo: vi.fn(),
   fitBounds: vi.fn(),
   remove: vi.fn(),
   invalidateSize: vi.fn(),
-  scrollWheelZoom: mockScrollWheelZoom,
+  getZoom: vi.fn().mockReturnValue(13),
+  getMinZoom: vi.fn().mockReturnValue(1),
+  getMaxZoom: vi.fn().mockReturnValue(18),
+  mouseEventToContainerPoint: vi.fn().mockReturnValue({ x: 100, y: 100 }),
+  setZoomAround: vi.fn(),
 };
 
 const mockLayerGroup = {
@@ -182,24 +182,26 @@ describe("ObrasMapaInterativo", () => {
     expect(onSelectObra).toHaveBeenCalledWith("OBR-10");
   });
 
-  it("exibe aviso de zoom quando o usuário rola sem tecla modificadora (Cmd/Ctrl)", async () => {
-    const originalHandler = vi.fn();
-    mockScrollWheelZoom._onWheelScroll = originalHandler;
-
+  it("exibe aviso de zoom e não altera o mapa quando o usuário rola sem tecla modificadora (Cmd/Ctrl)", async () => {
     render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
 
     await waitFor(() => {
       expect(L.map).toHaveBeenCalled();
     });
 
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
     // Simula scroll sem tecla modificadora
     const wheelEventWithoutModifier = new WheelEvent("wheel", {
       deltaY: 100,
       metaKey: false,
       ctrlKey: false,
+      bubbles: true,
+      cancelable: true,
     });
 
-    mockScrollWheelZoom._onWheelScroll(wheelEventWithoutModifier);
+    mapInner.dispatchEvent(wheelEventWithoutModifier);
 
     // O aviso deve ser exibido
     await waitFor(() => {
@@ -209,35 +211,39 @@ describe("ObrasMapaInterativo", () => {
       ).toBeInTheDocument();
     });
 
-    // O handler original de zoom do Leaflet não deve ter sido acionado
-    expect(originalHandler).not.toHaveBeenCalled();
+    // O zoom do mapa não deve ter sido acionado
+    expect(mockMap.setZoomAround).not.toHaveBeenCalled();
   });
 
   it("permite zoom e oculta aviso quando a tecla modificadora (Cmd ou Ctrl) está pressionada", async () => {
-    const originalHandler = vi.fn();
-    mockScrollWheelZoom._onWheelScroll = originalHandler;
-
     render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
 
     await waitFor(() => {
       expect(L.map).toHaveBeenCalled();
     });
 
-    // Simula scroll com tecla modificadora
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // Simula scroll com tecla modificadora (deltaY >= 60 para acionamento imediato)
     const wheelEventWithModifier = new WheelEvent("wheel", {
-      deltaY: 100,
+      deltaY: -100,
       metaKey: true,
       ctrlKey: false,
+      bubbles: true,
+      cancelable: true,
     });
 
-    mockScrollWheelZoom._onWheelScroll(wheelEventWithModifier);
+    mapInner.dispatchEvent(wheelEventWithModifier);
 
     // O aviso não deve estar presente
     expect(
       screen.queryByTestId("obras-mapa-zoom-hint"),
     ).not.toBeInTheDocument();
 
-    // O handler original de zoom do Leaflet deve ter sido acionado
-    expect(originalHandler).toHaveBeenCalledWith(wheelEventWithModifier);
+    // O zoom do mapa deve ter sido acionado
+    expect(mockMap.setZoomAround).toHaveBeenCalledWith({ x: 100, y: 100 }, 14, {
+      animate: true,
+    });
   });
 });
