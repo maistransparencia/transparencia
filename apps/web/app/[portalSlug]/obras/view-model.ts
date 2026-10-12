@@ -95,6 +95,7 @@ export interface ObraContratoViewModel {
   vencimentoAtual: string | null;
   vencimentoAtualFormatado: string;
   ano?: number | null;
+  licitacaoAno?: number | null;
   linkContrato: string;
   linkLicitacao: string | null;
 }
@@ -131,8 +132,9 @@ export function mapContratoToViewModel(
   const basePath = cleanPortalSlug ? `/${cleanPortalSlug}` : "";
   const linkContrato = `${basePath}/contratos?numero=${encodeURIComponent(contrato.contratoNumero)}`;
 
+  const targetLicAno = contrato.licitacaoAno || contrato.ano;
   const linkLicitacao = contrato.licitacaoNumero
-    ? `${basePath}/licitacoes?numero=${encodeURIComponent(contrato.licitacaoNumero)}#licitacoes-em-andamento`
+    ? `${basePath}/licitacoes?numero=${encodeURIComponent(contrato.licitacaoNumero)}${targetLicAno ? `&ano=${targetLicAno}` : ""}#licitacoes-em-andamento`
     : null;
 
   return {
@@ -158,6 +160,7 @@ export function mapContratoToViewModel(
       ? fmtDate(contrato.vencimentoAtual)
       : "Não informada",
     ano: contrato.ano ?? null,
+    licitacaoAno: contrato.licitacaoAno ?? null,
     linkContrato,
     linkLicitacao,
   };

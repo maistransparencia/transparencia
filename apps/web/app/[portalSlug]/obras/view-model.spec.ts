@@ -387,6 +387,8 @@ describe("obras/view-model", () => {
         status: "vigente",
         dataInicio: "2024-02-01",
         vencimentoAtual: "2025-02-01",
+        ano: 2024,
+        licitacaoAno: 2023,
       };
 
       const obraComContratos: ObraDTO = {
@@ -412,7 +414,7 @@ describe("obras/view-model", () => {
         "/porciuncula_prefeitura/contratos?numero=001%2F2024",
       );
       expect(c.linkLicitacao).toBe(
-        "/porciuncula_prefeitura/licitacoes?numero=010%2F2024#licitacoes-em-andamento",
+        "/porciuncula_prefeitura/licitacoes?numero=010%2F2024&ano=2023#licitacoes-em-andamento",
       );
     });
 
@@ -435,6 +437,7 @@ describe("obras/view-model", () => {
         status: "vigente",
         dataInicio: "2024-03-01",
         vencimentoAtual: "2099-12-31",
+        ano: 2024,
       };
 
       const vm = mapContratoToViewModel(contrato, "porciuncula_prefeitura");
@@ -450,7 +453,7 @@ describe("obras/view-model", () => {
         "/porciuncula_prefeitura/contratos?numero=CTR-99%2F2024",
       );
       expect(vm.linkLicitacao).toBe(
-        "/porciuncula_prefeitura/licitacoes?numero=DISP-01%2F2024#licitacoes-em-andamento",
+        "/porciuncula_prefeitura/licitacoes?numero=DISP-01%2F2024&ano=2024#licitacoes-em-andamento",
       );
     });
 
@@ -466,12 +469,13 @@ describe("obras/view-model", () => {
         status: "vigente",
         dataInicio: null,
         vencimentoAtual: null,
+        ano: 2024,
       };
 
       const vm = mapContratoToViewModel(contrato, "");
       expect(vm.linkContrato).toBe("/contratos?numero=CTR-01%2F2024");
       expect(vm.linkLicitacao).toBe(
-        "/licitacoes?numero=LIC-01%2F2024#licitacoes-em-andamento",
+        "/licitacoes?numero=LIC-01%2F2024&ano=2024#licitacoes-em-andamento",
       );
     });
 

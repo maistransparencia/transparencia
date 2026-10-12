@@ -3,6 +3,7 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedContrato,
+  seedLicitacao,
   seedObra,
 } from "../../../tests/fixtures/seed";
 import {
@@ -821,6 +822,44 @@ describe("obras queries", () => {
       expect(contratosComProjeto[0].contratoNumero).toBe(
         "CTR-PROJETO-EXPLICITO",
       );
+    });
+
+    it("deve resolver licitacaoAno para contratos vinculados à obra que possuem licitação", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "OBR-LIC-ANO",
+        nomeObra: "Obras e Serviços de Esgotamento Sanitário",
+      });
+
+      await seedLicitacao({
+        portalSlug: PORTAL_A,
+        licitacaoId: "lic-2023-esgoto",
+        ano: 2023,
+        empresaId: "7",
+        licitacaoNumero: "000231",
+        modalidade: "CONCORRÊNCIA",
+        objeto: "Obras e serviços de esgotamento sanitário",
+      });
+
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        empresaId: "7",
+        ano: 2024,
+        contratoNumero: "2937/24",
+        fornecedorNome: "L.PHILIPPE CONSTRUCOES LTDA",
+        objeto: "Obras e serviços de esgotamento sanitário no município",
+        modalidade: "OBRA CONCORRENCIA",
+        licitacaoNumero: "000231",
+        numeroObra: "OBR-LIC-ANO",
+        vencimentoAtual: "2026-06-21",
+      });
+
+      const contratos = await getContratosPorObra(PORTAL_A, "OBR-LIC-ANO");
+      expect(contratos).toHaveLength(1);
+      expect(contratos[0].contratoNumero).toBe("2937/24");
+      expect(contratos[0].licitacaoNumero).toBe("000231");
+      expect(contratos[0].ano).toBe(2024);
+      expect(contratos[0].licitacaoAno).toBe(2023);
     });
   });
 

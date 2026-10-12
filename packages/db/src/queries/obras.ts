@@ -29,6 +29,7 @@ export interface ObraContratoDTO {
   dataInicio: string | null;
   vencimentoAtual: string | null;
   ano?: number | null;
+  licitacaoAno?: number | null;
   objeto?: string | null;
 }
 
@@ -298,6 +299,7 @@ type ObraContratoRow = {
   vencimento_atual?: string | Date | null;
   objeto?: string | null;
   ano?: number | null;
+  licitacao_ano?: number | null;
 };
 
 function mapRowToObraContratoDTO(row: ObraContratoRow): ObraContratoDTO {
@@ -324,6 +326,7 @@ function mapRowToObraContratoDTO(row: ObraContratoRow): ObraContratoDTO {
     dataInicio: toIsoDateString(row.data_inicio),
     vencimentoAtual: toIsoDateString(row.vencimento_atual),
     ano: row.ano != null ? Number(row.ano) : null,
+    licitacaoAno: row.licitacao_ano != null ? Number(row.licitacao_ano) : null,
     objeto: row.objeto != null ? String(row.objeto) : null,
   };
 }
@@ -394,7 +397,35 @@ export async function getContratosPorObra(
       c.data_inicio,
       c.vencimento_atual,
       c.objeto,
-      c.ano
+      c.ano,
+      (
+        SELECT l.ano
+        FROM fct_licitacoes l
+        WHERE l.portal_slug = c.portal_slug
+          AND l.empresa_id = c.empresa_id
+          AND l.licitacao_numero = c.licitacao_numero
+        ORDER BY
+          CASE
+            WHEN c.modalidade IS NOT NULL AND lower(l.modalidade) = lower(c.modalidade) THEN 0
+            WHEN c.modalidade IS NOT NULL AND (
+              (lower(c.modalidade) LIKE '%concorrencia%' AND lower(l.modalidade) LIKE '%concorrencia%') OR
+              (lower(c.modalidade) LIKE '%dispensa%' AND lower(l.modalidade) LIKE '%dispensa%') OR
+              (lower(c.modalidade) LIKE '%pregao%' AND lower(l.modalidade) LIKE '%pregao%') OR
+              (lower(c.modalidade) LIKE '%tomada%' AND lower(l.modalidade) LIKE '%tomada%')
+            ) THEN 1
+            ELSE 2
+          END,
+          CASE
+            WHEN l.ano <= c.ano THEN 0
+            ELSE 1
+          END,
+          CASE
+            WHEN l.ano <= c.ano THEN c.ano - l.ano
+            ELSE 100 + (l.ano - c.ano)
+          END ASC,
+          l.ano DESC
+        LIMIT 1
+      ) AS licitacao_ano
     FROM fct_contratos c
     INNER JOIN obra_meta o
       ON c.portal_slug = o.portal_slug
