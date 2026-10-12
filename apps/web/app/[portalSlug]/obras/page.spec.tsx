@@ -377,4 +377,39 @@ describe("ObrasPage Component", () => {
     fireEvent.click(btnLista);
     expect(screen.getByText("Maior valor primeiro")).toBeInTheDocument();
   });
+
+  it("renderiza a seção de disclaimer cívico com orientação para cobrança de vereadores e link do ObrasGov.br", async () => {
+    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
+
+    const page = await ObrasPage({
+      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+      searchParams: Promise.resolve({}),
+    });
+
+    render(page);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Notou obras sem contrato ou licitação vinculados?",
+      }),
+    ).toBeInTheDocument();
+
+    const btnCopiar = screen.getByRole("button", {
+      name: /Copiar mensagem para cobrar vereador ou autoridade/i,
+    });
+    expect(btnCopiar).toBeInTheDocument();
+
+    const disclaimerSection = screen.getByRole("region", {
+      name: /Notou obras sem contrato ou licitação vinculados\?/i,
+    });
+    expect(disclaimerSection).toBeInTheDocument();
+
+    const linkConhecerObrasGov = within(disclaimerSection).getByRole("link", {
+      name: /Conhecer o ObrasGov\.br/i,
+    });
+    expect(linkConhecerObrasGov).toHaveAttribute(
+      "href",
+      "https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html",
+    );
+  });
 });
