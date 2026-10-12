@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@transparencia/ui";
-import { ArrowRight, Calendar, FileCheck, FileText, Info } from "lucide-react";
+import { ArrowRight, Calendar, FileText, Info } from "lucide-react";
 import Link from "next/link";
 import type { ObraContratoViewModel } from "@/app/[portalSlug]/obras/view-model";
 
@@ -18,7 +18,6 @@ export function ObrasContratosVinculados({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="flex items-center gap-2 font-semibold text-slate-900 text-sm">
-          <FileCheck className="h-4 w-4 text-blue-600" />
           <span>Contratos e Licitações Vinculados</span>
         </h4>
         {contratos.length > 0 && (

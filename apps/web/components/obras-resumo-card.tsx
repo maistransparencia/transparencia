@@ -180,7 +180,7 @@ export function ObrasResumoCard({
           <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
             Total de Investimento Previsto
           </span>
-          <div className="mt-1 flex items-baseline gap-2">
+          <div className="mt-1 flex items-center gap-2">
             <p className="font-bold font-serif text-3xl text-ink tracking-tight">
               {fmtCompact(valorTotalInvestimento)}
             </p>
@@ -228,34 +228,42 @@ export function ObrasResumoCard({
 
           {/* Legendas com Contadores e Montantes */}
           <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-            <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
-              <span className="text-subtleText">Em execução:</span>
-              <span className="font-semibold text-ink">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
+                <span className="text-subtleText">Em execução:</span>
+              </div>
+              <span className="ml-4 font-semibold text-ink">
                 {fmtNumber(emExecucao)} ({fmtCompact(valorEmExecucao)})
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
-              <span className="text-subtleText">Concluídas:</span>
-              <span className="font-semibold text-ink">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                <span className="text-subtleText">Concluídas:</span>
+              </div>
+              <span className="ml-4 font-semibold text-ink">
                 {fmtNumber(concluidas)} ({fmtCompact(valorConcluidas)})
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
-              <span className="text-subtleText">Não iniciadas:</span>
-              <span className="font-semibold text-ink">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
+                <span className="text-subtleText">Não iniciadas:</span>
+              </div>
+              <span className="ml-4 font-semibold text-ink">
                 {fmtNumber(cadastradas)} ({fmtCompact(valorCadastradas)})
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-500" />
-              <span className="text-subtleText">Paralisadas:</span>
-              <span className="font-semibold text-ink">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-500" />
+                <span className="text-subtleText">Paralisadas:</span>
+              </div>
+              <span className="ml-4 font-semibold text-ink">
                 {fmtNumber(paralisadas)} ({fmtCompact(valorParalisadas)})
               </span>
             </div>

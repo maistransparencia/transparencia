@@ -72,7 +72,7 @@ export function ObrasGraficoAvancoDuplo({
               <span className="font-semibold text-slate-900">
                 Execução Física Oficial
               </span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
+              <span className="flex-shink rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
                 Boletim Técnico ObrasGov.br
               </span>
             </div>

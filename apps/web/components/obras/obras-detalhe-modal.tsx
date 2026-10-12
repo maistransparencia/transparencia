@@ -1,14 +1,7 @@
 "use client";
 
 import { cn, ModalDialog } from "@transparencia/ui";
-import {
-  AlertTriangle,
-  Calendar,
-  ExternalLink,
-  FileText,
-  MapPin,
-  TrendingUp,
-} from "lucide-react";
+import { AlertTriangle, ExternalLink, FileText } from "lucide-react";
 import { useMemo } from "react";
 import {
   buildObraDetalheViewModel,
@@ -177,7 +170,6 @@ export function ObrasDetalheModal({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
             <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              <TrendingUp className="h-3.5 w-3.5 text-slate-400" />
               Investimento Previsto
             </span>
             <p className="mt-1 font-bold text-base text-slate-900">
@@ -187,7 +179,6 @@ export function ObrasDetalheModal({
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
             <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              <Calendar className="h-3.5 w-3.5 text-slate-400" />
               Início Previsto
             </span>
             <p className="mt-1 font-semibold text-slate-800 text-sm">
@@ -197,7 +188,6 @@ export function ObrasDetalheModal({
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
             <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              <Calendar className="h-3.5 w-3.5 text-slate-400" />
               Término Previsto
             </span>
             <p className="mt-1 font-semibold text-slate-800 text-sm">
@@ -207,7 +197,6 @@ export function ObrasDetalheModal({
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
             <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" />
               Localização
             </span>
             <p className="mt-1 font-semibold text-slate-800 text-sm">
