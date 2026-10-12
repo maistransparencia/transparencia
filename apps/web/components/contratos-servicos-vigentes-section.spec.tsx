@@ -401,6 +401,7 @@ describe("ContratosServicosVigentesSection", () => {
           detail: expect.objectContaining({
             numero: "0015/24",
             portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
             fromContrato: expect.objectContaining({
               contratoNumero: "0043/24",
               ano: 2024,

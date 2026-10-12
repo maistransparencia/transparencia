@@ -73,4 +73,19 @@ describe("getContratoByNumero", () => {
     expect(found?.contratoNumero).toBe("2939/24");
     expect(found?.ano).toBe(2025);
   });
+
+  it("deve resolver licitacaoAno com o ano correto da licitação vinculada ao contrato", async () => {
+    // 2937/24 é de 2024 mas sua licitação 000231 é da Concorrência de 2023 (mesmo consultado em 2024 ou 2026)
+    const found2024 = await getContratoByNumero(PORTAL_SLUG, "2937/24", 2024);
+    expect(found2024).not.toBeNull();
+    expect(found2024?.contratoNumero).toBe("2937/24");
+    expect(found2024?.licitacaoNumero).toBe("000231");
+    expect(found2024?.licitacaoAno).toBe(2023);
+
+    const found2026 = await getContratoByNumero(PORTAL_SLUG, "2937/24", 2026);
+    expect(found2026).not.toBeNull();
+    expect(found2026?.contratoNumero).toBe("2937/24");
+    expect(found2026?.licitacaoNumero).toBe("000231");
+    expect(found2026?.licitacaoAno).toBe(2023);
+  });
 });
