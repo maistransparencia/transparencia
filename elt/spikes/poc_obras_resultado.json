@@ -1,0 +1,741 @@
+{
+  "Porciúncula": [
+    {
+      "id_projeto": "326.33-39",
+      "nome": "Manutenção rodoviária na malha federal sob administração do DNIT no estado do RJ.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "DEPARTAMENTO NACIONAL DE INFRAESTRUTURA DE TRANSPORTES",
+      "valor_investimento_previsto": 58160000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -22.1047656969312,
+          "longitude": 22.1047656969312
+        }
+      ],
+      "data_inicio_prevista": "2021-01-01",
+      "data_fim_prevista": "2021-12-31",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "93461.33-40",
+      "nome": "REFORMA DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 199995.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.95847,
+          "longitude": -42.03242
+        }
+      ],
+      "data_inicio_prevista": "2025-06-24",
+      "data_fim_prevista": "2025-07-10",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "163559.33-01",
+      "nome": "CONSTRUÇÃO DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 2099000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.9685,
+          "longitude": -42.041981
+        }
+      ],
+      "data_inicio_prevista": "2026-04-24",
+      "data_fim_prevista": "2026-04-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "51239.33-15",
+      "nome": "Centro Cirúrgico",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 1916400.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.96213,
+          "longitude": -42.03916
+        }
+      ],
+      "data_inicio_prevista": "2024-12-31",
+      "data_fim_prevista": "2028-09-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "55341.33-46",
+      "nome": "CONSTRUÇÃO DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 750000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.9868314,
+          "longitude": -42.0979633
+        }
+      ],
+      "data_inicio_prevista": "2017-12-05",
+      "data_fim_prevista": "2024-05-03",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "93463.33-53",
+      "nome": "REFORMA DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 199995.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.97128,
+          "longitude": -42.05115
+        }
+      ],
+      "data_inicio_prevista": "2025-06-25",
+      "data_fim_prevista": "2025-07-09",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "93462.33-07",
+      "nome": "REFORMA DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 279969.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.97066,
+          "longitude": -42.04088
+        }
+      ],
+      "data_inicio_prevista": "2025-06-25",
+      "data_fim_prevista": "2025-07-09",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "16868.33-35",
+      "nome": "Sistema de Esgotamento Sanitário",
+      "situacao": "Em execução",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 24698331.74,
+      "medicao_fisica": {
+        "id_execucao": 129209,
+        "percentual_execucao_fisica": 40.0,
+        "data_medicao": "2026-10-03",
+        "tipo_instrumento": "Convênio"
+      },
+      "coordenadas": [
+        {
+          "latitude": -20.96368,
+          "longitude": -42.03852
+        },
+        {
+          "latitude": -20.92945,
+          "longitude": -41.95676
+        },
+        {
+          "latitude": -20.82194,
+          "longitude": -41.91027
+        }
+      ],
+      "data_inicio_prevista": "2022-12-31",
+      "data_fim_prevista": "2027-12-01",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "37110.33-30",
+      "nome": "Estruturação da Rota Turística Regional Caminhos do Açúcar com a adequação, reforma e construção de praças nas regiões norte e noroeste do Estado do Rio de Janeiro.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 7380126.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.62325,
+          "longitude": -42.10155
+        },
+        {
+          "latitude": -21.12665,
+          "longitude": -41.68062
+        },
+        {
+          "latitude": -21.57625,
+          "longitude": -41.91352
+        },
+        {
+          "latitude": -22.24892,
+          "longitude": -41.58995
+        },
+        {
+          "latitude": -21.4863,
+          "longitude": -41.61367
+        },
+        {
+          "latitude": -22.08552,
+          "longitude": -41.85794
+        },
+        {
+          "latitude": -21.42138,
+          "longitude": -41.68694
+        },
+        {
+          "latitude": -21.76027,
+          "longitude": -42.17111
+        },
+        {
+          "latitude": -21.43137,
+          "longitude": -42.10131
+        },
+        {
+          "latitude": -21.03363,
+          "longitude": -41.98972
+        },
+        {
+          "latitude": -22.10463,
+          "longitude": -41.47268
+        },
+        {
+          "latitude": -21.63347,
+          "longitude": -41.76336
+        },
+        {
+          "latitude": -21.52248,
+          "longitude": -41.07638
+        },
+        {
+          "latitude": -21.35777,
+          "longitude": -41.94
+        },
+        {
+          "latitude": -21.63503,
+          "longitude": -41.04461
+        },
+        {
+          "latitude": -20.93322,
+          "longitude": -41.8636
+        },
+        {
+          "latitude": -20.82175,
+          "longitude": -41.91075
+        }
+      ],
+      "data_inicio_prevista": "2024-06-26",
+      "data_fim_prevista": "2028-06-26",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "101172.33-06",
+      "nome": "CONSTRUÇÃO DE CRAS E AMPLIAÇÃO",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 1170800.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.96458,
+          "longitude": -42.04731
+        },
+        {
+          "latitude": -20.97322,
+          "longitude": -42.05086
+        }
+      ],
+      "data_inicio_prevista": "2025-11-28",
+      "data_fim_prevista": "2027-09-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "94650.33-52",
+      "nome": "Esgotamento Sanietário Bate-Pau e Dona Emília",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 3000000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.98249,
+          "longitude": -42.09105
+        },
+        {
+          "latitude": -20.98912,
+          "longitude": -42.10278
+        }
+      ],
+      "data_inicio_prevista": "2025-12-31",
+      "data_fim_prevista": "2028-12-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "140983.33-64",
+      "nome": "REFORMA DE UNIDADE BÁSICA DE SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "FUNDO NACIONAL DE SAUDE",
+      "valor_investimento_previsto": 100000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.862833129505525,
+          "longitude": -41.89502656459808
+        }
+      ],
+      "data_inicio_prevista": "2012-06-04",
+      "data_fim_prevista": "2012-06-04",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "48017.33-15",
+      "nome": "Construção de Unidades Habitacionais PAC",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 3250000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.93111,
+          "longitude": -41.95493
+        },
+        {
+          "latitude": -20.97027,
+          "longitude": -42.04942
+        },
+        {
+          "latitude": -20.96589,
+          "longitude": -42.03537
+        }
+      ],
+      "data_inicio_prevista": "2024-12-17",
+      "data_fim_prevista": "2028-09-17",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "94643.33-54",
+      "nome": "Abastecimento d'água Dona Emília e Bate-Pau",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 3000000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.98916,
+          "longitude": -42.1028
+        },
+        {
+          "latitude": -20.98249,
+          "longitude": -42.09105
+        }
+      ],
+      "data_inicio_prevista": "2025-12-01",
+      "data_fim_prevista": "2029-12-01",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "17074.33-80",
+      "nome": "Pavimentação Vicinal",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 4790919.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.96367,
+          "longitude": -42.03855
+        },
+        {
+          "latitude": -20.8219,
+          "longitude": -41.9112
+        }
+      ],
+      "data_inicio_prevista": "2022-12-31",
+      "data_fim_prevista": "2026-12-31",
+      "motivo_paralisacao": null
+    }
+  ],
+  "Natividade": [
+    {
+      "id_projeto": "136657.33-45",
+      "nome": "Pavimentação em paralelepípedo em ruas do Município de Natividade/RJ: Av. Mauro Alves Ribeiro Júnior, Rua Bartolomeu Barra, Rua Victor Barra, Rua Valmero Gonçalves de Moraes, Rua Projetada (Cantinho d",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 1365902.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.03122,
+          "longitude": -41.9956
+        },
+        {
+          "latitude": -21.03171,
+          "longitude": -41.99342
+        },
+        {
+          "latitude": -21.02256,
+          "longitude": -41.99061
+        },
+        {
+          "latitude": -21.05112,
+          "longitude": -41.96177
+        },
+        {
+          "latitude": -21.05095,
+          "longitude": -41.96183
+        },
+        {
+          "latitude": -21.05871,
+          "longitude": -41.97542
+        },
+        {
+          "latitude": -21.0219,
+          "longitude": -41.99015
+        },
+        {
+          "latitude": -21.05198,
+          "longitude": -41.95955
+        }
+      ],
+      "data_inicio_prevista": "2026-08-24",
+      "data_fim_prevista": "2029-08-24",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "10949.33-40",
+      "nome": "PAVIMENTAÇÃO DAS RUAS DO BAIRRO PEDRO GOMES",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MUNICIPIO DE NATIVIDADE",
+      "valor_investimento_previsto": 400000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.0320355631222,
+          "longitude": 21.0320355631222
+        }
+      ],
+      "data_inicio_prevista": "2022-11-01",
+      "data_fim_prevista": "2023-11-01",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "326.33-39",
+      "nome": "Manutenção rodoviária na malha federal sob administração do DNIT no estado do RJ.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "DEPARTAMENTO NACIONAL DE INFRAESTRUTURA DE TRANSPORTES",
+      "valor_investimento_previsto": 58160000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -22.1047656969312,
+          "longitude": 22.1047656969312
+        }
+      ],
+      "data_inicio_prevista": "2021-01-01",
+      "data_fim_prevista": "2021-12-31",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "46816.33-86",
+      "nome": "CONSTRUÇÃO DE UNIDADES HABITACIONAIS EM NATIVIDADE (LOTE I)",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 4507264.19,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.03131,
+          "longitude": -41.99891
+        }
+      ],
+      "data_inicio_prevista": "2025-05-12",
+      "data_fim_prevista": "2028-05-12",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "46817.33-32",
+      "nome": "CONSTRUÇÃO DE UNIDADES HABITACIONAIS EM NATIVIDADE (LOTE II)",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 4498020.06,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.03131,
+          "longitude": -41.99891
+        }
+      ],
+      "data_inicio_prevista": "2025-05-12",
+      "data_fim_prevista": "2028-05-12",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "11547.33-24",
+      "nome": "Obra de pavimentação asfáltica em estradas vicinais no município de Natividade.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MUNICIPIO DE NATIVIDADE",
+      "valor_investimento_previsto": 625830.02,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.0270182742417,
+          "longitude": 21.0270182742417
+        }
+      ],
+      "data_inicio_prevista": "2022-03-04",
+      "data_fim_prevista": "2023-02-26",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "10607.33-64",
+      "nome": "Obra de pavimentação e construção de ponte em vias urbanas no Município de Natividade.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MUNICIPIO DE NATIVIDADE",
+      "valor_investimento_previsto": 2540759.76,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.0355628595012,
+          "longitude": 21.0355628595012
+        }
+      ],
+      "data_inicio_prevista": "2022-11-30",
+      "data_fim_prevista": "2024-11-29",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "95857.33-62",
+      "nome": "Reforma de Campos de Futebol e Quadras Poliesportivas, no Município de Natividade/RJ.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 383000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -20.98074,
+          "longitude": -41.84805
+        },
+        {
+          "latitude": -20.97915,
+          "longitude": -41.84951
+        },
+        {
+          "latitude": -21.03535,
+          "longitude": -41.89315
+        }
+      ],
+      "data_inicio_prevista": "2025-09-30",
+      "data_fim_prevista": "2027-09-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "92609.33-65",
+      "nome": "Obra de pavimentação asfáltica em estradas vicinais no município de Natividade.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 3037692.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.0447,
+          "longitude": -42.01064
+        },
+        {
+          "latitude": -21.04625,
+          "longitude": -42.012
+        },
+        {
+          "latitude": -21.04333,
+          "longitude": -42.01351
+        },
+        {
+          "latitude": -21.03111,
+          "longitude": -42.01903
+        },
+        {
+          "latitude": -21.02621,
+          "longitude": -42.01328
+        },
+        {
+          "latitude": -21.02657,
+          "longitude": -42.01021
+        }
+      ],
+      "data_inicio_prevista": "2025-10-07",
+      "data_fim_prevista": "2029-10-07",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "94186.33-01",
+      "nome": "Obra de pavimentação de ruas do perímetro urbano do município de Natividade/RJ.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 743732.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.04415,
+          "longitude": -41.97347
+        }
+      ],
+      "data_inicio_prevista": "2025-10-21",
+      "data_fim_prevista": "2027-09-30",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "91217.33-48",
+      "nome": "Construção de Unidades Habitacionais no município de Natividade/RJ",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 2800000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.03295,
+          "longitude": -42.00108
+        }
+      ],
+      "data_inicio_prevista": "2026-02-27",
+      "data_fim_prevista": "2028-02-27",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "37110.33-30",
+      "nome": "Estruturação da Rota Turística Regional Caminhos do Açúcar com a adequação, reforma e construção de praças nas regiões norte e noroeste do Estado do Rio de Janeiro.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 7380126.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.62325,
+          "longitude": -42.10155
+        },
+        {
+          "latitude": -21.12665,
+          "longitude": -41.68062
+        },
+        {
+          "latitude": -21.57625,
+          "longitude": -41.91352
+        },
+        {
+          "latitude": -22.24892,
+          "longitude": -41.58995
+        },
+        {
+          "latitude": -21.4863,
+          "longitude": -41.61367
+        },
+        {
+          "latitude": -22.08552,
+          "longitude": -41.85794
+        },
+        {
+          "latitude": -21.42138,
+          "longitude": -41.68694
+        },
+        {
+          "latitude": -21.76027,
+          "longitude": -42.17111
+        },
+        {
+          "latitude": -21.43137,
+          "longitude": -42.10131
+        },
+        {
+          "latitude": -21.03363,
+          "longitude": -41.98972
+        },
+        {
+          "latitude": -22.10463,
+          "longitude": -41.47268
+        },
+        {
+          "latitude": -21.63347,
+          "longitude": -41.76336
+        },
+        {
+          "latitude": -21.52248,
+          "longitude": -41.07638
+        },
+        {
+          "latitude": -21.35777,
+          "longitude": -41.94
+        },
+        {
+          "latitude": -21.63503,
+          "longitude": -41.04461
+        },
+        {
+          "latitude": -20.93322,
+          "longitude": -41.8636
+        },
+        {
+          "latitude": -20.82175,
+          "longitude": -41.91075
+        }
+      ],
+      "data_inicio_prevista": "2024-06-26",
+      "data_fim_prevista": "2028-06-26",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "59209.33-86",
+      "nome": "Construção de Unidades Habitacionais no município de Natividade/RJ.",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MUNICIPIO DE NATIVIDADE",
+      "valor_investimento_previsto": 2600000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.0272400131758,
+          "longitude": -41.99783
+        },
+        {
+          "latitude": -21.033400013185,
+          "longitude": -41.89543
+        }
+      ],
+      "data_inicio_prevista": "2025-06-02",
+      "data_fim_prevista": "2026-06-01",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "108226.33-80",
+      "nome": "REFORMA DE UNIDADE DE ATENÇÃO ESPECIALIZADA EM SAÚDE",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "MINISTERIO DA ECONOMIA",
+      "valor_investimento_previsto": 507045.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -21.03081,
+          "longitude": -41.99431
+        }
+      ],
+      "data_inicio_prevista": "2025-10-30",
+      "data_fim_prevista": "2026-11-02",
+      "motivo_paralisacao": null
+    },
+    {
+      "id_projeto": "1147.33-19",
+      "nome": "Manutenção rodoviária na malha federal sob administração do DNIT no estado do RJ",
+      "situacao": "Cadastrada",
+      "orgao_responsavel": "DEPARTAMENTO NACIONAL DE INFRAESTRUTURA DE TRANSPORTES",
+      "valor_investimento_previsto": 9975000.0,
+      "medicao_fisica": null,
+      "coordenadas": [
+        {
+          "latitude": -22.0484641398815,
+          "longitude": 22.0484641398815
+        }
+      ],
+      "data_inicio_prevista": "2020-12-31",
+      "data_fim_prevista": "2021-12-30",
+      "motivo_paralisacao": null
+    }
+  ]
+}

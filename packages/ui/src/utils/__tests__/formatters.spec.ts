@@ -3,6 +3,7 @@ import {
   fmtCpfCnpj,
   fmtLicitacaoModalidade,
   getPartialYearPeriod,
+  maskCpfCnpj,
 } from "../formatters";
 
 describe("getPartialYearPeriod", () => {
@@ -142,5 +143,32 @@ describe("fmtLicitacaoModalidade", () => {
     expect(fmtLicitacaoModalidade("outra_modalidade_customizada")).toBe(
       "Outra Modalidade Customizada",
     );
+  });
+});
+
+describe("maskCpfCnpj", () => {
+  it("deve mascarar CPF preservando os 3 primeiros e os 2 últimos dígitos", () => {
+    expect(maskCpfCnpj("12345678900")).toBe("123.***.***-00");
+    expect(maskCpfCnpj("123.456.789-00")).toBe("123.***.***-00");
+    expect(maskCpfCnpj("98765432199")).toBe("987.***.***-99");
+    expect(maskCpfCnpj("1234567890")).toBe("012.***.***-90");
+  });
+
+  it("deve mascarar CNPJ preservando raiz inicial, filial e dígito verificador", () => {
+    expect(maskCpfCnpj("12345678000190")).toBe("12.***.***/0001-90");
+    expect(maskCpfCnpj("12.345.678/0001-90")).toBe("12.***.***/0001-90");
+    expect(maskCpfCnpj("00112233000244")).toBe("00.***.***/0002-44");
+  });
+
+  it("deve retornar string vazia para valores nulos, vazios ou indefinidos", () => {
+    expect(maskCpfCnpj(null)).toBe("");
+    expect(maskCpfCnpj(undefined)).toBe("");
+    expect(maskCpfCnpj("")).toBe("");
+    expect(maskCpfCnpj("   ")).toBe("");
+  });
+
+  it("deve retornar a string original se o total de dígitos for diferente de 11 e 14", () => {
+    expect(maskCpfCnpj("12345")).toBe("12345");
+    expect(maskCpfCnpj("ESTRANGEIRO-99")).toBe("ESTRANGEIRO-99");
   });
 });

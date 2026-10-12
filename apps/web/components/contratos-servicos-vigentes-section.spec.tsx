@@ -401,6 +401,7 @@ describe("ContratosServicosVigentesSection", () => {
           detail: expect.objectContaining({
             numero: "0015/24",
             portalSlug: "porciuncula_prefeitura",
+            ano: 2024,
             fromContrato: expect.objectContaining({
               contratoNumero: "0043/24",
               ano: 2024,
@@ -498,5 +499,57 @@ describe("ContratosServicosVigentesSection", () => {
     const banner = await screen.findByText(/pertence ao exercício de/i);
     expect(banner).toHaveTextContent("2023");
     expect(banner).not.toHaveTextContent("2024");
+  });
+
+  it("abre automaticamente via deep-link (?contratoNumero=2939/24) mesmo quando o ano da tela for divergente", async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        contrato: {
+          contratoServicoId: "ctr-2939-24",
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          contratoNumero: "2939/24",
+          fornecedorNome: "ENGTEC ENGENHARIA E EMPREITEIRA ITAPERUNA LTDA",
+          fornecedorCnpj: "12345678000100",
+          objetoDescricao: "Obras de engenharia",
+          dataInicio: "2024-06-01",
+          vencimentoAtual: "2025-06-01",
+          totalEmpenhado: 500000,
+          totalLiquidado: 400000,
+          totalPago: 350000,
+          saldoPendente: 150000,
+          percentualPago: 70,
+          statusExecucao: "em_execucao",
+        },
+      }),
+    } as unknown as Response);
+
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?contratoNumero=2939%2F24#contratos-servicos-vigentes",
+    );
+
+    render(
+      <ContratosServicosVigentesSection
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2026}
+      />,
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText("Contrato nº 2939/24")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("ENGTEC ENGENHARIA E EMPREITEIRA ITAPERUNA LTDA")
+        .length,
+    ).toBeGreaterThanOrEqual(1);
+
+    // Deve exibir banner informando que o contrato pertence ao exercício de 2025 enquanto a página está em 2026
+    const banner = screen.getByText(/pertence ao exercício de/i);
+    expect(banner).toHaveTextContent("2025");
+    expect(banner).toHaveTextContent("2026");
   });
 });

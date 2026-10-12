@@ -114,44 +114,38 @@ calculado as (
         cb.valor_aditado,
         cb.empenhado_contrato,
         round(
-            case
-                when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
-                    coalesce(
-                        (coalesce(nullif(dl.total_empenhado_exercicio, 0), nullif(dl.total_empenhado_rap, 0), 0)
-                        * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0))),
-                        0
-                    )
-                else
-                    coalesce(
-                        nullif(df.total_empenhado_exercicio, 0),
-                        nullif(df.total_empenhado_rap, 0),
-                        0
-                    ) * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0))
-            end,
+            coalesce(
+                case
+                    when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
+                        (coalesce(nullif(dl.total_empenhado_exercicio, 0), nullif(dl.total_empenhado_rap, 0))
+                        * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0)))
+                end,
+                (coalesce(nullif(df.total_empenhado_exercicio, 0), nullif(df.total_empenhado_rap, 0), 0)
+                * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0))),
+                0
+            ),
             2
         ) as empenhado_calc,
         round(
-            case
-                when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
-                    coalesce(
-                        dl.total_liquidado * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0)),
-                        0
-                    )
-                else
-                    coalesce(df.total_liquidado, 0) * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0))
-            end,
+            coalesce(
+                case
+                    when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
+                        nullif(dl.total_liquidado * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0)), 0)
+                end,
+                df.total_liquidado * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0)),
+                0
+            ),
             2
         ) as liquidado_calc,
         round(
-            case
-                when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
-                    coalesce(
-                        dl.total_pago * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0)),
-                        0
-                    )
-                else
-                    coalesce(df.total_pago, 0) * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0))
-            end,
+            coalesce(
+                case
+                    when cb.licitacao_clean is not null and trim(cb.licitacao_clean) != '' then
+                        nullif(dl.total_pago * (cb.empenhado_contrato / nullif(tl.sum_empenhado_contrato, 0)), 0)
+                end,
+                df.total_pago * (cb.empenhado_contrato / nullif(tf.sum_empenhado_contrato, 0)),
+                0
+            ),
             2
         ) as pago_calc
     from contratos_base cb

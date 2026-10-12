@@ -1,0 +1,74 @@
+version: 2
+
+sources:
+  - name: raw_obrasgov
+    schema: raw_obrasgov
+    description: "Dados brutos de obras públicas extraídos da API oficial do ObrasGov.br"
+    tables:
+      - name: projetos
+        description: "Projetos de investimento / obras públicas por município"
+        meta:
+          primary_key: [portal_slug, id_projeto_investimento]
+        columns:
+          - name: portal_slug
+          - name: id_projeto_investimento
+          - name: desc_nome
+          - name: desc_funcao_social
+          - name: desc_projeto
+          - name: natureza_intervencao
+          - name: especie_intervencao
+          - name: executores_json
+          - name: repassadores_json
+          - name: situacao
+          - name: organizacao_resp
+          - name: valor_investimento_previsto
+          - name: dt_inicial_prevista
+          - name: dt_final_prevista
+          - name: data_extracao
+
+      - name: geometrias
+        description: "Pontos e coordenadas geográficas das obras"
+        meta:
+          primary_key: [portal_slug, id_projeto_investimento, id_geometria]
+        columns:
+          - name: portal_slug
+          - name: id_projeto_investimento
+          - name: id_geometria
+          - name: latitude
+          - name: longitude
+          - name: pin
+          - name: origem_geometria
+          - name: data_extracao
+
+      - name: execucoes_fisicas
+        description: "Medições físicas e percentuais de avanço da obra"
+        meta:
+          primary_key: [portal_slug, id_projeto_investimento, id_execucao_fisica]
+        columns:
+          - name: portal_slug
+          - name: id_projeto_investimento
+          - name: id_execucao_fisica
+          - name: percentual_execucao_fisica
+          - name: dt_inicial_execucao
+          - name: dt_final_execucao
+          - name: tipo_instrumento
+          - name: tipo_forma_execucao
+          - name: dt_cadastro_execucao
+          - name: dt_atualizacao_execucao
+          - name: data_medicao
+          - name: data_extracao
+
+      - name: historico_paralisacoes
+        description: "Histórico de justificativas de paralisação e cancelamento"
+        meta:
+          primary_key: [portal_slug, id_projeto_investimento, id_historico_situacao_investimento]
+        columns:
+          - name: portal_slug
+          - name: id_projeto_investimento
+          - name: id_historico_situacao_investimento
+          - name: descricao_historico_situacao_investimento
+          - name: data_historico_situacao_investimento
+          - name: justificativa_cancelada_paralisada
+          - name: possui_tratativas_situacao_investimento
+          - name: fase_tratativas_situacao_investimento
+          - name: data_extracao

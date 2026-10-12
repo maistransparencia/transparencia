@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_obrasgov__projetos
+    description: "Staging de projetos de investimento e obras públicas do ObrasGov.br"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: id_projeto
+        tests:
+          - not_null
+      - name: nome_obra
+      - name: funcao_social
+      - name: descricao_intervencao
+      - name: natureza_intervencao
+      - name: especie_intervencao
+      - name: executor_nome
+      - name: executor_cnpj
+      - name: repassador_nome
+      - name: repassador_cnpj
+      - name: situacao
+      - name: orgao_responsavel
+      - name: valor_investimento_previsto
+      - name: data_inicio_prevista
+      - name: data_fim_prevista
+
+  - name: stg_obrasgov__geometrias
+    description: "Staging de coordenadas geográficas e pontos das obras"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: id_projeto
+        tests:
+          - not_null
+      - name: id_geometria
+        tests:
+          - not_null
+      - name: latitude
+      - name: longitude
+
+  - name: stg_obrasgov__execucoes_fisicas
+    description: "Staging de medições físicas e percentuais de avanço das obras"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: id_projeto
+        tests:
+          - not_null
+      - name: id_execucao_fisica
+        tests:
+          - not_null
+      - name: percentual_execucao_fisica
+      - name: data_medicao
+
+  - name: stg_obrasgov__historico_paralisacoes
+    description: "Staging de histórico de paralisações e cancelamentos das obras"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: id_projeto
+        tests:
+          - not_null
+      - name: id_historico
+      - name: descricao_historico
+      - name: data_historico_situacao_investimento
+      - name: justificativa_cancelada_paralisada
+

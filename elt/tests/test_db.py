@@ -188,3 +188,140 @@ def test_fct_licitacoes_itens_exists(conn):
     assert "valor_total_homologado" in columns
     assert "percentual_desconto" in columns
     assert "fornecedor_nome" in columns
+
+
+def test_fct_obras_exists_and_partitioned(conn):
+    from sqlalchemy import text
+
+    rows = conn.execute(
+        text(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'analytics' AND table_name = 'fct_obras'"
+        )
+    ).fetchall()
+    columns = {r[0]: r[1] for r in rows}
+    assert len(columns) > 0, "Table analytics.fct_obras should exist"
+
+    expected_cols = [
+        "portal_slug",
+        "id_projeto",
+        "nome_obra",
+        "funcao_social",
+        "descricao_intervencao",
+        "natureza_intervencao",
+        "especie_intervencao",
+        "executor_nome",
+        "executor_cnpj",
+        "repassador_nome",
+        "repassador_cnpj",
+        "situacao",
+        "orgao_responsavel",
+        "valor_investimento_previsto",
+        "percentual_execucao_fisica",
+        "data_ultima_medicao",
+        "latitude",
+        "longitude",
+        "motivo_paralisacao",
+        "data_inicio_prevista",
+        "data_fim_prevista",
+    ]
+    for col in expected_cols:
+        assert col in columns, f"Column {col} missing in analytics.fct_obras"
+
+    # Inserção de dados de teste isolados em raw_obrasgov para dois municípios
+    conn.execute(
+        text(
+            """
+            INSERT INTO "raw_obrasgov"."projetos" (
+                portal_slug, id_projeto_investimento, desc_nome, desc_funcao_social, desc_projeto,
+                natureza_intervencao, especie_intervencao, executores_json, repassadores_json,
+                situacao, organizacao_resp, valor_investimento_previsto, dt_inicial_prevista, dt_final_prevista
+            ) VALUES
+                ('porciuncula_prefeitura', 'OBRA-POR-1', 'Ponte Municipal', 'Benefício rural', 'Construção de ponte de concreto',
+                 'Obra', 'Construção', '[{"organizacao_executor": "Sec Obras", "cnpj_executor": "12345678000199"}]',
+                 '[{"organizacao_repassador": "Gov Federal", "cnpj_repassador": "00000000000100"}]',
+                 'Paralisada', 'Sec Obras', '250000.00', '2023-01-01', '2023-12-31'),
+                ('natividade_prefeitura', 'OBRA-NAT-1', 'Asfalto Bairro Novo', 'Melhoria de tráfego', 'Pavimentação asfáltica',
+                 'Obra', 'Pavimentação', NULL, NULL,
+                 'Em Execução', 'Sec Infra', '180000.00', '2024-02-01', '2024-11-30')
+            ON CONFLICT (portal_slug, id_projeto_investimento) DO NOTHING;
+
+            INSERT INTO "raw_obrasgov"."geometrias" (
+                portal_slug, id_projeto_investimento, id_geometria, latitude, longitude, origem_geometria
+            ) VALUES
+                ('porciuncula_prefeitura', 'OBRA-POR-1', '0', '-20.95847000', '-42.03242000', 'pin'),
+                ('porciuncula_prefeitura', 'OBRA-POR-1', '1', '-20.95000000', '-42.03000000', 'pin'),
+                ('natividade_prefeitura', 'OBRA-NAT-1', '0', '-21.04000000', '-41.97000000', 'pin')
+            ON CONFLICT (portal_slug, id_projeto_investimento, id_geometria) DO NOTHING;
+
+            INSERT INTO "raw_obrasgov"."execucoes_fisicas" (
+                portal_slug, id_projeto_investimento, id_execucao_fisica, percentual_execucao_fisica, data_medicao
+            ) VALUES
+                ('porciuncula_prefeitura', 'OBRA-POR-1', '1', '30.00', '2023-03-01'),
+                ('porciuncula_prefeitura', 'OBRA-POR-1', '2', '55.00', '2023-06-01'),
+                ('natividade_prefeitura', 'OBRA-NAT-1', '1', '80.00', '2024-05-10')
+            ON CONFLICT (portal_slug, id_projeto_investimento, id_execucao_fisica) DO NOTHING;
+
+            INSERT INTO "raw_obrasgov"."historico_paralisacoes" (
+                portal_slug, id_projeto_investimento, id_historico_situacao_investimento,
+                descricao_historico_situacao_investimento, data_historico_situacao_investimento, justificativa_cancelada_paralisada
+            ) VALUES
+                ('porciuncula_prefeitura', 'OBRA-POR-1', '1', 'Paralisada', '2023-05-15', 'Falta de repasse estadual')
+            ON CONFLICT (portal_slug, id_projeto_investimento, id_historico_situacao_investimento) DO NOTHING;
+            """
+        )
+    )
+
+    # Consulta isolada para Porciúncula
+    por_row = conn.execute(
+        text(
+            """
+            SELECT id_projeto, nome_obra, situacao, valor_investimento_previsto,
+                   percentual_execucao_fisica, data_ultima_medicao, latitude, longitude, motivo_paralisacao,
+                   orgao_responsavel, data_inicio_prevista, data_fim_prevista,
+                   funcao_social, descricao_intervencao, natureza_intervencao, especie_intervencao,
+                   executor_nome, executor_cnpj, repassador_nome, repassador_cnpj
+            FROM analytics.fct_obras
+            WHERE portal_slug = 'porciuncula_prefeitura' AND id_projeto = 'OBRA-POR-1'
+            """
+        )
+    ).fetchall()
+    assert len(por_row) == 1, "Não deve haver fan-out em fct_obras para Porciúncula"
+    r_por = por_row[0]
+    assert r_por[0] == "OBRA-POR-1"
+    assert r_por[1] == "Ponte Municipal"
+    assert r_por[2] == "paralisada"  # snake_case (Regra 10)
+    assert float(r_por[3]) == 250000.00
+    assert float(r_por[4]) == 55.00  # medição mais recente
+    assert str(r_por[5]) == "2023-06-01"
+    assert float(r_por[6]) == -20.95847000
+    assert float(r_por[7]) == -42.03242000
+    assert r_por[8] == "Falta de repasse estadual"
+    assert r_por[9] == "Sec Obras"
+    assert str(r_por[10]) == "2023-01-01"
+    assert str(r_por[11]) == "2023-12-31"
+    assert r_por[12] == "Benefício rural"
+    assert r_por[13] == "Construção de ponte de concreto"
+    assert r_por[14] == "Obra"
+    assert r_por[15] == "Construção"
+    assert r_por[16] == "Sec Obras"
+    assert r_por[17] == "12345678000199"
+    assert r_por[18] == "Gov Federal"
+    assert r_por[19] == "00000000000100"
+
+    # Consulta isolada para Natividade
+    nat_row = conn.execute(
+        text(
+            """
+            SELECT id_projeto, nome_obra, situacao, percentual_execucao_fisica, motivo_paralisacao
+            FROM analytics.fct_obras
+            WHERE portal_slug = 'natividade_prefeitura'
+            """
+        )
+    ).fetchall()
+    assert len(nat_row) == 1, "Não deve haver fan-out em fct_obras para Natividade"
+    r_nat = nat_row[0]
+    assert r_nat[0] == "OBRA-NAT-1"
+    assert r_nat[1] == "Asfalto Bairro Novo"
+    assert r_nat[2] == "em_execucao"  # snake_case (Regra 10)
+    assert float(r_nat[3]) == 80.00
+    assert r_nat[4] is None, "Obra em execução não deve ter motivo de paralisação"

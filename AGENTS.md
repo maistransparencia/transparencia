@@ -176,4 +176,20 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Preservação de `portal_slug` em Agrupamentos:** Toda agregação (`GROUP BY`) em modelos marts ou métricas derivadas deve incluir `portal_slug` no grão de particionamento, garantindo que nenhum indicador misture ou unifique métricas de municípios distintos.
 - **Fallbacks e Defaults Neutros:** Nunca defina fallbacks com nomes ou cidades fixas de um tenant específico (ex: proibido `coalesce(cidade, 'PORCIUNCULA')` ou `coalesce(portal_slug, 'porciuncula_prefeitura')`). Utilize sempre condicionais dinâmicas baseadas no próprio `portal_slug` ou valores nulos/neutros (`'OUTROS'`, `'NAO_INFORMADO'`).
 
+---
+
+## 24. CONSISTÊNCIA DE DESIGN SYSTEM, COMPONENTES E VOCABULÁRIO CÍVICO (ZERO TERMOS EXÓTICOS)
+
+- **Consistência de Vocabulário e Ações:** É estritamente proibido inventar termos novos, jargões exóticos ou rótulos descolados do padrão da aplicação (ex: proibido inventar termos como `"Dossiê"`, `"Prontuário"`, `"Ficha Técnica Extra"`, `"Super Relatório"` ao introduzir novas páginas ou seções). Mantenha estrita uniformidade com as convenções já estabelecidas no portal:
+  - Detalhamento de registros em modal/página: **`"Detalhes"`**, **`"Ver detalhes"`** ou **`"Fechar detalhes"`** (idêntico ao padrão de Licitações, Contratos e Emendas).
+  - Títulos de janelas e cabeçalhos de contexto: **`"Detalhes da Obra"`**, **`"Detalhes do Contrato"`**, **`"Detalhes da Licitação"`**.
+  - Ações de navegação e filtros: nomes simples, diretos e padronizados (`"Limpar filtros"`, `"Filtrar por..."`, `"Compartilhar"`).
+- **Reuso Mandatório de Componentes do Design System (`packages/ui`):** Ao conceber novas telas ou funcionalidades, reutilize sempre os componentes canônicos existentes:
+  - Modais: `ModalDialog` (com suporte a share, badge, título, subtítulo e rodapé padronizado).
+  - Formatação e valores: helpers universais `fmtCurrency`, `fmtPercent`, `fmtCompact`, `fmtDate`, `fmtNumber`.
+  - Badges e pílulas de status: classes de utilitários e paleta padrão do Tailwind já definidas nos tokens globais.
+- **Uniformidade Tipográfica e Estilos de Fonte:** Não introduza famílias tipográficas alternativas nem classes arbitrárias de font-family fora da configuração oficial (`font-sans` para interface e `font-serif` para títulos editoriais e nomes de entidades municipais). Títulos de modais e seções devem seguir a mesma hierarquia de peso, entrelinha e tamanho dos módulos já consolidados.
+- **Padrão de Interação Idêntico (Deep Linking):** Seções com detalhamento analítico (licitações, contratos vigentes, obras) devem compartilhar rigorosamente a mesma UX: abertura em modal contextual sobreposto, sincronização bidirecional e reativa com query params da URL (`?idProjeto=...`, `?contratoNumero=...`), histórico de navegação navegável via `pushState`/`replaceState` e redirecionamento limpo da rota direta para a rota base com parâmetro de busca.
+
+
 
