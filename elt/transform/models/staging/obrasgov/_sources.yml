@@ -13,6 +13,12 @@ sources:
           - name: portal_slug
           - name: id_projeto_investimento
           - name: desc_nome
+          - name: desc_funcao_social
+          - name: desc_projeto
+          - name: natureza_intervencao
+          - name: especie_intervencao
+          - name: executores_json
+          - name: repassadores_json
           - name: situacao
           - name: organizacao_resp
           - name: valor_investimento_previsto

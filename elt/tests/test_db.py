@@ -205,6 +205,14 @@ def test_fct_obras_exists_and_partitioned(conn):
         "portal_slug",
         "id_projeto",
         "nome_obra",
+        "funcao_social",
+        "descricao_intervencao",
+        "natureza_intervencao",
+        "especie_intervencao",
+        "executor_nome",
+        "executor_cnpj",
+        "repassador_nome",
+        "repassador_cnpj",
         "situacao",
         "orgao_responsavel",
         "valor_investimento_previsto",
@@ -224,11 +232,17 @@ def test_fct_obras_exists_and_partitioned(conn):
         text(
             """
             INSERT INTO "raw_obrasgov"."projetos" (
-                portal_slug, id_projeto_investimento, desc_nome, situacao,
-                organizacao_resp, valor_investimento_previsto, dt_inicial_prevista, dt_final_prevista
+                portal_slug, id_projeto_investimento, desc_nome, desc_funcao_social, desc_projeto,
+                natureza_intervencao, especie_intervencao, executores_json, repassadores_json,
+                situacao, organizacao_resp, valor_investimento_previsto, dt_inicial_prevista, dt_final_prevista
             ) VALUES
-                ('porciuncula_prefeitura', 'OBRA-POR-1', 'Ponte Municipal', 'Paralisada', 'Sec Obras', '250000.00', '2023-01-01', '2023-12-31'),
-                ('natividade_prefeitura', 'OBRA-NAT-1', 'Asfalto Bairro Novo', 'Em Execução', 'Sec Infra', '180000.00', '2024-02-01', '2024-11-30')
+                ('porciuncula_prefeitura', 'OBRA-POR-1', 'Ponte Municipal', 'Benefício rural', 'Construção de ponte de concreto',
+                 'Obra', 'Construção', '[{"organizacao_executor": "Sec Obras", "cnpj_executor": "12345678000199"}]',
+                 '[{"organizacao_repassador": "Gov Federal", "cnpj_repassador": "00000000000100"}]',
+                 'Paralisada', 'Sec Obras', '250000.00', '2023-01-01', '2023-12-31'),
+                ('natividade_prefeitura', 'OBRA-NAT-1', 'Asfalto Bairro Novo', 'Melhoria de tráfego', 'Pavimentação asfáltica',
+                 'Obra', 'Pavimentação', NULL, NULL,
+                 'Em Execução', 'Sec Infra', '180000.00', '2024-02-01', '2024-11-30')
             ON CONFLICT (portal_slug, id_projeto_investimento) DO NOTHING;
 
             INSERT INTO "raw_obrasgov"."geometrias" (
@@ -263,7 +277,9 @@ def test_fct_obras_exists_and_partitioned(conn):
             """
             SELECT id_projeto, nome_obra, situacao, valor_investimento_previsto,
                    percentual_execucao_fisica, data_ultima_medicao, latitude, longitude, motivo_paralisacao,
-                   orgao_responsavel, data_inicio_prevista, data_fim_prevista
+                   orgao_responsavel, data_inicio_prevista, data_fim_prevista,
+                   funcao_social, descricao_intervencao, natureza_intervencao, especie_intervencao,
+                   executor_nome, executor_cnpj, repassador_nome, repassador_cnpj
             FROM analytics.fct_obras
             WHERE portal_slug = 'porciuncula_prefeitura' AND id_projeto = 'OBRA-POR-1'
             """
@@ -283,6 +299,14 @@ def test_fct_obras_exists_and_partitioned(conn):
     assert r_por[9] == "Sec Obras"
     assert str(r_por[10]) == "2023-01-01"
     assert str(r_por[11]) == "2023-12-31"
+    assert r_por[12] == "Benefício rural"
+    assert r_por[13] == "Construção de ponte de concreto"
+    assert r_por[14] == "Obra"
+    assert r_por[15] == "Construção"
+    assert r_por[16] == "Sec Obras"
+    assert r_por[17] == "12345678000199"
+    assert r_por[18] == "Gov Federal"
+    assert r_por[19] == "00000000000100"
 
     # Consulta isolada para Natividade
     nat_row = conn.execute(

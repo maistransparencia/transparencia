@@ -283,11 +283,22 @@ class ObrasGovExtractor:
                         str(vl_previsto_sum) if vl_previsto_sum is not None else None
                     )
 
+                    executores = proj_data.get("executores")
+                    repassadores = proj_data.get("repassadores")
+                    executores_json = json.dumps(executores, ensure_ascii=False) if executores else None
+                    repassadores_json = json.dumps(repassadores, ensure_ascii=False) if repassadores else None
+
                     projetos_rows.append(
                         {
                             "portal_slug": portal_slug,
                             "id_projeto_investimento": pid,
                             "desc_nome": proj_data.get("desc_nome") or proj_data.get("nome_obra"),
+                            "desc_funcao_social": proj_data.get("desc_funcao_social"),
+                            "desc_projeto": proj_data.get("desc_projeto"),
+                            "natureza_intervencao": proj_data.get("natureza_intervencao"),
+                            "especie_intervencao": proj_data.get("especie_intervencao"),
+                            "executores_json": executores_json,
+                            "repassadores_json": repassadores_json,
                             "situacao": proj_data.get("situacao"),
                             "organizacao_resp": proj_data.get("organizacao_resp") or proj_data.get("orgao_responsavel"),
                             "valor_investimento_previsto": str(vl_previsto) if vl_previsto is not None else None,

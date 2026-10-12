@@ -37,6 +37,14 @@ def test_obrasgov_extractor_success():
                 "desc_nome": "Construção de Escola Municipal",
                 "situacao": "Em Execução",
                 "organizacao_resp": "Secretaria de Obras",
+                "desc_funcao_social": "Atender à demanda educacional",
+                "desc_projeto": "Construção de escola municipal de 6 salas",
+                "natureza_intervencao": "Obra",
+                "especie_intervencao": "Construção",
+                "executores": [
+                    {"organizacao_executor": "Fundo Municipal de Educação", "cnpj_executor": "12345678000199"}
+                ],
+                "repassadores": [{"organizacao_repassador": "FNDE", "cnpj_repassador": "00398765000111"}],
                 "investimentos_previstos": [{"vl_investimento_previsto": 500000.0}],
                 "dt_inicial_prevista": "2024-01-15",
                 "dt_final_prevista": "2024-12-20",
@@ -85,6 +93,12 @@ def test_obrasgov_extractor_success():
     assert len(data["projetos"]) == 1
     assert data["projetos"][0]["id_projeto_investimento"] == "PROJ-01"
     assert data["projetos"][0]["desc_nome"] == "Construção de Escola Municipal"
+    assert data["projetos"][0]["desc_funcao_social"] == "Atender à demanda educacional"
+    assert data["projetos"][0]["desc_projeto"] == "Construção de escola municipal de 6 salas"
+    assert data["projetos"][0]["natureza_intervencao"] == "Obra"
+    assert data["projetos"][0]["especie_intervencao"] == "Construção"
+    assert "Fundo Municipal de Educação" in data["projetos"][0]["executores_json"]
+    assert "FNDE" in data["projetos"][0]["repassadores_json"]
     assert data["projetos"][0]["valor_investimento_previsto"] == "500000.0"
     assert data["projetos"][0]["portal_slug"] == "porciuncula_prefeitura"
 

@@ -11,6 +11,14 @@ models:
         tests:
           - not_null
       - name: nome_obra
+      - name: funcao_social
+      - name: descricao_intervencao
+      - name: natureza_intervencao
+      - name: especie_intervencao
+      - name: executor_nome
+      - name: executor_cnpj
+      - name: repassador_nome
+      - name: repassador_cnpj
       - name: situacao
       - name: orgao_responsavel
       - name: valor_investimento_previsto

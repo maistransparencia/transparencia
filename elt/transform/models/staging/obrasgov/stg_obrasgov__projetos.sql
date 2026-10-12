@@ -7,6 +7,30 @@ renamed as (
         portal_slug,
         id_projeto_investimento as id_projeto,
         desc_nome as nome_obra,
+        desc_funcao_social as funcao_social,
+        desc_projeto as descricao_intervencao,
+        natureza_intervencao,
+        especie_intervencao,
+        case
+            when executores_json is not null and executores_json ~ '^\s*\['
+            then nullif(trim(executores_json::json -> 0 ->> 'organizacao_executor'), '')
+            else null
+        end as executor_nome,
+        case
+            when executores_json is not null and executores_json ~ '^\s*\['
+            then nullif(trim(executores_json::json -> 0 ->> 'cnpj_executor'), '')
+            else null
+        end as executor_cnpj,
+        case
+            when repassadores_json is not null and repassadores_json ~ '^\s*\['
+            then nullif(trim(repassadores_json::json -> 0 ->> 'organizacao_repassador'), '')
+            else null
+        end as repassador_nome,
+        case
+            when repassadores_json is not null and repassadores_json ~ '^\s*\['
+            then nullif(trim(repassadores_json::json -> 0 ->> 'cnpj_repassador'), '')
+            else null
+        end as repassador_cnpj,
         case
             when situacao is null then null
             when lower(unaccent(situacao)) like '%execucao%' then 'em_execucao'

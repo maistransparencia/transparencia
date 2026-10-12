@@ -26,6 +26,22 @@ models:
           - not_null
       - name: nome_obra
         data_type: text
+      - name: funcao_social
+        data_type: text
+      - name: descricao_intervencao
+        data_type: text
+      - name: natureza_intervencao
+        data_type: text
+      - name: especie_intervencao
+        data_type: text
+      - name: executor_nome
+        data_type: text
+      - name: executor_cnpj
+        data_type: text
+      - name: repassador_nome
+        data_type: text
+      - name: repassador_cnpj
+        data_type: text
       - name: situacao
         data_type: text
       - name: orgao_responsavel
