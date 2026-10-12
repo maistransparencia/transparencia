@@ -116,4 +116,76 @@ describe("ObrasDetalheModal Component", () => {
       screen.queryByText("Construção de UBS Central"),
     ).not.toBeInTheDocument();
   });
+
+  it("exibe mensagem neutra quando a obra não possui contratos municipais correlacionados", () => {
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={vi.fn()}
+        obra={mockObraExecucao}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.getByText("Nenhum contrato municipal diretamente correlacionado"),
+    ).toBeInTheDocument();
+  });
+
+  it("exibe seção de contratos vinculados com fornecedor mascarado e deep links quando houver contratos", () => {
+    const mockObraComContratos: ObraItemViewModel = {
+      ...mockObraExecucao,
+      idProjeto: "OBR-003",
+      contratos: [
+        {
+          contratoId: "ctr-88",
+          contratoNumero: "088/2024",
+          fornecedorNome: "CONSTRUTORA CENTRAL",
+          fornecedorCpfCnpj: "12345678000190",
+          fornecedorCpfCnpjMascarado: "12.***.***/0001-90",
+          valorContrato: 900000,
+          valorContratoFormatado: "R$ 900.000,00",
+          modalidade: "concorrencia_eletronica",
+          modalidadeLabel: "Concorrência Eletrônica",
+          licitacaoNumero: "LIC-050/2024",
+          status: "vigente",
+          statusLabel: "Vigente",
+          statusBadgeClasses:
+            "bg-emerald-50 text-emerald-700 border-emerald-200",
+          dataInicio: "2024-01-01",
+          dataInicioFormatada: "01/01/2024",
+          vencimentoAtual: "2025-01-01",
+          vencimentoAtualFormatado: "01/01/2025",
+          linkContrato: "/porciuncula_prefeitura/contratos?numero=088%2F2024",
+          linkLicitacao:
+            "/porciuncula_prefeitura/licitacoes?numero=LIC-050%2F2024",
+        },
+      ],
+    };
+
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={vi.fn()}
+        obra={mockObraComContratos}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.getByText("Contratos e Licitações Vinculados"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Contrato nº 088/2024")).toBeInTheDocument();
+    expect(screen.getByText("CONSTRUTORA CENTRAL")).toBeInTheDocument();
+    expect(
+      screen.getByText("Documento: 12.***.***/0001-90"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("R$ 900.000,00")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Ver detalhes do contrato/i }),
+    ).toHaveAttribute(
+      "href",
+      "/porciuncula_prefeitura/contratos?numero=088%2F2024",
+    );
+  });
 });

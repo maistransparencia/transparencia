@@ -17,6 +17,22 @@ export type SituacaoObraFiltro =
   | "cadastrada"
   | "cancelada";
 
+export interface ObraContratoDTO {
+  contratoId: string;
+  contratoNumero: string;
+  fornecedorNome: string;
+  fornecedorCpfCnpj: string | null;
+  valorContrato: number;
+  modalidade: string | null;
+  licitacaoNumero: string | null;
+  status: "vigente" | "encerrado" | string;
+  dataInicio: string | null;
+  vencimentoAtual: string | null;
+  ano?: number | null;
+  licitacaoAno?: number | null;
+  objeto?: string | null;
+}
+
 export interface ObraDTO {
   idProjeto: string;
   portalSlug: string;
@@ -33,6 +49,7 @@ export interface ObraDTO {
   motivoParalisacao: string | null;
   dataInicioPrevista: string | null;
   dataFimPrevista: string | null;
+  contratos?: ObraContratoDTO[];
 }
 
 export interface GetObrasFiltros {
@@ -251,12 +268,213 @@ export async function getObrasPorPortal(
   }
 
   const rows = await query.execute();
+  const obrasBase = rows.map(mapRowToObraDTO);
 
-  return rows.map(mapRowToObraDTO);
+  if (obrasBase.length === 0) {
+    return [];
+  }
+
+  // Enriquece as obras com os contratos municipais correlacionados
+  return Promise.all(
+    obrasBase.map(async (obra) => {
+      const contratos = await getContratosPorObra(cleanSlug, obra.idProjeto);
+      return {
+        ...obra,
+        contratos,
+      };
+    }),
+  );
+}
+
+type ObraContratoRow = {
+  contrato_id?: string | null;
+  contrato_numero?: string | null;
+  fornecedor_nome?: string | null;
+  fornecedor_cpf_cnpj?: string | null;
+  valor_contrato?: string | number | null;
+  modalidade?: string | null;
+  licitacao_numero?: string | null;
+  status?: string | null;
+  data_inicio?: string | Date | null;
+  vencimento_atual?: string | Date | null;
+  objeto?: string | null;
+  ano?: number | null;
+  licitacao_ano?: number | null;
+};
+
+function mapRowToObraContratoDTO(row: ObraContratoRow): ObraContratoDTO {
+  const valorContrato =
+    row.valor_contrato != null ? Number(row.valor_contrato) : 0;
+  const rawStatus = (row.status ?? "vigente").toLowerCase().trim();
+  const status = rawStatus === "encerrado" ? "encerrado" : "vigente";
+
+  return {
+    contratoId: row.contrato_id != null ? String(row.contrato_id) : "",
+    contratoNumero:
+      row.contrato_numero != null ? String(row.contrato_numero) : "",
+    fornecedorNome:
+      row.fornecedor_nome != null
+        ? String(row.fornecedor_nome)
+        : "Fornecedor não informado",
+    fornecedorCpfCnpj:
+      row.fornecedor_cpf_cnpj != null ? String(row.fornecedor_cpf_cnpj) : null,
+    valorContrato: Number.isNaN(valorContrato) ? 0 : valorContrato,
+    modalidade: row.modalidade != null ? String(row.modalidade) : null,
+    licitacaoNumero:
+      row.licitacao_numero != null ? String(row.licitacao_numero) : null,
+    status,
+    dataInicio: toIsoDateString(row.data_inicio),
+    vencimentoAtual: toIsoDateString(row.vencimento_atual),
+    ano: row.ano != null ? Number(row.ano) : null,
+    licitacaoAno: row.licitacao_ano != null ? Number(row.licitacao_ano) : null,
+    objeto: row.objeto != null ? String(row.objeto) : null,
+  };
 }
 
 /**
- * Retorna o detalhe de uma obra específica pelo seu identificador único de projeto e portal.
+ * Retorna os contratos municipais e processos licitatórios correlacionados a uma obra pública
+ * a partir de `fct_contratos` e `fct_obras`, garantindo isolamento estrito de tenant (Regra 23).
+ */
+export async function getContratosPorObra(
+  portalSlug: string,
+  idProjeto: string,
+): Promise<ObraContratoDTO[]> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !idProjeto ||
+    typeof idProjeto !== "string" ||
+    idProjeto.trim() === ""
+  ) {
+    return [];
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const cleanId = idProjeto.trim();
+
+  const query = sql<ObraContratoRow>`
+    WITH obra_alvo AS (
+      SELECT
+        portal_slug,
+        id_projeto,
+        nome_obra,
+        data_fim_prevista,
+        situacao
+      FROM fct_obras
+      WHERE portal_slug = ${cleanSlug}
+        AND id_projeto = ${cleanId}
+      LIMIT 1
+    ),
+    obra_meta AS (
+      SELECT
+        portal_slug,
+        id_projeto,
+        nome_obra,
+        data_fim_prevista,
+        situacao,
+        trim(regexp_replace(
+          unaccent(lower(coalesce(nome_obra, ''))),
+          '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
+          ' ',
+          'g'
+        )) AS nucleo_obra
+      FROM obra_alvo
+    )
+    SELECT DISTINCT ON (c.contrato_numero)
+      c.contrato_id,
+      c.contrato_numero,
+      c.fornecedor_nome,
+      c.fornecedor_cpf_cnpj,
+      c.valor_contrato,
+      c.modalidade,
+      c.licitacao_numero,
+      CASE
+        WHEN c.vencimento_atual IS NOT NULL AND c.vencimento_atual >= CURRENT_DATE THEN 'vigente'
+        WHEN c.vencimento_atual IS NOT NULL THEN 'encerrado'
+        ELSE 'vigente'
+      END AS status,
+      c.data_inicio,
+      c.vencimento_atual,
+      c.objeto,
+      c.ano,
+      (
+        SELECT l.ano
+        FROM fct_licitacoes l
+        WHERE l.portal_slug = c.portal_slug
+          AND l.empresa_id = c.empresa_id
+          AND l.licitacao_numero = c.licitacao_numero
+        ORDER BY
+          CASE
+            WHEN c.modalidade IS NOT NULL AND lower(l.modalidade) = lower(c.modalidade) THEN 0
+            WHEN c.modalidade IS NOT NULL AND (
+              (lower(c.modalidade) LIKE '%concorrencia%' AND lower(l.modalidade) LIKE '%concorrencia%') OR
+              (lower(c.modalidade) LIKE '%dispensa%' AND lower(l.modalidade) LIKE '%dispensa%') OR
+              (lower(c.modalidade) LIKE '%pregao%' AND lower(l.modalidade) LIKE '%pregao%') OR
+              (lower(c.modalidade) LIKE '%tomada%' AND lower(l.modalidade) LIKE '%tomada%')
+            ) THEN 1
+            ELSE 2
+          END,
+          CASE
+            WHEN l.ano <= c.ano THEN 0
+            ELSE 1
+          END,
+          CASE
+            WHEN l.ano <= c.ano THEN c.ano - l.ano
+            ELSE 100 + (l.ano - c.ano)
+          END ASC,
+          l.ano DESC
+        LIMIT 1
+      ) AS licitacao_ano
+    FROM fct_contratos c
+    INNER JOIN obra_meta o
+      ON c.portal_slug = o.portal_slug
+    WHERE
+      (c.numero_obra IS NOT NULL AND c.numero_obra = o.id_projeto)
+      OR (
+        length(o.id_projeto) >= 4
+        AND NOT (o.id_projeto ~ '^[0-9]{4}$')
+        AND (
+          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower(o.id_projeto)) || '%'
+        )
+      )
+      OR (
+        unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
+      )
+      OR (
+        length(o.nucleo_obra) >= 5
+        AND (
+          (o.data_fim_prevista IS NULL OR c.ano <= (EXTRACT(YEAR FROM o.data_fim_prevista) + 2))
+        )
+        AND (
+          word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55
+        )
+        AND (
+          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|recapeamento|infraestrutura|projeto)\y'
+          OR coalesce(c.modalidade, '') ~* 'concorrencia|tomada_de_precos'
+        )
+      )
+    ORDER BY
+      c.contrato_numero ASC,
+      c.ano DESC,
+      c.valor_contrato DESC NULLS LAST,
+      c.vencimento_atual DESC NULLS LAST
+  `;
+
+  const result = await query.execute(db);
+  const rows = (result.rows || []).map(mapRowToObraContratoDTO);
+
+  // Ordena a lista final desduplicada por vigência e valor de forma imutável (Regra 2)
+  return [...rows].sort((a, b) => {
+    if (a.status === "vigente" && b.status !== "vigente") return -1;
+    if (a.status !== "vigente" && b.status === "vigente") return 1;
+    return b.valorContrato - a.valorContrato;
+  });
+}
+
+/**
+ * Retorna o detalhe de uma obra específica pelo seu identificador único de projeto e portal,
+ * enriquecido com os contratos administrativos municipais correlacionados.
  */
 export async function getObraDetalhe(
   portalSlug: string,
@@ -276,18 +494,24 @@ export async function getObraDetalhe(
   const cleanSlug = portalSlug.trim();
   const cleanId = idProjeto.trim();
 
-  const row = await db
-    .selectFrom("fct_obras")
-    .select(OBRA_SELECT_COLUMNS)
-    .where("portal_slug", "=", cleanSlug)
-    .where("id_projeto", "=", cleanId)
-    .executeTakeFirst();
+  const [row, contratos] = await Promise.all([
+    db
+      .selectFrom("fct_obras")
+      .select(OBRA_SELECT_COLUMNS)
+      .where("portal_slug", "=", cleanSlug)
+      .where("id_projeto", "=", cleanId)
+      .executeTakeFirst(),
+    getContratosPorObra(cleanSlug, cleanId),
+  ]);
 
   if (!row) {
     return null;
   }
 
-  return mapRowToObraDTO(row);
+  return {
+    ...mapRowToObraDTO(row),
+    contratos,
+  };
 }
 
 /**
