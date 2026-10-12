@@ -4,11 +4,13 @@ const {
   getEntidadesMock,
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
+  getResumoObrasPorPortalMock,
   notFoundMock,
 } = vi.hoisted(() => ({
   getEntidadesMock: vi.fn(),
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
+  getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
@@ -33,6 +35,7 @@ vi.mock("@transparencia/db", () => ({
   getLimiteMaximoLrfPessoal: vi.fn().mockResolvedValue(null),
   getSiconfiPosicaoFinanceira: vi.fn().mockResolvedValue(null),
   getRadarCivicoAlertas: getRadarCivicoAlertasMock,
+  getResumoObrasPorPortal: getResumoObrasPorPortalMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
@@ -86,5 +89,33 @@ describe("loadVisaoGeralData", () => {
       limite: 6,
     });
     expect(result.radarAlertas).toEqual(mockAlertas);
+  });
+
+  it("loads obras summary with portal slug and year", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    const mockResumoObras = {
+      totalObras: 4,
+      emExecucao: 2,
+      paralisadas: 1,
+      concluidas: 1,
+      cadastradas: 0,
+      canceladas: 0,
+      valorTotalInvestimento: 10000000,
+      valorEmExecucao: 6000000,
+      valorParalisadas: 3000000,
+      valorConcluidas: 1000000,
+      valorCadastradas: 0,
+      percentualMedioExecucaoFisica: 50,
+      obrasSemMedicaoCount: 0,
+    };
+    getResumoObrasPorPortalMock.mockResolvedValue(mockResumoObras);
+
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+
+    expect(getResumoObrasPorPortalMock).toHaveBeenCalledWith("porciuncula", {
+      ano: 2024,
+    });
+    expect(result.resumoObras).toEqual(mockResumoObras);
   });
 });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ObrasCivicDisclaimer } from "@/components/obras/obras-civic-disclaimer";
 import { ObrasHeroSection } from "@/components/obras/obras-hero-section";
 import { ObrasInteractiveSection } from "@/components/obras/obras-interactive-section";
 import { ObrasParalisadasSection } from "@/components/obras/obras-paralisadas-section";
@@ -57,6 +58,14 @@ export default async function ObrasPage({
 
       {/* Seção Dedicada de Obras Paralisadas (se houver) */}
       <ObrasParalisadasSection obras={viewModel.paralisadasObras} />
+
+      <div className="space-y-4 border-ink border-t-2"></div>
+
+      {/* Disclaimer cívico: ObrasGov.br e cobrança parlamentar */}
+      <ObrasCivicDisclaimer
+        municipioNome={viewModel.municipioNome}
+        municipioUf={viewModel.municipioUf}
+      />
     </div>
   );
 }
