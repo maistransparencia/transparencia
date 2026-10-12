@@ -392,6 +392,14 @@ describe("obras queries", () => {
         longitude: -42.043,
         dataInicioPrevista: "2024-02-01",
         dataFimPrevista: "2024-11-30",
+        funcaoSocial: "Democratização do ensino infantil",
+        descricaoIntervencao: "AMPLIACAO DE ESCOLA MUNICIPAL",
+        naturezaIntervencao: "Obra",
+        especieIntervencao: "Construção",
+        executorNome: "Secretaria de Obras",
+        executorCnpj: "12345678000199",
+        repassadorNome: "FNDE",
+        repassadorCnpj: "00398765000111",
       });
 
       const detalhe = await getObraDetalhe(PORTAL_A, "proj_detalhe");
@@ -408,6 +416,16 @@ describe("obras queries", () => {
       expect(detalhe?.longitude).toBe(-42.043);
       expect(detalhe?.dataInicioPrevista).toBe("2024-02-01");
       expect(detalhe?.dataFimPrevista).toBe("2024-11-30");
+      expect(detalhe?.funcaoSocial).toBe("Democratização do ensino infantil");
+      expect(detalhe?.descricaoIntervencao).toBe(
+        "AMPLIACAO DE ESCOLA MUNICIPAL",
+      );
+      expect(detalhe?.naturezaIntervencao).toBe("Obra");
+      expect(detalhe?.especieIntervencao).toBe("Construção");
+      expect(detalhe?.executorNome).toBe("Secretaria de Obras");
+      expect(detalhe?.executorCnpj).toBe("12345678000199");
+      expect(detalhe?.repassadorNome).toBe("FNDE");
+      expect(detalhe?.repassadorCnpj).toBe("00398765000111");
     });
 
     it("deve retornar null se idProjeto não existir no portal", async () => {
@@ -579,6 +597,36 @@ describe("obras queries", () => {
       const contratos = await getContratosPorObra(PORTAL_A, "OBR-SIMILAR");
       expect(contratos).toHaveLength(1);
       expect(contratos[0].contratoNumero).toBe("CTR-040/2024");
+    });
+
+    it("deve correlacionar contrato via descricao_intervencao quando o nome da obra é genérico", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "OBR-INTERVENCAO-GENERICA",
+        nomeObra: "PROJETO MUNICIPAL",
+        descricaoIntervencao:
+          "AMPLIAÇÃO DA UNIDADE DE ATENÇÃO ESPECIALIZADA POLICLÍNICA REGIONAL",
+      });
+
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "CTR-041/2024",
+        fornecedorNome: "CONSTRUTORA SAUDE LTDA",
+        fornecedorCpfCnpj: "44555666000188",
+        objeto:
+          "Contratação de engenharia para ampliação da policlínica regional",
+        valorContrato: 850000,
+        modalidade: "concorrencia_eletronica",
+        vencimentoAtual: "2099-12-31",
+      });
+
+      const contratos = await getContratosPorObra(
+        PORTAL_A,
+        "OBR-INTERVENCAO-GENERICA",
+      );
+      expect(contratos).toHaveLength(1);
+      expect(contratos[0].contratoNumero).toBe("CTR-041/2024");
     });
 
     it("deve correlacionar obra com contrato cujo objeto resumido é truncado mas objeto_completo contém os termos da obra", async () => {

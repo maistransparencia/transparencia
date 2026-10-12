@@ -49,6 +49,14 @@ export interface ObraDTO {
   motivoParalisacao: string | null;
   dataInicioPrevista: string | null;
   dataFimPrevista: string | null;
+  funcaoSocial?: string | null;
+  descricaoIntervencao?: string | null;
+  naturezaIntervencao?: string | null;
+  especieIntervencao?: string | null;
+  executorNome?: string | null;
+  executorCnpj?: string | null;
+  repassadorNome?: string | null;
+  repassadorCnpj?: string | null;
   contratos?: ObraContratoDTO[];
 }
 
@@ -90,6 +98,14 @@ const OBRA_SELECT_COLUMNS = [
   "motivo_paralisacao",
   "data_inicio_prevista",
   "data_fim_prevista",
+  "funcao_social",
+  "descricao_intervencao",
+  "natureza_intervencao",
+  "especie_intervencao",
+  "executor_nome",
+  "executor_cnpj",
+  "repassador_nome",
+  "repassador_cnpj",
 ] as const;
 
 function toIsoDateString(val: unknown): string | null {
@@ -122,6 +138,14 @@ type ObraRow = {
   motivo_paralisacao?: string | null;
   data_inicio_prevista?: string | Date | null;
   data_fim_prevista?: string | Date | null;
+  funcao_social?: string | null;
+  descricao_intervencao?: string | null;
+  natureza_intervencao?: string | null;
+  especie_intervencao?: string | null;
+  executor_nome?: string | null;
+  executor_cnpj?: string | null;
+  repassador_nome?: string | null;
+  repassador_cnpj?: string | null;
 };
 
 function mapRowToObraDTO(row: ObraRow): ObraDTO {
@@ -195,6 +219,23 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
       row.motivo_paralisacao != null ? String(row.motivo_paralisacao) : null,
     dataInicioPrevista: toIsoDateString(row.data_inicio_prevista),
     dataFimPrevista: toIsoDateString(row.data_fim_prevista),
+    funcaoSocial: row.funcao_social != null ? String(row.funcao_social) : null,
+    descricaoIntervencao:
+      row.descricao_intervencao != null
+        ? String(row.descricao_intervencao)
+        : null,
+    naturezaIntervencao:
+      row.natureza_intervencao != null
+        ? String(row.natureza_intervencao)
+        : null,
+    especieIntervencao:
+      row.especie_intervencao != null ? String(row.especie_intervencao) : null,
+    executorNome: row.executor_nome != null ? String(row.executor_nome) : null,
+    executorCnpj: row.executor_cnpj != null ? String(row.executor_cnpj) : null,
+    repassadorNome:
+      row.repassador_nome != null ? String(row.repassador_nome) : null,
+    repassadorCnpj:
+      row.repassador_cnpj != null ? String(row.repassador_cnpj) : null,
   };
 }
 
@@ -359,6 +400,7 @@ export async function getContratosPorObra(
         portal_slug,
         id_projeto,
         nome_obra,
+        descricao_intervencao,
         data_fim_prevista,
         situacao
       FROM fct_obras
@@ -371,6 +413,7 @@ export async function getContratosPorObra(
         portal_slug,
         id_projeto,
         nome_obra,
+        descricao_intervencao,
         data_fim_prevista,
         situacao,
         trim(regexp_replace(
@@ -378,7 +421,13 @@ export async function getContratosPorObra(
           '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
           ' ',
           'g'
-        )) AS nucleo_obra
+        )) AS nucleo_obra,
+        trim(regexp_replace(
+          unaccent(lower(coalesce(descricao_intervencao, ''))),
+          '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
+          ' ',
+          'g'
+        )) AS nucleo_intervencao
       FROM obra_alvo
     )
     SELECT DISTINCT ON (c.contrato_numero)
@@ -442,12 +491,13 @@ export async function getContratosPorObra(
         unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
       )
       OR (
-        length(o.nucleo_obra) >= 5
-        AND (
-          (o.data_fim_prevista IS NULL OR c.ano <= (EXTRACT(YEAR FROM o.data_fim_prevista) + 2))
+        (
+          (length(o.nucleo_obra) >= 5 AND word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55)
+          OR
+          (length(o.nucleo_intervencao) >= 5 AND word_similarity(o.nucleo_intervencao, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55)
         )
         AND (
-          word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55
+          (o.data_fim_prevista IS NULL OR c.ano <= (EXTRACT(YEAR FROM o.data_fim_prevista) + 2))
         )
         AND (
           unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|recapeamento|infraestrutura|projeto)\y'

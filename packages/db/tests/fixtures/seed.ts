@@ -991,6 +991,14 @@ export interface ObraRow {
   motivoParalisacao?: string | null;
   dataInicioPrevista?: string | null;
   dataFimPrevista?: string | null;
+  funcaoSocial?: string | null;
+  descricaoIntervencao?: string | null;
+  naturezaIntervencao?: string | null;
+  especieIntervencao?: string | null;
+  executorNome?: string | null;
+  executorCnpj?: string | null;
+  repassadorNome?: string | null;
+  repassadorCnpj?: string | null;
 }
 
 export async function seedObra(row: ObraRow): Promise<void> {
@@ -1010,6 +1018,14 @@ export async function seedObra(row: ObraRow): Promise<void> {
       motivo_paralisacao: row.motivoParalisacao ?? null,
       data_inicio_prevista: row.dataInicioPrevista ?? null,
       data_fim_prevista: row.dataFimPrevista ?? null,
+      funcao_social: row.funcaoSocial ?? null,
+      descricao_intervencao: row.descricaoIntervencao ?? null,
+      natureza_intervencao: row.naturezaIntervencao ?? null,
+      especie_intervencao: row.especieIntervencao ?? null,
+      executor_nome: row.executorNome ?? null,
+      executor_cnpj: row.executorCnpj ?? null,
+      repassador_nome: row.repassadorNome ?? null,
+      repassador_cnpj: row.repassadorCnpj ?? null,
     })
     .execute();
 }
