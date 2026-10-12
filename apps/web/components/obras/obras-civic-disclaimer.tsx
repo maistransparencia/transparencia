@@ -84,9 +84,9 @@ export function ObrasCivicDisclaimer({
               <span>ObrasGov.br</span>
               <ExternalLink className="inline h-3.5 w-3.5" aria-hidden="true" />
             </a>
-            . O vínculo com contratos e licitações municipais depende do
-            preenchimento e da atualização constante por parte dos gestores do
-            Poder Executivo no sistema federal.
+            . O vínculo com contratos e licitações municipais, bem como valores
+            declarados, dependem do preenchimento e da atualização constante por
+            parte dos gestores do Poder Executivo no sistema federal.
           </p>
 
           <p className="text-slate-600 text-sm leading-relaxed">
