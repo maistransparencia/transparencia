@@ -36,6 +36,12 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Antiguidade da Dívida:** Indicação do ano de origem da obrigação mais antiga ainda pendente de quitação pelo município.
 - **Saldo Financeiro Estimado:** O resultado financeiro apurado pela diferença entre o total de receitas arrecadadas e o total de despesas pagas no exercício.
 - **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
+- **Painel Resumo de Obras Públicas e Investimentos Urbanos (ObrasGov.br):** Panorama consolidado de intervenções e infraestrutura urbana no município:
+  - *Investimento Previsto Consolidado:* Montante total estimado para os projetos cadastrados na base do Governo Federal (ObrasGov.br).
+  - *Distribuição Proporcional:* Distribuição física e financeira do investimento entre intervenções em execução, concluídas, não iniciadas e paralisadas (ou proporcional à contagem de obras quando o montante cadastrado for zero).
+  - *Contadores por Situação:* Total de empreendimentos e montantes alocados em cada estágio da intervenção.
+  - *Alerta de Obras Paralisadas:* Sinalização cívica de atenção exibida automaticamente quando houver empreendimentos paralisados, informando a quantidade de obras com paralisação registrada e o volume de recursos públicos retidos.
+  - *Acesso ao Mapa e Fiscalização Territorial:* Atalho direto para o mapa georreferenciado e fiscalização detalhada de obras públicas (`/[portalSlug]/obras`).
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
 ### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)

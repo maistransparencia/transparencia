@@ -315,6 +315,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     radarCivicoFeed,
     licitacoesEmAndamentoCount: raw.licitacoesEmAndamentoCount ?? 0,
     orcamentoDetailUrl: routeUrl("/orcamento"),
+    obrasDetailUrl: buildNavUrl({
+      path: "/obras",
+      slug: portalSlug,
+      exercice: String(selectedYear),
+      entidades: undefined,
+    }),
+    resumoObras: raw.resumoObras,
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),

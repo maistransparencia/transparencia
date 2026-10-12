@@ -84,6 +84,21 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       previdencia: [],
     },
     radarAlertas: [],
+    resumoObras: {
+      totalObras: 5,
+      emExecucao: 2,
+      paralisadas: 1,
+      concluidas: 2,
+      cadastradas: 0,
+      canceladas: 0,
+      valorTotalInvestimento: 15000000,
+      valorEmExecucao: 8000000,
+      valorParalisadas: 2000000,
+      valorConcluidas: 5000000,
+      valorCadastradas: 0,
+      percentualMedioExecucaoFisica: 65,
+      obrasSemMedicaoCount: 0,
+    },
     ...overrides,
   } as unknown as RawData;
 }
@@ -110,6 +125,19 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByRole("link", {
         name: /ver detalhamento por entidade em execução orçamentária/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /obras públicas e investimentos urbanos/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/total de investimento previsto/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /ver mapa e detalhes das obras/i,
       }),
     ).toBeInTheDocument();
   });
@@ -158,6 +186,19 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByText(
         /aguardando homologação da remessa msc pelo tesouro nacional para o exercício/i,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza empty state de obras quando resumoObras for nulo", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ resumoObras: null }));
+
+    const element = await VisaoGeralPage(props);
+    render(element);
+
+    expect(
+      screen.getByText(
+        /nenhuma obra ou intervenção pública registrada no obrasgov\.br para o período/i,
       ),
     ).toBeInTheDocument();
   });

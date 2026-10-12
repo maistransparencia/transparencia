@@ -62,6 +62,21 @@ function makeRawVisaoGeral(overrides: Record<string, unknown> = {}): RawData {
       totalEmpenhado: 500000,
     },
     radarAlertas: [],
+    resumoObras: {
+      totalObras: 5,
+      emExecucao: 2,
+      paralisadas: 1,
+      concluidas: 2,
+      cadastradas: 0,
+      canceladas: 0,
+      valorTotalInvestimento: 15000000,
+      valorEmExecucao: 8000000,
+      valorParalisadas: 2000000,
+      valorConcluidas: 5000000,
+      valorCadastradas: 0,
+      percentualMedioExecucaoFisica: 65,
+      obrasSemMedicaoCount: 0,
+    },
     ...overrides,
   } as unknown as RawData;
 }
@@ -728,5 +743,53 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     const raw = makeRawVisaoGeral({ radarAlertas: [] });
     const vm = buildVisaoGeralViewModel(raw);
     expect(vm.radarCivicoFeedData).toEqual([]);
+  });
+});
+
+describe("buildVisaoGeralViewModel - resumoObras", () => {
+  it("propaga resumoObras e gera deep link obrasDetailUrl com filtros de navegação", () => {
+    const raw = makeRawVisaoGeral();
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.resumoObras).toEqual(raw.resumoObras);
+    expect(vm.obrasDetailUrl).toBe("/porciuncula/obras?ano=2024");
+  });
+
+  it("propaga resumoObras nulo ou zerado quando informado", () => {
+    const raw = makeRawVisaoGeral({
+      resumoObras: {
+        totalObras: 0,
+        emExecucao: 0,
+        paralisadas: 0,
+        concluidas: 0,
+        cadastradas: 0,
+        canceladas: 0,
+        valorTotalInvestimento: 0,
+        valorEmExecucao: 0,
+        valorParalisadas: 0,
+        valorConcluidas: 0,
+        valorCadastradas: 0,
+        percentualMedioExecucaoFisica: null,
+        obrasSemMedicaoCount: 0,
+      },
+    });
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.resumoObras?.totalObras).toBe(0);
+    expect(vm.obrasDetailUrl).toBe("/porciuncula/obras?ano=2024");
+  });
+
+  it("não propaga parâmetro entidades em obrasDetailUrl mesmo quando context possuir entidades selecionadas", () => {
+    const raw = makeRawVisaoGeral({
+      context: {
+        selectedYear: 2024,
+        isCurrentYear: false,
+        entidadesIds: ["1", "2"],
+      },
+    });
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.obrasDetailUrl).toBe("/porciuncula/obras?ano=2024");
+    expect(vm.obrasDetailUrl).not.toContain("entidades");
   });
 });
