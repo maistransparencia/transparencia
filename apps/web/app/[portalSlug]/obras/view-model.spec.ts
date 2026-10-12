@@ -243,6 +243,121 @@ describe("obras/view-model", () => {
       expect(vm.linkLegislacao).toContain("planalto.gov.br");
     });
 
+    it("enriquece ObraDTO com novos campos do ObrasGov.br e formatação de contratos", () => {
+      const obraComContratos: ObraDTO = {
+        ...baseObra,
+        idProjeto: "51239.33-15",
+        nomeObra: "CENTRO CIRÚRGICO MUNICIPAL",
+        situacao: "em_execucao",
+        orgaoResponsavel: "FUNDO MUNICIPAL DE SAUDE",
+        valorInvestimentoPrevisto: 1450000.5,
+        percentualExecucaoFisica: 78.4,
+        dataUltimaMedicao: "2024-05-15",
+        latitude: -20.963,
+        longitude: -42.042,
+        motivoParalisacao: null,
+        dataInicioPrevista: "2023-01-10",
+        dataFimPrevista: "2024-12-30",
+        funcaoSocial:
+          "Toda a população municipal que, segundo o IBGE 2022, é de 17.288.",
+        descricaoIntervencao:
+          "AMPLIAÇÃO DE UNIDADE DE ATENÇÃO ESPECIALIZADA EM SAÚDE",
+        naturezaIntervencao: "AMPLIACAO",
+        especieIntervencao: "OBRA",
+        executorNome: "FUNDO MUNICIPAL DE SAUDE - FMS",
+        executorCnpj: "12097798000110",
+        repassadorNome: "MINISTÉRIO DA SAÚDE",
+        repassadorCnpj: "00394544012787",
+        contratos: [
+          {
+            contratoId: "ctr-10",
+            contratoNumero: "010/2023",
+            fornecedorNome: "CONSTRUTORA ALFA LTDA",
+            fornecedorCpfCnpj: "11222333000144",
+            valorContrato: 1200000,
+            modalidade: "concorrencia_eletronica",
+            licitacaoNumero: "LIC-005/2023",
+            status: "vigente",
+            dataInicio: "2023-02-01",
+            vencimentoAtual: "2024-12-31",
+          },
+        ],
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraComContratos,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.idProjeto).toBe("51239.33-15");
+      expect(vm.nomeObra).toBe("CENTRO CIRÚRGICO MUNICIPAL");
+      expect(vm.situacao).toBe("em_execucao");
+      expect(vm.situacaoVisual.label).toBe("Em Execução");
+      expect(vm.valorInvestimentoFormatado).toContain("1.450.000,50");
+      expect(vm.percentualFisicoFormatado).toBe("78.40%");
+      expect(vm.dataUltimaMedicaoFormatada).toBe("15/05/2024");
+      expect(vm.hasCoordinates).toBe(true);
+
+      // Campos novos do ObrasGov.br
+      expect(vm.funcaoSocial).toBe(obraComContratos.funcaoSocial);
+      expect(vm.descricaoIntervencao).toBe(
+        obraComContratos.descricaoIntervencao,
+      );
+      expect(vm.naturezaIntervencao).toBe("AMPLIACAO");
+      expect(vm.especieIntervencao).toBe("OBRA");
+      expect(vm.executorNome).toBe("FUNDO MUNICIPAL DE SAUDE - FMS");
+      expect(vm.executorCnpj).toBe("12097798000110");
+      expect(vm.executorCnpjMascarado).toBe("12.***.***/0001-10");
+      expect(vm.repassadorNome).toBe("MINISTÉRIO DA SAÚDE");
+      expect(vm.repassadorCnpj).toBe("00394544012787");
+      expect(vm.repassadorCnpjMascarado).toBe("00.***.***/0127-87");
+
+      // Contratos vinculados
+      expect(vm.contratos).toHaveLength(1);
+      expect(vm.contratos[0].contratoNumero).toBe("010/2023");
+      expect(vm.contratos[0].fornecedorCpfCnpjMascarado).toBe(
+        "11.***.***/0001-44",
+      );
+      expect(vm.contratos[0].linkContrato).toBe(
+        "/porciuncula_prefeitura/contratos?numero=010%2F2023",
+      );
+      expect(vm.contratos[0].linkLicitacao).toBe(
+        "/porciuncula_prefeitura/licitacoes?numero=LIC-005%2F2023#licitacoes-em-andamento",
+      );
+    });
+
+    it("lida graciosamente com valores nulos ou vazios nos novos campos", () => {
+      const dtoSemEnriquecimento: ObraDTO = {
+        ...baseObra,
+        funcaoSocial: null,
+        descricaoIntervencao: null,
+        naturezaIntervencao: "   ",
+        especieIntervencao: null,
+        executorNome: null,
+        executorCnpj: null,
+        repassadorNome: null,
+        repassadorCnpj: null,
+        contratos: [],
+      };
+
+      const vm = buildObraDetalheViewModel(
+        dtoSemEnriquecimento,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.funcaoSocial).toBeNull();
+      expect(vm.descricaoIntervencao).toBeNull();
+      expect(vm.naturezaIntervencao).toBeNull();
+      expect(vm.especieIntervencao).toBeNull();
+      expect(vm.executorNome).toBeNull();
+      expect(vm.executorCnpj).toBeNull();
+      expect(vm.executorCnpjMascarado).toBeNull();
+      expect(vm.repassadorNome).toBeNull();
+      expect(vm.repassadorCnpj).toBeNull();
+      expect(vm.repassadorCnpjMascarado).toBeNull();
+      expect(vm.contratos).toHaveLength(0);
+    });
+
     it("deve detectar descompasso físico-financeiro quando financeiro > físico + 15%", () => {
       const obraComDescompasso: ObraDTO = {
         ...baseObra,

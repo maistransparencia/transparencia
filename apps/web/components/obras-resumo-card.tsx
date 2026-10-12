@@ -1,6 +1,12 @@
 import type { ResumoObrasDTO } from "@transparencia/db";
 import { fmtCompact, fmtNumber } from "@transparencia/ui";
-import { AlertCircle, ArrowRight, ExternalLink, Info } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  ExternalLink,
+  Info,
+} from "lucide-react";
 import Link from "next/link";
 
 const OBRASGOV_PANEL_URL =
@@ -264,6 +270,24 @@ export function ObrasResumoCard({
           </div>
         </div>
       </div>
+
+      {/* Alerta de Obras Paralisadas */}
+      {paralisadas > 0 && (
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-4 text-rose-950 text-xs">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+          <div className="leading-relaxed">
+            <span className="font-semibold text-rose-900">
+              Atenção: {paralisadas}{" "}
+              {paralisadas === 1
+                ? "obra pública paralisada"
+                : "obras públicas paralisadas"}
+              .
+            </span>{" "}
+            Montante de <strong>{fmtCompact(valorParalisadas)}</strong> em
+            recursos de investimento paralisados no município.
+          </div>
+        </div>
+      )}
 
       {/* Rodapé com Nota e CTA para o Mapa */}
       <div className="mt-5 flex flex-col gap-3 border-[#e7e9ee] border-t pt-4 sm:flex-row sm:items-center sm:justify-between">

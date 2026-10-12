@@ -1,7 +1,14 @@
 "use client";
 
 import { cn, ModalDialog } from "@transparencia/ui";
-import { AlertTriangle, ExternalLink, FileText } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  ExternalLink,
+  FileText,
+  HeartHandshake,
+  Landmark,
+} from "lucide-react";
 import { useMemo } from "react";
 import {
   buildObraDetalheViewModel,
@@ -47,6 +54,32 @@ export function ObrasDetalheModal({
         motivoParalisacao: obra.motivoParalisacao,
         dataInicioPrevista: obra.dataInicioPrevista,
         dataFimPrevista: obra.dataFimPrevista,
+        funcaoSocial:
+          "funcaoSocial" in obra ? (obra.funcaoSocial as string | null) : null,
+        descricaoIntervencao:
+          "descricaoIntervencao" in obra
+            ? (obra.descricaoIntervencao as string | null)
+            : null,
+        naturezaIntervencao:
+          "naturezaIntervencao" in obra
+            ? (obra.naturezaIntervencao as string | null)
+            : null,
+        especieIntervencao:
+          "especieIntervencao" in obra
+            ? (obra.especieIntervencao as string | null)
+            : null,
+        executorNome:
+          "executorNome" in obra ? (obra.executorNome as string | null) : null,
+        executorCnpj:
+          "executorCnpj" in obra ? (obra.executorCnpj as string | null) : null,
+        repassadorNome:
+          "repassadorNome" in obra
+            ? (obra.repassadorNome as string | null)
+            : null,
+        repassadorCnpj:
+          "repassadorCnpj" in obra
+            ? (obra.repassadorCnpj as string | null)
+            : null,
       },
       portalSlug,
     );
@@ -73,14 +106,26 @@ export function ObrasDetalheModal({
       title={viewModel.nomeObra}
       subtitle={viewModel.orgaoResponsavel}
       badge={
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs",
-            viewModel.situacaoVisual.badgeClass,
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs",
+              viewModel.situacaoVisual.badgeClass,
+            )}
+          >
+            {viewModel.situacaoVisual.label}
+          </span>
+          {viewModel.naturezaIntervencao && (
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 font-medium text-slate-700 text-xs">
+              {viewModel.naturezaIntervencao}
+            </span>
           )}
-        >
-          {viewModel.situacaoVisual.label}
-        </span>
+          {viewModel.especieIntervencao && (
+            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-blue-700 text-xs">
+              {viewModel.especieIntervencao}
+            </span>
+          )}
+        </div>
       }
       maxWidth="3xl"
       showShareButton={Boolean(shareUrl)}
@@ -154,6 +199,78 @@ export function ObrasDetalheModal({
           </div>
         )}
 
+        {/* Objeto da Intervenção e Função Social (Propósito Cívico no Topo) */}
+        {(viewModel.descricaoIntervencao || viewModel.funcaoSocial) && (
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+            {viewModel.descricaoIntervencao && (
+              <div>
+                <span className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+                  Objeto da Intervenção
+                </span>
+                <p className="mt-0.5 font-semibold text-slate-900 text-sm leading-snug">
+                  {viewModel.descricaoIntervencao}
+                </p>
+              </div>
+            )}
+            {viewModel.funcaoSocial && (
+              <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-3 text-slate-800">
+                <div className="flex items-center gap-1.5 text-blue-900">
+                  <HeartHandshake className="h-4 w-4 shrink-0 text-blue-600" />
+                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+                    Função Social e Impacto Comunitário
+                  </span>
+                </div>
+                <p className="mt-1 text-slate-700 text-xs leading-relaxed">
+                  {viewModel.funcaoSocial}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Executor e Repassador de Recursos (Quem Executa e Quem Financia) */}
+        {(viewModel.executorNome || viewModel.repassadorNome) && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {viewModel.executorNome && (
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Building2 className="h-4 w-4 text-slate-400" />
+                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+                    Órgão / Ente Executor
+                  </span>
+                </div>
+                <p className="mt-1 font-semibold text-slate-900 text-sm">
+                  {viewModel.executorNome}
+                </p>
+                {viewModel.executorCnpjMascarado && (
+                  <p className="mt-0.5 font-mono text-slate-500 text-xs">
+                    CNPJ: {viewModel.executorCnpjMascarado}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {viewModel.repassadorNome && (
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Landmark className="h-4 w-4 text-slate-400" />
+                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+                    Repassador de Recursos
+                  </span>
+                </div>
+                <p className="mt-1 font-semibold text-slate-900 text-sm">
+                  {viewModel.repassadorNome}
+                </p>
+                {viewModel.repassadorCnpjMascarado && (
+                  <p className="mt-0.5 font-mono text-slate-500 text-xs">
+                    CNPJ: {viewModel.repassadorCnpjMascarado}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Comparativo Gráfico de Barras Duplas (Física vs Financeira) */}
         <ObrasGraficoAvancoDuplo
           percentualExecucaoFisica={viewModel.percentualExecucaoFisica}
@@ -166,8 +283,8 @@ export function ObrasDetalheModal({
           alertaDescompasso={viewModel.alertaDescompasso}
         />
 
-        {/* Grid de Metadados e Cronograma da Obra */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Grid de Prazos e Investimento Previsto (3 colunas concisas) */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
             <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
               Investimento Previsto
@@ -192,17 +309,6 @@ export function ObrasDetalheModal({
             </span>
             <p className="mt-1 font-semibold text-slate-800 text-sm">
               {viewModel.dataFimPrevistaFormatada}
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
-            <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              Localização
-            </span>
-            <p className="mt-1 font-semibold text-slate-800 text-sm">
-              {viewModel.hasCoordinates
-                ? "Georreferenciada no mapa"
-                : "Não georreferenciada"}
             </p>
           </div>
         </div>

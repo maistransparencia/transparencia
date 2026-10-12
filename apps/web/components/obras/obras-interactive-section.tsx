@@ -173,7 +173,12 @@ export function ObrasInteractiveSection({
           ? true
           : normalizeText(obra.nomeObra).includes(termo) ||
             normalizeText(obra.idProjeto).includes(termo) ||
-            normalizeText(obra.orgaoResponsavel).includes(termo);
+            (obra.executorNome
+              ? normalizeText(obra.executorNome).includes(termo)
+              : false) ||
+            (obra.orgaoResponsavel
+              ? normalizeText(obra.orgaoResponsavel).includes(termo)
+              : false);
 
       return matchStatus && matchBusca;
     });
@@ -196,7 +201,8 @@ export function ObrasInteractiveSection({
         isUrbana: o.isUrbana,
         valorInvestimentoFormatado: o.valorInvestimentoFormatado,
         percentualExecucaoFormatado: o.percentualExecucaoFormatado,
-        orgaoResponsavel: o.orgaoResponsavel,
+        orgaoResponsavel: o.executorNome || o.orgaoResponsavel,
+        executorNome: o.executorNome || null,
         dataFimPrevistaFormatada: o.dataFimPrevistaFormatada,
       }));
   }, [filteredObras]);
@@ -619,10 +625,11 @@ export function ObrasInteractiveSection({
                           </span>
                         </div>
 
-                        {/* Linha 2: Situação · Órgão à Esquerda | Percentual à Direita */}
+                        {/* Linha 2: Situação · Órgão Executor à Esquerda | Percentual à Direita */}
                         <div className="mt-1 flex items-center justify-between pl-4 text-slate-500 text-xs">
                           <span className="truncate">
-                            {obra.situacaoLabel} · {obra.orgaoResponsavel}
+                            {obra.situacaoLabel} ·{" "}
+                            {obra.executorNome || obra.orgaoResponsavel}
                           </span>
                           <span className="shrink-0 tabular-nums">
                             {obra.percentualExecucaoFisica !== null
@@ -662,10 +669,10 @@ export function ObrasInteractiveSection({
 
                           <div>
                             <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-                              Órgão Responsável
+                              Órgão Executor
                             </span>
                             <span className="font-medium text-slate-900 text-xs">
-                              {obra.orgaoResponsavel}
+                              {obra.executorNome || obra.orgaoResponsavel}
                             </span>
                           </div>
 
@@ -813,9 +820,9 @@ export function ObrasInteractiveSection({
                             {obra.nomeObra}
                           </h3>
 
-                          {/* Órgão */}
+                          {/* Órgão Executor */}
                           <p className="mt-1 truncate text-slate-500 text-xs">
-                            {obra.orgaoResponsavel}
+                            {obra.executorNome || obra.orgaoResponsavel}
                           </p>
 
                           {/* Barra de Progresso Físico */}

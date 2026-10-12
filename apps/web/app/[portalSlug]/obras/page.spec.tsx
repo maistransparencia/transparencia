@@ -59,6 +59,7 @@ function makeRawObrasData(): RawData {
         nomeObra: "Construção de Escola Modelo",
         situacao: "em_execucao",
         orgaoResponsavel: "Secretaria de Educação",
+        executorNome: "Empresa Construtora Alfa",
         valorInvestimentoPrevisto: 2500000,
         percentualExecucaoFisica: 55.0,
         dataUltimaMedicao: "2026-04-10",
@@ -241,7 +242,7 @@ describe("ObrasPage Component", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("filtra obras por busca textual considerando nome ou órgão", async () => {
+  it("filtra obras por busca textual considerando nome, executor ou órgão", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -254,14 +255,32 @@ describe("ObrasPage Component", () => {
     const searchInput = screen.getByLabelText("Buscar obras públicas");
     expect(searchInput).toBeInTheDocument();
 
-    // Busca textual
+    // Busca textual por nome
     fireEvent.change(searchInput, { target: { value: "ponte" } });
 
     expect(
       screen.getAllByText("Reforma da Ponte do Rio Carangola").length,
     ).toBeGreaterThan(0);
     expect(
-      screen.queryByText("Construção de Escola Modelo"),
+      document.querySelector("#obra-item-OBR-001"),
+    ).not.toBeInTheDocument();
+
+    // Busca textual por executorNome
+    fireEvent.change(searchInput, { target: { value: "Construtora Alfa" } });
+    expect(
+      screen.getAllByText("Construção de Escola Modelo").length,
+    ).toBeGreaterThan(0);
+    expect(
+      document.querySelector("#obra-item-OBR-002"),
+    ).not.toBeInTheDocument();
+
+    // Busca textual por orgaoResponsavel quando executorNome também está presente
+    fireEvent.change(searchInput, { target: { value: "Educação" } });
+    expect(
+      screen.getAllByText("Construção de Escola Modelo").length,
+    ).toBeGreaterThan(0);
+    expect(
+      document.querySelector("#obra-item-OBR-002"),
     ).not.toBeInTheDocument();
   });
 
@@ -281,7 +300,7 @@ describe("ObrasPage Component", () => {
     fireEvent.click(obraButtons[0]);
 
     // Box expandido com detalhes e menção a ObrasGov.br
-    expect(screen.getByText("Órgão Responsável")).toBeInTheDocument();
+    expect(screen.getByText("Órgão Executor")).toBeInTheDocument();
     expect(screen.getByText("Previsão")).toBeInTheDocument();
     expect(screen.getAllByText("Última Medição").length).toBeGreaterThan(0);
     expect(screen.getByText(/Fonte: ObrasGov\.br/i)).toBeInTheDocument();

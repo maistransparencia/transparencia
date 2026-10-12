@@ -246,4 +246,37 @@ describe("ObrasMapaInterativo", () => {
       animate: true,
     });
   });
+
+  it("prioriza executorNome no conteúdo do popup do marcador quando informado", async () => {
+    const mockMarkers = [
+      {
+        idProjeto: "OBR-50",
+        nomeObra: "Centro Cirúrgico",
+        situacao: "em_execucao" as const,
+        situacaoLabel: "Em Execução",
+        situacaoColorHex: "#059669",
+        latitude: -20.9634,
+        longitude: -42.0408,
+        isUrbana: true,
+        valorInvestimentoFormatado: "R$ 1.450.000",
+        percentualExecucaoFormatado: "78%",
+        orgaoResponsavel: "Prefeitura Municipal",
+        executorNome: "Fundo Municipal de Saúde",
+        dataFimPrevistaFormatada: "31/12/2026",
+      },
+    ];
+
+    render(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMarker.bindPopup).toHaveBeenCalledWith(
+        expect.stringContaining("Fundo Municipal de Saúde"),
+      );
+    });
+  });
 });

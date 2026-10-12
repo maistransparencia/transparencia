@@ -94,7 +94,7 @@ export function ObrasParalisadasSection({
                 </div>
 
                 {/* Título da Obra */}
-                <h3 className="mt-3 font-bold font-serif text-lg text-slate-900 leading-snug">
+                <h3 className="mt-3 font-bold font-serif text-base text-ink leading-snug tracking-tight sm:text-lg">
                   {obra.nomeObra}
                 </h3>
 
@@ -136,12 +136,9 @@ export function ObrasParalisadasSection({
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Rodapé com Base Legal e Ações */}
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-slate-100 border-t pt-3 text-xs">
-                <div className="flex items-center gap-1 text-slate-500">
-                  <span>Base legal:</span>
+                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-xs">
+                  <span className="mr-0.5">Base legal:</span>
                   <a
                     href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6"
                     target="_blank"
@@ -152,27 +149,28 @@ export function ObrasParalisadasSection({
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-3">
+              {/* Rodapé com Ações */}
+              <div className="mt-5 flex items-center justify-between gap-3 border-[#f4f5f7] border-t pt-3.5">
+                <button
+                  type="button"
+                  onClick={() => handleVerDetalhes(obra.idProjeto)}
+                  className="inline-flex min-w-0 items-center gap-1 font-semibold text-accent text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
+                >
+                  <span>Ver detalhes</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+
+                {obra.hasCoordinates && (
                   <button
                     type="button"
-                    onClick={() => handleVerDetalhes(obra.idProjeto)}
-                    className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                    onClick={() => handleVerNoMapa(obra.idProjeto)}
+                    className="inline-flex items-center gap-1 font-normal text-slate-600 text-sm hover:text-slate-900 hover:underline"
                   >
-                    <span>Ver detalhes</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span>Ver no mapa</span>
                   </button>
-
-                  {obra.hasCoordinates && (
-                    <button
-                      type="button"
-                      onClick={() => handleVerNoMapa(obra.idProjeto)}
-                      className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 hover:underline"
-                    >
-                      <span>Ver no mapa</span>
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           );

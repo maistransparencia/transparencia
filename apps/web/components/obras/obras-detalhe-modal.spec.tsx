@@ -188,4 +188,56 @@ describe("ObrasDetalheModal Component", () => {
       "/porciuncula_prefeitura/contratos?numero=088%2F2024",
     );
   });
+
+  it("renderiza campos enriquecidos do ObrasGov (função social, intervenção, executor e repassador)", () => {
+    const mockObraEnriquecida: ObraItemViewModel = {
+      ...mockObraExecucao,
+      naturezaIntervencao: "AMPLIACAO",
+      especieIntervencao: "OBRA",
+      descricaoIntervencao:
+        "AMPLIAÇÃO DE UNIDADE DE ATENÇÃO ESPECIALIZADA EM SAÚDE",
+      funcaoSocial:
+        "Toda a população municipal de 17.288 habitantes atendida com centro cirúrgico.",
+      executorNome: "FUNDO MUNICIPAL DE SAUDE - FMS",
+      executorCnpj: "12097798000110",
+      executorCnpjMascarado: "12.***.***/0001-10",
+      repassadorNome: "MINISTÉRIO DA SAÚDE",
+      repassadorCnpj: "00394544012787",
+      repassadorCnpjMascarado: "00.***.***/0127-87",
+    };
+
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={vi.fn()}
+        obra={mockObraEnriquecida}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(screen.getByText("AMPLIACAO")).toBeInTheDocument();
+    expect(screen.getByText("OBRA")).toBeInTheDocument();
+    expect(screen.getByText("Objeto da Intervenção")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "AMPLIAÇÃO DE UNIDADE DE ATENÇÃO ESPECIALIZADA EM SAÚDE",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Função Social e Impacto Comunitário"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Toda a população municipal de 17.288 habitantes atendida/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Órgão / Ente Executor")).toBeInTheDocument();
+    expect(
+      screen.getByText("FUNDO MUNICIPAL DE SAUDE - FMS"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("CNPJ: 12.***.***/0001-10")).toBeInTheDocument();
+    expect(screen.getByText("Repassador de Recursos")).toBeInTheDocument();
+    expect(screen.getByText("MINISTÉRIO DA SAÚDE")).toBeInTheDocument();
+    expect(screen.getByText("CNPJ: 00.***.***/0127-87")).toBeInTheDocument();
+  });
 });

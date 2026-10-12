@@ -200,6 +200,16 @@ export interface ObraItemViewModel {
   dataInicioPrevistaFormatada: string;
   dataFimPrevista: string | null;
   dataFimPrevistaFormatada: string;
+  funcaoSocial?: string | null;
+  descricaoIntervencao?: string | null;
+  naturezaIntervencao?: string | null;
+  especieIntervencao?: string | null;
+  executorNome?: string | null;
+  executorCnpj?: string | null;
+  executorCnpjMascarado?: string | null;
+  repassadorNome?: string | null;
+  repassadorCnpj?: string | null;
+  repassadorCnpjMascarado?: string | null;
   contratos?: ObraContratoViewModel[];
 }
 
@@ -215,6 +225,7 @@ export interface ObraMarkerItem {
   valorInvestimentoFormatado: string;
   percentualExecucaoFormatado: string;
   orgaoResponsavel: string;
+  executorNome?: string | null;
   dataFimPrevistaFormatada: string;
 }
 
@@ -392,6 +403,20 @@ function mapObraToViewModel(
     dataInicioPrevistaFormatada: fmtDate(obra.dataInicioPrevista),
     dataFimPrevista: obra.dataFimPrevista,
     dataFimPrevistaFormatada: fmtDate(obra.dataFimPrevista),
+    funcaoSocial: obra.funcaoSocial?.trim() || null,
+    descricaoIntervencao: obra.descricaoIntervencao?.trim() || null,
+    naturezaIntervencao: obra.naturezaIntervencao?.trim() || null,
+    especieIntervencao: obra.especieIntervencao?.trim() || null,
+    executorNome: obra.executorNome?.trim() || null,
+    executorCnpj: obra.executorCnpj?.trim() || null,
+    executorCnpjMascarado: obra.executorCnpj
+      ? maskCpfCnpj(obra.executorCnpj)
+      : null,
+    repassadorNome: obra.repassadorNome?.trim() || null,
+    repassadorCnpj: obra.repassadorCnpj?.trim() || null,
+    repassadorCnpjMascarado: obra.repassadorCnpj
+      ? maskCpfCnpj(obra.repassadorCnpj)
+      : null,
     contratos: (obra.contratos ?? []).map((c) =>
       mapContratoToViewModel(c, obra.portalSlug || ""),
     ),
@@ -437,6 +462,7 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
       valorInvestimentoFormatado: o.valorInvestimentoFormatado,
       percentualExecucaoFormatado: o.percentualExecucaoFormatado,
       orgaoResponsavel: o.orgaoResponsavel,
+      executorNome: o.executorNome || null,
       dataFimPrevistaFormatada: o.dataFimPrevistaFormatada,
     }));
 
@@ -549,6 +575,16 @@ export interface ObraDetalheViewModel {
   };
   linkObrasGov: string;
   linkLegislacao: string;
+  funcaoSocial: string | null;
+  descricaoIntervencao: string | null;
+  naturezaIntervencao: string | null;
+  especieIntervencao: string | null;
+  executorNome: string | null;
+  executorCnpj: string | null;
+  executorCnpjMascarado: string | null;
+  repassadorNome: string | null;
+  repassadorCnpj: string | null;
+  repassadorCnpjMascarado: string | null;
   contratos: ObraContratoViewModel[];
 }
 
@@ -697,6 +733,20 @@ export function buildObraDetalheViewModel(
     alertaDescompasso,
     linkObrasGov,
     linkLegislacao,
+    funcaoSocial: obra.funcaoSocial?.trim() || null,
+    descricaoIntervencao: obra.descricaoIntervencao?.trim() || null,
+    naturezaIntervencao: obra.naturezaIntervencao?.trim() || null,
+    especieIntervencao: obra.especieIntervencao?.trim() || null,
+    executorNome: obra.executorNome?.trim() || null,
+    executorCnpj: obra.executorCnpj?.trim() || null,
+    executorCnpjMascarado: obra.executorCnpj
+      ? maskCpfCnpj(obra.executorCnpj)
+      : null,
+    repassadorNome: obra.repassadorNome?.trim() || null,
+    repassadorCnpj: obra.repassadorCnpj?.trim() || null,
+    repassadorCnpjMascarado: obra.repassadorCnpj
+      ? maskCpfCnpj(obra.repassadorCnpj)
+      : null,
     contratos,
   };
 }

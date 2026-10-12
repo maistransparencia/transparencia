@@ -209,7 +209,7 @@ export function ObrasMapaInterativo({
         });
 
         const nomeObraEscaped = escapeHtml(m.nomeObra);
-        const orgaoEscaped = escapeHtml(m.orgaoResponsavel);
+        const orgaoEscaped = escapeHtml(m.executorNome || m.orgaoResponsavel);
         const investimentoEscaped = escapeHtml(m.valorInvestimentoFormatado);
         const percentualEscaped = escapeHtml(m.percentualExecucaoFormatado);
         const dataFimEscaped = escapeHtml(m.dataFimPrevistaFormatada);
@@ -299,7 +299,6 @@ export function ObrasMapaInterativo({
         markersMapRef.current.clear();
       }
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: mapa Leaflet deve inicializar apenas na montagem
   }, []);
 
   // Atualiza marcadores quando a lista de marcadores ou a seleção mudar
