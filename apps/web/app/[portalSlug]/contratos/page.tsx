@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 interface ContratosPageProps {
   params: Promise<{ portalSlug: string }>;
@@ -33,11 +33,13 @@ export default async function ContratosPage({
   if (rawNumero) {
     const encodedNumero = encodeURIComponent(rawNumero);
     const anoQuery = rawAno ? `&ano=${encodeURIComponent(rawAno)}` : "";
-    redirect(
+    permanentRedirect(
       `/${portalSlug}/licitacoes?contratoNumero=${encodedNumero}${anoQuery}#contratos-servicos-vigentes`,
     );
   }
 
   const anoQuery = rawAno ? `?ano=${encodeURIComponent(rawAno)}` : "";
-  redirect(`/${portalSlug}/licitacoes${anoQuery}#contratos-servicos-vigentes`);
+  permanentRedirect(
+    `/${portalSlug}/licitacoes${anoQuery}#contratos-servicos-vigentes`,
+  );
 }

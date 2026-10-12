@@ -111,13 +111,20 @@ export function mapContratoToViewModel(
   const statusLabel = (() => {
     if (isVigente) return "Vigente";
     if (rawStatus === "encerrado") return "Encerrado";
-    return "Vigente";
+    if (rawStatus === "suspenso") return "Suspenso";
+    if (rawStatus === "cancelado") return "Cancelado";
+    if (rawStatus === "rescindido") return "Rescindido";
+    return rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
   })();
 
   const statusBadgeClasses = (() => {
     if (isVigente) return "bg-emerald-50 text-emerald-700 border-emerald-200";
     if (rawStatus === "encerrado")
       return "bg-slate-50 text-slate-700 border-slate-200";
+    if (rawStatus === "suspenso")
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    if (rawStatus === "cancelado" || rawStatus === "rescindido")
+      return "bg-rose-50 text-rose-700 border-rose-200";
     return "bg-slate-50 text-slate-700 border-slate-200";
   })();
 

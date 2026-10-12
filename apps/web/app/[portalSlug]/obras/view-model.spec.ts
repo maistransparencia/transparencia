@@ -521,5 +521,40 @@ describe("obras/view-model", () => {
       expect(vm.dataInicioFormatada).toBe("Não informada");
       expect(vm.vencimentoAtualFormatado).toBe("Não informada");
     });
+
+    it("deve mapear status inativos (suspenso, cancelado) com rótulos e badges apropriados", () => {
+      const suspenso: ObraContratoDTO = {
+        contratoId: "ctr-susp",
+        contratoNumero: "CTR-99/2024",
+        fornecedorNome: "EMPRESA SUSPENSA",
+        fornecedorCpfCnpj: null,
+        valorContrato: 20000,
+        modalidade: null,
+        licitacaoNumero: null,
+        status: "suspenso",
+        dataInicio: null,
+        vencimentoAtual: null,
+      };
+
+      const vmSuspenso = mapContratoToViewModel(
+        suspenso,
+        "porciuncula_prefeitura",
+      );
+      expect(vmSuspenso.statusLabel).toBe("Suspenso");
+      expect(vmSuspenso.statusBadgeClasses).toContain("text-amber-700");
+
+      const cancelado: ObraContratoDTO = {
+        ...suspenso,
+        contratoId: "ctr-canc",
+        status: "cancelado",
+      };
+
+      const vmCancelado = mapContratoToViewModel(
+        cancelado,
+        "porciuncula_prefeitura",
+      );
+      expect(vmCancelado.statusLabel).toBe("Cancelado");
+      expect(vmCancelado.statusBadgeClasses).toContain("text-rose-700");
+    });
   });
 });

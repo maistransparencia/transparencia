@@ -450,7 +450,7 @@ export async function getContratosPorObra(
           word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55
         )
         AND (
-          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|reapeamento|infraestrutura|projeto)\y'
+          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|recapeamento|infraestrutura|projeto)\y'
           OR coalesce(c.modalidade, '') ~* 'concorrencia|tomada_de_precos'
         )
       )
@@ -464,8 +464,8 @@ export async function getContratosPorObra(
   const result = await query.execute(db);
   const rows = (result.rows || []).map(mapRowToObraContratoDTO);
 
-  // Ordena a lista final desduplicada por vigência e valor
-  return rows.sort((a, b) => {
+  // Ordena a lista final desduplicada por vigência e valor de forma imutável (Regra 2)
+  return [...rows].sort((a, b) => {
     if (a.status === "vigente" && b.status !== "vigente") return -1;
     if (a.status !== "vigente" && b.status === "vigente") return 1;
     return b.valorContrato - a.valorContrato;
