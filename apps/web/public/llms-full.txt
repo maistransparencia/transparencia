@@ -503,8 +503,9 @@ Página estática com amparo jurídico formal da plataforma MaisTransparencia, c
 - **Base Legal para Publicação de Dados:**
   - [Lei 12.527/2011 — LAI](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm): Direito de acesso à informação pública.
   - [LC 131/2009](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp131.htm): Transparência ativa em tempo real da execução orçamentária.
-  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas.
+  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas e execução de obras.
   - **Tema 483 do STF (RE 1.143.261):** Divulgação de remunerações de agentes públicos como imperativo constitucional de transparência.
+- **Fontes Oficiais de Dados:** Portal Nacional de Contratações Públicas (PNCP), Portal ObrasGov.br (Governo Federal), Tribunal de Contas do Estado do Rio de Janeiro (TCE-RJ) e sistemas contábeis municipais legados.
 - **Limitações:** Os dados são fornecidos "como estão" a partir de fontes oficiais, sem responsabilidade por erros nas bases originais.
 
 ### Política de Privacidade (`/privacidade`)
