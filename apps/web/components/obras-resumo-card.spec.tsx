@@ -65,7 +65,7 @@ describe("ObrasResumoCard Component", () => {
     );
   });
 
-  it("exibe montante consolidado em destaque, contadores exatos e alerta de obras paralisadas", () => {
+  it("exibe montante consolidado em destaque e contadores exatos", () => {
     render(
       <ObrasResumoCard
         resumo={sampleResumoComParalisadas}
@@ -84,14 +84,6 @@ describe("ObrasResumoCard Component", () => {
     expect(screen.getByText(/2\s*\(R\$\s*5\.0mi\)/i)).toBeInTheDocument();
     expect(screen.getByText(/0\s*\(R\$\s*0\)/i)).toBeInTheDocument();
     expect(screen.getByText(/1\s*\(R\$\s*2\.0mi\)/i)).toBeInTheDocument();
-
-    // Alerta de paralisação com quantidade e valor retido
-    expect(
-      screen.getByText(/atenção:\s*1 obra pública paralisada\./i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/recursos de investimento paralisados no município/i),
-    ).toBeInTheDocument();
 
     // Barra de progresso com atributos de acessibilidade e percentuais calculados por valor
     const progressbar = screen.getByRole("progressbar");

@@ -101,6 +101,7 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     funcItems,
     orgaosCols,
     posicaoFinanceira: raw.posicaoFinanceira,
+    evolucaoMensal: raw.evolucaoMensal,
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),
