@@ -52,7 +52,7 @@ export default async function Image({
         label: "Em Execução",
         value: String(resumo.emExecucao),
         detail: "Canteiros ativos",
-        variant: "success",
+        variant: "info",
       },
       {
         label: "Paralisadas",
