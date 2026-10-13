@@ -151,6 +151,7 @@ export default async function OrcamentoPage({
         <div id="disponibilidade-caixa">
           <SaldoCaixaEntidadesSection
             posicaoFinanceira={viewModel.posicaoFinanceira}
+            evolucaoMensal={viewModel.evolucaoMensal}
             ano={selectedYear}
             portalSlug={portalSlug}
             hasEntityFilter={viewModel.hasEntityFilter}
