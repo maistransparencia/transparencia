@@ -2,7 +2,12 @@ import type { CSSProperties, FC } from "react";
 import { env } from "@/env";
 import { getBrasaoDataUrl, resolveBrandDomain } from "@/lib/og-assets";
 
-export type MetricVariant = "default" | "warning" | "success" | "danger";
+export type MetricVariant =
+  | "default"
+  | "warning"
+  | "success"
+  | "danger"
+  | "info";
 
 export interface OGMetricItem {
   label: string;
@@ -27,6 +32,7 @@ export interface OGCardTemplateProps {
 }
 
 function getVariantColor(variant?: MetricVariant): string {
+  if (variant === "info") return "#2563eb";
   if (variant === "success") return "#059669";
   if (variant === "warning") return "#d97706";
   if (variant === "danger") return "#dc2626";
