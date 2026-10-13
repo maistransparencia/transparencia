@@ -43,6 +43,8 @@ export function ObrasMapaInterativo({
   const markersMapRef = useRef<Map<string, import("leaflet").Marker>>(
     new Map(),
   );
+  const selectedObraIdRef = useRef(selectedObraId);
+  selectedObraIdRef.current = selectedObraId;
   const [isMac, setIsMac] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -311,17 +313,51 @@ export function ObrasMapaInterativo({
       if (selectedObraId) {
         const selectedMarker = markersMapRef.current.get(selectedObraId);
         if (selectedMarker) {
+          const map = mapInstanceRef.current;
           const latLng = selectedMarker.getLatLng();
-          mapInstanceRef.current.flyTo(latLng, 16, {
-            animate: true,
-            duration: 0.8,
-          });
+          const size = map.getSize();
+          // Mapa oculto (aba "Lista" no mobile): flyTo divide pelo tamanho zero e gera LatLng(NaN, NaN)
+          if (size.x === 0 || size.y === 0) {
+            map.setView(latLng, 16, { animate: false });
+          } else {
+            map.flyTo(latLng, 16, {
+              animate: true,
+              duration: 0.8,
+            });
+          }
           selectedMarker.openPopup();
         }
       }
     }
     updateMarkers();
   }, [renderMarkers, selectedObraId]);
+
+  // Recentraliza na obra selecionada quando o mapa volta a ficar visível (ex: aba "Mapa" no mobile)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    let wasHidden = container.clientWidth === 0 || container.clientHeight === 0;
+    const observer = new ResizeObserver(([entry]) => {
+      const isHidden =
+        entry.contentRect.width === 0 || entry.contentRect.height === 0;
+      const map = mapInstanceRef.current;
+      if (wasHidden && !isHidden && map) {
+        map.invalidateSize();
+        const selectedId = selectedObraIdRef.current;
+        const selectedMarker = selectedId
+          ? markersMapRef.current.get(selectedId)
+          : undefined;
+        if (selectedMarker) {
+          map.setView(selectedMarker.getLatLng(), 16, { animate: false });
+        }
+      }
+      wasHidden = isHidden;
+    });
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   // Alterna visualização entre Área Urbana e Todo o Território
   useEffect(() => {
