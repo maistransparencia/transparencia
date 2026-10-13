@@ -322,6 +322,43 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    ...(() => {
+      const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
+        (o) =>
+          o.latitude != null &&
+          o.longitude != null &&
+          Number.isFinite(o.latitude) &&
+          Number.isFinite(o.longitude) &&
+          o.latitude !== 0 &&
+          o.longitude !== 0,
+      );
+
+      const obrasMiniMapMarkers = validObrasWithCoords.map((o) => ({
+        id: o.idProjeto,
+        situacao: o.situacao,
+        latitude: o.latitude as number,
+        longitude: o.longitude as number,
+      }));
+
+      const obrasMapCenter: [number, number] = (() => {
+        if (validObrasWithCoords.length === 0) {
+          return [-20.9634, -42.0408];
+        }
+        const lats = validObrasWithCoords
+          .map((v) => v.latitude as number)
+          .sort((a, b) => a - b);
+        const lngs = validObrasWithCoords
+          .map((v) => v.longitude as number)
+          .sort((a, b) => a - b);
+        const mid = Math.floor(validObrasWithCoords.length / 2);
+        return [lats[mid], lngs[mid]];
+      })();
+
+      return {
+        obrasMiniMapMarkers,
+        obrasMapCenter,
+      };
+    })(),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),
