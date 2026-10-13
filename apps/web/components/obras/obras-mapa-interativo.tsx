@@ -337,7 +337,7 @@ export function ObrasMapaInterativo({
     const container = containerRef.current;
     if (!container || typeof ResizeObserver === "undefined") return;
 
-    let wasHidden = container.clientWidth === 0 || container.clientHeight === 0;
+    let wasHidden = false;
     const observer = new ResizeObserver(([entry]) => {
       const isHidden =
         entry.contentRect.width === 0 || entry.contentRect.height === 0;
