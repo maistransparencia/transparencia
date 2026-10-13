@@ -1,7 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ResumoObrasDTO } from "@transparencia/db";
-import { describe, expect, it } from "vitest";
+import posthog from "posthog-js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ObrasResumoCard } from "./obras-resumo-card";
+
+vi.mock("posthog-js", () => ({
+  default: {
+    capture: vi.fn(),
+  },
+}));
 
 describe("ObrasResumoCard Component", () => {
   const sampleResumoComParalisadas: ResumoObrasDTO = {
@@ -185,7 +192,7 @@ describe("ObrasResumoCard Component", () => {
     );
   });
 
-  it("renderiza empty state amigável quando resumo for nulo", () => {
+  it("renderiza empty state amigável quando resumo for nulo e dispara telemetria ao clicar no link", () => {
     render(<ObrasResumoCard resumo={null} detailUrl="/porciuncula/obras" />);
 
     expect(
@@ -199,6 +206,20 @@ describe("ObrasResumoCard Component", () => {
     });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/porciuncula/obras");
+
+    fireEvent.click(link);
+
+    expect(posthog.capture).toHaveBeenCalledWith("obras_card_cta_clicked", {
+      detailUrl: "/porciuncula/obras",
+      totalObras: 0,
+    });
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "funnel_home_to_internal_page",
+      {
+        from: "obras_resumo_card_empty_state",
+        to: "/porciuncula/obras",
+      },
+    );
   });
 
   it("renderiza empty state quando totalObras for <= 0", () => {
@@ -229,7 +250,11 @@ describe("ObrasResumoCard Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza CTA para a rota de obras com link correto", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renderiza CTA para a rota de obras com link correto e dispara telemetria ao clicar", () => {
     render(
       <ObrasResumoCard
         resumo={sampleResumoComParalisadas}
@@ -242,5 +267,96 @@ describe("ObrasResumoCard Component", () => {
     });
     expect(ctaLink).toBeInTheDocument();
     expect(ctaLink).toHaveAttribute("href", "/porciuncula/obras?ano=2024");
+
+    fireEvent.click(ctaLink);
+
+    expect(posthog.capture).toHaveBeenCalledWith("obras_card_cta_clicked", {
+      detailUrl: "/porciuncula/obras?ano=2024",
+      totalObras: 5,
+    });
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "funnel_home_to_internal_page",
+      {
+        from: "obras_resumo_card_footer",
+        to: "/porciuncula/obras?ano=2024",
+      },
+    );
+  });
+
+  it("renderiza mini mapa estático com imagem cartográfica, link para detailUrl e dispara eventos PostHog ao clicar", () => {
+    const markers = [
+      {
+        id: "obra-1",
+        situacao: "em_execucao",
+        latitude: -20.9634,
+        longitude: -42.0408,
+      },
+      {
+        id: "obra-2",
+        situacao: "concluida",
+        latitude: -20.965,
+        longitude: -42.042,
+      },
+      {
+        id: "obra-3",
+        situacao: "paralisada",
+        latitude: -20.961,
+        longitude: -42.039,
+      },
+      {
+        id: "obra-4",
+        situacao: "cadastrada",
+        latitude: -20.962,
+        longitude: -42.041,
+      },
+    ];
+
+    render(
+      <ObrasResumoCard
+        resumo={sampleResumoComParalisadas}
+        detailUrl="/porciuncula/obras?ano=2024"
+        markers={markers}
+        center={[-20.9634, -42.0408]}
+      />,
+    );
+
+    const mapLink = screen.getByRole("link", {
+      name: /abrir mapa interativo de obras públicas/i,
+    });
+    expect(mapLink).toBeInTheDocument();
+    expect(mapLink).toHaveAttribute("href", "/porciuncula/obras?ano=2024");
+
+    const img = screen.getByAltText(
+      /visão geral cartográfica das obras públicas/i,
+    );
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute(
+      "src",
+      expect.stringContaining("server.arcgisonline.com"),
+    );
+
+    // Verifica affordance "Ver no mapa"
+    expect(screen.getByText(/ver no mapa/i)).toBeInTheDocument();
+
+    // Clica no mini mapa e valida o disparo no PostHog
+    fireEvent.click(mapLink);
+
+    expect(posthog.capture).toHaveBeenCalledWith("obras_mini_map_clicked", {
+      detailUrl: "/porciuncula/obras?ano=2024",
+      totalObras: 5,
+      markersCount: 4,
+      emExecucao: 2,
+      concluidas: 2,
+      paralisadas: 1,
+      cadastradas: 0,
+    });
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "funnel_home_to_internal_page",
+      {
+        from: "obras_mini_map",
+        to: "/porciuncula/obras?ano=2024",
+      },
+    );
   });
 });
