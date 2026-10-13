@@ -261,6 +261,7 @@ describe("OpenGraph Image Route Handlers", () => {
   });
 
   it("gera o card de Obras Públicas (/obras)", async () => {
+    const { getResumoObrasPorPortal } = await import("@transparencia/db");
     const { default: generateImage } = await import(
       "../../app/[portalSlug]/obras/opengraph-image"
     );
@@ -269,6 +270,10 @@ describe("OpenGraph Image Route Handlers", () => {
     expect(response).toHaveProperty("jsx");
     expect((response as unknown as MockResponse).jsx.props.brasaoAsset).toBe(
       "brasao-porciuncula.png",
+    );
+    expect(getResumoObrasPorPortal).toHaveBeenCalledWith(
+      "porciuncula_prefeitura",
+      { ano: new Date().getFullYear() },
     );
   });
 
