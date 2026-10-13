@@ -2,6 +2,16 @@
 const nextConfig = {
   transpilePackages: ["@transparencia/ui", "@transparencia/db"],
   serverExternalPackages: ["pg", "kysely"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "server.arcgisonline.com",
+        pathname:
+          "/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/**",
+      },
+    ],
+  },
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts"],
   },
