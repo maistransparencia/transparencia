@@ -5,6 +5,49 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-10-14
+
+### 🌟 Destaques da Versão (Epic 17: Monitoramento de Obras Públicas, Auditoria Físico-Financeira e Painel ObrasGov.br)
+* **Painel Completo de Obras Públicas (`/obras`):** Nova rota pública dedicada ao acompanhamento geoespacial e analítico de empreendimentos financiados com recursos federais e municipais integrados via Obrasgov.br (antigo Transferegov), permitindo visualizar investimentos totais, execução física e financeira, e geolocalização precisa no mapa interativo com gestos cooperativos.
+* **Auditoria Físico-Financeira e Detalhes da Obra (`ObrasDetalheModal`):** Modal aprofundado com comparação de avanço físico versus execução financeira, histórico detalhado de paralisações, orçamentos previstos e vigentes, identificação de tomador e executor, e links diretos para a fundamentação jurídica da Nova Lei de Licitações ([Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)).
+* **Cruzamento de Obras com Contratos Municipais e Licitações:** Algoritmo analítico de correlação que conecta automaticamente projetos do Obrasgov.br aos contratos e processos licitatórios registrados no tribunal de contas municipal, possibilitando rastrear empresas contratadas, números de contrato e aditivos.
+* **Mini-Mapa Interativo e Telemetria na Visão Geral:** Card resumo de obras integrado à página principal com mini-mapa estático gerado por projeção Web Mercator com tiles ArcGIS/CartoDB, coordenadas medianas do município e resumo de obras ativas e paralisadas.
+* **Série Temporal de Evolução Mensal do Caixa (SICONFI MSC):** Novo card analítico e gráfico interativo na seção de Orçamento demonstrando a movimentação e queima/acumulação mensal de saldos de caixa a partir da Matriz de Saldos Contábeis do Tesouro Nacional.
+
+### ✨ Novas Funcionalidades (Added)
+* **Página de Obras Públicas (`apps/web/app/[portalSlug]/obras`):** Rota completa com KPIs consolidados (Total de Obras, Investimento Previsto, Em Execução, Concluídas e Paralisadas), busca textual e filtros de situação.
+* **Mapa Interativo com Gestos Cooperativos (`ObrasMapaInterativo`):** Mapa geoespacial baseado em Leaflet com tiles CartoDB Positron e fallback ArcGIS World Imagery, gestos cooperativos (aviso de tecla `Cmd` / `Ctrl` ao rolar para evitar rolagem acidental da página), marcadores coloridos por status e popups contextuais.
+* **Alternância e Responsividade Mobile em Obras:** Interface adaptativa com botão de alternância entre mapa e lista e carrossel horizontal de cards de obras para navegação móvel fluida.
+* **Modal de Detalhes da Obra (`ObrasDetalheModal`):** Diálogo acessível com deep linking bidirecional via URL (`?idProjeto=...`), gráfico de avanço duplo (físico vs. financeiro), lista de contratos correlacionados, histórico de paralisações e compartilhamento cívico.
+* **Disclaimer Cívico com Ação de Cobrança Parlamentar (`ObrasCivicDisclaimer`):** Componente informativo sobre a origem dos dados (Obrasgov.br) com botão para copiar texto estruturado e padronizado para cobrança parlamentar e fiscalização cidadã.
+* **Mini-Mapa Cartográfico no Card Resumo de Obras (`ObrasResumoCard`):** Card na página inicial (`/`) exibindo a contagem de obras, investimento total e mini-mapa estático interativo calculado com projeção Web Mercator (`tile-calc.ts`).
+* **Gráfico de Evolução Mensal de Caixa (`SaldoCaixaEvolucaoMensalChart`):** Gráfico de linha e barras exibindo a evolução mensal de disponibilidades de caixa e variação líquida mês a mês a partir do Siconfi MSC.
+* **OpenGraph Dinâmico de Obras (`obras/opengraph-image.tsx`):** Geração dinâmica de cartões de compartilhamento social com contagem de obras, valor total e brasão oficial do município.
+* **Queries Kysely de Obras e Caixa (`@transparencia/db`):** Funções analíticas `getObrasPublicasSummary`, `getObrasPublicasProjetos`, `getObraPublicaDetalhe`, `getObrasPublicasFilterOptions`, `getObrasPublicasGeoPoints` e `getSiconfiCaixaMensalEvolucao`.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Extrator e Carregador Obrasgov.br (`elt/extract/obrasgov.py` e `elt/load/obrasgov.py`):** Pipeline automatizado de ingestão para download e processamento de projetos, execuções físicas, geometrias geoespaciais e histórico de paralisações do Obrasgov.br.
+* **Modelos Staging Obrasgov (`staging/obrasgov`):** Criação de `stg_obrasgov__projetos`, `stg_obrasgov__execucoes_fisicas`, `stg_obrasgov__geometrias` e `stg_obrasgov__historico_paralisacoes` com documentação e testes de schema em `_models.yml`.
+* **Mart Analítico `fct_obras`:** Modelo consolidando informações de projetos de engenharia, situação padronizada em snake_case (`em_execucao`, `concluida`, `paralisada`, etc.), filtragem de intervenções supra-regionais ou federais descoladas do município, cálculo de percentual físico e financeiro, datas de início/fim e georreferenciamento.
+* **Enriquecimento de Contratos Vigentes (`fct_contratos_servicos_vigentes`):** Ajuste de modelo analítico para preservar e correlacionar anos de licitação e contratos vinculados a intervenções públicas.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Cadência Otimizada no Pipeline de Ingestão (`ingestion-pipeline.yml`):** Ajuste do cron schedule para rodar exclusivamente em dias úteis (segunda a sexta) às 23:00 UTC (`0 23 * * 1-5`), reduzindo execuções desnecessárias aos finais de semana.
+* **Cálculo Matemático de Tiles Web Mercator (`tile-calc.ts`):** Implementação de projeção matemática pura sem dependências externas pesadas para renderização ultrarrápida do mini-mapa estático.
+* **Algoritmo de Correlação Resiliente:** Tratamento defensivo em `@transparencia/db` para correlação de obras com contratos municipais, prevenindo falsos positivos por truncamento de títulos e aplicando fallback para contratos de exercícios anteriores.
+* **Hierarquia Visual no Saldo de Caixa (`SaldoCaixaEntidadesSection`):** Ajuste de alinhamento, espaçamento e tipografia na listagem de entidades municipais.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Regra 24 em `AGENTS.md` (Consistência de Design System e Vocabulário Cívico):** Diretriz de governança proibindo termos exóticos e padronizando rótulos de detalhes, modais, links e componentes do design system.
+* **Documentação para LLMs (`llms.txt` e `llms-full.txt`):** Inclusão da rota `/obras`, catálogo de campos analíticos de obras públicas, parâmetros de URL suportados (`idProjeto`) e notas contábeis.
+* **Termos de Uso e Metodologia (`/termos`):** Inclusão formal do Obrasgov.br / Ministério da Gestão e da Inovação em Serviços Públicos (MGI) e das bases legais da Lei 14.133/2021.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Controle de Zoom do Mapa:** Desativação do `scrollWheelZoom` nativo no Leaflet e adoção de dica visual contextual de tecla modificadora para zoom seguro.
+* **Blindagem de Testes Unitários de Banco (`contratos-servicos-vigentes.spec.ts`):** Isolamento de fixtures e semeadura determinística de contratos em suíte de testes Kysely.
+* **Tratamento de Contratos com Status Inativos:** Filtragem de status contratuais descontinuados ou cancelados no vínculo com obras públicas.
+* **Ajuste de Testes de Cards e Modais:** Sincronização dos testes de interface com as novas variantes de métricas e estrutura do card resumo de obras.
+
 ## [1.16.2] - 2026-10-10
 
 ### 🌟 Destaques da Versão (Correção do Código IBGE de Natividade)
