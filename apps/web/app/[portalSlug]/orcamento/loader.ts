@@ -3,6 +3,7 @@ import {
   getExecucaoOrcamentariaMetrics,
   getOrcamentoFuncionalMetrics,
   getPortalConfig,
+  getSiconfiEvolucaoMensal,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
@@ -132,13 +133,19 @@ async function fetchRawOrcamentoData(
     await resolveEmpresaIds(tenantSlug, entidadesIds),
   );
 
-  const [execucaoMetrics, funcionalData, portalConfig, posicaoFinanceira] =
-    await Promise.all([
-      getExecucaoOrcamentariaMetrics(tenantSlug, selectedYear, empresaIds),
-      getOrcamentoFuncionalMetrics(tenantSlug, selectedYear, empresaIds),
-      getPortalConfig(tenantSlug),
-      getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
-    ]);
+  const [
+    execucaoMetrics,
+    funcionalData,
+    portalConfig,
+    posicaoFinanceira,
+    evolucaoMensal,
+  ] = await Promise.all([
+    getExecucaoOrcamentariaMetrics(tenantSlug, selectedYear, empresaIds),
+    getOrcamentoFuncionalMetrics(tenantSlug, selectedYear, empresaIds),
+    getPortalConfig(tenantSlug),
+    getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
+    getSiconfiEvolucaoMensal(tenantSlug, selectedYear),
+  ]);
 
   const items = mapExecucaoMetricsToLegacyItems(execucaoMetrics);
 
@@ -150,6 +157,7 @@ async function fetchRawOrcamentoData(
     funcionalData,
     summary: summarizeExecucao(items),
     posicaoFinanceira,
+    evolucaoMensal,
   };
 }
 

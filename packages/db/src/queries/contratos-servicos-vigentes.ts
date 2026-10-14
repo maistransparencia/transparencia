@@ -14,6 +14,7 @@ export interface ContratoServicoVigente {
   ano?: number;
   contratoNumero?: string;
   licitacaoNumero?: string | null;
+  licitacaoAno?: number | null;
   fontePrincipal?: string | null;
   fontesRecursos?: string | null;
   programaNome?: string | null;
@@ -50,6 +51,7 @@ type ContratoRow = {
   ano?: string | number | null;
   contrato_numero?: string | null;
   licitacao_numero?: string | null;
+  licitacao_ano?: string | number | null;
   fonte_principal?: string | null;
   fontes_recursos?: string | null;
   programa_nome?: string | null;
@@ -102,6 +104,10 @@ function mapRowToContratoServicoVigente(
       row.contrato_numero != null ? String(row.contrato_numero) : undefined,
     licitacaoNumero:
       row.licitacao_numero != null ? String(row.licitacao_numero) : undefined,
+    licitacaoAno:
+      row.licitacao_ano != null && !Number.isNaN(Number(row.licitacao_ano))
+        ? Number(row.licitacao_ano)
+        : undefined,
     fontePrincipal:
       row.fonte_principal != null ? String(row.fonte_principal) : undefined,
     fontesRecursos:
@@ -145,11 +151,28 @@ export async function getContratosServicosVigentes(
           .onRef("o.portal_slug", "=", "csv.portal_slug")
           .onRef("o.empresa_id", "=", "csv.empresa_id"),
       )
-      .leftJoin("fct_contratos as c", (join) =>
-        join
-          .onRef("c.portal_slug", "=", "csv.portal_slug")
-          .onRef("c.empresa_id", "=", "csv.empresa_id")
-          .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
+      .leftJoin(
+        db
+          .selectFrom("fct_contratos")
+          .select([
+            "portal_slug",
+            "empresa_id",
+            "contrato_numero",
+            "ano",
+            "modalidade",
+            "licitacao_numero",
+            "valor_contrato",
+            sql<number>`row_number() over (partition by portal_slug, empresa_id, contrato_numero order by ano asc)`.as(
+              "rn",
+            ),
+          ])
+          .as("c"),
+        (join) =>
+          join
+            .onRef("c.portal_slug", "=", "csv.portal_slug")
+            .onRef("c.empresa_id", "=", "csv.empresa_id")
+            .onRef("c.contrato_numero", "=", "csv.contrato_numero")
+            .on("c.rn", "=", 1),
       )
       .leftJoin(
         db
@@ -189,6 +212,9 @@ export async function getContratosServicosVigentes(
         "csv.contrato_numero",
         sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
           "licitacao_numero",
+        ),
+        sql<number>`(select l.ano from fct_licitacoes l where l.portal_slug = csv.portal_slug and l.empresa_id = csv.empresa_id and l.licitacao_numero = coalesce(cr.licitacao_numero, c.licitacao_numero) order by case when c.modalidade is not null and lower(l.modalidade) = lower(c.modalidade) then 0 when c.modalidade is not null and ((lower(c.modalidade) like '%concorrencia%' and lower(l.modalidade) like '%concorrencia%') or (lower(c.modalidade) like '%dispensa%' and lower(l.modalidade) like '%dispensa%') or (lower(c.modalidade) like '%pregao%' and lower(l.modalidade) like '%pregao%') or (lower(c.modalidade) like '%tomada%' and lower(l.modalidade) like '%tomada%')) then 1 else 2 end, case when l.ano <= coalesce(c.ano, csv.ano) then 0 else 1 end, case when l.ano <= coalesce(c.ano, csv.ano) then coalesce(c.ano, csv.ano) - l.ano else 100 + (l.ano - coalesce(c.ano, csv.ano)) end asc, l.ano desc limit 1)`.as(
+          "licitacao_ano",
         ),
         "cr.fonte_principal",
         "cr.fontes_recursos",
@@ -247,18 +273,35 @@ export async function getContratoByNumero(
   const canLtrim = ltrimmedTerm.length > 0;
 
   try {
-    let query = db
+    const query = db
       .selectFrom("fct_contratos_servicos_vigentes as csv")
       .leftJoin("dim_orgao as o", (join) =>
         join
           .onRef("o.portal_slug", "=", "csv.portal_slug")
           .onRef("o.empresa_id", "=", "csv.empresa_id"),
       )
-      .leftJoin("fct_contratos as c", (join) =>
-        join
-          .onRef("c.portal_slug", "=", "csv.portal_slug")
-          .onRef("c.empresa_id", "=", "csv.empresa_id")
-          .onRef("c.contrato_numero", "=", "csv.contrato_numero"),
+      .leftJoin(
+        db
+          .selectFrom("fct_contratos")
+          .select([
+            "portal_slug",
+            "empresa_id",
+            "contrato_numero",
+            "ano",
+            "modalidade",
+            "licitacao_numero",
+            "valor_contrato",
+            sql<number>`row_number() over (partition by portal_slug, empresa_id, contrato_numero order by ano asc)`.as(
+              "rn",
+            ),
+          ])
+          .as("c"),
+        (join) =>
+          join
+            .onRef("c.portal_slug", "=", "csv.portal_slug")
+            .onRef("c.empresa_id", "=", "csv.empresa_id")
+            .onRef("c.contrato_numero", "=", "csv.contrato_numero")
+            .on("c.rn", "=", 1),
       )
       .leftJoin(
         db
@@ -299,6 +342,9 @@ export async function getContratoByNumero(
         sql<string>`coalesce(cr.licitacao_numero, c.licitacao_numero)`.as(
           "licitacao_numero",
         ),
+        sql<number>`(select l.ano from fct_licitacoes l where l.portal_slug = csv.portal_slug and l.empresa_id = csv.empresa_id and l.licitacao_numero = coalesce(cr.licitacao_numero, c.licitacao_numero) order by case when c.modalidade is not null and lower(l.modalidade) = lower(c.modalidade) then 0 when c.modalidade is not null and ((lower(c.modalidade) like '%concorrencia%' and lower(l.modalidade) like '%concorrencia%') or (lower(c.modalidade) like '%dispensa%' and lower(l.modalidade) like '%dispensa%') or (lower(c.modalidade) like '%pregao%' and lower(l.modalidade) like '%pregao%') or (lower(c.modalidade) like '%tomada%' and lower(l.modalidade) like '%tomada%')) then 1 else 2 end, case when l.ano <= coalesce(c.ano, csv.ano) then 0 else 1 end, case when l.ano <= coalesce(c.ano, csv.ano) then coalesce(c.ano, csv.ano) - l.ano else 100 + (l.ano - coalesce(c.ano, csv.ano)) end asc, l.ano desc limit 1)`.as(
+          "licitacao_ano",
+        ),
         "cr.fonte_principal",
         "cr.fontes_recursos",
         "cr.principal_programa as programa_nome",
@@ -331,11 +377,27 @@ export async function getContratoByNumero(
         ]),
       );
 
-    if (ano !== undefined && !Number.isNaN(ano)) {
-      query = query.where("csv.ano", "=", ano);
-    }
+    const baseQuery = query;
 
-    const row = await query.orderBy("csv.ano", "desc").executeTakeFirst();
+    let row =
+      ano !== undefined && !Number.isNaN(ano)
+        ? await baseQuery
+            .where("csv.ano", "=", ano)
+            .orderBy("csv.ano", "desc")
+            .limit(1)
+            .executeTakeFirst()
+        : await baseQuery
+            .orderBy("csv.ano", "desc")
+            .limit(1)
+            .executeTakeFirst();
+
+    if (!row && ano !== undefined && !Number.isNaN(ano)) {
+      // Fallback: se o contrato ocorreu em outro exercício (ex: plurianual ou deep-link sem ano exato), busca pelo mais recente
+      row = await baseQuery
+        .orderBy("csv.ano", "desc")
+        .limit(1)
+        .executeTakeFirst();
+    }
 
     if (!row) {
       return null;

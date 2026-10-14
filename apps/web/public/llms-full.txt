@@ -36,6 +36,12 @@ Esta seção apresenta a situação financeira consolidada do município em cada
 - **Antiguidade da Dívida:** Indicação do ano de origem da obrigação mais antiga ainda pendente de quitação pelo município.
 - **Saldo Financeiro Estimado:** O resultado financeiro apurado pela diferença entre o total de receitas arrecadadas e o total de despesas pagas no exercício.
 - **Disponibilidade em Caixa e Bancos (SICONFI / STN):** O estoque financeiro homologado pelo Tesouro Nacional na Matriz de Saldos Contábeis (MSC) para contas bancárias e aplicações financeiras do Poder Executivo municipal. Apresenta o montante consolidado em caixa, o fracionamento entre Recursos Livres (ordinários) e Recursos Vinculados (saúde, educação, convênios), a variação percentual interanual frente ao mesmo período do exercício anterior e link direto para o detalhamento por órgão em `/orcamento#disponibilidade-caixa`.
+- **Painel Resumo de Obras Públicas e Investimentos Urbanos (ObrasGov.br):** Panorama consolidado de intervenções e infraestrutura urbana no município:
+  - *Investimento Previsto Consolidado:* Montante total estimado para os projetos cadastrados na base do Governo Federal (ObrasGov.br).
+  - *Distribuição Proporcional:* Distribuição física e financeira do investimento entre intervenções em execução, concluídas, não iniciadas e paralisadas (ou proporcional à contagem de obras quando o montante cadastrado for zero).
+  - *Contadores por Situação:* Total de empreendimentos e montantes alocados em cada estágio da intervenção.
+  - *Alerta de Obras Paralisadas:* Sinalização cívica de atenção exibida automaticamente quando houver empreendimentos paralisados, informando a quantidade de obras com paralisação registrada e o volume de recursos públicos retidos.
+  - *Acesso ao Mapa e Fiscalização Territorial:* Atalho direto para o mapa georreferenciado e fiscalização detalhada de obras públicas (`/[portalSlug]/obras`).
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
 ### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)
@@ -309,6 +315,40 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 ---
 
+### 1.7.1. Obras Públicas e Impacto Urbano (`/[portalSlug]/obras`)
+
+Mapeamento cartográfico e fiscalização das obras públicas municipais em execução, paralisadas ou concluídas no território da cidade:
+
+- **Mapa Interativo Georreferenciado:** Renderização geoespacial com marcadores codificados por situação das obras (🟢 Em Execução, 🔴 Paralisada, 🔵 Concluída, ⚪ Cadastrada / Planejada), centralização automática no município e fly-to interativo ao selecionar um empreendimento.
+- **Painel Resumo e Detalhamento da Obra:** Visualização detalhada com nome popular/técnico da obra, órgão responsável, montante financeiro previsto de investimento, data prevista de término, percentual de avanço físico acumulado e data da última medição registrada.
+- **Fiscalização de Obras Paralisadas:** Identificação prioritária de canteiros com paralisação, destacando em vermelho o motivo de paralisação (recisão, atraso de repasse, licença ambiental) para auditoria e controle social.
+- **Filtros Dinâmicos e Busca:** Pílulas de filtro rápido por situação (`todas`, `em_execucao`, `paralisada`, `concluida`, `cadastrada`) e busca textual por nome, identificador ou secretaria executora.
+- **Obras sem Coordenadas:** Tratamento transparente de projetos sem coordenadas geográficas homologadas, exibidos na lista vertical com sinalização de "Localização não georreferenciada".
+- **Fundamentação Legal:** Acompanhamento físico-financeiro em consonância com a [Lei Federal nº 14.133/2021 (Nova Lei de Licitações e Contratos)](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm).
+
+---
+
+### 1.7.2. Detalhes da Obra e Auditoria Físico-Financeira (`/[portalSlug]/obras?idProjeto=[idProjeto]`)
+
+Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual sobreposto** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:
+
+- **Auditoria de Avanço Físico vs. Financeiro:** Comparativo gráfico em barras duplas:
+  - *Execução Física Oficial (%):* Boletim técnico de medição presencial no canteiro extraído diretamente do ObrasGov.br/CIPI, acompanhado da data da última aferição técnica realizada em campo.
+  - *Execução Financeira (%):* Relação entre os desembolsos contábeis acumulados e o valor total contratado/previsto da obra.
+  - *Detecção de Descompasso Físico-Financeiro:* Alerta contextual disparado automaticamente quando o desembolso financeiro supera o avanço físico medido em campo por margem superior a 15% (`financeiro > físico + 15%`), resguardando contra pagamentos desproporcionais sem contraprestação da obra.
+- **Auditoria Especial de Obras Paralisadas:** Banner de alerta cívico destacado para empreendimentos com situação `paralisada`, expondo a data de paralisação e a justificativa oficial cadastrada pelo órgão no sistema governamental (ex: rescisão contratual, atraso de repasses, embargo ou readequação de projeto).
+- **Correlação com Contratos e Licitações Vinculados:** Seção dedicada na ficha da obra que relaciona os contratos municipais e certames licitatórios pactuados para a execução do empreendimento, através de correlação analítica com estrito isolamento por município, identificando correspondências por número da obra, menção expressa ao código do projeto no objeto contratual e similaridade temática de engenharia:
+  - *Identificação do Contrato e Status:* Exibição do número do contrato administrativo acompanhado de badge de vigência oficial ("Vigente" ou "Encerrado", apurado com base na data de vencimento atualizada frente à data presente).
+  - *Empreiteira Contratada e Privacidade:* Razão social/nome do fornecedor com CPF ou CNPJ mascarado para proteção de dados (`123.***.***-00` ou `12.***.***/0001-90`).
+  - *Valores e Modalidade:* Montante pactuado formatado em BRL e modalidade licitatória formalizada (ex: Concorrência Eletrônica, Dispensa de Licitação).
+  - *Deep Linking Integrado:* Hiperlinks diretos para consulta detalhada do contrato (`/[portalSlug]/contratos?numero=[contratoNumero]`) e da licitação de origem (`/[portalSlug]/licitacoes?numero=[licitacaoNumero]`).
+  - *Empty State Contextual Neutro:* Quando a intervenção não possui contratos municipais diretamente relacionados (como obras de execução direta federal ou estadual), exibe mensagem contextual neutra: *"Nenhum contrato municipal diretamente correlacionado"*.
+- **Rota Canônica de Redirecionamento de Contratos (`/[portalSlug]/contratos`):** Rota pública padronizada que recebe `?numero=[contratoNumero]` e realiza redirecionamento limpo para `/[portalSlug]/licitacoes?contratoNumero=[contratoNumero]#contratos-servicos-vigentes`.
+- **Fundamentação Legal Canônica:** Hiperlink direto para o [Art. 115, § 6º da Lei Federal nº 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6) no portal do Planalto, além de link oficial para a ficha de intervenção no CIPI / ObrasGov.br (`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${idProjeto}`).
+- **Georreferenciamento e Conexão:** Exibição das coordenadas geográficas homologadas e fechamento ágil com retorno instantâneo à visualização do mapa municipal.
+
+---
+
 ### 1.8. Cartões Sociais Dinâmicos e Pré-visualização OpenGraph (OG Cards)
 
 Todas as rotas públicas contam com geração sob demanda de imagens em tempo real (1200x630px, PNG) otimizadas para compartilhamento social (WhatsApp, Telegram, redes sociais) em `https://maistransparencia.com/[portalSlug]/.../opengraph-image`:
@@ -321,6 +361,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 - `/[portalSlug]/pessoal/opengraph-image`: **Card de Pessoal** — Total da Folha de Pagamento, Comprometimento da LRF com Pessoal, Total Pago e Percentual de Chefias Ocupadas por Servidores Efetivos.
 - `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde (com valor empenhado no detalhe).
 - `/[portalSlug]/previdencia/opengraph-image`: **Card Previdenciário (RPPS)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados (alias permanente para retrocompatibilidade: `/[portalSlug]/caprem/opengraph-image`).
+- `/[portalSlug]/obras/opengraph-image`: **Card de Obras Públicas** — Total de Obras, Canteiros em Execução, Obras Paralisadas e Total Previsto de Investimento em Infraestrutura.
 
 ---
 
@@ -462,8 +503,9 @@ Página estática com amparo jurídico formal da plataforma MaisTransparencia, c
 - **Base Legal para Publicação de Dados:**
   - [Lei 12.527/2011 — LAI](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm): Direito de acesso à informação pública.
   - [LC 131/2009](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp131.htm): Transparência ativa em tempo real da execução orçamentária.
-  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas.
+  - [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm): Publicidade obrigatória de contratações públicas e execução de obras.
   - **Tema 483 do STF (RE 1.143.261):** Divulgação de remunerações de agentes públicos como imperativo constitucional de transparência.
+- **Fontes Oficiais de Dados:** Portal Nacional de Contratações Públicas (PNCP), Portal ObrasGov.br (Governo Federal), Tribunal de Contas do Estado do Rio de Janeiro (TCE-RJ) e sistemas contábeis municipais legados.
 - **Limitações:** Os dados são fornecidos "como estão" a partir de fontes oficiais, sem responsabilidade por erros nas bases originais.
 
 ### Política de Privacidade (`/privacidade`)

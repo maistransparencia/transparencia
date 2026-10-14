@@ -706,12 +706,17 @@ export function ContratosServicosVigentesSection({
                         if (!licNum) return;
                         const contratoNum = selectedContrato.contratoNumero;
                         const contratoAno = selectedContrato.ano;
+                        const targetLicAno =
+                          selectedContrato.licitacaoAno || contratoAno;
 
                         if (typeof window !== "undefined") {
                           const url = new URL(window.location.href);
                           url.searchParams.delete("contratoNumero");
                           url.searchParams.delete("contratoId");
                           url.searchParams.set("numero", licNum);
+                          if (targetLicAno) {
+                            url.searchParams.set("ano", String(targetLicAno));
+                          }
                           url.hash = "licitacoes-em-andamento";
                           window.history.pushState(
                             {},
@@ -730,7 +735,7 @@ export function ContratosServicosVigentesSection({
                             detail: {
                               numero: licNum,
                               portalSlug,
-                              ano: contratoAno,
+                              ano: targetLicAno,
                               fromContrato: {
                                 contratoNumero: contratoNum,
                                 ano: contratoAno,

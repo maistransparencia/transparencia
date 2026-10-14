@@ -34,9 +34,9 @@ export function fmtNumber(value: number): string {
 }
 
 export function fmtDate(val: string | Date | null | undefined): string {
-  if (!val) return "--/--/----";
+  if (!val) return "N/D";
   if (val instanceof Date) {
-    if (Number.isNaN(val.getTime())) return "--/--/----";
+    if (Number.isNaN(val.getTime())) return "N/D";
     const dd = String(val.getUTCDate()).padStart(2, "0");
     const mm = String(val.getUTCMonth() + 1).padStart(2, "0");
     const yyyy = val.getUTCFullYear();
@@ -193,6 +193,26 @@ export function fmtCpfCnpj(val: string | null | undefined): string {
   }
   if (digits.length === 11) {
     return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  }
+  return trimmed;
+}
+
+/**
+ * Mascara CPF ou CNPJ preservando privacidade do fornecedor em conformidade com as diretrizes de transparência pública.
+ * - CPF (11 dígitos): 123.***.***-00 (preserva 3 primeiros e 2 últimos dígitos)
+ * - CNPJ (14 dígitos): 12.***.*** / 0001-90 (preserva 2 primeiros dígitos, filial e 2 dígitos verificadores)
+ */
+export function maskCpfCnpj(val: string | null | undefined): string {
+  if (!val) return "";
+  const trimmed = val.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  const normalizedDigits =
+    digits.length === 10 ? digits.padStart(11, "0") : digits;
+  if (normalizedDigits.length === 11) {
+    return `${normalizedDigits.slice(0, 3)}.***.***-${normalizedDigits.slice(9, 11)}`;
+  }
+  if (normalizedDigits.length === 14) {
+    return `${normalizedDigits.slice(0, 2)}.***.***/${normalizedDigits.slice(8, 12)}-${normalizedDigits.slice(12, 14)}`;
   }
   return trimmed;
 }

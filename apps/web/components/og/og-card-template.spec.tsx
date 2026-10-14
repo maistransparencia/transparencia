@@ -63,6 +63,12 @@ describe("OGCardTemplate", () => {
             detail: "+12% vs ano anterior",
             variant: "danger",
           },
+          {
+            label: "Em Execução",
+            value: "14",
+            detail: "Canteiros ativos",
+            variant: "info",
+          },
         ]}
       />,
     );
@@ -74,6 +80,9 @@ describe("OGCardTemplate", () => {
     expect(screen.getByText("R$ 6,4M em Outros Serviços")).toBeInTheDocument();
     expect(screen.getByText("Combustíveis")).toBeInTheDocument();
     expect(screen.getByText("R$ 2,1M")).toBeInTheDocument();
+    expect(screen.getByText("Em Execução")).toBeInTheDocument();
+    expect(screen.getByText("14")).toBeInTheDocument();
+    expect(screen.getByText("14")).toHaveStyle({ color: "#2563eb" });
     expect(screen.getByText("Alerta de Opacidade")).toBeInTheDocument();
   });
 

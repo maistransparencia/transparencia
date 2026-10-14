@@ -193,4 +193,78 @@ describe("OrcamentoPage", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("renderiza a seção de evolução mensal e queima de caixa quando evolucaoMensal for fornecido", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(
+      makeRaw({
+        posicaoFinanceira: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          mesMaisRecente: 12,
+          dataHomologacao: "2024-12-31",
+          totalCaixaGeral: 5000000,
+          totalRecursosLivres: 3000000,
+          totalRecursosVinculados: 2000000,
+          totalCaixaPrevidencia: 0,
+          totalRecursosPrevidencia: 0,
+          entidades: [
+            {
+              poderOrgao: "Executivo",
+              entidadeNome: "Prefeitura Municipal",
+              cnpj: "29.138.342/0001-30",
+              empresaId: "1",
+              grupoDestinacao: "livre",
+              saldoCaixaBancos: 5000000,
+              saldoRecursosLivres: 3000000,
+              saldoRecursosVinculados: 2000000,
+              mesReferencia: 12,
+              dataReferencia: "2024-12-31",
+            },
+          ],
+          previdencia: [],
+        },
+        evolucaoMensal: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          pontos: [
+            {
+              mesReferencia: 1,
+              mesNome: "Janeiro",
+              mesAbreviado: "Jan",
+              saldoCaixaBancos: 10000000,
+              saldoRecursosLivres: 8000000,
+              saldoRecursosVinculados: 2000000,
+            },
+            {
+              mesReferencia: 12,
+              mesNome: "Dezembro",
+              mesAbreviado: "Dez",
+              saldoCaixaBancos: 5000000,
+              saldoRecursosLivres: 3000000,
+              saldoRecursosVinculados: 2000000,
+            },
+          ],
+          mediaRecursosLivres: 5500000,
+          minRecursosLivres: 3000000,
+          mesMinRecursosLivres: 12,
+          maxRecursosLivres: 8000000,
+          mesMaxRecursosLivres: 1,
+          variacaoIntraAnualLivresPct: -62.5,
+          queimaPicoRecursosLivres: 5000000,
+        },
+      }),
+    );
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Evolução Mensal e Queima de Caixa no Exercício"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Média Mensal (Recursos Livres)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Piso Operacional no Ano")).toBeInTheDocument();
+    expect(screen.getByText("Queima Intra-anual de Caixa")).toBeInTheDocument();
+  });
 });

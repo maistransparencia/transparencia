@@ -204,6 +204,35 @@ def main() -> None:
                     count = load_pncp_itens_resultados(engine, raw_data)
                     logger.info("Loaded pncp/itens_resultados.json → %d rows into raw_pncp.itens_resultados", count)
                 continue
+            if table == "obrasgov":
+                from elt.load.obrasgov import (
+                    ensure_obrasgov_tables,
+                    load_obrasgov_execucoes_fisicas,
+                    load_obrasgov_geometrias,
+                    load_obrasgov_historico_paralisacoes,
+                    load_obrasgov_projetos,
+                )
+
+                ensure_obrasgov_tables(engine, schema="raw_obrasgov")
+                raw_data = json.loads(json_file.read_text(encoding="utf-8"))
+                if json_file.name == "projetos.json":
+                    count = load_obrasgov_projetos(engine, raw_data, schema="raw_obrasgov")
+                    logger.info("Loaded obrasgov/projetos.json → %d rows into raw_obrasgov.projetos", count)
+                elif json_file.name == "geometrias.json":
+                    count = load_obrasgov_geometrias(engine, raw_data, schema="raw_obrasgov")
+                    logger.info("Loaded obrasgov/geometrias.json → %d rows into raw_obrasgov.geometrias", count)
+                elif json_file.name == "execucoes_fisicas.json":
+                    count = load_obrasgov_execucoes_fisicas(engine, raw_data, schema="raw_obrasgov")
+                    logger.info(
+                        "Loaded obrasgov/execucoes_fisicas.json → %d rows into raw_obrasgov.execucoes_fisicas", count
+                    )
+                elif json_file.name == "historico_paralisacoes.json":
+                    count = load_obrasgov_historico_paralisacoes(engine, raw_data, schema="raw_obrasgov")
+                    logger.info(
+                        "Loaded obrasgov/historico_paralisacoes.json → %d rows into raw_obrasgov.historico_paralisacoes",
+                        count,
+                    )
+                continue
             logger.warning("No endpoint config for table: %s", table)
             continue
 

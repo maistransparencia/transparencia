@@ -977,8 +977,65 @@ export async function seedContratoRecurso(
     .execute();
 }
 
+export interface ObraRow {
+  portalSlug: string;
+  idProjeto: string;
+  nomeObra?: string | null;
+  situacao?: string | null;
+  orgaoResponsavel?: string | null;
+  valorInvestimentoPrevisto?: number | null;
+  percentualExecucaoFisica?: number | null;
+  dataUltimaMedicao?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  motivoParalisacao?: string | null;
+  dataInicioPrevista?: string | null;
+  dataFimPrevista?: string | null;
+  funcaoSocial?: string | null;
+  descricaoIntervencao?: string | null;
+  naturezaIntervencao?: string | null;
+  especieIntervencao?: string | null;
+  executorNome?: string | null;
+  executorCnpj?: string | null;
+  repassadorNome?: string | null;
+  repassadorCnpj?: string | null;
+}
+
+export async function seedObra(row: ObraRow): Promise<void> {
+  await db
+    .insertInto("fct_obras")
+    .values({
+      portal_slug: row.portalSlug,
+      id_projeto: row.idProjeto,
+      nome_obra: row.nomeObra ?? "Obra Teste",
+      situacao: row.situacao ?? "em_execucao",
+      orgao_responsavel: row.orgaoResponsavel ?? null,
+      valor_investimento_previsto: row.valorInvestimentoPrevisto ?? 0,
+      percentual_execucao_fisica: row.percentualExecucaoFisica ?? null,
+      data_ultima_medicao: row.dataUltimaMedicao ?? null,
+      latitude: row.latitude ?? null,
+      longitude: row.longitude ?? null,
+      motivo_paralisacao: row.motivoParalisacao ?? null,
+      data_inicio_prevista: row.dataInicioPrevista ?? null,
+      data_fim_prevista: row.dataFimPrevista ?? null,
+      funcao_social: row.funcaoSocial ?? null,
+      descricao_intervencao: row.descricaoIntervencao ?? null,
+      natureza_intervencao: row.naturezaIntervencao ?? null,
+      especie_intervencao: row.especieIntervencao ?? null,
+      executor_nome: row.executorNome ?? null,
+      executor_cnpj: row.executorCnpj ?? null,
+      repassador_nome: row.repassadorNome ?? null,
+      repassador_cnpj: row.repassadorCnpj ?? null,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_obras")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_contratos_recursos")
     .where("portal_slug", "=", portalSlug)

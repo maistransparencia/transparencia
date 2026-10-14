@@ -4,7 +4,10 @@ import {
   createFixturePortalSlug,
   seedSaldoCaixaSiconfi,
 } from "../../../tests/fixtures/seed";
-import { getSiconfiPosicaoFinanceira } from "../siconfi-caixa-metrics";
+import {
+  getSiconfiEvolucaoMensal,
+  getSiconfiPosicaoFinanceira,
+} from "../siconfi-caixa-metrics";
 
 const PORTAL = createFixturePortalSlug();
 
@@ -377,5 +380,146 @@ describe("getSiconfiPosicaoFinanceira", () => {
     expect(result?.previdencia[0].saldoCaixaBancos).toBe(65000000);
     expect(result?.previdencia[0].saldoRecursosVinculados).toBe(65000000);
     expect(result?.previdencia[0].saldoRecursosLivres).toBe(0);
+  });
+});
+
+describe("getSiconfiEvolucaoMensal", () => {
+  it("retorna null quando não há registros no ano", async () => {
+    const result = await getSiconfiEvolucaoMensal(PORTAL, 2035);
+    expect(result).toBeNull();
+  });
+
+  it("calcula série mensal, média, piso e queima intra-anual de recursos livres", async () => {
+    // Mês 1: R$ 10.000.000 livres
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 1,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA",
+      entidadeNome: "PREFEITURA",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-01-31",
+      saldoCaixaBancos: 10000000,
+      saldoRecursosLivres: 10000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: false,
+    });
+
+    // Mês 6: R$ 6.000.000 livres
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 6,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA",
+      entidadeNome: "PREFEITURA",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-06-30",
+      saldoCaixaBancos: 6000000,
+      saldoRecursosLivres: 6000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: false,
+    });
+
+    // Mês 12: R$ 2.000.000 livres
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 12,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA",
+      entidadeNome: "PREFEITURA",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-12-31",
+      saldoCaixaBancos: 2000000,
+      saldoRecursosLivres: 2000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    // Mês 1 - Registro 2 (Recursos Vinculados Saúde)
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2024,
+      mesReferencia: 1,
+      poderOrgao: "10131",
+      grupoDestinacao: "saude",
+      empresaId: "7",
+      orgaoNome: "FUNDO MUNICIPAL DE SAUDE",
+      entidadeNome: "FUNDO DE SAUDE",
+      cnpj: "28920999000106",
+      dataReferencia: "2024-01-31",
+      saldoCaixaBancos: 3000000,
+      saldoRecursosLivres: 0,
+      saldoRecursosVinculados: 3000000,
+      ultimaCompetenciaFlag: false,
+    });
+
+    const result = await getSiconfiEvolucaoMensal(PORTAL, 2024);
+
+    expect(result).not.toBeNull();
+    expect(result?.pontos).toHaveLength(3);
+    expect(result?.pontos[0].mesReferencia).toBe(1);
+    expect(result?.pontos[0].mesAbreviado).toBe("Jan");
+    expect(result?.pontos[0].saldoRecursosLivres).toBe(10000000);
+    expect(result?.pontos[0].saldoRecursosVinculados).toBe(3000000);
+    expect(result?.pontos[0].saldoCaixaBancos).toBe(13000000);
+
+    expect(result?.pontos[1].mesReferencia).toBe(6);
+    expect(result?.pontos[1].mesAbreviado).toBe("Jun");
+
+    expect(result?.pontos[2].mesReferencia).toBe(12);
+    expect(result?.pontos[2].mesAbreviado).toBe("Dez");
+    expect(result?.pontos[2].saldoRecursosLivres).toBe(2000000);
+
+    // Média = (10M + 6M + 2M) / 3 = 6M
+    expect(result?.mediaRecursosLivres).toBe(6000000);
+
+    // Mínimo = 2M no mês 12
+    expect(result?.minRecursosLivres).toBe(2000000);
+    expect(result?.mesMinRecursosLivres).toBe(12);
+
+    // Máximo = 10M no mês 1
+    expect(result?.maxRecursosLivres).toBe(10000000);
+    expect(result?.mesMaxRecursosLivres).toBe(1);
+
+    // Variação Abertura -> Fechamento = (2M - 10M) / 10M = -80.0%
+    expect(result?.variacaoIntraAnualLivresPct).toBe(-80);
+
+    // Queima frente ao Pico = 10M - 2M = 8M
+    expect(result?.queimaPicoRecursosLivres).toBe(8000000);
+  });
+
+  it("retorna variacaoIntraAnualLivresPct nulo quando há apenas uma competência no exercício", async () => {
+    await seedSaldoCaixaSiconfi({
+      portalSlug: PORTAL,
+      ano: 2025,
+      mesReferencia: 1,
+      poderOrgao: "10131",
+      grupoDestinacao: "livre",
+      empresaId: "7",
+      orgaoNome: "PREFEITURA",
+      entidadeNome: "PREFEITURA",
+      cnpj: "28920999000106",
+      dataReferencia: "2025-01-31",
+      saldoCaixaBancos: 5000000,
+      saldoRecursosLivres: 5000000,
+      saldoRecursosVinculados: 0,
+      ultimaCompetenciaFlag: true,
+    });
+
+    const result = await getSiconfiEvolucaoMensal(PORTAL, 2025);
+
+    expect(result).not.toBeNull();
+    expect(result?.pontos).toHaveLength(1);
+    expect(result?.variacaoIntraAnualLivresPct).toBeNull();
+    expect(result?.queimaPicoRecursosLivres).toBe(0);
   });
 });

@@ -1,13 +1,22 @@
 import type {
   EntidadeSaldoCaixaDTO,
+  SiconfiEvolucaoMensalDTO,
   SiconfiPosicaoFinanceiraDTO,
 } from "@transparencia/db";
-import { fmtCompact, fmtPercent, toTitleCase } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  KPICard,
+  toTitleCase,
+} from "@transparencia/ui";
 import { AlertCircle, ExternalLink, Info, ShieldCheck } from "lucide-react";
+import { KPIGrid } from "./kpi-grid";
+import { SaldoCaixaEvolucaoMensalChart } from "./saldo-caixa-evolucao-mensal-chart";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface SaldoCaixaEntidadesSectionProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
+  evolucaoMensal?: SiconfiEvolucaoMensalDTO | null;
   ano: number;
   portalSlug?: string;
   hasEntityFilter?: boolean;
@@ -46,6 +55,7 @@ function getVariacaoBadgeClass(variacao: number): string {
 
 export function SaldoCaixaEntidadesSection({
   posicaoFinanceira,
+  evolucaoMensal,
   ano,
   portalSlug,
   hasEntityFilter = false,
@@ -354,10 +364,80 @@ export function SaldoCaixaEntidadesSection({
         </div>
       </div>
 
+      {/* Evolução Mensal e Queima de Caixa no Exercício */}
+      {evolucaoMensal && evolucaoMensal.pontos.length > 0 && (
+        <div className="mt-8 space-y-4 border-slate-100 border-t pt-6">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="font-bold text-base text-ink tracking-tight">
+                Evolução Mensal e Queima de Caixa no Exercício
+              </h3>
+              <p className="text-subtleText text-xs">
+                Acompanhamento da liquidez de recursos livres e do piso
+                operacional mês a mês (SICONFI / STN).
+              </p>
+            </div>
+            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-700 text-xs">
+              {evolucaoMensal.pontos.length} competências apuradas
+            </span>
+          </div>
+
+          <KPIGrid columns={3}>
+            <KPICard
+              title="Média Mensal (Recursos Livres)"
+              value={fmtCompact(evolucaoMensal.mediaRecursosLivres)}
+              subtext="Média aritmética de saldo livre no exercício"
+              accent
+            />
+            <KPICard
+              title="Piso Operacional no Ano"
+              value={fmtCompact(evolucaoMensal.minRecursosLivres)}
+              subtext={`Mínima em ${
+                evolucaoMensal.pontos.find(
+                  (p) =>
+                    p.mesReferencia === evolucaoMensal.mesMinRecursosLivres,
+                )?.mesNome ?? `Mês ${evolucaoMensal.mesMinRecursosLivres}`
+              }`}
+            />
+            <KPICard
+              title="Queima Intra-anual de Caixa"
+              value={
+                evolucaoMensal.queimaPicoRecursosLivres > 0
+                  ? `${fmtCompact(evolucaoMensal.queimaPicoRecursosLivres)} consumidos`
+                  : "Estável / Superávit"
+              }
+              subtext={
+                evolucaoMensal.variacaoIntraAnualLivresPct !== null
+                  ? `${
+                      evolucaoMensal.variacaoIntraAnualLivresPct > 0 ? "+" : ""
+                    }${evolucaoMensal.variacaoIntraAnualLivresPct}% (Abertura → Fechamento)`
+                  : "Competência inicial do exercício"
+              }
+              trend={
+                evolucaoMensal.variacaoIntraAnualLivresPct !== null
+                  ? {
+                      value: `${evolucaoMensal.variacaoIntraAnualLivresPct}%`,
+                      isPositive:
+                        evolucaoMensal.variacaoIntraAnualLivresPct >= 0,
+                    }
+                  : undefined
+              }
+            />
+          </KPIGrid>
+
+          <div className="rounded-2xl border border-[#e7e9ee] bg-slate-50/30 p-4 sm:p-5">
+            <SaldoCaixaEvolucaoMensalChart
+              pontos={evolucaoMensal.pontos}
+              ano={ano}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Grade de Cards por Entidade ou Fundo Previdenciário */}
       {listaItens.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-3 font-semibold text-ink text-sm tracking-wider">
+        <div className="mt-6 space-y-4">
+          <h3 className="font-bold text-base text-ink tracking-tight">
             {tituloEntidades}
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

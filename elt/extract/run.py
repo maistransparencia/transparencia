@@ -55,8 +55,9 @@ def main() -> None:
 
     siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
+    obrasgov_keys = {"obrasgov"}
     if args.only:
-        valid = [e.listagem for e in endpoints] + list(siconfi_keys) + list(pncp_keys)
+        valid = [e.listagem for e in endpoints] + list(siconfi_keys) + list(pncp_keys) + list(obrasgov_keys)
         if args.only not in valid:
             raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
         endpoints = [e for e in endpoints if e.listagem == args.only]
@@ -159,6 +160,23 @@ def main() -> None:
         except Exception as exc:
             logger.warning("Failed: pncp / %s: %s", portal.slug, exc)
             _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc)
+
+    if not args.only or args.only in obrasgov_keys:
+        from elt.extract.obrasgov import ObrasGovExtractor
+
+        logger.info("Extracting ObrasGov data for %s (cod_ibge: %s)...", portal.slug, portal.cod_ibge)
+        try:
+            obrasgov_extractor = ObrasGovExtractor()
+            obrasgov_data = obrasgov_extractor.extract(portal_slug=portal.slug, cod_ibge=portal.cod_ibge)
+            obrasgov_dir = run_dir / "obrasgov"
+            obrasgov_dir.mkdir(parents=True, exist_ok=True)
+            for key, rows in obrasgov_data.items():
+                out = obrasgov_dir / f"{key}.json"
+                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted obrasgov / %s / %s → %d rows", portal.slug, key, len(rows))
+        except Exception as exc:
+            logger.warning("Failed: obrasgov / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 

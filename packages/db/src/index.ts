@@ -15,6 +15,7 @@ export * from "./queries/licitacoes-contratos-search";
 export * from "./queries/licitacoes-metrics";
 export * from "./queries/metadata";
 export * from "./queries/newsletter";
+export * from "./queries/obras";
 export * from "./queries/opacidade-contabil-metrics";
 export * from "./queries/orcamento-funcional-metrics";
 export * from "./queries/pessoal-metrics";

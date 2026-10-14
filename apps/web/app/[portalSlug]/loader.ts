@@ -7,11 +7,13 @@ import {
   getLicitacaoGapsMetrics,
   getLicitacoesEmAndamentoMetrics,
   getLimiteMaximoLrfPessoal,
+  getObrasPorPortal,
   getPercentualChefiasEfetivasMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
   getRadarCivicoAlertas,
+  getResumoObrasPorPortal,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { notFound } from "next/navigation";
@@ -170,6 +172,8 @@ async function fetchRawVisaoGeralData(
     posicaoFinanceira,
     radarAlertas,
     licitacoesEmAndamento,
+    resumoObras,
+    obrasPreview,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -191,6 +195,8 @@ async function fetchRawVisaoGeralData(
       ano: selectedYear,
       empresaIds,
     }),
+    getResumoObrasPorPortal(tenantSlug, { ano: selectedYear }),
+    getObrasPorPortal(tenantSlug, { ano: selectedYear, limite: 25 }),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -240,6 +246,8 @@ async function fetchRawVisaoGeralData(
     },
     radarAlertas: radarAlertas ?? [],
     licitacoesEmAndamentoCount: licitacoesEmAndamento.length,
+    resumoObras,
+    obrasPreview,
   };
 }
 

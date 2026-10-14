@@ -1,5 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
+import type {
+  SiconfiEvolucaoMensalDTO,
+  SiconfiPosicaoFinanceiraDTO,
+} from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import { SaldoCaixaEntidadesSection } from "./saldo-caixa-entidades-section";
 
@@ -299,5 +302,59 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     expect(screen.getByText("+15.2% vs. 2023")).toBeInTheDocument();
     expect(screen.getByText("+10.5% vs. 2023")).toBeInTheDocument();
     expect(screen.getByText("-5% vs. 2023")).toBeInTheDocument();
+  });
+
+  it("renderiza a seção de evolução mensal, KPIs de média, piso e queima quando evolucaoMensal for fornecido", () => {
+    const sampleEvolucao: SiconfiEvolucaoMensalDTO = {
+      portalSlug: "porciuncula",
+      ano: 2024,
+      mediaRecursosLivres: 8000000,
+      minRecursosLivres: 2000000,
+      mesMinRecursosLivres: 12,
+      maxRecursosLivres: 16000000,
+      mesMaxRecursosLivres: 1,
+      variacaoIntraAnualLivresPct: -87.5,
+      queimaPicoRecursosLivres: 14000000,
+      pontos: [
+        {
+          mesReferencia: 1,
+          mesNome: "Janeiro",
+          mesAbreviado: "Jan",
+          saldoCaixaBancos: 18000000,
+          saldoRecursosLivres: 16000000,
+          saldoRecursosVinculados: 2000000,
+        },
+        {
+          mesReferencia: 12,
+          mesNome: "Dezembro",
+          mesAbreviado: "Dez",
+          saldoCaixaBancos: 4000000,
+          saldoRecursosLivres: 2000000,
+          saldoRecursosVinculados: 2000000,
+        },
+      ],
+    };
+
+    render(
+      <SaldoCaixaEntidadesSection
+        posicaoFinanceira={samplePosicao}
+        evolucaoMensal={sampleEvolucao}
+        ano={2024}
+      />,
+    );
+
+    expect(
+      screen.getByText("Evolução Mensal e Queima de Caixa no Exercício"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 competências apuradas")).toBeInTheDocument();
+    expect(
+      screen.getByText("Média Mensal (Recursos Livres)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Piso Operacional no Ano")).toBeInTheDocument();
+    expect(screen.getByText("Mínima em Dezembro")).toBeInTheDocument();
+    expect(screen.getByText("Queima Intra-anual de Caixa")).toBeInTheDocument();
+    expect(
+      screen.getByText("-87.5% (Abertura → Fechamento)"),
+    ).toBeInTheDocument();
   });
 });

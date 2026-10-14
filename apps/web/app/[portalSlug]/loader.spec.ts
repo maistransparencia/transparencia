@@ -2,13 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 const {
   getEntidadesMock,
+  getObrasPorPortalMock,
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
+  getResumoObrasPorPortalMock,
   notFoundMock,
 } = vi.hoisted(() => ({
   getEntidadesMock: vi.fn(),
+  getObrasPorPortalMock: vi.fn(),
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
+  getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
@@ -33,6 +37,8 @@ vi.mock("@transparencia/db", () => ({
   getLimiteMaximoLrfPessoal: vi.fn().mockResolvedValue(null),
   getSiconfiPosicaoFinanceira: vi.fn().mockResolvedValue(null),
   getRadarCivicoAlertas: getRadarCivicoAlertasMock,
+  getObrasPorPortal: getObrasPorPortalMock,
+  getResumoObrasPorPortal: getResumoObrasPorPortalMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
@@ -86,5 +92,51 @@ describe("loadVisaoGeralData", () => {
       limite: 6,
     });
     expect(result.radarAlertas).toEqual(mockAlertas);
+  });
+
+  it("loads obras summary and obras preview with portal slug, year, and limit", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    const mockResumoObras = {
+      totalObras: 4,
+      emExecucao: 2,
+      paralisadas: 1,
+      concluidas: 1,
+      cadastradas: 0,
+      canceladas: 0,
+      valorTotalInvestimento: 10000000,
+      valorEmExecucao: 6000000,
+      valorParalisadas: 3000000,
+      valorConcluidas: 1000000,
+      valorCadastradas: 0,
+      percentualMedioExecucaoFisica: 50,
+      obrasSemMedicaoCount: 0,
+    };
+    const mockObrasPreview = [
+      {
+        idProjeto: "1",
+        numeroControleObrasgov: "101",
+        ano: 2024,
+        titulo: "Construção de Escola",
+        situacao: "em_execucao",
+        valorTotalInvestimento: 1000000,
+        latitude: -20.963,
+        longitude: -42.04,
+      },
+    ];
+    getResumoObrasPorPortalMock.mockResolvedValue(mockResumoObras);
+    getObrasPorPortalMock.mockResolvedValue(mockObrasPreview);
+
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+
+    expect(getResumoObrasPorPortalMock).toHaveBeenCalledWith("porciuncula", {
+      ano: 2024,
+    });
+    expect(getObrasPorPortalMock).toHaveBeenCalledWith("porciuncula", {
+      ano: 2024,
+      limite: 25,
+    });
+    expect(result.resumoObras).toEqual(mockResumoObras);
+    expect(result.obrasPreview).toEqual(mockObrasPreview);
   });
 });

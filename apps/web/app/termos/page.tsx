@@ -20,7 +20,7 @@ const sections = [
   { id: "natureza", title: "Natureza cívica e independência" },
   { id: "base-legal", title: "Base legal para publicação" },
   { id: "remuneracoes", title: "Remunerações de agentes públicos" },
-  { id: "compras", title: "Transparência em compras públicas" },
+  { id: "compras", title: "Transparência em compras e obras públicas" },
   { id: "responsabilidade", title: "Limitações de responsabilidade" },
 ] as const;
 
@@ -273,20 +273,27 @@ export default function TermosPage() {
 
           <Section index={3}>
             <p>
-              Os processos licitatórios, dispensas, inexigibilidades e contratos
-              administrativos são reproduzidos a partir de fontes oficiais:
+              Os processos licitatórios, dispensas, inexigibilidades, contratos
+              administrativos e intervenções de infraestrutura urbana (obras
+              públicas) são reproduzidos a partir de fontes oficiais:
             </p>
             <ul>
               <li>Portal Nacional de Contratações Públicas (PNCP);</li>
+              <li>
+                Portal ObrasGov.br (obrasgov.br — painel de obras e Cadastro
+                Integrado de Projetos de Investimento — CIPI do Governo
+                Federal);
+              </li>
               <li>Tribunal de Contas do Estado do Rio de Janeiro (TCE-RJ);</li>
               <li>sistemas municipais legados.</li>
             </ul>
             <p>
               A reprodução se dá nos termos dos{" "}
               <ExternalLink href={`${LEI_14133_URL}#art54`}>
-                Arts. 54 e 174 da Lei 14.133/2021
+                Arts. 54, 115 (§ 6º) e 174 da Lei 14.133/2021
               </ExternalLink>
-              , que impõem publicidade obrigatória dos atos licitatórios.
+              , que impõem publicidade obrigatória dos atos licitatórios e da
+              execução de obras públicas.
             </p>
           </Section>
 

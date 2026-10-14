@@ -264,3 +264,162 @@ export async function getSiconfiPosicaoFinanceira(
     previdencia,
   };
 }
+
+export interface SiconfiEvolucaoMensalPontoDTO {
+  mesReferencia: number;
+  mesAbreviado: string;
+  mesNome: string;
+  saldoCaixaBancos: number;
+  saldoRecursosLivres: number;
+  saldoRecursosVinculados: number;
+}
+
+export interface SiconfiEvolucaoMensalDTO {
+  portalSlug: string;
+  ano: number;
+  pontos: SiconfiEvolucaoMensalPontoDTO[];
+  mediaRecursosLivres: number;
+  minRecursosLivres: number;
+  mesMinRecursosLivres: number;
+  maxRecursosLivres: number;
+  mesMaxRecursosLivres: number;
+  variacaoIntraAnualLivresPct: number | null;
+  queimaPicoRecursosLivres: number;
+}
+
+const MESES_MAP: Record<number, { nome: string; abrev: string }> = {
+  1: { nome: "Janeiro", abrev: "Jan" },
+  2: { nome: "Fevereiro", abrev: "Fev" },
+  3: { nome: "Março", abrev: "Mar" },
+  4: { nome: "Abril", abrev: "Abr" },
+  5: { nome: "Maio", abrev: "Mai" },
+  6: { nome: "Junho", abrev: "Jun" },
+  7: { nome: "Julho", abrev: "Jul" },
+  8: { nome: "Agosto", abrev: "Ago" },
+  9: { nome: "Setembro", abrev: "Set" },
+  10: { nome: "Outubro", abrev: "Out" },
+  11: { nome: "Novembro", abrev: "Nov" },
+  12: { nome: "Dezembro", abrev: "Dez" },
+};
+
+export async function getSiconfiEvolucaoMensal(
+  portalSlug: string,
+  ano: number,
+  scope: "executivo" | "previdencia" = "executivo",
+): Promise<SiconfiEvolucaoMensalDTO | null> {
+  const query = db
+    .selectFrom("fct_saldo_caixa_siconfi")
+    .select([
+      "mes_referencia",
+      "poder_orgao",
+      "saldo_caixa_bancos",
+      "saldo_recursos_livres",
+      "saldo_recursos_vinculados",
+    ])
+    .where("portal_slug", "=", portalSlug)
+    .where("ano", "=", ano);
+
+  const filteredQuery = (() => {
+    if (scope === "previdencia") {
+      return query.where("poder_orgao", "=", "10132");
+    }
+    return query.where("poder_orgao", "!=", "10132");
+  })();
+
+  const rows = await filteredQuery.execute();
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const mesesMap = rows.reduce<
+    Map<
+      number,
+      {
+        caixa: number;
+        livres: number;
+        vinculados: number;
+      }
+    >
+  >((acc, row) => {
+    const mes = Number(row.mes_referencia);
+    const atual = acc.get(mes) ?? { caixa: 0, livres: 0, vinculados: 0 };
+    acc.set(mes, {
+      caixa: Number(
+        (atual.caixa + Number(row.saldo_caixa_bancos ?? 0)).toFixed(2),
+      ),
+      livres: Number(
+        (atual.livres + Number(row.saldo_recursos_livres ?? 0)).toFixed(2),
+      ),
+      vinculados: Number(
+        (atual.vinculados + Number(row.saldo_recursos_vinculados ?? 0)).toFixed(
+          2,
+        ),
+      ),
+    });
+    return acc;
+  }, new Map());
+
+  const mesesOrdenados = Array.from(mesesMap.keys()).sort((a, b) => a - b);
+  if (mesesOrdenados.length === 0) {
+    return null;
+  }
+
+  const pontos: SiconfiEvolucaoMensalPontoDTO[] = mesesOrdenados.map((mes) => {
+    const dados = mesesMap.get(mes) ?? { caixa: 0, livres: 0, vinculados: 0 };
+    const infoMes = MESES_MAP[mes] ?? {
+      nome: `Mês ${String(mes).padStart(2, "0")}`,
+      abrev: `M${String(mes).padStart(2, "0")}`,
+    };
+    return {
+      mesReferencia: mes,
+      mesNome: infoMes.nome,
+      mesAbreviado: infoMes.abrev,
+      saldoCaixaBancos: dados.caixa,
+      saldoRecursosLivres: dados.livres,
+      saldoRecursosVinculados: dados.vinculados,
+    };
+  });
+
+  const somaLivres = pontos.reduce((acc, p) => acc + p.saldoRecursosLivres, 0);
+  const mediaRecursosLivres = Number((somaLivres / pontos.length).toFixed(2));
+
+  const pontoMin = pontos.reduce((min, p) =>
+    p.saldoRecursosLivres < min.saldoRecursosLivres ? p : min,
+  );
+  const pontoMax = pontos.reduce((max, p) =>
+    p.saldoRecursosLivres > max.saldoRecursosLivres ? p : max,
+  );
+
+  const primeiro = pontos[0];
+  const ultimo = pontos[pontos.length - 1];
+
+  const variacaoIntraAnualLivresPct = (() => {
+    if (pontos.length < 2 || !primeiro || primeiro.saldoRecursosLivres === 0) {
+      return null;
+    }
+    const diff = ultimo.saldoRecursosLivres - primeiro.saldoRecursosLivres;
+    return Number(
+      ((diff / Math.abs(primeiro.saldoRecursosLivres)) * 100).toFixed(1),
+    );
+  })();
+
+  const queimaPicoRecursosLivres = Number(
+    Math.max(
+      0,
+      pontoMax.saldoRecursosLivres - ultimo.saldoRecursosLivres,
+    ).toFixed(2),
+  );
+
+  return {
+    portalSlug,
+    ano,
+    pontos,
+    mediaRecursosLivres,
+    minRecursosLivres: pontoMin.saldoRecursosLivres,
+    mesMinRecursosLivres: pontoMin.mesReferencia,
+    maxRecursosLivres: pontoMax.saldoRecursosLivres,
+    mesMaxRecursosLivres: pontoMax.mesReferencia,
+    variacaoIntraAnualLivresPct,
+    queimaPicoRecursosLivres,
+  };
+}
