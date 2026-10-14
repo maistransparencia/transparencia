@@ -436,8 +436,8 @@ export function SaldoCaixaEntidadesSection({
 
       {/* Grade de Cards por Entidade ou Fundo Previdenciário */}
       {listaItens.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-3 font-semibold text-ink text-sm tracking-wider">
+        <div className="mt-6 space-y-4">
+          <h3 className="font-bold text-base text-ink tracking-tight">
             {tituloEntidades}
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

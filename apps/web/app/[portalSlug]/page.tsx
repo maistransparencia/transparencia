@@ -78,6 +78,8 @@ export default async function VisaoGeralPage({
       <ObrasResumoCard
         resumo={viewModel.resumoObras}
         detailUrl={viewModel.obrasDetailUrl}
+        markers={viewModel.obrasMiniMapMarkers}
+        center={viewModel.obrasMapCenter}
       />
 
       <RadarCivicoFeed
