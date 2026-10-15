@@ -1,10 +1,11 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import type { PortalConfig } from "@transparencia/db";
 import { ArrowRight, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
@@ -14,6 +15,7 @@ interface MunicipalLandingClientProps {
 
 function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,7 +80,13 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
       });
     } catch {}
 
-    router.push(`/${slug}`);
+    const targetUrl = `/${slug}`;
+    if (pathname === targetUrl) {
+      return;
+    }
+
+    BProgress.start();
+    router.push(targetUrl);
   };
 
   const filteredPortais = useMemo(() => {
@@ -204,7 +212,6 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
               <div className="flex flex-1 flex-col p-6 sm:p-7">
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-canvas p-2.5 shadow-2xs">
-                    {/* biome-ignore lint/performance/noImgElement: brasao asset */}
                     <Image
                       src={brasaoSrc}
                       alt={`Brasão oficial de ${cityName}`}

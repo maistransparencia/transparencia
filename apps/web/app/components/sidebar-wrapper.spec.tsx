@@ -17,6 +17,14 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => currentSearchParams,
 }));
 
+const mockBProgressStart = vi.fn();
+vi.mock("@bprogress/core", () => ({
+  BProgress: {
+    start: () => mockBProgressStart(),
+    done: vi.fn(),
+  },
+}));
+
 vi.mock("posthog-js", () => ({
   default: {
     capture: vi.fn(),
@@ -209,10 +217,49 @@ describe("SidebarWrapper Component", () => {
     expect(mockPush).toHaveBeenCalledWith(
       "/porciuncula_prefeitura/licitacoes?ano=2025",
     );
+    expect(mockBProgressStart).toHaveBeenCalled();
     expect(posthog.capture).toHaveBeenCalledWith("portal_changed", {
       from_portal: "natividade_prefeitura",
       to_portal: "porciuncula_prefeitura",
     });
+  });
+
+  it("não deve disparar BProgress.start nem router.push ao selecionar o mesmo portal já ativo", () => {
+    mockPush.mockClear();
+    mockBProgressStart.mockClear();
+    currentPathname = "/porciuncula_prefeitura/receitas";
+    currentSearchParams = new URLSearchParams("ano=2024");
+
+    const mockPortais = [
+      {
+        portalSlug: "porciuncula_prefeitura",
+        displayName: "Porciúncula",
+        uf: "RJ",
+      },
+      {
+        portalSlug: "natividade_prefeitura",
+        displayName: "Natividade",
+        uf: "RJ",
+      },
+    ];
+
+    render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+          portais={mockPortais}
+        />
+      </MobileNavProvider>,
+    );
+
+    const selectElements = screen.getAllByLabelText(/selecionar município/i);
+    fireEvent.change(selectElements[0], {
+      target: { value: "porciuncula_prefeitura" },
+    });
+
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockBProgressStart).not.toHaveBeenCalled();
   });
 
   it("deve navegar para a raiz do portal ao alternar estando em página estática /termos", () => {
