@@ -18,6 +18,12 @@ const mockMarker = {
   openPopup: vi.fn(),
 };
 
+const mockDragging = {
+  enable: vi.fn(),
+  disable: vi.fn(),
+  enabled: vi.fn().mockReturnValue(true),
+};
+
 const mockMap = {
   setView: vi.fn(),
   flyTo: vi.fn(),
@@ -30,6 +36,7 @@ const mockMap = {
   getMaxZoom: vi.fn().mockReturnValue(18),
   mouseEventToContainerPoint: vi.fn().mockReturnValue({ x: 100, y: 100 }),
   setZoomAround: vi.fn(),
+  dragging: mockDragging,
 };
 
 const mockLayerGroup = {
@@ -391,5 +398,248 @@ describe("ObrasMapaInterativo", () => {
         expect.stringContaining("Fundo Municipal de Saúde"),
       );
     });
+  });
+
+  it("desativa o arrasto (dragging.disable) no touchstart com 1 dedo para permitir o scroll nativo da página", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+
+    mapInner.dispatchEvent(touchStartEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("exibe o aviso 'Use dois dedos' quando o usuário move com 1 dedo sobre o mapa", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // touchstart
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    // touchmove com deslocamento significativo (> 10px)
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 100, clientY: 130 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    await waitFor(() => {
+      const hint = screen.getByTestId("obras-mapa-zoom-hint");
+      expect(hint).toBeInTheDocument();
+      expect(hint).toHaveTextContent(/use dois dedos para mover o mapa/i);
+    });
+  });
+
+  it("não exibe o aviso em toques curtos (tap) sem movimento significativo", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    // Pequeno tremor (< 10px)
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 102, clientY: 101 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    expect(
+      screen.queryByTestId("obras-mapa-zoom-hint"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("oculta o aviso quando 2 dedos tocam o mapa", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // 1 dedo se move e exibe aviso
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 100, clientY: 140 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("obras-mapa-zoom-hint")).toBeInTheDocument();
+    });
+
+    // Segundo dedo toca a tela
+    const twoTouchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(twoTouchStartEvent, "touches", {
+      value: [
+        { clientX: 100, clientY: 140 },
+        { clientX: 150, clientY: 140 },
+      ],
+    });
+    mapInner.dispatchEvent(twoTouchStartEvent);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("obras-mapa-zoom-hint"),
+      ).not.toBeInTheDocument();
+    });
+    expect(mockDragging.enable).toHaveBeenCalled();
+  });
+
+  it("desativa o arrasto quando o usuário levanta um dos dedos deixando apenas um dedo na tela", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // 2 dedos tocam a tela
+    const twoTouchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(twoTouchStartEvent, "touches", {
+      value: [
+        { clientX: 100, clientY: 100 },
+        { clientX: 150, clientY: 100 },
+      ],
+    });
+    mapInner.dispatchEvent(twoTouchStartEvent);
+    expect(mockDragging.enable).toHaveBeenCalled();
+
+    mockDragging.disable.mockClear();
+
+    // 1 dedo é levantado (sobra 1 dedo na tela)
+    const touchEndEvent = new Event("touchend", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchEndEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchEndEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("limpa estado e garante desativação de arrasto no evento touchcancel", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // Inicia toque
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    mockDragging.disable.mockClear();
+
+    // Evento touchcancel disparado pelo sistema
+    const touchCancelEvent = new Event("touchcancel", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchCancelEvent, "touches", {
+      value: [],
+    });
+    mapInner.dispatchEvent(touchCancelEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("reativa o arrasto do mapa para interações com mouse (mousedown)", async () => {
+    mockDragging.enabled.mockReturnValue(false);
+
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const mouseDownEvent = new MouseEvent("mousedown", {
+      bubbles: true,
+      cancelable: true,
+    });
+    mapInner.dispatchEvent(mouseDownEvent);
+
+    expect(mockDragging.enable).toHaveBeenCalled();
   });
 });
