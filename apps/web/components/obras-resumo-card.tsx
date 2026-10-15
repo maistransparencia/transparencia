@@ -1,20 +1,42 @@
+"use client";
+
 import type { ResumoObrasDTO } from "@transparencia/db";
 import { fmtCompact, fmtNumber } from "@transparencia/ui";
-import { AlertCircle, ArrowRight, ExternalLink, Info } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  ExternalLink,
+  Info,
+  MapPin,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import posthog from "posthog-js";
+import { getTileCoordinates, projectCoordToTilePercent } from "@/lib/tile-calc";
 
 const OBRASGOV_PANEL_URL =
   "https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html";
 
+export interface ObraMiniMapMarker {
+  id: string;
+  situacao: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface ObrasResumoCardProps {
   resumo?: ResumoObrasDTO | null;
   detailUrl: string;
+  markers?: ObraMiniMapMarker[];
+  center?: [number, number];
   className?: string;
 }
 
 export function ObrasResumoCard({
   resumo,
   detailUrl,
+  markers,
+  center,
   className = "",
 }: ObrasResumoCardProps) {
   if (!resumo || resumo.totalObras <= 0) {
@@ -53,6 +75,20 @@ export function ObrasResumoCard({
           <div className="mt-3">
             <Link
               href={detailUrl}
+              onClick={() => {
+                try {
+                  posthog.capture("obras_card_cta_clicked", {
+                    detailUrl,
+                    totalObras: 0,
+                  });
+                  posthog.capture("funnel_home_to_internal_page", {
+                    from: "obras_resumo_card_empty_state",
+                    to: detailUrl,
+                  });
+                } catch {
+                  // Silencia erros de telemetria
+                }
+              }}
               className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
             >
               <span>Ver mapa e detalhes das obras</span>
@@ -140,6 +176,45 @@ export function ObrasResumoCard({
     : "Distribuição das obras";
   const ariaLabel = `${labelPrefixo}: ${Math.round(pctEmExecucao)}% em execução, ${Math.round(pctConcluidas)}% concluídas, ${Math.round(pctCadastradas)}% não iniciadas, ${Math.round(pctParalisadas)}% paralisadas`;
 
+  // Mini Mapa Estático (Projeção Web Mercator via ArcGIS Light Gray Base)
+  const mapCenterLat = center?.[0] ?? -20.9634;
+  const mapCenterLng = center?.[1] ?? -42.0408;
+  const tileInfo = getTileCoordinates(mapCenterLat, mapCenterLng, 14);
+
+  const validMarkers = (markers ?? [])
+    .filter(
+      (m) =>
+        Number.isFinite(m.latitude) &&
+        Number.isFinite(m.longitude) &&
+        m.latitude !== 0 &&
+        m.longitude !== 0,
+    )
+    .map((m) => {
+      const { xPercent, yPercent } = projectCoordToTilePercent(
+        m.latitude,
+        m.longitude,
+        tileInfo,
+      );
+      return {
+        ...m,
+        xPercent,
+        yPercent,
+      };
+    });
+
+  const getMarkerBgClass = (situacao: string) => {
+    switch (situacao) {
+      case "em_execucao":
+        return "bg-blue-500 ring-blue-300";
+      case "concluida":
+        return "bg-emerald-500 ring-emerald-300";
+      case "paralisada":
+        return "bg-rose-500 ring-rose-300";
+      default:
+        return "bg-slate-400 ring-slate-200";
+    }
+  };
+
   return (
     <section
       aria-label="Obras Públicas e Investimentos Urbanos"
@@ -168,101 +243,160 @@ export function ObrasResumoCard({
         </a>
       </div>
 
-      {/* Métricas Principais Consolidadas */}
-      <div className="mt-5 grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
-        <div>
-          <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
-            Total de Investimento Previsto
-          </span>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="font-bold font-serif text-3xl text-ink tracking-tight">
-              {fmtCompact(valorTotalInvestimento)}
-            </p>
-            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-slate-700 text-xs">
-              {fmtNumber(totalObras)} {totalObras === 1 ? "obra" : "obras"}
+      {/* Conteúdo Principal: Métricas + Mini Mapa Estático */}
+      <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
+        {/* Bloco de Métricas Consolidadas */}
+        <div className="flex-1 space-y-4">
+          <div>
+            <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
+              Total de Investimento Previsto
             </span>
+            <div className="mt-1 flex items-center gap-2">
+              <p className="font-bold font-serif text-3xl text-ink tracking-tight">
+                {fmtCompact(valorTotalInvestimento)}
+              </p>
+              <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-slate-700 text-xs">
+                {fmtNumber(totalObras)} {totalObras === 1 ? "obra" : "obras"}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {/* Barra Proporcional Empilhada */}
+            <div
+              className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
+              role="progressbar"
+              aria-valuenow={Math.round(pctConcluidas)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={ariaLabel}
+            >
+              {pctEmExecucao > 0 && (
+                <div
+                  className="bg-blue-500 transition-all duration-300"
+                  style={{ width: `${pctEmExecucao}%` }}
+                />
+              )}
+              {pctConcluidas > 0 && (
+                <div
+                  className="bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${pctConcluidas}%` }}
+                />
+              )}
+              {pctCadastradas > 0 && (
+                <div
+                  className="bg-slate-400 transition-all duration-300"
+                  style={{ width: `${pctCadastradas}%` }}
+                />
+              )}
+              {pctParalisadas > 0 && (
+                <div
+                  className="bg-rose-500 transition-all duration-300"
+                  style={{ width: `${pctParalisadas}%` }}
+                />
+              )}
+            </div>
+
+            {/* Legendas com Contadores e Montantes */}
+            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
+                  <span className="text-subtleText">Em execução:</span>
+                </div>
+                <span className="ml-4 font-semibold text-ink">
+                  {fmtNumber(emExecucao)} ({fmtCompact(valorEmExecucao)})
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                  <span className="text-subtleText">Concluídas:</span>
+                </div>
+                <span className="ml-4 font-semibold text-ink">
+                  {fmtNumber(concluidas)} ({fmtCompact(valorConcluidas)})
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
+                  <span className="text-subtleText">Não iniciadas:</span>
+                </div>
+                <span className="ml-4 font-semibold text-ink">
+                  {fmtNumber(cadastradas)} ({fmtCompact(valorCadastradas)})
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-500" />
+                  <span className="text-subtleText">Paralisadas:</span>
+                </div>
+                <span className="ml-4 font-semibold text-ink">
+                  {fmtNumber(paralisadas)} ({fmtCompact(valorParalisadas)})
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          {/* Barra Proporcional Empilhada */}
-          <div
-            className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
-            role="progressbar"
-            aria-valuenow={Math.round(pctConcluidas)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={ariaLabel}
-          >
-            {pctEmExecucao > 0 && (
-              <div
-                className="bg-blue-500 transition-all duration-300"
-                style={{ width: `${pctEmExecucao}%` }}
+        {/* Mini Mapa Estático Clicável (Mobile: faixa horizontal, Desktop: lateral direita) */}
+        <Link
+          href={detailUrl}
+          onClick={() => {
+            try {
+              posthog.capture("obras_mini_map_clicked", {
+                detailUrl,
+                totalObras,
+                markersCount: validMarkers.length,
+                emExecucao,
+                concluidas,
+                paralisadas,
+                cadastradas,
+              });
+              posthog.capture("funnel_home_to_internal_page", {
+                from: "obras_mini_map",
+                to: detailUrl,
+              });
+            } catch {
+              // Silencia erros de telemetria
+            }
+          }}
+          aria-label="Abrir mapa interativo de obras públicas"
+          className="group relative h-28 w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 transition-all duration-200 hover:border-accent/40 hover:shadow-md lg:h-auto lg:w-56"
+        >
+          <Image
+            src={tileInfo.url}
+            alt="Visão geral cartográfica das obras públicas"
+            fill
+            sizes="(max-width: 1024px) 100vw, 224px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
+          />
+
+          {/* Marcadores sobrepostos */}
+          <div className="pointer-events-none absolute inset-0">
+            {validMarkers.slice(0, 15).map((m) => (
+              <span
+                key={m.id}
+                style={{
+                  left: `${m.xPercent}%`,
+                  top: `${m.yPercent}%`,
+                }}
+                className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm ring-2 transition-transform duration-300 group-hover:scale-125 ${getMarkerBgClass(m.situacao)}`}
               />
-            )}
-            {pctConcluidas > 0 && (
-              <div
-                className="bg-emerald-500 transition-all duration-300"
-                style={{ width: `${pctConcluidas}%` }}
-              />
-            )}
-            {pctCadastradas > 0 && (
-              <div
-                className="bg-slate-400 transition-all duration-300"
-                style={{ width: `${pctCadastradas}%` }}
-              />
-            )}
-            {pctParalisadas > 0 && (
-              <div
-                className="bg-rose-500 transition-all duration-300"
-                style={{ width: `${pctParalisadas}%` }}
-              />
-            )}
+            ))}
           </div>
 
-          {/* Legendas com Contadores e Montantes */}
-          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
-                <span className="text-subtleText">Em execução:</span>
-              </div>
-              <span className="ml-4 font-semibold text-ink">
-                {fmtNumber(emExecucao)} ({fmtCompact(valorEmExecucao)})
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
-                <span className="text-subtleText">Concluídas:</span>
-              </div>
-              <span className="ml-4 font-semibold text-ink">
-                {fmtNumber(concluidas)} ({fmtCompact(valorConcluidas)})
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
-                <span className="text-subtleText">Não iniciadas:</span>
-              </div>
-              <span className="ml-4 font-semibold text-ink">
-                {fmtNumber(cadastradas)} ({fmtCompact(valorCadastradas)})
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-500" />
-                <span className="text-subtleText">Paralisadas:</span>
-              </div>
-              <span className="ml-4 font-semibold text-ink">
-                {fmtNumber(paralisadas)} ({fmtCompact(valorParalisadas)})
-              </span>
-            </div>
+          {/* Affordance Badge Flutuante */}
+          <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-medium text-[11px] text-ink shadow-sm backdrop-blur-xs transition-colors group-hover:bg-accent group-hover:text-white">
+            <MapPin className="h-3 w-3" />
+            <span>Ver no mapa</span>
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Rodapé com Nota e CTA para o Mapa */}
@@ -277,6 +411,20 @@ export function ObrasResumoCard({
 
         <Link
           href={detailUrl}
+          onClick={() => {
+            try {
+              posthog.capture("obras_card_cta_clicked", {
+                detailUrl,
+                totalObras,
+              });
+              posthog.capture("funnel_home_to_internal_page", {
+                from: "obras_resumo_card_footer",
+                to: detailUrl,
+              });
+            } catch {
+              // Silencia erros de telemetria
+            }
+          }}
           className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
         >
           <span>Ver mapa e detalhes das obras</span>
