@@ -24,6 +24,7 @@ const mockMap = {
   fitBounds: vi.fn(),
   remove: vi.fn(),
   invalidateSize: vi.fn(),
+  getSize: vi.fn(),
   getZoom: vi.fn().mockReturnValue(13),
   getMinZoom: vi.fn().mockReturnValue(1),
   getMaxZoom: vi.fn().mockReturnValue(18),
@@ -50,6 +51,7 @@ describe("ObrasMapaInterativo", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clickListeners.length = 0;
+    mockMap.getSize.mockReturnValue({ x: 800, y: 580 });
   });
 
   it("renderiza o container do mapa com sucesso", () => {
@@ -144,6 +146,117 @@ describe("ObrasMapaInterativo", () => {
       expect(mockMap.flyTo).toHaveBeenCalled();
       expect(mockMarker.openPopup).toHaveBeenCalled();
     });
+  });
+
+  it("usa setView sem animação ao selecionar obra com o mapa oculto (tamanho zero)", async () => {
+    mockMap.getSize.mockReturnValue({ x: 0, y: 0 });
+    const mockMarkers = [
+      {
+        idProjeto: "OBR-10",
+        nomeObra: "Reforma da Praça Central",
+        situacao: "em_execucao" as const,
+        situacaoLabel: "Em Execução",
+        situacaoColorHex: "#059669",
+        latitude: -20.9634,
+        longitude: -42.0408,
+        isUrbana: true,
+        valorInvestimentoFormatado: "R$ 500.000",
+        percentualExecucaoFormatado: "60%",
+        orgaoResponsavel: "Sec Obras",
+        dataFimPrevistaFormatada: "31/12/2026",
+      },
+    ];
+
+    const { rerender } = render(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId={null}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMarker.addTo).toHaveBeenCalled();
+    });
+
+    rerender(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId="OBR-10"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMap.setView).toHaveBeenCalledWith(
+        { lat: -20.9634, lng: -42.0408 },
+        16,
+        { animate: false },
+      );
+    });
+    expect(mockMap.flyTo).not.toHaveBeenCalled();
+  });
+
+  it("recentraliza na obra selecionada quando o mapa volta a ficar visível", async () => {
+    let resizeCallback: ResizeObserverCallback | null = null;
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          resizeCallback = cb;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const triggerResize = (width: number, height: number) =>
+      resizeCallback?.(
+        [{ contentRect: { width, height } } as ResizeObserverEntry],
+        {} as ResizeObserver,
+      );
+
+    const mockMarkers = [
+      {
+        idProjeto: "OBR-10",
+        nomeObra: "Reforma da Praça Central",
+        situacao: "em_execucao" as const,
+        situacaoLabel: "Em Execução",
+        situacaoColorHex: "#059669",
+        latitude: -20.9634,
+        longitude: -42.0408,
+        isUrbana: true,
+        valorInvestimentoFormatado: "R$ 500.000",
+        percentualExecucaoFormatado: "60%",
+        orgaoResponsavel: "Sec Obras",
+        dataFimPrevistaFormatada: "31/12/2026",
+      },
+    ];
+
+    render(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId="OBR-10"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMarker.addTo).toHaveBeenCalled();
+    });
+
+    triggerResize(0, 0);
+    mockMap.invalidateSize.mockClear();
+    mockMap.setView.mockClear();
+    triggerResize(360, 380);
+
+    expect(mockMap.invalidateSize).toHaveBeenCalled();
+    expect(mockMap.setView).toHaveBeenCalledWith(
+      { lat: -20.9634, lng: -42.0408 },
+      16,
+      { animate: false },
+    );
+
+    vi.unstubAllGlobals();
   });
 
   it("dispara onSelectObra com o idProjeto correto ao clicar no marcador", async () => {
