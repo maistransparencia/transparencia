@@ -56,6 +56,19 @@ describe("GlobalFooter", () => {
     ).toBeInTheDocument();
   });
 
+  it("renderiza botão 'Reportar erro' e abre modal de feedback ao clicar", () => {
+    render(<GlobalFooter portalName="Porciúncula" />);
+    const button = screen.getByRole("button", {
+      name: /reportar erro/i,
+    });
+    expect(button).toBeInTheDocument();
+
+    fireEvent.click(button);
+    expect(
+      screen.getByRole("dialog", { name: /reportar inconsistência ou erro/i }),
+    ).toBeInTheDocument();
+  });
+
   it("renderiza link do portal oficial e data de extração quando informados em página de portal", () => {
     mockPathname = "/porciuncula_prefeitura";
     render(
