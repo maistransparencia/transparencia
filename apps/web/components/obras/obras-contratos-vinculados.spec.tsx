@@ -1,7 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { ObraContratoViewModel } from "@/app/[portalSlug]/obras/view-model";
 import { ObrasContratosVinculados } from "./obras-contratos-vinculados";
+
+const mockBProgressStart = vi.fn();
+vi.mock("@bprogress/core", () => ({
+  BProgress: {
+    start: () => mockBProgressStart(),
+    done: vi.fn(),
+  },
+}));
 
 const mockContratos: ObraContratoViewModel[] = [
   {
@@ -130,5 +138,57 @@ describe("ObrasContratosVinculados Component", () => {
     expect(
       screen.getByText(/Vigência: 15\/01\/2024 até 15\/01\/2025/i),
     ).toBeInTheDocument();
+  });
+
+  it("dispara BProgress.start e onNavigate ao clicar nos links de contrato e licitação", () => {
+    mockBProgressStart.mockClear();
+    const mockOnNavigate = vi.fn();
+
+    render(
+      <ObrasContratosVinculados
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        onNavigate={mockOnNavigate}
+      />,
+    );
+
+    const contractLinks = screen.getAllByRole("link", {
+      name: /Ver detalhes do contrato/i,
+    });
+    fireEvent.click(contractLinks[0]);
+
+    expect(mockBProgressStart).toHaveBeenCalledTimes(1);
+    expect(mockOnNavigate).toHaveBeenCalledTimes(1);
+
+    const licitacaoLink = screen.getByRole("link", {
+      name: /Ver licitação LIC-010\/2024 vinculada ao contrato nº 001\/2024/i,
+    });
+    fireEvent.click(licitacaoLink);
+
+    expect(mockBProgressStart).toHaveBeenCalledTimes(2);
+    expect(mockOnNavigate).toHaveBeenCalledTimes(2);
+  });
+
+  it("não dispara BProgress.start nem onNavigate quando clicado com tecla modificadora ou botão não principal", () => {
+    mockBProgressStart.mockClear();
+    const mockOnNavigate = vi.fn();
+
+    render(
+      <ObrasContratosVinculados
+        contratos={mockContratos}
+        portalSlug="porciuncula_prefeitura"
+        onNavigate={mockOnNavigate}
+      />,
+    );
+
+    const contractLinks = screen.getAllByRole("link", {
+      name: /Ver detalhes do contrato/i,
+    });
+    fireEvent.click(contractLinks[0], { ctrlKey: true });
+    fireEvent.click(contractLinks[0], { metaKey: true });
+    fireEvent.click(contractLinks[0], { button: 1 });
+
+    expect(mockBProgressStart).not.toHaveBeenCalled();
+    expect(mockOnNavigate).not.toHaveBeenCalled();
   });
 });

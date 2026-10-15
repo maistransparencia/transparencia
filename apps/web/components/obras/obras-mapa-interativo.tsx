@@ -43,11 +43,15 @@ export function ObrasMapaInterativo({
   const markersMapRef = useRef<Map<string, import("leaflet").Marker>>(
     new Map(),
   );
+  const selectedObraIdRef = useRef(selectedObraId);
+  selectedObraIdRef.current = selectedObraId;
   const [isMac, setIsMac] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [hintType, setHintType] = useState<"desktop" | "touch">("desktop");
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showZoomHint = useCallback(() => {
+  const showZoomHint = useCallback((type: "desktop" | "touch" = "desktop") => {
+    setHintType(type);
     setShowHint(true);
     if (hintTimeoutRef.current) {
       clearTimeout(hintTimeoutRef.current);
@@ -85,7 +89,7 @@ export function ObrasMapaInterativo({
 
       if (!hasModifier) {
         // Sem Cmd/Ctrl: o scroll da página continua normal, exibe aviso
-        showZoomHint();
+        showZoomHint("desktop");
         return;
       }
 
@@ -146,15 +150,98 @@ export function ObrasMapaInterativo({
       }, 60);
     };
 
+    let touchStartPos: { x: number; y: number } | null = null;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      const touchCount = e.targetTouches?.length ?? e.touches.length;
+
+      if (touchCount === 1) {
+        const touch = e.targetTouches?.[0] ?? e.touches[0];
+        touchStartPos = {
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+        // Desativa arraste para 1 dedo para permitir rolagem nativa da página sem travar o usuário
+        if (map.dragging && typeof map.dragging.disable === "function") {
+          map.dragging.disable();
+        }
+      } else if (touchCount >= 2) {
+        touchStartPos = null;
+        setShowHint(false);
+        if (hintTimeoutRef.current) {
+          clearTimeout(hintTimeoutRef.current);
+        }
+        if (map.dragging && typeof map.dragging.enable === "function") {
+          map.dragging.enable();
+        }
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touchCount = e.targetTouches?.length ?? e.touches.length;
+
+      if (touchCount === 1 && touchStartPos) {
+        const touch = e.targetTouches?.[0] ?? e.touches[0];
+        const dx = touch.clientX - touchStartPos.x;
+        const dy = touch.clientY - touchStartPos.y;
+        if (Math.hypot(dx, dy) > 10) {
+          showZoomHint("touch");
+        }
+      } else if (touchCount >= 2) {
+        setShowHint(false);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchStartPos = null;
+      const touchCount = e.targetTouches?.length ?? e.touches.length;
+      if (touchCount <= 1) {
+        const map = mapInstanceRef.current;
+        if (map?.dragging && typeof map.dragging.disable === "function") {
+          map.dragging.disable();
+        }
+      }
+    };
+
+    const handleMouseDown = () => {
+      const map = mapInstanceRef.current;
+      if (
+        map?.dragging &&
+        typeof map.dragging.enabled === "function" &&
+        !map.dragging.enabled()
+      ) {
+        map.dragging.enable();
+      }
+    };
+
     if (container) {
       container.addEventListener("wheel", handleWheel, { passive: false });
       container.addEventListener("mouseleave", handleMouseLeave);
+      container.addEventListener("touchstart", handleTouchStart, {
+        passive: true,
+      });
+      container.addEventListener("touchmove", handleTouchMove, {
+        passive: true,
+      });
+      container.addEventListener("touchend", handleTouchEnd, { passive: true });
+      container.addEventListener("touchcancel", handleTouchEnd, {
+        passive: true,
+      });
+      container.addEventListener("mousedown", handleMouseDown);
     }
 
     return () => {
       if (container) {
         container.removeEventListener("wheel", handleWheel);
         container.removeEventListener("mouseleave", handleMouseLeave);
+        container.removeEventListener("touchstart", handleTouchStart);
+        container.removeEventListener("touchmove", handleTouchMove);
+        container.removeEventListener("touchend", handleTouchEnd);
+        container.removeEventListener("touchcancel", handleTouchEnd);
+        container.removeEventListener("mousedown", handleMouseDown);
       }
       if (zoomDebounceTimer) {
         clearTimeout(zoomDebounceTimer);
@@ -311,17 +398,51 @@ export function ObrasMapaInterativo({
       if (selectedObraId) {
         const selectedMarker = markersMapRef.current.get(selectedObraId);
         if (selectedMarker) {
+          const map = mapInstanceRef.current;
           const latLng = selectedMarker.getLatLng();
-          mapInstanceRef.current.flyTo(latLng, 16, {
-            animate: true,
-            duration: 0.8,
-          });
+          const size = map.getSize();
+          // Mapa oculto (aba "Lista" no mobile): flyTo divide pelo tamanho zero e gera LatLng(NaN, NaN)
+          if (size.x === 0 || size.y === 0) {
+            map.setView(latLng, 16, { animate: false });
+          } else {
+            map.flyTo(latLng, 16, {
+              animate: true,
+              duration: 0.8,
+            });
+          }
           selectedMarker.openPopup();
         }
       }
     }
     updateMarkers();
   }, [renderMarkers, selectedObraId]);
+
+  // Recentraliza na obra selecionada quando o mapa volta a ficar visível (ex: aba "Mapa" no mobile)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    let wasHidden = false;
+    const observer = new ResizeObserver(([entry]) => {
+      const isHidden =
+        entry.contentRect.width === 0 || entry.contentRect.height === 0;
+      const map = mapInstanceRef.current;
+      if (wasHidden && !isHidden && map) {
+        map.invalidateSize();
+        const selectedId = selectedObraIdRef.current;
+        const selectedMarker = selectedId
+          ? markersMapRef.current.get(selectedId)
+          : undefined;
+        if (selectedMarker) {
+          map.setView(selectedMarker.getLatLng(), 16, { animate: false });
+        }
+      }
+      wasHidden = isHidden;
+    });
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   // Alterna visualização entre Área Urbana e Todo o Território
   useEffect(() => {
@@ -363,11 +484,21 @@ export function ObrasMapaInterativo({
           className="pointer-events-none absolute inset-0 z-1000 flex items-center justify-center bg-black/45 backdrop-blur-[2px] transition-opacity duration-200"
         >
           <div className="rounded-xl border border-white/20 bg-slate-900/90 px-4 py-2.5 text-center font-medium text-sm text-white shadow-xl">
-            Use{" "}
-            <span className="font-semibold text-amber-400">
-              {isMac ? "⌘ (Command)" : "Ctrl"}
-            </span>{" "}
-            + scroll para aplicar zoom no mapa
+            {hintType === "desktop" ? (
+              <>
+                Use{" "}
+                <span className="font-semibold text-amber-400">
+                  {isMac ? "⌘ (Command)" : "Ctrl"}
+                </span>{" "}
+                + scroll para aplicar zoom no mapa
+              </>
+            ) : (
+              <>
+                Use{" "}
+                <span className="font-semibold text-amber-400">dois dedos</span>{" "}
+                para mover o mapa
+              </>
+            )}
           </div>
         </div>
       )}

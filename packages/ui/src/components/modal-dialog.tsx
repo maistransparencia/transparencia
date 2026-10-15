@@ -13,6 +13,7 @@ export interface ModalDialogProps {
   backLabel?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  subtitleClassName?: string;
   badge?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
@@ -60,6 +61,7 @@ export function ModalDialog({
   backLabel,
   title,
   subtitle,
+  subtitleClassName,
   badge,
   children,
   footer,
@@ -218,7 +220,12 @@ export function ModalDialog({
               {badge && <div className="shrink-0">{badge}</div>}
             </div>
             {subtitle && (
-              <p className="mt-0.5 line-clamp-1 text-slate-500 text-xs sm:text-sm">
+              <p
+                className={cn(
+                  "mt-0.5 text-slate-500 text-xs sm:text-sm",
+                  subtitleClassName ?? "line-clamp-1",
+                )}
+              >
                 {subtitle}
               </p>
             )}

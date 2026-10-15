@@ -34,6 +34,24 @@ describe("ModalDialog", () => {
     expect(screen.getByText("Conteúdo interno do modal")).toBeInTheDocument();
   });
 
+  it("deve aplicar subtitleClassName customizado no elemento do subtítulo", () => {
+    render(
+      <ModalDialog
+        isOpen={true}
+        onClose={() => {}}
+        title="Título"
+        subtitle="Subtítulo que quebra linha"
+        subtitleClassName="whitespace-normal leading-relaxed"
+      >
+        <p>Conteúdo</p>
+      </ModalDialog>,
+    );
+
+    const subtitleElement = screen.getByText("Subtítulo que quebra linha");
+    expect(subtitleElement).toHaveClass("whitespace-normal");
+    expect(subtitleElement).toHaveClass("leading-relaxed");
+  });
+
   it("deve chamar onClose ao clicar no botão de fechar (X)", () => {
     const handleClose = vi.fn();
     render(

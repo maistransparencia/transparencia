@@ -317,6 +317,7 @@ export function ObrasDetalheModal({
         <ObrasContratosVinculados
           contratos={viewModel.contratos}
           portalSlug={viewModel.portalSlug}
+          onNavigate={onClose}
         />
 
         {/* Identificador Oficial e Legislação de Regência */}

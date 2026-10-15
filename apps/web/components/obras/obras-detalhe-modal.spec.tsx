@@ -240,4 +240,53 @@ describe("ObrasDetalheModal Component", () => {
     expect(screen.getByText("MINISTÉRIO DA SAÚDE")).toBeInTheDocument();
     expect(screen.getByText("CNPJ: 00.***.***/0127-87")).toBeInTheDocument();
   });
+
+  it("chama onClose ao clicar em link de contrato vinculado", () => {
+    const handleClose = vi.fn();
+    const mockObraComContrato: ObraItemViewModel = {
+      ...mockObraExecucao,
+      contratos: [
+        {
+          contratoId: "CTR-123",
+          contratoNumero: "045/2024",
+          ano: 2024,
+          fornecedorNome: "CONSTRUTORA EXEMPLO LTDA",
+          fornecedorCpfCnpj: "12345678000199",
+          fornecedorCpfCnpjMascarado: "12.***.***/0001-99",
+          dataInicio: "2024-01-10",
+          dataInicioFormatada: "10/01/2024",
+          vencimentoAtual: "2025-01-10",
+          vencimentoAtualFormatado: "10/01/2025",
+          valorContrato: 500000,
+          valorContratoFormatado: "R$ 500.000,00",
+          modalidade: "concorrencia_eletronica",
+          modalidadeLabel: "Concorrência Eletrônica",
+          status: "vigente",
+          statusLabel: "Vigente",
+          statusBadgeClasses:
+            "bg-emerald-50 text-emerald-700 border-emerald-200",
+          licitacaoNumero: null,
+          licitacaoAno: null,
+          linkContrato: "/porciuncula_prefeitura/contratos?numero=045%2F2024",
+          linkLicitacao: null,
+        },
+      ],
+    };
+
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={handleClose}
+        obra={mockObraComContrato}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    const contractLink = screen.getByRole("link", {
+      name: /Ver detalhes do contrato nº 045\/2024/i,
+    });
+    fireEvent.click(contractLink);
+
+    expect(handleClose).toHaveBeenCalledTimes(1);
+  });
 });

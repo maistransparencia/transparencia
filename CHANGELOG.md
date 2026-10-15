@@ -5,6 +5,28 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-10-15
+
+### 🌟 Destaques da Versão (Canal de Feedback Cívico, Indicadores de Progresso e Otimizações de Navegação Móvel)
+* **Canal Cívico de Feedback e Reporte de Erros (`FeedbackModal`):** Novo diálogo acessível e contextual integrado ao rodapé global (`GlobalFooter`), permitindo aos cidadãos enviar comentários, elogios, sugestões ou relatar problemas diretamente na plataforma, com categorização cívica e telemetria anônima via PostHog.
+* **Barra de Progresso Instantânea em Transições (`ProgressProvider`):** Indicador visual de carregamento contínuo no topo da aplicação (`BProgress`), exibido durante trocas de rotas, alternância entre municípios na barra lateral e landing page, e navegação a partir do modal de obras para contratos e licitações, com timeout defensivo de 8s e prevenção de travamento.
+* **Gestos Cooperativos Touch e Resiliência Cartográfica (`ObrasMapaInterativo`):** Aprimoramento da usabilidade em dispositivos móveis no mapa de obras, implementando gestos cooperativos por toque (scroll vertical livre da página com um dedo e aviso educativo para uso de dois dedos na navegação/zoom do mapa), além de blindagem de renderização com `ResizeObserver` e proteção contra erros de dimensionamento zerado ao alternar abas móveis.
+* **Modernização de Dependências Core:** Atualização de pacotes do ecossistema, incluindo `lucide-react` (1.55.0), `posthog-node` (5.55.2) e `zod` (4.6.6).
+
+### ✨ Novas Funcionalidades (Added)
+* **Modal de Feedback e Reporte de Erro (`apps/web/components/feedback-modal.tsx`):** Componente modal interativo com categorias cívicas estruturadas (`elogio`, `sugestao`, `problema`, `outro`), campos de texto com contagem de caracteres, captura contextual de página/rota e disparo do evento `$feedback` via PostHog.
+* **Acesso Global ao Canal de Feedback (`GlobalFooter`):** Botão acessível no rodapé de todas as páginas públicas do portal para acionamento direto do diálogo de feedback.
+* **Barra de Progresso em Transições de Navegação (`ProgressProvider`):** Provedor global com listener de rotas (`RouteChangeListener`) que captura cliques em links internos e sinaliza o carregamento da nova página imediatamente.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Sinalização de Carregamento em Ações Críticas:** Disparo de `BProgress.start()` na seleção de municípios da tela inicial (`MunicipalLandingClient`), no seletor de municípios da barra lateral (`SidebarWrapper`) e na navegação de contratos vinculados no modal de obras (`ObrasContratosVinculados`).
+* **Flexibilidade no Componente de Diálogo Modal (`ModalDialog`):** Ajustes de estilização no `@transparencia/ui` para permitir modais mais compactos e limpos adequados a formulários de contato e feedback.
+* **Atualização de Dependências:** Atualização de versões diretas das bibliotecas `lucide-react` (1.55.0), `posthog-node` (5.55.2) e `zod` (4.6.6).
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Gestos Cooperativos Touch no Mapa de Obras:** Desativação do arraste (`dragging`) com um único dedo para evitar o bloqueio da rolagem natural da página no celular, exibindo overlay flutuante explicativo ("Use dois dedos para mover o mapa") e reativando controles com múltiplos toques e mouse.
+* **Prevenção de Falhas de Dimensionamento no Leaflet:** Tratamento defensivo em `ObrasMapaInterativo` ao disparar `flyTo` com o container em tamanho zero (`zero-size`) durante a visualização em lista no mobile, aplicando `setView` instantâneo e recalculando as dimensões com `ResizeObserver` e `invalidateSize()` assim que o mapa retorna à visibilidade.
+
 ## [1.17.0] - 2026-10-14
 
 ### 🌟 Destaques da Versão (Epic 17: Monitoramento de Obras Públicas, Auditoria Físico-Financeira e Painel ObrasGov.br)

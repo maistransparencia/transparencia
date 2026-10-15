@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { env } from "@/env";
+import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PwaInstallButton } from "./pwa-installer";
 import { SocialLinks } from "./social-links";
@@ -36,6 +37,7 @@ export function GlobalFooter({
   portais,
 }: GlobalFooterProps) {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const pathname = usePathname();
 
   const segments = (pathname || "").split("/").filter(Boolean);
@@ -196,6 +198,13 @@ export function GlobalFooter({
               aria-label="Links institucionais"
               className="flex flex-wrap items-center gap-x-4 gap-y-2"
             >
+              <button
+                type="button"
+                onClick={() => setIsFeedbackOpen(true)}
+                className={`cursor-pointer ${linkClass}`}
+              >
+                Reportar erro
+              </button>
               <Link href="/termos" className={linkClass}>
                 Termos de uso
               </Link>
@@ -214,6 +223,13 @@ export function GlobalFooter({
         portalSlug={effectivePortalSlug}
         municipioNome={effectivePortalName}
         stateUF={effectiveStateUF}
+      />
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        portalSlug={effectivePortalSlug}
+        municipioNome={effectivePortalName}
       />
     </>
   );

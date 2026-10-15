@@ -18,17 +18,25 @@ const mockMarker = {
   openPopup: vi.fn(),
 };
 
+const mockDragging = {
+  enable: vi.fn(),
+  disable: vi.fn(),
+  enabled: vi.fn().mockReturnValue(true),
+};
+
 const mockMap = {
   setView: vi.fn(),
   flyTo: vi.fn(),
   fitBounds: vi.fn(),
   remove: vi.fn(),
   invalidateSize: vi.fn(),
+  getSize: vi.fn(),
   getZoom: vi.fn().mockReturnValue(13),
   getMinZoom: vi.fn().mockReturnValue(1),
   getMaxZoom: vi.fn().mockReturnValue(18),
   mouseEventToContainerPoint: vi.fn().mockReturnValue({ x: 100, y: 100 }),
   setZoomAround: vi.fn(),
+  dragging: mockDragging,
 };
 
 const mockLayerGroup = {
@@ -50,6 +58,7 @@ describe("ObrasMapaInterativo", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clickListeners.length = 0;
+    mockMap.getSize.mockReturnValue({ x: 800, y: 580 });
   });
 
   it("renderiza o container do mapa com sucesso", () => {
@@ -144,6 +153,117 @@ describe("ObrasMapaInterativo", () => {
       expect(mockMap.flyTo).toHaveBeenCalled();
       expect(mockMarker.openPopup).toHaveBeenCalled();
     });
+  });
+
+  it("usa setView sem animação ao selecionar obra com o mapa oculto (tamanho zero)", async () => {
+    mockMap.getSize.mockReturnValue({ x: 0, y: 0 });
+    const mockMarkers = [
+      {
+        idProjeto: "OBR-10",
+        nomeObra: "Reforma da Praça Central",
+        situacao: "em_execucao" as const,
+        situacaoLabel: "Em Execução",
+        situacaoColorHex: "#059669",
+        latitude: -20.9634,
+        longitude: -42.0408,
+        isUrbana: true,
+        valorInvestimentoFormatado: "R$ 500.000",
+        percentualExecucaoFormatado: "60%",
+        orgaoResponsavel: "Sec Obras",
+        dataFimPrevistaFormatada: "31/12/2026",
+      },
+    ];
+
+    const { rerender } = render(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId={null}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMarker.addTo).toHaveBeenCalled();
+    });
+
+    rerender(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId="OBR-10"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMap.setView).toHaveBeenCalledWith(
+        { lat: -20.9634, lng: -42.0408 },
+        16,
+        { animate: false },
+      );
+    });
+    expect(mockMap.flyTo).not.toHaveBeenCalled();
+  });
+
+  it("recentraliza na obra selecionada quando o mapa volta a ficar visível", async () => {
+    let resizeCallback: ResizeObserverCallback | null = null;
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          resizeCallback = cb;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const triggerResize = (width: number, height: number) =>
+      resizeCallback?.(
+        [{ contentRect: { width, height } } as ResizeObserverEntry],
+        {} as ResizeObserver,
+      );
+
+    const mockMarkers = [
+      {
+        idProjeto: "OBR-10",
+        nomeObra: "Reforma da Praça Central",
+        situacao: "em_execucao" as const,
+        situacaoLabel: "Em Execução",
+        situacaoColorHex: "#059669",
+        latitude: -20.9634,
+        longitude: -42.0408,
+        isUrbana: true,
+        valorInvestimentoFormatado: "R$ 500.000",
+        percentualExecucaoFormatado: "60%",
+        orgaoResponsavel: "Sec Obras",
+        dataFimPrevistaFormatada: "31/12/2026",
+      },
+    ];
+
+    render(
+      <ObrasMapaInterativo
+        markers={mockMarkers}
+        center={[-20.9634, -42.0408]}
+        selectedObraId="OBR-10"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockMarker.addTo).toHaveBeenCalled();
+    });
+
+    triggerResize(0, 0);
+    mockMap.invalidateSize.mockClear();
+    mockMap.setView.mockClear();
+    triggerResize(360, 380);
+
+    expect(mockMap.invalidateSize).toHaveBeenCalled();
+    expect(mockMap.setView).toHaveBeenCalledWith(
+      { lat: -20.9634, lng: -42.0408 },
+      16,
+      { animate: false },
+    );
+
+    vi.unstubAllGlobals();
   });
 
   it("dispara onSelectObra com o idProjeto correto ao clicar no marcador", async () => {
@@ -278,5 +398,248 @@ describe("ObrasMapaInterativo", () => {
         expect.stringContaining("Fundo Municipal de Saúde"),
       );
     });
+  });
+
+  it("desativa o arrasto (dragging.disable) no touchstart com 1 dedo para permitir o scroll nativo da página", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+
+    mapInner.dispatchEvent(touchStartEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("exibe o aviso 'Use dois dedos' quando o usuário move com 1 dedo sobre o mapa", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // touchstart
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    // touchmove com deslocamento significativo (> 10px)
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 100, clientY: 130 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    await waitFor(() => {
+      const hint = screen.getByTestId("obras-mapa-zoom-hint");
+      expect(hint).toBeInTheDocument();
+      expect(hint).toHaveTextContent(/use dois dedos para mover o mapa/i);
+    });
+  });
+
+  it("não exibe o aviso em toques curtos (tap) sem movimento significativo", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    // Pequeno tremor (< 10px)
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 102, clientY: 101 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    expect(
+      screen.queryByTestId("obras-mapa-zoom-hint"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("oculta o aviso quando 2 dedos tocam o mapa", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // 1 dedo se move e exibe aviso
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    const touchMoveEvent = new Event("touchmove", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchMoveEvent, "touches", {
+      value: [{ clientX: 100, clientY: 140 }],
+    });
+    mapInner.dispatchEvent(touchMoveEvent);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("obras-mapa-zoom-hint")).toBeInTheDocument();
+    });
+
+    // Segundo dedo toca a tela
+    const twoTouchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(twoTouchStartEvent, "touches", {
+      value: [
+        { clientX: 100, clientY: 140 },
+        { clientX: 150, clientY: 140 },
+      ],
+    });
+    mapInner.dispatchEvent(twoTouchStartEvent);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("obras-mapa-zoom-hint"),
+      ).not.toBeInTheDocument();
+    });
+    expect(mockDragging.enable).toHaveBeenCalled();
+  });
+
+  it("desativa o arrasto quando o usuário levanta um dos dedos deixando apenas um dedo na tela", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // 2 dedos tocam a tela
+    const twoTouchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(twoTouchStartEvent, "touches", {
+      value: [
+        { clientX: 100, clientY: 100 },
+        { clientX: 150, clientY: 100 },
+      ],
+    });
+    mapInner.dispatchEvent(twoTouchStartEvent);
+    expect(mockDragging.enable).toHaveBeenCalled();
+
+    mockDragging.disable.mockClear();
+
+    // 1 dedo é levantado (sobra 1 dedo na tela)
+    const touchEndEvent = new Event("touchend", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchEndEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchEndEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("limpa estado e garante desativação de arrasto no evento touchcancel", async () => {
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    // Inicia toque
+    const touchStartEvent = new Event("touchstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchStartEvent, "touches", {
+      value: [{ clientX: 100, clientY: 100 }],
+    });
+    mapInner.dispatchEvent(touchStartEvent);
+
+    mockDragging.disable.mockClear();
+
+    // Evento touchcancel disparado pelo sistema
+    const touchCancelEvent = new Event("touchcancel", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(touchCancelEvent, "touches", {
+      value: [],
+    });
+    mapInner.dispatchEvent(touchCancelEvent);
+
+    expect(mockDragging.disable).toHaveBeenCalled();
+  });
+
+  it("reativa o arrasto do mapa para interações com mouse (mousedown)", async () => {
+    mockDragging.enabled.mockReturnValue(false);
+
+    render(<ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />);
+
+    await waitFor(() => {
+      expect(L.map).toHaveBeenCalled();
+    });
+
+    const container = screen.getByTestId("obras-mapa-container");
+    const mapInner = container.firstElementChild as HTMLElement;
+
+    const mouseDownEvent = new MouseEvent("mousedown", {
+      bubbles: true,
+      cancelable: true,
+    });
+    mapInner.dispatchEvent(mouseDownEvent);
+
+    expect(mockDragging.enable).toHaveBeenCalled();
   });
 });

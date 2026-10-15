@@ -18,6 +18,7 @@ vi.mock("next/navigation", () => ({
     push: mockPush,
     replace: mockReplace,
   }),
+  usePathname: () => "/",
   useSearchParams: () => mockUseSearchParams(),
   redirect: (url: string) => {
     mockRedirect(url);
