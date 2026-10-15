@@ -1,19 +1,30 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import { cn } from "@transparencia/ui";
 import { ArrowRight, Calendar, FileText, Info } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 import type { ObraContratoViewModel } from "@/app/[portalSlug]/obras/view-model";
 
 export interface ObrasContratosVinculadosProps {
   contratos: ObraContratoViewModel[];
   portalSlug: string;
+  onNavigate?: () => void;
 }
 
 export function ObrasContratosVinculados({
   contratos,
   portalSlug: _portalSlug,
+  onNavigate,
 }: ObrasContratosVinculadosProps) {
+  const handleNavigation = (e: React.MouseEvent) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
+    BProgress.start();
+    onNavigate?.();
+  };
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -101,6 +112,7 @@ export function ObrasContratosVinculados({
               <div className="mt-3 flex flex-wrap items-center gap-3 border-slate-100 border-t pt-3 text-xs">
                 <Link
                   href={contrato.linkContrato}
+                  onClick={handleNavigation}
                   aria-label={`Ver detalhes do contrato nº ${contrato.contratoNumero}`}
                   className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 hover:underline"
                 >
@@ -112,6 +124,7 @@ export function ObrasContratosVinculados({
                 {contrato.linkLicitacao && (
                   <Link
                     href={contrato.linkLicitacao}
+                    onClick={handleNavigation}
                     aria-label={`Ver licitação ${contrato.licitacaoNumero} vinculada ao contrato nº ${contrato.contratoNumero}`}
                     className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 hover:underline"
                   >

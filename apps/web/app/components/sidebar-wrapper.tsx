@@ -1,5 +1,6 @@
 "use client";
 
+import { BProgress } from "@bprogress/core";
 import {
   type MultiSelectOption,
   type PortalOption,
@@ -177,6 +178,16 @@ export function SidebarWrapper({
 
     const queryYear = searchParams?.get("ano");
     const targetUrl = queryYear ? `${newPath}?ano=${queryYear}` : newPath;
+    const currentQuery = searchParams?.toString();
+    const currentFullUrl = currentQuery
+      ? `${pathname}?${currentQuery}`
+      : pathname;
+
+    if (newPortalSlug === activePortalSlug || targetUrl === currentFullUrl) {
+      return;
+    }
+
+    BProgress.start();
     router.push(targetUrl);
   };
 
