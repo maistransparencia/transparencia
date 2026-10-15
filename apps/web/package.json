@@ -28,17 +28,17 @@
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
     "leaflet": "1.9.4",
-    "lucide-react": "1.54.0",
+    "lucide-react": "1.55.0",
     "next": "16.4.0",
     "nuqs": "2.10.2",
     "posthog-js": "1.438.7",
-    "posthog-node": "5.55.1",
+    "posthog-node": "5.55.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "3.10.1",
     "resend": "6.32.1",
     "web-push": "3.6.7",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
