@@ -174,6 +174,62 @@ export function mapContratoToViewModel(
   };
 }
 
+export interface LinkOrigemEmpenho {
+  url: string;
+  label: string;
+}
+
+export function buildLinkOrigemEmpenho(empenho: {
+  nrEmpenho?: string | null;
+  ugEmitente?: string | null;
+  sistemaOrigem?: string | null;
+}): LinkOrigemEmpenho {
+  const cleanNr = (empenho.nrEmpenho || "").trim().toUpperCase();
+  const cleanUg = (empenho.ugEmitente || "").trim();
+  const cleanSistema = (empenho.sistemaOrigem || "").trim().toLowerCase();
+
+  if (/^\d{6}$/.test(cleanUg) && /^\d{4}NE\d+$/.test(cleanNr)) {
+    return {
+      url: `https://portaldatransparencia.gov.br/despesas/empenho/${cleanUg}00001${cleanNr}`,
+      label: "Consultar no Portal da Transparência (SIAFI)",
+    };
+  }
+
+  if (cleanSistema.includes("transferegov")) {
+    return {
+      url: "https://portal.transferegov.sistema.gov.br/",
+      label: "Consultar no Transferegov.br",
+    };
+  }
+
+  if (cleanSistema.includes("sismob")) {
+    return {
+      url: "https://sismob.saude.gov.br/",
+      label: "Consultar no SISMOB (Ministério da Saúde)",
+    };
+  }
+
+  if (cleanSistema.includes("simec")) {
+    return {
+      url: "https://simec.mec.gov.br/",
+      label: "Consultar no SIMEC (MEC/FNDE)",
+    };
+  }
+
+  if (cleanSistema.includes("siafi") || !cleanSistema) {
+    return {
+      url: "https://portaldatransparencia.gov.br/despesas",
+      label: "Consultar no SIAFI (Portal da Transparência)",
+    };
+  }
+
+  const sistemaNome = empenho.sistemaOrigem?.trim() || "Transferegov.br";
+  return {
+    url: "https://www.gov.br/transferegov/pt-br",
+    label: `Consultar no ${sistemaNome}`,
+  };
+}
+
 export interface ObraEmpenhoFederalViewModel {
   nrEmpenho: string;
   anoEmpenho: number | null;
@@ -189,11 +245,19 @@ export interface ObraEmpenhoFederalViewModel {
   planoInterno: string | null;
   acaoOrcamentaria: string | null;
   descricao: string | null;
+  linkOrigem: string;
+  linkOrigemLabel: string;
 }
 
 export function mapEmpenhoFederalToViewModel(
   empenho: ObraEmpenhoFederalDTO,
 ): ObraEmpenhoFederalViewModel {
+  const sistemaOrigem = empenho.sistemaOrigem?.trim() || "SIAFI";
+  const linkOrigemInfo = buildLinkOrigemEmpenho({
+    ...empenho,
+    sistemaOrigem,
+  });
+
   return {
     nrEmpenho: empenho.nrEmpenho,
     anoEmpenho: empenho.anoEmpenho ?? null,
@@ -204,13 +268,15 @@ export function mapEmpenhoFederalToViewModel(
     dataEmissaoFormatada: empenho.dataEmissao
       ? fmtDate(empenho.dataEmissao)
       : "Não informada",
-    sistemaOrigem: empenho.sistemaOrigem?.trim() || "SIAFI",
+    sistemaOrigem,
     naturezaDespesa: empenho.naturezaDespesa ?? null,
     fonte: empenho.fonte ?? null,
     programaTrabalho: empenho.programaTrabalho ?? null,
     planoInterno: empenho.planoInterno ?? null,
     acaoOrcamentaria: empenho.acaoOrcamentaria ?? null,
     descricao: empenho.descricao ?? null,
+    linkOrigem: linkOrigemInfo.url,
+    linkOrigemLabel: linkOrigemInfo.label,
   };
 }
 

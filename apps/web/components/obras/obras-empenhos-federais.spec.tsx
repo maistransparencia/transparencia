@@ -19,6 +19,9 @@ const mockEmpenhos: ObraEmpenhoFederalViewModel[] = [
     planoInterno: null,
     acaoOrcamentaria: "10E4",
     descricao: "Construção de Unidade Básica de Saúde",
+    linkOrigem:
+      "https://portaldatransparencia.gov.br/despesas/empenho/175004000012023NE003130",
+    linkOrigemLabel: "Consultar no Portal da Transparência (SIAFI)",
   },
   {
     nrEmpenho: "2024NE001091",
@@ -35,6 +38,9 @@ const mockEmpenhos: ObraEmpenhoFederalViewModel[] = [
     planoInterno: null,
     acaoOrcamentaria: "10E4",
     descricao: "Aditivo e complementação de recursos",
+    linkOrigem:
+      "https://portaldatransparencia.gov.br/despesas/empenho/175004000012023NE001091",
+    linkOrigemLabel: "Consultar no Portal da Transparência (SIAFI)",
   },
 ];
 
@@ -63,6 +69,17 @@ describe("ObrasEmpenhosFederais Component", () => {
     expect(screen.getByText("2024NE001091")).toBeInTheDocument();
     expect(screen.getByText("R$ 100.000,00")).toBeInTheDocument();
     expect(screen.getByText("Ano 2024")).toBeInTheDocument();
+
+    const links = screen.getAllByRole("link", {
+      name: /Consultar no Portal da Transparência \(SIAFI\)/i,
+    });
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "https://portaldatransparencia.gov.br/despesas/empenho/175004000012023NE003130",
+    );
+    expect(links[0]).toHaveAttribute("target", "_blank");
+    expect(links[0]).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("renderiza empty state amigável quando a lista de empenhos for vazia ou undefined", () => {

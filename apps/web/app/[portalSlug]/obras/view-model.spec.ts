@@ -5,6 +5,7 @@ import type {
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
+  buildLinkOrigemEmpenho,
   buildObraDetalheViewModel,
   buildObrasViewModel,
   getMapCenter,
@@ -711,6 +712,12 @@ describe("obras/view-model", () => {
       expect(vm.planoInterno).toBe("PI-002");
       expect(vm.acaoOrcamentaria).toBe("10E4");
       expect(vm.descricao).toBe("Aquisição de materiais para UBS");
+      expect(vm.linkOrigem).toBe(
+        "https://portaldatransparencia.gov.br/despesas/empenho/153001000012023NE001234",
+      );
+      expect(vm.linkOrigemLabel).toBe(
+        "Consultar no Portal da Transparência (SIAFI)",
+      );
     });
 
     it("deve aplicar fallbacks para campos nulos e sistemaOrigem vazio", () => {
@@ -740,6 +747,46 @@ describe("obras/view-model", () => {
       expect(vm.dataEmissaoFormatada).toBe("Não informada");
       expect(vm.sistemaOrigem).toBe("SIAFI");
       expect(vm.descricao).toBeNull();
+      expect(vm.linkOrigem).toBe(
+        "https://portaldatransparencia.gov.br/despesas",
+      );
+      expect(vm.linkOrigemLabel).toBe(
+        "Consultar no SIAFI (Portal da Transparência)",
+      );
+    });
+  });
+
+  describe("buildLinkOrigemEmpenho", () => {
+    it("deve gerar link canônico para o Portal da Transparência quando houver UG de 6 dígitos e nota de empenho SIAFI", () => {
+      const res = buildLinkOrigemEmpenho({
+        nrEmpenho: "2023NE003130",
+        ugEmitente: "175004",
+        sistemaOrigem: "SIAFI",
+      });
+      expect(res.url).toBe(
+        "https://portaldatransparencia.gov.br/despesas/empenho/175004000012023NE003130",
+      );
+      expect(res.label).toBe("Consultar no Portal da Transparência (SIAFI)");
+    });
+
+    it("deve gerar link para o Transferegov.br quando sistema for Transferegov", () => {
+      const res = buildLinkOrigemEmpenho({
+        nrEmpenho: "EMP-999",
+        ugEmitente: null,
+        sistemaOrigem: "Transferegov.br",
+      });
+      expect(res.url).toBe("https://portal.transferegov.sistema.gov.br/");
+      expect(res.label).toBe("Consultar no Transferegov.br");
+    });
+
+    it("deve gerar link para o SISMOB quando sistema for SISMOB", () => {
+      const res = buildLinkOrigemEmpenho({
+        nrEmpenho: "OBRA-MS-12",
+        ugEmitente: null,
+        sistemaOrigem: "SISMOB",
+      });
+      expect(res.url).toBe("https://sismob.saude.gov.br/");
+      expect(res.label).toBe("Consultar no SISMOB (Ministério da Saúde)");
     });
   });
 
