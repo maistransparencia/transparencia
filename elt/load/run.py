@@ -207,6 +207,7 @@ def main() -> None:
             if table == "obrasgov":
                 from elt.load.obrasgov import (
                     ensure_obrasgov_tables,
+                    load_obrasgov_empenhos,
                     load_obrasgov_execucoes_fisicas,
                     load_obrasgov_geometrias,
                     load_obrasgov_historico_paralisacoes,
@@ -230,6 +231,12 @@ def main() -> None:
                     count = load_obrasgov_historico_paralisacoes(engine, raw_data, schema="raw_obrasgov")
                     logger.info(
                         "Loaded obrasgov/historico_paralisacoes.json → %d rows into raw_obrasgov.historico_paralisacoes",
+                        count,
+                    )
+                elif json_file.name == "empenhos.json":
+                    count = load_obrasgov_empenhos(engine, raw_data, schema="raw_obrasgov")
+                    logger.info(
+                        "Loaded obrasgov/empenhos.json → %d rows into raw_obrasgov.empenhos",
                         count,
                     )
                 continue

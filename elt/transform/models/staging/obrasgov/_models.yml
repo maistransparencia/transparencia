@@ -69,3 +69,22 @@ models:
       - name: data_historico_situacao_investimento
       - name: justificativa_cancelada_paralisada
 
+  - name: stg_obrasgov__empenhos
+    description: "Staging de notas de empenho federais vinculadas às obras públicas (SIAFI / Transferegov.br)"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: id_projeto
+        tests:
+          - not_null
+      - name: nr_empenho
+        tests:
+          - not_null
+      - name: ug_emitente
+      - name: ano_empenho
+      - name: valor_empenho
+      - name: data_emissao
+      - name: sistema_origem_empenho
+      - name: descricao_empenho
+
