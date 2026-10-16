@@ -603,7 +603,7 @@ describe("obras queries", () => {
       expect(contratos[0].contratoNumero).toBe("CTR-030/2024");
     });
 
-    it("deve correlacionar contratos por similaridade temática textual (word_similarity > 0.40)", async () => {
+    it("não deve correlacionar contratos por similaridade temática textual sem vínculo explícito (prevenção de falsos positivos)", async () => {
       await seedObra({
         portalSlug: PORTAL_A,
         idProjeto: "OBR-SIMILAR",
@@ -624,64 +624,32 @@ describe("obras queries", () => {
       });
 
       const contratos = await getContratosPorObra(PORTAL_A, "OBR-SIMILAR");
-      expect(contratos).toHaveLength(1);
-      expect(contratos[0].contratoNumero).toBe("CTR-040/2024");
+      expect(contratos).toEqual([]);
     });
 
-    it("deve correlacionar contrato via descricao_intervencao quando o nome da obra é genérico", async () => {
+    it("não deve associar contrato a obra por termos comuns como pavimentação de rua (caso real 32382.33-24 e contrato 2938/24)", async () => {
       await seedObra({
         portalSlug: PORTAL_A,
-        idProjeto: "OBR-INTERVENCAO-GENERICA",
-        nomeObra: "PROJETO MUNICIPAL",
+        idProjeto: "32382.33-24",
+        nomeObra: "Pavimentação de Rua no Perímetro Urbano de Porciúncula/RJ",
         descricaoIntervencao:
-          "AMPLIAÇÃO DA UNIDADE DE ATENÇÃO ESPECIALIZADA POLICLÍNICA REGIONAL",
+          "Pavimentação de rua no perímetro urbano do município de Porciúncula/RJ",
       });
 
       await seedContrato({
         portalSlug: PORTAL_A,
         ano: 2024,
-        contratoNumero: "CTR-041/2024",
-        fornecedorNome: "CONSTRUTORA SAUDE LTDA",
+        contratoNumero: "2938/24",
+        fornecedorNome: "S F LAGOS EMPREENDIMENTOS - UNIPESSOAL LTDA",
         fornecedorCpfCnpj: "44555666000188",
-        objeto:
-          "Contratação de engenharia para ampliação da policlínica regional",
-        valorContrato: 850000,
-        modalidade: "concorrencia_eletronica",
-        vencimentoAtual: "2099-12-31",
-      });
-
-      const contratos = await getContratosPorObra(
-        PORTAL_A,
-        "OBR-INTERVENCAO-GENERICA",
-      );
-      expect(contratos).toHaveLength(1);
-      expect(contratos[0].contratoNumero).toBe("CTR-041/2024");
-    });
-
-    it("deve correlacionar obra com contrato cujo objeto resumido é truncado mas objeto_completo contém os termos da obra", async () => {
-      await seedObra({
-        portalSlug: PORTAL_A,
-        idProjeto: "16868.33-35",
-        nomeObra: "Sistema de Esgotamento Sanitário",
-      });
-
-      await seedContrato({
-        portalSlug: PORTAL_A,
-        ano: 2024,
-        contratoNumero: "2937/24",
-        fornecedorNome: "L.PHILIPPE CONSTRUCOES LTDA",
-        objeto: "Contratação de empresa especializada para realização de obra",
-        objetoCompleto:
-          "Contratação de empresa especializada para realização de obras e serviços de esgotamento sanitário no Município de Porciúncula",
-        valorContrato: 24698277.36,
+        objeto: "Pavimentação de ruas no Município de Porciúncula",
+        valorContrato: 7080568.16,
         modalidade: "concorrencia",
         vencimentoAtual: "2099-12-31",
       });
 
-      const contratos = await getContratosPorObra(PORTAL_A, "16868.33-35");
-      expect(contratos).toHaveLength(1);
-      expect(contratos[0].contratoNumero).toBe("2937/24");
-      expect(contratos[0].fornecedorNome).toBe("L.PHILIPPE CONSTRUCOES LTDA");
+      const contratos = await getContratosPorObra(PORTAL_A, "32382.33-24");
+      expect(contratos).toEqual([]);
     });
 
     it("deve evitar falsos positivos operacionais e anacrônicos para obras com nomes genéricos (ex: IMPLANTACAO UBS)", async () => {
