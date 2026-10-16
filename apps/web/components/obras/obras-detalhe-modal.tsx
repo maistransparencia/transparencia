@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   Building2,
   ExternalLink,
-  FileText,
   HeartHandshake,
   Landmark,
 } from "lucide-react";
@@ -220,7 +219,7 @@ export function ObrasDetalheModal({
 
         {/* Objeto da Intervenção e Função Social (Propósito Cívico no Topo) */}
         {(viewModel.descricaoIntervencao || viewModel.funcaoSocial) && (
-          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="space-y-3">
             {viewModel.descricaoIntervencao && (
               <div>
                 <span className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
@@ -348,34 +347,6 @@ export function ObrasDetalheModal({
           portalSlug={viewModel.portalSlug}
           onNavigate={onClose}
         />
-
-        {/* Identificador Oficial e Legislação de Regência */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 text-xs">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-slate-600">
-              <FileText className="h-4 w-4 text-slate-400" />
-              <span>
-                Identificador único de investimento:{" "}
-                <strong className="font-mono font-semibold text-slate-900">
-                  {viewModel.idProjeto}
-                </strong>
-              </span>
-            </div>
-
-            <div className="text-slate-500">
-              <span>Regência: </span>
-              <a
-                href={viewModel.linkLegislacao}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                Lei nº 14.133/2021 (Nova Lei de Licitações)
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </ModalDialog>
   );
