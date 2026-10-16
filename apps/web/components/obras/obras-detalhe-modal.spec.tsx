@@ -329,7 +329,7 @@ describe("ObrasDetalheModal Component", () => {
       screen.getByText("Empenhos Federais (Transferegov.br / SIAFI)"),
     ).toBeInTheDocument();
     expect(screen.getByText("2023NE003130")).toBeInTheDocument();
-    expect(screen.getByText("UG: 175004")).toBeInTheDocument();
+    expect(screen.getByText("Total: R$ 250.000,00")).toBeInTheDocument();
     expect(screen.getByText("Ano 2023")).toBeInTheDocument();
     expect(screen.getByText("SIAFI")).toBeInTheDocument();
     expect(

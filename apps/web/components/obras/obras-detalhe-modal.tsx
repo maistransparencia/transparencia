@@ -332,13 +332,6 @@ export function ObrasDetalheModal({
           </div>
         </div>
 
-        {/* Seção Dedicada de Contratos e Licitações Vinculados */}
-        <ObrasContratosVinculados
-          contratos={viewModel.contratos}
-          portalSlug={viewModel.portalSlug}
-          onNavigate={onClose}
-        />
-
         {/* Seção Dedicada de Empenhos Federais (Transferegov.br / SIAFI) */}
         <ObrasEmpenhosFederais
           empenhos={viewModel.empenhosFederais}
@@ -347,6 +340,13 @@ export function ObrasDetalheModal({
               ? viewModel.valorTotalEmpenhadoFederalFormatado
               : undefined
           }
+        />
+
+        {/* Seção Dedicada de Contratos e Licitações Vinculados */}
+        <ObrasContratosVinculados
+          contratos={viewModel.contratos}
+          portalSlug={viewModel.portalSlug}
+          onNavigate={onClose}
         />
 
         {/* Identificador Oficial e Legislação de Regência */}

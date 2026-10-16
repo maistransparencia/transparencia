@@ -82,11 +82,6 @@ export function ObrasEmpenhosFederais({
                           Ano {empenho.anoEmpenho}
                         </span>
                       )}
-                      {empenho.ugEmitente && (
-                        <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-600">
-                          UG: {empenho.ugEmitente}
-                        </span>
-                      )}
                       <span className="rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 font-semibold text-[10px] text-blue-700 uppercase">
                         {empenho.sistemaOrigem}
                       </span>
@@ -98,23 +93,19 @@ export function ObrasEmpenhosFederais({
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-slate-500">
-                      {empenho.dataEmissao && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 text-slate-400" />
-                          Emissão: {empenho.dataEmissaoFormatada}
-                        </span>
-                      )}
-                      {empenho.naturezaDespesa && (
-                        <span className="font-mono">
-                          Natureza: {empenho.naturezaDespesa}
-                        </span>
-                      )}
-                      {empenho.acaoOrcamentaria && (
-                        <span>Ação: {empenho.acaoOrcamentaria}</span>
-                      )}
-                      {empenho.fonte && <span>Fonte: {empenho.fonte}</span>}
-                    </div>
+                    {(empenho.dataEmissao || empenho.acaoOrcamentaria) && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-slate-500">
+                        {empenho.dataEmissao && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3 text-slate-400" />
+                            Emissão: {empenho.dataEmissaoFormatada}
+                          </span>
+                        )}
+                        {empenho.acaoOrcamentaria && (
+                          <span>Ação: {empenho.acaoOrcamentaria}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="shrink-0 sm:text-right">
