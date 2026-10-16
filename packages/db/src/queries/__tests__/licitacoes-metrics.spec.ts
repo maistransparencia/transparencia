@@ -15,6 +15,7 @@ import {
   getLicitacaoByNumero,
   getLicitacaoGapsMetrics,
   getLicitacaoItens,
+  getLicitacaoItensBatch,
   getLicitacoesEmAndamentoMetrics,
   toIsoDateString,
 } from "../licitacoes-metrics";
@@ -491,6 +492,102 @@ describe("licitacoes-metrics", () => {
 
       expect(itens[1].numeroItem).toBe(2);
       expect(itens[1].descricao).toBe("Amoxicilina 500mg");
+    });
+  });
+
+  describe("getLicitacaoItensBatch", () => {
+    it("deve retornar objeto vazio para parâmetros inválidos ou sem licitações", async () => {
+      expect(
+        await getLicitacaoItensBatch("", { licitacoesNumeros: ["001/2024"] }),
+      ).toEqual({});
+      expect(
+        await getLicitacaoItensBatch(FIXTURE_PORTAL, { licitacoesNumeros: [] }),
+      ).toEqual({});
+      expect(
+        await getLicitacaoItensBatch(FIXTURE_PORTAL, {
+          licitacoesNumeros: ["inexistente"],
+        }),
+      ).toEqual({});
+    });
+
+    it("deve retornar itens agrupados por licitacaoNumero em uma única consulta", async () => {
+      await seedLicitacaoItem({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        licitacaoNumero: "LIC-A",
+        numeroItem: 1,
+        descricao: "Item A1",
+      });
+      await seedLicitacaoItem({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        licitacaoNumero: "LIC-B",
+        numeroItem: 1,
+        descricao: "Item B1",
+      });
+
+      const batch = await getLicitacaoItensBatch(FIXTURE_PORTAL, {
+        ano: 2024,
+        licitacoesNumeros: ["LIC-A", "LIC-B", "LIC-VAZIA"],
+      });
+
+      expect(Object.keys(batch)).toContain("LIC-A");
+      expect(Object.keys(batch)).toContain("LIC-B");
+      expect(batch["LIC-A"]).toHaveLength(1);
+      expect(batch["LIC-A"][0].descricao).toBe("Item A1");
+      expect(batch["LIC-B"]).toHaveLength(1);
+      expect(batch["LIC-B"][0].descricao).toBe("Item B1");
+      expect(batch["LIC-VAZIA"]).toBeUndefined();
+    });
+
+    it("deve isolar itens estritamente por portalSlug evitando cross-tenant leakage (Regra 23)", async () => {
+      const OTHER_PORTAL = createFixturePortalSlug();
+      try {
+        await seedLicitacaoItem({
+          portalSlug: FIXTURE_PORTAL,
+          ano: 2024,
+          licitacaoNumero: "LIC-SHARED",
+          numeroItem: 1,
+          descricao: "Item do Portal A",
+        });
+        await seedLicitacaoItem({
+          portalSlug: OTHER_PORTAL,
+          ano: 2024,
+          licitacaoNumero: "LIC-SHARED",
+          numeroItem: 1,
+          descricao: "Item do Portal B",
+        });
+
+        const batch = await getLicitacaoItensBatch(FIXTURE_PORTAL, {
+          ano: 2024,
+          licitacoesNumeros: ["LIC-SHARED"],
+        });
+
+        expect(batch["LIC-SHARED"]).toHaveLength(1);
+        expect(batch["LIC-SHARED"][0].descricao).toBe("Item do Portal A");
+        expect(batch["LIC-SHARED"][0].portalSlug).toBe(FIXTURE_PORTAL);
+      } finally {
+        await cleanupFixtures(OTHER_PORTAL);
+      }
+    });
+
+    it("deve aplicar fallback temporal para licitações plurianuais cadastradas em anos anteriores", async () => {
+      await seedLicitacaoItem({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2023,
+        licitacaoNumero: "LIC-PLURIANUAL",
+        numeroItem: 1,
+        descricao: "Item de 2023",
+      });
+
+      const batch = await getLicitacaoItensBatch(FIXTURE_PORTAL, {
+        ano: 2024,
+        licitacoesNumeros: ["LIC-PLURIANUAL"],
+      });
+
+      expect(batch["LIC-PLURIANUAL"]).toHaveLength(1);
+      expect(batch["LIC-PLURIANUAL"][0].descricao).toBe("Item de 2023");
+      expect(batch["LIC-PLURIANUAL"][0].ano).toBe(2023);
     });
   });
 

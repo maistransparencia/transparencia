@@ -1050,3 +1050,199 @@ export async function getLicitacaoItens(
     situacaoItem: r.situacao_item ? String(r.situacao_item) : null,
   }));
 }
+
+export interface GetLicitacaoItensBatchOptions {
+  ano?: number;
+  licitacoesNumeros: string[];
+}
+
+function mapRowToLicitacaoItemDTO(r: {
+  item_id?: string | number | null;
+  portal_slug?: string | null;
+  ano?: number | null;
+  licitacao_numero?: string | null;
+  numero_item?: number | null;
+  descricao?: string | null;
+  quantidade?: string | number | null;
+  unidade_medida?: string | null;
+  valor_unitario_estimado?: string | number | null;
+  valor_total_estimado?: string | number | null;
+  valor_unitario_homologado?: string | number | null;
+  valor_total_homologado?: string | number | null;
+  percentual_desconto?: string | number | null;
+  fornecedor_nome?: string | null;
+  fornecedor_cpf_cnpj?: string | null;
+  situacao_item?: string | null;
+}): LicitacaoItemDTO {
+  return {
+    itemId: String(r.item_id),
+    portalSlug: String(r.portal_slug),
+    ano: Number(r.ano),
+    licitacaoNumero: String(r.licitacao_numero),
+    numeroItem: Number(r.numero_item),
+    descricao: r.descricao ? String(r.descricao) : null,
+    quantidade: r.quantidade != null ? parseFloat(String(r.quantidade)) : null,
+    unidadeMedida: r.unidade_medida ? String(r.unidade_medida) : null,
+    valorUnitarioEstimado:
+      r.valor_unitario_estimado != null
+        ? parseFloat(String(r.valor_unitario_estimado))
+        : null,
+    valorTotalEstimado:
+      r.valor_total_estimado != null
+        ? parseFloat(String(r.valor_total_estimado))
+        : null,
+    valorUnitarioHomologado:
+      r.valor_unitario_homologado != null
+        ? parseFloat(String(r.valor_unitario_homologado))
+        : null,
+    valorTotalHomologado:
+      r.valor_total_homologado != null
+        ? parseFloat(String(r.valor_total_homologado))
+        : null,
+    percentualDesconto:
+      r.percentual_desconto != null
+        ? parseFloat(String(r.percentual_desconto))
+        : null,
+    fornecedorNome: r.fornecedor_nome ? String(r.fornecedor_nome) : null,
+    fornecedorCpfCnpj: r.fornecedor_cpf_cnpj
+      ? String(r.fornecedor_cpf_cnpj)
+      : null,
+    situacaoItem: r.situacao_item ? String(r.situacao_item) : null,
+  };
+}
+
+/**
+ * Retorna os itens de múltiplas licitações em uma única consulta em lote agrupados por licitacaoNumero,
+ * prevenindo fan-out N+1 (Regra 22), respeitando o isolamento estrito de tenant (Regra 23)
+ * e implementando fallback temporal para processos plurianuais em andamento.
+ */
+export async function getLicitacaoItensBatch(
+  portalSlug: string,
+  options: GetLicitacaoItensBatchOptions,
+): Promise<Record<string, LicitacaoItemDTO[]>> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !options ||
+    !Array.isArray(options.licitacoesNumeros) ||
+    options.licitacoesNumeros.length === 0
+  ) {
+    return {};
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const validNumeros = Array.from(
+    new Set(
+      options.licitacoesNumeros
+        .map((n) => (typeof n === "string" ? n.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+
+  if (validNumeros.length === 0) {
+    return {};
+  }
+
+  const selectColumns = [
+    "item_id",
+    "portal_slug",
+    "ano",
+    "licitacao_numero",
+    "numero_item",
+    "descricao",
+    "quantidade",
+    "unidade_medida",
+    "valor_unitario_estimado",
+    "valor_total_estimado",
+    "valor_unitario_homologado",
+    "valor_total_homologado",
+    "percentual_desconto",
+    "fornecedor_nome",
+    "fornecedor_cpf_cnpj",
+    "situacao_item",
+  ] as const;
+
+  let query = db
+    .selectFrom("fct_licitacoes_itens")
+    .select(selectColumns)
+    .where("portal_slug", "=", cleanSlug)
+    .where("licitacao_numero", "in", validNumeros);
+
+  if (
+    options.ano !== undefined &&
+    !Number.isNaN(options.ano) &&
+    Number.isInteger(options.ano)
+  ) {
+    query = query.where("ano", "=", options.ano);
+  }
+
+  const rows = await query
+    .orderBy("licitacao_numero", "asc")
+    .orderBy("numero_item", "asc")
+    .execute();
+
+  const initialResult = rows.reduce<Record<string, LicitacaoItemDTO[]>>(
+    (acc, r) => {
+      const num = String(r.licitacao_numero);
+      const dto = mapRowToLicitacaoItemDTO(r);
+      const list = acc[num] ?? [];
+      list.push(dto);
+      acc[num] = list;
+      return acc;
+    },
+    {},
+  );
+
+  // Fallback temporal para processos licitatórios plurianuais iniciados em anos anteriores
+  if (options.ano !== undefined) {
+    const missingNumeros = validNumeros.filter(
+      (num) => !initialResult[num] || initialResult[num].length === 0,
+    );
+
+    if (missingNumeros.length > 0) {
+      const fallbackRows = await db
+        .selectFrom("fct_licitacoes_itens")
+        .select(selectColumns)
+        .where("portal_slug", "=", cleanSlug)
+        .where("licitacao_numero", "in", missingNumeros)
+        .orderBy("licitacao_numero", "asc")
+        .orderBy("ano", "desc")
+        .orderBy("numero_item", "asc")
+        .execute();
+
+      const latestAnoPerLicitacao = fallbackRows.reduce<Record<string, number>>(
+        (acc, r) => {
+          const num = String(r.licitacao_numero);
+          const ano = Number(r.ano);
+          if (acc[num] === undefined || ano > acc[num]) {
+            acc[num] = ano;
+          }
+          return acc;
+        },
+        {},
+      );
+
+      const fallbackResult = fallbackRows
+        .filter(
+          (r) =>
+            Number(r.ano) === latestAnoPerLicitacao[String(r.licitacao_numero)],
+        )
+        .reduce<Record<string, LicitacaoItemDTO[]>>((acc, r) => {
+          const num = String(r.licitacao_numero);
+          const dto = mapRowToLicitacaoItemDTO(r);
+          const list = acc[num] ?? [];
+          list.push(dto);
+          acc[num] = list;
+          return acc;
+        }, {});
+
+      return {
+        ...fallbackResult,
+        ...initialResult,
+      };
+    }
+  }
+
+  return initialResult;
+}
