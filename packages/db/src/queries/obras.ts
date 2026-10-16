@@ -315,16 +315,17 @@ export async function getObrasPorPortal(
     return [];
   }
 
-  // Enriquece as obras com os contratos municipais correlacionados
-  return Promise.all(
-    obrasBase.map(async (obra) => {
-      const contratos = await getContratosPorObra(cleanSlug, obra.idProjeto);
-      return {
-        ...obra,
-        contratos,
-      };
-    }),
+  // Enriquece as obras com os contratos municipais correlacionados em batch único (Regra 22)
+  const idsProjetos = obrasBase.map((o) => o.idProjeto).filter(Boolean);
+  const contratosPorObraMap = await getContratosPorObrasBatch(
+    cleanSlug,
+    idsProjetos,
   );
+
+  return obrasBase.map((obra) => ({
+    ...obra,
+    contratos: contratosPorObraMap.get(obra.idProjeto?.trim()) ?? [],
+  }));
 }
 
 type ObraContratoRow = {
@@ -373,28 +374,42 @@ function mapRowToObraContratoDTO(row: ObraContratoRow): ObraContratoDTO {
 }
 
 /**
- * Retorna os contratos municipais e processos licitatórios correlacionados a uma obra pública
- * a partir de `fct_contratos` e `fct_obras`, garantindo isolamento estrito de tenant (Regra 23).
+ * Retorna um mapa (idProjeto -> ObraContratoDTO[]) de contratos administrativos municipais
+ * correlacionados para uma lista de obras públicas em UMA ÚNICA QUERY em lote,
+ * prevenindo fan-out N+1 (Regra 22) e respeitando estritamente o isolamento de tenant (Regra 23).
  */
-export async function getContratosPorObra(
+export async function getContratosPorObrasBatch(
   portalSlug: string,
-  idProjeto: string,
-): Promise<ObraContratoDTO[]> {
+  idProjetos: string[],
+): Promise<Map<string, ObraContratoDTO[]>> {
   if (
     !portalSlug ||
     typeof portalSlug !== "string" ||
     portalSlug.trim() === "" ||
-    !idProjeto ||
-    typeof idProjeto !== "string" ||
-    idProjeto.trim() === ""
+    !Array.isArray(idProjetos) ||
+    idProjetos.length === 0
   ) {
-    return [];
+    return new Map();
   }
 
   const cleanSlug = portalSlug.trim();
-  const cleanId = idProjeto.trim();
+  const cleanIds = Array.from(
+    new Set(
+      idProjetos
+        .map((id) => (typeof id === "string" ? id.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
 
-  const query = sql<ObraContratoRow>`
+  if (cleanIds.length === 0) {
+    return new Map();
+  }
+
+  type ObraContratoBatchRow = ObraContratoRow & {
+    obra_id_projeto: string;
+  };
+
+  const query = sql<ObraContratoBatchRow>`
     WITH obra_alvo AS (
       SELECT
         portal_slug,
@@ -405,8 +420,7 @@ export async function getContratosPorObra(
         situacao
       FROM fct_obras
       WHERE portal_slug = ${cleanSlug}
-        AND id_projeto = ${cleanId}
-      LIMIT 1
+        AND id_projeto = ANY(${cleanIds})
     ),
     obra_meta AS (
       SELECT
@@ -430,7 +444,8 @@ export async function getContratosPorObra(
         )) AS nucleo_intervencao
       FROM obra_alvo
     )
-    SELECT DISTINCT ON (c.contrato_numero)
+    SELECT DISTINCT ON (o.id_projeto, c.contrato_numero)
+      o.id_projeto AS obra_id_projeto,
       c.contrato_id,
       c.contrato_numero,
       c.fornecedor_nome,
@@ -505,21 +520,59 @@ export async function getContratosPorObra(
         )
       )
     ORDER BY
+      o.id_projeto ASC,
       c.contrato_numero ASC,
       c.ano DESC,
       c.valor_contrato DESC NULLS LAST,
       c.vencimento_atual DESC NULLS LAST
   `;
 
-  const result = await query.execute(db);
-  const rows = (result.rows || []).map(mapRowToObraContratoDTO);
+  const execResult = await query.execute(db);
+  const rows = execResult.rows || [];
 
-  // Ordena a lista final desduplicada por vigência e valor de forma imutável (Regra 2)
-  return [...rows].sort((a, b) => {
-    if (a.status === "vigente" && b.status !== "vigente") return -1;
-    if (a.status !== "vigente" && b.status === "vigente") return 1;
-    return b.valorContrato - a.valorContrato;
-  });
+  const initialMap = new Map<string, ObraContratoDTO[]>(
+    cleanIds.map((id) => [id, []]),
+  );
+
+  const groupedMap = rows.reduce((acc, row) => {
+    const list = acc.get(row.obra_id_projeto) ?? [];
+    acc.set(row.obra_id_projeto, [...list, mapRowToObraContratoDTO(row)]);
+    return acc;
+  }, initialMap);
+
+  return new Map(
+    Array.from(groupedMap.entries()).map(([id, list]) => [
+      id,
+      [...list].sort((a, b) => {
+        if (a.status === "vigente" && b.status !== "vigente") return -1;
+        if (a.status !== "vigente" && b.status === "vigente") return 1;
+        return b.valorContrato - a.valorContrato;
+      }),
+    ]),
+  );
+}
+
+/**
+ * Retorna os contratos municipais e processos licitatórios correlacionados a uma obra pública
+ * a partir de `fct_contratos` e `fct_obras`, garantindo isolamento estrito de tenant (Regra 23).
+ */
+export async function getContratosPorObra(
+  portalSlug: string,
+  idProjeto: string,
+): Promise<ObraContratoDTO[]> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !idProjeto ||
+    typeof idProjeto !== "string" ||
+    idProjeto.trim() === ""
+  ) {
+    return [];
+  }
+
+  const map = await getContratosPorObrasBatch(portalSlug, [idProjeto.trim()]);
+  return map.get(idProjeto.trim()) ?? [];
 }
 
 /**

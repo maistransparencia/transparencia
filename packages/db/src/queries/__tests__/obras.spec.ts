@@ -8,6 +8,7 @@ import {
 } from "../../../tests/fixtures/seed";
 import {
   getContratosPorObra,
+  getContratosPorObrasBatch,
   getObraDetalhe,
   getObrasPorPortal,
   getResumoObrasPorPortal,
@@ -102,6 +103,34 @@ describe("obras queries", () => {
       expect(obra).not.toHaveProperty("motivo_paralisacao");
       expect(obra).not.toHaveProperty("data_inicio_prevista");
       expect(obra).not.toHaveProperty("data_fim_prevista");
+    });
+
+    it("deve enriquecer cada obra com seus contratos correlacionados carregados em lote", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "OBR-ENRICH-1",
+        nomeObra: "Reforma da UBS Central",
+        valorInvestimentoPrevisto: 300000,
+      });
+
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "CTR-ENRICH-1",
+        numeroObra: "OBR-ENRICH-1",
+        fornecedorNome: "CONSTRUTORA CENTRAL LTDA",
+        valorContrato: 280000,
+      });
+
+      const obras = await getObrasPorPortal(PORTAL_A);
+      const obraEnriquecida = obras.find((o) => o.idProjeto === "OBR-ENRICH-1");
+
+      expect(obraEnriquecida).toBeDefined();
+      expect(obraEnriquecida?.contratos).toHaveLength(1);
+      const contrato = obraEnriquecida?.contratos?.[0];
+      expect(contrato?.contratoNumero).toBe("CTR-ENRICH-1");
+      expect(contrato?.fornecedorNome).toBe("CONSTRUTORA CENTRAL LTDA");
+      expect(contrato?.valorContrato).toBe(280000);
     });
 
     it("deve ordenar obras com valorInvestimentoPrevisto nulo por último (nulls last)", async () => {
@@ -908,6 +937,63 @@ describe("obras queries", () => {
       expect(contratos[0].licitacaoNumero).toBe("000231");
       expect(contratos[0].ano).toBe(2024);
       expect(contratos[0].licitacaoAno).toBe(2023);
+    });
+  });
+
+  describe("getContratosPorObrasBatch", () => {
+    it("deve retornar mapa vazio se portalSlug for vazio ou idProjetos for vazio", async () => {
+      const resVazio = await getContratosPorObrasBatch("", ["OBR-1"]);
+      expect(resVazio.size).toBe(0);
+
+      const resSemIds = await getContratosPorObrasBatch(PORTAL_A, []);
+      expect(resSemIds.size).toBe(0);
+    });
+
+    it("deve carregar contratos para múltiplas obras em uma única consulta", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "OBR-BATCH-1",
+        nomeObra: "Pavimentação Rua das Flores",
+      });
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "OBR-BATCH-2",
+        nomeObra: "Construção de Creche",
+      });
+
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "CTR-BATCH-1",
+        numeroObra: "OBR-BATCH-1",
+        fornecedorNome: "EMPRESA ASFALTO LTDA",
+        valorContrato: 200000,
+      });
+      await seedContrato({
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        contratoNumero: "CTR-BATCH-2",
+        numeroObra: "OBR-BATCH-2",
+        fornecedorNome: "EMPRESA CONSTRUTORA LTDA",
+        valorContrato: 450000,
+      });
+
+      const batchMap = await getContratosPorObrasBatch(PORTAL_A, [
+        "OBR-BATCH-1",
+        "OBR-BATCH-2",
+        "OBR-SEM-CONTRATO",
+      ]);
+
+      expect(batchMap.size).toBe(3);
+      expect(batchMap.get("OBR-BATCH-1")).toHaveLength(1);
+      expect(batchMap.get("OBR-BATCH-1")?.[0].contratoNumero).toBe(
+        "CTR-BATCH-1",
+      );
+      expect(batchMap.get("OBR-BATCH-2")).toHaveLength(1);
+      expect(batchMap.get("OBR-BATCH-2")?.[0].contratoNumero).toBe(
+        "CTR-BATCH-2",
+      );
+      expect(batchMap.get("OBR-SEM-CONTRATO")).toEqual([]);
     });
   });
 
