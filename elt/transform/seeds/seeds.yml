@@ -140,3 +140,13 @@ seeds:
         saeb_matematica: numeric
         saeb_lingua_portuguesa: numeric
         taxa_aprovacao: numeric
+
+  - name: seed_censo_escolar_matriculas
+    description: "Série histórica de matrículas ativas da rede municipal de ensino apuradas pelo Censo Escolar (INEP/MEC)"
+    config:
+      column_types:
+        portal_slug: text
+        cod_ibge: integer
+        ano: integer
+        total_matriculas_rede_municipal: integer
+

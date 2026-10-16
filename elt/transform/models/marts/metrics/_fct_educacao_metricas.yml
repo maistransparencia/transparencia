@@ -1,0 +1,164 @@
+version: 2
+
+models:
+  - name: fct_educacao_metricas
+    description: "Mart analítico unificado de métricas educacionais (IDEB, Saeb, fluxo escolar), execução orçamentária da Função 12 e custo anual por aluno da rede municipal"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - ano
+            - etapa_ensino
+    columns:
+      - name: educacao_metrica_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Chave surrogate MD5 (portal_slug | ano | etapa_ensino)"
+        tests:
+          - not_null
+          - unique
+
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+
+      - name: cod_ibge
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Código IBGE de 7 dígitos do município"
+        tests:
+          - not_null
+
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Exercício de referência do ciclo avaliativo do IDEB"
+        tests:
+          - not_null
+
+      - name: rede
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Dependência administrativa em lowercase snake_case (estritamente municipal)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['municipal']
+
+      - name: etapa_ensino
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Etapa de ensino fundamental em lowercase snake_case (anos_iniciais, anos_finais)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['anos_iniciais', 'anos_finais']
+
+      - name: nota_ideb
+        data_type: numeric(3, 1)
+        description: "Nota oficial observada do IDEB no ciclo bienal (escala 0 a 10)"
+
+      - name: meta_ideb
+        data_type: numeric(3, 1)
+        description: "Meta projetada do IDEB estabelecida pelo MEC/INEP para o ciclo"
+
+      - name: atingiu_meta_flag
+        data_type: boolean
+        description: "Flag booleana determinística que indica se a nota observada atingiu ou superou a meta projetada (null se sem meta)"
+
+      - name: saeb_matematica
+        data_type: numeric(5, 2)
+        description: "Média padronizada do exame Saeb em Matemática"
+
+      - name: saeb_lingua_portuguesa
+        data_type: numeric(5, 2)
+        description: "Média padronizada do exame Saeb em Língua Portuguesa"
+
+      - name: indicador_fluxo_aprovacao
+        data_type: numeric(7, 6)
+        description: "Indicador de rendimento e taxa de aprovação apurado pelo Censo Escolar"
+
+      - name: crescimento_pontos_ideb
+        data_type: numeric(3, 1)
+        description: "Variação em pontos absolutos do IDEB em relação ao ciclo anterior da mesma etapa de ensino via LAG()"
+
+      - name: variacao_saeb_matematica
+        data_type: numeric(5, 2)
+        description: "Variação da média Saeb de Matemática em relação ao ciclo anterior da mesma etapa via LAG()"
+
+      - name: variacao_saeb_portugues
+        data_type: numeric(5, 2)
+        description: "Variação da média Saeb de Língua Portuguesa em relação ao ciclo anterior da mesma etapa via LAG()"
+
+      - name: despesa_liquidada_educacao
+        data_type: numeric(15, 2)
+        description: "Total de despesas liquidadas no exercício na Função 12 (Educação)"
+
+      - name: total_matriculas_rede_municipal
+        data_type: integer
+        description: "Total oficial de matrículas ativas da rede municipal apuradas no Censo Escolar"
+
+      - name: custo_anual_por_aluno
+        data_type: numeric(15, 2)
+        description: "Custo anual por aluno obtido pela divisão da despesa liquidada da educação pelo total de matrículas ativas"
+
+unit_tests:
+  - name: test_educacao_metricas_crescimento_e_custo_aluno
+    description: "Valida cálculo de crescimento em pontos via LAG, flags de meta e custo anual por aluno"
+    model: fct_educacao_metricas
+    given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cod_ibge: 3304102 }
+      - input: ref('stg_inep__ideb')
+        rows:
+          - { cod_ibge: 3304102, ano: 2021, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 5.2, meta_ideb: 6.4, saeb_matematica: 210.79, saeb_lingua_portuguesa: 198.28, taxa_aprovacao: 0.925460 }
+          - { cod_ibge: 3304102, ano: 2023, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 4.5, meta_ideb: null, saeb_matematica: 190.18, saeb_lingua_portuguesa: 175.60, taxa_aprovacao: 0.942453 }
+          - { cod_ibge: 3304102, ano: 2025, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 5.9, meta_ideb: null, saeb_matematica: 218.39, saeb_lingua_portuguesa: 210.91, taxa_aprovacao: 0.984589 }
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "12", funcao_nome: "Educação", liquidado: 34291936.64 }
+      - input: ref('seed_censo_escolar_matriculas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cod_ibge: 3304102, ano: 2025, total_matriculas_rede_municipal: 2290 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2021, etapa_ensino: "anos_iniciais", nota_ideb: 5.2, meta_ideb: 6.4, atingiu_meta_flag: false, crescimento_pontos_ideb: null, variacao_saeb_matematica: null, variacao_saeb_portugues: null, despesa_liquidada_educacao: null, total_matriculas_rede_municipal: null, custo_anual_por_aluno: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2023, etapa_ensino: "anos_iniciais", nota_ideb: 4.5, meta_ideb: null, atingiu_meta_flag: null, crescimento_pontos_ideb: -0.7, variacao_saeb_matematica: -20.61, variacao_saeb_portugues: -22.68, despesa_liquidada_educacao: null, total_matriculas_rede_municipal: null, custo_anual_por_aluno: null }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, etapa_ensino: "anos_iniciais", nota_ideb: 5.9, meta_ideb: null, atingiu_meta_flag: null, crescimento_pontos_ideb: 1.4, variacao_saeb_matematica: 28.21, variacao_saeb_portugues: 35.31, despesa_liquidada_educacao: 34291936.64, total_matriculas_rede_municipal: 2290, custo_anual_por_aluno: 14974.64 }
+
+  - name: test_educacao_metricas_zero_matriculas_e_meta_superada
+    description: "Valida prevenção de divisão por zero quando matrículas são 0 ou nulas e verificação de meta superada"
+    model: fct_educacao_metricas
+    given:
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "natividade_prefeitura", cod_ibge: 3303104 }
+      - input: ref('stg_inep__ideb')
+        rows:
+          - { cod_ibge: 3303104, ano: 2021, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 5.5, meta_ideb: 5.3, saeb_matematica: 200.00, saeb_lingua_portuguesa: 200.00, taxa_aprovacao: 0.950000 }
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "natividade_prefeitura", ano: 2021, funcao: "12", funcao_nome: "Educação", liquidado: 10000000.00 }
+      - input: ref('seed_censo_escolar_matriculas')
+        rows:
+          - { portal_slug: "natividade_prefeitura", cod_ibge: 3303104, ano: 2021, total_matriculas_rede_municipal: 0 }
+    expect:
+      rows:
+        - { portal_slug: "natividade_prefeitura", ano: 2021, etapa_ensino: "anos_iniciais", nota_ideb: 5.5, meta_ideb: 5.3, atingiu_meta_flag: true, despesa_liquidada_educacao: 10000000.00, total_matriculas_rede_municipal: 0, custo_anual_por_aluno: null }
