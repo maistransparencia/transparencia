@@ -85,6 +85,24 @@ def seed_despesas_educacao(conn):
             r,
         )
     conn.commit()
+    yield
+    conn.execute(
+        text(
+            """
+            DELETE FROM raw_porciuncula_prefeitura.despesas_gerais
+            WHERE ano IN (2021, 2023, 2025) AND empresa = '1' AND numero IN ('1', '2', '3')
+            """
+        )
+    )
+    conn.execute(
+        text(
+            """
+            DELETE FROM raw_natividade_prefeitura.despesas_gerais
+            WHERE ano IN (2021, 2023, 2025) AND empresa = '1' AND numero IN ('1', '2', '3')
+            """
+        )
+    )
+    conn.commit()
 
 
 def test_fct_educacao_metricas_materialization_and_grain(conn):

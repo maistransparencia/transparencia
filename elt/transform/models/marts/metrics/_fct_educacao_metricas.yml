@@ -133,7 +133,8 @@ unit_tests:
           - { cod_ibge: 3304102, ano: 2025, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 5.9, meta_ideb: null, saeb_matematica: 218.39, saeb_lingua_portuguesa: 210.91, taxa_aprovacao: 0.984589 }
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "12", funcao_nome: "Educação", liquidado: 34291936.64 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", funcao_nome: "Educação", liquidado: 34291936.64 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "restos_a_pagar", funcao: "12", funcao_nome: "Educação", liquidado: 500000.00 }
       - input: ref('seed_censo_escolar_matriculas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", cod_ibge: 3304102, ano: 2025, total_matriculas_rede_municipal: 2290 }
@@ -155,7 +156,7 @@ unit_tests:
           - { cod_ibge: 3303104, ano: 2021, rede: "municipal", etapa_ensino: "anos_iniciais", nota_ideb: 5.5, meta_ideb: 5.3, saeb_matematica: 200.00, saeb_lingua_portuguesa: 200.00, taxa_aprovacao: 0.950000 }
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "natividade_prefeitura", ano: 2021, funcao: "12", funcao_nome: "Educação", liquidado: 10000000.00 }
+          - { portal_slug: "natividade_prefeitura", ano: 2021, fonte: "exercicio", funcao: "12", funcao_nome: "Educação", liquidado: 10000000.00 }
       - input: ref('seed_censo_escolar_matriculas')
         rows:
           - { portal_slug: "natividade_prefeitura", cod_ibge: 3303104, ano: 2021, total_matriculas_rede_municipal: 0 }

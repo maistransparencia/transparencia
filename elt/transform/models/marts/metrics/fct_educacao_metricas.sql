@@ -72,7 +72,8 @@ despesas_educacao as (
         ano,
         sum(coalesce(liquidado, 0))::numeric(15, 2) as despesa_liquidada_educacao
     from {{ ref('fct_despesas') }}
-    where (funcao = '12' or lower({{ target.schema }}.unaccent(coalesce(funcao_nome, ''))) like '%educa%')
+    where fonte = 'exercicio'
+      and (funcao = '12' or {{ target.schema }}.unaccent(lower(coalesce(funcao_nome, ''))) like '%educa%')
     group by portal_slug, ano
 ),
 

@@ -149,4 +149,27 @@ seeds:
         cod_ibge: integer
         ano: integer
         total_matriculas_rede_municipal: integer
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - ano
+    columns:
+      - name: portal_slug
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+      - name: cod_ibge
+        description: "Código IBGE de 7 dígitos do município"
+        tests:
+          - not_null
+      - name: ano
+        description: "Exercício do Censo Escolar"
+        tests:
+          - not_null
+      - name: total_matriculas_rede_municipal
+        description: "Total oficial de matrículas ativas da rede municipal"
+        tests:
+          - not_null
+
 
