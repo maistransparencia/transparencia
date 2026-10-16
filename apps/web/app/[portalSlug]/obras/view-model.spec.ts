@@ -1,4 +1,8 @@
-import type { ObraContratoDTO, ObraDTO } from "@transparencia/db";
+import type {
+  ObraContratoDTO,
+  ObraDTO,
+  ObraEmpenhoFederalDTO,
+} from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
   buildObraDetalheViewModel,
@@ -6,6 +10,7 @@ import {
   getMapCenter,
   getSituacaoVisual,
   mapContratoToViewModel,
+  mapEmpenhoFederalToViewModel,
 } from "./view-model";
 
 describe("obras/view-model", () => {
@@ -670,6 +675,139 @@ describe("obras/view-model", () => {
       );
       expect(vmCancelado.statusLabel).toBe("Cancelado");
       expect(vmCancelado.statusBadgeClasses).toContain("text-rose-700");
+    });
+  });
+
+  describe("mapEmpenhoFederalToViewModel", () => {
+    it("deve mapear todos os campos do DTO com formatação monetária e de data", () => {
+      const dto: ObraEmpenhoFederalDTO = {
+        nrEmpenho: "2023NE001234",
+        ugEmitente: "153001",
+        anoEmpenho: 2023,
+        valorEmpenho: 250000.75,
+        dataEmissao: "2023-11-20",
+        sistemaOrigem: "Transferegov",
+        naturezaDespesa: "449051",
+        fonte: "0100",
+        programaTrabalho: "PT-001",
+        planoInterno: "PI-002",
+        acaoOrcamentaria: "10E4",
+        descricao: "Aquisição de materiais para UBS",
+      };
+
+      const vm = mapEmpenhoFederalToViewModel(dto);
+
+      expect(vm.nrEmpenho).toBe("2023NE001234");
+      expect(vm.ugEmitente).toBe("153001");
+      expect(vm.anoEmpenho).toBe(2023);
+      expect(vm.valorEmpenho).toBe(250000.75);
+      expect(vm.valorEmpenhoFormatado).toContain("250.000,75");
+      expect(vm.dataEmissao).toBe("2023-11-20");
+      expect(vm.dataEmissaoFormatada).toBe("20/11/2023");
+      expect(vm.sistemaOrigem).toBe("Transferegov");
+      expect(vm.naturezaDespesa).toBe("449051");
+      expect(vm.fonte).toBe("0100");
+      expect(vm.programaTrabalho).toBe("PT-001");
+      expect(vm.planoInterno).toBe("PI-002");
+      expect(vm.acaoOrcamentaria).toBe("10E4");
+      expect(vm.descricao).toBe("Aquisição de materiais para UBS");
+    });
+
+    it("deve aplicar fallbacks para campos nulos e sistemaOrigem vazio", () => {
+      const dtoVazio: ObraEmpenhoFederalDTO = {
+        nrEmpenho: "2024NE000001",
+        ugEmitente: null,
+        anoEmpenho: null,
+        valorEmpenho: 0,
+        dataEmissao: null,
+        sistemaOrigem: "  ",
+        naturezaDespesa: null,
+        fonte: null,
+        programaTrabalho: null,
+        planoInterno: null,
+        acaoOrcamentaria: null,
+        descricao: null,
+      };
+
+      const vm = mapEmpenhoFederalToViewModel(dtoVazio);
+
+      expect(vm.nrEmpenho).toBe("2024NE000001");
+      expect(vm.ugEmitente).toBeNull();
+      expect(vm.anoEmpenho).toBeNull();
+      expect(vm.valorEmpenho).toBe(0);
+      expect(vm.valorEmpenhoFormatado).toContain("0,00");
+      expect(vm.dataEmissao).toBeNull();
+      expect(vm.dataEmissaoFormatada).toBe("Não informada");
+      expect(vm.sistemaOrigem).toBe("SIAFI");
+      expect(vm.descricao).toBeNull();
+    });
+  });
+
+  describe("buildObraDetalheViewModel com empenhos federais", () => {
+    it("deve mapear empenhos e calcular total acumulado quando não fornecido", () => {
+      const obraComEmpenhos: ObraDTO = {
+        idProjeto: "99887",
+        portalSlug: "porciuncula_prefeitura",
+        nomeObra: "REFORMA DE ESCOLA MUNICIPAL",
+        situacao: "em_execucao",
+        orgaoResponsavel: "SECRETARIA DE EDUCACAO",
+        valorInvestimentoPrevisto: 500000,
+        percentualExecucaoFisica: 50,
+        dataUltimaMedicao: "2024-06-01",
+        latitude: null,
+        longitude: null,
+        motivoParalisacao: null,
+        dataInicioPrevista: null,
+        dataFimPrevista: null,
+        empenhosFederais: [
+          {
+            nrEmpenho: "2023NE000100",
+            ugEmitente: "153001",
+            anoEmpenho: 2023,
+            valorEmpenho: 150000,
+            dataEmissao: "2023-05-10",
+            sistemaOrigem: "SIAFI",
+            naturezaDespesa: null,
+            fonte: null,
+            programaTrabalho: null,
+            planoInterno: null,
+            acaoOrcamentaria: null,
+            descricao: null,
+          },
+          {
+            nrEmpenho: "2024NE000200",
+            ugEmitente: "153001",
+            anoEmpenho: 2024,
+            valorEmpenho: 200000,
+            dataEmissao: "2024-02-15",
+            sistemaOrigem: "SIAFI",
+            naturezaDespesa: null,
+            fonte: null,
+            programaTrabalho: null,
+            planoInterno: null,
+            acaoOrcamentaria: null,
+            descricao: null,
+          },
+        ],
+      };
+
+      const vm = buildObraDetalheViewModel(
+        obraComEmpenhos,
+        "porciuncula_prefeitura",
+      );
+
+      expect(vm.quantidadeEmpenhosFederais).toBe(2);
+      expect(vm.valorTotalEmpenhadoFederal).toBe(350000);
+      expect(vm.valorTotalEmpenhadoFederalFormatado).toContain("350.000,00");
+      expect(vm.empenhosFederais).toHaveLength(2);
+      expect(vm.empenhosFederais[0].nrEmpenho).toBe("2023NE000100");
+      expect(vm.empenhosFederais[0].valorEmpenhoFormatado).toContain(
+        "150.000,00",
+      );
+      expect(vm.empenhosFederais[1].nrEmpenho).toBe("2024NE000200");
+      expect(vm.empenhosFederais[1].valorEmpenhoFormatado).toContain(
+        "200.000,00",
+      );
     });
   });
 });

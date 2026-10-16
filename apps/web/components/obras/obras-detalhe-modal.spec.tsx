@@ -289,4 +289,69 @@ describe("ObrasDetalheModal Component", () => {
 
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  it("renderiza a seção de empenhos federais quando a obra possui repasses federais vinculados", () => {
+    const mockObraComEmpenhos: ObraItemViewModel = {
+      ...mockObraExecucao,
+      valorTotalEmpenhadoFederal: 250000,
+      valorTotalEmpenhadoFederalFormatado: "R$ 250.000,00",
+      quantidadeEmpenhosFederais: 1,
+      empenhosFederais: [
+        {
+          nrEmpenho: "2023NE003130",
+          anoEmpenho: 2023,
+          ugEmitente: "175004",
+          valorEmpenho: 250000,
+          valorEmpenhoFormatado: "R$ 250.000,00",
+          dataEmissao: "2023-11-20",
+          dataEmissaoFormatada: "20/11/2023",
+          sistemaOrigem: "SIAFI",
+          naturezaDespesa: "449051",
+          fonte: "0100",
+          programaTrabalho: null,
+          planoInterno: null,
+          acaoOrcamentaria: "10E4",
+          descricao: "Construção de Unidade Básica de Saúde",
+        },
+      ],
+    };
+
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={vi.fn()}
+        obra={mockObraComEmpenhos}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.getByText("Empenhos Federais (Transferegov.br / SIAFI)"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2023NE003130")).toBeInTheDocument();
+    expect(screen.getByText("UG: 175004")).toBeInTheDocument();
+    expect(screen.getByText("Ano 2023")).toBeInTheDocument();
+    expect(screen.getByText("SIAFI")).toBeInTheDocument();
+    expect(
+      screen.getByText("Construção de Unidade Básica de Saúde"),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza estado vazio de empenhos federais quando a obra não possui repasses vinculados", () => {
+    render(
+      <ObrasDetalheModal
+        isOpen={true}
+        onClose={vi.fn()}
+        obra={mockObraExecucao}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.getByTestId("obras-empenhos-federais-empty-state"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum empenho federal vinculado no ObrasGov.br"),
+    ).toBeInTheDocument();
+  });
 });

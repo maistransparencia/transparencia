@@ -1,6 +1,7 @@
 import type {
   ObraContratoDTO,
   ObraDTO,
+  ObraEmpenhoFederalDTO,
   SituacaoObra,
   SituacaoObraFiltro,
 } from "@transparencia/db";
@@ -173,6 +174,46 @@ export function mapContratoToViewModel(
   };
 }
 
+export interface ObraEmpenhoFederalViewModel {
+  nrEmpenho: string;
+  anoEmpenho: number | null;
+  ugEmitente: string | null;
+  valorEmpenho: number;
+  valorEmpenhoFormatado: string;
+  dataEmissao: string | null;
+  dataEmissaoFormatada: string;
+  sistemaOrigem: string;
+  naturezaDespesa: string | null;
+  fonte: string | null;
+  programaTrabalho: string | null;
+  planoInterno: string | null;
+  acaoOrcamentaria: string | null;
+  descricao: string | null;
+}
+
+export function mapEmpenhoFederalToViewModel(
+  empenho: ObraEmpenhoFederalDTO,
+): ObraEmpenhoFederalViewModel {
+  return {
+    nrEmpenho: empenho.nrEmpenho,
+    anoEmpenho: empenho.anoEmpenho ?? null,
+    ugEmitente: empenho.ugEmitente ?? null,
+    valorEmpenho: empenho.valorEmpenho ?? 0,
+    valorEmpenhoFormatado: fmtCurrency(empenho.valorEmpenho ?? 0),
+    dataEmissao: empenho.dataEmissao ?? null,
+    dataEmissaoFormatada: empenho.dataEmissao
+      ? fmtDate(empenho.dataEmissao)
+      : "Não informada",
+    sistemaOrigem: empenho.sistemaOrigem?.trim() || "SIAFI",
+    naturezaDespesa: empenho.naturezaDespesa ?? null,
+    fonte: empenho.fonte ?? null,
+    programaTrabalho: empenho.programaTrabalho ?? null,
+    planoInterno: empenho.planoInterno ?? null,
+    acaoOrcamentaria: empenho.acaoOrcamentaria ?? null,
+    descricao: empenho.descricao ?? null,
+  };
+}
+
 export interface ObraItemViewModel {
   idProjeto: string;
   portalSlug: string;
@@ -210,7 +251,11 @@ export interface ObraItemViewModel {
   repassadorNome?: string | null;
   repassadorCnpj?: string | null;
   repassadorCnpjMascarado?: string | null;
+  valorTotalEmpenhadoFederal?: number;
+  valorTotalEmpenhadoFederalFormatado?: string;
+  quantidadeEmpenhosFederais?: number;
   contratos?: ObraContratoViewModel[];
+  empenhosFederais?: ObraEmpenhoFederalViewModel[];
 }
 
 export interface ObraMarkerItem {
@@ -417,8 +462,17 @@ function mapObraToViewModel(
     repassadorCnpjMascarado: obra.repassadorCnpj
       ? maskCpfCnpj(obra.repassadorCnpj)
       : null,
+    valorTotalEmpenhadoFederal: obra.valorTotalEmpenhadoFederal ?? 0,
+    valorTotalEmpenhadoFederalFormatado: fmtCurrency(
+      obra.valorTotalEmpenhadoFederal ?? 0,
+    ),
+    quantidadeEmpenhosFederais:
+      obra.quantidadeEmpenhosFederais ?? obra.empenhosFederais?.length ?? 0,
     contratos: (obra.contratos ?? []).map((c) =>
       mapContratoToViewModel(c, obra.portalSlug || ""),
+    ),
+    empenhosFederais: (obra.empenhosFederais ?? []).map(
+      mapEmpenhoFederalToViewModel,
     ),
   };
 }
@@ -585,7 +639,11 @@ export interface ObraDetalheViewModel {
   repassadorNome: string | null;
   repassadorCnpj: string | null;
   repassadorCnpjMascarado: string | null;
+  valorTotalEmpenhadoFederal: number;
+  valorTotalEmpenhadoFederalFormatado: string;
+  quantidadeEmpenhosFederais: number;
   contratos: ObraContratoViewModel[];
+  empenhosFederais: ObraEmpenhoFederalViewModel[];
 }
 
 export function buildObraDetalheViewModel(
@@ -703,6 +761,21 @@ export function buildObraDetalheViewModel(
     mapContratoToViewModel(c, cleanPortalSlug),
   );
 
+  const valorTotalEmpenhadoFederal =
+    obra.valorTotalEmpenhadoFederal ??
+    (obra.empenhosFederais ?? []).reduce(
+      (acc, emp) => acc + (emp.valorEmpenho ?? 0),
+      0,
+    );
+  const valorTotalEmpenhadoFederalFormatado = fmtCurrency(
+    valorTotalEmpenhadoFederal,
+  );
+  const quantidadeEmpenhosFederais =
+    obra.quantidadeEmpenhosFederais ?? obra.empenhosFederais?.length ?? 0;
+  const empenhosFederais = (obra.empenhosFederais ?? []).map(
+    mapEmpenhoFederalToViewModel,
+  );
+
   return {
     idProjeto: obra.idProjeto,
     portalSlug: cleanPortalSlug,
@@ -747,6 +820,10 @@ export function buildObraDetalheViewModel(
     repassadorCnpjMascarado: obra.repassadorCnpj
       ? maskCpfCnpj(obra.repassadorCnpj)
       : null,
+    valorTotalEmpenhadoFederal,
+    valorTotalEmpenhadoFederalFormatado,
+    quantidadeEmpenhosFederais,
     contratos,
+    empenhosFederais,
   };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ObraEmpenhoFederalDTO } from "@transparencia/db";
 import { cn, ModalDialog } from "@transparencia/ui";
 import {
   AlertTriangle,
@@ -16,6 +17,7 @@ import {
   type ObraItemViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
 import { ObrasContratosVinculados } from "./obras-contratos-vinculados";
+import { ObrasEmpenhosFederais } from "./obras-empenhos-federais";
 import { ObrasGraficoAvancoDuplo } from "./obras-grafico-avanco-duplo";
 
 export interface ObrasDetalheModalProps {
@@ -33,7 +35,11 @@ export function ObrasDetalheModal({
 }: ObrasDetalheModalProps) {
   const viewModel: ObraDetalheViewModel | null = useMemo(() => {
     if (!obra) return null;
-    if ("alertaDescompasso" in obra && "contratos" in obra) {
+    if (
+      "alertaDescompasso" in obra &&
+      "contratos" in obra &&
+      "empenhosFederais" in obra
+    ) {
       return obra as ObraDetalheViewModel;
     }
 
@@ -80,6 +86,18 @@ export function ObrasDetalheModal({
           "repassadorCnpj" in obra
             ? (obra.repassadorCnpj as string | null)
             : null,
+        valorTotalEmpenhadoFederal:
+          "valorTotalEmpenhadoFederal" in obra
+            ? (obra.valorTotalEmpenhadoFederal as number | undefined)
+            : undefined,
+        quantidadeEmpenhosFederais:
+          "quantidadeEmpenhosFederais" in obra
+            ? (obra.quantidadeEmpenhosFederais as number | undefined)
+            : undefined,
+        empenhosFederais:
+          "empenhosFederais" in obra && Array.isArray(obra.empenhosFederais)
+            ? (obra.empenhosFederais as ObraEmpenhoFederalDTO[])
+            : undefined,
       },
       portalSlug,
     );
@@ -87,6 +105,7 @@ export function ObrasDetalheModal({
     return {
       ...baseDetalhe,
       contratos: Array.isArray(obra.contratos) ? obra.contratos : [],
+      empenhosFederais: baseDetalhe.empenhosFederais,
     };
   }, [obra, portalSlug]);
 
@@ -318,6 +337,16 @@ export function ObrasDetalheModal({
           contratos={viewModel.contratos}
           portalSlug={viewModel.portalSlug}
           onNavigate={onClose}
+        />
+
+        {/* Seção Dedicada de Empenhos Federais (Transferegov.br / SIAFI) */}
+        <ObrasEmpenhosFederais
+          empenhos={viewModel.empenhosFederais}
+          valorTotalFormatado={
+            viewModel.valorTotalEmpenhadoFederal > 0
+              ? viewModel.valorTotalEmpenhadoFederalFormatado
+              : undefined
+          }
         />
 
         {/* Identificador Oficial e Legislação de Regência */}
