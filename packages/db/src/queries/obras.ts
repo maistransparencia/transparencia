@@ -413,36 +413,10 @@ export async function getContratosPorObrasBatch(
     WITH obra_alvo AS (
       SELECT
         portal_slug,
-        id_projeto,
-        nome_obra,
-        descricao_intervencao,
-        data_fim_prevista,
-        situacao
+        id_projeto
       FROM fct_obras
       WHERE portal_slug = ${cleanSlug}
         AND id_projeto = ANY(${cleanIds})
-    ),
-    obra_meta AS (
-      SELECT
-        portal_slug,
-        id_projeto,
-        nome_obra,
-        descricao_intervencao,
-        data_fim_prevista,
-        situacao,
-        trim(regexp_replace(
-          unaccent(lower(coalesce(nome_obra, ''))),
-          '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
-          ' ',
-          'g'
-        )) AS nucleo_obra,
-        trim(regexp_replace(
-          unaccent(lower(coalesce(descricao_intervencao, ''))),
-          '\y(implantacao|implementacao|construcao|reforma|ampliacao|adequacao|melhorias|manutencao|execucao|apoio|projeto|projetos|obra|obras|servico|servicos|a|o|as|os|de|da|do|das|dos|e|em|no|na|nos|nas|para|com|por|pelo|pela|pelos|pelas|ao|aos|um|uma)\y',
-          ' ',
-          'g'
-        )) AS nucleo_intervencao
-      FROM obra_alvo
     )
     SELECT DISTINCT ON (o.id_projeto, c.contrato_numero)
       o.id_projeto AS obra_id_projeto,
@@ -491,7 +465,7 @@ export async function getContratosPorObrasBatch(
         LIMIT 1
       ) AS licitacao_ano
     FROM fct_contratos c
-    INNER JOIN obra_meta o
+    INNER JOIN obra_alvo o
       ON c.portal_slug = o.portal_slug
     WHERE
       (c.numero_obra IS NOT NULL AND c.numero_obra = o.id_projeto)
@@ -504,20 +478,6 @@ export async function getContratosPorObrasBatch(
       )
       OR (
         unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) LIKE '%' || unaccent(lower('projeto ' || o.id_projeto)) || '%'
-      )
-      OR (
-        (
-          (length(o.nucleo_obra) >= 5 AND word_similarity(o.nucleo_obra, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55)
-          OR
-          (length(o.nucleo_intervencao) >= 5 AND word_similarity(o.nucleo_intervencao, unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, '')))) >= 0.55)
-        )
-        AND (
-          (o.data_fim_prevista IS NULL OR c.ano <= (EXTRACT(YEAR FROM o.data_fim_prevista) + 2))
-        )
-        AND (
-          unaccent(lower(coalesce(c.objeto_completo, '') || ' ' || coalesce(c.objeto, ''))) ~ '\y(obra|obras|construcao|reforma|engenharia|pavimentacao|drenagem|esgotamento|instalacoes|edificacao|recapeamento|infraestrutura|projeto)\y'
-          OR coalesce(c.modalidade, '') ~* 'concorrencia|tomada_de_precos'
-        )
       )
     ORDER BY
       o.id_projeto ASC,
