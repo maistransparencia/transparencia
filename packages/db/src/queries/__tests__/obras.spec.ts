@@ -5,10 +5,13 @@ import {
   seedContrato,
   seedLicitacao,
   seedObra,
+  seedObraEmpenho,
 } from "../../../tests/fixtures/seed";
 import {
   getContratosPorObra,
   getContratosPorObrasBatch,
+  getEmpenhosFederaisPorObra,
+  getEmpenhosFederaisPorObrasBatch,
   getObraDetalhe,
   getObrasPorPortal,
   getResumoObrasPorPortal,
@@ -1139,6 +1142,151 @@ describe("obras queries", () => {
       expect(resumoB.emExecucao).toBe(0);
       expect(resumoB.concluidas).toBe(1);
       expect(resumoB.valorTotalInvestimento).toBe(200000);
+    });
+  });
+
+  describe("empenhos federais (ObrasGov.br / SIAFI)", () => {
+    it("deve retornar Map vazio se portalSlug ou idProjetos forem vazios ou inválidos", async () => {
+      expect((await getEmpenhosFederaisPorObrasBatch("", ["123"])).size).toBe(
+        0,
+      );
+      expect(
+        (await getEmpenhosFederaisPorObrasBatch("   ", ["123"])).size,
+      ).toBe(0);
+      expect((await getEmpenhosFederaisPorObrasBatch(PORTAL_A, [])).size).toBe(
+        0,
+      );
+      // @ts-expect-error teste com valor inválido
+      expect((await getEmpenhosFederaisPorObrasBatch(null, ["123"])).size).toBe(
+        0,
+      );
+      // @ts-expect-error teste com valor inválido
+      expect(
+        (await getEmpenhosFederaisPorObrasBatch(PORTAL_A, null)).size,
+      ).toBe(0);
+    });
+
+    it("deve retornar array vazio se getEmpenhosFederaisPorObra receber inputs vazios", async () => {
+      expect(await getEmpenhosFederaisPorObra("", "123")).toEqual([]);
+      expect(await getEmpenhosFederaisPorObra(PORTAL_A, "")).toEqual([]);
+      // @ts-expect-error teste com valor inválido
+      expect(await getEmpenhosFederaisPorObra(null, "123")).toEqual([]);
+      // @ts-expect-error teste com valor inválido
+      expect(await getEmpenhosFederaisPorObra(PORTAL_A, null)).toEqual([]);
+    });
+
+    it("deve retornar empenhos federais vinculados à obra com isolamento estrito de tenant", async () => {
+      await seedObra({
+        portalSlug: PORTAL_A,
+        idProjeto: "32382.33-24",
+        nomeObra: "Reforma de Escola A",
+        valorTotalEmpenhadoFederal: 250000,
+        quantidadeEmpenhosFederais: 2,
+      });
+
+      await seedObraEmpenho({
+        portalSlug: PORTAL_A,
+        idProjeto: "32382.33-24",
+        nrEmpenho: "2023NE003130",
+        ugEmitente: "175004",
+        anoEmpenho: 2023,
+        valorEmpenho: 150000,
+        dataEmissao: "2023-11-20",
+        sistemaOrigemEmpenho: "SIAFI",
+        naturezaDespesa: "449051",
+        descricaoEmpenho: "Construção de Unidade Escolar",
+      });
+
+      await seedObraEmpenho({
+        portalSlug: PORTAL_A,
+        idProjeto: "32382.33-24",
+        nrEmpenho: "2024NE001091",
+        ugEmitente: "175004",
+        anoEmpenho: 2024,
+        valorEmpenho: 100000,
+        dataEmissao: "2024-03-15",
+        sistemaOrigemEmpenho: "SIAFI",
+        naturezaDespesa: "449051",
+        descricaoEmpenho: "Complementação de Recursos Escola",
+      });
+
+      // Obra e empenho com mesmo ID em outro município (PORTAL_B)
+      await seedObra({
+        portalSlug: PORTAL_B,
+        idProjeto: "32382.33-24",
+        nomeObra: "Obra de Outro Município",
+        valorTotalEmpenhadoFederal: 800000,
+        quantidadeEmpenhosFederais: 1,
+      });
+
+      await seedObraEmpenho({
+        portalSlug: PORTAL_B,
+        idProjeto: "32382.33-24",
+        nrEmpenho: "2024NE999999",
+        ugEmitente: "255000",
+        anoEmpenho: 2024,
+        valorEmpenho: 800000,
+        dataEmissao: "2024-05-01",
+        descricaoEmpenho: "Empenho do Município B",
+      });
+
+      // 1. Testa getEmpenhosFederaisPorObrasBatch
+      const mapA = await getEmpenhosFederaisPorObrasBatch(PORTAL_A, [
+        "32382.33-24",
+      ]);
+      const empenhosA = mapA.get("32382.33-24") ?? [];
+      expect(empenhosA).toHaveLength(2);
+
+      // Ordenação decrescente por dataEmissao
+      expect(empenhosA[0].nrEmpenho).toBe("2024NE001091");
+      expect(empenhosA[0].valorEmpenho).toBe(100000);
+      expect(empenhosA[0].anoEmpenho).toBe(2024);
+      expect(empenhosA[0].ugEmitente).toBe("175004");
+      expect(empenhosA[0].sistemaOrigem).toBe("SIAFI");
+      expect(empenhosA[0].naturezaDespesa).toBe("449051");
+      expect(empenhosA[1].nrEmpenho).toBe("2023NE003130");
+      expect(empenhosA[1].valorEmpenho).toBe(150000);
+
+      // Validação estrita de camelCase (Regra 18)
+      expect(empenhosA[0]).toHaveProperty("nrEmpenho");
+      expect(empenhosA[0]).toHaveProperty("anoEmpenho");
+      expect(empenhosA[0]).toHaveProperty("ugEmitente");
+      expect(empenhosA[0]).toHaveProperty("valorEmpenho");
+      expect(empenhosA[0]).toHaveProperty("dataEmissao");
+      expect(empenhosA[0]).toHaveProperty("sistemaOrigem");
+      expect(empenhosA[0]).toHaveProperty("descricao");
+      expect(empenhosA[0]).not.toHaveProperty("nr_empenho");
+      expect(empenhosA[0]).not.toHaveProperty("ug_emitente");
+      expect(empenhosA[0]).not.toHaveProperty("valor_empenho");
+
+      // Zero tenant leakage: nenhum empenho do portal B deve vir no portal A
+      const empenhoBNoPortalA = empenhosA.find(
+        (e) => e.nrEmpenho === "2024NE999999",
+      );
+      expect(empenhoBNoPortalA).toBeUndefined();
+
+      // 2. Testa getEmpenhosFederaisPorObra
+      const empenhosUnicos = await getEmpenhosFederaisPorObra(
+        PORTAL_A,
+        "32382.33-24",
+      );
+      expect(empenhosUnicos).toHaveLength(2);
+      expect(empenhosUnicos[0].nrEmpenho).toBe("2024NE001091");
+
+      // 3. Testa getObraDetalhe enriquecido com empenhos federais
+      const detalhe = await getObraDetalhe(PORTAL_A, "32382.33-24");
+      expect(detalhe).not.toBeNull();
+      expect(detalhe?.valorTotalEmpenhadoFederal).toBe(250000);
+      expect(detalhe?.quantidadeEmpenhosFederais).toBe(2);
+      expect(detalhe?.empenhosFederais).toHaveLength(2);
+      expect(detalhe?.empenhosFederais?.[0].nrEmpenho).toBe("2024NE001091");
+
+      // 4. Testa getObrasPorPortal enriquecido em lote com empenhos federais
+      const obras = await getObrasPorPortal(PORTAL_A);
+      expect(obras).toHaveLength(1);
+      expect(obras[0].valorTotalEmpenhadoFederal).toBe(250000);
+      expect(obras[0].quantidadeEmpenhosFederais).toBe(2);
+      expect(obras[0].empenhosFederais).toHaveLength(2);
     });
   });
 });

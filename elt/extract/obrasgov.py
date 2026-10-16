@@ -206,6 +206,38 @@ class ObrasGovExtractor:
 
         return historicos
 
+    def extract_empenhos(
+        self,
+        id_projeto: str,
+        session: requests.Session | None = None,
+    ) -> list[dict[str, Any]]:
+        """Extrai empenhos federais (SIAFI / Transferegov.br) vinculados a um projeto de investimento."""
+        pagina = 1
+        tamanho_pagina = 50
+        empenhos: list[dict[str, Any]] = []
+
+        while True:
+            payload = self._request(
+                "empenho",
+                params={"id_projeto_investimento": id_projeto, "pagina": pagina, "tamanho_da_pagina": tamanho_pagina},
+                session=session,
+            )
+            if not payload or not isinstance(payload, dict):
+                break
+            items = payload.get("data", [])
+            if not items:
+                break
+            empenhos.extend(items)
+            try:
+                total_pages = int(payload.get("total_pages") or 1)
+            except (ValueError, TypeError):
+                total_pages = 1
+            if pagina >= total_pages or pagina >= 100:
+                break
+            pagina += 1
+
+        return empenhos
+
     def extract(
         self,
         portal_slug: str,
@@ -240,6 +272,7 @@ class ObrasGovExtractor:
                     "geometrias": [],
                     "execucoes_fisicas": [],
                     "historico_paralisacoes": [],
+                    "empenhos": [],
                 }
 
             # Agrupa geometrias iniciais por id de projeto
@@ -259,6 +292,7 @@ class ObrasGovExtractor:
             geometrias_rows: list[dict[str, Any]] = []
             execucoes_rows: list[dict[str, Any]] = []
             historicos_rows: list[dict[str, Any]] = []
+            empenhos_rows: list[dict[str, Any]] = []
 
             for pid in ids_projetos:
                 try:
@@ -398,6 +432,43 @@ class ObrasGovExtractor:
                                 "data_extracao": now_iso,
                             }
                         )
+
+                    # 5. Empenhos federais (SIAFI / Transferegov.br)
+                    emp_items = self.extract_empenhos(pid, session=session)
+                    for emp in emp_items:
+                        nr_emp = emp.get("nr_empenho")
+                        if not nr_emp:
+                            continue
+                        empenhos_rows.append(
+                            {
+                                "portal_slug": portal_slug,
+                                "id_projeto_investimento": pid,
+                                "nr_empenho": str(nr_emp),
+                                "ug_emitente": str(emp.get("ug_emitente"))
+                                if emp.get("ug_emitente") is not None
+                                else None,
+                                "valor_empenho": str(emp.get("valor_empenho"))
+                                if emp.get("valor_empenho") is not None
+                                else None,
+                                "data_emissao": emp.get("data_emissao"),
+                                "sistema_origem_empenho": emp.get("sistema_origem_empenho"),
+                                "natureza_despesa": str(emp.get("natureza_despesa"))
+                                if emp.get("natureza_despesa") is not None
+                                else None,
+                                "fonte": str(emp.get("fonte")) if emp.get("fonte") is not None else None,
+                                "programa_trabalho": str(emp.get("programa_trabalho"))
+                                if emp.get("programa_trabalho") is not None
+                                else None,
+                                "plano_interno": str(emp.get("plano_interno"))
+                                if emp.get("plano_interno") is not None
+                                else None,
+                                "acao_orcamentaria": str(emp.get("acao_orcamentaria"))
+                                if emp.get("acao_orcamentaria") is not None
+                                else None,
+                                "descricao_empenho": emp.get("descricao_empenho"),
+                                "data_extracao": now_iso,
+                            }
+                        )
                 except Exception as e:
                     logger.warning("Erro ao extrair detalhes do projeto %s (%s): %s", pid, portal_slug, e)
                     continue
@@ -407,6 +478,7 @@ class ObrasGovExtractor:
                 "geometrias": geometrias_rows,
                 "execucoes_fisicas": execucoes_rows,
                 "historico_paralisacoes": historicos_rows,
+                "empenhos": empenhos_rows,
             }
         finally:
             session.close()

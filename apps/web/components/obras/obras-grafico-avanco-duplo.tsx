@@ -72,9 +72,6 @@ export function ObrasGraficoAvancoDuplo({
               <span className="font-semibold text-slate-900">
                 Execução Física Oficial
               </span>
-              <span className="flex-shink rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
-                Boletim Técnico ObrasGov.br
-              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base text-slate-900 tabular-nums">
@@ -101,14 +98,13 @@ export function ObrasGraficoAvancoDuplo({
             />
           </div>
 
-          <div className="flex items-center justify-between text-slate-500 text-xs">
+          <div className="text-slate-500 text-xs">
             <span>
               Última medição técnica em campo:{" "}
               <strong className="text-slate-700">
                 {dataUltimaMedicaoFormatada}
               </strong>
             </span>
-            <span>Meta: 100%</span>
           </div>
         </div>
 
@@ -119,9 +115,6 @@ export function ObrasGraficoAvancoDuplo({
               <span className="h-3 w-3 rounded-sm bg-blue-600" />
               <span className="font-semibold text-slate-900">
                 Execução Financeira
-              </span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
-                Desembolsos Contábeis
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -149,13 +142,12 @@ export function ObrasGraficoAvancoDuplo({
             />
           </div>
 
-          <div className="flex items-center justify-between text-slate-500 text-xs">
+          <div className="text-slate-500 text-xs">
             <span>
               {percentualExecucaoFinanceira !== null
                 ? "Total liberado/pago acumulado"
                 : "Informação contábil em fase de consolidação"}
             </span>
-            <span>Meta: 100%</span>
           </div>
         </div>
       </div>

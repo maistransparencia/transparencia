@@ -33,6 +33,21 @@ export interface ObraContratoDTO {
   objeto?: string | null;
 }
 
+export interface ObraEmpenhoFederalDTO {
+  nrEmpenho: string;
+  anoEmpenho: number | null;
+  ugEmitente: string | null;
+  valorEmpenho: number;
+  dataEmissao: string | null;
+  sistemaOrigem: string | null;
+  naturezaDespesa: string | null;
+  fonte: string | null;
+  programaTrabalho: string | null;
+  planoInterno: string | null;
+  acaoOrcamentaria: string | null;
+  descricao: string | null;
+}
+
 export interface ObraDTO {
   idProjeto: string;
   portalSlug: string;
@@ -57,7 +72,10 @@ export interface ObraDTO {
   executorCnpj?: string | null;
   repassadorNome?: string | null;
   repassadorCnpj?: string | null;
+  valorTotalEmpenhadoFederal?: number;
+  quantidadeEmpenhosFederais?: number;
   contratos?: ObraContratoDTO[];
+  empenhosFederais?: ObraEmpenhoFederalDTO[];
 }
 
 export interface GetObrasFiltros {
@@ -106,6 +124,8 @@ const OBRA_SELECT_COLUMNS = [
   "executor_cnpj",
   "repassador_nome",
   "repassador_cnpj",
+  "valor_total_empenhado_federal",
+  "quantidade_empenhos_federais",
 ] as const;
 
 function toIsoDateString(val: unknown): string | null {
@@ -146,6 +166,8 @@ type ObraRow = {
   executor_cnpj?: string | null;
   repassador_nome?: string | null;
   repassador_cnpj?: string | null;
+  valor_total_empenhado_federal?: string | number | null;
+  quantidade_empenhos_federais?: string | number | null;
 };
 
 function mapRowToObraDTO(row: ObraRow): ObraDTO {
@@ -163,6 +185,16 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
     row.percentual_execucao_financeira != null
       ? Number(row.percentual_execucao_financeira)
       : null;
+
+  const valorTotalEmpenhadoFederal =
+    row.valor_total_empenhado_federal != null
+      ? Number(row.valor_total_empenhado_federal)
+      : 0;
+
+  const quantidadeEmpenhosFederais =
+    row.quantidade_empenhos_federais != null
+      ? Number(row.quantidade_empenhos_federais)
+      : 0;
 
   const rawLat = row.latitude != null ? Number(row.latitude) : null;
   const rawLng = row.longitude != null ? Number(row.longitude) : null;
@@ -236,6 +268,12 @@ function mapRowToObraDTO(row: ObraRow): ObraDTO {
       row.repassador_nome != null ? String(row.repassador_nome) : null,
     repassadorCnpj:
       row.repassador_cnpj != null ? String(row.repassador_cnpj) : null,
+    valorTotalEmpenhadoFederal: Number.isNaN(valorTotalEmpenhadoFederal)
+      ? 0
+      : valorTotalEmpenhadoFederal,
+    quantidadeEmpenhosFederais: Number.isNaN(quantidadeEmpenhosFederais)
+      ? 0
+      : quantidadeEmpenhosFederais,
   };
 }
 
@@ -315,16 +353,17 @@ export async function getObrasPorPortal(
     return [];
   }
 
-  // Enriquece as obras com os contratos municipais correlacionados em batch único (Regra 22)
+  // Enriquece as obras com os contratos municipais e empenhos federais correlacionados em batch único (Regra 22)
   const idsProjetos = obrasBase.map((o) => o.idProjeto).filter(Boolean);
-  const contratosPorObraMap = await getContratosPorObrasBatch(
-    cleanSlug,
-    idsProjetos,
-  );
+  const [contratosPorObraMap, empenhosPorObraMap] = await Promise.all([
+    getContratosPorObrasBatch(cleanSlug, idsProjetos),
+    getEmpenhosFederaisPorObrasBatch(cleanSlug, idsProjetos),
+  ]);
 
   return obrasBase.map((obra) => ({
     ...obra,
     contratos: contratosPorObraMap.get(obra.idProjeto?.trim()) ?? [],
+    empenhosFederais: empenhosPorObraMap.get(obra.idProjeto?.trim()) ?? [],
   }));
 }
 
@@ -535,9 +574,155 @@ export async function getContratosPorObra(
   return map.get(idProjeto.trim()) ?? [];
 }
 
+type ObraEmpenhoFederalRow = {
+  id_projeto?: string | null;
+  nr_empenho?: string | null;
+  ug_emitente?: string | null;
+  ano_empenho?: string | number | null;
+  valor_empenho?: string | number | null;
+  data_emissao?: string | Date | null;
+  sistema_origem_empenho?: string | null;
+  natureza_despesa?: string | null;
+  fonte?: string | null;
+  programa_trabalho?: string | null;
+  plano_interno?: string | null;
+  acao_orcamentaria?: string | null;
+  descricao_empenho?: string | null;
+};
+
+function mapRowToObraEmpenhoFederalDTO(
+  row: ObraEmpenhoFederalRow,
+): ObraEmpenhoFederalDTO {
+  const valorEmpenho =
+    row.valor_empenho != null ? Number(row.valor_empenho) : 0;
+  const anoEmpenho = row.ano_empenho != null ? Number(row.ano_empenho) : null;
+
+  return {
+    nrEmpenho: row.nr_empenho != null ? String(row.nr_empenho).trim() : "",
+    anoEmpenho:
+      anoEmpenho != null && !Number.isNaN(anoEmpenho) ? anoEmpenho : null,
+    ugEmitente: row.ug_emitente != null ? String(row.ug_emitente).trim() : null,
+    valorEmpenho: Number.isNaN(valorEmpenho) ? 0 : valorEmpenho,
+    dataEmissao: toIsoDateString(row.data_emissao),
+    sistemaOrigem:
+      row.sistema_origem_empenho != null
+        ? String(row.sistema_origem_empenho).trim()
+        : null,
+    naturezaDespesa:
+      row.natureza_despesa != null ? String(row.natureza_despesa).trim() : null,
+    fonte: row.fonte != null ? String(row.fonte).trim() : null,
+    programaTrabalho:
+      row.programa_trabalho != null
+        ? String(row.programa_trabalho).trim()
+        : null,
+    planoInterno:
+      row.plano_interno != null ? String(row.plano_interno).trim() : null,
+    acaoOrcamentaria:
+      row.acao_orcamentaria != null
+        ? String(row.acao_orcamentaria).trim()
+        : null,
+    descricao:
+      row.descricao_empenho != null
+        ? String(row.descricao_empenho).trim()
+        : null,
+  };
+}
+
+/**
+ * Retorna os empenhos federais vinculados a um lote de obras públicas a partir de `fct_obras_empenhos`,
+ * agrupados por `id_projeto` com isolamento estrito de tenant (Regra 23).
+ */
+export async function getEmpenhosFederaisPorObrasBatch(
+  portalSlug: string,
+  idProjetos: string[],
+): Promise<Map<string, ObraEmpenhoFederalDTO[]>> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !Array.isArray(idProjetos) ||
+    idProjetos.length === 0
+  ) {
+    return new Map();
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const cleanIds = Array.from(
+    new Set(
+      idProjetos
+        .map((id) => (typeof id === "string" ? id.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+
+  if (cleanIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await db
+    .selectFrom("fct_obras_empenhos")
+    .select([
+      "id_projeto",
+      "nr_empenho",
+      "ug_emitente",
+      "ano_empenho",
+      "valor_empenho",
+      "data_emissao",
+      "sistema_origem_empenho",
+      "natureza_despesa",
+      "fonte",
+      "programa_trabalho",
+      "plano_interno",
+      "acao_orcamentaria",
+      "descricao_empenho",
+    ])
+    .where("portal_slug", "=", cleanSlug)
+    .where("id_projeto", "in", cleanIds)
+    .orderBy(sql`data_emissao desc nulls last`)
+    .orderBy("nr_empenho", "asc")
+    .execute();
+
+  const initialMap = new Map<string, ObraEmpenhoFederalDTO[]>(
+    cleanIds.map((id) => [id, []]),
+  );
+
+  return (rows as ObraEmpenhoFederalRow[]).reduce((acc, row) => {
+    const idProjeto = row.id_projeto ? String(row.id_projeto).trim() : "";
+    if (!idProjeto) return acc;
+    const list = acc.get(idProjeto) ?? [];
+    acc.set(idProjeto, [...list, mapRowToObraEmpenhoFederalDTO(row)]);
+    return acc;
+  }, initialMap);
+}
+
+/**
+ * Retorna os empenhos federais vinculados a uma obra pública específica
+ * a partir de `fct_obras_empenhos`, com isolamento estrito de tenant (Regra 23).
+ */
+export async function getEmpenhosFederaisPorObra(
+  portalSlug: string,
+  idProjeto: string,
+): Promise<ObraEmpenhoFederalDTO[]> {
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === "" ||
+    !idProjeto ||
+    typeof idProjeto !== "string" ||
+    idProjeto.trim() === ""
+  ) {
+    return [];
+  }
+
+  const map = await getEmpenhosFederaisPorObrasBatch(portalSlug, [
+    idProjeto.trim(),
+  ]);
+  return map.get(idProjeto.trim()) ?? [];
+}
+
 /**
  * Retorna o detalhe de uma obra específica pelo seu identificador único de projeto e portal,
- * enriquecido com os contratos administrativos municipais correlacionados.
+ * enriquecido com os contratos administrativos municipais e empenhos federais correlacionados.
  */
 export async function getObraDetalhe(
   portalSlug: string,
@@ -557,7 +742,7 @@ export async function getObraDetalhe(
   const cleanSlug = portalSlug.trim();
   const cleanId = idProjeto.trim();
 
-  const [row, contratos] = await Promise.all([
+  const [row, contratos, empenhosFederais] = await Promise.all([
     db
       .selectFrom("fct_obras")
       .select(OBRA_SELECT_COLUMNS)
@@ -565,6 +750,7 @@ export async function getObraDetalhe(
       .where("id_projeto", "=", cleanId)
       .executeTakeFirst(),
     getContratosPorObra(cleanSlug, cleanId),
+    getEmpenhosFederaisPorObra(cleanSlug, cleanId),
   ]);
 
   if (!row) {
@@ -574,6 +760,7 @@ export async function getObraDetalhe(
   return {
     ...mapRowToObraDTO(row),
     contratos,
+    empenhosFederais,
   };
 }
 

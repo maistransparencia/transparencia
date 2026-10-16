@@ -82,6 +82,24 @@ def ensure_obrasgov_tables(engine: Connectable, schema: str = "raw_obrasgov") ->
         "data_extracao" TEXT,
         PRIMARY KEY ("portal_slug", "id_projeto_investimento", "id_historico_situacao_investimento")
     );
+
+    CREATE TABLE IF NOT EXISTS "{schema}"."empenhos" (
+        "portal_slug" TEXT NOT NULL,
+        "id_projeto_investimento" TEXT NOT NULL,
+        "nr_empenho" TEXT NOT NULL,
+        "ug_emitente" TEXT,
+        "valor_empenho" TEXT,
+        "data_emissao" TEXT,
+        "sistema_origem_empenho" TEXT,
+        "natureza_despesa" TEXT,
+        "fonte" TEXT,
+        "programa_trabalho" TEXT,
+        "plano_interno" TEXT,
+        "acao_orcamentaria" TEXT,
+        "descricao_empenho" TEXT,
+        "data_extracao" TEXT,
+        PRIMARY KEY ("portal_slug", "id_projeto_investimento", "nr_empenho")
+    );
     """
     if isinstance(engine, Engine):
         with engine.begin() as conn:
@@ -197,6 +215,21 @@ def load_obrasgov_historico_paralisacoes(
     )
 
 
+def load_obrasgov_empenhos(
+    engine: Connectable,
+    rows: list[dict[str, Any]],
+    schema: str = "raw_obrasgov",
+) -> int:
+    """Persiste empenhos federais vinculados a obras públicas no PostgreSQL."""
+    return _upsert_rows(
+        engine=engine,
+        schema=schema,
+        table_name="empenhos",
+        rows=rows,
+        key_cols=["portal_slug", "id_projeto_investimento", "nr_empenho"],
+    )
+
+
 def load_obrasgov_all(
     engine: Connectable,
     data: dict[str, list[dict[str, Any]]],
@@ -210,4 +243,5 @@ def load_obrasgov_all(
         "historico_paralisacoes": load_obrasgov_historico_paralisacoes(
             engine, data.get("historico_paralisacoes", []), schema=schema
         ),
+        "empenhos": load_obrasgov_empenhos(engine, data.get("empenhos", []), schema=schema),
     }

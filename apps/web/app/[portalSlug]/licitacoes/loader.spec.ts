@@ -86,8 +86,16 @@ describe("licitacoes/loader", () => {
           ReturnType<typeof dbModule.getAdesaoDeAtaMetrics>
         >,
       );
-      vi.mocked(dbModule.getAdesaoExternaMetrics).mockResolvedValue([]);
-      vi.mocked(dbModule.getAnomaliasContratuaisMetrics).mockResolvedValue([]);
+      vi.mocked(dbModule.getAdesaoExternaMetrics).mockResolvedValue({
+        lista: [],
+        quantidade: 0,
+        totalPago: 0,
+      });
+      vi.mocked(dbModule.getAnomaliasContratuaisMetrics).mockResolvedValue({
+        fracionamento: [],
+        fornecedorRecorrente: [],
+        janelaCurta: [],
+      });
       vi.mocked(dbModule.getDistribucaoModalidadesMetrics).mockResolvedValue(
         [],
       );

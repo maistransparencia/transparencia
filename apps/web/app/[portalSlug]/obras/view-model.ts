@@ -1,6 +1,7 @@
 import type {
   ObraContratoDTO,
   ObraDTO,
+  ObraEmpenhoFederalDTO,
   SituacaoObra,
   SituacaoObraFiltro,
 } from "@transparencia/db";
@@ -173,6 +174,112 @@ export function mapContratoToViewModel(
   };
 }
 
+export interface LinkOrigemEmpenho {
+  url: string;
+  label: string;
+}
+
+export function buildLinkOrigemEmpenho(empenho: {
+  nrEmpenho?: string | null;
+  ugEmitente?: string | null;
+  sistemaOrigem?: string | null;
+}): LinkOrigemEmpenho {
+  const cleanNr = (empenho.nrEmpenho || "").trim().toUpperCase();
+  const cleanUg = (empenho.ugEmitente || "").trim();
+  const cleanSistema = (empenho.sistemaOrigem || "").trim().toLowerCase();
+
+  if (/^\d{6}$/.test(cleanUg) && /^\d{4}NE\d+$/.test(cleanNr)) {
+    return {
+      url: `https://portaldatransparencia.gov.br/despesas/empenho/${cleanUg}00001${cleanNr}`,
+      label: "Consultar no Portal da Transparência (SIAFI)",
+    };
+  }
+
+  if (cleanSistema.includes("transferegov")) {
+    return {
+      url: "https://portal.transferegov.sistema.gov.br/",
+      label: "Consultar no Transferegov.br",
+    };
+  }
+
+  if (cleanSistema.includes("sismob")) {
+    return {
+      url: "https://sismob.saude.gov.br/",
+      label: "Consultar no SISMOB (Ministério da Saúde)",
+    };
+  }
+
+  if (cleanSistema.includes("simec")) {
+    return {
+      url: "https://simec.mec.gov.br/",
+      label: "Consultar no SIMEC (MEC/FNDE)",
+    };
+  }
+
+  if (cleanSistema.includes("siafi") || !cleanSistema) {
+    return {
+      url: "https://portaldatransparencia.gov.br/despesas",
+      label: "Consultar no SIAFI (Portal da Transparência)",
+    };
+  }
+
+  const sistemaNome = empenho.sistemaOrigem?.trim() || "Transferegov.br";
+  return {
+    url: "https://www.gov.br/transferegov/pt-br",
+    label: `Consultar no ${sistemaNome}`,
+  };
+}
+
+export interface ObraEmpenhoFederalViewModel {
+  nrEmpenho: string;
+  anoEmpenho: number | null;
+  ugEmitente: string | null;
+  valorEmpenho: number;
+  valorEmpenhoFormatado: string;
+  dataEmissao: string | null;
+  dataEmissaoFormatada: string;
+  sistemaOrigem: string;
+  naturezaDespesa: string | null;
+  fonte: string | null;
+  programaTrabalho: string | null;
+  planoInterno: string | null;
+  acaoOrcamentaria: string | null;
+  descricao: string | null;
+  linkOrigem: string;
+  linkOrigemLabel: string;
+}
+
+export function mapEmpenhoFederalToViewModel(
+  empenho: ObraEmpenhoFederalDTO,
+): ObraEmpenhoFederalViewModel {
+  const sistemaOrigem = empenho.sistemaOrigem?.trim() || "SIAFI";
+  const linkOrigemInfo = buildLinkOrigemEmpenho({
+    ...empenho,
+    sistemaOrigem,
+  });
+
+  return {
+    nrEmpenho: empenho.nrEmpenho,
+    anoEmpenho: empenho.anoEmpenho ?? null,
+    ugEmitente: empenho.ugEmitente ?? null,
+    valorEmpenho: empenho.valorEmpenho ?? 0,
+    valorEmpenhoFormatado: fmtCurrency(empenho.valorEmpenho ?? 0),
+    dataEmissao: empenho.dataEmissao ?? null,
+    dataEmissaoFormatada: empenho.dataEmissao
+      ? fmtDate(empenho.dataEmissao)
+      : "Não informada",
+    sistemaOrigem,
+    naturezaDespesa: empenho.naturezaDespesa ?? null,
+    fonte: empenho.fonte ?? null,
+    programaTrabalho: empenho.programaTrabalho ?? null,
+    planoInterno: empenho.planoInterno ?? null,
+    acaoOrcamentaria: empenho.acaoOrcamentaria ?? null,
+    descricao: empenho.descricao ?? null,
+    linkOrigem: linkOrigemInfo.url,
+    linkOrigemLabel: linkOrigemInfo.label,
+  };
+}
+
 export interface ObraItemViewModel {
   idProjeto: string;
   portalSlug: string;
@@ -210,7 +317,11 @@ export interface ObraItemViewModel {
   repassadorNome?: string | null;
   repassadorCnpj?: string | null;
   repassadorCnpjMascarado?: string | null;
+  valorTotalEmpenhadoFederal?: number;
+  valorTotalEmpenhadoFederalFormatado?: string;
+  quantidadeEmpenhosFederais?: number;
   contratos?: ObraContratoViewModel[];
+  empenhosFederais?: ObraEmpenhoFederalViewModel[];
 }
 
 export interface ObraMarkerItem {
@@ -417,8 +528,17 @@ function mapObraToViewModel(
     repassadorCnpjMascarado: obra.repassadorCnpj
       ? maskCpfCnpj(obra.repassadorCnpj)
       : null,
+    valorTotalEmpenhadoFederal: obra.valorTotalEmpenhadoFederal ?? 0,
+    valorTotalEmpenhadoFederalFormatado: fmtCurrency(
+      obra.valorTotalEmpenhadoFederal ?? 0,
+    ),
+    quantidadeEmpenhosFederais:
+      obra.quantidadeEmpenhosFederais ?? obra.empenhosFederais?.length ?? 0,
     contratos: (obra.contratos ?? []).map((c) =>
       mapContratoToViewModel(c, obra.portalSlug || ""),
+    ),
+    empenhosFederais: (obra.empenhosFederais ?? []).map(
+      mapEmpenhoFederalToViewModel,
     ),
   };
 }
@@ -585,7 +705,11 @@ export interface ObraDetalheViewModel {
   repassadorNome: string | null;
   repassadorCnpj: string | null;
   repassadorCnpjMascarado: string | null;
+  valorTotalEmpenhadoFederal: number;
+  valorTotalEmpenhadoFederalFormatado: string;
+  quantidadeEmpenhosFederais: number;
   contratos: ObraContratoViewModel[];
+  empenhosFederais: ObraEmpenhoFederalViewModel[];
 }
 
 export function buildObraDetalheViewModel(
@@ -703,6 +827,21 @@ export function buildObraDetalheViewModel(
     mapContratoToViewModel(c, cleanPortalSlug),
   );
 
+  const valorTotalEmpenhadoFederal =
+    obra.valorTotalEmpenhadoFederal ??
+    (obra.empenhosFederais ?? []).reduce(
+      (acc, emp) => acc + (emp.valorEmpenho ?? 0),
+      0,
+    );
+  const valorTotalEmpenhadoFederalFormatado = fmtCurrency(
+    valorTotalEmpenhadoFederal,
+  );
+  const quantidadeEmpenhosFederais =
+    obra.quantidadeEmpenhosFederais ?? obra.empenhosFederais?.length ?? 0;
+  const empenhosFederais = (obra.empenhosFederais ?? []).map(
+    mapEmpenhoFederalToViewModel,
+  );
+
   return {
     idProjeto: obra.idProjeto,
     portalSlug: cleanPortalSlug,
@@ -747,6 +886,10 @@ export function buildObraDetalheViewModel(
     repassadorCnpjMascarado: obra.repassadorCnpj
       ? maskCpfCnpj(obra.repassadorCnpj)
       : null,
+    valorTotalEmpenhadoFederal,
+    valorTotalEmpenhadoFederalFormatado,
+    quantidadeEmpenhosFederais,
     contratos,
+    empenhosFederais,
   };
 }
