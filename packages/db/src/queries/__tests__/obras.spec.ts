@@ -1160,8 +1160,8 @@ describe("obras queries", () => {
       expect((await getEmpenhosFederaisPorObrasBatch(null, ["123"])).size).toBe(
         0,
       );
-      // @ts-expect-error teste com valor inválido
       expect(
+        // @ts-expect-error teste com valor inválido
         (await getEmpenhosFederaisPorObrasBatch(PORTAL_A, null)).size,
       ).toBe(0);
     });
