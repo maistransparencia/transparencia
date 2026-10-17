@@ -1,6 +1,6 @@
 "use client";
 
-import { fmtCurrency } from "@transparencia/ui";
+import { fmtCompact, fmtCurrency } from "@transparencia/ui";
 import {
   Bar,
   CartesianGrid,
@@ -40,7 +40,10 @@ function CorrelacaoTooltip({ active, payload, label }: CorrelacaoTooltipProps) {
         {payload.map((item) => {
           if (item.value === null || item.value === undefined) return null;
           const displayVal = (() => {
-            if (item.name.toLowerCase().includes("custo")) {
+            if (
+              item.name.toLowerCase().includes("despesa") ||
+              item.name.toLowerCase().includes("custo")
+            ) {
               return fmtCurrency(item.value);
             }
             return item.value.toLocaleString("pt-BR", {
@@ -79,25 +82,32 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
     >
       <SectionHeader
         title="Painel de Responsabilidade Fiscal da Educação"
-        description={`Cruzamento entre o custo anual por aluno liquidado na Função 12 (Educação) e a evolução dos resultados do IDEB.`}
+        description="Acompanhamento da aplicação orçamentária na Função 12 (Educação) em paralelo à evolução dos resultados do IDEB na rede municipal."
       />
 
-      {/* Gráfico de Correlação: Custo por Aluno vs. Desempenho no IDEB */}
+      {/* Gráfico de Correlação: Despesa Liquidada na Educação vs. Desempenho no IDEB */}
       <div className="rounded-xl border border-borderLine bg-white p-5 shadow-xs">
         <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <div>
             <h3 className="font-bold font-serif text-lg text-slate-900">
-              Evolução do Custo por Aluno vs. Desempenho no IDEB
+              Evolução da Despesa na Educação vs. Desempenho no IDEB
             </h3>
             <p className="text-slate-500 text-xs">
-              Cruzamento entre o gasto liquidado por matrícula na Função 12 e os
+              Cruzamento entre o total liquidado na Função 12 (Educação) e os
               resultados bienais de proficiência escolar.
+              {fiscal.totalMatriculas !== null && (
+                <span className="mt-0.5 block text-slate-600">
+                  Rede municipal com{" "}
+                  {fiscal.totalMatriculas.toLocaleString("pt-BR")} matrículas
+                  ativas apuradas no Censo Escolar/INEP.
+                </span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-4 font-medium text-slate-600 text-xs">
             <span className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded-sm border border-sky-400 bg-sky-200" />
-              Custo Anual / Aluno (R$)
+              Despesa Liquidada (R$)
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-[#1d64d8]" />
@@ -124,14 +134,14 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
                 tickLine={false}
                 axisLine={{ stroke: "#cbd5e1" }}
               />
-              {/* Eixo Y Esquerdo: Custo Anual por Aluno em Reais */}
+              {/* Eixo Y Esquerdo: Despesa Liquidada em Reais */}
               <YAxis
                 yAxisId="left"
                 stroke="#64748b"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(val) => `R$ ${(val / 1000).toFixed(0)}k`}
+                tickFormatter={(val) => fmtCompact(val)}
               />
               {/* Eixo Y Direito: Nota IDEB de 0 a 10 */}
               <YAxis
@@ -147,8 +157,8 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
               <Tooltip content={<CorrelacaoTooltip />} />
               <Bar
                 yAxisId="left"
-                dataKey="custoPorAluno"
-                name="Custo por Aluno"
+                dataKey="despesaLiquidada"
+                name="Despesa Liquidada"
                 fill="#bae6fd"
                 stroke="#38bdf8"
                 radius={[4, 4, 0, 0]}

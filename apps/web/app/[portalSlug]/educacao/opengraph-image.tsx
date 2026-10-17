@@ -64,12 +64,12 @@ export default async function Image({
       return "Estável";
     })();
 
-    const custoAlunoStr = (() => {
+    const despesaEducacaoStr = (() => {
       if (
-        resumo?.custoAnualPorAluno !== null &&
-        resumo?.custoAnualPorAluno !== undefined
+        resumo?.despesaLiquidadaEducacao !== null &&
+        resumo?.despesaLiquidadaEducacao !== undefined
       ) {
-        return fmtCompact(resumo.custoAnualPorAluno);
+        return fmtCompact(resumo.despesaLiquidadaEducacao);
       }
       return "—";
     })();
@@ -111,9 +111,9 @@ export default async function Image({
         variant: mdeVariant,
       },
       {
-        label: "Custo Anual / Aluno",
-        value: custoAlunoStr,
-        detail: "Função 12 (Educação)",
+        label: "Despesa na Educação",
+        value: despesaEducacaoStr,
+        detail: "Função 12 (Liquidado)",
         variant: "default",
       },
     ];

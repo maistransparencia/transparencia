@@ -1,6 +1,7 @@
 import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
+  EducacaoMediasEstaduais,
   EducacaoMetricDTO,
   EtapaEnsino,
 } from "@transparencia/db";
@@ -29,7 +30,7 @@ export interface IdebHistoricoPonto {
   ano: number;
   notaIdeb: number | null;
   metaMec: number | null;
-  mediaEstadualRj: number | null;
+  mediaEstadual: number | null;
   saebMatematica: number | null;
   saebLinguaPortuguesa: number | null;
   taxaAprovacao: number | null;
@@ -42,6 +43,8 @@ export interface IdebEtapaHistorico {
   label: string;
   pontos: IdebHistoricoPonto[];
   pontoMaisRecente: IdebHistoricoPonto | null;
+  periodoLabel: string;
+  mediaEstadualLabel: string;
 }
 
 export interface EducacaoFiscalTermometro {
@@ -56,7 +59,8 @@ export interface EducacaoFiscalTermometro {
 
 export interface CustoIdebCorrelacaoPonto {
   ano: number;
-  custoPorAluno: number | null;
+  despesaLiquidada: number | null;
+  custoPorAluno?: number | null;
   notaIdebIniciais: number | null;
   notaIdebFinais: number | null;
 }
@@ -93,30 +97,32 @@ export interface EducacaoViewModel {
   };
 }
 
-const MEDIA_ESTADUAL_RJ: Record<EtapaEnsino, Record<number, number>> = {
-  anosIniciais: {
-    2021: 5.2,
-    2023: 5.1,
-    2025: 5.3,
-  },
-  anosFinais: {
-    2021: 4.8,
-    2023: 4.6,
-    2025: 4.7,
-  },
-};
+interface BuildEtapaHistoricoParams {
+  etapa: EtapaEnsino;
+  label: string;
+  metrics: EducacaoMetricDTO[];
+  mediasEstaduais?: Record<number, number>;
+  municipioUf?: string;
+}
 
-function buildEtapaHistorico(
-  etapa: EtapaEnsino,
-  label: string,
-  metrics: EducacaoMetricDTO[],
-): IdebEtapaHistorico {
+function buildEtapaHistorico({
+  etapa,
+  label,
+  metrics,
+  mediasEstaduais,
+  municipioUf,
+}: BuildEtapaHistoricoParams): IdebEtapaHistorico {
   const etapaMetrics = metrics
     .filter((m) => m.etapaEnsino === etapa)
     .sort((a, b) => a.ano - b.ano);
 
+  const mediaEstadualLabel =
+    municipioUf && municipioUf.trim() !== ""
+      ? `Média ${municipioUf.trim()}`
+      : "Média Estadual";
+
   const pontos: IdebHistoricoPonto[] = etapaMetrics.map((m) => {
-    const mediaRj = MEDIA_ESTADUAL_RJ[etapa][m.ano] ?? null;
+    const mediaEstadual = mediasEstaduais?.[m.ano] ?? null;
     const taxaAprovacao = (() => {
       if (m.indicadorFluxoAprovacao === null) return null;
       return Math.round(m.indicadorFluxoAprovacao * 1000) / 10;
@@ -126,7 +132,7 @@ function buildEtapaHistorico(
       ano: m.ano,
       notaIdeb: m.notaIdeb,
       metaMec: m.metaIdeb,
-      mediaEstadualRj: mediaRj,
+      mediaEstadual,
       saebMatematica: m.saebMatematica,
       saebLinguaPortuguesa: m.saebLinguaPortuguesa,
       taxaAprovacao,
@@ -137,11 +143,19 @@ function buildEtapaHistorico(
 
   const pontoMaisRecente = pontos.length > 0 ? pontos[pontos.length - 1] : null;
 
+  const periodoLabel = (() => {
+    if (pontos.length === 0) return "";
+    if (pontos.length === 1) return String(pontos[0].ano);
+    return `${pontos[0].ano}–${pontos[pontos.length - 1].ano}`;
+  })();
+
   return {
     etapaEnsino: etapa,
     label,
     pontos,
     pontoMaisRecente,
+    periodoLabel,
+    mediaEstadualLabel,
   };
 }
 
@@ -169,6 +183,7 @@ export function buildEducacaoViewModel(raw: {
     anosFinais?: EducacaoMetricDTO | null;
   } | null;
   contratos: EducacaoContratoDTO[];
+  mediasEstaduais?: EducacaoMediasEstaduais;
   context: {
     selectedYear: number;
     isCurrentYear: boolean;
@@ -188,18 +203,22 @@ export function buildEducacaoViewModel(raw: {
     return "Município";
   })();
 
-  const municipioUf = raw.portalConfig?.uf ?? "RJ";
+  const municipioUf = raw.portalConfig?.uf ?? "";
 
-  const historicoIniciais = buildEtapaHistorico(
-    "anosIniciais",
-    "Anos Iniciais (1º ao 5º ano)",
-    raw.allMetrics,
-  );
-  const historicoFinais = buildEtapaHistorico(
-    "anosFinais",
-    "Anos Finais (6º ao 9º ano)",
-    raw.allMetrics,
-  );
+  const historicoIniciais = buildEtapaHistorico({
+    etapa: "anosIniciais",
+    label: "Anos Iniciais (1º ao 5º ano)",
+    metrics: raw.allMetrics,
+    mediasEstaduais: raw.mediasEstaduais?.anosIniciais,
+    municipioUf,
+  });
+  const historicoFinais = buildEtapaHistorico({
+    etapa: "anosFinais",
+    label: "Anos Finais (6º ao 9º ano)",
+    metrics: raw.allMetrics,
+    mediasEstaduais: raw.mediasEstaduais?.anosFinais,
+    municipioUf,
+  });
 
   const anoBaseIdeb = (() => {
     if (raw.resumo?.ano && raw.resumo.ano <= raw.context.selectedYear) {
@@ -440,11 +459,16 @@ export function buildEducacaoViewModel(raw: {
     const mFinais = raw.allMetrics.find(
       (m) => m.ano === ano && m.etapaEnsino === "anosFinais",
     );
+    const despesaLiquidada =
+      mIniciais?.despesaLiquidadaEducacao ??
+      mFinais?.despesaLiquidadaEducacao ??
+      null;
     const custo =
       mIniciais?.custoAnualPorAluno ?? mFinais?.custoAnualPorAluno ?? null;
 
     return {
       ano,
+      despesaLiquidada,
       custoPorAluno: custo,
       notaIdebIniciais: mIniciais?.notaIdeb ?? null,
       notaIdebFinais: mFinais?.notaIdeb ?? null,

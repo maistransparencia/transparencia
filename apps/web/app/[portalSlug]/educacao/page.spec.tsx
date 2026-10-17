@@ -257,6 +257,10 @@ function makeRawEducacaoData(
       isCurrentYear: false,
       selectedEtapa: "anosIniciais",
     },
+    mediasEstaduais: {
+      anosIniciais: {},
+      anosFinais: {},
+    },
     searchParams: {},
     ...overrides,
   };
@@ -288,8 +292,8 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByText("5,9")).toBeInTheDocument();
     expect(screen.getByText("+1,4 ponto")).toBeInTheDocument();
     expect(screen.getByText("46º lugar")).toBeInTheDocument();
-    expect(screen.getByText(/Entre 92 municípios \(RJ\)/i)).toBeInTheDocument();
-    expect(screen.getByText("+32 posições")).toBeInTheDocument();
+    expect(screen.getByText("Despesa na Educação")).toBeInTheDocument();
+    expect(screen.getByText(/2.290 alunos matriculados/i)).toBeInTheDocument();
 
     // Bloco 2: Linha do tempo e série histórica
     expect(
@@ -307,7 +311,9 @@ describe("EducacaoPage (Server Component)", () => {
       screen.getByText("Painel de Responsabilidade Fiscal da Educação"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Evolução do Custo por Aluno vs. Desempenho no IDEB"),
+      screen.getByText(
+        "Evolução da Despesa na Educação vs. Desempenho no IDEB",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("termometro-mde")).not.toBeInTheDocument();
     expect(screen.queryByTestId("termometro-fundeb")).not.toBeInTheDocument();

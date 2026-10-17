@@ -11,6 +11,7 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoMetrics: vi.fn(),
   getResumoEducacao: vi.fn(),
   getEducacaoContratos: vi.fn(),
+  getEducacaoMediasEstaduais: vi.fn(),
 }));
 
 describe("educacao/loader", () => {
@@ -144,6 +145,10 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue(mockMetrics);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(mockResumo);
       vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue(mockContratos);
+      vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
 
       const data = await loadEducacaoData("porciuncula_prefeitura", {
         ano: "2025",
@@ -172,6 +177,9 @@ describe("educacao/loader", () => {
         "porciuncula_prefeitura",
         2025,
       );
+      expect(dbModule.getEducacaoMediasEstaduais).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+      );
     });
 
     it("utiliza o ano corrente como padrão quando searchParams.ano for omitido", async () => {
@@ -180,6 +188,10 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue([]);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(null);
       vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue([]);
+      vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
 
       const data = await loadEducacaoData("porciuncula_prefeitura");
       expect(data.context.selectedYear).toBe(currentYear);

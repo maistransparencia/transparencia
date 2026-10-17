@@ -1,8 +1,10 @@
 import {
   type EducacaoContratoDTO,
+  type EducacaoMediasEstaduais,
   type EducacaoMetricDTO,
   type EtapaEnsino,
   getEducacaoContratos,
+  getEducacaoMediasEstaduais,
   getEducacaoMetrics,
   getPortalConfig,
   getResumoEducacao,
@@ -61,6 +63,7 @@ export interface RawEducacaoData {
   allMetrics: EducacaoMetricDTO[];
   resumo: ResumoEducacaoDTO | null;
   contratos: EducacaoContratoDTO[];
+  mediasEstaduais: EducacaoMediasEstaduais;
 }
 
 export async function fetchRawEducacaoCoreData(
@@ -69,12 +72,14 @@ export async function fetchRawEducacaoCoreData(
 ): Promise<RawEducacaoData> {
   const tenantSlug = requirePortalSlug(portalSlug);
 
-  const [portalConfig, allMetrics, resumo, contratos] = await Promise.all([
-    getPortalConfig(tenantSlug),
-    getEducacaoMetrics(tenantSlug),
-    getResumoEducacao(tenantSlug, targetAno),
-    getEducacaoContratos(tenantSlug, targetAno),
-  ]);
+  const [portalConfig, allMetrics, resumo, contratos, mediasEstaduais] =
+    await Promise.all([
+      getPortalConfig(tenantSlug),
+      getEducacaoMetrics(tenantSlug),
+      getResumoEducacao(tenantSlug, targetAno),
+      getEducacaoContratos(tenantSlug, targetAno),
+      getEducacaoMediasEstaduais(tenantSlug),
+    ]);
 
   return {
     portalSlug: tenantSlug,
@@ -82,6 +87,7 @@ export async function fetchRawEducacaoCoreData(
     allMetrics,
     resumo,
     contratos,
+    mediasEstaduais,
   };
 }
 

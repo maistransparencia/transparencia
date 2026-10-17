@@ -2,7 +2,7 @@
 
 import type { EtapaEnsino } from "@transparencia/db";
 import { cn } from "@transparencia/ui";
-import { CheckCircle, Info } from "lucide-react";
+import { CheckCircle, ExternalLink, Info } from "lucide-react";
 import { useState } from "react";
 import {
   CartesianGrid,
@@ -25,6 +25,7 @@ export interface EducacaoHistoricoSectionProps {
     anosFinais: IdebEtapaHistorico;
   };
   initialEtapa?: EtapaEnsino;
+  municipioUf?: string;
 }
 
 interface CustomTooltipProps {
@@ -112,6 +113,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
 export function EducacaoHistoricoSection({
   historico,
   initialEtapa = "anosIniciais",
+  municipioUf,
 }: EducacaoHistoricoSectionProps) {
   const [activeEtapa, setActiveEtapa] = useState<EtapaEnsino>(initialEtapa);
 
@@ -129,8 +131,8 @@ export function EducacaoHistoricoSection({
       className="space-y-4"
     >
       <SectionHeader
-        title="Série Histórica do IDEB e Avaliações Oficiais (2021–2025)"
-        description={`Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação.`}
+        title={`Série Histórica do IDEB e Avaliações Oficiais${currentHistorico.periodoLabel ? ` (${currentHistorico.periodoLabel})` : ""}`}
+        description="Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação."
       />
 
       {/* Tabs / Toggle de Etapa */}
@@ -172,7 +174,7 @@ export function EducacaoHistoricoSection({
             </h3>
             <p className="text-slate-500 text-xs">
               Comparativo direto com a Meta do MEC e a Média Estadual da rede
-              pública (RJ)
+              pública{municipioUf ? ` (${municipioUf})` : ""}
             </p>
           </div>
           <div className="flex items-center gap-4 font-medium text-slate-600 text-xs">
@@ -186,7 +188,7 @@ export function EducacaoHistoricoSection({
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-0.5 w-3 border-amber-600 border-t-2 border-dotted" />
-              Média RJ
+              {currentHistorico.mediaEstadualLabel}
             </span>
           </div>
         </div>
@@ -269,8 +271,8 @@ export function EducacaoHistoricoSection({
               />
               <Line
                 type="monotone"
-                dataKey="mediaEstadualRj"
-                name="Média RJ"
+                dataKey="mediaEstadual"
+                name={currentHistorico.mediaEstadualLabel}
                 stroke="#d97706"
                 strokeWidth={2}
                 strokeDasharray="3 3"
@@ -281,14 +283,26 @@ export function EducacaoHistoricoSection({
           </ResponsiveContainer>
         </div>
 
-        {/* Linha explicativa institucional */}
-        <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 text-xs">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-          <p>
-            O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo
-            SAEB a cada dois anos. A evolução é resultado do trabalho conjunto
-            de alunos, professores, gestores escolares e comunidade escolar.
-          </p>
+        {/* Linha explicativa institucional e fonte oficial */}
+        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <p>
+              O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo
+              SAEB a cada dois anos. A evolução é resultado do trabalho conjunto
+              de alunos, professores, gestores escolares e comunidade escolar.
+            </p>
+          </div>
+          <a
+            href="https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb/resultados"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"
+          >
+            <span>Fonte: Painel Oficial INEP</span>
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            <span className="sr-only">(abre em nova aba)</span>
+          </a>
         </div>
       </div>
 

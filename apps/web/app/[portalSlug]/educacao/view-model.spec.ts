@@ -191,7 +191,7 @@ describe("educacao/view-model", () => {
 
     expect(vm.fiscal.correlacao).toHaveLength(3);
     expect(vm.fiscal.correlacao[2].ano).toBe(2025);
-    expect(vm.fiscal.correlacao[2].custoPorAluno).toBe(14553.0);
+    expect(vm.fiscal.correlacao[2].despesaLiquidada).toBe(34291936.64);
     expect(vm.fiscal.correlacao[2].notaIdebIniciais).toBe(5.9);
 
     // Bloco 4: Contratos
@@ -491,5 +491,92 @@ describe("educacao/view-model", () => {
     expect(vm.trofeuCivico.destaqueBadgeTexto).toContain(
       "Variação de -0,7 ponto no IDEB (2023)",
     );
+  });
+
+  it("garante isolamento multi-tenant (Regra 23): suporta municípios de outros estados (ex: MG) com médias dinâmicas", () => {
+    const raw = {
+      portalSlug: "municipio_mg",
+      portalConfig: {
+        cidadeClean: "Barbacena",
+        uf: "MG",
+        displayName: "Prefeitura Municipal de Barbacena",
+      },
+      allMetrics: [
+        {
+          educacaoMetricaId: "1",
+          portalSlug: "municipio_mg",
+          codIbge: 3105608,
+          ano: 2021,
+          rede: "municipal",
+          etapaEnsino: "anosIniciais" as const,
+          notaIdeb: 6.1,
+          metaIdeb: 6.0,
+          atingiuMeta: true,
+          saebMatematica: 230.0,
+          saebLinguaPortuguesa: 225.0,
+          indicadorFluxoAprovacao: 0.98,
+          crescimentoPontosIdeb: 0.2,
+          variacaoSaebMatematica: null,
+          variacaoSaebPortugues: null,
+          despesaLiquidadaEducacao: 30000000,
+          totalMatriculasRedeMunicipal: 5000,
+          custoAnualPorAluno: 6000,
+        },
+        {
+          educacaoMetricaId: "2",
+          portalSlug: "municipio_mg",
+          codIbge: 3105608,
+          ano: 2023,
+          rede: "municipal",
+          etapaEnsino: "anosIniciais" as const,
+          notaIdeb: 6.4,
+          metaIdeb: 6.2,
+          atingiuMeta: true,
+          saebMatematica: 235.0,
+          saebLinguaPortuguesa: 230.0,
+          indicadorFluxoAprovacao: 0.99,
+          crescimentoPontosIdeb: 0.3,
+          variacaoSaebMatematica: 5.0,
+          variacaoSaebPortugues: 5.0,
+          despesaLiquidadaEducacao: 35000000,
+          totalMatriculasRedeMunicipal: 5100,
+          custoAnualPorAluno: 6862,
+        },
+      ],
+      mediasEstaduais: {
+        anosIniciais: {
+          2021: 5.8,
+          2023: 6.0,
+        },
+        anosFinais: {},
+      },
+      resumo: {
+        ano: 2023,
+        notaIdeb: 6.4,
+        crescimentoPontosIdeb: 0.3,
+        despesaLiquidadaEducacao: 35000000,
+        totalMatriculasRedeMunicipal: 5100,
+        custoAnualPorAluno: 6862,
+        posicaoRanking: 12,
+        totalMunicipios: 853,
+        variacaoPosicoes: 3,
+        mdePercentual: null,
+        fundebPercentual: null,
+      },
+      contratos: [],
+      context: {
+        selectedYear: 2023,
+        isCurrentYear: false,
+        selectedEtapa: "anosIniciais" as const,
+      },
+    };
+
+    const vm = buildEducacaoViewModel(raw);
+    expect(vm.municipioUf).toBe("MG");
+    expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe("Média MG");
+    expect(vm.historico.anosIniciais.periodoLabel).toBe("2021–2023");
+    expect(vm.historico.anosIniciais.pontos[0].mediaEstadual).toBe(5.8);
+    expect(vm.historico.anosIniciais.pontos[1].mediaEstadual).toBe(6.0);
+    expect(vm.trofeuCivico.rankingSubtext).toBe("Entre 853 municípios (MG)");
   });
 });

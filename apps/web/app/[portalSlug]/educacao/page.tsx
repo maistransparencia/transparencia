@@ -59,10 +59,11 @@ export default async function EducacaoPage({
         trofeuCivico={viewModel.trofeuCivico}
       />
 
-      {/* Bloco 2: Linha do Tempo e Gráfico Histórico do IDEB (2021–2025) */}
+      {/* Bloco 2: Linha do Tempo e Gráfico Histórico do IDEB */}
       <EducacaoHistoricoSection
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
+        municipioUf={viewModel.municipioUf}
       />
 
       {/* Bloco 3: Painel de Responsabilidade Fiscal da Educação (MDE e FUNDEB) */}

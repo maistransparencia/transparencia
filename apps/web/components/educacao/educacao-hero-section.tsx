@@ -1,4 +1,5 @@
-import { fmtCurrency, KPICard } from "@transparencia/ui";
+import { fmtCompact, KPICard } from "@transparencia/ui";
+import { Users } from "lucide-react";
 import type { TrofeuCivicoKPIs } from "@/app/[portalSlug]/educacao/view-model";
 import { KPIGrid } from "@/components/kpi-grid";
 
@@ -75,9 +76,9 @@ export function EducacaoHeroSection({
           <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
             Monitoramento auditável da evolução pedagógica (série histórica do
             IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
-            INEP/MEC) integrada ao custo anual por aluno e aos contratos de
-            fornecimento da merenda escolar (PNAE), transporte (PNATE) e
-            infraestrutura da rede municipal.
+            INEP/MEC) integrada aos recursos orçamentários da Função 12
+            (Educação) e aos contratos de fornecimento da merenda escolar
+            (PNAE), transporte (PNATE) e infraestrutura da rede municipal.
           </p>
         </div>
 
@@ -91,7 +92,7 @@ export function EducacaoHeroSection({
               Ciclo Oficial INEP/MEC {trofeuCivico.anoBaseIdeb}
             </span>
             <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              Destaque Cívico
+              Indicador Oficial
             </span>
           </div>
 
@@ -100,9 +101,26 @@ export function EducacaoHeroSection({
           </h2>
 
           <p className="mt-3 text-slate-600 text-xs leading-relaxed">
-            Reconhecimento pedagógico atribuído à dedicação dos estudantes,
-            professores e equipes escolares da rede municipal.
+            Indicador oficial apurado pelo INEP/MEC que combina o rendimento
+            escolar (taxas de aprovação no Censo) com as médias de desempenho em
+            Língua Portuguesa e Matemática apuradas pelo Saeb.
           </p>
+
+          {trofeuCivico.totalMatriculas !== null && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 text-xs">
+              <Users
+                className="h-4 w-4 shrink-0 text-slate-500"
+                aria-hidden="true"
+              />
+              <span>
+                <strong className="font-semibold text-slate-900">
+                  {trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} alunos
+                  matriculados
+                </strong>{" "}
+                na rede municipal (Censo Escolar {selectedYear})
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -137,17 +155,13 @@ export function EducacaoHeroSection({
           trend={trofeuCivico.rankingTrend}
         />
         <KPICard
-          title="Custo Anual / Aluno"
+          title="Despesa na Educação"
           value={
-            trofeuCivico.custoAnualPorAluno !== null
-              ? fmtCurrency(trofeuCivico.custoAnualPorAluno)
+            trofeuCivico.despesaTotalEducacao !== null
+              ? fmtCompact(trofeuCivico.despesaTotalEducacao)
               : "—"
           }
-          subtext={
-            trofeuCivico.totalMatriculas !== null
-              ? `${trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} matrículas · Exercício ${selectedYear}`
-              : `Função 12 · Exercício ${selectedYear}`
-          }
+          subtext={`Função 12 (Liquidado) · Exercício ${selectedYear}`}
           className="min-w-0"
         />
       </KPIGrid>
