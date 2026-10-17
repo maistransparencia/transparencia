@@ -116,6 +116,11 @@ export interface EducacaoRankingEstadualDTO {
   variacaoPosicoes: number | null;
 }
 
+export type EducacaoMediasEstaduais = Record<
+  EtapaEnsino,
+  Record<number, number>
+>;
+
 export interface GetEducacaoMetricsOptions {
   ano?: number;
   etapaEnsino?: EtapaEnsino;
@@ -259,6 +264,34 @@ export async function getResumoEducacao(
     etapaEnsino: "anosIniciais",
   });
 
+  const requestedAno = ano ?? targetAno;
+
+  // Busca a despesa liquidada oficial na Função 12 para o exercício solicitado em fct_despesas
+  const despesaExercicioRow = await (async () => {
+    try {
+      return await db
+        .selectFrom("fct_despesas")
+        .select((eb) => eb.fn.sum<string>("liquidado").as("despesa_liquidada"))
+        .where("portal_slug", "=", cleanSlug)
+        .where("ano", "=", requestedAno)
+        .where("fonte", "=", "exercicio")
+        .where((eb) =>
+          eb.or([
+            eb("funcao", "=", "12"),
+            eb("funcao_nome", "ilike", "%educa%"),
+          ]),
+        )
+        .executeTakeFirst();
+    } catch {
+      return null;
+    }
+  })();
+
+  const despesaLiquidadaReal =
+    despesaExercicioRow?.despesa_liquidada != null
+      ? Number(despesaExercicioRow.despesa_liquidada)
+      : null;
+
   return {
     portalSlug: cleanSlug,
     ano: targetAno,
@@ -275,6 +308,7 @@ export async function getResumoEducacao(
       secondary?.indicadorFluxoAprovacao ??
       null,
     despesaLiquidadaEducacao:
+      despesaLiquidadaReal ??
       primary.despesaLiquidadaEducacao ??
       secondary?.despesaLiquidadaEducacao ??
       null,
@@ -337,13 +371,30 @@ export async function getEducacaoRankingEstadual(
     return null;
   }
 
-  let targetAno =
-    options?.ano ?? (metricRow?.ano ? Number(metricRow.ano) : 2025);
   const etapa = options?.etapaEnsino ?? "anosIniciais";
   const dbEtapa = toDbEtapaEnsino(etapa);
   const ufCode = Math.floor(codIbge / 100000);
   const ufMin = ufCode * 100000;
   const ufMax = (ufCode + 1) * 100000;
+
+  let targetAno =
+    options?.ano ?? (metricRow?.ano ? Number(metricRow.ano) : null);
+  if (targetAno === null) {
+    const latestSeed = await db
+      .selectFrom("seed_inep_ideb")
+      .select("ano")
+      .where("cod_ibge", ">=", ufMin)
+      .where("cod_ibge", "<", ufMax)
+      .where("rede", "=", "municipal")
+      .where("nota_ideb", "is not", null)
+      .orderBy("ano", "desc")
+      .limit(1)
+      .executeTakeFirst();
+    if (!latestSeed?.ano) {
+      return null;
+    }
+    targetAno = Number(latestSeed.ano);
+  }
 
   try {
     let currentRows = await db
@@ -434,6 +485,89 @@ export async function getEducacaoRankingEstadual(
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Retorna as médias estaduais do IDEB para a UF correspondente ao município informado,
+ * particionadas dinamicamente por etapa de ensino e ano com base na rede pública (seed_inep_ideb).
+ */
+export async function getEducacaoMediasEstaduais(
+  portalSlug: string,
+): Promise<EducacaoMediasEstaduais> {
+  const empty: EducacaoMediasEstaduais = {
+    anosIniciais: {},
+    anosFinais: {},
+  };
+
+  if (
+    !portalSlug ||
+    typeof portalSlug !== "string" ||
+    portalSlug.trim() === ""
+  ) {
+    return empty;
+  }
+
+  const cleanSlug = portalSlug.trim();
+
+  const metricRow = await db
+    .selectFrom("fct_educacao_metricas")
+    .select("cod_ibge")
+    .where("portal_slug", "=", cleanSlug)
+    .where("cod_ibge", "is not", null)
+    .limit(1)
+    .executeTakeFirst();
+
+  let codIbge = metricRow?.cod_ibge ? Number(metricRow.cod_ibge) : null;
+  if (!codIbge) {
+    const portalRow = await db
+      .selectFrom("dim_portais")
+      .select("cod_ibge")
+      .where("portal_slug", "=", cleanSlug)
+      .limit(1)
+      .executeTakeFirst();
+    if (portalRow?.cod_ibge) {
+      codIbge = Number(portalRow.cod_ibge);
+    }
+  }
+
+  if (!codIbge || codIbge <= 0) {
+    return empty;
+  }
+
+  const ufCode = Math.floor(codIbge / 100000);
+
+  try {
+    const rows = await db
+      .selectFrom("seed_inep_ideb_estados")
+      .select(["ano", "etapa_ensino", "nota_ideb"])
+      .where("cod_uf", "=", ufCode)
+      .where("rede", "=", "publica")
+      .where("nota_ideb", "is not", null)
+      .execute();
+
+    const pontos = rows
+      .map((r) => ({
+        etapa: toEtapaEnsino(String(r.etapa_ensino)),
+        ano: Number(r.ano),
+        nota: toNumberOrNull(r.nota_ideb),
+      }))
+      .filter(
+        (ponto): ponto is typeof ponto & { nota: number } =>
+          ponto.nota !== null && !Number.isNaN(ponto.nota),
+      );
+
+    const porEtapa = (etapa: EtapaEnsino): Record<number, number> =>
+      Object.fromEntries(
+        pontos.filter((p) => p.etapa === etapa).map((p) => [p.ano, p.nota]),
+      );
+
+    return {
+      anosIniciais: porEtapa("anosIniciais"),
+      anosFinais: porEtapa("anosFinais"),
+    };
+  } catch {
+    return empty;
   }
 }
 

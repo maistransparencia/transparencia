@@ -11,6 +11,7 @@ import {
 import {
   categorizarContratoEducacao,
   getEducacaoContratos,
+  getEducacaoMediasEstaduais,
   getEducacaoMetrics,
   getEducacaoRankingEstadual,
   getResumoEducacao,
@@ -936,6 +937,59 @@ describe("educacao-metrics", () => {
         expect(ranking).toHaveProperty("posicaoRanking");
         expect(ranking).toHaveProperty("variacaoPosicoes");
       }
+    });
+  });
+
+  describe("getEducacaoMediasEstaduais", () => {
+    it("retorna estrutura vazia para portalSlug inválido ou vazio", async () => {
+      const resVazio = await getEducacaoMediasEstaduais("");
+      expect(resVazio).toEqual({ anosIniciais: {}, anosFinais: {} });
+
+      // @ts-expect-error teste defensivo
+      const resNull = await getEducacaoMediasEstaduais(null);
+      expect(resNull).toEqual({ anosIniciais: {}, anosFinais: {} });
+    });
+
+    it("retorna estrutura vazia se o portal não possuir cod_ibge registrado", async () => {
+      const res = await getEducacaoMediasEstaduais(
+        "portal_sem_ibge_inexistente",
+      );
+      expect(res).toEqual({ anosIniciais: {}, anosFinais: {} });
+    });
+
+    it("obtém notas oficiais de seed_inep_ideb_estados agrupadas por etapa e ano para a UF do município", async () => {
+      await seedEducacaoMetricas({
+        portalSlug: PORTAL_PORCIUNCULA,
+        codIbge: 3304102,
+        ano: 2025,
+        rede: "municipal",
+        etapaEnsino: "anos_iniciais",
+        notaIdeb: 5.9,
+      });
+
+      const medias = await getEducacaoMediasEstaduais(PORTAL_PORCIUNCULA);
+      expect(medias.anosIniciais[2021]).toBe(5.3);
+      expect(medias.anosIniciais[2025]).toBe(5.8);
+      expect(medias.anosFinais[2021]).toBe(4.8);
+      expect(medias.anosFinais[2025]).toBe(4.7);
+    });
+
+    it("isola as médias pela UF do município sem misturar outros estados", async () => {
+      const portalMg = createFixturePortalSlug();
+      await seedEducacaoMetricas({
+        portalSlug: portalMg,
+        codIbge: 3136702,
+        ano: 2025,
+        rede: "municipal",
+        etapaEnsino: "anos_iniciais",
+        notaIdeb: 6.2,
+      });
+
+      const medias = await getEducacaoMediasEstaduais(portalMg);
+      expect(medias.anosIniciais[2021]).toBe(6.0);
+      expect(medias.anosIniciais[2025]).toBe(6.1);
+      expect(medias.anosFinais[2021]).toBe(4.9);
+      expect(medias.anosFinais[2025]).toBe(4.9);
     });
   });
 });
