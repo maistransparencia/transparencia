@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowRight, ExternalLink, Info } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 
@@ -16,12 +16,9 @@ export interface EducacaoResumoCardData {
   notaAnteriorTexto: string | null;
   metaTexto: string | null;
   metaTom: EducacaoResumoTom;
-  etapas: { rotulo: string; notaTexto: string }[];
   rankingTexto: string | null;
   rankingVariacaoTexto: string | null;
   rankingVariacaoTom: EducacaoResumoTom;
-  despesaLiquidadaEducacaoTexto: string | null;
-  despesaLiquidadaEducacaoCompleta: string | null;
 }
 
 export interface EducacaoResumoCardProps {
@@ -29,6 +26,9 @@ export interface EducacaoResumoCardProps {
   detailUrl: string;
   className?: string;
 }
+
+const IDEB_INEP_URL =
+  "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb";
 
 const CLASSES_BADGE_POR_TOM: Record<EducacaoResumoTom, string> = {
   destaque: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -62,7 +62,8 @@ const ICONE_VARIACAO_POR_TOM: Record<EducacaoResumoTom, string> = {
 
 const CLASSE_ROTULO =
   "font-medium text-[11px] text-subtleText uppercase tracking-wider";
-const CLASSE_VALOR_LINHA = "mt-1 flex min-h-9 flex-wrap items-center gap-2";
+const CLASSE_VALOR_LINHA =
+  "mt-1 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1";
 const CLASSE_APOIO = "mt-1 min-h-5 text-subtleText text-xs";
 
 function trackCta(
@@ -103,9 +104,16 @@ export function EducacaoResumoCard({
               : "IDEB e indicadores da rede municipal"}
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center rounded-full border border-[#e7e9ee] bg-slate-50 px-2 py-0.5 font-medium text-[10px] text-subtleText sm:px-3 sm:py-1 sm:text-xs">
-          INEP / Censo Escolar
-        </span>
+        <a
+          href={IDEB_INEP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-2 py-0.5 font-medium text-[10px] text-subtleText transition-colors hover:bg-slate-100 hover:text-ink sm:px-3 sm:py-1 sm:text-xs"
+          title="Página oficial do IDEB no INEP"
+        >
+          <span>INEP / IDEB</span>
+          <ExternalLink className="h-3 w-3" />
+        </a>
       </div>
 
       {resumo ? (
@@ -118,9 +126,9 @@ export function EducacaoResumoCard({
               {resumo.enfaseTitulo}
             </p>
           )}
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:mt-4 sm:grid-cols-3 sm:gap-6">
+          <div className="mt-3 grid grid-cols-2 items-stretch gap-x-3 gap-y-3 sm:mt-4 sm:gap-6">
             <div className="col-span-2 flex flex-col sm:col-span-1">
-              <span className={CLASSE_ROTULO}>Nota do IDEB</span>
+              <span className={CLASSE_ROTULO}>Nota do IDEB (1º ao 5º ano)</span>
               <div className={CLASSE_VALOR_LINHA}>
                 <p className="font-bold font-serif text-3xl text-ink leading-none tracking-tight">
                   {resumo.notaIdebTexto}
@@ -133,10 +141,12 @@ export function EducacaoResumoCard({
                   </span>
                 )}
               </div>
-              <p className={CLASSE_APOIO}>{resumo.notaAnteriorTexto}</p>
+              {resumo.notaAnteriorTexto && (
+                <p className={CLASSE_APOIO}>{resumo.notaAnteriorTexto}</p>
+              )}
             </div>
 
-            <div className="flex flex-col">
+            <div className="col-span-2 flex flex-col sm:col-span-1">
               <span className={CLASSE_ROTULO}>Classificação estadual</span>
               <div className={CLASSE_VALOR_LINHA}>
                 <p className="font-bold text-ink text-lg leading-tight tracking-tight">
@@ -168,34 +178,7 @@ export function EducacaoResumoCard({
                 )}
               </div>
             </div>
-
-            <div className="flex flex-col">
-              <span className={CLASSE_ROTULO}>
-                Despesa liquidada em Educação
-              </span>
-              <div className={CLASSE_VALOR_LINHA}>
-                <p
-                  className="font-bold text-ink text-lg leading-tight tracking-tight"
-                  title={resumo.despesaLiquidadaEducacaoCompleta ?? undefined}
-                >
-                  {resumo.despesaLiquidadaEducacaoTexto ?? "—"}
-                </p>
-              </div>
-              <p className={CLASSE_APOIO}>Função 12 · exercício {resumo.ano}</p>
-            </div>
           </div>
-          {resumo.etapas.length > 0 && (
-            <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs sm:flex sm:flex-wrap sm:gap-x-8">
-              {resumo.etapas.map((etapa) => (
-                <li key={etapa.rotulo} className="text-subtleText">
-                  {etapa.rotulo}{" "}
-                  <span className="font-semibold text-ink">
-                    {etapa.notaTexto}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
         </>
       ) : (
         <div className="mt-3 flex flex-col items-center justify-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-4 text-center sm:mt-4 sm:p-6">
@@ -206,7 +189,15 @@ export function EducacaoResumoCard({
         </div>
       )}
 
-      <div className="mt-3 flex sm:mt-4 sm:justify-end">
+      <div className="mt-3 flex items-center justify-between gap-3 border-[#e7e9ee] border-t pt-3 sm:mt-4 sm:pt-4">
+        <div className="hidden items-center gap-1.5 text-subtleText text-xs sm:flex">
+          <Info className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          <span>Indicadores oficiais do IDEB apurados pelo INEP/MEC.</span>
+        </div>
+        <Info
+          aria-hidden="true"
+          className="h-3.5 w-3.5 shrink-0 text-slate-500 sm:hidden"
+        />
         <Link
           href={detailUrl}
           onClick={() =>
@@ -218,10 +209,10 @@ export function EducacaoResumoCard({
               { ano: resumo?.ano ?? null },
             )
           }
-          className="inline-flex w-full items-center justify-center gap-1 rounded-lg py-1 font-semibold text-accent text-xs hover:underline sm:w-auto"
+          className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
         >
           <span>Ver indicadores pedagógicos e despesas detalhadas</span>
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-3.5 w-3.5 shrink-0" />
         </Link>
       </div>
     </section>

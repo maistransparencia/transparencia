@@ -112,28 +112,11 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
       if (resumo.atingiuMeta === false) return "atencao" as const;
       return "neutro" as const;
     })(),
-    etapas: [
-      { rotulo: "Anos iniciais", nota: resumo.anosIniciais?.notaIdeb ?? null },
-      { rotulo: "Anos finais", nota: resumo.anosFinais?.notaIdeb ?? null },
-    ]
-      .filter((etapa) => etapa.nota !== null)
-      .map((etapa) => ({
-        rotulo: etapa.rotulo,
-        notaTexto: fmtDecimalUmaCasa(etapa.nota as number),
-      })),
     rankingTexto: rankingValido
       ? `${resumo.posicaoRanking}º de ${resumo.totalMunicipios} municípios`
       : null,
     rankingVariacaoTexto: rankingTrend?.value ?? null,
     rankingVariacaoTom,
-    despesaLiquidadaEducacaoTexto:
-      resumo.despesaLiquidadaEducacao == null
-        ? null
-        : fmtCompact(resumo.despesaLiquidadaEducacao),
-    despesaLiquidadaEducacaoCompleta:
-      resumo.despesaLiquidadaEducacao == null
-        ? null
-        : fmtCurrency(resumo.despesaLiquidadaEducacao),
   };
 }
 

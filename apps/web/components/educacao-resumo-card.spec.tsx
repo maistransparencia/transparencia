@@ -18,15 +18,9 @@ const base: EducacaoResumoCardData = {
   notaAnteriorTexto: "Ciclo anterior: 4,5",
   metaTexto: "Meta do IDEB atingida",
   metaTom: "destaque",
-  etapas: [
-    { rotulo: "Anos iniciais", notaTexto: "6,1" },
-    { rotulo: "Anos finais", notaTexto: "5,2" },
-  ],
   rankingTexto: "3º de 92 municípios",
   rankingVariacaoTexto: "+2 posições",
   rankingVariacaoTom: "destaque",
-  despesaLiquidadaEducacaoTexto: "R$ 12,3 mi",
-  despesaLiquidadaEducacaoCompleta: "R$ 12.300.000,00",
 };
 
 describe("EducacaoResumoCard", () => {
@@ -35,7 +29,14 @@ describe("EducacaoResumoCard", () => {
     expect(
       screen.getByText("Educação Básica e Desempenho Escolar"),
     ).toBeTruthy();
-    expect(screen.getByText("INEP / Censo Escolar")).toBeTruthy();
+    const fonte = screen.getByRole("link", { name: /INEP \/ IDEB/ });
+    expect(fonte.getAttribute("href")).toContain("gov.br/inep");
+    expect(fonte.getAttribute("target")).toBe("_blank");
+    expect(fonte.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(screen.getByText("Nota do IDEB (1º ao 5º ano)")).toBeTruthy();
+    expect(
+      screen.getByText("Indicadores oficiais do IDEB apurados pelo INEP/MEC."),
+    ).toBeTruthy();
     expect(screen.getByText("5,9").className).toContain("font-serif");
     expect(
       screen.getByText("Destaque: evolução de +1,4 ponto no IDEB").className,
@@ -45,16 +46,10 @@ describe("EducacaoResumoCard", () => {
     expect(screen.getByText("Meta do IDEB atingida").className).toContain(
       "emerald",
     );
-    expect(screen.getByText(/Anos iniciais/)).toBeTruthy();
-    expect(screen.getByText(/Anos finais/)).toBeTruthy();
+    expect(screen.queryByText(/Anos iniciais|Anos finais/)).toBeNull();
     expect(screen.getByText("Classificação estadual")).toBeTruthy();
-    expect(screen.getByText("Despesa liquidada em Educação")).toBeTruthy();
-    expect(screen.getByText("Função 12 · exercício 2023")).toBeTruthy();
-    expect(screen.getByText("R$ 12,3 mi").getAttribute("title")).toBe(
-      "R$ 12.300.000,00",
-    );
+    expect(screen.queryByText(/Despesa liquidada|Função 12/)).toBeNull();
     expect(screen.getByText(/3º de 92 municípios/)).toBeTruthy();
-    expect(screen.getByText("R$ 12,3 mi")).toBeTruthy();
     expect(screen.queryByText(/MDE/)).toBeNull();
     expect(screen.queryByText(/por aluno/i)).toBeNull();
     expect(screen.queryByRole("link", { name: /Art. 212/ })).toBeNull();
@@ -88,7 +83,7 @@ describe("EducacaoResumoCard", () => {
     );
   });
 
-  it("omite faixa, meta, ranking, etapas e despesa quando ausentes", () => {
+  it("omite faixa, meta, ranking quando ausentes", () => {
     render(
       <EducacaoResumoCard
         resumo={{
@@ -100,10 +95,7 @@ describe("EducacaoResumoCard", () => {
           notaAnteriorTexto: null,
           metaTexto: null,
           metaTom: "neutro",
-          etapas: [],
           rankingTexto: null,
-          despesaLiquidadaEducacaoTexto: null,
-          despesaLiquidadaEducacaoCompleta: null,
         }}
         detailUrl="/p/educacao"
       />,
@@ -112,8 +104,7 @@ describe("EducacaoResumoCard", () => {
     expect(screen.queryByText(/ponto$/)).toBeNull();
     expect(screen.queryByText(/municípios/)).toBeNull();
     expect(screen.getByText(/Classificação indisponível/)).toBeTruthy();
-    expect(screen.queryByText(/Anos iniciais/)).toBeNull();
-    expect(screen.getAllByText("—").length).toBe(3);
+    expect(screen.getAllByText("—").length).toBe(2);
   });
 
   it("omite apenas o ranking quando não há classificação estadual", () => {
@@ -162,5 +153,8 @@ describe("EducacaoResumoCard", () => {
     render(<EducacaoResumoCard resumo={null} detailUrl="/p/educacao" />);
     expect(screen.getByText(/ainda não disponíveis/)).toBeTruthy();
     expect(screen.getByRole("link", { name: /Ver indicadores/ })).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /INEP \/ IDEB/ }).getAttribute("href"),
+    ).toContain("gov.br/inep");
   });
 });
