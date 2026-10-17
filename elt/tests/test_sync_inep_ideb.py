@@ -284,11 +284,13 @@ class TestExcelExtraction:
 
         row_2023 = porc_mun[porc_mun["ano"] == 2023].iloc[0]
         assert row_2023["nota_ideb"] == 4.5
+        assert row_2023["meta_ideb"] == 6.4
         assert row_2023["saeb_matematica"] == 190.18
         assert row_2023["saeb_lingua_portuguesa"] == 175.60
 
         row_2025 = porc_mun[porc_mun["ano"] == 2025].iloc[0]
         assert row_2025["nota_ideb"] == 5.9
+        assert row_2025["meta_ideb"] == 6.4
         assert row_2025["saeb_matematica"] == 218.39
         assert row_2025["saeb_lingua_portuguesa"] == 210.91
 
@@ -354,11 +356,19 @@ class TestSeedFileIntegrity:
         ]
         assert len(porc_mun_ai) == 3
 
+        val_2021 = porc_mun_ai[porc_mun_ai["ano"] == 2021]["nota_ideb"].iloc[0]
+        meta_2021 = porc_mun_ai[porc_mun_ai["ano"] == 2021]["meta_ideb"].iloc[0]
         val_2023 = porc_mun_ai[porc_mun_ai["ano"] == 2023]["nota_ideb"].iloc[0]
+        meta_2023 = porc_mun_ai[porc_mun_ai["ano"] == 2023]["meta_ideb"].iloc[0]
         val_2025 = porc_mun_ai[porc_mun_ai["ano"] == 2025]["nota_ideb"].iloc[0]
+        meta_2025 = porc_mun_ai[porc_mun_ai["ano"] == 2025]["meta_ideb"].iloc[0]
 
+        assert val_2021 == 5.2
+        assert meta_2021 == 6.4
         assert val_2023 == 4.5
+        assert meta_2023 == 6.4
         assert val_2025 == 5.9
+        assert meta_2025 == 6.4
 
 
 class TestIsYearInSeed:

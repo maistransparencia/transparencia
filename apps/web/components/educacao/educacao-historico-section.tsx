@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -37,15 +36,9 @@ interface CustomTooltipProps {
     payload: IdebHistoricoPonto;
   }>;
   label?: string | number;
-  metaMecFixa?: number | null;
 }
 
-function CustomIdebTooltip({
-  active,
-  payload,
-  label,
-  metaMecFixa,
-}: CustomTooltipProps) {
+function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const ponto = payload[0]?.payload;
 
@@ -77,24 +70,12 @@ function CustomIdebTooltip({
               <span className="font-bold text-slate-900">
                 {item.value.toLocaleString("pt-BR", {
                   minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
                 })}
               </span>
             </div>
           );
         })}
-        {metaMecFixa !== null && metaMecFixa !== undefined && (
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-slate-600">
-              <span className="inline-block h-0.5 w-2 border-slate-500 border-t-2 border-dashed" />
-              Meta MEC:
-            </span>
-            <span className="font-bold text-slate-900">
-              {metaMecFixa.toLocaleString("pt-BR", {
-                minimumFractionDigits: 1,
-              })}
-            </span>
-          </div>
-        )}
       </div>
       {ponto && (
         <div className="mt-2 space-y-0.5 border-slate-100 border-t pt-2 text-[11px] text-slate-500">
@@ -141,8 +122,6 @@ export function EducacaoHistoricoSection({
 
   const chartData = currentHistorico.pontos;
   const pontoMaisRecente = currentHistorico.pontoMaisRecente;
-  const metaMecFixa =
-    chartData.find((p) => p.metaMec !== null)?.metaMec ?? null;
 
   return (
     <section
@@ -202,7 +181,7 @@ export function EducacaoHistoricoSection({
               Rede Municipal
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-3 border-slate-400 border-t-2 border-dashed" />
+              <span className="h-0.5 w-3 border-[#64748b] border-t-2 border-dashed" />
               Meta MEC
             </span>
             <span className="flex items-center gap-1.5">
@@ -251,9 +230,7 @@ export function EducacaoHistoricoSection({
                   typeof val === "number" ? val.toFixed(1) : String(val)
                 }
               />
-              <Tooltip
-                content={<CustomIdebTooltip metaMecFixa={metaMecFixa} />}
-              />
+              <Tooltip content={<CustomIdebTooltip />} />
               <Line
                 type="monotone"
                 dataKey="notaIdeb"
@@ -274,20 +251,22 @@ export function EducacaoHistoricoSection({
                 }}
                 connectNulls
               />
-              {metaMecFixa !== null && (
-                <ReferenceLine
-                  y={metaMecFixa}
-                  stroke="#64748b"
-                  strokeDasharray="4 4"
-                  strokeWidth={2}
-                  label={{
-                    value: `Meta MEC (${metaMecFixa.toFixed(1)})`,
-                    position: "insideTopRight",
-                    fill: "#64748b",
-                    fontSize: 11,
-                  }}
-                />
-              )}
+              <Line
+                type="monotone"
+                dataKey="metaMec"
+                name="Meta MEC"
+                stroke="#64748b"
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                dot={{ r: 4, fill: "#64748b" }}
+                activeDot={{
+                  r: 6,
+                  fill: "#64748b",
+                  stroke: "#ffffff",
+                  strokeWidth: 2,
+                }}
+                connectNulls
+              />
               <Line
                 type="monotone"
                 dataKey="mediaEstadualRj"

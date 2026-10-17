@@ -81,8 +81,8 @@ describe("educacao-metrics", () => {
           rede: "municipal",
           etapaEnsino: "anos_finais",
           notaIdeb: 4.8,
-          metaIdeb: null,
-          atingiuMetaFlag: null,
+          metaIdeb: 6.4,
+          atingiuMetaFlag: false,
           saebMatematica: 245.1,
           saebLinguaPortuguesa: 250.3,
           indicadorFluxoAprovacao: 0.9512,
@@ -119,8 +119,8 @@ describe("educacao-metrics", () => {
           rede: "municipal",
           etapaEnsino: "anos_iniciais",
           notaIdeb: 4.5,
-          metaIdeb: null,
-          atingiuMetaFlag: null,
+          metaIdeb: 6.4,
+          atingiuMetaFlag: false,
           saebMatematica: 190.18,
           saebLinguaPortuguesa: 175.6,
           indicadorFluxoAprovacao: 0.942453,
@@ -138,8 +138,8 @@ describe("educacao-metrics", () => {
           rede: "municipal",
           etapaEnsino: "anos_iniciais",
           notaIdeb: 5.9,
-          metaIdeb: null,
-          atingiuMetaFlag: null,
+          metaIdeb: 6.4,
+          atingiuMetaFlag: false,
           saebMatematica: 218.39,
           saebLinguaPortuguesa: 210.91,
           indicadorFluxoAprovacao: 0.984589,
@@ -166,11 +166,15 @@ describe("educacao-metrics", () => {
       expect(metrics[1].ano).toBe(2023);
       expect(metrics[1].etapaEnsino).toBe("anosIniciais");
       expect(metrics[1].notaIdeb).toBe(4.5);
+      expect(metrics[1].metaIdeb).toBe(6.4);
+      expect(metrics[1].atingiuMeta).toBe(false);
       expect(metrics[1].crescimentoPontosIdeb).toBe(-0.7);
 
       expect(metrics[2].ano).toBe(2025);
       expect(metrics[2].etapaEnsino).toBe("anosIniciais");
       expect(metrics[2].notaIdeb).toBe(5.9);
+      expect(metrics[2].metaIdeb).toBe(6.4);
+      expect(metrics[2].atingiuMeta).toBe(false);
       expect(metrics[2].crescimentoPontosIdeb).toBe(1.4);
       expect(metrics[2].saebMatematica).toBe(218.39);
       expect(metrics[2].saebLinguaPortuguesa).toBe(210.91);
@@ -182,6 +186,8 @@ describe("educacao-metrics", () => {
       expect(metrics[3].ano).toBe(2025);
       expect(metrics[3].etapaEnsino).toBe("anosFinais");
       expect(metrics[3].notaIdeb).toBe(4.8);
+      expect(metrics[3].metaIdeb).toBe(6.4);
+      expect(metrics[3].atingiuMeta).toBe(false);
     });
 
     it("filtra por ano quando options.ano for fornecido", async () => {
