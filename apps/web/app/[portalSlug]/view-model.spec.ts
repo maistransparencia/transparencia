@@ -994,6 +994,27 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
     expect(resumo?.despesaLiquidadaEducacaoCompleta).toBeTruthy();
   });
 
+  it.each([
+    [2, "+2 posições", "destaque"],
+    [-3, "-3 posições", "atencao"],
+    [0, "Estável", "neutro"],
+    [null, null, "neutro"],
+  ] as const)("variação de posições %s", (variacao, texto, tom) => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      variacaoPosicoes: variacao,
+    });
+    expect(resumo?.rankingVariacaoTexto).toBe(texto);
+    expect(resumo?.rankingVariacaoTom).toBe(tom);
+  });
+
+  it("omite variação sem classificação válida", () => {
+    const resumo = build({ variacaoPosicoes: 2 });
+    expect(resumo?.rankingTexto).toBeNull();
+    expect(resumo?.rankingVariacaoTexto).toBeNull();
+  });
+
   it("retorna educacaoResumo nulo sem resumo", () => {
     const vm = buildVisaoGeralViewModel(
       makeRawVisaoGeral({ resumoEducacao: null }),

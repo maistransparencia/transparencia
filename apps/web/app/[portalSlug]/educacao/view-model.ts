@@ -8,6 +8,21 @@ import type {
 
 export const LIMIAR_DESTAQUE_EVOLUCAO_IDEB = 1.0;
 
+export function buildRankingTrend(
+  variacaoPosicoes: number | null | undefined,
+): { value: string; isPositive?: boolean } | undefined {
+  if (variacaoPosicoes === null || variacaoPosicoes === undefined) {
+    return undefined;
+  }
+  if (variacaoPosicoes > 0) {
+    return { value: `+${variacaoPosicoes} posições`, isPositive: true };
+  }
+  if (variacaoPosicoes < 0) {
+    return { value: `${variacaoPosicoes} posições`, isPositive: false };
+  }
+  return { value: "Estável" };
+}
+
 export function isDestaqueEvolucaoIdeb(
   crescimentoPontos: number | null | undefined,
 ): boolean {
@@ -355,16 +370,7 @@ export function buildEducacaoViewModel(raw: {
     return `Rede Municipal (${municipioUf})`;
   })();
 
-  const rankingTrend = (() => {
-    if (rankingVarPos === null || rankingVarPos === undefined) return undefined;
-    if (rankingVarPos > 0) {
-      return { value: `+${rankingVarPos} posições`, isPositive: true };
-    }
-    if (rankingVarPos < 0) {
-      return { value: `${rankingVarPos} posições`, isPositive: false };
-    }
-    return { value: "Estável" };
-  })();
+  const rankingTrend = buildRankingTrend(rankingVarPos);
 
   const rankingEstadualLabel = (() => {
     if (rankingPos !== null) {

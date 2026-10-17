@@ -23,6 +23,8 @@ const base: EducacaoResumoCardData = {
     { rotulo: "Anos finais", notaTexto: "5,2" },
   ],
   rankingTexto: "3º de 92 municípios",
+  rankingVariacaoTexto: "+2 posições",
+  rankingVariacaoTom: "destaque",
   despesaLiquidadaEducacaoTexto: "R$ 12,3 mi",
   despesaLiquidadaEducacaoCompleta: "R$ 12.300.000,00",
 };
@@ -43,7 +45,14 @@ describe("EducacaoResumoCard", () => {
     expect(screen.getByText("Meta do IDEB atingida").className).toContain(
       "emerald",
     );
-    expect(screen.getByText("Anos iniciais:")).toBeTruthy();
+    expect(screen.getByText(/Anos iniciais/)).toBeTruthy();
+    expect(screen.getByText(/Anos finais/)).toBeTruthy();
+    expect(screen.getByText("Classificação estadual")).toBeTruthy();
+    expect(screen.getByText("Despesa liquidada em Educação")).toBeTruthy();
+    expect(screen.getByText("Função 12 · exercício 2023")).toBeTruthy();
+    expect(screen.getByText("R$ 12,3 mi").getAttribute("title")).toBe(
+      "R$ 12.300.000,00",
+    );
     expect(screen.getByText(/3º de 92 municípios/)).toBeTruthy();
     expect(screen.getByText("R$ 12,3 mi")).toBeTruthy();
     expect(screen.queryByText(/MDE/)).toBeNull();
@@ -102,8 +111,9 @@ describe("EducacaoResumoCard", () => {
     expect(screen.queryByText(/Destaque|Atenção:/)).toBeNull();
     expect(screen.queryByText(/ponto$/)).toBeNull();
     expect(screen.queryByText(/municípios/)).toBeNull();
-    expect(screen.getByText(/não disponíveis para este ciclo/)).toBeTruthy();
-    expect(screen.getAllByText("—").length).toBe(2);
+    expect(screen.getByText(/Classificação indisponível/)).toBeTruthy();
+    expect(screen.queryByText(/Anos iniciais/)).toBeNull();
+    expect(screen.getAllByText("—").length).toBe(3);
   });
 
   it("omite apenas o ranking quando não há classificação estadual", () => {
@@ -113,8 +123,39 @@ describe("EducacaoResumoCard", () => {
         detailUrl="/p/educacao"
       />,
     );
-    expect(screen.queryByText(/classificação estadual/)).toBeNull();
+    expect(screen.queryByText(/municípios/)).toBeNull();
+    expect(screen.queryByText(/posições/)).toBeNull();
     expect(screen.getByText("Meta do IDEB atingida")).toBeTruthy();
+  });
+
+  it.each([
+    { texto: "+2 posições", tom: "destaque", icone: "▲ ", classe: "emerald" },
+    { texto: "-3 posições", tom: "atencao", icone: "▼ ", classe: "amber" },
+    { texto: "Estável", tom: "neutro", icone: "", classe: "subtleText" },
+  ] as const)("exibe variação de posições $texto", (caso) => {
+    render(
+      <EducacaoResumoCard
+        resumo={{
+          ...base,
+          rankingVariacaoTexto: caso.texto,
+          rankingVariacaoTom: caso.tom,
+        }}
+        detailUrl="/p/educacao"
+      />,
+    );
+    const el = screen.getByText(`${caso.icone}${caso.texto}`);
+    expect(el.getAttribute("data-tom")).toBe(caso.tom);
+    expect(el.className).toContain(caso.classe);
+  });
+
+  it("omite a variação quando nula", () => {
+    render(
+      <EducacaoResumoCard
+        resumo={{ ...base, rankingVariacaoTexto: null }}
+        detailUrl="/p/educacao"
+      />,
+    );
+    expect(screen.queryByText(/posições|Estável/)).toBeNull();
   });
 
   it("degrada com resumo nulo", () => {

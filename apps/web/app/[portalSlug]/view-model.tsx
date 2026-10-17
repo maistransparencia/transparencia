@@ -9,7 +9,10 @@ import {
 } from "@transparencia/ui";
 import { env } from "@/env";
 import { buildAlertaUrl } from "@/lib/radar-url";
-import { isDestaqueEvolucaoIdeb } from "./educacao/view-model";
+import {
+  buildRankingTrend,
+  isDestaqueEvolucaoIdeb,
+} from "./educacao/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
@@ -75,6 +78,15 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
     resumo.totalMunicipios != null &&
     resumo.posicaoRanking > 0 &&
     resumo.totalMunicipios > 0;
+  const rankingTrend = rankingValido
+    ? buildRankingTrend(resumo.variacaoPosicoes)
+    : undefined;
+  const rankingVariacaoTom: EducacaoResumoTom = (() => {
+    if (!rankingTrend) return "neutro";
+    if (rankingTrend.isPositive === true) return "destaque";
+    if (rankingTrend.isPositive === false) return "atencao";
+    return "neutro";
+  })();
   return {
     ano: resumo.ano,
     notaIdebTexto:
@@ -112,6 +124,8 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
     rankingTexto: rankingValido
       ? `${resumo.posicaoRanking}º de ${resumo.totalMunicipios} municípios`
       : null,
+    rankingVariacaoTexto: rankingTrend?.value ?? null,
+    rankingVariacaoTom,
     despesaLiquidadaEducacaoTexto:
       resumo.despesaLiquidadaEducacao == null
         ? null

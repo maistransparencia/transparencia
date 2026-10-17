@@ -212,8 +212,12 @@ describe("VisaoGeralPage", () => {
           notaIdeb: 5.9,
           crescimentoPontosIdeb: 1.4,
           atingiuMeta: false,
-          anosIniciais: null,
-          anosFinais: null,
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: -2,
+          despesaLiquidadaEducacao: 33300000,
+          anosIniciais: { notaIdeb: 5.9 },
+          anosFinais: { notaIdeb: 5.3 },
         },
       }),
     );
@@ -233,5 +237,13 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Meta do IDEB não atingida")).toBeInTheDocument();
     expect(screen.queryByText(/MDE/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Despesa liquidada em Educação"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Função 12 · exercício 2023")).toBeInTheDocument();
+    expect(screen.getByText("46º de 92 municípios")).toBeInTheDocument();
+    expect(screen.getByText("▼ -2 posições")).toBeInTheDocument();
+    expect(screen.getByText(/Anos iniciais/)).toBeInTheDocument();
+    expect(screen.getByText(/Anos finais/)).toBeInTheDocument();
   });
 });
