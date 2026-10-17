@@ -178,16 +178,9 @@ def extract_ideb_from_excel(
         except (ValueError, TypeError):
             continue
 
-        meta_2021 = parse_numeric(row.get("VL_PROJECAO_2021"))
-
         for ano in years:
             nota_ideb = parse_numeric(row.get(f"VL_OBSERVADO_{ano}"))
             meta_ideb = parse_numeric(row.get(f"VL_PROJECAO_{ano}"))
-            # O ciclo original de projeções do MEC encerrou-se em 2021. Conforme convenção
-            # adotada pelo painel oficial do INEP (Power BI), propaga-se a meta de 2021
-            # como patamar de referência contínuo para os ciclos posteriores (ex: 2023, 2025).
-            if meta_ideb is None and ano > 2021:
-                meta_ideb = meta_2021
 
             saeb_matematica = parse_numeric(row.get(f"VL_NOTA_MATEMATICA_{ano}"))
             saeb_lingua_portuguesa = parse_numeric(row.get(f"VL_NOTA_PORTUGUES_{ano}"))

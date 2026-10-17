@@ -39,6 +39,14 @@ interface CustomTooltipProps {
   label?: string | number;
 }
 
+const NOTA_INFORMATIVA_IDEB_URL =
+  "https://download.inep.gov.br/ideb/resultados/nota_informativa_ideb_2025.pdf";
+
+const formatarAnos = (anos: number[]) =>
+  new Intl.ListFormat("pt-BR", { style: "long", type: "conjunction" }).format(
+    anos.map(String),
+  );
+
 function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const ponto = payload[0]?.payload;
@@ -132,7 +140,11 @@ export function EducacaoHistoricoSection({
     >
       <SectionHeader
         title={`Série Histórica do IDEB e Avaliações Oficiais${currentHistorico.periodoLabel ? ` (${currentHistorico.periodoLabel})` : ""}`}
-        description="Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação."
+        description={
+          currentHistorico.possuiMeta
+            ? "Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação, quando definidas."
+            : "Trajetória das notas do IDEB e proficiências SAEB."
+        }
       />
 
       {/* Tabs / Toggle de Etapa */}
@@ -173,8 +185,11 @@ export function EducacaoHistoricoSection({
               Evolução da Nota IDEB — {currentHistorico.label}
             </h3>
             <p className="text-slate-500 text-xs">
-              Comparativo direto com a Meta do MEC e a Média Estadual da rede
-              pública{municipioUf ? ` (${municipioUf})` : ""}
+              Comparativo com a Média Estadual da rede pública
+              {municipioUf ? ` (${municipioUf})` : ""}
+              {currentHistorico.possuiMeta
+                ? " e com a Meta do MEC nos ciclos em que ela foi definida"
+                : ""}
             </p>
           </div>
           <div className="flex items-center gap-4 font-medium text-slate-600 text-xs">
@@ -182,10 +197,12 @@ export function EducacaoHistoricoSection({
               <span className="h-2.5 w-2.5 rounded-full bg-[#1d64d8]" />
               Rede Municipal
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-3 border-[#64748b] border-t-2 border-dashed" />
-              Meta MEC
-            </span>
+            {currentHistorico.possuiMeta && (
+              <span className="flex items-center gap-1.5">
+                <span className="h-0.5 w-3 border-[#64748b] border-t-2 border-dashed" />
+                Meta MEC
+              </span>
+            )}
             <span className="flex items-center gap-1.5">
               <span className="h-0.5 w-3 border-amber-600 border-t-2 border-dotted" />
               {currentHistorico.mediaEstadualLabel}
@@ -253,22 +270,24 @@ export function EducacaoHistoricoSection({
                 }}
                 connectNulls
               />
-              <Line
-                type="monotone"
-                dataKey="metaMec"
-                name="Meta MEC"
-                stroke="#64748b"
-                strokeWidth={2}
-                strokeDasharray="4 4"
-                dot={{ r: 4, fill: "#64748b" }}
-                activeDot={{
-                  r: 6,
-                  fill: "#64748b",
-                  stroke: "#ffffff",
-                  strokeWidth: 2,
-                }}
-                connectNulls
-              />
+              {currentHistorico.possuiMeta && (
+                <Line
+                  type="monotone"
+                  dataKey="metaMec"
+                  name="Meta MEC"
+                  stroke="#64748b"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={{ r: 4, fill: "#64748b" }}
+                  activeDot={{
+                    r: 6,
+                    fill: "#64748b",
+                    stroke: "#ffffff",
+                    strokeWidth: 2,
+                  }}
+                  connectNulls={false}
+                />
+              )}
               <Line
                 type="monotone"
                 dataKey="mediaEstadual"
@@ -303,6 +322,38 @@ export function EducacaoHistoricoSection({
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
             <span className="sr-only">(abre em nova aba)</span>
           </a>
+        </div>
+
+        <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-white p-3 text-slate-600 text-xs">
+          <h4 className="font-semibold text-slate-800 text-sm">
+            Como ler a meta do IDEB
+          </h4>
+          <p>
+            O MEC/INEP define a meta do IDEB separadamente para cada rede de
+            ensino de cada município, a partir do ponto de partida da rede. Por
+            isso municípios diferentes, e redes diferentes dentro do mesmo
+            município (municipal, estadual e pública, que reúne as duas), têm
+            metas diferentes. Compare a nota sempre com a meta da mesma rede.
+          </p>
+          {currentHistorico.anosSemMeta.length > 0 && (
+            <p>
+              {currentHistorico.ultimoAnoComMeta !== null &&
+                `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
+              Os resultados de {formatarAnos(currentHistorico.anosSemMeta)} não
+              têm metas definidas pelo INEP e podem ser comparados com os anos
+              anteriores.{" "}
+              <a
+                href={NOTA_INFORMATIVA_IDEB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"
+              >
+                <span>Fonte: Nota Informativa do Ideb 2025</span>
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                <span className="sr-only">(abre em nova aba)</span>
+              </a>
+            </p>
+          )}
         </div>
       </div>
 

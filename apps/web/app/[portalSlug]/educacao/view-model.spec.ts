@@ -491,6 +491,9 @@ describe("educacao/view-model", () => {
     expect(vm.trofeuCivico.destaqueBadgeTexto).toContain(
       "Variação de -0,7 ponto no IDEB (2023)",
     );
+    expect(vm.historico.anosIniciais.possuiMeta).toBe(true);
+    expect(vm.historico.anosIniciais.ultimoAnoComMeta).toBe(2021);
+    expect(vm.historico.anosIniciais.anosSemMeta).toEqual([2023, 2025]);
   });
 
   it("garante isolamento multi-tenant (Regra 23): suporta municípios de outros estados (ex: MG) com médias dinâmicas", () => {

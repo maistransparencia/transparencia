@@ -45,6 +45,9 @@ export interface IdebEtapaHistorico {
   pontoMaisRecente: IdebHistoricoPonto | null;
   periodoLabel: string;
   mediaEstadualLabel: string;
+  anosSemMeta: number[];
+  possuiMeta: boolean;
+  ultimoAnoComMeta: number | null;
 }
 
 export interface EducacaoFiscalTermometro {
@@ -149,6 +152,15 @@ function buildEtapaHistorico({
     return `${pontos[0].ano}–${pontos[pontos.length - 1].ano}`;
   })();
 
+  const anosSemMeta = pontos
+    .filter((p) => p.metaMec === null)
+    .map((p) => p.ano);
+  const anosComMeta = pontos
+    .filter((p) => p.metaMec !== null)
+    .map((p) => p.ano);
+  const possuiMeta = anosComMeta.length > 0;
+  const ultimoAnoComMeta = possuiMeta ? Math.max(...anosComMeta) : null;
+
   return {
     etapaEnsino: etapa,
     label,
@@ -156,6 +168,9 @@ function buildEtapaHistorico({
     pontoMaisRecente,
     periodoLabel,
     mediaEstadualLabel,
+    anosSemMeta,
+    possuiMeta,
+    ultimoAnoComMeta,
   };
 }
 

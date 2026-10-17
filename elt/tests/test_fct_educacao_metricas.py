@@ -169,8 +169,8 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     r2023 = rows[1]
     assert r2023[0] == 2023
     assert Decimal(str(r2023[2])) == Decimal("4.5")
-    assert Decimal(str(r2023[3])) == Decimal("6.4")  # meta propagada de 2021 conforme convenção do INEP
-    assert r2023[4] is False  # 4.5 < 6.4
+    assert r2023[3] is None  # INEP não definiu meta após o ciclo encerrado em 2021
+    assert r2023[4] is None
     assert Decimal(str(r2023[5])) == Decimal("-0.7")  # 4.5 - 5.2
     assert Decimal(str(r2023[6])) == Decimal("190.18")
     assert Decimal(str(r2023[7])) == Decimal("-20.61")
@@ -184,8 +184,8 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     r2025 = rows[2]
     assert r2025[0] == 2025
     assert Decimal(str(r2025[2])) == Decimal("5.9")
-    assert Decimal(str(r2025[3])) == Decimal("6.4")  # meta propagada de 2021 conforme convenção do INEP
-    assert r2025[4] is False  # 5.9 < 6.4
+    assert r2025[3] is None
+    assert r2025[4] is None
     assert Decimal(str(r2025[5])) == Decimal("1.4")  # 5.9 - 4.5 = +1.4 ponto
     assert Decimal(str(r2025[6])) == Decimal("218.39")
     assert Decimal(str(r2025[7])) == Decimal("28.21")  # 218.39 - 190.18
