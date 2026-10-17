@@ -201,11 +201,39 @@ export function buildEducacaoViewModel(raw: {
     raw.allMetrics,
   );
 
-  const pontoMaisRecenteIniciais = historicoIniciais.pontoMaisRecente;
+  const anoBaseIdeb = (() => {
+    if (raw.resumo?.ano && raw.resumo.ano <= raw.context.selectedYear) {
+      return raw.resumo.ano;
+    }
+    const metricRecent = raw.allMetrics
+      .filter((m) => m.ano <= raw.context.selectedYear && m.notaIdeb != null)
+      .sort((a, b) => b.ano - a.ano)[0];
+    if (metricRecent?.ano) {
+      return metricRecent.ano;
+    }
+    if (raw.context.selectedYear % 2 === 0) {
+      return raw.context.selectedYear - 1;
+    }
+    return raw.context.selectedYear;
+  })();
+
+  const eyebrowLabel = (() => {
+    if (raw.context.selectedYear !== anoBaseIdeb) {
+      return `TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO ${raw.context.selectedYear} (ANO-BASE IDEB ${anoBaseIdeb})`;
+    }
+    return `TEMAS · EDUCAÇÃO BÁSICA · ${raw.context.selectedYear} (ANO-BASE IDEB)`;
+  })();
+
+  const pontoCicloBaseIniciais =
+    historicoIniciais.pontos.find((p) => p.ano === anoBaseIdeb) ??
+    historicoIniciais.pontos
+      .filter((p) => p.ano <= raw.context.selectedYear)
+      .sort((a, b) => b.ano - a.ano)[0] ??
+    historicoIniciais.pontoMaisRecente;
 
   const notaAtual = (() => {
-    if (pontoMaisRecenteIniciais?.notaIdeb != null) {
-      return pontoMaisRecenteIniciais.notaIdeb;
+    if (pontoCicloBaseIniciais?.notaIdeb != null) {
+      return pontoCicloBaseIniciais.notaIdeb;
     }
     if (raw.resumo?.notaIdeb != null) {
       return raw.resumo.notaIdeb;
@@ -214,8 +242,8 @@ export function buildEducacaoViewModel(raw: {
   })();
 
   const crescimentoPontos = (() => {
-    if (pontoMaisRecenteIniciais?.crescimentoPontos != null) {
-      return pontoMaisRecenteIniciais.crescimentoPontos;
+    if (pontoCicloBaseIniciais?.crescimentoPontos != null) {
+      return pontoCicloBaseIniciais.crescimentoPontos;
     }
     if (raw.resumo?.crescimentoPontosIdeb != null) {
       return raw.resumo.crescimentoPontosIdeb;
@@ -224,9 +252,11 @@ export function buildEducacaoViewModel(raw: {
   })();
 
   const notaAnterior = (() => {
-    const pontos = historicoIniciais.pontos.filter((p) => p.notaIdeb !== null);
-    if (pontos.length >= 2) {
-      return pontos[pontos.length - 2].notaIdeb;
+    const pontosAteCiclo = historicoIniciais.pontos.filter(
+      (p) => p.ano <= anoBaseIdeb && p.notaIdeb !== null,
+    );
+    if (pontosAteCiclo.length >= 2) {
+      return pontosAteCiclo[pontosAteCiclo.length - 2].notaIdeb;
     }
     if (notaAtual !== null && crescimentoPontos !== null) {
       return Number((notaAtual - crescimentoPontos).toFixed(1));
@@ -245,11 +275,17 @@ export function buildEducacaoViewModel(raw: {
       });
       return `Evolução de +${pontosFmt} ponto no IDEB da Rede Municipal`;
     }
+    if (crescimentoPontos !== null && crescimentoPontos < 0) {
+      const pontosFmt = Math.abs(crescimentoPontos).toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+      });
+      return `Variação de -${pontosFmt} ponto no IDEB (${anoBaseIdeb})`;
+    }
     if (notaAtual !== null) {
       const notaFmt = notaAtual.toLocaleString("pt-BR", {
         minimumFractionDigits: 1,
       });
-      return `Nota ${notaFmt} no IDEB — Anos Iniciais da Rede Municipal`;
+      return `Nota ${notaFmt} no IDEB — Anos Iniciais da Rede Municipal (${anoBaseIdeb})`;
     }
     return "Educação Básica Municipal — Monitoramento Oficial INEP/MEC";
   })();
@@ -345,29 +381,6 @@ export function buildEducacaoViewModel(raw: {
       return metricWithDespesa.despesaLiquidadaEducacao;
     }
     return null;
-  })();
-
-  const anoBaseIdeb = (() => {
-    if (raw.resumo?.ano && raw.resumo.ano <= raw.context.selectedYear) {
-      return raw.resumo.ano;
-    }
-    const metricRecent = raw.allMetrics
-      .filter((m) => m.ano <= raw.context.selectedYear && m.notaIdeb != null)
-      .sort((a, b) => b.ano - a.ano)[0];
-    if (metricRecent?.ano) {
-      return metricRecent.ano;
-    }
-    if (raw.context.selectedYear % 2 === 0) {
-      return raw.context.selectedYear - 1;
-    }
-    return raw.context.selectedYear;
-  })();
-
-  const eyebrowLabel = (() => {
-    if (raw.context.selectedYear !== anoBaseIdeb) {
-      return `TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO ${raw.context.selectedYear} (ANO-BASE IDEB ${anoBaseIdeb})`;
-    }
-    return `TEMAS · EDUCAÇÃO BÁSICA · ${raw.context.selectedYear} (ANO-BASE IDEB)`;
   })();
 
   const trofeuCivico: TrofeuCivicoKPIs = {

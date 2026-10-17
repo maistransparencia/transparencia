@@ -231,6 +231,7 @@ export async function getResumoEducacao(
       .selectFrom("fct_educacao_metricas")
       .select("ano")
       .where("portal_slug", "=", cleanSlug)
+      .where("ano", "<=", targetAno)
       .orderBy("ano", "desc")
       .limit(1)
       .executeTakeFirst();
@@ -366,6 +367,7 @@ export async function getEducacaoRankingEstadual(
         .where("etapa_ensino", "=", dbEtapa)
         .where("cod_ibge", ">=", ufMin)
         .where("cod_ibge", "<", ufMax)
+        .where("ano", "<=", targetAno)
         .orderBy("ano", "desc")
         .limit(1)
         .executeTakeFirst();
@@ -393,7 +395,7 @@ export async function getEducacaoRankingEstadual(
     }
 
     const currentIdx = currentRows.findIndex(
-      (r: any) => Number(r.cod_ibge) === codIbge,
+      (r) => Number(r.cod_ibge) === codIbge,
     );
 
     const totalMunicipios = currentRows.length;
@@ -416,7 +418,7 @@ export async function getEducacaoRankingEstadual(
 
       if (prevRows.length > 0) {
         const prevIdx = prevRows.findIndex(
-          (r: any) => Number(r.cod_ibge) === codIbge,
+          (r) => Number(r.cod_ibge) === codIbge,
         );
         if (prevIdx !== -1) {
           const posicaoAnterior = prevIdx + 1;

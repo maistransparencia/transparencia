@@ -374,6 +374,38 @@ describe("educacao-metrics", () => {
       expect(resumo2021?.crescimentoPontosIdeb).toBeNull();
     });
 
+    it("busca ciclo apurado anterior ou igual (ano <= targetAno) quando o ano solicitado não possui dados diretos", async () => {
+      await seedEducacaoMetricas([
+        {
+          portalSlug: PORTAL_PORCIUNCULA,
+          ano: 2021,
+          etapaEnsino: "anosIniciais",
+          notaIdeb: 5.2,
+        },
+        {
+          portalSlug: PORTAL_PORCIUNCULA,
+          ano: 2023,
+          etapaEnsino: "anosIniciais",
+          notaIdeb: 4.5,
+          crescimentoPontosIdeb: -0.7,
+        },
+        {
+          portalSlug: PORTAL_PORCIUNCULA,
+          ano: 2025,
+          etapaEnsino: "anosIniciais",
+          notaIdeb: 5.9,
+          crescimentoPontosIdeb: 1.4,
+        },
+      ]);
+
+      const resumo2024 = await getResumoEducacao(PORTAL_PORCIUNCULA, 2024);
+
+      expect(resumo2024).not.toBeNull();
+      expect(resumo2024?.ano).toBe(2023);
+      expect(resumo2024?.notaIdeb).toBe(4.5);
+      expect(resumo2024?.crescimentoPontosIdeb).toBe(-0.7);
+    });
+
     it("valida cenário de Natividade com meta atingida (atingiuMeta = true)", async () => {
       await seedEducacaoMetricas({
         portalSlug: PORTAL_NATIVIDADE,
