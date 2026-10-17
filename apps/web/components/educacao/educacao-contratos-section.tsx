@@ -321,10 +321,11 @@ export function EducacaoContratosSection({
       className="space-y-6"
     >
       <SectionHeader
-        title="Contratos e Compras da Educação"
+        title={`Contratos e Compras da Educação${ano ? ` · Exercício ${ano}` : ""}`}
         description={
           <span>
-            Auditoria dos contratos da pasta de ensino: merenda escolar (
+            Auditoria dos contratos da pasta de ensino vigentes no exercício:
+            merenda escolar (
             <a
               href="https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm"
               target="_blank"

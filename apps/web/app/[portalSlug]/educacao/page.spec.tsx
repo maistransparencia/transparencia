@@ -259,7 +259,7 @@ describe("EducacaoPage (Server Component)", () => {
 
     // Bloco 4: Contratos e compras da educação no formato canônico de contratos
     expect(
-      screen.getByText("Contratos e Compras da Educação"),
+      screen.getByText(/Contratos e Compras da Educação/),
     ).toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
     expect(

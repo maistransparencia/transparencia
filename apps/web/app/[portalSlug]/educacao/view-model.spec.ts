@@ -144,6 +144,10 @@ describe("educacao/view-model", () => {
     const vm = buildEducacaoViewModel(raw);
 
     // Bloco 1: Troféu Cívico
+    expect(vm.trofeuCivico.anoBaseIdeb).toBe(2025);
+    expect(vm.trofeuCivico.eyebrowLabel).toBe(
+      "TEMAS · EDUCAÇÃO BÁSICA · 2025 (ANO-BASE IDEB)",
+    );
     expect(vm.trofeuCivico.notaAtual).toBe(5.9);
     expect(vm.trofeuCivico.notaAnterior).toBe(4.5);
     expect(vm.trofeuCivico.crescimentoPontos).toBe(1.4);
@@ -252,5 +256,55 @@ describe("educacao/view-model", () => {
     expect(vm.fiscal.fundeb.percentualAplicado).toBeNull();
     expect(vm.fiscal.fundeb.cumprido).toBeNull();
     expect(vm.contratosResumo.totalContratos).toBe(0);
+  });
+
+  it("determina ano-base bienal e eyebrow para anos pares sem ciclo oficial (ex: 2026 -> 2025)", () => {
+    const raw = {
+      portalSlug: "porciuncula_prefeitura",
+      portalConfig: null,
+      allMetrics: [
+        {
+          educacaoMetricaId: "1",
+          portalSlug: "porciuncula_prefeitura",
+          codIbge: 3304102,
+          ano: 2025,
+          rede: "municipal",
+          etapaEnsino: "anosIniciais" as const,
+          notaIdeb: 5.9,
+          metaIdeb: null,
+          atingiuMeta: null,
+          saebMatematica: null,
+          saebLinguaPortuguesa: null,
+          indicadorFluxoAprovacao: null,
+          crescimentoPontosIdeb: 1.4,
+          variacaoSaebMatematica: null,
+          variacaoSaebPortugues: null,
+          despesaLiquidadaEducacao: null,
+          totalMatriculasRedeMunicipal: null,
+          custoAnualPorAluno: null,
+        },
+      ],
+      resumo: {
+        ano: 2025,
+        notaIdeb: 5.9,
+        crescimentoPontosIdeb: 1.4,
+        despesaLiquidadaEducacao: null,
+        totalMatriculasRedeMunicipal: null,
+        custoAnualPorAluno: null,
+      },
+      contratos: [],
+      context: {
+        selectedYear: 2026,
+        isCurrentYear: true,
+        selectedEtapa: "anosIniciais" as const,
+      },
+    };
+
+    const vm = buildEducacaoViewModel(raw);
+    expect(vm.selectedYear).toBe(2026);
+    expect(vm.trofeuCivico.anoBaseIdeb).toBe(2025);
+    expect(vm.trofeuCivico.eyebrowLabel).toBe(
+      "TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO 2026 (ANO-BASE IDEB 2025)",
+    );
   });
 });

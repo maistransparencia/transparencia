@@ -63,7 +63,7 @@ export function EducacaoHeroSection({
         {/* Coluna Esquerda: Narrativa Editorial no Padrão de Temas */}
         <div className="space-y-4 lg:col-span-7">
           <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-            TEMAS · EDUCAÇÃO BÁSICA · {selectedYear}
+            {trofeuCivico.eyebrowLabel}
           </span>
 
           <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
@@ -75,9 +75,9 @@ export function EducacaoHeroSection({
           <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
             Monitoramento auditável da evolução pedagógica (série histórica do
             IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
-            INEP/MEC) integrada à aplicação dos pisos constitucionais de MDE
-            (25%) e FUNDEB (70%), ao custo por aluno e aos contratos de merenda,
-            transporte e serviços escolares da rede municipal.
+            INEP/MEC) integrada ao custo anual por aluno e aos contratos de
+            fornecimento da merenda escolar (PNAE), transporte (PNATE) e
+            infraestrutura da rede municipal.
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export function EducacaoHeroSection({
         >
           <div className="flex items-center justify-between gap-2 border-slate-100 border-b pb-3">
             <span className="inline-block rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-              Ciclo Oficial INEP/MEC {selectedYear}
+              Ciclo Oficial INEP/MEC {trofeuCivico.anoBaseIdeb}
             </span>
             <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
               Destaque Cívico
@@ -109,7 +109,7 @@ export function EducacaoHeroSection({
       {/* KPIs Canônicos em Grid de 4 Colunas */}
       <KPIGrid columns={4}>
         <KPICard
-          title={`Nota IDEB ${selectedYear}`}
+          title={`Nota IDEB ${trofeuCivico.anoBaseIdeb}`}
           value={notaAtualFmt}
           subtext="Anos Iniciais da Rede Municipal"
           trend={
@@ -126,7 +126,7 @@ export function EducacaoHeroSection({
           value={notaAnteriorFmt}
           subtext={
             trofeuCivico.notaAnterior !== null
-              ? `Referência anterior (${selectedYear - 2})`
+              ? `Referência anterior (${trofeuCivico.anoBaseIdeb - 2})`
               : "Primeiro ciclo apurado"
           }
         />
@@ -145,8 +145,8 @@ export function EducacaoHeroSection({
           }
           subtext={
             trofeuCivico.totalMatriculas !== null
-              ? `${trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} matrículas ativas`
-              : "Função 12 (Educação)"
+              ? `${trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} matrículas · Exercício ${selectedYear}`
+              : `Função 12 · Exercício ${selectedYear}`
           }
           className="min-w-0"
         />

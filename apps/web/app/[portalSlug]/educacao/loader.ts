@@ -95,28 +95,19 @@ export async function loadEducacaoData(
   searchParams: EducacaoSearchParams = {},
 ) {
   const tenantSlug = requirePortalSlug(portalSlug);
+  const currentYear = new Date().getFullYear();
 
   const parsedYear = searchParams.ano ? Number(searchParams.ano) : undefined;
-  const targetAno =
+  const selectedYear =
     parsedYear !== undefined &&
     Number.isInteger(parsedYear) &&
     parsedYear > 1900
       ? parsedYear
-      : undefined;
+      : currentYear;
 
-  const raw = await loadCachedEducacaoCoreData(tenantSlug, targetAno);
+  const raw = await loadCachedEducacaoCoreData(tenantSlug, selectedYear);
 
-  const defaultYear = (() => {
-    if (targetAno !== undefined) return targetAno;
-    if (raw.resumo?.ano) return raw.resumo.ano;
-    if (raw.allMetrics.length > 0) {
-      const maxAno = Math.max(...raw.allMetrics.map((m) => m.ano));
-      if (maxAno > 1900) return maxAno;
-    }
-    return new Date().getFullYear();
-  })();
-
-  const context = parseEducacaoContext(searchParams, defaultYear);
+  const context = parseEducacaoContext(searchParams, selectedYear);
 
   return {
     ...raw,

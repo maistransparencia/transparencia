@@ -1,4 +1,6 @@
+import { sql } from "kysely";
 import { db } from "../client";
+import { getContratosServicosVigentes } from "./contratos-servicos-vigentes";
 
 export type EtapaEnsino = "anosIniciais" | "anosFinais";
 
@@ -617,6 +619,73 @@ export async function getEducacaoContratos(
 
   const cleanSlug = portalSlug.trim();
 
+  // 1. Tenta carregar primeiro a partir de fct_contratos_servicos_vigentes (mesma fonte e critérios canônicos da página de Contratos)
+  if (ano !== undefined && ano !== null && !Number.isNaN(ano)) {
+    try {
+      const vigentes = await getContratosServicosVigentes(cleanSlug, ano);
+      if (vigentes.length > 0) {
+        const educVigentes = vigentes.filter((c) => {
+          const text =
+            `${c.objetoDescricao} ${c.orgaoNome ?? ""} ${c.funcaoNome ?? ""} ${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""}`.toLowerCase();
+          return (
+            text.includes("educa") ||
+            text.includes("escola") ||
+            text.includes("merenda") ||
+            text.includes("pnae") ||
+            text.includes("pnate") ||
+            text.includes("ensino") ||
+            text.includes("creche") ||
+            text.includes("fundeb") ||
+            text.includes("pedag") ||
+            text.includes("didatico")
+          );
+        });
+
+        if (educVigentes.length > 0) {
+          return educVigentes.map((c) => {
+            const objeto = c.objetoDescricao;
+            const fontesOuFuncao = `${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""} ${c.funcaoNome ?? ""}`;
+            const categoria = categorizarContratoEducacao(
+              objeto,
+              fontesOuFuncao,
+            );
+
+            return {
+              contratoId: c.contratoServicoId ?? c.contratoNumero ?? "",
+              portalSlug: c.portalSlug,
+              ano: c.ano ?? ano,
+              empresaId: c.empresaId ?? "",
+              contratoNumero: c.contratoNumero ?? "",
+              licitacaoNumero: c.licitacaoNumero ?? null,
+              modalidade: null,
+              fornecedorNome: c.fornecedorNome,
+              fornecedorCpfCnpj: c.fornecedorCnpj || null,
+              objeto,
+              categoria,
+              valorContrato: c.valorContrato ?? 0,
+              valorAditado: c.valorAditado ?? 0,
+              totalEmpenhado: c.totalEmpenhado,
+              totalLiquidado: c.totalLiquidado,
+              totalPago: c.totalPago,
+              saldoAPagar: c.saldoPendente,
+              fontePrincipal: c.fontePrincipal ?? null,
+              fontesRecursos: c.fontesRecursos ?? null,
+              orgaoNome: c.orgaoNome ?? null,
+              principalFuncao: c.funcaoNome ?? null,
+              principalPrograma: c.programaNome ?? null,
+              principalAcao: c.projetoAtividadeNome ?? null,
+              dataInicio: c.dataInicio,
+              vencimentoAtual: c.vencimentoAtual,
+            };
+          });
+        }
+      }
+    } catch {
+      // Fallback gracioso para a consulta direta em fct_contratos
+    }
+  }
+
+  // 2. Fallback direto para fct_contratos (usado quando fct_contratos_servicos_vigentes não existir ou em fixtures de teste)
   let query = db
     .selectFrom("fct_contratos as c")
     .leftJoin("fct_contratos_recursos as cr", (join) =>
@@ -680,7 +749,12 @@ export async function getEducacaoContratos(
     );
 
   if (ano !== undefined && ano !== null && !Number.isNaN(ano)) {
-    query = query.where("c.ano", "=", ano);
+    query = query.where((eb) =>
+      eb.or([
+        eb("c.ano", "=", ano),
+        sql<boolean>`((c.data_inicio is null or extract(year from c.data_inicio) <= ${ano}) and (c.vencimento_atual is not null and extract(year from c.vencimento_atual) >= ${ano}))`,
+      ]),
+    );
   }
 
   query = query.orderBy("c.ano", "desc").orderBy("c.contrato_numero", "asc");

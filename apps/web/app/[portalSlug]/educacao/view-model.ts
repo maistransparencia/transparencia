@@ -6,6 +6,8 @@ import type {
 } from "@transparencia/db";
 
 export interface TrofeuCivicoKPIs {
+  anoBaseIdeb: number;
+  eyebrowLabel: string;
   notaAtual: number | null;
   notaAnterior: number | null;
   crescimentoPontos: number | null;
@@ -345,7 +347,32 @@ export function buildEducacaoViewModel(raw: {
     return null;
   })();
 
+  const anoBaseIdeb = (() => {
+    if (raw.resumo?.ano && raw.resumo.ano <= raw.context.selectedYear) {
+      return raw.resumo.ano;
+    }
+    const metricRecent = raw.allMetrics
+      .filter((m) => m.ano <= raw.context.selectedYear && m.notaIdeb != null)
+      .sort((a, b) => b.ano - a.ano)[0];
+    if (metricRecent?.ano) {
+      return metricRecent.ano;
+    }
+    if (raw.context.selectedYear % 2 === 0) {
+      return raw.context.selectedYear - 1;
+    }
+    return raw.context.selectedYear;
+  })();
+
+  const eyebrowLabel = (() => {
+    if (raw.context.selectedYear !== anoBaseIdeb) {
+      return `TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO ${raw.context.selectedYear} (ANO-BASE IDEB ${anoBaseIdeb})`;
+    }
+    return `TEMAS · EDUCAÇÃO BÁSICA · ${raw.context.selectedYear} (ANO-BASE IDEB)`;
+  })();
+
   const trofeuCivico: TrofeuCivicoKPIs = {
+    anoBaseIdeb,
+    eyebrowLabel,
     notaAtual,
     notaAnterior,
     crescimentoPontos,

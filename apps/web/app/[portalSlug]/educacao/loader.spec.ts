@@ -173,5 +173,25 @@ describe("educacao/loader", () => {
         2025,
       );
     });
+
+    it("utiliza o ano corrente como padrão quando searchParams.ano for omitido", async () => {
+      const currentYear = new Date().getFullYear();
+      vi.mocked(dbModule.getPortalConfig).mockResolvedValue({} as any);
+      vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue([]);
+      vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(null);
+      vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue([]);
+
+      const data = await loadEducacaoData("porciuncula_prefeitura");
+      expect(data.context.selectedYear).toBe(currentYear);
+      expect(data.context.isCurrentYear).toBe(true);
+      expect(dbModule.getResumoEducacao).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        currentYear,
+      );
+      expect(dbModule.getEducacaoContratos).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        currentYear,
+      );
+    });
   });
 });
