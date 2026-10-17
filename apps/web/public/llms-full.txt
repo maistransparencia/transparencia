@@ -315,7 +315,25 @@ Esta seção demonstra o cumprimento das metas constitucionais de investimento n
 
 ---
 
-### 1.7.1. Obras Públicas e Impacto Urbano (`/[portalSlug]/obras`)
+### 1.7.1. Educação Básica & Rigor Fiscal (`/[portalSlug]/educacao`)
+
+Monitoramento auditável da evolução pedagógica e cumprimento das regras constitucionais de investimento na educação básica pública da rede municipal de ensino:
+
+- **Troféu Cívico e Destaque Institucional:** Painel executivo de reconhecimento cívico destacando a nota mais recente do IDEB, evolução bienal em pontos (+X,X pontos no ciclo oficial INEP/MEC), classificação no ranking estadual comparada a todos os municípios da UF e identificação de avanços históricos (ex: maior crescimento do Estado nos Anos Iniciais e posição no Top 10 dos Anos Finais).
+- **Série Histórica do IDEB e Avaliações Oficiais (2021–2025):** Trajetória bienal das notas do IDEB, proficiência no SAEB (Língua Portuguesa e Matemática), taxa de aprovação do fluxo escolar e metas projetadas pelo MEC, com alternância instantânea entre Anos Iniciais (1º ao 5º ano) e Anos Finais (6º ao 9º ano).
+- **Painel de Responsabilidade Fiscal da Educação (MDE e FUNDEB):**
+  - *Aplicação em MDE (Mínimo Constitucional):* Monitoramento da vinculação obrigatória de 25% da receita de impostos e transferências à Manutenção e Desenvolvimento do Ensino conforme o [Art. 212 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212), com termômetro visual e demarcação de cumprimento do piso.
+  - *Aplicação do FUNDEB:* Monitoramento da destinação obrigatória de pelo menos 70% dos recursos do FUNDEB para a remuneração dos profissionais da educação básica em efetivo exercício, nos termos do [Art. 212-A da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a).
+  - *Evolução do Custo por Aluno vs. Desempenho no IDEB:* Gráfico analítico de correlação entre o investimento anual liquidado por estudante matriculado na rede municipal (Função 12) e a evolução pedagógica apurada.
+- **Auditoria de Contratos e Compras da Educação:** Listagem analítica e busca de contratos administrativos da pasta com filtros por categoria pedagógica:
+  - *Merenda Escolar (PNAE):* Contratos de aquisição de gêneros alimentícios e nutrição escolar fundamentados na [Lei Federal nº 11.947/2009 (PNAE)](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm).
+  - *Transporte Escolar (PNATE):* Contratações de locação de veículos e transporte de estudantes fundamentadas na [Lei Federal nº 10.880/2004 (PNATE)](https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10880.htm).
+  - *Manutenção & Obras Escolares:* Reformas, ampliações e materiais didático-pedagógicos.
+  - *Modal de Detalhamento 360°:* Acesso aprofundado a dados cadastrais do fornecedor, vigência, valores contratados, empenhados, liquidados e pagos, fontes de recurso e classificação orçamentária com sincronização por deep linking (`?contratoNumero=...`).
+
+---
+
+### 1.7.2. Obras Públicas e Impacto Urbano (`/[portalSlug]/obras`)
 
 Mapeamento cartográfico e fiscalização das obras públicas municipais em execução, paralisadas ou concluídas no território da cidade:
 
@@ -364,6 +382,7 @@ Todas as rotas públicas contam com geração sob demanda de imagens em tempo re
 - `/[portalSlug]/orcamento/opengraph-image`: **Card de Orçamento** — Dotação Atualizada da LOA, Total Empenhado, Total Liquidado e Total Pago.
 - `/[portalSlug]/pessoal/opengraph-image`: **Card de Pessoal** — Total da Folha de Pagamento, Comprometimento da LRF com Pessoal, Total Pago e Percentual de Chefias Ocupadas por Servidores Efetivos.
 - `/[portalSlug]/saude/opengraph-image`: **Card de Saúde** — Orçamento Atualizado da Saúde, Total Pago em Ações de Saúde, Recursos Aplicados em Medicamentos/Insumos e Emendas Parlamentares Destinadas à Saúde (com valor empenhado no detalhe).
+- `/[portalSlug]/educacao/opengraph-image`: **Card de Educação** — Nota do IDEB (Ciclo mais recente), Evolução Bienal em pontos, Percentual de MDE Constitucional e Custo Anual por Aluno da Rede Municipal.
 - `/[portalSlug]/previdencia/opengraph-image`: **Card Previdenciário (RPPS)** — Total de Despesas Previdenciárias Pagas, Aportes Quitados pelo Município, Contribuição Patronal Paga e Número de Servidores Efetivos Segurados (alias permanente para retrocompatibilidade: `/[portalSlug]/caprem/opengraph-image`).
 - `/[portalSlug]/obras/opengraph-image`: **Card de Obras Públicas** — Total de Obras, Canteiros em Execução, Obras Paralisadas e Total Previsto de Investimento em Infraestrutura.
 

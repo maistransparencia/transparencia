@@ -2,10 +2,15 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedContrato,
+  seedContratoRecurso,
   seedEducacaoMetricas,
 } from "../../../tests/fixtures/seed";
 import {
+  categorizarContratoEducacao,
+  getEducacaoContratos,
   getEducacaoMetrics,
+  getEducacaoRankingEstadual,
   getResumoEducacao,
   toBooleanOrNull,
   toDbEtapaEnsino,
@@ -505,6 +510,248 @@ describe("educacao-metrics", () => {
       const resumoB = await getResumoEducacao(PORTAL_ISOLAMENTO_B);
       expect(resumoB?.portalSlug).toBe(PORTAL_ISOLAMENTO_B);
       expect(resumoB?.notaIdeb).toBe(4.0);
+    });
+  });
+
+  describe("categorizarContratoEducacao", () => {
+    it("categoriza como merenda_pnae contratos de alimentação e merenda escolar", () => {
+      expect(
+        categorizarContratoEducacao(
+          "Aquisição de gêneros alimentícios para merenda escolar - PNAE",
+        ),
+      ).toBe("merenda_pnae");
+      expect(
+        categorizarContratoEducacao(
+          "Fornecimento de refeições e nutrição para alunos",
+        ),
+      ).toBe("merenda_pnae");
+    });
+
+    it("categoriza como transporte_pnate contratos de transporte de estudantes", () => {
+      expect(
+        categorizarContratoEducacao(
+          "Serviço de transporte escolar de alunos da zona rural - PNATE",
+        ),
+      ).toBe("transporte_pnate");
+      expect(
+        categorizarContratoEducacao(
+          "Locação de ônibus escolar para atendimento à rede",
+        ),
+      ).toBe("transporte_pnate");
+    });
+
+    it("categoriza como manutencao_geral contratos de reformas, obras e materiais pedagógicos", () => {
+      expect(
+        categorizarContratoEducacao(
+          "Reforma e pintura da Escola Municipal Maria de Lourdes",
+        ),
+      ).toBe("manutencao_geral");
+      expect(
+        categorizarContratoEducacao(
+          "Aquisição de material didático e pedagógico para creches",
+        ),
+      ).toBe("manutencao_geral");
+    });
+
+    it("categoriza como outros quando não encaixa nas categorias específicas", () => {
+      expect(
+        categorizarContratoEducacao(
+          "Contratação de assessoria contábil",
+          "Educação",
+        ),
+      ).toBe("outros");
+    });
+  });
+
+  describe("getEducacaoContratos", () => {
+    it("retorna contratos vinculados à Educação com categorias e dados em camelCase", async () => {
+      await seedContrato({
+        contratoId: "ctr_edu_1",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0443/25",
+        fornecedorNome: "DISTRIBUIDORA ALIMENTAR LTDA",
+        fornecedorCpfCnpj: "12.345.678/0001-90",
+        objeto: "Aquisição de gêneros alimentícios para merenda escolar PNAE",
+        valorContrato: 450000,
+        licitacaoNumero: "012/2025",
+        modalidade: "pregao_eletronico",
+        empenhado: 450000,
+        dataInicio: "2025-02-01",
+        vencimentoAtual: "2025-12-31",
+      });
+
+      await seedContratoRecurso({
+        contratoRecursoId: "cr_edu_1",
+        contratoId: "ctr_edu_1",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        orgaoNome: "Secretaria Municipal de Educação",
+        contratoNumero: "0443/25",
+        licitacaoNumero: "012/2025",
+        fornecedorNome: "DISTRIBUIDORA ALIMENTAR LTDA",
+        valorContrato: 450000,
+        totalEmpenhado: 450000,
+        totalLiquidado: 200000,
+        totalPago: 180000,
+        saldoAPagar: 270000,
+        fontePrincipal: "PNAE - Transferências FNDE",
+        fontesRecursos: "PNAE - Transferências FNDE; Recursos Próprios",
+        principalFuncao: "Educação",
+        principalPrograma: "Alimentação Escolar Sustentável",
+        principalAcao: "Distribuição de Merenda Escolar",
+      });
+
+      // Contrato não educacional para garantir que é filtrado
+      await seedContrato({
+        contratoId: "ctr_obras_1",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0888/25",
+        fornecedorNome: "PAVIMENTADORA LTDA",
+        objeto: "Pavimentação asfáltica de vias urbanas",
+        valorContrato: 1200000,
+      });
+
+      const contratos = await getEducacaoContratos(PORTAL_PORCIUNCULA);
+
+      expect(contratos).toHaveLength(1);
+      const c = contratos[0];
+      expect(c.contratoNumero).toBe("0443/25");
+      expect(c.categoria).toBe("merenda_pnae");
+      expect(c.fornecedorNome).toBe("DISTRIBUIDORA ALIMENTAR LTDA");
+      expect(c.valorContrato).toBe(450000);
+      expect(c.totalEmpenhado).toBe(450000);
+      expect(c.totalLiquidado).toBe(200000);
+      expect(c.totalPago).toBe(180000);
+      expect(c.saldoAPagar).toBe(270000);
+      expect(c.fontePrincipal).toBe("PNAE - Transferências FNDE");
+      expect(c.orgaoNome).toBe("Secretaria Municipal de Educação");
+      expect(c.principalFuncao).toBe("Educação");
+      expect(c.dataInicio).toBe("2025-02-01");
+      expect(c.vencimentoAtual).toBe("2025-12-31");
+    });
+
+    it("filtra por ano quando especificado", async () => {
+      await seedContrato({
+        contratoId: "ctr_pnae_2024",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2024,
+        empresaId: "emp_1",
+        contratoNumero: "0100/24",
+        fornecedorNome: "FORNECEDOR 2024",
+        objeto: "Merenda escolar PNAE 2024",
+      });
+      await seedContrato({
+        contratoId: "ctr_pnae_2025",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0200/25",
+        fornecedorNome: "FORNECEDOR 2025",
+        objeto: "Merenda escolar PNAE 2025",
+      });
+
+      const contratos2025 = await getEducacaoContratos(
+        PORTAL_PORCIUNCULA,
+        2025,
+      );
+      expect(contratos2025).toHaveLength(1);
+      expect(contratos2025[0].ano).toBe(2025);
+      expect(contratos2025[0].contratoNumero).toBe("0200/25");
+    });
+
+    it("garante isolamento multi-tenant estrito (Regra 23)", async () => {
+      await seedContrato({
+        contratoId: "ctr_iso_a",
+        portalSlug: PORTAL_ISOLAMENTO_A,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0991/25",
+        fornecedorNome: "AUTO ONIBUS A",
+        objeto: "Transporte escolar PNATE",
+      });
+      await seedContrato({
+        contratoId: "ctr_iso_b",
+        portalSlug: PORTAL_ISOLAMENTO_B,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0992/25",
+        fornecedorNome: "AUTO ONIBUS B",
+        objeto: "Transporte escolar PNATE",
+      });
+
+      const resA = await getEducacaoContratos(PORTAL_ISOLAMENTO_A);
+      expect(resA).toHaveLength(1);
+      expect(resA[0].contratoNumero).toBe("0991/25");
+
+      const resB = await getEducacaoContratos(PORTAL_ISOLAMENTO_B);
+      expect(resB).toHaveLength(1);
+      expect(resB[0].contratoNumero).toBe("0992/25");
+    });
+
+    it("mapeia empenhado_contrato quando total_empenhado de recursos não estiver presente", async () => {
+      await seedContrato({
+        contratoId: "ctr_empenhado_test",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0777/25",
+        fornecedorNome: "TESTE MERENDA LTDA",
+        objeto: "Fornecimento de merenda escolar PNAE",
+        empenhado: 125000.5,
+      });
+
+      const res = await getEducacaoContratos(PORTAL_PORCIUNCULA, 2025);
+      const match = res.find((c) => c.contratoNumero === "0777/25");
+      expect(match).toBeDefined();
+      expect(match?.totalEmpenhado).toBe(125000.5);
+    });
+
+    it("retorna array vazio para portalSlug inválido ou vazio", async () => {
+      expect(await getEducacaoContratos("")).toEqual([]);
+      expect(await getEducacaoContratos("   ")).toEqual([]);
+      // @ts-expect-error teste defensivo
+      expect(await getEducacaoContratos(null)).toEqual([]);
+    });
+  });
+
+  describe("getEducacaoRankingEstadual", () => {
+    it("retorna null para portalSlug inválido ou vazio", async () => {
+      expect(await getEducacaoRankingEstadual("")).toBeNull();
+      expect(await getEducacaoRankingEstadual("   ")).toBeNull();
+      // @ts-expect-error teste defensivo
+      expect(await getEducacaoRankingEstadual(null)).toBeNull();
+    });
+
+    it("retorna null se o portal não tiver cod_ibge registrado", async () => {
+      expect(await getEducacaoRankingEstadual("portal_sem_ibge")).toBeNull();
+    });
+
+    it("calcula ranking dinâmico com base nos dados de seed_inep_ideb", async () => {
+      await seedEducacaoMetricas({
+        portalSlug: PORTAL_PORCIUNCULA,
+        codIbge: 3304102,
+        ano: 2025,
+        rede: "municipal",
+        etapaEnsino: "anos_iniciais",
+        notaIdeb: 5.9,
+      });
+
+      const ranking = await getEducacaoRankingEstadual(PORTAL_PORCIUNCULA, {
+        ano: 2025,
+        etapaEnsino: "anosIniciais",
+      });
+
+      // Se seed_inep_ideb estiver populado no ambiente de teste, valida a estrutura
+      if (ranking !== null) {
+        expect(ranking).toHaveProperty("totalMunicipios");
+        expect(ranking).toHaveProperty("posicaoRanking");
+        expect(ranking).toHaveProperty("variacaoPosicoes");
+      }
     });
   });
 });

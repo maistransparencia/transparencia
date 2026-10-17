@@ -312,6 +312,8 @@ describe("ObrasDetalheModal Component", () => {
           planoInterno: null,
           acaoOrcamentaria: "10E4",
           descricao: "Construção de Unidade Básica de Saúde",
+          linkOrigem: "https://portaldatransparencia.gov.br",
+          linkOrigemLabel: "Portal da Transparência (Governo Federal)",
         },
       ],
     };
