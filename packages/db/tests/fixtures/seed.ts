@@ -1073,8 +1073,74 @@ export async function seedObraEmpenho(row: ObraEmpenhoRow): Promise<void> {
     .execute();
 }
 
+export interface EducacaoMetricaRow {
+  portalSlug: string;
+  codIbge?: number;
+  ano: number;
+  rede?: string;
+  etapaEnsino: "anos_iniciais" | "anos_finais" | "anosIniciais" | "anosFinais";
+  notaIdeb?: number | null;
+  metaIdeb?: number | null;
+  atingiuMetaFlag?: boolean | null;
+  saebMatematica?: number | null;
+  saebLinguaPortuguesa?: number | null;
+  indicadorFluxoAprovacao?: number | null;
+  crescimentoPontosIdeb?: number | null;
+  variacaoSaebMatematica?: number | null;
+  variacaoSaebPortugues?: number | null;
+  despesaLiquidadaEducacao?: number | null;
+  totalMatriculasRedeMunicipal?: number | null;
+  custoAnualPorAluno?: number | null;
+}
+
+export async function seedEducacaoMetricas(
+  row: EducacaoMetricaRow | EducacaoMetricaRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_metricas")
+    .values(
+      rows.map((r) => {
+        const etapa =
+          r.etapaEnsino === "anosIniciais"
+            ? "anos_iniciais"
+            : r.etapaEnsino === "anosFinais"
+              ? "anos_finais"
+              : r.etapaEnsino;
+        return {
+          educacao_metrica_id: nextId("em"),
+          portal_slug: r.portalSlug,
+          cod_ibge: r.codIbge ?? 0,
+          ano: r.ano,
+          rede: r.rede ?? "municipal",
+          etapa_ensino: etapa,
+          nota_ideb: r.notaIdeb ?? null,
+          meta_ideb: r.metaIdeb ?? null,
+          atingiu_meta_flag: r.atingiuMetaFlag ?? null,
+          saeb_matematica: r.saebMatematica ?? null,
+          saeb_lingua_portuguesa: r.saebLinguaPortuguesa ?? null,
+          indicador_fluxo_aprovacao: r.indicadorFluxoAprovacao ?? null,
+          crescimento_pontos_ideb: r.crescimentoPontosIdeb ?? null,
+          variacao_saeb_matematica: r.variacaoSaebMatematica ?? null,
+          variacao_saeb_portugues: r.variacaoSaebPortugues ?? null,
+          despesa_liquidada_educacao: r.despesaLiquidadaEducacao ?? null,
+          total_matriculas_rede_municipal:
+            r.totalMatriculasRedeMunicipal ?? null,
+          custo_anual_por_aluno: r.custoAnualPorAluno ?? null,
+        };
+      }),
+    )
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_obras_empenhos")
     .where("portal_slug", "=", portalSlug)

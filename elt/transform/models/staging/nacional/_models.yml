@@ -49,3 +49,44 @@ models:
 
       - name: taxa_aprovacao
         description: "Indicador de rendimento / taxa de aprovação apurado pelo Censo Escolar"
+
+  - name: stg_inep__ideb_estados
+    description: "Camada de staging com dados normalizados das notas oficiais do IDEB por Unidade da Federação (INEP/MEC)"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - cod_uf
+            - ano
+            - rede
+            - etapa_ensino
+    columns:
+      - name: cod_uf
+        description: "Código IBGE de 2 dígitos da Unidade da Federação"
+        tests:
+          - not_null
+
+      - name: sigla_uf
+        description: "Sigla de 2 letras da Unidade da Federação (ex: RJ, SP, MG)"
+        tests:
+          - not_null
+
+      - name: ano
+        description: "Ano do ciclo bienal de avaliação (ex: 2021, 2023, 2025)"
+        tests:
+          - not_null
+
+      - name: rede
+        description: "Dependência administrativa em lowercase snake_case (publica, estadual, municipal)"
+        tests:
+          - not_null
+
+      - name: etapa_ensino
+        description: "Etapa de ensino fundamental em lowercase snake_case (anos_iniciais, anos_finais)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['anos_iniciais', 'anos_finais']
+
+      - name: nota_ideb
+        description: "Nota oficial observada do IDEB no ciclo bienal (0 a 10)"
+

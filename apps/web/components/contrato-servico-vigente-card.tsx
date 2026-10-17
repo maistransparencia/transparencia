@@ -57,9 +57,9 @@ export function ContratoServicoVigenteCard({
     >
       <div className="space-y-2.5">
         {/* Row 1: Badges de Status e Aditamento */}
-        {(contrato.statusExecucao === "inexecutado" ||
-          contrato.statusExecucao === "concluido" ||
-          (valorAditado && valorAditado > 0)) && (
+        {contrato.statusExecucao === "inexecutado" ||
+        contrato.statusExecucao === "concluido" ||
+        (valorAditado && valorAditado > 0) ? (
           <div className="flex flex-wrap items-center gap-1.5">
             {(() => {
               if (contrato.statusExecucao === "inexecutado") {
@@ -93,7 +93,7 @@ export function ContratoServicoVigenteCard({
               </span>
             ) : null}
           </div>
-        )}
+        ) : null}
 
         {/* Row 2: Nome do Fornecedor + Número do Contrato */}
         <div className="min-w-0">
