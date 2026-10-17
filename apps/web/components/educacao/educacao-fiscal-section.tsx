@@ -110,7 +110,7 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={correlacao}
-              margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+              margin={{ top: 20, right: -35, left: -18, bottom: 10 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"

@@ -216,7 +216,7 @@ export function EducacaoHistoricoSection({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
-              margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
+              margin={{ top: 20, right: 10, left: -30, bottom: 10 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
