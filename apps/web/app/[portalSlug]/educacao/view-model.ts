@@ -6,6 +6,18 @@ import type {
   EtapaEnsino,
 } from "@transparencia/db";
 
+export const LIMIAR_DESTAQUE_EVOLUCAO_IDEB = 1.0;
+
+export function isDestaqueEvolucaoIdeb(
+  crescimentoPontos: number | null | undefined,
+): boolean {
+  return (
+    crescimentoPontos !== null &&
+    crescimentoPontos !== undefined &&
+    crescimentoPontos >= LIMIAR_DESTAQUE_EVOLUCAO_IDEB
+  );
+}
+
 export interface TrofeuCivicoKPIs {
   anoBaseIdeb: number;
   eyebrowLabel: string;
@@ -298,9 +310,7 @@ export function buildEducacaoViewModel(raw: {
     return null;
   })();
 
-  const isDestaqueEstadual = Boolean(
-    crescimentoPontos !== null && crescimentoPontos >= 1.0,
-  );
+  const isDestaqueEstadual = isDestaqueEvolucaoIdeb(crescimentoPontos);
 
   const destaqueBadgeTexto = (() => {
     if (crescimentoPontos !== null && crescimentoPontos > 0) {

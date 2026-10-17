@@ -902,35 +902,96 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
 });
 
 describe("buildVisaoGeralViewModel - educacaoResumo", () => {
-  it("monta educacaoResumo e deep link para /educacao", () => {
-    const vm = buildVisaoGeralViewModel(
+  const resumoBase = {
+    portalSlug: "porciuncula",
+    ano: 2023,
+    notaIdeb: 5.9,
+    metaIdeb: null,
+    atingiuMeta: null,
+    crescimentoPontosIdeb: 1.4,
+    saebMatematica: null,
+    saebLinguaPortuguesa: null,
+    indicadorFluxoAprovacao: null,
+    despesaLiquidadaEducacao: null,
+    totalMatriculasRedeMunicipal: null,
+    custoAnualPorAluno: 9000,
+    anosIniciais: null,
+    anosFinais: null,
+  };
+  const build = (overrides: Record<string, unknown>) =>
+    buildVisaoGeralViewModel(
       makeRawVisaoGeral({
-        resumoEducacao: {
-          portalSlug: "porciuncula",
-          ano: 2023,
-          notaIdeb: 5.9,
-          metaIdeb: null,
-          atingiuMeta: null,
-          crescimentoPontosIdeb: 1.4,
-          saebMatematica: null,
-          saebLinguaPortuguesa: null,
-          indicadorFluxoAprovacao: null,
-          despesaLiquidadaEducacao: null,
-          totalMatriculasRedeMunicipal: null,
-          custoAnualPorAluno: 9000,
-          anosIniciais: null,
-          anosFinais: null,
-        },
+        resumoEducacao: { ...resumoBase, ...overrides },
       }),
+    ).educacaoResumo;
+
+  it("monta destaque positivo e deep link para /educacao", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: resumoBase }),
     );
-    expect(vm.educacaoResumo).toEqual({
+    expect(vm.educacaoResumo).toMatchObject({
       ano: 2023,
-      notaIdeb: 5.9,
-      crescimentoPontosIdeb: 1.4,
-      mdePercentual: null,
-      custoAnualPorAluno: 9000,
+      notaIdebTexto: "5,9",
+      enfaseTom: "destaque",
+      enfaseTitulo: "Destaque: evolução de +1,4 ponto no IDEB",
+      evolucaoTexto: "+1,4 ponto",
+      notaAnteriorTexto: "Ciclo anterior: 4,5",
+      metaTexto: null,
+      rankingTexto: null,
+      despesaLiquidadaEducacaoTexto: null,
+      etapas: [],
     });
+    expect(vm.educacaoResumo).not.toHaveProperty("custoAnualPorAluno");
+    expect(vm.educacaoResumo).not.toHaveProperty("mdePercentual");
     expect(vm.educacaoDetailUrl).toBe("/porciuncula/educacao?ano=2024");
+  });
+
+  it("destaca meta atingida mesmo com evolução pequena", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: true });
+    expect(resumo?.enfaseTom).toBe("destaque");
+    expect(resumo?.enfaseTitulo).toBe("Destaque: meta do IDEB atingida");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB atingida");
+    expect(resumo?.metaTom).toBe("destaque");
+  });
+
+  it("sinaliza atenção para meta não atingida", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: false });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB não atingida");
+    expect(resumo?.metaTom).toBe("atencao");
+  });
+
+  it("sinaliza atenção para queda do IDEB", () => {
+    const resumo = build({ crescimentoPontosIdeb: -0.3, notaIdeb: 5.1 });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.enfaseTitulo).toBe("Atenção: queda de 0,3 ponto no IDEB");
+    expect(resumo?.evolucaoTexto).toBe("-0,3 ponto");
+    expect(resumo?.evolucaoTom).toBe("atencao");
+    expect(resumo?.notaAnteriorTexto).toBe("Ciclo anterior: 5,4");
+  });
+
+  it("é neutro sem evolução relevante nem meta", () => {
+    const resumo = build({ crescimentoPontosIdeb: null });
+    expect(resumo?.enfaseTom).toBe("neutro");
+    expect(resumo?.enfaseTitulo).toBeNull();
+    expect(resumo?.evolucaoTexto).toBeNull();
+    expect(resumo?.notaAnteriorTexto).toBeNull();
+  });
+
+  it("inclui etapas, ranking e despesa liquidada quando existem", () => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      despesaLiquidadaEducacao: 12300000,
+      anosIniciais: { notaIdeb: 6.1 },
+      anosFinais: { notaIdeb: null },
+    });
+    expect(resumo?.rankingTexto).toBe("3º de 92 municípios");
+    expect(resumo?.etapas).toEqual([
+      { rotulo: "Anos iniciais", notaTexto: "6,1" },
+    ]);
+    expect(resumo?.despesaLiquidadaEducacaoTexto).toBeTruthy();
+    expect(resumo?.despesaLiquidadaEducacaoCompleta).toBeTruthy();
   });
 
   it("retorna educacaoResumo nulo sem resumo", () => {
@@ -938,21 +999,5 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
       makeRawVisaoGeral({ resumoEducacao: null }),
     );
     expect(vm.educacaoResumo).toBeNull();
-  });
-
-  it("repassa mdePercentual não nulo para educacaoResumo", () => {
-    const vm = buildVisaoGeralViewModel(
-      makeRawVisaoGeral({
-        resumoEducacao: {
-          portalSlug: "porciuncula",
-          ano: 2023,
-          notaIdeb: 5.9,
-          crescimentoPontosIdeb: 1.4,
-          custoAnualPorAluno: 9000,
-          mdePercentual: 27.5,
-        },
-      }),
-    );
-    expect(vm.educacaoResumo?.mdePercentual).toBe(27.5);
   });
 });

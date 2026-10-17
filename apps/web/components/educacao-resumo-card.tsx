@@ -1,20 +1,25 @@
 "use client";
 
-import { fmtCurrency, fmtPercent } from "@transparencia/ui";
-import { AlertCircle, ArrowRight, ExternalLink } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 
-const ART_212_CF88_URL =
-  "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212";
-const LIMITE_CONSTITUCIONAL_MDE = 25;
+export type EducacaoResumoTom = "destaque" | "atencao" | "neutro";
 
 export interface EducacaoResumoCardData {
   ano: number;
-  notaIdeb: number | null;
-  crescimentoPontosIdeb: number | null;
-  mdePercentual: number | null;
-  custoAnualPorAluno: number | null;
+  notaIdebTexto: string;
+  enfaseTom: EducacaoResumoTom;
+  enfaseTitulo: string | null;
+  evolucaoTexto: string | null;
+  evolucaoTom: EducacaoResumoTom;
+  notaAnteriorTexto: string | null;
+  metaTexto: string | null;
+  metaTom: EducacaoResumoTom;
+  etapas: { rotulo: string; notaTexto: string }[];
+  rankingTexto: string | null;
+  despesaLiquidadaEducacaoTexto: string | null;
+  despesaLiquidadaEducacaoCompleta: string | null;
 }
 
 export interface EducacaoResumoCardProps {
@@ -23,33 +28,23 @@ export interface EducacaoResumoCardProps {
   className?: string;
 }
 
-function fmtDecimalUmaCasa(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
-}
+const CLASSES_BADGE_POR_TOM: Record<EducacaoResumoTom, string> = {
+  destaque: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  atencao: "border-amber-200 bg-amber-50 text-amber-800",
+  neutro: "border-slate-200 bg-slate-50 text-slate-700",
+};
 
-function buildEvolucao(crescimento: number | null | undefined) {
-  if (crescimento === null || crescimento === undefined) return null;
-  const valor = fmtDecimalUmaCasa(Math.abs(crescimento));
-  if (crescimento > 0) {
-    return {
-      text: `+${valor} ponto`,
-      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    };
-  }
-  if (crescimento < 0) {
-    return {
-      text: `-${valor} ponto`,
-      className: "border-rose-200 bg-rose-50 text-rose-700",
-    };
-  }
-  return {
-    text: "0,0 ponto",
-    className: "border-slate-200 bg-slate-50 text-slate-700",
-  };
-}
+const CLASSES_FAIXA_POR_TOM: Record<EducacaoResumoTom, string> = {
+  destaque: "border-emerald-300 bg-emerald-50 text-emerald-800",
+  atencao: "border-amber-300 bg-amber-50 text-amber-900",
+  neutro: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+const CLASSES_BORDA_POR_TOM: Record<EducacaoResumoTom, string> = {
+  destaque: "border-emerald-300 ring-1 ring-emerald-100",
+  atencao: "border-amber-300 ring-1 ring-amber-100",
+  neutro: "border-[#e7e9ee]",
+};
 
 function trackCta(
   from: string,
@@ -69,23 +64,14 @@ export function EducacaoResumoCard({
   detailUrl,
   className = "",
 }: EducacaoResumoCardProps) {
-  const evolucao = buildEvolucao(resumo?.crescimentoPontosIdeb);
-  const mde = resumo?.mdePercentual ?? null;
-  const mdeCumprido = mde !== null && mde >= LIMITE_CONSTITUCIONAL_MDE;
-  const mdeLargura =
-    mde === null ? 0 : Math.min(Math.max((mde / 50) * 100, 0), 100);
-  const limiteLargura = (LIMITE_CONSTITUCIONAL_MDE / 50) * 100;
-  const mdeBarraClass = mdeCumprido ? "bg-emerald-500" : "bg-rose-500";
-  const mdeStatus = (() => {
-    if (mde === null) return "Não apurado";
-    if (mdeCumprido) return "Mínimo cumprido";
-    return "Abaixo do mínimo";
-  })();
+  const classeBorda = resumo
+    ? CLASSES_BORDA_POR_TOM[resumo.enfaseTom]
+    : CLASSES_BORDA_POR_TOM.neutro;
 
   return (
     <section
       aria-label="Educação Básica e Desempenho Escolar"
-      className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
+      className={`rounded-2xl border bg-white p-5 shadow-sm sm:p-6 ${classeBorda} ${className}`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -94,8 +80,8 @@ export function EducacaoResumoCard({
           </h3>
           <p className="text-subtleText text-xs">
             {resumo
-              ? `IDEB ${resumo.ano} e responsabilidade fiscal em educação`
-              : "IDEB e responsabilidade fiscal em educação"}
+              ? `IDEB ${resumo.ano} e indicadores da rede municipal`
+              : "IDEB e indicadores da rede municipal"}
           </p>
         </div>
         <span className="inline-flex items-center self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs sm:self-auto">
@@ -104,78 +90,92 @@ export function EducacaoResumoCard({
       </div>
 
       {resumo ? (
-        <div className="mt-5 grid gap-5 sm:grid-cols-3">
-          <div>
-            <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
-              Nota do IDEB
-            </span>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <p className="font-bold font-serif text-3xl text-ink tracking-tight">
-                {resumo.notaIdeb === null
-                  ? "—"
-                  : fmtDecimalUmaCasa(resumo.notaIdeb)}
-              </p>
-              {evolucao && (
-                <span
-                  className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium text-xs ${evolucao.className}`}
-                >
-                  {evolucao.text}
-                </span>
+        <>
+          {resumo.enfaseTitulo && (
+            <p
+              data-tom={resumo.enfaseTom}
+              className={`mt-4 rounded-lg border px-3 py-2 font-semibold text-sm ${CLASSES_FAIXA_POR_TOM[resumo.enfaseTom]}`}
+            >
+              {resumo.enfaseTitulo}
+            </p>
+          )}
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            <div>
+              <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
+                Nota do IDEB
+              </span>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <p className="font-bold font-serif text-3xl text-ink tracking-tight">
+                  {resumo.notaIdebTexto}
+                </p>
+                {resumo.evolucaoTexto && (
+                  <span
+                    className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[resumo.evolucaoTom]}`}
+                  >
+                    {resumo.evolucaoTexto}
+                  </span>
+                )}
+              </div>
+              {resumo.notaAnteriorTexto && (
+                <p className="mt-1 text-subtleText text-xs">
+                  {resumo.notaAnteriorTexto}
+                </p>
+              )}
+              {resumo.etapas.length > 0 && (
+                <ul className="mt-2 space-y-0.5 text-xs">
+                  {resumo.etapas.map((etapa) => (
+                    <li key={etapa.rotulo} className="text-subtleText">
+                      {etapa.rotulo}:{" "}
+                      <span className="font-semibold text-ink">
+                        {etapa.notaTexto}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-          </div>
 
-          <div>
-            <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
-              Mínimo de MDE (25%)
-            </span>
-            <div className="mt-2 space-y-1">
-              <div
-                className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
-                role="progressbar"
-                aria-valuenow={mde === null ? undefined : Math.round(mde)}
-                aria-valuemin={0}
-                aria-valuemax={50}
-                aria-label={`Aplicação em manutenção e desenvolvimento do ensino: ${mde === null ? "não apurado" : fmtPercent(mde)}`}
-              >
-                <div
-                  className={`h-full transition-all duration-300 ${mdeBarraClass}`}
-                  style={{ width: `${mdeLargura}%` }}
-                />
-                <div
-                  className="absolute top-0 h-full w-0.5 bg-slate-700"
-                  style={{ left: `${limiteLargura}%` }}
-                />
+            <div>
+              <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
+                Meta e classificação
+              </span>
+              <div className="mt-2 space-y-2">
+                {resumo.metaTexto ? (
+                  <span
+                    className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[resumo.metaTom]}`}
+                  >
+                    {resumo.metaTexto}
+                  </span>
+                ) : null}
+                {resumo.rankingTexto ? (
+                  <p className="font-semibold text-ink text-sm">
+                    {resumo.rankingTexto}
+                    <span className="block font-normal text-subtleText text-xs">
+                      na classificação estadual do IDEB
+                    </span>
+                  </p>
+                ) : null}
+                {!resumo.metaTexto && !resumo.rankingTexto ? (
+                  <p className="text-subtleText text-xs">
+                    Meta e classificação não disponíveis para este ciclo.
+                  </p>
+                ) : null}
               </div>
-              <p className="font-semibold text-ink text-xs">
-                {mde === null ? "Não apurado" : fmtPercent(mde)}{" "}
-                <span className="font-normal text-subtleText">
-                  · {mdeStatus}
-                </span>
-              </p>
-              <a
-                href={ART_212_CF88_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-subtleText text-xs underline hover:text-ink"
+            </div>
+
+            <div>
+              <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
+                Despesa liquidada em educação
+              </span>
+              <p
+                className="mt-1 font-bold text-ink text-xl tracking-tight"
+                title={resumo.despesaLiquidadaEducacaoCompleta ?? undefined}
               >
-                <span>Art. 212 da CF/88</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
+                {resumo.despesaLiquidadaEducacaoTexto ?? "—"}
+              </p>
             </div>
           </div>
-
-          <div>
-            <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
-              Custo anual por aluno
-            </span>
-            <p className="mt-1 font-bold text-ink text-xl tracking-tight">
-              {resumo.custoAnualPorAluno === null
-                ? "—"
-                : fmtCurrency(resumo.custoAnualPorAluno)}
-            </p>
-          </div>
-        </div>
+        </>
       ) : (
         <div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-6 text-center">
           <AlertCircle className="mb-2 h-6 w-6 text-subtleText/60" />

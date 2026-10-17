@@ -211,8 +211,9 @@ describe("VisaoGeralPage", () => {
           ano: 2023,
           notaIdeb: 5.9,
           crescimentoPontosIdeb: 1.4,
-          mdePercentual: null,
-          custoAnualPorAluno: 9000,
+          atingiuMeta: false,
+          anosIniciais: null,
+          anosFinais: null,
         },
       }),
     );
@@ -227,5 +228,10 @@ describe("VisaoGeralPage", () => {
       name: /ver indicadores pedagógicos e despesas detalhadas/i,
     });
     expect(cta.getAttribute("href")).toContain("/educacao");
+    expect(
+      screen.getByText("Destaque: evolução de +1,4 ponto no IDEB"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Meta do IDEB não atingida")).toBeInTheDocument();
+    expect(screen.queryByText(/MDE/)).not.toBeInTheDocument();
   });
 });
