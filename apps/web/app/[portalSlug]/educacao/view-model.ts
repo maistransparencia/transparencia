@@ -476,6 +476,7 @@ export function buildEducacaoViewModel(raw: {
     merenda_pnae: 0,
     transporte_pnate: 0,
     manutencao_geral: 0,
+    locacao_imoveis: 0,
     outros: 0,
   };
 

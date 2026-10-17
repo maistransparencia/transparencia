@@ -196,6 +196,61 @@ function makeRawEducacaoData(
         dataInicio: "2025-02-15",
         vencimentoAtual: "2025-12-31",
       },
+      {
+        contratoId: "ctr_locacao_3",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        empresaId: "1",
+        contratoNumero: "0034/26",
+        licitacaoNumero: "005/2025",
+        modalidade: "dispensa",
+        fornecedorNome: "IMOBILIARIA CENTRAL LTDA",
+        fornecedorCpfCnpj: "11.222.333/0001-44",
+        objeto:
+          "Locação de imóvel para funcionamento de classe anexa de creche",
+        categoria: "locacao_imoveis",
+        valorContrato: 24000,
+        valorAditado: 0,
+        totalEmpenhado: 24000,
+        totalLiquidado: 12000,
+        totalPago: 12000,
+        saldoAPagar: 12000,
+        fontePrincipal: "Recursos Próprios",
+        fontesRecursos: "Recursos Próprios - Educação",
+        orgaoNome: "Secretaria Municipal de Educação",
+        principalFuncao: "Educação",
+        principalPrograma: "Infraestrutura Escolar",
+        principalAcao: "Locação Predial",
+        dataInicio: "2025-01-01",
+        vencimentoAtual: "2025-12-31",
+      },
+      {
+        contratoId: "ctr_outros_4",
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        empresaId: "1",
+        contratoNumero: "0453/25",
+        licitacaoNumero: "020/2025",
+        modalidade: "inexigibilidade",
+        fornecedorNome: "ASSESSORIA EDUCACIONAL LTDA",
+        fornecedorCpfCnpj: "55.666.777/0001-88",
+        objeto: "Assessoria técnica e alimentação do sistema PDDE Interativo",
+        categoria: "outros",
+        valorContrato: 36000,
+        valorAditado: 0,
+        totalEmpenhado: 36000,
+        totalLiquidado: 36000,
+        totalPago: 36000,
+        saldoAPagar: 0,
+        fontePrincipal: "Recursos Próprios",
+        fontesRecursos: "Recursos Próprios",
+        orgaoNome: "Secretaria Municipal de Educação",
+        principalFuncao: "Educação",
+        principalPrograma: "Gestão Educacional",
+        principalAcao: "Suporte Técnico",
+        dataInicio: "2025-01-01",
+        vencimentoAtual: "2025-12-31",
+      },
     ],
     context: {
       selectedYear: 2025,
@@ -405,6 +460,31 @@ describe("EducacaoPage (Server Component)", () => {
     ).toBeGreaterThanOrEqual(1);
     expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
 
+    // Clica no filtro Locação de Imóveis
+    const tabLocacao = screen.getByRole("tab", {
+      name: /locação de imóveis/i,
+    });
+    fireEvent.click(tabLocacao);
+
+    expect(
+      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
+      0,
+    );
+    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
+
+    // Clica no filtro Outros Suprimentos & Serviços
+    const tabOutros = screen.getByRole("tab", {
+      name: /outros suprimentos/i,
+    });
+    fireEvent.click(tabOutros);
+
+    expect(
+      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("IMOBILIARIA CENTRAL LTDA").length).toBe(0);
+
     // Volta para Todas
     const tabTodas = screen.getByRole("tab", { name: /todas/i });
     fireEvent.click(tabTodas);
@@ -414,6 +494,12 @@ describe("EducacaoPage (Server Component)", () => {
     ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
     ).toBeGreaterThanOrEqual(1);
   });
 

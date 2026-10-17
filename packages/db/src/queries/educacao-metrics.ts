@@ -441,6 +441,7 @@ export type EducacaoCategoriaContrato =
   | "merenda_pnae"
   | "transporte_pnate"
   | "manutencao_geral"
+  | "locacao_imoveis"
   | "outros";
 
 export interface EducacaoContratoDTO {
@@ -488,27 +489,98 @@ export function categorizarContratoEducacao(
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
+  // 1. Locação de imóveis (prédios, classes anexas, secretaria, salões, etc.)
+  const isLocacaoVeiculo =
+    text.includes("veiculo") ||
+    text.includes("veiculos") ||
+    text.includes("transporte") ||
+    text.includes("onibus") ||
+    text.includes("van");
+
+  const isLocacaoImovel =
+    !isLocacaoVeiculo &&
+    (text.includes("locacao de imovel") ||
+      text.includes("locacao de imoveis") ||
+      text.includes("aluguel de imovel") ||
+      text.includes("aluguel de imoveis") ||
+      text.includes("locacao de predio") ||
+      text.includes("aluguel de predio") ||
+      text.includes("locacao de salao") ||
+      text.includes("aluguel de salao") ||
+      ((text.includes("locacao") || text.includes("aluguel")) &&
+        (text.includes("imovel") ||
+          text.includes("imoveis") ||
+          text.includes("predio") ||
+          text.includes("salao"))));
+
+  if (isLocacaoImovel) {
+    return "locacao_imoveis";
+  }
+
+  // 2. Prevenção de falso positivo para alimentação de sistemas/dados de TI
+  const isAlimentacaoSistema =
+    text.includes("alimentacao do sistema") ||
+    text.includes("alimentacao de sistema") ||
+    text.includes("alimentacao dos sistemas") ||
+    text.includes("alimentacao de sistemas") ||
+    text.includes("alimentacao de dados") ||
+    text.includes("alimentacao do banco") ||
+    text.includes("alimentacao de banco") ||
+    text.includes("alimentacao da base") ||
+    text.includes("alimentacao de base");
+
+  // 3. Merenda Escolar e PNAE
   if (
-    text.includes("pnae") ||
-    text.includes("merenda") ||
-    text.includes("alimenta") ||
-    text.includes("alimento") ||
-    text.includes("generos alimenticios") ||
-    text.includes("nutri") ||
-    text.includes("refeic")
+    !isAlimentacaoSistema &&
+    (text.includes("pnae") ||
+      text.includes("merenda") ||
+      text.includes("alimentacao escolar") ||
+      text.includes("nutricao escolar") ||
+      text.includes("generos alimenticios") ||
+      text.includes("genero alimenticio") ||
+      text.includes("alimento") ||
+      text.includes("alimenticios") ||
+      text.includes("alimenticia") ||
+      text.includes("refeicao") ||
+      text.includes("refeicoes") ||
+      text.includes("desjejum") ||
+      text.includes("hortifruti") ||
+      text.includes("hortifrutigranjeiro") ||
+      (text.includes("agricultura familiar") &&
+        (text.includes("genero") ||
+          text.includes("alimento") ||
+          text.includes("fornecimento") ||
+          text.includes("aquisicao"))))
   ) {
     return "merenda_pnae";
   }
+
+  // 4. Transporte Escolar e PNATE
   if (
     text.includes("pnate") ||
-    text.includes("transporte") ||
-    text.includes("onibus") ||
-    text.includes("van") ||
-    text.includes("locacao de veiculo") ||
-    text.includes("veiculo escolar")
+    text.includes("transporte escolar") ||
+    text.includes("transporte de aluno") ||
+    text.includes("transporte de estudante") ||
+    text.includes("transporte universitario") ||
+    text.includes("onibus escolar") ||
+    text.includes("van escolar") ||
+    (text.includes("transporte") &&
+      (text.includes("terrestre") ||
+        text.includes("diario") ||
+        text.includes("aluno") ||
+        text.includes("estudante") ||
+        text.includes("ensino") ||
+        text.includes("escola"))) ||
+    (text.includes("locacao de veiculo") &&
+      (text.includes("aluno") ||
+        text.includes("escolar") ||
+        text.includes("educacao")))
   ) {
     return "transporte_pnate";
   }
+
+  // 5. Manutenção, Infraestrutura, Reformas e Materiais Pedagógicos/Escolares
+  // Nota: Não incluir termos genéricos isolados como "escola" ou "creche" para evitar falsos positivos
   if (
     text.includes("reforma") ||
     text.includes("manutenc") ||
@@ -518,16 +590,19 @@ export function categorizarContratoEducacao(
     text.includes("eletric") ||
     text.includes("hidraulic") ||
     text.includes("obra") ||
-    text.includes("pedagog") ||
-    text.includes("livro") ||
-    text.includes("didatico") ||
+    text.includes("reparo") ||
+    text.includes("climatizac") ||
+    text.includes("ar condicionado") ||
+    text.includes("livro didatico") ||
+    text.includes("material didatico") ||
     text.includes("mobiliario") ||
     text.includes("material escolar") ||
-    text.includes("escola") ||
-    text.includes("creche")
+    text.includes("uniforme") ||
+    text.includes("carteira escolar")
   ) {
     return "manutencao_geral";
   }
+
   return "outros";
 }
 
@@ -621,12 +696,75 @@ export async function getEducacaoContratos(
 
   const cleanSlug = portalSlug.trim();
 
-  // 1. Tenta carregar primeiro a partir de fct_contratos_servicos_vigentes (mesma fonte e critérios canônicos da página de Contratos)
+  // 1. Identifica os órgãos associados à Educação via dim_orgao
+  const educOrgaos = await (async () => {
+    try {
+      return await db
+        .selectFrom("dim_orgao")
+        .select(["empresa_id", "orgao_nome"])
+        .where("portal_slug", "=", cleanSlug)
+        .where((eb) =>
+          eb.or([
+            eb("orgao_nome", "ilike", "%educa%"),
+            eb("orgao_nome", "ilike", "%ensino%"),
+          ]),
+        )
+        .execute();
+    } catch {
+      return [];
+    }
+  })();
+
+  const educEmpresaIds = educOrgaos.map((o) => o.empresa_id);
+
+  // 2. Tenta carregar primeiro a partir de fct_contratos_servicos_vigentes (mesma fonte e critérios canônicos da página de Contratos)
   if (ano !== undefined && ano !== null && !Number.isNaN(ano)) {
     try {
       const vigentes = await getContratosServicosVigentes(cleanSlug, ano);
       if (vigentes.length > 0) {
         const educVigentes = vigentes.filter((c) => {
+          // Se pertence a um órgão de educação identificado em dim_orgao
+          if (
+            educEmpresaIds.length > 0 &&
+            educEmpresaIds.includes(c.empresaId)
+          ) {
+            return true;
+          }
+
+          // Se o órgão ou função é explicitamente de educação (mesmo sob a prefeitura ou secretaria unificada)
+          const isEducaDireto =
+            (c.orgaoNome &&
+              (c.orgaoNome.toLowerCase().includes("educa") ||
+                c.orgaoNome.toLowerCase().includes("ensino"))) ||
+            (c.funcaoNome &&
+              (c.funcaoNome.toLowerCase().includes("educa") ||
+                c.funcaoNome.toLowerCase().includes("ensino")));
+
+          if (isEducaDireto) {
+            return true;
+          }
+
+          // Exclui explicitamente órgãos ou funções de outros setores não educacionais
+          const isOutroSetor =
+            (c.orgaoNome &&
+              (c.orgaoNome.toLowerCase().includes("saúde") ||
+                c.orgaoNome.toLowerCase().includes("saude") ||
+                c.orgaoNome.toLowerCase().includes("assistência social") ||
+                c.orgaoNome.toLowerCase().includes("assistencia social") ||
+                c.orgaoNome.toLowerCase().includes("meio ambiente") ||
+                c.orgaoNome.toLowerCase().includes("previdência") ||
+                c.orgaoNome.toLowerCase().includes("previdencia"))) ||
+            (c.funcaoNome &&
+              (c.funcaoNome.toLowerCase().includes("saúde") ||
+                c.funcaoNome.toLowerCase().includes("saude") ||
+                c.funcaoNome.toLowerCase().includes("assistência") ||
+                c.funcaoNome.toLowerCase().includes("assistencia") ||
+                c.funcaoNome.toLowerCase().includes("previdência") ||
+                c.funcaoNome.toLowerCase().includes("previdencia") ||
+                c.funcaoNome.toLowerCase().includes("meio ambiente")));
+
+          if (isOutroSetor) return false;
+
           const text =
             `${c.objetoDescricao} ${c.orgaoNome ?? ""} ${c.funcaoNome ?? ""} ${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""}`.toLowerCase();
           return (
@@ -687,7 +825,7 @@ export async function getEducacaoContratos(
     }
   }
 
-  // 2. Fallback direto para fct_contratos (usado quando fct_contratos_servicos_vigentes não existir ou em fixtures de teste)
+  // 3. Fallback direto para fct_contratos (usado quando fct_contratos_servicos_vigentes não existir ou em fixtures de teste)
   let query = db
     .selectFrom("fct_contratos as c")
     .leftJoin("fct_contratos_recursos as cr", (join) =>
@@ -729,24 +867,75 @@ export async function getEducacaoContratos(
       "cr.principal_programa",
       "cr.principal_acao",
     ])
-    .where("c.portal_slug", "=", cleanSlug)
-    .where((eb) =>
-      eb.or([
+    .where("c.portal_slug", "=", cleanSlug);
+
+  query = query
+    .where((eb) => {
+      const orClauses = [
         eb("cr.principal_funcao", "ilike", "%educa%"),
         eb("cr.orgao_nome", "ilike", "%educa%"),
+        eb("cr.orgao_nome", "ilike", "%ensino%"),
         eb("o.orgao_nome", "ilike", "%educa%"),
-        eb("c.objeto", "ilike", "%educa%"),
-        eb("c.objeto", "ilike", "%escola%"),
-        eb("c.objeto", "ilike", "%merenda%"),
+        eb("o.orgao_nome", "ilike", "%ensino%"),
         eb("c.objeto", "ilike", "%pnae%"),
         eb("c.objeto", "ilike", "%pnate%"),
-        eb("c.objeto", "ilike", "%ensino%"),
+        eb("c.objeto", "ilike", "%merenda%"),
+        eb("c.objeto", "ilike", "%transporte escolar%"),
+        eb("c.objeto", "ilike", "%material escolar%"),
+        eb("c.objeto", "ilike", "%livro didatico%"),
+        eb("c.objeto", "ilike", "%material didatico%"),
+        eb("c.objeto", "ilike", "%escola%"),
         eb("c.objeto", "ilike", "%creche%"),
+        eb("c.objeto", "ilike", "%ensino%"),
         eb("c.objeto", "ilike", "%pedag%"),
         eb("cr.fonte_principal", "ilike", "%fundeb%"),
         eb("cr.fonte_principal", "ilike", "%mde%"),
         eb("cr.fontes_recursos", "ilike", "%fundeb%"),
         eb("cr.fontes_recursos", "ilike", "%mde%"),
+      ];
+      if (educEmpresaIds.length > 0) {
+        orClauses.push(eb("c.empresa_id", "in", educEmpresaIds));
+      }
+      return eb.or(orClauses);
+    })
+    .where((eb) =>
+      eb.and([
+        eb.or([
+          eb("o.orgao_nome", "is", null),
+          eb.and([
+            eb("o.orgao_nome", "not ilike", "%saude%"),
+            eb("o.orgao_nome", "not ilike", "%saúde%"),
+            eb("o.orgao_nome", "not ilike", "%assistencia social%"),
+            eb("o.orgao_nome", "not ilike", "%assistência social%"),
+            eb("o.orgao_nome", "not ilike", "%meio ambiente%"),
+            eb("o.orgao_nome", "not ilike", "%previdencia%"),
+            eb("o.orgao_nome", "not ilike", "%previdência%"),
+          ]),
+        ]),
+        eb.or([
+          eb("cr.orgao_nome", "is", null),
+          eb.and([
+            eb("cr.orgao_nome", "not ilike", "%saude%"),
+            eb("cr.orgao_nome", "not ilike", "%saúde%"),
+            eb("cr.orgao_nome", "not ilike", "%assistencia social%"),
+            eb("cr.orgao_nome", "not ilike", "%assistência social%"),
+            eb("cr.orgao_nome", "not ilike", "%meio ambiente%"),
+            eb("cr.orgao_nome", "not ilike", "%previdencia%"),
+            eb("cr.orgao_nome", "not ilike", "%previdência%"),
+          ]),
+        ]),
+        eb.or([
+          eb("cr.principal_funcao", "is", null),
+          eb.and([
+            eb("cr.principal_funcao", "not ilike", "%saude%"),
+            eb("cr.principal_funcao", "not ilike", "%saúde%"),
+            eb("cr.principal_funcao", "not ilike", "%assistencia%"),
+            eb("cr.principal_funcao", "not ilike", "%assistência%"),
+            eb("cr.principal_funcao", "not ilike", "%previdencia%"),
+            eb("cr.principal_funcao", "not ilike", "%previdência%"),
+            eb("cr.principal_funcao", "not ilike", "%meio ambiente%"),
+          ]),
+        ]),
       ]),
     );
 

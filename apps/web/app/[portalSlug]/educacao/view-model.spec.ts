@@ -195,11 +195,90 @@ describe("educacao/view-model", () => {
     expect(vm.fiscal.correlacao[2].notaIdebIniciais).toBe(5.9);
 
     // Bloco 4: Contratos
-    expect(vm.contratos).toHaveLength(1);
-    expect(vm.contratos[0].contratoNumero).toBe("0443/25");
     expect(vm.contratosResumo.totalContratos).toBe(1);
     expect(vm.contratosResumo.valorTotalContratos).toBe(450000);
     expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(1);
+    expect(vm.contratosResumo.porCategoria.locacao_imoveis).toBe(0);
+    expect(vm.contratosResumo.porCategoria.outros).toBe(0);
+    expect(vm.contratosResumo.porCategoria.transporte_pnate).toBe(0);
+    expect(vm.contratosResumo.porCategoria.manutencao_geral).toBe(0);
+  });
+
+  it("agrega corretamente contratos em todas as categorias incluindo locacao_imoveis e outros", () => {
+    const raw = {
+      portalSlug: "porciuncula_prefeitura",
+      portalConfig: null,
+      allMetrics: [],
+      resumo: null,
+      contratos: [
+        {
+          contratoId: "ctr_loc",
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          empresaId: "1",
+          contratoNumero: "0034/26",
+          licitacaoNumero: null,
+          modalidade: null,
+          fornecedorNome: "LOCADOR",
+          fornecedorCpfCnpj: null,
+          objeto: "Locação de imóvel para anexo",
+          categoria: "locacao_imoveis" as const,
+          valorContrato: 24000,
+          valorAditado: 0,
+          totalEmpenhado: 24000,
+          totalLiquidado: 12000,
+          totalPago: 12000,
+          saldoAPagar: 12000,
+          fontePrincipal: null,
+          fontesRecursos: null,
+          orgaoNome: null,
+          principalFuncao: null,
+          principalPrograma: null,
+          principalAcao: null,
+          dataInicio: "2025-01-01",
+          vencimentoAtual: "2025-12-31",
+        },
+        {
+          contratoId: "ctr_out",
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          empresaId: "1",
+          contratoNumero: "0453/25",
+          licitacaoNumero: null,
+          modalidade: null,
+          fornecedorNome: "ASSESSORIA",
+          fornecedorCpfCnpj: null,
+          objeto: "Assessoria técnica e alimentação do sistema PDDE",
+          categoria: "outros" as const,
+          valorContrato: 36000,
+          valorAditado: 0,
+          totalEmpenhado: 36000,
+          totalLiquidado: 36000,
+          totalPago: 36000,
+          saldoAPagar: 0,
+          fontePrincipal: null,
+          fontesRecursos: null,
+          orgaoNome: null,
+          principalFuncao: null,
+          principalPrograma: null,
+          principalAcao: null,
+          dataInicio: "2025-01-01",
+          vencimentoAtual: "2025-12-31",
+        },
+      ],
+      context: {
+        selectedYear: 2025,
+        isCurrentYear: false,
+        selectedEtapa: "anosIniciais" as const,
+      },
+    };
+
+    const vm = buildEducacaoViewModel(raw);
+    expect(vm.contratosResumo.totalContratos).toBe(2);
+    expect(vm.contratosResumo.valorTotalContratos).toBe(60000);
+    expect(vm.contratosResumo.porCategoria.locacao_imoveis).toBe(1);
+    expect(vm.contratosResumo.porCategoria.outros).toBe(1);
+    expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(0);
   });
 
   it("trata portal com apenas um ciclo cadastrado com fallback gracioso", () => {

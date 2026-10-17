@@ -25,6 +25,7 @@ function formatCategoriaLabel(cat: EducacaoCategoriaContrato): string {
   if (cat === "merenda_pnae") return "Merenda Escolar (PNAE)";
   if (cat === "transporte_pnate") return "Transporte Escolar (PNATE)";
   if (cat === "manutencao_geral") return "Manutenção & Infraestrutura";
+  if (cat === "locacao_imoveis") return "Locação de Imóveis";
   return "Outros Suprimentos & Serviços";
 }
 
@@ -170,6 +171,10 @@ export function EducacaoContratosSection({
       manutencao_geral: contratos.filter(
         (c) => c.categoria === "manutencao_geral",
       ).length,
+      locacao_imoveis: contratos.filter(
+        (c) => c.categoria === "locacao_imoveis",
+      ).length,
+      outros: contratos.filter((c) => c.categoria === "outros").length,
     };
   }, [contratos]);
 
@@ -347,7 +352,18 @@ export function EducacaoContratosSection({
               Lei nº 10.880/2004 (PNATE)
               <ExternalLink className="inline h-3 w-3" />
             </a>
-            ) e manutenção das escolas.
+            ), locação de imóveis (
+            <a
+              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74v"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
+              aria-label="Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto"
+            >
+              Lei nº 14.133/2021, Art. 74, V
+              <ExternalLink className="inline h-3 w-3" />
+            </a>
+            ), manutenção das escolas e suprimentos operacionais.
           </span>
         }
       />
@@ -411,8 +427,36 @@ export function EducacaoContratosSection({
               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
           }`}
         >
-          Manutenção & Obras ({counts.manutencao_geral})
+          Manutenção & Infraestrutura ({counts.manutencao_geral})
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={categoriaFilter === "locacao_imoveis"}
+          onClick={() => setCategoriaFilter("locacao_imoveis")}
+          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
+            categoriaFilter === "locacao_imoveis"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          Locação de Imóveis ({counts.locacao_imoveis})
+        </button>
+        {counts.outros > 0 && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={categoriaFilter === "outros"}
+            onClick={() => setCategoriaFilter("outros")}
+            className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
+              categoriaFilter === "outros"
+                ? "bg-blue-600 text-white shadow-xs"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Outros Suprimentos & Serviços ({counts.outros})
+          </button>
+        )}
       </div>
 
       {/* Tabela Completa via DenseTable no formato canônico da página de Contratos */}

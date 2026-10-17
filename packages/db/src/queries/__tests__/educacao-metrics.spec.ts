@@ -4,6 +4,8 @@ import {
   createFixturePortalSlug,
   seedContrato,
   seedContratoRecurso,
+  seedContratosServicosVigentes,
+  seedDimOrgao,
   seedEducacaoMetricas,
 } from "../../../tests/fixtures/seed";
 import {
@@ -585,6 +587,60 @@ describe("educacao-metrics", () => {
       ).toBe("manutencao_geral");
     });
 
+    it("categoriza como locacao_imoveis contratos de locação e aluguel de imóveis para educação", () => {
+      expect(
+        categorizarContratoEducacao(
+          "LOCAÇÃO DE IMOVEL PARA FUNCIONAMENTO DA CLASSE ANEXA DA CRECHE E ESCOLA MUNICIPAL MARIA PUDDO MURUCCI",
+        ),
+      ).toBe("locacao_imoveis");
+      expect(
+        categorizarContratoEducacao(
+          "LOCAÇÃO DE IMÓVEL PARA DAR SEQUÊNCIA AO FUNCIONAMENTO DA SECRETARIA MUNICIPAL DE EDUCAÇÃO - EQUIPE PEDAGÓGICA, EQUIPE ADMINISTRATIVA, DEPARTAMENTO DE NUTRIÇÃO E FUNDO MUNICIPAL DE EDUCAÇÃO",
+        ),
+      ).toBe("locacao_imoveis");
+      expect(
+        categorizarContratoEducacao(
+          "Locação de imóvel não residencial visando dar continuidade aos trabalhos escolares da CEM Maria Puddó",
+        ),
+      ).toBe("locacao_imoveis");
+      expect(
+        categorizarContratoEducacao(
+          "Aluguel de prédio para funcionamento de salas de aula anexas",
+        ),
+      ).toBe("locacao_imoveis");
+      expect(
+        categorizarContratoEducacao(
+          "Aluguel de salão para atividades pedagógicas complementares",
+        ),
+      ).toBe("locacao_imoveis");
+    });
+
+    it("não confunde locação de veículos ou ônibus com locação de imóveis mesmo citando prédios ou garagens", () => {
+      expect(
+        categorizarContratoEducacao(
+          "Locação de ônibus e vans para transporte escolar com garagem e ponto no prédio central",
+        ),
+      ).toBe("transporte_pnate");
+    });
+
+    it("não confunde alimentação de sistemas com merenda escolar PNAE", () => {
+      expect(
+        categorizarContratoEducacao(
+          "DFD N° 329/2025 - CONTRATAÇÃO DE EMPRESA ESPECIALIZADA PARA A PRESTAÇÃO DE SERVIÇOS DE ASSESSORIA TÉCNICA VOLTADOS À ELABORAÇÃO DO PLANO MUNICIPAL DE EDUCAÇÃO (PME), BEM COMO PARA APOIO TÉCNICO E OPERACIONAL AOS GESTORES LOCAIS NA UTILIZAÇÃO E ALIMENTAÇÃO DO SISTEMA PDDE INTERATIVO",
+        ),
+      ).toBe("outros");
+      expect(
+        categorizarContratoEducacao(
+          "Alimentação dos sistemas de gestão escolar e base de dados do censo",
+        ),
+      ).toBe("outros");
+      expect(
+        categorizarContratoEducacao(
+          "Alimentação de banco de dados e plataformas educacionais",
+        ),
+      ).toBe("outros");
+    });
+
     it("categoriza como outros quando não encaixa nas categorias específicas", () => {
       expect(
         categorizarContratoEducacao(
@@ -696,6 +752,33 @@ describe("educacao-metrics", () => {
       expect(contratos2025[0].contratoNumero).toBe("0200/25");
     });
 
+    it("exclui contratos de outros setores (como Saúde) mesmo que o objeto cite fundos de educação", async () => {
+      await seedContrato({
+        contratoId: "ctr_saude_1",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_saude",
+        contratoNumero: "0457/25",
+        fornecedorNome: "SISTEMAS INTEGRADOS SAUDE",
+        objeto:
+          "Locação de licenças de software para modernização da prefeitura sede e dos fundos municipais (saúde, promoção social, educação e defesa ambiental)",
+      });
+
+      await seedContratoRecurso({
+        contratoRecursoId: "cr_saude_1",
+        contratoId: "ctr_saude_1",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_saude",
+        orgaoNome: "Fundo Municipal de Saúde",
+        contratoNumero: "0457/25",
+        principalFuncao: "Saúde",
+      });
+
+      const contratos = await getEducacaoContratos(PORTAL_PORCIUNCULA, 2025);
+      expect(contratos.some((c) => c.contratoNumero === "0457/25")).toBe(false);
+    });
+
     it("garante isolamento multi-tenant estrito (Regra 23)", async () => {
       await seedContrato({
         contratoId: "ctr_iso_a",
@@ -741,6 +824,69 @@ describe("educacao-metrics", () => {
       const match = res.find((c) => c.contratoNumero === "0777/25");
       expect(match).toBeDefined();
       expect(match?.totalEmpenhado).toBe(125000.5);
+    });
+
+    it("executa o caminho primário de vigentes respeitando dim_orgao e excluindo outros setores", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_educ",
+        orgaoNome: "Fundo Municipal de Educação",
+      });
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_saude",
+        orgaoNome: "Fundo Municipal de Saúde",
+      });
+
+      await seedContratosServicosVigentes({
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_educ",
+        contratoNumero: "0010/25",
+        fornecedorNome: "ALIMENTOS ESCOLARES LTDA",
+        objetoDescricao:
+          "Fornecimento de gêneros alimentícios para merenda escolar",
+        totalEmpenhado: 50000,
+        totalPago: 40000,
+      });
+
+      await seedContratosServicosVigentes({
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_educ",
+        contratoNumero: "0011/25",
+        fornecedorNome: "PROPRIETARIO IMOVEL",
+        objetoDescricao:
+          "Locação de imóvel para funcionamento de creche municipal",
+        totalEmpenhado: 24000,
+        totalPago: 12000,
+      });
+
+      await seedContratosServicosVigentes({
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_saude",
+        contratoNumero: "0099/25",
+        fornecedorNome: "SISTEMAS SAUDE LTDA",
+        objetoDescricao:
+          "Locação de software para postos de saúde e fundos municipais (educação e saúde)",
+        totalEmpenhado: 30000,
+        totalPago: 30000,
+      });
+
+      const res = await getEducacaoContratos(PORTAL_PORCIUNCULA, 2025);
+      expect(res).toHaveLength(2);
+
+      const merenda = res.find((c) => c.contratoNumero === "0010/25");
+      expect(merenda).toBeDefined();
+      expect(merenda?.categoria).toBe("merenda_pnae");
+
+      const locacao = res.find((c) => c.contratoNumero === "0011/25");
+      expect(locacao).toBeDefined();
+      expect(locacao?.categoria).toBe("locacao_imoveis");
+
+      const saude = res.find((c) => c.contratoNumero === "0099/25");
+      expect(saude).toBeUndefined();
     });
 
     it("retorna array vazio para portalSlug inválido ou vazio", async () => {

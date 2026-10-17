@@ -328,7 +328,9 @@ Monitoramento auditável da evolução pedagógica e cumprimento das regras cons
 - **Auditoria de Contratos e Compras da Educação:** Listagem analítica e busca de contratos administrativos da pasta com filtros por categoria pedagógica:
   - *Merenda Escolar (PNAE):* Contratos de aquisição de gêneros alimentícios e nutrição escolar fundamentados na [Lei Federal nº 11.947/2009 (PNAE)](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm).
   - *Transporte Escolar (PNATE):* Contratações de locação de veículos e transporte de estudantes fundamentadas na [Lei Federal nº 10.880/2004 (PNATE)](https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10880.htm).
-  - *Manutenção & Obras Escolares:* Reformas, ampliações e materiais didático-pedagógicos.
+  - *Manutenção & Obras Escolares:* Reformas, ampliações, climatização, mobiliário e materiais didático-pedagógicos.
+  - *Locação de Imóveis:* Aluguel de prédios para funcionamento de creches, escolas, classes anexas e unidades administrativas da educação.
+  - *Outros Suprimentos & Serviços:* Demais serviços operacionais, assessoria técnica e contratações de apoio educacional.
   - *Modal de Detalhamento 360°:* Acesso aprofundado a dados cadastrais do fornecedor, vigência, valores contratados, empenhados, liquidados e pagos, fontes de recurso e classificação orçamentária com sincronização por deep linking (`?contratoNumero=...`).
 
 ---
