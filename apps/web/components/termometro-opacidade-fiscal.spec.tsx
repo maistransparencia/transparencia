@@ -171,11 +171,11 @@ describe("TermometroOpacidadeFiscal Component", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     // Valida valores monetários formatados e percentuais dos elementos
-    expect(screen.getAllByText("R$ 4.0mi").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("R$ 4,0 mi").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("70.92%").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("R$ 1.0mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 1,0 mi")).toBeInTheDocument();
     expect(screen.getByText("17.73%")).toBeInTheDocument();
-    expect(screen.getByText("R$ 640.0mil")).toBeInTheDocument();
+    expect(screen.getByText("R$ 640,0 mil")).toBeInTheDocument();
     expect(screen.getByText("11.35%")).toBeInTheDocument();
   });
 

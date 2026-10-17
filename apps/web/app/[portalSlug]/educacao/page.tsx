@@ -26,15 +26,12 @@ export async function generateMetadata({
   const { portalSlug } = await params;
   return createPortalMetadata("Educação Básica", portalSlug, {
     description:
-      "Acompanhamento cívico do desempenho educacional (IDEB, SAEB e fluxo escolar), cumprimento dos limites constitucionais de MDE e FUNDEB e contratos da educação.",
+      "Acompanhamento cívico do desempenho educacional (IDEB, SAEB e fluxo escolar), despesa na Função 12 e contratos da educação.",
     path: "/educacao",
     keywords: [
       "educação",
       "IDEB",
       "SAEB",
-      "MDE 25%",
-      "FUNDEB 70%",
-      "custo por aluno",
       "merenda escolar PNAE",
       "transporte escolar PNATE",
     ],
@@ -66,7 +63,7 @@ export default async function EducacaoPage({
         municipioUf={viewModel.municipioUf}
       />
 
-      {/* Bloco 3: Painel de Responsabilidade Fiscal da Educação (MDE e FUNDEB) */}
+      {/* Bloco 3: Despesa na Educação vs. IDEB */}
       <EducacaoFiscalSection fiscal={viewModel.fiscal} />
 
       {/* Bloco 4: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}

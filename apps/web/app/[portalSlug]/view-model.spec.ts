@@ -309,10 +309,10 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
-      "área de Saúde totalizaram R$ 15.2mi",
+      "área de Saúde totalizaram R$ 15,2 mi",
     );
-    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15.2mi");
-    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10.7mi");
+    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15,2 mi");
+    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10,7 mi");
     expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde");
     expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
 
@@ -356,10 +356,10 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.titulo).toBe("Aporte Expressivo em Habitação");
     expect(card.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(card.textoFactual).toContain(
-      "área de Habitação totalizaram R$ 500.0mil",
+      "área de Habitação totalizaram R$ 500,0 mil",
     );
-    expect(card.valorObservadoFormatted).toBe("R$ 500.0mil");
-    expect(card.valorEsperadoFormatted).toBe("R$ 105.0mil");
+    expect(card.valorObservadoFormatted).toBe("R$ 500,0 mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 105,0 mil");
     expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação");
   });
 
@@ -426,8 +426,8 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.metodologiaBadge).toBe("Meta Atuarial");
     expect(card.esperadoLabel).toBe("Aporte Exigido");
     expect(card.tipoMetodologia).toBe("estoque");
-    expect(card.valorObservadoFormatted).toBe("R$ 650.0mil");
-    expect(card.valorEsperadoFormatted).toBe("R$ 1.0mi");
+    expect(card.valorObservadoFormatted).toBe("R$ 650,0 mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 1,0 mi");
     expect(card.desvioPercentualFormatted).toBe("-35%");
     expect(card.ctaLabel).toBe("Auditar Aporte Atuarial");
     expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2024#atuarial");
@@ -467,7 +467,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.metodologiaBadge).toBe("Fluxo em Aberto");
     expect(card.esperadoLabel).toBe("Passivo Tolerado");
     expect(card.tipoMetodologia).toBe("estoque");
-    expect(card.valorObservadoFormatted).toBe("R$ 50.0mil");
+    expect(card.valorObservadoFormatted).toBe("R$ 50,0 mil");
     expect(card.valorEsperadoFormatted).toBe("R$ 0");
     expect(card.desvioPercentualFormatted).toBe("+100%");
     expect(card.ctaLabel).toBe("Verificar Repasse Patronal");
@@ -677,8 +677,8 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.esperadoLabel).toBe("Saldo Inicial (Triênio)");
     expect(card.tipoMetodologia).toBe("estoque");
     expect(card.grauSeveridade).toBe("critico");
-    expect(card.valorObservadoFormatted).toBe("R$ 36.0mi");
-    expect(card.valorEsperadoFormatted).toBe("R$ 45.4mi");
+    expect(card.valorObservadoFormatted).toBe("R$ 36,0 mi");
+    expect(card.valorEsperadoFormatted).toBe("R$ 45,4 mi");
     expect(card.desvioPercentualFormatted).toBe("-20.8%");
     expect(card.ctaLabel).toBe("Auditar Patrimônio Previdenciário");
     expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2025#patrimonio");
@@ -693,7 +693,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       },
     ]);
     expect(card.textoFactual).toContain(
-      "retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio",
+      "retração de 20.8% e consumo de R$ 9,4 mi ao longo do triênio",
     );
   });
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  fmtCompact,
   fmtCpfCnpj,
   fmtLicitacaoModalidade,
   getPartialYearPeriod,
@@ -170,5 +171,21 @@ describe("maskCpfCnpj", () => {
   it("deve retornar a string original se o total de dígitos for diferente de 11 e 14", () => {
     expect(maskCpfCnpj("12345")).toBe("12345");
     expect(maskCpfCnpj("ESTRANGEIRO-99")).toBe("ESTRANGEIRO-99");
+  });
+});
+
+describe("fmtCompact", () => {
+  it("formata milhões, milhares e bilhões em pt-BR", () => {
+    expect(fmtCompact(33_300_000)).toBe("R$ 33,3 mi");
+    expect(fmtCompact(500_000)).toBe("R$ 500,0 mil");
+    expect(fmtCompact(1_500_000_000)).toBe("R$ 1,5 bi");
+  });
+
+  it("preserva o sinal de valores negativos", () => {
+    expect(fmtCompact(-2_000_000)).toBe("R$ -2,0 mi");
+  });
+
+  it("usa moeda completa abaixo de mil", () => {
+    expect(fmtCompact(999).replace(/\s/g, " ")).toBe("R$ 999");
   });
 });

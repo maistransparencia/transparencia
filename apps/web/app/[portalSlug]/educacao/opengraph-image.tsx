@@ -61,7 +61,7 @@ export default async function Image({
           },
         )} ponto`;
       }
-      return "Estável";
+      return "—";
     })();
 
     const despesaEducacaoStr = (() => {
@@ -74,26 +74,38 @@ export default async function Image({
       return "—";
     })();
 
-    const mdeStr = (() => {
+    const rankingStr = (() => {
       if (
-        resumo?.mdePercentual !== null &&
-        resumo?.mdePercentual !== undefined
+        resumo?.posicaoRanking !== null &&
+        resumo?.posicaoRanking !== undefined
       ) {
-        return `${resumo.mdePercentual.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`;
+        return `${resumo.posicaoRanking}º`;
       }
-      return "25,0%";
+      return "—";
     })();
 
-    const mdeVariant =
-      resumo?.mdePercentual !== null &&
-      resumo?.mdePercentual !== undefined &&
-      resumo.mdePercentual < 25
-        ? "danger"
-        : "success";
+    const rankingDetail = (() => {
+      if (
+        resumo?.posicaoRanking !== null &&
+        resumo?.posicaoRanking !== undefined &&
+        resumo?.totalMunicipios !== null &&
+        resumo?.totalMunicipios !== undefined
+      ) {
+        return `entre ${resumo.totalMunicipios} municípios${portalUf ? ` de ${portalUf}` : ""}`;
+      }
+      return "Ranking estadual do IDEB";
+    })();
+
+    const cicloLabel = (() => {
+      if (resumo?.ano !== null && resumo?.ano !== undefined) {
+        return `Nota IDEB (Ciclo ${resumo.ano})`;
+      }
+      return "Nota IDEB";
+    })();
 
     const metrics: OGMetricItem[] = [
       {
-        label: `Nota IDEB (Ciclo ${resumo?.ano ?? 2025})`,
+        label: cicloLabel,
         value: notaIdebStr,
         detail: "Anos Iniciais",
         variant: "info",
@@ -101,14 +113,14 @@ export default async function Image({
       {
         label: "Evolução Bienal",
         value: crescimentoStr,
-        detail: "Superação escolar",
+        detail: "Variação frente ao ciclo anterior",
         variant: "success",
       },
       {
-        label: "MDE Constitucional",
-        value: mdeStr,
-        detail: "Mínimo 25% (Art. 212)",
-        variant: mdeVariant,
+        label: "Ranking Estadual",
+        value: rankingStr,
+        detail: rankingDetail,
+        variant: "default",
       },
       {
         label: "Despesa na Educação",
@@ -123,7 +135,7 @@ export default async function Image({
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
         pageTitle="Educação Básica & Responsabilidade Fiscal"
-        subtitle="Evolução do IDEB, proficiência SAEB, limites constitucionais de MDE/FUNDEB e compras da educação"
+        subtitle="Evolução do IDEB, proficiência SAEB, despesa na Função 12 e compras da educação"
         badgeText="Painel da Educação"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}

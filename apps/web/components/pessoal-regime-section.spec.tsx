@@ -63,7 +63,7 @@ describe("PessoalRegimeSection Component", () => {
       0,
     );
     expect(screen.getByText(/700 profissionais/i)).toBeInTheDocument();
-    expect(screen.getByText(/4\.0mi/i)).toBeInTheDocument();
+    expect(screen.getByText(/4,0\s*mi/i)).toBeInTheDocument();
   });
 
   it("renderiza nota de auditoria cívica data-driven quando totalDivergencias > 0", () => {

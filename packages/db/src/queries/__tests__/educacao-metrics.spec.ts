@@ -445,7 +445,7 @@ describe("educacao-metrics", () => {
       expect(resumo?.custoAnualPorAluno).toBeNull();
     });
 
-    it("utiliza fallback para anosFinais quando anosIniciais não existe", async () => {
+    it("não preenche indicadores do IDEB com anosFinais quando anosIniciais não existe", async () => {
       const PORTAL_FALLBACK = createFixturePortalSlug();
       await seedEducacaoMetricas({
         portalSlug: PORTAL_FALLBACK,
@@ -461,8 +461,11 @@ describe("educacao-metrics", () => {
       const resumoFinais = await getResumoEducacao(PORTAL_FALLBACK);
       expect(resumoFinais).not.toBeNull();
       expect(resumoFinais?.ano).toBe(2025);
-      expect(resumoFinais?.notaIdeb).toBe(4.9);
-      expect(resumoFinais?.crescimentoPontosIdeb).toBe(0.6);
+      expect(resumoFinais?.notaIdeb).toBeNull();
+      expect(resumoFinais?.metaIdeb).toBeNull();
+      expect(resumoFinais?.atingiuMeta).toBeNull();
+      expect(resumoFinais?.crescimentoPontosIdeb).toBeNull();
+      expect(resumoFinais?.posicaoRanking).toBeNull();
       expect(resumoFinais?.despesaLiquidadaEducacao).toBe(20000000.0);
       expect(resumoFinais?.anosIniciais).toBeNull();
       expect(resumoFinais?.anosFinais?.notaIdeb).toBe(4.9);
@@ -470,7 +473,7 @@ describe("educacao-metrics", () => {
       await cleanupFixtures(PORTAL_FALLBACK);
     });
 
-    it("faz fallback de notaIdeb e financeiro quando anosIniciais tem nota nula mas anosFinais possui dados", async () => {
+    it("mantém IDEB nulo e financeiro por fallback quando anosIniciais tem nota nula mas anosFinais possui dados", async () => {
       const PORTAL_PARTIAL = createFixturePortalSlug();
       await seedEducacaoMetricas([
         {
@@ -494,8 +497,12 @@ describe("educacao-metrics", () => {
 
       const resumo = await getResumoEducacao(PORTAL_PARTIAL);
       expect(resumo).not.toBeNull();
-      expect(resumo?.notaIdeb).toBe(5.1);
-      expect(resumo?.crescimentoPontosIdeb).toBe(0.8);
+      expect(resumo?.notaIdeb).toBeNull();
+      expect(resumo?.metaIdeb).toBeNull();
+      expect(resumo?.atingiuMeta).toBeNull();
+      expect(resumo?.crescimentoPontosIdeb).toBeNull();
+      expect(resumo?.posicaoRanking).toBeNull();
+      expect(resumo?.anosFinais?.notaIdeb).toBe(5.1);
       expect(resumo?.despesaLiquidadaEducacao).toBe(15000000.0);
 
       await cleanupFixtures(PORTAL_PARTIAL);

@@ -66,7 +66,7 @@ describe("facebook-bot module", () => {
       expect(post.message).toContain("Execução Orçamentária");
       expect(post.message).toContain("Total Pago no Exercício:");
       expect(post.message).toContain("Restos a Pagar:");
-      expect(post.message).toContain("R$ 30.8mi / R$ 2.9mi liquidados");
+      expect(post.message).toContain("R$ 30,8 mi / R$ 2,9 mi liquidados");
       expect(post.message).not.toContain("Opacidade Contábil");
       expect(post.message).not.toContain("Saldo em Caixa Estimado");
       expect(post.message).toContain("Construtora Alfa Ltda");
