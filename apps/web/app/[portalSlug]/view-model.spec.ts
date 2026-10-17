@@ -900,3 +900,59 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
     expect(vm.obrasMapCenter).toEqual([-20.9634, -42.0408]);
   });
 });
+
+describe("buildVisaoGeralViewModel - educacaoResumo", () => {
+  it("monta educacaoResumo e deep link para /educacao", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoEducacao: {
+          portalSlug: "porciuncula",
+          ano: 2023,
+          notaIdeb: 5.9,
+          metaIdeb: null,
+          atingiuMeta: null,
+          crescimentoPontosIdeb: 1.4,
+          saebMatematica: null,
+          saebLinguaPortuguesa: null,
+          indicadorFluxoAprovacao: null,
+          despesaLiquidadaEducacao: null,
+          totalMatriculasRedeMunicipal: null,
+          custoAnualPorAluno: 9000,
+          anosIniciais: null,
+          anosFinais: null,
+        },
+      }),
+    );
+    expect(vm.educacaoResumo).toEqual({
+      ano: 2023,
+      notaIdeb: 5.9,
+      crescimentoPontosIdeb: 1.4,
+      mdePercentual: null,
+      custoAnualPorAluno: 9000,
+    });
+    expect(vm.educacaoDetailUrl).toBe("/porciuncula/educacao?ano=2024");
+  });
+
+  it("retorna educacaoResumo nulo sem resumo", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: null }),
+    );
+    expect(vm.educacaoResumo).toBeNull();
+  });
+
+  it("repassa mdePercentual não nulo para educacaoResumo", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoEducacao: {
+          portalSlug: "porciuncula",
+          ano: 2023,
+          notaIdeb: 5.9,
+          crescimentoPontosIdeb: 1.4,
+          custoAnualPorAluno: 9000,
+          mdePercentual: 27.5,
+        },
+      }),
+    );
+    expect(vm.educacaoResumo?.mdePercentual).toBe(27.5);
+  });
+});

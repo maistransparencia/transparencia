@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
+import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { ObrasResumoCard } from "@/components/obras-resumo-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
@@ -80,6 +81,11 @@ export default async function VisaoGeralPage({
         detailUrl={viewModel.obrasDetailUrl}
         markers={viewModel.obrasMiniMapMarkers}
         center={viewModel.obrasMapCenter}
+      />
+
+      <EducacaoResumoCard
+        resumo={viewModel.educacaoResumo}
+        detailUrl={viewModel.educacaoDetailUrl}
       />
 
       <RadarCivicoFeed

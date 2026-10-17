@@ -5,6 +5,7 @@ const {
   getObrasPorPortalMock,
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
+  getResumoEducacaoMock,
   getResumoObrasPorPortalMock,
   notFoundMock,
 } = vi.hoisted(() => ({
@@ -12,6 +13,7 @@ const {
   getObrasPorPortalMock: vi.fn(),
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
+  getResumoEducacaoMock: vi.fn(),
   getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -39,6 +41,7 @@ vi.mock("@transparencia/db", () => ({
   getRadarCivicoAlertas: getRadarCivicoAlertasMock,
   getObrasPorPortal: getObrasPorPortalMock,
   getResumoObrasPorPortal: getResumoObrasPorPortalMock,
+  getResumoEducacao: getResumoEducacaoMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
@@ -138,5 +141,27 @@ describe("loadVisaoGeralData", () => {
     });
     expect(result.resumoObras).toEqual(mockResumoObras);
     expect(result.obrasPreview).toEqual(mockObrasPreview);
+  });
+
+  it("loads education summary in parallel by portal slug", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    const mockResumoEducacao = { portalSlug: "porciuncula", ano: 2023 };
+    getResumoEducacaoMock.mockResolvedValue(mockResumoEducacao);
+
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+
+    expect(getResumoEducacaoMock).toHaveBeenCalledWith("porciuncula");
+    expect(result.resumoEducacao).toEqual(mockResumoEducacao);
+  });
+
+  it("propaga resumoEducacao nulo quando não há dados educacionais", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    getResumoEducacaoMock.mockResolvedValue(null);
+
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+
+    expect(result.resumoEducacao).toBeNull();
   });
 });

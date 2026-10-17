@@ -322,6 +322,16 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    educacaoDetailUrl: routeUrl("/educacao"),
+    educacaoResumo: raw.resumoEducacao
+      ? {
+          ano: raw.resumoEducacao.ano,
+          notaIdeb: raw.resumoEducacao.notaIdeb,
+          crescimentoPontosIdeb: raw.resumoEducacao.crescimentoPontosIdeb,
+          mdePercentual: raw.resumoEducacao.mdePercentual ?? null,
+          custoAnualPorAluno: raw.resumoEducacao.custoAnualPorAluno,
+        }
+      : null,
     ...(() => {
       const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
         (o) =>

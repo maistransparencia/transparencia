@@ -202,4 +202,30 @@ describe("VisaoGeralPage", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("renderiza o card de educação com link para a rota de educação", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        resumoEducacao: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2023,
+          notaIdeb: 5.9,
+          crescimentoPontosIdeb: 1.4,
+          mdePercentual: null,
+          custoAnualPorAluno: 9000,
+        },
+      }),
+    );
+
+    const element = await VisaoGeralPage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Educação Básica e Desempenho Escolar"),
+    ).toBeInTheDocument();
+    const cta = screen.getByRole("link", {
+      name: /ver indicadores pedagógicos e despesas detalhadas/i,
+    });
+    expect(cta.getAttribute("href")).toContain("/educacao");
+  });
 });
