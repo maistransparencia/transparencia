@@ -3,15 +3,11 @@ import type { TrofeuCivicoKPIs } from "@/app/[portalSlug]/educacao/view-model";
 import { KPIGrid } from "@/components/kpi-grid";
 
 export interface EducacaoHeroSectionProps {
-  municipioNome: string;
-  municipioUf: string;
   selectedYear: number;
   trofeuCivico: TrofeuCivicoKPIs;
 }
 
 export function EducacaoHeroSection({
-  municipioNome,
-  municipioUf,
   selectedYear,
   trofeuCivico,
 }: EducacaoHeroSectionProps) {
@@ -136,8 +132,9 @@ export function EducacaoHeroSection({
         />
         <KPICard
           title="Classificação Estadual"
-          value={trofeuCivico.rankingEstadualLabel}
-          subtext={`Rede Municipal (${municipioUf})`}
+          value={trofeuCivico.rankingPosicaoLabel}
+          subtext={trofeuCivico.rankingSubtext}
+          trend={trofeuCivico.rankingTrend}
         />
         <KPICard
           title="Custo Anual / Aluno"

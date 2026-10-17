@@ -9,6 +9,12 @@ export interface TrofeuCivicoKPIs {
   notaAtual: number | null;
   notaAnterior: number | null;
   crescimentoPontos: number | null;
+  rankingPosicaoLabel: string;
+  rankingSubtext: string;
+  rankingTrend?: {
+    value: string;
+    isPositive?: boolean;
+  };
   rankingEstadualLabel: string;
   custoAnualPorAluno: number | null;
   totalMatriculas: number | null;
@@ -246,25 +252,50 @@ export function buildEducacaoViewModel(raw: {
     return "Educação Básica Municipal — Monitoramento Oficial INEP/MEC";
   })();
 
+  const rankingPos = raw.resumo?.posicaoRanking ?? null;
+  const rankingTotalMun = raw.resumo?.totalMunicipios ?? null;
+  const rankingVarPos = raw.resumo?.variacaoPosicoes ?? null;
+
+  const rankingPosicaoLabel = (() => {
+    if (rankingPos !== null) {
+      return `${rankingPos}º lugar`;
+    }
+    if (isDestaqueEstadual) {
+      return "Destaque";
+    }
+    return "Em apuração";
+  })();
+
+  const rankingSubtext = (() => {
+    if (rankingTotalMun !== null) {
+      return `Entre ${rankingTotalMun} municípios (${municipioUf})`;
+    }
+    return `Rede Municipal (${municipioUf})`;
+  })();
+
+  const rankingTrend = (() => {
+    if (rankingVarPos === null || rankingVarPos === undefined) return undefined;
+    if (rankingVarPos > 0) {
+      return { value: `+${rankingVarPos} posições`, isPositive: true };
+    }
+    if (rankingVarPos < 0) {
+      return { value: `${rankingVarPos} posições`, isPositive: false };
+    }
+    return { value: "Estável" };
+  })();
+
   const rankingEstadualLabel = (() => {
-    if (raw.resumo?.posicaoRanking != null) {
-      const pos = raw.resumo.posicaoRanking;
-      if (
-        raw.resumo.variacaoPosicoes != null &&
-        raw.resumo.variacaoPosicoes > 0
-      ) {
-        return `${pos}º lugar estadual (+${raw.resumo.variacaoPosicoes} posições)`;
+    if (rankingPos !== null) {
+      if (rankingVarPos !== null && rankingVarPos > 0) {
+        return `${rankingPos}º lugar estadual (+${rankingVarPos} posições)`;
       }
-      if (
-        raw.resumo.variacaoPosicoes != null &&
-        raw.resumo.variacaoPosicoes < 0
-      ) {
-        return `${pos}º lugar estadual (${raw.resumo.variacaoPosicoes} posições)`;
+      if (rankingVarPos !== null && rankingVarPos < 0) {
+        return `${rankingPos}º lugar estadual (${rankingVarPos} posições)`;
       }
-      if (raw.resumo.totalMunicipios != null) {
-        return `${pos}º lugar estadual (${raw.resumo.totalMunicipios} municípios)`;
+      if (rankingTotalMun !== null) {
+        return `${rankingPos}º lugar estadual (${rankingTotalMun} municípios)`;
       }
-      return `${pos}º lugar estadual`;
+      return `${rankingPos}º lugar estadual`;
     }
     if (isDestaqueEstadual) {
       return "Destaque no ranking estadual";
@@ -318,6 +349,9 @@ export function buildEducacaoViewModel(raw: {
     notaAtual,
     notaAnterior,
     crescimentoPontos,
+    rankingPosicaoLabel,
+    rankingSubtext,
+    rankingTrend,
     rankingEstadualLabel,
     custoAnualPorAluno,
     totalMatriculas,

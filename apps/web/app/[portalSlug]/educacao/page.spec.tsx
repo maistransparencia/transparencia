@@ -232,7 +232,9 @@ describe("EducacaoPage (Server Component)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("5,9")).toBeInTheDocument();
     expect(screen.getByText("+1,4 ponto")).toBeInTheDocument();
-    expect(screen.getByText(/46º lugar estadual/i)).toBeInTheDocument();
+    expect(screen.getByText("46º lugar")).toBeInTheDocument();
+    expect(screen.getByText(/Entre 92 municípios \(RJ\)/i)).toBeInTheDocument();
+    expect(screen.getByText("+32 posições")).toBeInTheDocument();
 
     // Bloco 2: Linha do tempo e série histórica
     expect(

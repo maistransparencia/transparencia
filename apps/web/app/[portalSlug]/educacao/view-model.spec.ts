@@ -151,6 +151,12 @@ describe("educacao/view-model", () => {
     expect(vm.trofeuCivico.destaqueBadgeTexto).toBe(
       "Evolução de +1,4 ponto no IDEB da Rede Municipal",
     );
+    expect(vm.trofeuCivico.rankingPosicaoLabel).toBe("46º lugar");
+    expect(vm.trofeuCivico.rankingSubtext).toBe("Entre 92 municípios (RJ)");
+    expect(vm.trofeuCivico.rankingTrend).toEqual({
+      value: "+43 posições",
+      isPositive: true,
+    });
     expect(vm.trofeuCivico.rankingEstadualLabel).toContain(
       "46º lugar estadual",
     );

@@ -26,7 +26,6 @@ export interface EducacaoHistoricoSectionProps {
     anosFinais: IdebEtapaHistorico;
   };
   initialEtapa?: EtapaEnsino;
-  municipioNome: string;
 }
 
 interface CustomTooltipProps {
@@ -132,7 +131,6 @@ function CustomIdebTooltip({
 export function EducacaoHistoricoSection({
   historico,
   initialEtapa = "anosIniciais",
-  municipioNome,
 }: EducacaoHistoricoSectionProps) {
   const [activeEtapa, setActiveEtapa] = useState<EtapaEnsino>(initialEtapa);
 
@@ -153,7 +151,7 @@ export function EducacaoHistoricoSection({
     >
       <SectionHeader
         title="Série Histórica do IDEB e Avaliações Oficiais (2021–2025)"
-        description={`Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação para ${municipioNome}.`}
+        description={`Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação.`}
       />
 
       {/* Tabs / Toggle de Etapa */}
@@ -336,7 +334,7 @@ export function EducacaoHistoricoSection({
               <span className="text-slate-500 text-xs">escala SAEB</span>
             </div>
             <p className="mt-1 text-slate-500 text-xs">
-              Ciclo {pontoMaisRecente.ano} ({currentHistorico.label})
+              Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
             </p>
           </div>
 
@@ -355,7 +353,7 @@ export function EducacaoHistoricoSection({
               <span className="text-slate-500 text-xs">escala SAEB</span>
             </div>
             <p className="mt-1 text-slate-500 text-xs">
-              Ciclo {pontoMaisRecente.ano} ({currentHistorico.label})
+              Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
             </p>
           </div>
 

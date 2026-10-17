@@ -55,8 +55,6 @@ export default async function EducacaoPage({
     <div className="space-y-10 pb-16">
       {/* Bloco 1: Hero Narrative com Troféu Cívico do Ciclo 2025 e KPIs */}
       <EducacaoHeroSection
-        municipioNome={viewModel.municipioNome}
-        municipioUf={viewModel.municipioUf}
         selectedYear={viewModel.selectedYear}
         trofeuCivico={viewModel.trofeuCivico}
       />
@@ -65,14 +63,10 @@ export default async function EducacaoPage({
       <EducacaoHistoricoSection
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
-        municipioNome={viewModel.municipioNome}
       />
 
       {/* Bloco 3: Painel de Responsabilidade Fiscal da Educação (MDE e FUNDEB) */}
-      <EducacaoFiscalSection
-        fiscal={viewModel.fiscal}
-        municipioNome={viewModel.municipioNome}
-      />
+      <EducacaoFiscalSection fiscal={viewModel.fiscal} />
 
       {/* Bloco 4: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}
       <EducacaoContratosSection

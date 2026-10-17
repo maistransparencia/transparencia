@@ -222,10 +222,25 @@ export async function getResumoEducacao(
     targetAno = Number(latestRow.ano);
   }
 
-  const metrics = await getEducacaoMetrics(cleanSlug, { ano: targetAno });
+  let metrics = await getEducacaoMetrics(cleanSlug, { ano: targetAno });
 
   if (metrics.length === 0) {
-    return null;
+    const latestRow = await db
+      .selectFrom("fct_educacao_metricas")
+      .select("ano")
+      .where("portal_slug", "=", cleanSlug)
+      .orderBy("ano", "desc")
+      .limit(1)
+      .executeTakeFirst();
+
+    if (!latestRow || latestRow.ano == null) {
+      return null;
+    }
+    targetAno = Number(latestRow.ano);
+    metrics = await getEducacaoMetrics(cleanSlug, { ano: targetAno });
+    if (metrics.length === 0) {
+      return null;
+    }
   }
 
   const anosIniciais =
@@ -319,7 +334,7 @@ export async function getEducacaoRankingEstadual(
     return null;
   }
 
-  const targetAno =
+  let targetAno =
     options?.ano ?? (metricRow?.ano ? Number(metricRow.ano) : 2025);
   const etapa = options?.etapaEnsino ?? "anosIniciais";
   const dbEtapa = toDbEtapaEnsino(etapa);
@@ -328,7 +343,7 @@ export async function getEducacaoRankingEstadual(
   const ufMax = (ufCode + 1) * 100000;
 
   try {
-    const currentRows = await db
+    let currentRows = await db
       .selectFrom("seed_inep_ideb")
       .select(["cod_ibge", "nota_ideb"])
       .where("ano", "=", targetAno)
@@ -342,7 +357,37 @@ export async function getEducacaoRankingEstadual(
       .execute();
 
     if (currentRows.length === 0) {
-      return null;
+      const latestSeedRow = await db
+        .selectFrom("seed_inep_ideb")
+        .select("ano")
+        .where("rede", "=", "municipal")
+        .where("etapa_ensino", "=", dbEtapa)
+        .where("cod_ibge", ">=", ufMin)
+        .where("cod_ibge", "<", ufMax)
+        .orderBy("ano", "desc")
+        .limit(1)
+        .executeTakeFirst();
+
+      if (!latestSeedRow || latestSeedRow.ano == null) {
+        return null;
+      }
+      targetAno = Number(latestSeedRow.ano);
+      currentRows = await db
+        .selectFrom("seed_inep_ideb")
+        .select(["cod_ibge", "nota_ideb"])
+        .where("ano", "=", targetAno)
+        .where("rede", "=", "municipal")
+        .where("etapa_ensino", "=", dbEtapa)
+        .where("cod_ibge", ">=", ufMin)
+        .where("cod_ibge", "<", ufMax)
+        .where("nota_ideb", "is not", null)
+        .orderBy("nota_ideb", "desc")
+        .orderBy("cod_ibge", "asc")
+        .execute();
+
+      if (currentRows.length === 0) {
+        return null;
+      }
     }
 
     const currentIdx = currentRows.findIndex(

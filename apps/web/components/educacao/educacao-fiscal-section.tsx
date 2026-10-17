@@ -16,7 +16,6 @@ import { SectionHeader } from "@/components/section-header";
 
 export interface EducacaoFiscalSectionProps {
   fiscal: EducacaoFiscalPainel;
-  municipioNome: string;
 }
 
 interface CorrelacaoTooltipProps {
@@ -70,10 +69,7 @@ function CorrelacaoTooltip({ active, payload, label }: CorrelacaoTooltipProps) {
   );
 }
 
-export function EducacaoFiscalSection({
-  fiscal,
-  municipioNome,
-}: EducacaoFiscalSectionProps) {
+export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
   const { correlacao } = fiscal;
 
   return (
@@ -83,7 +79,7 @@ export function EducacaoFiscalSection({
     >
       <SectionHeader
         title="Painel de Responsabilidade Fiscal da Educação"
-        description={`Cruzamento entre o custo anual por aluno liquidado na Função 12 (Educação) e a evolução dos resultados do IDEB em ${municipioNome}.`}
+        description={`Cruzamento entre o custo anual por aluno liquidado na Função 12 (Educação) e a evolução dos resultados do IDEB.`}
       />
 
       {/* Gráfico de Correlação: Custo por Aluno vs. Desempenho no IDEB */}
