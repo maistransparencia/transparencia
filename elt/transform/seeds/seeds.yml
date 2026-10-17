@@ -141,6 +141,17 @@ seeds:
         saeb_lingua_portuguesa: numeric
         taxa_aprovacao: numeric
 
+  - name: seed_inep_ideb_estados
+    description: "Série histórica oficial das notas do IDEB por Unidade da Federação e etapa de ensino (INEP/MEC)"
+    config:
+      column_types:
+        cod_uf: integer
+        sigla_uf: text
+        ano: integer
+        rede: text
+        etapa_ensino: text
+        nota_ideb: numeric
+
   - name: seed_censo_escolar_matriculas
     description: "Série histórica de matrículas ativas da rede municipal de ensino apuradas pelo Censo Escolar (INEP/MEC)"
     config:

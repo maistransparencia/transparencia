@@ -138,20 +138,28 @@ def extract_ideb_from_excel(
     excel_file: bytes | io.BytesIO | Path | str,
     etapa_ensino: str,
     years: list[int] | None = None,
-    uf: str = DEFAULT_UF,
+    uf: str | None = DEFAULT_UF,
 ) -> list[dict[str, Any]]:
     """Extrai os dados do IDEB/Saeb da planilha Excel oficial do INEP para os anos e UF especificados."""
-    if years is None:
-        years = DEFAULT_YEARS
-
     xl = pd.ExcelFile(excel_file)
     sheet_name = xl.sheet_names[0]
     # As planilhas do INEP possuem 9 linhas de metadados; o cabeçalho técnico está na linha index 9
     df = xl.parse(sheet_name, skiprows=9)
 
-    # Filtra por UF especificada
-    if "SG_UF" in df.columns:
-        df = df[df["SG_UF"].astype(str).str.strip().str.upper() == uf.upper()]
+    # Filtra por UF especificada caso não seja "ALL" ou None
+    if uf is not None and uf.strip().upper() != "ALL" and "SG_UF" in df.columns:
+        df = df[df["SG_UF"].astype(str).str.strip().str.upper() == uf.strip().upper()]
+
+    if years is None:
+        # Auto-detecta dinamicamente todos os anos observados disponíveis na planilha oficial
+        detected_years = sorted(
+            {
+                int(str(c).split("_")[-1])
+                for c in df.columns
+                if str(c).startswith("VL_OBSERVADO_") and str(c).split("_")[-1].isdigit()
+            }
+        )
+        years = detected_years if detected_years else DEFAULT_YEARS
 
     records: list[dict[str, Any]] = []
 
@@ -206,7 +214,7 @@ def extract_from_zip_bytes(
     zip_bytes: bytes,
     etapa_ensino: str,
     years: list[int] | None = None,
-    uf: str = DEFAULT_UF,
+    uf: str | None = DEFAULT_UF,
 ) -> list[dict[str, Any]]:
     """Extrai os dados da planilha contida dentro de um arquivo ZIP em memória."""
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
@@ -227,11 +235,10 @@ def sync_inep_ideb_seed(
     output_path: Path | str,
     target_year: int = DEFAULT_TARGET_YEAR,
     years: list[int] | None = None,
-    uf: str = DEFAULT_UF,
+    uf: str | None = DEFAULT_UF,
 ) -> Path:
     """Sincroniza e consolida os dados do IDEB gerando o arquivo CSV de seed."""
-    if years is None:
-        years = sorted(set(DEFAULT_YEARS + [target_year]))
+    effective_years = sorted(set((years if years is not None else DEFAULT_YEARS) + [target_year]))
 
     out_file = Path(output_path)
     all_records: list[dict[str, Any]] = []
@@ -241,7 +248,7 @@ def sync_inep_ideb_seed(
         zip_prefix = cfg["zip_prefix"]
         url = f"{INEP_BASE_URL}/{zip_prefix}_{target_year}.zip"
         zip_bytes = download_zip(url)
-        records = extract_from_zip_bytes(zip_bytes, etapa_ensino=etapa_ensino, years=years, uf=uf)
+        records = extract_from_zip_bytes(zip_bytes, etapa_ensino=etapa_ensino, years=effective_years, uf=uf)
         logger.info("Extraídos %d registros para etapa '%s'.", len(records), etapa_ensino)
         all_records.extend(records)
 
@@ -288,6 +295,19 @@ def main() -> None:
         help="Caminho do arquivo CSV de destino da seed",
     )
     parser.add_argument(
+        "--uf",
+        type=str,
+        default=DEFAULT_UF,
+        help=f"Sigla da UF para filtragem (padrão: {DEFAULT_UF}, ou 'ALL' para todos os estados)",
+    )
+    parser.add_argument(
+        "--years",
+        nargs="+",
+        type=int,
+        default=None,
+        help="Lista de anos a extrair (padrão: anos padrão do módulo mais o ano alvo)",
+    )
+    parser.add_argument(
         "--check-next",
         type=int,
         metavar="YEAR",
@@ -311,7 +331,7 @@ def main() -> None:
             logger.info("Ciclo %s não detectado no INEP.", args.check_next)
             sys.exit(1)
 
-    sync_inep_ideb_seed(output_path=args.output, target_year=args.year)
+    sync_inep_ideb_seed(output_path=args.output, target_year=args.year, years=args.years, uf=args.uf)
 
 
 if __name__ == "__main__":
