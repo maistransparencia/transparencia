@@ -41,8 +41,8 @@ export interface EducacaoFiscalTermometro {
   artigoLegal: string;
   artigoUrl: string;
   minimoConstitucionalPct: number;
-  percentualAplicado: number;
-  cumprido: boolean;
+  percentualAplicado: number | null;
+  cumprido: boolean | null;
   descricao: string;
 }
 
@@ -54,10 +54,12 @@ export interface CustoIdebCorrelacaoPonto {
 }
 
 export interface EducacaoFiscalPainel {
+  despesaTotalEducacao: number | null;
+  custoAlunoAtual: number | null;
+  totalMatriculas: number | null;
   mde: EducacaoFiscalTermometro;
   fundeb: EducacaoFiscalTermometro;
   correlacao: CustoIdebCorrelacaoPonto[];
-  custoAlunoAtual: number | null;
 }
 
 export interface EducacaoViewModel {
@@ -229,17 +231,17 @@ export function buildEducacaoViewModel(raw: {
   );
 
   const destaqueBadgeTexto = (() => {
-    if (isDestaqueEstadual) {
-      const pontosFmt = (crescimentoPontos ?? 0).toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-      });
-      return `🏆 Maior crescimento do Estado do Rio de Janeiro nos Anos Iniciais (+${pontosFmt} ponto) e Rede Municipal no Top 10 dos Anos Finais`;
-    }
     if (crescimentoPontos !== null && crescimentoPontos > 0) {
       const pontosFmt = crescimentoPontos.toLocaleString("pt-BR", {
         minimumFractionDigits: 1,
       });
-      return `📈 Evolução positiva de +${pontosFmt} ponto no IDEB da Rede Municipal`;
+      return `Evolução de +${pontosFmt} ponto no IDEB da Rede Municipal`;
+    }
+    if (notaAtual !== null) {
+      const notaFmt = notaAtual.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+      });
+      return `Nota ${notaFmt} no IDEB — Anos Iniciais da Rede Municipal`;
     }
     return "Educação Básica Municipal — Monitoramento Oficial INEP/MEC";
   })();
@@ -325,19 +327,8 @@ export function buildEducacaoViewModel(raw: {
   };
 
   // Bloco 3: Painel Fiscal (MDE 25% e FUNDEB 70%)
-  const mdePercentual = (() => {
-    if (raw.resumo?.mdePercentual != null) {
-      return raw.resumo.mdePercentual;
-    }
-    return 25.0;
-  })();
-
-  const fundebPercentual = (() => {
-    if (raw.resumo?.fundebPercentual != null) {
-      return raw.resumo.fundebPercentual;
-    }
-    return 70.0;
-  })();
+  const mdePercentual = raw.resumo?.mdePercentual ?? null;
+  const fundebPercentual = raw.resumo?.fundebPercentual ?? null;
 
   const mde: EducacaoFiscalTermometro = {
     nome: "Aplicação em MDE (Mínimo Constitucional)",
@@ -346,7 +337,7 @@ export function buildEducacaoViewModel(raw: {
       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212",
     minimoConstitucionalPct: 25,
     percentualAplicado: mdePercentual,
-    cumprido: mdePercentual >= 25,
+    cumprido: mdePercentual !== null ? mdePercentual >= 25 : null,
     descricao:
       "A receita de impostos é vinculada prioritariamente à Manutenção e Desenvolvimento do Ensino (MDE), com aplicação mínima de 25%.",
   };
@@ -358,7 +349,7 @@ export function buildEducacaoViewModel(raw: {
       "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a",
     minimoConstitucionalPct: 70,
     percentualAplicado: fundebPercentual,
-    cumprido: fundebPercentual >= 70,
+    cumprido: fundebPercentual !== null ? fundebPercentual >= 70 : null,
     descricao:
       "Pelo menos 70% dos recursos do FUNDEB devem ser destinados à remuneração dos profissionais da educação básica em efetivo exercício.",
   };
@@ -387,10 +378,12 @@ export function buildEducacaoViewModel(raw: {
   });
 
   const fiscal: EducacaoFiscalPainel = {
+    despesaTotalEducacao,
+    custoAlunoAtual: custoAnualPorAluno,
+    totalMatriculas,
     mde,
     fundeb,
     correlacao,
-    custoAlunoAtual: custoAnualPorAluno,
   };
 
   // Bloco 4: Resumo dos Contratos

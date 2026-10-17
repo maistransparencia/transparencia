@@ -148,8 +148,8 @@ describe("educacao/view-model", () => {
     expect(vm.trofeuCivico.notaAnterior).toBe(4.5);
     expect(vm.trofeuCivico.crescimentoPontos).toBe(1.4);
     expect(vm.trofeuCivico.isDestaqueEstadual).toBe(true);
-    expect(vm.trofeuCivico.destaqueBadgeTexto).toContain(
-      "Maior crescimento do Estado do Rio de Janeiro",
+    expect(vm.trofeuCivico.destaqueBadgeTexto).toBe(
+      "Evolução de +1,4 ponto no IDEB da Rede Municipal",
     );
     expect(vm.trofeuCivico.rankingEstadualLabel).toContain(
       "46º lugar estadual",
@@ -240,6 +240,11 @@ describe("educacao/view-model", () => {
     expect(vm.trofeuCivico.notaAnterior).toBeNull();
     expect(vm.trofeuCivico.crescimentoPontos).toBeNull();
     expect(vm.trofeuCivico.isDestaqueEstadual).toBe(false);
+    expect(vm.trofeuCivico.destaqueBadgeTexto).not.toMatch(/[🏆📈]/u);
+    expect(vm.fiscal.mde.percentualAplicado).toBeNull();
+    expect(vm.fiscal.mde.cumprido).toBeNull();
+    expect(vm.fiscal.fundeb.percentualAplicado).toBeNull();
+    expect(vm.fiscal.fundeb.cumprido).toBeNull();
     expect(vm.contratosResumo.totalContratos).toBe(0);
   });
 });

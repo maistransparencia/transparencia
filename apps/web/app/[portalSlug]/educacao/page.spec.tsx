@@ -224,11 +224,11 @@ describe("EducacaoPage (Server Component)", () => {
 
     // Bloco 1: Hero & Troféu Cívico
     expect(
-      screen.getByText(/Educação Básica & Rigor Fiscal em Porciúncula/i),
+      screen.getByText(/acompanhe a evolução do IDEB/i),
     ).toBeInTheDocument();
     expect(screen.getByTestId("trofeu-civico-card")).toBeInTheDocument();
     expect(
-      screen.getByText(/Maior crescimento do Estado do Rio de Janeiro/i),
+      screen.getByText(/Evolução de \+1,4 ponto no IDEB da Rede Municipal/i),
     ).toBeInTheDocument();
     expect(screen.getByText("5,9")).toBeInTheDocument();
     expect(screen.getByText("+1,4 ponto")).toBeInTheDocument();
@@ -245,48 +245,25 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByText(/SAEB — Língua Portuguesa/i)).toBeInTheDocument();
     expect(screen.getByText(/SAEB — Matemática/i)).toBeInTheDocument();
 
-    // Bloco 3: Painel de Responsabilidade Fiscal (MDE e FUNDEB)
-    expect(screen.getByTestId("termometro-mde")).toBeInTheDocument();
-    expect(screen.getByTestId("termometro-fundeb")).toBeInTheDocument();
+    // Bloco 3: Painel de Responsabilidade Fiscal da Educação
     expect(
-      screen.getAllByText(/Art\. 212 da CF\/88/i).length,
-    ).toBeGreaterThanOrEqual(1);
+      screen.getByText("Painel de Responsabilidade Fiscal da Educação"),
+    ).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Art\. 212-A da CF\/88/i).length,
-    ).toBeGreaterThanOrEqual(1);
+      screen.getByText("Evolução do Custo por Aluno vs. Desempenho no IDEB"),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("termometro-mde")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("termometro-fundeb")).not.toBeInTheDocument();
 
-    // Valida hyperlinks oficiais com target="_blank" e rel="noopener noreferrer" (Regra 20)
-    const mdeLink = screen.getByLabelText(
-      /Texto oficial do Art. 212 da CF\/88 no Planalto/i,
-    );
-    expect(mdeLink).toHaveAttribute("target", "_blank");
-    expect(mdeLink).toHaveAttribute("rel", "noopener noreferrer");
-    expect(mdeLink).toHaveAttribute(
-      "href",
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212",
-    );
-
-    const fundebLink = screen.getByLabelText(
-      /Texto oficial do Art. 212-A da CF\/88 no Planalto/i,
-    );
-    expect(fundebLink).toHaveAttribute("target", "_blank");
-    expect(fundebLink).toHaveAttribute("rel", "noopener noreferrer");
-    expect(fundebLink).toHaveAttribute(
-      "href",
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a",
-    );
-
-    // Bloco 4: Contratos e compras da educação
+    // Bloco 4: Contratos e compras da educação no formato canônico de contratos
     expect(
       screen.getByText("Contratos e Compras da Educação"),
     ).toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
     expect(
-      screen.getByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText("Ver detalhes").length).toBeGreaterThanOrEqual(
-      1,
-    );
+      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Detalhes").length).toBeGreaterThanOrEqual(1);
   });
 
   it("abre automaticamente o modal padronizado via deep link (?contratoNumero=0443/25)", async () => {
@@ -303,8 +280,10 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    // O modal deve estar aberto exibindo o título padronizado e detalhes
-    expect(screen.getByText("Detalhes do Contrato")).toBeInTheDocument();
+    // O modal deve estar aberto exibindo o título canônico e detalhes
+    expect(
+      screen.getByRole("heading", { name: "Contrato nº 0443/25" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
     expect(
       screen.getAllByText(
@@ -314,7 +293,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByText("Fechar")).toBeInTheDocument();
   });
 
-  it("permite abrir e fechar o modal ao clicar em 'Ver detalhes' e 'Fechar'", async () => {
+  it("permite abrir e fechar o modal ao clicar em 'Detalhes' e 'Fechar'", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -328,8 +307,8 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByTestId("contrato-detalhes-modal"),
     ).not.toBeInTheDocument();
 
-    const verDetalhesBtn = screen.getAllByText("Ver detalhes")[0];
-    fireEvent.click(verDetalhesBtn);
+    const detalhesBtn = screen.getAllByText("Detalhes")[0];
+    fireEvent.click(detalhesBtn);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 
@@ -396,9 +375,11 @@ describe("EducacaoPage (Server Component)", () => {
 
     // Ambos os contratos aparecem inicialmente
     expect(
-      screen.getByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("VIACAO ESCOLAR LTDA")).toBeInTheDocument();
+      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
 
     // Clica no filtro Transporte (PNATE)
     const tabTransporte = screen.getByRole("tab", {
@@ -406,31 +387,35 @@ describe("EducacaoPage (Server Component)", () => {
     });
     fireEvent.click(tabTransporte);
 
-    expect(screen.getByText("VIACAO ESCOLAR LTDA")).toBeInTheDocument();
     expect(
-      screen.queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).not.toBeInTheDocument();
+      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
+      0,
+    );
 
     // Clica no filtro Merenda (PNAE)
     const tabMerenda = screen.getByRole("tab", { name: /merenda \(pnae\)/i });
     fireEvent.click(tabMerenda);
 
     expect(
-      screen.getByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("VIACAO ESCOLAR LTDA")).not.toBeInTheDocument();
+      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
 
     // Volta para Todas
     const tabTodas = screen.getByRole("tab", { name: /todas/i });
     fireEvent.click(tabTodas);
 
     expect(
-      screen.getByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("VIACAO ESCOLAR LTDA")).toBeInTheDocument();
+      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
-  it("filtra contratos por busca textual com suporte a normalização de acentos", async () => {
+  it("filtra contratos por busca textual na DenseTable", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -441,24 +426,26 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     const searchInput = screen.getByPlaceholderText(
-      "Buscar fornecedor, número...",
+      "Buscar por fornecedor, CNPJ ou objeto...",
     );
 
-    // Busca insensível a acentuação: "viação" deve encontrar "VIACAO ESCOLAR LTDA"
-    fireEvent.change(searchInput, { target: { value: "viação" } });
-
-    expect(screen.getByText("VIACAO ESCOLAR LTDA")).toBeInTheDocument();
-    expect(
-      screen.queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).not.toBeInTheDocument();
-
-    // Limpa a busca via botão de limpar
-    const clearBtn = screen.getByLabelText("Limpar busca");
-    fireEvent.click(clearBtn);
+    fireEvent.change(searchInput, { target: { value: "VIACAO" } });
 
     expect(
-      screen.getByText("DISTRIBUIDORA ALIMENTAR LTDA"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("VIACAO ESCOLAR LTDA")).toBeInTheDocument();
+      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
+      0,
+    );
+
+    // Limpa a busca
+    fireEvent.change(searchInput, { target: { value: "" } });
+
+    expect(
+      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });

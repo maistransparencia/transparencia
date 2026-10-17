@@ -1,14 +1,6 @@
-import { fmtCurrency } from "@transparencia/ui";
-import {
-  Award,
-  BookOpen,
-  GraduationCap,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { fmtCurrency, KPICard } from "@transparencia/ui";
 import type { TrofeuCivicoKPIs } from "@/app/[portalSlug]/educacao/view-model";
+import { KPIGrid } from "@/components/kpi-grid";
 
 export interface EducacaoHeroSectionProps {
   municipioNome: string;
@@ -50,151 +42,118 @@ export function EducacaoHeroSection({
     if (pts > 0) {
       return {
         text: `+${ptsFmt} ponto`,
-        badgeClass: "text-emerald-700 bg-emerald-100",
-        Icon: TrendingUp,
+        isPositive: true,
       };
     }
     if (pts < 0) {
       return {
         text: `-${ptsFmt} ponto`,
-        badgeClass: "text-rose-700 bg-rose-100",
-        Icon: TrendingDown,
+        isPositive: false,
       };
     }
     return {
       text: "0,0 ponto",
-      badgeClass: "text-slate-700 bg-slate-100",
-      Icon: TrendingUp,
+      isPositive: true,
     };
   })();
 
   return (
     <section
       aria-label="Destaque e Indicadores Gerais da Educação"
-      className="space-y-6"
+      className="space-y-8"
     >
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 font-medium text-sky-800 text-xs">
-          <GraduationCap className="h-3.5 w-3.5 text-sky-600" />
-          <span>Tema Temático Canônico</span>
-        </div>
-        <h1 className="font-bold font-serif text-3xl text-slate-900 tracking-tight sm:text-4xl">
-          Educação Básica & Rigor Fiscal em {municipioNome} ({municipioUf})
-        </h1>
-        <p className="max-w-4xl text-slate-600 text-sm leading-relaxed sm:text-base">
-          Monitoramento auditável da evolução pedagógica (série histórica do
-          IDEB, proficiências SAEB e fluxo de aprovação apurados pelo INEP)
-          integrada à execução orçamentária, aplicação constitucional de
-          MDE/FUNDEB e custos por aluno da rede municipal.
-        </p>
-      </div>
+      {/* Grid Hero Canônico: Narrativa Editorial à esquerda + Destaque Cívico à direita */}
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+        {/* Coluna Esquerda: Narrativa Editorial no Padrão de Temas */}
+        <div className="space-y-4 lg:col-span-7">
+          <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+            TEMAS · EDUCAÇÃO BÁSICA · {selectedYear}
+          </span>
 
-      {/* Card do Troféu Cívico / Destaque Institucional */}
-      <div
-        className="relative overflow-hidden rounded-xl border border-amber-400 bg-amber-50/50 p-5 shadow-xs sm:p-6"
-        data-testid="trofeu-civico-card"
-      >
-        <div className="flex flex-col items-start justify-between gap-4 border-amber-200/80 border-b pb-4 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-amber-300 bg-amber-400/20 text-amber-800">
-              <Trophy className="h-6 w-6 text-amber-700" />
-            </div>
-            <div>
-              <span className="inline-block rounded-md border border-amber-300/70 bg-amber-100 px-2.5 py-0.5 font-semibold text-amber-900 text-xs">
-                Ciclo Oficial INEP/MEC {selectedYear}
-              </span>
-              <p className="mt-1 font-bold font-serif text-amber-950 text-base sm:text-lg">
-                {trofeuCivico.destaqueBadgeTexto}
-              </p>
-            </div>
-          </div>
-          <div className="shrink-0 text-left sm:text-right">
-            <span className="block font-semibold text-amber-800 text-xs uppercase tracking-wider">
-              Reconhecimento
+          <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
+            Do aprendizado aos recursos:{" "}
+            <span className="text-accent">acompanhe a evolução do IDEB</span> e
+            o rigor fiscal da educação no município.
+          </h1>
+
+          <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
+            Monitoramento auditável da evolução pedagógica (série histórica do
+            IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
+            INEP/MEC) integrada à aplicação dos pisos constitucionais de MDE
+            (25%) e FUNDEB (70%), ao custo por aluno e aos contratos de merenda,
+            transporte e serviços escolares da rede municipal.
+          </p>
+        </div>
+
+        {/* Coluna Direita: Card Visual de Destaque Cívico / Conquista Escolar */}
+        <div
+          className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-xs lg:col-span-5"
+          data-testid="trofeu-civico-card"
+        >
+          <div className="flex items-center justify-between gap-2 border-slate-100 border-b pb-3">
+            <span className="inline-block rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+              Ciclo Oficial INEP/MEC {selectedYear}
             </span>
-            <span className="font-medium text-amber-900 text-sm">
-              Rede Pública & Comunidade Escolar
+            <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+              Destaque Cívico
             </span>
           </div>
-        </div>
 
-        {/* Grid de KPIs Principais */}
-        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
-          <div className="rounded-lg border border-amber-200/60 bg-white/80 p-4 shadow-xs">
-            <div className="flex items-center justify-between font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              <span>Nota IDEB {selectedYear}</span>
-              <Award className="h-4 w-4 text-amber-600" />
-            </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-extrabold font-serif text-3xl text-slate-900 sm:text-4xl">
-                {notaAtualFmt}
-              </span>
-              {crescimentoConfig && (
-                <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-bold text-xs ${crescimentoConfig.badgeClass}`}
-                >
-                  <crescimentoConfig.Icon className="mr-0.5 inline h-3 w-3" />
-                  {crescimentoConfig.text}
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-slate-500 text-xs">
-              Anos Iniciais da Rede Municipal
-            </p>
-          </div>
+          <h2 className="mt-4 font-bold font-serif text-slate-900 text-xl leading-snug sm:text-2xl">
+            {trofeuCivico.destaqueBadgeTexto}
+          </h2>
 
-          <div className="rounded-lg border border-amber-200/60 bg-white/80 p-4 shadow-xs">
-            <div className="flex items-center justify-between font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              <span>Ciclo Anterior</span>
-              <BookOpen className="h-4 w-4 text-slate-400" />
-            </div>
-            <div className="mt-2">
-              <span className="font-extrabold font-serif text-3xl text-slate-700 sm:text-4xl">
-                {notaAnteriorFmt}
-              </span>
-            </div>
-            <p className="mt-1 text-slate-500 text-xs">
-              {trofeuCivico.notaAnterior !== null
-                ? `Referência anterior (${selectedYear - 2})`
-                : "Primeiro ciclo apurado"}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-amber-200/60 bg-white/80 p-4 shadow-xs">
-            <div className="flex items-center justify-between font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              <span>Classificação Estadual</span>
-              <Trophy className="h-4 w-4 text-amber-600" />
-            </div>
-            <div className="mt-2">
-              <span className="font-bold font-serif text-slate-900 text-xl leading-tight sm:text-2xl">
-                {trofeuCivico.rankingEstadualLabel}
-              </span>
-            </div>
-            <p className="mt-1 text-slate-500 text-xs">
-              Rede Municipal ({municipioUf})
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-amber-200/60 bg-white/80 p-4 shadow-xs">
-            <div className="flex items-center justify-between font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              <span>Custo Anual / Aluno</span>
-              <Users className="h-4 w-4 text-slate-400" />
-            </div>
-            <div className="mt-2">
-              <span className="font-extrabold font-serif text-2xl text-slate-900 sm:text-3xl">
-                {trofeuCivico.custoAnualPorAluno !== null
-                  ? fmtCurrency(trofeuCivico.custoAnualPorAluno)
-                  : "—"}
-              </span>
-            </div>
-            <p className="mt-1 text-slate-500 text-xs">
-              {trofeuCivico.totalMatriculas !== null
-                ? `${trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} matrículas ativas`
-                : "Função 12 (Educação)"}
-            </p>
-          </div>
+          <p className="mt-3 text-slate-600 text-xs leading-relaxed">
+            Reconhecimento pedagógico atribuído à dedicação dos estudantes,
+            professores e equipes escolares da rede municipal.
+          </p>
         </div>
       </div>
+
+      {/* KPIs Canônicos em Grid de 4 Colunas */}
+      <KPIGrid columns={4}>
+        <KPICard
+          title={`Nota IDEB ${selectedYear}`}
+          value={notaAtualFmt}
+          subtext="Anos Iniciais da Rede Municipal"
+          trend={
+            crescimentoConfig
+              ? {
+                  value: crescimentoConfig.text,
+                  isPositive: crescimentoConfig.isPositive,
+                }
+              : undefined
+          }
+        />
+        <KPICard
+          title="Ciclo Anterior"
+          value={notaAnteriorFmt}
+          subtext={
+            trofeuCivico.notaAnterior !== null
+              ? `Referência anterior (${selectedYear - 2})`
+              : "Primeiro ciclo apurado"
+          }
+        />
+        <KPICard
+          title="Classificação Estadual"
+          value={trofeuCivico.rankingEstadualLabel}
+          subtext={`Rede Municipal (${municipioUf})`}
+        />
+        <KPICard
+          title="Custo Anual / Aluno"
+          value={
+            trofeuCivico.custoAnualPorAluno !== null
+              ? fmtCurrency(trofeuCivico.custoAnualPorAluno)
+              : "—"
+          }
+          subtext={
+            trofeuCivico.totalMatriculas !== null
+              ? `${trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} matrículas ativas`
+              : "Função 12 (Educação)"
+          }
+          className="min-w-0"
+        />
+      </KPIGrid>
     </section>
   );
 }

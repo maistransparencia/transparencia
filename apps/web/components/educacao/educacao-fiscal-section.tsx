@@ -2,12 +2,6 @@
 
 import { fmtCurrency } from "@transparencia/ui";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  ExternalLink,
-  ShieldCheck,
-} from "lucide-react";
-import {
   Bar,
   CartesianGrid,
   ComposedChart,
@@ -17,10 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type {
-  EducacaoFiscalPainel,
-  EducacaoFiscalTermometro,
-} from "@/app/[portalSlug]/educacao/view-model";
+import type { EducacaoFiscalPainel } from "@/app/[portalSlug]/educacao/view-model";
 import { SectionHeader } from "@/components/section-header";
 
 export interface EducacaoFiscalSectionProps {
@@ -79,151 +70,11 @@ function CorrelacaoTooltip({ active, payload, label }: CorrelacaoTooltipProps) {
   );
 }
 
-interface TermometroCardProps {
-  termometro: EducacaoFiscalTermometro;
-  testId: string;
-  rangeMax: number;
-}
-
-function TermometroCard({ termometro, testId, rangeMax }: TermometroCardProps) {
-  const {
-    nome,
-    artigoLegal,
-    artigoUrl,
-    minimoConstitucionalPct,
-    percentualAplicado,
-    cumprido,
-    descricao,
-  } = termometro;
-
-  const diferenca = percentualAplicado - minimoConstitucionalPct;
-  const diferencaAbsFmt = Math.abs(diferenca).toFixed(1);
-
-  const badgeConfig = (() => {
-    if (cumprido) {
-      return {
-        badgeClass: "text-emerald-800 bg-emerald-50 border-emerald-200",
-        badgeText: "Mínimo Constitucional Cumprido",
-        Icon: ShieldCheck,
-        iconClass: "text-emerald-600",
-        barClass: "bg-emerald-600",
-        valTextClass: "text-emerald-700",
-        footerClass: "text-emerald-800",
-        FooterIcon: CheckCircle2,
-        footerText: `Em conformidade com o ${artigoLegal} (+${diferencaAbsFmt}% acima do piso obrigatório).`,
-      };
-    }
-    return {
-      badgeClass: "text-rose-800 bg-rose-50 border-rose-200",
-      badgeText: "Abaixo do Mínimo Constitucional",
-      Icon: AlertTriangle,
-      iconClass: "text-rose-600",
-      barClass: "bg-rose-500",
-      valTextClass: "text-rose-700",
-      footerClass: "text-rose-800",
-      FooterIcon: AlertTriangle,
-      footerText: `Em desacordo com o ${artigoLegal} (${diferencaAbsFmt}% abaixo do mínimo constitucional).`,
-    };
-  })();
-
-  const {
-    badgeClass,
-    badgeText,
-    Icon,
-    iconClass,
-    barClass,
-    valTextClass,
-    footerClass,
-    FooterIcon,
-    footerText,
-  } = badgeConfig;
-
-  return (
-    <div
-      className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs"
-      data-testid={testId}
-    >
-      <div>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <span
-              className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 font-semibold text-xs ${badgeClass}`}
-            >
-              <Icon className={`h-3.5 w-3.5 ${iconClass}`} />
-              {badgeText}
-            </span>
-            <h3 className="mt-2 font-bold font-serif text-lg text-slate-900">
-              {nome}
-            </h3>
-          </div>
-          <a
-            href={artigoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1 font-medium text-sky-700 text-xs underline underline-offset-2 hover:text-sky-900"
-            aria-label={`Texto oficial do ${artigoLegal} no Planalto`}
-          >
-            <span>{artigoLegal}</span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        </div>
-
-        <p className="mt-2 text-slate-600 text-xs leading-relaxed">
-          {descricao}
-        </p>
-
-        {/* Barra do Termômetro Visual */}
-        <div className="mt-5 space-y-2">
-          <div className="flex items-baseline justify-between text-xs">
-            <span className="font-medium text-slate-500">
-              Aplicação Realizada
-            </span>
-            <span className={`font-bold text-base ${valTextClass}`}>
-              {percentualAplicado.toLocaleString("pt-BR", {
-                minimumFractionDigits: 1,
-              })}
-              %
-            </span>
-          </div>
-          <div className="relative h-4 w-full overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${barClass}`}
-              style={{
-                width: `${Math.min(100, (percentualAplicado / rangeMax) * 100)}%`,
-              }}
-            />
-            {/* Linha demarcatória do piso constitucional */}
-            <div
-              className="absolute top-0 bottom-0 z-10 w-0.5 bg-slate-900"
-              style={{ left: `${(minimoConstitucionalPct / rangeMax) * 100}%` }}
-              title={`Piso Constitucional (${minimoConstitucionalPct}%)`}
-            />
-          </div>
-          <div className="flex justify-between text-[11px] text-slate-400">
-            <span>0%</span>
-            <span className="font-semibold text-slate-700">
-              Piso CF/88: {minimoConstitucionalPct}%
-            </span>
-            <span>{rangeMax}%</span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`mt-4 flex items-center gap-2 border-slate-100 border-t pt-3 text-xs ${footerClass}`}
-      >
-        <FooterIcon className={`h-4 w-4 shrink-0 ${iconClass}`} />
-        <span>{footerText}</span>
-      </div>
-    </div>
-  );
-}
-
 export function EducacaoFiscalSection({
   fiscal,
   municipioNome,
 }: EducacaoFiscalSectionProps) {
-  const { mde, fundeb, correlacao } = fiscal;
+  const { correlacao } = fiscal;
 
   return (
     <section
@@ -232,22 +83,8 @@ export function EducacaoFiscalSection({
     >
       <SectionHeader
         title="Painel de Responsabilidade Fiscal da Educação"
-        description={`Cumprimento dos limites constitucionais de investimento em ensino e correlação de custo por aluno em ${municipioNome}.`}
+        description={`Cruzamento entre o custo anual por aluno liquidado na Função 12 (Educação) e a evolução dos resultados do IDEB em ${municipioNome}.`}
       />
-
-      {/* Grid com os 2 Termômetros Constitucionais */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <TermometroCard
-          termometro={mde}
-          testId="termometro-mde"
-          rangeMax={40}
-        />
-        <TermometroCard
-          termometro={fundeb}
-          testId="termometro-fundeb"
-          rangeMax={100}
-        />
-      </div>
 
       {/* Gráfico de Correlação: Custo por Aluno vs. Desempenho no IDEB */}
       <div className="rounded-xl border border-borderLine bg-white p-5 shadow-xs">

@@ -79,6 +79,7 @@ export default async function EducacaoPage({
         contratos={viewModel.contratos}
         initialContratoNumero={resolvedSearchParams.contratoNumero}
         portalSlug={viewModel.portalSlug}
+        ano={viewModel.selectedYear}
       />
     </div>
   );

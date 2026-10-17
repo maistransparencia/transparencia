@@ -1,4 +1,3 @@
-import { sql } from "kysely";
 import { db } from "../client";
 
 export type EtapaEnsino = "anosIniciais" | "anosFinais";
@@ -237,60 +236,10 @@ export async function getResumoEducacao(
   const primary = anosIniciais ?? anosFinais ?? metrics[0];
   const secondary = primary === anosIniciais ? anosFinais : anosIniciais;
 
-  const [ranking, fiscalEstimativa] = await Promise.all([
-    getEducacaoRankingEstadual(cleanSlug, {
-      ano: targetAno,
-      etapaEnsino: "anosIniciais",
-    }),
-    (async () => {
-      try {
-        const despesasEducacao = await db
-          .selectFrom("fct_despesas")
-          .select([
-            db.fn.sum("liquidado").as("total_educacao"),
-            sql<string>`sum(case when grupo_natureza = '1' then liquidado else 0 end)`.as(
-              "pessoal_educacao",
-            ),
-          ])
-          .where("portal_slug", "=", cleanSlug)
-          .where("ano", "=", targetAno)
-          .where("fonte", "=", "exercicio")
-          .where((eb: any) =>
-            eb.or([
-              eb("funcao", "=", "12"),
-              eb("funcao_nome", "ilike", "%educa%"),
-            ]),
-          )
-          .executeTakeFirst();
-
-        const despesasGeral = await db
-          .selectFrom("fct_despesas")
-          .select(db.fn.sum("liquidado").as("total_geral"))
-          .where("portal_slug", "=", cleanSlug)
-          .where("ano", "=", targetAno)
-          .where("fonte", "=", "exercicio")
-          .executeTakeFirst();
-
-        const totEduc = toNumberOrNull(despesasEducacao?.total_educacao);
-        const totPess = toNumberOrNull(despesasEducacao?.pessoal_educacao);
-        const totGeral = toNumberOrNull(despesasGeral?.total_geral);
-
-        let mdePercentual: number | null = null;
-        let fundebPercentual: number | null = null;
-
-        if (totEduc != null && totGeral != null && totGeral > 0) {
-          mdePercentual = Number(((totEduc / totGeral) * 100).toFixed(1));
-        }
-        if (totPess != null && totEduc != null && totEduc > 0) {
-          fundebPercentual = Number(((totPess / totEduc) * 100).toFixed(1));
-        }
-
-        return { mdePercentual, fundebPercentual };
-      } catch {
-        return { mdePercentual: null, fundebPercentual: null };
-      }
-    })(),
-  ]);
+  const ranking = await getEducacaoRankingEstadual(cleanSlug, {
+    ano: targetAno,
+    etapaEnsino: "anosIniciais",
+  });
 
   return {
     portalSlug: cleanSlug,
@@ -320,8 +269,8 @@ export async function getResumoEducacao(
     posicaoRanking: ranking?.posicaoRanking ?? null,
     totalMunicipios: ranking?.totalMunicipios ?? null,
     variacaoPosicoes: ranking?.variacaoPosicoes ?? null,
-    mdePercentual: fiscalEstimativa.mdePercentual ?? null,
-    fundebPercentual: fiscalEstimativa.fundebPercentual ?? null,
+    mdePercentual: null,
+    fundebPercentual: null,
     anosIniciais,
     anosFinais,
   };
