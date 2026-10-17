@@ -9,11 +9,116 @@ import {
 } from "@transparencia/ui";
 import { env } from "@/env";
 import { buildAlertaUrl } from "@/lib/radar-url";
+import {
+  buildRankingTrend,
+  isDestaqueEvolucaoIdeb,
+} from "./educacao/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
 
 type VisaoGeralRawData = Awaited<ReturnType<typeof loadVisaoGeralData>>;
+
+type ResumoEducacaoRaw = VisaoGeralRawData["resumoEducacao"];
+export type EducacaoResumoTom = "destaque" | "atencao" | "neutro";
+
+function fmtDecimalUmaCasa(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
+
+function buildEducacaoEnfase(
+  crescimentoPontos: number | null,
+  atingiuMeta: boolean | null,
+): { tom: EducacaoResumoTom; titulo: string | null } {
+  const destaqueEvolucao = isDestaqueEvolucaoIdeb(crescimentoPontos);
+  const quedaEvolucao = crescimentoPontos !== null && crescimentoPontos < 0;
+  const evolucaoTexto =
+    crescimentoPontos === null
+      ? ""
+      : fmtDecimalUmaCasa(Math.abs(crescimentoPontos));
+  if (destaqueEvolucao) {
+    return {
+      tom: "destaque",
+      titulo: `Destaque: evolução de +${evolucaoTexto} ponto no IDEB`,
+    };
+  }
+  if (atingiuMeta === true) {
+    return { tom: "destaque", titulo: "Destaque: meta do IDEB atingida" };
+  }
+  if (quedaEvolucao) {
+    return {
+      tom: "atencao",
+      titulo: `Atenção: queda de ${evolucaoTexto} ponto no IDEB`,
+    };
+  }
+  if (atingiuMeta === false) {
+    return { tom: "atencao", titulo: "Atenção: meta do IDEB não atingida" };
+  }
+  return { tom: "neutro", titulo: null };
+}
+
+function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
+  if (!resumo) return null;
+  const crescimentoPontos = resumo.crescimentoPontosIdeb;
+  const enfase = buildEducacaoEnfase(crescimentoPontos, resumo.atingiuMeta);
+  const notaAnterior =
+    resumo.notaIdeb !== null && crescimentoPontos !== null
+      ? Number((resumo.notaIdeb - crescimentoPontos).toFixed(1))
+      : null;
+  const evolucaoTom: EducacaoResumoTom = (() => {
+    if (crescimentoPontos === null || crescimentoPontos === 0) return "neutro";
+    return crescimentoPontos > 0 ? "destaque" : "atencao";
+  })();
+  const sinalEvolucao = (crescimentoPontos ?? 0) > 0 ? "+" : "-";
+  const rankingValido =
+    resumo.posicaoRanking != null &&
+    resumo.totalMunicipios != null &&
+    resumo.posicaoRanking > 0 &&
+    resumo.totalMunicipios > 0;
+  const rankingTrend = rankingValido
+    ? buildRankingTrend(resumo.variacaoPosicoes)
+    : undefined;
+  const rankingVariacaoTom: EducacaoResumoTom = (() => {
+    if (!rankingTrend) return "neutro";
+    if (rankingTrend.isPositive === true) return "destaque";
+    if (rankingTrend.isPositive === false) return "atencao";
+    return "neutro";
+  })();
+  return {
+    ano: resumo.ano,
+    notaIdebTexto:
+      resumo.notaIdeb === null ? "—" : fmtDecimalUmaCasa(resumo.notaIdeb),
+    enfaseTom: enfase.tom,
+    enfaseTitulo: enfase.titulo,
+    evolucaoTexto:
+      crescimentoPontos === null
+        ? null
+        : `${crescimentoPontos === 0 ? "" : sinalEvolucao}${fmtDecimalUmaCasa(Math.abs(crescimentoPontos))} ponto`,
+    evolucaoTom,
+    notaAnteriorTexto:
+      notaAnterior === null
+        ? null
+        : `Ciclo anterior: ${fmtDecimalUmaCasa(notaAnterior)}`,
+    metaTexto: (() => {
+      if (resumo.atingiuMeta === true) return "Meta do IDEB atingida";
+      if (resumo.atingiuMeta === false) return "Meta do IDEB não atingida";
+      return null;
+    })(),
+    metaTom: (() => {
+      if (resumo.atingiuMeta === true) return "destaque" as const;
+      if (resumo.atingiuMeta === false) return "atencao" as const;
+      return "neutro" as const;
+    })(),
+    rankingTexto: rankingValido
+      ? `${resumo.posicaoRanking}º de ${resumo.totalMunicipios} municípios`
+      : null,
+    rankingVariacaoTexto: rankingTrend?.value ?? null,
+    rankingVariacaoTom,
+  };
+}
 
 export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const {
@@ -322,6 +427,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    educacaoDetailUrl: routeUrl("/educacao"),
+    educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao),
     ...(() => {
       const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
         (o) =>

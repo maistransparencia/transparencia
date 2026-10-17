@@ -202,4 +202,49 @@ describe("VisaoGeralPage", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("renderiza o card de educação com link para a rota de educação", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        resumoEducacao: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2023,
+          notaIdeb: 5.9,
+          crescimentoPontosIdeb: 1.4,
+          atingiuMeta: false,
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: -2,
+          despesaLiquidadaEducacao: 33300000,
+          anosIniciais: { notaIdeb: 5.9 },
+          anosFinais: { notaIdeb: 5.3 },
+        },
+      }),
+    );
+
+    const element = await VisaoGeralPage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Educação Básica e Desempenho Escolar"),
+    ).toBeInTheDocument();
+    const cta = screen.getByRole("link", {
+      name: /ver indicadores pedagógicos e despesas detalhadas/i,
+    });
+    expect(cta.getAttribute("href")).toContain("/educacao");
+    expect(
+      screen.getByText("Destaque: evolução de +1,4 ponto no IDEB"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Meta do IDEB não atingida")).toBeInTheDocument();
+    expect(screen.queryByText(/MDE/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Despesa liquidada em Educação"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Função 12/)).not.toBeInTheDocument();
+    expect(screen.getByText("Nota do IDEB (1º ao 5º ano)")).toBeInTheDocument();
+    expect(screen.getByText("46º de 92 municípios")).toBeInTheDocument();
+    expect(screen.getByText("▼ -2 posições")).toBeInTheDocument();
+    expect(screen.queryByText(/Anos iniciais/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Anos finais/)).not.toBeInTheDocument();
+  });
 });

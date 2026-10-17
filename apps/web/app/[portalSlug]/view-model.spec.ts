@@ -900,3 +900,121 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
     expect(vm.obrasMapCenter).toEqual([-20.9634, -42.0408]);
   });
 });
+
+describe("buildVisaoGeralViewModel - educacaoResumo", () => {
+  const resumoBase = {
+    portalSlug: "porciuncula",
+    ano: 2023,
+    notaIdeb: 5.9,
+    metaIdeb: null,
+    atingiuMeta: null,
+    crescimentoPontosIdeb: 1.4,
+    saebMatematica: null,
+    saebLinguaPortuguesa: null,
+    indicadorFluxoAprovacao: null,
+    despesaLiquidadaEducacao: null,
+    totalMatriculasRedeMunicipal: null,
+    custoAnualPorAluno: 9000,
+    anosIniciais: null,
+    anosFinais: null,
+  };
+  const build = (overrides: Record<string, unknown>) =>
+    buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoEducacao: { ...resumoBase, ...overrides },
+      }),
+    ).educacaoResumo;
+
+  it("monta destaque positivo e deep link para /educacao", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: resumoBase }),
+    );
+    expect(vm.educacaoResumo).toMatchObject({
+      ano: 2023,
+      notaIdebTexto: "5,9",
+      enfaseTom: "destaque",
+      enfaseTitulo: "Destaque: evolução de +1,4 ponto no IDEB",
+      evolucaoTexto: "+1,4 ponto",
+      notaAnteriorTexto: "Ciclo anterior: 4,5",
+      metaTexto: null,
+      rankingTexto: null,
+    });
+    expect(vm.educacaoResumo).not.toHaveProperty("custoAnualPorAluno");
+    expect(vm.educacaoResumo).not.toHaveProperty("mdePercentual");
+    expect(vm.educacaoDetailUrl).toBe("/porciuncula/educacao?ano=2024");
+  });
+
+  it("destaca meta atingida mesmo com evolução pequena", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: true });
+    expect(resumo?.enfaseTom).toBe("destaque");
+    expect(resumo?.enfaseTitulo).toBe("Destaque: meta do IDEB atingida");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB atingida");
+    expect(resumo?.metaTom).toBe("destaque");
+  });
+
+  it("sinaliza atenção para meta não atingida", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: false });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB não atingida");
+    expect(resumo?.metaTom).toBe("atencao");
+  });
+
+  it("sinaliza atenção para queda do IDEB", () => {
+    const resumo = build({ crescimentoPontosIdeb: -0.3, notaIdeb: 5.1 });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.enfaseTitulo).toBe("Atenção: queda de 0,3 ponto no IDEB");
+    expect(resumo?.evolucaoTexto).toBe("-0,3 ponto");
+    expect(resumo?.evolucaoTom).toBe("atencao");
+    expect(resumo?.notaAnteriorTexto).toBe("Ciclo anterior: 5,4");
+  });
+
+  it("é neutro sem evolução relevante nem meta", () => {
+    const resumo = build({ crescimentoPontosIdeb: null });
+    expect(resumo?.enfaseTom).toBe("neutro");
+    expect(resumo?.enfaseTitulo).toBeNull();
+    expect(resumo?.evolucaoTexto).toBeNull();
+    expect(resumo?.notaAnteriorTexto).toBeNull();
+  });
+
+  it("inclui ranking e não expõe despesa nem etapas", () => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      despesaLiquidadaEducacao: 12300000,
+      anosIniciais: { notaIdeb: 6.1 },
+      anosFinais: { notaIdeb: 5.2 },
+    });
+    expect(resumo?.rankingTexto).toBe("3º de 92 municípios");
+    expect(resumo).not.toHaveProperty("etapas");
+    expect(resumo).not.toHaveProperty("despesaLiquidadaEducacaoTexto");
+    expect(resumo).not.toHaveProperty("despesaLiquidadaEducacaoCompleta");
+  });
+
+  it.each([
+    [2, "+2 posições", "destaque"],
+    [-3, "-3 posições", "atencao"],
+    [0, "Estável", "neutro"],
+    [null, null, "neutro"],
+  ] as const)("variação de posições %s", (variacao, texto, tom) => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      variacaoPosicoes: variacao,
+    });
+    expect(resumo?.rankingVariacaoTexto).toBe(texto);
+    expect(resumo?.rankingVariacaoTom).toBe(tom);
+  });
+
+  it("omite variação sem classificação válida", () => {
+    const resumo = build({ variacaoPosicoes: 2 });
+    expect(resumo?.rankingTexto).toBeNull();
+    expect(resumo?.rankingVariacaoTexto).toBeNull();
+  });
+
+  it("retorna educacaoResumo nulo sem resumo", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: null }),
+    );
+    expect(vm.educacaoResumo).toBeNull();
+  });
+});
