@@ -199,7 +199,7 @@ async function fetchRawVisaoGeralData(
     }),
     getResumoObrasPorPortal(tenantSlug, { ano: selectedYear }),
     getObrasPorPortal(tenantSlug, { ano: selectedYear, limite: 25 }),
-    getResumoEducacao(tenantSlug),
+    getResumoEducacao(tenantSlug, selectedYear),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);

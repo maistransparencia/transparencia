@@ -151,7 +151,7 @@ describe("loadVisaoGeralData", () => {
 
     const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
 
-    expect(getResumoEducacaoMock).toHaveBeenCalledWith("porciuncula");
+    expect(getResumoEducacaoMock).toHaveBeenCalledWith("porciuncula", 2024);
     expect(result.resumoEducacao).toEqual(mockResumoEducacao);
   });
 
