@@ -1,7 +1,7 @@
 "use client";
 
 import type { EtapaEnsino } from "@transparencia/db";
-import { cn } from "@transparencia/ui";
+import { SegmentedButton } from "@transparencia/ui";
 import { CheckCircle, ExternalLink, Info } from "lucide-react";
 import { useState } from "react";
 import {
@@ -149,32 +149,20 @@ export function EducacaoHistoricoSection({
 
       {/* Tabs / Toggle de Etapa */}
       <div className="flex items-center gap-2 border-slate-200 border-b pb-2">
-        <button
-          type="button"
+        <SegmentedButton
           onClick={() => setActiveEtapa("anosIniciais")}
-          className={cn(
-            "rounded-lg px-3.5 py-2 font-medium text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500",
-            activeEtapa === "anosIniciais"
-              ? "bg-slate-900 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200",
-          )}
-          aria-pressed={activeEtapa === "anosIniciais"}
+          active={activeEtapa === "anosIniciais"}
+          size="md"
         >
           Anos Iniciais (1º ao 5º ano)
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           onClick={() => setActiveEtapa("anosFinais")}
-          className={cn(
-            "rounded-lg px-3.5 py-2 font-medium text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500",
-            activeEtapa === "anosFinais"
-              ? "bg-slate-900 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200",
-          )}
-          aria-pressed={activeEtapa === "anosFinais"}
+          active={activeEtapa === "anosFinais"}
+          size="md"
         >
           Anos Finais (6º ao 9º ano)
-        </button>
+        </SegmentedButton>
       </div>
 
       {/* Container do Gráfico Recharts */}

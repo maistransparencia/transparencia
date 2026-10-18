@@ -2,7 +2,12 @@
 
 import { BProgress } from "@bprogress/core";
 import type { ContratoServicoVigente } from "@transparencia/db";
-import { type Column, DenseTable, fmtDate } from "@transparencia/ui";
+import {
+  type Column,
+  DenseTable,
+  fmtDate,
+  SegmentedButton,
+} from "@transparencia/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoDetalhesModal } from "./contrato-detalhes-modal";
 import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
@@ -477,50 +482,34 @@ export function ContratosServicosVigentesSection({
         <span className="font-semibold text-slate-700 text-xs">
           Status de Execução:
         </span>
-        <button
-          type="button"
+        <SegmentedButton
           onClick={() => setStatusFilter("em_execucao")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            statusFilter === "em_execucao"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={statusFilter === "em_execucao"}
+          size="sm"
         >
           Em Execução ({counts.em_execucao})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           onClick={() => setStatusFilter("concluido")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            statusFilter === "concluido"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={statusFilter === "concluido"}
+          size="sm"
         >
           Concluídos ({counts.concluido})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           onClick={() => setStatusFilter("inexecutado")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            statusFilter === "inexecutado"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={statusFilter === "inexecutado"}
+          size="sm"
         >
           Não Executados ({counts.inexecutado})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           onClick={() => setStatusFilter("todos")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            statusFilter === "todos"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={statusFilter === "todos"}
+          size="sm"
         >
           Todos ({counts.todos})
-        </button>
+        </SegmentedButton>
       </div>
 
       {/* Top 3 Cards Grid */}

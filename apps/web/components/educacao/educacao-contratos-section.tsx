@@ -11,6 +11,7 @@ import {
   DenseTable,
   fmtCurrency,
   fmtDate,
+  SegmentedButton,
 } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -409,85 +410,66 @@ export function EducacaoContratosSection({
         <span className="font-semibold text-slate-700 text-xs">
           Categoria Pedagógica:
         </span>
-        <button
-          type="button"
+        <SegmentedButton
           role="tab"
           aria-selected={categoriaFilter === "todas"}
           onClick={() => setCategoriaFilter("todas")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            categoriaFilter === "todas"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={categoriaFilter === "todas"}
+          size="sm"
         >
           Todas ({counts.todas})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           role="tab"
           aria-selected={categoriaFilter === "merenda_pnae"}
           onClick={() => setCategoriaFilter("merenda_pnae")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            categoriaFilter === "merenda_pnae"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={categoriaFilter === "merenda_pnae"}
+          muted={counts.merenda_pnae === 0}
+          size="sm"
         >
           Merenda (PNAE) ({counts.merenda_pnae})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           role="tab"
           aria-selected={categoriaFilter === "transporte_pnate"}
           onClick={() => setCategoriaFilter("transporte_pnate")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            categoriaFilter === "transporte_pnate"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={categoriaFilter === "transporte_pnate"}
+          muted={counts.transporte_pnate === 0}
+          size="sm"
         >
           Transporte (PNATE) ({counts.transporte_pnate})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           role="tab"
           aria-selected={categoriaFilter === "manutencao_geral"}
           onClick={() => setCategoriaFilter("manutencao_geral")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            categoriaFilter === "manutencao_geral"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={categoriaFilter === "manutencao_geral"}
+          muted={counts.manutencao_geral === 0}
+          size="sm"
         >
           Manutenção & Infraestrutura ({counts.manutencao_geral})
-        </button>
-        <button
-          type="button"
+        </SegmentedButton>
+        <SegmentedButton
           role="tab"
           aria-selected={categoriaFilter === "locacao_imoveis"}
           onClick={() => setCategoriaFilter("locacao_imoveis")}
-          className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-            categoriaFilter === "locacao_imoveis"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
+          active={categoriaFilter === "locacao_imoveis"}
+          muted={counts.locacao_imoveis === 0}
+          size="sm"
         >
           Locação de Imóveis ({counts.locacao_imoveis})
-        </button>
+        </SegmentedButton>
         {counts.outros > 0 && (
-          <button
-            type="button"
+          <SegmentedButton
             role="tab"
             aria-selected={categoriaFilter === "outros"}
             onClick={() => setCategoriaFilter("outros")}
-            className={`rounded-lg px-3 py-1 font-medium text-xs transition-colors ${
-              categoriaFilter === "outros"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-            }`}
+            active={categoriaFilter === "outros"}
+            muted={counts.outros === 0}
+            size="sm"
           >
             Outros Suprimentos & Serviços ({counts.outros})
-          </button>
+          </SegmentedButton>
         )}
       </div>
 
