@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Calendar,
-  ExternalLink,
-  FileCheck2,
-  Info,
-  Landmark,
-} from "lucide-react";
+import { Calendar, FileCheck2, Info, Landmark } from "lucide-react";
 import type { ObraEmpenhoFederalViewModel } from "@/app/[portalSlug]/obras/view-model";
 
 export interface ObrasEmpenhosFederaisProps {
@@ -123,20 +117,6 @@ export function ObrasEmpenhosFederais({
                     </span>
                   </div>
                 </div>
-
-                {empenho.linkOrigem && (
-                  <div className="mt-2.5 flex items-center justify-between border-slate-100 border-t pt-2 text-xs">
-                    <a
-                      href={empenho.linkOrigem}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      <span>{empenho.linkOrigemLabel}</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                )}
               </div>
             ))}
           </div>

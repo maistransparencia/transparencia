@@ -5,6 +5,20 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.20.1] - 2026-10-18
+
+### 🌟 Destaques da Versão (Hotfix: Empenhos Federais em Obras)
+* **Fim dos Links Quebrados em Empenhos Federais:** O detalhe da obra deixa de exibir o link direto para o Portal da Transparência do Governo Federal, que retornava página não encontrada para parte dos empenhos. A consulta complementar segue disponível pelo link "Ver no Cadastro Oficial (CIPI)" no rodapé do detalhe.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Empenhos Federais (`apps/web`):** O código do documento era montado com a gestão `00001` fixa, e a API do ObrasGov.br não informa a gestão nem o identificador da proposta no Transferegov.br. Os empenhos passam a exibir apenas os dados informados pela fonte (número, ano, UG emitente, sistema de origem, valor e objeto).
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Qualidade de Código:** Remoção da propriedade `municipioNome` não utilizada do hero de obras, tipagem dos mocks dos testes sem `any` e ajustes de consultas e migrações em `@transparencia/db` para eliminar os avisos do Biome.
+
+### 🗑️ Depreciações & Remoções (Removed)
+* **`buildLinkOrigemEmpenho`:** Remoção da função e dos campos `linkOrigem` e `linkOrigemLabel` do view-model de empenhos federais.
+
 ## [1.20.0] - 2026-10-18
 
 ### 🌟 Destaques da Versão (Epic 18: Educação)

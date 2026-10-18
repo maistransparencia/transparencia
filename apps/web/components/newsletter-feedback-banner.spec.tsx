@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useQueryState } from "nuqs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { NewsletterFeedbackBanner } from "./newsletter-feedback-banner";
 
 vi.mock("nuqs", () => ({
@@ -16,14 +16,14 @@ describe("NewsletterFeedbackBanner component", () => {
   });
 
   it("não deve renderizar quando o parâmetro newsletter for nulo", () => {
-    (useQueryState as any).mockReturnValue([null, vi.fn()]);
+    (useQueryState as Mock).mockReturnValue([null, vi.fn()]);
     render(<NewsletterFeedbackBanner />);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("deve renderizar mensagem de sucesso para newsletter=confirmed", () => {
     const setNewsletter = vi.fn();
-    (useQueryState as any).mockReturnValue(["confirmed", setNewsletter]);
+    (useQueryState as Mock).mockReturnValue(["confirmed", setNewsletter]);
     render(<NewsletterFeedbackBanner />);
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe("NewsletterFeedbackBanner component", () => {
 
   it("deve renderizar mensagem de cancelamento para newsletter=unsubscribed", () => {
     const setNewsletter = vi.fn();
-    (useQueryState as any).mockReturnValue(["unsubscribed", setNewsletter]);
+    (useQueryState as Mock).mockReturnValue(["unsubscribed", setNewsletter]);
     render(<NewsletterFeedbackBanner />);
 
     expect(screen.getByRole("alert")).toBeInTheDocument();

@@ -857,7 +857,7 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
           latitude: Number.NaN,
           longitude: -42.04,
         },
-      ] as any,
+      ] as never,
     });
 
     const vm = buildVisaoGeralViewModel(raw);
