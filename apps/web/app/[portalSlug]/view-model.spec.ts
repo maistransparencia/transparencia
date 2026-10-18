@@ -976,7 +976,7 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
     expect(resumo?.notaAnteriorTexto).toBeNull();
   });
 
-  it("inclui ranking e não expõe despesa nem etapas", () => {
+  it("inclui ranking, despesa liquidada do exercício selecionado e não expõe etapas", () => {
     const resumo = build({
       posicaoRanking: 3,
       totalMunicipios: 92,
@@ -986,8 +986,9 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
     });
     expect(resumo?.rankingTexto).toBe("3º de 92 municípios");
     expect(resumo).not.toHaveProperty("etapas");
-    expect(resumo).not.toHaveProperty("despesaLiquidadaEducacaoTexto");
-    expect(resumo).not.toHaveProperty("despesaLiquidadaEducacaoCompleta");
+    expect(resumo?.despesaLiquidadaEducacaoTexto).toBe("R$ 12,3 mi");
+    expect(resumo?.despesaLiquidadaEducacaoCompleta).toContain("12.300.000");
+    expect(resumo?.exercicioDespesa).toEqual(expect.any(Number));
   });
 
   it.each([

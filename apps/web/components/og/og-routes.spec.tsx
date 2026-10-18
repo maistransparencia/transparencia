@@ -394,8 +394,13 @@ describe("OpenGraph Image Route Handlers", () => {
     const { default: generateImage } = await import(
       "../../app/[portalSlug]/educacao/opengraph-image"
     );
+    const { getResumoEducacao } = await import("@transparencia/db");
     const response = await generateImage({ params });
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
+    expect(getResumoEducacao).toHaveBeenLastCalledWith(
+      expect.any(String),
+      new Date().getFullYear(),
+    );
   });
 });

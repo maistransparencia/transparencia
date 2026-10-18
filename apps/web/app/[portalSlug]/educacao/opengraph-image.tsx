@@ -1,6 +1,7 @@
 import { getPortalConfig, getResumoEducacao } from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import { ImageResponse } from "next/og";
+import { buildRankingTrend } from "@/app/[portalSlug]/educacao/view-model";
 import {
   OGCardTemplate,
   type OGMetricItem,
@@ -12,10 +13,10 @@ export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function fetchOgEducacaoData(portalSlug: string) {
+async function fetchOgEducacaoData(portalSlug: string, exercicio: number) {
   const [portalConfig, resumo] = await Promise.all([
     getPortalConfig(portalSlug),
-    getResumoEducacao(portalSlug),
+    getResumoEducacao(portalSlug, exercicio),
   ]);
   return { portalConfig, resumo };
 }
@@ -33,7 +34,12 @@ export default async function Image({
   const { portalSlug } = await params;
 
   try {
-    const { portalConfig, resumo } = await loadOgEducacaoData(portalSlug);
+    // Mesmo exercício padrão da página (/educacao sem ?ano): despesa liquidada sempre desse ano.
+    const exercicio = new Date().getFullYear();
+    const { portalConfig, resumo } = await loadOgEducacaoData(
+      portalSlug,
+      exercicio,
+    );
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -91,7 +97,9 @@ export default async function Image({
         resumo?.totalMunicipios !== null &&
         resumo?.totalMunicipios !== undefined
       ) {
-        return `entre ${resumo.totalMunicipios} municípios${portalUf ? ` de ${portalUf}` : ""}`;
+        const total = `entre ${resumo.totalMunicipios} municípios${portalUf ? ` de ${portalUf}` : ""}`;
+        const tendencia = buildRankingTrend(resumo.variacaoPosicoes);
+        return tendencia ? `${tendencia.value} · ${total}` : total;
       }
       return "Ranking estadual do IDEB";
     })();
@@ -123,9 +131,9 @@ export default async function Image({
         variant: "default",
       },
       {
-        label: "Despesa na Educação",
+        label: `Despesa Liquidada em ${exercicio}`,
         value: despesaEducacaoStr,
-        detail: "Função 12 (Liquidado)",
+        detail: `Gasto efetivo com educação em ${exercicio}`,
         variant: "default",
       },
     ];
@@ -135,7 +143,7 @@ export default async function Image({
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
         pageTitle="Educação Básica & Responsabilidade Fiscal"
-        subtitle="Evolução do IDEB, proficiência SAEB, despesa na Função 12 e compras da educação"
+        subtitle="Evolução do IDEB, proficiência SAEB, gasto com educação e compras da educação"
         badgeText="Painel da Educação"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}

@@ -508,6 +508,23 @@ describe("educacao-metrics", () => {
       await cleanupFixtures(PORTAL_PARTIAL);
     });
 
+    it("não reaproveita a despesa de outro ciclo quando o exercício solicitado é diferente", async () => {
+      await seedEducacaoMetricas([
+        {
+          portalSlug: PORTAL_PORCIUNCULA,
+          ano: 2025,
+          etapaEnsino: "anosIniciais",
+          notaIdeb: 5.9,
+          despesaLiquidadaEducacao: 34291936.64,
+        },
+      ]);
+
+      const resumo = await getResumoEducacao(PORTAL_PORCIUNCULA, 2026);
+
+      expect(resumo?.ano).toBe(2025);
+      expect(resumo?.despesaLiquidadaEducacao).toBeNull();
+    });
+
     it("retorna null se não houver registros para o portal", async () => {
       const resumo = await getResumoEducacao(PORTAL_PORCIUNCULA);
       expect(resumo).toBeNull();

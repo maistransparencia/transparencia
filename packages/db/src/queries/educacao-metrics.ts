@@ -309,9 +309,12 @@ export async function getResumoEducacao(
     saebMatematica: anosIniciais?.saebMatematica ?? null,
     saebLinguaPortuguesa: anosIniciais?.saebLinguaPortuguesa ?? null,
     indicadorFluxoAprovacao: anosIniciais?.indicadorFluxoAprovacao ?? null,
+    // Fallback das métricas só vale quando o ciclo é o próprio exercício solicitado.
     despesaLiquidadaEducacao:
       despesaLiquidadaReal ??
-      primeiroContexto((linha) => linha.despesaLiquidadaEducacao),
+      (targetAno === requestedAno
+        ? primeiroContexto((linha) => linha.despesaLiquidadaEducacao)
+        : null),
     totalMatriculasRedeMunicipal: primeiroContexto(
       (linha) => linha.totalMatriculasRedeMunicipal,
     ),
