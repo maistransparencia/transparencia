@@ -16,8 +16,9 @@ import {
 } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { KPIGrid } from "@/components/kpi-grid";
+import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface SaudeEmendaItem {
   id: string;
@@ -47,7 +48,13 @@ export interface SaudeEmendasSectionProps {
   ano: number;
   emendasStats: SaudeEmendasStatsProps;
   portalSlug?: string;
+  titulo?: string;
+  descricao?: string;
 }
+
+const TITULO_PADRAO = "Emendas parlamentares destinadas à Saúde";
+const DESCRICAO_PADRAO =
+  "Recursos que deputados e senadores destinaram à saúde do município.";
 
 function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -97,6 +104,8 @@ export function SaudeEmendasSection({
   ano,
   emendasStats,
   portalSlug,
+  titulo = TITULO_PADRAO,
+  descricao = DESCRICAO_PADRAO,
 }: SaudeEmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
@@ -104,6 +113,74 @@ export function SaudeEmendasSection({
 
   const countEmendas = emendasStats.lista.length;
   const isZeroEmpenhado = emendasStats.totalEmpenhado === 0;
+
+  const tableData = useMemo(
+    () =>
+      emendasStats.lista
+        .slice()
+        .sort((a, b) => {
+          const aEmp = a.empenhado ?? 0;
+          const bEmp = b.empenhado ?? 0;
+          const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
+          const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
+
+          if (aHas && !bHas) return -1;
+          if (!aHas && bHas) return 1;
+
+          if (aHas && bHas && bEmp !== aEmp) {
+            return bEmp - aEmp;
+          }
+
+          if (b.valorAutorizado !== a.valorAutorizado) {
+            return b.valorAutorizado - a.valorAutorizado;
+          }
+
+          return a.autor.localeCompare(b.autor, "pt-BR");
+        })
+        .map((item) => ({
+          ...item,
+          autor: toTitleCase(item.autor),
+          origem: item.esferaOrigem
+            ? toTitleCase(item.esferaOrigem)
+            : "Não informada",
+          objeto: toTitleCase(item.objeto),
+        })),
+    [emendasStats.lista],
+  );
+
+  // Emendas após a busca da tabela: os totais acompanham o que está filtrado
+  const [emendasVisiveis, setEmendasVisiveis] = useState<
+    { valorAutorizado: number; empenhado: number | null }[] | null
+  >(null);
+  const handleFilteredDataChange = useCallback(
+    (rows: { valorAutorizado: number; empenhado: number | null }[]) => {
+      setEmendasVisiveis(rows);
+    },
+    [],
+  );
+  const totaisVisiveis = useMemo(() => {
+    if (!emendasVisiveis) {
+      return {
+        autorizado: emendasStats.totalAutorizado,
+        empenhado: emendasStats.totalEmpenhado,
+      };
+    }
+    return {
+      autorizado: emendasVisiveis.reduce(
+        (sum, e) => sum + e.valorAutorizado,
+        0,
+      ),
+      empenhado: emendasVisiveis.reduce(
+        (sum, e) => sum + (e.empenhado ?? 0),
+        0,
+      ),
+    };
+  }, [
+    emendasVisiveis,
+    emendasStats.totalAutorizado,
+    emendasStats.totalEmpenhado,
+  ]);
+  const isZeroEmpenhadoVisivel = totaisVisiveis.empenhado === 0;
 
   const emendasCols = [
     {
@@ -185,6 +262,7 @@ export function SaudeEmendasSection({
     },
     {
       header: "Valor Autorizado",
+      footer: fmtCurrency(totaisVisiveis.autorizado),
       accessorKey: "valorAutorizado" as const,
       align: "right" as const,
       format: "currency" as const,
@@ -192,6 +270,11 @@ export function SaudeEmendasSection({
     },
     {
       header: "Empenhado",
+      footer: (
+        <span className={isZeroEmpenhadoVisivel ? "text-amber-700" : undefined}>
+          {fmtCurrency(totaisVisiveis.empenhado)}
+        </span>
+      ),
       accessorKey: "empenhado" as const,
       align: "right" as const,
       format: "currency" as const,
@@ -244,11 +327,10 @@ export function SaudeEmendasSection({
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-bold font-serif text-2xl text-slate-900">
-            Emendas parlamentares destinadas à Saúde
+            {titulo}
           </h2>
           <p className="mt-1 max-w-3xl text-slate-600 text-sm leading-relaxed">
-            Recursos que deputados e senadores destinaram à saúde do município.
-            O que importa não é só quanto foi{" "}
+            {descricao} O que importa não é só quanto foi{" "}
             <strong className="font-bold text-slate-900">autorizado</strong>,
             mas se esse dinheiro foi de fato{" "}
             <strong className="font-bold text-slate-900">empenhado</strong> — o
@@ -333,35 +415,8 @@ export function SaudeEmendasSection({
       <div className="space-y-2">
         <DenseTable
           sortable
-          data={emendasStats.lista
-            .slice()
-            .sort((a, b) => {
-              const aEmp = a.empenhado ?? 0;
-              const bEmp = b.empenhado ?? 0;
-              const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
-              const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
-
-              if (aHas && !bHas) return -1;
-              if (!aHas && bHas) return 1;
-
-              if (aHas && bHas && bEmp !== aEmp) {
-                return bEmp - aEmp;
-              }
-
-              if (b.valorAutorizado !== a.valorAutorizado) {
-                return b.valorAutorizado - a.valorAutorizado;
-              }
-
-              return a.autor.localeCompare(b.autor, "pt-BR");
-            })
-            .map((item) => ({
-              ...item,
-              autor: toTitleCase(item.autor),
-              origem: item.esferaOrigem
-                ? toTitleCase(item.esferaOrigem)
-                : "Não informada",
-              objeto: toTitleCase(item.objeto),
-            }))}
+          data={tableData}
+          onFilteredDataChange={handleFilteredDataChange}
           columns={emendasCols}
           searchableKeys={["autor", "objeto", "origem"]}
           rowKey="id"
@@ -478,19 +533,17 @@ export function SaudeEmendasSection({
         />
 
         {/* Total Summary Footer Row */}
-        <div className="flex items-center justify-between rounded-lg bg-slate-100 px-4 py-3 font-bold text-slate-900 text-sm">
-          <span>Total</span>
-          <div className="flex items-center gap-8">
-            <span>
-              {fmtCurrency(emendasStats.totalAutorizado)} (Autorizado)
-            </span>
-            <span
-              className={isZeroEmpenhado ? "text-amber-700" : "text-slate-900"}
-            >
-              {fmtCurrency(emendasStats.totalEmpenhado)} (Empenhado)
-            </span>
-          </div>
-        </div>
+        <TabelaTotaisRow
+          className="sm:hidden"
+          itens={[
+            { rotulo: "Autorizado", valor: totaisVisiveis.autorizado },
+            {
+              rotulo: "Empenhado",
+              valor: totaisVisiveis.empenhado,
+              isAlerta: isZeroEmpenhadoVisivel,
+            },
+          ]}
+        />
       </div>
 
       {/* Modal de Detalhamento e Rastreabilidade da Emenda */}

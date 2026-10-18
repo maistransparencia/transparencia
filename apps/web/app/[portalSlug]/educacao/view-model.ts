@@ -3,8 +3,10 @@ import type {
   EducacaoContratoDTO,
   EducacaoMediasEstaduais,
   EducacaoMetricDTO,
+  EmendasEducacaoStatsDTO,
   EtapaEnsino,
 } from "@transparencia/db";
+import { emendasStatsVazio } from "@transparencia/db";
 
 export const LIMIAR_DESTAQUE_EVOLUCAO_IDEB = 1.0;
 
@@ -118,6 +120,7 @@ export interface EducacaoViewModel {
   };
   fiscal: EducacaoFiscalPainel;
   contratos: EducacaoContratoDTO[];
+  emendas: EmendasEducacaoStatsDTO;
   contratosResumo: {
     totalContratos: number;
     valorTotalContratos: number;
@@ -225,6 +228,7 @@ export function buildEducacaoViewModel(raw: {
     anosFinais?: EducacaoMetricDTO | null;
   } | null;
   contratos: EducacaoContratoDTO[];
+  emendas?: EmendasEducacaoStatsDTO;
   mediasEstaduais?: EducacaoMediasEstaduais;
   context: {
     selectedYear: number;
@@ -553,6 +557,7 @@ export function buildEducacaoViewModel(raw: {
     },
     fiscal,
     contratos,
+    emendas: raw.emendas ?? emendasStatsVazio,
     contratosResumo: {
       totalContratos: contratos.length,
       valorTotalContratos,

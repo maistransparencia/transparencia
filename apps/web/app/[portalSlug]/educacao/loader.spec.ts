@@ -12,6 +12,7 @@ vi.mock("@transparencia/db", () => ({
   getResumoEducacao: vi.fn(),
   getEducacaoContratos: vi.fn(),
   getEducacaoMediasEstaduais: vi.fn(),
+  getEducacaoEmendasMetrics: vi.fn(),
 }));
 
 describe("educacao/loader", () => {
@@ -145,6 +146,13 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue(mockMetrics);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(mockResumo);
       vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue(mockContratos);
+      vi.mocked(dbModule.getEducacaoEmendasMetrics).mockResolvedValue({
+        totalAutorizado: 800,
+        totalEmpenhado: 100,
+        taxaEmpenho: 0.125,
+        maiorEmenda: 500,
+        lista: [],
+      });
       vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
         anosIniciais: {},
         anosFinais: {},
@@ -160,6 +168,7 @@ describe("educacao/loader", () => {
       expect(data.allMetrics).toHaveLength(1);
       expect(data.resumo?.notaIdeb).toBe(5.9);
       expect(data.contratos).toHaveLength(1);
+      expect(data.emendas.totalAutorizado).toBe(800);
       expect(data.context.selectedYear).toBe(2025);
       expect(data.searchParams.contratoNumero).toBe("0443/25");
 
@@ -180,6 +189,10 @@ describe("educacao/loader", () => {
       expect(dbModule.getEducacaoMediasEstaduais).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
       );
+      expect(dbModule.getEducacaoEmendasMetrics).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        2025,
+      );
     });
 
     it("utiliza o ano corrente como padrão quando searchParams.ano for omitido", async () => {
@@ -188,6 +201,13 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue([]);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(null);
       vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue([]);
+      vi.mocked(dbModule.getEducacaoEmendasMetrics).mockResolvedValue({
+        totalAutorizado: 800,
+        totalEmpenhado: 100,
+        taxaEmpenho: 0.125,
+        maiorEmenda: 500,
+        lista: [],
+      });
       vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
         anosIniciais: {},
         anosFinais: {},

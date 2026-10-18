@@ -257,6 +257,13 @@ function makeRawEducacaoData(
       isCurrentYear: false,
       selectedEtapa: "anosIniciais",
     },
+    emendas: {
+      totalAutorizado: 0,
+      totalEmpenhado: 0,
+      taxaEmpenho: 0,
+      maiorEmenda: 0,
+      lista: [],
+    },
     mediasEstaduais: {
       anosIniciais: {},
       anosFinais: {},
@@ -541,5 +548,58 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.getAllByText("VIACAO ESCOLAR LTDA").length,
     ).toBeGreaterThanOrEqual(1);
+  });
+
+  it("exibe a seção de emendas da Educação somente quando há emendas", async () => {
+    const emendaItem = {
+      id: "e1",
+      numero: "1",
+      objeto: "Reforma de escola",
+      valorAutorizado: 300000,
+      empenhado: 100000,
+      autor: "AUTOR TESTE",
+      tipoEmenda: "individual",
+      esferaOrigem: "federal",
+      atoNormativo: "",
+      destinacao: "",
+      qtdEmpenhos: 0,
+      empenhos: [],
+    };
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        emendas: {
+          totalAutorizado: 300000,
+          totalEmpenhado: 100000,
+          taxaEmpenho: 1 / 3,
+          maiorEmenda: 300000,
+          lista: [emendaItem],
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.getByText("Emendas parlamentares destinadas à Educação"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Emendas parlamentares destinadas à Saúde"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("omite a seção de emendas quando não há emendas da Educação", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.queryByText("Emendas parlamentares destinadas à Educação"),
+    ).not.toBeInTheDocument();
   });
 });

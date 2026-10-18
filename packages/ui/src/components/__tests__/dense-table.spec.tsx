@@ -356,3 +356,63 @@ describe("DenseTable - paginação e scroll suave automático", () => {
     expect(rows[3]).not.toHaveClass("highlight-test");
   });
 });
+
+describe("DenseTable - rodapé e onFilteredDataChange", () => {
+  const data: TestItem[] = [
+    { id: "1", nome: "Alpha", valor: 10 },
+    { id: "2", nome: "Beta", valor: 20 },
+  ];
+
+  it("renderiza o tfoot com rótulo Total na primeira coluna", () => {
+    const columns: Column<TestItem>[] = [
+      { header: "Nome", accessorKey: "nome" },
+      { header: "Valor", accessorKey: "valor", footer: "R$ 30,00" },
+    ];
+    render(<DenseTable data={data} columns={columns} rowKey="id" />);
+    const rodape = screen.getAllByRole("row").at(-1) as HTMLElement;
+    expect(rodape.textContent).toContain("Total");
+    expect(rodape.textContent).toContain("R$ 30,00");
+  });
+
+  it("não renderiza tfoot sem footer nas colunas", () => {
+    const columns: Column<TestItem>[] = [
+      { header: "Nome", accessorKey: "nome" },
+    ];
+    const { container } = render(
+      <DenseTable data={data} columns={columns} rowKey="id" />,
+    );
+    expect(container.querySelector("tfoot")).toBeNull();
+  });
+
+  it("notifica as linhas filtradas sem loop com searchableKeys literal", () => {
+    const columns: Column<TestItem>[] = [
+      { header: "Nome", accessorKey: "nome" },
+    ];
+    const onFilteredDataChange = vi.fn();
+    const { rerender } = render(
+      <DenseTable
+        data={data}
+        columns={columns}
+        rowKey="id"
+        searchableKeys={["nome"]}
+        onFilteredDataChange={onFilteredDataChange}
+      />,
+    );
+    rerender(
+      <DenseTable
+        data={data}
+        columns={columns}
+        rowKey="id"
+        searchableKeys={["nome"]}
+        onFilteredDataChange={onFilteredDataChange}
+      />,
+    );
+    expect(onFilteredDataChange).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByPlaceholderText(/Buscar/), {
+      target: { value: "beta" },
+    });
+    expect(onFilteredDataChange).toHaveBeenLastCalledWith([data[1]]);
+    expect(onFilteredDataChange).toHaveBeenCalledTimes(2);
+  });
+});

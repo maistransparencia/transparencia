@@ -5,12 +5,19 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
 } from "@transparencia/db";
-import { Badge, type Column, DenseTable, fmtDate } from "@transparencia/ui";
+import {
+  Badge,
+  type Column,
+  DenseTable,
+  fmtCurrency,
+  fmtDate,
+} from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
 import { ContratoServicoVigenteCard } from "@/components/contrato-servico-vigente-card";
 import { SectionHeader } from "@/components/section-header";
+import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface EducacaoContratosSectionProps {
   contratos: EducacaoContratoDTO[];
@@ -178,6 +185,27 @@ export function EducacaoContratosSection({
     };
   }, [contratos]);
 
+  // Contratos após filtro de categoria e busca (independe da paginação)
+  const [contratosVisiveis, setContratosVisiveis] = useState<
+    EducacaoContratoDTO[] | null
+  >(null);
+  const handleFilteredDataChange = useCallback(
+    (rows: { rawDto: EducacaoContratoDTO }[]) => {
+      setContratosVisiveis(rows.map((row) => row.rawDto));
+    },
+    [],
+  );
+
+  const totaisContratos = useMemo(() => {
+    const base = contratosVisiveis ?? filteredContratos;
+    return {
+      empenhado: base.reduce((acc, c) => acc + (c.totalEmpenhado || 0), 0),
+      liquidado: base.reduce((acc, c) => acc + (c.totalLiquidado || 0), 0),
+      pago: base.reduce((acc, c) => acc + (c.totalPago || 0), 0),
+      saldoPendente: base.reduce((acc, c) => acc + (c.saldoAPagar || 0), 0),
+    };
+  }, [contratosVisiveis, filteredContratos]);
+
   // Estrutura de dados enriquecida para a tabela idêntica à de Contratos de Serviços Vigentes
   const tableData = useMemo(() => {
     return filteredContratos.map((c) => {
@@ -274,6 +302,7 @@ export function EducacaoContratosSection({
     },
     {
       header: "Empenhado",
+      footer: fmtCurrency(totaisContratos.empenhado),
       accessorKey: "totalEmpenhado",
       format: "currency",
       align: "right",
@@ -282,6 +311,7 @@ export function EducacaoContratosSection({
     },
     {
       header: "Liquidado",
+      footer: fmtCurrency(totaisContratos.liquidado),
       accessorKey: "totalLiquidado",
       format: "currency",
       align: "right",
@@ -290,6 +320,7 @@ export function EducacaoContratosSection({
     },
     {
       header: "Pago",
+      footer: fmtCurrency(totaisContratos.pago),
       accessorKey: "totalPago",
       format: "currency",
       align: "right",
@@ -298,6 +329,7 @@ export function EducacaoContratosSection({
     },
     {
       header: "Saldo Pendente",
+      footer: fmtCurrency(totaisContratos.saldoPendente),
       accessorKey: "saldoPendente",
       format: "currency",
       align: "right",
@@ -481,6 +513,18 @@ export function EducacaoContratosSection({
         enableExportCsv={true}
         exportFilename="contratos_educacao.csv"
         rowKey="contratoServicoId"
+        onFilteredDataChange={handleFilteredDataChange}
+      />
+
+      {/* No mobile a tabela é substituída por cartões; mantém o resumo de totais */}
+      <TabelaTotaisRow
+        className="sm:hidden"
+        itens={[
+          { rotulo: "Empenhado", valor: totaisContratos.empenhado },
+          { rotulo: "Liquidado", valor: totaisContratos.liquidado },
+          { rotulo: "Pago", valor: totaisContratos.pago },
+          { rotulo: "Saldo Pendente", valor: totaisContratos.saldoPendente },
+        ]}
       />
 
       {/* Modal Canônico de Detalhes 360° do Contrato Reutilizado */}
