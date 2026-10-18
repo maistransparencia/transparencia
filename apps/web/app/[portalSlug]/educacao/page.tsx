@@ -3,6 +3,7 @@ import { EducacaoContratosSection } from "@/components/educacao/educacao-contrat
 import { EducacaoFiscalSection } from "@/components/educacao/educacao-fiscal-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
 import { EducacaoHistoricoSection } from "@/components/educacao/educacao-historico-section";
+import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -73,6 +74,17 @@ export default async function EducacaoPage({
         portalSlug={viewModel.portalSlug}
         ano={viewModel.selectedYear}
       />
+
+      {/* Bloco 5: Emendas parlamentares destinadas à Educação */}
+      {viewModel.emendas.lista.length > 0 && (
+        <SaudeEmendasSection
+          ano={viewModel.selectedYear}
+          emendasStats={viewModel.emendas}
+          portalSlug={viewModel.portalSlug}
+          titulo="Emendas parlamentares destinadas à Educação"
+          descricao="Recursos que deputados e senadores destinaram à educação do município."
+        />
+      )}
     </div>
   );
 }

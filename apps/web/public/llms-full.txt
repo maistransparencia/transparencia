@@ -331,6 +331,8 @@ Monitoramento auditável da evolução pedagógica e cumprimento das regras cons
   - *Locação de Imóveis:* Aluguel de prédios para funcionamento de creches, escolas, classes anexas e unidades administrativas da educação.
   - *Outros Suprimentos & Serviços:* Demais serviços operacionais, assessoria técnica e contratações de apoio educacional.
   - *Modal de Detalhamento 360°:* Acesso aprofundado a dados cadastrais do fornecedor, vigência, valores contratados, empenhados, liquidados e pagos, fontes de recurso e classificação orçamentária com sincronização por deep linking (`?contratoNumero=...`).
+  - *Linha de totais:* Abaixo da tabela, uma linha fixa soma Empenhado, Liquidado, Pago e Saldo Pendente de todos os contratos atualmente filtrados (categoria e busca), sem variar com a paginação.
+- **Emendas Parlamentares Destinadas à Educação:** Quando há emendas no exercício selecionado, a página exibe indicadores (total autorizado, total empenhado, taxa de empenho e maior emenda) e a tabela de emendas das entidades da educação do município, com linha de totais de Autorizado e Empenhado. Emendas autorizadas e ainda sem empenho aparecem como "Aguardando empenho".
 
 ---
 
