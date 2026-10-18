@@ -26,7 +26,7 @@ export async function generateMetadata({
   const { portalSlug } = await params;
   return createPortalMetadata("Educação Básica", portalSlug, {
     description:
-      "Acompanhamento cívico do desempenho educacional (IDEB, SAEB e fluxo escolar), despesa na Função 12 e contratos da educação.",
+      "Acompanhamento cívico do desempenho educacional (IDEB, SAEB e fluxo escolar), despesa liquidada na educação e contratos da educação.",
     path: "/educacao",
     keywords: [
       "educação",
