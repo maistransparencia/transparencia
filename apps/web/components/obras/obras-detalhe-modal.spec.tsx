@@ -312,6 +312,9 @@ describe("ObrasDetalheModal Component", () => {
           planoInterno: null,
           acaoOrcamentaria: "10E4",
           descricao: "Construção de Unidade Básica de Saúde",
+          linkOrigem:
+            "https://portaldatransparencia.gov.br/despesas/empenho/175004000012023NE003130",
+          linkOrigemLabel: "Consultar no Portal da Transparência (SIAFI)",
         },
       ],
     };
