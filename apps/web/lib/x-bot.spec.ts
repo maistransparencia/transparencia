@@ -133,7 +133,7 @@ describe("x-bot module", () => {
       expect(tweet).toContain("Balanço Fiscal de Porciúncula (2025)");
       expect(tweet).toContain("Total Pago:");
       expect(tweet).toContain(
-        "Restos a Pagar: R$ 30.8mi / R$ 2.9mi liquidados",
+        "Restos a Pagar: R$ 30,8 mi / R$ 2,9 mi liquidados",
       );
       expect(tweet).not.toContain("Opacidade");
       expect(tweet).toContain(

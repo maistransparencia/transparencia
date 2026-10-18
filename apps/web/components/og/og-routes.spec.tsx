@@ -20,6 +20,15 @@ vi.mock("@transparencia/db", () => ({
     uf: "RJ",
     brasaoAsset: "brasao-porciuncula.png",
   }),
+  getResumoEducacao: vi.fn().mockResolvedValue({
+    portalSlug: "porciuncula_prefeitura",
+    ano: 2025,
+    notaIdeb: 5.9,
+    crescimentoPontosIdeb: 1.4,
+    posicaoRanking: 3,
+    totalMunicipios: 92,
+    despesaLiquidadaEducacao: 33_300_000,
+  }),
   getEntidades: vi.fn().mockResolvedValue([{ id: "1", nome: "Prefeitura" }]),
   getPosicaoFiscalMetrics: vi.fn().mockResolvedValue({
     totalArrecadado: 40_000_000,
@@ -378,6 +387,20 @@ describe("OpenGraph Image Route Handlers", () => {
         portalSlug: "porciuncula_prefeitura",
         route: "og:homepage",
       }),
+    );
+  });
+
+  it("gera o card de Open Graph para a página temática de Educação", async () => {
+    const { default: generateImage } = await import(
+      "../../app/[portalSlug]/educacao/opengraph-image"
+    );
+    const { getResumoEducacao } = await import("@transparencia/db");
+    const response = await generateImage({ params });
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty("jsx");
+    expect(getResumoEducacao).toHaveBeenLastCalledWith(
+      expect.any(String),
+      new Date().getFullYear(),
     );
   });
 });

@@ -7,7 +7,7 @@ import {
   Download,
   Search,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import {
   fmtCompact,
@@ -38,6 +38,7 @@ export interface Column<T> {
   sortValue?: (row: T) => number | string;
   exportValue?: (row: T) => string | number;
   renderCell?: (row: T) => React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export interface DenseTableProps<T> {
@@ -58,6 +59,8 @@ export interface DenseTableProps<T> {
   recordLabel?: string;
   renderMobileCard?: (row: T) => React.ReactNode;
   rowClassName?: (row: T, index: number) => string | undefined;
+  onFilteredDataChange?: (rows: T[]) => void;
+  footerLabel?: string;
 }
 
 function getAriaSort(
@@ -107,6 +110,8 @@ export function DenseTable<T extends Record<string, any>>({
   recordLabel = "registros",
   renderMobileCard,
   rowClassName,
+  onFilteredDataChange,
+  footerLabel = "Total",
 }: DenseTableProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -118,11 +123,16 @@ export function DenseTable<T extends Record<string, any>>({
     defaultSortDir ?? "asc",
   );
 
+  // Chave estável: chamadores costumam passar `searchableKeys` como array literal
+  const searchableKeysSignature = searchableKeys?.join("|");
+
   const filteredData = useMemo(() => {
     if (!query.trim()) return data;
     const q = query.toLowerCase();
     return data.filter((row) => {
-      const keysToSearch = searchableKeys || (Object.keys(row) as (keyof T)[]);
+      const keysToSearch =
+        (searchableKeysSignature?.split("|") as (keyof T)[] | undefined) ??
+        (Object.keys(row) as (keyof T)[]);
       return keysToSearch.some((k) => {
         const val = row[k];
         return (
@@ -132,7 +142,11 @@ export function DenseTable<T extends Record<string, any>>({
         );
       });
     });
-  }, [data, query, searchableKeys]);
+  }, [data, query, searchableKeysSignature]);
+
+  useEffect(() => {
+    onFilteredDataChange?.(filteredData);
+  }, [filteredData, onFilteredDataChange]);
 
   const handleSort = (key?: keyof T) => {
     if (!key) return;
@@ -493,6 +507,24 @@ export function DenseTable<T extends Record<string, any>>({
               })
             )}
           </tbody>
+          {columns.some((col) => col.footer !== undefined) && (
+            <tfoot>
+              <tr className="border-borderLine border-t-2 bg-slate-100 font-bold text-slate-900">
+                {columns.map((col, idx) => (
+                  <td
+                    key={String(col.accessorKey || col.header)}
+                    className={cn(
+                      "whitespace-nowrap px-3 py-3 sm:px-4",
+                      col.align === "right" && "text-right",
+                      col.align === "center" && "text-center",
+                    )}
+                  >
+                    {col.footer ?? (idx === 0 ? footerLabel : null)}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 

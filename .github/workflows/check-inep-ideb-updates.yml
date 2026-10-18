@@ -1,0 +1,117 @@
+name: Check INEP IDEB Updates
+
+on:
+  schedule:
+    - cron: '0 8 1 * *'
+  workflow_dispatch:
+    inputs:
+      target_year:
+        description: 'Ciclo bienal a verificar (ex: 2027)'
+        required: false
+        default: '2027'
+      force_sync:
+        description: 'Forçar sincronização mesmo sem detecção preliminar'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        ports:
+          - 5544:5432
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Lightweight ping check
+        id: ping_check
+        run: |
+          TARGET_YEAR="${{ inputs.target_year || '2027' }}"
+          FORCE_SYNC="${{ inputs.force_sync || false }}"
+
+          if [ "$FORCE_SYNC" = "true" ]; then
+            echo "has_update=true" >> "$GITHUB_OUTPUT"
+            echo "target_year=$TARGET_YEAR" >> "$GITHUB_OUTPUT"
+            echo "Sincronização forçada habilitada para o ano $TARGET_YEAR."
+            exit 0
+          fi
+
+          # Executa verificação leve (< 5 segundos)
+          if uv run --project elt python elt/scripts/sync_inep_ideb_seed.py --check-next "$TARGET_YEAR"; then
+            echo "has_update=true" >> "$GITHUB_OUTPUT"
+            echo "target_year=$TARGET_YEAR" >> "$GITHUB_OUTPUT"
+            echo "Novo ciclo $TARGET_YEAR detectado no INEP!"
+          else
+            echo "has_update=false" >> "$GITHUB_OUTPUT"
+            echo "Nenhum novo ciclo disponível ou ano já presente na seed. Encerrando."
+          fi
+
+      - name: Install PostgreSQL and dependencies
+        if: steps.ping_check.outputs.has_update == 'true'
+        run: |
+          sudo apt-get install -y postgresql postgresql-client
+          uv sync --project elt --all-groups
+
+      - name: Sync INEP IDEB seed
+        if: steps.ping_check.outputs.has_update == 'true'
+        run: |
+          TARGET_YEAR="${{ steps.ping_check.outputs.target_year }}"
+          uv run --project elt python elt/scripts/sync_inep_ideb_seed.py --year "$TARGET_YEAR"
+
+      - name: Seed database and dump test fixture
+        if: steps.ping_check.outputs.has_update == 'true'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
+        run: |
+          make dbt/seed SELECT=seed_inep_ideb
+          make dbt/run SELECT=stg_inep__ideb
+          make dbt/test SELECT=stg_inep__ideb
+          make db/fixture/dump
+          make db/fixture/check
+          make test
+
+      - name: Create Pull Request
+        if: steps.ping_check.outputs.has_update == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto-update/inep-ideb-${{ steps.ping_check.outputs.target_year }}
+          delete-branch: true
+          title: "feat(data): atualizar seed do IDEB com novo ciclo ${{ steps.ping_check.outputs.target_year }}"
+          commit-message: "feat(data): atualizar seed do IDEB com novo ciclo ${{ steps.ping_check.outputs.target_year }}"
+          body: |
+            ## Ingestão Automática de Dados Educacionais do INEP
+
+            Este PR foi aberto automaticamente pelo monitor `.github/workflows/check-inep-ideb-updates.yml`.
+
+            - **Ciclo:** ${{ steps.ping_check.outputs.target_year }}
+            - **Fonte:** INEP/MEC (Resultados oficiais de Anos Iniciais e Anos Finais)
+            - **Artefatos atualizados:**
+              - `elt/transform/seeds/seed_inep_ideb.csv`
+              - `packages/db/tests/fixtures/schema.sql.gz`

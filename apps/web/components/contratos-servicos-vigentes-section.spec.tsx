@@ -219,7 +219,7 @@ describe("ContratosServicosVigentesSection", () => {
 
     // O filtro 'Todos' deve estar ativo
     const todosBtn = screen.getByRole("button", { name: /Todos \(3\)/i });
-    expect(todosBtn).toHaveClass("bg-blue-600");
+    expect(todosBtn).toHaveAttribute("aria-pressed", "true");
   });
 
   it("busca detalhes via API quando o contrato não constar na lista pré-carregada", async () => {

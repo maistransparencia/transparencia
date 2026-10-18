@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../client";
+import { montarEmendasStats } from "./emendas-parlamentares";
 import {
   getAdesaoDeAtaMetrics,
   getAdesaoExternaMetrics,
@@ -164,67 +165,7 @@ export async function getSaudeEmendasMetrics(
 
     if (rows.length === 0) return empty;
 
-    const lista: EmendaSaudeDTO[] = rows.map((r, index) => {
-      const valAut = Number(r.valor_total ?? 0);
-      const emp = Number(r.empenhado ?? 0);
-      const num = String(r.numero_emenda ?? "");
-
-      return {
-        id: `${r.autor ?? ""}-${r.resumo ?? ""}-${num}-${index}`,
-        numero: num,
-        objeto: String(r.resumo ?? ""),
-        valorAutorizado: valAut,
-        empenhado: emp > 0 ? emp : null,
-        autor: String(r.autor ?? ""),
-        tipoEmenda: String(r.tipo_emenda ?? ""),
-        esferaOrigem: String(r.esfera_origem ?? ""),
-        atoNormativo: String(r.ato_normativo ?? ""),
-        destinacao: String(r.destinacao ?? ""),
-        qtdEmpenhos: 0,
-        empenhos: [],
-      };
-    });
-
-    const sortedLista = [...lista].sort((a, b) => {
-      const aEmp = a.empenhado ?? 0;
-      const bEmp = b.empenhado ?? 0;
-      const aHas = aEmp > 0;
-      const bHas = bEmp > 0;
-
-      if (aHas && !bHas) return -1;
-      if (!aHas && bHas) return 1;
-
-      if (aHas && bHas && bEmp !== aEmp) {
-        return bEmp - aEmp;
-      }
-
-      if (b.valorAutorizado !== a.valorAutorizado) {
-        return b.valorAutorizado - a.valorAutorizado;
-      }
-
-      return a.autor.localeCompare(b.autor, "pt-BR");
-    });
-
-    const totalAutorizado = sortedLista.reduce(
-      (sum, item) => sum + item.valorAutorizado,
-      0,
-    );
-    const totalEmpenhado = sortedLista.reduce(
-      (sum, item) => sum + (item.empenhado ?? 0),
-      0,
-    );
-    const maiorEmenda = sortedLista.reduce(
-      (max, item) => Math.max(max, item.valorAutorizado),
-      0,
-    );
-
-    return {
-      totalAutorizado,
-      totalEmpenhado,
-      taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
-      maiorEmenda,
-      lista: sortedLista,
-    };
+    return montarEmendasStats(rows);
   } catch {
     return empty;
   }

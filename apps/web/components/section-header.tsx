@@ -4,7 +4,7 @@ import type React from "react";
 export interface SectionHeaderProps {
   title?: string;
   children?: React.ReactNode;
-  description?: string;
+  description?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
 }

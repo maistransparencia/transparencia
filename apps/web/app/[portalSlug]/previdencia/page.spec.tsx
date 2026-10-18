@@ -260,7 +260,7 @@ describe("PrevidenciaPage", () => {
     expect(
       screen.getByText(/segregado do caixa geral do município/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 8,5 mi")).toBeInTheDocument();
   });
 
   it("renderiza a seção de evolução do patrimônio histórico da previdência", async () => {
@@ -313,7 +313,7 @@ describe("PrevidenciaPage", () => {
     expect(screen.getAllByText("Pico Histórico").length).toBeGreaterThanOrEqual(
       1,
     );
-    expect(screen.getByText("R$ 60.4mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 60,4 mi")).toBeInTheDocument();
     expect(screen.getByText("Queima Média Anual")).toBeInTheDocument();
   });
 

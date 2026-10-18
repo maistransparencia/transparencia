@@ -13,6 +13,7 @@ import {
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
   getRadarCivicoAlertas,
+  getResumoEducacao,
   getResumoObrasPorPortal,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
@@ -174,6 +175,7 @@ async function fetchRawVisaoGeralData(
     licitacoesEmAndamento,
     resumoObras,
     obrasPreview,
+    resumoEducacao,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -197,6 +199,7 @@ async function fetchRawVisaoGeralData(
     }),
     getResumoObrasPorPortal(tenantSlug, { ano: selectedYear }),
     getObrasPorPortal(tenantSlug, { ano: selectedYear, limite: 25 }),
+    getResumoEducacao(tenantSlug, selectedYear),
   ]);
 
   const execSummary = summarizeExecucaoMetrics(execMetricas);
@@ -248,6 +251,7 @@ async function fetchRawVisaoGeralData(
     licitacoesEmAndamentoCount: licitacoesEmAndamento.length,
     resumoObras,
     obrasPreview,
+    resumoEducacao,
   };
 }
 

@@ -43,10 +43,10 @@ const mockItemAlto: RadarCivicoCardItem = {
   metodologiaBadge: "Histórico Jan a Ago",
   tipoMetodologia: "homologa",
   textoFactual:
-    "No período analisado (Jan a Ago), os recursos aplicados na área de Saúde totalizaram R$ 15.2mi — valor +42% superior à média histórica do período (R$ 10.7mi).",
+    "No período analisado (Jan a Ago), os recursos aplicados na área de Saúde totalizaram R$ 15,2 mi — valor +42% superior à média histórica do período (R$ 10,7 mi).",
   desvioPercentual: 42,
-  valorObservadoFormatted: "R$ 15.2mi",
-  valorEsperadoFormatted: "R$ 10.7mi",
+  valorObservadoFormatted: "R$ 15,2 mi",
+  valorEsperadoFormatted: "R$ 10,7 mi",
   ctaLabel: "Conferir Aplicação em Saúde",
   ctaUrl: "/porciuncula/despesas?ano=2024",
   whatsappShareUrl:
@@ -109,8 +109,8 @@ describe("RadarAnomaliaCard", () => {
     expect(screen.getByText("Aporte Expressivo em Saúde")).toBeInTheDocument();
     expect(screen.getByText("Histórico Jan a Ago")).toBeInTheDocument();
     expect(screen.getByText("Aporte Relevante")).toBeInTheDocument();
-    expect(screen.getByText("R$ 15.2mi")).toBeInTheDocument();
-    expect(screen.getByText("R$ 10.7mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 15,2 mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 10,7 mi")).toBeInTheDocument();
 
     const ctaLink = screen.getByTestId("radar-cta-link");
     expect(ctaLink).toHaveAttribute("href", "/porciuncula/despesas?ano=2024");
@@ -167,11 +167,11 @@ describe("RadarAnomaliaCard", () => {
       tipoMetodologia: "estoque",
       esperadoLabel: "Aporte Exigido",
       textoFactual:
-        "Em 2024, o município quitou R$ 650.0mil do aporte atuarial exigido de R$ 1.0mi.",
+        "Em 2024, o município quitou R$ 650,0 mil do aporte atuarial exigido de R$ 1,0 mi.",
       desvioPercentual: 35,
       desvioPercentualFormatted: "-35%",
-      valorObservadoFormatted: "R$ 650.0mil",
-      valorEsperadoFormatted: "R$ 1.0mi",
+      valorObservadoFormatted: "R$ 650,0 mil",
+      valorEsperadoFormatted: "R$ 1,0 mi",
       ctaLabel: "Auditar Aporte Atuarial",
       ctaUrl: "/porciuncula/previdencia?ano=2024#atuarial",
       whatsappShareUrl: "https://api.whatsapp.com/send?text=Atuarial",
@@ -188,8 +188,8 @@ describe("RadarAnomaliaCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Meta Atuarial")).toBeInTheDocument();
     expect(screen.getByText("Aporte Exigido")).toBeInTheDocument();
-    expect(screen.getByText("R$ 650.0mil")).toBeInTheDocument();
-    expect(screen.getByText("R$ 1.0mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 650,0 mil")).toBeInTheDocument();
+    expect(screen.getByText("R$ 1,0 mi")).toBeInTheDocument();
     expect(screen.getByText("-35%")).toBeInTheDocument();
 
     const legalLink = screen.getByTestId("radar-legal-link");
@@ -214,10 +214,10 @@ describe("RadarAnomaliaCard", () => {
       tipoMetodologia: "estoque",
       esperadoLabel: "Repasse Devido",
       textoFactual:
-        "Em 2024, foram apurados R$ 50.0mil em contribuições patronais não repassadas.",
+        "Em 2024, foram apurados R$ 50,0 mil em contribuições patronais não repassadas.",
       desvioPercentual: 100,
       desvioPercentualFormatted: "+100%",
-      valorObservadoFormatted: "R$ 50.0mil",
+      valorObservadoFormatted: "R$ 50,0 mil",
       valorEsperadoFormatted: "R$ 0",
       ctaLabel: "Verificar Repasse Patronal",
       ctaUrl: "/porciuncula/previdencia?ano=2024#patronal",
@@ -235,7 +235,7 @@ describe("RadarAnomaliaCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Fluxo em Aberto")).toBeInTheDocument();
     expect(screen.getByText("Repasse Devido")).toBeInTheDocument();
-    expect(screen.getByText("R$ 50.0mil")).toBeInTheDocument();
+    expect(screen.getByText("R$ 50,0 mil")).toBeInTheDocument();
     expect(screen.getByText("R$ 0")).toBeInTheDocument();
     expect(screen.getByText("+100%")).toBeInTheDocument();
 
@@ -261,11 +261,11 @@ describe("RadarAnomaliaCard", () => {
       tipoMetodologia: "estoque",
       esperadoLabel: "Saldo Inicial (Triênio)",
       textoFactual:
-        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36.0mi, registrando retração de 20.8% e consumo de R$ 9.4mi em 3 exercícios.",
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36,0 mi, registrando retração de 20.8% e consumo de R$ 9,4 mi em 3 exercícios.",
       desvioPercentual: 20.78,
       desvioPercentualFormatted: "-20.8%",
-      valorObservadoFormatted: "R$ 36.0mi",
-      valorEsperadoFormatted: "R$ 45.4mi",
+      valorObservadoFormatted: "R$ 36,0 mi",
+      valorEsperadoFormatted: "R$ 45,4 mi",
       ctaLabel: "Auditar Patrimônio Previdenciário",
       ctaUrl: "/porciuncula/previdencia?ano=2025#patrimonio",
       whatsappShareUrl: "https://api.whatsapp.com/send?text=Desidratacao",
@@ -288,8 +288,8 @@ describe("RadarAnomaliaCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Variação Trienal")).toBeInTheDocument();
     expect(screen.getByText("Saldo Inicial (Triênio)")).toBeInTheDocument();
-    expect(screen.getByText("R$ 36.0mi")).toBeInTheDocument();
-    expect(screen.getByText("R$ 45.4mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 36,0 mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 45,4 mi")).toBeInTheDocument();
     expect(screen.getByText("-20.8%")).toBeInTheDocument();
 
     const legalLinks = screen.getAllByTestId("radar-legal-link");

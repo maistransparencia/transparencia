@@ -3,6 +3,7 @@
 import {
   ChevronDown,
   FileText,
+  GraduationCap,
   HardHat,
   HeartPulse,
   Landmark,
@@ -333,6 +334,7 @@ export function Sidebar({
 
   const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
   const temasItems = [
+    { name: "Educação", href: "/educacao", icon: GraduationCap },
     { name: "Saúde", href: "/saude", icon: HeartPulse },
     { name: "Obras Públicas", href: "/obras", icon: HardHat },
     ...(isPrevidenciaEnabled

@@ -256,7 +256,7 @@ describe("radar-civico-narrative", () => {
         2024,
       );
       expect(narrative).toBe(
-        "Em 2024, o município quitou R$ 650.0mil do aporte atuarial exigido de R$ 1.0mi, registrando déficit de recolhimento de 35% no plano de amortização previdenciária.",
+        "Em 2024, o município quitou R$ 650,0 mil do aporte atuarial exigido de R$ 1,0 mi, registrando déficit de recolhimento de 35% no plano de amortização previdenciária.",
       );
     });
 
@@ -273,7 +273,7 @@ describe("radar-civico-narrative", () => {
         2024,
       );
       expect(narrative).toBe(
-        "Em 2024, foram apurados R$ 50.0mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS.",
+        "Em 2024, foram apurados R$ 50,0 mil em contribuições previdenciárias patronais liquidadas e não repassadas tempestivamente ao RPPS.",
       );
     });
 
@@ -375,7 +375,7 @@ describe("radar-civico-narrative", () => {
         2025,
       );
       expect(narrative).toBe(
-        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36.0mi, registrando retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 7.6 anos.",
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 36,0 mi, registrando retração de 20.8% e consumo de R$ 9,4 mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 7.6 anos.",
       );
     });
 
@@ -392,7 +392,7 @@ describe("radar-civico-narrative", () => {
         2025,
       );
       expect(narrative).toBe(
-        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 1.0mi, registrando retração de 66.7% e consumo de R$ 2.0mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 1 ano.",
+        "Em 2025, o patrimônio financeiro da previdência encerrou em R$ 1,0 mi, registrando retração de 66.7% e consumo de R$ 2,0 mi ao longo do triênio. Mantido o ritmo de queima, o horizonte de sustentabilidade estimado é de 1 ano.",
       );
     });
 

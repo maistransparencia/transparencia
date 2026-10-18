@@ -1166,6 +1166,10 @@ describe("obras queries", () => {
         null,
       );
       expect(resultadoIdsNulos.size).toBe(0);
+      expect(
+        // @ts-expect-error teste com valor inválido
+        (await getEmpenhosFederaisPorObrasBatch(PORTAL_A, null)).size,
+      ).toBe(0);
     });
 
     it("deve retornar array vazio se getEmpenhosFederaisPorObra receber inputs vazios", async () => {

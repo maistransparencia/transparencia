@@ -244,4 +244,17 @@ describe("Sidebar Component", () => {
       });
     }
   });
+
+  it("renderiza o item de navegação Educação no grupo de temas canônicos", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const educacaoLink = screen.getByRole("link", { name: /educação/i });
+    expect(educacaoLink).toBeInTheDocument();
+    expect(educacaoLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/porciuncula_prefeitura/educacao"),
+    );
+  });
 });
