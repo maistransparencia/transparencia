@@ -58,9 +58,9 @@ describe("social-publisher module", () => {
       cidadeClean: "Porciúncula",
       estado: "RJ",
       exercicioInicial: 2020,
-    } as any);
+    } as never);
     vi.mocked(db.getRadarDigestMetrics).mockResolvedValueOnce(
-      mockMetrics as any,
+      mockMetrics as never,
     );
 
     const postTweetSpy = vi
@@ -87,7 +87,7 @@ describe("social-publisher module", () => {
     vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
       portalSlug: "porciuncula_prefeitura",
       displayName: "Porciúncula",
-    } as any);
+    } as never);
 
     const postTweetSpy = vi
       .spyOn(xBot, "postTweet")
@@ -160,7 +160,7 @@ describe("social-publisher module", () => {
     vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
       portalSlug: "porciuncula_prefeitura",
       displayName: "Porciúncula",
-    } as any);
+    } as never);
 
     vi.spyOn(xBot, "postTweet").mockResolvedValueOnce({
       success: false,
@@ -217,7 +217,7 @@ describe("social-publisher module", () => {
       portalSlug: "porciuncula_prefeitura",
       displayName: "Prefeitura de Porciúncula",
       cidadeClean: "Porciúncula",
-    } as any);
+    } as never);
 
     const mockAlerta = {
       anomaliaId: "crit-1",
@@ -270,7 +270,7 @@ describe("social-publisher module", () => {
     vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
       portalSlug: "porciuncula_prefeitura",
       displayName: "Prefeitura de Porciúncula",
-    } as any);
+    } as never);
 
     vi.mocked(db.getRadarCivicoAlertas).mockResolvedValueOnce([]);
 
@@ -346,7 +346,7 @@ describe("social-publisher module", () => {
     vi.mocked(db.getPortalConfig).mockResolvedValueOnce({
       portalSlug: "porciuncula_prefeitura",
       displayName: "Prefeitura de Porciúncula",
-    } as any);
+    } as never);
 
     vi.mocked(db.getRadarCivicoAlertas).mockResolvedValueOnce([
       {
@@ -356,7 +356,7 @@ describe("social-publisher module", () => {
         tipoAnomalia: "explosao_comissionados",
         grauSeveridade: "critico",
         desvioPercentual: 50,
-      } as any,
+      } as never,
       {
         anomaliaId: "crit-2",
         portalSlug: "porciuncula_prefeitura",
@@ -366,7 +366,7 @@ describe("social-publisher module", () => {
         desvioPercentual: 120,
         valorObservado: 45.5,
         valorEsperado: 20,
-      } as any,
+      } as never,
     ]);
 
     const postFbSpy = vi

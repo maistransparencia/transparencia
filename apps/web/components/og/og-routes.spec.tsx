@@ -296,7 +296,7 @@ describe("OpenGraph Image Route Handlers", () => {
         tipoAnomalia: "explosao_comissionados",
         grauSeveridade: "critico",
         desvioPercentual: 50,
-      } as any,
+      } as never,
     ]);
 
     const { default: generateImage } = await import(
@@ -317,7 +317,7 @@ describe("OpenGraph Image Route Handlers", () => {
         tipoAnomalia: "concentracao_dispensa",
         grauSeveridade: "moderado",
         desvioPercentual: 15,
-      } as any,
+      } as never,
     ]);
 
     const { default: generateImage } = await import(
@@ -343,22 +343,22 @@ describe("OpenGraph Image Route Handlers", () => {
       return resultado;
     };
     vi.mocked(db.getPortalConfig).mockImplementationOnce(() =>
-      rastrearConcorrencia({ displayName: "Prefeitura", uf: "RJ" } as any),
+      rastrearConcorrencia({ displayName: "Prefeitura", uf: "RJ" } as never),
     );
     vi.mocked(db.getEntidades).mockImplementationOnce(() =>
-      rastrearConcorrencia([{ id: "1", nome: "Prefeitura" }] as any),
+      rastrearConcorrencia([{ id: "1", nome: "Prefeitura" }] as never),
     );
     vi.mocked(db.getPosicaoFiscalMetrics).mockImplementationOnce(() =>
-      rastrearConcorrencia(null as any),
+      rastrearConcorrencia(null as never),
     );
     vi.mocked(db.getExecucaoOrcamentariaMetrics).mockImplementationOnce(() =>
-      rastrearConcorrencia([] as any),
+      rastrearConcorrencia([] as never),
     );
     vi.mocked(db.getFolhaVsServicosMetrics).mockImplementationOnce(() =>
-      rastrearConcorrencia([] as any),
+      rastrearConcorrencia([] as never),
     );
     vi.mocked(db.getLimiteMaximoLrfPessoal).mockImplementationOnce(() =>
-      rastrearConcorrencia(54 as any),
+      rastrearConcorrencia(54 as never),
     );
 
     const { default: generateImage } = await import(
