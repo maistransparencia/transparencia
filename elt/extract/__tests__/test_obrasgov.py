@@ -8,6 +8,7 @@ from elt.extract.obrasgov import ObrasGovExtractor
 from elt.load.obrasgov import (
     ensure_obrasgov_tables,
     load_obrasgov_all,
+    load_obrasgov_empenhos,
     load_obrasgov_execucoes_fisicas,
     load_obrasgov_geometrias,
     load_obrasgov_historico_paralisacoes,
@@ -76,6 +77,19 @@ def test_obrasgov_extractor_success():
         "total_pages": 0,
     }
 
+    mock_emp_resp = {
+        "data": [
+            {
+                "id_projeto_investimento": "PROJ-01",
+                "nr_empenho": "2024NE001091",
+                "ug_emitente": 157241,
+                "valor_empenho": 250000.0,
+                "sistema_origem_empenho": "Transferegov.br",
+            }
+        ],
+        "total_pages": 1,
+    }
+
     def fake_request(endpoint: str, params=None, session=None):
         if endpoint == "geometria":
             return mock_geo_resp
@@ -85,6 +99,8 @@ def test_obrasgov_extractor_success():
             return mock_exec_resp
         if endpoint == "historico-situacao-cancelada-paralisada":
             return mock_hist_resp
+        if endpoint == "empenho":
+            return mock_emp_resp
         return None
 
     with patch.object(extractor, "_request", side_effect=fake_request):
@@ -109,6 +125,11 @@ def test_obrasgov_extractor_success():
     assert len(data["execucoes_fisicas"]) == 1
     assert data["execucoes_fisicas"][0]["percentual_execucao_fisica"] == "45.5"
 
+    assert len(data["empenhos"]) == 1
+    assert data["empenhos"][0]["nr_empenho"] == "2024NE001091"
+    assert data["empenhos"][0]["ug_emitente"] == "157241"
+    assert data["empenhos"][0]["valor_empenho"] == "250000.0"
+
 
 def test_obrasgov_extractor_empty_municipality():
     extractor = ObrasGovExtractor(min_interval_seconds=0)
@@ -125,6 +146,7 @@ def test_obrasgov_extractor_empty_municipality():
     assert data["geometrias"] == []
     assert data["execucoes_fisicas"] == []
     assert data["historico_paralisacoes"] == []
+    assert data["empenhos"] == []
 
 
 def test_obrasgov_extractor_retry_on_failure():
@@ -195,16 +217,33 @@ def test_load_obrasgov_idempotency(engine):
         }
     ]
 
+    empenhos = [
+        {
+            "portal_slug": "porciuncula_prefeitura",
+            "id_projeto_investimento": "OBRA-100",
+            "nr_empenho": "2024NE000001",
+            "ug_emitente": "175004",
+            "valor_empenho": "150000.00",
+            "data_emissao": "2024-03-15",
+            "sistema_origem_empenho": "SIAFI",
+            "natureza_despesa": "449051",
+            "descricao_empenho": "Construção de Escola",
+            "data_extracao": "2024-10-11T00:00:00",
+        }
+    ]
+
     # Primeira carga
     count_p1 = load_obrasgov_projetos(engine, projetos, schema="raw_obrasgov")
     count_g1 = load_obrasgov_geometrias(engine, geometrias, schema="raw_obrasgov")
     count_e1 = load_obrasgov_execucoes_fisicas(engine, execucoes, schema="raw_obrasgov")
     count_h1 = load_obrasgov_historico_paralisacoes(engine, historico, schema="raw_obrasgov")
+    count_emp1 = load_obrasgov_empenhos(engine, empenhos, schema="raw_obrasgov")
 
     assert count_p1 == 1
     assert count_g1 == 1
     assert count_e1 == 1
     assert count_h1 == 1
+    assert count_emp1 == 1
 
     # Segunda carga idêntica (deve atualizar sem duplicar ou dar erro)
     count_p2 = load_obrasgov_projetos(engine, projetos, schema="raw_obrasgov")
@@ -218,6 +257,7 @@ def test_load_obrasgov_idempotency(engine):
             "geometrias": geometrias,
             "execucoes_fisicas": execucoes,
             "historico_paralisacoes": historico,
+            "empenhos": empenhos,
         },
         schema="raw_obrasgov",
     )
@@ -225,6 +265,7 @@ def test_load_obrasgov_idempotency(engine):
     assert counts_all["geometrias"] == 1
     assert counts_all["execucoes_fisicas"] == 1
     assert counts_all["historico_paralisacoes"] == 1
+    assert counts_all["empenhos"] == 1
 
 
 def test_extract_run_only_obrasgov(tmp_path, monkeypatch):
@@ -235,6 +276,7 @@ def test_extract_run_only_obrasgov(tmp_path, monkeypatch):
         "geometrias": [{"id_projeto_investimento": "OBRA-100", "id_geometria": 0}],
         "execucoes_fisicas": [{"id_projeto_investimento": "OBRA-100", "id_execucao_fisica": 1}],
         "historico_paralisacoes": [{"id_projeto_investimento": "OBRA-100", "id_historico_situacao_investimento": 1}],
+        "empenhos": [{"id_projeto_investimento": "OBRA-100", "nr_empenho": "2024NE000001"}],
     }
     test_args = [
         "run.py",
@@ -258,13 +300,14 @@ def test_extract_run_only_obrasgov(tmp_path, monkeypatch):
 
         assert mock_extract.call_count == 1
         written_files = list(tmp_path.rglob("*.json"))
-        assert len(written_files) == 4
+        assert len(written_files) == 5
         file_names = {f.name for f in written_files}
         assert file_names == {
             "projetos.json",
             "geometrias.json",
             "execucoes_fisicas.json",
             "historico_paralisacoes.json",
+            "empenhos.json",
         }
 
 
@@ -291,6 +334,10 @@ def test_load_run_obrasgov(tmp_path):
     sample_historico = [{"id_projeto_investimento": "OBRA-100", "id_historico_situacao_investimento": "1"}]
     historico_file.write_text(json.dumps(sample_historico))
 
+    empenhos_file = obrasgov_dir / "empenhos.json"
+    sample_empenhos = [{"id_projeto_investimento": "OBRA-100", "nr_empenho": "2024NE000001"}]
+    empenhos_file.write_text(json.dumps(sample_empenhos))
+
     test_args = [
         "run.py",
         "--portal",
@@ -308,6 +355,7 @@ def test_load_run_obrasgov(tmp_path):
         patch("elt.load.obrasgov.load_obrasgov_geometrias", return_value=1) as mock_load_geo,
         patch("elt.load.obrasgov.load_obrasgov_execucoes_fisicas", return_value=1) as mock_load_exec,
         patch("elt.load.obrasgov.load_obrasgov_historico_paralisacoes", return_value=1) as mock_load_hist,
+        patch("elt.load.obrasgov.load_obrasgov_empenhos", return_value=1) as mock_load_emp,
     ):
         load_run.main()
         assert mock_ensure.call_count >= 1
@@ -315,3 +363,4 @@ def test_load_run_obrasgov(tmp_path):
         mock_load_geo.assert_called_once_with(mock_engine.return_value, sample_geometrias, schema="raw_obrasgov")
         mock_load_exec.assert_called_once_with(mock_engine.return_value, sample_execucoes, schema="raw_obrasgov")
         mock_load_hist.assert_called_once_with(mock_engine.return_value, sample_historico, schema="raw_obrasgov")
+        mock_load_emp.assert_called_once_with(mock_engine.return_value, sample_empenhos, schema="raw_obrasgov")

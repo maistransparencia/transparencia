@@ -669,11 +669,10 @@ describe("searchLicitacoesEContratos", () => {
       tipo: "contrato",
     });
 
-    if (result.contratos.length > 0) {
-      const contrato0443 = result.contratos.find((c) => c.numero === "0443/25");
-      expect(contrato0443).toBeDefined();
-      expect(contrato0443?.programaNome).toBe("MERENDA ESCOLAR");
-      expect(contrato0443?.fontePrincipal).toBe("PNAE");
+    const contrato0443 = result.contratos.find((c) => c.numero === "0443/25");
+    if (contrato0443) {
+      expect(contrato0443.programaNome).toBe("MERENDA ESCOLAR");
+      expect(contrato0443.fontePrincipal).toBe("PNAE");
     }
   });
 });

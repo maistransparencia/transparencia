@@ -6,12 +6,11 @@ import {
   getDistribucaoModalidadesMetrics,
   getEntidades,
   getLicitacaoGapsMetrics,
-  getLicitacaoItens,
+  getLicitacaoItensBatch,
   getLicitacoesEmAndamentoMetrics,
   getLimiteDispensaComprasServicos,
   getPortalConfig,
   getRadarCivicoAlertas,
-  type LicitacaoItemDTO,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
@@ -67,7 +66,7 @@ async function resolveEmpresaIds(
   return entidades.map((entidade) => entidade.id).filter(Boolean);
 }
 
-async function fetchRawLicitacoesData(
+export async function fetchRawLicitacoesData(
   portalSlug: string,
   searchParams: LicitacoesSearchParams,
 ) {
@@ -103,20 +102,14 @@ async function fetchRawLicitacoesData(
     getRadarCivicoAlertas(tenantSlug, { ano: selectedYear }),
   ]);
 
-  const itensArray = await Promise.all(
-    licitacoesEmAndamento
-      .filter((l) => Boolean(l.licitacaoNumero))
-      .map(async (l) => {
-        const items = await getLicitacaoItens(tenantSlug, {
-          ano: selectedYear,
-          licitacaoNumero: l.licitacaoNumero,
-        });
-        return [l.licitacaoNumero, items] as const;
-      }),
-  );
+  const licitacoesNumeros = licitacoesEmAndamento
+    .map((l) => l.licitacaoNumero)
+    .filter((num): num is string => Boolean(num && num.trim().length > 0));
 
-  const itensByLicitacao: Record<string, LicitacaoItemDTO[]> =
-    Object.fromEntries(itensArray.filter(([_, items]) => items.length > 0));
+  const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
+    ano: selectedYear,
+    licitacoesNumeros,
+  });
 
   return {
     portalSlug: tenantSlug,

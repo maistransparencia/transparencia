@@ -48,6 +48,10 @@ models:
         data_type: text
       - name: valor_investimento_previsto
         data_type: numeric(15, 2)
+      - name: valor_total_empenhado_federal
+        data_type: numeric(15, 2)
+      - name: quantidade_empenhos_federais
+        data_type: integer
       - name: percentual_execucao_fisica
         data_type: numeric(5, 2)
       - name: data_ultima_medicao
@@ -62,3 +66,56 @@ models:
         data_type: date
       - name: data_fim_prevista
         data_type: date
+
+  - name: fct_obras_empenhos
+    description: "Fato de notas de empenho federais vinculadas a obras públicas (SIAFI / Transferegov.br)"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - id_projeto
+            - nr_empenho
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: id_projeto
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: nr_empenho
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: ug_emitente
+        data_type: text
+      - name: ano_empenho
+        data_type: integer
+      - name: valor_empenho
+        data_type: numeric(14, 2)
+      - name: data_emissao
+        data_type: date
+      - name: sistema_origem_empenho
+        data_type: text
+      - name: natureza_despesa
+        data_type: text
+      - name: fonte
+        data_type: text
+      - name: programa_trabalho
+        data_type: text
+      - name: plano_interno
+        data_type: text
+      - name: acao_orcamentaria
+        data_type: text
+      - name: descricao_empenho
+        data_type: text

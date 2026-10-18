@@ -72,3 +72,23 @@ sources:
           - name: possui_tratativas_situacao_investimento
           - name: fase_tratativas_situacao_investimento
           - name: data_extracao
+
+      - name: empenhos
+        description: "Notas de empenho federais vinculadas ao projeto (SIAFI / Transferegov.br)"
+        meta:
+          primary_key: [portal_slug, id_projeto_investimento, nr_empenho]
+        columns:
+          - name: portal_slug
+          - name: id_projeto_investimento
+          - name: nr_empenho
+          - name: ug_emitente
+          - name: valor_empenho
+          - name: data_emissao
+          - name: sistema_origem_empenho
+          - name: natureza_despesa
+          - name: fonte
+          - name: programa_trabalho
+          - name: plano_interno
+          - name: acao_orcamentaria
+          - name: descricao_empenho
+          - name: data_extracao

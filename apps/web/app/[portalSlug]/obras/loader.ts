@@ -64,6 +64,51 @@ export function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
+export async function fetchRawObrasCoreData(
+  portalSlug: string,
+  selectedYear: number,
+) {
+  const tenantSlug = requirePortalSlug(portalSlug);
+
+  const [portalConfig, resumo, obras] = await Promise.all([
+    getPortalConfig(tenantSlug),
+    getResumoObrasPorPortal(tenantSlug, { ano: selectedYear }),
+    getObrasPorPortal(tenantSlug, { ano: selectedYear }),
+  ]);
+
+  return {
+    portalSlug: tenantSlug,
+    portalConfig,
+    resumo,
+    obras,
+  };
+}
+
+export const loadCachedObrasCoreData = createCachedDataLoader(
+  fetchRawObrasCoreData,
+  "obras",
+);
+
+export async function loadObrasData(
+  portalSlug: string,
+  searchParams: ObrasSearchParams = {},
+) {
+  const tenantSlug = requirePortalSlug(portalSlug);
+  const context = parseObrasContext(searchParams);
+  const filtros = parseObrasSearchParams(searchParams);
+
+  const coreData = await loadCachedObrasCoreData(
+    tenantSlug,
+    context.selectedYear,
+  );
+
+  return {
+    ...coreData,
+    context,
+    filtros,
+  };
+}
+
 export async function fetchRawObrasData(
   portalSlug: string,
   searchParams: ObrasSearchParams = {},
@@ -72,22 +117,16 @@ export async function fetchRawObrasData(
   const context = parseObrasContext(searchParams);
   const filtros = parseObrasSearchParams(searchParams);
 
-  const [portalConfig, resumo, obras] = await Promise.all([
-    getPortalConfig(tenantSlug),
-    getResumoObrasPorPortal(tenantSlug, { ano: context.selectedYear }),
-    getObrasPorPortal(tenantSlug, { ano: context.selectedYear }),
-  ]);
+  const coreData = await fetchRawObrasCoreData(
+    tenantSlug,
+    context.selectedYear,
+  );
 
   return {
-    portalSlug: tenantSlug,
-    portalConfig,
+    ...coreData,
     context,
     filtros,
-    resumo,
-    obras,
   };
 }
 
-export type RawObrasData = Awaited<ReturnType<typeof fetchRawObrasData>>;
-
-export const loadObrasData = createCachedDataLoader(fetchRawObrasData, "obras");
+export type RawObrasData = Awaited<ReturnType<typeof loadObrasData>>;

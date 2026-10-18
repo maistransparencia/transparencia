@@ -17,10 +17,7 @@ export function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-async function fetchRawRadarData(
-  portalSlug: string,
-  searchParams: RadarSearchParams = {},
-) {
+async function fetchRawRadarCoreData(portalSlug: string) {
   const tenantSlug = requirePortalSlug(portalSlug);
   const [portalConfig, entidades, alertas] = await Promise.all([
     getPortalConfig(tenantSlug),
@@ -33,8 +30,38 @@ async function fetchRawRadarData(
     portalConfig,
     entidades,
     alertas,
+  };
+}
+
+const loadCachedRadarCoreData = createCachedDataLoader(
+  fetchRawRadarCoreData,
+  "radar",
+);
+
+export async function loadRadarData(
+  portalSlug: string,
+  searchParams: RadarSearchParams = {},
+) {
+  const tenantSlug = requirePortalSlug(portalSlug);
+  const core = await loadCachedRadarCoreData(tenantSlug);
+
+  return {
+    ...core,
     entidade: searchParams.entidades,
   };
 }
 
-export const loadRadarData = createCachedDataLoader(fetchRawRadarData, "radar");
+export async function fetchRawRadarData(
+  portalSlug: string,
+  searchParams: RadarSearchParams = {},
+) {
+  const tenantSlug = requirePortalSlug(portalSlug);
+  const core = await fetchRawRadarCoreData(tenantSlug);
+
+  return {
+    ...core,
+    entidade: searchParams.entidades,
+  };
+}
+
+export type RawRadarData = Awaited<ReturnType<typeof loadRadarData>>;

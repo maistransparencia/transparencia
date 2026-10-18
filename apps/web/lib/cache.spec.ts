@@ -17,7 +17,7 @@ vi.mock("@/env", () => ({
   },
 }));
 
-import { createCachedDataLoader } from "./cache";
+import { createCachedDataLoader, deterministicStringify } from "./cache";
 
 describe("createCachedDataLoader", () => {
   beforeEach(() => {
@@ -96,5 +96,60 @@ describe("createCachedDataLoader", () => {
         tags: ["default-ttl", "portal-data"],
       },
     );
+  });
+
+  it("deve gerar a mesma chave para objetos com ordens de chaves diferentes ou com propriedades undefined", async () => {
+    mockNodeEnv = "production";
+    const innerCachedFn = vi.fn().mockResolvedValue("dados-estaveis");
+    mockUnstableCache.mockReturnValue(innerCachedFn);
+
+    const rawFn = vi.fn().mockResolvedValue("dados");
+    const cachedLoader = createCachedDataLoader(rawFn, "teste-ordem");
+
+    await cachedLoader("porciuncula", { ano: "2024", entidades: "1" });
+    const firstCallKey = mockUnstableCache.mock.calls[0][1][0];
+
+    mockUnstableCache.mockClear();
+
+    await cachedLoader("porciuncula", {
+      entidades: "1",
+      ano: "2024",
+      extra: undefined,
+    });
+    const secondCallKey = mockUnstableCache.mock.calls[0][1][0];
+
+    expect(firstCallKey).toBe(secondCallKey);
+  });
+});
+
+describe("deterministicStringify", () => {
+  it("deve retornar 'null' para undefined isolado e evitar retorno do tipo undefined", () => {
+    expect(deterministicStringify(undefined)).toBe("null");
+  });
+
+  it("deve diferenciar array com undefined de array vazio sem colisão de cache", () => {
+    expect(deterministicStringify([undefined])).toBe("[null]");
+    expect(deterministicStringify([])).toBe("[]");
+    expect(deterministicStringify([undefined])).not.toBe(
+      deterministicStringify([]),
+    );
+  });
+
+  it("deve serializar instâncias de Date usando toJSON em vez de objeto vazio", () => {
+    const d1 = new Date("2024-01-01T00:00:00.000Z");
+    const d2 = new Date("2024-02-01T00:00:00.000Z");
+    expect(deterministicStringify(d1)).toBe(`"${d1.toISOString()}"`);
+    expect(deterministicStringify(d1)).not.toBe(deterministicStringify(d2));
+    expect(deterministicStringify(d1)).not.toBe("{}");
+  });
+
+  it("deve respeitar métodos customizados .toJSON()", () => {
+    const custom = {
+      val: 42,
+      toJSON() {
+        return { serialized: true };
+      },
+    };
+    expect(deterministicStringify(custom)).toBe('{"serialized":true}');
   });
 });
