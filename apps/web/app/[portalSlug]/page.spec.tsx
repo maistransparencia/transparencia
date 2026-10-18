@@ -238,8 +238,9 @@ describe("VisaoGeralPage", () => {
     expect(screen.getByText("Meta do IDEB não atingida")).toBeInTheDocument();
     expect(screen.queryByText(/MDE/)).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Despesa liquidada em Educação"),
-    ).not.toBeInTheDocument();
+      screen.getByText("Despesa liquidada em Educação"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("R$ 33,3 mi")).toBeInTheDocument();
     expect(screen.queryByText(/Função 12/)).not.toBeInTheDocument();
     expect(screen.getByText("Nota do IDEB (1º ao 5º ano)")).toBeInTheDocument();
     expect(screen.getByText("46º de 92 municípios")).toBeInTheDocument();

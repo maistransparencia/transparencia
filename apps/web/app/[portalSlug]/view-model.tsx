@@ -60,7 +60,7 @@ function buildEducacaoEnfase(
   return { tom: "neutro", titulo: null };
 }
 
-function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
+function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
   if (!resumo) return null;
   const crescimentoPontos = resumo.crescimentoPontosIdeb;
   const enfase = buildEducacaoEnfase(crescimentoPontos, resumo.atingiuMeta);
@@ -117,6 +117,15 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw) {
       : null,
     rankingVariacaoTexto: rankingTrend?.value ?? null,
     rankingVariacaoTom,
+    exercicioDespesa: exercicio,
+    despesaLiquidadaEducacaoTexto:
+      resumo.despesaLiquidadaEducacao == null
+        ? null
+        : fmtCompact(resumo.despesaLiquidadaEducacao),
+    despesaLiquidadaEducacaoCompleta:
+      resumo.despesaLiquidadaEducacao == null
+        ? null
+        : fmtCurrency(resumo.despesaLiquidadaEducacao),
   };
 }
 
@@ -428,7 +437,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     }),
     resumoObras: raw.resumoObras,
     educacaoDetailUrl: routeUrl("/educacao"),
-    educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao),
+    educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...(() => {
       const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
         (o) =>

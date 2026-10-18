@@ -76,9 +76,9 @@ export function EducacaoHeroSection({
           <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
             Monitoramento auditável da evolução pedagógica (série histórica do
             IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
-            INEP/MEC) integrada aos recursos orçamentários da Função 12
-            (Educação) e aos contratos de fornecimento da merenda escolar
-            (PNAE), transporte (PNATE) e infraestrutura da rede municipal.
+            INEP/MEC) integrada aos recursos orçamentários da Educação e aos
+            contratos de fornecimento da merenda escolar (PNAE), transporte
+            (PNATE) e infraestrutura da rede municipal.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export function EducacaoHeroSection({
               ? fmtCompact(trofeuCivico.despesaTotalEducacao)
               : "—"
           }
-          subtext={`Função 12 (Liquidado) · Exercício ${selectedYear}`}
+          subtext={`Valor liquidado · Exercício ${selectedYear}`}
           className="min-w-0"
         />
       </KPIGrid>

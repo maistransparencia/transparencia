@@ -83,14 +83,14 @@ describe("ObrasResumoCard Component", () => {
     expect(
       screen.getByText(/total de investimento previsto/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("R$ 15.0mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 15,0 mi")).toBeInTheDocument();
     expect(screen.getByText("5 obras")).toBeInTheDocument();
 
     // Contadores das 4 situações na ordem consistente
-    expect(screen.getByText(/2\s*\(R\$\s*8\.0mi\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/2\s*\(R\$\s*5\.0mi\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/2\s*\(R\$\s*8,0\s*mi\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/2\s*\(R\$\s*5,0\s*mi\)/i)).toBeInTheDocument();
     expect(screen.getByText(/0\s*\(R\$\s*0\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/1\s*\(R\$\s*2\.0mi\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\s*\(R\$\s*2,0\s*mi\)/i)).toBeInTheDocument();
 
     // Barra de progresso com atributos de acessibilidade e percentuais calculados por valor
     const progressbar = screen.getByRole("progressbar");

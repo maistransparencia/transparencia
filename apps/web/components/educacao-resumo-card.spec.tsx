@@ -21,9 +21,22 @@ const base: EducacaoResumoCardData = {
   rankingTexto: "3º de 92 municípios",
   rankingVariacaoTexto: "+2 posições",
   rankingVariacaoTom: "destaque",
+  exercicioDespesa: 2026,
+  despesaLiquidadaEducacaoTexto: "R$ 12,3 mi",
+  despesaLiquidadaEducacaoCompleta: "R$ 12.300.000,00",
 };
 
 describe("EducacaoResumoCard", () => {
+  it("exibe a despesa liquidada com o exercício, sem jargão de função", () => {
+    render(<EducacaoResumoCard resumo={base} detailUrl="/p/educacao" />);
+    expect(
+      screen.getByText("Despesa liquidada em Educação"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("R$ 12,3 mi")).toBeInTheDocument();
+    expect(screen.getByText("Exercício 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Função 12/)).not.toBeInTheDocument();
+  });
+
   it("renderiza destaque positivo e meta atingida com dados completos", () => {
     render(<EducacaoResumoCard resumo={base} detailUrl="/p/educacao" />);
     expect(
@@ -48,7 +61,7 @@ describe("EducacaoResumoCard", () => {
     );
     expect(screen.queryByText(/Anos iniciais|Anos finais/)).toBeNull();
     expect(screen.getByText("Classificação estadual")).toBeTruthy();
-    expect(screen.queryByText(/Despesa liquidada|Função 12/)).toBeNull();
+    expect(screen.queryByText(/Função 12/)).toBeNull();
     expect(screen.getByText(/3º de 92 municípios/)).toBeTruthy();
     expect(screen.queryByText(/MDE/)).toBeNull();
     expect(screen.queryByText(/por aluno/i)).toBeNull();

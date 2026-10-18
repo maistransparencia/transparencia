@@ -1,6 +1,7 @@
 import { getPortalConfig, getResumoEducacao } from "@transparencia/db";
 import { fmtCompact } from "@transparencia/ui";
 import { ImageResponse } from "next/og";
+import { buildRankingTrend } from "@/app/[portalSlug]/educacao/view-model";
 import {
   OGCardTemplate,
   type OGMetricItem,
@@ -12,10 +13,10 @@ export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function fetchOgEducacaoData(portalSlug: string) {
+async function fetchOgEducacaoData(portalSlug: string, exercicio: number) {
   const [portalConfig, resumo] = await Promise.all([
     getPortalConfig(portalSlug),
-    getResumoEducacao(portalSlug),
+    getResumoEducacao(portalSlug, exercicio),
   ]);
   return { portalConfig, resumo };
 }
@@ -33,7 +34,12 @@ export default async function Image({
   const { portalSlug } = await params;
 
   try {
-    const { portalConfig, resumo } = await loadOgEducacaoData(portalSlug);
+    // Mesmo exercício padrão da página (/educacao sem ?ano): despesa liquidada sempre desse ano.
+    const exercicio = new Date().getFullYear();
+    const { portalConfig, resumo } = await loadOgEducacaoData(
+      portalSlug,
+      exercicio,
+    );
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -61,7 +67,7 @@ export default async function Image({
           },
         )} ponto`;
       }
-      return "Estável";
+      return "—";
     })();
 
     const despesaEducacaoStr = (() => {
@@ -74,26 +80,40 @@ export default async function Image({
       return "—";
     })();
 
-    const mdeStr = (() => {
+    const rankingStr = (() => {
       if (
-        resumo?.mdePercentual !== null &&
-        resumo?.mdePercentual !== undefined
+        resumo?.posicaoRanking !== null &&
+        resumo?.posicaoRanking !== undefined
       ) {
-        return `${resumo.mdePercentual.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`;
+        return `${resumo.posicaoRanking}º`;
       }
-      return "25,0%";
+      return "—";
     })();
 
-    const mdeVariant =
-      resumo?.mdePercentual !== null &&
-      resumo?.mdePercentual !== undefined &&
-      resumo.mdePercentual < 25
-        ? "danger"
-        : "success";
+    const rankingDetail = (() => {
+      if (
+        resumo?.posicaoRanking !== null &&
+        resumo?.posicaoRanking !== undefined &&
+        resumo?.totalMunicipios !== null &&
+        resumo?.totalMunicipios !== undefined
+      ) {
+        const total = `entre ${resumo.totalMunicipios} municípios${portalUf ? ` de ${portalUf}` : ""}`;
+        const tendencia = buildRankingTrend(resumo.variacaoPosicoes);
+        return tendencia ? `${tendencia.value} · ${total}` : total;
+      }
+      return "Ranking estadual do IDEB";
+    })();
+
+    const cicloLabel = (() => {
+      if (resumo?.ano !== null && resumo?.ano !== undefined) {
+        return `Nota IDEB (Ciclo ${resumo.ano})`;
+      }
+      return "Nota IDEB";
+    })();
 
     const metrics: OGMetricItem[] = [
       {
-        label: `Nota IDEB (Ciclo ${resumo?.ano ?? 2025})`,
+        label: cicloLabel,
         value: notaIdebStr,
         detail: "Anos Iniciais",
         variant: "info",
@@ -101,19 +121,19 @@ export default async function Image({
       {
         label: "Evolução Bienal",
         value: crescimentoStr,
-        detail: "Superação escolar",
+        detail: "Variação frente ao ciclo anterior",
         variant: "success",
       },
       {
-        label: "MDE Constitucional",
-        value: mdeStr,
-        detail: "Mínimo 25% (Art. 212)",
-        variant: mdeVariant,
+        label: "Ranking Estadual",
+        value: rankingStr,
+        detail: rankingDetail,
+        variant: "default",
       },
       {
-        label: "Despesa na Educação",
+        label: `Despesa Liquidada em ${exercicio}`,
         value: despesaEducacaoStr,
-        detail: "Função 12 (Liquidado)",
+        detail: `Gasto efetivo com educação em ${exercicio}`,
         variant: "default",
       },
     ];
@@ -123,7 +143,7 @@ export default async function Image({
         portalDisplayName={portalDisplayName}
         portalUf={portalUf}
         pageTitle="Educação Básica & Responsabilidade Fiscal"
-        subtitle="Evolução do IDEB, proficiência SAEB, limites constitucionais de MDE/FUNDEB e compras da educação"
+        subtitle="Evolução do IDEB, proficiência SAEB, gasto com educação e compras da educação"
         badgeText="Painel da Educação"
         metrics={metrics}
         lastExtractionDate={portalConfig?.dataExtracao}

@@ -25,9 +25,9 @@ vi.mock("@transparencia/db", () => ({
     ano: 2025,
     notaIdeb: 5.9,
     crescimentoPontosIdeb: 1.4,
-    custoAnualPorAluno: 14974.64,
-    mdePercentual: 26.8,
-    fundebPercentual: 78.4,
+    posicaoRanking: 3,
+    totalMunicipios: 92,
+    despesaLiquidadaEducacao: 33_300_000,
   }),
   getEntidades: vi.fn().mockResolvedValue([{ id: "1", nome: "Prefeitura" }]),
   getPosicaoFiscalMetrics: vi.fn().mockResolvedValue({
@@ -394,8 +394,13 @@ describe("OpenGraph Image Route Handlers", () => {
     const { default: generateImage } = await import(
       "../../app/[portalSlug]/educacao/opengraph-image"
     );
+    const { getResumoEducacao } = await import("@transparencia/db");
     const response = await generateImage({ params });
     expect(response).toBeDefined();
     expect(response).toHaveProperty("jsx");
+    expect(getResumoEducacao).toHaveBeenLastCalledWith(
+      expect.any(String),
+      new Date().getFullYear(),
+    );
   });
 });

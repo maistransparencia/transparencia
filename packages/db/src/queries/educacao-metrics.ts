@@ -256,8 +256,15 @@ export async function getResumoEducacao(
   const anosFinais =
     metrics.find((m) => m.etapaEnsino === "anosFinais") ?? null;
 
-  const primary = anosIniciais ?? anosFinais ?? metrics[0];
-  const secondary = primary === anosIniciais ? anosFinais : anosIniciais;
+  // Despesa e matrículas independem da etapa; indicadores do IDEB usam só anos iniciais.
+  const contexto = [anosIniciais, anosFinais, metrics[0]];
+  const primeiroContexto = <T>(
+    selecionar: (linha: (typeof metrics)[number]) => T | null | undefined,
+  ): T | null =>
+    contexto.reduce<T | null>(
+      (acc, linha) => acc ?? (linha ? (selecionar(linha) ?? null) : null),
+      null,
+    );
 
   const ranking = await getEducacaoRankingEstadual(cleanSlug, {
     ano: targetAno,
@@ -295,29 +302,23 @@ export async function getResumoEducacao(
   return {
     portalSlug: cleanSlug,
     ano: targetAno,
-    notaIdeb: primary.notaIdeb ?? secondary?.notaIdeb ?? null,
-    metaIdeb: primary.metaIdeb ?? secondary?.metaIdeb ?? null,
-    atingiuMeta: primary.atingiuMeta ?? secondary?.atingiuMeta ?? null,
-    crescimentoPontosIdeb:
-      primary.crescimentoPontosIdeb ?? secondary?.crescimentoPontosIdeb ?? null,
-    saebMatematica: primary.saebMatematica ?? secondary?.saebMatematica ?? null,
-    saebLinguaPortuguesa:
-      primary.saebLinguaPortuguesa ?? secondary?.saebLinguaPortuguesa ?? null,
-    indicadorFluxoAprovacao:
-      primary.indicadorFluxoAprovacao ??
-      secondary?.indicadorFluxoAprovacao ??
-      null,
+    notaIdeb: anosIniciais?.notaIdeb ?? null,
+    metaIdeb: anosIniciais?.metaIdeb ?? null,
+    atingiuMeta: anosIniciais?.atingiuMeta ?? null,
+    crescimentoPontosIdeb: anosIniciais?.crescimentoPontosIdeb ?? null,
+    saebMatematica: anosIniciais?.saebMatematica ?? null,
+    saebLinguaPortuguesa: anosIniciais?.saebLinguaPortuguesa ?? null,
+    indicadorFluxoAprovacao: anosIniciais?.indicadorFluxoAprovacao ?? null,
+    // Fallback das métricas só vale quando o ciclo é o próprio exercício solicitado.
     despesaLiquidadaEducacao:
       despesaLiquidadaReal ??
-      primary.despesaLiquidadaEducacao ??
-      secondary?.despesaLiquidadaEducacao ??
-      null,
-    totalMatriculasRedeMunicipal:
-      primary.totalMatriculasRedeMunicipal ??
-      secondary?.totalMatriculasRedeMunicipal ??
-      null,
-    custoAnualPorAluno:
-      primary.custoAnualPorAluno ?? secondary?.custoAnualPorAluno ?? null,
+      (targetAno === requestedAno
+        ? primeiroContexto((linha) => linha.despesaLiquidadaEducacao)
+        : null),
+    totalMatriculasRedeMunicipal: primeiroContexto(
+      (linha) => linha.totalMatriculasRedeMunicipal,
+    ),
+    custoAnualPorAluno: primeiroContexto((linha) => linha.custoAnualPorAluno),
     posicaoRanking: ranking?.posicaoRanking ?? null,
     totalMunicipios: ranking?.totalMunicipios ?? null,
     variacaoPosicoes: ranking?.variacaoPosicoes ?? null,

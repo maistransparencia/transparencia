@@ -82,7 +82,7 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
     >
       <SectionHeader
         title="Painel de Responsabilidade Fiscal da Educação"
-        description="Acompanhamento da aplicação orçamentária na Função 12 (Educação) em paralelo à evolução dos resultados do IDEB na rede municipal."
+        description="Acompanhamento da aplicação orçamentária na Educação em paralelo à evolução dos resultados do IDEB na rede municipal."
       />
 
       {/* Gráfico de Correlação: Despesa Liquidada na Educação vs. Desempenho no IDEB */}
@@ -93,8 +93,8 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
               Evolução da Despesa na Educação vs. Desempenho no IDEB
             </h3>
             <p className="text-slate-500 text-xs">
-              Cruzamento entre o total liquidado na Função 12 (Educação) e os
-              resultados bienais de proficiência escolar.
+              Cruzamento entre o total liquidado na Educação e os resultados
+              bienais de proficiência escolar.
               {fiscal.totalMatriculas !== null && (
                 <span className="mt-0.5 block text-slate-600">
                   Rede municipal com{" "}

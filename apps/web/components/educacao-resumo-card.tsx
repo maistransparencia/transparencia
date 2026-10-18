@@ -19,6 +19,9 @@ export interface EducacaoResumoCardData {
   rankingTexto: string | null;
   rankingVariacaoTexto: string | null;
   rankingVariacaoTom: EducacaoResumoTom;
+  exercicioDespesa: number;
+  despesaLiquidadaEducacaoTexto: string | null;
+  despesaLiquidadaEducacaoCompleta: string | null;
 }
 
 export interface EducacaoResumoCardProps {
@@ -126,7 +129,7 @@ export function EducacaoResumoCard({
               {resumo.enfaseTitulo}
             </p>
           )}
-          <div className="mt-3 grid grid-cols-2 items-stretch gap-x-3 gap-y-3 sm:mt-4 sm:gap-6">
+          <div className="mt-3 grid grid-cols-2 items-stretch gap-x-3 gap-y-3 sm:mt-4 sm:grid-cols-3 sm:gap-6">
             <div className="col-span-2 flex flex-col sm:col-span-1">
               <span className={CLASSE_ROTULO}>Nota do IDEB (1º ao 5º ano)</span>
               <div className={CLASSE_VALOR_LINHA}>
@@ -177,6 +180,23 @@ export function EducacaoResumoCard({
                   </span>
                 )}
               </div>
+            </div>
+
+            <div className="col-span-2 flex flex-col sm:col-span-1">
+              <span className={CLASSE_ROTULO}>
+                Despesa liquidada em Educação
+              </span>
+              <div className={CLASSE_VALOR_LINHA}>
+                <p
+                  className="font-bold text-ink text-lg leading-tight tracking-tight"
+                  title={resumo.despesaLiquidadaEducacaoCompleta ?? undefined}
+                >
+                  {resumo.despesaLiquidadaEducacaoTexto ?? "—"}
+                </p>
+              </div>
+              <p className={CLASSE_APOIO}>
+                Exercício {resumo.exercicioDespesa}
+              </p>
             </div>
           </div>
         </>
