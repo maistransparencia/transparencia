@@ -5,16 +5,23 @@ export function fmtCurrency(value: number): string {
   }).format(value);
 }
 
+function fmtCompactDecimal(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 export function fmtCompact(value: number): string {
   const abs = Math.abs(value);
   if (abs >= 1_000_000_000) {
-    return `R$ ${(value / 1_000_000_000).toFixed(1)}bi`;
+    return `R$ ${fmtCompactDecimal(value / 1_000_000_000)} bi`;
   }
   if (abs >= 1_000_000) {
-    return `R$ ${(value / 1_000_000).toFixed(1)}mi`;
+    return `R$ ${fmtCompactDecimal(value / 1_000_000)} mi`;
   }
   if (abs >= 1_000) {
-    return `R$ ${(value / 1_000).toFixed(1)}mil`;
+    return `R$ ${fmtCompactDecimal(value / 1_000)} mil`;
   }
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

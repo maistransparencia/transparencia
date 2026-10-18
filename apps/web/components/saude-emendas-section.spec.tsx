@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fmtCurrency } from "@transparencia/ui";
 import { describe, expect, it } from "vitest";
 import {
   SaudeEmendasSection,
@@ -279,5 +280,40 @@ describe("SaudeEmendasSection", () => {
     // A primeira linha deve ser do autor que possui empenho
     expect(rows[0]?.textContent).toContain("Autor com Empenho");
     expect(rows[1]?.textContent).toContain("Autor Sem Empenho");
+  });
+
+  it("usa título e descrição customizados e rodapé com os totais na tabela", () => {
+    render(
+      <SaudeEmendasSection
+        ano={2026}
+        emendasStats={mockStats}
+        titulo="Emendas parlamentares destinadas à Educação"
+        descricao="Recursos destinados à educação do município."
+      />,
+    );
+    expect(
+      screen.getByText("Emendas parlamentares destinadas à Educação"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Emendas parlamentares destinadas à Saúde"),
+    ).not.toBeInTheDocument();
+
+    const rodape = screen.getAllByRole("row").at(-1) as HTMLElement;
+    expect(within(rodape).getByText("Total")).toBeInTheDocument();
+    const somaAutorizado = mockStats.lista.reduce(
+      (soma, emenda) => soma + emenda.valorAutorizado,
+      0,
+    );
+    expect(rodape.textContent).toContain(fmtCurrency(somaAutorizado));
+  });
+
+  it("recalcula o rodapé ao buscar na tabela", () => {
+    render(<SaudeEmendasSection ano={2026} emendasStats={mockStats} />);
+    fireEvent.change(screen.getByPlaceholderText(/Buscar/), {
+      target: { value: "Soranz" },
+    });
+    const rodape = screen.getAllByRole("row").at(-1) as HTMLElement;
+    expect(rodape.textContent).toContain(fmtCurrency(500000));
+    expect(rodape.textContent).toContain(fmtCurrency(400000));
   });
 });

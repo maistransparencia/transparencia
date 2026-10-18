@@ -5,6 +5,38 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-10-18
+
+### 🌟 Destaques da Versão (Epic 18: Educação)
+* **Nova Página Temática de Educação:** Quatro blocos cívicos com indicadores do IDEB (fonte INEP), despesa de educação, contratos do setor e emendas parlamentares, com comparação à média estadual calculada a partir da rede pública.
+* **Educação na Página Inicial:** Card-resumo com o IDEB, a meta, a variação de posições e a despesa liquidada do exercício selecionado, replicado também no card de compartilhamento (OpenGraph).
+* **Linguagem Cidadã:** Remoção do jargão técnico "Função 12" dos textos públicos de educação.
+
+### ✨ Novas Funcionalidades (Added)
+* **Página de Educação (`apps/web`):** Seções com indicadores IDEB, despesa por aluno, contratos vigentes filtrados pelo ano selecionado, emendas parlamentares da educação e totais no rodapé das tabelas.
+* **Card de Educação na Home:** Indicadores do IDEB, meta e ênfase na evolução, com link para a fonte INEP e rodapé padronizado.
+* **Média Estadual Dinâmica:** Exibição da média estadual do IDEB e do período calculado.
+* **Segmented Button (`@transparencia/ui`):** Novo botão segmentado com contraste acessível nos filtros inativos.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Ingestão INEP/IDEB:** Pipeline de ingestão, `dbt seed` e workflow de atualização do IDEB.
+* **`fct_educacao_metricas`:** Nova fato analítica com cruzamento orçamentário e custo por aluno; predicados de despesa, testes de schema e teardown refinados.
+* **Seed de IDEB Estadual:** Seed da rede pública estadual e sincronização por UF; as médias estaduais passam a ser calculadas dinamicamente em `@transparencia/db`.
+* **Leitores Kysely:** Queries e DTOs tipados de métricas educacionais.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Refatorações de UI:** Card de educação, tabela e modal de contratos alinhados ao padrão canônico, tipografia harmonizada e renderização condicional do card de contrato vigente simplificada.
+* **Ano-Base:** Fallback temporal do IDEB ao ano-base bienal correspondente.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de IA:** `llms.txt` atualizado com o card e a página de educação.
+* **Diretrizes do Repositório:** `AGENTS.md` atualizado; saída renderizada do BMAD ignorada no controle de versão.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **IDEB:** A meta de 2021 deixa de ser propagada para edições sem meta; indicadores sincronizados ao ano-base; formato compacto pt-BR.
+* **Contratos da Educação:** Categorização refinada com prevenção de vazamento setorial e filtro pelo ano selecionado.
+* **Gráficos e Home:** Margens dos gráficos ajustadas; o card da home segue o exercício selecionado.
+
 ## [1.19.0] - 2026-10-18
 
 ### 🌟 Destaques da Versão (Empenhos Federais de Obras e Carregamento em Lote)

@@ -309,10 +309,10 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
-      "área de Saúde totalizaram R$ 15.2mi",
+      "área de Saúde totalizaram R$ 15,2 mi",
     );
-    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15.2mi");
-    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10.7mi");
+    expect(cardSaude.valorObservadoFormatted).toBe("R$ 15,2 mi");
+    expect(cardSaude.valorEsperadoFormatted).toBe("R$ 10,7 mi");
     expect(cardSaude.ctaLabel).toBe("Conferir Aplicação em Saúde");
     expect(cardSaude.ctaUrl).toBe("/porciuncula/despesas?ano=2024");
 
@@ -356,10 +356,10 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.titulo).toBe("Aporte Expressivo em Habitação");
     expect(card.badgeSeveridade?.label).toBe("Aporte Relevante");
     expect(card.textoFactual).toContain(
-      "área de Habitação totalizaram R$ 500.0mil",
+      "área de Habitação totalizaram R$ 500,0 mil",
     );
-    expect(card.valorObservadoFormatted).toBe("R$ 500.0mil");
-    expect(card.valorEsperadoFormatted).toBe("R$ 105.0mil");
+    expect(card.valorObservadoFormatted).toBe("R$ 500,0 mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 105,0 mil");
     expect(card.ctaLabel).toBe("Conferir Aplicação em Habitação");
   });
 
@@ -426,8 +426,8 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.metodologiaBadge).toBe("Meta Atuarial");
     expect(card.esperadoLabel).toBe("Aporte Exigido");
     expect(card.tipoMetodologia).toBe("estoque");
-    expect(card.valorObservadoFormatted).toBe("R$ 650.0mil");
-    expect(card.valorEsperadoFormatted).toBe("R$ 1.0mi");
+    expect(card.valorObservadoFormatted).toBe("R$ 650,0 mil");
+    expect(card.valorEsperadoFormatted).toBe("R$ 1,0 mi");
     expect(card.desvioPercentualFormatted).toBe("-35%");
     expect(card.ctaLabel).toBe("Auditar Aporte Atuarial");
     expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2024#atuarial");
@@ -467,7 +467,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.metodologiaBadge).toBe("Fluxo em Aberto");
     expect(card.esperadoLabel).toBe("Passivo Tolerado");
     expect(card.tipoMetodologia).toBe("estoque");
-    expect(card.valorObservadoFormatted).toBe("R$ 50.0mil");
+    expect(card.valorObservadoFormatted).toBe("R$ 50,0 mil");
     expect(card.valorEsperadoFormatted).toBe("R$ 0");
     expect(card.desvioPercentualFormatted).toBe("+100%");
     expect(card.ctaLabel).toBe("Verificar Repasse Patronal");
@@ -677,8 +677,8 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(card.esperadoLabel).toBe("Saldo Inicial (Triênio)");
     expect(card.tipoMetodologia).toBe("estoque");
     expect(card.grauSeveridade).toBe("critico");
-    expect(card.valorObservadoFormatted).toBe("R$ 36.0mi");
-    expect(card.valorEsperadoFormatted).toBe("R$ 45.4mi");
+    expect(card.valorObservadoFormatted).toBe("R$ 36,0 mi");
+    expect(card.valorEsperadoFormatted).toBe("R$ 45,4 mi");
     expect(card.desvioPercentualFormatted).toBe("-20.8%");
     expect(card.ctaLabel).toBe("Auditar Patrimônio Previdenciário");
     expect(card.ctaUrl).toBe("/porciuncula/previdencia?ano=2025#patrimonio");
@@ -693,7 +693,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       },
     ]);
     expect(card.textoFactual).toContain(
-      "retração de 20.8% e consumo de R$ 9.4mi ao longo do triênio",
+      "retração de 20.8% e consumo de R$ 9,4 mi ao longo do triênio",
     );
   });
 
@@ -898,5 +898,124 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
 
     expect(vm.obrasMiniMapMarkers).toEqual([]);
     expect(vm.obrasMapCenter).toEqual([-20.9634, -42.0408]);
+  });
+});
+
+describe("buildVisaoGeralViewModel - educacaoResumo", () => {
+  const resumoBase = {
+    portalSlug: "porciuncula",
+    ano: 2023,
+    notaIdeb: 5.9,
+    metaIdeb: null,
+    atingiuMeta: null,
+    crescimentoPontosIdeb: 1.4,
+    saebMatematica: null,
+    saebLinguaPortuguesa: null,
+    indicadorFluxoAprovacao: null,
+    despesaLiquidadaEducacao: null,
+    totalMatriculasRedeMunicipal: null,
+    custoAnualPorAluno: 9000,
+    anosIniciais: null,
+    anosFinais: null,
+  };
+  const build = (overrides: Record<string, unknown>) =>
+    buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoEducacao: { ...resumoBase, ...overrides },
+      }),
+    ).educacaoResumo;
+
+  it("monta destaque positivo e deep link para /educacao", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: resumoBase }),
+    );
+    expect(vm.educacaoResumo).toMatchObject({
+      ano: 2023,
+      notaIdebTexto: "5,9",
+      enfaseTom: "destaque",
+      enfaseTitulo: "Destaque: evolução de +1,4 ponto no IDEB",
+      evolucaoTexto: "+1,4 ponto",
+      notaAnteriorTexto: "Ciclo anterior: 4,5",
+      metaTexto: null,
+      rankingTexto: null,
+    });
+    expect(vm.educacaoResumo).not.toHaveProperty("custoAnualPorAluno");
+    expect(vm.educacaoResumo).not.toHaveProperty("mdePercentual");
+    expect(vm.educacaoDetailUrl).toBe("/porciuncula/educacao?ano=2024");
+  });
+
+  it("destaca meta atingida mesmo com evolução pequena", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: true });
+    expect(resumo?.enfaseTom).toBe("destaque");
+    expect(resumo?.enfaseTitulo).toBe("Destaque: meta do IDEB atingida");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB atingida");
+    expect(resumo?.metaTom).toBe("destaque");
+  });
+
+  it("sinaliza atenção para meta não atingida", () => {
+    const resumo = build({ crescimentoPontosIdeb: 0.2, atingiuMeta: false });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.metaTexto).toBe("Meta do IDEB não atingida");
+    expect(resumo?.metaTom).toBe("atencao");
+  });
+
+  it("sinaliza atenção para queda do IDEB", () => {
+    const resumo = build({ crescimentoPontosIdeb: -0.3, notaIdeb: 5.1 });
+    expect(resumo?.enfaseTom).toBe("atencao");
+    expect(resumo?.enfaseTitulo).toBe("Atenção: queda de 0,3 ponto no IDEB");
+    expect(resumo?.evolucaoTexto).toBe("-0,3 ponto");
+    expect(resumo?.evolucaoTom).toBe("atencao");
+    expect(resumo?.notaAnteriorTexto).toBe("Ciclo anterior: 5,4");
+  });
+
+  it("é neutro sem evolução relevante nem meta", () => {
+    const resumo = build({ crescimentoPontosIdeb: null });
+    expect(resumo?.enfaseTom).toBe("neutro");
+    expect(resumo?.enfaseTitulo).toBeNull();
+    expect(resumo?.evolucaoTexto).toBeNull();
+    expect(resumo?.notaAnteriorTexto).toBeNull();
+  });
+
+  it("inclui ranking, despesa liquidada do exercício selecionado e não expõe etapas", () => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      despesaLiquidadaEducacao: 12300000,
+      anosIniciais: { notaIdeb: 6.1 },
+      anosFinais: { notaIdeb: 5.2 },
+    });
+    expect(resumo?.rankingTexto).toBe("3º de 92 municípios");
+    expect(resumo).not.toHaveProperty("etapas");
+    expect(resumo?.despesaLiquidadaEducacaoTexto).toBe("R$ 12,3 mi");
+    expect(resumo?.despesaLiquidadaEducacaoCompleta).toContain("12.300.000");
+    expect(resumo?.exercicioDespesa).toEqual(expect.any(Number));
+  });
+
+  it.each([
+    [2, "+2 posições", "destaque"],
+    [-3, "-3 posições", "atencao"],
+    [0, "Estável", "neutro"],
+    [null, null, "neutro"],
+  ] as const)("variação de posições %s", (variacao, texto, tom) => {
+    const resumo = build({
+      posicaoRanking: 3,
+      totalMunicipios: 92,
+      variacaoPosicoes: variacao,
+    });
+    expect(resumo?.rankingVariacaoTexto).toBe(texto);
+    expect(resumo?.rankingVariacaoTom).toBe(tom);
+  });
+
+  it("omite variação sem classificação válida", () => {
+    const resumo = build({ variacaoPosicoes: 2 });
+    expect(resumo?.rankingTexto).toBeNull();
+    expect(resumo?.rankingVariacaoTexto).toBeNull();
+  });
+
+  it("retorna educacaoResumo nulo sem resumo", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoEducacao: null }),
+    );
+    expect(vm.educacaoResumo).toBeNull();
   });
 });

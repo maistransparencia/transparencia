@@ -66,7 +66,7 @@ describe("PrevidenciaSaldoCaixaCard", () => {
     expect(
       screen.getByText(/Recursos Vinculados \(RPPS\)/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("R$ 8.5mi")).toBeInTheDocument();
+    expect(screen.getByText("R$ 8,5 mi")).toBeInTheDocument();
     expect(screen.getByText("+13.3% vs. 2023")).toBeInTheDocument();
     expect(screen.getByText("SICONFI")).toBeInTheDocument();
     expect(screen.getByText(/posição:\s*dezembro\/2024/i)).toBeInTheDocument();

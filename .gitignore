@@ -70,3 +70,4 @@ _bmad-output
 .bmad-loop/policy.toml
 
 *.tsbuildinfo
+_bmad/render/
