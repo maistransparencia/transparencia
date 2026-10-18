@@ -160,7 +160,7 @@ describe("contratos-servicos-vigentes", () => {
 
       const found = await getContratoByNumero(
         FIXTURE_PORTAL,
-        target.contratoNumero!,
+        target.contratoNumero as string,
         TEST_YEAR,
       );
       expect(found).not.toBeNull();

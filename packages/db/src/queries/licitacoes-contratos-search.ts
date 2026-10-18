@@ -95,7 +95,7 @@ export async function searchLicitacoesEContratos(
   const searchContratos = params.tipo !== "licitacao";
 
   const fetchLicitacoes = async (): Promise<SearchResultItem[]> => {
-    const query = sql<any>`
+    const query = sql<Record<string, unknown>>`
       SELECT 
         l.licitacao_id AS id,
         'licitacao' AS tipo,
@@ -257,7 +257,7 @@ export async function searchLicitacoesEContratos(
     `;
 
     const result = await query.execute(db);
-    return (result.rows ?? []).map((r: any) => {
+    return (result.rows ?? []).map((r) => {
       const num = r.numero ? String(r.numero) : "";
       const ano = Number(r.ano) || 0;
       const slug = String(r.portal_slug);
@@ -288,7 +288,7 @@ export async function searchLicitacoesEContratos(
   };
 
   const fetchContratos = async (): Promise<SearchResultItem[]> => {
-    const query = sql<any>`
+    const query = sql<Record<string, unknown>>`
       SELECT 
         c.contrato_id AS id,
         'contrato' AS tipo,
@@ -428,7 +428,7 @@ export async function searchLicitacoesEContratos(
     `;
 
     const result = await query.execute(db);
-    return (result.rows ?? []).map((r: any) => {
+    return (result.rows ?? []).map((r) => {
       const num = r.numero ? String(r.numero) : "";
       const ano = Number(r.ano) || 0;
       const slug = String(r.portal_slug);
