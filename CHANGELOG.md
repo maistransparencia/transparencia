@@ -5,6 +5,30 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-10-18
+
+### 🌟 Destaques da Versão (Empenhos Federais de Obras e Carregamento em Lote)
+* **Empenhos Federais nas Obras:** O modal de detalhes da obra passa a exibir os empenhos federais vinculados, com link para a consulta oficial no portal federal, permitindo ao cidadão conferir a origem dos recursos.
+* **Carregamento mais Rápido de Obras, Licitações e Radar:** Correlação de contratos e busca de itens de licitação agora são feitas em lote, reduzindo consultas repetidas ao banco.
+
+### ✨ Novas Funcionalidades (Added)
+* **Empenhos Federais no Modal de Obras (`ObrasDetalheModal`):** Visualização dos empenhos federais da obra, com informações cívicas simplificadas e avanço da obra, e link para a consulta oficial.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Empenhos Federais de Obras:** Extração, carga e modelagem em `elt/` dos empenhos federais associados às obras, com queries Kysely e fixtures de teste em `@transparencia/db`.
+* **Consultas em Lote com Isolamento de Tenant:** Busca em lote de itens de licitação com fallback temporal (`portal_slug` preservado) e correlação em lote de contratos por obras (`getContratosPorObrasBatch`) com transformações imutáveis.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Loaders e Cache:** Carregamento em lote e cache com granularidade ajustada nos loaders de licitações, obras e radar.
+* **Refatorações:** Simplificação da lógica de correlação de contratos e do layout do modal de obras, com remoção de elementos não utilizados.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de IA:** Atualização de `llms.txt` e `llms-full.txt` com os empenhos federais de obras.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Chaves de Cache Determinísticas:** Serialização estável de chaves de cache, com suporte a `undefined` e datas.
+* **Testes:** Correção da diretiva `ts-expect-error` no teste de empenhos federais e do mock de empenho federal no spec do modal de obras.
+
 ## [1.18.0] - 2026-10-15
 
 ### 🌟 Destaques da Versão (Canal de Feedback Cívico, Indicadores de Progresso e Otimizações de Navegação Móvel)
