@@ -5,6 +5,22 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-10-18
+
+### 🌟 Destaques da Versão (Reorganização da Visão Geral)
+* **Indicadores Sociais em Destaque:** Na página inicial, o Card Resumo de Educação e o Painel Resumo de Obras passam a ser apresentados juntos, logo após o resumo fiscal, antes do pipeline orçamentário.
+
+### ✨ Novas Funcionalidades (Added)
+* **Seção Indicadores Sociais (`apps/web`):** Nova seção na Visão Geral (`/[portalSlug]`) que agrupa, nesta ordem, os indicadores de Educação (INEP / IDEB) e de Obras (ObrasGov.br).
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de IA:** `llms.txt` e `llms-full.txt` atualizados com a descrição da seção Indicadores Sociais na Visão Geral.
+
+## [1.20.2] - 2026-10-18
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Gráfico de Educação (`apps/web`):** Ajuste da margem esquerda do `ComposedChart` em `EducacaoFiscalSection`.
+
 ## [1.20.1] - 2026-10-18
 
 ### 🌟 Destaques da Versão (Hotfix: Empenhos Federais em Obras)
