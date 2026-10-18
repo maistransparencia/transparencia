@@ -43,6 +43,7 @@ pool.on("error", (err) => {
   console.error("[db] Erro em conexão ociosa do pool Postgres (read):", err);
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: schema dinâmico dos marts dbt, sem tipos gerados
 export const db = new Kysely<any>({
   dialect: new PostgresDialect({
     pool,
@@ -67,6 +68,7 @@ writePool.on("error", (err) => {
   );
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: schema dinâmico dos marts dbt, sem tipos gerados
 export const dbWrite = new Kysely<any>({
   dialect: new PostgresDialect({
     pool: writePool,

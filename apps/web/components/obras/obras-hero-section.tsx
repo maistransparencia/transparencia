@@ -6,7 +6,6 @@ export interface ObrasHeroSectionProps {
   ano: number;
   isCurrentYear: boolean;
   partialPeriod: string;
-  municipioNome?: string;
   kpis: ObrasKpisViewModel;
 }
 
@@ -14,7 +13,6 @@ export function ObrasHeroSection({
   ano,
   isCurrentYear,
   partialPeriod,
-  municipioNome = "município",
   kpis,
 }: ObrasHeroSectionProps) {
   // Proporções para a barra empilhada de investimento

@@ -1,6 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type Mock,
+  vi,
+} from "vitest";
 import { NewsletterModal } from "./newsletter-modal";
 
 vi.mock("posthog-js", () => ({
@@ -54,7 +62,7 @@ describe("NewsletterModal component", () => {
   });
 
   it("deve submeter e-mail e exibir estado de sucesso", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
@@ -99,7 +107,7 @@ describe("NewsletterModal component", () => {
   });
 
   it("deve lidar com erro 429 de rate limit", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch as Mock).mockResolvedValueOnce({
       ok: false,
       status: 429,
       json: async () => ({

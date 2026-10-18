@@ -1,6 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type Mock,
+  vi,
+} from "vitest";
 import { LicitacoesSearchBar } from "./licitacoes-search-bar";
 import { LicitacoesSpotlightModal } from "./licitacoes-spotlight-modal";
 
@@ -100,7 +108,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve buscar e renderizar seções segregadas de Licitações e Contratos", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [
@@ -181,7 +189,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve exibir estado vazio amigável quando nenhum resultado for retornado", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [],
@@ -215,7 +223,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       window.addEventListener("contrato:selected", listenerMock);
       const pushStateSpy = vi.spyOn(window.history, "pushState");
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [
@@ -325,7 +333,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve exibir banner de erro amigável quando a API retornar 429 ou 500", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: false,
         status: 429,
       });
@@ -388,7 +396,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve manter o modal de busca aberto ao selecionar uma licitação do mesmo ano para navegação em camadas", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [
@@ -444,7 +452,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       const listenerMock = vi.fn();
       window.addEventListener("contrato:selected", listenerMock);
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [],
@@ -518,7 +526,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve exibir fornecedor homologado em licitações quando presente no resultado", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [
@@ -565,7 +573,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve exibir badge de ano de celebração e período de vigência formatado para contratos vigentes de anos anteriores", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [],
@@ -617,7 +625,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve permitir alternar o escopo da busca entre 'Todos os anos' e 'Apenas 2026' filtrando requisição por ano", async () => {
-      (global.fetch as any).mockResolvedValue({
+      (global.fetch as Mock).mockResolvedValue({
         ok: true,
         json: async () => ({
           licitacoes: [],
@@ -674,7 +682,7 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
     });
 
     it("deve exibir badge de aviso 'Exercício 2024' para licitação de outro ano nos resultados do Spotlight", async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           licitacoes: [

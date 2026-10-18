@@ -49,7 +49,6 @@ export default async function ObrasPage({
         ano={viewModel.selectedYear}
         isCurrentYear={viewModel.isCurrentYear}
         partialPeriod={viewModel.partialPeriod}
-        municipioNome={viewModel.municipioNome}
         kpis={viewModel.kpis}
       />
 

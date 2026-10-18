@@ -141,7 +141,7 @@ describe("educacao/loader", () => {
       ];
 
       vi.mocked(dbModule.getPortalConfig).mockResolvedValue(
-        mockPortalConfig as any,
+        mockPortalConfig as never,
       );
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue(mockMetrics);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(mockResumo);
@@ -197,7 +197,7 @@ describe("educacao/loader", () => {
 
     it("utiliza o ano corrente como padrão quando searchParams.ano for omitido", async () => {
       const currentYear = new Date().getFullYear();
-      vi.mocked(dbModule.getPortalConfig).mockResolvedValue({} as any);
+      vi.mocked(dbModule.getPortalConfig).mockResolvedValue({} as never);
       vi.mocked(dbModule.getEducacaoMetrics).mockResolvedValue([]);
       vi.mocked(dbModule.getResumoEducacao).mockResolvedValue(null);
       vi.mocked(dbModule.getEducacaoContratos).mockResolvedValue([]);

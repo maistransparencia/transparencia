@@ -37,7 +37,7 @@ function makeRawEducacaoData(
       municipioNome: "Porciúncula",
       uf: "RJ",
       dataExtracao: "2026-03-31",
-    } as any,
+    } as never,
     allMetrics: [
       {
         educacaoMetricaId: "1",
