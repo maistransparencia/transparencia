@@ -279,6 +279,21 @@ describe("educacao/view-model", () => {
     expect(vm.contratosResumo.porCategoria.locacao_imoveis).toBe(1);
     expect(vm.contratosResumo.porCategoria.outros).toBe(1);
     expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(0);
+    expect(
+      vm.contratosResumo.totaisPorCategoria.locacao_imoveis.quantidade,
+    ).toBe(1);
+    expect(vm.contratosResumo.totaisPorCategoria.merenda_pnae).toEqual({
+      quantidade: 0,
+      valorContrato: 0,
+      totalEmpenhado: 0,
+      totalPago: 0,
+    });
+    expect(
+      Object.values(vm.contratosResumo.totaisPorCategoria).reduce(
+        (acc, t) => acc + t.valorContrato,
+        0,
+      ),
+    ).toBe(60000);
   });
 
   it("trata portal com apenas um ciclo cadastrado com fallback gracioso", () => {

@@ -70,6 +70,7 @@ export default async function EducacaoPage({
       {/* Bloco 4: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}
       <EducacaoContratosSection
         contratos={viewModel.contratos}
+        totaisPorCategoria={viewModel.contratosResumo.totaisPorCategoria}
         initialContratoNumero={resolvedSearchParams.contratoNumero}
         portalSlug={viewModel.portalSlug}
         ano={viewModel.selectedYear}
