@@ -127,7 +127,52 @@ export interface EducacaoViewModel {
     totalEmpenhado: number;
     totalPago: number;
     porCategoria: Record<EducacaoCategoriaContrato, number>;
+    totaisPorCategoria: Record<
+      EducacaoCategoriaContrato,
+      EducacaoContratosCategoriaTotais
+    >;
   };
+}
+
+export interface EducacaoContratosCategoriaTotais {
+  quantidade: number;
+  valorContrato: number;
+  totalEmpenhado: number;
+  totalPago: number;
+}
+
+const CATEGORIAS_CONTRATO: EducacaoCategoriaContrato[] = [
+  "merenda_pnae",
+  "transporte_pnate",
+  "manutencao_geral",
+  "locacao_imoveis",
+  "outros",
+];
+
+function buildTotaisPorCategoria(
+  contratos: EducacaoContratoDTO[],
+): Record<EducacaoCategoriaContrato, EducacaoContratosCategoriaTotais> {
+  return Object.fromEntries(
+    CATEGORIAS_CONTRATO.map((categoria) => [
+      categoria,
+      contratos
+        .filter((c) => c.categoria === categoria)
+        .reduce<EducacaoContratosCategoriaTotais>(
+          (acc, c) => ({
+            quantidade: acc.quantidade + 1,
+            valorContrato: acc.valorContrato + (c.valorContrato || 0),
+            totalEmpenhado: acc.totalEmpenhado + (c.totalEmpenhado || 0),
+            totalPago: acc.totalPago + (c.totalPago || 0),
+          }),
+          {
+            quantidade: 0,
+            valorContrato: 0,
+            totalEmpenhado: 0,
+            totalPago: 0,
+          },
+        ),
+    ]),
+  ) as Record<EducacaoCategoriaContrato, EducacaoContratosCategoriaTotais>;
 }
 
 interface BuildEtapaHistoricoParams {
@@ -564,6 +609,7 @@ export function buildEducacaoViewModel(raw: {
       totalEmpenhado,
       totalPago,
       porCategoria,
+      totaisPorCategoria: buildTotaisPorCategoria(contratos),
     },
   };
 }

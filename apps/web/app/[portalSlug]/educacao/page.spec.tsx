@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { loadEducacaoData } from "./loader";
 
@@ -433,7 +433,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("filtra contratos por categoria ao clicar nas abas", async () => {
+  it("exibe cards por categoria e abre a lista da categoria no modal", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -443,77 +443,12 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    // Ambos os contratos aparecem inicialmente
+    fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("VIACAO ESCOLAR LTDA")).toBeTruthy();
     expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-
-    // Clica no filtro Transporte (PNATE)
-    const tabTransporte = screen.getByRole("tab", {
-      name: /transporte \(pnate\)/i,
-    });
-    fireEvent.click(tabTransporte);
-
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
-      0,
-    );
-
-    // Clica no filtro Merenda (PNAE)
-    const tabMerenda = screen.getByRole("tab", { name: /merenda \(pnae\)/i });
-    fireEvent.click(tabMerenda);
-
-    expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
-
-    // Clica no filtro Locação de Imóveis
-    const tabLocacao = screen.getByRole("tab", {
-      name: /locação de imóveis/i,
-    });
-    fireEvent.click(tabLocacao);
-
-    expect(
-      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
-      0,
-    );
-    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
-
-    // Clica no filtro Outros Suprimentos & Serviços
-    const tabOutros = screen.getByRole("tab", {
-      name: /outros suprimentos/i,
-    });
-    fireEvent.click(tabOutros);
-
-    expect(
-      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("IMOBILIARIA CENTRAL LTDA").length).toBe(0);
-
-    // Volta para Todas
-    const tabTodas = screen.getByRole("tab", { name: /todas/i });
-    fireEvent.click(tabTodas);
-
-    expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
+      within(dialog).queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
+    ).toBeNull();
   });
 
   it("filtra contratos por busca textual na DenseTable", async () => {
