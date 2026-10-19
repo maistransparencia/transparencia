@@ -9,6 +9,7 @@ from elt.extract.fiorilli.receitas_downloader import (
     get_report_action_id,
     load_progress,
     normalize_csv_to_utf8,
+    pick_entity_option,
     report_key,
     save_progress,
     wait_for_transparencia_app,
@@ -91,3 +92,19 @@ def test_wait_for_transparencia_app_selectors():
     for call in mock_page.locator.call_args_list:
         selector = call[0][0]
         assert "a:has-text" not in selector
+
+
+def test_pick_entity_option_prefers_first_existing_candidate():
+    """O nome do seed vence; na falta dele, vale o nome antigo que o portal usava."""
+    options = ["PREFEITURA MUNICIPAL DE NATIVIDADE", "Fundo Municipal de Educação"]
+    candidates = ["FUNDO MUNICIPAL DE EDUCAÇÃO E CULTURA", "FUNDO MUNICIPAL DE EDUCAÇÃO"]
+    assert pick_entity_option(options, candidates) == "Fundo Municipal de Educação"
+    assert pick_entity_option([*options, "FUNDO MUNICIPAL DE EDUCAÇÃO E CULTURA"], candidates) == (
+        "FUNDO MUNICIPAL DE EDUCAÇÃO E CULTURA"
+    )
+
+
+def test_pick_entity_option_does_not_match_by_substring():
+    """'Educação' não pode casar com 'Educação e Cultura' (casamento por trecho trocava a entidade)."""
+    assert pick_entity_option(["FUNDO MUNICIPAL DE EDUCAÇÃO E CULTURA"], ["FUNDO MUNICIPAL DE EDUCAÇÃO"]) is None
+    assert pick_entity_option([], ["NATPREVI"]) is None
