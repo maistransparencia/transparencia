@@ -70,6 +70,7 @@ export function EducacaoOrigemRecursosSection({
 
       <FonteRecursoModal
         fonte={fonteSelecionada}
+        ano={ano}
         onClose={() => setFonteAberta(null)}
       />
     </section>

@@ -103,6 +103,23 @@ describe("EducacaoOrigemRecursosSection", () => {
     ).toHaveAttribute("href", "#painel-fiscal-educacao");
   });
 
+  it("destaca o ano selecionado no histórico e na composição do modal", () => {
+    render(
+      <EducacaoOrigemRecursosSection origemRecursos={makeOrigem([FUNDEB])} />,
+    );
+    fireEvent.click(screen.getByTestId("fonte-card-fundeb"));
+    const dialog = screen.getByRole("dialog");
+    const anoAno = within(dialog).getByRole("region", { name: "Ano a ano" });
+    const itens = within(anoAno).getAllByRole("listitem");
+    expect(itens[0]).not.toHaveAttribute("aria-current");
+    expect(itens[1]).toHaveAttribute("aria-current", "true");
+    expect(itens[1]).toHaveTextContent("2025");
+    expect(
+      within(dialog).getByText("De que são compostos em 2025"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/^R\$.* em 2025$/)).toBeInTheDocument();
+  });
+
   it("mostra frase neutra quando não há receitas no exercício", () => {
     render(<EducacaoOrigemRecursosSection origemRecursos={makeOrigem([])} />);
     expect(
