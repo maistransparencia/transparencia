@@ -37,22 +37,6 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
-## 5. SINCRONIZAÇÃO DE FONTES: dbt models ↔ `elt/conftest.py`
-
-**Contexto:** O banco de testes utiliza uma instância efêmera do PostgreSQL (`testing.postgresql`). A função `_create_raw_schema(eng)` em [conftest.py](file:///Volumes/Projects/transparencia/elt/conftest.py) cria o schema `raw_porciuncula_prefeitura` e as tabelas raw lendo dinamicamente as definições do arquivo de metadados [_sources.yml](file:///Volumes/Projects/transparencia/elt/transform/models/staging/porciuncula_prefeitura/_sources.yml). Durante a inicialização dos testes, as views e tabelas de staging/marts são compiladas e criadas dinamicamente no banco de testes executando as etapas do dbt (`deps`, `seed` e `run --vars '{"test_mode": true}'`).
-
-**Regra:** Toda vez que houver alteração nas tabelas raw de entrada (como novas tabelas ou novas colunas), é **obrigatório** atualizar o arquivo de fontes [_sources.yml](file:///Volumes/Projects/transparencia/elt/transform/models/staging/porciuncula_prefeitura/_sources.yml) correspondente. Não há necessidade de atualizar views ou criar tabelas manualmente no arquivo Python `conftest.py`, pois o pipeline do dbt é executado automaticamente durante o setup de testes para construir toda a estrutura derivada.
-
-**Verificação:** Após qualquer alteração em `elt/transform/models/` ou no schema das tabelas raw, execute `make test`. Se algum teste falhar por falta de colunas ou tabelas raw, certifique-se de que elas foram devidamente declaradas em `_sources.yml`.
-
----
-
-## 6. FORMATAÇÃO SQL
-
-- **Sem alinhamento por espaços:** Nunca adicione espaços extras para alinhar colunas, aliases (`AS`) ou qualquer outro elemento em queries SQL de analytics (`analysis/`, `elt/`, `tests/`). Use apenas o espaço mínimo necessário para separar tokens.
-
----
-
 ## 7. GERENCIAMENTO DE DEPENDÊNCIAS (PINNED VERSIONS)
 
 - **Versões Exatas (Pinned Versions):** Sempre instale e declare versões exatas de pacotes e dependências (npm/pnpm/pip) nos arquivos de manifesto (`package.json`, `pyproject.toml`, etc.), **sem** prefixos de variação como `^` ou `~` (ex: `"nuqs": "2.9.1"`). Ao rodar instalações via CLI, utilize flags de versão exata (ex: `pnpm add --save-exact <pacote>`).
@@ -76,34 +60,6 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
-## 11. BUSCAS E FILTROS DE TEXTO COM `unaccent`
-
-- **Tratamento de Acentuação e Caixa:** Em queries SQL de analytics e modelos dbt, ao filtrar ou categorizar colunas de texto/descrição (ex: `descricao`, `resumo`, `tipo_emenda`, `destinacao`), é **obrigatório** utilizar a função `{{ target.schema }}.unaccent(lower(...))` (ou `unaccent`). Isso previne falhas de categorização causadas por variações de caixa e acentuação nos dados brutos de origem.
-
----
-
-## 12. MANUTENÇÃO DOS ARQUIVOS DE CONTEXTO E GUIA DE LEITURA PARA IA (`llms.txt` E `llms-full.txt`)
-
-- **Orientação ao Consumo Público por LLMs**: Os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` destinam-se a orientar agentes de IA externos e modelos de linguagem (LLMs) sobre como **consumir, consultar e interpretar o conteúdo público** de transparência fiscal do município.
-- **Sincronização Obrigatória**: Sempre que houver inclusão, alteração ou remoção de rotas públicas (`apps/web/app/[portalSlug]/`), adição de novos indicadores/métricas públicas (Posição Fiscal, Despesas, Receitas, Licitações, Pessoal, CAPREM, Saúde) ou mudanças nas convenções contábeis exibidas aos usuários, é **obrigatório** atualizar os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`.
-- **Foco no Domínio do Usuário/Cidadão**: O conteúdo destes arquivos deve focar exclusivamente no entendimento das rotas, dicionário de campos públicos, conceitos contábeis (STN/MCASP) e orientações de consulta para assistentes de IA, sem poluição com detalhes internos de código ou infraestrutura.
-
----
-
-## 13. ESTRUTURAÇÃO DE CONDICIONAIS COMPLEXAS (PROIBIDO TERNÁRIOS ANINHADOS)
-
-- **Zero Ternários Aninhados:** É estritamente proibido encadear ou aninhar operadores ternários (`a ? b : c ? d : e`).
-- **Padrão IIFE ou Helper Function:** Para qualquer atribuição de variável ou propriedade UI com 2 ou mais verificações condicionais, utilize uma IIFE autoexecutável `(() => { if (...) return ...; return ...; })()` ou função auxiliar com retornos antecipados (`return`).
-
----
-
-## 14. AUDITORIA DE REPETIÇÃO UPSTREAM (dbt SQL ↔ Kysely `@transparencia/db`)
-
-- **Sem Duplicação de Sanitização:** Não aplique regexes de limpeza, `trim` ou formatação de strings em TypeScript (`@transparencia/db`) se a coluna já for sanitizada e entregue pronta pelo modelo dbt mart upstream.
-- **Zero Ternários Tautológicos:** Evite condicionais defensivas de atribuição do tipo `x === 'A' ? 'A' : 'B'`. Prefira type assertions diretas (`(x ?? 'B') as Type`).
-
----
-
 ## 15. SEGURANÇA DE PRODUÇÃO: PROIBIÇÃO DE EXECUÇÃO EM BANCO DE PRODUÇÃO SEM PERMISSÃO EXPLÍCITA
 
 - **Ambiente de Desenvolvimento Local Obrigatório:** Todos os comandos de execução (`make dbt/run`, `make dbt/test`, scripts Python, seeds e queries Kysely) devem rodar **estritamente contra o banco de dados local do Docker** (`DATABASE_URL=postgresql://postgres:postgres@localhost:5544/postgres` ou instâncias efêmeras de teste `testing.postgresql`).
@@ -112,59 +68,10 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
-## 16. CAMPOS DE TEXTO NO POSTGRESQL (SEMPRE TIPO `TEXT`)
-
-- **Proibição de `VARCHAR(n)` e `CHAR(n)`:** No PostgreSQL, não há ganho de performance em limitar o tamanho de campos de texto com `VARCHAR(n)` e essa prática impõe limitações rígidas arbitrárias.
-- **Padrão Obrigatório:** Todas as colunas de texto (strings, identificadores, códigos, e-mails, tokens, slugs, descrições) em migrações, DDLs e tabelas Postgres devem utilizar exclusivamente o tipo `TEXT`.
-
----
-
-## 17. CENTRALIZAÇÃO DE VARIÁVEIS DE AMBIENTE (PROIBIDO `process.env` DIRETO)
-
-- **Proibição de `process.env` Direto:** Em toda a aplicação web (`apps/web`), é **estritamente proibido** acessar `process.env` diretamente no código da aplicação (ex: `process.env.DATABASE_URL`, `process.env.NEXT_PUBLIC_*`).
-- **Padrão Obrigatório (`@/env`):** Todas as variáveis de ambiente devem ser importadas exclusivamente a partir do módulo canônico `apps/web/env.ts` (`import { env } from "@/env"`).
-- **Validação e Defaults Centralizados no Schema Zod:** Novos parâmetros, segredos ou valores padrão (defaults) devem ser definidos e documentados diretamente no schema Zod em `apps/web/env.ts` e refletidos em `.env.example`, garantindo tipagem estrita, fail-fast e segregação entre `server` e `client`.
-- **Exceções Estritas:** Apenas arquivos de infraestrutura interna do Next.js onde a checagem estática direta for mandatória para o bundler (como verificação de runtime em `apps/web/instrumentation.ts`) podem utilizar `process.env`.
-
----
-
-## 18. PADRÃO ESTRITO DE IDENTIFICADORES E DTOS EM TYPESCRIPT (`camelCase` MANDATÓRIO)
-
-- **Proibição de Chaves por Extenso, Espaços ou Acentos:** É estritamente proibido definir propriedades de interfaces, tipos ou DTOs em TypeScript com chaves entre aspas contendo espaços, acentuação, caracteres especiais ou PascalCase (ex: `"Valor Autorizado"`, `"Esfera de Origem"`, `Nº`, `Destinação`, `Periodo`).
-- **Padrão Obrigatório (`camelCase`):** Todas as propriedades e campos de DTOs, queries Kysely, loaders e View Models devem utilizar exclusivamente a convenção **`camelCase`** (ex: `valorAutorizado`, `esferaOrigem`, `numero`, `destinacao`, `periodo`, `tipoEmenda`, `atoNormativo`).
-- **Apresentação e Rótulos na UI:** Rótulos humanos, cabeçalhos de colunas ou títulos amigáveis para o cidadão pertencem exclusivamente à camada de visualização (`packages/ui` e `apps/web/components`), via mapeamento explícito de colunas (ex: `header: "Valor Autorizado"`, `accessorKey: "valorAutorizado"`).
-
----
-
 ## 19. MENSAGENS DE COMMIT CONVENCIONAIS E SEM METADADOS DE PROCESSO (SEM STORY/TASK)
 
 - **Proibição de Detalhes de Story/Task:** É estritamente proibido incluir referências a números de stories, tasks ou processos internos de gestão em mensagens de commit (ex: proibido `(story 9-4 task 3)`, `[story-9.4]`, `task 2`).
 - **Padrão Obrigatório:** Utilizar estritamente Conventional Commits em minúsculas focado na mudança funcional ou técnica (ex: `feat(web): adicionar secao detalhada de saldo em caixa em receitas`, `fix(db): consolidar saldos de caixa por entidade`).
-
----
-
-## 20. LINKS OBRIGATÓRIOS PARA LEIS E NORMAS CITADAS NA APLICAÇÃO
-
-- **Fundamentação Legal Acessível:** Sempre que qualquer lei, decreto, dispositivo constitucional ou norma infralegal for citado na interface (`apps/web/`, componentes, alertas, tooltips ou relatórios cívicos) — como Art. 37 da CF/88, Lei 4.320/64, Lei Complementar 101/2000 (LRF), Lei 14.133/2021, etc. —, é **obrigatório** disponibilizar o hyperlink direto e oficial para o respectivo texto legal.
-- **Fontes Oficiais:** Utilizar preferencialmente os links canônicos do portal da Presidência da República / Casa Civil (`https://www.planalto.gov.br/...`), direcionando para o artigo ou fragmento específico quando aplicável (ex: `#art37`).
-- **Padrão de UI:** Links externos para legislações devem incluir os atributos de segurança `target="_blank"` e `rel="noopener noreferrer"`, além do ícone acessível de link externo (`ExternalLink`) ou estilo sublinhado com contraste adequado, permitindo que o cidadão valide a fundamentação jurídica com um único clique.
-
----
-
-## 21. GOVERNANÇA E SINCRONIZAÇÃO DE FIXTURES DE TESTE (dbt models ↔ packages/db/tests/fixtures/schema.sql.gz)
-
-- **Sincronização Obrigatória de Fixtures:** Sempre que houver qualquer criação, alteração ou remoção de modelos marts (`elt/transform/models/marts/`) ou tabelas de seed (`elt/transform/seeds/`), é **obrigatório** regerar o fixture compactado de teste `packages/db/tests/fixtures/schema.sql.gz` executando `make db/fixture/dump`.
-- **Validação Automatizada de Paridade:** Antes de submeter commits ou pull requests, execute `make db/fixture/check` (ou `make test`) para validar se o fixture restaurado no banco de testes está em 100% de paridade de tabelas, colunas, tipos de dados e registros estáticos de seed com a estrutura gerada pelo dbt.
-- **Fail-Fast no CI:** O pipeline de integração contínua rejeitará automaticamente qualquer PR que contenha discrepâncias entre as definições analíticas do dbt e o fixture de banco de dados utilizado pela camada TypeScript (`packages/db`).
-
----
-
-## 22. PADRÕES DE ALTA PERFORMANCE EM QUERIES SQL (dbt MARTS & ANALYTICS)
-
-- **Aggregate First, Join Later (Prevenção de Fan-Out):** Nunca execute joins entre tabelas fatos volumosas ou relações 1:N (ex: `fct_licitacoes_itens` com `fct_licitacoes`) antes de agregar. Realize primeiro o `GROUP BY` no grão desejado na tabela filha antes de cruzar com o cabeçalho, prevenindo multiplicação de linhas intermediárias e timeouts de execução.
-- **Single-Scan em Janelas Temporais:** Evite escanear a mesma tabela fato múltiplas vezes para calcular o ano corrente/máximo e o histórico (ex: subqueries ou CTEs separadas com `MAX(ano)`). Utilize funções de janela analíticas como `MAX(ano) OVER (PARTITION BY portal_slug)` em um CTE base único para filtrar o grão mais recente sem re-scans.
-- **Predicate Pushdown Pré-`unaccent`:** Funções textuais de normalização (`unaccent`, `lower`, `regex`) em grandes volumes são custosas e impedem otimizações de plano de execução. Aplique primeiro predicados estruturados e de particionamento (`ano >= 2021`, `categoria_regime IN (...)`) antes de invocar `unaccent()` em descrições e títulos.
-- **CTEs de Consumo Especializado (Anti-Monólito):** Não crie CTEs amplos que realizam joins pesados para alimentar múltiplos indicadores se apenas uma das métricas precisa daquele cruzamento. Isole projeções e joins caros estritamente no CTE que calcula o indicador específico.
 
 ---
 
@@ -181,20 +88,11 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
-## 24. CONSISTÊNCIA DE DESIGN SYSTEM, COMPONENTES E VOCABULÁRIO CÍVICO (ZERO TERMOS EXÓTICOS)
+## REGRAS POR ESCOPO
 
-- **Consistência de Vocabulário e Ações:** É estritamente proibido inventar termos novos, jargões exóticos ou rótulos descolados do padrão da aplicação (ex: proibido inventar termos como `"Dossiê"`, `"Prontuário"`, `"Ficha Técnica Extra"`, `"Super Relatório"` ao introduzir novas páginas ou seções). Mantenha estrita uniformidade com as convenções já estabelecidas no portal:
-  - Detalhamento de registros em modal/página: **`"Detalhes"`**, **`"Ver detalhes"`** ou **`"Fechar detalhes"`** (idêntico ao padrão de Licitações, Contratos e Emendas).
-  - Títulos de janelas e cabeçalhos de contexto: **`"Detalhes da Obra"`**, **`"Detalhes do Contrato"`**, **`"Detalhes da Licitação"`**.
-  - Ações de navegação e filtros: nomes simples, diretos e padronizados (`"Limpar filtros"`, `"Filtrar por..."`, `"Compartilhar"`).
-- **Reuso Mandatório de Componentes do Design System (`packages/ui`):** Ao conceber novas telas ou funcionalidades, reutilize sempre os componentes canônicos existentes:
-  - Modais: `ModalDialog` (com suporte a share, badge, título, subtítulo e rodapé padronizado).
-  - Formatação e valores: helpers universais `fmtCurrency`, `fmtPercent`, `fmtCompact`, `fmtDate`, `fmtNumber`.
-  - Badges e pílulas de status: classes de utilitários e paleta padrão do Tailwind já definidas nos tokens globais.
-- **Uniformidade Tipográfica e Estilos de Fonte:** Não introduza famílias tipográficas alternativas nem classes arbitrárias de font-family fora da configuração oficial (`font-sans` para interface e `font-serif` para títulos editoriais e nomes de entidades municipais). Títulos de modais e seções devem seguir a mesma hierarquia de peso, entrelinha e tamanho dos módulos já consolidados.
-- **Padrão de Interação Idêntico (Deep Linking):** Seções com detalhamento analítico (licitações, contratos vigentes, obras) devem compartilhar rigorosamente a mesma UX: abertura em modal contextual sobreposto, sincronização bidirecional e reativa com query params da URL (`?idProjeto=...`, `?contratoNumero=...`), histórico de navegação navegável via `pushState`/`replaceState` e redirecionamento limpo da rota direta para a rota base com parâmetro de busca.
+As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14 e 18 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
 
-
+---
 
 <!-- BEGIN:turborepo-agent-rules -->
 
