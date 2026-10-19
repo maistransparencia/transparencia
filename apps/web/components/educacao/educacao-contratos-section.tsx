@@ -316,7 +316,7 @@ export function EducacaoContratosSection({
             </a>
             ), transporte escolar (
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10880.htm"
+              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10.880.htm"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"

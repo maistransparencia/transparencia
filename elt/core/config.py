@@ -22,6 +22,7 @@ class PortalConfig:
     github_url: str | None = None
     provider: str = "fiorilli"
     rpps: dict[str, Any] | None = None
+    entidades_alternativas: dict[str, list[str]] | None = None
 
     @property
     def raw_schema(self) -> str:
@@ -31,6 +32,12 @@ class PortalConfig:
     def orgaos_csv_path(self) -> Path:
         root = Path(__file__).resolve().parent.parent.parent
         return root / "elt" / "transform" / "seeds" / f"seed_{self.slug}_orgaos.csv"
+
+    def nomes_entidade(self, empresa_id: str, nome: str) -> list[str]:
+        """Nome do seed seguido dos nomes que o portal usou em outros exercícios."""
+        principal = nome.upper()
+        alternativos = (self.entidades_alternativas or {}).get(str(empresa_id), [])
+        return [principal, *(n.upper() for n in alternativos if n.upper() != principal)]
 
     def load_orgaos(self) -> dict[str, str]:
         """Returns {empresa_id: nome} from the seed CSV."""

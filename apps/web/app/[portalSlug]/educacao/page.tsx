@@ -3,6 +3,7 @@ import { EducacaoContratosSection } from "@/components/educacao/educacao-contrat
 import { EducacaoFiscalSection } from "@/components/educacao/educacao-fiscal-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
 import { EducacaoHistoricoSection } from "@/components/educacao/educacao-historico-section";
+import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
@@ -67,7 +68,14 @@ export default async function EducacaoPage({
       {/* Bloco 3: Despesa na Educação vs. IDEB */}
       <EducacaoFiscalSection fiscal={viewModel.fiscal} />
 
-      {/* Bloco 4: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}
+      {/* Bloco 4: De onde vem o dinheiro (origem dos recursos do Fundo de Educação) */}
+      {viewModel.origemRecursos && (
+        <EducacaoOrigemRecursosSection
+          origemRecursos={viewModel.origemRecursos}
+        />
+      )}
+
+      {/* Bloco 5: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}
       <EducacaoContratosSection
         contratos={viewModel.contratos}
         totaisPorCategoria={viewModel.contratosResumo.totaisPorCategoria}
@@ -76,7 +84,7 @@ export default async function EducacaoPage({
         ano={viewModel.selectedYear}
       />
 
-      {/* Bloco 5: Emendas parlamentares destinadas à Educação */}
+      {/* Bloco 6: Emendas parlamentares destinadas à Educação */}
       {viewModel.emendas.lista.length > 0 && (
         <SaudeEmendasSection
           ano={viewModel.selectedYear}

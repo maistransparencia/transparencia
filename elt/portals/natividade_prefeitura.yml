@@ -14,3 +14,7 @@ rpps:
   nome: Instituto de Previdência dos Servidores Públicos do Município de Natividade - NATPREVI
 assets:
   brasao: assets/brasao-natividade.png
+# Nomes que o portal usou antes de 2026; o seed guarda o nome atual.
+entidades_alternativas:
+  "5":
+    - FUNDO MUNICIPAL DE EDUCAÇÃO
