@@ -163,6 +163,7 @@ sources:
       - ano
       - empresa
       - codigo
+      - fontestn
     columns:
     - name: ano
     - name: empresa
@@ -176,6 +177,8 @@ sources:
     - name: prev_atualizada
     - name: arrecadado_total
     - name: arrec_total
+    - name: fontestn
+    - name: fonte_stn
   - name: receita_uniao
     description: Transferências recebidas da União
     meta:

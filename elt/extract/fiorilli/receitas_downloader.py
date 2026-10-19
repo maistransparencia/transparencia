@@ -5,6 +5,7 @@ dos Portais da Transparência Fiorilli (Natividade, Porciúncula, Bom Jesus, Sã
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -88,7 +89,7 @@ def select_devexpress_combo(page: Any, combo_id: str, option_text: str, timeout_
     dropdown_selector = f"#{combo_id}_DDD_L"
     option_locator = page.locator(
         f"{dropdown_selector} td.dxeListBoxItem_DevEx:visible",
-        has_text=option_text,
+        has_text=re.compile(rf"^\s*{re.escape(option_text)}\s*$", re.IGNORECASE),
     ).first
 
     try:
@@ -186,6 +187,35 @@ def combo_has_option(page: Any, combo_id: str, option_text: str) -> bool:
         return False
 
 
+def list_combo_options(page: Any, combo_id: str) -> list[str]:
+    """Lista os textos dos itens de um combo DevExpress."""
+    try:
+        return list(
+            page.evaluate(
+                """(id) => {
+                    const getByName = globalThis.ASPxClientControl?.GetControlCollection?.().GetByName;
+                    const combo = globalThis[id] || (getByName ? getByName(id) : null);
+                    if (!combo || typeof combo.GetItemCount !== 'function') return [];
+                    const items = [];
+                    for (let i = 0; i < combo.GetItemCount(); i += 1) {
+                        const item = combo.GetItem(i);
+                        items.push((item?.text ?? item?.GetText?.() ?? '').toString().trim());
+                    }
+                    return items;
+                }""",
+                combo_id,
+            )
+        )
+    except PlaywrightError:
+        return []
+
+
+def pick_entity_option(options: list[str], candidates: list[str]) -> str | None:
+    """Primeiro candidato presente nas opções do portal (texto exato, sem diferenciar caixa)."""
+    available = {option.strip().lower(): option.strip() for option in options}
+    return next((available[c.strip().lower()] for c in candidates if c.strip().lower() in available), None)
+
+
 def get_report_action_id(page: Any, link_text: str) -> str | None:
     """Extrai o identificador usado por ProcessaDados a partir do texto do link."""
     try:
@@ -257,8 +287,12 @@ def is_transparencia_server_error(page: Any) -> bool:
     return bool(page.get_by_text("Erro de Servidor no Aplicativo '/Transparencia'.").count() > 0)
 
 
-def restore_state_for_report(page: Any, base_url: str, year: int, entity_text: str) -> None:
-    """Retorna ao estado base (ano + entidade) para tentar abrir o relatório novamente."""
+def restore_state_for_report(page: Any, base_url: str, year: int, entity_candidates: list[str]) -> str:
+    """Retorna ao estado base (ano + entidade) e devolve o nome da entidade selecionada no portal.
+
+    O portal renomeia entidades entre exercícios; usa-se o primeiro candidato existente no combo
+    e confere que o valor exibido é exatamente o escolhido.
+    """
     last_error: Exception | None = None
     for _ in range(2):
         try:
@@ -266,13 +300,20 @@ def restore_state_for_report(page: Any, base_url: str, year: int, entity_text: s
             wait_for_transparencia_app(page)
             wait_for_loader_idle(page, timeout_ms=20000)
             select_devexpress_combo(page, "cmbExercicio", str(year))
-            if not try_select_devexpress_combo(page, "cmbEntidadeContabil", entity_text):
-                raise RuntimeError(f"Entidade '{entity_text}' não disponível ao restaurar estado para o ano {year}.")
-            return
+            options = list_combo_options(page, "cmbEntidadeContabil")
+            entity_text = pick_entity_option(options, entity_candidates)
+            if entity_text is None or not try_select_devexpress_combo(page, "cmbEntidadeContabil", entity_text):
+                raise RuntimeError(
+                    f"Entidade {entity_candidates} não disponível no ano {year}. Opções do portal: {options}"
+                )
+            shown = page.locator("#cmbEntidadeContabil_I").input_value(timeout=2000).strip()
+            if shown.lower() != entity_text.lower():
+                raise RuntimeError(f"Entidade exibida '{shown}' difere da esperada '{entity_text}'.")
+            return entity_text
         except (PlaywrightTimeoutError, RuntimeError, PlaywrightError) as exc:
             last_error = exc
 
-    raise RuntimeError(f"Falha ao restaurar estado para ano={year}, entidade='{entity_text}'.") from last_error
+    raise RuntimeError(f"Falha ao restaurar estado para ano={year}, entidade={entity_candidates}.") from last_error
 
 
 def normalize_csv_to_utf8(file_path: Path) -> None:
@@ -510,7 +551,7 @@ def run_receitas_csv_extraction(portal_slug: str) -> None:
     base_url = portal_cfg.portal_url
     years = list(range(portal_cfg.ano_inicial, date.today().year))
     entities_map = portal_cfg.load_orgaos()
-    entities = [(nome.upper(), eid) for eid, nome in entities_map.items()]
+    entities = [(portal_cfg.nomes_entidade(eid, nome), eid) for eid, nome in entities_map.items()]
 
     base_download_dir = PROJECT_ROOT / "data" / "raw" / portal_slug / "receitas_csv"
     user_data_dir = PROJECT_ROOT / ".local_browsers" / f"chrome_profile_{portal_slug}"
@@ -559,22 +600,33 @@ def run_receitas_csv_extraction(portal_slug: str) -> None:
 
         for year in years:
             print(f"\n=== Ano {year} ===")
-            for entity_text, entity_slug in entities:
+            for entity_candidates, entity_slug in entities:
                 pending_reports = [
                     (link_text, report_slug)
                     for link_text, report_slug in REPORTS
                     if report_key(year, entity_slug, report_slug) not in completed_reports
                 ]
                 if not pending_reports:
-                    print(f"  -- Entidade: {entity_text} -> já concluída; pulando")
+                    print(f"  -- Entidade: {entity_candidates[0]} -> já concluída; pulando")
                     continue
 
-                print(f"  -- Entidade: {entity_text}")
+                print(f"  -- Entidade: {entity_candidates[0]}")
                 try:
-                    restore_state_for_report(page, base_url, year, entity_text)
+                    entity_text = restore_state_for_report(page, base_url, year, entity_candidates)
                 except RuntimeError as exc:
                     print(f"     -> não foi possível preparar estado para essa entidade: {exc}")
+                    append_failed_request_log(
+                        failed_log_path,
+                        year,
+                        entity_slug,
+                        entity_candidates[0],
+                        "*",
+                        "*",
+                        base_download_dir,
+                        str(exc),
+                    )
                     continue
+                print(f"     -> entidade no portal: {entity_text}")
 
                 for link_text, report_slug in pending_reports:
                     print(f"    Relatório: {link_text}")
@@ -582,7 +634,7 @@ def run_receitas_csv_extraction(portal_slug: str) -> None:
                     current_key = report_key(year, entity_slug, report_slug)
 
                     try:
-                        restore_state_for_report(page, base_url, year, entity_text)
+                        restore_state_for_report(page, base_url, year, [entity_text])
                     except RuntimeError as prep_exc:
                         print(f"      -> falha ao preparar estado antes do relatório: {prep_exc}")
                         append_failed_request_log(

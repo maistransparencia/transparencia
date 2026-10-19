@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import type { EducacaoFiscalPainel } from "@/app/[portalSlug]/educacao/view-model";
 import { SectionHeader } from "@/components/section-header";
+import { ID_PAINEL_FISCAL_EDUCACAO } from "./fonte-recurso-utils";
 
 export interface EducacaoFiscalSectionProps {
   fiscal: EducacaoFiscalPainel;
@@ -77,6 +78,7 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
 
   return (
     <section
+      id={ID_PAINEL_FISCAL_EDUCACAO}
       aria-label="Painel de Responsabilidade Fiscal da Educação"
       className="space-y-6"
     >

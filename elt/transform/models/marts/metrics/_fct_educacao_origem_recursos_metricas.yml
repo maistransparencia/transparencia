@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: fct_educacao_origem_recursos_metricas
+    description: "Receitas orçamentárias arrecadadas pelos órgãos de Educação (folhas do plano de contas), classificadas por origem do recurso"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - ano
+            - empresa_id
+            - grupo_fonte
+            - codigo_natureza
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Exercício de referência"
+        tests:
+          - not_null
+
+      - name: empresa_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Identificador da entidade (órgão de Educação) no portal"
+        tests:
+          - not_null
+
+      - name: orgao_nome
+        data_type: text
+        description: "Nome do órgão de Educação conforme dim_orgao"
+
+      - name: grupo_fonte
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Origem do recurso em lowercase snake_case"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['fundeb', 'fundeb_complementacao_uniao', 'salario_educacao', 'pnae', 'pnate', 'outros_fnde', 'outras_receitas', 'nao_detalhado']
+
+      - name: codigo_natureza
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Código da natureza da receita (linha-folha do plano de contas)"
+        tests:
+          - not_null
+
+      - name: descricao_natureza
+        data_type: text
+        description: "Descrição da natureza da receita"
+
+      - name: arrecadado_receita
+        data_type: numeric(15, 2)
+        description: "Valor arrecadado da natureza no exercício"

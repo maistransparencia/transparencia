@@ -1,95 +1,58 @@
 "use client";
 
 import type {
-  ContratoServicoVigente,
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
 } from "@transparencia/db";
 import {
   Badge,
   type Column,
+  cn,
   DenseTable,
   fmtCurrency,
   fmtDate,
-  SegmentedButton,
 } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
-import { ContratoServicoVigenteCard } from "@/components/contrato-servico-vigente-card";
 import { SectionHeader } from "@/components/section-header";
-import { TabelaTotaisRow } from "@/components/tabela-totais-row";
+import { CategoriaContratoCard } from "./categoria-contrato-card";
+import { ContratosCategoriaModal } from "./contratos-categoria-modal";
+import {
+  educacaoDtoToContratoServicoVigente,
+  formatCategoriaLabel,
+  formatStatusExecucaoLabel,
+} from "./educacao-contratos-utils";
 
 export interface EducacaoContratosSectionProps {
   contratos: EducacaoContratoDTO[];
+  totaisPorCategoria: Record<
+    EducacaoCategoriaContrato,
+    EducacaoContratosCategoriaTotais
+  >;
   initialContratoNumero?: string;
   portalSlug: string;
   ano?: number;
 }
 
-type FilterCategoria = EducacaoCategoriaContrato | "todas";
-
-function formatCategoriaLabel(cat: EducacaoCategoriaContrato): string {
-  if (cat === "merenda_pnae") return "Merenda Escolar (PNAE)";
-  if (cat === "transporte_pnate") return "Transporte Escolar (PNATE)";
-  if (cat === "manutencao_geral") return "Manutenção & Infraestrutura";
-  if (cat === "locacao_imoveis") return "Locação de Imóveis";
-  return "Outros Suprimentos & Serviços";
-}
-
-function educacaoDtoToContratoServicoVigente(
-  c: EducacaoContratoDTO,
-): ContratoServicoVigente {
-  const percentualPago =
-    c.totalEmpenhado > 0 ? (c.totalPago / c.totalEmpenhado) * 100 : 0;
-  const statusExecucao = (() => {
-    if (c.totalPago >= c.totalEmpenhado && c.totalEmpenhado > 0) {
-      return "concluido";
-    }
-    if (c.totalEmpenhado > 0 && c.totalPago === 0) {
-      return "inexecutado";
-    }
-    return "em_execucao";
-  })();
-
-  return {
-    contratoServicoId: c.contratoId,
-    portalSlug: c.portalSlug,
-    empresaId: c.empresaId,
-    orgaoNome: c.orgaoNome,
-    ano: c.ano,
-    contratoNumero: c.contratoNumero,
-    licitacaoNumero: c.licitacaoNumero,
-    licitacaoAno: c.ano,
-    fontePrincipal: c.fontePrincipal,
-    fontesRecursos: c.fontesRecursos,
-    programaNome: c.principalPrograma,
-    projetoAtividadeNome: c.principalAcao,
-    funcaoNome: c.principalFuncao,
-    fornecedorNome: c.fornecedorNome,
-    fornecedorCnpj: c.fornecedorCpfCnpj ?? "",
-    objetoDescricao: c.objeto,
-    dataInicio: c.dataInicio,
-    vencimentoAtual: c.vencimentoAtual,
-    valorContrato: c.valorContrato,
-    valorAditado: c.valorAditado,
-    totalEmpenhado: c.totalEmpenhado,
-    totalLiquidado: c.totalLiquidado,
-    totalPago: c.totalPago,
-    saldoPendente: c.saldoAPagar,
-    percentualPago,
-    statusExecucao,
-  };
-}
+const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
+  "merenda_pnae",
+  "transporte_pnate",
+  "manutencao_geral",
+  "locacao_imoveis",
+  "outros",
+];
 
 export function EducacaoContratosSection({
   contratos,
+  totaisPorCategoria,
   initialContratoNumero,
   portalSlug,
   ano,
 }: EducacaoContratosSectionProps) {
-  const [categoriaFilter, setCategoriaFilter] =
-    useState<FilterCategoria>("todas");
+  const [categoriaAberta, setCategoriaAberta] =
+    useState<EducacaoCategoriaContrato | null>(null);
   const [selectedContratoDto, setSelectedContratoDto] =
     useState<EducacaoContratoDTO | null>(null);
 
@@ -161,31 +124,6 @@ export function EducacaoContratosSection({
     }
   }, []);
 
-  // Filtragem por categoria pedagógica
-  const filteredContratos = useMemo(() => {
-    if (categoriaFilter === "todas") return contratos;
-    return contratos.filter((c) => c.categoria === categoriaFilter);
-  }, [contratos, categoriaFilter]);
-
-  // Contagem por categoria
-  const counts = useMemo(() => {
-    return {
-      todas: contratos.length,
-      merenda_pnae: contratos.filter((c) => c.categoria === "merenda_pnae")
-        .length,
-      transporte_pnate: contratos.filter(
-        (c) => c.categoria === "transporte_pnate",
-      ).length,
-      manutencao_geral: contratos.filter(
-        (c) => c.categoria === "manutencao_geral",
-      ).length,
-      locacao_imoveis: contratos.filter(
-        (c) => c.categoria === "locacao_imoveis",
-      ).length,
-      outros: contratos.filter((c) => c.categoria === "outros").length,
-    };
-  }, [contratos]);
-
   // Contratos após filtro de categoria e busca (independe da paginação)
   const [contratosVisiveis, setContratosVisiveis] = useState<
     EducacaoContratoDTO[] | null
@@ -198,28 +136,22 @@ export function EducacaoContratosSection({
   );
 
   const totaisContratos = useMemo(() => {
-    const base = contratosVisiveis ?? filteredContratos;
+    const base = contratosVisiveis ?? contratos;
     return {
       empenhado: base.reduce((acc, c) => acc + (c.totalEmpenhado || 0), 0),
       liquidado: base.reduce((acc, c) => acc + (c.totalLiquidado || 0), 0),
       pago: base.reduce((acc, c) => acc + (c.totalPago || 0), 0),
       saldoPendente: base.reduce((acc, c) => acc + (c.saldoAPagar || 0), 0),
     };
-  }, [contratosVisiveis, filteredContratos]);
+  }, [contratosVisiveis, contratos]);
 
   // Estrutura de dados enriquecida para a tabela idêntica à de Contratos de Serviços Vigentes
   const tableData = useMemo(() => {
-    return filteredContratos.map((c) => {
+    return contratos.map((c) => {
       const contratoVigente = educacaoDtoToContratoServicoVigente(c);
-      const statusLabel = (() => {
-        if (contratoVigente.statusExecucao === "inexecutado") {
-          return "Não Executado";
-        }
-        if (contratoVigente.statusExecucao === "concluido") {
-          return "Concluído";
-        }
-        return "Em Execução";
-      })();
+      const statusLabel = formatStatusExecucaoLabel(
+        contratoVigente.statusExecucao,
+      );
 
       const vigenciaFormatada = (() => {
         if (c.dataInicio && c.vencimentoAtual) {
@@ -241,7 +173,7 @@ export function EducacaoContratosSection({
         vigenciaFormatada,
       };
     });
-  }, [filteredContratos]);
+  }, [contratos]);
 
   // Colunas rigorosamente no mesmo formato e ordem da página canônica de Contratos
   const columns: Column<(typeof tableData)[number]>[] = [
@@ -347,6 +279,14 @@ export function EducacaoContratosSection({
     },
   ];
 
+  const contratosDaCategoria = useMemo(
+    () =>
+      categoriaAberta
+        ? contratos.filter((c) => c.categoria === categoriaAberta)
+        : [],
+    [contratos, categoriaAberta],
+  );
+
   const selectedContratoVigente = useMemo(() => {
     if (!selectedContratoDto) return null;
     return educacaoDtoToContratoServicoVigente(selectedContratoDto);
@@ -376,7 +316,7 @@ export function EducacaoContratosSection({
             </a>
             ), transporte escolar (
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10880.htm"
+              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10.880.htm"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
@@ -401,112 +341,71 @@ export function EducacaoContratosSection({
         }
       />
 
-      {/* Segmented Filter Pills por Categoria Pedagógica */}
-      <div
-        className="flex flex-wrap items-center gap-2 border-slate-200/80 border-b pb-3"
-        role="tablist"
-        aria-label="Categorias de Contratos da Educação"
-      >
-        <span className="font-semibold text-slate-700 text-xs">
-          Categoria Pedagógica:
-        </span>
-        <SegmentedButton
-          role="tab"
-          aria-selected={categoriaFilter === "todas"}
-          onClick={() => setCategoriaFilter("todas")}
-          active={categoriaFilter === "todas"}
-          size="sm"
-        >
-          Todas ({counts.todas})
-        </SegmentedButton>
-        <SegmentedButton
-          role="tab"
-          aria-selected={categoriaFilter === "merenda_pnae"}
-          onClick={() => setCategoriaFilter("merenda_pnae")}
-          active={categoriaFilter === "merenda_pnae"}
-          muted={counts.merenda_pnae === 0}
-          size="sm"
-        >
-          Merenda (PNAE) ({counts.merenda_pnae})
-        </SegmentedButton>
-        <SegmentedButton
-          role="tab"
-          aria-selected={categoriaFilter === "transporte_pnate"}
-          onClick={() => setCategoriaFilter("transporte_pnate")}
-          active={categoriaFilter === "transporte_pnate"}
-          muted={counts.transporte_pnate === 0}
-          size="sm"
-        >
-          Transporte (PNATE) ({counts.transporte_pnate})
-        </SegmentedButton>
-        <SegmentedButton
-          role="tab"
-          aria-selected={categoriaFilter === "manutencao_geral"}
-          onClick={() => setCategoriaFilter("manutencao_geral")}
-          active={categoriaFilter === "manutencao_geral"}
-          muted={counts.manutencao_geral === 0}
-          size="sm"
-        >
-          Manutenção & Infraestrutura ({counts.manutencao_geral})
-        </SegmentedButton>
-        <SegmentedButton
-          role="tab"
-          aria-selected={categoriaFilter === "locacao_imoveis"}
-          onClick={() => setCategoriaFilter("locacao_imoveis")}
-          active={categoriaFilter === "locacao_imoveis"}
-          muted={counts.locacao_imoveis === 0}
-          size="sm"
-        >
-          Locação de Imóveis ({counts.locacao_imoveis})
-        </SegmentedButton>
-        {counts.outros > 0 && (
-          <SegmentedButton
-            role="tab"
-            aria-selected={categoriaFilter === "outros"}
-            onClick={() => setCategoriaFilter("outros")}
-            active={categoriaFilter === "outros"}
-            muted={counts.outros === 0}
-            size="sm"
-          >
-            Outros Suprimentos & Serviços ({counts.outros})
-          </SegmentedButton>
-        )}
-      </div>
-
-      {/* Tabela Completa via DenseTable no formato canônico da página de Contratos */}
-      <DenseTable
-        data={tableData}
-        columns={columns}
-        renderMobileCard={(row) => (
-          <ContratoServicoVigenteCard
-            contrato={row}
-            onOpenDetails={() => handleOpenContrato(row.rawDto)}
+      {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+        {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
+          <CategoriaContratoCard
+            key={categoria}
+            categoria={categoria}
+            totais={totaisPorCategoria[categoria]}
+            onOpen={setCategoriaAberta}
+            className={cn(
+              "md:col-span-2",
+              indice === CATEGORIAS_ORDENADAS.length - 1 && "col-span-2",
+            )}
           />
-        )}
-        searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."
-        searchableKeys={[
-          "contratoNumero",
-          "fornecedorNome",
-          "fornecedorCnpj",
-          "objetoDescricao",
-        ]}
-        pageSize={10}
-        sortable={true}
-        enableExportCsv={true}
-        exportFilename="contratos_educacao.csv"
-        rowKey="contratoServicoId"
-        onFilteredDataChange={handleFilteredDataChange}
-      />
+        ))}
+      </div>
+      {contratos.length === 0 && (
+        <p className="text-slate-500 text-sm">
+          Nenhum contrato registrado no exercício.
+        </p>
+      )}
 
-      {/* No mobile a tabela é substituída por cartões; mantém o resumo de totais */}
-      <TabelaTotaisRow
-        className="sm:hidden"
-        itens={[
-          { rotulo: "Empenhado", valor: totaisContratos.empenhado },
-          { rotulo: "Liquidado", valor: totaisContratos.liquidado },
-          { rotulo: "Pago", valor: totaisContratos.pago },
-          { rotulo: "Saldo Pendente", valor: totaisContratos.saldoPendente },
-        ]}
+      {/* Tabela completa: apenas em md+ */}
+      {contratos.length > 0 && (
+        <div className="hidden space-y-3 md:block">
+          <h3 className="font-semibold font-serif text-lg text-slate-900">
+            Ver todos os contratos
+          </h3>
+          <DenseTable
+            data={tableData}
+            columns={columns}
+            searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."
+            searchableKeys={[
+              "contratoNumero",
+              "fornecedorNome",
+              "fornecedorCnpj",
+              "objetoDescricao",
+            ]}
+            pageSize={10}
+            sortable={true}
+            enableExportCsv={true}
+            exportFilename="contratos_educacao.csv"
+            rowKey="contratoServicoId"
+            onFilteredDataChange={handleFilteredDataChange}
+          />
+        </div>
+      )}
+
+      {/* Modal de lista da categoria (z-50); detalhes por cima (z-[60]) */}
+      <ContratosCategoriaModal
+        isOpen={categoriaAberta !== null}
+        onClose={() => {
+          if (selectedContratoDto) return;
+          setCategoriaAberta(null);
+        }}
+        categoriaLabel={
+          categoriaAberta ? formatCategoriaLabel(categoriaAberta) : ""
+        }
+        contratos={contratosDaCategoria}
+        valorTotal={
+          categoriaAberta
+            ? totaisPorCategoria[categoriaAberta].valorContrato
+            : 0
+        }
+        onSelectContrato={handleOpenContrato}
+        detalheAberto={selectedContratoDto !== null}
       />
 
       {/* Modal Canônico de Detalhes 360° do Contrato Reutilizado */}
@@ -514,6 +413,8 @@ export function EducacaoContratosSection({
         contrato={selectedContratoVigente}
         isOpen={Boolean(selectedContratoVigente)}
         onClose={handleCloseModal}
+        openedFromSearch={categoriaAberta !== null}
+        backLabel="Voltar à lista"
         ano={ano}
         portalSlug={portalSlug}
         categoriaBadge={

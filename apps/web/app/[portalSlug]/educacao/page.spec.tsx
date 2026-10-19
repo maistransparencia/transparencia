@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { loadEducacaoData } from "./loader";
 
@@ -268,6 +268,7 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    origemRecursos: null,
     searchParams: {},
     ...overrides,
   };
@@ -433,7 +434,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("filtra contratos por categoria ao clicar nas abas", async () => {
+  it("exibe cards por categoria e abre a lista da categoria no modal", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -443,77 +444,12 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    // Ambos os contratos aparecem inicialmente
+    fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("VIACAO ESCOLAR LTDA")).toBeTruthy();
     expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-
-    // Clica no filtro Transporte (PNATE)
-    const tabTransporte = screen.getByRole("tab", {
-      name: /transporte \(pnate\)/i,
-    });
-    fireEvent.click(tabTransporte);
-
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
-      0,
-    );
-
-    // Clica no filtro Merenda (PNAE)
-    const tabMerenda = screen.getByRole("tab", { name: /merenda \(pnae\)/i });
-    fireEvent.click(tabMerenda);
-
-    expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
-
-    // Clica no filtro Locação de Imóveis
-    const tabLocacao = screen.getByRole("tab", {
-      name: /locação de imóveis/i,
-    });
-    fireEvent.click(tabLocacao);
-
-    expect(
-      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length).toBe(
-      0,
-    );
-    expect(screen.queryAllByText("VIACAO ESCOLAR LTDA").length).toBe(0);
-
-    // Clica no filtro Outros Suprimentos & Serviços
-    const tabOutros = screen.getByRole("tab", {
-      name: /outros suprimentos/i,
-    });
-    fireEvent.click(tabOutros);
-
-    expect(
-      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryAllByText("IMOBILIARIA CENTRAL LTDA").length).toBe(0);
-
-    // Volta para Todas
-    const tabTodas = screen.getByRole("tab", { name: /todas/i });
-    fireEvent.click(tabTodas);
-
-    expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("VIACAO ESCOLAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("IMOBILIARIA CENTRAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("ASSESSORIA EDUCACIONAL LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
+      within(dialog).queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
+    ).toBeNull();
   });
 
   it("filtra contratos por busca textual na DenseTable", async () => {
@@ -600,6 +536,74 @@ describe("EducacaoPage (Server Component)", () => {
     );
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Educação"),
+    ).not.toBeInTheDocument();
+  });
+  it("exibe o bloco de origem dos recursos entre o painel fiscal e os contratos quando há fundo de Educação", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        origemRecursos: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          nomeOrgao: "Fundo Municipal de Educação",
+          anoMin: 2020,
+          anoMax: 2025,
+          anoParcial: null,
+          mesReferencia: null,
+          totalArrecadado: 1000,
+          fontes: [
+            {
+              grupoFonte: "fundeb",
+              totalArrecadado: 1000,
+              percentualTotal: 100,
+              historicoAnual: [{ ano: 2025, totalArrecadado: 1000 }],
+              composicao: [
+                {
+                  codigoNatureza: "1751.50",
+                  descricaoNatureza: "Transferências do FUNDEB",
+                  totalArrecadado: 1000,
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const origem = screen.getByRole("region", {
+      name: "De onde vem o dinheiro da Educação",
+    });
+    const fiscal = screen.getByRole("region", {
+      name: "Painel de Responsabilidade Fiscal da Educação",
+    });
+    const contratos = screen.getByRole("region", {
+      name: "Contratos e Compras da Educação",
+    });
+    expect(
+      fiscal.compareDocumentPosition(origem) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      origem.compareDocumentPosition(contratos) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("omite o bloco de origem dos recursos quando o portal não tem fundo de Educação", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.queryByRole("region", {
+        name: "De onde vem o dinheiro da Educação",
+      }),
     ).not.toBeInTheDocument();
   });
 });

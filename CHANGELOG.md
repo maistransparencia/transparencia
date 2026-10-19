@@ -5,6 +5,31 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Educação: origem dos recursos)
+* **De onde vem o dinheiro da Educação:** A página de Educação passa a mostrar quanto o Fundo Municipal de Educação arrecadou em cada fonte (FUNDEB, complementação da União, salário-educação, PNAE, PNATE e outras), com o histórico ano a ano e a base legal de cada fonte.
+* **Valores de receita corrigidos:** Códigos de receita que o portal de origem informa duas vezes (linha total e linhas de detalhe) deixam de ser somados em duplicidade. Valores já publicados nesses códigos mudam.
+* **Contratos da Educação mais fáceis de navegar:** Cards por categoria, com a lista completa em janela de detalhes.
+
+### ✨ Novas Funcionalidades (Added)
+* **Origem dos Recursos da Educação (`apps/web`):** Novo bloco "De onde vem o dinheiro", entre o painel fiscal e os contratos, com barra de composição e cards por fonte. O modal "Ver detalhes" traz a série ano a ano com o ano selecionado destacado, a composição por natureza de receita e o link da lei no Planalto. A parcela cuja origem o portal não informa aparece como "Não detalhado", de modo que o total do bloco fecha com a receita oficial do Fundo. O ano em andamento é marcado como "parcial", com o mês de referência vindo da data da última extração. O bloco informa que o aporte da Prefeitura ao fundo não está incluído.
+* **Contratos da Educação por categoria (`apps/web`):** A seção de contratos passa a exibir cards por categoria com valor total, percentual pago do empenhado e quantidade de contratos; cada card abre a lista da categoria ordenada por valor, e a tabela completa permanece abaixo dos cards em telas largas.
+* **Query `getEducacaoOrigemRecursos` (`@transparencia/db`):** Devolve, por portal e ano, as fontes com valor, percentual do total, histórico anual, composição, `anoParcial` e `mesReferencia`. Retorna `null` quando o portal não tem órgão de Educação.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **Mart `fct_educacao_origem_recursos_metricas` (`elt`):** Receitas orçamentárias folha do(s) órgão(s) de Educação (`dim_orgao`, `orgao_nome ilike '%edu%'`), classificadas em `fundeb`, `fundeb_complementacao_uniao`, `salario_educacao`, `pnae`, `pnate`, `outros_fnde`, `outras_receitas` e `nao_detalhado`. A classificação cobre a tabela de naturezas usada a partir de 2022 (`1751`, `1714`, `1715`) e a anterior (`1758.01`, `1718.05`, `1718.09`).
+* **Teste `receitas_folhas_conciliam_com_topo`:** Compara a soma das folhas com o total oficial por portal, ano e entidade. Mantido como aviso, pois o portal informa linhas-mãe maiores que a soma das filhas.
+* **Fontes `receita_orcamentaria`:** `fontestn` e `fonte_stn` declaradas em `_sources.yml` e expostas pelo staging dos dois portais.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Download de receitas (`elt`):** O downloader aceita nomes alternativos de entidades por portal (`entidades_alternativas`), exige texto exato do combo, confere a entidade exibida e registra em `failed_requests.csv` as entidades indisponíveis, com as opções do portal.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de IA:** `llms.txt` e `llms-full.txt` descrevem o bloco de origem dos recursos, a fonte "Não detalhado" e o ano parcial.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Dobra de receitas orçamentárias (`elt`):** `int_receitas_consolidadas` somava a linha "total" (sem fonte STN) e as linhas de detalhe por fonte STN do mesmo código, inflando em cerca de 2x qualquer leitura por código-folha. Agora vale a linha sem fonte STN quando seu valor é diferente de zero e, na ausência dela, a soma dos detalhes. Valores publicados em códigos-folha de receita orçamentária mudam.
+* **Link da Lei do PNATE (`apps/web`):** URL do Planalto corrigida para `l10.880.htm`.
+
 ## [1.21.0] - 2026-10-18
 
 ### 🌟 Destaques da Versão (Reorganização da Visão Geral)
