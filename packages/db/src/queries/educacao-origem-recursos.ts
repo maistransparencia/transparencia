@@ -40,6 +40,10 @@ export interface EducacaoOrigemRecursosDTO {
   nomeOrgao: string | null;
   anoMin: number | null;
   anoMax: number | null;
+  /** Ano em andamento (ano da última extração), quando possui linhas no mart. */
+  anoParcial: number | null;
+  /** Mês (1 a 12) da última extração, quando há ano parcial. */
+  mesReferencia: number | null;
   totalArrecadado: number;
   fontes: EducacaoOrigemRecursoDTO[];
 }
@@ -105,6 +109,16 @@ function montarComposicao(
     );
 }
 
+const PADRAO_DATA_EXTRACAO = /^(\d{4})-(\d{2})-\d{2}/;
+
+function lerDataExtracao(valor: unknown): { ano: number; mes: number } | null {
+  const partes = PADRAO_DATA_EXTRACAO.exec(String(valor ?? "").trim());
+  if (!partes) return null;
+  const ano = Number(partes[1]);
+  const mes = Number(partes[2]);
+  return mes >= 1 && mes <= 12 ? { ano, mes } : null;
+}
+
 /**
  * Origem dos recursos do(s) órgão(s) de Educação do portal: receitas orçamentárias
  * arrecadadas no ano, agrupadas por fonte, com participação, série anual e composição.
@@ -133,6 +147,13 @@ export async function getEducacaoOrigemRecursos({
     return null;
   }
 
+  const metadado = await db
+    .selectFrom("dim_metadata")
+    .select("value")
+    .where("portal_slug", "=", cleanSlug)
+    .where("key", "=", "last_extracted_at")
+    .executeTakeFirst();
+
   const rows = await db
     .selectFrom("fct_educacao_origem_recursos_metricas")
     .select([
@@ -154,6 +175,8 @@ export async function getEducacaoOrigemRecursos({
   }));
 
   const anos = linhas.map((linha) => linha.ano);
+  const extracao = lerDataExtracao(metadado?.value);
+  const parcial = extracao && anos.includes(extracao.ano) ? extracao : null;
   const porGrupo = agruparPor(linhas, (linha) => linha.grupoFonte);
 
   const fontesDoAno = GRUPOS_FONTE_RECURSO_EDUCACAO.map((grupoFonte) => {
@@ -191,6 +214,8 @@ export async function getEducacaoOrigemRecursos({
     ].join(" / "),
     anoMin: anos.length > 0 ? Math.min(...anos) : null,
     anoMax: anos.length > 0 ? Math.max(...anos) : null,
+    anoParcial: parcial?.ano ?? null,
+    mesReferencia: parcial?.mes ?? null,
     totalArrecadado,
     fontes,
   };

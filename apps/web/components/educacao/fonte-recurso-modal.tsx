@@ -1,26 +1,41 @@
 "use client";
 
 import type { EducacaoOrigemRecursoDTO } from "@transparencia/db";
-import { fmtCurrency, ModalDialog } from "@transparencia/ui";
+import { cn, fmtCurrency, ModalDialog } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import {
   BASE_LEGAL_FONTE_RECURSO,
   DESCRICAO_FONTE_RECURSO,
+  formatMesPorExtenso,
   ID_PAINEL_FISCAL_EDUCACAO,
   ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
 
 export interface FonteRecursoModalProps {
   fonte: EducacaoOrigemRecursoDTO | null;
+  anoParcial: number | null;
+  mesReferencia: number | null;
+  /** Ano selecionado na página, destacado no histórico e na composição. */
+  ano: number;
   onClose: () => void;
 }
 
-export function FonteRecursoModal({ fonte, onClose }: FonteRecursoModalProps) {
+export function FonteRecursoModal({
+  fonte,
+  ano,
+  anoParcial,
+  mesReferencia,
+  onClose,
+}: FonteRecursoModalProps) {
   const rotulo = fonte ? ROTULO_FONTE_RECURSO[fonte.grupoFonte] : "";
   const baseLegal = fonte ? BASE_LEGAL_FONTE_RECURSO[fonte.grupoFonte] : null;
   const maiorValorHistorico = fonte
     ? Math.max(...fonte.historicoAnual.map((ponto) => ponto.totalArrecadado), 0)
     : 0;
+  const historicoTemParcial =
+    anoParcial !== null &&
+    mesReferencia !== null &&
+    (fonte?.historicoAnual.some((ponto) => ponto.ano === anoParcial) ?? false);
   const periodo = (() => {
     const anos = fonte?.historicoAnual.map((ponto) => ponto.ano) ?? [];
     if (anos.length === 0) return "";
@@ -35,7 +50,11 @@ export function FonteRecursoModal({ fonte, onClose }: FonteRecursoModalProps) {
       isOpen={fonte !== null}
       onClose={onClose}
       title={rotulo}
-      subtitle={fonte ? fmtCurrency(fonte.totalArrecadado) : undefined}
+      subtitle={
+        fonte
+          ? `${fmtCurrency(fonte.totalArrecadado)} em ${ano}${ano === anoParcial ? " (parcial)" : ""}`
+          : undefined
+      }
       maxWidth="2xl"
       zIndex="z-50"
       showShareButton={false}
@@ -82,32 +101,65 @@ export function FonteRecursoModal({ fonte, onClose }: FonteRecursoModalProps) {
               Ano a ano{periodo}
             </h3>
             <ul className="space-y-2">
-              {fonte.historicoAnual.map((ponto) => (
-                <li
-                  key={ponto.ano}
-                  className="grid grid-cols-[3rem_1fr_auto] items-center gap-3 text-xs"
-                >
-                  <span className="text-slate-500">{ponto.ano}</span>
-                  <span className="block h-1.5 overflow-hidden rounded-full bg-slate-100">
+              {fonte.historicoAnual.map((ponto) => {
+                const selecionado = ponto.ano === ano;
+                return (
+                  <li
+                    key={ponto.ano}
+                    aria-current={selecionado ? "true" : undefined}
+                    className={cn(
+                      "-mx-2 grid grid-cols-[3rem_1fr_auto] items-center gap-3 rounded-md px-2 py-1 text-xs",
+                      selecionado && "bg-sky-50 ring-1 ring-accent/30",
+                    )}
+                  >
                     <span
-                      className="block h-full rounded-full bg-accent"
-                      style={{
-                        width: `${maiorValorHistorico > 0 ? Math.max(0, (ponto.totalArrecadado / maiorValorHistorico) * 100) : 0}%`,
-                      }}
-                    />
-                  </span>
-                  <span className="font-serif text-slate-900">
-                    {fmtCurrency(ponto.totalArrecadado)}
-                  </span>
-                </li>
-              ))}
+                      className={cn(
+                        "text-slate-500",
+                        selecionado && "font-semibold text-slate-900",
+                      )}
+                    >
+                      {ponto.ano}
+                      {ponto.ano === anoParcial && (
+                        <span className="block font-normal text-[10px] text-slate-400">
+                          parcial
+                        </span>
+                      )}
+                    </span>
+                    <span className="block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <span
+                        className={cn(
+                          "block h-full rounded-full",
+                          selecionado ? "bg-accent" : "bg-accent/40",
+                        )}
+                        style={{
+                          width: `${maiorValorHistorico > 0 ? Math.max(0, (ponto.totalArrecadado / maiorValorHistorico) * 100) : 0}%`,
+                        }}
+                      />
+                    </span>
+                    <span
+                      className={cn(
+                        "font-serif text-slate-900",
+                        selecionado && "font-semibold",
+                      )}
+                    >
+                      {fmtCurrency(ponto.totalArrecadado)}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
+            {historicoTemParcial && mesReferencia !== null && (
+              <p className="text-slate-500 text-xs">
+                {anoParcial}: valores acumulados até{" "}
+                {formatMesPorExtenso(mesReferencia)}; o ano ainda não terminou.
+              </p>
+            )}
           </section>
 
           {fonte.composicao.length > 0 && (
             <section aria-label="De que são compostos" className="space-y-2">
               <h3 className="font-semibold text-slate-900 text-sm">
-                De que são compostos
+                De que são compostos em {ano}
               </h3>
               <ul className="divide-y divide-slate-100">
                 {fonte.composicao.map((item) => (

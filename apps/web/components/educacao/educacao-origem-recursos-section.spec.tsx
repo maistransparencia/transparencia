@@ -40,6 +40,8 @@ function makeOrigem(
     nomeOrgao: "Fundo Municipal de Educação",
     anoMin: 2024,
     anoMax: 2025,
+    anoParcial: null,
+    mesReferencia: null,
     totalArrecadado: fontes.reduce((acc, f) => acc + f.totalArrecadado, 0),
     fontes,
   };
@@ -103,6 +105,23 @@ describe("EducacaoOrigemRecursosSection", () => {
     ).toHaveAttribute("href", "#painel-fiscal-educacao");
   });
 
+  it("destaca o ano selecionado no histórico e na composição do modal", () => {
+    render(
+      <EducacaoOrigemRecursosSection origemRecursos={makeOrigem([FUNDEB])} />,
+    );
+    fireEvent.click(screen.getByTestId("fonte-card-fundeb"));
+    const dialog = screen.getByRole("dialog");
+    const anoAno = within(dialog).getByRole("region", { name: "Ano a ano" });
+    const itens = within(anoAno).getAllByRole("listitem");
+    expect(itens[0]).not.toHaveAttribute("aria-current");
+    expect(itens[1]).toHaveAttribute("aria-current", "true");
+    expect(itens[1]).toHaveTextContent("2025");
+    expect(
+      within(dialog).getByText("De que são compostos em 2025"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/^R\$.* em 2025$/)).toBeInTheDocument();
+  });
+
   it("mostra frase neutra quando não há receitas no exercício", () => {
     render(<EducacaoOrigemRecursosSection origemRecursos={makeOrigem([])} />);
     expect(
@@ -135,5 +154,36 @@ describe("EducacaoOrigemRecursosSection", () => {
     expect(within(dialog).getByText("Ano a ano (2025)")).toBeInTheDocument();
     expect(within(dialog).queryByText("De que são compostos")).toBeNull();
     expect(within(dialog).queryByText(/Base legal/)).toBeNull();
+  });
+
+  it("marca o ano em andamento como parcial nos cards e no modal", () => {
+    render(
+      <EducacaoOrigemRecursosSection
+        origemRecursos={{
+          ...makeOrigem([FUNDEB]),
+          anoParcial: 2025,
+          mesReferencia: 7,
+        }}
+      />,
+    );
+    expect(
+      screen.getByText("Ano em andamento: valores acumulados até julho."),
+    ).toBeInTheDocument();
+    const card = screen.getByTestId("fonte-card-fundeb");
+    expect(card).toHaveAccessibleName(
+      "FUNDEB, R$ 18,5 mi, 61% do total, valor parcial do ano",
+    );
+    expect(
+      within(card).getByText("61% do total · parcial"),
+    ).toBeInTheDocument();
+    fireEvent.click(card);
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/em 2025 \(parcial\)/)).toBeInTheDocument();
+    expect(within(dialog).getByText("parcial")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "2025: valores acumulados até julho; o ano ainda não terminou.",
+      ),
+    ).toBeInTheDocument();
   });
 });

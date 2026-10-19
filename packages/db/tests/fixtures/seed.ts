@@ -1169,8 +1169,23 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export async function seedDimMetadata(row: {
+  portalSlug: string;
+  key: string;
+  value: string;
+}): Promise<void> {
+  await db
+    .insertInto("dim_metadata")
+    .values({ portal_slug: row.portalSlug, key: row.key, value: row.value })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("dim_metadata")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("fct_educacao_origem_recursos_metricas")
     .where("portal_slug", "=", portalSlug)
