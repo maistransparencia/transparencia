@@ -268,6 +268,7 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    origemRecursos: null,
     searchParams: {},
     ...overrides,
   };
@@ -535,6 +536,72 @@ describe("EducacaoPage (Server Component)", () => {
     );
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Educação"),
+    ).not.toBeInTheDocument();
+  });
+  it("exibe o bloco de origem dos recursos entre o painel fiscal e os contratos quando há fundo de Educação", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        origemRecursos: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2025,
+          nomeOrgao: "Fundo Municipal de Educação",
+          anoMin: 2020,
+          anoMax: 2025,
+          totalArrecadado: 1000,
+          fontes: [
+            {
+              grupoFonte: "fundeb",
+              totalArrecadado: 1000,
+              percentualTotal: 100,
+              historicoAnual: [{ ano: 2025, totalArrecadado: 1000 }],
+              composicao: [
+                {
+                  codigoNatureza: "1751.50",
+                  descricaoNatureza: "Transferências do FUNDEB",
+                  totalArrecadado: 1000,
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const origem = screen.getByRole("region", {
+      name: "De onde vem o dinheiro da Educação",
+    });
+    const fiscal = screen.getByRole("region", {
+      name: "Painel de Responsabilidade Fiscal da Educação",
+    });
+    const contratos = screen.getByRole("region", {
+      name: "Contratos e Compras da Educação",
+    });
+    expect(
+      fiscal.compareDocumentPosition(origem) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      origem.compareDocumentPosition(contratos) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("omite o bloco de origem dos recursos quando o portal não tem fundo de Educação", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.queryByRole("region", {
+        name: "De onde vem o dinheiro da Educação",
+      }),
     ).not.toBeInTheDocument();
   });
 });

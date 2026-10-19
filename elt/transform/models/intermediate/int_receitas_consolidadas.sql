@@ -1,8 +1,9 @@
 -- Intermediário: consolida receitas de todos os portais e agrega ao grain correto.
 -- Para adicionar novo portal: incluir novos CTEs + union all em "combined".
--- Agregação por (portal_slug, tipo_receita, ano, empresa_id, codigo) colapsa linhas
--- com o mesmo código mas fontes STN distintas — padrão do portal que emite múltiplas
--- linhas para o mesmo código quando há mais de uma fonte de recurso envolvida.
+-- Para a maioria dos códigos-folha de receita orçamentária o portal emite uma linha
+-- "total" (sem fonte STN) mais linhas de detalhe por fonte STN, cada uma com o valor
+-- cheio. Por (portal_slug, tipo_receita, ano, empresa_id, codigo) vence a linha sem
+-- fonte STN quando existir e tiver valor; sem ela (ou com total zero), somam-se todas as linhas.
 
 with porciuncula_orcamentaria as (
     select
@@ -13,7 +14,8 @@ with porciuncula_orcamentaria as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        fonte_stn
     from {{ ref('stg_porciuncula_prefeitura__receita_orcamentaria') }}
 ),
 
@@ -26,7 +28,8 @@ porciuncula_uniao as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_porciuncula_prefeitura__receita_uniao') }}
 ),
 
@@ -39,7 +42,8 @@ porciuncula_estado as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_porciuncula_prefeitura__receita_estado') }}
 ),
 
@@ -52,7 +56,8 @@ porciuncula_extra_orcamentaria as (
         codigo,
         descricao,
         0.00 as previsao_atualizada,
-        coalesce(valor_arrecadado, 0.00) as arrecadado_efetivo
+        coalesce(valor_arrecadado, 0.00) as arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_porciuncula_prefeitura__receita_extra_orcamentaria') }}
 ),
 
@@ -65,7 +70,8 @@ natividade_orcamentaria as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        fonte_stn
     from {{ ref('stg_natividade_prefeitura__receita_orcamentaria') }}
 ),
 
@@ -78,7 +84,8 @@ natividade_uniao as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_natividade_prefeitura__receita_uniao') }}
 ),
 
@@ -91,7 +98,8 @@ natividade_estado as (
         codigo,
         descricao,
         previsao_atualizada,
-        arrecadado_efetivo
+        arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_natividade_prefeitura__receita_estado') }}
 ),
 
@@ -104,7 +112,8 @@ natividade_extra_orcamentaria as (
         codigo,
         descricao,
         0.00 as previsao_atualizada,
-        coalesce(valor_arrecadado, 0.00) as arrecadado_efetivo
+        coalesce(valor_arrecadado, 0.00) as arrecadado_efetivo,
+        null::text as fonte_stn
     from {{ ref('stg_natividade_prefeitura__receita_extra_orcamentaria') }}
 ),
 
@@ -124,6 +133,15 @@ combined as (
     select * from natividade_estado
     union all
     select * from natividade_extra_orcamentaria
+),
+
+com_total as (
+    select
+        *,
+        bool_or(fonte_stn is null and coalesce(arrecadado_efetivo, 0) <> 0) over (
+            partition by portal_slug, tipo_receita, ano, empresa_id, codigo
+        ) as possui_linha_total
+    from combined
 )
 
 select
@@ -135,5 +153,6 @@ select
     max(descricao) as descricao,
     sum(previsao_atualizada) as previsao_atualizada,
     sum(arrecadado_efetivo) as arrecadado_efetivo
-from combined
+from com_total
+where not possui_linha_total or (fonte_stn is null and coalesce(arrecadado_efetivo, 0) <> 0)
 group by portal_slug, tipo_receita, ano, empresa_id, codigo

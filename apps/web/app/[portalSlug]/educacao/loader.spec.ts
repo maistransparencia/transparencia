@@ -13,6 +13,7 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoContratos: vi.fn(),
   getEducacaoMediasEstaduais: vi.fn(),
   getEducacaoEmendasMetrics: vi.fn(),
+  getEducacaoOrigemRecursos: vi.fn(),
 }));
 
 describe("educacao/loader", () => {
@@ -157,6 +158,15 @@ describe("educacao/loader", () => {
         anosIniciais: {},
         anosFinais: {},
       });
+      vi.mocked(dbModule.getEducacaoOrigemRecursos).mockResolvedValue({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+        nomeOrgao: "Fundo Municipal de Educação",
+        anoMin: 2020,
+        anoMax: 2025,
+        totalArrecadado: 100,
+        fontes: [],
+      });
 
       const data = await loadEducacaoData("porciuncula_prefeitura", {
         ano: "2025",
@@ -169,6 +179,13 @@ describe("educacao/loader", () => {
       expect(data.resumo?.notaIdeb).toBe(5.9);
       expect(data.contratos).toHaveLength(1);
       expect(data.emendas.totalAutorizado).toBe(800);
+      expect(data.origemRecursos?.nomeOrgao).toBe(
+        "Fundo Municipal de Educação",
+      );
+      expect(dbModule.getEducacaoOrigemRecursos).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
       expect(data.context.selectedYear).toBe(2025);
       expect(data.searchParams.contratoNumero).toBe("0443/25");
 

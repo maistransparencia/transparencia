@@ -6,6 +6,10 @@ models:
     config:
       contract:
         enforced: true
+    tests:
+      - receitas_folhas_conciliam_com_topo:
+          config:
+            severity: warn
     columns:
       - name: receita_id
         data_type: text

@@ -5,6 +5,14 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### ✨ Novas Funcionalidades (Added)
+* **Origem dos Recursos da Educação (`apps/web`, `@transparencia/db`, `elt`):** Novo bloco "De onde vem o dinheiro" na página de Educação, entre o painel fiscal e os contratos, com barra de composição e cards por fonte (FUNDEB, complementação da União, salário-educação, PNAE, PNATE, outros programas do FNDE, outras receitas e "Não detalhado" para a parcela cuja origem o portal não informa) e modal de detalhes com série ano a ano, composição por natureza e base legal. Novo mart `fct_educacao_origem_recursos_metricas` e query `getEducacaoOrigemRecursos`.
+* **Contratos da Educação por categoria (`apps/web`):** A seção de contratos passa a exibir cards por categoria com valor total, percentual pago do empenhado e quantidade de contratos; cada card abre a lista da categoria ordenada por valor, e a tabela completa permanece abaixo dos cards em telas largas.
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Dobra de receitas orçamentárias (`elt`):** `int_receitas_consolidadas` somava a linha "total" (sem fonte STN) e as linhas de detalhe por fonte STN do mesmo código, inflando em cerca de 2x qualquer leitura por código-folha. Agora vale a linha sem fonte STN e, na ausência dela, a soma dos detalhes. Valores publicados em códigos-folha de receita orçamentária mudam.
+* **Link da Lei do PNATE (`apps/web`):** URL do Planalto corrigida para `l10.880.htm`.
+
 ## [1.21.0] - 2026-10-18
 
 ### 🌟 Destaques da Versão (Reorganização da Visão Geral)

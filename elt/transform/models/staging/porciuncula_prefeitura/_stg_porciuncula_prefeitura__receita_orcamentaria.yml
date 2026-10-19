@@ -24,3 +24,6 @@ models:
         data_type: numeric
       - name: arrecadado_efetivo
         data_type: numeric
+      - name: fonte_stn
+        data_type: text
+        description: "Fonte STN da linha; nulo na linha total do código"
