@@ -132,3 +132,61 @@ def test_residuo_fecha_o_total_com_o_topo(conn):
 @pytest.mark.usefixtures("seed_origem")
 def test_folhas_que_fecham_nao_geram_residuo(conn):
     assert "nao_detalhado" not in _por_grupo(conn, "porciuncula_prefeitura")
+
+
+def test_classifica_plano_de_contas_anterior_a_2022(conn):
+    ano = _ANO - 1
+    linhas = [
+        ("1000.00.0.0.00.00", "700,00"),
+        ("1758.01.1.1.00.00", "400,00"),
+        ("1718.09.1.1.00.00", "100,00"),
+        ("1718.05.1.1.00.00", "60,00"),
+        ("1718.05.3.1.00.00", "50,00"),
+        ("1718.05.4.1.00.00", "30,00"),
+        ("1718.05.2.1.00.00", "20,00"),
+        ("1321.01.0.1.00.00", "40,00"),
+    ]
+
+    def limpar():
+        conn.execute(
+            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
+        )
+        conn.commit()
+
+    limpar()
+    try:
+        for codigo, valor in linhas:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
+                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES (:ano, '8', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    """
+                ),
+                {"ano": str(ano), "codigo": codigo, "valor": valor},
+            )
+        conn.commit()
+        rows = conn.execute(
+            text(
+                """
+                SELECT grupo_fonte, sum(arrecadado_receita) AS total
+                FROM analytics.fct_educacao_origem_recursos_metricas
+                WHERE portal_slug = 'porciuncula_prefeitura' AND ano = :ano
+                GROUP BY grupo_fonte
+                """
+            ),
+            {"ano": ano},
+        ).fetchall()
+    finally:
+        limpar()
+
+    assert {r.grupo_fonte: r.total for r in rows} == {
+        "fundeb": Decimal("400.00"),
+        "fundeb_complementacao_uniao": Decimal("100.00"),
+        "salario_educacao": Decimal("60.00"),
+        "pnae": Decimal("50.00"),
+        "pnate": Decimal("30.00"),
+        "outros_fnde": Decimal("20.00"),
+        "outras_receitas": Decimal("40.00"),
+    }

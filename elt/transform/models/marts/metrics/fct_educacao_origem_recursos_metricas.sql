@@ -8,7 +8,8 @@
 
 -- Receitas orçamentárias (somente folhas do plano de contas) dos órgãos de Educação,
 -- classificadas por origem. Os prefixos de natureza seguem o plano de contas padrão (MCASP)
--- e vivem somente no CASE de "classificadas".
+-- e vivem somente no CASE de "classificadas". Até 2021 o portal usa a tabela de naturezas anterior
+-- (1758.01 FUNDEB, 1718.05.x FNDE, 1718.09 complementação da União); a partir de 2022, 1751/1714/1715.
 
 with orgaos_educacao as (
     select
@@ -57,12 +58,12 @@ classificadas as (
         empresa_id,
         orgao_nome,
         case
-            when codigo like '1751%' then 'fundeb'
-            when codigo like '1715%' then 'fundeb_complementacao_uniao'
-            when codigo like '1714.50%' then 'salario_educacao'
-            when codigo like '1714.52%' then 'pnae'
-            when codigo like '1714.53%' then 'pnate'
-            when codigo like '1714%' then 'outros_fnde'
+            when codigo like '1751%' or codigo like '1758.01%' then 'fundeb'
+            when codigo like '1715%' or codigo like '1718.09%' then 'fundeb_complementacao_uniao'
+            when codigo like '1714.50%' or codigo like '1718.05.1%' then 'salario_educacao'
+            when codigo like '1714.52%' or codigo like '1718.05.3%' then 'pnae'
+            when codigo like '1714.53%' or codigo like '1718.05.4%' then 'pnate'
+            when codigo like '1714%' or codigo like '1718.05%' then 'outros_fnde'
             else 'outras_receitas'
         end as grupo_fonte,
         codigo,
