@@ -58,7 +58,7 @@ Cada versão adicionada ao `CHANGELOG.md` deve seguir rigorosamente o seguinte e
 | `✨ Novas Funcionalidades` | ✨ | Novos componentes UI, novas telas, novos filtros ou novos endpoints/queries. |
 | `🏛️ Engenharia de Dados` | 🏛️ | Novos modelos dbt (staging, intermediate, marts), seeds, macros ou SQL de analytics. |
 | `🔧 Melhorias & Otimizações` | 🔧 | Refatorações sem alteração de comportamento externo, ganhos de performance, desacoplamento. |
-| `⚖️ Governança & Documentação` | ⚖️ | Atualização de `llms.txt`, `AGENTS.md`, `docs/*.md` ou bases legais em seeds. |
+| `⚖️ Governança & Documentação` | ⚖️ | Atualização de `llms.txt`, `CLAUDE.md`, `docs/*.md` ou bases legais em seeds. |
 | `🐛 Correções & Refinamentos` | 🐛 | Bugfixes, safe bounding, fixes de CSS/mobile, neutralização de termos. |
 | `🗑️ Remoções` | 🗑️ | Remoção de código morto, componentes órfãos ou views legadas. |
 

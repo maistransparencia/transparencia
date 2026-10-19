@@ -95,7 +95,7 @@ describe("Guias de IA para Consumo Público (llms.txt e llms-full.txt)", () => {
     expect(llmsFullTxt).toMatch(/Redes Sociais Oficiais e Código Aberto/i);
   });
 
-  it("Leak Check (Regra 12 de AGENTS.md): impede vazamento de termos internos de código e infraestrutura", () => {
+  it("Leak Check (Regra 12 de CLAUDE.md): impede vazamento de termos internos de código e infraestrutura", () => {
     const forbiddenTerms = [
       "newsletter_subscribers",
       "dbWrite",

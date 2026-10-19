@@ -57,7 +57,13 @@ out/
 next-env.d.ts
 
 .bmad-loop/
-.claude
+.claude/settings.local.json
+.claude/skills/bmad-*
+.claude/skills/wds-*
+.claude/skills/bmod-*
+.claude/skills/memory
+.claude/skills/sync
+.claude/skills/mcp-analytics
 _bmad
 _bmad-output
 .agent/skills/memory
