@@ -10,7 +10,10 @@ import { SectionHeader } from "@/components/section-header";
 import { ComposicaoRecursosBar } from "./composicao-recursos-bar";
 import { FonteRecursoCard } from "./fonte-recurso-card";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
-import { ORDEM_FONTES_RECURSO } from "./fonte-recurso-utils";
+import {
+  formatMesPorExtenso,
+  ORDEM_FONTES_RECURSO,
+} from "./fonte-recurso-utils";
 
 export interface EducacaoOrigemRecursosSectionProps {
   origemRecursos: EducacaoOrigemRecursosDTO;
@@ -19,7 +22,8 @@ export interface EducacaoOrigemRecursosSectionProps {
 export function EducacaoOrigemRecursosSection({
   origemRecursos,
 }: EducacaoOrigemRecursosSectionProps) {
-  const { fontes, nomeOrgao, ano } = origemRecursos;
+  const { fontes, nomeOrgao, ano, anoParcial, mesReferencia } = origemRecursos;
+  const parcial = anoParcial !== null && ano === anoParcial;
   const [fonteAberta, setFonteAberta] =
     useState<GrupoFonteRecursoEducacao | null>(null);
   const fonteSelecionada =
@@ -42,6 +46,13 @@ export function EducacaoOrigemRecursosSection({
         Não inclui o aporte da Prefeitura ao fundo.
       </p>
 
+      {parcial && mesReferencia !== null && (
+        <p className="-mt-2 text-slate-500 text-xs">
+          Ano em andamento: valores acumulados até{" "}
+          {formatMesPorExtenso(mesReferencia)}.
+        </p>
+      )}
+
       <ComposicaoRecursosBar fontes={fontes} />
 
       {semReceitas ? (
@@ -58,6 +69,7 @@ export function EducacaoOrigemRecursosSection({
                 fontes.find((fonte) => fonte.grupoFonte === grupoFonte) ?? null
               }
               onOpen={setFonteAberta}
+              parcial={parcial}
               className={cn(
                 ultimoImpar &&
                   indice === ORDEM_FONTES_RECURSO.length - 1 &&
@@ -71,6 +83,8 @@ export function EducacaoOrigemRecursosSection({
       <FonteRecursoModal
         fonte={fonteSelecionada}
         ano={ano}
+        anoParcial={anoParcial}
+        mesReferencia={mesReferencia}
         onClose={() => setFonteAberta(null)}
       />
     </section>

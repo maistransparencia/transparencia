@@ -86,6 +86,13 @@ export const COR_FONTE_RECURSO: Record<GrupoFonteRecursoEducacao, string> = {
 
 export const ID_PAINEL_FISCAL_EDUCACAO = "painel-fiscal-educacao";
 
+export function formatMesPorExtenso(mes: number): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(2000, mes - 1, 1)));
+}
+
 export const LIMIAR_SEGMENTO_AGRUPADO = 3;
 
 export function formatPercentualInteiro(percentual: number): string {

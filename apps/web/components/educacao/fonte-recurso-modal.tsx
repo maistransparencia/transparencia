@@ -6,12 +6,15 @@ import { ExternalLink } from "lucide-react";
 import {
   BASE_LEGAL_FONTE_RECURSO,
   DESCRICAO_FONTE_RECURSO,
+  formatMesPorExtenso,
   ID_PAINEL_FISCAL_EDUCACAO,
   ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
 
 export interface FonteRecursoModalProps {
   fonte: EducacaoOrigemRecursoDTO | null;
+  anoParcial: number | null;
+  mesReferencia: number | null;
   /** Ano selecionado na página, destacado no histórico e na composição. */
   ano: number;
   onClose: () => void;
@@ -20,6 +23,8 @@ export interface FonteRecursoModalProps {
 export function FonteRecursoModal({
   fonte,
   ano,
+  anoParcial,
+  mesReferencia,
   onClose,
 }: FonteRecursoModalProps) {
   const rotulo = fonte ? ROTULO_FONTE_RECURSO[fonte.grupoFonte] : "";
@@ -27,6 +32,10 @@ export function FonteRecursoModal({
   const maiorValorHistorico = fonte
     ? Math.max(...fonte.historicoAnual.map((ponto) => ponto.totalArrecadado), 0)
     : 0;
+  const historicoTemParcial =
+    anoParcial !== null &&
+    mesReferencia !== null &&
+    (fonte?.historicoAnual.some((ponto) => ponto.ano === anoParcial) ?? false);
   const periodo = (() => {
     const anos = fonte?.historicoAnual.map((ponto) => ponto.ano) ?? [];
     if (anos.length === 0) return "";
@@ -42,7 +51,9 @@ export function FonteRecursoModal({
       onClose={onClose}
       title={rotulo}
       subtitle={
-        fonte ? `${fmtCurrency(fonte.totalArrecadado)} em ${ano}` : undefined
+        fonte
+          ? `${fmtCurrency(fonte.totalArrecadado)} em ${ano}${ano === anoParcial ? " (parcial)" : ""}`
+          : undefined
       }
       maxWidth="2xl"
       zIndex="z-50"
@@ -108,6 +119,11 @@ export function FonteRecursoModal({
                       )}
                     >
                       {ponto.ano}
+                      {ponto.ano === anoParcial && (
+                        <span className="block font-normal text-[10px] text-slate-400">
+                          parcial
+                        </span>
+                      )}
                     </span>
                     <span className="block h-1.5 overflow-hidden rounded-full bg-slate-100">
                       <span
@@ -132,6 +148,12 @@ export function FonteRecursoModal({
                 );
               })}
             </ul>
+            {historicoTemParcial && mesReferencia !== null && (
+              <p className="text-slate-500 text-xs">
+                {anoParcial}: valores acumulados até{" "}
+                {formatMesPorExtenso(mesReferencia)}; o ano ainda não terminou.
+              </p>
+            )}
           </section>
 
           {fonte.composicao.length > 0 && (

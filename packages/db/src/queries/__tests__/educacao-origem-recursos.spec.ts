@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedDimMetadata,
   seedDimOrgao,
   seedEducacaoOrigemRecursos,
 } from "../../../tests/fixtures/seed";
@@ -241,5 +242,52 @@ describe("getEducacaoOrigemRecursos nao_detalhado", () => {
     ]);
     expect(resultado?.fontes[1]?.composicao).toEqual([]);
     expect(resultado?.fontes[1]?.percentualTotal).toBe(25);
+  });
+});
+
+describe("getEducacaoOrigemRecursos ano parcial", () => {
+  async function preparar(metadado: string | null, anoDados: number) {
+    await seedDimOrgao({
+      portalSlug: PORTAL_A,
+      empresaId: "8",
+      orgaoNome: "Fundo Municipal de Educação",
+    });
+    await seedEducacaoOrigemRecursos({
+      portalSlug: PORTAL_A,
+      empresaId: "8",
+      ano: anoDados,
+      grupoFonte: "fundeb",
+      codigoNatureza: "1751.50",
+      arrecadadoReceita: 100,
+    });
+    if (metadado !== null) {
+      await seedDimMetadata({
+        portalSlug: PORTAL_A,
+        key: "last_extracted_at",
+        value: metadado,
+      });
+    }
+    return getEducacaoOrigemRecursos({ portalSlug: PORTAL_A, ano: anoDados });
+  }
+
+  it("marca o ano da extração como parcial quando há dados nele", async () => {
+    const resultado = await preparar("2024-07-17 01:11:49", 2024);
+    expect(resultado?.anoParcial).toBe(2024);
+    expect(resultado?.mesReferencia).toBe(7);
+  });
+
+  it("não marca parcial quando o ano da extração não tem linhas", async () => {
+    const resultado = await preparar("2030-07-17 01:11:49", 2024);
+    expect(resultado?.anoParcial).toBeNull();
+    expect(resultado?.mesReferencia).toBeNull();
+  });
+
+  it("retorna nulos sem metadado ou com metadado ilegível", async () => {
+    const semMetadado = await preparar(null, 2024);
+    expect(semMetadado?.anoParcial).toBeNull();
+    await cleanupFixtures(PORTAL_A);
+    const ilegivel = await preparar("ontem", 2024);
+    expect(ilegivel?.anoParcial).toBeNull();
+    expect(ilegivel?.mesReferencia).toBeNull();
   });
 });

@@ -13,6 +13,7 @@ export interface FonteRecursoCardProps {
   grupoFonte: GrupoFonteRecursoEducacao;
   fonte: EducacaoOrigemRecursoDTO | null;
   onOpen: (grupoFonte: GrupoFonteRecursoEducacao) => void;
+  parcial?: boolean;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export function FonteRecursoCard({
   grupoFonte,
   fonte,
   onOpen,
+  parcial = false,
   className,
 }: FonteRecursoCardProps) {
   const vazia = fonte === null;
@@ -30,7 +32,7 @@ export function FonteRecursoCard({
   const valor = fonte ? fmtCompact(fonte.totalArrecadado) : "—";
   const nomeAcessivel = vazia
     ? `${rotulo}, sem receita no exercício`
-    : `${rotulo}, ${valor}, ${percentual} do total`;
+    : `${rotulo}, ${valor}, ${percentual} do total${parcial ? ", valor parcial do ano" : ""}`;
 
   return (
     <button
@@ -66,7 +68,9 @@ export function FonteRecursoCard({
         {valor}
       </span>
       <span className="text-slate-500 text-xs">
-        {vazia ? "Sem receita no exercício" : `${percentual} do total`}
+        {vazia
+          ? "Sem receita no exercício"
+          : `${percentual} do total${parcial ? " · parcial" : ""}`}
       </span>
       {!vazia && (
         <span className="font-medium text-accent text-xs">Ver detalhes ›</span>

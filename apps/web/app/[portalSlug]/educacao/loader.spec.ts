@@ -164,6 +164,8 @@ describe("educacao/loader", () => {
         nomeOrgao: "Fundo Municipal de Educação",
         anoMin: 2020,
         anoMax: 2025,
+        anoParcial: null,
+        mesReferencia: null,
         totalArrecadado: 100,
         fontes: [],
       });

@@ -547,6 +547,8 @@ describe("EducacaoPage (Server Component)", () => {
           nomeOrgao: "Fundo Municipal de Educação",
           anoMin: 2020,
           anoMax: 2025,
+          anoParcial: null,
+          mesReferencia: null,
           totalArrecadado: 1000,
           fontes: [
             {

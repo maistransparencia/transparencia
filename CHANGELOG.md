@@ -6,7 +6,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 ## [Unreleased]
 
 ### ✨ Novas Funcionalidades (Added)
-* **Origem dos Recursos da Educação (`apps/web`, `@transparencia/db`, `elt`):** Novo bloco "De onde vem o dinheiro" na página de Educação, entre o painel fiscal e os contratos, com barra de composição e cards por fonte (FUNDEB, complementação da União, salário-educação, PNAE, PNATE, outros programas do FNDE, outras receitas e "Não detalhado" para a parcela cuja origem o portal não informa) e modal de detalhes com série ano a ano, composição por natureza e base legal. Novo mart `fct_educacao_origem_recursos_metricas` e query `getEducacaoOrigemRecursos`.
+* **Origem dos Recursos da Educação (`apps/web`, `@transparencia/db`, `elt`):** Novo bloco "De onde vem o dinheiro" na página de Educação, entre o painel fiscal e os contratos, com barra de composição e cards por fonte (FUNDEB, complementação da União, salário-educação, PNAE, PNATE, outros programas do FNDE, outras receitas e "Não detalhado" para a parcela cuja origem o portal não informa) ano em andamento marcado como parcial (mês de referência vindo da data de extração dos dados) e modal de detalhes com série ano a ano, composição por natureza e base legal. Novo mart `fct_educacao_origem_recursos_metricas` e query `getEducacaoOrigemRecursos`.
 * **Contratos da Educação por categoria (`apps/web`):** A seção de contratos passa a exibir cards por categoria com valor total, percentual pago do empenhado e quantidade de contratos; cada card abre a lista da categoria ordenada por valor, e a tabela completa permanece abaixo dos cards em telas largas.
 
 ### 🐛 Correções & Refinamentos (Fixed & Polish)
