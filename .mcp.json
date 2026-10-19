@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "brazil-law-mcp": {
+      "command": "npx",
+      "args": ["-y", "@ansvar/brazil-law-mcp"]
+    },
+    "local-postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:postgres@localhost:5544/postgres"
+      ]
+    },
+    "senado-br": {
+      "command": "npx",
+      "args": ["-y", "senado-br-mcp"]
+    }
+  }
+}

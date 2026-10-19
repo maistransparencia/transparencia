@@ -87,6 +87,7 @@ pnpm test
 - **Executar testes Python (ELT/dbt):** `make test`
 - **Lint e formatar código Python:** `make check`
 - **Executar testes TS (Kysely, web):** `make test/ts` (ou `pnpm test`)
+- **Skills do BMad (não versionados):** os skills `bmad-*`, `wds-*` e `bmod-*` em `.claude/skills/` e o diretório `_bmad/` são gerados pelo instalador (BMad 6.12.4) e ficam fora do git. Em um clone novo, rode `npx bmad-method install` na raiz e selecione os módulos core, bmm, bmb, cis, tea e wds.
 
 ## Licença
 

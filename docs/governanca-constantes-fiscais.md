@@ -92,7 +92,7 @@ Ao adicionar ou revisar subitens no catálogo, o seguinte checklist deve ser rig
 
 1. **Validação Normativa & Nomenclatura:**
    - O `natureza_codigo` deve existir formalmente na Portaria STN/SOF ou no MCASP da Secretaria do Tesouro Nacional.
-   - `categoria_macro` deve estar estritamente em **lowercase snake_case** (ex: `limpeza_residuos`, `consorcios_publicos`, `plantoes_medicos`), em conformidade com a Regra 10 do `AGENTS.md`.
+   - `categoria_macro` deve estar estritamente em **lowercase snake_case** (ex: `limpeza_residuos`, `consorcios_publicos`, `plantoes_medicos`), em conformidade com a Regra 10 do `CLAUDE.md`.
 2. **Precedência Léxica no Modelo Intermediário (`int_despesas_reclassificadas.sql`):**
    - Regras específicas e de nicho (ex: resíduos/caçambas, sentenças judiciais, consórcios de saúde) **devem** preceder regras genéricas (ex: locação de máquinas/veículos, consultoria) para evitar falso enquadramento.
 3. **Propagação de Contrato (TypeScript & UI):**
