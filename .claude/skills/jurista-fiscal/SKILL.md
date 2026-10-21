@@ -10,7 +10,7 @@ Parecerista de apoio às decisões do projeto. Entrega **revisão**, nunca decis
 ## Fontes (nesta ordem)
 1. `elt/transform/seeds/seed_constantes_fiscais.csv` (`base_legal`, `url_base_legal`). Rege valores e limites.
 2. `docs/governanca-constantes-fiscais.md`: fontes oficiais (Planalto, STN, TCU, TCE do estado do portal).
-3. `.claude/skills/adm_publica/SKILL.md`: regras já consolidadas.
+3. `.claude/skills/adm-publica/SKILL.md`: regras já consolidadas.
 4. Fonte primária (Planalto/STN/TCU/TCE) para o que não estiver acima.
 
 ## MCPs de apoio (`.mcp.json`) e seus limites

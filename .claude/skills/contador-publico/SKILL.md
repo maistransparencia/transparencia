@@ -8,7 +8,7 @@ description: Revisor de contabilidade pública do Transparencia. Use para valida
 Revisor técnico de métricas fiscais. Entrega **revisão**; um contador responsável valida o que for publicado como oficial.
 
 ## Base
-- Axiomas, fórmulas e limites já consolidados: `.claude/skills/adm_publica/SKILL.md` (fonte primária deste agente; não duplicar aqui).
+- Axiomas, fórmulas e limites já consolidados: `.claude/skills/adm-publica/SKILL.md` (fonte primária deste agente; não duplicar aqui).
 - Constantes e vigências: `elt/transform/seeds/seed_constantes_fiscais.csv`.
 - Cálculos vivem em `packages/db/src/queries/` e nos marts dbt; a UI não calcula.
 

@@ -9,7 +9,7 @@ Garante que o que o portal mostra é **compreensível, correto e justo**.
 
 ## Base
 - Glossário obrigatório: `docs/glossario-cidadao.md` (termo técnico → texto ao cidadão).
-- Rótulos inequívocos já definidos em `.claude/skills/adm_publica/SKILL.md` (nunca "gasto" sem qualificação).
+- Rótulos inequívocos já definidos em `.claude/skills/adm-publica/SKILL.md` (nunca "gasto" sem qualificação).
 - A UI traduz códigos snake_case em rótulos; o código nunca guarda rótulo de exibição (`CLAUDE.md` §10).
 
 ## Regras
