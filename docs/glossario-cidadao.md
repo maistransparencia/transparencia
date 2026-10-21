@@ -1,6 +1,6 @@
 # Glossário do Cidadão
 
-Tradução de termos da administração pública para o texto exibido no portal. Usado pelo agente `editor-cidadao`. A coluna "Evitar" lista formulações enganosas. Valores e limites legais **não** ficam aqui: vêm de `seed_constantes_fiscais.csv`.
+Tradução de termos da administração pública para o texto exibido no portal. Usado pelo agente `creuza`. A coluna "Evitar" lista formulações enganosas. Valores e limites legais **não** ficam aqui: vêm de `seed_constantes_fiscais.csv`.
 
 | Termo técnico | Texto ao cidadão | Evitar |
 |---|---|---|

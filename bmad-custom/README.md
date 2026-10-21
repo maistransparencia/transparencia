@@ -1,6 +1,6 @@
 # bmad-custom
 
-Integração dos especialistas (`jurista-fiscal`, `contador-publico`, `editor-cidadao`) com o BMad. `_bmad/` e `.claude/skills/bmad-*` ficam fora do git, então a configuração versionada vive aqui e é copiada para o lugar certo após o `npx bmad-method install`.
+Integração dos especialistas (`jurandir`, `atanagildo`, `creuza`) com o BMad. `_bmad/` e `.claude/skills/bmad-*` ficam fora do git, então a configuração versionada vive aqui e é copiada para o lugar certo após o `npx bmad-method install`.
 
 ## O que fica onde
 
@@ -33,7 +33,7 @@ Os TOMLs são **rascunhos não verificados contra o BMad 6.12.4**. Antes de conf
 
 ## Uso
 
-- Revisão isolada: invoque o skill (`/jurista-fiscal`, `/contador-publico`, `/editor-cidadao`).
+- Revisão isolada: invoque o skill (`/jurandir`, `/atanagildo`, `/creuza`).
 - Debate entre especialistas: `/bmad-party-mode` (team `transparencia`).
 - Os agentes PM e Dev carregam as regras de conformidade automaticamente via `persistent_facts`.
 
