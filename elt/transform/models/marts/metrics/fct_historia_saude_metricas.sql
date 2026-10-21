@@ -107,14 +107,17 @@ fornecedores_saude as (
     select
         d.portal_slug,
         d.ano,
-        coalesce(d.fornecedor_nome, 'OUTROS') as fornecedor_nome,
+        coalesce(f.fornecedor_nome, 'OUTROS') as fornecedor_nome,
         sum(coalesce(d.empenhado_liquido, 0)) as valor_fornecedor
     from {{ ref('fct_despesas') }} d
     left join orgaos_saude o
         on d.portal_slug = o.portal_slug
         and d.empresa_id = o.empresa_id
+    left join {{ ref('dim_fornecedor') }} f
+        on d.portal_slug = f.portal_slug
+        and d.credor_id = f.credor_id
     where d.fonte = 'exercicio' and (d.funcao = '10' or o.empresa_id is not null or d.subfuncao = '303') and coalesce(d.empenhado_liquido, 0) > 0
-    group by d.portal_slug, d.ano, coalesce(d.fornecedor_nome, 'OUTROS')
+    group by d.portal_slug, d.ano, coalesce(f.fornecedor_nome, 'OUTROS')
 ),
 
 totais_fornecedores as (

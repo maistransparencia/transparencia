@@ -297,17 +297,25 @@ unit_tests:
       - input: ref('fct_despesas')
         rows:
           # Credor A em .99 com consórcios sugerido (R$ 5.000)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "CODESP CONSORCIO", categoria_objeto_sugerida: "consorcios_publicos", categoria_gasto_sensivel: null, descricao: "RATEIO DO CONSORCIO", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 5000.00 }
+          - { credor_id: "credor_1", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "CODESP CONSORCIO", categoria_objeto_sugerida: "consorcios_publicos", categoria_gasto_sensivel: null, descricao: "RATEIO DO CONSORCIO", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 5000.00 }
           # Credor B em .99 com resíduos sugerido (R$ 2.000)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "COOPERATIVA LIMPEZA", categoria_objeto_sugerida: "limpeza_residuos", categoria_gasto_sensivel: null, descricao: "SERVICO DE CACAMBAS", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2000.00 }
+          - { credor_id: "credor_2", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "COOPERATIVA LIMPEZA", categoria_objeto_sugerida: "limpeza_residuos", categoria_gasto_sensivel: null, descricao: "SERVICO DE CACAMBAS", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2000.00 }
           # Credor E em .99 com locação de equipamentos de saúde sugerido (R$ 3.000)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "55.555.555/0001-55", fornecedor_nome: "PURE AIR LOCACAO", categoria_objeto_sugerida: "locacao_equipamentos_saude", categoria_gasto_sensivel: null, descricao: "LOCACAO DE USINA DE GASES", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 3000.00 }
+          - { credor_id: "credor_3", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "55.555.555/0001-55", fornecedor_nome: "PURE AIR LOCACAO", categoria_objeto_sugerida: "locacao_equipamentos_saude", categoria_gasto_sensivel: null, descricao: "LOCACAO DE USINA DE GASES", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 3000.00 }
           # Credor F em .99 com assistência domiciliar / home care sugerido (R$ 2.500)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "66.666.666/0001-66", fornecedor_nome: "VITTALIS ASSISTENCIA", categoria_objeto_sugerida: "assistencia_domiciliar_home_care", categoria_gasto_sensivel: null, descricao: "SERVICOS DE HOME CARE", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2500.00 }
+          - { credor_id: "credor_4", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "66.666.666/0001-66", fornecedor_nome: "VITTALIS ASSISTENCIA", categoria_objeto_sugerida: "assistencia_domiciliar_home_care", categoria_gasto_sensivel: null, descricao: "SERVICOS DE HOME CARE", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 2500.00 }
           # Credor C em despesa regular (R$ 10.000) - não deve entrar no mart de .99
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "33.333.333/0001-33", fornecedor_nome: "AUTO LOCADORA", categoria_objeto_sugerida: "locacao_maquinas_veiculos", categoria_gasto_sensivel: "locacao_maquinas_veiculos", descricao: "LOCACAO DE VEICULOS", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", pago: 10000.00 }
+          - { credor_id: "credor_5", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "33.333.333/0001-33", fornecedor_nome: "AUTO LOCADORA", categoria_objeto_sugerida: "locacao_maquinas_veiculos", categoria_gasto_sensivel: "locacao_maquinas_veiculos", descricao: "LOCACAO DE VEICULOS", natureza_despesa_codigo: "3.3.90.39.12", elemento: "39", pago: 10000.00 }
           # Credor D em .99 sem classificação específica (R$ 1.000)
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "44.444.444/0001-44", fornecedor_nome: "OUTROS SERVICOS LTDA", categoria_objeto_sugerida: null, categoria_gasto_sensivel: null, descricao: "SERVICOS DIVERSOS", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 1000.00 }
+          - { credor_id: "credor_6", portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", fornecedor_cpf_cnpj: "44.444.444/0001-44", fornecedor_nome: "OUTROS SERVICOS LTDA", categoria_objeto_sugerida: null, categoria_gasto_sensivel: null, descricao: "SERVICOS DIVERSOS", natureza_despesa_codigo: "3.3.90.39.99", elemento: "39", pago: 1000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "credor_1", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "CODESP CONSORCIO" }
+          - { credor_id: "credor_2", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "COOPERATIVA LIMPEZA" }
+          - { credor_id: "credor_3", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "PURE AIR LOCACAO" }
+          - { credor_id: "credor_4", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "VITTALIS ASSISTENCIA" }
+          - { credor_id: "credor_5", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "AUTO LOCADORA" }
+          - { credor_id: "credor_6", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "OUTROS SERVICOS LTDA" }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", ano: 2025, credor_codigo: "11.111.111/0001-11", credor_nome: "CODESP CONSORCIO", total_empenhos: 1, total_pago: 5000.00, pago_desvio_sensivel: 5000.00, categoria_predominante: "consorcios_publicos", amostra_objeto: "RATEIO DO CONSORCIO", ranking: 1 }

@@ -168,19 +168,24 @@ export async function getRestosAPagarResumoMetrics(
         .where("empresa_id", "in", empresaIds)
         .executeTakeFirst(),
       db
-        .selectFrom("fct_despesas")
+        .selectFrom("fct_despesas as d")
+        .leftJoin("dim_fornecedor as f", (join) =>
+          join
+            .onRef("f.portal_slug", "=", "d.portal_slug")
+            .onRef("f.credor_id", "=", "d.credor_id"),
+        )
         .select((eb) => [
-          "fornecedor_nome",
-          "descricao",
-          eb.fn.sum<string>("empenhado").as("empenhado"),
-          eb.fn.sum<string>("liquidado").as("liquidado"),
-          eb.fn.sum<string>("pago").as("pago"),
+          "f.fornecedor_nome",
+          "d.descricao",
+          eb.fn.sum<string>("d.empenhado").as("empenhado"),
+          eb.fn.sum<string>("d.liquidado").as("liquidado"),
+          eb.fn.sum<string>("d.pago").as("pago"),
         ])
-        .where("portal_slug", "=", portalSlug)
-        .where("fonte", "=", "restos_a_pagar")
-        .where("ano", "=", year)
-        .where("empresa_id", "in", empresaIds)
-        .groupBy(["fornecedor_nome", "descricao"])
+        .where("d.portal_slug", "=", portalSlug)
+        .where("d.fonte", "=", "restos_a_pagar")
+        .where("d.ano", "=", year)
+        .where("d.empresa_id", "in", empresaIds)
+        .groupBy(["f.fornecedor_nome", "d.descricao"])
         .execute(),
     ]);
 
@@ -517,18 +522,23 @@ export async function getTopFornecedoresExecucaoMetrics(options: {
 
   try {
     const results = await db
-      .selectFrom("fct_despesas")
+      .selectFrom("fct_despesas as d")
+      .leftJoin("dim_fornecedor as f", (join) =>
+        join
+          .onRef("f.portal_slug", "=", "d.portal_slug")
+          .onRef("f.credor_id", "=", "d.credor_id"),
+      )
       .select((eb) => [
-        "fornecedor_nome",
-        "fornecedor_cpf_cnpj",
-        eb.fn.sum<string>("pago").as("total_pago"),
-        eb.fn.sum<string>("empenhado").as("total_empenhado"),
+        "f.fornecedor_nome",
+        "d.fornecedor_cpf_cnpj",
+        eb.fn.sum<string>("d.pago").as("total_pago"),
+        eb.fn.sum<string>("d.empenhado").as("total_empenhado"),
       ])
-      .where("portal_slug", "=", portalSlug)
-      .where("ano", "=", year)
-      .where("fonte", "=", "exercicio")
-      .where("empresa_id", "in", empresaIds)
-      .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj"])
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "=", year)
+      .where("d.fonte", "=", "exercicio")
+      .where("d.empresa_id", "in", empresaIds)
+      .groupBy(["f.fornecedor_nome", "d.fornecedor_cpf_cnpj"])
       .orderBy("total_pago", "desc")
       .limit(limit)
       .execute();
