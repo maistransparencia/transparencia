@@ -5,6 +5,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-10-21
+
 ### 🌟 Destaques da Versão (Avise-me: cidade em breve)
 * **Avise-me quando minha cidade chegar:** Quem mora em um município que ainda não está no portal agora pode deixar a cidade e o e-mail na página de seleção e ser avisado quando ela entrar.
 
