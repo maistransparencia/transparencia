@@ -15,7 +15,7 @@ const {
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
   getResumoEducacaoMock: vi.fn(),
-  getResumoFarmaciaSusMock: vi.fn(),
+  getResumoFarmaciaSusMock: vi.fn().mockResolvedValue(null),
   getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -182,5 +182,21 @@ describe("loadVisaoGeralData", () => {
 
     expect(getResumoFarmaciaSusMock).toHaveBeenCalledWith("porciuncula");
     expect(result.resumoFarmacia).toEqual(resumoFarmacia);
+  });
+
+  it("isola a falha de getResumoFarmaciaSus como indisponivel", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    getRadarCivicoAlertasMock.mockResolvedValue([]);
+    getResumoFarmaciaSusMock.mockRejectedValue(new Error("falha"));
+
+    const result = await loadVisaoGeralData("porciuncula", {});
+
+    expect(result.resumoFarmacia).toEqual({
+      status: "indisponivel",
+      dataColeta: null,
+      dataPosicaoMaisRecente: null,
+      diasDesdePosicaoMaisRecente: null,
+    });
   });
 });
