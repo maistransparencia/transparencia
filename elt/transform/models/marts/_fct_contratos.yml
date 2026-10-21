@@ -15,6 +15,14 @@ models:
         tests:
           - not_null
           - unique
+      - name: credor_id
+        data_type: text
+        description: "Chave surrogate MD5 (portal_slug | fornecedor_cpf_cnpj) para dim_fornecedor"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: credor_id
       - name: portal_slug
         data_type: text
         constraints:

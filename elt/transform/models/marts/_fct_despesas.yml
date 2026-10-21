@@ -130,6 +130,11 @@ models:
                   - obras_infraestrutura
       - name: credor_id
         data_type: text
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: credor_id
       - name: orgao_id
         data_type: text
       - name: data_empenho
