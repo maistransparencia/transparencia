@@ -25,7 +25,10 @@ export interface FarmaciaContext {
 export function parseFarmaciaContext(
   searchParams: FarmaciaSearchParams,
 ): FarmaciaContext {
-  const parsedLimite = Number(firstValue(searchParams.limite));
+  const limiteBruto = firstValue(searchParams.limite).trim();
+  const parsedLimite = /^\d+$/.test(limiteBruto)
+    ? Number(limiteBruto)
+    : Number.NaN;
   const limiteUnidades =
     Number.isInteger(parsedLimite) && parsedLimite >= 1
       ? Math.min(parsedLimite, FARMACIA_LIMITE_MAXIMO_UNIDADES)

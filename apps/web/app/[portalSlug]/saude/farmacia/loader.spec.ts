@@ -5,7 +5,8 @@ vi.mock("@transparencia/db", () => ({
   getPortalConfig: vi.fn(),
 }));
 
-const { parseFarmaciaContext } = await import("./loader");
+const { getFarmaciaSus, getPortalConfig } = await import("@transparencia/db");
+const { parseFarmaciaContext, loadFarmaciaData } = await import("./loader");
 
 describe("parseFarmaciaContext", () => {
   it.each([
@@ -15,6 +16,8 @@ describe("parseFarmaciaContext", () => {
     ["1.5", 10],
     ["99999", 200],
     ["30", 30],
+    ["1e1", 10],
+    ["0x10", 10],
   ])("limite %s -> %i", (limite, esperado) => {
     expect(parseFarmaciaContext({ limite }).limiteUnidades).toBe(esperado);
   });
@@ -40,5 +43,41 @@ describe("parseFarmaciaContext", () => {
       idUnidade: "x",
       limiteUnidades: 20,
     });
+  });
+});
+
+describe("loadFarmaciaData", () => {
+  it("repassa busca, unidade e limite e usa o nome do portal", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({ unidades: [] } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue({
+      displayName: "Prefeitura X",
+    } as never);
+
+    const result = await loadFarmaciaData("portal_x", {
+      q: " dip ",
+      unidade: "u1",
+      limite: "30",
+    });
+
+    expect(getFarmaciaSus).toHaveBeenCalledWith("portal_x", {
+      busca: "dip",
+      idUnidade: "u1",
+      limiteUnidades: 30,
+    });
+    expect(getPortalConfig).toHaveBeenCalledWith("portal_x");
+    expect(result.portalName).toBe("Prefeitura X");
+  });
+
+  it("portalName vazio quando nao ha configuracao", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({ unidades: [] } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+    const result = await loadFarmaciaData("portal_x", {});
+    expect(result.portalName).toBe("");
+  });
+
+  it("lanca erro com portalSlug vazio", async () => {
+    await expect(loadFarmaciaData("  ", {})).rejects.toThrow(
+      "portalSlug vazio",
+    );
   });
 });
