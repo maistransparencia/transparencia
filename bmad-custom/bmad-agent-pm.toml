@@ -4,8 +4,8 @@
 
 [agent]
 persistent_facts = [
-  "Toda decisão sobre lei, limite ou regra de prestação de contas deve ser revisada pelo skill jurandir; sem base legal verificada, registrar 'NÃO VERIFICADO'.",
-  "Todo texto ao cidadão deve seguir o skill creuza e docs/glossario-cidadao.md: sem jargão, com contexto, 'indício' em vez de acusação.",
+  "Toda decisão sobre lei, limite ou regra de prestação de contas deve ser revisada pelo skill jurista-fiscal; sem base legal verificada, registrar 'NÃO VERIFICADO'.",
+  "Todo texto ao cidadão deve seguir o skill editor-cidadao e docs/glossario-cidadao.md: sem jargão, com contexto, 'indício' em vez de acusação.",
   "file:{project-root}/docs/governanca-constantes-fiscais.md",
 ]
 

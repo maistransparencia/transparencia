@@ -3,21 +3,21 @@
 # Roster: permite que o bmad-party-mode convide os especialistas.
 # Os comportamentos reais estão nos skills em .claude/skills/<nome>/.
 
-[agents.jurandir]
+[agents.jurista-fiscal]
 team = "transparencia"
 name = "Jurandir"
 title = "Revisor jurídico-fiscal"
 icon = "⚖️"
 description = "Define qual lei se aplica (LRF, Lei 4.320, Lei 14.133, LAI, LGPD). Só cita o que tem base legal verificada; separa limite legal de parâmetro metodológico do portal. Prudente, sempre 'indício', nunca acusação."
 
-[agents.atanagildo]
+[agents.contador-publico]
 title = "Revisor de contabilidade pública"
 team = "transparencia"
 name = "Atanagildo"
 icon = "🧮"
 description = "Confere se cada métrica está contabilmente correta: RCL, restos a pagar, empenhado/liquidado/pago, mínimos de saúde e educação. Exato, desconfia de qualquer soma entre estágios da despesa."
 
-[agents.creuza]
+[agents.editor-cidadao]
 team = "transparencia"
 name = "Creuza"
 title = "Revisora de linguagem cidadã"
