@@ -5,7 +5,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ESTADOS_BRASILEIROS } from "../lib/estados-brasileiros";
 
 export interface CityInterestModalProps {
@@ -49,6 +49,12 @@ function validate(values: {
   };
 }
 
+function errorTypeFor(status: number): string {
+  if (status === 429) return "rate_limited";
+  if (status >= 500) return "server_error";
+  return "validation";
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
@@ -69,6 +75,28 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [savedCity, setSavedCity] = useState({ cidade: "", uf: "" });
+  const hasInteractedRef = useRef(false);
+
+  // Eventos de analytics: nunca enviar e-mail nem o texto da cidade (apenas UF).
+  const track = (eventName: string, properties?: Record<string, unknown>) => {
+    try {
+      posthog.capture(eventName, properties);
+    } catch {}
+  };
+
+  const markInteracted = () => {
+    if (hasInteractedRef.current) return;
+    hasInteractedRef.current = true;
+    track("city_interest_form_started");
+  };
+
+  const handleClose = () => {
+    track("city_interest_modal_closed", {
+      state: status === "success" ? "success" : "form",
+      hadInteraction: hasInteractedRef.current,
+    });
+    onClose();
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -81,6 +109,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
     setFormError("");
     setStatus("idle");
     setRenderTime(Date.now());
+    hasInteractedRef.current = false;
     try {
       posthog.capture("city_interest_modal_opened");
     } catch {}
@@ -93,7 +122,12 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
     const found = validate({ cidade, uf, email, consentimento });
     setErrors(found);
     setFormError("");
-    if (Object.keys(found).length > 0) return;
+    if (Object.keys(found).length > 0) {
+      track("city_interest_validation_failed", {
+        fields: Object.keys(found),
+      });
+      return;
+    }
 
     setStatus("loading");
     try {
@@ -113,6 +147,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
 
       if (!res.ok) {
         setStatus("idle");
+        track("city_interest_submit_failed", {
+          status: res.status,
+          errorType: errorTypeFor(res.status),
+        });
         setErrors((data.fieldErrors as FieldErrors | undefined) ?? {});
         setFormError(
           data.error || "Não foi possível registrar o pedido. Tente novamente.",
@@ -122,11 +160,13 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
 
       setSavedCity({ cidade: cidade.trim(), uf });
       setStatus("success");
-      try {
-        posthog.capture("city_interest_submitted", { uf });
-      } catch {}
+      track("city_interest_submitted", { uf });
     } catch {
       setStatus("idle");
+      track("city_interest_submit_failed", {
+        status: 0,
+        errorType: "network_error",
+      });
       setFormError("Erro de conexão. Tente novamente.");
     }
   };
@@ -137,7 +177,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
   return (
     <ModalDialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Avise-me quando minha cidade chegar"
       maxWidth="md"
       showShareButton={false}
@@ -156,7 +196,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           </p>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="mt-6 min-h-11 w-full rounded-lg bg-accent px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             Voltar para a lista de cidades
@@ -187,7 +227,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
               type="text"
               autoComplete="address-level2"
               value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
+              onChange={(e) => {
+                markInteracted();
+                setCidade(e.target.value);
+              }}
               aria-invalid={errors.cidade ? true : undefined}
               aria-describedby={describedBy("cidade")}
               className={INPUT_CLASS}
@@ -209,7 +252,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
               id="city-interest-uf"
               autoComplete="address-level1"
               value={uf}
-              onChange={(e) => setUf(e.target.value)}
+              onChange={(e) => {
+                markInteracted();
+                setUf(e.target.value);
+              }}
               aria-invalid={errors.uf ? true : undefined}
               aria-describedby={describedBy("uf")}
               className={INPUT_CLASS}
@@ -238,7 +284,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
               autoComplete="email"
               placeholder="seu.email@exemplo.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                markInteracted();
+                setEmail(e.target.value);
+              }}
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={describedBy("email")}
               className={INPUT_CLASS}
@@ -252,7 +301,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
                 id="city-interest-consentimento"
                 type="checkbox"
                 checked={consentimento}
-                onChange={(e) => setConsentimento(e.target.checked)}
+                onChange={(e) => {
+                  markInteracted();
+                  setConsentimento(e.target.checked);
+                }}
                 aria-invalid={errors.consentimento ? true : undefined}
                 aria-describedby={describedBy("consentimento")}
                 className="mt-0.5 h-5 w-5 shrink-0 accent-accent focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"

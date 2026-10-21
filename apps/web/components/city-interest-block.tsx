@@ -1,10 +1,17 @@
 "use client";
 
 import { MapPin } from "lucide-react";
+import posthog from "posthog-js";
 import { useState } from "react";
 import { CityInterestModal } from "./city-interest-modal";
 
-export function CityInterestBlock() {
+export interface CityInterestBlockProps {
+  totalPortais?: number;
+}
+
+export function CityInterestBlock({
+  totalPortais = 0,
+}: CityInterestBlockProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -33,7 +40,12 @@ export function CityInterestBlock() {
         </div>
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            try {
+              posthog.capture("city_interest_cta_clicked", { totalPortais });
+            } catch {}
+            setIsOpen(true);
+          }}
           className="min-h-11 w-full shrink-0 rounded-lg bg-accent px-5 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:w-auto"
         >
           Quero ser avisado
