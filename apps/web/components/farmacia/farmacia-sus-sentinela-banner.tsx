@@ -38,7 +38,7 @@ export function FarmaciaSusSentinelaBanner({
   };
 
   const handleWhatsApp = () => {
-    const mensagem = `${textoWhatsApp} ${window.location.href}`;
+    const mensagem = `${textoWhatsApp} ${window.location.origin}${window.location.pathname}`;
     window.open(
       `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
       "_blank",
