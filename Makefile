@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp elt/farmacia-sus r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -81,6 +81,14 @@ endif
 
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py --with-db $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
+
+elt/farmacia-sus:
+	@for portal in $(if $(PORTAL),$(PORTAL),$$(ls elt/portals/*.yml | xargs -n1 basename | sed 's/\.yml$$//')); do \
+		echo "=== Farmácia SUS: $$portal ==="; \
+		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only farmacia_sus && \
+		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
+	done
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque
 
 # CLOUDFLARE R2 DATA LAKE SYNC
 

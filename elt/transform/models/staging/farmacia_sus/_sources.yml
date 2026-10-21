@@ -1,0 +1,47 @@
+version: 2
+
+sources:
+  - name: raw_farmacia_sus
+    schema: raw_farmacia_sus
+    description: "Estoque de medicamentos (BNAFAR/Hórus) e estabelecimentos (CNES) extraídos da API de dados abertos do Ministério da Saúde"
+    tables:
+      - name: estoque_medicamentos
+        description: "Retrato do estoque de medicamentos por unidade, por portal"
+        meta:
+          primary_key: [portal_slug, id_registro]
+        columns:
+          - name: portal_slug
+          - name: id_registro
+          - name: codigo_cnes
+          - name: nome_medicamento
+          - name: numero_lote
+          - name: quantidade_estoque
+          - name: data_posicao_estoque
+          - name: data_coleta
+
+      - name: estabelecimentos_cnes
+        description: "Estabelecimentos de saúde (CNES) do município"
+        meta:
+          primary_key: [portal_slug, codigo_cnes]
+        columns:
+          - name: portal_slug
+          - name: codigo_cnes
+          - name: nome_estabelecimento
+          - name: endereco_estabelecimento
+          - name: telefone_estabelecimento
+          - name: latitude_estabelecimento
+          - name: longitude_estabelecimento
+          - name: data_coleta
+
+      - name: coletas
+        description: "Resultado da última coleta por portal (sucesso ou falha)"
+        meta:
+          primary_key: [portal_slug]
+        columns:
+          - name: portal_slug
+          - name: codigo_ibge6
+          - name: status_coleta
+          - name: total_registros_estoque
+          - name: total_registros_cnes
+          - name: mensagem_erro
+          - name: data_coleta
