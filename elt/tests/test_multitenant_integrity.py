@@ -19,7 +19,6 @@ TENANT_SLUGS = [
 
 # Exceções estritas permitidas apenas para união de fontes brutas
 ALLOWED_EXCEPTIONS = {
-    "fct_despesas_por_fornecedor.sql",  # Unifica fontes raw_porciuncula e raw_natividade
     "dim_metadata.sql",
 }
 
