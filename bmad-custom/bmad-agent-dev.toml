@@ -1,0 +1,10 @@
+# RASCUNHO NÃO VERIFICADO contra BMad 6.12.4 (confira o customize.toml instalado).
+# Copiar para _bmad/custom/bmad-agent-dev.toml.
+# Antes de concluir mudanças em métricas, alertas ou textos do portal, aciona as revisões.
+
+[agent]
+persistent_facts = [
+  "Mudança em cálculo fiscal (RCL, RAP, limites LRF, mínimos de saúde/educação): submeter ao skill contador-publico antes de concluir.",
+  "Mudança em alerta, rótulo ou texto exibido ao cidadão: submeter ao skill editor-cidadao; se citar lei ou limite, também ao jurista-fiscal.",
+  "file:{project-root}/.claude/skills/adm_publica/SKILL.md",
+]
