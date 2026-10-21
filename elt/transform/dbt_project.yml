@@ -38,6 +38,34 @@ models:
     staging:
       +materialized: view
     intermediate:
-      +materialized: view
+      +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
+      # consolidacoes simples (union all + tag de tenant): sem custo de materializar
+      int_contratos_consolidados:
+        +materialized: view
+      int_despesas_fornecedor_consolidadas:
+        +materialized: view
+      int_despesas_orgao_consolidadas:
+        +materialized: view
+      int_despesas_unidade_consolidadas:
+        +materialized: view
+      int_diarias_consolidadas:
+        +materialized: view
+      int_emendas_consolidadas:
+        +materialized: view
+      int_siconfi_msc_patrimonial_consolidada:
+        +materialized: view
+      int_transferencias_consolidadas:
+        +materialized: view
     marts:
-      +materialized: view
+      +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
+      # marts de repasse direto, sem leitura direta pela web
+      dim_elemento_despesa:
+        +materialized: view
+      fct_despesas_por_fornecedor:
+        +materialized: view
+      fct_despesas_por_orgao:
+        +materialized: view
+      fct_despesas_por_unidade:
+        +materialized: view
+      fct_diarias:
+        +materialized: view

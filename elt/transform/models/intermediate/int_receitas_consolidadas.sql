@@ -1,5 +1,3 @@
-{{ config(materialized='view' if var('test_mode', false) else 'table') }}
-
 -- Intermediário: consolida receitas de todos os portais e agrega ao grain correto.
 -- Para adicionar novo portal: incluir novos CTEs + union all em "combined".
 -- Para a maioria dos códigos-folha de receita orçamentária o portal emite uma linha

@@ -1,5 +1,3 @@
-{{ config(materialized='view' if var('test_mode', false) else 'table') }}
-
 with despesas_base as (
     select * from {{ ref('int_despesas_consolidadas') }}
 ),
