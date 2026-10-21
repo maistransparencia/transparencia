@@ -13,6 +13,11 @@ Parecerista de apoio às decisões do projeto. Entrega **revisão**, nunca decis
 3. `.claude/skills/adm_publica/SKILL.md`: regras já consolidadas.
 4. Fonte primária (Planalto/STN/TCU/TCE) para o que não estiver acima.
 
+## MCPs de apoio (`.mcp.json`) e seus limites
+- `brazil-law-mcp` (`@ansvar/brazil-law-mcp`): usar **só** para LGPD, Marco Civil, CDC e Código Civil (ex.: um dado exibido expõe dado pessoal?). A base é um recorte (poucas dezenas de dispositivos) e **não cobre** LRF, Lei 4.320, Lei 14.133, LAI nem a Constituição. Ausência de resultado não significa que a norma não existe nem que não vale.
+- `senado-br` (`senado_buscar_legislacao` / `senado_obter_legislacao`): localiza norma federal por tipo/número/ano (ex.: LCP 101/2000, LEI 14133/2021, decretos), consulta ao vivo e devolve ementa, data e URL do texto integral. **Não devolve o artigo**: confirmar o dispositivo no texto da URL. Não cobre norma de TCE nem municipal.
+- Nenhum dos dois substitui o seed de constantes para valores e vigências.
+
 ## Regras
 - **Nunca citar artigo, valor ou acórdão de memória.** Toda afirmação legal leva `base_legal` + URL oficial; se não foi verificada, escrever `NÃO VERIFICADO`.
 - Distinguir **limite legal direto** (texto da norma) de **parâmetro metodológico do portal** (benchmark estatístico). Nunca apresentar o segundo como se fosse lei.
