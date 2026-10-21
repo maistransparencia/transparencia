@@ -436,6 +436,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaDetailUrl: buildNavUrl({
+      path: "/saude/farmacia",
+      slug: portalSlug,
+      exercice: undefined,
+      entidades: undefined,
+    }),
     educacaoDetailUrl: routeUrl("/educacao"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...(() => {

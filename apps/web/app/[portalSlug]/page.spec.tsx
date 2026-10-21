@@ -84,6 +84,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       previdencia: [],
     },
     radarAlertas: [],
+    resumoFarmacia: { status: "conforme" },
     resumoObras: {
       totalObras: 5,
       emExecucao: 2,
@@ -247,5 +248,26 @@ describe("VisaoGeralPage", () => {
     expect(screen.getByText("▼ -2 posições")).toBeInTheDocument();
     expect(screen.queryByText(/Anos iniciais/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Anos finais/)).not.toBeInTheDocument();
+  });
+
+  it("apagao da farmacia mostra faixa com Ver detalhes para a rota da farmacia", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ resumoFarmacia: { status: "apagao" } }),
+    );
+    render(await VisaoGeralPage(props));
+    const hrefs = screen
+      .getAllByRole("link", { name: /Ver detalhes/ })
+      .map((link) => link.getAttribute("href") ?? "");
+    expect(hrefs.some((href) => href.endsWith("/saude/farmacia"))).toBe(true);
+  });
+
+  it("conforme da farmacia mostra o campo de busca", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ resumoFarmacia: { status: "conforme" } }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(
+      screen.getByPlaceholderText("Qual remédio você procura?"),
+    ).toBeInTheDocument();
   });
 });

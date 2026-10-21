@@ -6,6 +6,7 @@ const {
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
   getResumoEducacaoMock,
+  getResumoFarmaciaSusMock,
   getResumoObrasPorPortalMock,
   notFoundMock,
 } = vi.hoisted(() => ({
@@ -14,6 +15,7 @@ const {
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
   getResumoEducacaoMock: vi.fn(),
+  getResumoFarmaciaSusMock: vi.fn(),
   getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -42,6 +44,7 @@ vi.mock("@transparencia/db", () => ({
   getObrasPorPortal: getObrasPorPortalMock,
   getResumoObrasPorPortal: getResumoObrasPorPortalMock,
   getResumoEducacao: getResumoEducacaoMock,
+  getResumoFarmaciaSus: getResumoFarmaciaSusMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
@@ -163,5 +166,21 @@ describe("loadVisaoGeralData", () => {
     const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
 
     expect(result.resumoEducacao).toBeNull();
+  });
+
+  it("propaga resumoFarmacia consultado com o tenant", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    getRadarCivicoAlertasMock.mockResolvedValue([]);
+    const resumoFarmacia = {
+      status: "apagao",
+      diasDesdePosicaoMaisRecente: 20,
+    };
+    getResumoFarmaciaSusMock.mockResolvedValue(resumoFarmacia);
+
+    const result = await loadVisaoGeralData("porciuncula", {});
+
+    expect(getResumoFarmaciaSusMock).toHaveBeenCalledWith("porciuncula");
+    expect(result.resumoFarmacia).toEqual(resumoFarmacia);
   });
 });

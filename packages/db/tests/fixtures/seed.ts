@@ -1034,6 +1034,47 @@ export async function seedObra(row: ObraRow): Promise<void> {
     .execute();
 }
 
+export interface FarmaciaEstoqueRow {
+  portalSlug: string;
+  idRegistro: string;
+  statusConformidade?: string;
+  dataColeta?: string | null;
+  dataPosicaoMaisRecente?: string | null;
+  diasDesdePosicaoMaisRecente?: number | null;
+  codigoCnes?: string | null;
+  nomeUnidade?: string | null;
+  enderecoUnidade?: string | null;
+  telefoneUnidade?: string | null;
+  latitudeUnidade?: number | null;
+  longitudeUnidade?: number | null;
+  nomeMedicamento?: string | null;
+  quantidadeEstoque?: number | null;
+  dataPosicaoEstoque?: string | null;
+}
+
+export async function seedFarmacia(row: FarmaciaEstoqueRow): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      status_conformidade: row.statusConformidade ?? "conforme",
+      data_coleta: row.dataColeta ?? null,
+      data_posicao_mais_recente: row.dataPosicaoMaisRecente ?? null,
+      dias_desde_posicao_mais_recente: row.diasDesdePosicaoMaisRecente ?? null,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_unidade: row.nomeUnidade ?? null,
+      endereco_unidade: row.enderecoUnidade ?? null,
+      telefone_unidade: row.telefoneUnidade ?? null,
+      latitude_unidade: row.latitudeUnidade ?? null,
+      longitude_unidade: row.longitudeUnidade ?? null,
+      nome_medicamento: row.nomeMedicamento ?? null,
+      quantidade_estoque: row.quantidadeEstoque ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque ?? null,
+    })
+    .execute();
+}
+
 export interface ObraEmpenhoRow {
   portalSlug: string;
   idProjeto: string;
@@ -1192,6 +1233,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

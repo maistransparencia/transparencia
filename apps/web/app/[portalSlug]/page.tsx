@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
+import { FarmaciaResumoCard } from "@/components/farmacia/farmacia-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { ObrasResumoCard } from "@/components/obras-resumo-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
@@ -56,6 +57,11 @@ export default async function VisaoGeralPage({
         previstoTotal={viewModel.previstoTotal}
         realizationPercent={viewModel.realizationPercent}
         originBreakdown={viewModel.originBreakdown}
+      />
+
+      <FarmaciaResumoCard
+        status={viewModel.farmaciaStatus}
+        detailUrl={viewModel.farmaciaDetailUrl}
       />
 
       <section className="space-y-4" aria-labelledby="indicadores-sociais">

@@ -10,6 +10,7 @@ export * from "./queries/educacao-origem-recursos";
 export * from "./queries/emendas-parlamentares";
 export * from "./queries/execucao-orcamentaria-metrics";
 export * from "./queries/export-raw-data";
+export * from "./queries/farmacia";
 export * from "./queries/fontes-receita-metrics";
 export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-previdencia-metrics";
