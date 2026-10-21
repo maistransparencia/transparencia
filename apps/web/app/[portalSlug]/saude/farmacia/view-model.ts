@@ -1,4 +1,5 @@
 import { fmtDate } from "@transparencia/ui";
+import { isValidMapCoordinate } from "@/lib/tile-calc";
 import type { loadFarmaciaData } from "./loader";
 import {
   FARMACIA_LIMITE_MAXIMO_UNIDADES,
@@ -27,7 +28,7 @@ function buildFarmaciaHref(
   return queryString ? `${base}?${queryString}` : base;
 }
 
-function buildFatoApagao(
+export function buildFatoApagao(
   dataPosicaoMaisRecente: string | null,
   diasDesdePosicaoMaisRecente: number | null,
 ): string {
@@ -81,8 +82,8 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
   const { farmacia, context, portalSlug, portalName } = raw;
   const hasBusca = context.busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES;
   const hasBuscaCurta = context.busca.length > 0 && !hasBusca;
-  const unidadesComMapa = farmacia.unidades.filter(
-    (u) => u.latitudeUnidade != null && u.longitudeUnidade != null,
+  const unidadesComMapa = farmacia.unidades.filter((u) =>
+    isValidMapCoordinate(u.latitudeUnidade, u.longitudeUnidade),
   );
   const hasMaisUnidades =
     farmacia.unidades.length < farmacia.totalUnidades &&

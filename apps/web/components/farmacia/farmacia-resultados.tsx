@@ -2,6 +2,7 @@ import { fmtDate, fmtNumber } from "@transparencia/ui";
 import { ArrowRight, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { StaticTileMap } from "@/components/static-tile-map";
+import { isValidMapCoordinate } from "@/lib/tile-calc";
 
 export interface FarmaciaResultadoUnidade {
   idUnidade: string;
@@ -53,6 +54,10 @@ export function FarmaciaResultados({
     );
   }
 
+  const hasMapa = mapMarkers.some((marker) =>
+    isValidMapCoordinate(marker.latitude, marker.longitude),
+  );
+
   return (
     <div className="space-y-4">
       {unidadeFiltrada && (
@@ -63,7 +68,9 @@ export function FarmaciaResultados({
           Limpar filtros
         </Link>
       )}
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+      <div
+        className={`grid gap-4 ${hasMapa ? "lg:grid-cols-[1fr_20rem]" : ""}`}
+      >
         <ul className="space-y-3">
           {unidades.map((unidade) => (
             <li
@@ -121,7 +128,7 @@ export function FarmaciaResultados({
             </li>
           ))}
         </ul>
-        {mapMarkers.length > 0 && (
+        {hasMapa && (
           <StaticTileMap
             markers={mapMarkers}
             alt="Mapa das unidades com o medicamento em estoque"
