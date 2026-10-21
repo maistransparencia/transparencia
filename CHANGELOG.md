@@ -5,6 +5,22 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-10-21
+
+### 🌟 Destaques da Versão (Avise-me: cidade em breve)
+* **Avise-me quando minha cidade chegar:** Quem mora em um município que ainda não está no portal agora pode deixar a cidade e o e-mail na página de seleção e ser avisado quando ela entrar.
+
+### ✨ Novas Funcionalidades (Added)
+* **Aviso de cidade em breve (`apps/web`, `@transparencia/db`):** A seleção de município ganha o bloco "Em breve" ("Sua cidade ainda não está aqui") com o formulário "Avise-me quando minha cidade chegar" (cidade, estado, e-mail e aceite com link para a Política de Privacidade). O pedido é gravado em `public.city_interest_requests` (migração 004) de forma idempotente por e-mail, cidade normalizada e UF, via `registerCityInterest` e a rota `POST /api/city-interest`, com honeypot e limite de tentativas por IP e por e-mail. Eventos do PostHog (`city_interest_cta_clicked`, `city_interest_modal_opened`, `city_interest_form_started`, `city_interest_validation_failed`, `city_interest_submitted`, `city_interest_submit_failed` e `city_interest_modal_closed`) medem o uso do formulário sem enviar e-mail nem o texto da cidade, apenas a UF. Nesta etapa não há e-mail de confirmação.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Migração 004 e permissões (`@transparencia/db`, `elt`):** `004_create_city_interest_requests` cria `public.city_interest_requests`, e `elt/migrations/grant_readonly.sql` concede ao papel `read_only` as permissões de escrita e a política RLS da nova tabela, como nas tabelas da newsletter e de push.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **Guias de IA (seleção de município):** `llms.txt` e `llms-full.txt` descrevem a página `/` com o bloco "Em breve" e o pedido de aviso, sem prometer municípios.
+
+## [1.22.0] - 2026-10-19
+
 ### 🌟 Destaques da Versão (Educação: origem dos recursos)
 * **De onde vem o dinheiro da Educação:** A página de Educação passa a mostrar quanto o Fundo Municipal de Educação arrecadou em cada fonte (FUNDEB, complementação da União, salário-educação, PNAE, PNATE e outras), com o histórico ano a ano e a base legal de cada fonte.
 * **Valores de receita corrigidos:** Códigos de receita que o portal de origem informa duas vezes (linha total e linhas de detalhe) deixam de ser somados em duplicidade. Valores já publicados nesses códigos mudam.
