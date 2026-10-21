@@ -271,7 +271,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
         </div>
       )}
 
-      <CityInterestBlock />
+      <CityInterestBlock totalPortais={portais.length} />
     </div>
   );
 }
