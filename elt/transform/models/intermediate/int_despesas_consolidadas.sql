@@ -1,3 +1,5 @@
+{{ config(materialized='view' if var('test_mode', false) else 'table') }}
+
 -- Intermediário: consolida despesas de todos os portais via union all.
 -- Para adicionar novo portal: incluir novo CTE + union all abaixo.
 -- fonte: 'exercicio' para despesas do orçamento corrente, 'restos_a_pagar' para RAP.

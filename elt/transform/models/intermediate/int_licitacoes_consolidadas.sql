@@ -1,3 +1,5 @@
+{{ config(materialized='view' if var('test_mode', false) else 'table') }}
+
 -- Intermediário: consolida licitacoes de todos os portais via union all.
 -- Enriquecimento hierárquico de objetos: PNCP (1ª) -> Contrato local (2ª) -> TCE-RJ (3ª) -> Municipal (4ª).
 -- Para adicionar novo portal: incluir novo CTE + union all abaixo.

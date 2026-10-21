@@ -1,3 +1,5 @@
+{{ config(materialized='view' if var('test_mode', false) else 'table') }}
+
 -- Intermediário: consolida pessoal de todos os portais via union all.
 -- Para adicionar novo portal: incluir novo select em pessoal_unificado abaixo.
 

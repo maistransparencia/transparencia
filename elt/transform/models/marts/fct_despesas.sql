@@ -4,6 +4,7 @@
 -- RAP (restos a pagar): tipo_empenho é null — incluídos na tabela final sem anulações.
 
 {{ config(
+    materialized='view' if var('test_mode', false) else 'table',
     indexes=[
         {'columns': ['portal_slug', 'ano']},
         {'columns': ['portal_slug', 'ano', 'empresa_id']},
