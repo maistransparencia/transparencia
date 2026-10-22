@@ -257,4 +257,36 @@ describe("Sidebar Component", () => {
       expect.stringContaining("/porciuncula_prefeitura/educacao"),
     );
   });
+
+  it("posiciona Temas antes de Administrativo", () => {
+    render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
+    const temas = screen.getAllByText("Temas")[0];
+    const administrativo = screen.getAllByText("Administrativo")[0];
+    expect(
+      temas.compareDocumentPosition(administrativo) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("renderiza ícone cívico neutro sem brasão e sem img de brasão fixo", () => {
+    const { container } = render(
+      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
+    );
+    expect(
+      container.querySelector('img[src*="brasao-porciuncula"]'),
+    ).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
+  });
+
+  it("renderiza img do brasao quando brasaoAsset e informado", () => {
+    const { container } = render(
+      <Sidebar
+        portalName="Portal"
+        portalSlug="portal_teste"
+        brasaoAsset="brasao-teste.svg"
+      />,
+    );
+    expect(container.querySelector("img")).not.toBeNull();
+  });
 });
