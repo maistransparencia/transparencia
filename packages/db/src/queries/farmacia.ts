@@ -185,6 +185,8 @@ export async function getFarmaciaSus(
 
   const ids = unidadesPagina.map((u) => u.id_unidade);
 
+  // A fonte publica um registro por lote; o cidadão quer o total por medicamento.
+  const nomeMedicamentoNormalizado = sql<string>`btrim(regexp_replace(coalesce(nome_medicamento, ''), '\\s+', ' ', 'g'))`;
   const linhas = await linhasBase()
     .select([
       ID_UNIDADE_SQL.as("id_unidade"),
@@ -193,11 +195,22 @@ export async function getFarmaciaSus(
       "telefone_unidade",
       "latitude_unidade",
       "longitude_unidade",
-      "nome_medicamento",
-      "quantidade_estoque",
-      "data_posicao_estoque",
+      nomeMedicamentoNormalizado.as("nome_medicamento"),
+      sql<string>`sum(quantidade_estoque)`.as("quantidade_estoque"),
+      sql<Date | string | null>`max(data_posicao_estoque)`.as(
+        "data_posicao_estoque",
+      ),
     ])
     .where(sql<boolean>`${ID_UNIDADE_SQL} in (${sql.join(ids)})`)
+    .groupBy([
+      ID_UNIDADE_SQL,
+      "nome_unidade",
+      "endereco_unidade",
+      "telefone_unidade",
+      "latitude_unidade",
+      "longitude_unidade",
+      nomeMedicamentoNormalizado,
+    ])
     .orderBy("nome_medicamento")
     .execute();
 

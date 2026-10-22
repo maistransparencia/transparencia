@@ -114,6 +114,41 @@ describe("farmacia queries", () => {
     expect(acento.unidades).toHaveLength(1);
   });
 
+  it("soma os lotes do mesmo medicamento e normaliza espacos do nome", async () => {
+    const base = {
+      portalSlug: PORTAL_A,
+      statusConformidade: "conforme",
+      dataColeta: "2026-10-20",
+      dataPosicaoMaisRecente: "2026-10-18",
+      diasDesdePosicaoMaisRecente: 2,
+      codigoCnes: "2001",
+      nomeUnidade: "Farmacia Central",
+      dataPosicaoEstoque: "2026-10-18",
+    };
+    await seedFarmacia({
+      ...base,
+      idRegistro: "lote-1",
+      nomeMedicamento: "IBUPROFENO  300 MG COMPRIMIDO",
+      quantidadeEstoque: 4000,
+    });
+    await seedFarmacia({
+      ...base,
+      idRegistro: "lote-2",
+      nomeMedicamento: "IBUPROFENO 300 MG COMPRIMIDO",
+      quantidadeEstoque: 14783,
+    });
+
+    const resultado = await getFarmaciaSus(PORTAL_A, { busca: "ibuprofeno" });
+
+    expect(resultado.unidades[0].medicamentos).toEqual([
+      {
+        nomeMedicamento: "IBUPROFENO 300 MG COMPRIMIDO",
+        quantidadeEstoque: 18783,
+        dataPosicaoEstoque: "2026-10-18",
+      },
+    ]);
+  });
+
   it("filtra por unidade e pagina", async () => {
     await seedPortalConforme(PORTAL_A);
     const filtrada = await getFarmaciaSus(PORTAL_A, {
