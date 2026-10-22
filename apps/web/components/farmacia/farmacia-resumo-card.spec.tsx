@@ -20,6 +20,13 @@ describe("FarmaciaResumoCard", () => {
     ).toHaveAttribute("name", "q");
   });
 
+  it("conforme: 'Busque no estoque' leva a pagina de estoque", () => {
+    render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
+    expect(
+      screen.getByRole("link", { name: "Busque no estoque" }),
+    ).toHaveAttribute("href", detailUrl);
+  });
+
   it("apagao: faixa com Ver detalhes e sem botoes de acao civica", () => {
     render(<FarmaciaResumoCard status="apagao" detailUrl={detailUrl} />);
     expect(screen.getByRole("link", { name: /Ver detalhes/ })).toHaveAttribute(

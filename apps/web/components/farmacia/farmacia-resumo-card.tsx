@@ -43,7 +43,18 @@ export function FarmaciaResumoCard({
       titulo="Farmácia SUS"
       badgeTexto="Em conformidade"
       tom="positivo"
-      contexto="Onde tem o seu remédio? Busque no estoque."
+      contexto={
+        <>
+          Onde tem o seu remédio?{" "}
+          <Link
+            href={detailUrl}
+            className="font-medium underline underline-offset-2 hover:text-ink"
+          >
+            Busque no estoque
+          </Link>
+          .
+        </>
+      }
       className={className}
       dado={<FarmaciaBuscaForm action={detailUrl} className="sm:w-96" />}
     />

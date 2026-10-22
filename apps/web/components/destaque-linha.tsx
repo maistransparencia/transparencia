@@ -31,7 +31,7 @@ export interface DestaqueLinhaProps {
   titulo: string;
   badgeTexto: string;
   tom: DestaqueTom;
-  contexto: string;
+  contexto: ReactNode;
   /** Fonte oficial do dado, exibida como link após o contexto. */
   fonte?: FonteOficial;
   /** Dado principal da linha (valor, evolução ou campo de busca). */
