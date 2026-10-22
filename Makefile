@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: analysis/desempenho analysis/comparar analysis/fornecedores install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -211,3 +211,15 @@ db/fixture/check:
 db/test/restore:
 	psql -v ON_ERROR_STOP=1 "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" -c "CREATE EXTENSION IF NOT EXISTS unaccent; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"
+
+# ANÁLISE DE MODELOS (apenas banco local; ver elt/analysis)
+# Ex.: make analysis/desempenho SAIDA=antes.json  |  make analysis/comparar ANTES=antes.json DEPOIS=depois.json
+
+analysis/desempenho:
+	uv run --project elt python -m elt.analysis desempenho --saida $(or $(SAIDA),desempenho.json)
+
+analysis/comparar:
+	uv run --project elt python -m elt.analysis comparar $(ANTES) $(DEPOIS)
+
+analysis/fornecedores:
+	uv run --project elt python -m elt.analysis fornecedores
