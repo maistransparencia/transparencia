@@ -90,8 +90,6 @@ models:
         data_type: text
       - name: mes
         data_type: text
-      - name: fornecedor_nome
-        data_type: text
       - name: fornecedor_cpf_cnpj
         data_type: text
       - name: licitacao_numero

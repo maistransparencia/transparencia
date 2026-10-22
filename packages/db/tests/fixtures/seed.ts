@@ -439,6 +439,41 @@ export async function seedContratosServicosVigentes(
     .execute();
 }
 
+export interface DimFornecedorRow {
+  portalSlug: string;
+  fornecedorNome: string;
+  fornecedorCpfCnpj?: string | null;
+}
+
+/** Mesma regra de chave do dbt (macro credor_key): documento só com dígitos; sem documento, o nome. */
+export function credorIdDe(row: DimFornecedorRow): string {
+  const documento = (row.fornecedorCpfCnpj ?? "").replace(/\D/g, "");
+  return `credor_${row.portalSlug}_${documento || row.fornecedorNome}`;
+}
+
+const credoresSemeados = new Set<string>();
+
+/** Insere o fornecedor na dimensão (uma vez por chave) e devolve o credor_id. */
+export async function seedDimFornecedor(
+  row: DimFornecedorRow,
+): Promise<string> {
+  const credorId = credorIdDe(row);
+  if (!credoresSemeados.has(credorId)) {
+    credoresSemeados.add(credorId);
+    await db
+      .insertInto("dim_fornecedor")
+      .values({
+        credor_id: credorId,
+        portal_slug: row.portalSlug,
+        fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+        fornecedor_nome: row.fornecedorNome,
+        quantidade_nomes_distintos: 1,
+      })
+      .execute();
+  }
+  return credorId;
+}
+
 export interface DimOrgaoRow {
   portalSlug: string;
   empresaId: string;
@@ -463,16 +498,27 @@ export interface DespesaRow {
   ano: number;
   fonte: string;
   categoriaGastoSensivel?: string;
+  fornecedorNome?: string;
+  fornecedorCpfCnpj?: string;
   empenhado?: number;
   liquidado?: number;
   pago?: number;
 }
 
 export async function seedDespesa(row: DespesaRow): Promise<void> {
+  const credorId = row.fornecedorNome
+    ? await seedDimFornecedor({
+        portalSlug: row.portalSlug,
+        fornecedorNome: row.fornecedorNome,
+        fornecedorCpfCnpj: row.fornecedorCpfCnpj,
+      })
+    : null;
   await db
     .insertInto("fct_despesas")
     .values({
       despesa_id: nextId("desp"),
+      credor_id: credorId,
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
       empenho_id: nextId("emp"),
       portal_slug: row.portalSlug,
       empresa_id: row.empresaId,
@@ -891,15 +937,20 @@ export interface ContratoRow {
 }
 
 export async function seedContrato(row: ContratoRow): Promise<void> {
+  const credorId = await seedDimFornecedor({
+    portalSlug: row.portalSlug,
+    fornecedorNome: row.fornecedorNome ?? "FORNECEDOR PADRAO",
+    fornecedorCpfCnpj: row.fornecedorCpfCnpj,
+  });
   await db
     .insertInto("fct_contratos")
     .values({
       contrato_id: row.contratoId ?? nextId("ctr"),
+      credor_id: credorId,
       portal_slug: row.portalSlug,
       ano: row.ano,
       empresa_id: row.empresaId ?? "1",
       contrato_numero: row.contratoNumero ?? "001/2024",
-      fornecedor_nome: row.fornecedorNome ?? "FORNECEDOR PADRAO",
       fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
       objeto: row.objeto ?? "Objeto do contrato",
       objeto_completo: row.objetoCompleto ?? null,
@@ -1182,6 +1233,15 @@ export async function seedDimMetadata(row: {
 
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("dim_fornecedor")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  credoresSemeados.forEach((credorId) => {
+    if (credorId.startsWith(`credor_${portalSlug}_`)) {
+      credoresSemeados.delete(credorId);
+    }
+  });
   await db
     .deleteFrom("dim_metadata")
     .where("portal_slug", "=", portalSlug)

@@ -203,7 +203,6 @@ select
     proj_atividade,
     projeto_atividade_nome,
     mes,
-    fornecedor_nome,
     fornecedor_cpf_cnpj,
     licitacao_numero,
     licitacao_modalidade,

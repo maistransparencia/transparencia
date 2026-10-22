@@ -70,12 +70,17 @@ export async function getRawDespesasExportRecords(
           .onRef("o.portal_slug", "=", "d.portal_slug")
           .onRef("o.empresa_id", "=", "d.empresa_id"),
       )
+      .leftJoin("dim_fornecedor as f", (join) =>
+        join
+          .onRef("f.portal_slug", "=", "d.portal_slug")
+          .onRef("f.credor_id", "=", "d.credor_id"),
+      )
       .select([
         "d.empenho_id",
         "d.data_empenho",
         "o.orgao_nome",
         "d.orgao_codigo",
-        "d.fornecedor_nome",
+        "f.fornecedor_nome",
         "d.fornecedor_cpf_cnpj",
         "d.descricao",
         "d.natureza_despesa_codigo",

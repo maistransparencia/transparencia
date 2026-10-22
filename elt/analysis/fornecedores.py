@@ -1,4 +1,9 @@
-"""Relacionamento entre fatos por fornecedor (credor_id) e impacto de usar o nome canônico da dimensão."""
+"""Relacionamento entre fatos por fornecedor (credor_id) e impacto de usar o nome canônico da dimensão.
+
+As análises de nome (nomes_divergentes por fato, impacto_classificadores e impacto_siglas_dos_portais) comparam
+o nome de cada linha do fato com o nome canônico da dimensão. Depois que os fatos deixam de carregar
+`fornecedor_nome`, essas partes ficam vazias: cobertura, ligações e o resumo por portal continuam valendo.
+"""
 
 from psycopg2 import sql
 from psycopg2.extensions import connection as Connection
@@ -11,6 +16,15 @@ PALAVRAS_CLASSIFICADORAS = ("CAPREM", "NATPREV", "CASP", "RPPS")
 
 def _tabela(nome: str) -> sql.Composable:
     return sql.SQL("{}.{}").format(sql.Identifier(SCHEMA), sql.Identifier(nome))
+
+
+def _fato_tem_coluna(conexao: Connection, fato: str, coluna: str) -> bool:
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            "select 1 from information_schema.columns where table_schema = %s and table_name = %s and column_name = %s",
+            (SCHEMA, fato, coluna),
+        )
+        return cursor.fetchone() is not None
 
 
 def _consultar(conexao: Connection, consulta: sql.Composable, parametros: tuple | dict = ()) -> list[dict]:
@@ -100,13 +114,20 @@ def nomes_divergentes(conexao: Connection) -> list[dict]:
     return [
         {
             "portais": portais,
-            "linhas_por_fato": [linha for fato in FATOS_COM_NOME for linha in linhas_divergentes(fato)],
+            "linhas_por_fato": [
+                linha
+                for fato in FATOS_COM_NOME
+                if _fato_tem_coluna(conexao, fato, "fornecedor_nome")
+                for linha in linhas_divergentes(fato)
+            ],
         }
     ]
 
 
 def impacto_classificadores(conexao: Connection, palavras: tuple[str, ...] = PALAVRAS_CLASSIFICADORAS) -> list[dict]:
     """Por palavra: valor classificado pelo nome de cada linha versus pelo nome canônico (fct_despesas)."""
+    if not _fato_tem_coluna(conexao, "fct_despesas", "fornecedor_nome"):
+        return []
 
     def por_palavra(palavra: str) -> list[dict]:
         consulta = sql.SQL(
@@ -130,6 +151,8 @@ def impacto_classificadores(conexao: Connection, palavras: tuple[str, ...] = PAL
 
 def impacto_siglas_dos_portais(conexao: Connection) -> list[dict]:
     """Igual a impacto_classificadores, mas com as siglas de previdência e plano de saúde de cada portal."""
+    if not _fato_tem_coluna(conexao, "fct_despesas", "fornecedor_nome"):
+        return []
     consulta = sql.SQL(
         """
         select

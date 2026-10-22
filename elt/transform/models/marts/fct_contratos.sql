@@ -32,7 +32,6 @@ select
     ano,
     empresa_id,
     contrato_numero,
-    fornecedor_nome,
     fornecedor_cpf_cnpj,
     objeto,
     objeto_completo,

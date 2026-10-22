@@ -1,16 +1,26 @@
 -- Dimensão: fornecedores (credores) por portal, a partir de despesas, contratos e itens de licitação
+-- Lê as intermediárias de despesas e contratos porque os fatos não carregam mais o nome do fornecedor.
 -- Chave: credor_id (ver macro credor_key), a mesma de fct_despesas e fct_contratos.
 -- O nome canônico é o mais frequente por chave (desempate alfabético), pois o mesmo
 -- documento aparece com grafias diferentes.
 
 with ocorrencias_fornecedor as (
-    select credor_id, portal_slug, fornecedor_cpf_cnpj, fornecedor_nome
-    from {{ ref('fct_despesas') }}
+    select
+        {{ credor_key() }} as credor_id,
+        portal_slug,
+        fornecedor_cpf_cnpj,
+        fornecedor_nome
+    from {{ ref('int_despesas_reclassificadas') }}
+    where tipo_empenho is distinct from 'AN'
 
     union all
 
-    select credor_id, portal_slug, fornecedor_cpf_cnpj, fornecedor_nome
-    from {{ ref('fct_contratos') }}
+    select
+        {{ credor_key() }} as credor_id,
+        portal_slug,
+        fornecedor_cpf_cnpj,
+        fornecedor_nome
+    from {{ ref('int_contratos_consolidados') }}
 
     union all
 

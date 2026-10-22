@@ -157,8 +157,8 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", orgao_nome: "FUNDO MUNICIPAL DE SAUDE" }
       - input: ref('fct_despesas')
         rows:
-          - { credor_id: "credor_1", portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "303", elemento: "30", empresa_id: "2", fornecedor_nome: "FARMACEUTICA A", dotacao_atualizada: 200000.00, empenhado_liquido: 100000.00, liquidado: 80000.00, pago: 60000.00, subfuncao_nome: "ASSISTENCIA FARMACEUTICA", fonte: "exercicio" }
-          - { credor_id: "credor_2", portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "91", empresa_id: "2", fornecedor_nome: "FORNECEDOR B", dotacao_atualizada: 100000.00, empenhado_liquido: 50000.00, liquidado: 40000.00, pago: 30000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
+          - { credor_id: "credor_1", portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "303", elemento: "30", empresa_id: "2", dotacao_atualizada: 200000.00, empenhado_liquido: 100000.00, liquidado: 80000.00, pago: 60000.00, subfuncao_nome: "ASSISTENCIA FARMACEUTICA", fonte: "exercicio" }
+          - { credor_id: "credor_2", portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "91", empresa_id: "2", dotacao_atualizada: 100000.00, empenhado_liquido: 50000.00, liquidado: 40000.00, pago: 30000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
       - input: ref('dim_fornecedor')
         rows:
           - { credor_id: "credor_1", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "FARMACEUTICA A" }
