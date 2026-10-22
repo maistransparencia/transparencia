@@ -17,7 +17,7 @@ export const LEGISLACAO = {
   },
   lei4320: {
     nome: "Lei 4.320/1964",
-    url: "http://www.planalto.gov.br/ccivil_03/leis/l4320.htm",
+    url: `${PLANALTO}/leis/l4320.htm`,
   },
   lei14133: {
     nome: "Lei 14.133/2021 (Nova Lei de Licitações)",
