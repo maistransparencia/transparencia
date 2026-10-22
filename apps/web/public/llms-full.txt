@@ -338,6 +338,16 @@ Monitoramento auditável da evolução pedagógica e cumprimento das regras cons
 
 ---
 
+### 1.7.1.1. Farmácia SUS (`/[portalSlug]/saude/farmacia`)
+
+Consulta pública do estoque de medicamentos das unidades de saúde do município, a partir do BNAFAR/Hórus e do CNES (Ministério da Saúde):
+
+- **Busca:** começa vazia; `?q=[medicamento]` (sem distinção de acento ou caixa) lista as unidades com o item, com endereço, telefone, quantidade e data da posição. `&unidade=[idUnidade]` filtra uma unidade e `&limite=[n]` amplia a lista ("Ver mais unidades"). O mapa mostra só unidades com coordenadas.
+- **Estados (`status`):** `conforme` (selo "Estoque Transparente" com a data de atualização), `apagao` (sem divulgação ou posição defasada há mais de 15 dias; exibe a sentinela da [Lei nº 14.654/2023](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14654.htm), o requerimento de fiscalização com base no [Art. 6º-B da Lei nº 8.080/1990](https://www.planalto.gov.br/ccivil_03/leis/l8080.htm) e o compartilhamento por WhatsApp) e `indisponivel` (coleta ausente ou com falha; mensagem neutra, sem acusação de descumprimento).
+- **Visão Geral:** card-resumo com campo de busca (`conforme`) ou faixa "Ver detalhes" (`apagao`); nada em `indisponivel`.
+
+---
+
 ### 1.7.2. Obras Públicas e Impacto Urbano (`/[portalSlug]/obras`)
 
 Mapeamento cartográfico e fiscalização das obras públicas municipais em execução, paralisadas ou concluídas no território da cidade:
