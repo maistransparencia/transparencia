@@ -18,6 +18,7 @@ import type {
   ObraMarkerItem,
   ObrasViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
+import { FONTES_OFICIAIS, urlObraCipi } from "@/lib/constants/fontes-oficiais";
 import { ObrasDetalheModal } from "./obras-detalhe-modal";
 
 function normalizeText(text: string): string {
@@ -416,7 +417,7 @@ export function ObrasInteractiveSection({
               Onde estão as obras
             </h2>
             <a
-              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+              href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-[11px] text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
@@ -710,7 +711,7 @@ export function ObrasInteractiveSection({
                             </button>
 
                             <a
-                              href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
+                              href={urlObraCipi(obra.idProjeto)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 font-medium text-slate-500 text-xs hover:text-slate-800 hover:underline"

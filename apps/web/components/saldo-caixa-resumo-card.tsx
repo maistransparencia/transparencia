@@ -2,6 +2,7 @@ import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
 import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import { AlertCircle, ArrowRight, ExternalLink, Info } from "lucide-react";
 import Link from "next/link";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface SaldoCaixaResumoCardProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
@@ -102,7 +103,7 @@ export function SaldoCaixaResumoCard({
             </div>
           </div>
           <a
-            href="https://siconfi.tesouro.gov.br/"
+            href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 self-start rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100 sm:self-auto"
@@ -181,7 +182,7 @@ export function SaldoCaixaResumoCard({
             Posição: {mesExtenso}/{ano}
           </span>
           <a
-            href="https://siconfi.tesouro.gov.br"
+            href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"

@@ -3,6 +3,7 @@
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ObrasCivicDisclaimerProps {
   municipioNome?: string;
@@ -96,7 +97,7 @@ export function ObrasCivicDisclaimer({
             autoridades municipais e os vereadores para que solicitem a devida
             regularização no ObrasGov.br, em conformidade com a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm"
+              href={urlLegislacao("lai")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"
@@ -106,7 +107,7 @@ export function ObrasCivicDisclaimer({
             </a>{" "}
             e a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm"
+              href={urlLegislacao("lei14133")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"

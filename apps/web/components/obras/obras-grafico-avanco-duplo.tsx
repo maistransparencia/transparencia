@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, ExternalLink } from "lucide-react";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ObrasGraficoAvancoDuploProps {
   percentualExecucaoFisica: number | null;
@@ -161,7 +162,7 @@ export function ObrasGraficoAvancoDuplo({
           De acordo com as boas práticas de controle dos Tribunais de Contas e
           da{" "}
           <a
-            href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm"
+            href={urlLegislacao("lei14133")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-0.5 font-medium text-blue-600 hover:text-blue-800 hover:underline"

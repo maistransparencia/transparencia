@@ -10,6 +10,7 @@ import {
   toTitleCase,
 } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, Info, ShieldCheck } from "lucide-react";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { KPIGrid } from "./kpi-grid";
 import { SaldoCaixaEvolucaoMensalChart } from "./saldo-caixa-evolucao-mensal-chart";
 import { ShowYourWorkButton } from "./show-your-work-button";
@@ -131,7 +132,7 @@ export function SaldoCaixaEntidadesSection({
               {tituloVazio}
             </h2>
             <a
-              href="https://siconfi.tesouro.gov.br/"
+              href={FONTES_OFICIAIS.siconfi.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100"
@@ -226,7 +227,7 @@ export function SaldoCaixaEntidadesSection({
               Posição: {mesExtenso}/{ano}
             </span>
             <a
-              href="https://siconfi.tesouro.gov.br"
+              href={FONTES_OFICIAIS.siconfi.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"

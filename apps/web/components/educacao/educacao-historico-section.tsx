@@ -40,8 +40,7 @@ interface CustomTooltipProps {
   label?: string | number;
 }
 
-const NOTA_INFORMATIVA_IDEB_URL =
-  "https://download.inep.gov.br/ideb/resultados/nota_informativa_ideb_2025.pdf";
+const NOTA_INFORMATIVA_IDEB_URL = FONTES_OFICIAIS.notaInformativaIdeb2025.url;
 
 const formatarAnos = (anos: number[]) =>
   new Intl.ListFormat("pt-BR", { style: "long", type: "conjunction" }).format(

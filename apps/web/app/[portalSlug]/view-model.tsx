@@ -516,6 +516,7 @@ export {
   MESES_ABREV,
 } from "@/lib/radar-civico-narrative";
 
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import {
   formatarDimensao,
   formatDesvioPercentual,
@@ -859,37 +860,37 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
         return {
           label: "Lei nº 9.717/1998",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+          url: urlLegislacao("lei9717", "art1"),
         };
       }
       if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
         return {
           label: "Art. 40 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+          url: urlLegislacao("constituicao", "art40"),
         };
       }
       if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
         return {
           label: "Art. 5º da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+          url: urlLegislacao("lei14133", "art5"),
         };
       }
       if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
         return {
           label: "Art. 59, III da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+          url: urlLegislacao("lei14133", "art59"),
         };
       }
       if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
         return {
           label: "Art. 37 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+          url: urlLegislacao("constituicao", "art37"),
         };
       }
       if (alerta.tipoAnomalia === "dependencia_transferencias") {
         return {
           label: "Art. 11 da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+          url: urlLegislacao("lrf", "art11"),
         };
       }
       if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
@@ -900,14 +901,14 @@ export function buildRadarCivicoCards(
           },
           {
             label: "Lei nº 9.717/1998",
-            url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+            url: urlLegislacao("lei9717"),
           },
         ];
       }
       if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
         return {
           label: "Art. 20, III, b da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
+          url: urlLegislacao("lrf", "art20"),
         };
       }
       return undefined;

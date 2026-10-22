@@ -1,4 +1,5 @@
 import { fmtDate } from "@transparencia/ui";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { isValidMapCoordinate } from "@/lib/tile-calc";
 import type { loadFarmaciaData } from "./loader";
 import {
@@ -10,10 +11,8 @@ export const FARMACIA_BUSCA_MINIMO_CARACTERES = 2;
 
 type FarmaciaRawData = Awaited<ReturnType<typeof loadFarmaciaData>>;
 
-export const LEI_FARMACIA_SUS_URL =
-  "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14654.htm";
-export const LEI_ORGANICA_SAUDE_URL =
-  "https://www.planalto.gov.br/ccivil_03/leis/l8080.htm";
+export const LEI_FARMACIA_SUS_URL = urlLegislacao("lei14654");
+export const LEI_ORGANICA_SAUDE_URL = urlLegislacao("lei8080");
 
 function buildFarmaciaHref(
   portalSlug: string,

@@ -14,6 +14,8 @@ import {
   getPartialYearPeriod,
   maskCpfCnpj,
 } from "@transparencia/ui";
+import { urlObraCipi } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import type { RawObrasData } from "./loader";
 
 export interface SituacaoVisual {
@@ -750,12 +752,9 @@ export function buildObraDetalheViewModel(
     };
   })();
 
-  const linkObrasGov = `https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(
-    obra.idProjeto,
-  )}`;
+  const linkObrasGov = urlObraCipi(obra.idProjeto);
 
-  const linkLegislacao =
-    "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6";
+  const linkLegislacao = urlLegislacao("lei14133", "art115p6");
 
   const cleanPortalSlug = obra.portalSlug || portalSlug;
   const contratos = (obra.contratos ?? []).map((c) =>

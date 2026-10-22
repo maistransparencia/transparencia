@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
 import { SectionHeader } from "@/components/section-header";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
 import {
@@ -305,7 +306,7 @@ export function EducacaoContratosSection({
             Auditoria dos contratos da pasta de ensino vigentes no exercício:
             merenda escolar (
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm"
+              href={urlLegislacao("lei11947")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
@@ -316,7 +317,7 @@ export function EducacaoContratosSection({
             </a>
             ), transporte escolar (
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10.880.htm"
+              href={urlLegislacao("lei10880")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
@@ -327,7 +328,7 @@ export function EducacaoContratosSection({
             </a>
             ), locação de imóveis (
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74v"
+              href={urlLegislacao("lei14133", "art74v")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"

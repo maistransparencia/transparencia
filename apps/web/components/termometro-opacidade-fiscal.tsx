@@ -16,6 +16,7 @@ import {
   Layers,
   ShieldCheck,
 } from "lucide-react";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface TermometroOpacidadeFiscalProps {
@@ -170,7 +171,7 @@ export function TermometroOpacidadeFiscal({
   ) ??
     basesLegais[0] ?? {
       baseLegal: "Lei 4.320/64 Arts. 5º e 15",
-      urlBaseLegal: "http://www.planalto.gov.br/ccivil_03/leis/l4320.htm",
+      urlBaseLegal: urlLegislacao("lei4320"),
     };
 
   const taxaExibida = Math.min(
