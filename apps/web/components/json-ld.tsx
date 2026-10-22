@@ -24,17 +24,15 @@ export function generateGovernmentOrganizationSchema({
   officialPortalUrl,
 }: GovernmentOrganizationParams): Record<string, unknown> {
   const portalName = displayName || "Prefeitura Municipal";
-  const portalUrl =
-    officialPortalUrl || "https://transparencia.porciuncula.rj.gov.br";
 
   return {
     "@context": "https://schema.org",
     "@type": "GovernmentOrganization",
     name: portalName,
-    url: portalUrl,
+    ...(officialPortalUrl ? { url: officialPortalUrl } : {}),
     address: {
       "@type": "PostalAddress",
-      addressRegion: stateUF || "RJ",
+      ...(stateUF ? { addressRegion: stateUF } : {}),
       addressCountry: "BR",
     },
     knowsAbout: [
@@ -51,19 +49,18 @@ export function generateDataCatalogSchema({
   officialPortalUrl,
 }: GovernmentOrganizationParams): Record<string, unknown> {
   const portalName = displayName || "Prefeitura Municipal";
-  const portalUrl =
-    officialPortalUrl || "https://transparencia.porciuncula.rj.gov.br";
+  const portalUrl = officialPortalUrl ? { url: officialPortalUrl } : {};
 
   return {
     "@context": "https://schema.org",
     "@type": "DataCatalog",
     name: `Portal de Dados da Transparência - ${portalName}`,
     description: `Catálogo público de conjuntos de dados orçamentários, fiscais, previdenciários e operacionais do município.`,
-    url: portalUrl,
+    ...portalUrl,
     publisher: {
       "@type": "GovernmentOrganization",
       name: portalName,
-      url: portalUrl,
+      ...portalUrl,
     },
     dataset: [
       {
