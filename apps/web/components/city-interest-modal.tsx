@@ -160,7 +160,10 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
 
       setSavedCity({ cidade: cidade.trim(), uf });
       setStatus("success");
-      track("city_interest_submitted", { uf });
+      track("city_interest_submitted", {
+        uf,
+        cidade: cidade.toLocaleLowerCase().trim(),
+      });
     } catch {
       setStatus("idle");
       track("city_interest_submit_failed", {
