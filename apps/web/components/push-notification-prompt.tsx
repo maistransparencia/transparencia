@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface PushNotificationPromptProps {
   portalSlug?: string;
@@ -254,7 +255,7 @@ export function PushNotificationPrompt({
             Acompanhe em tempo real novos gastos, empenhos e liquidações da
             prefeitura com a frequência exigida pelo{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art48a"
+              href={urlLegislacao("lrf", "art48a")}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-blue-600 underline transition-colors hover:text-blue-800"

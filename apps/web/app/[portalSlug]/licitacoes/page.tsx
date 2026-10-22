@@ -6,6 +6,7 @@ import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
 import { buildLicitacoesViewModel } from "./view-model";
@@ -169,7 +170,7 @@ export default async function LicitacoesPage({
             concorrência aberta exigem justificativa formal e estrita
             conformidade com a Lei Federal nº 14.133/2021:{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74"
+              href={urlLegislacao("lei14133", "art74")}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
@@ -183,7 +184,7 @@ export default async function LicitacoesPage({
             </a>
             {", "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art75"
+              href={urlLegislacao("lei14133", "art75")}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
@@ -197,7 +198,7 @@ export default async function LicitacoesPage({
             </a>
             {" e "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art86"
+              href={urlLegislacao("lei14133", "art86")}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"

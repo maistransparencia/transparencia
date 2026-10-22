@@ -3,6 +3,7 @@
 import { fmtCompact } from "@transparencia/ui";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import type { ObraItemViewModel } from "@/app/[portalSlug]/obras/view-model";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ObrasParalisadasSectionProps {
   obras: ObraItemViewModel[];
@@ -54,7 +55,7 @@ export function ObrasParalisadasSection({
         <p className="mt-1 text-slate-600 text-sm">
           A{" "}
           <a
-            href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6"
+            href={urlLegislacao("lei14133", "art115p6")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-0.5 font-medium text-blue-600 hover:text-blue-800 hover:underline"
@@ -140,7 +141,7 @@ export function ObrasParalisadasSection({
                 <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-xs">
                   <span className="mr-0.5">Base legal:</span>
                   <a
-                    href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6"
+                    href={urlLegislacao("lei14133", "art115p6")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"

@@ -2,6 +2,8 @@
 
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ObrasCivicDisclaimerProps {
   municipioNome?: string;
@@ -76,7 +78,7 @@ export function ObrasCivicDisclaimer({
             As intervenções desta página são obtidas diretamente do cadastro
             oficial no{" "}
             <a
-              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+              href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-semibold text-sky-800 hover:text-sky-950 hover:underline"
@@ -95,7 +97,7 @@ export function ObrasCivicDisclaimer({
             autoridades municipais e os vereadores para que solicitem a devida
             regularização no ObrasGov.br, em conformidade com a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm"
+              href={urlLegislacao("lai")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"
@@ -105,7 +107,7 @@ export function ObrasCivicDisclaimer({
             </a>{" "}
             e a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm"
+              href={urlLegislacao("lei14133")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"
@@ -145,7 +147,7 @@ export function ObrasCivicDisclaimer({
           </button>
 
           <a
-            href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+            href={FONTES_OFICIAIS.obrasgov.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm hover:bg-slate-50 hover:text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-sky-500"

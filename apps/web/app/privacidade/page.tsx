@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { env } from "@/env";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://maistransparencia.com";
 
-const LGPD_URL =
-  "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm";
+const LGPD_URL = urlLegislacao("lgpd");
 const CONTACT_EMAIL = "privacidade@maistransparencia.com";
 
 export const metadata: Metadata = {

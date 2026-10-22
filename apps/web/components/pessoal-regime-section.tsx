@@ -17,6 +17,7 @@ import {
 } from "@transparencia/ui";
 import { ExternalLink, Info, UserCheck } from "lucide-react";
 import { useMemo, useState } from "react";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
@@ -564,7 +565,7 @@ export function PessoalRegimeSection({
               Para garantir rigor fiscal, classificamos cada vínculo com base na
               forma real de provimento e nos preceitos do{" "}
               <a
-                href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37"
+                href={urlLegislacao("constituicao", "art37")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-0.5 font-medium text-slate-800 underline decoration-slate-400 underline-offset-2 transition-colors hover:text-slate-950"

@@ -25,6 +25,8 @@ import type {
 } from "@/app/[portalSlug]/previdencia/view-model";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SectionHeader } from "@/components/section-header";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface PrevidenciaPatrimonioHistoricoSectionProps {
   resumo: PrevidenciaPatrimonioHistoricoResumo;
@@ -552,7 +554,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
               </p>
               <div className="pt-1">
                 <a
-                  href="https://siconfi.tesouro.gov.br/"
+                  href={FONTES_OFICIAIS.siconfi.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-medium text-blue-700 underline hover:text-blue-900"
@@ -644,7 +646,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
 
             <div className="mt-4 border-slate-100 border-t pt-3">
               <a
-                href="https://www.planalto.gov.br/ccivil_03/leis/l9717.htm"
+                href={urlLegislacao("lei9717")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs underline hover:text-blue-900"
@@ -724,7 +726,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
 
             <div className="mt-4 border-slate-100 border-t pt-3">
               <a
-                href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40"
+                href={urlLegislacao("constituicao", "art40")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs underline hover:text-blue-900"
@@ -788,7 +790,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
 
             <div className="mt-4 border-slate-100 border-t pt-3">
               <a
-                href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40"
+                href={urlLegislacao("constituicao", "art40")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs underline hover:text-blue-900"
