@@ -72,7 +72,11 @@ describe("EducacaoResumoCard (linha compacta)", () => {
     expect(
       screen.getByRole("heading", { level: 3, name: titulo }),
     ).toBeInTheDocument();
-    const esperado = enfaseTom === "neutro" ? "neutro" : "atencao";
+    const esperado = {
+      destaque: "positivo",
+      atencao: "atencao",
+      neutro: "neutro",
+    }[enfaseTom];
     expect(screen.getByTestId("destaque-linha")).toHaveAttribute(
       "data-tom",
       esperado,

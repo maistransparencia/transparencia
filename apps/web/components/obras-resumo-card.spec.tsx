@@ -23,6 +23,17 @@ const base: ResumoObrasDTO = {
 };
 
 describe("ObrasResumoCard (linha compacta)", () => {
+  it("alerta sem valor informado nao mostra R$ 0", () => {
+    render(
+      <ObrasResumoCard
+        resumo={{ ...base, paralisadas: 1, valorParalisadas: 0 }}
+        detailUrl="/p/obras"
+      />,
+    );
+    expect(screen.getByText("1 obra parada")).toBeInTheDocument();
+    expect(screen.queryByText(/R\$/)).toBeNull();
+  });
+
   it("alerta: badge, quantidade e valor parados e acao Ver mapa", () => {
     render(<ObrasResumoCard resumo={base} detailUrl="/p/obras" />);
     expect(screen.getByText("Alerta")).toBeInTheDocument();

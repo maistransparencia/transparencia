@@ -37,7 +37,7 @@ export interface EducacaoResumoCardProps {
 }
 
 const TOM_DESTAQUE_POR_TOM_EDUCACAO: Record<EducacaoResumoTom, DestaqueTom> = {
-  destaque: "atencao",
+  destaque: "positivo",
   atencao: "atencao",
   neutro: "neutro",
 };

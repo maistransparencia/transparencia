@@ -40,7 +40,14 @@ function apresentarObras(resumo: ResumoObrasDTO): ApresentacaoObras {
       tom: "alerta",
       contexto:
         "Obras públicas que estão paradas e ainda não foram concluídas.",
-      dado: `${fmtNumber(resumo.paralisadas)} ${resumo.paralisadas === 1 ? "obra" : "obras"} · ${fmtCompact(resumo.valorParalisadas)} ${resumo.paralisadas === 1 ? "parado" : "parados"}`,
+      dado: (() => {
+        const umaObra = resumo.paralisadas === 1;
+        const quantidade = `${fmtNumber(resumo.paralisadas)} ${umaObra ? "obra" : "obras"}`;
+        if (!(resumo.valorParalisadas > 0)) {
+          return `${quantidade} ${umaObra ? "parada" : "paradas"}`;
+        }
+        return `${quantidade} · ${fmtCompact(resumo.valorParalisadas)} ${umaObra ? "parado" : "parados"}`;
+      })(),
     };
   }
   return {
