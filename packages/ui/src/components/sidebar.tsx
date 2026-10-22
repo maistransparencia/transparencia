@@ -3,9 +3,6 @@
 import {
   ChevronDown,
   FileText,
-  GraduationCap,
-  HardHat,
-  HeartPulse,
   Landmark,
   LayoutDashboard,
   PieChart,
@@ -20,7 +17,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
-import { buildNavUrl } from "../utils/nav";
+import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 import { ShareButton } from "./share-button";
 
@@ -225,7 +222,7 @@ export function Sidebar({
   onExerciceChange,
   selectedEntidades,
   onEntidadesChange,
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
   portais,
   onPortalChange,
   pushNotificationSlot,
@@ -303,7 +300,7 @@ export function Sidebar({
   );
 
   const normalizedBrasao = (() => {
-    if (!brasaoAsset) return "/brasao-porciuncula.png";
+    if (!brasaoAsset) return null;
     return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
   })();
 
@@ -332,23 +329,17 @@ export function Sidebar({
     entidades: currentEntidades,
   });
 
-  const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
-  const temasItems = [
-    { name: "Educação", href: "/educacao", icon: GraduationCap },
-    { name: "Saúde", href: "/saude", icon: HeartPulse },
-    { name: "Obras Públicas", href: "/obras", icon: HardHat },
-    ...(isPrevidenciaEnabled
-      ? [
-          {
-            name: previdencia?.sigla || "Previdência",
-            href: "/previdencia",
-            icon: Landmark,
-          },
-        ]
-      : []),
-  ];
+  const temasItems = buildTemasNavItems({ previdencia }).map((tema) => ({
+    name: tema.name,
+    href: tema.href,
+    icon: tema.icon,
+  }));
 
   const navGroups: NavGroup[] = [
+    {
+      label: "Temas",
+      items: temasItems,
+    },
     {
       label: "Administrativo",
       items: [
@@ -358,10 +349,6 @@ export function Sidebar({
         { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
         { name: "Pessoal", href: "/pessoal", icon: Users },
       ],
-    },
-    {
-      label: "Temas",
-      items: temasItems,
     },
   ];
 

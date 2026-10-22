@@ -64,29 +64,24 @@ export default async function VisaoGeralPage({
         detailUrl={viewModel.farmaciaDetailUrl}
       />
 
-      <section className="space-y-4" aria-labelledby="indicadores-sociais">
-        <div className="border-[#1a1d21] border-t-2 pt-3">
-          <h2
-            id="indicadores-sociais"
-            className="font-bold font-serif text-ink text-xl"
-          >
-            Indicadores Sociais
-          </h2>
-          <p className="text-mutedText text-sm">
-            Educação e investimentos que chegam à população
-          </p>
-        </div>
-        <EducacaoResumoCard
-          resumo={viewModel.educacaoResumo}
-          detailUrl={viewModel.educacaoDetailUrl}
-        />
-        <ObrasResumoCard
-          resumo={viewModel.resumoObras}
-          detailUrl={viewModel.obrasDetailUrl}
-          markers={viewModel.obrasMiniMapMarkers}
-          center={viewModel.obrasMapCenter}
-        />
-      </section>
+      <EducacaoResumoCard
+        resumo={viewModel.educacaoResumo}
+        detailUrl={viewModel.educacaoDetailUrl}
+      />
+
+      <ObrasResumoCard
+        resumo={viewModel.resumoObras}
+        detailUrl={viewModel.obrasDetailUrl}
+        markers={viewModel.obrasMiniMapMarkers}
+        center={viewModel.obrasMapCenter}
+      />
+
+      <RadarCivicoFeed
+        items={viewModel.radarCivicoFeedData}
+        portalName={viewModel.portalName}
+        portalSlug={portalSlug}
+        ano={viewModel.selectedYear}
+      />
 
       <PipelineExecucao
         stages={viewModel.pipelineStages}
@@ -104,13 +99,6 @@ export default async function VisaoGeralPage({
         despesas={viewModel.despesasCardData}
         licitacoes={viewModel.licitacoesCardData}
         pessoal={viewModel.pessoalCardData}
-      />
-
-      <RadarCivicoFeed
-        items={viewModel.radarCivicoFeedData}
-        portalName={viewModel.portalName}
-        portalSlug={portalSlug}
-        ano={viewModel.selectedYear}
       />
     </div>
   );

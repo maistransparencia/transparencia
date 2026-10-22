@@ -270,4 +270,52 @@ describe("VisaoGeralPage", () => {
       screen.getByPlaceholderText("Qual remédio você procura?"),
     ).toBeInTheDocument();
   });
+
+  it("ordena farmacia, educacao, obras, radar e pipeline sem secao Indicadores Sociais", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ resumoFarmacia: { status: "apagao" } }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(screen.queryByText("Indicadores Sociais")).not.toBeInTheDocument();
+    const educacao = screen.getByRole("region", {
+      name: "Educação Básica e Desempenho Escolar",
+    });
+    const obras = screen.getByRole("region", {
+      name: "Obras Públicas e Investimentos Urbanos",
+    });
+    const radar = screen.getByTestId("radar-civico-feed-section");
+    const pipeline = screen.getByRole("heading", {
+      name: "Do orçamento autorizado ao pagamento",
+    });
+    const farmaciaLink = screen
+      .getAllByRole("link", { name: /Ver detalhes/ })
+      .find((link) =>
+        (link.getAttribute("href") ?? "").endsWith("/saude/farmacia"),
+      ) as HTMLElement;
+    const precede = (anterior: Element, posterior: Element) =>
+      Boolean(
+        anterior.compareDocumentPosition(posterior) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    expect(precede(farmaciaLink, educacao)).toBe(true);
+    expect(precede(educacao, obras)).toBe(true);
+    expect(precede(obras, radar)).toBe(true);
+    expect(precede(radar, pipeline)).toBe(true);
+  });
+
+  it("renderiza estado neutro sem obras e sem nota do IDEB", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ resumoObras: null, resumoEducacao: null }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(
+      screen.getByRole("region", {
+        name: "Educação Básica e Desempenho Escolar",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/nenhuma obra ou intervenção pública registrada/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Nota do IDEB (1º ao 5º ano)")).toBeNull();
+  });
 });
