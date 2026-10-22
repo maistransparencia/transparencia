@@ -1,7 +1,10 @@
 dominio,chave,ano_inicio,ano_fim,valor_num,valor_txt,descricao,base_legal,url_base_legal
-licitacoes,limite_dispensa_obras_engenharia,2000,2020,33000.00,,Limite dispensa obras e engenharia histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
-licitacoes,limite_dispensa_compras_servicos,2000,2020,17600.00,,Limite dispensa compras e serviços histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
-licitacoes,limite_dispensa_veiculos,2000,2020,8000.00,,Limite dispensa manutenção de veículos histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
+licitacoes,limite_dispensa_obras_engenharia,2000,2017,33000.00,,Limite dispensa obras e engenharia histórico,Lei 8.666/1993 Art. 24 I e II (valor não verificado),http://www.planalto.gov.br/ccivil_03/leis/l8666cons.htm
+licitacoes,limite_dispensa_obras_engenharia,2018,2020,33000.00,,Limite dispensa obras e engenharia histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
+licitacoes,limite_dispensa_compras_servicos,2000,2017,17600.00,,Limite dispensa compras e serviços histórico,Lei 8.666/1993 Art. 24 I e II (valor não verificado),http://www.planalto.gov.br/ccivil_03/leis/l8666cons.htm
+licitacoes,limite_dispensa_compras_servicos,2018,2020,17600.00,,Limite dispensa compras e serviços histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
+licitacoes,limite_dispensa_veiculos,2000,2017,8000.00,,Limite dispensa manutenção de veículos histórico,Lei 8.666/1993 Art. 24 I e II (valor não verificado),http://www.planalto.gov.br/ccivil_03/leis/l8666cons.htm
+licitacoes,limite_dispensa_veiculos,2018,2020,8000.00,,Limite dispensa manutenção de veículos histórico,Decreto 9.412/2018,http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9412.htm
 licitacoes,limite_dispensa_obras_engenharia,2021,2021,100000.00,,Limite dispensa obras e engenharia,Lei 14.133/2021 Art. 75 I,http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm
 licitacoes,limite_dispensa_compras_servicos,2021,2021,50000.00,,Limite dispensa compras e serviços,Lei 14.133/2021 Art. 75 II,http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm
 licitacoes,limite_dispensa_veiculos,2021,2021,8000.00,,Limite dispensa manutenção de veículos,Lei 14.133/2021 Art. 75 § 7º,http://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm
