@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ResumoObrasDTO } from "@transparencia/db";
 import posthog from "posthog-js";
 import { describe, expect, it, vi } from "vitest";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { ObrasResumoCard } from "./obras-resumo-card";
 
 vi.mock("posthog-js", () => ({ default: { capture: vi.fn() } }));
@@ -32,6 +33,14 @@ describe("ObrasResumoCard (linha compacta)", () => {
     );
     expect(screen.getByText("1 obra parada")).toBeInTheDocument();
     expect(screen.queryByText(/R\$/)).toBeNull();
+  });
+
+  it("cita o ObrasGov.br como fonte com link oficial", () => {
+    render(<ObrasResumoCard resumo={base} detailUrl="/p/obras" />);
+    expect(screen.getByRole("link", { name: "ObrasGov.br" })).toHaveAttribute(
+      "href",
+      FONTES_OFICIAIS.obrasgov.url,
+    );
   });
 
   it("alerta com valor menor que R$ 1 nao mostra R$ 0", () => {

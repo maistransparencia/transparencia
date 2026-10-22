@@ -18,6 +18,7 @@ import type {
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { SectionHeader } from "@/components/section-header";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface EducacaoHistoricoSectionProps {
   historico: {
@@ -301,7 +302,7 @@ export function EducacaoHistoricoSection({
             </p>
           </div>
           <a
-            href="https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb/resultados"
+            href={FONTES_OFICIAIS.ideb.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"

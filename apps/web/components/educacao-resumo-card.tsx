@@ -3,6 +3,7 @@
 import { ArrowRight, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import {
   CLASSE_ACAO_DESTAQUE,
   DestaqueLinha,
@@ -84,9 +85,10 @@ export function EducacaoResumoCard({
       tom={TOM_DESTAQUE_POR_TOM_EDUCACAO[resumo.enfaseTom]}
       contexto={
         resumo.enfaseTitulo
-          ? `${resumo.enfaseTitulo}. Fonte: INEP.`
-          : `Nota do IDEB ${resumo.ano} nos anos iniciais da rede municipal: ${resumo.notaIdebTexto}. Fonte: INEP.`
+          ? `${resumo.enfaseTitulo}.`
+          : `Nota do IDEB ${resumo.ano} nos anos iniciais da rede municipal: ${resumo.notaIdebTexto}.`
       }
+      fonte={FONTES_OFICIAIS.ideb}
       className={className}
       dado={
         evolucao ? (

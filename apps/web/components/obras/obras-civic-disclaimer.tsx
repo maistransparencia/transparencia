@@ -2,6 +2,7 @@
 
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface ObrasCivicDisclaimerProps {
   municipioNome?: string;
@@ -76,7 +77,7 @@ export function ObrasCivicDisclaimer({
             As intervenções desta página são obtidas diretamente do cadastro
             oficial no{" "}
             <a
-              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+              href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 font-semibold text-sky-800 hover:text-sky-950 hover:underline"
@@ -145,7 +146,7 @@ export function ObrasCivicDisclaimer({
           </button>
 
           <a
-            href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+            href={FONTES_OFICIAIS.obrasgov.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm hover:bg-slate-50 hover:text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-sky-500"

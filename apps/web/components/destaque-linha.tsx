@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import type { FonteOficial } from "@/lib/constants/fontes-oficiais";
 
 export type DestaqueTom = "positivo" | "atencao" | "alerta" | "neutro";
 
@@ -31,6 +32,8 @@ export interface DestaqueLinhaProps {
   badgeTexto: string;
   tom: DestaqueTom;
   contexto: string;
+  /** Fonte oficial do dado, exibida como link após o contexto. */
+  fonte?: FonteOficial;
   /** Dado principal da linha (valor, evolução ou campo de busca). */
   dado?: ReactNode;
   /** Ação da linha (link ou botão). */
@@ -49,6 +52,7 @@ export function DestaqueLinha({
   badgeTexto,
   tom,
   contexto,
+  fonte,
   dado,
   acao,
   className = "",
@@ -81,6 +85,21 @@ export function DestaqueLinha({
           </div>
           <p className="mt-0.5 text-subtleText text-xs leading-snug sm:text-sm">
             {contexto}
+            {fonte && (
+              <>
+                {" "}
+                Fonte:{" "}
+                <a
+                  href={fonte.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium underline underline-offset-2 hover:text-ink"
+                >
+                  {fonte.nome}
+                </a>
+                .
+              </>
+            )}
           </p>
         </div>
       </div>

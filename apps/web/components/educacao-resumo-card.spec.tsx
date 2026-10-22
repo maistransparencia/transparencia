@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 const { capture } = vi.hoisted(() => ({ capture: vi.fn() }));
 vi.mock("posthog-js", () => ({ default: { capture } }));
@@ -86,7 +87,9 @@ describe("EducacaoResumoCard (linha compacta)", () => {
   it("evolucao tem texto para leitor de tela e cita a fonte", () => {
     render(<EducacaoResumoCard resumo={base} detailUrl="/p/educacao" />);
     expect(screen.getByText("IDEB de 4,5 para 5,9")).toHaveClass("sr-only");
-    expect(screen.getByText(/Fonte: INEP/)).toBeInTheDocument();
+    const fonte = screen.getByRole("link", { name: "INEP" });
+    expect(fonte).toHaveAttribute("href", FONTES_OFICIAIS.ideb.url);
+    expect(fonte).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("nota indisponivel (traco) nao renderiza e o predicado e falso", () => {

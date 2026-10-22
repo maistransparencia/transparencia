@@ -5,6 +5,7 @@ import { fmtCompact, fmtNumber } from "@transparencia/ui";
 import { ArrowRight, HardHat } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import {
   CLASSE_ACAO_DESTAQUE,
   DestaqueLinha,
@@ -89,6 +90,7 @@ export function ObrasResumoCard({
       badgeTexto={badgeTexto}
       tom={tom}
       contexto={contexto}
+      fonte={FONTES_OFICIAIS.obrasgov}
       className={className}
       dado={
         dado ? (
