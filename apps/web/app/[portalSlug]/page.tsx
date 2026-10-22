@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
-import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
+import {
+  EducacaoResumoCard,
+  temEducacaoDestaque,
+} from "@/components/educacao-resumo-card";
 import { FarmaciaResumoCard } from "@/components/farmacia/farmacia-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { ObrasResumoCard } from "@/components/obras-resumo-card";
@@ -45,6 +48,11 @@ export default async function VisaoGeralPage({
   const rawData = await loadVisaoGeralData(portalSlug, resolvedSearchParams);
   const viewModel = buildVisaoGeralViewModel(rawData);
 
+  const temDestaques =
+    viewModel.farmaciaStatus !== "indisponivel" ||
+    temEducacaoDestaque(viewModel.educacaoResumo) ||
+    Boolean(viewModel.resumoObras);
+
   return (
     <div className="space-y-9">
       <HeroFiscalCard
@@ -59,22 +67,33 @@ export default async function VisaoGeralPage({
         originBreakdown={viewModel.originBreakdown}
       />
 
-      <FarmaciaResumoCard
-        status={viewModel.farmaciaStatus}
-        detailUrl={viewModel.farmaciaDetailUrl}
-      />
-
-      <EducacaoResumoCard
-        resumo={viewModel.educacaoResumo}
-        detailUrl={viewModel.educacaoDetailUrl}
-      />
-
-      <ObrasResumoCard
-        resumo={viewModel.resumoObras}
-        detailUrl={viewModel.obrasDetailUrl}
-        markers={viewModel.obrasMiniMapMarkers}
-        center={viewModel.obrasMapCenter}
-      />
+      {temDestaques && (
+        <section aria-labelledby="em-destaque-heading" className="space-y-3">
+          <div className="border-[#1a1d21] border-t-2 pt-3">
+            <h2
+              id="em-destaque-heading"
+              className="font-bold font-serif text-ink text-xl"
+            >
+              Em destaque
+            </h2>
+            <p className="mt-0.5 text-sm text-subtleText">
+              O que afeta a sua vida agora
+            </p>
+          </div>
+          <FarmaciaResumoCard
+            status={viewModel.farmaciaStatus}
+            detailUrl={viewModel.farmaciaDetailUrl}
+          />
+          <EducacaoResumoCard
+            resumo={viewModel.educacaoResumo}
+            detailUrl={viewModel.educacaoDetailUrl}
+          />
+          <ObrasResumoCard
+            resumo={viewModel.resumoObras}
+            detailUrl={viewModel.obrasDetailUrl}
+          />
+        </section>
+      )}
 
       <RadarCivicoFeed
         items={viewModel.radarCivicoFeedData}

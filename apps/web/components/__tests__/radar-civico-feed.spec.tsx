@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { RadarCivicoCardItem } from "@/app/[portalSlug]/view-model";
+
+vi.mock("posthog-js", () => ({ default: { capture: vi.fn() } }));
+
+import posthog from "posthog-js";
 import { RadarCivicoFeed } from "../radar-civico-feed";
 
 const mockItems: RadarCivicoCardItem[] = [
@@ -57,16 +61,19 @@ describe("RadarCivicoFeed", () => {
     const link = screen.getByRole("link", { name: "Ver todos os anos →" });
     expect(link).toHaveAttribute("href", "/porciuncula/radar");
 
-    const cards = screen.getAllByTestId("radar-anomalia-card");
-    expect(cards).toHaveLength(2);
-
+    const linhas = screen.getAllByTestId("radar-linha");
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0]).toHaveAttribute(
+      "href",
+      "/porciuncula/pessoal?ano=2024#comissionados",
+    );
     expect(
       screen.getByText("Variação em Cargos Comissionados"),
     ).toBeInTheDocument();
     expect(screen.getByText("Aporte Expressivo em Saúde")).toBeInTheDocument();
-
-    const container = screen.getByTestId("radar-cards-container");
-    expect(container).toHaveClass("snap-x");
+    expect(screen.getAllByText("Entender →")).toHaveLength(2);
+    const badges = screen.getAllByTestId("radar-severidade-badge");
+    expect(badges.map((b) => b.textContent)).toEqual(["Alta", "Média"]);
   });
 
   it("renderiza empty state de conformidade quando não houver anomalias no exercício", () => {
@@ -107,112 +114,39 @@ describe("RadarCivicoFeed", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("renderiza indicador de scroll horizontal em mobile quando houver múltiplos cards", () => {
+  it.each(["moderado", "desconhecido"])("grau %s resulta em Baixa", (grau) => {
     render(
       <RadarCivicoFeed
-        items={mockItems}
-        portalName="Porciúncula"
+        items={[
+          {
+            ...mockItems[0],
+            grauSeveridade: grau as never,
+          },
+        ]}
         portalSlug="porciuncula"
         ano={2024}
       />,
     );
-
-    const indicator = screen.getByTestId("radar-scroll-indicator");
-    expect(indicator).toBeInTheDocument();
-    expect(indicator).toHaveClass("md:hidden");
-
-    const counter = screen.getByTestId("radar-scroll-counter");
-    expect(counter).toHaveTextContent("1 de 2 alertas");
-
-    const tabs = screen.getAllByRole("tab");
-    expect(tabs).toHaveLength(2);
-    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
-    expect(tabs[1]).toHaveAttribute("aria-selected", "false");
-  });
-
-  it("permite navegar entre os alertas ao clicar nos botões e nos marcadores e aciona scrollIntoView", () => {
-    const scrollIntoViewMock = vi.fn();
-    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
-
-    render(
-      <RadarCivicoFeed
-        items={mockItems}
-        portalName="Porciúncula"
-        portalSlug="porciuncula"
-        ano={2024}
-      />,
+    expect(screen.getByTestId("radar-severidade-badge")).toHaveTextContent(
+      "Baixa",
     );
-
-    const nextBtn = screen.getByRole("button", { name: "Próximo alerta" });
-    const prevBtn = screen.getByRole("button", { name: "Alerta anterior" });
-    const tabs = screen.getAllByRole("tab");
-    const counter = screen.getByTestId("radar-scroll-counter");
-
-    // Inicialmente no primeiro card
-    expect(counter).toHaveTextContent("1 de 2 alertas");
-    expect(prevBtn).toBeDisabled();
-    expect(nextBtn).not.toBeDisabled();
-
-    // Avança para o segundo card
-    fireEvent.click(nextBtn);
-    expect(scrollIntoViewMock).toHaveBeenCalled();
-    expect(counter).toHaveTextContent("2 de 2 alertas");
-    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
-    expect(nextBtn).toBeDisabled();
-    expect(prevBtn).not.toBeDisabled();
-
-    // Retorna para o primeiro card via marcador (tab)
-    fireEvent.click(tabs[0]);
-    expect(counter).toHaveTextContent("1 de 2 alertas");
-    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
   });
 
-  it("atualiza o indicador ao rolar o container usando a largura real dos cards (cardWidth > 0)", () => {
-    render(
-      <RadarCivicoFeed
-        items={mockItems}
-        portalName="Porciúncula"
-        portalSlug="porciuncula"
-        ano={2024}
-      />,
-    );
-
-    const container = screen.getByTestId("radar-cards-container");
-    const counter = screen.getByTestId("radar-scroll-counter");
-    const tabs = screen.getAllByRole("tab");
-
-    expect(counter).toHaveTextContent("1 de 2 alertas");
-
-    // Simula layout real com cardWidth > 0 no firstElementChild
-    const firstChild = container.firstElementChild as HTMLElement;
-    Object.defineProperty(firstChild, "clientWidth", {
-      value: 360,
-      configurable: true,
-    });
-    // step = 360 + 16 = 376. Com scrollLeft = 380, round(380 / 376) = 1 (segundo card)
-    Object.defineProperty(container, "scrollLeft", {
-      value: 380,
-      configurable: true,
-    });
-
-    fireEvent.scroll(container);
-
-    expect(counter).toHaveTextContent("2 de 2 alertas");
-    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
-  });
-
-  it("não renderiza indicador de scroll quando houver apenas 1 card", () => {
+  it("clique na linha registra civic_radar_card_clicked", () => {
     render(
       <RadarCivicoFeed
         items={[mockItems[0]]}
-        portalName="Porciúncula"
         portalSlug="porciuncula"
         ano={2024}
       />,
     );
-
-    expect(
-      screen.queryByTestId("radar-scroll-indicator"),
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("radar-linha"));
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "civic_radar_card_clicked",
+      expect.objectContaining({
+        anomaliaId: "anomalia-1",
+        ctaUrl: "/porciuncula/pessoal?ano=2024#comissionados",
+      }),
+    );
   });
 });

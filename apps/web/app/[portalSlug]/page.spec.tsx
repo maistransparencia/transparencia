@@ -129,18 +129,14 @@ describe("VisaoGeralPage", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", {
-        name: /obras públicas e investimentos urbanos/i,
-      }),
+      screen.getByRole("heading", { name: "Em destaque" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/total de investimento previsto/i),
+      screen.getByText("O que afeta a sua vida agora"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", {
-        name: /ver mapa e detalhes das obras/i,
-      }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/Sentinela cívica/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ver mapa/ })).toBeInTheDocument();
+    expect(screen.getByText(/1 obra · .*parado/)).toBeInTheDocument();
   });
 
   it("renderiza cards no radar cívico quando existirem anomalias no exercício", async () => {
@@ -173,7 +169,7 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByText("Variação em Cargos Comissionados"),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("radar-whatsapp-button")).toBeInTheDocument();
+    expect(screen.getByTestId("radar-linha")).toBeInTheDocument();
   });
 
   it("renderiza fallback amigável quando posicaoFinanceira for nula", async () => {
@@ -191,20 +187,13 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza empty state de obras quando resumoObras for nulo", async () => {
+  it("obras nulo: a linha de obras nao renderiza", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ resumoObras: null }));
-
-    const element = await VisaoGeralPage(props);
-    render(element);
-
-    expect(
-      screen.getByText(
-        /nenhuma obra ou intervenção pública registrada no obrasgov\.br para o período/i,
-      ),
-    ).toBeInTheDocument();
+    render(await VisaoGeralPage(props));
+    expect(screen.queryByRole("region", { name: "Obras públicas" })).toBeNull();
   });
 
-  it("renderiza o card de educação com link para a rota de educação", async () => {
+  it("renderiza a linha de educacao com link para a rota de educacao", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoEducacao: {
@@ -222,32 +211,11 @@ describe("VisaoGeralPage", () => {
         },
       }),
     );
-
-    const element = await VisaoGeralPage(props);
-    render(element);
-
-    expect(
-      screen.getByText("Educação Básica e Desempenho Escolar"),
-    ).toBeInTheDocument();
-    const cta = screen.getByRole("link", {
-      name: /ver indicadores pedagógicos e despesas detalhadas/i,
-    });
+    render(await VisaoGeralPage(props));
+    expect(screen.getByText("IDEB 2023")).toBeInTheDocument();
+    const cta = screen.getByRole("link", { name: /Ver Educação/ });
     expect(cta.getAttribute("href")).toContain("/educacao");
-    expect(
-      screen.getByText("Destaque: evolução de +1,4 ponto no IDEB"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Meta do IDEB não atingida")).toBeInTheDocument();
-    expect(screen.queryByText(/MDE/)).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Despesa liquidada em Educação"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("R$ 33,3 mi")).toBeInTheDocument();
-    expect(screen.queryByText(/Função 12/)).not.toBeInTheDocument();
-    expect(screen.getByText("Nota do IDEB (1º ao 5º ano)")).toBeInTheDocument();
-    expect(screen.getByText("46º de 92 municípios")).toBeInTheDocument();
-    expect(screen.getByText("▼ -2 posições")).toBeInTheDocument();
-    expect(screen.queryByText(/Anos iniciais/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Anos finais/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ranking|Classificação estadual/i)).toBeNull();
   });
 
   it("apagao da farmacia mostra faixa com Ver detalhes para a rota da farmacia", async () => {
@@ -271,51 +239,99 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("ordena farmacia, educacao, obras, radar e pipeline sem secao Indicadores Sociais", async () => {
+  it("ordena Em destaque (farmacia, educacao, obras), radar e pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
-      makeRaw({ resumoFarmacia: { status: "apagao" } }),
+      makeRaw({
+        resumoFarmacia: { status: "apagao" },
+        resumoEducacao: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2023,
+          notaIdeb: 5.9,
+          crescimentoPontosIdeb: 1.4,
+          atingiuMeta: true,
+          posicaoRanking: 3,
+          totalMunicipios: 92,
+          variacaoPosicoes: 1,
+          despesaLiquidadaEducacao: 1000000,
+          anosIniciais: { notaIdeb: 5.9 },
+          anosFinais: { notaIdeb: 5.3 },
+        },
+      }),
     );
     render(await VisaoGeralPage(props));
     expect(screen.queryByText("Indicadores Sociais")).not.toBeInTheDocument();
-    const educacao = screen.getByRole("region", {
-      name: "Educação Básica e Desempenho Escolar",
-    });
-    const obras = screen.getByRole("region", {
-      name: "Obras Públicas e Investimentos Urbanos",
-    });
+    const farmacia = screen.getByRole("region", { name: "Farmácia SUS" });
+    const educacao = screen.getByRole("region", { name: "Educação" });
+    const obras = screen.getByRole("region", { name: "Obras públicas" });
     const radar = screen.getByTestId("radar-civico-feed-section");
     const pipeline = screen.getByRole("heading", {
       name: "Do orçamento autorizado ao pagamento",
     });
-    const farmaciaLink = screen
-      .getAllByRole("link", { name: /Ver detalhes/ })
-      .find((link) =>
-        (link.getAttribute("href") ?? "").endsWith("/saude/farmacia"),
-      ) as HTMLElement;
     const precede = (anterior: Element, posterior: Element) =>
       Boolean(
         anterior.compareDocumentPosition(posterior) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       );
-    expect(precede(farmaciaLink, educacao)).toBe(true);
+    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(3);
+    expect(precede(farmacia, educacao)).toBe(true);
     expect(precede(educacao, obras)).toBe(true);
     expect(precede(obras, radar)).toBe(true);
     expect(precede(radar, pipeline)).toBe(true);
   });
 
-  it("renderiza estado neutro sem obras e sem nota do IDEB", async () => {
+  it("sem nenhuma linha a secao Em destaque nao existe", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
-      makeRaw({ resumoObras: null, resumoEducacao: null }),
+      makeRaw({
+        resumoObras: null,
+        resumoEducacao: null,
+        resumoFarmacia: { status: "indisponivel" },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
+    expect(screen.queryByTestId("destaque-linha")).toBeNull();
+  });
+
+  it("farmacia indisponivel com obras presente mostra so a linha de obras", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        resumoFarmacia: { status: "indisponivel" },
+        resumoEducacao: null,
+      }),
     );
     render(await VisaoGeralPage(props));
     expect(
-      screen.getByRole("region", {
-        name: "Educação Básica e Desempenho Escolar",
-      }),
+      screen.getByRole("heading", { name: "Em destaque" }),
     ).toBeInTheDocument();
+    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(1);
     expect(
-      screen.getByText(/nenhuma obra ou intervenção pública registrada/i),
+      screen.getByRole("region", { name: "Obras públicas" }),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Nota do IDEB (1º ao 5º ano)")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Farmácia SUS" })).toBeNull();
+  });
+
+  it("educacao com nota indisponivel oculta a linha e a secao", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        resumoObras: null,
+        resumoFarmacia: { status: "indisponivel" },
+        resumoEducacao: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2023,
+          notaIdeb: null,
+          crescimentoPontosIdeb: null,
+          atingiuMeta: null,
+          posicaoRanking: null,
+          totalMunicipios: null,
+          variacaoPosicoes: null,
+          despesaLiquidadaEducacao: null,
+          anosIniciais: { notaIdeb: null },
+          anosFinais: { notaIdeb: null },
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Educação" })).toBeNull();
   });
 });

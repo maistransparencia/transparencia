@@ -5,6 +5,11 @@ import { FarmaciaResumoCard } from "./farmacia-resumo-card";
 const detailUrl = "/portal_x/saude/farmacia";
 
 describe("FarmaciaResumoCard", () => {
+  it("conforme: badge Em conformidade", () => {
+    render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
+    expect(screen.getByText("Em conformidade")).toBeInTheDocument();
+  });
+
   it("conforme: campo de busca que leva a rota com q", () => {
     render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
     expect(
@@ -21,6 +26,10 @@ describe("FarmaciaResumoCard", () => {
       "href",
       detailUrl,
     );
+    expect(screen.getByText("Sem informação de estoque")).toBeInTheDocument();
+    expect(screen.getByText(/Lei 14\.654\/2023/)).toBeInTheDocument();
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    expect(screen.queryByLabelText("Qual remédio você procura?")).toBeNull();
     expect(screen.queryByText(/Copiar Requerimento/)).toBeNull();
     expect(screen.queryByText(/WhatsApp/)).toBeNull();
   });
