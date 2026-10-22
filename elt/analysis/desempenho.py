@@ -9,6 +9,7 @@ from psycopg2.extensions import connection as Connection
 
 SCHEMA = "analytics"
 LIMITE_REGRESSAO = 1.25
+MINIMO_ABSOLUTO_MS = 5.0
 
 
 def listar_modelos(conexao: Connection) -> list[dict]:
@@ -76,8 +77,16 @@ def medir_todos(conexao: Connection, repeticoes: int = 3) -> dict[str, dict]:
     return {m["modelo"]: medir_modelo(conexao, m, portal, repeticoes) for m in listar_modelos(conexao)}
 
 
-def comparar(antes: dict[str, dict], depois: dict[str, dict], limite: float = LIMITE_REGRESSAO) -> list[dict]:
-    """Compara duas medições; marca como regressão o modelo cujo tempo cresceu mais que `limite`."""
+def comparar(
+    antes: dict[str, dict],
+    depois: dict[str, dict],
+    limite: float = LIMITE_REGRESSAO,
+    minimo_absoluto_ms: float = MINIMO_ABSOLUTO_MS,
+) -> list[dict]:
+    """Compara duas medições; regressão = cresceu mais que `limite` vezes e pelo menos `minimo_absoluto_ms`.
+
+    O piso absoluto evita marcar como regressão variações de frações de milissegundo, que são ruído.
+    """
 
     def linha(modelo: str) -> dict:
         tempo_antes = antes[modelo]["tempo_completo_ms"]
@@ -90,7 +99,7 @@ def comparar(antes: dict[str, dict], depois: dict[str, dict], limite: float = LI
             "tempo_antes_ms": tempo_antes,
             "tempo_depois_ms": tempo_depois,
             "razao": razao,
-            "regressao": razao is not None and razao > limite,
+            "regressao": razao is not None and razao > limite and tempo_depois - tempo_antes >= minimo_absoluto_ms,
         }
 
     return sorted(

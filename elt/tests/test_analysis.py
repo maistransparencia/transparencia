@@ -140,3 +140,10 @@ def test_impacto_classificadores_mostra_valor_que_muda_de_categoria(esquema_com_
     assert float(p1["valor_pelo_nome_da_linha"]) == 100
     assert float(p1["valor_pelo_nome_canonico"]) == 150
     assert p1["linhas_que_mudam"] == 1
+
+
+def test_comparar_ignora_variacao_menor_que_o_piso_absoluto():
+    antes = {"a": {"tipo": "tabela", "tempo_completo_ms": 0.1}}
+    depois = {"a": {"tipo": "view", "tempo_completo_ms": 1.0}}
+    assert desempenho.comparar(antes, depois)[0]["regressao"] is False
+    assert desempenho.comparar(antes, depois, minimo_absoluto_ms=0.5)[0]["regressao"] is True
