@@ -20,9 +20,9 @@ licitacoes,limite_dispensa_veiculos,2024,2024,9584.97,,Limite dispensa manutenç
 licitacoes,limite_dispensa_obras_engenharia,2025,2025,125451.15,,Limite dispensa obras e engenharia,Decreto 12.343/2024,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/decreto/d12343.htm
 licitacoes,limite_dispensa_compras_servicos,2025,2025,62725.59,,Limite dispensa compras e serviços,Decreto 12.343/2024,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/decreto/d12343.htm
 licitacoes,limite_dispensa_veiculos,2025,2025,10036.10,,Limite dispensa manutenção de veículos,Decreto 12.343/2024,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/decreto/d12343.htm
-licitacoes,limite_dispensa_obras_engenharia,2026,2099,130984.20,,Limite dispensa obras e engenharia,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
-licitacoes,limite_dispensa_compras_servicos,2026,2099,65492.11,,Limite dispensa compras e serviços,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
-licitacoes,limite_dispensa_veiculos,2026,2099,10478.74,,Limite dispensa manutenção de veículos,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
+licitacoes,limite_dispensa_obras_engenharia,2026,2026,130984.20,,Limite dispensa obras e engenharia,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
+licitacoes,limite_dispensa_compras_servicos,2026,2026,65492.11,,Limite dispensa compras e serviços,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
+licitacoes,limite_dispensa_veiculos,2026,2026,10478.74,,Limite dispensa manutenção de veículos,Decreto 12.807/2025,http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12807.htm
 pessoal,lrf_limite_maximo_executivo,2000,2099,54.00,,Limite máximo LRF Pessoal Executivo,LC 101/2000 Art. 20 III b,http://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm
 pessoal,lrf_limite_prudencial_executivo,2000,2099,51.30,,Limite prudencial LRF Pessoal Executivo,LC 101/2000 Art. 22 parágrafo único,http://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm
 pessoal,lrf_limite_alerta_executivo,2000,2099,48.60,,Limite de alerta LRF Pessoal Executivo,LC 101/2000 Art. 59 § 1º II,http://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm
