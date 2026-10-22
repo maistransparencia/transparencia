@@ -15,6 +15,10 @@ O MaisTransparencia disponibiliza a fiscalização e auditoria cívica de múlti
 | **Porciúncula** | RJ | `3304102` | `porciuncula_prefeitura` | `/porciuncula`, `/porciuncula-prefeitura` | CAPREM (Caixa de Previdência dos Servidores Públicos Municipais de Porciúncula) |
 | **Natividade** | RJ | `3303203` | `natividade_prefeitura` | `/natividade`, `/natividade-prefeitura` | NATPREVI (Instituto de Previdência dos Servidores Públicos do Município de Natividade - NATPREVI) |
 
+### Página inicial de seleção de município (`/`)
+
+A rota `/` lista os municípios já disponíveis (rótulo "Já disponíveis") e, abaixo, o bloco "Em breve" ("Sua cidade ainda não está aqui"). Nele, o cidadão informa cidade, estado e e-mail para ser avisado quando o seu município for integrado ao portal ("Avise-me quando minha cidade chegar"), mediante aceite explícito e link para a Política de Privacidade. O portal não promete nenhum município específico.
+
 ---
 
 ## 1. Guia Completo dos Domínios de Dados Públicos

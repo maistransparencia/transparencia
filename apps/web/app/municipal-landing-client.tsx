@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { CityInterestBlock } from "../components/city-interest-block";
 
 interface MunicipalLandingClientProps {
   portais: PortalConfig[];
@@ -177,6 +178,12 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
         </div>
       )}
 
+      {portais.length > 0 && (
+        <h2 className="mx-auto mb-3 w-full max-w-4xl font-semibold text-subtleText text-xs uppercase tracking-widest">
+          Já disponíveis
+        </h2>
+      )}
+
       {/* Grid de Municípios */}
       <section
         aria-label="Municípios disponíveis"
@@ -263,6 +270,8 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
           </p>
         </div>
       )}
+
+      <CityInterestBlock totalPortais={portais.length} />
     </div>
   );
 }
