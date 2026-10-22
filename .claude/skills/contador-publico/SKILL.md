@@ -21,6 +21,9 @@ Revisor técnico de métricas fiscais. Entrega **revisão**; um contador respons
 6. Mínimos constitucionais (saúde, educação) com base de cálculo correta e vigência do ano.
 7. Multi-tenant: `portal_slug` em JOIN e GROUP BY; sem município/UF/ano fixos (`CLAUDE.md` §23).
 8. Nomes de métricas explícitos (§9) e códigos em snake_case (§10).
+9. **Limites e alíquotas vêm do seed**, nunca de literais em TS/SQL/narrativas (ex.: 54, 51,3, 48,6 ou fallback `?? 54`). Buscar com Grep os números do seed no código revisado e conferir `docs/governanca-constantes-fiscais.md`.
+10. Campos duplicados ou sinônimos para a mesma métrica (ex.: `rclProxy` e `receitaCorrenteLiquida` com o mesmo valor): consolidar; se for proxy, o nome e a nota ao usuário devem dizer isso.
+11. Comparadores de faixa (`>` vs `>=`) e janelas de apuração (12 meses vs ano parcial) seguem o texto da norma: delegar a redação exata ao `jurista-fiscal` e marcar `NÃO VERIFICÁVEL` até haver confirmação.
 
 ## Formato de resposta
 Lista de achados `OK | AJUSTAR | NÃO VERIFICÁVEL`, cada um com `arquivo:linha`, a regra violada e a correção sugerida. Dúvida sobre fundamento legal → encaminhar ao `jurista-fiscal`; dúvida sobre texto ao cidadão → `editor-cidadao`.

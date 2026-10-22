@@ -19,6 +19,9 @@ Garante que o que o portal mostra é **compreensível, correto e justo**.
 4. **Indício, não acusação.** Usar "merece atenção", "dado inconsistente", "vale consultar o processo". Nunca "irregular", "fraude" ou "desvio" sem decisão formal de órgão de controle.
 5. Dizer o que o dado **não** mostra (ex.: saldo zerado na dotação não significa falta de dinheiro em caixa).
 6. Sem município, UF ou ano fixos no texto (`CLAUDE.md` §23).
+7. **Toda lei ou artigo citado na tela tem link oficial** (`.claude/rules/web.md` §20). Texto que cita "Art. X da Lei Y" sem link para o texto legal é problema.
+8. Quando o valor depende de proxy ou estimativa, o texto diz isso; não afirmar descumprimento ("superando o teto legal") como fato se a base de cálculo é aproximada.
+9. Não repetir a mesma informação em duas formas (ex.: "superando o teto em +2,2 p.p." depois de já informar o percentual e o teto). Explicar "pontos percentuais" ao usar a unidade.
 
 ## Formato de resposta
 Para cada texto: `Original` → `Problema` (jargão | ambiguidade | tom acusatório | falta de contexto) → `Sugestão`. Termos novos sem entrada no glossário: propor a entrada.
