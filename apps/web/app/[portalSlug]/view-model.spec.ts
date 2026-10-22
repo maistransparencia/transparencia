@@ -913,3 +913,38 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
     expect(vm.educacaoResumo).toBeNull();
   });
 });
+
+describe("buildVisaoGeralViewModel - farmacia", () => {
+  const resumo = (status: string) => ({
+    status,
+    dataPosicaoMaisRecente: "2026-01-10",
+    diasDesdePosicaoMaisRecente: 20,
+  });
+
+  it("apagao: monta requerimento e texto do WhatsApp com o nome do portal", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo("apagao") }),
+    );
+    expect(vm.farmaciaRequerimento).toContain("Porciúncula");
+    expect(vm.farmaciaRequerimento).toContain("Art. 6º-A");
+    expect(vm.farmaciaTextoWhatsApp).toContain("Porciúncula");
+  });
+
+  it.each(["conforme", "indisponivel"])("%s: nao monta textos", (status) => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo(status) }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+    expect(vm.farmaciaTextoWhatsApp).toBeUndefined();
+  });
+
+  it("apagao sem nome de portal: nao monta textos", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo("apagao"),
+        portalConfig: undefined,
+      }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+  });
+});

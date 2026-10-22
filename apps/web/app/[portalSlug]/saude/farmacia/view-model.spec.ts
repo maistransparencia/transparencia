@@ -121,14 +121,14 @@ describe("buildFatoApagao", () => {
 });
 
 describe("buildRequerimentoFiscalizacao", () => {
-  it("inclui municipio, leis e citacao do Art. 6º-B", () => {
+  it("inclui municipio, leis e citacao do Art. 6º-A", () => {
     const texto = buildRequerimentoFiscalizacao({
       portalName: "Prefeitura X",
       dataPosicaoMaisRecente: "2026-01-10",
       diasDesdePosicaoMaisRecente: 20,
     });
     expect(texto).toContain("Ouvidoria de Prefeitura X.");
-    expect(texto).toContain("Art. 6º-B da Lei nº 8.080/1990");
+    expect(texto).toContain("Art. 6º-A da Lei nº 8.080/1990");
     expect(texto).toContain(LEI_ORGANICA_SAUDE_URL);
     expect(texto).toContain(LEI_FARMACIA_SUS_URL);
     expect(LEI_FARMACIA_SUS_URL).toContain("l14654");

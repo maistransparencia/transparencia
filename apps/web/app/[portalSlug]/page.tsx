@@ -83,6 +83,8 @@ export default async function VisaoGeralPage({
           <FarmaciaResumoCard
             status={viewModel.farmaciaStatus}
             detailUrl={viewModel.farmaciaDetailUrl}
+            requerimento={viewModel.farmaciaRequerimento}
+            textoWhatsApp={viewModel.farmaciaTextoWhatsApp}
           />
           <EducacaoResumoCard
             resumo={viewModel.educacaoResumo}

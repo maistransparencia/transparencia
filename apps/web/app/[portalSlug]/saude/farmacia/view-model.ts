@@ -52,7 +52,7 @@ export function buildRequerimentoFiscalizacao(params: {
     "",
     `Aos gabinetes de vereadores, ao Ministério Público e à Ouvidoria de ${municipio}.`,
     "",
-    `Considerando o Art. 6º-B da Lei nº 8.080/1990 (${LEI_ORGANICA_SAUDE_URL}) e a Lei nº 14.654/2023 (${LEI_FARMACIA_SUS_URL}), que tratam da divulgação da disponibilidade de medicamentos;`,
+    `Considerando o Art. 6º-A da Lei nº 8.080/1990 (${LEI_ORGANICA_SAUDE_URL}) e a Lei nº 14.654/2023 (${LEI_FARMACIA_SUS_URL}), que tratam da divulgação da disponibilidade de medicamentos;`,
     "",
     `Considerando que ${fato};`,
     "",
