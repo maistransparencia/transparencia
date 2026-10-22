@@ -49,18 +49,18 @@ export function generateDataCatalogSchema({
   officialPortalUrl,
 }: GovernmentOrganizationParams): Record<string, unknown> {
   const portalName = displayName || "Prefeitura Municipal";
-  const portalUrl = officialPortalUrl ? { url: officialPortalUrl } : {};
+  const urlField = officialPortalUrl ? { url: officialPortalUrl } : {};
 
   return {
     "@context": "https://schema.org",
     "@type": "DataCatalog",
     name: `Portal de Dados da Transparência - ${portalName}`,
     description: `Catálogo público de conjuntos de dados orçamentários, fiscais, previdenciários e operacionais do município.`,
-    ...portalUrl,
+    ...urlField,
     publisher: {
       "@type": "GovernmentOrganization",
       name: portalName,
-      ...portalUrl,
+      ...urlField,
     },
     dataset: [
       {
