@@ -12,8 +12,8 @@ const CLASSES_BADGE_POR_TOM: Record<DestaqueTom, string> = {
 
 const CLASSES_LINHA_POR_TOM: Record<DestaqueTom, string> = {
   positivo: "border-emerald-200 bg-white",
-  atencao: "border-amber-200 bg-amber-50/60",
-  alerta: "border-[#e7e9ee] bg-white",
+  atencao: "border-amber-300 bg-white",
+  alerta: "border-rose-200 bg-white",
   neutro: "border-[#e7e9ee] bg-white",
 };
 
