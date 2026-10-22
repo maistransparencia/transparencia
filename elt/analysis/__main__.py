@@ -50,6 +50,7 @@ def _comando_fornecedores(argumentos: argparse.Namespace) -> None:
             "ligacoes": fornecedores.ligacoes(conexao),
             "nomes_divergentes": fornecedores.nomes_divergentes(conexao),
             "impacto_classificadores": fornecedores.impacto_classificadores(conexao),
+            "impacto_siglas_dos_portais": fornecedores.impacto_siglas_dos_portais(conexao),
         }
     )
 

@@ -79,6 +79,8 @@ def esquema_com_dados(pg, monkeypatch):
             create table analise_teste.fct_contratos (
                 portal_slug text, credor_id text, fornecedor_nome text, fornecedor_cpf_cnpj text
             );
+            create table analise_teste.dim_portais (portal_slug text, previdencia_sigla text, plano_saude_sigla text);
+            insert into analise_teste.dim_portais values ('p1', 'CAPREM', ''), ('p2', null, null);
             insert into analise_teste.dim_fornecedor values
                 ('p1', 'a', 'CAPREM PREVIDENCIA', 2),
                 ('p1', 'b', 'EMPRESA B', 1),
@@ -147,3 +149,10 @@ def test_comparar_ignora_variacao_menor_que_o_piso_absoluto():
     depois = {"a": {"tipo": "view", "tempo_completo_ms": 1.0}}
     assert desempenho.comparar(antes, depois)[0]["regressao"] is False
     assert desempenho.comparar(antes, depois, minimo_absoluto_ms=0.5)[0]["regressao"] is True
+
+
+def test_impacto_siglas_usa_as_siglas_de_cada_portal(esquema_com_dados):
+    impacto = fornecedores.impacto_siglas_dos_portais(esquema_com_dados)
+    assert [(linha["portal_slug"], linha["sigla"]) for linha in impacto] == [("p1", "CAPREM")]
+    assert float(impacto[0]["valor_pelo_nome_canonico"]) == 150
+    assert impacto[0]["linhas_que_mudam"] == 1

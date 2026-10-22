@@ -126,3 +126,28 @@ def impacto_classificadores(conexao: Connection, palavras: tuple[str, ...] = PAL
         return _consultar(conexao, consulta, {"palavra": palavra, "padrao": f"%{palavra}%"})
 
     return [linha for palavra in palavras for linha in por_palavra(palavra)]
+
+
+def impacto_siglas_dos_portais(conexao: Connection) -> list[dict]:
+    """Igual a impacto_classificadores, mas com as siglas de previdência e plano de saúde de cada portal."""
+    consulta = sql.SQL(
+        """
+        select
+            p.portal_slug,
+            s.sigla,
+            coalesce(sum(f.empenhado_liquido) filter (where f.fornecedor_nome ilike '%%' || s.sigla || '%%'), 0) as valor_pelo_nome_da_linha,
+            coalesce(sum(f.empenhado_liquido) filter (where d.fornecedor_nome ilike '%%' || s.sigla || '%%'), 0) as valor_pelo_nome_canonico,
+            count(*) filter (
+                where coalesce(f.fornecedor_nome ilike '%%' || s.sigla || '%%', false)
+                    <> coalesce(d.fornecedor_nome ilike '%%' || s.sigla || '%%', false)
+            ) as linhas_que_mudam
+        from {portais} p
+        cross join lateral (values (trim(p.previdencia_sigla)), (trim(p.plano_saude_sigla))) as s(sigla)
+        join {fato} f on f.portal_slug = p.portal_slug
+        left join {dimensao} d on d.portal_slug = f.portal_slug and d.credor_id = f.credor_id
+        where nullif(s.sigla, '') is not null
+        group by p.portal_slug, s.sigla
+        order by p.portal_slug, s.sigla
+        """
+    ).format(portais=_tabela("dim_portais"), fato=_tabela("fct_despesas"), dimensao=_tabela("dim_fornecedor"))
+    return _consultar(conexao, consulta)
