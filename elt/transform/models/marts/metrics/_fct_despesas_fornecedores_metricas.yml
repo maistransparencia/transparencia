@@ -80,14 +80,44 @@ unit_tests:
       - input: ref('fct_despesas')
         rows:
           # Linha de fornecimento comercial (Material de Consumo 30) - DEVE SER INCLUÍDA
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "30", empenhado_liquido: 1000.00, pago: 800.00 }
+          - { credor_id: "cred_loja_local", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "30", empenhado_liquido: 1000.00, pago: 800.00 }
           # Linha de fornecimento comercial (Serviços Terceiros 39) - DEVE SER INCLUÍDA
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "39", empenhado_liquido: 2000.00, pago: 1500.00 }
+          - { credor_id: "cred_loja_local", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "39", empenhado_liquido: 2000.00, pago: 1500.00 }
           # Linha de encargo patronal (Elemento 13) - DEVE SER IGNORADA
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "13", empenhado_liquido: 50000.00, pago: 50000.00 }
+          - { credor_id: "cred_loja_local", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fonte: "exercicio", elemento: "13", empenhado_liquido: 50000.00, pago: 50000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_loja_local", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "LOJA LOCAL" }
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cidade_clean: "PORCIUNCULA" }
       - input: ref('fct_despesas_por_fornecedor')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, descricao: "LOJA LOCAL", fornecedor_cidade_clean: "PORCIUNCULA" }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_codigo: "11.111.111/0001-11", fornecedor_nome: "LOJA LOCAL", fornecedor_cidade_clean: "PORCIUNCULA", total_empenhado: 3000.00, total_pago: 2300.00 }
+
+  - name: test_despesas_fornecedores_metricas_cidade_por_documento
+    description: "A cidade do fornecedor é obtida pelo documento (só dígitos), então outra grafia do nome não perde a cidade nem duplica linhas; sem correspondência usa a cidade do portal"
+    model: fct_despesas_fornecedores_metricas
+    given:
+      - input: ref('fct_despesas')
+        rows:
+          - { credor_id: "cred_oficina", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "OFICINA DO ZE LTDA", fonte: "exercicio", elemento: "39", empenhado_liquido: 100.00, pago: 100.00 }
+          - { credor_id: "cred_sem_cidade", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_cpf_cnpj: "33.333.333/0001-33", fornecedor_nome: "SEM CIDADE", fonte: "exercicio", elemento: "30", empenhado_liquido: 50.00, pago: 40.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_oficina", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "OFICINA DO ZE LTDA" }
+          - { credor_id: "cred_sem_cidade", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "SEM CIDADE" }
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", cidade_clean: "PORCIUNCULA" }
+      - input: ref('fct_despesas_por_fornecedor')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, descricao: "OFICINA DO ZE", fornecedor_cpf_cnpj: "22222222000122", fornecedor_cidade_clean: "CARANGOLA" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, descricao: "OFICINA ZE LTDA", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_cidade_clean: "CARANGOLA" }
+    expect:
+      rows:
+        - { fornecedor_codigo: "22.222.222/0001-22", fornecedor_nome: "OFICINA DO ZE LTDA", fornecedor_cidade_clean: "CARANGOLA", total_empenhado: 100.00, total_pago: 100.00 }
+        - { fornecedor_codigo: "33.333.333/0001-33", fornecedor_nome: "SEM CIDADE", fornecedor_cidade_clean: "PORCIUNCULA", total_empenhado: 50.00, total_pago: 40.00 }

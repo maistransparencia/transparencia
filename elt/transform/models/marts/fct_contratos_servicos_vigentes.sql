@@ -31,7 +31,7 @@ contratos_base as (
         c.contrato_numero,
         c.licitacao_numero,
         split_part(c.licitacao_numero, '/', 1) as licitacao_clean,
-        c.fornecedor_nome,
+        fo.fornecedor_nome,
         c.fornecedor_cpf_cnpj as fornecedor_cnpj,
         regexp_replace(c.fornecedor_cpf_cnpj, '[^\d]', '', 'g') as cnpj_clean,
         coalesce(c.objeto_completo, c.objeto, 'contrato_prestacao_servicos') as objeto_descricao,
@@ -47,6 +47,9 @@ contratos_base as (
        and c.empresa_id = e.empresa_id
        and (c.data_inicio is null or extract(year from c.data_inicio) <= e.ano)
        and (c.vencimento_atual is null or extract(year from c.vencimento_atual) >= e.ano)
+    left join {{ ref('dim_fornecedor') }} fo
+        on fo.portal_slug = c.portal_slug
+        and fo.credor_id = c.credor_id
     where c.fornecedor_cpf_cnpj is not null
       and (c.data_inicio is not null or c.vencimento_atual is not null)
 ),

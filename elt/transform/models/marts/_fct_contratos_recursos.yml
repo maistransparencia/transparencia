@@ -92,7 +92,10 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", orgao_id: "org-pref-7", orgao_nome: "PREFEITURA MUNICIPAL DE PORCIUNCULA", cnpj: "28920999000106" }
       - input: ref('fct_contratos')
         rows:
-          - { contrato_id: "c-001", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0010/26", licitacao_numero: "0005/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "FORNECEDOR A", valor_contrato: 100000.00, valor_aditado: 0.00, empenhado: 100000.00 }
+          - { credor_id: "cred_fornecedor_a", contrato_id: "c-001", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0010/26", licitacao_numero: "0005/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "FORNECEDOR A", valor_contrato: 100000.00, valor_aditado: 0.00, empenhado: 100000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_fornecedor_a", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "FORNECEDOR A" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, licitacao_numero: "0005/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", empenhado_liquido: 100000.00, liquidado: 60000.00, pago: 50000.00, fonte_recurso_desc: "1.540 - FUNDEB", funcao_nome: "Educação", programa_nome: "PROGRAMA EDUCACAO", projeto_atividade_nome: "ACAO ESCOLAR" }
@@ -109,7 +112,10 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", orgao_id: "org-saude-2", orgao_nome: "FUNDO MUNICIPAL DE SAUDE", cnpj: "12097798000110" }
       - input: ref('fct_contratos')
         rows:
-          - { contrato_id: "c-002", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0020/26", licitacao_numero: null, fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "FORNECEDOR DISPENSA", valor_contrato: 30000.00, valor_aditado: 0.00, empenhado: 30000.00 }
+          - { credor_id: "cred_fornecedor_dispensa", contrato_id: "c-002", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0020/26", licitacao_numero: null, fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "FORNECEDOR DISPENSA", valor_contrato: 30000.00, valor_aditado: 0.00, empenhado: 30000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_fornecedor_dispensa", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "FORNECEDOR DISPENSA" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, licitacao_numero: null, fornecedor_cpf_cnpj: "22.222.222/0001-22", empenhado_liquido: 30000.00, liquidado: 30000.00, pago: 30000.00, fonte_recurso_desc: "1.600 - SUS", funcao_nome: "Saúde", programa_nome: "PROGRAMA SAUDE", projeto_atividade_nome: "ACAO SAUDE" }

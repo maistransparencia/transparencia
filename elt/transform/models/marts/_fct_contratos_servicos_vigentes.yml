@@ -98,8 +98,12 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0010/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "EMPRESA VIGENTE LTDA", objeto: "Serviço de Informática", objeto_completo: null, data_inicio: "2026-01-01", vencimento_atual: "2028-12-31", valor_contrato: 50000.00 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0005/20", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "EMPRESA EXPIRADA LTDA", objeto: "Serviço Antigo", objeto_completo: null, data_inicio: "2019-01-01", vencimento_atual: "2020-01-01", valor_contrato: 10000.00 }
+          - { credor_id: "cred_empresa_vigente_ltda", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0010/26", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "EMPRESA VIGENTE LTDA", objeto: "Serviço de Informática", objeto_completo: null, data_inicio: "2026-01-01", vencimento_atual: "2028-12-31", valor_contrato: 50000.00 }
+          - { credor_id: "cred_empresa_expirada_ltda", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0005/20", fornecedor_cpf_cnpj: "22.222.222/0001-22", fornecedor_nome: "EMPRESA EXPIRADA LTDA", objeto: "Serviço Antigo", objeto_completo: null, data_inicio: "2019-01-01", vencimento_atual: "2020-01-01", valor_contrato: 10000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_empresa_vigente_ltda", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "EMPRESA VIGENTE LTDA" }
+          - { credor_id: "cred_empresa_expirada_ltda", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "EMPRESA EXPIRADA LTDA" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, fonte: "exercicio", grupo_natureza: "3", elemento: "39", fornecedor_cpf_cnpj: "11.111.111/0001-11", fornecedor_nome: "EMPRESA VIGENTE LTDA", empenhado_liquido: 50000.00, liquidado: 30000.00, pago: 20000.00 }
@@ -114,8 +118,11 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0036/26", fornecedor_cpf_cnpj: "09.528.346/0001-31", fornecedor_nome: "CONSORCIO NOROESTE", objeto: "SAMU 192", objeto_completo: null, data_inicio: "2026-01-01", vencimento_atual: "2026-12-31", valor_contrato: 70000.00, empenhado: 70000.00 }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0035/26", fornecedor_cpf_cnpj: "09.528.346/0001-31", fornecedor_nome: "CONSORCIO NOROESTE", objeto: "Rateio Custeio", objeto_completo: null, data_inicio: "2026-01-12", vencimento_atual: "2027-01-12", valor_contrato: 30000.00, empenhado: 30000.00 }
+          - { credor_id: "cred_consorcio_noroeste", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0036/26", fornecedor_cpf_cnpj: "09.528.346/0001-31", fornecedor_nome: "CONSORCIO NOROESTE", objeto: "SAMU 192", objeto_completo: null, data_inicio: "2026-01-01", vencimento_atual: "2026-12-31", valor_contrato: 70000.00, empenhado: 70000.00 }
+          - { credor_id: "cred_consorcio_noroeste", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, contrato_numero: "0035/26", fornecedor_cpf_cnpj: "09.528.346/0001-31", fornecedor_nome: "CONSORCIO NOROESTE", objeto: "Rateio Custeio", objeto_completo: null, data_inicio: "2026-01-12", vencimento_atual: "2027-01-12", valor_contrato: 30000.00, empenhado: 30000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_consorcio_noroeste", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "CONSORCIO NOROESTE" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, fonte: "exercicio", fornecedor_cpf_cnpj: "09.528.346/0001-31", fornecedor_nome: "CONSORCIO NOROESTE", empenhado_liquido: 100000.00, liquidado: 50000.00, pago: 40000.00 }
@@ -130,7 +137,10 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2022, contrato_numero: "2459/22", fornecedor_cpf_cnpj: "13.400.834/0001-36", fornecedor_nome: "ESN INCINERACAO", objeto: "Serviço de Incineração", objeto_completo: null, data_inicio: "2022-06-01", vencimento_atual: "2027-04-03", valor_contrato: 131400.00, empenhado: 135238.41 }
+          - { credor_id: "cred_esn_incineracao", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2022, contrato_numero: "2459/22", fornecedor_cpf_cnpj: "13.400.834/0001-36", fornecedor_nome: "ESN INCINERACAO", objeto: "Serviço de Incineração", objeto_completo: null, data_inicio: "2022-06-01", vencimento_atual: "2027-04-03", valor_contrato: 131400.00, empenhado: 135238.41 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_esn_incineracao", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "ESN INCINERACAO" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2026, fonte: "exercicio", fornecedor_cpf_cnpj: "13.400.834/0001-36", fornecedor_nome: "ESN INCINERACAO", empenhado_liquido: 135238.41, liquidado: 32850.00, pago: 32850.00 }
@@ -144,7 +154,10 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2024, contrato_numero: "2937/24", fornecedor_cpf_cnpj: "11.816.706/0001-42", fornecedor_nome: "L.PHILIPPE CONSTRUCOES LTDA", objeto: "Obras de esgotamento", objeto_completo: null, data_inicio: "2024-06-21", vencimento_atual: "2026-06-21", valor_contrato: 24698277.36, empenhado: 24698277.36 }
+          - { credor_id: "cred_l_philippe_construcoes_ltda", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2024, contrato_numero: "2937/24", fornecedor_cpf_cnpj: "11.816.706/0001-42", fornecedor_nome: "L.PHILIPPE CONSTRUCOES LTDA", objeto: "Obras de esgotamento", objeto_completo: null, data_inicio: "2024-06-21", vencimento_atual: "2026-06-21", valor_contrato: 24698277.36, empenhado: 24698277.36 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_l_philippe_construcoes_ltda", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "L.PHILIPPE CONSTRUCOES LTDA" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, fonte: "restos_a_pagar", fornecedor_cpf_cnpj: "11.816.706/0001-42", fornecedor_nome: "L.PHILIPPE CONSTRUCOES LTDA", empenhado_liquido: 10615123.41, liquidado: 500776.48, pago: 22034.17 }
@@ -158,7 +171,10 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0868/21", fornecedor_cpf_cnpj: "99.999.999/0001-99", fornecedor_nome: "FORNECEDOR SEM DATAS LTDA", objeto: "Sem datas", objeto_completo: null, data_inicio: null, vencimento_atual: null, valor_contrato: 20000.00 }
+          - { credor_id: "cred_fornecedor_sem_datas_ltda", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, contrato_numero: "0868/21", fornecedor_cpf_cnpj: "99.999.999/0001-99", fornecedor_nome: "FORNECEDOR SEM DATAS LTDA", objeto: "Sem datas", objeto_completo: null, data_inicio: null, vencimento_atual: null, valor_contrato: 20000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_fornecedor_sem_datas_ltda", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "FORNECEDOR SEM DATAS LTDA" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, fornecedor_cpf_cnpj: "99.999.999/0001-99", fornecedor_nome: "FORNECEDOR SEM DATAS LTDA", empenhado_liquido: 20000.00, liquidado: 20000.00, pago: 20000.00 }
@@ -171,10 +187,13 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2023, contrato_numero: "0628/23", fornecedor_cpf_cnpj: "38.226.796/0001-78", fornecedor_nome: "ENGTEC ENGENHARIA", objeto: "Obras", objeto_completo: null, data_inicio: "2023-01-01", vencimento_atual: "2024-12-31", valor_contrato: 481702.05, empenhado: -15986.52 }
+          - { credor_id: "cred_engtec_engenharia", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2023, contrato_numero: "0628/23", fornecedor_cpf_cnpj: "38.226.796/0001-78", fornecedor_nome: "ENGTEC ENGENHARIA", objeto: "Obras", objeto_completo: null, data_inicio: "2023-01-01", vencimento_atual: "2024-12-31", valor_contrato: 481702.05, empenhado: -15986.52 }
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2024, fonte: "exercicio", fornecedor_cpf_cnpj: "38.226.796/0001-78", fornecedor_nome: "ENGTEC ENGENHARIA", empenhado_liquido: 50000.00, liquidado: 50000.00, pago: 50000.00 }
+          - { credor_id: "cred_engtec_engenharia", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2024, fonte: "exercicio", fornecedor_cpf_cnpj: "38.226.796/0001-78", fornecedor_nome: "ENGTEC ENGENHARIA", empenhado_liquido: 50000.00, liquidado: 50000.00, pago: 50000.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_engtec_engenharia", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "ENGTEC ENGENHARIA" }
     expect:
       rows:
         - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2024, contrato_numero: "0628/23", fornecedor_nome: "ENGTEC ENGENHARIA", fornecedor_cnpj: "38.226.796/0001-78", objeto_descricao: "Obras", data_inicio: "2023-01-01", vencimento_atual: "2024-12-31", valor_aditado: 0.00, total_empenhado: 0.00, total_liquidado: 0.00, total_pago: 0.00, status_execucao: "inexecutado" }
@@ -185,7 +204,10 @@ unit_tests:
     given:
       - input: ref('fct_contratos')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2025, contrato_numero: "0240/25", fornecedor_cpf_cnpj: "45.298.774/0001-89", fornecedor_nome: "G2 SOLUCOES E GESTAO LTDA", objeto: "Consultoria", objeto_completo: null, data_inicio: "2025-05-20", vencimento_atual: "2026-05-19", valor_contrato: 499800.00, empenhado: 166600.00 }
+          - { credor_id: "cred_g2_solucoes_e_gestao_ltda", portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2025, contrato_numero: "0240/25", fornecedor_cpf_cnpj: "45.298.774/0001-89", fornecedor_nome: "G2 SOLUCOES E GESTAO LTDA", objeto: "Consultoria", objeto_completo: null, data_inicio: "2025-05-20", vencimento_atual: "2026-05-19", valor_contrato: 499800.00, empenhado: 166600.00 }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_g2_solucoes_e_gestao_ltda", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "G2 SOLUCOES E GESTAO LTDA" }
       - input: ref('fct_despesas')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "7", ano: 2026, fonte: "exercicio", fornecedor_cpf_cnpj: "45.298.774/0001-89", fornecedor_nome: "G2 SOLUCOES E GESTAO LTDA", empenhado_liquido: 166600.00, liquidado: 0.00, pago: 0.00 }
