@@ -460,7 +460,7 @@ export function Sidebar({
                 </div>
                 <div className="min-w-0 flex-1">
                   {portais && portais.length > 0 && onPortalChange ? (
-                    <div className="space-y-1">
+                    <div className="space-y-1 md:space-y-0.5">
                       <h1 className="sr-only">{displayTitle}</h1>
                       <PortalSelect
                         portais={portais}
@@ -528,14 +528,14 @@ export function Sidebar({
           </div>
 
           {/* Navegação Principal */}
-          <nav className="space-y-4 p-4">
+          <nav className="space-y-3 p-4 md:space-y-2 md:p-3">
             {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
-            <div className="space-y-1">
+            <div className="space-y-1 md:space-y-0.5">
               <Link
                 href={visaoGeralHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isVisaoGeralActive
                     ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                     : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -557,7 +557,7 @@ export function Sidebar({
                 href={radarHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isRadarActive
                     ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                     : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -630,7 +630,7 @@ export function Sidebar({
                       href={itemHref}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
-                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                         isActive
                           ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                           : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -659,7 +659,7 @@ export function Sidebar({
         {/* Rodapé com Compartilhamento, Notificações e Instalação do App */}
         <div
           className={cn(
-            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4",
+            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4 md:space-y-2 md:p-3",
             !pushNotificationSlot && !pwaInstallSlot && "hidden md:block",
           )}
         >
