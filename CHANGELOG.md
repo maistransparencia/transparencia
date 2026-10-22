@@ -5,6 +5,14 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.23.1] - 2026-10-21
+
+### 🌟 Destaques da Versão (Avise-me: cidade em breve)
+* **Cidades mais pedidas:** O registro de uso do formulário "Avise-me quando minha cidade chegar" passa a indicar qual cidade foi solicitada, para priorizar os próximos municípios do portal. O e-mail continua fora das métricas.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Evento `city_interest_submitted` (`apps/web`):** Além da UF, o evento do PostHog passa a enviar `cidade` (texto informado, em minúsculas e sem espaços nas pontas) quando o pedido é gravado com sucesso. Isso substitui a regra da versão 1.23.0, na qual apenas a UF era enviada; o e-mail segue sem ser enviado.
+
 ## [1.23.0] - 2026-10-21
 
 ### 🌟 Destaques da Versão (Avise-me: cidade em breve)
