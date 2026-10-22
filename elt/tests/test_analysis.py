@@ -58,6 +58,9 @@ def test_analises_de_fornecedores_rodam_em_banco_vazio(conexao_analise):
     assert fornecedores.impacto_classificadores(conexao_analise) == []
 
 
+FATOS_DO_ESQUEMA = ("fct_despesas", "fct_contratos")
+
+
 @pytest.fixture
 def esquema_com_dados(pg, monkeypatch):
     """Esquema isolado com fatos e dimensão mínimos para validar a lógica das análises."""
@@ -101,7 +104,7 @@ def esquema_com_dados(pg, monkeypatch):
 
 
 def test_cobertura_conta_linhas_sem_credor_e_orfas(esquema_com_dados):
-    por_fato = {linha["fato"]: linha for linha in fornecedores.cobertura(esquema_com_dados)}
+    por_fato = {linha["fato"]: linha for linha in fornecedores.cobertura(esquema_com_dados, FATOS_DO_ESQUEMA)}
     despesas = por_fato["fct_despesas"]
     assert (despesas["linhas"], despesas["sem_credor"], despesas["orfas_na_dimensao"]) == (5, 1, 1)
     assert despesas["sem_documento"] == 1
@@ -111,7 +114,7 @@ def test_cobertura_conta_linhas_sem_credor_e_orfas(esquema_com_dados):
 def test_ligacoes_isola_tenants_com_o_mesmo_credor_id(esquema_com_dados):
     distribuicao = {
         linha["quantidade_fatos"]: linha["fornecedores"]
-        for linha in fornecedores.ligacoes(esquema_com_dados)["distribuicao"]
+        for linha in fornecedores.ligacoes(esquema_com_dados, FATOS_DO_ESQUEMA)["distribuicao"]
     }
     # p1/a está em despesas e contratos (2 fatos); p2/a só em contratos; p1/b e p1/orfa só em despesas
     assert distribuicao == {1: 3, 2: 1}

@@ -4,7 +4,7 @@ from psycopg2 import sql
 from psycopg2.extensions import connection as Connection
 
 SCHEMA = "analytics"
-FATOS_COM_CREDOR = ("fct_despesas", "fct_contratos")
+FATOS_COM_CREDOR = ("fct_despesas", "fct_contratos", "fct_licitacoes_itens", "fct_contratos_recursos")
 FATOS_COM_NOME = ("fct_despesas", "fct_contratos")
 PALAVRAS_CLASSIFICADORAS = ("CAPREM", "NATPREV", "CASP", "RPPS")
 

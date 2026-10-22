@@ -21,6 +21,14 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: credor_id
+        data_type: text
+        description: "Chave do fornecedor do contrato (dim_fornecedor)"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: credor_id
       - name: portal_slug
         data_type: text
         constraints:

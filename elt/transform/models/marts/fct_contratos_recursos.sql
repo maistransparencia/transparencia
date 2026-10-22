@@ -59,6 +59,7 @@ despesas_por_fornecedor as (
 contratos as (
     select
         c.contrato_id,
+        c.credor_id,
         c.portal_slug,
         c.ano,
         c.empresa_id,
@@ -82,6 +83,7 @@ contratos as (
 select
     {{ dbt_utils.generate_surrogate_key(['c.portal_slug', 'c.ano', 'c.empresa_id', 'c.contrato_id']) }} as contrato_recurso_id,
     c.contrato_id,
+    c.credor_id,
     c.portal_slug,
     c.ano,
     c.empresa_id,
