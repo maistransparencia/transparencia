@@ -34,6 +34,16 @@ describe("ObrasResumoCard (linha compacta)", () => {
     expect(screen.queryByText(/R\$/)).toBeNull();
   });
 
+  it("alerta com valor menor que R$ 1 nao mostra R$ 0", () => {
+    render(
+      <ObrasResumoCard
+        resumo={{ ...base, paralisadas: 1, valorParalisadas: 0.2 }}
+        detailUrl="/p/obras"
+      />,
+    );
+    expect(screen.getByText("1 obra parada")).toBeInTheDocument();
+  });
+
   it("alerta: badge, quantidade e valor parados e acao Ver mapa", () => {
     render(<ObrasResumoCard resumo={base} detailUrl="/p/obras" />);
     expect(screen.getByText("Alerta")).toBeInTheDocument();

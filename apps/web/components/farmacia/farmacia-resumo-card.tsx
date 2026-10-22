@@ -45,7 +45,7 @@ export function FarmaciaResumoCard({
       tom="positivo"
       contexto="Onde tem o seu remédio? Busque no estoque."
       className={className}
-      dado={<FarmaciaBuscaForm action={detailUrl} className="sm:w-80" />}
+      dado={<FarmaciaBuscaForm action={detailUrl} className="sm:w-96" />}
     />
   );
 }

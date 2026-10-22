@@ -43,7 +43,7 @@ function apresentarObras(resumo: ResumoObrasDTO): ApresentacaoObras {
       dado: (() => {
         const umaObra = resumo.paralisadas === 1;
         const quantidade = `${fmtNumber(resumo.paralisadas)} ${umaObra ? "obra" : "obras"}`;
-        if (!(resumo.valorParalisadas > 0)) {
+        if (Math.round(resumo.valorParalisadas) < 1) {
           return `${quantidade} ${umaObra ? "parada" : "paradas"}`;
         }
         return `${quantidade} · ${fmtCompact(resumo.valorParalisadas)} ${umaObra ? "parado" : "parados"}`;
