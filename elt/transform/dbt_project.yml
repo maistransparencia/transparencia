@@ -57,15 +57,6 @@ models:
       int_transferencias_consolidadas:
         +materialized: view
     marts:
+      # marts sao tabelas: o fixture de packages/db so contem tabelas (db/fixture/dump) e uma view aqui
+      # dependeria de intermediarias que nao entram no dump
       +materialized: "{{ 'view' if var('test_mode', false) else 'table' }}"
-      # marts de repasse direto, sem leitura direta pela web
-      dim_elemento_despesa:
-        +materialized: view
-      fct_despesas_por_fornecedor:
-        +materialized: view
-      fct_despesas_por_orgao:
-        +materialized: view
-      fct_despesas_por_unidade:
-        +materialized: view
-      fct_diarias:
-        +materialized: view
