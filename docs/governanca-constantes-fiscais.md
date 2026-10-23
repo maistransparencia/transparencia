@@ -34,7 +34,7 @@ Todas as constantes inseridas ou revisadas devem conter links para repositórios
 2. **Secretaria do Tesouro Nacional (STN / Siconfi):**
    - Manual de Contabilidade Aplicada ao Setor Público (MCASP) e Portarias STN/SOF de classificação por natureza de despesa e fontes de recursos ([Tesouro Nacional](https://www.gov.br/tesouronacional/pt-br)).
 3. **Tribunal de Contas da União (TCU):**
-   - Jurisprudência e Acórdãos de auditoria orçamentária (ex: [Acórdão TCU nº 1.540/2014 - Plenário](https://pesquisa.apps.tcu.gov.br/)).
+   - Jurisprudência e Acórdãos de auditoria orçamentária ([pesquisa de jurisprudência do TCU](https://pesquisa.apps.tcu.gov.br/)).
 4. **Tribunal de Contas do Estado do Rio de Janeiro (TCE-RJ):**
    - Deliberações e instruções normativas de fiscalização municipal (ex: Deliberação TCE-RJ nº 200/96).
 
@@ -49,7 +49,7 @@ Todas as constantes inseridas ou revisadas devem conter links para repositórios
   - Caso haja revisão de limites prudenciais ou planos de contas, atualizar o registro correspondente.
 - **Parâmetros Analíticos do Portal vs. Limites Legais Diretos:**
   - *Limites Legais Diretos:* Parâmetros onde o texto normativo fixa alíquotas ou valores em reais expressos (ex: limites de dispensa da Lei 14.133/2021, teto de 54% de pessoal da LRF, piso de 15% da Saúde).
-  - *Parâmetros Metodológicos do Portal:* Benchmarks analíticos calibrados estatisticamente pelo portal com suporte em princípios gerais do direito financeiro (ex: faixas de 15% e 30% de uso de subitens residuais `.99`, fundamentadas no Princípio da Especificação da Lei Federal 4.320/64 Arts. 5º e 15 e Acórdão TCU 1.540/2014).
+  - *Parâmetros Metodológicos do Portal:* Benchmarks analíticos calibrados estatisticamente pelo portal com suporte em princípios gerais do direito financeiro (ex: faixas de 15% e 30% de uso de subitens residuais `.99`, fundamentadas no Princípio da Especificação da Lei Federal 4.320/64 Arts. 5º e 15; sem acórdão do TCU que fixe essas faixas).
 
 ---
 
