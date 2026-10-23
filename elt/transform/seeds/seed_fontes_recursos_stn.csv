@@ -2,32 +2,38 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 10010000,Recursos Ordinários Livres (Legado SOF/STN),livre,false
 10900000,Outros Recursos Ordinários Livres (Legado SOF/STN),livre,false
 11110000,Receitas de Impostos vinculadas à Educação (Legado),educacao,true
-11160000,Outras Receitas vinculadas à Educação (Legado),educacao,true
-11200000,Transferências do FUNDEB (Legado),educacao,true
-11210000,FUNDEB - Complementação da União (Legado),educacao,true
-11220000,Salário-Educação (Legado),educacao,true
-11230000,PNAE - Merenda Escolar (Legado),educacao,true
-11240000,PNATE - Transporte Escolar (Legado),educacao,true
-11250000,Outros Recursos do FNDE (Legado),educacao,true
+11140000,Complementação da União ao FUNDEB - VAAF (Legado),educacao,true
+11160000,Transferências do FUNDEB (Legado),educacao,true
+11160060,Transferências do FUNDEB - Detalhamento 0060 (Legado),educacao,true
+11170000,Outras Transferências Multigovernamentais do FUNDEB - VAAF (Legado),educacao,true
+11200000,Transferência do Salário-Educação (Legado),educacao,true
+11210000,Transferências do FNDE - PDDE (Legado),educacao,true
+11220000,Transferências do FNDE - PNAE (Legado),educacao,true
+11230000,Transferências do FNDE - PNATE (Legado),educacao,true
+11240000,Outras Transferências do FNDE (Legado),educacao,true
+11250000,Transferências de Convênios vinculadas à Educação (Legado),educacao,true
 12110000,Recursos Próprios vinculados à Saúde (Legado SOF/STN),saude,true
-12120000,Receitas de Impostos vinculadas à Saúde (Legado SOF/STN),saude,true
-12130000,Transferências Fundo a Fundo do SUS (Legado SOF/STN),saude,true
-12140000,Transferências de Convênios da Saúde (Legado SOF/STN),saude,true
-12142100,Convênios Específicos da Saúde (Legado SOF/STN),saude,true
-12150000,Outros Recursos vinculados à Saúde (Legado SOF/STN),saude,true
+12120000,Transferências do SUS - Governo Federal (Legado),saude,true
+12130000,Transferências do SUS - Farmácia Básica e Programas Estaduais (Legado),saude,true
+12140000,Transferências do SUS - Atenção Básica e Vigilância (Legado),saude,true
+12142100,Transferências do SUS - COVID-19 (Legado),saude,true
+12150000,Transferências do SUS - Investimento na Rede de Serviços (Legado),saude,true
+12152100,Transferências do SUS - Atenção Básica PNAB (Legado),saude,true
+12200000,Transferências de Convênios vinculadas à Saúde (Legado),saude,true
 12400000,Transferências da Saúde - Vigilância Sanitária (Legado),saude,true
-13110000,Transferências de Convênios e Outros Repasses (Legado),outros_vinculados,true
+13110000,Transferências do FNAS (Legado),assistencia_social,true
+13120000,Transferências de Convênios vinculadas à Assistência Social (Legado),assistencia_social,true
 14100000,Operações de Crédito (Legado),outros_vinculados,true
 14200000,Alienação de Bens (Legado),outros_vinculados,true
 14300000,Outras Receitas de Capital (Legado),outros_vinculados,true
 1500,Recursos não Vinculados de Impostos,livre,false
 1501,Outros Recursos não Vinculados / Ações e Serviços Públicos de Saúde (ASPS),saude,true
 1502,Recursos Próprios / Outros Recursos Não Vinculados,livre,false
-15100000,Recursos Vinculados Diversos (Legado),outros_vinculados,true
-15200000,Outras Destinações Vinculadas (Legado),outros_vinculados,true
-15300000,Compensações Financeiras / Royalties Gerais (Legado),outros_vinculados,true
+15100000,Outras Transferências de Convênios da União (Legado),outros_vinculados,true
+15200000,Outras Transferências dos Estados (Legado),outros_vinculados,true
+15300000,Royalties - Rendimentos e Restituições (Legado),outros_vinculados,true
 1540,Transferências do FUNDEB - Impostos e Transferências de Impostos,educacao,true
-15400000,Transferências do FUNDEB (Legado),educacao,true
+15400000,Royalties de Petróleo - Cota-Parte (Legado),outros_vinculados,true
 1541,Transferências do FUNDEB - Complementação da União - VAAF,educacao,true
 1542,Transferências do FUNDEB - Complementação da União - VAAT,educacao,true
 1543,Transferências do FUNDEB - Complementação da União - VAAR,educacao,true
@@ -46,8 +52,8 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1603,Transferências Fundo a Fundo do SUS - Outros Repasses,saude,true
 1604,Transferências de Convênios do SUS,saude,true
 1605,Assistência Financeira Complementar da União - Piso da Enfermagem,saude,true
-16100000,Outras Transferências Obrigatórias (Legado),outros_vinculados,true
-16200000,Transferências do SUS (Legado SOF/STN),saude,true
+16100000,Cota-Parte da CIDE (Legado),outros_vinculados,true
+16200000,Contribuição para o Custeio do Serviço de Iluminação Pública - COSIP (Legado),outros_vinculados,true
 1621,Transferências de Convênios / Contratos de Repasse vinculados à Saúde,saude,true
 1622,Outras Transferências de Recursos vinculados à Saúde,saude,true
 1631,Transferências do Governo Federal referentes a Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
@@ -84,7 +90,10 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1860,Outros Recursos Vinculados ao Regime Próprio de Previdência,previdencia,true
 1862,Recursos de Depósitos de Terceiros,outros_vinculados,true
 1869,Recursos do RPPS - Outras Vinculações,previdencia,true
+19300000,Alienação de Bens (Legado),outros_vinculados,true
 19400000,Outros Recursos não Aplicados (Legado),outros_vinculados,true
+19900000,Outras Transferências da União (Legado),outros_vinculados,true
+21160000,Transferências do FUNDEB - Exercícios Anteriores (Legado),educacao,true
 22130000,Transferências do SUS - Exercícios Anteriores (Legado),saude,true
 24100000,Operações de Crédito - Exercícios Anteriores (Legado),outros_vinculados,true
 24200000,Alienação de Bens - Exercícios Anteriores (Legado),outros_vinculados,true

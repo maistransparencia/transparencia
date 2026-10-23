@@ -108,7 +108,7 @@ seeds:
         url_base_legal: text
 
   - name: seed_fontes_recursos_stn
-    description: "Catálogo oficial de fontes de recursos padronizadas nacionalmente (Portaria STN nº 710/2021 e códigos legados). Origem: Anexo I da Portaria STN nº 710/2021 consolidada pelo Tesouro Nacional até a Portaria STN/MF nº 1.701 de 04/08/2025 (códigos de 4 dígitos: 1 dígito do exercício mais a fonte padronizada de 3 dígitos), conferida em 23/10/2026; códigos de 8 dígitos legados vêm da MSC e não foram revisados. Coerência com os portais verificada por seed_fontes_recursos_stn_referencia_portais."
+    description: "Catálogo oficial de fontes de recursos padronizadas nacionalmente (Portaria STN nº 710/2021 e códigos legados). Origem: Anexo I da Portaria STN nº 710/2021 consolidada pelo Tesouro Nacional até a Portaria STN/MF nº 1.701 de 04/08/2025 (códigos de 4 dígitos: 1 dígito do exercício mais a fonte padronizada de 3 dígitos), conferida em 23/10/2026; códigos de 8 dígitos legados (padrão anterior a 2021, 4 dígitos de fonte mais 4 de detalhamento) foram conferidos em 23/10/2026 contra as naturezas de receita lançadas em cada fonte pelos portais, e os que nenhum portal usa não foram revisados. Coerência com os portais verificada por seed_fontes_recursos_stn_referencia_portais."
     config:
       column_types:
         codigo_fonte: text
@@ -117,13 +117,13 @@ seeds:
         recurso_vinculado_flag: boolean
 
   - name: seed_fontes_recursos_stn_referencia_portais
-    description: "Pares fonte e descrição observados nos portais, usados pelos testes de coerência com seed_fontes_recursos_stn. conferido_portaria indica se o par foi confirmado contra a Portaria STN; os demais geram aviso, não falha."
+    description: "Pares fonte e descrição observados nos portais, usados pelos testes de coerência com seed_fontes_recursos_stn. conferido indica se o par foi confirmado (códigos de 4 dígitos contra a Portaria STN; legados de 8 dígitos contra a natureza de receita que o portal lança na fonte); os demais geram aviso, não falha."
     config:
       column_types:
         codigo_fonte_stn: text
         descricao_portal: text
         palavra_chave: text
-        conferido_portaria: boolean
+        conferido: boolean
 
   - name: seed_pncp_licitacoes_mapeamento
     description: "Mapeamento determinístico auditado entre licitações municipais e compras do PNCP"
