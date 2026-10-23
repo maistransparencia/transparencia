@@ -55,7 +55,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['fundeb', 'fundeb_complementacao_uniao', 'salario_educacao', 'pnae', 'pnate', 'outros_fnde', 'outras_receitas', 'nao_detalhado']
+              values: ['fundeb', 'fundeb_complementacao_uniao', 'salario_educacao', 'pnae', 'pnate', 'outros_fnde', 'royalties', 'outras_receitas', 'nao_detalhado']
 
       - name: codigo_natureza
         data_type: text

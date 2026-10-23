@@ -7,6 +7,7 @@ export const GRUPOS_FONTE_RECURSO_EDUCACAO = [
   "pnae",
   "pnate",
   "outros_fnde",
+  "royalties",
   "outras_receitas",
   "nao_detalhado",
 ] as const;

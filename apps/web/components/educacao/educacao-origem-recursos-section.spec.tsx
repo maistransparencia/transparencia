@@ -156,6 +156,35 @@ describe("EducacaoOrigemRecursosSection", () => {
     expect(within(dialog).queryByText(/Base legal/)).toBeNull();
   });
 
+  it("cita as duas leis na base legal dos royalties", () => {
+    const royalties: EducacaoOrigemRecursoDTO = {
+      grupoFonte: "royalties",
+      totalArrecadado: 200_000,
+      percentualTotal: 2,
+      historicoAnual: [{ ano: 2025, totalArrecadado: 200_000 }],
+      composicao: [],
+    };
+    render(
+      <EducacaoOrigemRecursosSection
+        origemRecursos={makeOrigem([FUNDEB, royalties])}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("fonte-card-royalties"));
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByRole("link", { name: /Lei nº 12.858\/2013/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12858.htm",
+    );
+    expect(
+      within(dialog).getByRole("link", { name: /Lei nº 7.990\/1989/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://www.planalto.gov.br/ccivil_03/leis/l7990.htm",
+    );
+  });
+
   it("marca o ano em andamento como parcial nos cards e no modal", () => {
     render(
       <EducacaoOrigemRecursosSection

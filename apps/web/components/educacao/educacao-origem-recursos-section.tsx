@@ -39,12 +39,8 @@ export function EducacaoOrigemRecursosSection({
     >
       <SectionHeader
         title="De onde vem o dinheiro"
-        description={`Receitas do ${nomeOrgao ?? "fundo de Educação"} em ${ano}`}
+        description={`Receitas do ${nomeOrgao ?? "fundo de Educação"} em ${ano} – Não inclui o aporte da Prefeitura ao fundo.`}
       />
-
-      <p className="-mt-2 text-slate-500 text-xs">
-        Não inclui o aporte da Prefeitura ao fundo.
-      </p>
 
       {parcial && mesReferencia !== null && (
         <p className="-mt-2 text-slate-500 text-xs">
