@@ -49,13 +49,22 @@ def test_comparar_ignora_modelos_presentes_em_apenas_uma_medicao():
     assert desempenho.comparar(antes, depois) == []
 
 
-def test_analises_de_fornecedores_rodam_em_banco_vazio(conexao_analise):
+def test_analises_de_fornecedores_rodam_contra_os_modelos_reais(conexao_analise):
+    # o banco de testes é compartilhado na sessão: valida invariantes, não contagens
     cobertura = fornecedores.cobertura(conexao_analise)
     assert [linha["fato"] for linha in cobertura] == list(fornecedores.FATOS_COM_CREDOR)
-    assert all(linha["linhas"] == 0 for linha in cobertura)
-    assert fornecedores.ligacoes(conexao_analise)["distribuicao"] == []
-    assert fornecedores.nomes_divergentes(conexao_analise)[0]["portais"] == []
+    assert all(0 <= linha["sem_credor"] <= linha["linhas"] for linha in cobertura)
+    assert all(0 <= linha["orfas_na_dimensao"] <= linha["linhas"] for linha in cobertura)
+
+    distribuicao = fornecedores.ligacoes(conexao_analise)["distribuicao"]
+    assert all(1 <= linha["quantidade_fatos"] <= len(fornecedores.FATOS_COM_CREDOR) for linha in distribuicao)
+
+    portais = fornecedores.nomes_divergentes(conexao_analise)[0]["portais"]
+    assert all(portal["fornecedores_com_varios_nomes"] <= portal["fornecedores"] for portal in portais)
+
+    # os fatos não carregam mais o nome: as análises que o comparam devolvem listas vazias
     assert fornecedores.impacto_classificadores(conexao_analise) == []
+    assert fornecedores.impacto_siglas_dos_portais(conexao_analise) == []
 
 
 FATOS_DO_ESQUEMA = ("fct_despesas", "fct_contratos")
