@@ -9,6 +9,7 @@ with receitas as (
         empresa_id,
         codigo,
         descricao,
+        codigo_fonte_stn,
         previsao_atualizada,
         arrecadado_efetivo
     from {{ ref('int_receitas_consolidadas') }}
@@ -22,6 +23,7 @@ select
     tipo_receita,
     codigo,
     descricao,
+    codigo_fonte_stn,
     previsao_atualizada::numeric(15, 2) as previsao_atualizada,
     arrecadado_efetivo::numeric(15, 2) as arrecadado
 from receitas
