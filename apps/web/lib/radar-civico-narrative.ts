@@ -265,11 +265,13 @@ export function formatFactualNarrative(
   if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
     const ano = alerta.ano || anoContexto || "Exercício recente";
     const obs = formatPercentNumber(alerta.valorObservado ?? 0);
-    const esp = formatPercentNumber(alerta.valorEsperado ?? 54);
-    const desvioVal = alerta.desvioPercentual ?? 0;
-    const sinal = desvioVal >= 0 ? "+" : "-";
-    const desvio = `${sinal}${formatPercentNumber(Math.abs(desvioVal))}`;
-    return `Em ${ano}, as despesas com pessoal comprometeram ${obs}% da Receita Corrente Líquida, superando o teto legal de ${esp}% em ${desvio} p.p. nos termos do Art. 20 da LRF.`;
+    const desvioVal = Math.abs(alerta.desvioPercentual ?? 0);
+    const desvio = formatPercentNumber(desvioVal);
+    if (alerta.valorEsperado == null) {
+      return `Em ${ano}, o gasto com pessoal ficou em ${obs}% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas). Indício de que o limite da Lei de Responsabilidade Fiscal (LRF) pode ter sido ultrapassado; vale conferir os números oficiais.`;
+    }
+    const esp = formatPercentNumber(alerta.valorEsperado);
+    return `Em ${ano}, o gasto com pessoal ficou em ${obs}% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas), ${desvio} pontos percentuais acima do limite de ${esp}% da Lei de Responsabilidade Fiscal (LRF). Indício de que o limite pode ter sido ultrapassado; vale conferir os números oficiais.`;
   }
 
   const desvioVal = alerta.desvioPercentual ?? 0;

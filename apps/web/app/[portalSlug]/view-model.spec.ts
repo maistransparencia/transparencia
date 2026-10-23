@@ -735,7 +735,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
     });
     expect(card.textoFactual).toContain(
-      "comprometeram 56.6% da Receita Corrente Líquida, superando o teto legal de 54% em +2.6 p.p. nos termos do Art. 20 da LRF",
+      "o gasto com pessoal ficou em 56.6% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas), 2.6 pontos percentuais acima do limite de 54% da Lei de Responsabilidade Fiscal (LRF)",
     );
   });
 
