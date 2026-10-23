@@ -50,6 +50,7 @@ Todas as constantes inseridas ou revisadas devem conter links para repositórios
 - **Parâmetros Analíticos do Portal vs. Limites Legais Diretos:**
   - *Limites Legais Diretos:* Parâmetros onde o texto normativo fixa alíquotas ou valores em reais expressos (ex: limites de dispensa da Lei 14.133/2021, teto de 54% de pessoal da LRF, piso de 15% da Saúde).
   - *Parâmetros Metodológicos do Portal:* Benchmarks analíticos calibrados estatisticamente pelo portal com suporte em princípios gerais do direito financeiro (ex: faixas de 15% e 30% de uso de subitens residuais `.99`, fundamentadas no Princípio da Especificação da Lei Federal 4.320/64 Arts. 5º e 15; sem acórdão do TCU que fixe essas faixas).
+- **Limitação conhecida (licitações, 2021–2023):** até 30/12/2023 (Lei 14.133/2021, art. 193, II, na redação da LC 198/2023) a administração podia optar pela Lei 8.666/1993 em vez da 14.133 (art. 191). O seed usa só os limites da 14.133 a partir de 2021; a opção consta apenas no edital, que não está nos dados, então dispensas feitas pela 8.666 nesse período são comparadas ao limite da 14.133.
 
 ---
 
