@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
-import {
-  EducacaoResumoCard,
-  temEducacaoDestaque,
-} from "@/components/educacao-resumo-card";
+import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
 import { FarmaciaResumoCard } from "@/components/farmacia/farmacia-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { ObrasResumoCard } from "@/components/obras-resumo-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
 import { RadarCivicoFeed } from "@/components/radar-civico-feed";
 import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
+import { temEducacaoDestaque } from "@/lib/educacao-destaque";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
 import { buildVisaoGeralViewModel } from "./view-model";
@@ -76,22 +74,25 @@ export default async function VisaoGeralPage({
             >
               Em destaque
             </h2>
-            <p className="mt-0.5 text-sm text-subtleText">
-              O que afeta a sua vida agora
-            </p>
           </div>
           <FarmaciaResumoCard
             status={viewModel.farmaciaStatus}
             detailUrl={viewModel.farmaciaDetailUrl}
           />
-          <EducacaoResumoCard
-            resumo={viewModel.educacaoResumo}
-            detailUrl={viewModel.educacaoDetailUrl}
-          />
-          <ObrasResumoCard
-            resumo={viewModel.resumoObras}
-            detailUrl={viewModel.obrasDetailUrl}
-          />
+          {temEducacaoDestaque(viewModel.educacaoResumo) && (
+            <EducacaoResumoCard
+              resumo={viewModel.educacaoResumo}
+              detailUrl={viewModel.educacaoDetailUrl}
+            />
+          )}
+          {viewModel.resumoObras && (
+            <ObrasResumoCard
+              resumo={viewModel.resumoObras}
+              detailUrl={viewModel.obrasDetailUrl}
+              markers={viewModel.obrasMiniMapMarkers}
+              center={viewModel.obrasMapCenter}
+            />
+          )}
         </section>
       )}
 

@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 export interface FarmaciaBuscaFormProps {
   action: string;
   defaultValue?: string;
+  rotuloBotaoMobile?: string;
   className?: string;
 }
 
@@ -10,6 +11,7 @@ export interface FarmaciaBuscaFormProps {
 export function FarmaciaBuscaForm({
   action,
   defaultValue = "",
+  rotuloBotaoMobile,
   className = "",
 }: FarmaciaBuscaFormProps) {
   return (
@@ -31,15 +33,22 @@ export function FarmaciaBuscaForm({
         defaultValue={defaultValue}
         placeholder="Qual remédio você procura?"
         autoComplete="off"
-        className="min-h-12 flex-1 rounded-xl border border-[#e7e9ee] bg-white px-4 text-base text-ink placeholder:text-subtleText focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-h-11 sm:text-sm"
+        className="min-h-13 flex-1 rounded-xl border border-[#e7e9ee] bg-white px-4 text-base text-ink placeholder:text-subtleText focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:min-h-12 sm:text-sm"
       />
       <button
         type="submit"
         aria-label="Buscar remédio no estoque"
-        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 font-semibold text-sm text-white transition-colors hover:bg-accent/90 sm:min-h-11"
+        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-accent px-5 font-semibold text-sm text-white transition-colors hover:bg-accent/90 sm:min-h-12"
       >
         <Search className="h-4 w-4" aria-hidden="true" />
-        <span>Buscar</span>
+        {rotuloBotaoMobile ? (
+          <>
+            <span className="sm:hidden">{rotuloBotaoMobile}</span>
+            <span className="hidden sm:inline">Buscar</span>
+          </>
+        ) : (
+          <span>Buscar</span>
+        )}
       </button>
     </form>
   );

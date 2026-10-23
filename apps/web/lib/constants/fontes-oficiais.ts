@@ -17,6 +17,10 @@ export const FONTES_OFICIAIS = {
     nome: "Siconfi",
     url: "https://siconfi.tesouro.gov.br/",
   },
+  bnafar: {
+    nome: "BNAFAR/Hórus",
+    url: "https://opendatasus.saude.gov.br/dataset/bnafar-posicao-de-estoque",
+  },
   pncp: {
     nome: "PNCP",
     url: "https://pncp.gov.br",
