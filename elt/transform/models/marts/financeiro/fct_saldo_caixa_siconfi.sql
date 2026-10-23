@@ -34,7 +34,6 @@ stg_com_fonte as (
                 when s.fonte_recursos like '166%' then 'assistencia_social'
                 when s.fonte_recursos in ('1501', '2501', '12110000') or s.fonte_recursos like '16%' then 'saude'
                 when s.fonte_recursos like '154%' or s.fonte_recursos like '155%' or s.fonte_recursos like '11%' then 'educacao'
-                when s.fonte_recursos in ('1750', '1755') then 'meio_ambiente'
                 when s.fonte_recursos like '18%' or s.fonte_recursos like '28%' or s.fonte_recursos like '98%' then 'previdencia'
                 when s.fonte_recursos = 'sem_fonte' then 'sem_fonte'
                 else 'outros_vinculados'

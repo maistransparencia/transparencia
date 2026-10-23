@@ -36,8 +36,10 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1552,Transferências de Recursos do FNDE - PNAE (Merenda Escolar),educacao,true
 1553,Transferências de Recursos do FNDE - PNATE (Transporte Escolar),educacao,true
 1569,Outras Transferências de Recursos do FNDE,educacao,true
+1571,Transferências do Estado referentes a Convênios e Instrumentos Congêneres vinculados à Educação,educacao,true
 1572,Transferências de Convênios Vinculados à Educação,educacao,true
 1573,Royalties e Compensações Financeiras vinculadas à Educação,educacao,true
+1575,Outras Transferências de Convênios e Instrumentos Congêneres vinculados à Educação,educacao,true
 1600,Transferências Fundo a Fundo de Recursos do SUS - Bloco de Manutenção,saude,true
 1601,Transferências Fundo a Fundo de Recursos do SUS - Bloco de Estruturação,saude,true
 1602,Transferências do SUS destinadas ao Enfrentamento da COVID-19,saude,true
@@ -48,29 +50,39 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 16200000,Transferências do SUS (Legado SOF/STN),saude,true
 1621,Transferências de Convênios / Contratos de Repasse vinculados à Saúde,saude,true
 1622,Outras Transferências de Recursos vinculados à Saúde,saude,true
+1631,Transferências do Governo Federal referentes a Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
+1632,Transferências do Estado referentes a Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
 1635,Transferências do FNS / Compensação Financeira da Saúde,saude,true
+1636,Outras Transferências de Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
 1660,Transferência de Recursos do Fundo Nacional de Assistência Social - FNAS,assistencia_social,true
 1661,Transferência de Recursos do FNAS - Bloco de Gestão do SUAS,assistencia_social,true
 1665,Transferências de Convênios Vinculados à Assistência Social,assistencia_social,true
 1669,Outras Transferências de Recursos Vinculados à Assistência Social,assistencia_social,true
 1700,Outras Transferências de Convênios ou Instrumentos Congêneres da União,outros_vinculados,true
 1701,Transferências de Convênios do Estado,outros_vinculados,true
-1704,Transferências da União destinadas ao Setor Cultural (Lei Paulo Gustavo / Aldir Blanc),outros_vinculados,true
-1705,Transferências Decorrentes de Decisões Judiciais,outros_vinculados,true
-1708,Transferências de Emendas Parlamentares Individuais da União,outros_vinculados,true
-1710,Transferências de Emendas de Bancada da União,outros_vinculados,true
-1715,Transferências Especiais da União (Emendas PIX),outros_vinculados,true
-1719,Outras Transferências de Emendas Parlamentares,outros_vinculados,true
-1720,Transferências de Emendas Parlamentares Estaduais,outros_vinculados,true
-1721,Transferências Especiais dos Estados (Emendas PIX Estaduais),outros_vinculados,true
+1702,Outras Transferências de Convênios ou Instrumentos Congêneres dos Municípios,outros_vinculados,true
+1704,Transferências da União Referentes a Compensações Financeiras pela Exploração de Recursos Naturais (Royalties),outros_vinculados,true
+1705,Transferências dos Estados Referentes a Compensações Financeiras pela Exploração de Recursos Naturais (Royalties),outros_vinculados,true
+1706,Transferência Especial da União,outros_vinculados,true
+1707,Transferências da União - inciso I do art. 5 da Lei Complementar 173/2020,outros_vinculados,true
+1708,Transferência da União referente à Compensação Financeira de Recursos Minerais (CFEM),outros_vinculados,true
+1710,Transferência Especial dos Estados,outros_vinculados,true
+1711,Demais Transferências Obrigatórias não Decorrentes de Repartições de Receitas,outros_vinculados,true
+1715,Transferências Destinadas ao Setor Cultural - LC 195/2022 Art. 5 - Audiovisual (Lei Paulo Gustavo),outros_vinculados,true
+1716,Transferências Destinadas ao Setor Cultural - LC 195/2022 Art. 8 - Demais Setores da Cultura (Lei Paulo Gustavo),outros_vinculados,true
+1719,Transferências da Política Nacional Aldir Blanc de Fomento à Cultura - Lei 14.399/2022,outros_vinculados,true
+1720,Transferências da União Referentes às participações na exploração de Petróleo e Gás Natural destinadas ao FEP - Lei 9.478/1997,outros_vinculados,true
+1721,Transferências da União Referentes a Cessão Onerosa de Petróleo - Lei 13.885/2019,outros_vinculados,true
+1748,Outras vinculações de transferências dos Estados,outros_vinculados,true
 1749,Outras Transferências de Convênios,outros_vinculados,true
-1750,Recursos de Fundos Especiais de Despesa,meio_ambiente,true
-1751,Recursos de Fundos de Defesa dos Direitos da Criança e do Adolescente,outros_vinculados,true
-1755,Recursos de Fundos Municipais de Meio Ambiente,meio_ambiente,true
+1750,Recursos da Contribuição de Intervenção no Domínio Econômico - CIDE,outros_vinculados,true
+1751,Recursos da Contribuição para o Custeio do Serviço de Iluminação Pública - COSIP,outros_vinculados,true
+1755,Recursos de Alienação de Bens/Ativos - Administração Direta,outros_vinculados,true
 1800,Recursos do RPPS - Fundo em Capitalização (Plano Previdenciário),previdencia,true
 1801,Recursos do RPPS - Fundo em Repartição (Plano Financeiro),previdencia,true
 1802,Recursos do RPPS - Taxa de Administração,previdencia,true
 1860,Outros Recursos Vinculados ao Regime Próprio de Previdência,previdencia,true
+1862,Recursos de Depósitos de Terceiros,outros_vinculados,true
 1869,Recursos do RPPS - Outras Vinculações,previdencia,true
 19400000,Outros Recursos não Aplicados (Legado),outros_vinculados,true
 22130000,Transferências do SUS - Exercícios Anteriores (Legado),saude,true
