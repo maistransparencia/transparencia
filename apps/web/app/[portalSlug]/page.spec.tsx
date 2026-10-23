@@ -131,12 +131,13 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByRole("heading", { name: "Em destaque" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("O que afeta a sua vida agora"),
-    ).toBeInTheDocument();
     expect(screen.queryByText(/Sentinela cívica/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ver mapa/ })).toBeInTheDocument();
-    expect(screen.getByText(/1 obra · .*parado/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", {
+        name: "Obras Públicas",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Obras Públicas")).toBeInTheDocument();
   });
 
   it("renderiza cards no radar cívico quando existirem anomalias no exercício", async () => {
@@ -187,13 +188,17 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("obras nulo: a linha de obras nao renderiza", async () => {
+  it("obras nulo: o card de obras nao renderiza", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ resumoObras: null }));
     render(await VisaoGeralPage(props));
-    expect(screen.queryByRole("region", { name: "Obras públicas" })).toBeNull();
+    expect(
+      screen.queryByRole("region", {
+        name: "Obras Públicas",
+      }),
+    ).toBeNull();
   });
 
-  it("renderiza a linha de educacao com link para a rota de educacao", async () => {
+  it("renderiza o card de educacao com link para a rota de educacao", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoEducacao: {
@@ -212,10 +217,14 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.getByText("IDEB 2023")).toBeInTheDocument();
-    const cta = screen.getByRole("link", { name: /Ver Educação/ });
-    expect(cta.getAttribute("href")).toContain("/educacao");
-    expect(screen.queryByText(/ranking|Classificação estadual/i)).toBeNull();
+    expect(
+      screen.getByText("Educação Básica e Desempenho Escolar"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/IDEB 2023/)).toBeInTheDocument();
+    const link = screen
+      .getAllByRole("link")
+      .find((a) => a.getAttribute("href")?.includes("/educacao"));
+    expect(link).toBeDefined();
   });
 
   it("apagao da farmacia mostra faixa com Ver detalhes para a rota da farmacia", async () => {
@@ -261,8 +270,12 @@ describe("VisaoGeralPage", () => {
     render(await VisaoGeralPage(props));
     expect(screen.queryByText("Indicadores Sociais")).not.toBeInTheDocument();
     const farmacia = screen.getByRole("region", { name: "Farmácia SUS" });
-    const educacao = screen.getByRole("region", { name: "Educação" });
-    const obras = screen.getByRole("region", { name: "Obras públicas" });
+    const educacao = screen.getByRole("region", {
+      name: "Educação Básica e Desempenho Escolar",
+    });
+    const obras = screen.getByRole("region", {
+      name: "Obras Públicas",
+    });
     const radar = screen.getByTestId("radar-civico-feed-section");
     const pipeline = screen.getByRole("heading", {
       name: "Do orçamento autorizado ao pagamento",
@@ -272,7 +285,7 @@ describe("VisaoGeralPage", () => {
         anterior.compareDocumentPosition(posterior) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       );
-    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(3);
+    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(1);
     expect(precede(farmacia, educacao)).toBe(true);
     expect(precede(educacao, obras)).toBe(true);
     expect(precede(obras, radar)).toBe(true);
@@ -292,7 +305,7 @@ describe("VisaoGeralPage", () => {
     expect(screen.queryByTestId("destaque-linha")).toBeNull();
   });
 
-  it("farmacia indisponivel com obras presente mostra so a linha de obras", async () => {
+  it("farmacia indisponivel com obras presente mostra so o card de obras", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoFarmacia: { status: "indisponivel" },
@@ -303,9 +316,11 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByRole("heading", { name: "Em destaque" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(1);
+    expect(screen.queryByTestId("destaque-linha")).toBeNull();
     expect(
-      screen.getByRole("region", { name: "Obras públicas" }),
+      screen.getByRole("region", {
+        name: "Obras Públicas",
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Farmácia SUS" })).toBeNull();
   });
@@ -332,6 +347,10 @@ describe("VisaoGeralPage", () => {
     );
     render(await VisaoGeralPage(props));
     expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
-    expect(screen.queryByRole("region", { name: "Educação" })).toBeNull();
+    expect(
+      screen.queryByRole("region", {
+        name: "Educação Básica e Desempenho Escolar",
+      }),
+    ).toBeNull();
   });
 });

@@ -135,6 +135,38 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
   };
 }
 
+function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
+  const obrasComCoordenadas = (obrasPreview ?? []).filter(
+    (obra) =>
+      obra.latitude != null &&
+      obra.longitude != null &&
+      Number.isFinite(obra.latitude) &&
+      Number.isFinite(obra.longitude) &&
+      obra.latitude !== 0 &&
+      obra.longitude !== 0,
+  );
+
+  const obrasMiniMapMarkers = obrasComCoordenadas.map((obra) => ({
+    id: obra.idProjeto,
+    situacao: obra.situacao,
+    latitude: obra.latitude as number,
+    longitude: obra.longitude as number,
+  }));
+
+  const mediana = (valores: number[]) =>
+    [...valores].sort((a, b) => a - b)[Math.floor(valores.length / 2)];
+
+  const obrasMapCenter: [number, number] | undefined =
+    obrasComCoordenadas.length === 0
+      ? undefined
+      : [
+          mediana(obrasComCoordenadas.map((obra) => obra.latitude as number)),
+          mediana(obrasComCoordenadas.map((obra) => obra.longitude as number)),
+        ];
+
+  return { obrasMiniMapMarkers, obrasMapCenter };
+}
+
 export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const {
     portalSlug,
@@ -468,6 +500,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     }),
     educacaoDetailUrl: routeUrl("/educacao"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
+    ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),
