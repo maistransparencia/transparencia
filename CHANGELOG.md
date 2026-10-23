@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **`seed_fontes_recursos_stn_referencia_portais`:** Novo seed com os pares fonte e descrição observados nos portais, usado para checar `seed_fontes_recursos_stn`. Os pares confirmados contra a Portaria STN (1551, 1552 e 1553) falham o teste se divergirem; os demais geram aviso.
+* **Testes de coerência das fontes STN:** Novos testes `assert_fontes_stn_coerentes_com_portais` (erro), `assert_fontes_stn_pendentes_de_conferencia` (aviso) e `assert_fontes_stn_ausentes_no_seed` (aviso, inclui as fontes de `fct_receitas`).
+
 ## [1.23.2] - 2026-10-23
 
 ### 🌟 Destaques da Versão (Origem dos Recursos da Educação)
