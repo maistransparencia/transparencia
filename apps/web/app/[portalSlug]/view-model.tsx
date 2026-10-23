@@ -14,6 +14,10 @@ import {
   isDestaqueEvolucaoIdeb,
 } from "./educacao/view-model";
 import type { loadVisaoGeralData } from "./loader";
+import {
+  buildRequerimentoFiscalizacao,
+  buildTextoWhatsApp,
+} from "./saude/farmacia/view-model";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
 
@@ -439,6 +443,23 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     }),
     resumoObras: raw.resumoObras,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaRequerimento:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildRequerimentoFiscalizacao({
+            portalName,
+            dataPosicaoMaisRecente: raw.resumoFarmacia.dataPosicaoMaisRecente,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
+    farmaciaTextoWhatsApp:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildTextoWhatsApp({
+            portalName,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
     farmaciaDetailUrl: buildNavUrl({
       path: "/saude/farmacia",
       slug: portalSlug,
