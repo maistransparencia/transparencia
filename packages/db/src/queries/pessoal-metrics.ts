@@ -32,6 +32,55 @@ export interface DepartmentalPayrollMetricsDTO {
   pago: number;
 }
 
+const CHAVES_LIMITES_LRF_PESSOAL = {
+  lrf_limite_maximo_executivo: "maximo",
+  lrf_limite_prudencial_executivo: "prudencial",
+  lrf_limite_alerta_executivo: "alerta",
+} as const;
+
+interface LimitesLrfPessoal {
+  maximo: number;
+  prudencial: number;
+  alerta: number;
+}
+
+/**
+ * Lê do seed `seed_constantes_fiscais` os limites máximo, prudencial e de alerta
+ * da LRF para pessoal do Executivo vigentes em cada ano. Anos sem os três
+ * limites cadastrados ficam fora do mapa.
+ */
+async function getLimitesLrfPessoalPorAno(
+  years: number[],
+): Promise<Map<number, LimitesLrfPessoal>> {
+  const rows = await db
+    .selectFrom("seed_constantes_fiscais")
+    .select(["chave", "valor_num", "ano_inicio", "ano_fim"])
+    .where("dominio", "=", "pessoal")
+    .where("chave", "in", Object.keys(CHAVES_LIMITES_LRF_PESSOAL))
+    .execute();
+
+  return new Map(
+    years.flatMap((year) => {
+      const limites = Object.fromEntries(
+        rows
+          .filter(
+            (r) => Number(r.ano_inicio) <= year && Number(r.ano_fim) >= year,
+          )
+          .map((r) => [
+            CHAVES_LIMITES_LRF_PESSOAL[
+              r.chave as keyof typeof CHAVES_LIMITES_LRF_PESSOAL
+            ],
+            parseFloat(String(r.valor_num ?? "")),
+          ]),
+      );
+      const { maximo, prudencial, alerta } = limites;
+      return [maximo, prudencial, alerta].every(Number.isFinite)
+        ? [[year, { maximo, prudencial, alerta }] as const]
+        : [];
+    }),
+  );
+}
+
 /**
  * Retorna folha vs serviços (comprometimento da LRF) a partir do mart atômico `fct_pessoal_folha_metricas`.
  */
@@ -70,7 +119,7 @@ export async function getFolhaVsServicosMetrics({
     query = query.where("empresa_id", "in", empresaIds);
   }
 
-  const [rows, rclRows] = await Promise.all([
+  const [rows, rclRows, limitesPorAno] = await Promise.all([
     query.groupBy("ano").execute(),
     db
       .selectFrom("fct_fontes_receita_metricas")
@@ -85,6 +134,7 @@ export async function getFolhaVsServicosMetrics({
       .where("ano", "in", validYears)
       .groupBy("ano")
       .execute(),
+    getLimitesLrfPessoalPorAno(validYears),
   ]);
 
   const folhaMap = new Map(
@@ -124,10 +174,12 @@ export async function getFolhaVsServicosMetrics({
           )
         : 0;
 
+    const limites = limitesPorAno.get(year);
     const statusLrf: "normal" | "alerta" | "prudencial" | "excedido" = (() => {
-      if (percentualFolha > 54.0) return "excedido";
-      if (percentualFolha >= 51.3) return "prudencial";
-      if (percentualFolha >= 48.6) return "alerta";
+      if (!limites) return "normal";
+      if (percentualFolha > limites.maximo) return "excedido";
+      if (percentualFolha >= limites.prudencial) return "prudencial";
+      if (percentualFolha >= limites.alerta) return "alerta";
       return "normal";
     })();
 

@@ -174,10 +174,10 @@ export default async function RootLayout({
     entidadesByPortal[slug] = entidadesList[idx] || [];
   });
 
-  const portalSlug = portalConfig?.portalSlug ?? "porciuncula_prefeitura";
-  const radarAlertsCountByYear =
-    radarAlertsByPortal[portalSlug] ??
-    (await getCachedRadarAlertsCountByYear(portalSlug));
+  const radarAlertsCountByYear = portalConfig
+    ? (radarAlertsByPortal[portalConfig.portalSlug] ??
+      (await getCachedRadarAlertsCountByYear(portalConfig.portalSlug)))
+    : {};
 
   const portalOptions: PortalOption[] = portais.map((p) => ({
     portalSlug: p.portalSlug,
