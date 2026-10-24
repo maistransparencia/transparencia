@@ -48,6 +48,9 @@ models:
         data_type: text
       - name: descricao
         data_type: text
+      - name: codigo_fonte_stn
+        data_type: text
+        description: "Código da fonte STN somente com dígitos (ex.: '1553'; legado '11230000'). Nulo quando o código de receita não traz fonte ou traz mais de uma."
       - name: previsao_atualizada
         data_type: numeric(15, 2)
       - name: arrecadado

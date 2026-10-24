@@ -10,6 +10,11 @@
 -- classificadas por origem. Os prefixos de natureza seguem o plano de contas padrão (MCASP)
 -- e vivem somente no CASE de "classificadas". Até 2021 o portal usa a tabela de naturezas anterior
 -- (1758.01 FUNDEB, 1718.05.x FNDE, 1718.09 complementação da União); a partir de 2022, 1751/1714/1715.
+-- Naturezas específicas de programa decidem o grupo. Naturezas genéricas (rendimento de depósitos
+-- bancários 1321.01, royalties 1712.x) seguem o código da fonte STN, que o portal lança por programa:
+-- 1550 salário-educação, 1551 PDDE, 1552 PNAE, 1553 PNATE, 1569 outros FNDE, 1573 royalties da educação
+-- (1704, 1705 e 1720 são royalties de compensação financeira do petróleo lançados pelo portal).
+-- Até 2021 a fonte vem com 8 dígitos (1120 salário-educação, 1121 PDDE, 1122 PNAE, 1123 PNATE, 1124/1125 outros FNDE).
 
 with orgaos_educacao as (
     select
@@ -28,6 +33,7 @@ receitas_educacao as (
         o.orgao_nome,
         r.codigo,
         r.descricao,
+        r.codigo_fonte_stn,
         coalesce(r.arrecadado, 0) as arrecadado
     from {{ ref('fct_receitas') }} r
     join orgaos_educacao o
@@ -64,6 +70,13 @@ classificadas as (
             when codigo like '1714.52%' or codigo like '1718.05.3%' then 'pnae'
             when codigo like '1714.53%' or codigo like '1718.05.4%' then 'pnate'
             when codigo like '1714%' or codigo like '1718.05%' then 'outros_fnde'
+            when codigo_fonte_stn = '1540' or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn like '1116%') then 'fundeb'
+            when codigo_fonte_stn in ('1541', '1542', '1543') or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn like '1114%') then 'fundeb_complementacao_uniao'
+            when codigo_fonte_stn = '1550' or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn like '1120%') then 'salario_educacao'
+            when codigo_fonte_stn = '1552' or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn like '1122%') then 'pnae'
+            when codigo_fonte_stn = '1553' or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn like '1123%') then 'pnate'
+            when codigo_fonte_stn in ('1551', '1569') or (length(codigo_fonte_stn) = 8 and codigo_fonte_stn similar to '(1121|1124|1125)%') then 'outros_fnde'
+            when codigo_fonte_stn in ('1573', '1704', '1705', '1720') then 'royalties'
             else 'outras_receitas'
         end as grupo_fonte,
         codigo,

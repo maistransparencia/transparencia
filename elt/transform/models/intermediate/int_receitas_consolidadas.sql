@@ -142,6 +142,24 @@ com_total as (
             partition by portal_slug, tipo_receita, ano, empresa_id, codigo
         ) as possui_linha_total
     from combined
+),
+
+com_fonte as (
+    select
+        *,
+        nullif(regexp_replace(split_part(fonte_stn, ' ', 1), '[^0-9]', '', 'g'), '') as codigo_fonte_stn_linha
+    from com_total
+),
+
+com_fonte_unica as (
+    select
+        *,
+        case
+            when min(codigo_fonte_stn_linha) over codigo_receita = max(codigo_fonte_stn_linha) over codigo_receita
+                then min(codigo_fonte_stn_linha) over codigo_receita
+        end as codigo_fonte_stn
+    from com_fonte
+    window codigo_receita as (partition by portal_slug, tipo_receita, ano, empresa_id, codigo)
 )
 
 select
@@ -151,8 +169,9 @@ select
     empresa_id,
     codigo,
     max(descricao) as descricao,
+    max(codigo_fonte_stn) as codigo_fonte_stn,
     sum(previsao_atualizada) as previsao_atualizada,
     sum(arrecadado_efetivo) as arrecadado_efetivo
-from com_total
+from com_fonte_unica
 where not possui_linha_total or (fonte_stn is null and coalesce(arrecadado_efetivo, 0) <> 0)
 group by portal_slug, tipo_receita, ano, empresa_id, codigo
