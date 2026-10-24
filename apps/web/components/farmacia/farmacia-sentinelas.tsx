@@ -1,5 +1,7 @@
 import { fmtNumber } from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
@@ -37,12 +39,22 @@ export function FarmaciaSentinelas({
         </h2>
         <p className="text-subtleText text-xs">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
-          lista nacional (RENAME, edição 2024). Os dados oficiais só listam
-          remédios que têm estoque. Se um remédio aparece como “não aparece na
-          lista de estoque”, ele não consta na última lista divulgada. Isso não
-          prova que acabou: a prefeitura também pode não ter escolhido
-          distribuir esse remédio. Remédios misturados em um só comprimido (ex.:
-          valsartana + hidroclorotiazida) não contam como o remédio sozinho.
+          lista nacional (
+          <a
+            href={urlLegislacao("rename2024")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 underline"
+          >
+            RENAME, edição 2024
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+          </a>
+          ). Os dados oficiais só listam remédios que têm estoque. Se um remédio
+          aparece como “não aparece na lista de estoque”, ele não consta na
+          última lista divulgada. Isso não prova que acabou: a prefeitura também
+          pode não ter escolhido distribuir esse remédio. Remédios misturados em
+          um só comprimido (ex.: valsartana + hidroclorotiazida) não contam como
+          o remédio sozinho.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

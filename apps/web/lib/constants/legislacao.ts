@@ -75,6 +75,10 @@ export const LEGISLACAO = {
     nome: "Lei Orgânica da Saúde (Lei 8.080/1990)",
     url: `${PLANALTO}/leis/l8080.htm`,
   },
+  rename2024: {
+    nome: "Relação Nacional de Medicamentos Essenciais (RENAME 2024)",
+    url: "https://bvsms.saude.gov.br/bvs/publicacoes/relacao_nacional_medicamentos_2024.pdf",
+  },
 } as const satisfies Record<string, Legislacao>;
 
 export type ChaveLegislacao = keyof typeof LEGISLACAO;

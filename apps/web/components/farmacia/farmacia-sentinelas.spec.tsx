@@ -39,7 +39,9 @@ describe("FarmaciaSentinelas", () => {
       "href",
       "/portal_x/saude/farmacia?q=Losartana",
     );
-    expect(screen.getByText(/RENAME, edição 2024/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /RENAME, edição 2024/ }),
+    ).toHaveAttribute("href", expect.stringContaining("bvsms.saude.gov.br"));
   });
 
   it("item so em combinacao avisa que aparece misturado com outro remedio", () => {
