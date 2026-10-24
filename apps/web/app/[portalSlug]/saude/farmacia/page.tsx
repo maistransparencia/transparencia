@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { FarmaciaBuscaForm } from "@/components/farmacia/farmacia-busca-form";
 import { FarmaciaResultados } from "@/components/farmacia/farmacia-resultados";
 import { FarmaciaSeloTransparencia } from "@/components/farmacia/farmacia-selo-transparencia";
+import { FarmaciaSentinelas } from "@/components/farmacia/farmacia-sentinelas";
 import { FarmaciaSusSentinelaBanner } from "@/components/farmacia/farmacia-sus-sentinela-banner";
 import { createPortalMetadata } from "@/lib/metadata";
 import { type FarmaciaSearchParams, loadFarmaciaData } from "./loader";
@@ -103,6 +104,13 @@ export default async function FarmaciaPage({
             />
           )}
         </section>
+      )}
+
+      {viewModel.status === "conforme" && (
+        <FarmaciaSentinelas
+          grupos={viewModel.gruposSentinelas}
+          totalUnidadesAtivas={viewModel.totalUnidadesAtivas}
+        />
       )}
     </div>
   );

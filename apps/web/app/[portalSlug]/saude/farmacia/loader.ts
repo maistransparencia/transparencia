@@ -1,4 +1,8 @@
-import { getFarmaciaSus, getPortalConfig } from "@transparencia/db";
+import {
+  getFarmaciaSentinelas,
+  getFarmaciaSus,
+  getPortalConfig,
+} from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
 export interface FarmaciaSearchParams {
@@ -62,11 +66,20 @@ async function fetchRawFarmaciaData(
     getPortalConfig(tenantSlug),
   ]);
 
+  // Sentinelas só fazem sentido quando há estoque vigente (estado conforme).
+  // O bloco é opcional: falha dele não derruba a busca.
+  const sentinelasVazias = { totalUnidadesAtivas: 0, sentinelas: [] };
+  const sentinelas =
+    farmacia.status === "conforme"
+      ? await getFarmaciaSentinelas(tenantSlug).catch(() => sentinelasVazias)
+      : sentinelasVazias;
+
   return {
     portalSlug: tenantSlug,
     portalName: portalConfig?.displayName ?? "",
     context,
     farmacia,
+    sentinelas,
   };
 }
 

@@ -3,8 +3,13 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedFarmacia,
+  seedFarmaciaSentinela,
 } from "../../../tests/fixtures/seed";
-import { getFarmaciaSus, getResumoFarmaciaSus } from "../farmacia";
+import {
+  getFarmaciaSentinelas,
+  getFarmaciaSus,
+  getResumoFarmaciaSus,
+} from "../farmacia";
 
 const PORTAL_A = createFixturePortalSlug();
 const PORTAL_B = createFixturePortalSlug();
@@ -205,5 +210,76 @@ describe("farmacia queries", () => {
       statusConformidade: "xyz",
     });
     expect((await getResumoFarmaciaSus(PORTAL_A)).status).toBe("indisponivel");
+  });
+});
+
+describe("getFarmaciaSentinelas", () => {
+  it("conta unidades com registro sobre as unidades ativas, ordenado por ordem_exibicao", async () => {
+    const base = { portalSlug: PORTAL_A };
+    await seedFarmaciaSentinela({
+      ...base,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+      ordemExibicao: 2,
+      grupoTerapeutico: "dor_febre",
+    });
+    await seedFarmaciaSentinela({
+      ...base,
+      codigoCnes: "1002",
+      codigoPrincipioAtivo: "dipirona",
+      ordemExibicao: 2,
+      grupoTerapeutico: "dor_febre",
+      statusDisponibilidade: "sem_registro_estoque",
+    });
+    await seedFarmaciaSentinela({
+      ...base,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "losartana",
+      ordemExibicao: 1,
+    });
+    await seedFarmaciaSentinela({
+      ...base,
+      codigoCnes: "1002",
+      codigoPrincipioAtivo: "losartana",
+      ordemExibicao: 1,
+      statusDisponibilidade: "sem_registro_estoque",
+    });
+
+    const resultado = await getFarmaciaSentinelas(PORTAL_A);
+    expect(resultado.totalUnidadesAtivas).toBe(2);
+    expect(resultado.sentinelas.map((s) => s.codigoPrincipioAtivo)).toEqual([
+      "losartana",
+      "dipirona",
+    ]);
+    expect(resultado.sentinelas.map((s) => s.unidadesComRegistro)).toEqual([
+      1, 1,
+    ]);
+  });
+
+  it("isola contagens entre portais", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_B,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+      statusDisponibilidade: "sem_registro_estoque",
+    });
+    const a = await getFarmaciaSentinelas(PORTAL_A);
+    const b = await getFarmaciaSentinelas(PORTAL_B);
+    expect(a.sentinelas[0].unidadesComRegistro).toBe(1);
+    expect(b.sentinelas[0].unidadesComRegistro).toBe(0);
+    expect(b.totalUnidadesAtivas).toBe(1);
+  });
+
+  it("portal sem linhas ou slug inválido devolve vazio", async () => {
+    expect(await getFarmaciaSentinelas(PORTAL_A)).toEqual({
+      totalUnidadesAtivas: 0,
+      sentinelas: [],
+    });
+    expect((await getFarmaciaSentinelas("  ")).sentinelas).toEqual([]);
   });
 });

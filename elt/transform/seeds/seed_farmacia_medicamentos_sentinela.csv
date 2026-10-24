@@ -1,0 +1,23 @@
+codigo_principio_ativo,nome_principio_ativo,prefixo_nome_normalizado,grupo_terapeutico,ordem_exibicao
+losartana,Losartana,losartana,cardiovascular,1
+captopril,Captopril,captopril,cardiovascular,2
+hidroclorotiazida,Hidroclorotiazida,hidroclorotiazida,cardiovascular,3
+enalapril,Enalapril,enalapril,cardiovascular,4
+anlodipino,Anlodipino,anlodipino,cardiovascular,5
+atenolol,Atenolol,atenolol,cardiovascular,6
+furosemida,Furosemida,furosemida,cardiovascular,7
+sinvastatina,Sinvastatina,sinvastatina,cardiovascular,8
+acido_acetilsalicilico,Ácido acetilsalicílico,acido acetilsalicilico,cardiovascular,9
+metformina,Metformina,metformina,diabetes,10
+glibenclamida,Glibenclamida,glibenclamida,diabetes,11
+insulina,Insulina,insulina humana nph,diabetes,12
+insulina,Insulina,insulina humana regular,diabetes,12
+dipirona,Dipirona,dipirona,dor_febre,13
+paracetamol,Paracetamol,paracetamol,dor_febre,14
+ibuprofeno,Ibuprofeno,ibuprofeno,dor_febre,15
+amoxicilina,Amoxicilina,amoxicilina,antibiotico,16
+omeprazol,Omeprazol,omeprazol,gastrointestinal,17
+salbutamol,Salbutamol,salbutamol,respiratorio,18
+levotiroxina,Levotiroxina,levotiroxina,endocrino,19
+fluoxetina,Fluoxetina,fluoxetina,saude_mental,20
+amitriptilina,Amitriptilina,amitriptilina,saude_mental,21
