@@ -101,6 +101,23 @@ describe("loadFarmaciaData", () => {
     expect(apagao.sentinelas.sentinelas).toEqual([]);
   });
 
+  it("isola a falha das sentinelas sem derrubar a busca", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({
+      status: "conforme",
+      unidades: [],
+    } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+    vi.mocked(getFarmaciaSentinelas).mockRejectedValue(new Error("falha"));
+
+    const result = await loadFarmaciaData("portal_conforme", {});
+
+    expect(result.sentinelas).toEqual({
+      totalUnidadesAtivas: 0,
+      sentinelas: [],
+    });
+    expect(result.farmacia.status).toBe("conforme");
+  });
+
   it("lanca erro com portalSlug vazio", async () => {
     await expect(loadFarmaciaData("  ", {})).rejects.toThrow(
       "portalSlug vazio",

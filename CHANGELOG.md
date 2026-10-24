@@ -5,11 +5,12 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
-### 🌟 Destaques da Versão (Exemplos de busca na Farmácia SUS)
+### 🌟 Destaques da Versão (Remédios comuns e essenciais na Farmácia SUS)
 * **Remédios comuns na página inicial:** O card da Farmácia SUS na Visão Geral mostra atalhos "Exemplos:" (dipirona, paracetamol, losartana, metformina, amoxicilina e omeprazol) que abrem a busca já preenchida. Só aparecem remédios que alguma unidade informou em estoque, então o clique sempre traz resultado.
-
-### 🌟 Destaques da Versão (Remédios essenciais na Farmácia SUS)
 * **Remédios essenciais sob a busca:** A página da Farmácia SUS mostra 21 medicamentos da RENAME 2024 (como losartana, metformina e dipirona) com "N de M unidades que informaram estoque" e link para a busca. Quando nenhuma unidade informa o item, o texto é "não aparece na lista de estoque"; se o remédio só existe em combinação com outro (ex.: valsartana + hidroclorotiazida), o bloco avisa isso. A fonte só publica itens com saldo, então não é ranking de demanda nem afirmação de falta.
+* **Botão "Limpar busca":** A página da Farmácia SUS ganhou um botão para limpar a busca e voltar à lista completa.
+* **Pipeline da Farmácia SUS:** `make elt/farmacia-sus` agora recria o seed de medicamentos essenciais e reconstrói a tabela de disponibilidade a cada execução.
+* **Menu lateral mais espaçado:** O espaçamento entre os itens do menu lateral (`Sidebar`) ficou uniforme em telas grandes e pequenas, com mais respiro entre os grupos.
 
 ### 🌟 Destaques da Versão (Histórico da Farmácia SUS)
 * **Histórico de estoque:** O estoque de medicamentos da Farmácia SUS passa a ser acumulado a cada coleta, sem apagar dias anteriores, o que permite medir por quanto tempo uma unidade ficou sem informar estoque. A fonte do sistema de origem também passa a ser registrada.
