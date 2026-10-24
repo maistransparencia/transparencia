@@ -28,7 +28,9 @@ export function FonteRecursoModal({
   onClose,
 }: FonteRecursoModalProps) {
   const rotulo = fonte ? ROTULO_FONTE_RECURSO[fonte.grupoFonte] : "";
-  const baseLegal = fonte ? BASE_LEGAL_FONTE_RECURSO[fonte.grupoFonte] : null;
+  const basesLegais = fonte
+    ? (BASE_LEGAL_FONTE_RECURSO[fonte.grupoFonte] ?? [])
+    : [];
   const maiorValorHistorico = fonte
     ? Math.max(...fonte.historicoAnual.map((ponto) => ponto.totalArrecadado), 0)
     : 0;
@@ -59,19 +61,24 @@ export function FonteRecursoModal({
       zIndex="z-50"
       showShareButton={false}
       footer={
-        baseLegal ? (
+        basesLegais.length > 0 ? (
           <p className="text-slate-500 text-xs">
             Base legal:{" "}
-            <a
-              href={baseLegal.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
-              aria-label={`Texto oficial da ${baseLegal.rotulo} no Planalto`}
-            >
-              {baseLegal.rotulo}
-              <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
-            </a>
+            {basesLegais.map((baseLegal, indice) => (
+              <span key={baseLegal.url}>
+                {indice > 0 && " · "}
+                <a
+                  href={baseLegal.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
+                  aria-label={`Texto oficial da ${baseLegal.rotulo} no Planalto`}
+                >
+                  {baseLegal.rotulo}
+                  <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
+                </a>
+              </span>
+            ))}
           </p>
         ) : undefined
       }

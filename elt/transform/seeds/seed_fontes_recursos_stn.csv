@@ -32,9 +32,9 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1542,Transferências do FUNDEB - Complementação da União - VAAT,educacao,true
 1543,Transferências do FUNDEB - Complementação da União - VAAR,educacao,true
 1550,Transferência do Salário-Educação,educacao,true
-1551,Transferências de Recursos do FNDE - PNAE (Merenda Escolar),educacao,true
-1552,Transferências de Recursos do FNDE - PNATE (Transporte Escolar),educacao,true
-1553,Transferências de Recursos do FNDE - Outras Transferências Legais,educacao,true
+1551,Transferências de Recursos do FNDE - PDDE (Dinheiro Direto na Escola),educacao,true
+1552,Transferências de Recursos do FNDE - PNAE (Merenda Escolar),educacao,true
+1553,Transferências de Recursos do FNDE - PNATE (Transporte Escolar),educacao,true
 1569,Outras Transferências de Recursos do FNDE,educacao,true
 1572,Transferências de Convênios Vinculados à Educação,educacao,true
 1573,Royalties e Compensações Financeiras vinculadas à Educação,educacao,true
