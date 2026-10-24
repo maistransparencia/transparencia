@@ -115,12 +115,12 @@ export interface FarmaciaIndicador {
   codigo: string;
   rotulo: string;
   valor: string;
-  nota: string;
+  nota: string | null;
   notaAtencao: boolean;
 }
 
 function textoDiasDesde(dias: number): string {
-  if (dias <= 0) return "Atualizado hoje";
+  if (dias <= 0) return "Enviada hoje";
   if (dias === 1) return "Há 1 dia";
   return `Há ${fmtNumber(dias)} dias`;
 }
@@ -147,13 +147,13 @@ function buildIndicadores(
       codigo: "unidades_informaram",
       rotulo: "Unidades que informaram estoque",
       valor: fmtNumber(totalUnidadesAtivas),
-      nota: "Na última lista divulgada",
+      nota: "Enviaram a lista mais recente",
       notaAtencao: false,
     },
     indicadores.totalEssenciais > 0
       ? {
           codigo: "essenciais_no_estoque",
-          rotulo: "Remédios essenciais no estoque",
+          rotulo: "Essenciais na lista de estoque",
           valor: `${fmtNumber(indicadores.essenciaisNoEstoque)} de ${fmtNumber(indicadores.totalEssenciais)}`,
           nota:
             partesNotaEssenciais.length > 0
@@ -165,12 +165,12 @@ function buildIndicadores(
     dataAtualizacao
       ? {
           codigo: "ultima_atualizacao",
-          rotulo: "Última atualização",
+          rotulo: "Lista de estoque mais recente",
           valor: fmtDate(dataAtualizacao),
           nota:
             farmacia.diasDesdePosicaoMaisRecente != null
-              ? `${textoDiasDesde(farmacia.diasDesdePosicaoMaisRecente)} · dados do Ministério da Saúde`
-              : "Dados do Ministério da Saúde",
+              ? textoDiasDesde(farmacia.diasDesdePosicaoMaisRecente)
+              : null,
           notaAtencao: false,
         }
       : null,
@@ -194,14 +194,13 @@ function buildResumoBusca(params: {
   totalApresentacoes: number;
   totalUnidades: number;
   totalUnidadesAtivas: number;
-  totalQuantidadeEstoque: number;
 }): string {
   const remedios = `${fmtNumber(params.totalApresentacoes)} ${params.totalApresentacoes === 1 ? "remédio" : "remédios"}`;
   const unidades =
     params.totalUnidadesAtivas > 0
       ? `${fmtNumber(params.totalUnidades)} de ${fmtNumber(params.totalUnidadesAtivas)} unidades`
       : `${fmtNumber(params.totalUnidades)} ${params.totalUnidades === 1 ? "unidade" : "unidades"}`;
-  return `${remedios} em ${unidades} · ${fmtNumber(params.totalQuantidadeEstoque)} un. no total`;
+  return `${remedios} em ${unidades}`;
 }
 
 export function buildFatoApagao(
@@ -328,7 +327,6 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
       totalApresentacoes: farmacia.totalApresentacoes,
       totalUnidades: farmacia.totalUnidades,
       totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
-      totalQuantidadeEstoque: farmacia.totalQuantidadeEstoque,
     }),
     unidades,
     remedios,

@@ -249,7 +249,7 @@ export default async function RootLayout({
                   portalSlug={portalConfig?.portalSlug}
                   portais={portalOptions}
                 />
-                <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
+                <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-clip px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                   {children}
                 </main>
                 <GlobalFooter

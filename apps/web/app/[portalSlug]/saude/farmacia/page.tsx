@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import type { Metadata } from "next";
 import { FarmaciaCabecalho } from "@/components/farmacia/farmacia-cabecalho";
+import { FarmaciaFonteDados } from "@/components/farmacia/farmacia-fonte-dados";
 import { FarmaciaIndicadores } from "@/components/farmacia/farmacia-indicadores";
 import { FarmaciaResultados } from "@/components/farmacia/farmacia-resultados";
 import { FarmaciaSentinelas } from "@/components/farmacia/farmacia-sentinelas";
@@ -105,6 +106,13 @@ export default async function FarmaciaPage({
           essenciais={viewModel.essenciais}
           categorias={viewModel.categoriasEssenciais}
           totalUnidadesAtivas={viewModel.totalUnidadesAtivas}
+        />
+      )}
+
+      {conforme && (
+        <FarmaciaFonteDados
+          dataAtualizacao={viewModel.dataAtualizacao}
+          leiUrl={LEI_FARMACIA_SUS_URL}
         />
       )}
     </div>

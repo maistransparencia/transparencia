@@ -20,14 +20,29 @@ describe("FarmaciaBuscaDestaque", () => {
     );
   });
 
-  it("botao limpar so aparece com texto e esvazia o campo", () => {
+  it("limpar busca e um link para a rota sem ?q= quando ha termo", () => {
     render(<FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={[]} />);
-    expect(screen.queryByRole("button", { name: "Limpar busca" })).toBeNull();
-    const campo = screen.getByRole("searchbox") as HTMLInputElement;
-    fireEvent.change(campo, { target: { value: "dip" } });
-    fireEvent.click(screen.getByRole("button", { name: "Limpar busca" }));
-    expect(campo.value).toBe("");
-    expect(screen.queryByRole("button", { name: "Limpar busca" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "dip" },
+    });
+    expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
+      "href",
+      "/p/saude/farmacia",
+    );
+  });
+
+  it("limpar busca aparece com defaultValue", () => {
+    render(
+      <FarmaciaBuscaDestaque
+        action="/p/saude/farmacia"
+        defaultValue="dip"
+        exemplos={[]}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Limpar busca" }),
+    ).toBeInTheDocument();
   });
 
   it("sem exemplos nao mostra o rotulo de mais procurados", () => {

@@ -83,7 +83,9 @@ describe("FarmaciaPage", () => {
     expect(
       screen.getByText("Temas · Saúde · Farmácia SUS"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Estoque oficial/)).toHaveTextContent("18/10/2026");
+    expect(screen.getByText(/Lista de estoque atualizada/)).toHaveTextContent(
+      "18/10/2026",
+    );
     expect(
       screen.getByRole("form", { name: "Busca de medicamentos" }),
     ).toBeInTheDocument();
@@ -153,6 +155,16 @@ describe("FarmaciaPage", () => {
       screen.getByText("“xyz” não aparece na lista de estoque"),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("mapa-mock")).toBeNull();
+  });
+
+  it("fonte dos dados so aparece em conforme", async () => {
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
+    const { unmount } = render(await FarmaciaPage(props));
+    expect(screen.getByText("Fonte dos dados")).toBeInTheDocument();
+    unmount();
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({ status: "apagao" }));
+    render(await FarmaciaPage(props));
+    expect(screen.queryByText("Fonte dos dados")).toBeNull();
   });
 
   it("conforme: bloco de sentinelas abaixo da busca", async () => {

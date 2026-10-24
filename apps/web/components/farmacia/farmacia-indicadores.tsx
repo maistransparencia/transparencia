@@ -2,7 +2,7 @@ export interface FarmaciaIndicadorItem {
   codigo: string;
   rotulo: string;
   valor: string;
-  nota: string;
+  nota: string | null;
   notaAtencao: boolean;
 }
 
@@ -26,11 +26,13 @@ export function FarmaciaIndicadores({
           <dd className="font-bold font-serif text-[26px] text-ink">
             {indicador.valor}
           </dd>
-          <dd
-            className={`text-xs ${indicador.notaAtencao ? "text-attention" : "text-subtleText"}`}
-          >
-            {indicador.nota}
-          </dd>
+          {indicador.nota && (
+            <dd
+              className={`text-xs ${indicador.notaAtencao ? "text-attention" : "text-subtleText"}`}
+            >
+              {indicador.nota}
+            </dd>
+          )}
         </div>
       ))}
     </dl>

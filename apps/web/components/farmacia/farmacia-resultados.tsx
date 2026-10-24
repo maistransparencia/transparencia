@@ -180,7 +180,7 @@ export function FarmaciaResultados({
                       {unidade.nomeUnidade}
                     </h3>
                     <span className="shrink-0 text-slate-600 text-xs tabular-nums">
-                      {fmtNumber(unidade.totalQuantidadeEstoque)} un.
+                      {fmtNumber(unidade.totalQuantidadeEstoque)} em estoque
                     </span>
                   </div>
                   {(unidade.enderecoUnidade || unidade.telefoneUnidade) && (
@@ -213,7 +213,7 @@ export function FarmaciaResultados({
                       <span className="text-right font-semibold text-sm tabular-nums">
                         {fmtNumber(medicamento.quantidadeEstoque)}{" "}
                         <span className="font-normal text-subtleText text-xs">
-                          un.
+                          em estoque
                         </span>
                       </span>
                     </li>
@@ -232,7 +232,7 @@ export function FarmaciaResultados({
                     {remedio.nomeMedicamento}
                   </h3>
                   <span className="text-slate-600 text-xs tabular-nums">
-                    {fmtNumber(remedio.totalQuantidadeEstoque)} un. ·{" "}
+                    {fmtNumber(remedio.totalQuantidadeEstoque)} em estoque ·{" "}
                     {fmtNumber(remedio.totalUnidadesComEstoque)}{" "}
                     {remedio.totalUnidadesComEstoque === 1
                       ? "unidade"
@@ -268,7 +268,7 @@ export function FarmaciaResultados({
                       <span className="text-right font-semibold text-sm tabular-nums">
                         {fmtNumber(item.quantidadeEstoque)}{" "}
                         <span className="font-normal text-subtleText text-xs">
-                          un.
+                          em estoque
                         </span>
                       </span>
                     </li>

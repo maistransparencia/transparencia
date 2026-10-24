@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 export interface FarmaciaBuscaDestaqueProps {
   action: string;
@@ -17,7 +17,6 @@ export function FarmaciaBuscaDestaque({
   exemplos,
 }: FarmaciaBuscaDestaqueProps) {
   const [termo, setTermo] = useState(defaultValue);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <div className="space-y-3">
@@ -35,7 +34,6 @@ export function FarmaciaBuscaDestaque({
           Qual remédio você procura?
         </label>
         <input
-          ref={inputRef}
           id="farmacia-busca"
           name="q"
           type="search"
@@ -45,20 +43,16 @@ export function FarmaciaBuscaDestaque({
           onChange={(evento) => setTermo(evento.target.value)}
           placeholder="Nome do remédio, ex.: losartana"
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent py-3 text-[17px] text-ink outline-none placeholder:text-mutedText"
+          className="min-w-0 flex-1 bg-transparent py-3 text-[17px] text-ink outline-none placeholder:text-mutedText [&::-webkit-search-cancel-button]:appearance-none"
         />
-        {termo.length > 0 && (
-          <button
-            type="button"
+        {(termo.length > 0 || defaultValue.length > 0) && (
+          <Link
+            href={action}
             aria-label="Limpar busca"
-            onClick={() => {
-              setTermo("");
-              inputRef.current?.focus();
-            }}
-            className="h-9 w-9 shrink-0 rounded-full bg-canvas text-lg text-subtleText hover:bg-borderLine"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-canvas text-lg text-subtleText hover:bg-borderLine"
           >
             ×
-          </button>
+          </Link>
         )}
         <button
           type="submit"

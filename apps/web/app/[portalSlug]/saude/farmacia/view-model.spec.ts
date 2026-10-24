@@ -200,9 +200,8 @@ describe("buildFarmaciaViewModel indicadores", () => {
   });
 
   it.each([
-    [0, "Atualizado hoje"],
+    [0, "Enviada hoje"],
     [1, "Há 1 dia"],
-    [null, "Dados do Ministério da Saúde"],
   ])("dias %s na nota da atualizacao", (dias, esperado) => {
     const vm = buildFarmaciaViewModel(
       makeRaw({
@@ -211,6 +210,14 @@ describe("buildFarmaciaViewModel indicadores", () => {
       }),
     );
     expect(vm.indicadores[2].nota).toContain(esperado);
+  });
+
+  it("sem dias a nota da lista mais recente e omitida", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({ dataPosicaoMaisRecente: "2026-10-19" }),
+    );
+    expect(vm.indicadores[2].rotulo).toBe("Lista de estoque mais recente");
+    expect(vm.indicadores[2].nota).toBeNull();
   });
 
   it("sem data de atualizacao o cartao e omitido", () => {
@@ -287,16 +294,14 @@ describe("buildFarmaciaViewModel resultados e mapa", () => {
     expect(vm.remedios[0].unidades.map((u) => u.percentualBarra)).toEqual([
       100, 90,
     ]);
-    expect(vm.resumoBusca).toBe(
-      "1 remédio em 2 de 4 unidades · 190 un. no total",
-    );
+    expect(vm.resumoBusca).toBe("1 remédio em 2 de 4 unidades");
   });
 
   it("resumo sem unidades ativas e com uma unidade", () => {
     const vm = buildFarmaciaViewModel(
       makeRaw({ busca: "omep", unidades: 1, totalUnidadesAtivas: 0 }),
     );
-    expect(vm.resumoBusca).toBe("1 remédio em 1 unidade · 100 un. no total");
+    expect(vm.resumoBusca).toBe("1 remédio em 1 unidade");
   });
 
   it("mapMarkers inclui apenas unidades com coordenada valida e mantem o numero", () => {

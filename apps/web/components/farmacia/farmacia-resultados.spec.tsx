@@ -18,7 +18,7 @@ type Props = React.ComponentProps<typeof FarmaciaResultados>;
 
 const props: Props = {
   busca: "omeprazol",
-  resumo: "1 remédio em 2 de 4 unidades · 130 un. no total",
+  resumo: "1 remédio em 2 de 4 unidades",
   unidades: [
     {
       numero: 1,
@@ -130,7 +130,7 @@ describe("FarmaciaResultados", () => {
   it("alterna para a visao por remedio", () => {
     render(<FarmaciaResultados {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "Por remédio" }));
-    expect(screen.getByText(/130 un\. · 2 unidades/)).toBeInTheDocument();
+    expect(screen.getByText(/130 em estoque · 2 unidades/)).toBeInTheDocument();
   });
 
   it("hover no card destaca a unidade", () => {
