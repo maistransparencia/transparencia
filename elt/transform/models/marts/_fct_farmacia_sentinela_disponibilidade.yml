@@ -49,6 +49,13 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: destaque_card_inicial
+        description: "Remédio comum escolhido para aparecer como exemplo no card da Farmácia SUS na Visão Geral (curadoria no seed)."
+        data_type: boolean
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
       - name: status_disponibilidade
         data_type: text
         constraints:

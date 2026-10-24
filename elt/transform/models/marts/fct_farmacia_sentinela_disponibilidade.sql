@@ -18,7 +18,8 @@ sentinelas as (
         codigo_principio_ativo,
         min(nome_principio_ativo) as nome_principio_ativo,
         min(grupo_terapeutico) as grupo_terapeutico,
-        min(ordem_exibicao::integer) as ordem_exibicao
+        min(ordem_exibicao::integer) as ordem_exibicao,
+        bool_or(destaque_card_inicial = 'true') as destaque_card_inicial
     from {{ ref('seed_farmacia_medicamentos_sentinela') }}
     group by codigo_principio_ativo
 ),
@@ -112,6 +113,7 @@ select
     sentinelas.nome_principio_ativo,
     sentinelas.grupo_terapeutico,
     sentinelas.ordem_exibicao,
+    sentinelas.destaque_card_inicial,
     case
         when coalesce(apresentacoes_com_estoque.quantidade_apresentacoes_com_estoque, 0) > 0
             then 'com_registro_estoque'

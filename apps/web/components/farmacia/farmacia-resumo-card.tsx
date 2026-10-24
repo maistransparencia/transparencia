@@ -16,7 +16,15 @@ export interface FarmaciaResumoCardProps {
   requerimento?: string;
   /** Texto de compartilhamento no WhatsApp (usado só em `apagao`). */
   textoWhatsApp?: string;
+  /** Remédios comuns como atalhos de busca (usado só em `conforme`). */
+  exemplos?: FarmaciaExemploCard[];
   className?: string;
+}
+
+export interface FarmaciaExemploCard {
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo: string;
+  href: string;
 }
 
 export function FarmaciaResumoCard({
@@ -24,6 +32,7 @@ export function FarmaciaResumoCard({
   detailUrl,
   requerimento,
   textoWhatsApp,
+  exemplos = [],
   className = "",
 }: FarmaciaResumoCardProps) {
   if (status === "indisponivel") return null;
@@ -101,6 +110,23 @@ export function FarmaciaResumoCard({
         action={detailUrl}
         rotuloBotaoMobile="Buscar no estoque"
       />
+      {exemplos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-subtleText">Exemplos:</span>
+          <ul className="flex flex-wrap gap-2">
+            {exemplos.map((exemplo) => (
+              <li key={exemplo.codigoPrincipioAtivo}>
+                <Link
+                  href={exemplo.href}
+                  className="inline-flex min-h-11 items-center rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-ink text-sm transition-colors hover:bg-slate-100 sm:min-h-0"
+                >
+                  {exemplo.nomePrincipioAtivo}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }

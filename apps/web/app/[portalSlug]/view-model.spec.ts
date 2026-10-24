@@ -947,4 +947,53 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
     );
     expect(vm.farmaciaRequerimento).toBeUndefined();
   });
+
+  describe("farmaciaExemplos", () => {
+    const sentinela = (
+      codigo: string,
+      ordem: number,
+      extra: Record<string, unknown> = {},
+    ) => ({
+      codigoPrincipioAtivo: codigo,
+      nomePrincipioAtivo: codigo.toUpperCase(),
+      grupoTerapeutico: "dor_febre",
+      ordemExibicao: ordem,
+      destaqueCardInicial: true,
+      unidadesComRegistro: 1,
+      unidadesSomenteCombinacao: 0,
+      ...extra,
+    });
+    const raw = (status: string, sentinelas: unknown[]) =>
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo(status),
+        sentinelasFarmacia: { totalUnidadesAtivas: 2, sentinelas },
+      });
+
+    it("conforme: filtra destaque com estoque, ordena e limita a 6", () => {
+      const sentinelas = [
+        ...[9, 8, 7, 6, 5, 4, 3].map((n) => sentinela(`med${n}`, n)),
+        sentinela("fora", 1, { destaqueCardInicial: false }),
+        sentinela("semestoque", 2, { unidadesComRegistro: 0 }),
+      ];
+      const vm = buildVisaoGeralViewModel(raw("conforme", sentinelas));
+      expect(vm.farmaciaExemplos.map((e) => e.codigoPrincipioAtivo)).toEqual([
+        "med3",
+        "med4",
+        "med5",
+        "med6",
+        "med7",
+        "med8",
+      ]);
+      expect(vm.farmaciaExemplos[0].href).toBe(
+        `${vm.farmaciaDetailUrl}?q=MED3`,
+      );
+    });
+
+    it.each(["apagao", "indisponivel"])("%s: sem exemplos", (status) => {
+      const vm = buildVisaoGeralViewModel(
+        raw(status, [sentinela("dipirona", 1)]),
+      );
+      expect(vm.farmaciaExemplos).toEqual([]);
+    });
+  });
 });

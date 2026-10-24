@@ -80,6 +80,7 @@ export default async function VisaoGeralPage({
             detailUrl={viewModel.farmaciaDetailUrl}
             requerimento={viewModel.farmaciaRequerimento}
             textoWhatsApp={viewModel.farmaciaTextoWhatsApp}
+            exemplos={viewModel.farmaciaExemplos}
           />
           {temEducacaoDestaque(viewModel.educacaoResumo) && (
             <EducacaoResumoCard

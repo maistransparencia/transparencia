@@ -1,3 +1,4 @@
+import type { FarmaciaSentinelaDTO } from "@transparencia/db";
 import { fmtDate } from "@transparencia/ui";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { isValidMapCoordinate } from "@/lib/tile-calc";
@@ -25,6 +26,33 @@ function buildFarmaciaHref(
   const queryString = query.toString();
   const base = `/${portalSlug}/saude/farmacia`;
   return queryString ? `${base}?${queryString}` : base;
+}
+
+export const FARMACIA_EXEMPLOS_MAXIMO = 6;
+
+export interface FarmaciaExemplo {
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo: string;
+  href: string;
+}
+
+/**
+ * Remédios comuns (curadoria no seed) que têm estoque informado em alguma
+ * unidade, como atalhos de busca no card da Visão Geral.
+ */
+export function buildExemplosFarmacia(
+  sentinelas: FarmaciaSentinelaDTO[],
+  detailUrl: string,
+): FarmaciaExemplo[] {
+  return sentinelas
+    .filter((s) => s.destaqueCardInicial && s.unidadesComRegistro > 0)
+    .toSorted((a, b) => a.ordemExibicao - b.ordemExibicao)
+    .slice(0, FARMACIA_EXEMPLOS_MAXIMO)
+    .map((s) => ({
+      codigoPrincipioAtivo: s.codigoPrincipioAtivo,
+      nomePrincipioAtivo: s.nomePrincipioAtivo,
+      href: `${detailUrl}?${new URLSearchParams({ q: s.nomePrincipioAtivo }).toString()}`,
+    }));
 }
 
 const ROTULOS_GRUPO_TERAPEUTICO: Record<string, string> = {

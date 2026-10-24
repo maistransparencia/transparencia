@@ -248,6 +248,7 @@ export interface FarmaciaSentinelaDTO {
   nomePrincipioAtivo: string;
   grupoTerapeutico: string;
   ordemExibicao: number;
+  destaqueCardInicial: boolean;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
 }
@@ -279,6 +280,7 @@ export async function getFarmaciaSentinelas(
       sql<string>`min(nome_principio_ativo)`.as("nome_principio_ativo"),
       sql<string>`min(grupo_terapeutico)`.as("grupo_terapeutico"),
       sql<number>`min(ordem_exibicao)`.as("ordem_exibicao"),
+      sql<boolean>`bool_or(destaque_card_inicial)`.as("destaque_card_inicial"),
       sql<number>`count(*)`.as("total_unidades_ativas"),
       sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque')`.as(
         "unidades_com_registro",
@@ -304,6 +306,7 @@ export async function getFarmaciaSentinelas(
       nomePrincipioAtivo: l.nome_principio_ativo,
       grupoTerapeutico: l.grupo_terapeutico,
       ordemExibicao: toNumberOrNull(l.ordem_exibicao) ?? 0,
+      destaqueCardInicial: Boolean(l.destaque_card_inicial),
       unidadesComRegistro: toNumberOrNull(l.unidades_com_registro) ?? 0,
       unidadesSomenteCombinacao:
         toNumberOrNull(l.unidades_somente_combinacao) ?? 0,

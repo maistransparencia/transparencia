@@ -6,6 +6,7 @@ const {
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
   getResumoEducacaoMock,
+  getFarmaciaSentinelasMock,
   getResumoFarmaciaSusMock,
   getResumoObrasPorPortalMock,
   notFoundMock,
@@ -15,6 +16,7 @@ const {
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
   getResumoEducacaoMock: vi.fn(),
+  getFarmaciaSentinelasMock: vi.fn(),
   getResumoFarmaciaSusMock: vi.fn().mockResolvedValue(null),
   getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
@@ -44,6 +46,7 @@ vi.mock("@transparencia/db", () => ({
   getObrasPorPortal: getObrasPorPortalMock,
   getResumoObrasPorPortal: getResumoObrasPorPortalMock,
   getResumoEducacao: getResumoEducacaoMock,
+  getFarmaciaSentinelas: getFarmaciaSentinelasMock,
   getResumoFarmaciaSus: getResumoFarmaciaSusMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
@@ -197,6 +200,51 @@ describe("loadVisaoGeralData", () => {
       dataColeta: null,
       dataPosicaoMaisRecente: null,
       diasDesdePosicaoMaisRecente: null,
+    });
+  });
+
+  describe("sentinelasFarmacia", () => {
+    const preparar = () => {
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getRadarCivicoAlertasMock.mockResolvedValue([]);
+      getFarmaciaSentinelasMock.mockReset();
+    };
+
+    it("consulta as sentinelas quando o status e conforme", async () => {
+      preparar();
+      const sentinelas = { totalUnidadesAtivas: 2, sentinelas: [] };
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "conforme" });
+      getFarmaciaSentinelasMock.mockResolvedValue(sentinelas);
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(getFarmaciaSentinelasMock).toHaveBeenCalledWith("porciuncula");
+      expect(result.sentinelasFarmacia).toEqual(sentinelas);
+    });
+
+    it("nao consulta as sentinelas fora de conforme", async () => {
+      preparar();
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "apagao" });
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(getFarmaciaSentinelasMock).not.toHaveBeenCalled();
+      expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
+    });
+
+    it("isola a falha das sentinelas como resultado vazio", async () => {
+      preparar();
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "conforme" });
+      getFarmaciaSentinelasMock.mockRejectedValue(new Error("falha"));
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(result.sentinelasFarmacia).toEqual({
+        totalUnidadesAtivas: 0,
+        sentinelas: [],
+      });
+      expect(result.resumoFarmacia).toEqual({ status: "conforme" });
     });
   });
 });

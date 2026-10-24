@@ -148,6 +148,7 @@ describe("buildFarmaciaViewModel rotulos de grupos", () => {
         nomePrincipioAtivo: "X",
         grupoTerapeutico,
         ordemExibicao: 1,
+        destaqueCardInicial: false,
         unidadesComRegistro: 1,
         unidadesSomenteCombinacao: 0,
       },

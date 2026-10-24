@@ -194,6 +194,7 @@ seeds:
         prefixo_nome_normalizado: text
         grupo_terapeutico: text
         ordem_exibicao: text
+        destaque_card_inicial: text
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -218,3 +219,9 @@ seeds:
       - name: ordem_exibicao
         tests:
           - not_null
+      - name: destaque_card_inicial
+        description: "Escolha editorial: 'true' para os remédios mais comuns exibidos como exemplos no card da Farmácia SUS na Visão Geral"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['true', 'false']

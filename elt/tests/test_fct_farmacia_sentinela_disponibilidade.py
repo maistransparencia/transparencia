@@ -188,3 +188,30 @@ def test_portal_em_apagao_nao_gera_linhas(conn, raw, portais):
         {"p": portais[0]},
     ).scalar()
     assert total == 0
+
+
+def test_destaque_card_inicial_exposto_e_restrito_aos_seis_remedios_comuns(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "a1", "1001", "Dipirona 500mg", _dia(1))
+    conn.commit()
+
+    destacados = conn.execute(
+        text(
+            "SELECT codigo_principio_ativo, destaque_card_inicial "
+            "FROM analytics.fct_farmacia_sentinela_disponibilidade "
+            "WHERE portal_slug = :p AND codigo_cnes = '1001'"
+        ),
+        {"p": portal},
+    ).fetchall()
+    mapa = {linha[0]: linha[1] for linha in destacados}
+    assert all(isinstance(valor, bool) for valor in mapa.values())
+    assert {codigo for codigo, valor in mapa.items() if valor} == {
+        "dipirona",
+        "paracetamol",
+        "losartana",
+        "metformina",
+        "amoxicilina",
+        "omeprazol",
+    }
+    assert mapa["insulina"] is False

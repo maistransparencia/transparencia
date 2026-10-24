@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Exemplos de busca na Farmácia SUS)
+* **Remédios comuns na página inicial:** O card da Farmácia SUS na Visão Geral mostra atalhos "Exemplos:" (dipirona, paracetamol, losartana, metformina, amoxicilina e omeprazol) que abrem a busca já preenchida. Só aparecem remédios que alguma unidade informou em estoque, então o clique sempre traz resultado.
+
 ### 🌟 Destaques da Versão (Remédios essenciais na Farmácia SUS)
 * **Remédios essenciais sob a busca:** A página da Farmácia SUS mostra 21 medicamentos da RENAME 2024 (como losartana, metformina e dipirona) com "N de M unidades que informaram estoque" e link para a busca. Quando nenhuma unidade informa o item, o texto é "não aparece na lista de estoque"; se o remédio só existe em combinação com outro (ex.: valsartana + hidroclorotiazida), o bloco avisa isso. A fonte só publica itens com saldo, então não é ranking de demanda nem afirmação de falta.
 

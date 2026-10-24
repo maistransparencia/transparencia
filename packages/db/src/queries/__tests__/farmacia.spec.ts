@@ -256,6 +256,33 @@ describe("getFarmaciaSentinelas", () => {
     ]);
   });
 
+  it("expoe destaqueCardInicial agregado por principio ativo", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+      ordemExibicao: 1,
+      destaqueCardInicial: true,
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "captopril",
+      ordemExibicao: 2,
+    });
+
+    const resultado = await getFarmaciaSentinelas(PORTAL_A);
+    expect(
+      resultado.sentinelas.map((s) => [
+        s.codigoPrincipioAtivo,
+        s.destaqueCardInicial,
+      ]),
+    ).toEqual([
+      ["dipirona", true],
+      ["captopril", false],
+    ]);
+  });
+
   it("conta unidades que so tem o remedio em combinacao", async () => {
     await seedFarmaciaSentinela({
       portalSlug: PORTAL_A,

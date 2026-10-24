@@ -152,4 +152,58 @@ describe("FarmaciaResumoCard", () => {
     );
     expect(container).toBeEmptyDOMElement();
   });
+
+  const exemplos = [
+    {
+      codigoPrincipioAtivo: "dipirona",
+      nomePrincipioAtivo: "Dipirona",
+      href: `${detailUrl}?q=Dipirona`,
+    },
+    {
+      codigoPrincipioAtivo: "acido_acetilsalicilico",
+      nomePrincipioAtivo: "Ácido acetilsalicílico",
+      href: `${detailUrl}?q=%C3%81cido+acetilsalicílico`,
+    },
+  ];
+
+  it("conforme: mostra pilulas de exemplo com link para a busca", () => {
+    render(
+      <FarmaciaResumoCard
+        status="conforme"
+        detailUrl={detailUrl}
+        exemplos={exemplos}
+      />,
+    );
+    expect(screen.getByText("Exemplos:")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dipirona" })).toHaveAttribute(
+      "href",
+      `${detailUrl}?q=Dipirona`,
+    );
+    expect(
+      screen.getByRole("link", { name: "Ácido acetilsalicílico" }),
+    ).toBeInTheDocument();
+  });
+
+  it("conforme sem exemplos: nao mostra o rotulo", () => {
+    render(
+      <FarmaciaResumoCard
+        status="conforme"
+        detailUrl={detailUrl}
+        exemplos={[]}
+      />,
+    );
+    expect(screen.queryByText("Exemplos:")).not.toBeInTheDocument();
+  });
+
+  it("apagao: nao mostra pilulas de exemplo", () => {
+    render(
+      <FarmaciaResumoCard
+        status="apagao"
+        detailUrl={detailUrl}
+        exemplos={exemplos}
+      />,
+    );
+    expect(screen.queryByText("Exemplos:")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Dipirona" })).toBeNull();
+  });
 });

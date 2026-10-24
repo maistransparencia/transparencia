@@ -1082,6 +1082,7 @@ export interface FarmaciaSentinelaRow {
   nomePrincipioAtivo?: string;
   grupoTerapeutico?: string;
   ordemExibicao?: number;
+  destaqueCardInicial?: boolean;
   statusDisponibilidade?: string;
   quantidadeApresentacoesComEstoque?: number;
   quantidadeApresentacoesCombinacaoComEstoque?: number;
@@ -1100,6 +1101,7 @@ export async function seedFarmaciaSentinela(
       nome_principio_ativo: row.nomePrincipioAtivo ?? row.codigoPrincipioAtivo,
       grupo_terapeutico: row.grupoTerapeutico ?? "cardiovascular",
       ordem_exibicao: row.ordemExibicao ?? 1,
+      destaque_card_inicial: row.destaqueCardInicial ?? false,
       status_disponibilidade: status,
       quantidade_apresentacoes_com_estoque:
         row.quantidadeApresentacoesComEstoque ??
