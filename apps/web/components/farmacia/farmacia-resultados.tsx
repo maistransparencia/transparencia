@@ -94,7 +94,7 @@ export function FarmaciaResultados({
       <section
         id="resultados"
         aria-labelledby="farmacia-resultados-titulo"
-        className="flex scroll-mt-4 flex-col gap-5 border-ink border-t-2 pt-7"
+        className="flex scroll-mt-20 flex-col gap-5 border-ink border-t-2 pt-7 lg:scroll-mt-4"
       >
         <h2
           id="farmacia-resultados-titulo"
@@ -130,7 +130,7 @@ export function FarmaciaResultados({
     <section
       id="resultados"
       aria-labelledby="farmacia-resultados-titulo"
-      className="flex scroll-mt-4 flex-col gap-5 border-ink border-t-2 pt-7"
+      className="flex scroll-mt-20 flex-col gap-5 border-ink border-t-2 pt-7 lg:scroll-mt-4"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
