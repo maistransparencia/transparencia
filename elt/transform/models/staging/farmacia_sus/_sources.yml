@@ -6,9 +6,9 @@ sources:
     description: "Estoque de medicamentos (BNAFAR/Hórus) e estabelecimentos (CNES) extraídos da API de dados abertos do Ministério da Saúde"
     tables:
       - name: estoque_medicamentos
-        description: "Retrato do estoque de medicamentos por unidade, por portal"
+        description: "Histórico append-only do estoque de medicamentos por unidade, por portal (um registro por data de posição)"
         meta:
-          primary_key: [portal_slug, id_registro]
+          primary_key: [portal_slug, id_registro, data_posicao_estoque]
         columns:
           - name: portal_slug
           - name: id_registro
@@ -17,6 +17,7 @@ sources:
           - name: numero_lote
           - name: quantidade_estoque
           - name: data_posicao_estoque
+          - name: sigla_sistema_origem
           - name: data_coleta
 
       - name: estabelecimentos_cnes
@@ -34,9 +35,9 @@ sources:
           - name: data_coleta
 
       - name: coletas
-        description: "Resultado da última coleta por portal (sucesso ou falha)"
+        description: "Histórico de coletas por portal, uma linha por execução (sucesso ou falha)"
         meta:
-          primary_key: [portal_slug]
+          primary_key: [portal_slug, data_coleta]
         columns:
           - name: portal_slug
           - name: codigo_ibge6

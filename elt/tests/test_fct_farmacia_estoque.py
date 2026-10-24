@@ -36,13 +36,13 @@ def raw(conn):
 
     limpar()
 
-    def coleta(portal, status="sucesso", dias_atras=0):
+    def coleta(portal, status="sucesso", dias_atras=0, hora="12:00:00"):
         conn.execute(
             text(
                 f"INSERT INTO {_SCHEMA}.coletas (portal_slug, status_coleta, total_registros_estoque, data_coleta) "
                 "VALUES (:p, :s, '0', :d)"
             ),
-            {"p": portal, "s": status, "d": _dia(dias_atras)},
+            {"p": portal, "s": status, "d": f"{_dia(dias_atras)}T{hora}"},
         )
 
     def estoque(portal, id_registro, cnes, medicamento, data_posicao, quantidade="10"):
@@ -195,3 +195,106 @@ def test_coordenadas_da_unidade_sao_expostas_como_numeric(conn, raw, portais):
         {"p": portais[0]},
     ).one()
     assert (float(latitude), float(longitude)) == (-21.1234, -42.5678)
+
+
+def test_varias_coletas_usam_apenas_a_mais_recente_sem_duplicar(conn, raw, portais):
+    portal_a, _ = portais
+    raw.coleta(portal_a, status="falha", dias_atras=1)
+    raw.coleta(portal_a, hora="08:00:00")
+    raw.coleta(portal_a, hora="18:00:00")
+    raw.cnes(portal_a, "1234", "UBS Central")
+    raw.estoque(portal_a, "a1", "1234", "Dipirona", _dia(1))
+    raw.estoque(portal_a, "a2", "1234", "Dipirona", _dia(3))
+    conn.commit()
+
+    assert [(linha[0], linha[1]) for linha in _linhas(conn, portal_a)] == [("conforme", "Dipirona")]
+
+
+def _executar_historico(pg, test_mode):
+    from elt.conftest import _run_dbt
+
+    _run_dbt(
+        pg.url(),
+        "run",
+        "--select",
+        "fct_farmacia_estoque_historico",
+        "--vars",
+        '{"test_mode": %s}' % ("true" if test_mode else "false"),
+    )
+
+
+def _historico(conn, portais):
+    return [
+        tuple(linha)
+        for linha in conn.execute(
+            text(
+                "SELECT portal_slug, codigo_cnes, numero_lote, data_posicao_estoque, quantidade_estoque "
+                "FROM analytics.fct_farmacia_estoque_historico WHERE portal_slug = ANY(:p) "
+                "ORDER BY portal_slug, data_posicao_estoque, codigo_cnes NULLS FIRST, numero_lote NULLS FIRST"
+            ),
+            {"p": portais},
+        )
+    ]
+
+
+def _estoque_com_lote(conn, portal, id_registro, cnes, lote, data_posicao, quantidade, data_coleta):
+    conn.execute(
+        text(
+            f"INSERT INTO {_SCHEMA}.estoque_medicamentos (portal_slug, id_registro, codigo_cnes, nome_medicamento, "
+            "numero_lote, quantidade_estoque, data_posicao_estoque, data_coleta) VALUES (:p, :i, :c, 'Dipirona', :l, :q, :d, :dc)"
+        ),
+        {"p": portal, "i": id_registro, "c": cnes, "l": lote, "q": quantidade, "d": data_posicao, "dc": data_coleta},
+    )
+
+
+@pytest.mark.usefixtures("raw")
+def test_historico_de_estoque_soma_isola_portais_e_incremental_nao_duplica_nem_perde_dias(pg, conn, portais):
+    portal_a, portal_b = portais
+    d1, d2 = _dia(3), _dia(2)
+    # Mesma chave logica (cnes 1234, sem lote, d1) em dois registros: somados. CNES e lote vazios saem NULL.
+    _estoque_com_lote(conn, portal_a, "a1", "1234", None, d1, "5", f"{d1}T10:00:00")
+    _estoque_com_lote(conn, portal_a, "a2", "01234", "", d1, "2", f"{d1}T10:00:00")
+    _estoque_com_lote(conn, portal_a, "a3", None, "L1", d1, "4", f"{d1}T10:00:00")
+    _estoque_com_lote(conn, portal_b, "a1", "1234", None, d1, "9", f"{d1}T10:00:00")
+    conn.commit()
+    try:
+        _executar_historico(pg, test_mode=True)
+        assert _historico(conn, [portal_a, portal_b]) == [
+            (portal_a, None, "L1", date.fromisoformat(d1), 4),
+            (portal_a, "1234", None, date.fromisoformat(d1), 7),
+            (portal_b, "1234", None, date.fromisoformat(d1), 9),
+        ]
+
+        # Carga incremental: nova posicao e novo registro na chave logica ja existente (d1), reprocessada por inteiro.
+        _estoque_com_lote(conn, portal_a, "a4", "1234", None, d2, "3", f"{d2}T10:00:00")
+        _estoque_com_lote(conn, portal_a, "a5", "1234", None, d1, "1", f"{d2}T10:00:00")
+        conn.commit()
+        _executar_historico(pg, test_mode=False)
+        _executar_historico(pg, test_mode=False)
+        assert _historico(conn, [portal_a, portal_b]) == [
+            (portal_a, None, "L1", date.fromisoformat(d1), 4),
+            (portal_a, "1234", None, date.fromisoformat(d1), 8),
+            (portal_a, "1234", None, date.fromisoformat(d2), 3),
+            (portal_b, "1234", None, date.fromisoformat(d1), 9),
+        ]
+    finally:
+        conn.rollback()
+        for tabela in ("estoque_medicamentos",):
+            conn.execute(text(f"DELETE FROM {_SCHEMA}.{tabela}"))
+        conn.commit()
+        _executar_historico(pg, test_mode=True)
+
+
+def test_historico_de_estoque_tem_contrato_e_coletas_sao_listadas_por_portal(conn, raw, portais):
+    portal_a, portal_b = portais
+    raw.coleta(portal_a, dias_atras=1)
+    raw.coleta(portal_a, status="falha")
+    raw.coleta(portal_b)
+    conn.commit()
+
+    coletas = conn.execute(
+        text(
+            "SELECT portal_slug, status_coleta FROM analytics.fct_farmacia_coletas_historico ORDER BY portal_slug, status_coleta"
+        )
+    ).fetchall()
+    assert [tuple(c) for c in coletas] == [(portal_a, "falha"), (portal_a, "sucesso"), (portal_b, "sucesso")]

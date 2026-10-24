@@ -8,6 +8,8 @@ renamed as (
         id_registro,
         nullif(ltrim(trim(codigo_cnes), '0'), '') as codigo_cnes,
         nullif(trim(nome_medicamento), '') as nome_medicamento,
+        nullif(trim(numero_lote), '') as numero_lote,
+        nullif(lower(trim(sigla_sistema_origem)), '') as sigla_sistema_origem,
         case
             when trim(quantidade_estoque) ~ '^-?[0-9]{1,3}(\.[0-9]{3})*,[0-9]+$'
             then replace(replace(trim(quantidade_estoque), '.', ''), ',', '.')::numeric(15, 3)
@@ -21,7 +23,8 @@ renamed as (
             when left(trim(data_posicao_estoque), 10) ~ '^[0-9]{2}/[0-9]{2}/[0-9]{4}$'
             then to_date(left(trim(data_posicao_estoque), 10), 'DD/MM/YYYY')
             else null
-        end as data_posicao_estoque
+        end as data_posicao_estoque,
+        nullif(left(trim(data_coleta), 10), '')::date as data_coleta
     from source
 )
 

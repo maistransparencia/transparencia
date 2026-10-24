@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -41,6 +42,7 @@ CAMPOS_MEDICAMENTO = (
 )
 CAMPOS_QUANTIDADE = ("quantidade_estoque", "quantidade_em_estoque", "quantidade", "qt_estoque")
 CAMPOS_DATA_POSICAO = ("data_posicao_estoque", "data_posicao", "data_atualizacao")
+CAMPOS_SIGLA_SISTEMA_ORIGEM = ("sigla_sistema_origem", "sigla_sistema", "sistema_origem")
 CAMPOS_NOME_UNIDADE = ("nome_fantasia", "razao_social", "nome_razao_social", "nome_estabelecimento", "nome")
 CAMPOS_LOGRADOURO = ("endereco_estabelecimento", "endereco", "logradouro")
 CAMPOS_NUMERO = ("numero_estabelecimento", "numero_endereco", "numero")
@@ -62,6 +64,18 @@ def _primeiro_valor(registro: dict[str, Any], chaves: tuple[str, ...]) -> str | 
         if valor is not None and str(valor).strip() != "":
             return str(valor).strip()
     return None
+
+
+def _data_posicao_iso(valor: str | None) -> str | None:
+    """Normaliza a data de posição para AAAA-MM-DD (evita duplicata por formato); devolve o original se irreconhecível."""
+    if valor is None:
+        return None
+    dia = valor[:10]
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", dia):
+        return dia
+    if re.fullmatch(r"\d{2}/\d{2}/\d{4}", dia):
+        return f"{dia[6:10]}-{dia[3:5]}-{dia[0:2]}"
+    return valor
 
 
 def _coordenada(registro: dict[str, Any], chaves: tuple[str, ...]) -> float | None:
@@ -94,7 +108,7 @@ def _mapear_estoque(portal_slug: str, data_coleta: str, registro: dict[str, Any]
     if nome_medicamento is None:
         return None
     codigo_cnes = _primeiro_valor(registro, CAMPOS_CNES)
-    data_posicao = _primeiro_valor(registro, CAMPOS_DATA_POSICAO)
+    data_posicao = _data_posicao_iso(_primeiro_valor(registro, CAMPOS_DATA_POSICAO))
     numero_lote = _primeiro_valor(registro, CAMPOS_LOTE)
     chave = "|".join([portal_slug, codigo_cnes or "", nome_medicamento, data_posicao or "", numero_lote or ""])
     return {
@@ -105,6 +119,7 @@ def _mapear_estoque(portal_slug: str, data_coleta: str, registro: dict[str, Any]
         "quantidade_estoque": _primeiro_valor(registro, CAMPOS_QUANTIDADE),
         "numero_lote": numero_lote,
         "data_posicao_estoque": data_posicao,
+        "sigla_sistema_origem": _primeiro_valor(registro, CAMPOS_SIGLA_SISTEMA_ORIGEM),
         "data_coleta": data_coleta,
     }
 

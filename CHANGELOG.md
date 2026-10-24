@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Histórico da Farmácia SUS)
+* **Histórico de estoque:** O estoque de medicamentos da Farmácia SUS passa a ser acumulado a cada coleta, sem apagar dias anteriores, o que permite medir por quanto tempo uma unidade ficou sem informar estoque. A fonte do sistema de origem também passa a ser registrada.
+* **Histórico de coletas:** Cada execução da coleta fica registrada, inclusive as que falharam, sem afetar o estoque já guardado. A tela atual continua usando apenas a coleta mais recente.
+
 ## [1.23.2] - 2026-10-23
 
 ### 🌟 Destaques da Versão (Origem dos Recursos da Educação)

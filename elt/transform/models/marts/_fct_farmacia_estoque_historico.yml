@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: fct_farmacia_estoque_historico
+    description: "Histórico diário do estoque de medicamentos da Farmácia SUS (BNAFAR/Hórus) por portal, unidade, medicamento, lote e data de posição. Permite medir por quanto tempo uma unidade ficou sem informar estoque, além de ruptura e giro."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - id_registro
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: codigo_cnes
+        data_type: text
+      - name: nome_medicamento
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: numero_lote
+        data_type: text
+      - name: data_posicao_estoque
+        data_type: date
+        constraints:
+          - type: not_null
+      - name: quantidade_estoque
+        data_type: numeric(15, 3)
+      - name: sigla_sistema_origem
+        data_type: text
+      - name: data_coleta
+        data_type: date

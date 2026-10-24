@@ -1,8 +1,9 @@
 """Carregador do estoque de medicamentos (BNAFAR/Hórus) e CNES no schema raw_farmacia_sus.
 
 Todas as colunas são TEXT (Regra 16) e as chaves primárias incluem portal_slug (Regra 23).
-O estoque é um retrato (snapshot) por portal: a carga substitui as linhas anteriores do
-mesmo portal. Uma coleta com falha atualiza apenas `coletas`, preservando o último retrato.
+O estoque é append-only e idempotente: a chave é (portal_slug, id_registro, data_posicao_estoque) e
+reexecuções no mesmo dia apenas atualizam a linha. `coletas` acumula uma linha por execução
+(portal_slug, data_coleta), inclusive as com falha, que nunca apagam o histórico de estoque.
 """
 
 from __future__ import annotations
@@ -25,6 +26,37 @@ SCHEMA_PADRAO = "raw_farmacia_sus"
 TAMANHO_LOTE = 5000
 
 
+def _migrar_chave_primaria(schema: str, tabela: str, colunas: list[str]) -> str:
+    """Bloco DO idempotente: troca a PK da tabela legada só quando ela ainda difere da esperada."""
+    esperado = ", ".join(f"'{c}'" for c in sorted(colunas))
+    lista = ", ".join(f'"{c}"' for c in colunas)
+    alvo = f'"{schema}"."{tabela}"'
+    preparo = " ".join(
+        f'UPDATE {alvo} SET "{c}" = \'\' WHERE "{c}" IS NULL; ALTER TABLE {alvo} ALTER COLUMN "{c}" SET NOT NULL;'
+        for c in colunas
+        if c != "portal_slug" and c != "id_registro"
+    )
+    return f"""DO $migracao$
+    DECLARE
+        pk_atual TEXT[];
+        nome_pk TEXT;
+    BEGIN
+        SELECT array_agg(a.attname::text ORDER BY a.attname::text), min(c.conname::text)
+        INTO pk_atual, nome_pk
+        FROM pg_constraint c
+        JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+        WHERE c.conrelid = '{alvo}'::regclass AND c.contype = 'p';
+        IF pk_atual IS DISTINCT FROM ARRAY[{esperado}]::TEXT[] THEN
+            {preparo}
+            IF nome_pk IS NOT NULL THEN
+                EXECUTE format('ALTER TABLE {alvo} DROP CONSTRAINT %I', nome_pk);
+            END IF;
+            ALTER TABLE {alvo} ADD PRIMARY KEY ({lista});
+        END IF;
+    END
+    $migracao$;"""
+
+
 def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO) -> None:
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
@@ -36,9 +68,10 @@ def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO)
         "nome_medicamento" TEXT,
         "numero_lote" TEXT,
         "quantidade_estoque" TEXT,
-        "data_posicao_estoque" TEXT,
+        "data_posicao_estoque" TEXT NOT NULL DEFAULT '',
+        "sigla_sistema_origem" TEXT,
         "data_coleta" TEXT,
-        PRIMARY KEY ("portal_slug", "id_registro")
+        PRIMARY KEY ("portal_slug", "id_registro", "data_posicao_estoque")
     );
 
     CREATE TABLE IF NOT EXISTS "{schema}"."estabelecimentos_cnes" (
@@ -60,9 +93,15 @@ def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO)
         "total_registros_estoque" TEXT,
         "total_registros_cnes" TEXT,
         "mensagem_erro" TEXT,
-        "data_coleta" TEXT,
-        PRIMARY KEY ("portal_slug")
+        "data_coleta" TEXT NOT NULL,
+        PRIMARY KEY ("portal_slug", "data_coleta")
     );
+
+    ALTER TABLE "{schema}"."estoque_medicamentos" ADD COLUMN IF NOT EXISTS "sigla_sistema_origem" TEXT;
+
+    {_migrar_chave_primaria(schema, "estoque_medicamentos", ["portal_slug", "id_registro", "data_posicao_estoque"])}
+
+    {_migrar_chave_primaria(schema, "coletas", ["portal_slug", "data_coleta"])}
     """
     if isinstance(engine, Engine):
         with engine.begin() as conn:
@@ -115,9 +154,16 @@ def _text_or_none(value: Any) -> str | None:
 def load_farmacia_sus_estoque(
     engine: Connectable, rows: list[dict[str, Any]], portal_slug: str, schema: str = SCHEMA_PADRAO
 ) -> int:
-    """Substitui o retrato de estoque do portal (inclusive esvaziando-o quando a API retorna 0 itens)."""
+    """Grava o estoque em modo append-only: upsert por (portal, registro, data de posição), sem apagar histórico."""
+    linhas = [{**row, "data_posicao_estoque": row.get("data_posicao_estoque") or ""} for row in rows]
     return _replace_portal_rows(
-        engine, schema, "estoque_medicamentos", portal_slug, rows, ["portal_slug", "id_registro"], replace=True
+        engine,
+        schema,
+        "estoque_medicamentos",
+        portal_slug,
+        linhas,
+        ["portal_slug", "id_registro", "data_posicao_estoque"],
+        replace=False,
     )
 
 
@@ -132,7 +178,10 @@ def load_farmacia_sus_estabelecimentos(
 def load_farmacia_sus_coletas(
     engine: Connectable, rows: list[dict[str, Any]], portal_slug: str, schema: str = SCHEMA_PADRAO
 ) -> int:
-    return _replace_portal_rows(engine, schema, "coletas", portal_slug, rows, ["portal_slug"], replace=False)
+    """Acumula uma linha por execução (portal_slug, data_coleta), inclusive coletas com falha."""
+    return _replace_portal_rows(
+        engine, schema, "coletas", portal_slug, rows, ["portal_slug", "data_coleta"], replace=False
+    )
 
 
 def load_farmacia_sus_dir(engine: Connectable, directory: Path, portal_slug: str, schema: str = SCHEMA_PADRAO) -> int:

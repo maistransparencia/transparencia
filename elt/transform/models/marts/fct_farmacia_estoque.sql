@@ -17,12 +17,14 @@ with portais as (
     where cod_ibge is not null
 ),
 
+-- Apenas a coleta mais recente de cada portal (o historico de coletas e acumulado no raw).
 coletas as (
-    select
+    select distinct on (portal_slug)
         portal_slug,
         status_coleta,
         data_coleta
     from {{ ref('stg_farmacia_sus__coletas') }}
+    order by portal_slug, data_hora_coleta desc
 ),
 
 -- Posicoes futuras (> data da coleta) sao inconsistentes e nao contam como vigentes.

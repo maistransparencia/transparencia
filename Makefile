@@ -88,7 +88,7 @@ elt/farmacia-sus:
 		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only farmacia_sus && \
 		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
 	done
-	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque fct_farmacia_estoque_historico fct_farmacia_coletas_historico
 
 # CLOUDFLARE R2 DATA LAKE SYNC
 
