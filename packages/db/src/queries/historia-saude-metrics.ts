@@ -208,16 +208,21 @@ export async function getSaudeFornecedoresCountMetrics(
 
   try {
     const res = await db
-      .selectFrom("fct_despesas")
-      .select(sql<number>`count(distinct fornecedor_nome)`.as("count"))
-      .where("portal_slug", "=", portalSlug)
-      .where("ano", "=", ano)
+      .selectFrom("fct_despesas as d")
+      .leftJoin("dim_fornecedor as f", (join) =>
+        join
+          .onRef("f.portal_slug", "=", "d.portal_slug")
+          .onRef("f.credor_id", "=", "d.credor_id"),
+      )
+      .select(sql<number>`count(distinct f.fornecedor_nome)`.as("count"))
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "=", ano)
       .where((eb) =>
         eb.or([
-          eb("empresa_id", "in", empresaIds),
-          eb("fornecedor_nome", "ilike", "%saud%"),
-          eb("fornecedor_nome", "ilike", "%hospital%"),
-          eb("fornecedor_nome", "ilike", "%farmac%"),
+          eb("d.empresa_id", "in", empresaIds),
+          eb("f.fornecedor_nome", "ilike", "%saud%"),
+          eb("f.fornecedor_nome", "ilike", "%hospital%"),
+          eb("f.fornecedor_nome", "ilike", "%farmac%"),
         ]),
       )
       .executeTakeFirst();

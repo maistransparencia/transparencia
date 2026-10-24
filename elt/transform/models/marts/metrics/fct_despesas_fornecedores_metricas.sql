@@ -1,23 +1,36 @@
 {{ config(materialized='table') }}
 
-with despesas_fonte as (
+with cidades_por_fornecedor as (
+    select
+        portal_slug,
+        ano,
+        regexp_replace(fornecedor_cpf_cnpj, '[^0-9]', '', 'g') as documento_fornecedor,
+        max(fornecedor_cidade_clean) as fornecedor_cidade_clean
+    from {{ ref('fct_despesas_por_fornecedor') }}
+    where nullif(regexp_replace(coalesce(fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g'), '') is not null
+    group by portal_slug, ano, regexp_replace(fornecedor_cpf_cnpj, '[^0-9]', '', 'g')
+),
+
+despesas_fonte as (
     select
         f.portal_slug,
         f.empresa_id,
         f.ano,
         coalesce(f.fornecedor_cpf_cnpj, '00') as fornecedor_codigo,
-        coalesce(f.fornecedor_nome, 'OUTROS') as fornecedor_nome,
-        coalesce(
-            pf.fornecedor_cidade_clean,
-            case when f.portal_slug = 'natividade_prefeitura' then 'NATIVIDADE' else 'PORCIUNCULA' end
-        ) as fornecedor_cidade_clean,
+        coalesce(fo.fornecedor_nome, 'OUTROS') as fornecedor_nome,
+        coalesce(c.fornecedor_cidade_clean, p.cidade_clean) as fornecedor_cidade_clean,
         f.empenhado_liquido,
         f.pago
     from {{ ref('fct_despesas') }} f
-    left join {{ ref('fct_despesas_por_fornecedor') }} pf
-        on pf.portal_slug = f.portal_slug
-        and pf.ano = f.ano
-        and pf.descricao = f.fornecedor_nome
+    left join {{ ref('dim_fornecedor') }} fo
+        on fo.portal_slug = f.portal_slug
+        and fo.credor_id = f.credor_id
+    left join cidades_por_fornecedor c
+        on c.portal_slug = f.portal_slug
+        and c.ano = f.ano
+        and c.documento_fornecedor = regexp_replace(coalesce(f.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g')
+    left join {{ ref('dim_portais') }} p
+        on p.portal_slug = f.portal_slug
     where f.fonte = 'exercicio'
       and f.elemento in ('30', '36', '39', '52')
 ),

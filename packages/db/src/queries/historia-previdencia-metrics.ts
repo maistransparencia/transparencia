@@ -163,13 +163,18 @@ export async function getPrevidenciaNaturezaMetrics(
         "d.elemento",
         "dim.elemento_codigo",
       )
+      .leftJoin("dim_fornecedor as f", (join) =>
+        join
+          .onRef("f.portal_slug", "=", "d.portal_slug")
+          .onRef("f.credor_id", "=", "d.credor_id"),
+      )
       .select([
         "d.empenho_id as empenhoId",
         "d.elemento",
         sql<string>`coalesce(dim.elemento_descricao, d.natureza_despesa, '')`.as(
           "naturezaDespesa",
         ),
-        "d.fornecedor_nome as fornecedorNome",
+        "f.fornecedor_nome as fornecedorNome",
         "d.descricao",
         "d.data_empenho as dataEmpenho",
         sql<number>`cast(coalesce(sum(d.empenhado_liquido), 0) as numeric)`.as(
@@ -187,8 +192,8 @@ export async function getPrevidenciaNaturezaMetrics(
           eb("d.elemento", "in", ["13", "71", "97"]),
           eb("d.orgao_codigo", "=", "1061"),
           eb("d.credor_id", "=", "1061"),
-          eb("d.fornecedor_nome", "ilike", "%CAPREM%"),
-          eb("d.fornecedor_nome", "ilike", "%CASP%"),
+          eb("f.fornecedor_nome", "ilike", "%CAPREM%"),
+          eb("f.fornecedor_nome", "ilike", "%CASP%"),
           eb("d.fornecedor_cpf_cnpj", "=", "07.573.075/0001-00"),
           eb("d.descricao", "ilike", "%CAPREM%"),
           eb("d.descricao", "ilike", "%CASP%"),
@@ -205,7 +210,7 @@ export async function getPrevidenciaNaturezaMetrics(
         "d.elemento",
         "dim.elemento_descricao",
         "d.natureza_despesa",
-        "d.fornecedor_nome",
+        "f.fornecedor_nome",
         "d.descricao",
         "d.data_empenho",
       ])

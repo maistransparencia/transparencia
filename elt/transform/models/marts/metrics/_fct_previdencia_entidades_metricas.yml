@@ -76,8 +76,11 @@ unit_tests:
     given:
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, fornecedor_nome: "CAPREM", empenhado_liquido: 100000.00, liquidado: 100000.00, pago: 75000.00, fonte: "exercicio" }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2025, fornecedor_nome: "CAPREM", empenhado_liquido: 50000.00, liquidado: 50000.00, pago: 50000.00, fonte: "exercicio" }
+          - { credor_id: "cred_caprem", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, empenhado_liquido: 100000.00, liquidado: 100000.00, pago: 75000.00, fonte: "exercicio" }
+          - { credor_id: "cred_caprem", portal_slug: "porciuncula_prefeitura", empresa_id: "2", ano: 2025, empenhado_liquido: 50000.00, liquidado: 50000.00, pago: 50000.00, fonte: "exercicio" }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_caprem", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "CAPREM" }
       - input: ref('dim_orgao')
         rows:
           - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", orgao_nome: "PREFEITURA" }

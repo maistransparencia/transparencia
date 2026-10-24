@@ -92,7 +92,10 @@ unit_tests:
     given:
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, empenho_id: "E-100", elemento: "97", natureza_despesa: "APORTE RPPS", fornecedor_nome: "CAPREM", descricao: "Aporte deficit atuarial", data_empenho: "2025-01-10", empenhado_liquido: 100000.00, liquidado: 100000.00, pago: 100000.00, fonte: "exercicio" }
+          - { credor_id: "cred_caprem", portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, empenho_id: "E-100", elemento: "97", natureza_despesa: "APORTE RPPS", descricao: "Aporte deficit atuarial", data_empenho: "2025-01-10", empenhado_liquido: 100000.00, liquidado: 100000.00, pago: 100000.00, fonte: "exercicio" }
+      - input: ref('dim_fornecedor')
+        rows:
+          - { credor_id: "cred_caprem", portal_slug: "porciuncula_prefeitura", fornecedor_nome: "CAPREM" }
       - input: ref('dim_elemento_despesa')
         rows:
           - { elemento_codigo: "97", elemento_descricao: "APORTE RPPS", categoria_macro: "Encargos" }

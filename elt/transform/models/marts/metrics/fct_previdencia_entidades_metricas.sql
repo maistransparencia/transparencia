@@ -12,16 +12,19 @@ with previdencia_entidades as (
     left join {{ ref('dim_orgao') }} o
         on o.empresa_id = f.empresa_id
         and o.portal_slug = f.portal_slug
+    left join {{ ref('dim_fornecedor') }} fo
+        on fo.portal_slug = f.portal_slug
+        and fo.credor_id = f.credor_id
     where
         f.fonte = 'exercicio'
         and (
             f.elemento in ('13', '71', '97')
             or f.orgao_codigo = '1061'
             or f.credor_id = '1061'
-            or f.fornecedor_nome ilike '%CAPREM%'
-            or f.fornecedor_nome ilike '%NATPREVI%'
-            or f.fornecedor_nome ilike '%NATPREV%'
-            or f.fornecedor_nome ilike '%CASP%'
+            or fo.fornecedor_nome ilike '%CAPREM%'
+            or fo.fornecedor_nome ilike '%NATPREVI%'
+            or fo.fornecedor_nome ilike '%NATPREV%'
+            or fo.fornecedor_nome ilike '%CASP%'
             or f.fornecedor_cpf_cnpj = '07.573.075/0001-00'
             or f.descricao ilike '%CAPREM%'
             or f.descricao ilike '%NATPREVI%'

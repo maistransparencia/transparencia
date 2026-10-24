@@ -166,6 +166,47 @@ describe("despesas-metrics (smoke)", () => {
     expect(Array.isArray(fornecedores)).toBe(true);
   });
 
+  it("deve ler o nome canônico do fornecedor da dimensão", async () => {
+    const {
+      createFixturePortalSlug,
+      cleanupFixtures,
+      seedDespesa,
+      seedDimFornecedor,
+    } = await import("../../../tests/fixtures/seed");
+    const portalSlug = createFixturePortalSlug();
+
+    try {
+      await seedDimFornecedor({
+        portalSlug,
+        fornecedorNome: "OFICINA DO ZE LTDA",
+        fornecedorCpfCnpj: "22.222.222/0001-22",
+      });
+      // Mesma chave (só dígitos do documento), outra grafia: o nome vem da dimensão
+      await seedDespesa({
+        portalSlug,
+        empresaId: "1",
+        ano: TEST_YEAR,
+        fonte: "exercicio",
+        fornecedorNome: "OFICINA ZE",
+        fornecedorCpfCnpj: "22222222000122",
+        empenhado: 50,
+        pago: 40,
+      });
+
+      const fornecedores = await getTopFornecedoresExecucaoMetrics({
+        portalSlug,
+        year: TEST_YEAR,
+        empresaIds: ["1"],
+      });
+
+      expect(fornecedores).toHaveLength(1);
+      expect(fornecedores[0]?.fornecedorNome).toBe("OFICINA DO ZE LTDA");
+      expect(fornecedores[0]?.totalPago).toBe(40);
+    } finally {
+      await cleanupFixtures(portalSlug);
+    }
+  });
+
   it("deve buscar despesas por função como array ordenado", async () => {
     const funcoes = await getDespesasPorFuncaoMetrics(PORTAL_SLUG, TEST_YEAR, [
       "1",
