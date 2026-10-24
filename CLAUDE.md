@@ -33,7 +33,7 @@ Este repositório possui limites estritos de consumo de tokens (Spend Cap). Todo
 
 Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 1. **Backend & Modelos DBT (Python):** Sempre execute a suíte de testes de integração via `make test` e as validações estáticas/linters via `make check`.
-2. **Frontend & queries Kysely (TypeScript):** Sempre execute a suíte de testes de paridade via `make test/ts` (ou `pnpm test`) e verifique a tipagem executando `pnpm build` ou `tsc --noEmit` nos pacotes correspondentes.
+2. **Frontend & queries Kysely (TypeScript):** Sempre execute a suíte de testes de paridade via `make test/ts` (ou `pnpm test`) e verifique a tipagem executando `pnpm typecheck` (ou `tsc --noEmit` nos pacotes correspondentes). O build de produção fica a cargo da integração da Vercel na PR.
 
 ---
 
