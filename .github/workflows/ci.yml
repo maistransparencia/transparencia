@@ -95,7 +95,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
 
   migrate:
-    needs: elt
+    needs: [elt, web]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
