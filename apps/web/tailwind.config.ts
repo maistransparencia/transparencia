@@ -11,6 +11,8 @@ const config: Config = {
       colors: {
         accent: "oklch(0.55 0.11 250)",
         warning: "oklch(0.65 0.13 65)",
+        attention: "oklch(0.5 0.11 70)",
+        inactive: "#aab1bc",
         danger: "oklch(0.55 0.11 25)",
         success: "oklch(0.5 0.13 145)",
         ink: "#1a1d21",

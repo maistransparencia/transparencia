@@ -9,6 +9,7 @@ vi.mock("@transparencia/db", () => ({
 const {
   buildFarmaciaViewModel,
   buildFatoApagao,
+  buildTelefoneHref,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
   LEI_FARMACIA_SUS_URL,
@@ -17,44 +18,78 @@ const {
 
 function makeRaw(opts: {
   busca?: string;
-  idUnidade?: string | null;
-  limiteUnidades?: number;
   unidades?: number;
-  totalUnidades?: number;
+  totalUnidadesAtivas?: number;
+  dataPosicaoMaisRecente?: string | null;
+  diasDesdePosicaoMaisRecente?: number | null;
+  indicadores?: Record<string, number>;
 }) {
   const unidades = Array.from({ length: opts.unidades ?? 0 }, (_, i) => ({
     idUnidade: `u${i}`,
-    nomeUnidade: `Unidade ${i}`,
+    nomeUnidade: `UNIDADE DE SAUDE ${i}`,
     enderecoUnidade: null,
-    telefoneUnidade: null,
+    telefoneUnidade: i === 0 ? "(22) 3333-4444" : null,
     latitudeUnidade: null,
     longitudeUnidade: null,
-    medicamentos: [],
+    totalQuantidadeEstoque: 100 - i * 10,
+    medicamentos: [
+      {
+        nomeMedicamento: "OMEPRAZOL 20 MG",
+        quantidadeEstoque: 100 - i * 10,
+        dataPosicaoEstoque: null,
+      },
+    ],
   }));
   return {
     portalSlug: "portal_x",
     portalName: "Prefeitura X",
-    context: {
-      busca: opts.busca ?? "",
-      idUnidade: opts.idUnidade ?? null,
-      limiteUnidades: opts.limiteUnidades ?? 10,
-    },
+    context: { busca: opts.busca ?? "" },
     farmacia: {
       status: "conforme",
       dataColeta: null,
-      dataPosicaoMaisRecente: null,
-      diasDesdePosicaoMaisRecente: null,
-      totalUnidades: opts.totalUnidades ?? unidades.length,
+      dataPosicaoMaisRecente: opts.dataPosicaoMaisRecente ?? null,
+      diasDesdePosicaoMaisRecente: opts.diasDesdePosicaoMaisRecente ?? null,
+      totalUnidades: unidades.length,
+      totalQuantidadeEstoque: unidades.reduce(
+        (soma, u) => soma + u.totalQuantidadeEstoque,
+        0,
+      ),
+      totalApresentacoes: unidades.length > 0 ? 1 : 0,
       unidades,
+      remedios:
+        unidades.length > 0
+          ? [
+              {
+                nomeMedicamento: "OMEPRAZOL 20 MG",
+                totalQuantidadeEstoque: unidades.reduce(
+                  (soma, u) => soma + u.totalQuantidadeEstoque,
+                  0,
+                ),
+                totalUnidadesComEstoque: unidades.length,
+                unidades: unidades.map((u) => ({
+                  idUnidade: u.idUnidade,
+                  quantidadeEstoque: u.totalQuantidadeEstoque,
+                })),
+              },
+            ]
+          : [],
     },
     sentinelas: {
-      totalUnidadesAtivas: 4,
+      totalUnidadesAtivas: opts.totalUnidadesAtivas ?? 4,
+      indicadores: {
+        totalEssenciais: 4,
+        essenciaisNoEstoque: 2,
+        essenciaisSomenteCombinacao: 1,
+        essenciaisSemRegistro: 1,
+        ...opts.indicadores,
+      },
       sentinelas: [
         {
           codigoPrincipioAtivo: "losartana",
           nomePrincipioAtivo: "Losartana",
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 1,
+          destaqueCardInicial: true,
           unidadesComRegistro: 3,
           unidadesSomenteCombinacao: 0,
         },
@@ -63,6 +98,7 @@ function makeRaw(opts: {
           nomePrincipioAtivo: "Metformina",
           grupoTerapeutico: "diabetes",
           ordemExibicao: 2,
+          destaqueCardInicial: false,
           unidadesComRegistro: 0,
           unidadesSomenteCombinacao: 0,
         },
@@ -71,8 +107,18 @@ function makeRaw(opts: {
           nomePrincipioAtivo: "Captopril",
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 3,
+          destaqueCardInicial: false,
           unidadesComRegistro: 1,
           unidadesSomenteCombinacao: 0,
+        },
+        {
+          codigoPrincipioAtivo: "hidroclorotiazida",
+          nomePrincipioAtivo: "Hidroclorotiazida",
+          grupoTerapeutico: "cardiovascular",
+          ordemExibicao: 4,
+          destaqueCardInicial: false,
+          unidadesComRegistro: 0,
+          unidadesSomenteCombinacao: 2,
         },
       ],
     },
@@ -80,29 +126,6 @@ function makeRaw(opts: {
 }
 
 describe("buildFarmaciaViewModel", () => {
-  it("unidade filtrada: limpar sem unidade e ver mais mantendo unidade", () => {
-    const vm = buildFarmaciaViewModel(
-      makeRaw({ busca: "dip", idUnidade: "u1", unidades: 1, totalUnidades: 5 }),
-    );
-    expect(vm.limparFiltroUnidadeHref).toBe("/portal_x/saude/farmacia?q=dip");
-    expect(vm.hasMaisUnidades).toBe(true);
-    expect(vm.maisUnidadesHref).toBe(
-      "/portal_x/saude/farmacia?q=dip&unidade=u1&limite=20",
-    );
-  });
-
-  it("esconde ver mais no teto de 200", () => {
-    const vm = buildFarmaciaViewModel(
-      makeRaw({
-        busca: "dip",
-        limiteUnidades: 200,
-        unidades: 1,
-        totalUnidades: 500,
-      }),
-    );
-    expect(vm.hasMaisUnidades).toBe(false);
-  });
-
   it("q curto nao executa busca e mostra dica", () => {
     const vm = buildFarmaciaViewModel(makeRaw({ busca: "d" }));
     expect(vm.hasBusca).toBe(false);
@@ -110,27 +133,116 @@ describe("buildFarmaciaViewModel", () => {
     const vazio = buildFarmaciaViewModel(makeRaw({}));
     expect(vazio.hasBuscaCurta).toBe(false);
   });
-});
 
-describe("buildFarmaciaViewModel sentinelas", () => {
-  it("agrupa por grupo terapeutico em ordem estavel com href de busca", () => {
+  it("chips de mais procurados seguem o criterio das sentinelas de destaque", () => {
     const vm = buildFarmaciaViewModel(makeRaw({}));
-    expect(vm.totalUnidadesAtivas).toBe(4);
-    expect(vm.gruposSentinelas.map((g) => g.codigo)).toEqual([
-      "cardiovascular",
-      "diabetes",
+    expect(vm.exemplos).toEqual([
+      {
+        codigoPrincipioAtivo: "losartana",
+        nomePrincipioAtivo: "Losartana",
+        href: "/portal_x/saude/farmacia?q=Losartana",
+      },
     ]);
-    expect(vm.gruposSentinelas[0].rotulo).toBe("Coração e pressão");
-    expect(
-      vm.gruposSentinelas[0].itens.map((i) => i.nomePrincipioAtivo),
-    ).toEqual(["Losartana", "Captopril"]);
-    expect(vm.gruposSentinelas[1].itens[0].href).toBe(
-      "/portal_x/saude/farmacia?q=Metformina",
-    );
   });
 });
 
-describe("buildFarmaciaViewModel rotulos de grupos", () => {
+describe("buildFarmaciaViewModel indicadores", () => {
+  it("usa o numero de unidades dos dados e sinaliza atencao nos essenciais", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({
+        totalUnidadesAtivas: 7,
+        dataPosicaoMaisRecente: "2026-10-19",
+        diasDesdePosicaoMaisRecente: 5,
+      }),
+    );
+    const [unidades, essenciais, atualizacao] = vm.indicadores;
+    expect(unidades.valor).toBe("7");
+    expect(essenciais.valor).toBe("2 de 4");
+    expect(essenciais.nota).toBe(
+      "1 não aparece na lista de estoque · 1 só em combinação",
+    );
+    expect(essenciais.notaAtencao).toBe(true);
+    expect(atualizacao.nota).toContain("Há 5 dias");
+  });
+
+  it("essenciais sem pendencia: nota neutra sem atencao", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({
+        indicadores: {
+          essenciaisSemRegistro: 0,
+          essenciaisSomenteCombinacao: 0,
+        },
+      }),
+    );
+    expect(vm.indicadores[1].nota).toBe("Todos aparecem na lista de estoque");
+    expect(vm.indicadores[1].notaAtencao).toBe(false);
+  });
+
+  it("plural quando mais de um essencial nao aparece", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({
+        indicadores: {
+          essenciaisSemRegistro: 2,
+          essenciaisSomenteCombinacao: 0,
+        },
+      }),
+    );
+    expect(vm.indicadores[1].nota).toBe("2 não aparecem na lista de estoque");
+  });
+
+  it("sem essenciais o cartao e omitido", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({ indicadores: { totalEssenciais: 0 } }),
+    );
+    expect(vm.indicadores.map((i) => i.codigo)).toEqual([
+      "unidades_informaram",
+    ]);
+  });
+
+  it.each([
+    [0, "Atualizado hoje"],
+    [1, "Há 1 dia"],
+    [null, "Dados do Ministério da Saúde"],
+  ])("dias %s na nota da atualizacao", (dias, esperado) => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({
+        dataPosicaoMaisRecente: "2026-10-19",
+        diasDesdePosicaoMaisRecente: dias,
+      }),
+    );
+    expect(vm.indicadores[2].nota).toContain(esperado);
+  });
+
+  it("sem data de atualizacao o cartao e omitido", () => {
+    const vm = buildFarmaciaViewModel(makeRaw({}));
+    expect(vm.indicadores.map((i) => i.codigo)).not.toContain(
+      "ultima_atualizacao",
+    );
+  });
+
+  it("sem unidades ativas o bloco de indicadores e omitido", () => {
+    const vm = buildFarmaciaViewModel(makeRaw({ totalUnidadesAtivas: 0 }));
+    expect(vm.indicadores).toEqual([]);
+  });
+});
+
+describe("buildFarmaciaViewModel essenciais", () => {
+  it("lista essenciais com status, categoria e href de busca", () => {
+    const vm = buildFarmaciaViewModel(makeRaw({}));
+    expect(vm.totalUnidadesAtivas).toBe(4);
+    expect(vm.categoriasEssenciais).toEqual([
+      { codigo: "cardiovascular", rotulo: "Coração e pressão" },
+      { codigo: "diabetes", rotulo: "Diabetes" },
+    ]);
+    expect(vm.essenciais.map((e) => [e.nomePrincipioAtivo, e.status])).toEqual([
+      ["Losartana", "no_estoque"],
+      ["Metformina", "sem_registro"],
+      ["Captopril", "no_estoque"],
+      ["Hidroclorotiazida", "somente_combinacao"],
+    ]);
+    expect(vm.essenciais[1].href).toBe("/portal_x/saude/farmacia?q=Metformina");
+  });
+
   it.each([
     "cardiovascular",
     "diabetes",
@@ -153,30 +265,55 @@ describe("buildFarmaciaViewModel rotulos de grupos", () => {
         unidadesSomenteCombinacao: 0,
       },
     ];
-    const [grupo] = buildFarmaciaViewModel(raw).gruposSentinelas;
-    expect(grupo.rotulo).not.toContain("_");
-    expect(grupo.rotulo).not.toBe(grupoTerapeutico);
+    const [essencial] = buildFarmaciaViewModel(raw).essenciais;
+    expect(essencial.rotuloCategoria).not.toContain("_");
+    expect(essencial.rotuloCategoria).not.toBe(grupoTerapeutico);
   });
 });
 
-describe("buildFarmaciaViewModel href e mapa", () => {
-  it("monta href da unidade com q e unidade", () => {
-    const vm = buildFarmaciaViewModel(makeRaw({ busca: "dip", unidades: 2 }));
-    expect(vm.unidades.map((u) => u.href)).toEqual([
-      "/portal_x/saude/farmacia?q=dip&unidade=u0",
-      "/portal_x/saude/farmacia?q=dip&unidade=u1",
+describe("buildFarmaciaViewModel resultados e mapa", () => {
+  it("numera unidades, formata nomes e monta barras proporcionais por remedio", () => {
+    const vm = buildFarmaciaViewModel(makeRaw({ busca: "omep", unidades: 2 }));
+    expect(vm.unidades.map((u) => [u.numero, u.nomeUnidade])).toEqual([
+      [1, "Unidade de Saude 0"],
+      [2, "Unidade de Saude 1"],
     ]);
+    expect(vm.unidades[0].telefoneHref).toBe("tel:2233334444");
+    expect(vm.unidades[1].telefoneHref).toBeNull();
+    expect(vm.unidades[0].medicamentos[0].nomeMedicamento).toBe(
+      "Omeprazol 20 mg",
+    );
+    expect(vm.remedios[0].nomeMedicamento).toBe("Omeprazol 20 mg");
+    expect(vm.remedios[0].unidades.map((u) => u.percentualBarra)).toEqual([
+      100, 90,
+    ]);
+    expect(vm.resumoBusca).toBe(
+      "1 remédio em 2 de 4 unidades · 190 un. no total",
+    );
   });
 
-  it("mapMarkers inclui apenas unidades com coordenada valida", () => {
+  it("resumo sem unidades ativas e com uma unidade", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({ busca: "omep", unidades: 1, totalUnidadesAtivas: 0 }),
+    );
+    expect(vm.resumoBusca).toBe("1 remédio em 1 unidade · 100 un. no total");
+  });
+
+  it("mapMarkers inclui apenas unidades com coordenada valida e mantem o numero", () => {
     const raw = makeRaw({ busca: "dip", unidades: 3 });
-    raw.farmacia.unidades[0].latitudeUnidade = -20.9;
-    raw.farmacia.unidades[0].longitudeUnidade = -42;
-    raw.farmacia.unidades[1].latitudeUnidade = 95;
+    raw.farmacia.unidades[1].latitudeUnidade = -20.9;
     raw.farmacia.unidades[1].longitudeUnidade = -42;
+    raw.farmacia.unidades[2].latitudeUnidade = 95;
+    raw.farmacia.unidades[2].longitudeUnidade = -42;
     const vm = buildFarmaciaViewModel(raw);
     expect(vm.mapMarkers).toEqual([
-      { id: "u0", latitude: -20.9, longitude: -42 },
+      {
+        id: "u1",
+        numero: 2,
+        nome: "Unidade de Saude 1",
+        latitude: -20.9,
+        longitude: -42,
+      },
     ]);
   });
 });
@@ -241,5 +378,17 @@ describe("buildTextoWhatsApp", () => {
     });
     expect(texto).toContain("Este município:");
     expect(texto).toContain("Não há divulgação recente");
+  });
+});
+
+describe("buildTelefoneHref", () => {
+  it.each([
+    ["(22) 3333-4444 / 3333-5555", "tel:2233334444"],
+    ["22 99999-8888; 3333-1111", "tel:22999998888"],
+    ["sem telefone", null],
+    ["123", null],
+    [null, null],
+  ])("%s -> %s", (telefone, esperado) => {
+    expect(buildTelefoneHref(telefone)).toBe(esperado);
   });
 });

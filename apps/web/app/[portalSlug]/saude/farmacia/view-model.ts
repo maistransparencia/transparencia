@@ -1,12 +1,8 @@
 import type { FarmaciaSentinelaDTO } from "@transparencia/db";
-import { fmtDate } from "@transparencia/ui";
+import { fmtDate, fmtNumber, toTitleCase } from "@transparencia/ui";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { isValidMapCoordinate } from "@/lib/tile-calc";
 import type { loadFarmaciaData } from "./loader";
-import {
-  FARMACIA_LIMITE_MAXIMO_UNIDADES,
-  FARMACIA_UNIDADES_POR_PAGINA,
-} from "./loader";
 
 export const FARMACIA_BUSCA_MINIMO_CARACTERES = 2;
 
@@ -15,17 +11,11 @@ type FarmaciaRawData = Awaited<ReturnType<typeof loadFarmaciaData>>;
 export const LEI_FARMACIA_SUS_URL = urlLegislacao("lei14654");
 export const LEI_ORGANICA_SAUDE_URL = urlLegislacao("lei8080");
 
-function buildFarmaciaHref(
-  portalSlug: string,
-  params: { q?: string; unidade?: string | null; limite?: number },
-): string {
-  const query = new URLSearchParams();
-  if (params.q) query.set("q", params.q);
-  if (params.unidade) query.set("unidade", params.unidade);
-  if (params.limite) query.set("limite", String(params.limite));
-  const queryString = query.toString();
+function buildFarmaciaHref(portalSlug: string, busca: string): string {
   const base = `/${portalSlug}/saude/farmacia`;
-  return queryString ? `${base}?${queryString}` : base;
+  return busca
+    ? `${base}?${new URLSearchParams({ q: busca }).toString()}`
+    : base;
 }
 
 export const FARMACIA_EXEMPLOS_MAXIMO = 6;
@@ -66,48 +56,152 @@ const ROTULOS_GRUPO_TERAPEUTICO: Record<string, string> = {
   saude_mental: "Saúde mental",
 };
 
-function buildGruposSentinelas(
+export type StatusEssencial =
+  | "no_estoque"
+  | "somente_combinacao"
+  | "sem_registro";
+
+export interface FarmaciaEssencialItem {
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo: string;
+  codigoCategoria: string;
+  rotuloCategoria: string;
+  status: StatusEssencial;
+  unidadesComRegistro: number;
+  unidadesSomenteCombinacao: number;
+  href: string;
+}
+
+function rotuloGrupoTerapeutico(codigo: string): string {
+  return ROTULOS_GRUPO_TERAPEUTICO[codigo] ?? codigo.replaceAll("_", " ");
+}
+
+function statusEssencial(item: FarmaciaSentinelaDTO): StatusEssencial {
+  if (item.unidadesComRegistro > 0) return "no_estoque";
+  if (item.unidadesSomenteCombinacao > 0) return "somente_combinacao";
+  return "sem_registro";
+}
+
+function buildEssenciais(
   portalSlug: string,
-  sentinelas: FarmaciaRawData["sentinelas"],
-) {
-  const grupos = sentinelas.sentinelas.reduce<
-    Map<
-      string,
-      {
-        codigo: string;
-        rotulo: string;
-        itens: {
-          codigoPrincipioAtivo: string;
-          nomePrincipioAtivo: string;
-          unidadesComRegistro: number;
-          unidadesSomenteCombinacao: number;
-          href: string;
-        }[];
-      }
-    >
-  >((acc, item) => {
-    const grupo = acc.get(item.grupoTerapeutico) ?? {
-      codigo: item.grupoTerapeutico,
-      rotulo:
-        ROTULOS_GRUPO_TERAPEUTICO[item.grupoTerapeutico] ??
-        item.grupoTerapeutico.replaceAll("_", " "),
-      itens: [],
-    };
-    return new Map(acc).set(item.grupoTerapeutico, {
-      ...grupo,
-      itens: [
-        ...grupo.itens,
-        {
-          codigoPrincipioAtivo: item.codigoPrincipioAtivo,
-          nomePrincipioAtivo: item.nomePrincipioAtivo,
-          unidadesComRegistro: item.unidadesComRegistro,
-          unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
-          href: buildFarmaciaHref(portalSlug, { q: item.nomePrincipioAtivo }),
-        },
-      ],
-    });
-  }, new Map());
-  return [...grupos.values()];
+  sentinelas: FarmaciaSentinelaDTO[],
+): FarmaciaEssencialItem[] {
+  return sentinelas.map((item) => ({
+    codigoPrincipioAtivo: item.codigoPrincipioAtivo,
+    nomePrincipioAtivo: item.nomePrincipioAtivo,
+    codigoCategoria: item.grupoTerapeutico,
+    rotuloCategoria: rotuloGrupoTerapeutico(item.grupoTerapeutico),
+    status: statusEssencial(item),
+    unidadesComRegistro: item.unidadesComRegistro,
+    unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
+    href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
+  }));
+}
+
+function buildCategoriasEssenciais(essenciais: FarmaciaEssencialItem[]) {
+  return essenciais.reduce<{ codigo: string; rotulo: string }[]>(
+    (acc, item) =>
+      acc.some((c) => c.codigo === item.codigoCategoria)
+        ? acc
+        : [
+            ...acc,
+            { codigo: item.codigoCategoria, rotulo: item.rotuloCategoria },
+          ],
+    [],
+  );
+}
+
+export interface FarmaciaIndicador {
+  codigo: string;
+  rotulo: string;
+  valor: string;
+  nota: string;
+  notaAtencao: boolean;
+}
+
+function textoDiasDesde(dias: number): string {
+  if (dias <= 0) return "Atualizado hoje";
+  if (dias === 1) return "Há 1 dia";
+  return `Há ${fmtNumber(dias)} dias`;
+}
+
+function buildIndicadores(
+  raw: FarmaciaRawData,
+  dataAtualizacao: string | null,
+): FarmaciaIndicador[] {
+  const { sentinelas, farmacia } = raw;
+  const { indicadores, totalUnidadesAtivas } = sentinelas;
+  if (totalUnidadesAtivas === 0) return [];
+
+  const partesNotaEssenciais = [
+    indicadores.essenciaisSemRegistro > 0
+      ? `${fmtNumber(indicadores.essenciaisSemRegistro)} não aparece${indicadores.essenciaisSemRegistro > 1 ? "m" : ""} na lista de estoque`
+      : null,
+    indicadores.essenciaisSomenteCombinacao > 0
+      ? `${fmtNumber(indicadores.essenciaisSomenteCombinacao)} só em combinação`
+      : null,
+  ].filter((parte): parte is string => parte !== null);
+
+  const cartoes: (FarmaciaIndicador | null)[] = [
+    {
+      codigo: "unidades_informaram",
+      rotulo: "Unidades que informaram estoque",
+      valor: fmtNumber(totalUnidadesAtivas),
+      nota: "Na última lista divulgada",
+      notaAtencao: false,
+    },
+    indicadores.totalEssenciais > 0
+      ? {
+          codigo: "essenciais_no_estoque",
+          rotulo: "Remédios essenciais no estoque",
+          valor: `${fmtNumber(indicadores.essenciaisNoEstoque)} de ${fmtNumber(indicadores.totalEssenciais)}`,
+          nota:
+            partesNotaEssenciais.length > 0
+              ? partesNotaEssenciais.join(" · ")
+              : "Todos aparecem na lista de estoque",
+          notaAtencao: partesNotaEssenciais.length > 0,
+        }
+      : null,
+    dataAtualizacao
+      ? {
+          codigo: "ultima_atualizacao",
+          rotulo: "Última atualização",
+          valor: fmtDate(dataAtualizacao),
+          nota:
+            farmacia.diasDesdePosicaoMaisRecente != null
+              ? `${textoDiasDesde(farmacia.diasDesdePosicaoMaisRecente)} · dados do Ministério da Saúde`
+              : "Dados do Ministério da Saúde",
+          notaAtencao: false,
+        }
+      : null,
+  ];
+  return cartoes.filter((c): c is FarmaciaIndicador => c !== null);
+}
+
+export function buildTelefoneHref(telefone: string | null): string | null {
+  const primeiro = telefone?.split(/[/;,]/)[0] ?? "";
+  const numero = primeiro.replace(/[^\d+]/g, "");
+  return numero.replace(/\D/g, "").length >= 8 ? `tel:${numero}` : null;
+}
+
+function formatarNomeMedicamento(nome: string): string {
+  if (nome !== nome.toUpperCase()) return nome;
+  const minusculo = nome.toLowerCase();
+  return `${minusculo.charAt(0).toUpperCase()}${minusculo.slice(1)}`;
+}
+
+function buildResumoBusca(params: {
+  totalApresentacoes: number;
+  totalUnidades: number;
+  totalUnidadesAtivas: number;
+  totalQuantidadeEstoque: number;
+}): string {
+  const remedios = `${fmtNumber(params.totalApresentacoes)} ${params.totalApresentacoes === 1 ? "remédio" : "remédios"}`;
+  const unidades =
+    params.totalUnidadesAtivas > 0
+      ? `${fmtNumber(params.totalUnidades)} de ${fmtNumber(params.totalUnidadesAtivas)} unidades`
+      : `${fmtNumber(params.totalUnidades)} ${params.totalUnidades === 1 ? "unidade" : "unidades"}`;
+  return `${remedios} em ${unidades} · ${fmtNumber(params.totalQuantidadeEstoque)} un. no total`;
 }
 
 export function buildFatoApagao(
@@ -162,14 +256,60 @@ export function buildTextoWhatsApp(params: {
 
 export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
   const { farmacia, context, portalSlug, portalName, sentinelas } = raw;
+  const formAction = `/${portalSlug}/saude/farmacia`;
   const hasBusca = context.busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES;
   const hasBuscaCurta = context.busca.length > 0 && !hasBusca;
-  const unidadesComMapa = farmacia.unidades.filter((u) =>
-    isValidMapCoordinate(u.latitudeUnidade, u.longitudeUnidade),
-  );
-  const hasMaisUnidades =
-    farmacia.unidades.length < farmacia.totalUnidades &&
-    context.limiteUnidades < FARMACIA_LIMITE_MAXIMO_UNIDADES;
+  const dataAtualizacao =
+    farmacia.dataPosicaoMaisRecente ?? farmacia.dataColeta;
+
+  const unidades = farmacia.unidades.map((u, indice) => ({
+    numero: indice + 1,
+    idUnidade: u.idUnidade,
+    nomeUnidade: toTitleCase(u.nomeUnidade),
+    enderecoUnidade: u.enderecoUnidade,
+    telefoneUnidade: u.telefoneUnidade,
+    telefoneHref: buildTelefoneHref(u.telefoneUnidade),
+    totalQuantidadeEstoque: u.totalQuantidadeEstoque,
+    latitudeUnidade: u.latitudeUnidade,
+    longitudeUnidade: u.longitudeUnidade,
+    medicamentos: u.medicamentos.map((m) => ({
+      nomeMedicamento: formatarNomeMedicamento(m.nomeMedicamento),
+      quantidadeEstoque: m.quantidadeEstoque,
+    })),
+  }));
+  const unidadePorId = new Map(unidades.map((u) => [u.idUnidade, u]));
+
+  const remedios = farmacia.remedios.map((r) => {
+    const maiorQuantidade = r.unidades[0]?.quantidadeEstoque ?? 0;
+    return {
+      nomeMedicamento: formatarNomeMedicamento(r.nomeMedicamento),
+      totalQuantidadeEstoque: r.totalQuantidadeEstoque,
+      totalUnidadesComEstoque: r.totalUnidadesComEstoque,
+      unidades: r.unidades.flatMap((item) => {
+        const unidade = unidadePorId.get(item.idUnidade);
+        if (!unidade) return [];
+        return [
+          {
+            numero: unidade.numero,
+            idUnidade: unidade.idUnidade,
+            nomeUnidade: unidade.nomeUnidade,
+            quantidadeEstoque: item.quantidadeEstoque,
+            percentualBarra:
+              maiorQuantidade > 0
+                ? Math.max(
+                    2,
+                    Math.round(
+                      (item.quantidadeEstoque / maiorQuantidade) * 100,
+                    ),
+                  )
+                : 2,
+          },
+        ];
+      }),
+    };
+  });
+
+  const essenciais = buildEssenciais(portalSlug, sentinelas.sentinelas);
 
   return {
     portalSlug,
@@ -177,38 +317,35 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
     status: farmacia.status,
     dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,
     diasDesdePosicaoMaisRecente: farmacia.diasDesdePosicaoMaisRecente,
-    dataAtualizacao: farmacia.dataPosicaoMaisRecente ?? farmacia.dataColeta,
+    dataAtualizacao,
     busca: context.busca,
     hasBusca,
     hasBuscaCurta,
-    idUnidadeFiltrada: context.idUnidade,
-    totalUnidades: farmacia.totalUnidades,
-    unidades: farmacia.unidades.map((u) => ({
-      ...u,
-      href: buildFarmaciaHref(portalSlug, {
-        q: context.busca,
-        unidade: u.idUnidade,
-      }),
-    })),
-    mapMarkers: unidadesComMapa.map((u) => ({
-      id: u.idUnidade,
-      latitude: u.latitudeUnidade as number,
-      longitude: u.longitudeUnidade as number,
-    })),
-    hasMaisUnidades,
+    formAction,
+    exemplos: buildExemplosFarmacia(sentinelas.sentinelas, formAction),
+    indicadores: buildIndicadores(raw, dataAtualizacao),
+    resumoBusca: buildResumoBusca({
+      totalApresentacoes: farmacia.totalApresentacoes,
+      totalUnidades: farmacia.totalUnidades,
+      totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
+      totalQuantidadeEstoque: farmacia.totalQuantidadeEstoque,
+    }),
+    unidades,
+    remedios,
+    mapMarkers: unidades
+      .filter((u) =>
+        isValidMapCoordinate(u.latitudeUnidade, u.longitudeUnidade),
+      )
+      .map((u) => ({
+        id: u.idUnidade,
+        numero: u.numero,
+        nome: u.nomeUnidade,
+        latitude: u.latitudeUnidade as number,
+        longitude: u.longitudeUnidade as number,
+      })),
     totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
-    gruposSentinelas: buildGruposSentinelas(portalSlug, sentinelas),
-    maisUnidadesHref: buildFarmaciaHref(portalSlug, {
-      q: context.busca,
-      unidade: context.idUnidade,
-      limite: Math.min(
-        context.limiteUnidades + FARMACIA_UNIDADES_POR_PAGINA,
-        FARMACIA_LIMITE_MAXIMO_UNIDADES,
-      ),
-    }),
-    limparFiltroUnidadeHref: buildFarmaciaHref(portalSlug, {
-      q: context.busca,
-    }),
+    essenciais,
+    categoriasEssenciais: buildCategoriasEssenciais(essenciais),
     requerimento: buildRequerimentoFiscalizacao({
       portalName,
       dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,

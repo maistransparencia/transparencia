@@ -35,6 +35,12 @@ const RESUMO_FARMACIA_INDISPONIVEL: ResumoFarmaciaSusDTO = {
 
 const SENTINELAS_FARMACIA_VAZIO: FarmaciaSentinelasDTO = {
   totalUnidadesAtivas: 0,
+  indicadores: {
+    totalEssenciais: 0,
+    essenciaisNoEstoque: 0,
+    essenciaisSomenteCombinacao: 0,
+    essenciaisSemRegistro: 0,
+  },
   sentinelas: [],
 };
 

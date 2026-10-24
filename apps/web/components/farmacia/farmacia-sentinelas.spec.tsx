@@ -1,87 +1,134 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { FarmaciaSentinelas } from "./farmacia-sentinelas";
+import {
+  type FarmaciaSentinelaItem,
+  FarmaciaSentinelas,
+} from "./farmacia-sentinelas";
 
-const grupos = [
-  {
-    codigo: "cardiovascular",
-    rotulo: "Coração e pressão",
-    itens: [
-      {
-        codigoPrincipioAtivo: "losartana",
-        nomePrincipioAtivo: "Losartana",
-        unidadesComRegistro: 3,
-        unidadesSomenteCombinacao: 0,
-        href: "/portal_x/saude/farmacia?q=Losartana",
-      },
-      {
-        codigoPrincipioAtivo: "captopril",
-        nomePrincipioAtivo: "Captopril",
-        unidadesComRegistro: 0,
-        unidadesSomenteCombinacao: 0,
-        href: "/portal_x/saude/farmacia?q=Captopril",
-      },
-    ],
-  },
+function item(
+  parcial: Partial<FarmaciaSentinelaItem> & { nomePrincipioAtivo: string },
+): FarmaciaSentinelaItem {
+  return {
+    codigoPrincipioAtivo: parcial.nomePrincipioAtivo.toLowerCase(),
+    codigoCategoria: "cardiovascular",
+    rotuloCategoria: "Coração e pressão",
+    status: "no_estoque",
+    unidadesComRegistro: 3,
+    unidadesSomenteCombinacao: 0,
+    href: `/portal_x/saude/farmacia?q=${parcial.nomePrincipioAtivo}`,
+    ...parcial,
+  };
+}
+
+const essenciais = [
+  item({ nomePrincipioAtivo: "Losartana" }),
+  item({
+    nomePrincipioAtivo: "Captopril",
+    status: "sem_registro",
+    unidadesComRegistro: 0,
+  }),
+  item({
+    nomePrincipioAtivo: "Hidroclorotiazida",
+    status: "somente_combinacao",
+    unidadesComRegistro: 0,
+    unidadesSomenteCombinacao: 2,
+  }),
+  item({
+    nomePrincipioAtivo: "Metformina",
+    codigoCategoria: "diabetes",
+    rotuloCategoria: "Diabetes",
+  }),
+];
+const categorias = [
+  { codigo: "cardiovascular", rotulo: "Coração e pressão" },
+  { codigo: "diabetes", rotulo: "Diabetes" },
 ];
 
 describe("FarmaciaSentinelas", () => {
-  it("renderiza grupos, contagens e links de busca", () => {
-    render(<FarmaciaSentinelas grupos={grupos} totalUnidadesAtivas={5} />);
-    expect(screen.getByText("Coração e pressão")).toBeInTheDocument();
+  it("usa o total de unidades dos dados no subtitulo, nos rotulos e nos quadradinhos", () => {
+    const { container } = render(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    expect(screen.getByText(/Em quantas das 5 unidades/)).toBeInTheDocument();
+    expect(screen.getAllByText("3 de 5 unidades")).toHaveLength(2);
+    const quadradinhos = screen
+      .getByRole("link", { name: /Losartana/ })
+      .querySelectorAll("span.rounded-\\[2px\\]");
+    expect(quadradinhos).toHaveLength(5);
     expect(
-      screen.getByText("3 de 5 unidades que informaram estoque"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("não aparece na lista de estoque"),
-    ).toBeInTheDocument();
+      [...quadradinhos].filter((q) => q.className.includes("bg-accent")),
+    ).toHaveLength(3);
+    expect(container.textContent).not.toContain("8 unidades");
+  });
+
+  it("mostra rotulos de ausencia e combinacao sem afirmar que acabou", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    expect(screen.getByText("não aparece no estoque")).toBeInTheDocument();
+    expect(screen.getByText("só em combinação")).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/esgotad|zerad/i);
+  });
+
+  it("links levam para a busca e o filtro de categoria reduz a lista", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
     expect(screen.getByRole("link", { name: /Losartana/ })).toHaveAttribute(
       "href",
       "/portal_x/saude/farmacia?q=Losartana",
     );
+    fireEvent.click(screen.getByRole("button", { name: "Diabetes" }));
+    expect(screen.queryByRole("link", { name: /Losartana/ })).toBeNull();
+    expect(
+      screen.getByRole("link", { name: /Metformina/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Todos" }));
+    expect(screen.getByRole("link", { name: /Losartana/ })).toBeInTheDocument();
+  });
+
+  it("explicacao recolhivel preserva o link da RENAME", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    expect(screen.getByText("Como ler esta lista")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /RENAME, edição 2024/ }),
-    ).toHaveAttribute("href", expect.stringContaining("bvsms.saude.gov.br"));
+    ).toHaveAttribute("target", "_blank");
   });
 
-  it("item so em combinacao avisa que aparece misturado com outro remedio", () => {
-    const comCombinacao = [
-      {
-        ...grupos[0],
-        itens: [
-          {
-            ...grupos[0].itens[1],
-            unidadesComRegistro: 0,
-            unidadesSomenteCombinacao: 2,
-          },
-        ],
-      },
-    ];
-    render(
-      <FarmaciaSentinelas grupos={comCombinacao} totalUnidadesAtivas={5} />,
-    );
-    expect(
-      screen.getByText(
-        "só aparece misturado com outro remédio em 2 de 5 unidades",
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it("nunca usa esgotado ou zerado", () => {
-    const { container } = render(
-      <FarmaciaSentinelas grupos={grupos} totalUnidadesAtivas={5} />,
-    );
-    expect(container.textContent).not.toMatch(/esgotad|zerad/i);
-  });
-
-  it("nao renderiza sem grupos ou sem unidades ativas", () => {
-    const { container } = render(
-      <FarmaciaSentinelas grupos={[]} totalUnidadesAtivas={5} />,
+  it("nao renderiza sem essenciais ou sem unidades ativas", () => {
+    const { container, rerender } = render(
+      <FarmaciaSentinelas
+        essenciais={[]}
+        categorias={[]}
+        totalUnidadesAtivas={5}
+      />,
     );
     expect(container).toBeEmptyDOMElement();
-    const outro = render(
-      <FarmaciaSentinelas grupos={grupos} totalUnidadesAtivas={0} />,
+    rerender(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={0}
+      />,
     );
-    expect(outro.container).toBeEmptyDOMElement();
+    expect(container).toBeEmptyDOMElement();
   });
 });

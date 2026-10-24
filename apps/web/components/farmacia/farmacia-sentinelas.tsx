@@ -1,43 +1,103 @@
+"use client";
+
 import { fmtNumber } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
   nomePrincipioAtivo: string;
+  codigoCategoria: string;
+  rotuloCategoria: string;
+  status: "no_estoque" | "somente_combinacao" | "sem_registro";
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
 }
 
-export interface FarmaciaSentinelaGrupo {
-  codigo: string;
-  rotulo: string;
-  itens: FarmaciaSentinelaItem[];
-}
-
 export interface FarmaciaSentinelasProps {
-  grupos: FarmaciaSentinelaGrupo[];
+  essenciais: FarmaciaSentinelaItem[];
+  categorias: { codigo: string; rotulo: string }[];
   totalUnidadesAtivas: number;
 }
 
+function chipClasse(ativo: boolean): string {
+  return `rounded-full border px-3 py-[5px] text-[13px] ${ativo ? "border-ink bg-ink text-white" : "border-borderLine bg-white text-ink"}`;
+}
+
+function RotuloDisponibilidade({
+  item,
+  totalUnidadesAtivas,
+}: {
+  item: FarmaciaSentinelaItem;
+  totalUnidadesAtivas: number;
+}) {
+  if (item.status === "no_estoque") {
+    return (
+      <>
+        <span className="flex gap-[3px]" aria-hidden="true">
+          {Array.from({ length: totalUnidadesAtivas }, (_, indice) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: quadradinhos posicionais, sem identidade própria
+              key={indice}
+              className={`h-2 w-2 rounded-[2px] ${indice < item.unidadesComRegistro ? "bg-accent" : "bg-slate-200"}`}
+            />
+          ))}
+        </span>
+        <span className="text-[11px] text-slate-600 tabular-nums">
+          {fmtNumber(item.unidadesComRegistro)} de{" "}
+          {fmtNumber(totalUnidadesAtivas)} unidades
+        </span>
+      </>
+    );
+  }
+  return (
+    <span className="text-[11px] text-attention">
+      {item.status === "somente_combinacao"
+        ? "só em combinação"
+        : "não aparece no estoque"}
+    </span>
+  );
+}
+
 export function FarmaciaSentinelas({
-  grupos,
+  essenciais,
+  categorias,
   totalUnidadesAtivas,
 }: FarmaciaSentinelasProps) {
-  if (grupos.length === 0 || totalUnidadesAtivas === 0) return null;
+  const [categoria, setCategoria] = useState<string | null>(null);
+
+  if (essenciais.length === 0 || totalUnidadesAtivas === 0) return null;
+
+  const visiveis = categoria
+    ? essenciais.filter((item) => item.codigoCategoria === categoria)
+    : essenciais;
 
   return (
-    <section className="space-y-4" aria-labelledby="farmacia-sentinelas-titulo">
+    <section
+      className="flex flex-col gap-5 border-ink border-t-2 pt-7"
+      aria-labelledby="farmacia-sentinelas-titulo"
+    >
       <div className="space-y-1">
         <h2
           id="farmacia-sentinelas-titulo"
-          className="font-bold font-serif text-ink text-xl"
+          className="font-bold font-serif text-2xl text-ink"
         >
           Remédios essenciais
         </h2>
-        <p className="text-subtleText text-xs">
+        <p className="text-[13px] text-subtleText">
+          Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada remédio
+          da lista nacional aparece no estoque. Clique para buscar.
+        </p>
+      </div>
+
+      <details className="rounded-[10px] border border-borderLine bg-white px-4 py-3">
+        <summary className="cursor-pointer font-semibold text-[13px] text-ink">
+          Como ler esta lista
+        </summary>
+        <p className="mt-2.5 text-[13px] text-slate-600 leading-[1.65]">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
           lista nacional (
           <a
@@ -56,38 +116,58 @@ export function FarmaciaSentinelas({
           um só comprimido (ex.: valsartana + hidroclorotiazida) não contam como
           o remédio sozinho.
         </p>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {grupos.map((grupo) => (
-          <div
-            key={grupo.codigo}
-            className="rounded-xl border border-[#e7e9ee] bg-white p-4"
+      </details>
+
+      <fieldset
+        aria-label="Filtrar por categoria"
+        className="m-0 flex flex-wrap gap-2 border-0 p-0"
+      >
+        <button
+          type="button"
+          aria-pressed={categoria === null}
+          onClick={() => setCategoria(null)}
+          className={chipClasse(categoria === null)}
+        >
+          Todos
+        </button>
+        {categorias.map((item) => (
+          <button
+            key={item.codigo}
+            type="button"
+            aria-pressed={categoria === item.codigo}
+            onClick={() => setCategoria(item.codigo)}
+            className={chipClasse(categoria === item.codigo)}
           >
-            <h3 className="font-semibold text-ink text-sm">{grupo.rotulo}</h3>
-            <ul className="mt-2 divide-y divide-[#e7e9ee] text-sm">
-              {grupo.itens.map((item) => (
-                <li key={item.codigoPrincipioAtivo}>
-                  <Link
-                    href={item.href}
-                    className="flex min-h-11 items-center justify-between gap-3 py-2 hover:underline"
-                  >
-                    <span className="font-medium text-ink">
-                      {item.nomePrincipioAtivo}
-                    </span>
-                    <span className="text-right text-subtleText text-xs">
-                      {item.unidadesComRegistro > 0
-                        ? `${fmtNumber(item.unidadesComRegistro)} de ${fmtNumber(totalUnidadesAtivas)} unidades que informaram estoque`
-                        : item.unidadesSomenteCombinacao > 0
-                          ? `só aparece misturado com outro remédio em ${fmtNumber(item.unidadesSomenteCombinacao)} de ${fmtNumber(totalUnidadesAtivas)} unidades`
-                          : "não aparece na lista de estoque"}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {item.rotulo}
+          </button>
         ))}
-      </div>
+      </fieldset>
+
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 rounded-xl border border-borderLine bg-white px-5 py-1">
+        {visiveis.map((item) => (
+          <li key={item.codigoPrincipioAtivo}>
+            <Link
+              href={item.href}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-slate-100 border-b py-3 text-left hover:bg-[#f7f8fa]"
+            >
+              <span className="min-w-0">
+                <span className="block font-semibold text-ink text-sm">
+                  {item.nomePrincipioAtivo}
+                </span>
+                <span className="block text-subtleText text-xs">
+                  {item.rotuloCategoria}
+                </span>
+              </span>
+              <span className="flex flex-col items-end gap-1">
+                <RotuloDisponibilidade
+                  item={item}
+                  totalUnidadesAtivas={totalUnidadesAtivas}
+                />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

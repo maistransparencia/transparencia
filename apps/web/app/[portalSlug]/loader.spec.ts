@@ -240,10 +240,8 @@ describe("loadVisaoGeralData", () => {
 
       const result = await loadVisaoGeralData("porciuncula", {});
 
-      expect(result.sentinelasFarmacia).toEqual({
-        totalUnidadesAtivas: 0,
-        sentinelas: [],
-      });
+      expect(result.sentinelasFarmacia.totalUnidadesAtivas).toBe(0);
+      expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
       expect(result.resumoFarmacia).toEqual({ status: "conforme" });
     });
   });

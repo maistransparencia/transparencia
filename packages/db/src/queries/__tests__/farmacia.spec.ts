@@ -6,6 +6,8 @@ import {
   seedFarmaciaSentinela,
 } from "../../../tests/fixtures/seed";
 import {
+  agruparFarmaciaPorRemedio,
+  calcularIndicadoresFarmacia,
   getFarmaciaSentinelas,
   getFarmaciaSus,
   getResumoFarmaciaSus,
@@ -117,6 +119,58 @@ describe("farmacia queries", () => {
 
     const acento = await getFarmaciaSus(PORTAL_A, { busca: "sodica" });
     expect(acento.unidades).toHaveLength(1);
+  });
+
+  it("expoe total por unidade (ordem decrescente), agrupamento por remedio e totais", async () => {
+    await seedPortalConforme(PORTAL_A);
+    const resultado = await getFarmaciaSus(PORTAL_A, { busca: "dipirona" });
+    expect(resultado.unidades.map((u) => u.totalQuantidadeEstoque)).toEqual([
+      120.5, 5,
+    ]);
+    expect(resultado.totalQuantidadeEstoque).toBe(125.5);
+    expect(resultado.totalApresentacoes).toBe(2);
+    expect(resultado.remedios).toEqual([
+      {
+        nomeMedicamento: "Dipirona 500mg",
+        totalQuantidadeEstoque: 120.5,
+        totalUnidadesComEstoque: 1,
+        unidades: [{ idUnidade: "1001", quantidadeEstoque: 120.5 }],
+      },
+      {
+        nomeMedicamento: "Dipirona Sódica",
+        totalQuantidadeEstoque: 5,
+        totalUnidadesComEstoque: 1,
+        unidades: [{ idUnidade: "1002", quantidadeEstoque: 5 }],
+      },
+    ]);
+  });
+
+  it("agrupa o mesmo remedio de varias unidades ordenando por quantidade", () => {
+    const unidade = (idUnidade: string, quantidadeEstoque: number) => ({
+      idUnidade,
+      nomeUnidade: idUnidade,
+      enderecoUnidade: null,
+      telefoneUnidade: null,
+      latitudeUnidade: null,
+      longitudeUnidade: null,
+      totalQuantidadeEstoque: quantidadeEstoque,
+      medicamentos: [
+        { nomeMedicamento: "X", quantidadeEstoque, dataPosicaoEstoque: null },
+      ],
+    });
+    expect(
+      agruparFarmaciaPorRemedio([unidade("a", 1), unidade("b", 9)]),
+    ).toEqual([
+      {
+        nomeMedicamento: "X",
+        totalQuantidadeEstoque: 10,
+        totalUnidadesComEstoque: 2,
+        unidades: [
+          { idUnidade: "b", quantidadeEstoque: 9 },
+          { idUnidade: "a", quantidadeEstoque: 1 },
+        ],
+      },
+    ]);
   });
 
   it("soma os lotes do mesmo medicamento e normaliza espacos do nome", async () => {
@@ -324,8 +378,52 @@ describe("getFarmaciaSentinelas", () => {
   it("portal sem linhas ou slug inválido devolve vazio", async () => {
     expect(await getFarmaciaSentinelas(PORTAL_A)).toEqual({
       totalUnidadesAtivas: 0,
+      indicadores: {
+        totalEssenciais: 0,
+        essenciaisNoEstoque: 0,
+        essenciaisSomenteCombinacao: 0,
+        essenciaisSemRegistro: 0,
+      },
       sentinelas: [],
     });
     expect((await getFarmaciaSentinelas("  ")).sentinelas).toEqual([]);
+  });
+
+  it("calcula indicadores dos essenciais sem assumir numero de unidades", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "hidroclorotiazida",
+      statusDisponibilidade: "sem_registro_estoque",
+      quantidadeApresentacoesCombinacaoComEstoque: 2,
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "losartana",
+      statusDisponibilidade: "sem_registro_estoque",
+    });
+    const resultado = await getFarmaciaSentinelas(PORTAL_A);
+    expect(resultado.totalUnidadesAtivas).toBe(1);
+    expect(resultado.indicadores).toEqual({
+      totalEssenciais: 3,
+      essenciaisNoEstoque: 1,
+      essenciaisSomenteCombinacao: 1,
+      essenciaisSemRegistro: 1,
+    });
+  });
+
+  it("calcularIndicadoresFarmacia devolve zeros para lista vazia", () => {
+    expect(calcularIndicadoresFarmacia([])).toEqual({
+      totalEssenciais: 0,
+      essenciaisNoEstoque: 0,
+      essenciaisSomenteCombinacao: 0,
+      essenciaisSemRegistro: 0,
+    });
   });
 });

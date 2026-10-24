@@ -1,8 +1,8 @@
 import { AlertCircle } from "lucide-react";
 import type { Metadata } from "next";
-import { FarmaciaBuscaForm } from "@/components/farmacia/farmacia-busca-form";
+import { FarmaciaCabecalho } from "@/components/farmacia/farmacia-cabecalho";
+import { FarmaciaIndicadores } from "@/components/farmacia/farmacia-indicadores";
 import { FarmaciaResultados } from "@/components/farmacia/farmacia-resultados";
-import { FarmaciaSeloTransparencia } from "@/components/farmacia/farmacia-selo-transparencia";
 import { FarmaciaSentinelas } from "@/components/farmacia/farmacia-sentinelas";
 import { FarmaciaSusSentinelaBanner } from "@/components/farmacia/farmacia-sus-sentinela-banner";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -45,18 +45,27 @@ export default async function FarmaciaPage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadFarmaciaData(portalSlug, resolvedSearchParams);
   const viewModel = buildFarmaciaViewModel(rawData);
-  const formAction = `/${viewModel.portalSlug}/saude/farmacia`;
+  const conforme = viewModel.status === "conforme";
 
   return (
-    <div className="space-y-8 pb-12">
-      <header className="space-y-3">
-        <h1 className="font-bold font-serif text-3xl text-ink">Farmácia SUS</h1>
-        {viewModel.status === "conforme" && (
-          <FarmaciaSeloTransparencia
-            dataAtualizacao={viewModel.dataAtualizacao}
-          />
+    <div className="mx-auto flex max-w-[1040px] flex-col gap-9 pb-16 sm:gap-12">
+      <div className="space-y-5">
+        <FarmaciaCabecalho
+          conforme={conforme}
+          dataAtualizacao={viewModel.dataAtualizacao}
+          action={viewModel.formAction}
+          busca={viewModel.busca}
+          exemplos={viewModel.exemplos}
+        />
+        {conforme && viewModel.hasBuscaCurta && (
+          <p className="text-subtleText text-xs">
+            Digite pelo menos 2 letras para buscar.
+          </p>
         )}
-      </header>
+        {conforme && (
+          <FarmaciaIndicadores indicadores={viewModel.indicadores} />
+        )}
+      </div>
 
       {viewModel.status === "indisponivel" && (
         <div className="flex flex-col items-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-6 text-center">
@@ -81,35 +90,20 @@ export default async function FarmaciaPage({
         />
       )}
 
-      {viewModel.status === "conforme" && (
-        <section className="space-y-4" aria-label="Busca de medicamentos">
-          <FarmaciaBuscaForm
-            action={formAction}
-            defaultValue={viewModel.busca}
-            limparHref={viewModel.busca ? formAction : undefined}
-          />
-          {viewModel.hasBuscaCurta && (
-            <p className="text-subtleText text-xs">
-              Digite pelo menos 2 letras para buscar.
-            </p>
-          )}
-          {viewModel.hasBusca && (
-            <FarmaciaResultados
-              busca={viewModel.busca}
-              unidades={viewModel.unidades}
-              mapMarkers={viewModel.mapMarkers}
-              hasMaisUnidades={viewModel.hasMaisUnidades}
-              maisUnidadesHref={viewModel.maisUnidadesHref}
-              unidadeFiltrada={viewModel.idUnidadeFiltrada != null}
-              limparFiltroUnidadeHref={viewModel.limparFiltroUnidadeHref}
-            />
-          )}
-        </section>
+      {conforme && viewModel.hasBusca && (
+        <FarmaciaResultados
+          busca={viewModel.busca}
+          resumo={viewModel.resumoBusca}
+          unidades={viewModel.unidades}
+          remedios={viewModel.remedios}
+          marcadores={viewModel.mapMarkers}
+        />
       )}
 
-      {viewModel.status === "conforme" && (
+      {conforme && (
         <FarmaciaSentinelas
-          grupos={viewModel.gruposSentinelas}
+          essenciais={viewModel.essenciais}
+          categorias={viewModel.categoriasEssenciais}
           totalUnidadesAtivas={viewModel.totalUnidadesAtivas}
         />
       )}

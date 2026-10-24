@@ -7,43 +7,27 @@ import { createCachedDataLoader } from "@/lib/cache";
 
 export interface FarmaciaSearchParams {
   q?: string | string[];
-  unidade?: string | string[];
-  limite?: string | string[];
 }
 
 const FARMACIA_BUSCA_MAXIMO_CARACTERES = 80;
+/** A busca traz todas as unidades com o remédio: o mapa e as duas visões dependem do conjunto completo. */
+export const FARMACIA_LIMITE_UNIDADES_BUSCA = 200;
 
 function firstValue(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
 }
 
-export const FARMACIA_UNIDADES_POR_PAGINA = 10;
-export const FARMACIA_LIMITE_MAXIMO_UNIDADES = 200;
-
 export interface FarmaciaContext {
   busca: string;
-  idUnidade: string | null;
-  limiteUnidades: number;
 }
 
 export function parseFarmaciaContext(
   searchParams: FarmaciaSearchParams,
 ): FarmaciaContext {
-  const limiteBruto = firstValue(searchParams.limite).trim();
-  const parsedLimite = /^\d+$/.test(limiteBruto)
-    ? Number(limiteBruto)
-    : Number.NaN;
-  const limiteUnidades =
-    Number.isInteger(parsedLimite) && parsedLimite >= 1
-      ? Math.min(parsedLimite, FARMACIA_LIMITE_MAXIMO_UNIDADES)
-      : FARMACIA_UNIDADES_POR_PAGINA;
-
   return {
     busca: firstValue(searchParams.q)
       .trim()
       .slice(0, FARMACIA_BUSCA_MAXIMO_CARACTERES),
-    idUnidade: firstValue(searchParams.unidade).trim() || null,
-    limiteUnidades,
   };
 }
 
@@ -60,15 +44,23 @@ async function fetchRawFarmaciaData(
   const [farmacia, portalConfig] = await Promise.all([
     getFarmaciaSus(tenantSlug, {
       busca: context.busca,
-      idUnidade: context.idUnidade ?? undefined,
-      limiteUnidades: context.limiteUnidades,
+      limiteUnidades: FARMACIA_LIMITE_UNIDADES_BUSCA,
     }),
     getPortalConfig(tenantSlug),
   ]);
 
   // Sentinelas só fazem sentido quando há estoque vigente (estado conforme).
   // O bloco é opcional: falha dele não derruba a busca.
-  const sentinelasVazias = { totalUnidadesAtivas: 0, sentinelas: [] };
+  const sentinelasVazias = {
+    totalUnidadesAtivas: 0,
+    indicadores: {
+      totalEssenciais: 0,
+      essenciaisNoEstoque: 0,
+      essenciaisSomenteCombinacao: 0,
+      essenciaisSemRegistro: 0,
+    },
+    sentinelas: [],
+  };
   const sentinelas =
     farmacia.status === "conforme"
       ? await getFarmaciaSentinelas(tenantSlug).catch(() => sentinelasVazias)

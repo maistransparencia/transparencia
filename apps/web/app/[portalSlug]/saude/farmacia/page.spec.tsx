@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const { loadFarmaciaDataMock } = vi.hoisted(() => ({
@@ -10,43 +10,64 @@ vi.mock("./loader", async (importOriginal) => ({
   loadFarmaciaData: loadFarmaciaDataMock,
 }));
 vi.mock("@/lib/metadata", () => ({ createPortalMetadata: vi.fn() }));
+vi.mock("next/dynamic", () => ({
+  default: () =>
+    function MapaMock() {
+      return <div data-testid="mapa-mock" />;
+    },
+}));
 
 const { default: FarmaciaPage } = await import("./page");
 
-function makeRaw(
-  farmacia: Record<string, unknown>,
-  busca = "",
-  idUnidade: string | null = null,
-) {
+function makeRaw(farmacia: Record<string, unknown>, busca = "") {
   return {
     portalSlug: "portal_x",
     portalName: "Prefeitura X",
-    context: { busca, idUnidade, limiteUnidades: 10 },
+    context: { busca },
     farmacia: {
       status: "conforme",
       dataColeta: "2026-10-20",
       dataPosicaoMaisRecente: "2026-10-18",
       diasDesdePosicaoMaisRecente: 2,
       totalUnidades: 0,
+      totalQuantidadeEstoque: 0,
+      totalApresentacoes: 0,
       unidades: [],
+      remedios: [],
       ...farmacia,
     },
     sentinelas:
       farmacia.status === undefined || farmacia.status === "conforme"
         ? {
             totalUnidadesAtivas: 4,
+            indicadores: {
+              totalEssenciais: 1,
+              essenciaisNoEstoque: 1,
+              essenciaisSomenteCombinacao: 0,
+              essenciaisSemRegistro: 0,
+            },
             sentinelas: [
               {
                 codigoPrincipioAtivo: "losartana",
                 nomePrincipioAtivo: "Losartana",
                 grupoTerapeutico: "cardiovascular",
                 ordemExibicao: 1,
+                destaqueCardInicial: true,
                 unidadesComRegistro: 3,
                 unidadesSomenteCombinacao: 0,
               },
             ],
           }
-        : { totalUnidadesAtivas: 0, sentinelas: [] },
+        : {
+            totalUnidadesAtivas: 0,
+            indicadores: {
+              totalEssenciais: 0,
+              essenciaisNoEstoque: 0,
+              essenciaisSomenteCombinacao: 0,
+              essenciaisSemRegistro: 0,
+            },
+            sentinelas: [],
+          },
   };
 }
 
@@ -56,32 +77,43 @@ const props = {
 };
 
 describe("FarmaciaPage", () => {
-  it("conforme sem busca: selo com data, campo e sem lista", async () => {
+  it("conforme sem busca: cabecalho, selo, busca com chips, indicadores e sem resultados", async () => {
     loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
     render(await FarmaciaPage(props));
-    expect(screen.getByText(/Estoque Transparente/)).toHaveTextContent(
-      "Atualizado em",
+    expect(
+      screen.getByText("Temas · Saúde · Farmácia SUS"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Estoque oficial/)).toHaveTextContent("18/10/2026");
+    expect(
+      screen.getByRole("form", { name: "Busca de medicamentos" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
+      "href",
+      "/portal_x/saude/farmacia?q=Losartana",
     );
-    const busca = screen.getByRole("form", { name: "Busca de medicamentos" });
-    expect(busca).toBeInTheDocument();
-    expect(within(busca).queryByRole("list")).toBeNull();
-    expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
+    expect(
+      screen.getByText("Unidades que informaram estoque"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Onde encontrar/)).toBeNull();
+    expect(screen.queryByTestId("mapa-mock")).toBeNull();
   });
 
-  it("conforme com busca: lista por unidade, paginacao e limpar filtro", async () => {
+  it("conforme com busca: resultados por unidade com mapa e sem filtro por unidade", async () => {
     loadFarmaciaDataMock.mockResolvedValue(
       makeRaw(
         {
-          totalUnidades: 3,
+          totalUnidades: 1,
+          totalQuantidadeEstoque: 10,
+          totalApresentacoes: 1,
           unidades: [
             {
               idUnidade: "1",
-              nomeUnidade: "UBS Centro",
+              nomeUnidade: "UBS CENTRO",
               enderecoUnidade: null,
               telefoneUnidade: null,
-              latitudeUnidade: null,
-              longitudeUnidade: null,
-              href: "/portal_x/saude/farmacia?q=dip&unidade=1",
+              latitudeUnidade: -20.9,
+              longitudeUnidade: -42,
+              totalQuantidadeEstoque: 10,
               medicamentos: [
                 {
                   nomeMedicamento: "Dipirona",
@@ -91,29 +123,43 @@ describe("FarmaciaPage", () => {
               ],
             },
           ],
+          remedios: [
+            {
+              nomeMedicamento: "Dipirona",
+              totalQuantidadeEstoque: 10,
+              totalUnidadesComEstoque: 1,
+              unidades: [{ idUnidade: "1", quantidadeEstoque: 10 }],
+            },
+          ],
         },
         "dip",
       ),
     );
     render(await FarmaciaPage(props));
-    expect(screen.getByText("UBS Centro")).toBeInTheDocument();
-    expect(screen.getByText("Dipirona")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Ver mais unidades" }),
-    ).toHaveAttribute("href", "/portal_x/saude/farmacia?q=dip&limite=20");
-    expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
-      "href",
-      "/portal_x/saude/farmacia",
-    );
+      screen.getByRole("heading", { name: "Onde encontrar “dip”" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ubs Centro")).toBeInTheDocument();
+    expect(screen.getByText("Dipirona")).toBeInTheDocument();
+    expect(screen.getByTestId("mapa-mock")).toBeInTheDocument();
+    expect(screen.queryByText(/Filtrar por esta unidade/)).toBeNull();
+    expect(screen.queryByText(/Ver mais unidades/)).toBeNull();
+  });
+
+  it("conforme com busca sem resultado: card tracejado sem mapa", async () => {
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({}, "xyz"));
+    render(await FarmaciaPage(props));
+    expect(
+      screen.getByText("“xyz” não aparece na lista de estoque"),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("mapa-mock")).toBeNull();
   });
 
   it("conforme: bloco de sentinelas abaixo da busca", async () => {
     loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
     render(await FarmaciaPage(props));
     expect(screen.getByText("Remédios essenciais")).toBeInTheDocument();
-    expect(
-      screen.getByText("3 de 4 unidades que informaram estoque"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("3 de 4 unidades")).toBeInTheDocument();
   });
 
   it("apagao e indisponivel: sem bloco de sentinelas", async () => {
@@ -149,5 +195,19 @@ describe("FarmaciaPage", () => {
     expect(
       screen.queryByRole("form", { name: "Busca de medicamentos" }),
     ).toBeNull();
+  });
+
+  it("dica de 2 letras so aparece em conforme com busca curta", async () => {
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({}, "d"));
+    const { unmount } = render(await FarmaciaPage(props));
+    expect(screen.getByText(/Digite pelo menos 2 letras/)).toBeInTheDocument();
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("d");
+    unmount();
+    for (const status of ["apagao", "indisponivel"]) {
+      loadFarmaciaDataMock.mockResolvedValue(makeRaw({ status }, "d"));
+      const { unmount: desmontar } = render(await FarmaciaPage(props));
+      expect(screen.queryByText(/Digite pelo menos 2 letras/)).toBeNull();
+      desmontar();
+    }
   });
 });

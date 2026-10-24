@@ -16,7 +16,20 @@ export interface FarmaciaSusUnidadeDTO {
   telefoneUnidade: string | null;
   latitudeUnidade: number | null;
   longitudeUnidade: number | null;
+  totalQuantidadeEstoque: number;
   medicamentos: FarmaciaSusMedicamentoDTO[];
+}
+
+export interface FarmaciaSusRemedioUnidadeDTO {
+  idUnidade: string;
+  quantidadeEstoque: number;
+}
+
+export interface FarmaciaSusRemedioDTO {
+  nomeMedicamento: string;
+  totalQuantidadeEstoque: number;
+  totalUnidadesComEstoque: number;
+  unidades: FarmaciaSusRemedioUnidadeDTO[];
 }
 
 export interface ResumoFarmaciaSusDTO {
@@ -28,7 +41,10 @@ export interface ResumoFarmaciaSusDTO {
 
 export interface FarmaciaSusDTO extends ResumoFarmaciaSusDTO {
   totalUnidades: number;
+  totalQuantidadeEstoque: number;
+  totalApresentacoes: number;
   unidades: FarmaciaSusUnidadeDTO[];
+  remedios: FarmaciaSusRemedioDTO[];
 }
 
 export interface GetFarmaciaSusFiltros {
@@ -84,6 +100,62 @@ function escapeLikePattern(termo: string): string {
 
 function isPortalSlugValido(portalSlug: unknown): portalSlug is string {
   return typeof portalSlug === "string" && portalSlug.trim() !== "";
+}
+
+const BUSCA_VAZIA = {
+  totalUnidades: 0,
+  totalQuantidadeEstoque: 0,
+  totalApresentacoes: 0,
+  unidades: [],
+  remedios: [],
+};
+
+/** Agrupa o estoque por remédio, do maior total para o menor. */
+export function agruparFarmaciaPorRemedio(
+  unidades: FarmaciaSusUnidadeDTO[],
+): FarmaciaSusRemedioDTO[] {
+  const porNome = unidades
+    .flatMap((u) =>
+      u.medicamentos.map((m) => ({
+        nomeMedicamento: m.nomeMedicamento,
+        idUnidade: u.idUnidade,
+        quantidadeEstoque: m.quantidadeEstoque,
+      })),
+    )
+    .reduce<Map<string, FarmaciaSusRemedioUnidadeDTO[]>>(
+      (acc, item) =>
+        new Map(acc).set(item.nomeMedicamento, [
+          ...(acc.get(item.nomeMedicamento) ?? []),
+          {
+            idUnidade: item.idUnidade,
+            quantidadeEstoque: item.quantidadeEstoque,
+          },
+        ]),
+      new Map(),
+    );
+
+  return [...porNome.entries()]
+    .map(([nomeMedicamento, itens]): FarmaciaSusRemedioDTO => {
+      const unidadesOrdenadas = [...itens].sort(
+        (a, b) => b.quantidadeEstoque - a.quantidadeEstoque,
+      );
+      return {
+        nomeMedicamento,
+        totalQuantidadeEstoque: unidadesOrdenadas.reduce(
+          (soma, i) => soma + i.quantidadeEstoque,
+          0,
+        ),
+        totalUnidadesComEstoque: new Set(
+          unidadesOrdenadas.map((i) => i.idUnidade),
+        ).size,
+        unidades: unidadesOrdenadas,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.totalQuantidadeEstoque - a.totalQuantidadeEstoque ||
+        a.nomeMedicamento.localeCompare(b.nomeMedicamento),
+    );
 }
 
 const RESUMO_INDISPONIVEL: ResumoFarmaciaSusDTO = {
@@ -142,7 +214,7 @@ export async function getFarmaciaSus(
   const termo = filtros?.busca?.trim() ?? "";
 
   if (resumo.status !== "conforme" || termo.length < TAMANHO_MINIMO_BUSCA) {
-    return { ...resumo, totalUnidades: 0, unidades: [] };
+    return { ...resumo, ...BUSCA_VAZIA };
   }
 
   const cleanSlug = portalSlug.trim();
@@ -180,7 +252,7 @@ export async function getFarmaciaSus(
     .execute();
 
   if (unidadesPagina.length === 0) {
-    return { ...resumo, totalUnidades: 0, unidades: [] };
+    return { ...resumo, ...BUSCA_VAZIA };
   }
 
   const ids = unidadesPagina.map((u) => u.id_unidade);
@@ -214,32 +286,51 @@ export async function getFarmaciaSus(
     .orderBy("nome_medicamento")
     .execute();
 
-  const unidades = unidadesPagina.map((pagina): FarmaciaSusUnidadeDTO => {
-    const linhasUnidade = linhas.filter(
-      (l) => l.id_unidade === pagina.id_unidade,
-    );
-    const primeira = linhasUnidade[0];
-    return {
-      idUnidade: pagina.id_unidade,
-      nomeUnidade: primeira?.nome_unidade ?? pagina.id_unidade,
-      enderecoUnidade: primeira?.endereco_unidade ?? null,
-      telefoneUnidade: primeira?.telefone_unidade ?? null,
-      ...toValidCoordinate(
-        primeira?.latitude_unidade,
-        primeira?.longitude_unidade,
-      ),
-      medicamentos: linhasUnidade.map((l) => ({
+  const unidades = unidadesPagina
+    .map((pagina): FarmaciaSusUnidadeDTO => {
+      const linhasUnidade = linhas.filter(
+        (l) => l.id_unidade === pagina.id_unidade,
+      );
+      const primeira = linhasUnidade[0];
+      const medicamentos = linhasUnidade.map((l) => ({
         nomeMedicamento: l.nome_medicamento ?? "",
         quantidadeEstoque: toNumberOrNull(l.quantidade_estoque) ?? 0,
         dataPosicaoEstoque: toIsoDateString(l.data_posicao_estoque),
-      })),
-    };
-  });
+      }));
+      return {
+        idUnidade: pagina.id_unidade,
+        nomeUnidade: primeira?.nome_unidade ?? pagina.id_unidade,
+        enderecoUnidade: primeira?.endereco_unidade ?? null,
+        telefoneUnidade: primeira?.telefone_unidade ?? null,
+        ...toValidCoordinate(
+          primeira?.latitude_unidade,
+          primeira?.longitude_unidade,
+        ),
+        totalQuantidadeEstoque: medicamentos.reduce(
+          (soma, m) => soma + m.quantidadeEstoque,
+          0,
+        ),
+        medicamentos,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.totalQuantidadeEstoque - a.totalQuantidadeEstoque ||
+        a.nomeUnidade.localeCompare(b.nomeUnidade),
+    );
+
+  const remedios = agruparFarmaciaPorRemedio(unidades);
 
   return {
     ...resumo,
     totalUnidades: Number(unidadesPagina[0].total_unidades),
+    totalQuantidadeEstoque: unidades.reduce(
+      (soma, u) => soma + u.totalQuantidadeEstoque,
+      0,
+    ),
+    totalApresentacoes: remedios.length,
     unidades,
+    remedios,
   };
 }
 
@@ -253,15 +344,48 @@ export interface FarmaciaSentinelaDTO {
   unidadesSomenteCombinacao: number;
 }
 
+export interface FarmaciaIndicadoresDTO {
+  totalEssenciais: number;
+  essenciaisNoEstoque: number;
+  essenciaisSomenteCombinacao: number;
+  essenciaisSemRegistro: number;
+}
+
 export interface FarmaciaSentinelasDTO {
   totalUnidadesAtivas: number;
+  indicadores: FarmaciaIndicadoresDTO;
   sentinelas: FarmaciaSentinelaDTO[];
 }
 
+const INDICADORES_VAZIO: FarmaciaIndicadoresDTO = {
+  totalEssenciais: 0,
+  essenciaisNoEstoque: 0,
+  essenciaisSomenteCombinacao: 0,
+  essenciaisSemRegistro: 0,
+};
+
 const SENTINELAS_VAZIO: FarmaciaSentinelasDTO = {
   totalUnidadesAtivas: 0,
+  indicadores: INDICADORES_VAZIO,
   sentinelas: [],
 };
+
+/** Quantos remédios essenciais aparecem no estoque, só em combinação ou em nenhuma unidade. */
+export function calcularIndicadoresFarmacia(
+  sentinelas: FarmaciaSentinelaDTO[],
+): FarmaciaIndicadoresDTO {
+  const noEstoque = sentinelas.filter((s) => s.unidadesComRegistro > 0);
+  const restantes = sentinelas.filter((s) => s.unidadesComRegistro === 0);
+  const somenteCombinacao = restantes.filter(
+    (s) => s.unidadesSomenteCombinacao > 0,
+  );
+  return {
+    totalEssenciais: sentinelas.length,
+    essenciaisNoEstoque: noEstoque.length,
+    essenciaisSomenteCombinacao: somenteCombinacao.length,
+    essenciaisSemRegistro: restantes.length - somenteCombinacao.length,
+  };
+}
 
 /**
  * Disponibilidade dos medicamentos-sentinela (RENAME 2024) lida do mart
@@ -297,11 +421,8 @@ export async function getFarmaciaSentinelas(
 
   if (linhas.length === 0) return SENTINELAS_VAZIO;
 
-  return {
-    totalUnidadesAtivas: Math.max(
-      ...linhas.map((l) => toNumberOrNull(l.total_unidades_ativas) ?? 0),
-    ),
-    sentinelas: linhas.map((l) => ({
+  const sentinelas = linhas.map(
+    (l): FarmaciaSentinelaDTO => ({
       codigoPrincipioAtivo: l.codigo_principio_ativo,
       nomePrincipioAtivo: l.nome_principio_ativo,
       grupoTerapeutico: l.grupo_terapeutico,
@@ -310,6 +431,14 @@ export async function getFarmaciaSentinelas(
       unidadesComRegistro: toNumberOrNull(l.unidades_com_registro) ?? 0,
       unidadesSomenteCombinacao:
         toNumberOrNull(l.unidades_somente_combinacao) ?? 0,
-    })),
+    }),
+  );
+
+  return {
+    totalUnidadesAtivas: Math.max(
+      ...linhas.map((l) => toNumberOrNull(l.total_unidades_ativas) ?? 0),
+    ),
+    indicadores: calcularIndicadoresFarmacia(sentinelas),
+    sentinelas,
   };
 }
