@@ -56,10 +56,9 @@ describe("EducacaoOrigemRecursosSection", () => {
     );
     expect(screen.getByText("De onde vem o dinheiro")).toBeInTheDocument();
     expect(
-      screen.getByText("Receitas do Fundo Municipal de Educação em 2025"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Não inclui o aporte da Prefeitura ao fundo."),
+      screen.getByText(
+        "Receitas do Fundo Municipal de Educação em 2025 – Não inclui o aporte da Prefeitura ao fundo.",
+      ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("composicao-recursos-bar")).toHaveAttribute(
       "role",
