@@ -33,16 +33,16 @@ describe("FarmaciaSentinelas", () => {
       screen.getByText("3 de 5 unidades que informaram estoque"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("sem registro de estoque informado"),
+      screen.getByText("não aparece na lista de estoque"),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Losartana/ })).toHaveAttribute(
       "href",
       "/portal_x/saude/farmacia?q=Losartana",
     );
-    expect(screen.getByText(/RENAME 2024/)).toBeInTheDocument();
+    expect(screen.getByText(/RENAME, edição 2024/)).toBeInTheDocument();
   });
 
-  it("item so em combinacao explica que nao ha registro como remedio isolado", () => {
+  it("item so em combinacao avisa que aparece misturado com outro remedio", () => {
     const comCombinacao = [
       {
         ...grupos[0],
@@ -60,7 +60,7 @@ describe("FarmaciaSentinelas", () => {
     );
     expect(
       screen.getByText(
-        "sem registro como remédio isolado; aparece só em combinação com outro remédio em 2 de 5 unidades",
+        "só aparece misturado com outro remédio em 2 de 5 unidades",
       ),
     ).toBeInTheDocument();
   });

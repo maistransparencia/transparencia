@@ -33,7 +33,7 @@ const ROTULOS_GRUPO_TERAPEUTICO: Record<string, string> = {
   dor_febre: "Dor e febre",
   antibiotico: "Antibióticos",
   gastrointestinal: "Estômago",
-  respiratorio: "Respiração",
+  respiratorio: "Pulmão e asma",
   endocrino: "Tireoide",
   saude_mental: "Saúde mental",
 };

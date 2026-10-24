@@ -36,11 +36,13 @@ export function FarmaciaSentinelas({
           Remédios essenciais
         </h2>
         <p className="text-subtleText text-xs">
-          Lista baseada na RENAME 2024 (Relação Nacional de Medicamentos
-          Essenciais). A fonte oficial publica apenas itens com saldo, por isso
-          “sem registro de estoque informado” indica que o remédio não aparece
-          na posição divulgada, não que o estoque tenha acabado. O município
-          pode também não ter o item padronizado.
+          Remédios que o Ministério da Saúde considera essenciais, segundo a
+          lista nacional (RENAME, edição 2024). Os dados oficiais só listam
+          remédios que têm estoque. Se um remédio aparece como “não aparece na
+          lista de estoque”, ele não consta na última lista divulgada. Isso não
+          prova que acabou: a prefeitura também pode não ter escolhido
+          distribuir esse remédio. Remédios misturados em um só comprimido (ex.:
+          valsartana + hidroclorotiazida) não contam como o remédio sozinho.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -64,8 +66,8 @@ export function FarmaciaSentinelas({
                       {item.unidadesComRegistro > 0
                         ? `${fmtNumber(item.unidadesComRegistro)} de ${fmtNumber(totalUnidadesAtivas)} unidades que informaram estoque`
                         : item.unidadesSomenteCombinacao > 0
-                          ? `sem registro como remédio isolado; aparece só em combinação com outro remédio em ${fmtNumber(item.unidadesSomenteCombinacao)} de ${fmtNumber(totalUnidadesAtivas)} unidades`
-                          : "sem registro de estoque informado"}
+                          ? `só aparece misturado com outro remédio em ${fmtNumber(item.unidadesSomenteCombinacao)} de ${fmtNumber(totalUnidadesAtivas)} unidades`
+                          : "não aparece na lista de estoque"}
                     </span>
                   </Link>
                 </li>
