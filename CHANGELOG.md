@@ -5,6 +5,23 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [1.23.2] - 2026-10-23
+
+### 🌟 Destaques da Versão (Origem dos Recursos da Educação)
+* **Rendimentos no programa de origem:** Na tela "De onde vem o dinheiro", os rendimentos de aplicação financeira passam a somar ao programa que os gerou (PNATE, PNAE, FUNDEB, salário-educação e FNDE), em vez de aparecerem em "Outras receitas". No PNATE de Porciúncula em 2026, o total passa de R$ 36.089,58 para R$ 39.167,25.
+* **Royalties em destaque:** A tela passa a mostrar o grupo "Royalties", com repasses e rendimentos de royalties do petróleo recebidos pelo fundo de Educação.
+
+### ✨ Novas Funcionalidades (Added)
+* **Card "Royalties" (`apps/web`):** Novo grupo na composição e nos cards de origem dos recursos. O detalhe cita a [Lei nº 12.858/2013](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12858.htm) (partilha destinada à educação) e a [Lei nº 7.990/1989](https://www.planalto.gov.br/ccivil_03/leis/l7990.htm) (compensação financeira pela produção de petróleo). A base legal de cada grupo passa a aceitar mais de uma lei.
+
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **`fct_receitas` e `int_receitas_consolidadas`:** Nova coluna `codigo_fonte_stn`, com a fonte STN só em dígitos (ex.: `1553`; legado `11230000`). Fica nula quando o código de receita não traz fonte ou traz mais de uma. O grão e a chave da tabela não mudam.
+* **`fct_educacao_origem_recursos_metricas`:** Naturezas específicas de programa decidem o grupo. Naturezas genéricas, como o rendimento de depósitos bancários (`1321.01`), seguem a fonte STN. Novo grupo `royalties` (fontes 1573, 1704, 1705 e 1720).
+* **`seed_fontes_recursos_stn`:** As fontes 1551, 1552 e 1553 estavam trocadas. O correto é PDDE, PNAE e PNATE.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **`llms.txt` e `llms-full.txt`:** Passam a descrever o grupo Royalties, as duas leis citadas e a regra de rendimentos somados ao programa de origem.
+
 ## [1.23.1] - 2026-10-21
 
 ### 🌟 Destaques da Versão (Avise-me: cidade em breve)

@@ -59,6 +59,14 @@ export const LEGISLACAO = {
     nome: "Lei 10.880/2004",
     url: `${PLANALTO}/_ato2004-2006/2004/lei/l10.880.htm`,
   },
+  lei12858: {
+    nome: "Lei 12.858/2013",
+    url: `${PLANALTO}/_ato2011-2014/2013/lei/l12858.htm`,
+  },
+  lei7990: {
+    nome: "Lei 7.990/1989",
+    url: `${PLANALTO}/leis/l7990.htm`,
+  },
   lei14654: {
     nome: "Lei 14.654/2023",
     url: `${PLANALTO}/_ato2023-2026/2023/lei/l14654.htm`,

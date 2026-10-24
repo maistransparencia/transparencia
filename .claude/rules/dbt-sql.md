@@ -26,11 +26,11 @@ paths:
 - **Proibição de `VARCHAR(n)` e `CHAR(n)`:** No PostgreSQL, não há ganho de performance em limitar o tamanho de campos de texto com `VARCHAR(n)` e essa prática impõe limitações rígidas arbitrárias.
 - **Padrão Obrigatório:** Todas as colunas de texto (strings, identificadores, códigos, e-mails, tokens, slugs, descrições) em migrações, DDLs e tabelas Postgres devem utilizar exclusivamente o tipo `TEXT`.
 
-## 21. GOVERNANÇA E SINCRONIZAÇÃO DE FIXTURES DE TESTE (dbt models ↔ packages/db/tests/fixtures/schema.sql.gz)
+## 21. BANCO DE TESTES DE `packages/db` CONSTRUÍDO PELO DBT (SEM FIXTURE VERSIONADO)
 
-- **Sincronização Obrigatória de Fixtures:** Sempre que houver qualquer criação, alteração ou remoção de modelos marts (`elt/transform/models/marts/`) ou tabelas de seed (`elt/transform/seeds/`), é **obrigatório** regerar o fixture compactado de teste `packages/db/tests/fixtures/schema.sql.gz` executando `make db/fixture/dump`.
-- **Validação Automatizada de Paridade:** Antes de submeter commits ou pull requests, execute `make db/fixture/check` (ou `make test`) para validar se o fixture restaurado no banco de testes está em 100% de paridade de tabelas, colunas, tipos de dados e registros estáticos de seed com a estrutura gerada pelo dbt.
-- **Fail-Fast no CI:** O pipeline de integração contínua rejeitará automaticamente qualquer PR que contenha discrepâncias entre as definições analíticas do dbt e o fixture de banco de dados utilizado pela camada TypeScript (`packages/db`).
+- **Sem artefato para manter:** O schema usado pelos testes TypeScript é construído por `make db/test/build` (`elt/scripts/build_test_db.py`: tabelas raw vazias a partir dos `_sources.yml`, `dbt seed` e `dbt run` com marts como tabelas). Não existe mais `schema.sql.gz`; é proibido reintroduzir dumps versionados do schema analítico.
+- **Paridade local = CI:** O CI executa exatamente o mesmo alvo (`make db/test/build`) contra o Postgres 17.6 da mesma imagem do `docker-compose.yml` (`postgres_test`, porta 5545). Fluxo local: `docker compose up -d postgres_test && make db/test/build && make test/ts`.
+- **Sincronização automática:** Alterar marts, seeds ou `_sources.yml` não exige nenhuma etapa manual extra; o próximo `make db/test/build` reflete a mudança.
 
 ## 22. PADRÕES DE ALTA PERFORMANCE EM QUERIES SQL (dbt MARTS & ANALYTICS)
 

@@ -9,6 +9,7 @@ export const ORDEM_FONTES_RECURSO: GrupoFonteRecursoEducacao[] = [
   "pnae",
   "pnate",
   "outros_fnde",
+  "royalties",
   "outras_receitas",
   "nao_detalhado",
 ];
@@ -25,6 +26,7 @@ export const ROTULO_FONTE_RECURSO: Record<GrupoFonteRecursoEducacao, string> = {
   pnae: "Merenda (PNAE)",
   pnate: "Transporte Escolar (PNATE)",
   outros_fnde: "Outros programas do FNDE",
+  royalties: "Royalties",
   outras_receitas: "Outras receitas",
   nao_detalhado: "Não detalhado",
 };
@@ -42,6 +44,8 @@ export const DESCRICAO_FONTE_RECURSO: Record<
   pnate: "Recursos que o município recebeu da União para o transporte escolar.",
   outros_fnde:
     "Recursos de outros programas do Fundo Nacional de Desenvolvimento da Educação.",
+  royalties:
+    "Recursos de royalties do petróleo recebidos pelo fundo, com os rendimentos de aplicação.",
   outras_receitas:
     "Rendimentos de aplicações, restituições e demais receitas do fundo.",
   nao_detalhado:
@@ -49,28 +53,48 @@ export const DESCRICAO_FONTE_RECURSO: Record<
 };
 
 export const BASE_LEGAL_FONTE_RECURSO: Partial<
-  Record<GrupoFonteRecursoEducacao, BaseLegalFonte>
+  Record<GrupoFonteRecursoEducacao, BaseLegalFonte[]>
 > = {
-  fundeb: {
-    rotulo: "Lei nº 14.113/2020",
-    url: urlLegislacao("lei14113"),
-  },
-  fundeb_complementacao_uniao: {
-    rotulo: "Lei nº 14.113/2020",
-    url: urlLegislacao("lei14113"),
-  },
-  salario_educacao: {
-    rotulo: "Lei nº 9.766/1998",
-    url: urlLegislacao("lei9766"),
-  },
-  pnae: {
-    rotulo: "Lei nº 11.947/2009",
-    url: urlLegislacao("lei11947"),
-  },
-  pnate: {
-    rotulo: "Lei nº 10.880/2004",
-    url: urlLegislacao("lei10880"),
-  },
+  fundeb: [
+    {
+      rotulo: "Lei nº 14.113/2020",
+      url: urlLegislacao("lei14113"),
+    },
+  ],
+  fundeb_complementacao_uniao: [
+    {
+      rotulo: "Lei nº 14.113/2020",
+      url: urlLegislacao("lei14113"),
+    },
+  ],
+  salario_educacao: [
+    {
+      rotulo: "Lei nº 9.766/1998",
+      url: urlLegislacao("lei9766"),
+    },
+  ],
+  pnae: [
+    {
+      rotulo: "Lei nº 11.947/2009",
+      url: urlLegislacao("lei11947"),
+    },
+  ],
+  pnate: [
+    {
+      rotulo: "Lei nº 10.880/2004",
+      url: urlLegislacao("lei10880"),
+    },
+  ],
+  royalties: [
+    {
+      rotulo: "Lei nº 12.858/2013",
+      url: urlLegislacao("lei12858"),
+    },
+    {
+      rotulo: "Lei nº 7.990/1989",
+      url: urlLegislacao("lei7990"),
+    },
+  ],
 };
 
 /** Cor fixa por fonte (não por posição), para não mudar de um ano para outro. */
@@ -81,6 +105,7 @@ export const COR_FONTE_RECURSO: Record<GrupoFonteRecursoEducacao, string> = {
   pnae: "bg-rose-500",
   pnate: "bg-violet-600",
   outros_fnde: "bg-cyan-600",
+  royalties: "bg-orange-500",
   outras_receitas: "bg-slate-400",
   nao_detalhado: "bg-slate-300",
 };

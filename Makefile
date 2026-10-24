@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp elt/farmacia-sus r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -37,7 +37,7 @@ test:
 	uv run --project elt pytest -v
 
 # PORTÃO DE QUALIDADE UNIFICADO (PARIDADE LOCAL ↔ CI)
-verify: check db/fixture/check test lint/ts test/ts build
+verify: check test db/test/build lint/ts test/ts build
 
 # PIPELINE
 
@@ -189,33 +189,10 @@ push/dry-run:
 
 
 
-# DB TEST FIXTURE (packages/db)
-# Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`
-# do banco de dev local (porta 5544) + dados estáticos (--data-only) das tabelas seed_*
-# (constantes fiscais, portais, classificações STN) — sem nenhuma linha de dado real
-# transacional (fct_*) e sem views de staging/intermediate.
-# Dados transacionais de teste são semeados dinamicamente via seed.ts.
-#
-# Ciclo de sincronização e governança:
-# 1. Qualquer alteração em modelos marts (elt/transform/models/marts/) ou seeds (elt/transform/seeds/)
-#    exige regerar o fixture: make db/fixture/dump
-# 2. Validar a paridade semântica entre dbt e o fixture: make db/fixture/check
-
-db/fixture/dump:
-	( \
-		set -eo pipefail ; \
-		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
-		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
-			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'analytics.seed_*' ; \
-		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
-			--data-only --inserts --no-owner --no-privileges --no-comments \
-			-t 'analytics.seed_*' -t 'analytics.dim_portais' -t 'analytics.dim_orgao' ; \
-	) | grep -v -E '^(\\restrict|\\unrestrict|SET transaction_timeout = 0;)' | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
-
-db/fixture/check:
-	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
-
-db/test/restore:
-	psql -v ON_ERROR_STOP=1 "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" -c "CREATE EXTENSION IF NOT EXISTS unaccent; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
-	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"
+# Banco de testes de packages/db: construído pelo dbt (seeds + marts como tabelas vazias)
+# a partir dos _sources.yml. Local e CI usam exatamente este mesmo alvo; não há fixture
+# versionado para manter. Dados transacionais de teste são semeados via seed.ts.
+# Uso local: docker compose up -d postgres_test && make db/test/build && make test/ts
+db/test/build:
+	DATABASE_URL="$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" \
+		uv run --project elt python elt/scripts/build_test_db.py
