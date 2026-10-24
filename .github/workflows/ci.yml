@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [main, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Em main não cancela: evita interromper o job migrate no meio da execução.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
-  ci:
+  elt:
     runs-on: ubuntu-latest
     services:
       flaresolverr:
@@ -89,11 +94,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
 
-      - name: Run build
-        run: pnpm build
-
   migrate:
-    needs: ci
+    needs: elt
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
