@@ -85,7 +85,7 @@ jobs:
           TARGET_YEAR="${{ steps.ping_check.outputs.target_year }}"
           uv run --project elt python elt/scripts/sync_inep_ideb_seed.py --year "$TARGET_YEAR"
 
-      - name: Seed database and dump test fixture
+      - name: Seed database and validate
         if: steps.ping_check.outputs.has_update == 'true'
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
@@ -93,8 +93,6 @@ jobs:
           make dbt/seed SELECT=seed_inep_ideb
           make dbt/run SELECT=stg_inep__ideb
           make dbt/test SELECT=stg_inep__ideb
-          make db/fixture/dump
-          make db/fixture/check
           make test
 
       - name: Create Pull Request
@@ -114,4 +112,3 @@ jobs:
             - **Fonte:** INEP/MEC (Resultados oficiais de Anos Iniciais e Anos Finais)
             - **Artefatos atualizados:**
               - `elt/transform/seeds/seed_inep_ideb.csv`
-              - `packages/db/tests/fixtures/schema.sql.gz`

@@ -33,9 +33,6 @@ jobs:
       - name: Run linting
         run: make check
 
-      - name: Verify test fixture synchronization
-        run: make db/fixture/check
-
       - name: Run tests
         run: make test
         env:
@@ -74,11 +71,16 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
-      - name: Restore packages/db test schema
-        run: |
-          set -eo pipefail
-          psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS unaccent; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
-          gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql -v ON_ERROR_STOP=1 "$DATABASE_URL"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Python dependencies
+        run: pip install uv && uv sync --project elt --all-groups
+
+      - name: Build packages/db test database (dbt)
+        run: make db/test/build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
 
