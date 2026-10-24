@@ -1,10 +1,13 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
+import Link from "next/link";
 
 export interface FarmaciaBuscaFormProps {
   action: string;
   defaultValue?: string;
   rotuloBotaoMobile?: string;
   className?: string;
+  /** Quando informado, exibe o link para voltar à página sem busca. */
+  limparHref?: string;
 }
 
 /** Formulário GET: o termo vira `?q=` e a rota resolve a busca no servidor. */
@@ -13,6 +16,7 @@ export function FarmaciaBuscaForm({
   defaultValue = "",
   rotuloBotaoMobile,
   className = "",
+  limparHref,
 }: FarmaciaBuscaFormProps) {
   return (
     <form
@@ -50,6 +54,15 @@ export function FarmaciaBuscaForm({
           <span>Buscar</span>
         )}
       </button>
+      {limparHref && (
+        <Link
+          href={limparHref}
+          className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl border border-[#e7e9ee] bg-white px-5 font-semibold text-ink text-sm transition-colors hover:bg-slate-50 sm:min-h-12"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+          Limpar busca
+        </Link>
+      )}
     </form>
   );
 }

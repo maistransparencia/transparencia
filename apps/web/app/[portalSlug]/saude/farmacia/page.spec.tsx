@@ -65,6 +65,7 @@ describe("FarmaciaPage", () => {
     const busca = screen.getByRole("form", { name: "Busca de medicamentos" });
     expect(busca).toBeInTheDocument();
     expect(within(busca).queryByRole("list")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
   });
 
   it("conforme com busca: lista por unidade, paginacao e limpar filtro", async () => {
@@ -100,6 +101,10 @@ describe("FarmaciaPage", () => {
     expect(
       screen.getByRole("link", { name: "Ver mais unidades" }),
     ).toHaveAttribute("href", "/portal_x/saude/farmacia?q=dip&limite=20");
+    expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
+      "href",
+      "/portal_x/saude/farmacia",
+    );
   });
 
   it("conforme: bloco de sentinelas abaixo da busca", async () => {

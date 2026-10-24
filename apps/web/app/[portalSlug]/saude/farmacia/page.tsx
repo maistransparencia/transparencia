@@ -86,6 +86,7 @@ export default async function FarmaciaPage({
           <FarmaciaBuscaForm
             action={formAction}
             defaultValue={viewModel.busca}
+            limparHref={viewModel.busca ? formAction : undefined}
           />
           {viewModel.hasBuscaCurta && (
             <p className="text-subtleText text-xs">
