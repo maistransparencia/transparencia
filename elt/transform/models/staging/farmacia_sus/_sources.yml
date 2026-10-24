@@ -17,6 +17,7 @@ sources:
           - name: numero_lote
           - name: quantidade_estoque
           - name: data_posicao_estoque
+          - name: data_validade
           - name: sigla_sistema_origem
           - name: data_coleta
 

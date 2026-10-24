@@ -38,6 +38,8 @@ models:
           - type: not_null
       - name: quantidade_estoque
         data_type: numeric(15, 3)
+      - name: data_validade
+        data_type: date
       - name: sigla_sistema_origem
         data_type: text
       - name: data_coleta

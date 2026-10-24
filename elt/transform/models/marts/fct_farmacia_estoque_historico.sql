@@ -16,6 +16,7 @@ with normalizado as (
         coalesce(numero_lote, '') as numero_lote,
         data_posicao_estoque,
         quantidade_estoque,
+        data_validade,
         sigla_sistema_origem,
         data_coleta
     from {{ ref('stg_farmacia_sus__estoque_medicamentos') }}
@@ -68,6 +69,7 @@ select
     nullif(numero_lote, '') as numero_lote,
     data_posicao_estoque,
     sum(quantidade_estoque)::numeric(15, 3) as quantidade_estoque,
+    max(data_validade) as data_validade,
     max(sigla_sistema_origem) as sigla_sistema_origem,
     max(data_coleta) as data_coleta
 from estoque

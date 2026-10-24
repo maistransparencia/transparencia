@@ -26,8 +26,8 @@ SCHEMA_PADRAO = "raw_farmacia_sus"
 TAMANHO_LOTE = 5000
 
 
-def _migrar_chave_primaria(schema: str, tabela: str, colunas: list[str]) -> str:
-    """Bloco DO idempotente: troca a PK da tabela legada só quando ela ainda difere da esperada."""
+def _migrar_chave_primaria(schema: str, tabela: str, colunas: list[str], limpeza_legada: str = "") -> str:
+    """Bloco DO idempotente: troca a PK da tabela legada só quando ela ainda difere da esperada (`limpeza_legada` roda antes, só nessa troca)."""
     esperado = ", ".join(f"'{c}'" for c in sorted(colunas))
     lista = ", ".join(f'"{c}"' for c in colunas)
     alvo = f'"{schema}"."{tabela}"'
@@ -47,6 +47,7 @@ def _migrar_chave_primaria(schema: str, tabela: str, colunas: list[str]) -> str:
         JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
         WHERE c.conrelid = '{alvo}'::regclass AND c.contype = 'p';
         IF pk_atual IS DISTINCT FROM ARRAY[{esperado}]::TEXT[] THEN
+            {limpeza_legada}
             {preparo}
             IF nome_pk IS NOT NULL THEN
                 EXECUTE format('ALTER TABLE {alvo} DROP CONSTRAINT %I', nome_pk);
@@ -58,6 +59,12 @@ def _migrar_chave_primaria(schema: str, tabela: str, colunas: list[str]) -> str:
 
 
 def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO) -> None:
+    # Linhas legadas com data fora do formato ISO têm id_registro de outra hash; a próxima coleta as recarrega normalizadas.
+    limpeza_estoque_legado = (
+        f'DELETE FROM "{schema}"."estoque_medicamentos" '
+        "WHERE data_posicao_estoque IS NOT NULL AND data_posicao_estoque <> '' "
+        "AND data_posicao_estoque !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$';"
+    )
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
 
@@ -67,6 +74,7 @@ def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO)
         "codigo_cnes" TEXT,
         "nome_medicamento" TEXT,
         "numero_lote" TEXT,
+        "data_validade" TEXT,
         "quantidade_estoque" TEXT,
         "data_posicao_estoque" TEXT NOT NULL DEFAULT '',
         "sigla_sistema_origem" TEXT,
@@ -99,7 +107,9 @@ def ensure_farmacia_sus_tables(engine: Connectable, schema: str = SCHEMA_PADRAO)
 
     ALTER TABLE "{schema}"."estoque_medicamentos" ADD COLUMN IF NOT EXISTS "sigla_sistema_origem" TEXT;
 
-    {_migrar_chave_primaria(schema, "estoque_medicamentos", ["portal_slug", "id_registro", "data_posicao_estoque"])}
+    ALTER TABLE "{schema}"."estoque_medicamentos" ADD COLUMN IF NOT EXISTS "data_validade" TEXT;
+
+    {_migrar_chave_primaria(schema, "estoque_medicamentos", ["portal_slug", "id_registro", "data_posicao_estoque"], limpeza_estoque_legado)}
 
     {_migrar_chave_primaria(schema, "coletas", ["portal_slug", "data_coleta"])}
     """

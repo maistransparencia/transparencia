@@ -42,6 +42,7 @@ CAMPOS_MEDICAMENTO = (
 )
 CAMPOS_QUANTIDADE = ("quantidade_estoque", "quantidade_em_estoque", "quantidade", "qt_estoque")
 CAMPOS_DATA_POSICAO = ("data_posicao_estoque", "data_posicao", "data_atualizacao")
+CAMPOS_DATA_VALIDADE = ("data_validade", "validade")
 CAMPOS_SIGLA_SISTEMA_ORIGEM = ("sigla_sistema_origem", "sigla_sistema", "sistema_origem")
 CAMPOS_NOME_UNIDADE = ("nome_fantasia", "razao_social", "nome_razao_social", "nome_estabelecimento", "nome")
 CAMPOS_LOGRADOURO = ("endereco_estabelecimento", "endereco", "logradouro")
@@ -67,14 +68,20 @@ def _primeiro_valor(registro: dict[str, Any], chaves: tuple[str, ...]) -> str | 
 
 
 def _data_posicao_iso(valor: str | None) -> str | None:
-    """Normaliza a data de posição para AAAA-MM-DD (evita duplicata por formato); devolve o original se irreconhecível."""
+    """Normaliza a data de posição para AAAA-MM-DD (evita duplicata por formato); devolve o original se irreconhecível ou impossível."""
     if valor is None:
         return None
     dia = valor[:10]
-    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", dia):
-        return dia
-    if re.fullmatch(r"\d{2}/\d{2}/\d{4}", dia):
-        return f"{dia[6:10]}-{dia[3:5]}-{dia[0:2]}"
+    formatos = (
+        (r"\d{4}-\d{2}-\d{2}", "%Y-%m-%d"),
+        (r"\d{2}/\d{2}/\d{4}", "%d/%m/%Y"),
+    )
+    for padrao, formato in formatos:
+        if re.fullmatch(padrao, dia):
+            try:
+                return datetime.strptime(dia, formato).strftime("%Y-%m-%d")
+            except ValueError:
+                return valor
     return valor
 
 
@@ -119,6 +126,7 @@ def _mapear_estoque(portal_slug: str, data_coleta: str, registro: dict[str, Any]
         "quantidade_estoque": _primeiro_valor(registro, CAMPOS_QUANTIDADE),
         "numero_lote": numero_lote,
         "data_posicao_estoque": data_posicao,
+        "data_validade": _data_posicao_iso(_primeiro_valor(registro, CAMPOS_DATA_VALIDADE)),
         "sigla_sistema_origem": _primeiro_valor(registro, CAMPOS_SIGLA_SISTEMA_ORIGEM),
         "data_coleta": data_coleta,
     }

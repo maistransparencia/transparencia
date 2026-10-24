@@ -298,3 +298,60 @@ def test_historico_de_estoque_tem_contrato_e_coletas_sao_listadas_por_portal(con
         )
     ).fetchall()
     assert [tuple(c) for c in coletas] == [(portal_a, "falha"), (portal_a, "sucesso"), (portal_b, "sucesso")]
+
+
+def test_staging_data_impossivel_vira_nula_sem_quebrar_o_cast(conn, raw, portais):
+    portal_a, _ = portais
+    for id_registro, data_posicao in (
+        ("d1", "2026-13-45"),
+        ("d2", "31/02/2026"),
+        ("d3", "2026-02-29"),
+        ("d4", "15/10/2026"),
+        ("d5", "2028-02-29"),
+    ):
+        raw.estoque(portal_a, id_registro, "1234", "Dipirona", data_posicao)
+    conn.commit()
+
+    linhas = conn.execute(
+        text(
+            "SELECT id_registro, data_posicao_estoque FROM analytics.stg_farmacia_sus__estoque_medicamentos "
+            "WHERE portal_slug = :p ORDER BY id_registro"
+        ),
+        {"p": portal_a},
+    ).fetchall()
+
+    assert [(linha[0], linha[1] and linha[1].isoformat()) for linha in linhas] == [
+        ("d1", None),
+        ("d2", None),
+        ("d3", None),
+        ("d4", "2026-10-15"),
+        ("d5", "2028-02-29"),
+    ]
+
+
+@pytest.mark.usefixtures("raw")
+def test_staging_data_validade_e_convertida_e_invalida_vira_nula(conn, portais):
+    portal_a, _ = portais
+    for id_registro, validade in (("v1", "2027-12-30"), ("v2", "2026-13-45"), ("v3", None)):
+        conn.execute(
+            text(
+                f"INSERT INTO {_SCHEMA}.estoque_medicamentos (portal_slug, id_registro, nome_medicamento, "
+                "data_posicao_estoque, data_validade) VALUES (:p, :i, 'Dipirona', :d, :v)"
+            ),
+            {"p": portal_a, "i": id_registro, "d": _dia(1), "v": validade},
+        )
+    conn.commit()
+
+    linhas = conn.execute(
+        text(
+            "SELECT id_registro, data_validade FROM analytics.stg_farmacia_sus__estoque_medicamentos "
+            "WHERE portal_slug = :p ORDER BY id_registro"
+        ),
+        {"p": portal_a},
+    ).fetchall()
+
+    assert [(linha[0], linha[1] and linha[1].isoformat()) for linha in linhas] == [
+        ("v1", "2027-12-30"),
+        ("v2", None),
+        ("v3", None),
+    ]

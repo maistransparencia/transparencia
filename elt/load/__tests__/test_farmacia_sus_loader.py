@@ -102,7 +102,8 @@ def test_ddl_migra_chaves_legadas_preservando_linhas_e_e_idempotente(engine):
         )
         conn.execute(
             text(
-                f"INSERT INTO {schema}.estoque_medicamentos (portal_slug, id_registro, data_posicao_estoque) VALUES ('p', '1', NULL)"
+                f"INSERT INTO {schema}.estoque_medicamentos (portal_slug, id_registro, data_posicao_estoque) VALUES "
+                "('p', '1', NULL), ('p', '2', '15/10/2026'), ('p', '3', '2026-10-15')"
             )
         )
         conn.execute(
@@ -131,7 +132,7 @@ def test_ddl_migra_chaves_legadas_preservando_linhas_e_e_idempotente(engine):
         "estoque_medicamentos": ["data_posicao_estoque", "id_registro", "portal_slug"],
         "coletas": ["data_coleta", "portal_slug"],
     }
-    assert [tuple(r) for r in posicao] == [("",)]
+    assert sorted(tuple(r) for r in posicao) == [("",), ("2026-10-15",)]
     assert [tuple(r) for r in coleta] == [("falha", "")]
     assert colunas == 1
 
