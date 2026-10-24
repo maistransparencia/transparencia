@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@transparencia/db", () => ({
+  getFarmaciaSentinelas: vi.fn(),
   getFarmaciaSus: vi.fn(),
   getPortalConfig: vi.fn(),
 }));
 
-const { getFarmaciaSus, getPortalConfig } = await import("@transparencia/db");
+const { getFarmaciaSentinelas, getFarmaciaSus, getPortalConfig } = await import(
+  "@transparencia/db"
+);
 const { parseFarmaciaContext, loadFarmaciaData } = await import("./loader");
 
 describe("parseFarmaciaContext", () => {
@@ -73,6 +76,46 @@ describe("loadFarmaciaData", () => {
     vi.mocked(getPortalConfig).mockResolvedValue(null as never);
     const result = await loadFarmaciaData("portal_x", {});
     expect(result.portalName).toBe("");
+  });
+
+  it("carrega sentinelas somente no estado conforme", async () => {
+    const sentinelas = { totalUnidadesAtivas: 2, sentinelas: [] };
+    vi.mocked(getFarmaciaSentinelas).mockResolvedValue(sentinelas);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+
+    vi.mocked(getFarmaciaSus).mockResolvedValue({
+      status: "conforme",
+      unidades: [],
+    } as never);
+    const conforme = await loadFarmaciaData("portal_conforme", {});
+    expect(getFarmaciaSentinelas).toHaveBeenCalledWith("portal_conforme");
+    expect(conforme.sentinelas).toEqual(sentinelas);
+
+    vi.mocked(getFarmaciaSentinelas).mockClear();
+    vi.mocked(getFarmaciaSus).mockResolvedValue({
+      status: "apagao",
+      unidades: [],
+    } as never);
+    const apagao = await loadFarmaciaData("portal_apagao", {});
+    expect(getFarmaciaSentinelas).not.toHaveBeenCalled();
+    expect(apagao.sentinelas.sentinelas).toEqual([]);
+  });
+
+  it("isola a falha das sentinelas sem derrubar a busca", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({
+      status: "conforme",
+      unidades: [],
+    } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+    vi.mocked(getFarmaciaSentinelas).mockRejectedValue(new Error("falha"));
+
+    const result = await loadFarmaciaData("portal_conforme", {});
+
+    expect(result.sentinelas).toEqual({
+      totalUnidadesAtivas: 0,
+      sentinelas: [],
+    });
+    expect(result.farmacia.status).toBe("conforme");
   });
 
   it("lanca erro com portalSlug vazio", async () => {

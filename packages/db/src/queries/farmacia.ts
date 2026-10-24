@@ -242,3 +242,74 @@ export async function getFarmaciaSus(
     unidades,
   };
 }
+
+export interface FarmaciaSentinelaDTO {
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo: string;
+  grupoTerapeutico: string;
+  ordemExibicao: number;
+  destaqueCardInicial: boolean;
+  unidadesComRegistro: number;
+  unidadesSomenteCombinacao: number;
+}
+
+export interface FarmaciaSentinelasDTO {
+  totalUnidadesAtivas: number;
+  sentinelas: FarmaciaSentinelaDTO[];
+}
+
+const SENTINELAS_VAZIO: FarmaciaSentinelasDTO = {
+  totalUnidadesAtivas: 0,
+  sentinelas: [],
+};
+
+/**
+ * Disponibilidade dos medicamentos-sentinela (RENAME 2024) lida do mart
+ * `fct_farmacia_sentinela_disponibilidade`: quantas das unidades ativas
+ * informaram estoque de cada princípio ativo. Portal sem linhas devolve vazio.
+ */
+export async function getFarmaciaSentinelas(
+  portalSlug: string,
+): Promise<FarmaciaSentinelasDTO> {
+  if (!isPortalSlugValido(portalSlug)) return SENTINELAS_VAZIO;
+
+  const linhas = await db
+    .selectFrom("fct_farmacia_sentinela_disponibilidade")
+    .select([
+      "codigo_principio_ativo",
+      sql<string>`min(nome_principio_ativo)`.as("nome_principio_ativo"),
+      sql<string>`min(grupo_terapeutico)`.as("grupo_terapeutico"),
+      sql<number>`min(ordem_exibicao)`.as("ordem_exibicao"),
+      sql<boolean>`bool_or(destaque_card_inicial)`.as("destaque_card_inicial"),
+      sql<number>`count(*)`.as("total_unidades_ativas"),
+      sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque')`.as(
+        "unidades_com_registro",
+      ),
+      sql<number>`count(*) filter (where status_disponibilidade = 'sem_registro_estoque' and quantidade_apresentacoes_combinacao_com_estoque > 0)`.as(
+        "unidades_somente_combinacao",
+      ),
+    ])
+    .where("portal_slug", "=", portalSlug.trim())
+    .groupBy(["portal_slug", "codigo_principio_ativo"])
+    .orderBy("ordem_exibicao")
+    .orderBy("codigo_principio_ativo")
+    .execute();
+
+  if (linhas.length === 0) return SENTINELAS_VAZIO;
+
+  return {
+    totalUnidadesAtivas: Math.max(
+      ...linhas.map((l) => toNumberOrNull(l.total_unidades_ativas) ?? 0),
+    ),
+    sentinelas: linhas.map((l) => ({
+      codigoPrincipioAtivo: l.codigo_principio_ativo,
+      nomePrincipioAtivo: l.nome_principio_ativo,
+      grupoTerapeutico: l.grupo_terapeutico,
+      ordemExibicao: toNumberOrNull(l.ordem_exibicao) ?? 0,
+      destaqueCardInicial: Boolean(l.destaque_card_inicial),
+      unidadesComRegistro: toNumberOrNull(l.unidades_com_registro) ?? 0,
+      unidadesSomenteCombinacao:
+        toNumberOrNull(l.unidades_somente_combinacao) ?? 0,
+    })),
+  };
+}

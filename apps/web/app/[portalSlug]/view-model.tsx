@@ -15,6 +15,7 @@ import {
 } from "./educacao/view-model";
 import type { loadVisaoGeralData } from "./loader";
 import {
+  buildExemplosFarmacia,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
 } from "./saude/farmacia/view-model";
@@ -447,6 +448,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     },
   };
 
+  const farmaciaDetailUrl = buildNavUrl({
+    path: "/saude/farmacia",
+    slug: portalSlug,
+    exercice: undefined,
+    entidades: undefined,
+  });
+
   return {
     portalName,
     periodText,
@@ -492,12 +500,14 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
               raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
           })
         : undefined,
-    farmaciaDetailUrl: buildNavUrl({
-      path: "/saude/farmacia",
-      slug: portalSlug,
-      exercice: undefined,
-      entidades: undefined,
-    }),
+    farmaciaDetailUrl,
+    farmaciaExemplos:
+      raw.resumoFarmacia?.status === "conforme"
+        ? buildExemplosFarmacia(
+            raw.sentinelasFarmacia?.sentinelas ?? [],
+            farmaciaDetailUrl,
+          )
+        : [],
     educacaoDetailUrl: routeUrl("/educacao"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...buildObrasMiniMap(raw.obrasPreview),

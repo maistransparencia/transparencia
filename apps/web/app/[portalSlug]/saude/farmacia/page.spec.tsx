@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const { loadFarmaciaDataMock } = vi.hoisted(() => ({
@@ -31,6 +31,22 @@ function makeRaw(
       unidades: [],
       ...farmacia,
     },
+    sentinelas:
+      farmacia.status === undefined || farmacia.status === "conforme"
+        ? {
+            totalUnidadesAtivas: 4,
+            sentinelas: [
+              {
+                codigoPrincipioAtivo: "losartana",
+                nomePrincipioAtivo: "Losartana",
+                grupoTerapeutico: "cardiovascular",
+                ordemExibicao: 1,
+                unidadesComRegistro: 3,
+                unidadesSomenteCombinacao: 0,
+              },
+            ],
+          }
+        : { totalUnidadesAtivas: 0, sentinelas: [] },
   };
 }
 
@@ -46,10 +62,10 @@ describe("FarmaciaPage", () => {
     expect(screen.getByText(/Estoque Transparente/)).toHaveTextContent(
       "Atualizado em",
     );
-    expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("list")).toBeNull();
+    const busca = screen.getByRole("form", { name: "Busca de medicamentos" });
+    expect(busca).toBeInTheDocument();
+    expect(within(busca).queryByRole("list")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
   });
 
   it("conforme com busca: lista por unidade, paginacao e limpar filtro", async () => {
@@ -85,6 +101,29 @@ describe("FarmaciaPage", () => {
     expect(
       screen.getByRole("link", { name: "Ver mais unidades" }),
     ).toHaveAttribute("href", "/portal_x/saude/farmacia?q=dip&limite=20");
+    expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
+      "href",
+      "/portal_x/saude/farmacia",
+    );
+  });
+
+  it("conforme: bloco de sentinelas abaixo da busca", async () => {
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
+    render(await FarmaciaPage(props));
+    expect(screen.getByText("Remédios essenciais")).toBeInTheDocument();
+    expect(
+      screen.getByText("3 de 4 unidades que informaram estoque"),
+    ).toBeInTheDocument();
+  });
+
+  it("apagao e indisponivel: sem bloco de sentinelas", async () => {
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({ status: "apagao" }));
+    const { unmount } = render(await FarmaciaPage(props));
+    expect(screen.queryByText("Remédios essenciais")).toBeNull();
+    unmount();
+    loadFarmaciaDataMock.mockResolvedValue(makeRaw({ status: "indisponivel" }));
+    render(await FarmaciaPage(props));
+    expect(screen.queryByText("Remédios essenciais")).toBeNull();
   });
 
   it("apagao: sentinela com os dois botoes", async () => {

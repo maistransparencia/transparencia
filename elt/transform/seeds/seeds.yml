@@ -184,3 +184,44 @@ seeds:
           - not_null
 
 
+
+  - name: seed_farmacia_medicamentos_sentinela
+    description: "Lista editorial de medicamentos-sentinela da Farmácia SUS (RENAME 2024, Anexo I, e PNAUM). Revisar a cada nova RENAME. Um código pode ter mais de um prefixo de nome."
+    config:
+      column_types:
+        codigo_principio_ativo: text
+        nome_principio_ativo: text
+        prefixo_nome_normalizado: text
+        grupo_terapeutico: text
+        ordem_exibicao: text
+        destaque_card_inicial: text
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - codigo_principio_ativo
+            - prefixo_nome_normalizado
+    columns:
+      - name: codigo_principio_ativo
+        tests:
+          - not_null
+      - name: nome_principio_ativo
+        tests:
+          - not_null
+      - name: prefixo_nome_normalizado
+        description: "Prefixo do nome do medicamento sem acento e em minúsculas, casado por regex de início de nome"
+        tests:
+          - not_null
+      - name: grupo_terapeutico
+        tests:
+          - not_null
+          - accepted_values:
+              values: [cardiovascular, diabetes, dor_febre, antibiotico, gastrointestinal, respiratorio, endocrino, saude_mental]
+      - name: ordem_exibicao
+        tests:
+          - not_null
+      - name: destaque_card_inicial
+        description: "Escolha editorial: 'true' para os remédios mais comuns exibidos como exemplos no card da Farmácia SUS na Visão Geral"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['true', 'false']

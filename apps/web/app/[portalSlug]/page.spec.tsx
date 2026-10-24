@@ -248,6 +248,32 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("conforme da farmacia mostra os exemplos de busca das sentinelas em destaque", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        resumoFarmacia: { status: "conforme" },
+        sentinelasFarmacia: {
+          totalUnidadesAtivas: 3,
+          sentinelas: [
+            {
+              codigoPrincipioAtivo: "dipirona",
+              nomePrincipioAtivo: "Dipirona",
+              grupoTerapeutico: "dor_febre",
+              ordemExibicao: 1,
+              destaqueCardInicial: true,
+              unidadesComRegistro: 2,
+              unidadesSomenteCombinacao: 0,
+            },
+          ],
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(screen.getByText("Exemplos:")).toBeInTheDocument();
+    const pilula = screen.getByRole("link", { name: "Dipirona" });
+    expect(pilula.getAttribute("href")).toContain("/saude/farmacia?q=Dipirona");
+  });
+
   it("ordena Em destaque (farmacia, educacao, obras), radar e pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({

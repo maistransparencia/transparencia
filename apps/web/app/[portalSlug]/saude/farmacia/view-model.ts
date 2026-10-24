@@ -1,3 +1,4 @@
+import type { FarmaciaSentinelaDTO } from "@transparencia/db";
 import { fmtDate } from "@transparencia/ui";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { isValidMapCoordinate } from "@/lib/tile-calc";
@@ -25,6 +26,88 @@ function buildFarmaciaHref(
   const queryString = query.toString();
   const base = `/${portalSlug}/saude/farmacia`;
   return queryString ? `${base}?${queryString}` : base;
+}
+
+export const FARMACIA_EXEMPLOS_MAXIMO = 6;
+
+export interface FarmaciaExemplo {
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo: string;
+  href: string;
+}
+
+/**
+ * Remédios comuns (curadoria no seed) que têm estoque informado em alguma
+ * unidade, como atalhos de busca no card da Visão Geral.
+ */
+export function buildExemplosFarmacia(
+  sentinelas: FarmaciaSentinelaDTO[],
+  detailUrl: string,
+): FarmaciaExemplo[] {
+  return sentinelas
+    .filter((s) => s.destaqueCardInicial && s.unidadesComRegistro > 0)
+    .toSorted((a, b) => a.ordemExibicao - b.ordemExibicao)
+    .slice(0, FARMACIA_EXEMPLOS_MAXIMO)
+    .map((s) => ({
+      codigoPrincipioAtivo: s.codigoPrincipioAtivo,
+      nomePrincipioAtivo: s.nomePrincipioAtivo,
+      href: `${detailUrl}?${new URLSearchParams({ q: s.nomePrincipioAtivo }).toString()}`,
+    }));
+}
+
+const ROTULOS_GRUPO_TERAPEUTICO: Record<string, string> = {
+  cardiovascular: "Coração e pressão",
+  diabetes: "Diabetes",
+  dor_febre: "Dor e febre",
+  antibiotico: "Antibióticos",
+  gastrointestinal: "Estômago",
+  respiratorio: "Pulmão e asma",
+  endocrino: "Tireoide",
+  saude_mental: "Saúde mental",
+};
+
+function buildGruposSentinelas(
+  portalSlug: string,
+  sentinelas: FarmaciaRawData["sentinelas"],
+) {
+  const grupos = sentinelas.sentinelas.reduce<
+    Map<
+      string,
+      {
+        codigo: string;
+        rotulo: string;
+        itens: {
+          codigoPrincipioAtivo: string;
+          nomePrincipioAtivo: string;
+          unidadesComRegistro: number;
+          unidadesSomenteCombinacao: number;
+          href: string;
+        }[];
+      }
+    >
+  >((acc, item) => {
+    const grupo = acc.get(item.grupoTerapeutico) ?? {
+      codigo: item.grupoTerapeutico,
+      rotulo:
+        ROTULOS_GRUPO_TERAPEUTICO[item.grupoTerapeutico] ??
+        item.grupoTerapeutico.replaceAll("_", " "),
+      itens: [],
+    };
+    return new Map(acc).set(item.grupoTerapeutico, {
+      ...grupo,
+      itens: [
+        ...grupo.itens,
+        {
+          codigoPrincipioAtivo: item.codigoPrincipioAtivo,
+          nomePrincipioAtivo: item.nomePrincipioAtivo,
+          unidadesComRegistro: item.unidadesComRegistro,
+          unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
+          href: buildFarmaciaHref(portalSlug, { q: item.nomePrincipioAtivo }),
+        },
+      ],
+    });
+  }, new Map());
+  return [...grupos.values()];
 }
 
 export function buildFatoApagao(
@@ -78,7 +161,7 @@ export function buildTextoWhatsApp(params: {
 }
 
 export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
-  const { farmacia, context, portalSlug, portalName } = raw;
+  const { farmacia, context, portalSlug, portalName, sentinelas } = raw;
   const hasBusca = context.busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES;
   const hasBuscaCurta = context.busca.length > 0 && !hasBusca;
   const unidadesComMapa = farmacia.unidades.filter((u) =>
@@ -113,6 +196,8 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
       longitude: u.longitudeUnidade as number,
     })),
     hasMaisUnidades,
+    totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
+    gruposSentinelas: buildGruposSentinelas(portalSlug, sentinelas),
     maisUnidadesHref: buildFarmaciaHref(portalSlug, {
       q: context.busca,
       unidade: context.idUnidade,

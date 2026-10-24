@@ -1,8 +1,12 @@
-import type { ResumoFarmaciaSusDTO } from "@transparencia/db";
+import type {
+  FarmaciaSentinelasDTO,
+  ResumoFarmaciaSusDTO,
+} from "@transparencia/db";
 import {
   getContratosServicosVigentes,
   getEntidades,
   getExecucaoOrcamentariaMetrics,
+  getFarmaciaSentinelas,
   getFolhaVsServicosMetrics,
   getFontesReceitaMetrics,
   getLicitacaoGapsMetrics,
@@ -27,6 +31,11 @@ const RESUMO_FARMACIA_INDISPONIVEL: ResumoFarmaciaSusDTO = {
   dataColeta: null,
   dataPosicaoMaisRecente: null,
   diasDesdePosicaoMaisRecente: null,
+};
+
+const SENTINELAS_FARMACIA_VAZIO: FarmaciaSentinelasDTO = {
+  totalUnidadesAtivas: 0,
+  sentinelas: [],
 };
 
 export interface PortalRouteSearchParams {
@@ -215,6 +224,13 @@ async function fetchRawVisaoGeralData(
     ),
   ]);
 
+  const sentinelasFarmacia =
+    resumoFarmacia?.status === "conforme"
+      ? await getFarmaciaSentinelas(tenantSlug).catch(
+          (): FarmaciaSentinelasDTO => SENTINELAS_FARMACIA_VAZIO,
+        )
+      : SENTINELAS_FARMACIA_VAZIO;
+
   const execSummary = summarizeExecucaoMetrics(execMetricas);
   const totalArrecadado =
     posicaoMetricas?.totalArrecadado ?? fontesMetricas?.totalArrecadado ?? 0;
@@ -266,6 +282,7 @@ async function fetchRawVisaoGeralData(
     obrasPreview,
     resumoEducacao,
     resumoFarmacia,
+    sentinelasFarmacia,
   };
 }
 

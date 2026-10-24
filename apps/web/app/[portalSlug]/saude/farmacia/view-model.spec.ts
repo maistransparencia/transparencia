@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@transparencia/db", () => ({
+  getFarmaciaSentinelas: vi.fn(),
   getFarmaciaSus: vi.fn(),
   getPortalConfig: vi.fn(),
 }));
@@ -46,6 +47,35 @@ function makeRaw(opts: {
       totalUnidades: opts.totalUnidades ?? unidades.length,
       unidades,
     },
+    sentinelas: {
+      totalUnidadesAtivas: 4,
+      sentinelas: [
+        {
+          codigoPrincipioAtivo: "losartana",
+          nomePrincipioAtivo: "Losartana",
+          grupoTerapeutico: "cardiovascular",
+          ordemExibicao: 1,
+          unidadesComRegistro: 3,
+          unidadesSomenteCombinacao: 0,
+        },
+        {
+          codigoPrincipioAtivo: "metformina",
+          nomePrincipioAtivo: "Metformina",
+          grupoTerapeutico: "diabetes",
+          ordemExibicao: 2,
+          unidadesComRegistro: 0,
+          unidadesSomenteCombinacao: 0,
+        },
+        {
+          codigoPrincipioAtivo: "captopril",
+          nomePrincipioAtivo: "Captopril",
+          grupoTerapeutico: "cardiovascular",
+          ordemExibicao: 3,
+          unidadesComRegistro: 1,
+          unidadesSomenteCombinacao: 0,
+        },
+      ],
+    },
   } as unknown as Parameters<typeof buildFarmaciaViewModel>[0];
 }
 
@@ -79,6 +109,53 @@ describe("buildFarmaciaViewModel", () => {
     expect(vm.hasBuscaCurta).toBe(true);
     const vazio = buildFarmaciaViewModel(makeRaw({}));
     expect(vazio.hasBuscaCurta).toBe(false);
+  });
+});
+
+describe("buildFarmaciaViewModel sentinelas", () => {
+  it("agrupa por grupo terapeutico em ordem estavel com href de busca", () => {
+    const vm = buildFarmaciaViewModel(makeRaw({}));
+    expect(vm.totalUnidadesAtivas).toBe(4);
+    expect(vm.gruposSentinelas.map((g) => g.codigo)).toEqual([
+      "cardiovascular",
+      "diabetes",
+    ]);
+    expect(vm.gruposSentinelas[0].rotulo).toBe("Coração e pressão");
+    expect(
+      vm.gruposSentinelas[0].itens.map((i) => i.nomePrincipioAtivo),
+    ).toEqual(["Losartana", "Captopril"]);
+    expect(vm.gruposSentinelas[1].itens[0].href).toBe(
+      "/portal_x/saude/farmacia?q=Metformina",
+    );
+  });
+});
+
+describe("buildFarmaciaViewModel rotulos de grupos", () => {
+  it.each([
+    "cardiovascular",
+    "diabetes",
+    "dor_febre",
+    "antibiotico",
+    "gastrointestinal",
+    "respiratorio",
+    "endocrino",
+    "saude_mental",
+  ])("grupo %s tem rotulo proprio", (grupoTerapeutico) => {
+    const raw = makeRaw({});
+    raw.sentinelas.sentinelas = [
+      {
+        codigoPrincipioAtivo: "x",
+        nomePrincipioAtivo: "X",
+        grupoTerapeutico,
+        ordemExibicao: 1,
+        destaqueCardInicial: false,
+        unidadesComRegistro: 1,
+        unidadesSomenteCombinacao: 0,
+      },
+    ];
+    const [grupo] = buildFarmaciaViewModel(raw).gruposSentinelas;
+    expect(grupo.rotulo).not.toContain("_");
+    expect(grupo.rotulo).not.toBe(grupoTerapeutico);
   });
 });
 

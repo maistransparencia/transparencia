@@ -21,4 +21,20 @@ describe("FarmaciaBuscaForm", () => {
       screen.getByRole("button", { name: "Buscar remédio no estoque" }),
     ).toHaveAttribute("type", "submit");
   });
+
+  it("mostra o link Limpar busca apenas quando limparHref e informado", () => {
+    const { rerender } = render(<FarmaciaBuscaForm action="/x" />);
+    expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
+    rerender(
+      <FarmaciaBuscaForm
+        action="/x"
+        defaultValue="dipirona"
+        limparHref="/portal_x/saude/farmacia"
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
+      "href",
+      "/portal_x/saude/farmacia",
+    );
+  });
 });

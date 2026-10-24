@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: fct_farmacia_sentinela_disponibilidade
+    description: "Disponibilidade dos medicamentos-sentinela (RENAME 2024) por unidade ativa da Farmácia SUS. A fonte publica apenas itens com saldo, então 'sem_registro_estoque' indica ausência de registro, não estoque zerado."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - codigo_cnes
+            - codigo_principio_ativo
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: codigo_cnes
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: codigo_principio_ativo
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: nome_principio_ativo
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: grupo_terapeutico
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: ordem_exibicao
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: destaque_card_inicial
+        description: "Remédio comum escolhido para aparecer como exemplo no card da Farmácia SUS na Visão Geral (curadoria no seed)."
+        data_type: boolean
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: status_disponibilidade
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - accepted_values:
+              values: [com_registro_estoque, sem_registro_estoque]
+      - name: quantidade_apresentacoes_com_estoque
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: quantidade_apresentacoes_combinacao_com_estoque
+        description: "Apresentações em dose fixa (com '+' ou 'associada') que contêm o princípio ativo e têm saldo. Não contam como o sentinela; explicam por que a busca textual encontra o nome."
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null

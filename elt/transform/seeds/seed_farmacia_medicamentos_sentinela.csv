@@ -1,0 +1,23 @@
+codigo_principio_ativo,nome_principio_ativo,prefixo_nome_normalizado,grupo_terapeutico,ordem_exibicao,destaque_card_inicial
+losartana,Losartana,losartana,cardiovascular,1,true
+captopril,Captopril,captopril,cardiovascular,2,false
+hidroclorotiazida,Hidroclorotiazida,hidroclorotiazida,cardiovascular,3,false
+enalapril,Enalapril,enalapril,cardiovascular,4,false
+anlodipino,Anlodipino,anlodipino,cardiovascular,5,false
+atenolol,Atenolol,atenolol,cardiovascular,6,false
+furosemida,Furosemida,furosemida,cardiovascular,7,false
+sinvastatina,Sinvastatina,sinvastatina,cardiovascular,8,false
+acido_acetilsalicilico,Ácido acetilsalicílico,acido acetilsalicilico,cardiovascular,9,false
+metformina,Metformina,metformina,diabetes,10,true
+glibenclamida,Glibenclamida,glibenclamida,diabetes,11,false
+insulina,Insulina,insulina humana nph,diabetes,12,false
+insulina,Insulina,insulina humana regular,diabetes,12,false
+dipirona,Dipirona,dipirona,dor_febre,13,true
+paracetamol,Paracetamol,paracetamol,dor_febre,14,true
+ibuprofeno,Ibuprofeno,ibuprofeno,dor_febre,15,false
+amoxicilina,Amoxicilina,amoxicilina,antibiotico,16,true
+omeprazol,Omeprazol,omeprazol,gastrointestinal,17,true
+salbutamol,Salbutamol,salbutamol,respiratorio,18,false
+levotiroxina,Levotiroxina,levotiroxina,endocrino,19,false
+fluoxetina,Fluoxetina,fluoxetina,saude_mental,20,false
+amitriptilina,Amitriptilina,amitriptilina,saude_mental,21,false
