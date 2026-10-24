@@ -208,3 +208,67 @@ def test_coordenadas_do_cnes_tem_prioridade_e_estoque_preenche_quando_cnes_nulo(
     por_cnes = {r["codigo_cnes"].lstrip("0"): r for r in resultado["estabelecimentos_cnes"]}
     assert (por_cnes["1"]["latitude_estabelecimento"], por_cnes["1"]["longitude_estabelecimento"]) == (-21.001, -42.002)
     assert (por_cnes["2"]["latitude_estabelecimento"], por_cnes["2"]["longitude_estabelecimento"]) == (-22.0, -43.0)
+
+
+def test_estoque_normaliza_data_para_iso_e_mapeia_sigla_sistema_origem():
+    extrator = FarmaciaSusExtractor(min_interval_seconds=0)
+    estoque = {
+        "parametros": [
+            {
+                "codigo_cnes": 1234,
+                "descricao_produto": "Losartana",
+                "quantidade_estoque": 5,
+                "data_posicao_estoque": "15/10/2026",
+                "sigla_sistema_origem": "HOR",
+            },
+            {
+                "codigo_cnes": 1234,
+                "descricao_produto": "Losartana",
+                "quantidade_estoque": 5,
+                "data_posicao_estoque": "2026-10-15T08:30:00",
+                "sigla_sistema_origem": "HOR",
+            },
+        ]
+    }
+    with patch("elt.extract.farmacia_sus.requests.Session", return_value=_sessao(estoque, {"estabelecimentos": []})):
+        resultado = extrator.extract("portal_x", 3304102)
+
+    linhas = resultado["estoque_medicamentos"]
+    assert {linha["data_posicao_estoque"] for linha in linhas} == {"2026-10-15"}
+    assert len({linha["id_registro"] for linha in linhas}) == 1
+    assert {linha["sigla_sistema_origem"] for linha in linhas} == {"HOR"}
+
+
+def test_data_impossivel_e_tratada_como_irreconhecivel():
+    from elt.extract.farmacia_sus import _data_posicao_iso
+
+    assert _data_posicao_iso("2026-13-45") == "2026-13-45"
+    assert _data_posicao_iso("31/02/2026") == "31/02/2026"
+    assert _data_posicao_iso("29/02/2028") == "2028-02-29"
+    assert _data_posicao_iso("2026-10-15T08:30:00") == "2026-10-15"
+
+
+def test_estoque_mapeia_data_validade_do_lote_para_iso():
+    extrator = FarmaciaSusExtractor(min_interval_seconds=0)
+    estoque = {
+        "parametros": [
+            {
+                "codigo_cnes": 1234,
+                "descricao_produto": "Losartana",
+                "numero_lote": "L1",
+                "data_posicao_estoque": "2026-10-18",
+                "data_validade": "2027-12-30 00:00:00-03",
+            },
+            {
+                "codigo_cnes": 1234,
+                "descricao_produto": "Losartana",
+                "numero_lote": "L2",
+                "data_posicao_estoque": "2026-10-18",
+            },
+        ]
+    }
+    with patch("elt.extract.farmacia_sus.requests.Session", return_value=_sessao(estoque, {"estabelecimentos": []})):
+        resultado = extrator.extract("portal_x", 3304102)
+
+    validade_por_lote = {linha["numero_lote"]: linha["data_validade"] for linha in resultado["estoque_medicamentos"]}
+    assert validade_por_lote == {"L1": "2027-12-30", "L2": None}

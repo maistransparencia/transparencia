@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: fct_farmacia_coletas_historico
+    description: "Histórico de coletas da Farmácia SUS por portal, uma linha por execução, com status (sucesso ou falha), data e totais de registros."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - id_registro
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: codigo_ibge6
+        data_type: text
+      - name: status_coleta
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              values: [sucesso, falha]
+      - name: data_coleta
+        data_type: date
+      - name: data_hora_coleta
+        data_type: timestamp with time zone
+      - name: total_registros_estoque
+        data_type: integer
+      - name: total_registros_cnes
+        data_type: integer
+      - name: mensagem_erro
+        data_type: text
