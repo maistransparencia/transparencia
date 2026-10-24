@@ -70,3 +70,12 @@ describe("FarmaciaBuscaDestaque", () => {
     expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("b");
   });
 });
+
+describe("FarmaciaBuscaDestaque ancora de resultados", () => {
+  it("envia o formulario para a secao de resultados", () => {
+    render(<FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={[]} />);
+    expect(
+      screen.getByRole("form", { name: "Busca de medicamentos" }),
+    ).toHaveAttribute("action", "/p/saude/farmacia#resultados");
+  });
+});

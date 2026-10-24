@@ -91,7 +91,7 @@ describe("FarmaciaPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
-      "/portal_x/saude/farmacia?q=Losartana",
+      "/portal_x/saude/farmacia?q=Losartana#resultados",
     );
     expect(
       screen.getByText("Unidades que informaram estoque"),

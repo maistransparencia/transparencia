@@ -140,7 +140,7 @@ describe("buildFarmaciaViewModel", () => {
       {
         codigoPrincipioAtivo: "losartana",
         nomePrincipioAtivo: "Losartana",
-        href: "/portal_x/saude/farmacia?q=Losartana",
+        href: "/portal_x/saude/farmacia?q=Losartana#resultados",
       },
     ]);
   });
@@ -247,7 +247,9 @@ describe("buildFarmaciaViewModel essenciais", () => {
       ["Captopril", "no_estoque"],
       ["Hidroclorotiazida", "somente_combinacao"],
     ]);
-    expect(vm.essenciais[1].href).toBe("/portal_x/saude/farmacia?q=Metformina");
+    expect(vm.essenciais[1].href).toBe(
+      "/portal_x/saude/farmacia?q=Metformina#resultados",
+    );
   });
 
   it.each([

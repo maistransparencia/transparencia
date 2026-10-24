@@ -92,8 +92,9 @@ export function FarmaciaResultados({
   if (unidades.length === 0) {
     return (
       <section
+        id="resultados"
         aria-labelledby="farmacia-resultados-titulo"
-        className="flex flex-col gap-5 border-ink border-t-2 pt-7"
+        className="flex scroll-mt-4 flex-col gap-5 border-ink border-t-2 pt-7"
       >
         <h2
           id="farmacia-resultados-titulo"
@@ -127,8 +128,9 @@ export function FarmaciaResultados({
 
   return (
     <section
+      id="resultados"
       aria-labelledby="farmacia-resultados-titulo"
-      className="flex flex-col gap-5 border-ink border-t-2 pt-7"
+      className="flex scroll-mt-4 flex-col gap-5 border-ink border-t-2 pt-7"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">

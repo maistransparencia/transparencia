@@ -11,10 +11,13 @@ type FarmaciaRawData = Awaited<ReturnType<typeof loadFarmaciaData>>;
 export const LEI_FARMACIA_SUS_URL = urlLegislacao("lei14654");
 export const LEI_ORGANICA_SAUDE_URL = urlLegislacao("lei8080");
 
+/** Âncora da seção de resultados: leva o usuário direto à resposta da busca. */
+export const ID_SECAO_RESULTADOS = "resultados";
+
 function buildFarmaciaHref(portalSlug: string, busca: string): string {
   const base = `/${portalSlug}/saude/farmacia`;
   return busca
-    ? `${base}?${new URLSearchParams({ q: busca }).toString()}`
+    ? `${base}?${new URLSearchParams({ q: busca }).toString()}#${ID_SECAO_RESULTADOS}`
     : base;
 }
 
@@ -41,7 +44,7 @@ export function buildExemplosFarmacia(
     .map((s) => ({
       codigoPrincipioAtivo: s.codigoPrincipioAtivo,
       nomePrincipioAtivo: s.nomePrincipioAtivo,
-      href: `${detailUrl}?${new URLSearchParams({ q: s.nomePrincipioAtivo }).toString()}`,
+      href: `${detailUrl}?${new URLSearchParams({ q: s.nomePrincipioAtivo }).toString()}#${ID_SECAO_RESULTADOS}`,
     }));
 }
 

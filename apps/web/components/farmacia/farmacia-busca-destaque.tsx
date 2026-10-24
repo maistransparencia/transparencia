@@ -22,7 +22,7 @@ export function FarmaciaBuscaDestaque({
     <div className="space-y-3">
       <form
         method="get"
-        action={action}
+        action={`${action}#resultados`}
         aria-label="Busca de medicamentos"
         className="flex items-center gap-2.5 rounded-xl border-[1.5px] border-ink bg-white py-1.5 pr-1.5 pl-[18px] shadow-xs"
       >
