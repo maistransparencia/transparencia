@@ -1084,6 +1084,7 @@ export interface FarmaciaSentinelaRow {
   ordemExibicao?: number;
   statusDisponibilidade?: string;
   quantidadeApresentacoesComEstoque?: number;
+  quantidadeApresentacoesCombinacaoComEstoque?: number;
 }
 
 export async function seedFarmaciaSentinela(
@@ -1103,6 +1104,8 @@ export async function seedFarmaciaSentinela(
       quantidade_apresentacoes_com_estoque:
         row.quantidadeApresentacoesComEstoque ??
         (status === "com_registro_estoque" ? 1 : 0),
+      quantidade_apresentacoes_combinacao_com_estoque:
+        row.quantidadeApresentacoesCombinacaoComEstoque ?? 0,
     })
     .execute();
 }

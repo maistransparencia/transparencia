@@ -249,6 +249,7 @@ export interface FarmaciaSentinelaDTO {
   grupoTerapeutico: string;
   ordemExibicao: number;
   unidadesComRegistro: number;
+  unidadesSomenteCombinacao: number;
 }
 
 export interface FarmaciaSentinelasDTO {
@@ -282,6 +283,9 @@ export async function getFarmaciaSentinelas(
       sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque')`.as(
         "unidades_com_registro",
       ),
+      sql<number>`count(*) filter (where status_disponibilidade = 'sem_registro_estoque' and quantidade_apresentacoes_combinacao_com_estoque > 0)`.as(
+        "unidades_somente_combinacao",
+      ),
     ])
     .where("portal_slug", "=", portalSlug.trim())
     .groupBy(["portal_slug", "codigo_principio_ativo"])
@@ -301,6 +305,8 @@ export async function getFarmaciaSentinelas(
       grupoTerapeutico: l.grupo_terapeutico,
       ordemExibicao: toNumberOrNull(l.ordem_exibicao) ?? 0,
       unidadesComRegistro: toNumberOrNull(l.unidades_com_registro) ?? 0,
+      unidadesSomenteCombinacao:
+        toNumberOrNull(l.unidades_somente_combinacao) ?? 0,
     })),
   };
 }

@@ -63,3 +63,10 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: quantidade_apresentacoes_combinacao_com_estoque
+        description: "Apresentações em dose fixa (com '+' ou 'associada') que contêm o princípio ativo e têm saldo. Não contam como o sentinela; explicam por que a busca textual encontra o nome."
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null

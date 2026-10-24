@@ -42,6 +42,7 @@ function makeRaw(
                 grupoTerapeutico: "cardiovascular",
                 ordemExibicao: 1,
                 unidadesComRegistro: 3,
+                unidadesSomenteCombinacao: 0,
               },
             ],
           }

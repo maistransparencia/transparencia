@@ -52,6 +52,7 @@ function buildGruposSentinelas(
           codigoPrincipioAtivo: string;
           nomePrincipioAtivo: string;
           unidadesComRegistro: number;
+          unidadesSomenteCombinacao: number;
           href: string;
         }[];
       }
@@ -72,6 +73,7 @@ function buildGruposSentinelas(
           codigoPrincipioAtivo: item.codigoPrincipioAtivo,
           nomePrincipioAtivo: item.nomePrincipioAtivo,
           unidadesComRegistro: item.unidadesComRegistro,
+          unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
           href: buildFarmaciaHref(portalSlug, { q: item.nomePrincipioAtivo }),
         },
       ],

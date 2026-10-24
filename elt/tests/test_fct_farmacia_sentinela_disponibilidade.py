@@ -101,6 +101,30 @@ def test_dose_fixa_e_insulina_analoga_nao_casam(conn, raw, portais):
         assert mapa[codigo] == ("sem_registro_estoque", 0)
 
 
+def test_combinacao_nao_conta_mas_e_sinalizada(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "a1", "1001", "VALSARTANA + HIDROCLOROTIAZIDA 320 + 25 MG COMPRIMIDO", _dia(1))
+    raw.estoque(portal, "a2", "1001", "Levanlodipino, Besilato 5,0 MG", _dia(1))
+    raw.estoque(portal, "a3", "1002", "Hidroclorotiazida 25 mg", _dia(1))
+    raw.estoque(portal, "a4", "1002", "OLMESARTANA + HIDROCLOROTIAZIDA 40 + 25 MG", _dia(1))
+    conn.commit()
+
+    linhas = conn.execute(
+        text(
+            "SELECT codigo_cnes, codigo_principio_ativo, status_disponibilidade, "
+            "quantidade_apresentacoes_combinacao_com_estoque "
+            "FROM analytics.fct_farmacia_sentinela_disponibilidade "
+            "WHERE portal_slug = :p AND codigo_principio_ativo IN ('hidroclorotiazida', 'anlodipino')"
+        ),
+        {"p": portal},
+    ).fetchall()
+    mapa = {(linha[0], linha[1]): (linha[2], linha[3]) for linha in linhas}
+    assert mapa[("1001", "hidroclorotiazida")] == ("sem_registro_estoque", 1)
+    assert mapa[("1002", "hidroclorotiazida")] == ("com_registro_estoque", 1)
+    assert mapa[("1001", "anlodipino")] == ("sem_registro_estoque", 0)
+
+
 def test_insulina_nph_e_regular_contam_para_o_mesmo_codigo(conn, raw, portais):
     portal = portais[0]
     raw.coleta(portal)

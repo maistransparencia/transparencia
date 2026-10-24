@@ -5,6 +5,7 @@ export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
   nomePrincipioAtivo: string;
   unidadesComRegistro: number;
+  unidadesSomenteCombinacao: number;
   href: string;
 }
 
@@ -62,7 +63,9 @@ export function FarmaciaSentinelas({
                     <span className="text-right text-subtleText text-xs">
                       {item.unidadesComRegistro > 0
                         ? `${fmtNumber(item.unidadesComRegistro)} de ${fmtNumber(totalUnidadesAtivas)} unidades que informaram estoque`
-                        : "sem registro de estoque informado"}
+                        : item.unidadesSomenteCombinacao > 0
+                          ? `sem registro como remédio isolado; aparece só em combinação com outro remédio em ${fmtNumber(item.unidadesSomenteCombinacao)} de ${fmtNumber(totalUnidadesAtivas)} unidades`
+                          : "sem registro de estoque informado"}
                     </span>
                   </Link>
                 </li>

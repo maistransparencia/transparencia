@@ -256,6 +256,25 @@ describe("getFarmaciaSentinelas", () => {
     ]);
   });
 
+  it("conta unidades que so tem o remedio em combinacao", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "hidroclorotiazida",
+      statusDisponibilidade: "sem_registro_estoque",
+      quantidadeApresentacoesCombinacaoComEstoque: 2,
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1002",
+      codigoPrincipioAtivo: "hidroclorotiazida",
+      statusDisponibilidade: "sem_registro_estoque",
+    });
+    const [sentinela] = (await getFarmaciaSentinelas(PORTAL_A)).sentinelas;
+    expect(sentinela.unidadesComRegistro).toBe(0);
+    expect(sentinela.unidadesSomenteCombinacao).toBe(1);
+  });
+
   it("isola contagens entre portais", async () => {
     await seedFarmaciaSentinela({
       portalSlug: PORTAL_A,

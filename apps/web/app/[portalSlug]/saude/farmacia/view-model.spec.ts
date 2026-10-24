@@ -56,6 +56,7 @@ function makeRaw(opts: {
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 1,
           unidadesComRegistro: 3,
+          unidadesSomenteCombinacao: 0,
         },
         {
           codigoPrincipioAtivo: "metformina",
@@ -63,6 +64,7 @@ function makeRaw(opts: {
           grupoTerapeutico: "diabetes",
           ordemExibicao: 2,
           unidadesComRegistro: 0,
+          unidadesSomenteCombinacao: 0,
         },
         {
           codigoPrincipioAtivo: "captopril",
@@ -70,6 +72,7 @@ function makeRaw(opts: {
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 3,
           unidadesComRegistro: 1,
+          unidadesSomenteCombinacao: 0,
         },
       ],
     },
@@ -146,6 +149,7 @@ describe("buildFarmaciaViewModel rotulos de grupos", () => {
         grupoTerapeutico,
         ordemExibicao: 1,
         unidadesComRegistro: 1,
+        unidadesSomenteCombinacao: 0,
       },
     ];
     const [grupo] = buildFarmaciaViewModel(raw).gruposSentinelas;

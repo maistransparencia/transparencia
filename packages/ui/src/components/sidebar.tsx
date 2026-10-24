@@ -528,9 +528,9 @@ export function Sidebar({
           </div>
 
           {/* Navegação Principal */}
-          <nav className="space-y-3 p-4 md:space-y-2 md:p-3">
+          <nav className="space-y-3 p-4">
             {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
-            <div className="space-y-1 md:space-y-0.5">
+            <div className="space-y-2">
               <Link
                 href={visaoGeralHref}
                 onClick={() => setIsMobileOpen(false)}
@@ -593,7 +593,7 @@ export function Sidebar({
 
             {/* Demais Grupos de Navegação */}
             {navGroups.map((group) => (
-              <div key={group.label} className="space-y-1">
+              <div key={group.label} className="space-y-2">
                 <p className="mb-1.5 px-3 font-semibold text-[11px] text-mutedText">
                   {group.label}
                 </p>
