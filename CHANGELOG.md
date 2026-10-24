@@ -5,6 +5,11 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🏛️ Engenharia de Dados & Modelagem dbt (Data & Analytics)
+* **`seed_fontes_recursos_stn_referencia_portais`:** Novo seed com os pares fonte e descrição observados nos portais, usado para checar `seed_fontes_recursos_stn`. Os pares confirmados contra a Portaria STN (1551, 1552 e 1553) falham o teste se divergirem; os demais geram aviso.
+* **`seed_fontes_recursos_stn`:** Descrições das fontes 1704, 1705, 1708, 1710, 1715, 1719, 1720, 1721, 1750, 1751 e 1755 corrigidas conforme a Portaria STN nº 710/2021; 1750 e 1755 deixam de ser `meio_ambiente` e passam a `outros_vinculados`. Incluídas as fontes 1571, 1575, 1631, 1632, 1636, 1702, 1706, 1707, 1711, 1716, 1748 e 1862. O `CASE` de fallback de `fct_saldo_caixa_siconfi` deixa de listar 1750 e 1755 como `meio_ambiente`.
+* **Testes de coerência das fontes STN:** Novos testes `assert_fontes_stn_coerentes_com_portais` (erro), `assert_fontes_stn_pendentes_de_conferencia` (aviso) e `assert_fontes_stn_ausentes_no_seed` (aviso, inclui as fontes de `fct_receitas`).
+
 ## [1.23.2] - 2026-10-23
 
 ### 🌟 Destaques da Versão (Origem dos Recursos da Educação)
