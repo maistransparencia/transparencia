@@ -161,7 +161,7 @@ describe("MobileBottomNav Component (Início, Saúde, Educação, Obras + Mais)"
       const moreBtn = screen.getByRole("button", {
         name: /mais opções e seções/i,
       });
-      expect(moreBtn).toHaveClass("text-[oklch(0.55_0.11_250)]");
+      expect(moreBtn).toHaveClass("text-[oklch(0.5_0.11_250)]");
     });
 
     it("deve disparar toggleMenu ao clicar no botão Mais", () => {
