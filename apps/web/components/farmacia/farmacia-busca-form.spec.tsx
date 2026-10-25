@@ -17,9 +17,10 @@ describe("FarmaciaBuscaForm", () => {
   it("preenche o valor padrao e expoe o botao de busca", () => {
     render(<FarmaciaBuscaForm action="/x" defaultValue="dipirona" />);
     expect(screen.getByDisplayValue("dipirona")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Buscar remédio no estoque" }),
-    ).toHaveAttribute("type", "submit");
+    expect(screen.getByRole("button", { name: "Buscar" })).toHaveAttribute(
+      "type",
+      "submit",
+    );
   });
 
   it("mostra o link Limpar busca apenas quando limparHref e informado", () => {

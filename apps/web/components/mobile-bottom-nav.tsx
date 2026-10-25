@@ -196,14 +196,14 @@ export function MobileBottomNav({
               className={cn(
                 "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
                 isActive
-                  ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
+                  ? "bg-[oklch(0.5_0.11_250)]/10 font-bold text-[oklch(0.5_0.11_250)]"
                   : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
               )}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                  isActive && "scale-110 text-[oklch(0.5_0.11_250)]",
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
@@ -228,21 +228,21 @@ export function MobileBottomNav({
           className={cn(
             "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
             isMoreActive
-              ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
+              ? "bg-[oklch(0.5_0.11_250)]/10 font-bold text-[oklch(0.5_0.11_250)]"
               : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
           )}
         >
           <div className="relative inline-flex items-center justify-center">
             {isMenuOpen ? (
               <X
-                className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.55_0.11_250)] transition-transform"
+                className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.5_0.11_250)] transition-transform"
                 strokeWidth={2.2}
               />
             ) : (
               <Menu
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                  isMoreActive && "scale-110 text-[oklch(0.5_0.11_250)]",
                 )}
                 strokeWidth={isMoreActive ? 2.2 : 1.8}
               />
