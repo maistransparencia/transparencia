@@ -76,3 +76,7 @@ _bmad-output
 
 *.tsbuildinfo
 _bmad/render/
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/
