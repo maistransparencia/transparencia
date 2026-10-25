@@ -114,9 +114,9 @@ export function HeroFiscalCard({
 
         {originBreakdown && originBreakdown.length > 0 && (
           <div className="mt-4 border-[#e7e9ee] border-t pt-4">
-            <h4 className="mb-3 font-semibold text-ink text-xs">
+            <h2 className="mb-3 font-semibold text-ink text-xs">
               De onde vem cada R$ 1,00
-            </h4>
+            </h2>
             <div className="space-y-3">
               {originBreakdown.map((item) => {
                 const colorClass = item.colorClass || "bg-accent";

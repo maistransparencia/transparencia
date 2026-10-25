@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
+import { FarmaciaResumoCard } from "@/components/farmacia/farmacia-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
 import { ObrasResumoCard } from "@/components/obras-resumo-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
 import { RadarCivicoFeed } from "@/components/radar-civico-feed";
 import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
+import { temEducacaoDestaque } from "@/lib/educacao-destaque";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
 import { buildVisaoGeralViewModel } from "./view-model";
@@ -44,6 +46,11 @@ export default async function VisaoGeralPage({
   const rawData = await loadVisaoGeralData(portalSlug, resolvedSearchParams);
   const viewModel = buildVisaoGeralViewModel(rawData);
 
+  const temDestaques =
+    viewModel.farmaciaStatus !== "indisponivel" ||
+    temEducacaoDestaque(viewModel.educacaoResumo) ||
+    Boolean(viewModel.resumoObras);
+
   return (
     <div className="space-y-9">
       <HeroFiscalCard
@@ -58,29 +65,46 @@ export default async function VisaoGeralPage({
         originBreakdown={viewModel.originBreakdown}
       />
 
-      <section className="space-y-4" aria-labelledby="indicadores-sociais">
-        <div className="border-[#1a1d21] border-t-2 pt-3">
-          <h2
-            id="indicadores-sociais"
-            className="font-bold font-serif text-ink text-xl"
-          >
-            Indicadores Sociais
-          </h2>
-          <p className="text-mutedText text-sm">
-            Educação e investimentos que chegam à população
-          </p>
-        </div>
-        <EducacaoResumoCard
-          resumo={viewModel.educacaoResumo}
-          detailUrl={viewModel.educacaoDetailUrl}
-        />
-        <ObrasResumoCard
-          resumo={viewModel.resumoObras}
-          detailUrl={viewModel.obrasDetailUrl}
-          markers={viewModel.obrasMiniMapMarkers}
-          center={viewModel.obrasMapCenter}
-        />
-      </section>
+      {temDestaques && (
+        <section aria-labelledby="em-destaque-heading" className="space-y-3">
+          <div className="border-[#1a1d21] border-t-2 pt-3">
+            <h2
+              id="em-destaque-heading"
+              className="font-bold font-serif text-ink text-xl"
+            >
+              Em destaque
+            </h2>
+          </div>
+          <FarmaciaResumoCard
+            status={viewModel.farmaciaStatus}
+            detailUrl={viewModel.farmaciaDetailUrl}
+            requerimento={viewModel.farmaciaRequerimento}
+            textoWhatsApp={viewModel.farmaciaTextoWhatsApp}
+            exemplos={viewModel.farmaciaExemplos}
+          />
+          {viewModel.resumoObras && (
+            <ObrasResumoCard
+              resumo={viewModel.resumoObras}
+              detailUrl={viewModel.obrasDetailUrl}
+              markers={viewModel.obrasMiniMapMarkers}
+              center={viewModel.obrasMapCenter}
+            />
+          )}
+          {temEducacaoDestaque(viewModel.educacaoResumo) && (
+            <EducacaoResumoCard
+              resumo={viewModel.educacaoResumo}
+              detailUrl={viewModel.educacaoDetailUrl}
+            />
+          )}
+        </section>
+      )}
+
+      <RadarCivicoFeed
+        items={viewModel.radarCivicoFeedData}
+        portalName={viewModel.portalName}
+        portalSlug={portalSlug}
+        ano={viewModel.selectedYear}
+      />
 
       <PipelineExecucao
         stages={viewModel.pipelineStages}
@@ -98,13 +122,6 @@ export default async function VisaoGeralPage({
         despesas={viewModel.despesasCardData}
         licitacoes={viewModel.licitacoesCardData}
         pessoal={viewModel.pessoalCardData}
-      />
-
-      <RadarCivicoFeed
-        items={viewModel.radarCivicoFeedData}
-        portalName={viewModel.portalName}
-        portalSlug={portalSlug}
-        ano={viewModel.selectedYear}
       />
     </div>
   );

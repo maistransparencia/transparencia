@@ -8,6 +8,7 @@ import type {
   EtapaEnsino,
 } from "@transparencia/db";
 import { emendasStatsVazio } from "@transparencia/db";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export const LIMIAR_DESTAQUE_EVOLUCAO_IDEB = 1.0;
 
@@ -509,8 +510,7 @@ export function buildEducacaoViewModel(raw: {
   const mde: EducacaoFiscalTermometro = {
     nome: "Aplicação em MDE (Mínimo Constitucional)",
     artigoLegal: "Art. 212 da CF/88",
-    artigoUrl:
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212",
+    artigoUrl: urlLegislacao("constituicao", "art212"),
     minimoConstitucionalPct: 25,
     percentualAplicado: mdePercentual,
     cumprido: mdePercentual !== null ? mdePercentual >= 25 : null,
@@ -521,8 +521,7 @@ export function buildEducacaoViewModel(raw: {
   const fundeb: EducacaoFiscalTermometro = {
     nome: "Aplicação do FUNDEB (Profissionais da Educação)",
     artigoLegal: "Art. 212-A da CF/88",
-    artigoUrl:
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a",
+    artigoUrl: urlLegislacao("constituicao", "art212a"),
     minimoConstitucionalPct: 70,
     percentualAplicado: fundebPercentual,
     cumprido: fundebPercentual !== null ? fundebPercentual >= 70 : null,

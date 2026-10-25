@@ -1034,6 +1034,113 @@ export async function seedObra(row: ObraRow): Promise<void> {
     .execute();
 }
 
+export interface FarmaciaEstoqueRow {
+  portalSlug: string;
+  idRegistro: string;
+  statusConformidade?: string;
+  dataColeta?: string | null;
+  dataPosicaoMaisRecente?: string | null;
+  diasDesdePosicaoMaisRecente?: number | null;
+  codigoCnes?: string | null;
+  nomeUnidade?: string | null;
+  enderecoUnidade?: string | null;
+  telefoneUnidade?: string | null;
+  latitudeUnidade?: number | null;
+  longitudeUnidade?: number | null;
+  nomeMedicamento?: string | null;
+  quantidadeEstoque?: number | null;
+  dataPosicaoEstoque?: string | null;
+}
+
+export async function seedFarmacia(row: FarmaciaEstoqueRow): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      status_conformidade: row.statusConformidade ?? "conforme",
+      data_coleta: row.dataColeta ?? null,
+      data_posicao_mais_recente: row.dataPosicaoMaisRecente ?? null,
+      dias_desde_posicao_mais_recente: row.diasDesdePosicaoMaisRecente ?? null,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_unidade: row.nomeUnidade ?? null,
+      endereco_unidade: row.enderecoUnidade ?? null,
+      telefone_unidade: row.telefoneUnidade ?? null,
+      latitude_unidade: row.latitudeUnidade ?? null,
+      longitude_unidade: row.longitudeUnidade ?? null,
+      nome_medicamento: row.nomeMedicamento ?? null,
+      quantidade_estoque: row.quantidadeEstoque ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque ?? null,
+    })
+    .execute();
+}
+
+export interface FarmaciaEstoqueHistoricoRow {
+  portalSlug: string;
+  idRegistro: string;
+  codigoCnes?: string | null;
+  nomeMedicamento: string;
+  numeroLote?: string | null;
+  dataPosicaoEstoque: string;
+  quantidadeEstoque?: number;
+  dataValidade?: string | null;
+}
+
+export async function seedFarmaciaHistorico(
+  row: FarmaciaEstoqueHistoricoRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque_historico")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_medicamento: row.nomeMedicamento,
+      numero_lote: row.numeroLote ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque,
+      quantidade_estoque: row.quantidadeEstoque ?? 1,
+      data_validade: row.dataValidade ?? null,
+    })
+    .execute();
+}
+
+export interface FarmaciaSentinelaRow {
+  portalSlug: string;
+  codigoCnes: string;
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo?: string;
+  grupoTerapeutico?: string;
+  ordemExibicao?: number;
+  destaqueCardInicial?: boolean;
+  statusDisponibilidade?: string;
+  quantidadeApresentacoesComEstoque?: number;
+  quantidadeApresentacoesCombinacaoComEstoque?: number;
+}
+
+export async function seedFarmaciaSentinela(
+  row: FarmaciaSentinelaRow,
+): Promise<void> {
+  const status = row.statusDisponibilidade ?? "com_registro_estoque";
+  await db
+    .insertInto("fct_farmacia_sentinela_disponibilidade")
+    .values({
+      portal_slug: row.portalSlug,
+      codigo_cnes: row.codigoCnes,
+      codigo_principio_ativo: row.codigoPrincipioAtivo,
+      nome_principio_ativo: row.nomePrincipioAtivo ?? row.codigoPrincipioAtivo,
+      grupo_terapeutico: row.grupoTerapeutico ?? "cardiovascular",
+      ordem_exibicao: row.ordemExibicao ?? 1,
+      destaque_card_inicial: row.destaqueCardInicial ?? false,
+      status_disponibilidade: status,
+      quantidade_apresentacoes_com_estoque:
+        row.quantidadeApresentacoesComEstoque ??
+        (status === "com_registro_estoque" ? 1 : 0),
+      quantidade_apresentacoes_combinacao_com_estoque:
+        row.quantidadeApresentacoesCombinacaoComEstoque ?? 0,
+    })
+    .execute();
+}
+
 export interface ObraEmpenhoRow {
   portalSlug: string;
   idProjeto: string;
@@ -1192,6 +1299,18 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque_historico")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_sentinela_disponibilidade")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

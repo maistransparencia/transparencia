@@ -56,8 +56,15 @@ def main() -> None:
     siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     obrasgov_keys = {"obrasgov"}
+    farmacia_sus_keys = {"farmacia_sus"}
     if args.only:
-        valid = [e.listagem for e in endpoints] + list(siconfi_keys) + list(pncp_keys) + list(obrasgov_keys)
+        valid = (
+            [e.listagem for e in endpoints]
+            + list(siconfi_keys)
+            + list(pncp_keys)
+            + list(obrasgov_keys)
+            + list(farmacia_sus_keys)
+        )
         if args.only not in valid:
             raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
         endpoints = [e for e in endpoints if e.listagem == args.only]
@@ -177,6 +184,22 @@ def main() -> None:
         except Exception as exc:
             logger.warning("Failed: obrasgov / %s: %s", portal.slug, exc)
             _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc)
+
+    if not args.only or args.only in farmacia_sus_keys:
+        from elt.extract.farmacia_sus import FarmaciaSusExtractor
+
+        logger.info("Extracting Farmácia SUS data for %s (cod_ibge: %s)...", portal.slug, portal.cod_ibge)
+        try:
+            farmacia_data = FarmaciaSusExtractor().extract(portal_slug=portal.slug, cod_ibge=portal.cod_ibge)
+            farmacia_dir = run_dir / "farmacia_sus"
+            farmacia_dir.mkdir(parents=True, exist_ok=True)
+            for key, rows in farmacia_data.items():
+                out = farmacia_dir / f"{key}.json"
+                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted farmacia_sus / %s / %s → %d rows", portal.slug, key, len(rows))
+        except Exception as exc:
+            logger.warning("Failed: farmacia_sus / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 

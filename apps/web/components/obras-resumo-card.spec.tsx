@@ -52,14 +52,7 @@ describe("ObrasResumoCard Component", () => {
     );
 
     expect(
-      screen.getByRole("heading", {
-        name: /obras públicas e investimentos urbanos/i,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /painel oficial de intervenções urbanas \(obrasgov\.br\)/i,
-      ),
+      screen.getByRole("heading", { name: /^obras públicas$/i }),
     ).toBeInTheDocument();
 
     const linkObrasGov = screen.getByRole("link", { name: /obrasgov\.br/i });
@@ -321,7 +314,7 @@ describe("ObrasResumoCard Component", () => {
     );
 
     const mapLink = screen.getByRole("link", {
-      name: /abrir mapa interativo de obras públicas/i,
+      name: /ver no mapa interativo de obras públicas/i,
     });
     expect(mapLink).toBeInTheDocument();
     expect(mapLink).toHaveAttribute("href", "/porciuncula/obras?ano=2024");

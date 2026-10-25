@@ -13,6 +13,11 @@ import {
   buildRankingTrend,
   isDestaqueEvolucaoIdeb,
 } from "./educacao/view-model";
+import {
+  buildExemplosFarmacia,
+  buildRequerimentoFiscalizacao,
+  buildTextoWhatsApp,
+} from "./farmacia/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
@@ -98,6 +103,8 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
         ? null
         : `${crescimentoPontos === 0 ? "" : sinalEvolucao}${fmtDecimalUmaCasa(Math.abs(crescimentoPontos))} ponto`,
     evolucaoTom,
+    notaAnteriorValorTexto:
+      notaAnterior === null ? null : fmtDecimalUmaCasa(notaAnterior),
     notaAnteriorTexto:
       notaAnterior === null
         ? null
@@ -127,6 +134,38 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
         ? null
         : fmtCurrency(resumo.despesaLiquidadaEducacao),
   };
+}
+
+function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
+  const obrasComCoordenadas = (obrasPreview ?? []).filter(
+    (obra) =>
+      obra.latitude != null &&
+      obra.longitude != null &&
+      Number.isFinite(obra.latitude) &&
+      Number.isFinite(obra.longitude) &&
+      obra.latitude !== 0 &&
+      obra.longitude !== 0,
+  );
+
+  const obrasMiniMapMarkers = obrasComCoordenadas.map((obra) => ({
+    id: obra.idProjeto,
+    situacao: obra.situacao,
+    latitude: obra.latitude as number,
+    longitude: obra.longitude as number,
+  }));
+
+  const mediana = (valores: number[]) =>
+    [...valores].sort((a, b) => a - b)[Math.floor(valores.length / 2)];
+
+  const obrasMapCenter: [number, number] | undefined =
+    obrasComCoordenadas.length === 0
+      ? undefined
+      : [
+          mediana(obrasComCoordenadas.map((obra) => obra.latitude as number)),
+          mediana(obrasComCoordenadas.map((obra) => obra.longitude as number)),
+        ];
+
+  return { obrasMiniMapMarkers, obrasMapCenter };
 }
 
 export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
@@ -409,6 +448,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     },
   };
 
+  const farmaciaDetailUrl = buildNavUrl({
+    path: "/farmacia",
+    slug: portalSlug,
+    exercice: undefined,
+    entidades: undefined,
+  });
+
   return {
     portalName,
     periodText,
@@ -436,45 +482,35 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaRequerimento:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildRequerimentoFiscalizacao({
+            portalName,
+            dataPosicaoMaisRecente: raw.resumoFarmacia.dataPosicaoMaisRecente,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
+    farmaciaTextoWhatsApp:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildTextoWhatsApp({
+            portalName,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
+    farmaciaDetailUrl,
+    farmaciaExemplos:
+      raw.resumoFarmacia?.status === "conforme"
+        ? buildExemplosFarmacia(
+            raw.sentinelasFarmacia?.sentinelas ?? [],
+            farmaciaDetailUrl,
+          )
+        : [],
     educacaoDetailUrl: routeUrl("/educacao"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
-    ...(() => {
-      const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
-        (o) =>
-          o.latitude != null &&
-          o.longitude != null &&
-          Number.isFinite(o.latitude) &&
-          Number.isFinite(o.longitude) &&
-          o.latitude !== 0 &&
-          o.longitude !== 0,
-      );
-
-      const obrasMiniMapMarkers = validObrasWithCoords.map((o) => ({
-        id: o.idProjeto,
-        situacao: o.situacao,
-        latitude: o.latitude as number,
-        longitude: o.longitude as number,
-      }));
-
-      const obrasMapCenter: [number, number] = (() => {
-        if (validObrasWithCoords.length === 0) {
-          return [-20.9634, -42.0408];
-        }
-        const lats = validObrasWithCoords
-          .map((v) => v.latitude as number)
-          .sort((a, b) => a - b);
-        const lngs = validObrasWithCoords
-          .map((v) => v.longitude as number)
-          .sort((a, b) => a - b);
-        const mid = Math.floor(validObrasWithCoords.length / 2);
-        return [lats[mid], lngs[mid]];
-      })();
-
-      return {
-        obrasMiniMapMarkers,
-        obrasMapCenter,
-      };
-    })(),
+    ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),
@@ -544,6 +580,7 @@ export {
   MESES_ABREV,
 } from "@/lib/radar-civico-narrative";
 
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import {
   formatarDimensao,
   formatDesvioPercentual,
@@ -887,37 +924,37 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
         return {
           label: "Lei nº 9.717/1998",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+          url: urlLegislacao("lei9717", "art1"),
         };
       }
       if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
         return {
           label: "Art. 40 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+          url: urlLegislacao("constituicao", "art40"),
         };
       }
       if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
         return {
           label: "Art. 5º da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+          url: urlLegislacao("lei14133", "art5"),
         };
       }
       if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
         return {
           label: "Art. 59, III da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+          url: urlLegislacao("lei14133", "art59"),
         };
       }
       if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
         return {
           label: "Art. 37 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+          url: urlLegislacao("constituicao", "art37"),
         };
       }
       if (alerta.tipoAnomalia === "dependencia_transferencias") {
         return {
           label: "Art. 11 da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+          url: urlLegislacao("lrf", "art11"),
         };
       }
       if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
@@ -928,14 +965,14 @@ export function buildRadarCivicoCards(
           },
           {
             label: "Lei nº 9.717/1998",
-            url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+            url: urlLegislacao("lei9717"),
           },
         ];
       }
       if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
         return {
           label: "Art. 20, III, b da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
+          url: urlLegislacao("lrf", "art20"),
         };
       }
       return undefined;

@@ -13,6 +13,7 @@ import {
 import { AlertCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ContratoDetalhesModalProps {
   contrato: ContratoServicoVigente | null;
@@ -229,7 +230,7 @@ export function ContratoDetalhesModal({
                 Fonte de Recursos &amp; Destinação Orçamentária
               </span>
               <a
-                href="https://www.planalto.gov.br/ccivil_03/_ato2021-2024/2021/lei/l14133.htm#art92"
+                href={urlLegislacao("lei14133Ato20212024", "art92")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs hover:underline"

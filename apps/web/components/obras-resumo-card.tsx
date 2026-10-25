@@ -177,9 +177,7 @@ export function ObrasResumoCard({
   const ariaLabel = `${labelPrefixo}: ${Math.round(pctEmExecucao)}% em execução, ${Math.round(pctConcluidas)}% concluídas, ${Math.round(pctCadastradas)}% não iniciadas, ${Math.round(pctParalisadas)}% paralisadas`;
 
   // Mini Mapa Estático (Projeção Web Mercator via ArcGIS Light Gray Base)
-  const mapCenterLat = center?.[0] ?? -20.9634;
-  const mapCenterLng = center?.[1] ?? -42.0408;
-  const tileInfo = getTileCoordinates(mapCenterLat, mapCenterLng, 14);
+  const tileInfo = center ? getTileCoordinates(center[0], center[1], 14) : null;
 
   const validMarkers = (markers ?? [])
     .filter(
@@ -189,17 +187,20 @@ export function ObrasResumoCard({
         m.latitude !== 0 &&
         m.longitude !== 0,
     )
-    .map((m) => {
+    .flatMap((m) => {
+      if (!tileInfo) return [];
       const { xPercent, yPercent } = projectCoordToTilePercent(
         m.latitude,
         m.longitude,
         tileInfo,
       );
-      return {
-        ...m,
-        xPercent,
-        yPercent,
-      };
+      return [
+        {
+          ...m,
+          xPercent,
+          yPercent,
+        },
+      ];
     });
 
   const getMarkerBgClass = (situacao: string) => {
@@ -217,20 +218,15 @@ export function ObrasResumoCard({
 
   return (
     <section
-      aria-label="Obras Públicas e Investimentos Urbanos"
+      aria-label="Obras Públicas"
       className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
     >
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
           <h3 className="font-bold text-base text-ink tracking-tight">
-            Obras Públicas e Investimentos Urbanos
+            Obras Públicas
           </h3>
-          <p className="text-subtleText text-xs">
-            Painel oficial de intervenções urbanas (ObrasGov.br)
-          </p>
         </div>
-
         <a
           href={OBRASGOV_PANEL_URL}
           target="_blank"
@@ -242,6 +238,10 @@ export function ObrasResumoCard({
           <ExternalLink className="h-3 w-3" />
         </a>
       </div>
+
+      <p className="col-span-2 text-sm text-subtleText sm:col-span-1 sm:col-start-2">
+        Painel de obras públicas e investimentos urbanos.
+      </p>
 
       {/* Conteúdo Principal: Métricas + Mini Mapa Estático */}
       <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
@@ -343,60 +343,62 @@ export function ObrasResumoCard({
         </div>
 
         {/* Mini Mapa Estático Clicável (Mobile: faixa horizontal, Desktop: lateral direita) */}
-        <Link
-          href={detailUrl}
-          onClick={() => {
-            try {
-              posthog.capture("obras_mini_map_clicked", {
-                detailUrl,
-                totalObras,
-                markersCount: validMarkers.length,
-                emExecucao,
-                concluidas,
-                paralisadas,
-                cadastradas,
-              });
-              posthog.capture("funnel_home_to_internal_page", {
-                from: "obras_mini_map",
-                to: detailUrl,
-              });
-            } catch {
-              // Silencia erros de telemetria
-            }
-          }}
-          aria-label="Abrir mapa interativo de obras públicas"
-          className="group relative h-28 w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 transition-all duration-200 hover:border-accent/40 hover:shadow-md lg:h-auto lg:w-56"
-        >
-          <Image
-            src={tileInfo.url}
-            alt="Visão geral cartográfica das obras públicas"
-            fill
-            sizes="(max-width: 1024px) 100vw, 224px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            unoptimized
-          />
+        {tileInfo && (
+          <Link
+            href={detailUrl}
+            onClick={() => {
+              try {
+                posthog.capture("obras_mini_map_clicked", {
+                  detailUrl,
+                  totalObras,
+                  markersCount: validMarkers.length,
+                  emExecucao,
+                  concluidas,
+                  paralisadas,
+                  cadastradas,
+                });
+                posthog.capture("funnel_home_to_internal_page", {
+                  from: "obras_mini_map",
+                  to: detailUrl,
+                });
+              } catch {
+                // Silencia erros de telemetria
+              }
+            }}
+            aria-label="Ver no mapa interativo de obras públicas"
+            className="group relative h-28 w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 transition-all duration-200 hover:border-accent/40 hover:shadow-md lg:h-auto lg:w-56"
+          >
+            <Image
+              src={tileInfo.url}
+              alt="Visão geral cartográfica das obras públicas"
+              fill
+              sizes="(max-width: 1024px) 100vw, 224px"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              unoptimized
+            />
 
-          {/* Marcadores sobrepostos */}
-          <div className="pointer-events-none absolute inset-0">
-            {validMarkers.slice(0, 15).map((m) => (
-              <span
-                key={m.id}
-                style={{
-                  left: `${m.xPercent}%`,
-                  top: `${m.yPercent}%`,
-                }}
-                className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm ring-2 transition-transform duration-300 group-hover:scale-125 ${getMarkerBgClass(m.situacao)}`}
-              />
-            ))}
-          </div>
+            {/* Marcadores sobrepostos */}
+            <div className="pointer-events-none absolute inset-0">
+              {validMarkers.slice(0, 15).map((m) => (
+                <span
+                  key={m.id}
+                  style={{
+                    left: `${m.xPercent}%`,
+                    top: `${m.yPercent}%`,
+                  }}
+                  className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm ring-2 transition-transform duration-300 group-hover:scale-125 ${getMarkerBgClass(m.situacao)}`}
+                />
+              ))}
+            </div>
 
-          {/* Affordance Badge Flutuante */}
-          <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-medium text-[11px] text-ink shadow-sm backdrop-blur-xs transition-colors group-hover:bg-accent group-hover:text-white">
-            <MapPin className="h-3 w-3" />
-            <span>Ver no mapa</span>
-            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-          </div>
-        </Link>
+            {/* Affordance Badge Flutuante */}
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-medium text-[11px] text-ink shadow-sm backdrop-blur-xs transition-colors group-hover:bg-accent group-hover:text-white">
+              <MapPin className="h-3 w-3" />
+              <span>Ver no mapa</span>
+              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* Rodapé com Nota e CTA para o Mapa */}

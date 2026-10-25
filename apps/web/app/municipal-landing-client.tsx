@@ -2,7 +2,7 @@
 
 import { BProgress } from "@bprogress/core";
 import type { PortalConfig } from "@transparencia/db";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Landmark, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -41,11 +41,8 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
               ? preferred
               : null;
           }
-          if (
-            legacyMarker &&
-            portais.some((p) => p.portalSlug === "porciuncula_prefeitura")
-          ) {
-            return "porciuncula_prefeitura";
+          if (legacyMarker && portais.length === 1) {
+            return portais[0].portalSlug;
           }
           return null;
         })();
@@ -196,7 +193,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
           );
           const brasaoSrc = (() => {
             const asset = portal.brasaoAsset?.trim();
-            if (!asset) return "/brasao-porciuncula.png";
+            if (!asset) return null;
             return asset.startsWith("/") ? asset : `/${asset}`;
           })();
 
@@ -219,13 +216,21 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
               <div className="flex flex-1 flex-col p-6 sm:p-7">
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-canvas p-2.5 shadow-2xs">
-                    <Image
-                      src={brasaoSrc}
-                      alt={`Brasão oficial de ${cityName}`}
-                      className="h-full w-full object-contain"
-                      width={64}
-                      height={64}
-                    />
+                    {brasaoSrc ? (
+                      <Image
+                        src={brasaoSrc}
+                        alt={`Brasão oficial de ${cityName}`}
+                        className="h-full w-full object-contain"
+                        width={64}
+                        height={64}
+                      />
+                    ) : (
+                      <Landmark
+                        aria-hidden="true"
+                        strokeWidth={1.6}
+                        className="h-8 w-8 text-subtleText"
+                      />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="truncate font-bold font-serif text-2xl text-ink tracking-tight transition-colors group-hover:text-accent">

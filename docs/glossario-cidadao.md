@@ -21,6 +21,12 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Transferência constitucional | Parte de impostos federais e estaduais que a lei manda repassar ao município | "Ajuda" |
 | Emenda parlamentar | Verba indicada por deputado ou senador para uma obra ou serviço local | |
 | Parecer / acórdão | Decisão ou opinião formal de órgão de controle (ex.: Tribunal de Contas) | |
+| Sem registro de estoque informado | "Não aparece na lista de estoque": ausência na última lista oficial, não prova de falta | "Esgotado", "zerado" |
+| Combinação em dose fixa | Remédio misturado com outro no mesmo comprimido | |
+| Unidade ativa (farmácia SUS) | Posto ou unidade de saúde que enviou a lista de estoque recentemente | |
+| Posição de estoque | A lista de estoque de um dia específico | |
+| SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
+| Lote (de remédio) | Remessa de um mesmo remédio com a mesma data de validade | "Lote irregular", "lote vencido" sem dizer que consta com saldo na lista |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.

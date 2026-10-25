@@ -45,12 +45,6 @@ const CLASSES_FAIXA_POR_TOM: Record<EducacaoResumoTom, string> = {
   neutro: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
-const CLASSES_BORDA_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "border-emerald-300 ring-1 ring-emerald-100",
-  atencao: "border-amber-300 ring-1 ring-amber-100",
-  neutro: "border-[#e7e9ee]",
-};
-
 const CLASSES_TEXTO_POR_TOM: Record<EducacaoResumoTom, string> = {
   destaque: "text-emerald-700",
   atencao: "text-amber-800",
@@ -87,37 +81,34 @@ export function EducacaoResumoCard({
   detailUrl,
   className = "",
 }: EducacaoResumoCardProps) {
-  const classeBorda = resumo
-    ? CLASSES_BORDA_POR_TOM[resumo.enfaseTom]
-    : CLASSES_BORDA_POR_TOM.neutro;
-
   return (
     <section
       aria-label="Educação Básica e Desempenho Escolar"
-      className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-6 ${classeBorda} ${className}`}
+      className={`rounded-2xl border border-[#e7e9ee] bg-white p-4 shadow-sm sm:p-6 ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="font-bold text-base text-ink tracking-tight">
             Educação Básica e Desempenho Escolar
           </h3>
-          <p className="text-subtleText text-xs">
-            {resumo
-              ? `IDEB ${resumo.ano} e indicadores da rede municipal`
-              : "IDEB e indicadores da rede municipal"}
-          </p>
         </div>
         <a
           href={IDEB_INEP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-2 py-0.5 font-medium text-[10px] text-subtleText transition-colors hover:bg-slate-100 hover:text-ink sm:px-3 sm:py-1 sm:text-xs"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
           title="Página oficial do IDEB no INEP"
         >
           <span>INEP / IDEB</span>
           <ExternalLink className="h-3 w-3" />
         </a>
       </div>
+
+      <p className="col-span-2 text-sm text-subtleText sm:col-span-1 sm:col-start-2">
+        {resumo
+          ? `IDEB ${resumo.ano} e indicadores da rede municipal.`
+          : "IDEB e indicadores da rede municipal."}
+      </p>
 
       {resumo ? (
         <>

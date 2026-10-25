@@ -27,7 +27,7 @@ vi.mock("nuqs", () => ({
 const mockUsePathname = vi.mocked(usePathname);
 const mockUseQueryState = vi.mocked(useQueryState);
 
-describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
+describe("MobileBottomNav Component (Início, Saúde, Educação, Obras + Mais)", () => {
   const mockToggleMenu = vi.fn();
   const mockSetIsMenuOpen = vi.fn();
   const mockCloseMenu = vi.fn();
@@ -79,56 +79,31 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
     });
 
     it("resolveActiveTabIndex deve retornar o índice da aba ou 4 para Mais", () => {
-      expect(resolveActiveTabIndex("/", "porciuncula_prefeitura")).toBe(0);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/receitas",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(1);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/despesas",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(2);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/licitacoes",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(3);
-      // Rotas do menu lateral retornam 4 ("Mais")
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/orcamento",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(4);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/pessoal",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(4);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/saude",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(4);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/caprem",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(4);
-      expect(
-        resolveActiveTabIndex(
-          "/porciuncula_prefeitura/previdencia",
-          "porciuncula_prefeitura",
-        ),
-      ).toBe(4);
+      const slug = "portal_teste";
+      expect(resolveActiveTabIndex("/", slug)).toBe(0);
+      expect(resolveActiveTabIndex(`/${slug}/saude`, slug)).toBe(1);
+      expect(resolveActiveTabIndex(`/${slug}/educacao`, slug)).toBe(2);
+      expect(resolveActiveTabIndex(`/${slug}/obras`, slug)).toBe(3);
+      for (const rota of [
+        "receitas",
+        "despesas",
+        "licitacoes",
+        "orcamento",
+        "pessoal",
+        "caprem",
+        "previdencia",
+      ]) {
+        expect(resolveActiveTabIndex(`/${slug}/${rota}`, slug)).toBe(4);
+      }
+    });
+
+    it("não deve incluir abas contábeis nem Previdência entre as primárias", () => {
+      expect(PRIMARY_NAV_TABS.map((tab) => tab.shortLabel)).toEqual([
+        "Início",
+        "Saúde",
+        "Educação",
+        "Obras",
+      ]);
     });
   });
 
@@ -145,9 +120,9 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
       for (const tab of PRIMARY_NAV_TABS) {
-        expect(
-          screen.getByRole("link", { name: tab.label }),
-        ).toBeInTheDocument();
+        const link = screen.getByRole("link", { name: tab.label });
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveClass("min-h-[44px]");
       }
 
       const moreBtn = screen.getByRole("button", {
@@ -164,31 +139,29 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
       const homeLink = screen.getByRole("link", { name: /visão geral/i });
       expect(homeLink).toHaveAttribute("aria-current", "page");
 
-      const receitasLink = screen.getByRole("link", { name: /^receitas$/i });
-      expect(receitasLink).not.toHaveAttribute("aria-current");
+      const saudeLink = screen.getByRole("link", { name: /^saúde$/i });
+      expect(saudeLink).not.toHaveAttribute("aria-current");
     });
 
-    it("deve marcar Despesas como ativa na rota de despesas", () => {
-      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/despesas");
+    it("deve marcar Educação como ativa na rota de educação", () => {
+      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/educacao");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
-      const despesasLink = screen.getByRole("link", {
-        name: /despesas detalhadas/i,
-      });
-      expect(despesasLink).toHaveAttribute("aria-current", "page");
+      const educacaoLink = screen.getByRole("link", { name: /^educação$/i });
+      expect(educacaoLink).toHaveAttribute("aria-current", "page");
 
       const homeLink = screen.getByRole("link", { name: /visão geral/i });
       expect(homeLink).not.toHaveAttribute("aria-current");
     });
 
-    it("deve ativar o botão Mais ao navegar em seção do menu lateral como Saúde", () => {
-      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/saude");
+    it("deve ativar o botão Mais ao navegar em seção do menu lateral como Receitas", () => {
+      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/receitas");
       render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
 
       const moreBtn = screen.getByRole("button", {
         name: /mais opções e seções/i,
       });
-      expect(moreBtn).toHaveClass("text-[oklch(0.55_0.11_250)]");
+      expect(moreBtn).toHaveClass("text-[oklch(0.5_0.11_250)]");
     });
 
     it("deve disparar toggleMenu ao clicar no botão Mais", () => {
@@ -218,20 +191,43 @@ describe("MobileBottomNav Component (5 Tabs: 4 Primárias + Mais)", () => {
     });
 
     it("deve preservar parâmetros de busca de ano e entidades nos links", () => {
-      mockUsePathname.mockReturnValue("/porciuncula_prefeitura/despesas");
+      mockUsePathname.mockReturnValue("/portal_teste/despesas");
       mockUseQueryState.mockImplementation(((key: string) => {
         if (key === "ano") return ["2024", vi.fn()];
         if (key === "entidades") return ["1,2", vi.fn()];
         return [null, vi.fn()];
       }) as unknown as typeof useQueryState);
 
-      render(<MobileBottomNav portalSlug="porciuncula_prefeitura" />);
+      render(<MobileBottomNav portalSlug="portal_teste" />);
 
-      const receitasLink = screen.getByRole("link", { name: /^receitas$/i });
-      expect(receitasLink).toHaveAttribute(
+      const obrasLink = screen.getByRole("link", { name: /^obras públicas$/i });
+      expect(obrasLink).toHaveAttribute(
         "href",
-        "/porciuncula_prefeitura/receitas?ano=2024&entidades=1%2C2",
+        "/portal_teste/obras?ano=2024&entidades=1%2C2",
       );
+    });
+
+    it("sem slug, links nao tem prefixo de tenant e so a raiz ativa Inicio", () => {
+      mockUsePathname.mockReturnValue("/receitas");
+      mockUseQueryState.mockImplementation(((key: string) => {
+        if (key === "ano") return [null, vi.fn()];
+        return [null, vi.fn()];
+      }) as unknown as typeof useQueryState);
+      const { container } = render(<MobileBottomNav />);
+
+      const hrefs = Array.from(container.querySelectorAll("a")).map((link) =>
+        link.getAttribute("href"),
+      );
+      expect(hrefs.every((href) => !href?.includes("porciuncula"))).toBe(true);
+      expect(
+        screen.getByRole("link", { name: /^saúde$/i }).getAttribute("href"),
+      ).toMatch(/^\/saude/);
+      for (const link of container.querySelectorAll("a")) {
+        expect(link).not.toHaveAttribute("aria-current");
+      }
+      expect(isTabActive("/saude", "/", undefined)).toBe(false);
+      expect(isTabActive("/receitas", "/saude", undefined)).toBe(false);
+      expect(isTabActive("/saude", "/saude", undefined)).toBe(true);
     });
 
     it("deve conter as classes de responsividade mobile e fixação z-30", () => {

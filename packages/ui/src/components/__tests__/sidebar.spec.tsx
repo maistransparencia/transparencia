@@ -65,6 +65,24 @@ describe("Sidebar Component", () => {
     expect(screen.getByText("Radar Cívico")).toBeInTheDocument();
   });
 
+  it("renderiza o item solto Farmácia SUS logo abaixo de Radar Cívico", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const farmacia = screen.getByRole("link", { name: /^Farmácia SUS$/ });
+    expect(farmacia).toHaveAttribute(
+      "href",
+      expect.stringContaining("/porciuncula_prefeitura/farmacia"),
+    );
+    const radar = screen.getByRole("link", { name: /Radar Cívico/ });
+    expect(
+      radar.compareDocumentPosition(farmacia) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(radar.nextElementSibling).toBe(farmacia);
+  });
+
   it("renderiza o item de navegação Obras Públicas", () => {
     render(
       <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
@@ -256,5 +274,37 @@ describe("Sidebar Component", () => {
       "href",
       expect.stringContaining("/porciuncula_prefeitura/educacao"),
     );
+  });
+
+  it("posiciona Temas antes de Administrativo", () => {
+    render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
+    const temas = screen.getAllByText("Temas")[0];
+    const administrativo = screen.getAllByText("Administrativo")[0];
+    expect(
+      temas.compareDocumentPosition(administrativo) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("renderiza ícone cívico neutro sem brasão e sem img de brasão fixo", () => {
+    const { container } = render(
+      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
+    );
+    expect(
+      container.querySelector('img[src*="brasao-porciuncula"]'),
+    ).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
+  });
+
+  it("renderiza img do brasao quando brasaoAsset e informado", () => {
+    const { container } = render(
+      <Sidebar
+        portalName="Portal"
+        portalSlug="portal_teste"
+        brasaoAsset="brasao-teste.svg"
+      />,
+    );
+    expect(container.querySelector("img")).not.toBeNull();
   });
 });

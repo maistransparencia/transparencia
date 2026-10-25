@@ -135,7 +135,7 @@ export function EntidadeSelectCompact({
         onClick={() => !isBtnDisabled && setIsOpen(!isOpen)}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label="Filtrar entidades públicas municipais"
+        aria-label={`${triggerLabel}, filtrar entidades públicas municipais`}
         className={cn(
           "flex min-h-[24px] w-full cursor-pointer appearance-none items-center justify-between gap-1 px-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none",
           isBtnDisabled && "cursor-not-allowed opacity-60",

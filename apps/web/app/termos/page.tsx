@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { env } from "@/env";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://maistransparencia.com";
 
-const PLANALTO = "https://www.planalto.gov.br/ccivil_03";
-const LEI_14133_URL = `${PLANALTO}/_ato2019-2022/2021/lei/l14133.htm`;
+const LEI_14133_URL = urlLegislacao("lei14133");
 
 export const metadata: Metadata = {
   title: "Termos de Uso | MaisTransparencia",
@@ -40,14 +40,14 @@ const legalBases: {
   {
     name: "Lei 12.527/2011",
     detail: "Lei de Acesso à Informação (LAI)",
-    href: `${PLANALTO}/_ato2011-2014/2011/lei/l12527.htm`,
+    href: urlLegislacao("lai"),
     description:
       "Assegura o direito de qualquer pessoa a obter informações públicas detidas pelo Estado, promovendo a transparência ativa.",
   },
   {
     name: "Lei Complementar 131/2009",
     detail: "Lei da Transparência",
-    href: `${PLANALTO}/leis/lcp/lcp131.htm`,
+    href: urlLegislacao("lcp131"),
     description:
       "Determina a divulgação em tempo real de informações detalhadas sobre a execução orçamentária e financeira dos entes públicos.",
   },
@@ -257,7 +257,7 @@ export default function TermosPage() {
               apresenta dados agregados e estatísticos sobre remunerações de
               agentes públicos municipais: indicadores de massa salarial,
               distribuição por regime jurídico e conformidade com os limites da{" "}
-              <ExternalLink href={`${PLANALTO}/leis/lcp/lcp101.htm`}>
+              <ExternalLink href={urlLegislacao("lrf")}>
                 Lei de Responsabilidade Fiscal (LC 101/2000)
               </ExternalLink>
               .

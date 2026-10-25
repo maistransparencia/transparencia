@@ -3,12 +3,10 @@
 import {
   ChevronDown,
   FileText,
-  GraduationCap,
-  HardHat,
-  HeartPulse,
   Landmark,
   LayoutDashboard,
   PieChart,
+  Pill,
   Receipt,
   ShieldAlert,
   TrendingUp,
@@ -20,7 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
-import { buildNavUrl } from "../utils/nav";
+import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 import { ShareButton } from "./share-button";
 
@@ -225,7 +223,7 @@ export function Sidebar({
   onExerciceChange,
   selectedEntidades,
   onEntidadesChange,
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
   portais,
   onPortalChange,
   pushNotificationSlot,
@@ -303,7 +301,7 @@ export function Sidebar({
   );
 
   const normalizedBrasao = (() => {
-    if (!brasaoAsset) return "/brasao-porciuncula.png";
+    if (!brasaoAsset) return null;
     return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
   })();
 
@@ -332,23 +330,31 @@ export function Sidebar({
     entidades: currentEntidades,
   });
 
-  const isPrevidenciaEnabled = previdencia ? previdencia.habilitado : true;
-  const temasItems = [
-    { name: "Educação", href: "/educacao", icon: GraduationCap },
-    { name: "Saúde", href: "/saude", icon: HeartPulse },
-    { name: "Obras Públicas", href: "/obras", icon: HardHat },
-    ...(isPrevidenciaEnabled
-      ? [
-          {
-            name: previdencia?.sigla || "Previdência",
-            href: "/previdencia",
-            icon: Landmark,
-          },
-        ]
-      : []),
-  ];
+  const farmaciaTargetPath = portalSlug
+    ? `/${portalSlug}/farmacia`
+    : "/farmacia";
+  const isFarmaciaActive = pathname
+    ? pathname === farmaciaTargetPath ||
+      pathname.startsWith(`${farmaciaTargetPath}/`)
+    : false;
+  const farmaciaHref = buildNavUrl({
+    path: "/farmacia",
+    slug: portalSlug,
+    exercice: currentExercice,
+    entidades: currentEntidades,
+  });
+
+  const temasItems = buildTemasNavItems({ previdencia }).map((tema) => ({
+    name: tema.name,
+    href: tema.href,
+    icon: tema.icon,
+  }));
 
   const navGroups: NavGroup[] = [
+    {
+      label: "Temas",
+      items: temasItems,
+    },
     {
       label: "Administrativo",
       items: [
@@ -358,10 +364,6 @@ export function Sidebar({
         { name: "Licitações e Contratos", href: "/licitacoes", icon: FileText },
         { name: "Pessoal", href: "/pessoal", icon: Users },
       ],
-    },
-    {
-      label: "Temas",
-      items: temasItems,
     },
   ];
 
@@ -473,7 +475,7 @@ export function Sidebar({
                 </div>
                 <div className="min-w-0 flex-1">
                   {portais && portais.length > 0 && onPortalChange ? (
-                    <div className="space-y-1">
+                    <div className="space-y-1 md:space-y-0.5">
                       <h1 className="sr-only">{displayTitle}</h1>
                       <PortalSelect
                         portais={portais}
@@ -541,14 +543,14 @@ export function Sidebar({
           </div>
 
           {/* Navegação Principal */}
-          <nav className="space-y-4 p-4">
+          <nav className="space-y-3 p-4">
             {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Link
                 href={visaoGeralHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isVisaoGeralActive
                     ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                     : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -570,7 +572,7 @@ export function Sidebar({
                 href={radarHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isRadarActive
                     ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                     : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -602,11 +604,33 @@ export function Sidebar({
                   </span>
                 )}
               </Link>
+
+              <Link
+                href={farmaciaHref}
+                onClick={() => setIsMobileOpen(false)}
+                className={cn(
+                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  isFarmaciaActive
+                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
+                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                )}
+              >
+                <Pill
+                  strokeWidth={1.6}
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    isFarmaciaActive
+                      ? "text-[oklch(0.55_0.11_250)]"
+                      : "text-mutedText",
+                  )}
+                />
+                <span>Farmácia SUS</span>
+              </Link>
             </div>
 
             {/* Demais Grupos de Navegação */}
             {navGroups.map((group) => (
-              <div key={group.label} className="space-y-1">
+              <div key={group.label} className="space-y-2">
                 <p className="mb-1.5 px-3 font-semibold text-[11px] text-mutedText">
                   {group.label}
                 </p>
@@ -643,7 +667,7 @@ export function Sidebar({
                       href={itemHref}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
-                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0",
+                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                         isActive
                           ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
                           : "text-subtleText hover:bg-gray-50 hover:text-ink",
@@ -672,7 +696,7 @@ export function Sidebar({
         {/* Rodapé com Compartilhamento, Notificações e Instalação do App */}
         <div
           className={cn(
-            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4",
+            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4 md:space-y-2 md:p-3",
             !pushNotificationSlot && !pwaInstallSlot && "hidden md:block",
           )}
         >

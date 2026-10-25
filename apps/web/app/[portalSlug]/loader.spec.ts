@@ -6,6 +6,8 @@ const {
   getPosicaoFiscalMetricsMock,
   getRadarCivicoAlertasMock,
   getResumoEducacaoMock,
+  getFarmaciaSentinelasMock,
+  getResumoFarmaciaSusMock,
   getResumoObrasPorPortalMock,
   notFoundMock,
 } = vi.hoisted(() => ({
@@ -14,6 +16,8 @@ const {
   getPosicaoFiscalMetricsMock: vi.fn(),
   getRadarCivicoAlertasMock: vi.fn(),
   getResumoEducacaoMock: vi.fn(),
+  getFarmaciaSentinelasMock: vi.fn(),
+  getResumoFarmaciaSusMock: vi.fn().mockResolvedValue(null),
   getResumoObrasPorPortalMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -42,6 +46,8 @@ vi.mock("@transparencia/db", () => ({
   getObrasPorPortal: getObrasPorPortalMock,
   getResumoObrasPorPortal: getResumoObrasPorPortalMock,
   getResumoEducacao: getResumoEducacaoMock,
+  getFarmaciaSentinelas: getFarmaciaSentinelasMock,
+  getResumoFarmaciaSus: getResumoFarmaciaSusMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
 }));
 
@@ -163,5 +169,80 @@ describe("loadVisaoGeralData", () => {
     const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
 
     expect(result.resumoEducacao).toBeNull();
+  });
+
+  it("propaga resumoFarmacia consultado com o tenant", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    getRadarCivicoAlertasMock.mockResolvedValue([]);
+    const resumoFarmacia = {
+      status: "apagao",
+      diasDesdePosicaoMaisRecente: 20,
+    };
+    getResumoFarmaciaSusMock.mockResolvedValue(resumoFarmacia);
+
+    const result = await loadVisaoGeralData("porciuncula", {});
+
+    expect(getResumoFarmaciaSusMock).toHaveBeenCalledWith("porciuncula");
+    expect(result.resumoFarmacia).toEqual(resumoFarmacia);
+  });
+
+  it("isola a falha de getResumoFarmaciaSus como indisponivel", async () => {
+    getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+    getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+    getRadarCivicoAlertasMock.mockResolvedValue([]);
+    getResumoFarmaciaSusMock.mockRejectedValue(new Error("falha"));
+
+    const result = await loadVisaoGeralData("porciuncula", {});
+
+    expect(result.resumoFarmacia).toEqual({
+      status: "indisponivel",
+      dataColeta: null,
+      dataPosicaoMaisRecente: null,
+      diasDesdePosicaoMaisRecente: null,
+    });
+  });
+
+  describe("sentinelasFarmacia", () => {
+    const preparar = () => {
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getRadarCivicoAlertasMock.mockResolvedValue([]);
+      getFarmaciaSentinelasMock.mockReset();
+    };
+
+    it("consulta as sentinelas quando o status e conforme", async () => {
+      preparar();
+      const sentinelas = { totalUnidadesAtivas: 2, sentinelas: [] };
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "conforme" });
+      getFarmaciaSentinelasMock.mockResolvedValue(sentinelas);
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(getFarmaciaSentinelasMock).toHaveBeenCalledWith("porciuncula");
+      expect(result.sentinelasFarmacia).toEqual(sentinelas);
+    });
+
+    it("nao consulta as sentinelas fora de conforme", async () => {
+      preparar();
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "apagao" });
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(getFarmaciaSentinelasMock).not.toHaveBeenCalled();
+      expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
+    });
+
+    it("isola a falha das sentinelas como resultado vazio", async () => {
+      preparar();
+      getResumoFarmaciaSusMock.mockResolvedValue({ status: "conforme" });
+      getFarmaciaSentinelasMock.mockRejectedValue(new Error("falha"));
+
+      const result = await loadVisaoGeralData("porciuncula", {});
+
+      expect(result.sentinelasFarmacia.totalUnidadesAtivas).toBe(0);
+      expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
+      expect(result.resumoFarmacia).toEqual({ status: "conforme" });
+    });
   });
 });

@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_farmacia_sus__estoque_medicamentos
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+      - name: id_registro
+        tests: [not_null]
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, id_registro, data_posicao_estoque]
+
+  - name: stg_farmacia_sus__estabelecimentos_cnes
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, codigo_cnes]
+
+  - name: stg_farmacia_sus__coletas
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, data_hora_coleta]
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+      - name: status_coleta
+        tests:
+          - accepted_values:
+              values: [sucesso, falha]

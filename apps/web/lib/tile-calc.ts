@@ -56,3 +56,24 @@ export function projectCoordToTilePercent(
     yPercent: Math.min(Math.max(yFraction * 100, 0), 100),
   };
 }
+
+export const MAX_LATITUDE_WEB_MERCATOR = 85.0511;
+export const MAX_LONGITUDE = 180;
+
+/**
+ * Coordenada utilizável no mapa: finita, dentro dos limites Web Mercator e
+ * diferente do ponto nulo (0, 0).
+ */
+export function isValidMapCoordinate(
+  latitude: number | null | undefined,
+  longitude: number | null | undefined,
+): boolean {
+  if (latitude == null || longitude == null) return false;
+  return (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    Math.abs(latitude) <= MAX_LATITUDE_WEB_MERCATOR &&
+    Math.abs(longitude) <= MAX_LONGITUDE &&
+    !(latitude === 0 && longitude === 0)
+  );
+}

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { env } from "@/env";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PwaInstallButton } from "./pwa-installer";
@@ -174,7 +175,7 @@ export function GlobalFooter({
               <p className="text-mutedText text-xs leading-relaxed">
                 Dados públicos auditados segundo a{" "}
                 <a
-                  href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm"
+                  href={urlLegislacao("lai")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:text-ink"
@@ -183,7 +184,7 @@ export function GlobalFooter({
                 </a>{" "}
                 e a{" "}
                 <a
-                  href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm"
+                  href={urlLegislacao("lrf")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:text-ink"

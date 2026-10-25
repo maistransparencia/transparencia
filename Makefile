@@ -82,6 +82,15 @@ endif
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py --with-db $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
 
+elt/farmacia-sus:
+	@for portal in $(if $(PORTAL),$(PORTAL),$$(ls elt/portals/*.yml | xargs -n1 basename | sed 's/\.yml$$//')); do \
+		echo "=== Farmácia SUS: $$portal ==="; \
+		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only farmacia_sus && \
+		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
+	done
+	uv run --project elt python elt/scripts/run_dbt.py seed --full-refresh --select seed_farmacia_medicamentos_sentinela
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque fct_farmacia_estoque_historico fct_farmacia_coletas_historico fct_farmacia_sentinela_disponibilidade
+
 # CLOUDFLARE R2 DATA LAKE SYNC
 
 r2/pull:

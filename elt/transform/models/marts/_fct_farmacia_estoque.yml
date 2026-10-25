@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: fct_farmacia_estoque
+    description: "Estoque de medicamentos da Farmácia SUS (BNAFAR/Hórus) por unidade e status de conformidade com a Lei 14.654/2023 por portal. Portais conformes trazem uma linha por item vigente; apagão/indisponível trazem uma única linha de status."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - portal_slug
+            - id_registro
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: codigo_ibge6
+        data_type: text
+      - name: status_conformidade
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - accepted_values:
+              values: [conforme, apagao, indisponivel]
+      - name: data_coleta
+        data_type: date
+      - name: data_posicao_mais_recente
+        data_type: date
+      - name: dias_desde_posicao_mais_recente
+        data_type: integer
+      - name: codigo_cnes
+        data_type: text
+      - name: nome_unidade
+        data_type: text
+      - name: endereco_unidade
+        data_type: text
+      - name: telefone_unidade
+        data_type: text
+      - name: latitude_unidade
+        data_type: numeric(12, 8)
+      - name: longitude_unidade
+        data_type: numeric(12, 8)
+      - name: nome_medicamento
+        data_type: text
+      - name: quantidade_estoque
+        data_type: numeric(15, 3)
+      - name: data_posicao_estoque
+        data_type: date

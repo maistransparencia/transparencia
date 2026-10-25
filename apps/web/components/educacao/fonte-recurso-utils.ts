@@ -1,4 +1,5 @@
 import type { GrupoFonteRecursoEducacao } from "@transparencia/db";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 /** Ordem fixa de exibição das fontes (valores literais para não importar o runtime do banco no cliente). */
 export const ORDEM_FONTES_RECURSO: GrupoFonteRecursoEducacao[] = [
@@ -57,41 +58,41 @@ export const BASE_LEGAL_FONTE_RECURSO: Partial<
   fundeb: [
     {
       rotulo: "Lei nº 14.113/2020",
-      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14113.htm",
+      url: urlLegislacao("lei14113"),
     },
   ],
   fundeb_complementacao_uniao: [
     {
       rotulo: "Lei nº 14.113/2020",
-      url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14113.htm",
+      url: urlLegislacao("lei14113"),
     },
   ],
   salario_educacao: [
     {
       rotulo: "Lei nº 9.766/1998",
-      url: "https://www.planalto.gov.br/ccivil_03/leis/l9766.htm",
+      url: urlLegislacao("lei9766"),
     },
   ],
   pnae: [
     {
       rotulo: "Lei nº 11.947/2009",
-      url: "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm",
+      url: urlLegislacao("lei11947"),
     },
   ],
   pnate: [
     {
       rotulo: "Lei nº 10.880/2004",
-      url: "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10.880.htm",
+      url: urlLegislacao("lei10880"),
     },
   ],
   royalties: [
     {
       rotulo: "Lei nº 12.858/2013",
-      url: "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12858.htm",
+      url: urlLegislacao("lei12858"),
     },
     {
       rotulo: "Lei nº 7.990/1989",
-      url: "https://www.planalto.gov.br/ccivil_03/leis/l7990.htm",
+      url: urlLegislacao("lei7990"),
     },
   ],
 };

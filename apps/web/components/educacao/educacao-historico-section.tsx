@@ -18,6 +18,7 @@ import type {
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { SectionHeader } from "@/components/section-header";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface EducacaoHistoricoSectionProps {
   historico: {
@@ -39,8 +40,7 @@ interface CustomTooltipProps {
   label?: string | number;
 }
 
-const NOTA_INFORMATIVA_IDEB_URL =
-  "https://download.inep.gov.br/ideb/resultados/nota_informativa_ideb_2025.pdf";
+const NOTA_INFORMATIVA_IDEB_URL = FONTES_OFICIAIS.notaInformativaIdeb2025.url;
 
 const formatarAnos = (anos: number[]) =>
   new Intl.ListFormat("pt-BR", { style: "long", type: "conjunction" }).format(
@@ -301,7 +301,7 @@ export function EducacaoHistoricoSection({
             </p>
           </div>
           <a
-            href="https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb/resultados"
+            href={FONTES_OFICIAIS.ideb.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"

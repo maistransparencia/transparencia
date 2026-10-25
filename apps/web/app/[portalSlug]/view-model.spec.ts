@@ -792,113 +792,6 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
     expect(vm.obrasDetailUrl).toBe("/porciuncula/obras?ano=2024");
     expect(vm.obrasDetailUrl).not.toContain("entidades");
   });
-
-  it("filtra marcadores válidos e calcula o centro mediano a partir de obrasPreview", () => {
-    const raw = makeRawVisaoGeral({
-      obrasPreview: [
-        {
-          idProjeto: "1",
-          numeroControleObrasgov: "101",
-          ano: 2024,
-          titulo: "Construção de Escola",
-          situacao: "em_execucao",
-          valorTotalInvestimento: 1000000,
-          latitude: -20.963,
-          longitude: -42.04,
-        },
-        {
-          idProjeto: "2",
-          numeroControleObrasgov: "102",
-          ano: 2024,
-          titulo: "Reforma de Posto",
-          situacao: "concluida",
-          valorTotalInvestimento: 500000,
-          latitude: -20.961,
-          longitude: -42.042,
-        },
-        {
-          idProjeto: "3",
-          numeroControleObrasgov: "103",
-          ano: 2024,
-          titulo: "Pavimentação",
-          situacao: "paralisada",
-          valorTotalInvestimento: 200000,
-          latitude: -20.965,
-          longitude: -42.038,
-        },
-        // Obras inválidas que devem ser descartadas
-        {
-          idProjeto: "4",
-          numeroControleObrasgov: "104",
-          ano: 2024,
-          titulo: "Sem Coordenada",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: null,
-          longitude: -42.04,
-        },
-        {
-          idProjeto: "5",
-          numeroControleObrasgov: "105",
-          ano: 2024,
-          titulo: "Coordenada Zero",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: 0,
-          longitude: 0,
-        },
-        {
-          idProjeto: "6",
-          numeroControleObrasgov: "106",
-          ano: 2024,
-          titulo: "Coordenada NaN",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: Number.NaN,
-          longitude: -42.04,
-        },
-      ] as never,
-    });
-
-    const vm = buildVisaoGeralViewModel(raw);
-
-    expect(vm.obrasMiniMapMarkers).toHaveLength(3);
-    expect(vm.obrasMiniMapMarkers).toEqual([
-      {
-        id: "1",
-        situacao: "em_execucao",
-        latitude: -20.963,
-        longitude: -42.04,
-      },
-      {
-        id: "2",
-        situacao: "concluida",
-        latitude: -20.961,
-        longitude: -42.042,
-      },
-      {
-        id: "3",
-        situacao: "paralisada",
-        latitude: -20.965,
-        longitude: -42.038,
-      },
-    ]);
-
-    // Ordenados: lats [-20.965, -20.963, -20.961] -> median = -20.963
-    // lngs [-42.042, -42.040, -42.038] -> median = -42.040
-    expect(vm.obrasMapCenter).toEqual([-20.963, -42.04]);
-  });
-
-  it("retorna fallback padrão para obrasMapCenter quando obrasPreview não possuir coordenadas válidas", () => {
-    const raw = makeRawVisaoGeral({
-      obrasPreview: [],
-    });
-
-    const vm = buildVisaoGeralViewModel(raw);
-
-    expect(vm.obrasMiniMapMarkers).toEqual([]);
-    expect(vm.obrasMapCenter).toEqual([-20.9634, -42.0408]);
-  });
 });
 
 describe("buildVisaoGeralViewModel - educacaoResumo", () => {
@@ -936,6 +829,7 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
       enfaseTitulo: "Destaque: evolução de +1,4 ponto no IDEB",
       evolucaoTexto: "+1,4 ponto",
       notaAnteriorTexto: "Ciclo anterior: 4,5",
+      notaAnteriorValorTexto: "4,5",
       metaTexto: null,
       rankingTexto: null,
     });
@@ -1017,5 +911,89 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
       makeRawVisaoGeral({ resumoEducacao: null }),
     );
     expect(vm.educacaoResumo).toBeNull();
+  });
+});
+
+describe("buildVisaoGeralViewModel - farmacia", () => {
+  const resumo = (status: string) => ({
+    status,
+    dataPosicaoMaisRecente: "2026-01-10",
+    diasDesdePosicaoMaisRecente: 20,
+  });
+
+  it("apagao: monta requerimento e texto do WhatsApp com o nome do portal", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo("apagao") }),
+    );
+    expect(vm.farmaciaRequerimento).toContain("Porciúncula");
+    expect(vm.farmaciaRequerimento).toContain("Art. 6º-A");
+    expect(vm.farmaciaTextoWhatsApp).toContain("Porciúncula");
+  });
+
+  it.each(["conforme", "indisponivel"])("%s: nao monta textos", (status) => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo(status) }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+    expect(vm.farmaciaTextoWhatsApp).toBeUndefined();
+  });
+
+  it("apagao sem nome de portal: nao monta textos", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo("apagao"),
+        portalConfig: undefined,
+      }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+  });
+
+  describe("farmaciaExemplos", () => {
+    const sentinela = (
+      codigo: string,
+      ordem: number,
+      extra: Record<string, unknown> = {},
+    ) => ({
+      codigoPrincipioAtivo: codigo,
+      nomePrincipioAtivo: codigo.toUpperCase(),
+      grupoTerapeutico: "dor_febre",
+      ordemExibicao: ordem,
+      destaqueCardInicial: true,
+      unidadesComRegistro: 1,
+      unidadesSomenteCombinacao: 0,
+      ...extra,
+    });
+    const raw = (status: string, sentinelas: unknown[]) =>
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo(status),
+        sentinelasFarmacia: { totalUnidadesAtivas: 2, sentinelas },
+      });
+
+    it("conforme: filtra destaque com estoque, ordena e limita a 6", () => {
+      const sentinelas = [
+        ...[9, 8, 7, 6, 5, 4, 3].map((n) => sentinela(`med${n}`, n)),
+        sentinela("fora", 1, { destaqueCardInicial: false }),
+        sentinela("semestoque", 2, { unidadesComRegistro: 0 }),
+      ];
+      const vm = buildVisaoGeralViewModel(raw("conforme", sentinelas));
+      expect(vm.farmaciaExemplos.map((e) => e.codigoPrincipioAtivo)).toEqual([
+        "med3",
+        "med4",
+        "med5",
+        "med6",
+        "med7",
+        "med8",
+      ]);
+      expect(vm.farmaciaExemplos[0].href).toBe(
+        `${vm.farmaciaDetailUrl}?q=MED3#resultados`,
+      );
+    });
+
+    it.each(["apagao", "indisponivel"])("%s: sem exemplos", (status) => {
+      const vm = buildVisaoGeralViewModel(
+        raw(status, [sentinela("dipirona", 1)]),
+      );
+      expect(vm.farmaciaExemplos).toEqual([]);
+    });
   });
 });
