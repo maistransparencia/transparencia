@@ -164,7 +164,7 @@ describe("buildFarmaciaViewModel indicadores", () => {
       "1 não aparece na lista de estoque · 1 só em combinação",
     );
     expect(essenciais.notaAtencao).toBe(true);
-    expect(atualizacao.nota).toContain("Há 5 dias");
+    expect(atualizacao.nota).toBeNull();
   });
 
   it("essenciais sem pendencia: nota neutra sem atencao", () => {
@@ -201,24 +201,15 @@ describe("buildFarmaciaViewModel indicadores", () => {
     ]);
   });
 
-  it.each([
-    [0, "Enviada hoje"],
-    [1, "Há 1 dia"],
-  ])("dias %s na nota da atualizacao", (dias, esperado) => {
+  it("a lista mais recente mostra so a data, sem nota de dias", () => {
     const vm = buildFarmaciaViewModel(
       makeRaw({
         dataPosicaoMaisRecente: "2026-10-19",
-        diasDesdePosicaoMaisRecente: dias,
+        diasDesdePosicaoMaisRecente: 5,
       }),
     );
-    expect(vm.indicadores[2].nota).toContain(esperado);
-  });
-
-  it("sem dias a nota da lista mais recente e omitida", () => {
-    const vm = buildFarmaciaViewModel(
-      makeRaw({ dataPosicaoMaisRecente: "2026-10-19" }),
-    );
     expect(vm.indicadores[2].rotulo).toBe("Lista de estoque mais recente");
+    expect(vm.indicadores[2].valor).toBe("19/10/2026");
     expect(vm.indicadores[2].nota).toBeNull();
   });
 

@@ -141,17 +141,11 @@ export interface FarmaciaIndicador {
   notaAtencao: boolean;
 }
 
-function textoDiasDesde(dias: number): string {
-  if (dias <= 0) return "Enviada hoje";
-  if (dias === 1) return "Há 1 dia";
-  return `Há ${fmtNumber(dias)} dias`;
-}
-
 function buildIndicadoresEstoque(
   raw: FarmaciaRawData,
   dataAtualizacao: string | null,
 ): FarmaciaIndicador[] {
-  const { sentinelas, farmacia } = raw;
+  const { sentinelas } = raw;
   const { indicadores, totalUnidadesAtivas } = sentinelas;
   if (totalUnidadesAtivas === 0) return [];
 
@@ -189,10 +183,7 @@ function buildIndicadoresEstoque(
           codigo: "ultima_atualizacao",
           rotulo: "Lista de estoque mais recente",
           valor: fmtDate(dataAtualizacao),
-          nota:
-            farmacia.diasDesdePosicaoMaisRecente != null
-              ? textoDiasDesde(farmacia.diasDesdePosicaoMaisRecente)
-              : null,
+          nota: null,
           notaAtencao: false,
         }
       : null,
