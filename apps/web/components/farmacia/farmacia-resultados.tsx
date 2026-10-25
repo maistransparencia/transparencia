@@ -281,7 +281,7 @@ export function FarmaciaResultados({
         </ul>
         {marcadores.length > 0 && (
           <aside className="lg:sticky lg:top-4 lg:w-[340px] lg:shrink-0 lg:self-start">
-            <div className="h-60 overflow-hidden rounded-xl border border-borderLine bg-slate-100 lg:h-[520px]">
+            <div className="isolate h-60 overflow-hidden rounded-xl border border-borderLine bg-slate-100 lg:h-[520px]">
               <FarmaciaMapa
                 marcadores={marcadores}
                 idDestacado={idDestacado}
