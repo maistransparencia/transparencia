@@ -7,6 +7,8 @@ export interface SegmentedButtonProps
   /** Opção sem resultados: continua clicável, porém mais discreta. */
   muted?: boolean;
   size?: "sm" | "md";
+  /** `segmentado`: botão com borda; `tabs`: aba com filete inferior. */
+  variant?: "segmentado" | "tabs";
 }
 
 const SIZE_STYLES = {
@@ -18,15 +20,22 @@ export function SegmentedButton({
   active,
   muted = false,
   size = "sm",
+  variant = "segmentado",
   className,
   children,
   ...props
 }: SegmentedButtonProps) {
   const stateStyles = (() => {
-    if (active) return "border-slate-900 bg-slate-900 text-white shadow-xs";
+    if (variant === "tabs") {
+      if (active) return "border-ink font-semibold text-ink";
+      if (muted)
+        return "border-transparent text-mute3 hover:border-line hover:text-mute2";
+      return "border-transparent text-mute2 hover:border-line hover:text-ink";
+    }
+    if (active) return "border-ink bg-ink text-onink";
     if (muted)
-      return "border-dashed border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-700";
-    return "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900";
+      return "border-dashed border-line bg-page text-mute2 hover:border-mute3 hover:text-ink";
+    return "border-line bg-page text-ink hover:border-mute3";
   })();
 
   return (
@@ -34,7 +43,8 @@ export function SegmentedButton({
       type="button"
       aria-pressed={props.role === "tab" ? undefined : active}
       className={cn(
-        "cursor-pointer rounded-lg border font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2",
+        "cursor-pointer font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        variant === "tabs" ? "border-b-2" : "rounded-md border",
         SIZE_STYLES[size],
         stateStyles,
         className,

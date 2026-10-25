@@ -233,11 +233,8 @@
     "apps/web/components/static-tile-map.tsx",
     "apps/web/components/tabela-totais-row.tsx",
     "apps/web/components/termometro-opacidade-fiscal.tsx",
-    "packages/ui/src/components/badge.tsx",
     "packages/ui/src/components/dense-table.tsx",
     "packages/ui/src/components/kpi-card.tsx",
-    "packages/ui/src/components/modal-dialog.tsx",
-    "packages/ui/src/components/segmented-button.tsx",
     "packages/ui/src/components/tooltip.tsx",
     "packages/ui/src/components/truncated-cell-with-modal.tsx"
   ]

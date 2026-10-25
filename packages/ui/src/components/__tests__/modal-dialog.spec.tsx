@@ -198,3 +198,20 @@ describe("ModalDialog", () => {
     });
   });
 });
+
+describe("ModalDialog tokens", () => {
+  it("usa tokens no diálogo e título serif", () => {
+    render(
+      <ModalDialog isOpen onClose={() => {}} title="Detalhes">
+        <p>x</p>
+      </ModalDialog>,
+    );
+    expect(screen.getByRole("dialog")).toHaveClass(
+      "rounded-xl",
+      "border-line",
+      "bg-page",
+      "shadow-2xl",
+    );
+    expect(screen.getByText("Detalhes")).toHaveClass("font-serif");
+  });
+});

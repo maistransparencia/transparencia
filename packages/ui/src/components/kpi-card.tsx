@@ -10,6 +10,8 @@ export interface KPICardProps {
   };
   accent?: boolean;
   alert?: boolean;
+  /** `divisoria`: sem caixa, filete e tipografia editorial. Sem valor, mantém o visual atual. */
+  variant?: "padrao" | "divisoria";
   className?: string;
 }
 
@@ -20,8 +22,44 @@ export function KPICard({
   trend,
   accent = false,
   alert = false,
+  variant = "padrao",
   className,
 }: KPICardProps) {
+  if (variant === "divisoria") {
+    return (
+      <div className={cn("flex flex-col justify-between py-1", className)}>
+        <div>
+          <p className="mb-1.5 font-mono text-[11px] text-mute2 uppercase tracking-wider">
+            {title}
+          </p>
+          <p
+            className={cn(
+              "font-semibold text-[26px] leading-tight",
+              accent ? "text-brand" : alert ? "text-warn" : "text-ink",
+            )}
+          >
+            {value}
+          </p>
+        </div>
+        {(subtext || trend) && (
+          <div className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs">
+            {subtext && <span>{subtext}</span>}
+            {trend && (
+              <span
+                className={cn(
+                  "shrink-0 whitespace-nowrap font-semibold",
+                  trend.isPositive ? "text-ok" : "text-danger",
+                )}
+              >
+                {trend.value}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
