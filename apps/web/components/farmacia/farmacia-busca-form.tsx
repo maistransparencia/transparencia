@@ -41,7 +41,6 @@ export function FarmaciaBuscaForm({
       />
       <button
         type="submit"
-        aria-label="Buscar remédio no estoque"
         className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-accent px-5 font-semibold text-sm text-white transition-colors hover:bg-accent/90 sm:min-h-12"
       >
         <Search className="h-4 w-4" aria-hidden="true" />

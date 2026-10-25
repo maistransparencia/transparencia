@@ -365,7 +365,7 @@ export function ObrasResumoCard({
                 // Silencia erros de telemetria
               }
             }}
-            aria-label="Abrir mapa interativo de obras públicas"
+            aria-label="Ver no mapa interativo de obras públicas"
             className="group relative h-28 w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 transition-all duration-200 hover:border-accent/40 hover:shadow-md lg:h-auto lg:w-56"
           >
             <Image

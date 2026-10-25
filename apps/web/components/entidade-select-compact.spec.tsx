@@ -32,6 +32,21 @@ describe("EntidadeSelectCompact Component", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("deve incluir o texto visível do gatilho no nome acessível", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["2"]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: /^Fundo Municipal de Saúde, filtrar entidades públicas municipais$/i,
+      }),
+    ).toBeDefined();
+  });
+
   it("deve renderizar o nome amigável quando 1 entidade estiver selecionada", () => {
     render(
       <EntidadeSelectCompact

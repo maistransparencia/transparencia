@@ -314,7 +314,7 @@ describe("ObrasResumoCard Component", () => {
     );
 
     const mapLink = screen.getByRole("link", {
-      name: /abrir mapa interativo de obras públicas/i,
+      name: /ver no mapa interativo de obras públicas/i,
     });
     expect(mapLink).toBeInTheDocument();
     expect(mapLink).toHaveAttribute("href", "/porciuncula/obras?ano=2024");
