@@ -13,17 +13,17 @@ export function Badge({
   className,
 }: BadgeProps) {
   const styles = {
-    default: "bg-gray-100 text-gray-700 border-gray-200",
-    accent: "bg-blue-50 text-accent border-blue-200 font-semibold",
-    warning: "bg-amber-50 text-amber-800 border-amber-200 font-semibold",
-    danger: "bg-rose-50 text-rose-800 border-rose-200 font-semibold",
-    success: "bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold",
+    default: "border-line bg-line2/40 text-mute2",
+    accent: "border-brand/40 bg-brand/10 font-semibold text-brand",
+    warning: "border-warn/40 bg-warn/10 font-semibold text-warn",
+    danger: "border-danger/40 bg-danger/10 font-semibold text-danger",
+    success: "border-ok/40 bg-ok/10 font-semibold text-ok",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 font-medium text-[11px]",
+        "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
         styles[variant],
         className,
       )}
