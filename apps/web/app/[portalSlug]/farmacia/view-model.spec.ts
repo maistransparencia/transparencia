@@ -13,6 +13,7 @@ const {
   buildPedidoEsclarecimento,
   buildTelefoneHref,
   buildRequerimentoFiscalizacao,
+  nomeMunicipioDoPortal,
   buildTextoWhatsApp,
   LEI_FARMACIA_SUS_URL,
   LEI_ORGANICA_SAUDE_URL,
@@ -337,11 +338,11 @@ describe("buildFatoApagao", () => {
 describe("buildRequerimentoFiscalizacao", () => {
   it("inclui municipio, leis e citacao do Art. 6º-A", () => {
     const texto = buildRequerimentoFiscalizacao({
-      portalName: "Prefeitura X",
+      portalName: "Prefeitura de Cidade Exemplo",
       dataPosicaoMaisRecente: "2026-01-10",
       diasDesdePosicaoMaisRecente: 20,
     });
-    expect(texto).toContain("Ouvidoria de Prefeitura X.");
+    expect(texto).toContain("Ouvidoria de Cidade Exemplo.");
     expect(texto).toContain("Art. 6º-A da Lei nº 8.080/1990");
     expect(texto).toContain(LEI_ORGANICA_SAUDE_URL);
     expect(texto).toContain(LEI_FARMACIA_SUS_URL);
@@ -355,8 +356,32 @@ describe("buildRequerimentoFiscalizacao", () => {
       dataPosicaoMaisRecente: null,
       diasDesdePosicaoMaisRecente: null,
     });
-    expect(texto).toContain("Ouvidoria de o município.");
+    expect(texto).toContain("Ouvidoria do município.");
     expect(texto).toContain("não consta divulgação recente");
+  });
+});
+
+describe("nomeMunicipioDoPortal", () => {
+  it.each([
+    ["Prefeitura de Cidade Exemplo", "Cidade Exemplo"],
+    ["Prefeitura Municipal de São José", "São José"],
+    ["Prefeitura da Barra", "Barra"],
+    ["Cidade Exemplo", "Cidade Exemplo"],
+    ["", ""],
+  ])("%s vira %s", (entrada, esperado) => {
+    expect(nomeMunicipioDoPortal(entrada)).toBe(esperado);
+  });
+
+  it("o pedido e dirigido a Secretaria Municipal de Saude so com o nome da cidade", () => {
+    const texto = buildPedidoEsclarecimento({
+      portalName: "Prefeitura de Cidade Exemplo",
+      nomeMedicamento: "Captopril",
+      dataPosicaoMaisRecente: "2026-10-19",
+    });
+    expect(texto).toContain(
+      "À Secretaria Municipal de Saúde de Cidade Exemplo.",
+    );
+    expect(texto).not.toContain("Prefeitura");
   });
 });
 

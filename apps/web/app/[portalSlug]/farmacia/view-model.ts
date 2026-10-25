@@ -270,12 +270,23 @@ export function buildFatoApagao(
   return "não consta divulgação recente da posição de estoque de medicamentos nos dados oficiais do Ministério da Saúde (BNAFAR/Hórus)";
 }
 
+/** `displayName` vem como "Prefeitura de X"; o pedido e o requerimento citam só o município. */
+export function nomeMunicipioDoPortal(portalName: string): string {
+  return portalName
+    .replace(/^Prefeitura\s+(?:Municipal\s+)?d[aeo]s?\s+/i, "")
+    .trim();
+}
+
+function destinatarioDoMunicipio(portalName: string): string {
+  const nome = nomeMunicipioDoPortal(portalName);
+  return nome ? `de ${nome}` : "do município";
+}
+
 export function buildRequerimentoFiscalizacao(params: {
   portalName: string;
   dataPosicaoMaisRecente: string | null;
   diasDesdePosicaoMaisRecente: number | null;
 }): string {
-  const municipio = params.portalName || "o município";
   const fato = buildFatoApagao(
     params.dataPosicaoMaisRecente,
     params.diasDesdePosicaoMaisRecente,
@@ -283,7 +294,7 @@ export function buildRequerimentoFiscalizacao(params: {
   return [
     "REQUERIMENTO DE FISCALIZAÇÃO - DISPONIBILIDADE DE MEDICAMENTOS NA FARMÁCIA SUS",
     "",
-    `Aos gabinetes de vereadores, ao Ministério Público e à Ouvidoria de ${municipio}.`,
+    `Aos gabinetes de vereadores, ao Ministério Público e à Ouvidoria ${destinatarioDoMunicipio(params.portalName)}.`,
     "",
     `Considerando o Art. 6º-A da Lei nº 8.080/1990 (${LEI_ORGANICA_SAUDE_URL}) e a Lei nº 14.654/2023 (${LEI_FARMACIA_SUS_URL}), que tratam da divulgação da disponibilidade de medicamentos;`,
     "",
@@ -303,9 +314,7 @@ export function buildPedidoEsclarecimento(params: {
   nomeMedicamento: string;
   dataPosicaoMaisRecente: string | null;
 }): string {
-  const destinatario = params.portalName
-    ? `de ${params.portalName}`
-    : "do município";
+  const destinatario = destinatarioDoMunicipio(params.portalName);
   const posicao = params.dataPosicaoMaisRecente
     ? `Na posição de estoque divulgada em ${fmtDate(params.dataPosicaoMaisRecente)}`
     : "Na posição de estoque divulgada";
