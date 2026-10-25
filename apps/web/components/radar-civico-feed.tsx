@@ -61,7 +61,7 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
       >
         <span
           data-testid="radar-severidade-badge"
-          className={`inline-flex w-fit shrink-0 items-center gap-1.5 font-medium font-mono text-[10px] uppercase tracking-wider sm:w-12 ${severidade.classe}`}
+          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium font-mono text-[10px] uppercase tracking-wider sm:w-12 ${severidade.classe}`}
         >
           <span aria-hidden="true" className="text-[8px]">
             ■
@@ -69,14 +69,14 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
           {severidade.label}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-bold font-sans text-ink text-sm tracking-tight">
+          <span className="block font-bold font-sans text-ink text-sm leading-5 tracking-tight">
             {card.titulo}
           </span>
           <span className="mt-1 block text-mute2 text-xs leading-snug">
             {card.textoFactual || card.resumoFactual}
           </span>
         </span>
-        <span className="inline-flex shrink-0 items-center font-medium text-brand text-xs">
+        <span className="inline-flex h-5 shrink-0 items-center font-medium text-brand text-xs">
           Entender →
         </span>
       </Link>
