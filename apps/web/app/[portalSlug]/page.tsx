@@ -100,17 +100,19 @@ export default async function VisaoGeralPage({
         ano={viewModel.selectedYear}
       />
 
-      <PipelineExecucao
-        stages={viewModel.pipelineStages}
-        detailUrl={viewModel.orcamentoDetailUrl}
-      />
+      <div className="space-y-8">
+        <PipelineExecucao
+          stages={viewModel.pipelineStages}
+          detailUrl={viewModel.orcamentoDetailUrl}
+        />
 
-      <SaldoCaixaResumoCard
-        posicaoFinanceira={viewModel.posicaoFinanceira}
-        ano={viewModel.selectedYear}
-        detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
-        hasEntityFilter={viewModel.hasEntityFilter}
-      />
+        <SaldoCaixaResumoCard
+          posicaoFinanceira={viewModel.posicaoFinanceira}
+          ano={viewModel.selectedYear}
+          detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
+          hasEntityFilter={viewModel.hasEntityFilter}
+        />
+      </div>
 
       <CardsSecundariosVisaoGeral
         despesas={viewModel.despesasCardData}

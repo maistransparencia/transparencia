@@ -1,9 +1,4 @@
-import {
-  cn,
-  corDoGrafico,
-  SectionHeader,
-  type TokenCorGrafico,
-} from "@transparencia/ui";
+import { cn, corDoGrafico, type TokenCorGrafico } from "@transparencia/ui";
 import Link from "next/link";
 
 export interface AntiguidadeBarItem {
@@ -63,6 +58,32 @@ export interface CardsSecundariosVisaoGeralProps {
   className?: string;
 }
 
+function CabecalhoColuna({
+  title,
+  linkText,
+  linkHref,
+}: {
+  title: string;
+  linkText: string;
+  linkHref?: string;
+}) {
+  return (
+    <header className="flex items-baseline justify-between gap-3 pb-4">
+      <h3 className="font-medium font-mono text-[11px] text-ink uppercase tracking-widest">
+        {title}
+      </h3>
+      {linkHref && (
+        <Link
+          href={linkHref}
+          className="shrink-0 text-brand text-xs transition-colors hover:underline"
+        >
+          {linkText}
+        </Link>
+      )}
+    </header>
+  );
+}
+
 export function CardsSecundariosVisaoGeral({
   despesas,
   licitacoes,
@@ -99,40 +120,31 @@ export function CardsSecundariosVisaoGeral({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 divide-y divide-line border-line border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0",
+        "grid grid-cols-1 divide-y divide-line border-ink border-t-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
         className,
       )}
     >
       {/* Card 1: Despesas */}
-      <div className="flex flex-col justify-between py-6 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <SectionHeader
-            as="h3"
-            className="pb-3"
+          <CabecalhoColuna
             title={despesasTitle}
-            action={
-              despesasLinkHref ? (
-                <Link
-                  href={despesasLinkHref}
-                  className="font-medium text-mute2 text-xs transition-colors hover:text-brand"
-                >
-                  {despesasLinkText}
-                </Link>
-              ) : undefined
-            }
+            linkText={despesasLinkText}
+            linkHref={despesasLinkHref}
           />
 
           {/* Destaque Numérico */}
-          <div className="my-4">
+          <div className="mb-4">
             {totalEmpenhado ? (
               <div>
-                <div className="font-bold font-serif text-2xl text-danger leading-none tracking-tight sm:text-3xl">
+                <div className="font-bold font-sans text-2xl text-danger leading-none tracking-tight sm:text-3xl">
                   {totalEmpenhado}
                 </div>
                 {totalLiquidado && (
-                  <div className="mt-1 font-medium text-[11px] text-mute2">
+                  <div className="mt-3 text-mute2 text-xs">
                     {totalLiquidado} liquidados
+                    {despesasSubtext ? ` · ${despesasSubtext}` : ""}
                   </div>
                 )}
               </div>
@@ -141,16 +153,14 @@ export function CardsSecundariosVisaoGeral({
                 Sem restos a pagar registrados
               </div>
             )}
-            {despesasSubtext && (
-              <div className="mt-1.5 font-medium text-mute2 text-xs">
-                {despesasSubtext}
-              </div>
+            {despesasSubtext && !totalLiquidado && (
+              <div className="mt-3 text-mute2 text-xs">{despesasSubtext}</div>
             )}
           </div>
 
           {/* Antiguidade Bars (Stacked Bipartida: Base Liquidado real, Topo Empenhado pendente; h-14 altura ampliada) */}
           {despesasBars.length > 0 && (
-            <div className="my-3 flex h-14 items-end gap-1.5">
+            <div className="my-3 flex h-12 items-end gap-1.5">
               {despesasBars.map((bar, idx) => {
                 const isHighlight =
                   bar.isCurrentYear ?? idx === despesasBars.length - 1;
@@ -178,13 +188,13 @@ export function CardsSecundariosVisaoGeral({
                       className="group relative flex h-full flex-1 flex-col items-center justify-end"
                     >
                       <div
-                        className="w-full rounded-sm transition-all duration-300"
+                        className="w-full transition-all duration-300"
                         style={{
                           height: `${totalPct}%`,
                           backgroundColor: fallbackColor,
                         }}
                       />
-                      <span className="mt-1 text-[9px] text-mute2">
+                      <span className="mt-1 font-mono text-[9px] text-mute2">
                         {bar.year}
                       </span>
                     </div>
@@ -209,7 +219,7 @@ export function CardsSecundariosVisaoGeral({
                     className="group relative flex h-full flex-1 flex-col items-center justify-end"
                   >
                     <div
-                      className="flex w-full flex-col overflow-hidden rounded-sm transition-all duration-300"
+                      className="flex w-full flex-col overflow-hidden transition-all duration-300"
                       style={{ height: `${totalPct}%` }}
                     >
                       {/* Topo: Empenhado residual (tom muted) */}
@@ -235,7 +245,7 @@ export function CardsSecundariosVisaoGeral({
                         />
                       )}
                     </div>
-                    <span className="mt-1 text-[9px] text-mute2">
+                    <span className="mt-1 font-mono text-[9px] text-mute2">
                       {bar.year}
                     </span>
                   </div>
@@ -247,49 +257,37 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {despesasFooter && (
-          <div className="mt-2 border-line border-t pt-2.5 font-medium text-[11px] text-mute2">
-            {despesasFooter}
-          </div>
+          <div className="mt-4 text-mute2 text-xs">{despesasFooter}</div>
         )}
       </div>
 
       {/* Card 2: Licitações */}
-      <div className="flex flex-col justify-between py-6 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <SectionHeader
-            as="h3"
-            className="pb-3"
+          <CabecalhoColuna
             title={licitacoesTitle}
-            action={
-              licitacoesLinkHref ? (
-                <Link
-                  href={licitacoesLinkHref}
-                  className="font-medium text-mute2 text-xs transition-colors hover:text-brand"
-                >
-                  {licitacoesLinkText}
-                </Link>
-              ) : undefined
-            }
+            linkText={licitacoesLinkText}
+            linkHref={licitacoesLinkHref}
           />
 
           {/* Lista de Itens */}
-          <div className="my-3.5 space-y-2.5">
+          <div className="divide-y divide-line">
             {licitacoesItems.length > 0 ? (
               licitacoesItems.map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center gap-2 text-xs"
+                  className="flex items-center gap-3 py-2.5 text-xs first:pt-0"
                 >
                   <strong
                     className={cn(
-                      "w-7 shrink-0 font-bold font-serif text-base",
+                      "w-9 shrink-0 font-bold font-sans text-base",
                       item.isAlert ? "text-danger" : "text-ink",
                     )}
                   >
                     {item.count}
                   </strong>
-                  <span className="flex-1 truncate font-medium text-mute2">
+                  <span className="flex-1 truncate text-mute2">
                     {item.label}
                   </span>
                 </div>
@@ -304,29 +302,19 @@ export function CardsSecundariosVisaoGeral({
       </div>
 
       {/* Card 3: Pessoal */}
-      <div className="flex flex-col justify-between py-6 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <SectionHeader
-            as="h3"
-            className="pb-3"
+          <CabecalhoColuna
             title={pessoalTitle}
-            action={
-              pessoalLinkHref ? (
-                <Link
-                  href={pessoalLinkHref}
-                  className="font-medium text-mute2 text-xs transition-colors hover:text-brand"
-                >
-                  {pessoalLinkText}
-                </Link>
-              ) : undefined
-            }
+            linkText={pessoalLinkText}
+            linkHref={pessoalLinkHref}
           />
 
           {/* Destaque Numérico */}
-          <div className="my-4">
+          <div className="mb-4">
             {pessoalPercentFormatted ? (
-              <div className="font-bold font-serif text-2xl text-ink leading-none tracking-tight sm:text-3xl">
+              <div className="font-bold font-sans text-2xl text-ink leading-none tracking-tight sm:text-3xl">
                 {pessoalPercentFormatted}
               </div>
             ) : (
@@ -335,19 +323,17 @@ export function CardsSecundariosVisaoGeral({
               </div>
             )}
             {pessoalSubtext && (
-              <div className="mt-1.5 font-medium text-mute2 text-xs">
-                {pessoalSubtext}
-              </div>
+              <div className="mt-3 text-mute2 text-xs">{pessoalSubtext}</div>
             )}
           </div>
 
           {/* Barra de Progresso + Marcador LRF */}
           {pessoalPercentFormatted && (
             <div className="my-3 space-y-1.5">
-              <div className="relative h-2.5 w-full overflow-visible rounded-md bg-track">
+              <div className="relative h-2 w-full overflow-visible bg-track">
                 {/* Progresso da Folha */}
                 <div
-                  className="h-full rounded-md transition-all duration-500"
+                  className="h-full transition-all duration-500"
                   style={{
                     backgroundColor: corDoGrafico("brand"),
                     width: `${Math.min(100, Math.max(0, pessoalPercentVal))}%`,
@@ -355,16 +341,16 @@ export function CardsSecundariosVisaoGeral({
                 />
                 {/* Linha Vermelha de Limite LRF */}
                 <div
-                  className="absolute top-[-3px] z-10 h-4 w-0.5 bg-danger"
+                  className="absolute top-[-3px] z-10 h-3.5 w-0.5 bg-danger"
                   style={{
                     left: `${Math.min(100, Math.max(0, lrfLimitVal))}%`,
                   }}
                   title={`Limite LRF: ${lrfLimitFormatted}`}
                 />
               </div>
-              <div className="flex items-center justify-between font-medium text-[10.5px] text-mute2">
+              <div className="flex items-center justify-between font-mono text-[10.5px] text-mute2">
                 <span>{pessoalPercentVal}% atual</span>
-                <span className="font-semibold text-danger">
+                <span className="text-danger">
                   limite LRF: {lrfLimitFormatted}
                 </span>
               </div>
@@ -374,9 +360,7 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {pessoalFooter && (
-          <div className="mt-2 border-line border-t pt-2.5 font-medium text-[11px] text-mute2">
-            {pessoalFooter}
-          </div>
+          <div className="mt-4 text-mute2 text-xs">{pessoalFooter}</div>
         )}
       </div>
     </div>

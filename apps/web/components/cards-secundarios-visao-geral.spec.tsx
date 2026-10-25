@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CardsSecundariosVisaoGeral } from "./cards-secundarios-visao-geral";
 
@@ -59,5 +59,34 @@ describe("CardsSecundariosVisaoGeral", () => {
       />,
     );
     expect(coresDeFundo(container)).toContain("var(--brand)");
+  });
+
+  it("usa uma única régua superior e cabeçalhos de coluna com link de detalhes", () => {
+    const { container } = render(
+      <CardsSecundariosVisaoGeral
+        despesas={{ title: "Restos a pagar", linkText: "Detalhes →" }}
+        licitacoes={{ title: "Licitações e Contratos", linkText: "Detalhes →" }}
+        pessoal={{ title: "Pessoal", linkText: "Detalhes →" }}
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass("border-t-2", "border-ink");
+    expect(container.querySelectorAll(".border-t-2")).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(3);
+    expect(screen.getAllByRole("link", { name: "Detalhes →" })).toHaveLength(3);
+  });
+
+  it("agrupa liquidados e pendentes em um único parágrafo", () => {
+    render(
+      <CardsSecundariosVisaoGeral
+        despesas={{
+          totalEmpenhadoFormatted: "R$ 9",
+          totalLiquidadoFormatted: "R$ 2",
+          subtext: "pendentes a 3 fornecedores",
+        }}
+      />,
+    );
+    expect(
+      screen.getByText("R$ 2 liquidados · pendentes a 3 fornecedores"),
+    ).toBeInTheDocument();
   });
 });

@@ -65,7 +65,10 @@ describe("SaldoCaixaResumoCard Component", () => {
     expect(screen.getByText(/total em caixa municipal/i)).toBeInTheDocument();
     expect(screen.getByText(/livres \(ordinários\):/i)).toBeInTheDocument();
     expect(screen.getByText(/vinculados:/i)).toBeInTheDocument();
-    expect(screen.getByText("+15.2% vs. 2023")).toBeInTheDocument();
+    expect(screen.getByText("+15.2% vs. 2023")).toHaveClass("text-ok");
+    expect(
+      screen.getByText(/saldo em contas bancárias não equivale/i),
+    ).toBeInTheDocument();
 
     const progressbar = screen.getByRole("progressbar");
     expect(progressbar).toBeInTheDocument();

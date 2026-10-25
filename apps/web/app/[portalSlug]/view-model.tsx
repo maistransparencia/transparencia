@@ -247,28 +247,24 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       formattedValue: fmtCompact(totalDotacao),
       percentage: 100,
       label: "100% autorizado",
-      corToken: "brand" as const,
     },
     {
       name: "Empenhado",
       formattedValue: fmtCompact(totalEmpenhado),
       percentage: Number(empPctDotacao.toFixed(1)),
       label: `${fmtPercent(empPctDotacao)} da dotação`,
-      corToken: "mute2" as const,
     },
     {
       name: "Liquidado",
       formattedValue: fmtCompact(totalLiquidado),
       percentage: Number(liqPctDotacao.toFixed(1)),
       label: `${fmtPercent(liqPctDotacao)} da dotação`,
-      corToken: "warn" as const,
     },
     {
       name: "Pago",
       formattedValue: fmtCompact(totalPago),
       percentage: Number(pagPctDotacao.toFixed(1)),
       label: `${fmtPercent(pagPctDotacao)} da dotação`,
-      corToken: "ok" as const,
     },
   ];
 

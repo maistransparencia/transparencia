@@ -35,4 +35,15 @@ describe("PipelineExecucao", () => {
     ).map((barra) => barra.style.backgroundColor);
     expect(cores).toEqual(["var(--ok)", "var(--brand)"]);
   });
+
+  it("renderiza a barra acima do valor em cada etapa", () => {
+    render(<PipelineExecucao stages={etapas} />);
+    const valor = screen.getByText("R$ 5 mi");
+    const barra = valor.parentElement?.querySelector("[style*='width']");
+    expect(barra).not.toBeNull();
+    expect(
+      (barra?.compareDocumentPosition(valor) ?? 0) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

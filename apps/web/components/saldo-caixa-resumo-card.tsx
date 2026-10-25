@@ -4,10 +4,10 @@ import {
   ExternalLinkPill,
   fmtCompact,
   fmtPercent,
-  SectionHeader,
 } from "@transparencia/ui";
 import { AlertCircle, ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface SaldoCaixaResumoCardProps {
@@ -37,10 +37,31 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
-function getVariacaoBadgeClass(variacao: number): string {
-  if (variacao > 0) return "border border-ok/40 bg-ok/10 text-ok";
-  if (variacao < 0) return "border border-danger/40 bg-danger/10 text-danger";
-  return "border border-line bg-line2/40 text-mute2";
+function getVariacaoTextClass(variacao: number): string {
+  if (variacao > 0) return "text-ok";
+  if (variacao < 0) return "text-danger";
+  return "text-mute2";
+}
+
+/** Subseção da mesma seção do pipeline: sem régua própria, título serif menor. */
+function CabecalhoDisponibilidade({
+  description,
+  action,
+}: {
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <header className="pb-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
+          Disponibilidade em Caixa e Bancos
+        </h3>
+        {action}
+      </div>
+      {description && <p className="mt-1 text-mute2 text-xs">{description}</p>}
+    </header>
+  );
 }
 
 export function SaldoCaixaResumoCard({
@@ -56,11 +77,10 @@ export function SaldoCaixaResumoCard({
         aria-label="Disponibilidade Financeira em Caixa"
         className={className}
       >
-        <SectionHeader
-          title="Disponibilidade em Caixa e Bancos"
+        <CabecalhoDisponibilidade
           description="Contas bancárias e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
           action={
-            <span className="inline-flex items-center rounded-md border border-line px-2.5 py-1 font-medium text-mute2 text-xs">
+            <span className="inline-flex items-center rounded-full border border-line px-3 py-1 font-medium text-mute2 text-xs">
               Visão Consolidada
             </span>
           }
@@ -87,8 +107,7 @@ export function SaldoCaixaResumoCard({
         aria-label="Disponibilidade Financeira em Caixa"
         className={className}
       >
-        <SectionHeader
-          title="Disponibilidade em Caixa e Bancos"
+        <CabecalhoDisponibilidade
           description="Contas bancárias e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
           action={
             <ExternalLinkPill
@@ -149,35 +168,32 @@ export function SaldoCaixaResumoCard({
       aria-label="Disponibilidade Financeira em Caixa"
       className={className}
     >
-      <SectionHeader
-        title="Disponibilidade em Caixa e Bancos"
+      <CabecalhoDisponibilidade
         description="Recursos em contas e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
         action={
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-md border border-ok/40 bg-ok/10 px-2.5 py-1 font-medium text-ok text-xs">
-              Posição: {mesExtenso}/{ano}
-            </span>
-            <ExternalLinkPill href={FONTES_OFICIAIS.siconfi.url}>
-              SICONFI
-            </ExternalLinkPill>
-          </span>
+          <ExternalLinkPill
+            href={FONTES_OFICIAIS.siconfi.url}
+            className="font-medium font-mono text-[11px] uppercase tracking-wider"
+          >
+            SICONFI
+          </ExternalLinkPill>
         }
       />
 
-      {/* Métricas Principais Consolidadas */}
-      <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr] md:gap-12">
         <div>
-          <span className="font-medium text-mute2 text-xs uppercase tracking-wider">
-            Total em Caixa Municipal
+          <span className="text-mute2 text-xs">
+            Posição: {mesExtenso}/{ano}
           </span>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="font-bold font-serif text-3xl text-ink tracking-tight">
+          <p className="sr-only">Total em Caixa Municipal</p>
+          <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="font-bold font-sans text-3xl text-ink tracking-tight">
               {fmtCompact(totalCaixaGeral)}
             </p>
             {posicaoFinanceira.variacaoAnualPercentual !== undefined &&
               posicaoFinanceira.variacaoAnualPercentual !== null && (
                 <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                  className={`font-semibold text-xs ${getVariacaoTextClass(
                     posicaoFinanceira.variacaoAnualPercentual,
                   )}`}
                 >
@@ -190,10 +206,9 @@ export function SaldoCaixaResumoCard({
           </div>
         </div>
 
-        <div className="space-y-2">
-          {/* Mini-Barra Proporcional */}
+        <div className="space-y-2 md:pt-6">
           <div
-            className="flex h-2.5 w-full overflow-hidden rounded-full bg-track"
+            className="flex h-2 w-full gap-0.5 overflow-hidden bg-track"
             role="progressbar"
             aria-valuenow={Math.round(pctLivres)}
             aria-valuemin={0}
@@ -216,51 +231,34 @@ export function SaldoCaixaResumoCard({
             />
           </div>
 
-          {/* Legenda de Recursos Livres e Vinculados */}
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: corDoGrafico("ok") }}
-              />
-              <span className="text-mute2">Livres (Ordinários):</span>
-              <span className="font-semibold text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-mute2 text-xs">
+            <p>
+              Livres (Ordinários):{" "}
+              <strong className="font-semibold text-ink">
                 {fmtCompact(totalRecursosLivres)} ({fmtPercent(pctLivres)})
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: corDoGrafico("warn") }}
-              />
-              <span className="text-mute2">Vinculados:</span>
-              <span className="font-semibold text-ink">
+              </strong>
+            </p>
+            <p>
+              Vinculados:{" "}
+              <strong className="font-semibold text-ink">
                 {fmtCompact(totalRecursosVinculados)} (
                 {fmtPercent(pctVinculados)})
-              </span>
-            </div>
+              </strong>
+            </p>
           </div>
-        </div>
-      </div>
 
-      {/* Rodapé com Alerta Curto e Link para Execução Orçamentária */}
-      <div className="mt-5 flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1.5 text-mute2 text-xs">
-          <Info className="h-3.5 w-3.5 shrink-0 text-warn" />
-          <span>
+          <p className="text-mute2 text-xs">
             Saldo em contas bancárias não equivale a superávit orçamentário
             livre.
-          </span>
+          </p>
+          <Link
+            href={detailUrl}
+            className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+          >
+            <span>Ver detalhamento por entidade em Execução Orçamentária</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
-
-        <Link
-          href={detailUrl}
-          className="inline-flex items-center gap-1 font-semibold text-brand text-xs hover:underline"
-        >
-          <span>Ver detalhamento por entidade em Execução Orçamentária</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
       </div>
     </section>
   );
