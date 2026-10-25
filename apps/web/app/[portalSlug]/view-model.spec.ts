@@ -997,3 +997,15 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
     });
   });
 });
+
+describe("buildVisaoGeralViewModel - cores das barras", () => {
+  it("devolve corToken distintos na origem da arrecadação e nas etapas", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
+    const origem = vm.originBreakdown.map((item) => item.corToken);
+    const etapas = vm.pipelineStages.map((etapa) => etapa.corToken);
+    expect(origem.every(Boolean)).toBe(true);
+    expect(new Set(origem).size).toBe(origem.length);
+    expect(etapas.every(Boolean)).toBe(true);
+    expect(new Set(etapas).size).toBe(etapas.length);
+  });
+});

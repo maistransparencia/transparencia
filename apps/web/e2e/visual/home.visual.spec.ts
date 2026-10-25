@@ -14,7 +14,9 @@ async function resolverPortalSlug(): Promise<string> {
       ? modulo
       : (modulo as { default: typeof modulo }).default
   ) as typeof modulo;
-  const [primeiro] = await getAllPortais();
+  const [primeiro] = (await getAllPortais()).sort((a, b) =>
+    a.portalSlug.localeCompare(b.portalSlug),
+  );
   if (!primeiro) throw new Error("Nenhum portal no banco local");
   return primeiro.portalSlug;
 }

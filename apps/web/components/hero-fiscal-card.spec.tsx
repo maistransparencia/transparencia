@@ -22,4 +22,20 @@ describe("HeroFiscalCard", () => {
       screen.getByRole("heading", { level: 2, name: /de onde vem cada/i }),
     ).toBeInTheDocument();
   });
+
+  it("aplica a cor da barra por token e usa brand como fallback", () => {
+    const { container } = render(
+      <HeroFiscalCard
+        originBreakdown={[
+          { label: "A", percentage: 60, corToken: "ok" },
+          { label: "B", percentage: 40 },
+        ]}
+      />,
+    );
+    const cores = Array.from(
+      container.querySelectorAll<HTMLElement>("[style*='width']"),
+    ).map((barra) => barra.style.backgroundColor);
+    expect(cores).toContain("var(--ok)");
+    expect(cores.filter((cor) => cor === "var(--brand)")).toHaveLength(2);
+  });
 });

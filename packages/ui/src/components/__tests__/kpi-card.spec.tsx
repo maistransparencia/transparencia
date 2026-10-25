@@ -106,4 +106,17 @@ describe("KPICard", () => {
     expect(screen.getByText("sub")).toBeInTheDocument();
     expect(screen.getByText("+1")).toHaveClass("text-emerald-600");
   });
+
+  it("invertTrend mantém estilo negativo quando isPositive é indefinido", () => {
+    render(
+      <KPICard
+        variant="divisoria"
+        title="a"
+        value="V"
+        trend={{ value: "+5%" }}
+        invertTrend
+      />,
+    );
+    expect(screen.getByText("+5%")).toHaveClass("text-danger");
+  });
 });

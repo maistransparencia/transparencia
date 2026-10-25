@@ -49,7 +49,10 @@ function KPICardRodape({
 }: KPICardRodapeProps) {
   const temSubtexto = omitirSubtextoVazio ? temConteudo(subtext) : !!subtext;
   if (!temSubtexto && !trend) return null;
-  const tendenciaBoa = invertTrend ? !trend?.isPositive : trend?.isPositive;
+  const tendenciaBoa =
+    invertTrend && typeof trend?.isPositive === "boolean"
+      ? !trend.isPositive
+      : trend?.isPositive;
   return (
     <div className={className}>
       {temSubtexto && <span>{subtext}</span>}
