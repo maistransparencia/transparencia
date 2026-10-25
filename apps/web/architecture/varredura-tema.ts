@@ -3,10 +3,14 @@ import path from "node:path";
 
 export const regrasTema = {
   "dark-em-componente": /(?<![\w-])dark:/,
-  "cor-hex-literal": /#[0-9a-fA-F]{6}\b/,
+  "cor-hex-literal":
+    /(?<![\w&])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|(?<![\w-])(?:rgb|hsl|oklch)a?\(/,
   "token-decorativo-como-texto":
-    /(?<![\w-])text-(?:faint|pill|line2|line|track)(?![\w-])/,
-  "raio-antigo": /rounded-(?:xl|2xl|\[10px\])(?![\w-])/,
+    /(?<![\w-])(?:text|fill|stroke|placeholder)-(?:faint|pill|line2|line|track)(?![\w-])/,
+  "paleta-fixa-do-tailwind":
+    /(?<![\w-])(?:bg-white|(?:bg|border|text)-(?:gray|slate)-\d+)(?![\w-])/,
+  "raio-antigo":
+    /rounded(?:-(?:t|r|b|l|s|e|tl|tr|bl|br|ss|se|es|ee))?-(?:xl|2xl|\[10px\])(?![\w-])/,
 } as const;
 
 export type RegraTema = keyof typeof regrasTema;
@@ -20,6 +24,9 @@ const raizRepositorio = path.resolve(__dirname, "../../..");
 const diretoriosVarridos = [
   "apps/web/app",
   "apps/web/components",
+  "apps/web/hooks",
+  "apps/web/lib",
+  "apps/web/styles",
   "packages/ui/src",
 ];
 
@@ -31,8 +38,8 @@ const listarArquivos = (diretorio: string): string[] =>
         ? []
         : listarArquivos(caminho);
     }
-    return /\.tsx?$/.test(entrada.name) &&
-      !/\.(spec|test)\.tsx?$/.test(entrada.name)
+    return /\.(?:tsx?|jsx?|mdx)$/.test(entrada.name) &&
+      !/\.(spec|test)\.[jt]sx?$/.test(entrada.name)
       ? [caminho]
       : [];
   });

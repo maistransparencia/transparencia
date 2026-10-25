@@ -43,6 +43,10 @@ describe("contraste dos tokens (WCAG AA)", () => {
   describe.each(temas)("tema %s", (tema) => {
     const tokens = tokensPorTema[tema];
 
+    it.each(tokensDeTexto)("token %s existe no tema", (texto) => {
+      expect(tokens[texto]).toBeDefined();
+    });
+
     it.each(
       tokensDeTexto.flatMap((texto) =>
         fundosDeTexto.map((fundo) => [texto, fundo] as const),
@@ -58,6 +62,15 @@ describe("contraste dos tokens (WCAG AA)", () => {
         4.5,
       );
     });
+
+    it.each(["brand", "danger", "ok", "warn"])(
+      "onink sobre %s tem pelo menos 4,5:1 (texto em fundo preenchido)",
+      (fundo) => {
+        expect(
+          razaoContraste(tokens.onink, tokens[fundo]),
+        ).toBeGreaterThanOrEqual(4.5);
+      },
+    );
 
     it("onink sobre ink tem pelo menos 4,5:1", () => {
       expect(razaoContraste(tokens.onink, tokens.ink)).toBeGreaterThanOrEqual(

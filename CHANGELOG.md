@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Cores do portal e tema escuro opcional)
+* **Cores padronizadas:** As cores do portal passam a vir de uma única paleta, com texto cinza e avisos mais escuros para ficarem legíveis (contraste mínimo de 4,5:1). Os avisos amarelos/laranja, os vermelhos de alerta e os verdes de sucesso ficam um pouco mais escuros, e o fundo da página passa a ser branco em vez de cinza claro.
+* **Tema escuro preparado:** A base do tema escuro está pronta, mas ainda não há botão para ativá-lo e várias telas continuam só com cores do tema claro.
+
 ### 🌟 Destaques da Versão (Download do estoque da Farmácia SUS)
 * **Lista completa de estoque em planilha:** Na seção "Fonte dos dados" da página da Farmácia SUS, o link "Baixar a lista completa de estoque (planilha CSV)" baixa o que cada unidade informou ter em estoque na lista mais recente, com lote, quantidade e validade quando informada. Se um remédio não aparece, isso não prova que faltou: a unidade pode não ter informado.
 

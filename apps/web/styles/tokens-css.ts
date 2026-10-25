@@ -10,7 +10,7 @@ export const lerGlobalsCss = (): string =>
 
 const extrairBloco = (css: string, seletor: string): string => {
   const inicio = css.search(new RegExp(`(^|\\n)${seletor}\\s*\\{`));
-  if (inicio < 0) return "";
+  if (inicio < 0) throw new Error(`Bloco CSS não encontrado: ${seletor}`);
   const abertura = css.indexOf("{", inicio);
   const fechamento = css.indexOf("}", abertura);
   return css.slice(abertura + 1, fechamento);
@@ -25,6 +25,18 @@ export const lerTokensDoBloco = (
     [...extrairBloco(css, seletor).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)].map(
       ([, nome, valor]) => [nome, valor.trim()],
     ),
+  );
+
+/** Lê `--color-nome: var(--token);` do bloco `@theme inline`: nome da utility -> token. */
+export const lerCoresDoTema = (
+  css: string = lerGlobalsCss(),
+): Record<string, string> =>
+  Object.fromEntries(
+    [
+      ...extrairBloco(css, "@theme inline").matchAll(
+        /--color-([\w-]+)\s*:\s*var\(--([\w-]+)\)\s*;/g,
+      ),
+    ].map(([, nome, token]) => [nome, token]),
   );
 
 export const lerTokensPorTema = (

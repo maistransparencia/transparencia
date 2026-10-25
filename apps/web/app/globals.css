@@ -14,6 +14,7 @@
  * controle (input, select, botão secundário) usa mute3.
  */
 :root {
+  color-scheme: light;
   --font-ibm-plex: "IBM Plex Sans", sans-serif;
   --font-source-serif: "Source Serif 4", serif;
 
@@ -37,6 +38,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --page: #14171b;
   --ink: #e8eaed;
   --onink: #14171b;
