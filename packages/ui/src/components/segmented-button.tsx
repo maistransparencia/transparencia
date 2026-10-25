@@ -29,21 +29,26 @@ export function SegmentedButton({
     if (variant === "tabs") {
       if (active) return "border-ink font-semibold text-ink";
       if (muted)
-        return "border-transparent text-mute3 hover:border-line hover:text-mute2";
-      return "border-transparent text-mute2 hover:border-line hover:text-ink";
+        return "border-transparent text-mute3 hover:border-mute3 hover:text-ink";
+      return "border-transparent text-mute2 hover:border-mute3 hover:text-ink";
     }
-    if (active) return "border-ink bg-ink text-onink";
+    if (active) return "border-ink bg-ink text-onink hover:bg-ink/90";
     if (muted)
-      return "border-dashed border-line bg-page text-mute2 hover:border-mute3 hover:text-ink";
-    return "border-line bg-page text-ink hover:border-mute3";
+      return "border-dashed border-line bg-page text-mute3 hover:border-mute3 hover:bg-line2/60 hover:text-ink";
+    return "border-line bg-page text-ink hover:border-mute3 hover:bg-line2/60";
   })();
+
+  const ariaDeSelecao =
+    variant === "tabs"
+      ? ({ role: "tab", "aria-selected": active } as const)
+      : ({ "aria-pressed": active } as const);
 
   return (
     <button
       type="button"
-      aria-pressed={props.role === "tab" ? undefined : active}
+      {...ariaDeSelecao}
       className={cn(
-        "cursor-pointer font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        "cursor-pointer font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
         variant === "tabs" ? "border-b-2" : "rounded-md border",
         SIZE_STYLES[size],
         stateStyles,

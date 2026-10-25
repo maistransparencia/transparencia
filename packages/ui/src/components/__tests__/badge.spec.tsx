@@ -8,7 +8,7 @@ describe("Badge", () => {
     expect(screen.getByText("Ok")).toHaveClass("rounded-sm", "text-ok");
   });
 
-  it("variante padrão usa line e mute", () => {
+  it("variante padrão usa borda line e texto mute2", () => {
     render(<Badge>Neutro</Badge>);
     expect(screen.getByText("Neutro")).toHaveClass("border-line");
   });

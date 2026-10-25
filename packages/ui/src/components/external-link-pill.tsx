@@ -10,12 +10,25 @@ export interface ExternalLinkPillProps
   href: string;
 }
 
+const ehUrlWeb = (href: string) => {
+  try {
+    const { protocol } = new URL(href);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export function ExternalLinkPill({
   href,
   className,
   children,
   ...props
 }: ExternalLinkPillProps) {
+  if (!ehUrlWeb(href)) {
+    return <span className={className}>{children}</span>;
+  }
+
   return (
     <a
       {...props}
@@ -28,6 +41,7 @@ export function ExternalLinkPill({
       )}
     >
       <span>{children}</span>
+      <span className="sr-only"> (abre em nova aba)</span>
       <ExternalLink size={12} aria-hidden="true" />
     </a>
   );

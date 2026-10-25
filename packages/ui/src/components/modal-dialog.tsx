@@ -196,14 +196,14 @@ export function ModalDialog({
         )}
       >
         {/* Header Estruturado */}
-        <div className="flex items-start justify-between border-line border-b bg-page px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-start justify-between border-line border-b bg-line2/40 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0 flex-1 pr-3">
             {onBack && (
               <div className="mb-2">
                 <button
                   type="button"
                   onClick={onBack}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-line bg-page px-2.5 py-1 font-medium text-ink text-xs transition-colors hover:border-mute3"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-line bg-page px-2.5 py-1 font-medium text-ink text-xs transition-colors hover:border-mute3 hover:bg-line2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:bg-line"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>{backLabel ?? "Voltar"}</span>
@@ -250,7 +250,7 @@ export function ModalDialog({
               type="button"
               onClick={onClose}
               aria-label="Fechar modal"
-              className="rounded-md p-1.5 text-mute2 transition-colors hover:text-ink"
+              className="rounded-md p-1.5 text-mute2 transition-colors hover:bg-line2 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:bg-line"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -264,7 +264,7 @@ export function ModalDialog({
 
         {/* Rodapé Opcional */}
         {footer && (
-          <div className="border-line border-t bg-page px-4 py-2.5 sm:px-6 sm:py-3.5">
+          <div className="border-line border-t bg-line2/40 px-4 py-2.5 sm:px-6 sm:py-3.5">
             {footer}
           </div>
         )}

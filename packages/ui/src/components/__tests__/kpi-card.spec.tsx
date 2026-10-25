@@ -62,4 +62,48 @@ describe("KPICard", () => {
     );
     expect(container.firstElementChild?.children).toHaveLength(1);
   });
+
+  it.each([0, "", undefined])(
+    "divisoria omite rodapé com subtext vazio (%s)",
+    (subtext) => {
+      render(
+        <KPICard variant="divisoria" title="a" value="V" subtext={subtext} />,
+      );
+      expect(screen.queryByText("0")).toBeNull();
+      expect(
+        screen.getByText("V").parentElement?.parentElement?.children,
+      ).toHaveLength(1);
+    },
+  );
+
+  it("invertTrend troca a cor da tendência", () => {
+    render(
+      <KPICard
+        variant="divisoria"
+        title="a"
+        value="V"
+        trend={{ value: "+5%", isPositive: true }}
+        invertTrend
+      />,
+    );
+    expect(screen.getByText("+5%")).toHaveClass("text-danger");
+  });
+
+  it("accent tem precedência sobre alert", () => {
+    render(<KPICard variant="divisoria" title="a" value="V" accent alert />);
+    expect(screen.getByText("V")).toHaveClass("text-brand");
+  });
+
+  it("variante padrão compartilha o rodapé", () => {
+    render(
+      <KPICard
+        title="a"
+        value="V"
+        subtext="sub"
+        trend={{ value: "+1", isPositive: true }}
+      />,
+    );
+    expect(screen.getByText("sub")).toBeInTheDocument();
+    expect(screen.getByText("+1")).toHaveClass("text-emerald-600");
+  });
 });
