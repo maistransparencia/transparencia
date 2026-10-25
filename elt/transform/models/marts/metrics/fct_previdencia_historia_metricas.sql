@@ -23,7 +23,7 @@ despesas_filtradas as (
             d.elemento = '13' and (
                 (
                     nullif(trim(p.previdencia_sigla), '') is not null and (
-                        lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                        lower(unaccent(fo.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                         or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                         or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                     )
@@ -32,7 +32,7 @@ despesas_filtradas as (
                     nullif(trim(p.previdencia_cnpj), '') is not null
                     and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj
                 )
-                or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
+                or lower(unaccent(fo.fornecedor_nome)) ilike '%rpps%'
                 or lower(unaccent(d.natureza_despesa)) ilike '%rpps%'
                 or lower(unaccent(d.descricao)) ilike '%rpps%'
             )
@@ -43,7 +43,7 @@ despesas_filtradas as (
             and (
                 (
                     nullif(trim(p.plano_saude_sigla), '') is not null and (
-                        lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                        lower(unaccent(fo.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                         or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                         or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                     )
@@ -56,13 +56,16 @@ despesas_filtradas as (
         ) as is_casp
     from {{ ref('fct_despesas') }} d
     join portais p on d.portal_slug = p.portal_slug
+    left join {{ ref('dim_fornecedor') }} fo
+        on fo.portal_slug = d.portal_slug
+        and fo.credor_id = d.credor_id
     where
         d.fonte = 'exercicio'
         and (
             d.elemento in ('13', '71', '97')
             or (
                 nullif(trim(p.previdencia_sigla), '') is not null and (
-                    lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
+                    lower(unaccent(fo.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                     or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                     or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%'
                 )
@@ -75,7 +78,7 @@ despesas_filtradas as (
                 p.plano_saude_habilitado = true and (
                     (
                         nullif(trim(p.plano_saude_sigla), '') is not null and (
-                            lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
+                            lower(unaccent(fo.fornecedor_nome)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                             or lower(unaccent(d.natureza_despesa)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                             or lower(unaccent(d.descricao)) ilike '%' || lower(unaccent(p.plano_saude_sigla)) || '%'
                         )

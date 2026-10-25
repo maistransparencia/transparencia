@@ -7,15 +7,15 @@ with previdencia_despesas as (
         coalesce(d.empenho_id, '') as empenho_id,
         coalesce(d.elemento, '') as elemento,
         coalesce(dim.elemento_descricao, d.natureza_despesa, '') as natureza_despesa,
-        d.fornecedor_nome,
+        fo.fornecedor_nome,
         d.descricao,
         d.data_empenho,
         case
-            when d.fornecedor_nome ilike '%CASP%' or d.descricao ilike '%CASP%' or d.natureza_despesa ilike '%CASP%' or d.fornecedor_cpf_cnpj = '07.573.075/0001-00' then 'plano_saude_casp'
+            when fo.fornecedor_nome ilike '%CASP%' or d.descricao ilike '%CASP%' or d.natureza_despesa ilike '%CASP%' or d.fornecedor_cpf_cnpj = '07.573.075/0001-00' then 'plano_saude_casp'
             when d.elemento = '97' then 'aporte_atuarial_rpps'
             when d.elemento = '71' then 'amortizacao_divida_rpps'
             when d.natureza_despesa ilike '%INSS%' or d.natureza_despesa ilike '%RGPS%' then 'inss_rgps'
-            when d.elemento = '13' or d.fornecedor_nome ilike '%CAPREM%' or d.descricao ilike '%CAPREM%' or d.fornecedor_nome ilike '%NATPREVI%' or d.fornecedor_nome ilike '%NATPREV%' or d.descricao ilike '%NATPREVI%' or d.descricao ilike '%NATPREV%' or d.fornecedor_nome ilike '%RPPS%' or d.descricao ilike '%RPPS%' or d.natureza_despesa ilike '%RPPS%' then 'rpps_contribuicao_patronal'
+            when d.elemento = '13' or fo.fornecedor_nome ilike '%CAPREM%' or d.descricao ilike '%CAPREM%' or fo.fornecedor_nome ilike '%NATPREVI%' or fo.fornecedor_nome ilike '%NATPREV%' or d.descricao ilike '%NATPREVI%' or d.descricao ilike '%NATPREV%' or fo.fornecedor_nome ilike '%RPPS%' or d.descricao ilike '%RPPS%' or d.natureza_despesa ilike '%RPPS%' then 'rpps_contribuicao_patronal'
             else 'encargo_patronal_geral'
         end as destino,
         coalesce(d.empenhado_liquido, 0) as empenhado,
@@ -24,16 +24,19 @@ with previdencia_despesas as (
     from {{ ref('fct_despesas') }} d
     left join {{ ref('dim_elemento_despesa') }} dim
         on d.elemento = dim.elemento_codigo
+    left join {{ ref('dim_fornecedor') }} fo
+        on fo.portal_slug = d.portal_slug
+        and fo.credor_id = d.credor_id
     where
         d.fonte = 'exercicio'
         and (
             d.elemento in ('13', '71', '97')
             or d.orgao_codigo = '1061'
             or d.credor_id = '1061'
-            or d.fornecedor_nome ilike '%CAPREM%'
-            or d.fornecedor_nome ilike '%NATPREVI%'
-            or d.fornecedor_nome ilike '%NATPREV%'
-            or d.fornecedor_nome ilike '%CASP%'
+            or fo.fornecedor_nome ilike '%CAPREM%'
+            or fo.fornecedor_nome ilike '%NATPREVI%'
+            or fo.fornecedor_nome ilike '%NATPREV%'
+            or fo.fornecedor_nome ilike '%CASP%'
             or d.fornecedor_cpf_cnpj = '07.573.075/0001-00'
             or d.descricao ilike '%CAPREM%'
             or d.descricao ilike '%NATPREVI%'

@@ -461,7 +461,7 @@ export async function getContratosPorObrasBatch(
       o.id_projeto AS obra_id_projeto,
       c.contrato_id,
       c.contrato_numero,
-      c.fornecedor_nome,
+      cf.fornecedor_nome,
       c.fornecedor_cpf_cnpj,
       c.valor_contrato,
       c.modalidade,
@@ -506,6 +506,9 @@ export async function getContratosPorObrasBatch(
     FROM fct_contratos c
     INNER JOIN obra_alvo o
       ON c.portal_slug = o.portal_slug
+    LEFT JOIN dim_fornecedor cf
+      ON cf.portal_slug = c.portal_slug
+      AND cf.credor_id = c.credor_id
     WHERE
       (c.numero_obra IS NOT NULL AND c.numero_obra = o.id_projeto)
       OR (

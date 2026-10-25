@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: dim_fornecedor
+    description: "Fornecedores (credores) por portal, com o nome mais frequente por CPF/CNPJ (ou pelo nome, quando não há documento)"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: credor_id
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - unique
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: fornecedor_cpf_cnpj
+        data_type: text
+      - name: fornecedor_nome
+        data_type: text
+      - name: quantidade_nomes_distintos
+        data_type: integer
+        description: "Quantas grafias de nome existem para o mesmo CPF/CNPJ nos fatos"
+        constraints:
+          - type: not_null

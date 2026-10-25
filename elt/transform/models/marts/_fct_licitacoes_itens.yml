@@ -15,6 +15,14 @@ models:
         tests:
           - not_null
           - unique
+      - name: credor_id
+        data_type: text
+        description: "Chave do fornecedor vencedor do item (dim_fornecedor); nula quando o item não tem resultado"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: credor_id
       - name: portal_slug
         data_type: text
         constraints:

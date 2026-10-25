@@ -27,11 +27,11 @@ with contratos as (
 
 select
     {{ dbt_utils.generate_surrogate_key(['portal_slug', 'ano', 'empresa_id', 'contrato_numero']) }} as contrato_id,
+    {{ credor_key() }} as credor_id,
     portal_slug,
     ano,
     empresa_id,
     contrato_numero,
-    fornecedor_nome,
     fornecedor_cpf_cnpj,
     objeto,
     objeto_completo,

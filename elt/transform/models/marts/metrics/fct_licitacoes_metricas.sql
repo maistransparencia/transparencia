@@ -47,7 +47,7 @@ adesoes_internas as (
         l.licitacao_numero as numero,
         l.licitacao_numero,
         c.contrato_numero,
-        c.fornecedor_nome,
+        cf.fornecedor_nome,
         coalesce(l.discriminacao, l.licitacao_numero) as objeto,
         'adesao_ata_interna' as modalidade,
         null::text as fundlegal,
@@ -66,6 +66,9 @@ adesoes_internas as (
         on c.licitacao_numero = l.licitacao_numero
         and c.empresa_id = l.empresa_id
         and c.portal_slug = l.portal_slug
+    left join {{ ref('dim_fornecedor') }} cf
+        on cf.portal_slug = c.portal_slug
+        and cf.credor_id = c.credor_id
     where l.carona = 'S'
        or l.modalidade_clean like '%adesa%'
        or l.modalidade_clean like '%carona%'
@@ -80,7 +83,7 @@ despesas_adesao_externa as (
         coalesce(dg.licitacao_numero, dg.despesa_id) as numero,
         coalesce(dg.licitacao_numero, '') as licitacao_numero,
         null::text as contrato_numero,
-        dg.fornecedor_nome,
+        dgf.fornecedor_nome,
         dg.descricao as objeto,
         'adesao_ata_externa' as modalidade,
         null::text as fundlegal,
@@ -96,6 +99,9 @@ despesas_adesao_externa as (
         dg.data_empenho as data_referencia,
         lower(unaccent(coalesce(dg.descricao, ''))) as descricao_clean
     from {{ ref('fct_despesas') }} dg
+    left join {{ ref('dim_fornecedor') }} dgf
+        on dgf.portal_slug = dg.portal_slug
+        and dgf.credor_id = dg.credor_id
     where dg.descricao is not null and dg.descricao != ''
 ),
 
@@ -130,29 +136,32 @@ adesoes_externas as (
 
 licitacoes_gaps as (
     select
-        portal_slug,
-        ano,
-        empresa_id,
+        ct.portal_slug,
+        ct.ano,
+        ct.empresa_id,
         'gap_licitacao' as tipo_contratacao,
-        contrato_numero as numero,
-        coalesce(trim(licitacao_numero), '') as licitacao_numero,
-        contrato_numero,
-        fornecedor_nome,
-        objeto,
-        coalesce(nullif(trim(modalidade), ''), 'sem_licitacao') as modalidade,
-        fundlegal,
+        ct.contrato_numero as numero,
+        coalesce(trim(ct.licitacao_numero), '') as licitacao_numero,
+        ct.contrato_numero,
+        gf.fornecedor_nome,
+        ct.objeto,
+        coalesce(nullif(trim(ct.modalidade), ''), 'sem_licitacao') as modalidade,
+        ct.fundlegal,
         'N' as carona,
-        nullif(mes, '')::integer as mes,
-        numero_obra,
-        tipo_obra,
+        nullif(ct.mes, '')::integer as mes,
+        ct.numero_obra,
+        ct.tipo_obra,
         1::integer as quantidade,
         0::numeric(15, 2) as licitacao_valor,
-        coalesce(valor_contrato, 0)::numeric(15, 2) as valor_contrato,
-        coalesce(empenhado, 0)::numeric(15, 2) as empenhado_contrato,
+        coalesce(ct.valor_contrato, 0)::numeric(15, 2) as valor_contrato,
+        coalesce(ct.empenhado, 0)::numeric(15, 2) as empenhado_contrato,
         0::numeric(15, 2) as pago_contrato,
         null::date as data_referencia
-    from {{ ref('fct_contratos') }}
-    where licitacao_numero is null or trim(licitacao_numero) = ''
+    from {{ ref('fct_contratos') }} ct
+    left join {{ ref('dim_fornecedor') }} gf
+        on gf.portal_slug = ct.portal_slug
+        and gf.credor_id = ct.credor_id
+    where ct.licitacao_numero is null or trim(ct.licitacao_numero) = ''
 ),
 
 unificado as (

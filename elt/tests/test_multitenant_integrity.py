@@ -19,7 +19,6 @@ TENANT_SLUGS = [
 
 # Exceções estritas permitidas apenas para união de fontes brutas
 ALLOWED_EXCEPTIONS = {
-    "fct_despesas_por_fornecedor.sql",  # Unifica fontes raw_porciuncula e raw_natividade
     "dim_metadata.sql",
 }
 
@@ -67,3 +66,21 @@ def test_metrics_models_preserve_portal_slug():
             missing.append(sql_file.name)
 
     assert not missing, f"Modelos de métricas sem referência a portal_slug: {missing}"
+
+
+def test_no_hardcoded_tenant_slugs_in_intermediate_outside_consolidations():
+    """Slugs de tenant só são permitidos nos modelos de união int_*_consolidad*.sql."""
+    intermediate_dir = _MODELS_DIR / "intermediate"
+    violations = []
+
+    for sql_file in sorted(intermediate_dir.glob("*.sql")):
+        if re.fullmatch(r"int_.*_consolidad(a|as|o|os)\.sql", sql_file.name):
+            continue
+        content = sql_file.read_text(encoding="utf-8")
+        violations.extend(
+            f"{sql_file.relative_to(_MODELS_DIR)}: contém '{slug}' hard-coded"
+            for slug in TENANT_SLUGS
+            if re.search(rf"['\"]{slug}['\"]", content, re.IGNORECASE)
+        )
+
+    assert not violations, "Violações de isolamento multi-tenant detectadas:\n" + "\n".join(violations)

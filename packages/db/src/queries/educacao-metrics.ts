@@ -973,6 +973,11 @@ export async function getEducacaoContratos(
         .onRef("c.portal_slug", "=", "o.portal_slug")
         .onRef("c.empresa_id", "=", "o.empresa_id"),
     )
+    .leftJoin("dim_fornecedor as f", (join) =>
+      join
+        .onRef("f.portal_slug", "=", "c.portal_slug")
+        .onRef("f.credor_id", "=", "c.credor_id"),
+    )
     .select([
       "c.contrato_id",
       "c.portal_slug",
@@ -981,7 +986,7 @@ export async function getEducacaoContratos(
       "c.contrato_numero",
       "c.licitacao_numero",
       "c.modalidade",
-      "c.fornecedor_nome",
+      "f.fornecedor_nome",
       "c.fornecedor_cpf_cnpj",
       "c.objeto",
       "c.objeto_completo",

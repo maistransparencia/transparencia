@@ -2,18 +2,21 @@
 
 with despesas_99 as (
     select
-        portal_slug,
-        ano,
-        coalesce(fornecedor_cpf_cnpj, '00') as credor_codigo,
-        coalesce(fornecedor_nome, 'OUTROS') as credor_nome,
-        categoria_objeto_sugerida,
-        categoria_gasto_sensivel,
-        natureza_despesa_codigo_sugerido,
-        {{ target.schema }}.unaccent(trim(coalesce(descricao, ''))) as descricao_sanitizada,
-        coalesce(pago, 0) as pago
-    from {{ ref('fct_despesas') }}
-    where fonte = 'exercicio'
-      and (natureza_despesa_codigo like '%.99' or elemento = '99')
+        d.portal_slug,
+        d.ano,
+        coalesce(d.fornecedor_cpf_cnpj, '00') as credor_codigo,
+        coalesce(f.fornecedor_nome, 'OUTROS') as credor_nome,
+        d.categoria_objeto_sugerida,
+        d.categoria_gasto_sensivel,
+        d.natureza_despesa_codigo_sugerido,
+        {{ target.schema }}.unaccent(trim(coalesce(d.descricao, ''))) as descricao_sanitizada,
+        coalesce(d.pago, 0) as pago
+    from {{ ref('fct_despesas') }} d
+    left join {{ ref('dim_fornecedor') }} f
+        on d.portal_slug = f.portal_slug
+        and d.credor_id = f.credor_id
+    where d.fonte = 'exercicio'
+      and (d.natureza_despesa_codigo like '%.99' or d.elemento = '99')
 ),
 
 credores_agregados as (

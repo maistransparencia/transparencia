@@ -15,6 +15,14 @@ models:
         tests:
           - not_null
           - unique
+      - name: credor_id
+        data_type: text
+        description: "Chave surrogate MD5 (portal_slug | fornecedor_cpf_cnpj) para dim_fornecedor"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: credor_id
       - name: portal_slug
         data_type: text
         constraints:
@@ -34,8 +42,6 @@ models:
         tests:
           - not_null
       - name: contrato_numero
-        data_type: text
-      - name: fornecedor_nome
         data_type: text
       - name: fornecedor_cpf_cnpj
         data_type: text
@@ -83,4 +89,4 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "7", contrato_numero: "010/2026", fornecedor_nome: "EMPRESA EXEMPLE", fornecedor_cpf_cnpj: "12.345.678/0001-99", objeto: "Locação de Veículos", objeto_completo: "Locação de veículos leves e pesados para transporte escolar", valor_contrato: 120000.00, valor_aditado: 12000.00, licitacao_numero: "002/2026", modalidade: "Pregão Presencial", mes: "Janeiro", tipo_obra: null, numero_obra: null, fundlegal: "Lei 14.133/2021", empenhado: 100000.00, data_inicio: "2026-01-15", vencimento_atual: "2026-12-31", saldo_a_empenhar: 20000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "7", contrato_numero: "010/2026", fornecedor_nome: "EMPRESA EXEMPLE", fornecedor_cpf_cnpj: "12.345.678/0001-99", objeto: "Locação de Veículos", objeto_completo: "Locação de veículos leves e pesados para transporte escolar", valor_contrato: 120000.00, valor_aditado: 12000.00, licitacao_numero: "002/2026", modalidade: "Pregão Presencial", mes: "Janeiro", tipo_obra: null, numero_obra: null, fundlegal: "Lei 14.133/2021", empenhado: 100000.00, data_inicio: "2026-01-15", vencimento_atual: "2026-12-31", saldo_a_empenhar: 20000.00 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "7", contrato_numero: "010/2026", fornecedor_cpf_cnpj: "12.345.678/0001-99", objeto: "Locação de Veículos", objeto_completo: "Locação de veículos leves e pesados para transporte escolar", valor_contrato: 120000.00, valor_aditado: 12000.00, licitacao_numero: "002/2026", modalidade: "Pregão Presencial", mes: "Janeiro", tipo_obra: null, numero_obra: null, fundlegal: "Lei 14.133/2021", empenhado: 100000.00, data_inicio: "2026-01-15", vencimento_atual: "2026-12-31", saldo_a_empenhar: 20000.00 }
