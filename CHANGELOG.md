@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Download do estoque da Farmácia SUS)
+* **Lista completa de estoque em planilha:** Na seção "Fonte dos dados" da página da Farmácia SUS, o link "Baixar a lista completa de estoque (planilha CSV)" baixa o que cada unidade informou ter em estoque na lista mais recente, com lote, quantidade e validade quando informada. Se um remédio não aparece, isso não prova que faltou: a unidade pode não ter informado.
+
 ### 🌟 Destaques da Versão (Remédios comuns e essenciais na Farmácia SUS)
 * **Remédios comuns na página inicial:** O card da Farmácia SUS na Visão Geral mostra atalhos "Exemplos:" (dipirona, paracetamol, losartana, metformina, amoxicilina e omeprazol) que abrem a busca já preenchida. Só aparecem remédios que alguma unidade informou em estoque, então o clique sempre traz resultado.
 * **Remédios essenciais sob a busca:** A página da Farmácia SUS mostra 21 medicamentos da RENAME 2024 (como losartana, metformina e dipirona) com "N de M unidades que informaram estoque" e link para a busca. Quando nenhuma unidade informa o item, o texto é "não aparece na lista de estoque"; se o remédio só existe em combinação com outro (ex.: valsartana + hidroclorotiazida), o bloco avisa isso. A fonte só publica itens com saldo, então não é ranking de demanda nem afirmação de falta.

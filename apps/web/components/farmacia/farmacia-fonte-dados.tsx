@@ -1,15 +1,18 @@
 import { fmtDate } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
+import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface FarmaciaFonteDadosProps {
   dataAtualizacao: string | null;
   leiUrl: string;
+  portalSlug: string;
 }
 
 export function FarmaciaFonteDados({
   dataAtualizacao,
   leiUrl,
+  portalSlug,
 }: FarmaciaFonteDadosProps) {
   return (
     <section
@@ -34,6 +37,13 @@ export function FarmaciaFonteDados({
           Lista mais recente: {fmtDate(dataAtualizacao)}.
         </p>
       )}
+      <ShowYourWorkButton
+        portalSlug={portalSlug}
+        tipo="estoque_farmacia"
+        variante="link"
+        rotulo="Baixar a lista completa de estoque (planilha CSV)"
+        legenda="Traz os remédios que cada unidade informou ter em estoque na lista mais recente, com lote, quantidade e validade quando informada. Se um remédio não aparece, isso não prova que faltou: a unidade pode não ter informado."
+      />
       <ul className="flex flex-col gap-1 text-sm">
         <li>
           <a

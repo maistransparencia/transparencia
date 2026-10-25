@@ -11,13 +11,19 @@ import { useEffect, useRef, useState } from "react";
 
 export interface ShowYourWorkButtonProps {
   portalSlug: string;
-  ano: number;
+  /** Obrigatório para todos os tipos, exceto `estoque_farmacia`. */
+  ano?: number;
   tipo:
     | "gasto_sensivel"
     | "opacidade_99"
     | "funcao"
     | "saldo_caixa_siconfi"
-    | "pessoal_regime";
+    | "pessoal_regime"
+    | "estoque_farmacia";
+  /** `menu` (padrão): três pontos com menu; `link`: botão de download direto com rótulo e legenda. */
+  variante?: "menu" | "link";
+  rotulo?: string;
+  legenda?: string;
   categoria?: string;
   funcaoCodigo?: string;
   entidades?: string;
@@ -29,6 +35,9 @@ export function ShowYourWorkButton({
   portalSlug,
   ano,
   tipo,
+  variante = "menu",
+  rotulo,
+  legenda,
   categoria,
   funcaoCodigo,
   entidades,
@@ -83,7 +92,7 @@ export function ShowYourWorkButton({
     const telemetryPayload = {
       portal_slug: slug,
       tipo,
-      ano,
+      ano: ano ?? null,
       categoria: categoria ?? null,
       funcao_codigo: funcaoCodigo ?? null,
       entidades: entidades ?? null,
@@ -93,7 +102,7 @@ export function ShowYourWorkButton({
 
     const searchParams = new URLSearchParams();
     searchParams.set("tipo", tipo);
-    searchParams.set("ano", String(ano));
+    if (ano !== undefined) searchParams.set("ano", String(ano));
     if (categoria) searchParams.set("categoria", categoria);
     if (funcaoCodigo) searchParams.set("funcaoCodigo", funcaoCodigo);
     if (entidades) searchParams.set("entidades", entidades);
@@ -120,10 +129,12 @@ export function ShowYourWorkButton({
       const blob = await res.blob();
       const contentDisposition = res.headers.get("Content-Disposition");
       const filenameMatch = contentDisposition?.match(/filename="?([^";]+)"?/);
-      const defaultFilename =
-        tipo === "saldo_caixa_siconfi"
-          ? `saldo_caixa_siconfi_${ano}.csv`
-          : `despesas_${tipo}_${ano}.csv`;
+      const defaultFilename = (() => {
+        if (tipo === "estoque_farmacia") return `estoque_farmacia_${slug}.csv`;
+        if (tipo === "saldo_caixa_siconfi")
+          return `saldo_caixa_siconfi_${ano}.csv`;
+        return `despesas_${tipo}_${ano}.csv`;
+      })();
       const filename = filenameMatch?.[1] || defaultFilename;
 
       const downloadUrl = window.URL.createObjectURL(blob);
@@ -159,6 +170,37 @@ export function ShowYourWorkButton({
       }
     }
   };
+
+  if (variante === "link") {
+    return (
+      <div className={`flex flex-col items-start gap-1.5 ${className}`}>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-sm underline focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isDownloading ? (
+            <Loader2
+              className="h-4 w-4 shrink-0 animate-spin"
+              aria-hidden="true"
+            />
+          ) : (
+            <FileSpreadsheet className="h-4 w-4 shrink-0" aria-hidden="true" />
+          )}
+          {isDownloading ? "Gerando planilha..." : rotulo}
+        </button>
+        {legenda && (
+          <p className="text-slate-600 text-sm leading-relaxed">{legenda}</p>
+        )}
+        {errorMessage && (
+          <p role="alert" className="text-rose-700 text-sm">
+            {errorMessage}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={`relative inline-block ${className}`}>

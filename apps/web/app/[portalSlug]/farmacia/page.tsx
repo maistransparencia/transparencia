@@ -113,6 +113,7 @@ export default async function FarmaciaPage({
         <FarmaciaFonteDados
           dataAtualizacao={viewModel.dataAtualizacao}
           leiUrl={LEI_FARMACIA_SUS_URL}
+          portalSlug={portalSlug}
         />
       )}
     </div>

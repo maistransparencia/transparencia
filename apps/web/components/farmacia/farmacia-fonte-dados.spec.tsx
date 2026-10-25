@@ -9,6 +9,7 @@ describe("FarmaciaFonteDados", () => {
       <FarmaciaFonteDados
         dataAtualizacao="2026-10-18"
         leiUrl="https://exemplo.gov.br/lei"
+        portalSlug="portal_x"
       />,
     );
     expect(
@@ -26,8 +27,33 @@ describe("FarmaciaFonteDados", () => {
     expect(screen.getByText(/18\/10\/2026/)).toBeInTheDocument();
   });
 
+  it("oferece o download da lista completa de estoque", () => {
+    render(
+      <FarmaciaFonteDados
+        dataAtualizacao={null}
+        leiUrl="https://x.y"
+        portalSlug="portal_x"
+      />,
+    );
+    expect(
+      screen.getByRole("button", {
+        name: "Baixar a lista completa de estoque (planilha CSV)",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Traz os remédios que cada unidade informou/),
+    ).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/esgotado|zerado|acabou/i);
+  });
+
   it("omite a data quando nao existe", () => {
-    render(<FarmaciaFonteDados dataAtualizacao={null} leiUrl="https://x.y" />);
+    render(
+      <FarmaciaFonteDados
+        dataAtualizacao={null}
+        leiUrl="https://x.y"
+        portalSlug="portal_x"
+      />,
+    );
     expect(screen.queryByText(/Lista mais recente:/)).toBeNull();
   });
 });
