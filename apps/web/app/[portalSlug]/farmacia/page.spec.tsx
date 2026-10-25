@@ -80,7 +80,10 @@ describe("FarmaciaPage", () => {
   it("conforme sem busca: cabecalho, selo, busca com chips, indicadores e sem resultados", async () => {
     loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
     render(await FarmaciaPage(props));
-    expect(screen.getByText("Temas · Farmácia SUS")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Farmácia SUS" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Temas/)).not.toBeInTheDocument();
     expect(screen.getByText(/Lista de estoque atualizada/)).toHaveTextContent(
       "18/10/2026",
     );
