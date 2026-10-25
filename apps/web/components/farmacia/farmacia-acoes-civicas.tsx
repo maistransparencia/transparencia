@@ -19,7 +19,7 @@ export interface FarmaciaAcoesCivicasProps {
 type FeedbackCopia = "idle" | "copiado" | "erro";
 
 const BOTAO_BASE =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 font-semibold text-sm transition-colors";
+  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 font-semibold text-sm transition-colors";
 const BOTOES_CLASS = {
   alerta: {
     principal: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,

@@ -150,10 +150,10 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         type="button"
         aria-label={`Pedir esclarecimento sobre ${item.nomePrincipioAtivo}`}
         onClick={() => setAberto(true)}
-        className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent text-sm hover:underline"
+        className="inline-flex cursor-pointer items-center gap-1 py-1 font-semibold text-accent text-xs hover:underline"
       >
         Pedir esclarecimento
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        <ArrowRight className="h-3 w-3" aria-hidden="true" />
       </button>
       <ModalDialog
         isOpen={aberto}
