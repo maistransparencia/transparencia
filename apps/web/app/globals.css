@@ -1,15 +1,102 @@
 @import "tailwindcss";
-@config "../tailwind.config.ts";
+@source "../../../packages/ui/src";
 
+/*
+ * Fonte única dos tokens de cor. Tema claro em :root, escuro opcional em .dark
+ * (classe aplicada pelo script anti-flash de layout.tsx). Valores validados por
+ * styles/tokens-contraste.spec.ts: não clarear texto sem rodar o teste.
+ *
+ * mute2 e mute3 ficaram praticamente iguais para atender AA (4,5:1 sobre page,
+ * banbg e track); mute3 deixou de significar "mais claro que mute2". A fusão
+ * dos dois fica para a story 20.9.
+ *
+ * faint, pill, line, line2 e track são decorativos: nunca em text-*. Limite de
+ * controle (input, select, botão secundário) usa mute3.
+ */
 :root {
+  color-scheme: light;
   --font-ibm-plex: "IBM Plex Sans", sans-serif;
   --font-source-serif: "Source Serif 4", serif;
+
+  --page: #ffffff;
+  --ink: #1a1d21;
+  --onink: #ffffff;
+  --line: #e2e5ea;
+  --line2: #f0f1f4;
+  --track: #eceef2;
+  --mute: #4b5563;
+  --mute2: #666c7a;
+  --mute3: #676c73;
+  --faint: #c3c8d0;
+  --pill: #d5d9df;
+  --banbg: #eef4fd;
+  --banfg: #3a5a86;
+  --brand: oklch(0.5 0.11 250);
+  --danger: oklch(0.55 0.17 25);
+  --ok: oklch(0.5 0.1 155);
+  --warn: oklch(0.5 0.11 70);
+}
+
+.dark {
+  color-scheme: dark;
+  --page: #14171b;
+  --ink: #e8eaed;
+  --onink: #14171b;
+  --line: #2c3138;
+  --line2: #23282e;
+  --track: #2a2f36;
+  --mute: #a8b0bb;
+  --mute2: #8d96a2;
+  --mute3: #8f969f;
+  --faint: #4a515b;
+  --pill: #3a4049;
+  --banbg: #182233;
+  --banfg: #9bbbe6;
+  --brand: oklch(0.75 0.11 250);
+  --danger: oklch(0.7 0.16 25);
+  --ok: oklch(0.75 0.12 155);
+  --warn: oklch(0.78 0.13 70);
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-ink: var(--ink);
+  --color-onink: var(--onink);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-track: var(--track);
+  --color-mute: var(--mute);
+  --color-mute2: var(--mute2);
+  --color-mute3: var(--mute3);
+  --color-faint: var(--faint);
+  --color-pill: var(--pill);
+  --color-banbg: var(--banbg);
+  --color-banfg: var(--banfg);
+  --color-brand: var(--brand);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+
+  /* Aliases legados, removidos na story 20.9. */
+  --color-accent: var(--brand);
+  --color-canvas: var(--page);
+  --color-cardBg: var(--page);
+  --color-borderLine: var(--line);
+  --color-subtleText: var(--mute);
+  --color-mutedText: var(--mute2);
+  --color-attention: var(--warn);
+  --color-warning: var(--warn);
+  --color-inactive: var(--mute3);
+  --color-success: var(--ok);
+
+  --font-sans: var(--font-ibm-plex), "IBM Plex Sans", sans-serif;
+  --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
 }
 
 body {
   font-family: var(--font-ibm-plex);
-  background-color: #f4f5f7;
-  color: #1a1d21;
+  background-color: var(--page);
+  color: var(--ink);
   margin: 0;
   padding: 0;
 }
