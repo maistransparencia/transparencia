@@ -24,12 +24,12 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 12400000,Transferências da Saúde - Vigilância Sanitária (Legado),saude,true
 13110000,Transferências do FNAS (Legado),assistencia_social,true
 13120000,Transferências de Convênios vinculadas à Assistência Social (Legado),assistencia_social,true
-14100000,Operações de Crédito (Legado),outros_vinculados,true
-14200000,Alienação de Bens (Legado),outros_vinculados,true
-14300000,Outras Receitas de Capital (Legado),outros_vinculados,true
+14100000,Recursos Vinculados ao RPPS - Plano Previdenciário (Legado),previdencia,true
+14200000,Recursos Vinculados ao RPPS - Plano Financeiro (Legado),previdencia,true
+14300000,Recursos Vinculados ao RPPS - Taxa de Administração (Legado),previdencia,true
 1500,Recursos não Vinculados de Impostos,livre,false
-1501,Outros Recursos não Vinculados / Ações e Serviços Públicos de Saúde (ASPS),saude,true
-1502,Recursos Próprios / Outros Recursos Não Vinculados,livre,false
+1501,Outros Recursos não Vinculados,livre,false
+1502,Recursos não Vinculados da Compensação de Impostos,livre,false
 15100000,Outras Transferências de Convênios da União (Legado),outros_vinculados,true
 15200000,Outras Transferências dos Estados (Legado),outros_vinculados,true
 15300000,Royalties - Rendimentos e Restituições (Legado),outros_vinculados,true
@@ -44,25 +44,25 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1553,Transferências de Recursos do FNDE - PNATE (Transporte Escolar),educacao,true
 1569,Outras Transferências de Recursos do FNDE,educacao,true
 1571,Transferências do Estado referentes a Convênios e Instrumentos Congêneres vinculados à Educação,educacao,true
-1572,Transferências de Convênios Vinculados à Educação,educacao,true
+1572,Transferências de Municípios referentes a Convênios e Instrumentos Congêneres vinculados à Educação,educacao,true
 1573,Royalties e Compensações Financeiras vinculadas à Educação,educacao,true
 1575,Outras Transferências de Convênios e Instrumentos Congêneres vinculados à Educação,educacao,true
 1600,Transferências Fundo a Fundo de Recursos do SUS - Bloco de Manutenção,saude,true
 1601,Transferências Fundo a Fundo de Recursos do SUS - Bloco de Estruturação,saude,true
 1602,Transferências do SUS destinadas ao Enfrentamento da COVID-19,saude,true
-1603,Transferências Fundo a Fundo do SUS - Outros Repasses,saude,true
-1604,Transferências de Convênios do SUS,saude,true
+1603,Transferências Fundo a Fundo do SUS - Bloco de Estruturação - Recursos COVID-19,saude,true
+1604,Transferências do Governo Federal destinadas ao vencimento dos agentes comunitários de saúde e de combate às endemias,saude,true
 1605,Assistência Financeira Complementar da União - Piso da Enfermagem,saude,true
 16100000,Cota-Parte da CIDE (Legado),outros_vinculados,true
 16200000,Contribuição para o Custeio do Serviço de Iluminação Pública - COSIP (Legado),outros_vinculados,true
-1621,Transferências de Convênios / Contratos de Repasse vinculados à Saúde,saude,true
-1622,Outras Transferências de Recursos vinculados à Saúde,saude,true
+1621,Transferências Fundo a Fundo de Recursos do SUS provenientes do Governo Estadual,saude,true
+1622,Transferências Fundo a Fundo de Recursos do SUS provenientes dos Governos Municipais,saude,true
 1631,Transferências do Governo Federal referentes a Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
 1632,Transferências do Estado referentes a Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
-1635,Transferências do FNS / Compensação Financeira da Saúde,saude,true
+1635,Royalties e Participação Especial de Petróleo e Gás Natural vinculados à Saúde - Lei 12.858/2013,saude,true
 1636,Outras Transferências de Convênios e Instrumentos Congêneres vinculados à Saúde,saude,true
 1660,Transferência de Recursos do Fundo Nacional de Assistência Social - FNAS,assistencia_social,true
-1661,Transferência de Recursos do FNAS - Bloco de Gestão do SUAS,assistencia_social,true
+1661,Transferência de Recursos dos Fundos Estaduais de Assistência Social,assistencia_social,true
 1665,Transferências de Convênios Vinculados à Assistência Social,assistencia_social,true
 1669,Outras Transferências de Recursos Vinculados à Assistência Social,assistencia_social,true
 1700,Outras Transferências de Convênios ou Instrumentos Congêneres da União,outros_vinculados,true
@@ -88,33 +88,33 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1800,Recursos do RPPS - Fundo em Capitalização (Plano Previdenciário),previdencia,true
 1801,Recursos do RPPS - Fundo em Repartição (Plano Financeiro),previdencia,true
 1802,Recursos do RPPS - Taxa de Administração,previdencia,true
-1860,Outros Recursos Vinculados ao Regime Próprio de Previdência,previdencia,true
+1860,Recursos Extraorçamentários Vinculados a Precatórios,outros_vinculados,true
 1862,Recursos de Depósitos de Terceiros,outros_vinculados,true
-1869,Recursos do RPPS - Outras Vinculações,previdencia,true
+1869,Outros Recursos Extraorçamentários,outros_vinculados,true
 19300000,Alienação de Bens (Legado),outros_vinculados,true
 19400000,Outros Recursos não Aplicados (Legado),outros_vinculados,true
 19900000,Outras Transferências da União (Legado),outros_vinculados,true
 21160000,Transferências do FUNDEB - Exercícios Anteriores (Legado),educacao,true
 22130000,Transferências do SUS - Exercícios Anteriores (Legado),saude,true
-24100000,Operações de Crédito - Exercícios Anteriores (Legado),outros_vinculados,true
-24200000,Alienação de Bens - Exercícios Anteriores (Legado),outros_vinculados,true
-24300000,Outras Receitas de Capital - Exercícios Anteriores (Legado),outros_vinculados,true
+24100000,Recursos Vinculados ao RPPS - Plano Previdenciário - Exercícios Anteriores (Legado),previdencia,true
+24200000,Recursos Vinculados ao RPPS - Plano Financeiro - Exercícios Anteriores (Legado),previdencia,true
+24300000,Recursos Vinculados ao RPPS - Taxa de Administração - Exercícios Anteriores (Legado),previdencia,true
 2500,Recursos não Vinculados de Impostos - Exercícios Anteriores,livre,false
-2501,Ações e Serviços Públicos de Saúde - Exercícios Anteriores,saude,true
+2501,Outros Recursos não Vinculados - Exercícios Anteriores,livre,false
 25300000,Royalties Gerais - Exercícios Anteriores (Legado),outros_vinculados,true
 2540,Transferências do FUNDEB - Exercícios Anteriores,educacao,true
 2550,Salário-Educação - Exercícios Anteriores,educacao,true
 2573,Royalties da Educação - Exercícios Anteriores,educacao,true
 2600,Transferências do SUS - Bloco de Manutenção - Exercícios Anteriores,saude,true
 2605,Piso da Enfermagem - Exercícios Anteriores,saude,true
-2621,Convênios da Saúde - Exercícios Anteriores,saude,true
+2621,Transferências do SUS provenientes do Governo Estadual - Exercícios Anteriores,saude,true
 2700,Convênios da União - Exercícios Anteriores,outros_vinculados,true
 2701,Convênios do Estado - Exercícios Anteriores,outros_vinculados,true
-2704,Setor Cultural - Exercícios Anteriores,outros_vinculados,true
+2704,Transferências da União Referentes a Compensações Financeiras pela Exploração de Recursos Naturais - Exercícios Anteriores,outros_vinculados,true
 2800,Recursos do RPPS - Exercícios Anteriores,previdencia,true
-2801,Recursos do RPPS - Taxa de Administração - Exercícios Anteriores,previdencia,true
-2802,Recursos do RPPS - Outros - Exercícios Anteriores,previdencia,true
-9800,Compensação Previdenciária RPPS / RGPS,previdencia,true
-9801,Compensação Previdenciária - Regime Geral,previdencia,true
-9802,Outras Compensações Previdenciárias,previdencia,true
+2801,Recursos do RPPS - Fundo em Repartição (Plano Financeiro) - Exercícios Anteriores,previdencia,true
+2802,Recursos do RPPS - Taxa de Administração - Exercícios Anteriores,previdencia,true
+9800,Recursos do RPPS - Fundo em Capitalização (Plano Previdenciário) - Recursos Condicionados,previdencia,true
+9801,Recursos do RPPS - Fundo em Repartição (Plano Financeiro) - Recursos Condicionados,previdencia,true
+9802,Recursos do RPPS - Taxa de Administração - Recursos Condicionados,previdencia,true
 sem_fonte,Sem desdobramento de fonte de recursos na MSC,sem_fonte,false
