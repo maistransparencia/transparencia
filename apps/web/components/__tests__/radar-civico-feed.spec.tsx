@@ -73,7 +73,13 @@ describe("RadarCivicoFeed", () => {
     expect(screen.getByText("Aporte Expressivo em Saúde")).toBeInTheDocument();
     expect(screen.getAllByText("Entender →")).toHaveLength(2);
     const badges = screen.getAllByTestId("radar-severidade-badge");
-    expect(badges.map((b) => b.textContent)).toEqual(["Alta", "Média"]);
+    expect(badges.map((b) => b.textContent?.replace("■", ""))).toEqual([
+      "Alta",
+      "Média",
+    ]);
+    badges.forEach((b) => {
+      expect(b.className).not.toMatch(/border|bg-/);
+    });
   });
 
   it("renderiza empty state de conformidade quando não houver anomalias no exercício", () => {

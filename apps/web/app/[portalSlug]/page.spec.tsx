@@ -130,9 +130,7 @@ describe("VisaoGeralPage", () => {
         name: /ver detalhamento por entidade em execução orçamentária/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Em destaque" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
     expect(screen.queryByText(/Sentinela cívica/i)).not.toBeInTheDocument();
     expect(
       screen.getByRole("region", {
@@ -341,9 +339,7 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(
-      screen.getByRole("heading", { name: "Em destaque" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
     expect(screen.queryByTestId("destaque-linha")).toBeNull();
     expect(
       screen.getByRole("region", {
@@ -388,7 +384,6 @@ describe("VisaoGeralPage", () => {
     );
     const { container } = render(await VisaoGeralPage(props));
     const titulos = [
-      "Em destaque",
       "Radar Cívico Municipal (2024)",
       "Do orçamento autorizado ao pagamento",
     ];

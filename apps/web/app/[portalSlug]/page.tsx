@@ -1,4 +1,3 @@
-import { SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
@@ -67,8 +66,10 @@ export default async function VisaoGeralPage({
       />
 
       {temDestaques && (
-        <section aria-label="Em destaque" className="space-y-6">
-          <SectionHeader title="Em destaque" />
+        <section
+          aria-label="Em destaque"
+          className="space-y-16 md:space-y-[104px]"
+        >
           <FarmaciaResumoCard
             status={viewModel.farmaciaStatus}
             detailUrl={viewModel.farmaciaDetailUrl}

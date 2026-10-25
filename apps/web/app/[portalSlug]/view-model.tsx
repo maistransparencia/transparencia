@@ -214,19 +214,16 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       label: "Transferências da União",
       amountPerReal: `R$ ${(uniaoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: uniaoPct,
-      corToken: "brand" as const,
     },
     {
       label: "Transferências do Estado",
       amountPerReal: `R$ ${(estadoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: estadoPct,
-      corToken: "mute2" as const,
     },
     {
       label: "Receita Própria",
       amountPerReal: `R$ ${(propriaArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: propriaPct,
-      corToken: "ok" as const,
     },
   ];
 

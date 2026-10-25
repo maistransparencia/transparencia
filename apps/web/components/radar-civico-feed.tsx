@@ -21,20 +21,11 @@ export interface RadarCivicoFeedProps {
 }
 
 const SEVERIDADE_POR_GRAU: Record<string, { label: string; classe: string }> = {
-  critico: {
-    label: "Alta",
-    classe: "border-danger/40 bg-danger/10 text-danger",
-  },
-  alto: {
-    label: "Média",
-    classe: "border-warn/40 bg-warn/10 text-warn",
-  },
+  critico: { label: "Alta", classe: "text-danger" },
+  alto: { label: "Média", classe: "text-warn" },
 };
 
-const SEVERIDADE_PADRAO = {
-  label: "Baixa",
-  classe: "border-line bg-line2/40 text-mute2",
-};
+const SEVERIDADE_PADRAO = { label: "Baixa", classe: "text-mute2" };
 
 function registrarClique(card: RadarCivicoCardItem) {
   try {
@@ -66,23 +57,26 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
         onClick={() => registrarClique(card)}
         data-testid="radar-linha"
         data-card-id={card.anomaliaId}
-        className="flex min-h-11 flex-col gap-2 px-1 py-3 transition-colors hover:bg-line2/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:flex-row sm:items-center sm:gap-4 sm:px-3"
+        className="flex min-h-11 flex-col gap-2 px-1 py-4 transition-colors hover:bg-line2/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:flex-row sm:items-start sm:gap-4 sm:px-3"
       >
         <span
           data-testid="radar-severidade-badge"
-          className={`inline-flex w-fit shrink-0 items-center rounded-sm border px-2 py-0.5 font-medium text-xs ${severidade.classe}`}
+          className={`inline-flex w-fit shrink-0 items-center gap-1.5 font-medium font-mono text-[10px] uppercase tracking-wider sm:w-12 ${severidade.classe}`}
         >
+          <span aria-hidden="true" className="text-[8px]">
+            ■
+          </span>
           {severidade.label}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-bold text-ink text-sm tracking-tight sm:text-base">
+          <span className="block font-bold font-sans text-ink text-sm tracking-tight">
             {card.titulo}
           </span>
-          <span className="mt-0.5 block text-mute2 text-xs leading-snug sm:text-sm">
+          <span className="mt-1 block text-mute2 text-xs leading-snug">
             {card.textoFactual || card.resumoFactual}
           </span>
         </span>
-        <span className="inline-flex shrink-0 items-center font-semibold text-brand text-sm">
+        <span className="inline-flex shrink-0 items-center font-medium text-brand text-xs">
           Entender →
         </span>
       </Link>
@@ -144,16 +138,25 @@ export function RadarCivicoFeed({
           </div>
         </div>
       ) : (
-        <ul className="divide-y divide-line border-line border-y">
-          {cards.map((card, index) => (
-            <RadarLinha
-              key={
-                card.id || card.anomaliaId || `${card.tipoAnomalia}-${index}`
-              }
-              card={card}
-            />
-          ))}
-        </ul>
+        <>
+          <div
+            aria-hidden="true"
+            className="hidden gap-4 px-3 pb-2 font-mono text-[10px] text-mute2 uppercase tracking-widest sm:flex"
+          >
+            <span className="w-12 shrink-0">Nível</span>
+            <span>Ocorrência</span>
+          </div>
+          <ul className="divide-y divide-line border-line border-y">
+            {cards.map((card, index) => (
+              <RadarLinha
+                key={
+                  card.id || card.anomaliaId || `${card.tipoAnomalia}-${index}`
+                }
+                card={card}
+              />
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

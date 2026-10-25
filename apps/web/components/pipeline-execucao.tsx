@@ -50,7 +50,7 @@ export function PipelineExecucao({
       {/* Container Principal */}
       <div>
         {hasStages ? (
-          <div className="flex flex-col items-stretch justify-between divide-y divide-line border-line border-b sm:flex-row sm:divide-x sm:divide-y-0">
+          <div className="flex flex-col items-stretch justify-between divide-y divide-line sm:flex-row sm:divide-x sm:divide-y-0">
             {stages.map((stage) => (
               <div
                 key={stage.name}
@@ -80,6 +80,7 @@ export function PipelineExecucao({
             Nenhuma etapa de execução orçamentária disponível.
           </div>
         )}
+        <div aria-hidden="true" className="mt-6 border-line border-t" />
       </div>
     </div>
   );

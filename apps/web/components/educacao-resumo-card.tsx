@@ -34,16 +34,10 @@ export interface EducacaoResumoCardProps {
 const IDEB_INEP_URL =
   "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb";
 
-const CLASSES_BADGE_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "border-ok/40 bg-ok/10 text-ok",
-  atencao: "border-warn/40 bg-warn/10 text-warn",
-  neutro: "border-line bg-line2/40 text-mute2",
-};
-
 const CLASSES_FAIXA_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "border-ok/40 bg-ok/10 text-ok",
-  atencao: "border-warn/40 bg-warn/10 text-warn",
-  neutro: "border-line bg-line2/40 text-mute2",
+  destaque: "bg-ok/10 text-ok",
+  atencao: "bg-warn/10 text-warn",
+  neutro: "bg-line2/40 text-mute2",
 };
 
 const CLASSES_TEXTO_POR_TOM: Record<EducacaoResumoTom, string> = {
@@ -59,9 +53,9 @@ const ICONE_VARIACAO_POR_TOM: Record<EducacaoResumoTom, string> = {
 };
 
 const CLASSE_ROTULO =
-  "font-medium text-[11px] text-mute2 uppercase tracking-wider";
+  "font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest";
 const CLASSE_VALOR_LINHA =
-  "mt-1 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1";
+  "mt-1 flex min-h-8 flex-wrap items-center gap-x-2 gap-y-1";
 const CLASSE_APOIO = "mt-1 min-h-5 text-mute2 text-xs";
 
 function trackCta(
@@ -85,23 +79,40 @@ export function EducacaoResumoCard({
   return (
     <section
       aria-label="Educação Básica e Desempenho Escolar"
-      className={`border-line border-t py-5 ${className}`}
+      className={`border-ink border-t-2 pt-4 ${className}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="font-bold text-base text-ink tracking-tight">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
             Educação Básica e Desempenho Escolar
           </h3>
+          <ExternalLinkPill
+            href={IDEB_INEP_URL}
+            title="Página oficial do IDEB no INEP"
+            className="px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+          >
+            INEP / IDEB
+          </ExternalLinkPill>
         </div>
-        <ExternalLinkPill
-          href={IDEB_INEP_URL}
-          title="Página oficial do IDEB no INEP"
+        <Link
+          href={detailUrl}
+          onClick={() =>
+            trackCta(
+              resumo
+                ? "educacao_resumo_card_footer"
+                : "educacao_resumo_card_empty_state",
+              detailUrl,
+              { ano: resumo?.ano ?? null },
+            )
+          }
+          className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
         >
-          INEP / IDEB
-        </ExternalLinkPill>
+          <span>Ver indicadores pedagógicos e despesas detalhadas</span>
+          <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+        </Link>
       </div>
 
-      <p className="col-span-2 text-mute2 text-sm sm:col-span-1 sm:col-start-2">
+      <p className="mt-1 text-mute2 text-xs">
         {resumo
           ? `IDEB ${resumo.ano} e indicadores da rede municipal.`
           : "IDEB e indicadores da rede municipal."}
@@ -112,21 +123,21 @@ export function EducacaoResumoCard({
           {resumo.enfaseTitulo && (
             <p
               data-tom={resumo.enfaseTom}
-              className={`mt-3 rounded-md border px-2.5 py-1.5 font-semibold text-xs sm:mt-4 sm:px-3 sm:py-2 sm:text-sm ${CLASSES_FAIXA_POR_TOM[resumo.enfaseTom]}`}
+              className={`mt-4 px-3 py-2 font-semibold text-xs sm:text-sm ${CLASSES_FAIXA_POR_TOM[resumo.enfaseTom]}`}
             >
               {resumo.enfaseTitulo}
             </p>
           )}
-          <div className="mt-3 grid grid-cols-2 items-stretch gap-x-3 gap-y-3 sm:mt-4 sm:grid-cols-3 sm:gap-y-0 sm:divide-x sm:divide-line">
+          <div className="mt-5 grid grid-cols-2 items-stretch gap-x-3 gap-y-5 sm:mt-5 sm:grid-cols-3 sm:gap-y-0 sm:divide-x sm:divide-line">
             <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:last:pr-0 sm:first:pl-0">
               <span className={CLASSE_ROTULO}>Nota do IDEB (1º ao 5º ano)</span>
               <div className={CLASSE_VALOR_LINHA}>
-                <p className="font-bold font-serif text-3xl text-ink leading-none tracking-tight">
+                <p className="font-bold font-sans text-2xl text-ink leading-none tracking-tight">
                   {resumo.notaIdebTexto}
                 </p>
                 {resumo.evolucaoTexto && (
                   <span
-                    className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[resumo.evolucaoTom]}`}
+                    className={`font-medium text-xs ${CLASSES_TEXTO_POR_TOM[resumo.evolucaoTom]}`}
                   >
                     {resumo.evolucaoTexto}
                   </span>
@@ -162,7 +173,7 @@ export function EducacaoResumoCard({
                 )}
                 {resumo.metaTexto && (
                   <span
-                    className={`inline-flex items-center rounded-md border px-1.5 py-0.5 font-medium text-[11px] ${CLASSES_BADGE_POR_TOM[resumo.metaTom]}`}
+                    className={`font-medium text-xs ${CLASSES_TEXTO_POR_TOM[resumo.metaTom]}`}
                   >
                     {resumo.metaTexto}
                   </span>
@@ -189,7 +200,7 @@ export function EducacaoResumoCard({
           </div>
         </>
       ) : (
-        <div className="mt-3 flex flex-col items-center justify-center border-line border-y p-4 text-center sm:mt-4 sm:p-6">
+        <div className="mt-3 flex flex-col items-center justify-center border-line border-y p-4 text-center sm:p-6">
           <AlertCircle className="mb-2 h-6 w-6 text-mute3" />
           <p className="font-medium text-ink text-sm">
             Indicadores educacionais ainda não disponíveis para este município.
@@ -197,32 +208,10 @@ export function EducacaoResumoCard({
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between gap-3 border-line border-t pt-3 sm:mt-4 sm:pt-4">
-        <div className="hidden items-center gap-1.5 text-mute2 text-xs sm:flex">
-          <Info className="h-3.5 w-3.5 shrink-0 text-mute2" />
-          <span>Indicadores oficiais do IDEB apurados pelo INEP/MEC.</span>
-        </div>
-        <Info
-          aria-hidden="true"
-          className="h-3.5 w-3.5 shrink-0 text-mute2 sm:hidden"
-        />
-        <Link
-          href={detailUrl}
-          onClick={() =>
-            trackCta(
-              resumo
-                ? "educacao_resumo_card_footer"
-                : "educacao_resumo_card_empty_state",
-              detailUrl,
-              { ano: resumo?.ano ?? null },
-            )
-          }
-          className="inline-flex items-center gap-1 font-semibold text-brand text-xs hover:underline"
-        >
-          <span>Ver indicadores pedagógicos e despesas detalhadas</span>
-          <ArrowRight className="h-3.5 w-3.5 shrink-0" />
-        </Link>
-      </div>
+      <p className="mt-4 flex items-center gap-1.5 text-mute2 text-xs">
+        <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span>Indicadores oficiais do IDEB apurados pelo INEP/MEC.</span>
+      </p>
     </section>
   );
 }

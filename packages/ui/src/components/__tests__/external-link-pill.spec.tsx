@@ -44,4 +44,14 @@ describe("ExternalLinkPill", () => {
       expect(screen.getByText("Lei")).toBeInTheDocument();
     },
   );
+
+  it("alinha rótulo e ícone na mesma linha", () => {
+    render(
+      <ExternalLinkPill href="https://exemplo.gov.br">Lei</ExternalLinkPill>,
+    );
+    const link = screen.getByRole("link");
+    expect(link).toHaveClass("inline-flex", "items-center");
+    expect(screen.getByText("Lei")).toHaveClass("leading-none");
+    expect(link.querySelector("svg")).toHaveClass("shrink-0");
+  });
 });

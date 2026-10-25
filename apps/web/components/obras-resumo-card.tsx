@@ -214,39 +214,61 @@ export function ObrasResumoCard({
   return (
     <section
       aria-label="Obras Públicas"
-      className={`border-line border-t py-5 ${className}`}
+      className={`border-ink border-t-2 pt-4 ${className}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="font-bold text-base text-ink tracking-tight">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
             Obras Públicas
           </h3>
+          <ExternalLinkPill
+            href={OBRASGOV_PANEL_URL}
+            title="Painel de Obras Públicas do Governo Federal"
+            className="px-2.5 py-0.5 font-mono text-[10px] tracking-wider"
+          >
+            ObrasGov.br
+          </ExternalLinkPill>
         </div>
-        <ExternalLinkPill
-          href={OBRASGOV_PANEL_URL}
-          title="Painel de Obras Públicas do Governo Federal"
+        <Link
+          href={detailUrl}
+          onClick={() => {
+            try {
+              posthog.capture("obras_card_cta_clicked", {
+                detailUrl,
+                totalObras,
+              });
+              posthog.capture("funnel_home_to_internal_page", {
+                from: "obras_resumo_card_footer",
+                to: detailUrl,
+              });
+            } catch {
+              // Silencia erros de telemetria
+            }
+          }}
+          className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
         >
-          ObrasGov.br
-        </ExternalLinkPill>
+          <span>Ver mapa e detalhes das obras</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
-      <p className="col-span-2 text-mute2 text-sm sm:col-span-1 sm:col-start-2">
+      <p className="mt-1 text-mute2 text-xs">
         Painel de obras públicas e investimentos urbanos.
       </p>
 
       {/* Conteúdo Principal: Métricas + Mini Mapa Estático */}
-      <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
+      <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
         {/* Bloco de Métricas Consolidadas */}
         <div className="flex-1 space-y-4">
           <div>
-            <span className="font-medium text-mute2 text-xs uppercase tracking-wider">
+            <span className="font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest">
               Total de Investimento Previsto
             </span>
-            <div className="mt-1 flex items-center gap-2">
-              <p className="font-bold font-serif text-3xl text-ink tracking-tight">
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="font-bold font-sans text-3xl text-ink tracking-tight">
                 {fmtCompact(valorTotalInvestimento)}
               </p>
-              <span className="inline-flex items-center rounded-md border border-line px-2 py-0.5 font-medium text-mute2 text-xs">
+              <span className="text-mute2 text-xs">
                 {fmtNumber(totalObras)} {totalObras === 1 ? "obra" : "obras"}
               </span>
             </div>
@@ -255,7 +277,7 @@ export function ObrasResumoCard({
           <div className="space-y-2">
             {/* Barra Proporcional Empilhada */}
             <div
-              className="flex h-2.5 w-full overflow-hidden rounded-full bg-track"
+              className="flex h-1.5 w-full overflow-hidden bg-track"
               role="progressbar"
               aria-valuenow={Math.round(pctConcluidas)}
               aria-valuemin={0}
@@ -305,12 +327,12 @@ export function ObrasResumoCard({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="h-2 w-2 shrink-0"
                     style={{ backgroundColor: corDoGrafico("brand") }}
                   />
                   <span className="text-mute2">Em execução:</span>
                 </div>
-                <span className="ml-4 font-semibold text-ink">
+                <span className="ml-3.5 font-semibold text-ink">
                   {fmtNumber(emExecucao)} ({fmtCompact(valorEmExecucao)})
                 </span>
               </div>
@@ -318,12 +340,12 @@ export function ObrasResumoCard({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="h-2 w-2 shrink-0"
                     style={{ backgroundColor: corDoGrafico("ok") }}
                   />
                   <span className="text-mute2">Concluídas:</span>
                 </div>
-                <span className="ml-4 font-semibold text-ink">
+                <span className="ml-3.5 font-semibold text-ink">
                   {fmtNumber(concluidas)} ({fmtCompact(valorConcluidas)})
                 </span>
               </div>
@@ -331,12 +353,12 @@ export function ObrasResumoCard({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="h-2 w-2 shrink-0"
                     style={{ backgroundColor: corDoGrafico("mute3") }}
                   />
                   <span className="text-mute2">Não iniciadas:</span>
                 </div>
-                <span className="ml-4 font-semibold text-ink">
+                <span className="ml-3.5 font-semibold text-ink">
                   {fmtNumber(cadastradas)} ({fmtCompact(valorCadastradas)})
                 </span>
               </div>
@@ -344,12 +366,12 @@ export function ObrasResumoCard({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="h-2 w-2 shrink-0"
                     style={{ backgroundColor: corDoGrafico("danger") }}
                   />
                   <span className="text-mute2">Paralisadas:</span>
                 </div>
-                <span className="ml-4 font-semibold text-ink">
+                <span className="ml-3.5 font-semibold text-ink">
                   {fmtNumber(paralisadas)} ({fmtCompact(valorParalisadas)})
                 </span>
               </div>
@@ -381,7 +403,7 @@ export function ObrasResumoCard({
               }
             }}
             aria-label="Ver no mapa interativo de obras públicas"
-            className="group relative h-28 w-full shrink-0 overflow-hidden rounded-md border border-line bg-track transition-all duration-200 hover:border-brand/40 lg:h-auto lg:w-56"
+            className="group relative h-28 w-full shrink-0 overflow-hidden bg-track transition-colors duration-200 lg:h-auto lg:w-56"
           >
             <Image
               src={tileInfo.url}
@@ -407,47 +429,22 @@ export function ObrasResumoCard({
             </div>
 
             {/* Affordance Badge Flutuante */}
-            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-md bg-page/95 px-2 py-1 font-medium text-[11px] text-ink backdrop-blur-xs transition-colors group-hover:bg-ink group-hover:text-onink">
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 bg-page/95 px-2 py-1 font-medium font-mono text-[9px] text-ink uppercase tracking-wider backdrop-blur-xs transition-colors group-hover:bg-ink group-hover:text-onink">
               <MapPin className="h-3 w-3" />
-              <span>Ver no mapa</span>
+              <span>Mapa · Ver no mapa</span>
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
             </div>
           </Link>
         )}
       </div>
 
-      {/* Rodapé com Nota e CTA para o Mapa */}
-      <div className="mt-5 flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1.5 text-mute2 text-xs">
-          <Info className="h-3.5 w-3.5 shrink-0 text-mute2" />
-          <span>
-            Painel consolidado de intervenções e investimentos públicos via
-            ObrasGov.br.
-          </span>
-        </div>
-
-        <Link
-          href={detailUrl}
-          onClick={() => {
-            try {
-              posthog.capture("obras_card_cta_clicked", {
-                detailUrl,
-                totalObras,
-              });
-              posthog.capture("funnel_home_to_internal_page", {
-                from: "obras_resumo_card_footer",
-                to: detailUrl,
-              });
-            } catch {
-              // Silencia erros de telemetria
-            }
-          }}
-          className="inline-flex items-center gap-1 font-semibold text-brand text-xs hover:underline"
-        >
-          <span>Ver mapa e detalhes das obras</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+      <p className="mt-4 flex items-center gap-1.5 text-mute2 text-xs">
+        <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span>
+          Painel consolidado de intervenções e investimentos públicos via
+          ObrasGov.br.
+        </span>
+      </p>
     </section>
   );
 }

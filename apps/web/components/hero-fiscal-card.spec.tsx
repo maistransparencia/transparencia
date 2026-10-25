@@ -23,7 +23,7 @@ describe("HeroFiscalCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("aplica a cor da barra por token e usa brand como fallback", () => {
+  it("aplica a cor da barra por token e usa ink como fallback nas origens", () => {
     const { container } = render(
       <HeroFiscalCard
         originBreakdown={[
@@ -36,6 +36,7 @@ describe("HeroFiscalCard", () => {
       container.querySelectorAll<HTMLElement>("[style*='width']"),
     ).map((barra) => barra.style.backgroundColor);
     expect(cores).toContain("var(--ok)");
-    expect(cores.filter((cor) => cor === "var(--brand)")).toHaveLength(2);
+    expect(cores.filter((cor) => cor === "var(--brand)")).toHaveLength(1);
+    expect(cores.filter((cor) => cor === "var(--ink)")).toHaveLength(1);
   });
 });

@@ -39,7 +39,8 @@ describe("EducacaoResumoCard", () => {
       const card = screen.getByRole("region", {
         name: "Educação Básica e Desempenho Escolar",
       });
-      expect(card.className).toContain("border-line");
+      expect(card.className).toContain("border-ink");
+      expect(card.className).toContain("border-t-2");
       expect(card.className).not.toMatch(
         /rounded-2xl|shadow-sm|bg-white|emerald|amber|ring-/,
       );
@@ -74,7 +75,7 @@ describe("EducacaoResumoCard", () => {
     expect(
       screen.getByText("Indicadores oficiais do IDEB apurados pelo INEP/MEC."),
     ).toBeTruthy();
-    expect(screen.getByText("5,9").className).toContain("font-serif");
+    expect(screen.getByText("5,9").className).toContain("font-sans");
     expect(
       screen.getByText("Destaque: evolução de +1,4 ponto no IDEB").className,
     ).toContain("text-ok");

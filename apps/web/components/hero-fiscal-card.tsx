@@ -80,9 +80,9 @@ export function HeroFiscalCard({
       </div>
 
       {/* Coluna Direita: Card Visual */}
-      <div className="border-line border-t-2 border-t-ink pt-5 lg:col-span-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+      <div className="border-line lg:col-span-5 lg:border-l lg:pl-8">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <span className="font-medium text-mute2 text-xs">
+          <span className="font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest">
             {arrecadadoTitle ||
               `Arrecadado no ano até agora ${portalName ? `· ${portalName}` : ""}`}
           </span>
@@ -93,7 +93,7 @@ export function HeroFiscalCard({
           )}
         </div>
 
-        <div className="mb-2 font-bold font-serif text-3xl text-ink tracking-tight sm:text-4xl">
+        <div className="mb-2 font-bold font-sans text-3xl text-ink tracking-tight sm:text-4xl">
           {formattedTotal}
         </div>
 
@@ -108,9 +108,9 @@ export function HeroFiscalCard({
             </span>
           </div>
 
-          <div className="h-2.5 w-full overflow-hidden rounded-md bg-track">
+          <div className="h-1.5 w-full overflow-hidden bg-track">
             <div
-              className="h-full rounded-md transition-all duration-500 ease-out"
+              className="h-full transition-all duration-500 ease-out"
               style={{
                 backgroundColor: corDoGrafico("brand"),
                 width: `${Math.min(100, Math.max(0, realizationPercent))}%`,
@@ -121,7 +121,7 @@ export function HeroFiscalCard({
 
         {originBreakdown && originBreakdown.length > 0 && (
           <div className="mt-4 border-line border-t pt-4">
-            <h2 className="mb-3 font-semibold text-ink text-xs">
+            <h2 className="mb-3 font-bold font-sans text-ink text-sm">
               De onde vem cada R$ 1,00
             </h2>
             <div className="space-y-3">
@@ -135,13 +135,11 @@ export function HeroFiscalCard({
                         {item.percentage}%)
                       </span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-md bg-track">
+                    <div className="h-1.5 w-full overflow-hidden bg-track">
                       <div
-                        className="h-full rounded-md transition-all duration-500"
+                        className="h-full transition-all duration-500"
                         style={{
-                          backgroundColor: corDoGrafico(
-                            item.corToken ?? "brand",
-                          ),
+                          backgroundColor: corDoGrafico(item.corToken ?? "ink"),
                           width: `${Math.min(100, Math.max(0, item.percentage))}%`,
                         }}
                       />

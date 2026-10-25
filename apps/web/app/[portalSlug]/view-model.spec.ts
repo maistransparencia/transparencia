@@ -999,11 +999,11 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
 });
 
 describe("buildVisaoGeralViewModel - cores das barras", () => {
-  it("devolve corToken distintos na origem da arrecadação e etapas sem cor própria", () => {
+  it("não define cor própria por item na origem da arrecadação nem nas etapas", () => {
     const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
-    const origem = vm.originBreakdown.map((item) => item.corToken);
-    expect(origem.every(Boolean)).toBe(true);
-    expect(new Set(origem).size).toBe(origem.length);
+    expect(vm.originBreakdown.every((item) => !("corToken" in item))).toBe(
+      true,
+    );
     expect(vm.pipelineStages.every((etapa) => !("corToken" in etapa))).toBe(
       true,
     );
