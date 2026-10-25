@@ -26,6 +26,7 @@ import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
+import { scriptAntiFlashTema } from "@/lib/tema-script";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
 import { RibbonWrapper } from "./components/ribbon-wrapper";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
@@ -204,13 +205,16 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${ibmPlexSans.variable} ${sourceSerif4.variable}`}
     >
       <head>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema */}
+        <script dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }} />
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>
-      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased md:flex-row">
+      <body className="flex min-h-screen flex-col bg-page font-sans text-ink antialiased md:flex-row">
         <ProgressProvider>
           <NuqsAdapter>
             <MobileNavProvider>
