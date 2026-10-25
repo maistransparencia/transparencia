@@ -7,6 +7,7 @@ export const TIPOS_EXPORTACAO = [
   "funcao",
   "saldo_caixa_siconfi",
   "pessoal_regime",
+  "estoque_farmacia",
 ] as const;
 
 export type TipoExportacao = (typeof TIPOS_EXPORTACAO)[number];

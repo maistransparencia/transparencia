@@ -526,3 +526,85 @@ export async function getFarmaciaLotesAVencer(
         : null,
   };
 }
+
+export interface FarmaciaEstoqueExportDTO {
+  portalSlug: string;
+  codigoCnes: string | null;
+  nomeUnidade: string | null;
+  nomeMedicamento: string;
+  numeroLote: string | null;
+  /** Nulo quando a fonte não informou a quantidade; nunca vira zero. */
+  quantidadeEstoque: number | null;
+  dataPosicaoEstoque: string | null;
+  dataValidade: string | null;
+}
+
+/**
+ * Estoque completo para download: um registro por lote na posição vigente
+ * (última `data_posicao_estoque` por CNES) das unidades ativas de
+ * `fct_farmacia_estoque`. Vazio para slug inválido ou portal fora de `conforme`.
+ */
+export async function getFarmaciaEstoqueExportRecords(
+  portalSlug: string,
+): Promise<FarmaciaEstoqueExportDTO[]> {
+  if (!isPortalSlugValido(portalSlug)) return [];
+  const slug = portalSlug.trim();
+
+  const resumo = await getResumoFarmaciaSus(slug);
+  if (resumo.status !== "conforme") return [];
+
+  const { rows } = await sql<{
+    portal_slug: string;
+    codigo_cnes: string | null;
+    nome_unidade: string | null;
+    nome_medicamento: string;
+    numero_lote: string | null;
+    quantidade_estoque: string | number;
+    data_posicao_estoque: unknown;
+    data_validade: unknown;
+  }>`
+    with unidades_ativas as (
+      select portal_slug, codigo_cnes, min(nome_unidade) as nome_unidade
+      from fct_farmacia_estoque
+      where portal_slug = ${slug}
+        and status_conformidade = 'conforme'
+      group by portal_slug, codigo_cnes
+    ),
+    posicao_vigente as (
+      select portal_slug, codigo_cnes, max(data_posicao_estoque) as data_posicao_vigente
+      from fct_farmacia_estoque_historico
+      where portal_slug = ${slug}
+      group by portal_slug, codigo_cnes
+    )
+    select
+      h.portal_slug,
+      h.codigo_cnes,
+      u.nome_unidade,
+      h.nome_medicamento,
+      h.numero_lote,
+      h.quantidade_estoque,
+      h.data_posicao_estoque,
+      h.data_validade
+    from fct_farmacia_estoque_historico h
+    inner join posicao_vigente v
+      on h.portal_slug = v.portal_slug
+      and h.codigo_cnes is not distinct from v.codigo_cnes
+      and h.data_posicao_estoque = v.data_posicao_vigente
+    inner join unidades_ativas u
+      on h.portal_slug = u.portal_slug
+      and h.codigo_cnes is not distinct from u.codigo_cnes
+    where h.portal_slug = ${slug}
+    order by u.nome_unidade, h.nome_medicamento, h.numero_lote, h.id_registro
+  `.execute(db);
+
+  return rows.map((linha) => ({
+    portalSlug: linha.portal_slug,
+    codigoCnes: linha.codigo_cnes,
+    nomeUnidade: linha.nome_unidade,
+    nomeMedicamento: linha.nome_medicamento,
+    numeroLote: linha.numero_lote,
+    quantidadeEstoque: toNumberOrNull(linha.quantidade_estoque),
+    dataPosicaoEstoque: toIsoDateString(linha.data_posicao_estoque),
+    dataValidade: toIsoDateString(linha.data_validade),
+  }));
+}

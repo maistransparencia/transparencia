@@ -191,3 +191,33 @@ describe("ShowYourWorkButton Component", () => {
     );
   });
 });
+
+describe("ShowYourWorkButton variante link", () => {
+  it("baixa o estoque da farmacia sem enviar ano", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({
+        "Content-Disposition":
+          'attachment; filename="estoque_farmacia_portal_x.csv"',
+      }),
+      blob: async () => new Blob(["x"], { type: "text/csv" }),
+    });
+    global.fetch = mockFetch;
+    window.URL.createObjectURL = vi.fn(() => "blob:x");
+    window.URL.revokeObjectURL = vi.fn();
+
+    render(
+      <ShowYourWorkButton
+        portalSlug="portal_x"
+        tipo="estoque_farmacia"
+        variante="link"
+        rotulo="Baixar estoque"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Baixar estoque" }));
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/portal_x/export?tipo=estoque_farmacia",
+    );
+  });
+});

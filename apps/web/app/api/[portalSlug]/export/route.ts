@@ -1,6 +1,8 @@
 import {
   CATEGORIAS_GASTOS_SENSIVEIS,
   type CategoriaGastoSensivel,
+  type FarmaciaEstoqueExportDTO,
+  getFarmaciaEstoqueExportRecords,
   getPortalConfig,
   getRawDespesasExportRecords,
   getRawPessoalRegimeExportRecords,
@@ -23,6 +25,7 @@ const VALID_TIPOS: readonly TipoExportacao[] = [
   "funcao",
   "saldo_caixa_siconfi",
   "pessoal_regime",
+  "estoque_farmacia",
 ];
 
 const CSV_HEADERS = [
@@ -67,6 +70,17 @@ const PESSOAL_REGIME_CSV_HEADERS = [
   "categoria_funcional",
 ] as const;
 
+const ESTOQUE_FARMACIA_CSV_HEADERS = [
+  "portal_slug",
+  "codigo_cnes",
+  "nome_unidade",
+  "nome_medicamento",
+  "numero_lote",
+  "quantidade_estoque",
+  "data_posicao_estoque",
+  "data_validade",
+] as const;
+
 function escapeCsvCell(
   value: string | number | null | undefined,
   delimiter: string,
@@ -93,6 +107,30 @@ function formatMoney(value: number, delimiter: string): string {
     return fixed.replace(".", ",");
   }
   return fixed;
+}
+
+function formatEstoqueFarmaciaCsvRow(
+  record: FarmaciaEstoqueExportDTO,
+  delimiter: string,
+): string {
+  // número não passa por escapeCsvCell: o prefixo anti-fórmula transformaria "-5" em texto
+  const quantidade =
+    record.quantidadeEstoque === null
+      ? ""
+      : delimiter === ";"
+        ? String(record.quantidadeEstoque).replace(".", ",")
+        : String(record.quantidadeEstoque);
+  const cells = [
+    escapeCsvCell(record.portalSlug, delimiter),
+    escapeCsvCell(record.codigoCnes, delimiter),
+    escapeCsvCell(record.nomeUnidade, delimiter),
+    escapeCsvCell(record.nomeMedicamento, delimiter),
+    escapeCsvCell(record.numeroLote, delimiter),
+    quantidade,
+    escapeCsvCell(record.dataPosicaoEstoque, delimiter),
+    escapeCsvCell(record.dataValidade, delimiter),
+  ];
+  return cells.join(delimiter);
 }
 
 function formatCsvRow(record: RawDespesaRecordDTO, delimiter: string): string {
@@ -260,7 +298,11 @@ export async function GET(req: Request, context: ExportRouteContext) {
   }
 
   const ano = Number(anoParam);
-  if (!anoParam || !Number.isInteger(ano) || ano < 2000 || ano > 2100) {
+  const exigeAno = tipoParam !== "estoque_farmacia";
+  if (
+    exigeAno &&
+    (!anoParam || !Number.isInteger(ano) || ano < 2000 || ano > 2100)
+  ) {
     return NextResponse.json(
       {
         error:
@@ -283,6 +325,42 @@ export async function GET(req: Request, context: ExportRouteContext) {
     );
   }
   const delimiter = delimitadorParam ?? ";";
+
+  // Rota especializada para o estoque completo da Farmácia SUS (sem filtro de ano)
+  if (tipoParam === "estoque_farmacia") {
+    let estoqueRecords: FarmaciaEstoqueExportDTO[];
+    try {
+      estoqueRecords = await getFarmaciaEstoqueExportRecords(portalSlug);
+    } catch (error) {
+      // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+      console.error(
+        "[Export API] Erro ao consultar estoque da Farmácia SUS:",
+        error,
+      );
+      return NextResponse.json(
+        { error: "Erro interno ao processar a exportação de dados." },
+        { status: 500 },
+      );
+    }
+
+    const corpo = [
+      ESTOQUE_FARMACIA_CSV_HEADERS.join(delimiter),
+      ...estoqueRecords.map((record) =>
+        formatEstoqueFarmaciaCsvRow(record, delimiter),
+      ),
+    ]
+      .map((linha) => `${linha}\r\n`)
+      .join("");
+
+    return new Response(`\uFEFF${corpo}`, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="estoque_farmacia_${portalSlug}.csv"`,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  }
 
   // Rota especializada para exportação de saldos contábeis SICONFI / MSC
   if (tipoParam === "saldo_caixa_siconfi") {

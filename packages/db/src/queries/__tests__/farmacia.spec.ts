@@ -10,6 +10,7 @@ import {
   agruparFarmaciaPorRemedio,
   calcularIndicadoresFarmacia,
   FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
+  getFarmaciaEstoqueExportRecords,
   getFarmaciaLotesAVencer,
   getFarmaciaSentinelas,
   getFarmaciaSus,
@@ -535,5 +536,100 @@ describe("getFarmaciaLotesAVencer", () => {
 
   it("retorna vazio para portal invalido", async () => {
     expect((await getFarmaciaLotesAVencer("  ")).totalLotesComValidade).toBe(0);
+  });
+});
+
+describe("getFarmaciaEstoqueExportRecords", () => {
+  const posicao = "2026-10-18";
+
+  async function seedHistorico(portalSlug: string) {
+    const base = { portalSlug, dataPosicaoEstoque: posicao };
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "e1",
+      codigoCnes: "1001",
+      nomeMedicamento: "Dipirona",
+      numeroLote: "B",
+      quantidadeEstoque: 5,
+      dataValidade: "2027-01-31",
+    });
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "e2",
+      codigoCnes: "1001",
+      nomeMedicamento: "Dipirona",
+      numeroLote: "A",
+    });
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "e3",
+      codigoCnes: "1002",
+      nomeMedicamento: "Amoxicilina",
+    });
+    // posicao antiga da mesma unidade: nao entra
+    await seedFarmaciaHistorico({
+      portalSlug,
+      idRegistro: "e4",
+      codigoCnes: "1001",
+      nomeMedicamento: "Antigo",
+      dataPosicaoEstoque: "2026-10-01",
+    });
+    // unidade inativa (fora do mart): nao entra
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "e5",
+      codigoCnes: "9999",
+      nomeMedicamento: "Inativa",
+    });
+  }
+
+  it("retorna vazio para slug invalido ou portal fora de conforme", async () => {
+    expect(await getFarmaciaEstoqueExportRecords("  ")).toEqual([]);
+    await seedFarmacia({
+      portalSlug: PORTAL_A,
+      idRegistro: "status",
+      statusConformidade: "apagao",
+    });
+    await seedHistorico(PORTAL_A);
+    expect(await getFarmaciaEstoqueExportRecords(PORTAL_A)).toEqual([]);
+  });
+
+  it("traz so a posicao vigente das unidades ativas, ordenada, com validade preenchida e nula", async () => {
+    await seedPortalConforme(PORTAL_A);
+    await seedHistorico(PORTAL_A);
+    const resultado = await getFarmaciaEstoqueExportRecords(PORTAL_A);
+    expect(
+      resultado.map((r) => [r.nomeUnidade, r.nomeMedicamento, r.numeroLote]),
+    ).toEqual([
+      ["UBS Centro", "Dipirona", "A"],
+      ["UBS Centro", "Dipirona", "B"],
+      ["UBS Norte", "Amoxicilina", null],
+    ]);
+    expect(resultado[0]).toMatchObject({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      dataPosicaoEstoque: posicao,
+      dataValidade: null,
+    });
+    expect(resultado[1]).toMatchObject({
+      quantidadeEstoque: 5,
+      dataValidade: "2027-01-31",
+    });
+  });
+
+  it("isola os portais mesmo com o mesmo CNES", async () => {
+    await seedPortalConforme(PORTAL_A);
+    await seedPortalConforme(PORTAL_B);
+    await seedHistorico(PORTAL_A);
+    await seedFarmaciaHistorico({
+      portalSlug: PORTAL_B,
+      idRegistro: "b1",
+      codigoCnes: "1001",
+      nomeMedicamento: "So do B",
+      dataPosicaoEstoque: posicao,
+    });
+    const b = await getFarmaciaEstoqueExportRecords(PORTAL_B);
+    expect(b.map((r) => r.nomeMedicamento)).toEqual(["So do B"]);
+    expect(b.every((r) => r.portalSlug === PORTAL_B)).toBe(true);
   });
 });
