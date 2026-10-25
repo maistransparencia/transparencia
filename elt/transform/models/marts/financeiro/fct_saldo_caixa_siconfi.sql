@@ -30,7 +30,7 @@ stg_com_fonte as (
         coalesce(
             f.grupo_destinacao,
             case
-                when s.fonte_recursos in ('1500', '2500', '10010000', '10900000', '1502') then 'livre'
+                when s.fonte_recursos in ('1500', '2500', '10010000', '1502') then 'livre'
                 when s.fonte_recursos like '166%' then 'assistencia_social'
                 when s.fonte_recursos in ('1501', '2501', '12110000') or s.fonte_recursos like '16%' then 'saude'
                 when s.fonte_recursos like '154%' or s.fonte_recursos like '155%' or s.fonte_recursos like '11%' then 'educacao'
@@ -42,7 +42,7 @@ stg_com_fonte as (
         coalesce(
             f.recurso_vinculado_flag,
             case
-                when s.fonte_recursos in ('1500', '2500', '10010000', '10900000', '1502') then false
+                when s.fonte_recursos in ('1500', '2500', '10010000', '1502') then false
                 when s.fonte_recursos = 'sem_fonte' then false
                 else true
             end

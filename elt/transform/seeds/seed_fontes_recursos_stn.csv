@@ -1,6 +1,5 @@
 codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 10010000,Recursos Ordinários Livres (Legado SOF/STN),livre,false
-10900000,Outros Recursos Ordinários Livres (Legado SOF/STN),livre,false
 11110000,Receitas de Impostos vinculadas à Educação (Legado),educacao,true
 11140000,Complementação da União ao FUNDEB - VAAF (Legado),educacao,true
 11160000,Transferências do FUNDEB (Legado),educacao,true
@@ -12,7 +11,7 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 11230000,Transferências do FNDE - PNATE (Legado),educacao,true
 11240000,Outras Transferências do FNDE (Legado),educacao,true
 11250000,Transferências de Convênios vinculadas à Educação (Legado),educacao,true
-12110000,Recursos Próprios vinculados à Saúde (Legado SOF/STN),saude,true
+11400000,Royalties Pré-Sal - Rendimentos de Depósitos Bancários (Legado),outros_vinculados,true
 12120000,Transferências do SUS - Governo Federal (Legado),saude,true
 12130000,Transferências do SUS - Farmácia Básica e Programas Estaduais (Legado),saude,true
 12140000,Transferências do SUS - Atenção Básica e Vigilância (Legado),saude,true
@@ -20,12 +19,8 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 12150000,Transferências do SUS - Investimento na Rede de Serviços (Legado),saude,true
 12152100,Transferências do SUS - Atenção Básica PNAB (Legado),saude,true
 12200000,Transferências de Convênios vinculadas à Saúde (Legado),saude,true
-12400000,Transferências da Saúde - Vigilância Sanitária (Legado),saude,true
 13110000,Transferências do FNAS (Legado),assistencia_social,true
 13120000,Transferências de Convênios vinculadas à Assistência Social (Legado),assistencia_social,true
-14100000,Operações de Crédito (Legado),outros_vinculados,true
-14200000,Alienação de Bens (Legado),outros_vinculados,true
-14300000,Outras Receitas de Capital (Legado),outros_vinculados,true
 1500,Recursos não Vinculados de Impostos,livre,false
 1501,Outros Recursos não Vinculados / Ações e Serviços Públicos de Saúde (ASPS),saude,true
 1502,Recursos Próprios / Outros Recursos Não Vinculados,livre,false
@@ -91,16 +86,10 @@ codigo_fonte,descricao,grupo_destinacao,recurso_vinculado_flag
 1862,Recursos de Depósitos de Terceiros,outros_vinculados,true
 1869,Recursos do RPPS - Outras Vinculações,previdencia,true
 19300000,Alienação de Bens (Legado),outros_vinculados,true
-19400000,Outros Recursos não Aplicados (Legado),outros_vinculados,true
 19900000,Outras Transferências da União (Legado),outros_vinculados,true
 21160000,Transferências do FUNDEB - Exercícios Anteriores (Legado),educacao,true
-22130000,Transferências do SUS - Exercícios Anteriores (Legado),saude,true
-24100000,Operações de Crédito - Exercícios Anteriores (Legado),outros_vinculados,true
-24200000,Alienação de Bens - Exercícios Anteriores (Legado),outros_vinculados,true
-24300000,Outras Receitas de Capital - Exercícios Anteriores (Legado),outros_vinculados,true
 2500,Recursos não Vinculados de Impostos - Exercícios Anteriores,livre,false
 2501,Ações e Serviços Públicos de Saúde - Exercícios Anteriores,saude,true
-25300000,Royalties Gerais - Exercícios Anteriores (Legado),outros_vinculados,true
 2540,Transferências do FUNDEB - Exercícios Anteriores,educacao,true
 2550,Salário-Educação - Exercícios Anteriores,educacao,true
 2573,Royalties da Educação - Exercícios Anteriores,educacao,true
