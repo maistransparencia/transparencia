@@ -293,6 +293,38 @@ describe("PwaInstaller Component", () => {
     });
   });
 
+  it("renders PwaInstallButton with variant='footer' como botão secundário de largura total e registra source", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstallButton variant="footer" />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    const button = await screen.findByRole("button", {
+      name: /Instalar Aplicativo/i,
+    });
+    expect(button).toHaveClass(
+      "w-full",
+      "rounded-md",
+      "border-line",
+      "bg-page",
+      "min-h-11",
+    );
+
+    fireEvent.click(button);
+    expect(promptMock).toHaveBeenCalled();
+    expect(posthog.capture).toHaveBeenCalledWith("pwa_install_clicked", {
+      source: "footer",
+    });
+  });
+
   it("renders mobile banner when minPageViews is reached and suppresses when push prompt is open", async () => {
     sessionStorage.setItem("session_page_views", "2");
 
