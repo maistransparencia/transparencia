@@ -6,12 +6,12 @@ import { useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 export interface PushNotificationTopbarButtonProps {
-  portalSlug?: string;
+  portalSlug: string;
   onSubscribeSuccess?: () => void;
 }
 
 export function PushNotificationTopbarButton({
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
   onSubscribeSuccess,
 }: PushNotificationTopbarButtonProps) {
   const { isSupported, isSubscribed, permission, isLoading, subscribe } =

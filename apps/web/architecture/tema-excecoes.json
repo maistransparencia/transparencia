@@ -47,7 +47,6 @@
     "apps/web/components/previdencia-saldo-caixa-card.tsx",
     "apps/web/components/previsto-vs-arrecadado.tsx",
     "apps/web/components/progress-provider.tsx",
-    "apps/web/components/pwa-installer.tsx",
     "apps/web/components/radar-anomalia-card.tsx",
     "apps/web/components/radar-civico-feed.tsx",
     "apps/web/components/saldo-caixa-entidades-section.tsx",
@@ -58,11 +57,7 @@
     "apps/web/components/saude-fontes-donut.tsx",
     "apps/web/components/saude-hero-section.tsx",
     "apps/web/components/saude-trend-chart.tsx",
-    "packages/ui/src/components/dense-table.tsx",
-    "packages/ui/src/components/multi-select.tsx",
-    "packages/ui/src/components/ribbon.tsx",
-    "packages/ui/src/components/share-button.tsx",
-    "packages/ui/src/components/sidebar.tsx"
+    "packages/ui/src/components/dense-table.tsx"
   ],
   "token-decorativo-como-texto": [],
   "raio-antigo": [
@@ -118,7 +113,6 @@
     "apps/web/components/previdencia-saldo-caixa-card.tsx",
     "apps/web/components/proventos-distribution-chart.tsx",
     "apps/web/components/push-notification-prompt.tsx",
-    "apps/web/components/pwa-installer.tsx",
     "apps/web/components/radar-anomalia-card.tsx",
     "apps/web/components/radar-civico-feed.tsx",
     "apps/web/components/radar-gastos-sensiveis.tsx",
@@ -193,7 +187,6 @@
     "apps/web/components/folha-lrf-history-chart.tsx",
     "apps/web/components/funil-execucao-horizontal.tsx",
     "apps/web/components/gasto-por-funcao-bars.tsx",
-    "apps/web/components/global-footer.tsx",
     "apps/web/components/hero-fiscal-card.tsx",
     "apps/web/components/licitacoes-em-andamento-section.tsx",
     "apps/web/components/licitacoes-search-bar.tsx",
@@ -222,8 +215,6 @@
     "apps/web/components/previsto-vs-arrecadado.tsx",
     "apps/web/components/proventos-distribution-chart.tsx",
     "apps/web/components/push-notification-prompt.tsx",
-    "apps/web/components/push-notification-settings.tsx",
-    "apps/web/components/pwa-installer.tsx",
     "apps/web/components/radar-anomalia-card.tsx",
     "apps/web/components/radar-civico-feed.tsx",
     "apps/web/components/radar-gastos-sensiveis.tsx",
@@ -246,10 +237,7 @@
     "packages/ui/src/components/dense-table.tsx",
     "packages/ui/src/components/kpi-card.tsx",
     "packages/ui/src/components/modal-dialog.tsx",
-    "packages/ui/src/components/multi-select.tsx",
     "packages/ui/src/components/segmented-button.tsx",
-    "packages/ui/src/components/share-button.tsx",
-    "packages/ui/src/components/sidebar.tsx",
     "packages/ui/src/components/tooltip.tsx",
     "packages/ui/src/components/truncated-cell-with-modal.tsx"
   ]

@@ -57,11 +57,20 @@ function safeSetSessionStorage(key: string, value: string): void {
 }
 
 export function PushNotificationPrompt({
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
+  ...props
+}: PushNotificationPromptProps) {
+  // Sem portal ativo (ex.: página raiz) não há a quem associar a inscrição.
+  if (!portalSlug) return null;
+  return <PushNotificationPromptContent portalSlug={portalSlug} {...props} />;
+}
+
+function PushNotificationPromptContent({
+  portalSlug,
   cooldownDays = DEFAULT_COOLDOWN_DAYS,
   minPageViews = 0,
   delayMs = 0,
-}: PushNotificationPromptProps) {
+}: PushNotificationPromptProps & { portalSlug: string }) {
   const pathname = usePathname();
   const { isSupported, isSubscribed, permission, isLoading, subscribe } =
     usePushNotifications({ portalSlug });

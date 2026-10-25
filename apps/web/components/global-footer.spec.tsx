@@ -8,6 +8,16 @@ vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname,
 }));
 
+vi.mock("./push-notification-settings", () => ({
+  PushNotificationSettings: ({ portalSlug }: { portalSlug?: string }) => (
+    <div data-testid="push-stub">{portalSlug}</div>
+  ),
+}));
+
+vi.mock("./pwa-installer", () => ({
+  PwaInstallButton: () => <div data-testid="pwa-stub" />,
+}));
+
 vi.mock("posthog-js", () => ({
   default: {
     capture: vi.fn(),
@@ -41,6 +51,48 @@ describe("GlobalFooter", () => {
     });
     expect(termosLink).not.toHaveAttribute("target", "_blank");
     expect(privacidadeLink).not.toHaveAttribute("target", "_blank");
+  });
+
+  it("usa filete de 2px com tokens, colunas e botão primário de alertas", () => {
+    render(<GlobalFooter portalName="Porciúncula" />);
+    expect(screen.getByRole("contentinfo")).toHaveClass(
+      "border-t-2",
+      "border-ink",
+    );
+    expect(screen.getByText("Neste dispositivo")).toBeInTheDocument();
+    expect(screen.getByText("Alertas")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /receber alertas por e-mail/i }),
+    ).toHaveClass("bg-ink", "text-onink");
+  });
+
+  it("coluna Neste dispositivo renderiza push (com slug) e instalação em rota de portal", () => {
+    render(
+      <GlobalFooter
+        portais={[
+          { portalSlug: "porciuncula_prefeitura", displayName: "Porciúncula" },
+        ]}
+      />,
+    );
+    expect(screen.getByTestId("push-stub")).toHaveTextContent(
+      "porciuncula_prefeitura",
+    );
+    expect(screen.getByTestId("pwa-stub")).toBeInTheDocument();
+  });
+
+  it("na rota raiz não exibe município nem UF, sem push, mas com instalação", () => {
+    mockPathname = "/";
+    render(
+      <GlobalFooter
+        portalName="Porciúncula"
+        stateUF="RJ"
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+    expect(screen.queryByText(/Porciúncula/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\/ RJ/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("push-stub")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pwa-stub")).toBeInTheDocument();
   });
 
   it("renderiza botão de alertas por e-mail e abre modal ao clicar", () => {

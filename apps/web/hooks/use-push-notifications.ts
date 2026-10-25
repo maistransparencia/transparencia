@@ -9,7 +9,7 @@ import {
 } from "@/lib/vapid";
 
 export interface UsePushNotificationsOptions {
-  portalSlug?: string;
+  portalSlug: string;
 }
 
 export interface UsePushNotificationsReturn {
@@ -218,9 +218,9 @@ async function getActiveServiceWorkerRegistration(
 }
 
 export function usePushNotifications(
-  options?: UsePushNotificationsOptions,
+  options: UsePushNotificationsOptions,
 ): UsePushNotificationsReturn {
-  const portalSlug = options?.portalSlug ?? "porciuncula_prefeitura";
+  const { portalSlug } = options;
   const state = useSyncExternalStore(
     subscribeToStore,
     getStoreSnapshot,
