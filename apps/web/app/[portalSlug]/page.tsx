@@ -1,3 +1,4 @@
+import { SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
 import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
@@ -52,7 +53,7 @@ export default async function VisaoGeralPage({
     Boolean(viewModel.resumoObras);
 
   return (
-    <div className="space-y-9">
+    <div className="space-y-16 bg-page md:space-y-[104px]">
       <HeroFiscalCard
         portalName={viewModel.portalName}
         periodText={viewModel.periodText}
@@ -66,15 +67,8 @@ export default async function VisaoGeralPage({
       />
 
       {temDestaques && (
-        <section aria-labelledby="em-destaque-heading" className="space-y-3">
-          <div className="border-[#1a1d21] border-t-2 pt-3">
-            <h2
-              id="em-destaque-heading"
-              className="font-bold font-serif text-ink text-xl"
-            >
-              Em destaque
-            </h2>
-          </div>
+        <section aria-label="Em destaque" className="space-y-6">
+          <SectionHeader title="Em destaque" />
           <FarmaciaResumoCard
             status={viewModel.farmaciaStatus}
             detailUrl={viewModel.farmaciaDetailUrl}

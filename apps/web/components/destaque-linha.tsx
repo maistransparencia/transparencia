@@ -5,17 +5,17 @@ import type { FonteOficial } from "@/lib/constants/fontes-oficiais";
 export type DestaqueTom = "positivo" | "atencao" | "alerta" | "neutro";
 
 const CLASSES_BADGE_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  atencao: "border-amber-300 bg-amber-50 text-amber-900",
-  alerta: "border-rose-200 bg-rose-50 text-rose-900",
-  neutro: "border-slate-200 bg-slate-100 text-slate-700",
+  positivo: "border-ok/40 bg-ok/10 text-ok",
+  atencao: "border-warn/40 bg-warn/10 text-warn",
+  alerta: "border-danger/40 bg-danger/10 text-danger",
+  neutro: "border-line bg-line2/40 text-mute2",
 };
 
 const CLASSES_ICONE_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "bg-emerald-50 text-emerald-700",
-  atencao: "bg-amber-100 text-amber-800",
-  alerta: "bg-rose-50 text-rose-700",
-  neutro: "bg-slate-100 text-slate-600",
+  positivo: "bg-ok/10 text-ok",
+  atencao: "bg-warn/10 text-warn",
+  alerta: "bg-danger/10 text-danger",
+  neutro: "bg-line2/40 text-mute2",
 };
 
 export interface DestaqueLinhaProps {
@@ -55,12 +55,12 @@ export function DestaqueLinha({
       aria-label={ariaLabel}
       data-testid="destaque-linha"
       data-tom={tom}
-      className={`flex flex-col gap-3 rounded-2xl border border-[#e7e9ee] bg-white p-3 shadow-sm sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 sm:px-4 ${className}`}
+      className={`flex flex-col gap-3 border-line border-t py-4 sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 ${className}`}
     >
       <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center">
         <span
           aria-hidden="true"
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${CLASSES_ICONE_POR_TOM[tom]}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${CLASSES_ICONE_POR_TOM[tom]}`}
         >
           <Icone className="h-5 w-5" />
         </span>
@@ -71,12 +71,12 @@ export function DestaqueLinha({
             </h3>
             <span
               data-testid="destaque-badge"
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[tom]}`}
+              className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[tom]}`}
             >
               {badgeTexto}
             </span>
           </div>
-          <p className="mt-0.5 text-subtleText text-xs leading-snug sm:text-sm">
+          <p className="mt-0.5 text-mute2 text-xs leading-snug sm:text-sm">
             {contexto}
             {fonte && (
               <>
@@ -107,4 +107,4 @@ export function DestaqueLinha({
 }
 
 export const CLASSE_ACAO_DESTAQUE =
-  "inline-flex min-h-11 items-center gap-1 whitespace-nowrap font-semibold text-accent text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
+  "inline-flex min-h-11 items-center gap-1 whitespace-nowrap font-semibold text-brand text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand";

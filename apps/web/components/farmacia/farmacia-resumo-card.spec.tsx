@@ -12,12 +12,14 @@ describe("FarmaciaResumoCard", () => {
   });
 
   it.each(["conforme", "apagao"] as const)(
-    "%s: contorno neutro, sem realce colorido por status",
+    "%s: seção com filete, sem caixa nem realce colorido",
     (status) => {
       render(<FarmaciaResumoCard status={status} detailUrl={detailUrl} />);
       const card = screen.getByRole("region", { name: /Farmácia SUS/ });
-      expect(card.className).toContain("border-[#e7e9ee]");
-      expect(card.className).not.toMatch(/emerald|amber|rose|ring-/);
+      expect(card.className).toContain("border-line");
+      expect(card.className).not.toMatch(
+        /rounded-2xl|shadow-sm|bg-white|emerald|amber|rose|ring-/,
+      );
     },
   );
 

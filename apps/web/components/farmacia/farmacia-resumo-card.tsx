@@ -1,4 +1,5 @@
-import { ArrowRight, ExternalLink, Pill } from "lucide-react";
+import { ExternalLinkPill } from "@transparencia/ui";
+import { ArrowRight, Pill } from "lucide-react";
 import Link from "next/link";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -84,25 +85,21 @@ export function FarmaciaResumoCard({
   return (
     <section
       aria-label="Farmácia SUS"
-      className={`flex flex-col gap-4 rounded-2xl border border-[#e7e9ee] bg-white p-4 shadow-sm sm:p-5 ${className}`}
+      className={`flex flex-col gap-4 border-line border-t pt-5 ${className}`}
     >
       <div className="">
         <div className="flex w-full items-center justify-between gap-1">
           <h3 className="font-bold font-serif text-ink text-lg">
             Farmácia SUS
           </h3>
-          <a
+          <ExternalLinkPill
             href={FONTES_OFICIAIS.bnafar.url}
-            target="_blank"
-            rel="noopener noreferrer"
             title="Dados de estoque no portal de dados abertos do Ministério da Saúde"
-            className="inline-flex items-center gap-1.5 self-start rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink sm:self-auto"
           >
-            <span>{FONTES_OFICIAIS.bnafar.nome}</span>
-            <ExternalLink className="h-3 w-3" aria-hidden="true" />
-          </a>
+            {FONTES_OFICIAIS.bnafar.nome}
+          </ExternalLinkPill>
         </div>
-        <p className="col-span-2 text-sm text-subtleText sm:col-span-1 sm:col-start-2">
+        <p className="col-span-2 text-mute2 text-sm sm:col-span-1 sm:col-start-2">
           Busque o remédio que você precisa.
         </p>
       </div>
@@ -112,13 +109,13 @@ export function FarmaciaResumoCard({
       />
       {exemplos.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-subtleText">Exemplos:</span>
+          <span className="text-mute2 text-sm">Exemplos:</span>
           <ul className="flex flex-wrap gap-2">
             {exemplos.map((exemplo) => (
               <li key={exemplo.codigoPrincipioAtivo}>
                 <Link
                   href={exemplo.href}
-                  className="inline-flex min-h-11 items-center rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-ink text-sm transition-colors hover:bg-slate-100 sm:min-h-0"
+                  className="inline-flex min-h-11 items-center rounded-full border border-pill px-3 py-1 font-medium text-ink text-sm transition-colors hover:border-mute3 sm:min-h-0"
                 >
                   {exemplo.nomePrincipioAtivo}
                 </Link>
