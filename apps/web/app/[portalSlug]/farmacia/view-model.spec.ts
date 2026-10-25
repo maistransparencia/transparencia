@@ -441,6 +441,7 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     totalLotesComValidade: 5,
     totalLotesAVencer: 2,
     totalRemediosAVencer: 1,
+    totalLotesVencidosComSaldo: 0,
     dataVencimentoMaisProxima: "2026-11-05",
   };
   const comLotes = (valor: unknown) =>
@@ -456,6 +457,22 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     expect(indicador?.rotulo).toContain("60");
     expect(indicador?.nota).toContain("1 remédio");
     expect(indicador?.nota).toContain("05/11/2026");
+  });
+
+  it("com tudo ja vencido mostra 0 a vencer e os vencidos com saldo", () => {
+    const indicador = buildFarmaciaViewModel(
+      comLotes({
+        ...lotes,
+        totalLotesAVencer: 0,
+        totalRemediosAVencer: 0,
+        totalLotesVencidosComSaldo: 2,
+        dataVencimentoMaisProxima: null,
+      }),
+    ).indicadores.find((i) => i.codigo === "lotes_a_vencer");
+    expect(indicador?.valor).toBe("0");
+    expect(indicador?.nota).toContain("Nenhum vence em até 60 dias");
+    expect(indicador?.nota).toContain("2 lotes já constam como vencidos");
+    expect(indicador?.notaAtencao).toBe(true);
   });
 
   it.each([

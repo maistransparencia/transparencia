@@ -204,7 +204,7 @@ function buildIndicadorLotesAVencer(
   lotes: FarmaciaRawData["lotesAVencer"],
 ): FarmaciaIndicador[] {
   if (!lotes || lotes.totalLotesComValidade === 0) return [];
-  const nota =
+  const detalheAVencer =
     lotes.totalLotesAVencer === 0
       ? `Nenhum vence em até ${fmtNumber(lotes.janelaDias)} dias`
       : [
@@ -215,13 +215,21 @@ function buildIndicadorLotesAVencer(
         ]
           .filter((parte): parte is string => parte !== null)
           .join(" · ");
+  const detalheVencidos =
+    lotes.totalLotesVencidosComSaldo > 0
+      ? `${fmtNumber(lotes.totalLotesVencidosComSaldo)} ${lotes.totalLotesVencidosComSaldo === 1 ? "lote já consta como vencido" : "lotes já constam como vencidos"} na posição de estoque divulgada`
+      : null;
+  const nota = [detalheAVencer, detalheVencidos]
+    .filter((parte): parte is string => parte !== null)
+    .join(" · ");
   return [
     {
       codigo: "lotes_a_vencer",
       rotulo: `Lotes que vencem em até ${fmtNumber(lotes.janelaDias)} dias`,
       valor: fmtNumber(lotes.totalLotesAVencer),
       nota,
-      notaAtencao: lotes.totalLotesAVencer > 0,
+      notaAtencao:
+        lotes.totalLotesAVencer > 0 || lotes.totalLotesVencidosComSaldo > 0,
     },
   ];
 }

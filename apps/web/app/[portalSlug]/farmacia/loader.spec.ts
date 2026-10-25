@@ -112,6 +112,7 @@ describe("loadFarmaciaData", () => {
       totalLotesComValidade: 3,
       totalLotesAVencer: 1,
       totalRemediosAVencer: 1,
+      totalLotesVencidosComSaldo: 0,
       dataVencimentoMaisProxima: "2026-11-01",
     };
     vi.mocked(getFarmaciaSus).mockResolvedValue({

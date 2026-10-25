@@ -452,6 +452,8 @@ export interface FarmaciaLotesAVencerDTO {
   totalLotesComValidade: number;
   totalLotesAVencer: number;
   totalRemediosAVencer: number;
+  /** Lotes com validade anterior a hoje que ainda constam com saldo na posição vigente. */
+  totalLotesVencidosComSaldo: number;
   dataVencimentoMaisProxima: string | null;
 }
 
@@ -460,6 +462,7 @@ const LOTES_A_VENCER_VAZIO: FarmaciaLotesAVencerDTO = {
   totalLotesComValidade: 0,
   totalLotesAVencer: 0,
   totalRemediosAVencer: 0,
+  totalLotesVencidosComSaldo: 0,
   dataVencimentoMaisProxima: null,
 };
 
@@ -478,6 +481,7 @@ export async function getFarmaciaLotesAVencer(
     total_lotes_com_validade: string | number;
     total_lotes_a_vencer: string | number;
     total_remedios_a_vencer: string | number;
+    total_lotes_vencidos_com_saldo: string | number;
     data_vencimento_mais_proxima: unknown;
   }>`
     with posicao_vigente as (
@@ -501,6 +505,7 @@ export async function getFarmaciaLotesAVencer(
       count(*) as total_lotes_com_validade,
       count(*) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_lotes_a_vencer,
       count(distinct lower(nome_medicamento)) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_remedios_a_vencer,
+      count(*) filter (where data_validade < current_date) as total_lotes_vencidos_com_saldo,
       min(data_validade) filter (where data_validade >= current_date) as data_vencimento_mais_proxima
     from lotes_vigentes
   `.execute(db);
@@ -513,6 +518,8 @@ export async function getFarmaciaLotesAVencer(
     totalLotesComValidade: toNumberOrNull(linha.total_lotes_com_validade) ?? 0,
     totalLotesAVencer,
     totalRemediosAVencer: toNumberOrNull(linha.total_remedios_a_vencer) ?? 0,
+    totalLotesVencidosComSaldo:
+      toNumberOrNull(linha.total_lotes_vencidos_com_saldo) ?? 0,
     dataVencimentoMaisProxima:
       totalLotesAVencer > 0
         ? toIsoDateString(linha.data_vencimento_mais_proxima)

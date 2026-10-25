@@ -502,8 +502,35 @@ describe("getFarmaciaLotesAVencer", () => {
       totalLotesComValidade: 3,
       totalLotesAVencer: 2,
       totalRemediosAVencer: 1,
+      totalLotesVencidosComSaldo: 0,
       dataVencimentoMaisProxima: dataRelativa(10),
     });
+  });
+
+  it("conta lotes ja vencidos com saldo e ignora vencidos sem saldo", async () => {
+    const base = {
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      dataPosicaoEstoque: dataRelativa(-1),
+    };
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "v1",
+      nomeMedicamento: "Dipirona",
+      dataValidade: dataRelativa(-5),
+    });
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "v2",
+      nomeMedicamento: "Amoxicilina",
+      quantidadeEstoque: 0,
+      dataValidade: dataRelativa(-3),
+    });
+    const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
+    expect(resultado.totalLotesComValidade).toBe(1);
+    expect(resultado.totalLotesVencidosComSaldo).toBe(1);
+    expect(resultado.totalLotesAVencer).toBe(0);
+    expect(resultado.dataVencimentoMaisProxima).toBeNull();
   });
 
   it("retorna vazio para portal invalido", async () => {
