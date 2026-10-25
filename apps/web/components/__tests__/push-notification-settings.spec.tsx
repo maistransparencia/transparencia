@@ -35,13 +35,15 @@ describe("PushNotificationSettings", () => {
 
   it("não renderiza nada quando Web Push não é suportado", () => {
     mockHookState.isSupported = false;
-    const { container } = render(<PushNotificationSettings />);
+    const { container } = render(
+      <PushNotificationSettings portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it("renderiza aviso quando notificações estão bloqueadas no navegador", () => {
     mockHookState.permission = "denied";
-    render(<PushNotificationSettings />);
+    render(<PushNotificationSettings portalSlug="slug_teste" />);
 
     expect(screen.getByText(/Notificações bloqueadas/i)).toBeInTheDocument();
     expect(screen.getByText(/Desbloquear/i)).toBeInTheDocument();
@@ -51,7 +53,7 @@ describe("PushNotificationSettings", () => {
     mockHookState.isSubscribed = true;
     mockHookState.permission = "granted";
 
-    render(<PushNotificationSettings />);
+    render(<PushNotificationSettings portalSlug="slug_teste" />);
 
     expect(screen.getByText(/Notificações ativas/i)).toBeInTheDocument();
 
@@ -68,7 +70,10 @@ describe("PushNotificationSettings", () => {
 
     const onSubscribeSuccess = vi.fn();
     render(
-      <PushNotificationSettings onSubscribeSuccess={onSubscribeSuccess} />,
+      <PushNotificationSettings
+        portalSlug="slug_teste"
+        onSubscribeSuccess={onSubscribeSuccess}
+      />,
     );
 
     expect(screen.getByText(/Notificações desativadas/i)).toBeInTheDocument();
@@ -80,5 +85,20 @@ describe("PushNotificationSettings", () => {
 
     fireEvent.click(activateBtn);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("usa o botão secundário padronizado (sem hex nem paleta fixa)", () => {
+    mockHookState.isSubscribed = false;
+    mockHookState.permission = "default";
+    render(<PushNotificationSettings portalSlug="slug_teste" />);
+
+    const botao = screen.getByRole("button", { name: /Ativar/i });
+    expect(botao).toHaveClass(
+      "rounded-md",
+      "border-line",
+      "bg-page",
+      "text-xs",
+    );
+    expect(botao.className).not.toMatch(/#|blue-|slate-|emerald-/);
   });
 });

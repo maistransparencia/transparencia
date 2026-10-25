@@ -86,7 +86,9 @@ describe("usePushNotifications", () => {
     // @ts-expect-error test unsupported
     delete window.PushManager;
 
-    const { result } = renderHook(() => usePushNotifications());
+    const { result } = renderHook(() =>
+      usePushNotifications({ portalSlug: "slug_teste" }),
+    );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -103,7 +105,9 @@ describe("usePushNotifications", () => {
       unsubscribe: mockUnsubscribe,
     });
 
-    const { result } = renderHook(() => usePushNotifications());
+    const { result } = renderHook(() =>
+      usePushNotifications({ portalSlug: "slug_teste" }),
+    );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

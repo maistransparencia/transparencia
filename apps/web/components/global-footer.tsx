@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { env } from "@/env";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { botaoPrimario } from "./botoes-acao";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";
@@ -106,7 +107,7 @@ export function GlobalFooter({
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
           {/* Três colunas: marca e fonte, neste dispositivo, alertas */}
           <div className="grid grid-cols-1 gap-8 py-8 sm:grid-cols-3 sm:gap-6">
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <p className="font-bold font-serif text-base text-ink leading-tight">
                 {env.NEXT_PUBLIC_PROJECT_NAME}
               </p>
@@ -124,25 +125,22 @@ export function GlobalFooter({
               </p>
             </div>
 
-            <div className="space-y-3 sm:border-line sm:border-l sm:pl-6">
+            <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
               <p className="font-semibold text-ink text-xs">
                 Neste dispositivo
               </p>
               {effectivePortalSlug && (
                 <PushNotificationSettings portalSlug={effectivePortalSlug} />
               )}
-              <PwaInstallButton
-                variant="footer"
-                className={`cursor-pointer text-xs ${linkClass}`}
-              />
+              <PwaInstallButton variant="footer" />
             </div>
 
-            <div className="space-y-3 sm:border-line sm:border-l sm:pl-6">
+            <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
               <p className="font-semibold text-ink text-xs">Alertas</p>
               <button
                 type="button"
                 onClick={() => setIsNewsletterOpen(true)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-2.5 font-medium text-onink text-sm transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2 active:scale-[0.99] sm:py-2"
+                className={`${botaoPrimario} w-full`}
               >
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 Receber alertas por e-mail

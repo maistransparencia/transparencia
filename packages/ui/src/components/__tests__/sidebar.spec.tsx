@@ -114,6 +114,15 @@ describe("Sidebar Component", () => {
     expect(ativo).toHaveClass("border-l-2", "border-ink", "font-semibold");
   });
 
+  it("drawer mobile fechado fica invisível (fora da tela e fora do foco) e visível no desktop", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const aside = screen.getByRole("complementary");
+    expect(aside).toHaveClass("-translate-x-full", "invisible", "md:visible");
+  });
+
   it("rodapé tem compartilhar e alternador de tema, sem slots de push/pwa", () => {
     render(
       <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,

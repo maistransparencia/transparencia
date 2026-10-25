@@ -438,11 +438,11 @@ export function Sidebar({
       <aside
         className={cn(
           "select-none border-line border-r bg-page md:bg-transparent",
-          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[transform,visibility] duration-300 ease-in-out",
           "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
           isMobileOpen
-            ? "pointer-events-auto translate-x-0 shadow-2xl"
-            : "pointer-events-none -translate-x-full shadow-none md:pointer-events-auto",
+            ? "pointer-events-auto visible translate-x-0 shadow-2xl"
+            : "pointer-events-none invisible -translate-x-full shadow-none md:pointer-events-auto md:visible",
         )}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
