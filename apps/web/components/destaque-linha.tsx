@@ -11,13 +11,6 @@ const CLASSES_BADGE_POR_TOM: Record<DestaqueTom, string> = {
   neutro: "border-slate-200 bg-slate-100 text-slate-700",
 };
 
-const CLASSES_LINHA_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "border-emerald-200 bg-white",
-  atencao: "border-amber-300 bg-white",
-  alerta: "border-rose-200 bg-white",
-  neutro: "border-[#e7e9ee] bg-white",
-};
-
 const CLASSES_ICONE_POR_TOM: Record<DestaqueTom, string> = {
   positivo: "bg-emerald-50 text-emerald-700",
   atencao: "bg-amber-100 text-amber-800",
@@ -62,7 +55,7 @@ export function DestaqueLinha({
       aria-label={ariaLabel}
       data-testid="destaque-linha"
       data-tom={tom}
-      className={`flex flex-col gap-3 rounded-2xl border p-3 shadow-sm sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 sm:px-4 ${CLASSES_LINHA_POR_TOM[tom]} ${className}`}
+      className={`flex flex-col gap-3 rounded-2xl border border-[#e7e9ee] bg-white p-3 shadow-sm sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 sm:px-4 ${className}`}
     >
       <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center">
         <span

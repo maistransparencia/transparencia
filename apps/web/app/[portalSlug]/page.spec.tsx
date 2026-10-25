@@ -274,7 +274,7 @@ describe("VisaoGeralPage", () => {
     expect(pilula.getAttribute("href")).toContain("/farmacia?q=Dipirona");
   });
 
-  it("ordena Em destaque (farmacia, educacao, obras), radar e pipeline", async () => {
+  it("ordena Em destaque (farmacia, obras, educacao), radar e pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoFarmacia: { status: "apagao" },
@@ -312,9 +312,9 @@ describe("VisaoGeralPage", () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       );
     expect(screen.getAllByTestId("destaque-linha")).toHaveLength(1);
-    expect(precede(farmacia, educacao)).toBe(true);
-    expect(precede(educacao, obras)).toBe(true);
-    expect(precede(obras, radar)).toBe(true);
+    expect(precede(farmacia, obras)).toBe(true);
+    expect(precede(obras, educacao)).toBe(true);
+    expect(precede(educacao, radar)).toBe(true);
     expect(precede(radar, pipeline)).toBe(true);
   });
 

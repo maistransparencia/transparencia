@@ -27,6 +27,26 @@ const base: EducacaoResumoCardData = {
 };
 
 describe("EducacaoResumoCard", () => {
+  it.each(["destaque", "atencao", "neutro"] as const)(
+    "contorno do card é neutro com enfase %s, mantendo o tom na faixa",
+    (enfaseTom) => {
+      render(
+        <EducacaoResumoCard
+          resumo={{ ...base, enfaseTom }}
+          detailUrl="/p/educacao"
+        />,
+      );
+      const card = screen.getByRole("region", {
+        name: "Educação Básica e Desempenho Escolar",
+      });
+      expect(card.className).toContain("border-[#e7e9ee]");
+      expect(card.className).not.toMatch(/emerald|amber|ring-/);
+      expect(screen.getByText(base.enfaseTitulo as string).className).toContain(
+        { destaque: "emerald", atencao: "amber", neutro: "slate" }[enfaseTom],
+      );
+    },
+  );
+
   it("exibe a despesa liquidada com o exercício, sem jargão de função", () => {
     render(<EducacaoResumoCard resumo={base} detailUrl="/p/educacao" />);
     expect(

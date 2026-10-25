@@ -11,6 +11,16 @@ describe("FarmaciaResumoCard", () => {
     Reflect.deleteProperty(navigator, "clipboard");
   });
 
+  it.each(["conforme", "apagao"] as const)(
+    "%s: contorno neutro, sem realce colorido por status",
+    (status) => {
+      render(<FarmaciaResumoCard status={status} detailUrl={detailUrl} />);
+      const card = screen.getByRole("region", { name: /Farmácia SUS/ });
+      expect(card.className).toContain("border-[#e7e9ee]");
+      expect(card.className).not.toMatch(/emerald|amber|rose|ring-/);
+    },
+  );
+
   it("conforme: selo com link para a fonte e subtitulo de busca", () => {
     render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
     const fonte = screen.getByRole("link", { name: /BNAFAR\/Hórus/ });

@@ -82,18 +82,18 @@ export default async function VisaoGeralPage({
             textoWhatsApp={viewModel.farmaciaTextoWhatsApp}
             exemplos={viewModel.farmaciaExemplos}
           />
-          {temEducacaoDestaque(viewModel.educacaoResumo) && (
-            <EducacaoResumoCard
-              resumo={viewModel.educacaoResumo}
-              detailUrl={viewModel.educacaoDetailUrl}
-            />
-          )}
           {viewModel.resumoObras && (
             <ObrasResumoCard
               resumo={viewModel.resumoObras}
               detailUrl={viewModel.obrasDetailUrl}
               markers={viewModel.obrasMiniMapMarkers}
               center={viewModel.obrasMapCenter}
+            />
+          )}
+          {temEducacaoDestaque(viewModel.educacaoResumo) && (
+            <EducacaoResumoCard
+              resumo={viewModel.educacaoResumo}
+              detailUrl={viewModel.educacaoDetailUrl}
             />
           )}
         </section>
