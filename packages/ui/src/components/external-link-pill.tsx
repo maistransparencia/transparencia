@@ -40,7 +40,7 @@ export function ExternalLinkPill({
         className,
       )}
     >
-      <span className="leading-none">{children}</span>
+      <span className="pt-px leading-none">{children}</span>
       <span className="sr-only"> (abre em nova aba)</span>
       <ExternalLink size={12} aria-hidden="true" className="shrink-0" />
     </a>
