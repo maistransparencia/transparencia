@@ -45,12 +45,6 @@ const CLASSES_FAIXA_POR_TOM: Record<EducacaoResumoTom, string> = {
   neutro: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
-const CLASSES_BORDA_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "border-emerald-300 ring-1 ring-emerald-100",
-  atencao: "border-amber-300 ring-1 ring-amber-100",
-  neutro: "border-[#e7e9ee]",
-};
-
 const CLASSES_TEXTO_POR_TOM: Record<EducacaoResumoTom, string> = {
   destaque: "text-emerald-700",
   atencao: "text-amber-800",
@@ -87,14 +81,10 @@ export function EducacaoResumoCard({
   detailUrl,
   className = "",
 }: EducacaoResumoCardProps) {
-  const classeBorda = resumo
-    ? CLASSES_BORDA_POR_TOM[resumo.enfaseTom]
-    : CLASSES_BORDA_POR_TOM.neutro;
-
   return (
     <section
       aria-label="Educação Básica e Desempenho Escolar"
-      className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-6 ${classeBorda} ${className}`}
+      className={`rounded-2xl border border-[#e7e9ee] bg-white p-4 shadow-sm sm:p-6 ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

@@ -84,7 +84,7 @@ export function FarmaciaResumoCard({
   return (
     <section
       aria-label="Farmácia SUS"
-      className={`flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-5 ${className}`}
+      className={`flex flex-col gap-4 rounded-2xl border border-[#e7e9ee] bg-white p-4 shadow-sm sm:p-5 ${className}`}
     >
       <div className="">
         <div className="flex w-full items-center justify-between gap-1">
