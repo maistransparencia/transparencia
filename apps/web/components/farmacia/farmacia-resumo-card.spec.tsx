@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { urlLegislacao } from "@/lib/constants/legislacao";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { FarmaciaResumoCard } from "./farmacia-resumo-card";
 
-const detailUrl = "/portal_x/saude/farmacia";
+const detailUrl = "/portal_x/farmacia";
 
 describe("FarmaciaResumoCard", () => {
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("FarmaciaResumoCard", () => {
   it("conforme: selo com link para a fonte e subtitulo de busca", () => {
     render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
     const fonte = screen.getByRole("link", { name: /BNAFAR\/Hórus/ });
-    expect(fonte).toHaveAttribute("href", urlLegislacao("lei14654"));
+    expect(fonte).toHaveAttribute("href", FONTES_OFICIAIS.bnafar.url);
     expect(fonte).toHaveAttribute("target", "_blank");
     expect(fonte).toHaveAttribute("rel", "noopener noreferrer");
     expect(

@@ -3,11 +3,14 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedFarmacia,
+  seedFarmaciaHistorico,
   seedFarmaciaSentinela,
 } from "../../../tests/fixtures/seed";
 import {
   agruparFarmaciaPorRemedio,
   calcularIndicadoresFarmacia,
+  FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
+  getFarmaciaLotesAVencer,
   getFarmaciaSentinelas,
   getFarmaciaSus,
   getResumoFarmaciaSus,
@@ -425,5 +428,85 @@ describe("getFarmaciaSentinelas", () => {
       essenciaisSomenteCombinacao: 0,
       essenciaisSemRegistro: 0,
     });
+  });
+});
+
+function dataRelativa(dias: number): string {
+  const data = new Date();
+  data.setDate(data.getDate() + dias);
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
+
+describe("getFarmaciaLotesAVencer", () => {
+  it("omite o card quando nenhum lote tem validade", async () => {
+    await seedFarmaciaHistorico({
+      portalSlug: PORTAL_A,
+      idRegistro: "h1",
+      codigoCnes: "1001",
+      nomeMedicamento: "Dipirona",
+      dataPosicaoEstoque: dataRelativa(-1),
+    });
+    const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
+    expect(resultado.totalLotesComValidade).toBe(0);
+    expect(resultado.totalLotesAVencer).toBe(0);
+    expect(resultado.dataVencimentoMaisProxima).toBeNull();
+  });
+
+  it("conta lotes na janela, remedios distintos e o vencimento mais proximo na posicao vigente", async () => {
+    const base = { portalSlug: PORTAL_A, codigoCnes: "1001" };
+    const posicao = dataRelativa(-1);
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "h1",
+      nomeMedicamento: "Dipirona",
+      numeroLote: "A",
+      dataPosicaoEstoque: posicao,
+      dataValidade: dataRelativa(20),
+    });
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "h2",
+      nomeMedicamento: "Dipirona",
+      numeroLote: "B",
+      dataPosicaoEstoque: posicao,
+      dataValidade: dataRelativa(10),
+    });
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "h3",
+      nomeMedicamento: "Amoxicilina",
+      dataPosicaoEstoque: posicao,
+      dataValidade: dataRelativa(FARMACIA_JANELA_LOTES_A_VENCER_DIAS + 30),
+    });
+    // posição antiga da mesma unidade não é vigente
+    await seedFarmaciaHistorico({
+      ...base,
+      idRegistro: "h4",
+      nomeMedicamento: "Losartana",
+      dataPosicaoEstoque: dataRelativa(-10),
+      dataValidade: dataRelativa(5),
+    });
+    // outro portal não contamina
+    await seedFarmaciaHistorico({
+      portalSlug: PORTAL_B,
+      idRegistro: "h5",
+      codigoCnes: "1001",
+      nomeMedicamento: "Dipirona",
+      dataPosicaoEstoque: posicao,
+      dataValidade: dataRelativa(3),
+    });
+
+    const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
+    expect(resultado).toEqual({
+      janelaDias: FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
+      totalLotesComValidade: 3,
+      totalLotesAVencer: 2,
+      totalRemediosAVencer: 1,
+      dataVencimentoMaisProxima: dataRelativa(10),
+    });
+  });
+
+  it("retorna vazio para portal invalido", async () => {
+    expect((await getFarmaciaLotesAVencer("  ")).totalLotesComValidade).toBe(0);
   });
 });

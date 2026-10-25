@@ -15,7 +15,7 @@ function item(
     status: "no_estoque",
     unidadesComRegistro: 3,
     unidadesSomenteCombinacao: 0,
-    href: `/portal_x/saude/farmacia?q=${parcial.nomePrincipioAtivo}`,
+    href: `/portal_x/farmacia?q=${parcial.nomePrincipioAtivo}`,
     ...parcial,
   };
 }
@@ -26,6 +26,10 @@ const essenciais = [
     nomePrincipioAtivo: "Captopril",
     status: "sem_registro",
     unidadesComRegistro: 0,
+    pedido: {
+      texto: "Pedido sobre Captopril",
+      textoWhatsApp: "Pedido WhatsApp:",
+    },
   }),
   item({
     nomePrincipioAtivo: "Hidroclorotiazida",
@@ -88,7 +92,7 @@ describe("FarmaciaSentinelas", () => {
     );
     expect(screen.getByRole("link", { name: /Losartana/ })).toHaveAttribute(
       "href",
-      "/portal_x/saude/farmacia?q=Losartana",
+      "/portal_x/farmacia?q=Losartana",
     );
     fireEvent.click(screen.getByRole("button", { name: "Diabetes" }));
     expect(screen.queryByRole("link", { name: /Losartana/ })).toBeNull();
@@ -130,5 +134,32 @@ describe("FarmaciaSentinelas", () => {
       />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("oferece Pedir esclarecimento so para essencial sem registro, com links das leis", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={essenciais}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    const botoes = screen.getAllByRole("button", {
+      name: /^Pedir esclarecimento sobre /,
+    });
+    expect(botoes).toHaveLength(1);
+    expect(botoes[0].closest("a")).toBeNull();
+
+    fireEvent.click(botoes[0]);
+    expect(screen.getByText("Pedido sobre Captopril")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Copiar pedido" }),
+    ).toBeInTheDocument();
+    const lei = screen.getByRole("link", {
+      name: /Lei de Acesso à Informação/,
+    });
+    expect(lei.getAttribute("href")).toContain("planalto.gov.br");
+    expect(lei).toHaveAttribute("target", "_blank");
+    expect(lei).toHaveAttribute("rel", "noopener noreferrer");
   });
 });

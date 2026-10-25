@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@transparencia/db", () => ({
+  getFarmaciaLotesAVencer: vi.fn(),
   getFarmaciaSentinelas: vi.fn(),
   getFarmaciaSus: vi.fn(),
   getPortalConfig: vi.fn(),
@@ -9,6 +10,7 @@ vi.mock("@transparencia/db", () => ({
 const {
   buildFarmaciaViewModel,
   buildFatoApagao,
+  buildPedidoEsclarecimento,
   buildTelefoneHref,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
@@ -140,7 +142,7 @@ describe("buildFarmaciaViewModel", () => {
       {
         codigoPrincipioAtivo: "losartana",
         nomePrincipioAtivo: "Losartana",
-        href: "/portal_x/saude/farmacia?q=Losartana#resultados",
+        href: "/portal_x/farmacia?q=Losartana#resultados",
       },
     ]);
   });
@@ -248,7 +250,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
       ["Hidroclorotiazida", "somente_combinacao"],
     ]);
     expect(vm.essenciais[1].href).toBe(
-      "/portal_x/saude/farmacia?q=Metformina#resultados",
+      "/portal_x/farmacia?q=Metformina#resultados",
     );
   });
 
@@ -397,5 +399,72 @@ describe("buildTelefoneHref", () => {
     [null, null],
   ])("%s -> %s", (telefone, esperado) => {
     expect(buildTelefoneHref(telefone)).toBe(esperado);
+  });
+});
+
+describe("buildFarmaciaViewModel pedido por remedio", () => {
+  it("so o essencial sem registro recebe pedido, sem afirmar falta nem descumprimento", () => {
+    const vm = buildFarmaciaViewModel(
+      makeRaw({ dataPosicaoMaisRecente: "2026-10-18" }),
+    );
+    const [losartana, metformina, , hidro] = vm.essenciais;
+    expect(losartana.pedido).toBeNull();
+    expect(hidro.pedido).toBeNull();
+    expect(metformina.pedido?.texto).toContain("Metformina");
+    expect(metformina.pedido?.texto).toContain("18/10/2026");
+    expect(metformina.pedido?.texto).toMatch(
+      /arts\. 10 e 11 da Lei nº 12\.527/,
+    );
+    expect(metformina.pedido?.texto).toContain("Secretaria Municipal de Saúde");
+    expect(metformina.pedido?.texto.toLowerCase()).not.toMatch(
+      /esgotad|zerad|descumpr/,
+    );
+    expect(metformina.pedido?.textoWhatsApp.toLowerCase()).not.toMatch(
+      /esgotad|zerad|descumpr/,
+    );
+  });
+
+  it("sem data usa redacao generica e sem portalName cita o municipio", () => {
+    const texto = buildPedidoEsclarecimento({
+      portalName: "",
+      nomeMedicamento: "Captopril",
+      dataPosicaoMaisRecente: null,
+    });
+    expect(texto).toContain("Na posição de estoque divulgada, não consta");
+    expect(texto).toContain("Secretaria Municipal de Saúde do município.");
+  });
+});
+
+describe("buildFarmaciaViewModel lotes a vencer", () => {
+  const lotes = {
+    janelaDias: 60,
+    totalLotesComValidade: 5,
+    totalLotesAVencer: 2,
+    totalRemediosAVencer: 1,
+    dataVencimentoMaisProxima: "2026-11-05",
+  };
+  const comLotes = (valor: unknown) =>
+    ({ ...makeRaw({}), lotesAVencer: valor }) as unknown as Parameters<
+      typeof buildFarmaciaViewModel
+    >[0];
+
+  it("mostra o indicador com lotes, remedios e vencimento mais proximo", () => {
+    const indicador = buildFarmaciaViewModel(comLotes(lotes)).indicadores.find(
+      (i) => i.codigo === "lotes_a_vencer",
+    );
+    expect(indicador?.valor).toBe("2");
+    expect(indicador?.rotulo).toContain("60");
+    expect(indicador?.nota).toContain("1 remédio");
+    expect(indicador?.nota).toContain("05/11/2026");
+  });
+
+  it.each([
+    ["nula", null],
+    ["sem validade", { ...lotes, totalLotesComValidade: 0 }],
+  ])("omite o card quando %s", (_nome, valor) => {
+    const vm = buildFarmaciaViewModel(comLotes(valor));
+    expect(vm.indicadores.some((i) => i.codigo === "lotes_a_vencer")).toBe(
+      false,
+    );
   });
 });

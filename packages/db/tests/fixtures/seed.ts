@@ -1075,6 +1075,35 @@ export async function seedFarmacia(row: FarmaciaEstoqueRow): Promise<void> {
     .execute();
 }
 
+export interface FarmaciaEstoqueHistoricoRow {
+  portalSlug: string;
+  idRegistro: string;
+  codigoCnes?: string | null;
+  nomeMedicamento: string;
+  numeroLote?: string | null;
+  dataPosicaoEstoque: string;
+  quantidadeEstoque?: number;
+  dataValidade?: string | null;
+}
+
+export async function seedFarmaciaHistorico(
+  row: FarmaciaEstoqueHistoricoRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque_historico")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_medicamento: row.nomeMedicamento,
+      numero_lote: row.numeroLote ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque,
+      quantidade_estoque: row.quantidadeEstoque ?? 1,
+      data_validade: row.dataValidade ?? null,
+    })
+    .execute();
+}
+
 export interface FarmaciaSentinelaRow {
   portalSlug: string;
   codigoCnes: string;
@@ -1274,6 +1303,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_farmacia_estoque")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque_historico")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

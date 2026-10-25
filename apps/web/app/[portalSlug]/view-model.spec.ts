@@ -985,7 +985,7 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
         "med8",
       ]);
       expect(vm.farmaciaExemplos[0].href).toBe(
-        `${vm.farmaciaDetailUrl}?q=MED3`,
+        `${vm.farmaciaDetailUrl}?q=MED3#resultados`,
       );
     });
 

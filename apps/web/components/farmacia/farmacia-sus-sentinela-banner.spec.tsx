@@ -59,16 +59,12 @@ describe("FarmaciaSusSentinelaBanner", () => {
 
   it("compartilha no WhatsApp a URL sem query string", () => {
     const open = vi.spyOn(window, "open").mockImplementation(() => null);
-    window.history.pushState(
-      {},
-      "",
-      "/portal_x/saude/farmacia?q=dip&unidade=u1",
-    );
+    window.history.pushState({}, "", "/portal_x/farmacia?q=dip&unidade=u1");
     render(<FarmaciaSusSentinelaBanner {...props} />);
     fireEvent.click(
       screen.getByRole("button", { name: /Compartilhar no WhatsApp/ }),
     );
-    const mensagem = `alerta ${window.location.origin}/portal_x/saude/farmacia`;
+    const mensagem = `alerta ${window.location.origin}/portal_x/farmacia`;
     expect(open).toHaveBeenCalledWith(
       `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
       "_blank",

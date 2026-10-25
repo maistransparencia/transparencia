@@ -15,7 +15,7 @@ export const LEI_ORGANICA_SAUDE_URL = urlLegislacao("lei8080");
 export const ID_SECAO_RESULTADOS = "resultados";
 
 function buildFarmaciaHref(portalSlug: string, busca: string): string {
-  const base = `/${portalSlug}/saude/farmacia`;
+  const base = `/${portalSlug}/farmacia`;
   return busca
     ? `${base}?${new URLSearchParams({ q: busca }).toString()}#${ID_SECAO_RESULTADOS}`
     : base;
@@ -73,6 +73,7 @@ export interface FarmaciaEssencialItem {
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
+  pedido: { texto: string; textoWhatsApp: string } | null;
 }
 
 function rotuloGrupoTerapeutico(codigo: string): string {
@@ -88,17 +89,35 @@ function statusEssencial(item: FarmaciaSentinelaDTO): StatusEssencial {
 function buildEssenciais(
   portalSlug: string,
   sentinelas: FarmaciaSentinelaDTO[],
+  contextoPedido: { portalName: string; dataPosicaoMaisRecente: string | null },
 ): FarmaciaEssencialItem[] {
-  return sentinelas.map((item) => ({
-    codigoPrincipioAtivo: item.codigoPrincipioAtivo,
-    nomePrincipioAtivo: item.nomePrincipioAtivo,
-    codigoCategoria: item.grupoTerapeutico,
-    rotuloCategoria: rotuloGrupoTerapeutico(item.grupoTerapeutico),
-    status: statusEssencial(item),
-    unidadesComRegistro: item.unidadesComRegistro,
-    unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
-    href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
-  }));
+  return sentinelas.map((item) => {
+    const status = statusEssencial(item);
+    return {
+      codigoPrincipioAtivo: item.codigoPrincipioAtivo,
+      nomePrincipioAtivo: item.nomePrincipioAtivo,
+      codigoCategoria: item.grupoTerapeutico,
+      rotuloCategoria: rotuloGrupoTerapeutico(item.grupoTerapeutico),
+      status,
+      unidadesComRegistro: item.unidadesComRegistro,
+      unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
+      href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
+      pedido:
+        status === "sem_registro"
+          ? {
+              texto: buildPedidoEsclarecimento({
+                portalName: contextoPedido.portalName,
+                nomeMedicamento: item.nomePrincipioAtivo,
+                dataPosicaoMaisRecente: contextoPedido.dataPosicaoMaisRecente,
+              }),
+              textoWhatsApp: buildTextoWhatsAppPedido({
+                portalName: contextoPedido.portalName,
+                nomeMedicamento: item.nomePrincipioAtivo,
+              }),
+            }
+          : null,
+    };
+  });
 }
 
 function buildCategoriasEssenciais(essenciais: FarmaciaEssencialItem[]) {
@@ -128,7 +147,7 @@ function textoDiasDesde(dias: number): string {
   return `Há ${fmtNumber(dias)} dias`;
 }
 
-function buildIndicadores(
+function buildIndicadoresEstoque(
   raw: FarmaciaRawData,
   dataAtualizacao: string | null,
 ): FarmaciaIndicador[] {
@@ -179,6 +198,42 @@ function buildIndicadores(
       : null,
   ];
   return cartoes.filter((c): c is FarmaciaIndicador => c !== null);
+}
+
+function buildIndicadorLotesAVencer(
+  lotes: FarmaciaRawData["lotesAVencer"],
+): FarmaciaIndicador[] {
+  if (!lotes || lotes.totalLotesComValidade === 0) return [];
+  const nota =
+    lotes.totalLotesAVencer === 0
+      ? `Nenhum vence em até ${fmtNumber(lotes.janelaDias)} dias`
+      : [
+          `${fmtNumber(lotes.totalRemediosAVencer)} ${lotes.totalRemediosAVencer === 1 ? "remédio" : "remédios"}`,
+          lotes.dataVencimentoMaisProxima
+            ? `o primeiro vence em ${fmtDate(lotes.dataVencimentoMaisProxima)}`
+            : null,
+        ]
+          .filter((parte): parte is string => parte !== null)
+          .join(" · ");
+  return [
+    {
+      codigo: "lotes_a_vencer",
+      rotulo: `Lotes que vencem em até ${fmtNumber(lotes.janelaDias)} dias`,
+      valor: fmtNumber(lotes.totalLotesAVencer),
+      nota,
+      notaAtencao: lotes.totalLotesAVencer > 0,
+    },
+  ];
+}
+
+function buildIndicadores(
+  raw: FarmaciaRawData,
+  dataAtualizacao: string | null,
+): FarmaciaIndicador[] {
+  return [
+    ...buildIndicadoresEstoque(raw, dataAtualizacao),
+    ...buildIndicadorLotesAVencer(raw.lotesAVencer),
+  ];
 }
 
 export function buildTelefoneHref(telefone: string | null): string | null {
@@ -244,6 +299,32 @@ export function buildRequerimentoFiscalizacao(params: {
   ].join("\n");
 }
 
+export function buildPedidoEsclarecimento(params: {
+  portalName: string;
+  nomeMedicamento: string;
+  dataPosicaoMaisRecente: string | null;
+}): string {
+  const destinatario = params.portalName
+    ? `de ${params.portalName}`
+    : "do município";
+  const posicao = params.dataPosicaoMaisRecente
+    ? `Na posição de estoque divulgada em ${fmtDate(params.dataPosicaoMaisRecente)}`
+    : "Na posição de estoque divulgada";
+  return [
+    `À Secretaria Municipal de Saúde ${destinatario}.`,
+    "",
+    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação) e no art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, que obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS, solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
+  ].join("\n");
+}
+
+export function buildTextoWhatsAppPedido(params: {
+  portalName: string;
+  nomeMedicamento: string;
+}): string {
+  const municipio = params.portalName || "Este município";
+  return `${municipio}: pedido de esclarecimento sobre ${params.nomeMedicamento} na Farmácia SUS (Lei nº 14.654/2023). O item não consta na lista de estoque divulgada. Confira:`;
+}
+
 export function buildTextoWhatsApp(params: {
   portalName: string;
   diasDesdePosicaoMaisRecente: number | null;
@@ -258,7 +339,7 @@ export function buildTextoWhatsApp(params: {
 
 export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
   const { farmacia, context, portalSlug, portalName, sentinelas } = raw;
-  const formAction = `/${portalSlug}/saude/farmacia`;
+  const formAction = `/${portalSlug}/farmacia`;
   const hasBusca = context.busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES;
   const hasBuscaCurta = context.busca.length > 0 && !hasBusca;
   const dataAtualizacao =
@@ -311,7 +392,10 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
     };
   });
 
-  const essenciais = buildEssenciais(portalSlug, sentinelas.sentinelas);
+  const essenciais = buildEssenciais(portalSlug, sentinelas.sentinelas, {
+    portalName,
+    dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,
+  });
 
   return {
     portalSlug,

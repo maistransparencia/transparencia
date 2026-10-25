@@ -4,9 +4,9 @@ import { FarmaciaBuscaForm } from "./farmacia-busca-form";
 
 describe("FarmaciaBuscaForm", () => {
   it("formulario GET com campo q obrigatorio e minimo de 2 caracteres", () => {
-    render(<FarmaciaBuscaForm action="/portal_x/saude/farmacia" />);
+    render(<FarmaciaBuscaForm action="/portal_x/farmacia" />);
     const form = screen.getByRole("form", { name: "Busca de medicamentos" });
-    expect(form).toHaveAttribute("action", "/portal_x/saude/farmacia");
+    expect(form).toHaveAttribute("action", "/portal_x/farmacia");
     expect(form).toHaveAttribute("method", "get");
     const campo = screen.getByPlaceholderText("Qual remédio você procura?");
     expect(campo).toHaveAttribute("name", "q");
@@ -29,12 +29,12 @@ describe("FarmaciaBuscaForm", () => {
       <FarmaciaBuscaForm
         action="/x"
         defaultValue="dipirona"
-        limparHref="/portal_x/saude/farmacia"
+        limparHref="/portal_x/farmacia"
       />,
     );
     expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
       "href",
-      "/portal_x/saude/farmacia",
+      "/portal_x/farmacia",
     );
   });
 });

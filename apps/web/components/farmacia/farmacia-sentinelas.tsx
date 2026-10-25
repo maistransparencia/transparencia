@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { FarmaciaAcoesCivicas } from "./farmacia-acoes-civicas";
 
 export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
@@ -15,7 +16,15 @@ export interface FarmaciaSentinelaItem {
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
+  /** Pedido de esclarecimento; só existe para essencial sem registro de estoque. */
+  pedido?: { texto: string; textoWhatsApp: string } | null;
 }
+
+const LEIS_DO_PEDIDO = [
+  { codigo: "lai", rotulo: "Lei de Acesso à Informação" },
+  { codigo: "lei8080", rotulo: "Lei nº 8.080/1990" },
+  { codigo: "lei14654", rotulo: "Lei nº 14.654/2023" },
+] as const;
 
 export interface FarmaciaSentinelasProps {
   essenciais: FarmaciaSentinelaItem[];
@@ -59,6 +68,60 @@ function RotuloDisponibilidade({
         ? "só em combinação"
         : "não aparece no estoque"}
     </span>
+  );
+}
+
+function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
+  const [aberto, setAberto] = useState(false);
+  if (!item.pedido) return null;
+  const idPainel = `pedido-${item.codigoPrincipioAtivo}`;
+
+  return (
+    <div className="border-slate-100 border-b pb-3">
+      <button
+        type="button"
+        aria-expanded={aberto}
+        aria-controls={idPainel}
+        aria-label={`${aberto ? "Fechar pedido" : "Pedir esclarecimento"} sobre ${item.nomePrincipioAtivo}`}
+        onClick={() => setAberto((atual) => !atual)}
+        className="inline-flex min-h-11 items-center font-semibold text-[13px] text-ink underline"
+      >
+        {aberto ? "Fechar pedido" : "Pedir esclarecimento"}
+      </button>
+      {aberto && (
+        <div id={idPainel} className="mt-2 space-y-3">
+          <p className="whitespace-pre-line rounded-lg bg-slate-50 p-3 text-[13px] text-slate-700 leading-[1.6]">
+            {item.pedido.texto}
+          </p>
+          <p className="text-subtleText text-xs">
+            Base legal:{" "}
+            {LEIS_DO_PEDIDO.map((lei, indice) => (
+              <span key={lei.codigo}>
+                {indice > 0 && " · "}
+                <a
+                  href={urlLegislacao(lei.codigo)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 underline"
+                >
+                  {lei.rotulo}
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              </span>
+            ))}
+          </p>
+          <FarmaciaAcoesCivicas
+            requerimento={item.pedido.texto}
+            textoWhatsApp={item.pedido.textoWhatsApp}
+            caminhoCompartilhamento={item.href}
+            rotuloCopiar="Copiar pedido"
+            rotuloWhatsApp="Compartilhar no WhatsApp"
+            mensagemCopiado="Pedido copiado."
+            mensagemErro="Não foi possível copiar o pedido. Tente novamente."
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -148,7 +211,7 @@ export function FarmaciaSentinelas({
           <li key={item.codigoPrincipioAtivo}>
             <Link
               href={item.href}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-slate-100 border-b py-3 text-left hover:bg-[#f7f8fa]"
+              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 ${item.pedido ? "" : "border-slate-100 border-b"} text-left hover:bg-[#f7f8fa]`}
             >
               <span className="min-w-0">
                 <span className="block font-semibold text-ink text-sm">
@@ -165,6 +228,7 @@ export function FarmaciaSentinelas({
                 />
               </span>
             </Link>
+            <PedidoEsclarecimento item={item} />
           </li>
         ))}
       </ul>

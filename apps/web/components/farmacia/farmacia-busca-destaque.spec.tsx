@@ -3,39 +3,37 @@ import { describe, expect, it } from "vitest";
 import { FarmaciaBuscaDestaque } from "./farmacia-busca-destaque";
 
 const exemplos = [
-  { nomePrincipioAtivo: "Losartana", href: "/p/saude/farmacia?q=Losartana" },
+  { nomePrincipioAtivo: "Losartana", href: "/p/farmacia?q=Losartana" },
 ];
 
 describe("FarmaciaBuscaDestaque", () => {
   it("formulario GET com campo q e chips de mais procurados", () => {
-    render(
-      <FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={exemplos} />,
-    );
+    render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={exemplos} />);
     const form = screen.getByRole("form", { name: "Busca de medicamentos" });
     expect(form).toHaveAttribute("method", "get");
     expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
-      "/p/saude/farmacia?q=Losartana",
+      "/p/farmacia?q=Losartana",
     );
   });
 
   it("limpar busca e um link para a rota sem ?q= quando ha termo", () => {
-    render(<FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={[]} />);
+    render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={[]} />);
     expect(screen.queryByRole("link", { name: "Limpar busca" })).toBeNull();
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "dip" },
     });
     expect(screen.getByRole("link", { name: "Limpar busca" })).toHaveAttribute(
       "href",
-      "/p/saude/farmacia",
+      "/p/farmacia",
     );
   });
 
   it("limpar busca aparece com defaultValue", () => {
     render(
       <FarmaciaBuscaDestaque
-        action="/p/saude/farmacia"
+        action="/p/farmacia"
         defaultValue="dip"
         exemplos={[]}
       />,
@@ -46,7 +44,7 @@ describe("FarmaciaBuscaDestaque", () => {
   });
 
   it("sem exemplos nao mostra o rotulo de mais procurados", () => {
-    render(<FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={[]} />);
+    render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={[]} />);
     expect(screen.queryByText("Mais procurados:")).toBeNull();
   });
 
@@ -54,7 +52,7 @@ describe("FarmaciaBuscaDestaque", () => {
     const { rerender } = render(
       <FarmaciaBuscaDestaque
         key="a"
-        action="/p/saude/farmacia"
+        action="/p/farmacia"
         defaultValue="a"
         exemplos={[]}
       />,
@@ -62,7 +60,7 @@ describe("FarmaciaBuscaDestaque", () => {
     rerender(
       <FarmaciaBuscaDestaque
         key="b"
-        action="/p/saude/farmacia"
+        action="/p/farmacia"
         defaultValue="b"
         exemplos={[]}
       />,
@@ -73,9 +71,9 @@ describe("FarmaciaBuscaDestaque", () => {
 
 describe("FarmaciaBuscaDestaque ancora de resultados", () => {
   it("envia o formulario para a secao de resultados", () => {
-    render(<FarmaciaBuscaDestaque action="/p/saude/farmacia" exemplos={[]} />);
+    render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={[]} />);
     expect(
       screen.getByRole("form", { name: "Busca de medicamentos" }),
-    ).toHaveAttribute("action", "/p/saude/farmacia#resultados");
+    ).toHaveAttribute("action", "/p/farmacia#resultados");
   });
 });

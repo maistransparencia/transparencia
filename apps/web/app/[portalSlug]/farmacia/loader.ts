@@ -1,4 +1,5 @@
 import {
+  getFarmaciaLotesAVencer,
   getFarmaciaSentinelas,
   getFarmaciaSus,
   getPortalConfig,
@@ -66,12 +67,19 @@ async function fetchRawFarmaciaData(
       ? await getFarmaciaSentinelas(tenantSlug).catch(() => sentinelasVazias)
       : sentinelasVazias;
 
+  // Lotes a vencer dependem de validade informada; falha da query só omite o card.
+  const lotesAVencer =
+    farmacia.status === "conforme"
+      ? await getFarmaciaLotesAVencer(tenantSlug).catch(() => null)
+      : null;
+
   return {
     portalSlug: tenantSlug,
     portalName: portalConfig?.displayName ?? "",
     context,
     farmacia,
     sentinelas,
+    lotesAVencer,
   };
 }
 

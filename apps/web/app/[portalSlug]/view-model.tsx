@@ -13,12 +13,12 @@ import {
   buildRankingTrend,
   isDestaqueEvolucaoIdeb,
 } from "./educacao/view-model";
-import type { loadVisaoGeralData } from "./loader";
 import {
   buildExemplosFarmacia,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
-} from "./saude/farmacia/view-model";
+} from "./farmacia/view-model";
+import type { loadVisaoGeralData } from "./loader";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
 
@@ -449,7 +449,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   };
 
   const farmaciaDetailUrl = buildNavUrl({
-    path: "/saude/farmacia",
+    path: "/farmacia",
     slug: portalSlug,
     exercice: undefined,
     entidades: undefined,

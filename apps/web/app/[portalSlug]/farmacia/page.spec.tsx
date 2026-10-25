@@ -80,9 +80,7 @@ describe("FarmaciaPage", () => {
   it("conforme sem busca: cabecalho, selo, busca com chips, indicadores e sem resultados", async () => {
     loadFarmaciaDataMock.mockResolvedValue(makeRaw({}));
     render(await FarmaciaPage(props));
-    expect(
-      screen.getByText("Temas · Saúde · Farmácia SUS"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Temas · Farmácia SUS")).toBeInTheDocument();
     expect(screen.getByText(/Lista de estoque atualizada/)).toHaveTextContent(
       "18/10/2026",
     );
@@ -91,7 +89,7 @@ describe("FarmaciaPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
-      "/portal_x/saude/farmacia?q=Losartana#resultados",
+      "/portal_x/farmacia?q=Losartana#resultados",
     );
     expect(
       screen.getByText("Unidades que informaram estoque"),

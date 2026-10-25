@@ -22,7 +22,7 @@ export function FarmaciaCabecalho({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
           <p className="font-semibold text-accent text-xs uppercase tracking-[.06em]">
-            Temas · Saúde · Farmácia SUS
+            Temas · Farmácia SUS
           </p>
           <h1 className="font-bold font-serif text-4xl text-ink leading-[1.18] tracking-[-.01em]">
             Farmácia SUS

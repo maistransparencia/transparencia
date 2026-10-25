@@ -442,3 +442,80 @@ export async function getFarmaciaSentinelas(
     sentinelas,
   };
 }
+
+/** Lotes que vencem em até este número de dias contam como "próximos do vencimento". */
+export const FARMACIA_JANELA_LOTES_A_VENCER_DIAS = 60;
+
+export interface FarmaciaLotesAVencerDTO {
+  janelaDias: number;
+  /** Lotes com validade informada na posição vigente; zero esconde o card. */
+  totalLotesComValidade: number;
+  totalLotesAVencer: number;
+  totalRemediosAVencer: number;
+  dataVencimentoMaisProxima: string | null;
+}
+
+const LOTES_A_VENCER_VAZIO: FarmaciaLotesAVencerDTO = {
+  janelaDias: FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
+  totalLotesComValidade: 0,
+  totalLotesAVencer: 0,
+  totalRemediosAVencer: 0,
+  dataVencimentoMaisProxima: null,
+};
+
+/**
+ * Lotes próximos do vencimento na posição vigente de cada unidade (última
+ * `data_posicao_estoque` por CNES). Só lotes com saldo e validade informada.
+ */
+export async function getFarmaciaLotesAVencer(
+  portalSlug: string,
+  janelaDias: number = FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
+): Promise<FarmaciaLotesAVencerDTO> {
+  if (!isPortalSlugValido(portalSlug)) return LOTES_A_VENCER_VAZIO;
+  const slug = portalSlug.trim();
+
+  const { rows } = await sql<{
+    total_lotes_com_validade: string | number;
+    total_lotes_a_vencer: string | number;
+    total_remedios_a_vencer: string | number;
+    data_vencimento_mais_proxima: unknown;
+  }>`
+    with posicao_vigente as (
+      select portal_slug, codigo_cnes, max(data_posicao_estoque) as data_posicao_vigente
+      from fct_farmacia_estoque_historico
+      where portal_slug = ${slug}
+      group by portal_slug, codigo_cnes
+    ),
+    lotes_vigentes as (
+      select h.nome_medicamento, h.data_validade
+      from fct_farmacia_estoque_historico h
+      inner join posicao_vigente v
+        on h.portal_slug = v.portal_slug
+        and h.codigo_cnes is not distinct from v.codigo_cnes
+        and h.data_posicao_estoque = v.data_posicao_vigente
+      where h.portal_slug = ${slug}
+        and h.data_validade is not null
+        and h.quantidade_estoque > 0
+    )
+    select
+      count(*) as total_lotes_com_validade,
+      count(*) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_lotes_a_vencer,
+      count(distinct lower(nome_medicamento)) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_remedios_a_vencer,
+      min(data_validade) filter (where data_validade >= current_date) as data_vencimento_mais_proxima
+    from lotes_vigentes
+  `.execute(db);
+
+  const linha = rows[0];
+  if (!linha) return LOTES_A_VENCER_VAZIO;
+  const totalLotesAVencer = toNumberOrNull(linha.total_lotes_a_vencer) ?? 0;
+  return {
+    janelaDias,
+    totalLotesComValidade: toNumberOrNull(linha.total_lotes_com_validade) ?? 0,
+    totalLotesAVencer,
+    totalRemediosAVencer: toNumberOrNull(linha.total_remedios_a_vencer) ?? 0,
+    dataVencimentoMaisProxima:
+      totalLotesAVencer > 0
+        ? toIsoDateString(linha.data_vencimento_mais_proxima)
+        : null,
+  };
+}

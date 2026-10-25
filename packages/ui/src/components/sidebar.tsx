@@ -6,6 +6,7 @@ import {
   Landmark,
   LayoutDashboard,
   PieChart,
+  Pill,
   Receipt,
   ShieldAlert,
   TrendingUp,
@@ -329,6 +330,20 @@ export function Sidebar({
     entidades: currentEntidades,
   });
 
+  const farmaciaTargetPath = portalSlug
+    ? `/${portalSlug}/farmacia`
+    : "/farmacia";
+  const isFarmaciaActive = pathname
+    ? pathname === farmaciaTargetPath ||
+      pathname.startsWith(`${farmaciaTargetPath}/`)
+    : false;
+  const farmaciaHref = buildNavUrl({
+    path: "/farmacia",
+    slug: portalSlug,
+    exercice: currentExercice,
+    entidades: currentEntidades,
+  });
+
   const temasItems = buildTemasNavItems({ previdencia }).map((tema) => ({
     name: tema.name,
     href: tema.href,
@@ -588,6 +603,28 @@ export function Sidebar({
                     <span className="tabular-nums">{radarAlertCount}</span>
                   </span>
                 )}
+              </Link>
+
+              <Link
+                href={farmaciaHref}
+                onClick={() => setIsMobileOpen(false)}
+                className={cn(
+                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  isFarmaciaActive
+                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
+                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                )}
+              >
+                <Pill
+                  strokeWidth={1.6}
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    isFarmaciaActive
+                      ? "text-[oklch(0.55_0.11_250)]"
+                      : "text-mutedText",
+                  )}
+                />
+                <span>Farmácia SUS</span>
               </Link>
             </div>
 

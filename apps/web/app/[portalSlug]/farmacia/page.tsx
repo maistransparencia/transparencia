@@ -28,7 +28,7 @@ export async function generateMetadata({
   return createPortalMetadata("Farmácia SUS", portalSlug, {
     description:
       "Consulte em qual unidade de saúde há o remédio que você procura e acompanhe a divulgação do estoque de medicamentos prevista na Lei 14.654/2023.",
-    path: "/saude/farmacia",
+    path: "/farmacia",
     keywords: [
       "farmácia SUS",
       "estoque de medicamentos",

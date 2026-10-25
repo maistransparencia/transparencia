@@ -25,6 +25,7 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Combinação em dose fixa | Remédio misturado com outro no mesmo comprimido | |
 | Unidade ativa (farmácia SUS) | Posto ou unidade de saúde que enviou a lista de estoque recentemente | |
 | Posição de estoque | A lista de estoque de um dia específico | |
+| SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.

@@ -65,6 +65,24 @@ describe("Sidebar Component", () => {
     expect(screen.getByText("Radar Cívico")).toBeInTheDocument();
   });
 
+  it("renderiza o item solto Farmácia SUS logo abaixo de Radar Cívico", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const farmacia = screen.getByRole("link", { name: /^Farmácia SUS$/ });
+    expect(farmacia).toHaveAttribute(
+      "href",
+      expect.stringContaining("/porciuncula_prefeitura/farmacia"),
+    );
+    const radar = screen.getByRole("link", { name: /Radar Cívico/ });
+    expect(
+      radar.compareDocumentPosition(farmacia) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(radar.nextElementSibling).toBe(farmacia);
+  });
+
   it("renderiza o item de navegação Obras Públicas", () => {
     render(
       <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,

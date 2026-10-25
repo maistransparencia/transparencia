@@ -8,6 +8,10 @@ export interface FarmaciaAcoesCivicasProps {
   textoWhatsApp: string;
   /** Caminho compartilhado no WhatsApp; padrão: caminho da página atual. */
   caminhoCompartilhamento?: string;
+  rotuloCopiar?: string;
+  rotuloWhatsApp?: string;
+  mensagemCopiado?: string;
+  mensagemErro?: string;
 }
 
 type FeedbackCopia = "idle" | "copiado" | "erro";
@@ -19,6 +23,10 @@ export function FarmaciaAcoesCivicas({
   requerimento,
   textoWhatsApp,
   caminhoCompartilhamento,
+  rotuloCopiar = "Copiar Requerimento de Fiscalização",
+  rotuloWhatsApp = "Compartilhar no WhatsApp",
+  mensagemCopiado = "Requerimento copiado.",
+  mensagemErro = "Não foi possível copiar o requerimento. Tente novamente.",
 }: FarmaciaAcoesCivicasProps) {
   const [feedback, setFeedback] = useState<FeedbackCopia>("idle");
 
@@ -47,21 +55,21 @@ export function FarmaciaAcoesCivicas({
       <div className="flex flex-col gap-2 sm:flex-row">
         <button type="button" onClick={handleCopiar} className={BOTAO_CLASS}>
           <Copy className="h-4 w-4" aria-hidden="true" />
-          Copiar Requerimento de Fiscalização
+          {rotuloCopiar}
         </button>
         <button type="button" onClick={handleWhatsApp} className={BOTAO_CLASS}>
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
-          Compartilhar no WhatsApp
+          {rotuloWhatsApp}
         </button>
       </div>
       {feedback === "copiado" && (
         <p role="status" className="mt-2 font-medium text-xs">
-          Requerimento copiado.
+          {mensagemCopiado}
         </p>
       )}
       {feedback === "erro" && (
         <p role="alert" className="mt-2 font-medium text-xs">
-          Não foi possível copiar o requerimento. Tente novamente.
+          {mensagemErro}
         </p>
       )}
     </div>

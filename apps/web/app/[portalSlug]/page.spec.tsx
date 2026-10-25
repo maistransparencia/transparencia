@@ -235,7 +235,7 @@ describe("VisaoGeralPage", () => {
     const hrefs = screen
       .getAllByRole("link", { name: /Ver detalhes/ })
       .map((link) => link.getAttribute("href") ?? "");
-    expect(hrefs.some((href) => href.endsWith("/saude/farmacia"))).toBe(true);
+    expect(hrefs.some((href) => href.endsWith("/farmacia"))).toBe(true);
   });
 
   it("conforme da farmacia mostra o campo de busca", async () => {
@@ -271,7 +271,7 @@ describe("VisaoGeralPage", () => {
     render(await VisaoGeralPage(props));
     expect(screen.getByText("Exemplos:")).toBeInTheDocument();
     const pilula = screen.getByRole("link", { name: "Dipirona" });
-    expect(pilula.getAttribute("href")).toContain("/saude/farmacia?q=Dipirona");
+    expect(pilula.getAttribute("href")).toContain("/farmacia?q=Dipirona");
   });
 
   it("ordena Em destaque (farmacia, educacao, obras), radar e pipeline", async () => {
