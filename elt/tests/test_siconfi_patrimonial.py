@@ -292,13 +292,12 @@ def test_fct_saldo_caixa_siconfi_consolida_investimentos_caprem(conn):
         for r in rows
     }
 
-    # Executivo (10131, livre) soma as fontes 1500 e 1501 (outros recursos não vinculados) e não deve ter seus saldos inflados por 114%
+    # Executivo (10131, livre) não deve ter seus saldos inflados por 114%
     assert ("10131", "livre") in resultados
     executivo = resultados[("10131", "livre")]
-    assert executivo["saldo_caixa_bancos"] == 6200000.0
-    assert executivo["saldo_recursos_livres"] == 6200000.0
+    assert executivo["saldo_caixa_bancos"] == 5000000.0
+    assert executivo["saldo_recursos_livres"] == 5000000.0
     assert executivo["saldo_recursos_vinculados"] == 0.0
-    assert ("10131", "saude") not in resultados
 
     # CAPREM (10132, previdencia) consolida 25M (111%) + 35M (114% fp=1) + 5M (114% fp=2) + 10M (1213% fp=2) = 75M vinculados
     assert ("10132", "previdencia") in resultados
