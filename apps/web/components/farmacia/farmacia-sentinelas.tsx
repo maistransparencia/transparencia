@@ -3,7 +3,8 @@
 import { fmtNumber, ModalDialog } from "@transparencia/ui";
 import { ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import posthog from "posthog-js";
+import { useId, useRef, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { FarmaciaAcoesCivicas } from "./farmacia-acoes-civicas";
 
@@ -71,15 +72,30 @@ function RotuloDisponibilidade({
   );
 }
 
+/** Telemetria do pedido: nunca enviar o texto do pedido, só o tipo de interação. */
+function registrarPedido(
+  evento: string,
+  propriedades: Record<string, unknown>,
+) {
+  try {
+    posthog.capture(`farmacia_pedido_${evento}`, propriedades);
+  } catch {}
+}
+
 function PedidoEsclarecimentoConteudo({
   pedido,
   caminhoCompartilhamento,
+  codigoPrincipioAtivo,
+  aoEditar,
 }: {
   pedido: NonNullable<FarmaciaSentinelaItem["pedido"]>;
   caminhoCompartilhamento: string;
+  codigoPrincipioAtivo: string;
+  aoEditar: () => void;
 }) {
   const [texto, setTexto] = useState(pedido.texto);
   const idTexto = useId();
+  const editado = texto !== pedido.texto;
 
   return (
     <div className="space-y-4">
@@ -107,7 +123,10 @@ function PedidoEsclarecimentoConteudo({
         <textarea
           id={idTexto}
           value={texto}
-          onChange={(evento) => setTexto(evento.target.value)}
+          onChange={(evento) => {
+            setTexto(evento.target.value);
+            aoEditar();
+          }}
           rows={9}
           className="w-full resize-y rounded-xl border border-borderLine bg-slate-50 p-3 text-[14px] text-slate-700 leading-[1.6]"
         />
@@ -120,7 +139,13 @@ function PedidoEsclarecimentoConteudo({
                 href={urlLegislacao(lei.codigo)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-accent underline"
+                onClick={() =>
+                  registrarPedido("lei_clicada", {
+                    codigo_principio_ativo: codigoPrincipioAtivo,
+                    lei: lei.codigo,
+                  })
+                }
+                className="inline-flex cursor-pointer items-center gap-1 text-accent underline"
               >
                 {lei.rotulo}
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -138,6 +163,12 @@ function PedidoEsclarecimentoConteudo({
         mensagemCopiado="Pedido copiado."
         mensagemErro="Não foi possível copiar o pedido. Tente novamente."
         variante="pedido"
+        onAcao={(acao) =>
+          registrarPedido(acao, {
+            codigo_principio_ativo: codigoPrincipioAtivo,
+            editado,
+          })
+        }
       />
       <p className="border-slate-200/80 border-t pt-3 text-slate-500 text-xs">
         Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
@@ -149,14 +180,37 @@ function PedidoEsclarecimentoConteudo({
 
 function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
   const [aberto, setAberto] = useState(false);
+  const editouRef = useRef(false);
   if (!item.pedido) return null;
+
+  const abrir = () => {
+    editouRef.current = false;
+    setAberto(true);
+    registrarPedido("aberto", {
+      codigo_principio_ativo: item.codigoPrincipioAtivo,
+    });
+  };
+  const fechar = () => {
+    setAberto(false);
+    registrarPedido("fechado", {
+      codigo_principio_ativo: item.codigoPrincipioAtivo,
+      editado: editouRef.current,
+    });
+  };
+  const aoEditar = () => {
+    if (editouRef.current) return;
+    editouRef.current = true;
+    registrarPedido("editado", {
+      codigo_principio_ativo: item.codigoPrincipioAtivo,
+    });
+  };
 
   return (
     <>
       <button
         type="button"
         aria-label={`Pedir esclarecimento sobre ${item.nomePrincipioAtivo}`}
-        onClick={() => setAberto(true)}
+        onClick={abrir}
         className="inline-flex cursor-pointer items-center gap-1 py-1 font-semibold text-accent text-xs hover:underline"
       >
         Pedir esclarecimento
@@ -164,7 +218,7 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
       </button>
       <ModalDialog
         isOpen={aberto}
-        onClose={() => setAberto(false)}
+        onClose={fechar}
         title="Pedir esclarecimento"
         subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque`}
         subtitleClassName="line-clamp-2"
@@ -180,6 +234,8 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         <PedidoEsclarecimentoConteudo
           pedido={item.pedido}
           caminhoCompartilhamento={item.href}
+          codigoPrincipioAtivo={item.codigoPrincipioAtivo}
+          aoEditar={aoEditar}
         />
       </ModalDialog>
     </>

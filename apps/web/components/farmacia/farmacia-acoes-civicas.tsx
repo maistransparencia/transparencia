@@ -14,6 +14,8 @@ export interface FarmaciaAcoesCivicasProps {
   mensagemErro?: string;
   /** `pedido`: botão principal preenchido e secundário neutro (modal de pedido). */
   variante?: "alerta" | "pedido";
+  /** Telemetria das ações; recebe só o tipo, nunca o texto copiado. */
+  onAcao?: (acao: "copiado" | "copia_falhou" | "whatsapp") => void;
 }
 
 type FeedbackCopia = "idle" | "copiado" | "erro";
@@ -40,6 +42,7 @@ export function FarmaciaAcoesCivicas({
   mensagemCopiado = "Requerimento copiado.",
   mensagemErro = "Não foi possível copiar o requerimento. Tente novamente.",
   variante = "alerta",
+  onAcao,
 }: FarmaciaAcoesCivicasProps) {
   const [feedback, setFeedback] = useState<FeedbackCopia>("idle");
 
@@ -48,12 +51,15 @@ export function FarmaciaAcoesCivicas({
     try {
       await navigator.clipboard.writeText(requerimento);
       setFeedback("copiado");
+      onAcao?.("copiado");
     } catch {
       setFeedback("erro");
+      onAcao?.("copia_falhou");
     }
   };
 
   const handleWhatsApp = () => {
+    onAcao?.("whatsapp");
     const caminho = caminhoCompartilhamento ?? window.location.pathname;
     const mensagem = `${textoWhatsApp} ${window.location.origin}${caminho}`;
     window.open(

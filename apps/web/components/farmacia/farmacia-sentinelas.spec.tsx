@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import posthog from "posthog-js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type FarmaciaSentinelaItem,
   FarmaciaSentinelas,
 } from "./farmacia-sentinelas";
+
+vi.mock("posthog-js", () => ({ default: { capture: vi.fn() } }));
 
 function item(
   parcial: Partial<FarmaciaSentinelaItem> & { nomePrincipioAtivo: string },
@@ -173,5 +176,53 @@ describe("FarmaciaSentinelas", () => {
     expect(screen.getByText(/13 caracteres/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Fechar modal" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  describe("telemetria do pedido", () => {
+    beforeEach(() => {
+      vi.mocked(posthog.capture).mockClear();
+    });
+
+    it("registra abrir, editar uma vez, lei, copiar, whatsapp e fechar sem enviar o texto", () => {
+      vi.spyOn(window, "open").mockReturnValue(null);
+      render(
+        <FarmaciaSentinelas
+          essenciais={essenciais}
+          categorias={categorias}
+          totalUnidadesAtivas={5}
+        />,
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: /^Pedir esclarecimento sobre / }),
+      );
+      const campo = screen.getByLabelText("Texto do pedido");
+      fireEvent.change(campo, { target: { value: "a" } });
+      fireEvent.change(campo, { target: { value: "TEXTO-DIGITADO-XYZ" } });
+      fireEvent.click(
+        screen.getByRole("link", { name: /Lei de Acesso à Informação/ }),
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: "Compartilhar no WhatsApp" }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Fechar modal" }));
+
+      const eventos = vi
+        .mocked(posthog.capture)
+        .mock.calls.map(([nome]) => nome);
+      expect(eventos).toEqual([
+        "farmacia_pedido_aberto",
+        "farmacia_pedido_editado",
+        "farmacia_pedido_lei_clicada",
+        "farmacia_pedido_whatsapp",
+        "farmacia_pedido_fechado",
+      ]);
+      const whatsapp = vi
+        .mocked(posthog.capture)
+        .mock.calls.find(([nome]) => nome === "farmacia_pedido_whatsapp");
+      expect(whatsapp?.[1]).toMatchObject({ editado: true });
+      expect(
+        JSON.stringify(vi.mocked(posthog.capture).mock.calls),
+      ).not.toContain("TEXTO-DIGITADO-XYZ");
+    });
   });
 });
