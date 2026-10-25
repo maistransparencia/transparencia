@@ -15,6 +15,7 @@ const {
   buildRequerimentoFiscalizacao,
   nomeMunicipioDoPortal,
   buildTextoWhatsApp,
+  buildTextoWhatsAppPedido,
   LEI_FARMACIA_SUS_URL,
   LEI_ORGANICA_SAUDE_URL,
 } = await import("./view-model");
@@ -385,6 +386,17 @@ describe("nomeMunicipioDoPortal", () => {
   });
 });
 
+describe("buildTextoWhatsAppPedido", () => {
+  it("cita a Secretaria de Saude so com o nome da cidade", () => {
+    const texto = buildTextoWhatsAppPedido({
+      portalName: "Prefeitura de Cidade Exemplo",
+      nomeMedicamento: "Captopril",
+    });
+    expect(texto).toContain("Secretaria de Saúde de Cidade Exemplo");
+    expect(texto).not.toContain("Prefeitura");
+  });
+});
+
 describe("buildTextoWhatsApp", () => {
   it("com portalName e dias", () => {
     const texto = buildTextoWhatsApp({
@@ -487,7 +499,9 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     ).indicadores.find((i) => i.codigo === "lotes_a_vencer");
     expect(indicador?.valor).toBe("0");
     expect(indicador?.nota).toContain("Nenhum vence em até 60 dias");
-    expect(indicador?.nota).toContain("2 lotes já constam como vencidos");
+    expect(indicador?.nota).toContain(
+      "2 lotes aparecem como vencidos na lista de estoque mais recente",
+    );
     expect(indicador?.notaAtencao).toBe(true);
   });
 

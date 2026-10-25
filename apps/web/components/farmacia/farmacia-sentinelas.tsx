@@ -83,11 +83,18 @@ function PedidoEsclarecimentoConteudo({
 
   return (
     <div className="space-y-4">
-      <p className="text-slate-600 text-sm leading-relaxed">
-        O texto abaixo já está pronto e pode ser editado. Copie e envie pelo
-        canal oficial de acesso à informação da Prefeitura, ou compartilhe pelo
-        WhatsApp.
-      </p>
+      <div className="space-y-2 text-slate-600 text-sm leading-relaxed">
+        <p>
+          O texto abaixo já está pronto e pode ser editado. Inclua seu nome e um
+          contato: a lei pede a identificação de quem faz o pedido. Copie e
+          envie pelo canal oficial de acesso à informação da Prefeitura, ou
+          compartilhe pelo WhatsApp.
+        </p>
+        <p>
+          Não aparecer na lista não quer dizer que o remédio acabou. Pode ser
+          que a unidade não tenha informado.
+        </p>
+      </div>
       <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
@@ -133,8 +140,8 @@ function PedidoEsclarecimentoConteudo({
         variante="pedido"
       />
       <p className="border-slate-200/80 border-t pt-3 text-slate-500 text-xs">
-        Pela LAI, o órgão tem até 20 dias para responder, prorrogáveis por mais
-        10.
+        Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
+        tem até 20 dias. Pode prorrogar por mais 10 dias, com justificativa.
       </p>
     </div>
   );

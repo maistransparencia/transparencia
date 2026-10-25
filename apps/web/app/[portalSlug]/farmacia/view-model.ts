@@ -208,7 +208,7 @@ function buildIndicadorLotesAVencer(
           .join(" · ");
   const detalheVencidos =
     lotes.totalLotesVencidosComSaldo > 0
-      ? `${fmtNumber(lotes.totalLotesVencidosComSaldo)} ${lotes.totalLotesVencidosComSaldo === 1 ? "lote já consta como vencido" : "lotes já constam como vencidos"} na posição de estoque divulgada`
+      ? `${fmtNumber(lotes.totalLotesVencidosComSaldo)} ${lotes.totalLotesVencidosComSaldo === 1 ? "lote aparece como vencido" : "lotes aparecem como vencidos"} na lista de estoque mais recente`
       : null;
   const nota = [detalheAVencer, detalheVencidos]
     .filter((parte): parte is string => parte !== null)
@@ -321,7 +321,7 @@ export function buildPedidoEsclarecimento(params: {
   return [
     `À Secretaria Municipal de Saúde ${destinatario}.`,
     "",
-    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação) e no art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, que obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS, solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
+    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. O art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
   ].join("\n");
 }
 
@@ -329,8 +329,7 @@ export function buildTextoWhatsAppPedido(params: {
   portalName: string;
   nomeMedicamento: string;
 }): string {
-  const municipio = params.portalName || "Este município";
-  return `${municipio}: pedido de esclarecimento sobre ${params.nomeMedicamento} na Farmácia SUS (Lei nº 14.654/2023). O item não consta na lista de estoque divulgada. Confira:`;
+  return `Pedido de esclarecimento à Secretaria de Saúde ${destinatarioDoMunicipio(params.portalName)} sobre ${params.nomeMedicamento} na Farmácia SUS (Lei nº 14.654/2023). O remédio não aparece na lista de estoque divulgada. Confira:`;
 }
 
 export function buildTextoWhatsApp(params: {
