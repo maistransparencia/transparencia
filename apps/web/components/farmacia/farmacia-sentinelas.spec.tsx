@@ -151,7 +151,12 @@ describe("FarmaciaSentinelas", () => {
     expect(botoes[0].closest("a")).toBeNull();
 
     fireEvent.click(botoes[0]);
-    expect(screen.getByText("Pedido sobre Captopril")).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Pedir esclarecimento" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Texto do pedido")).toHaveValue(
+      "Pedido sobre Captopril",
+    );
     expect(
       screen.getByRole("button", { name: "Copiar pedido" }),
     ).toBeInTheDocument();
@@ -161,5 +166,12 @@ describe("FarmaciaSentinelas", () => {
     expect(lei.getAttribute("href")).toContain("planalto.gov.br");
     expect(lei).toHaveAttribute("target", "_blank");
     expect(lei).toHaveAttribute("rel", "noopener noreferrer");
+
+    fireEvent.change(screen.getByLabelText("Texto do pedido"), {
+      target: { value: "Texto editado" },
+    });
+    expect(screen.getByText(/13 caracteres/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Fechar modal" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

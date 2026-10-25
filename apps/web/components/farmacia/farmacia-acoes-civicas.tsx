@@ -12,12 +12,24 @@ export interface FarmaciaAcoesCivicasProps {
   rotuloWhatsApp?: string;
   mensagemCopiado?: string;
   mensagemErro?: string;
+  /** `pedido`: botão principal preenchido e secundário neutro (modal de pedido). */
+  variante?: "alerta" | "pedido";
 }
 
 type FeedbackCopia = "idle" | "copiado" | "erro";
 
-const BOTAO_CLASS =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-rose-300 bg-white px-4 font-semibold text-rose-900 text-sm transition-colors hover:bg-rose-100";
+const BOTAO_BASE =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 font-semibold text-sm transition-colors";
+const BOTOES_CLASS = {
+  alerta: {
+    principal: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
+    secundario: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
+  },
+  pedido: {
+    principal: `${BOTAO_BASE} flex-1 border-accent bg-accent text-white hover:opacity-90`,
+    secundario: `${BOTAO_BASE} flex-1 border-borderLine bg-white text-ink hover:bg-slate-50`,
+  },
+} as const;
 
 export function FarmaciaAcoesCivicas({
   requerimento,
@@ -27,6 +39,7 @@ export function FarmaciaAcoesCivicas({
   rotuloWhatsApp = "Compartilhar no WhatsApp",
   mensagemCopiado = "Requerimento copiado.",
   mensagemErro = "Não foi possível copiar o requerimento. Tente novamente.",
+  variante = "alerta",
 }: FarmaciaAcoesCivicasProps) {
   const [feedback, setFeedback] = useState<FeedbackCopia>("idle");
 
@@ -53,11 +66,19 @@ export function FarmaciaAcoesCivicas({
   return (
     <div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <button type="button" onClick={handleCopiar} className={BOTAO_CLASS}>
+        <button
+          type="button"
+          onClick={handleCopiar}
+          className={BOTOES_CLASS[variante].principal}
+        >
           <Copy className="h-4 w-4" aria-hidden="true" />
           {rotuloCopiar}
         </button>
-        <button type="button" onClick={handleWhatsApp} className={BOTAO_CLASS}>
+        <button
+          type="button"
+          onClick={handleWhatsApp}
+          className={BOTOES_CLASS[variante].secundario}
+        >
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
           {rotuloWhatsApp}
         </button>

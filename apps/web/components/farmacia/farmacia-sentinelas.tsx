@@ -1,9 +1,9 @@
 "use client";
 
-import { fmtNumber } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { fmtNumber, ModalDialog } from "@transparencia/ui";
+import { ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { FarmaciaAcoesCivicas } from "./farmacia-acoes-civicas";
 
@@ -71,57 +71,111 @@ function RotuloDisponibilidade({
   );
 }
 
+function PedidoEsclarecimentoConteudo({
+  pedido,
+  caminhoCompartilhamento,
+}: {
+  pedido: NonNullable<FarmaciaSentinelaItem["pedido"]>;
+  caminhoCompartilhamento: string;
+}) {
+  const [texto, setTexto] = useState(pedido.texto);
+  const idTexto = useId();
+
+  return (
+    <div className="space-y-4">
+      <p className="text-slate-600 text-sm leading-relaxed">
+        O texto abaixo já está pronto e pode ser editado. Copie e envie pelo
+        canal oficial de acesso à informação da Prefeitura, ou compartilhe pelo
+        WhatsApp.
+      </p>
+      <div className="space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
+            Texto do pedido
+          </label>
+          <span className="text-slate-400 text-xs tabular-nums">
+            {fmtNumber(texto.length)} caracteres
+          </span>
+        </div>
+        <textarea
+          id={idTexto}
+          value={texto}
+          onChange={(evento) => setTexto(evento.target.value)}
+          rows={9}
+          className="w-full resize-y rounded-xl border border-borderLine bg-slate-50 p-3 text-[14px] text-slate-700 leading-[1.6]"
+        />
+        <p className="text-subtleText text-xs">
+          Base legal:{" "}
+          {LEIS_DO_PEDIDO.map((lei, indice) => (
+            <span key={lei.codigo}>
+              {indice > 0 && " · "}
+              <a
+                href={urlLegislacao(lei.codigo)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-accent underline"
+              >
+                {lei.rotulo}
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
+            </span>
+          ))}
+        </p>
+      </div>
+      <FarmaciaAcoesCivicas
+        requerimento={texto}
+        textoWhatsApp={pedido.textoWhatsApp}
+        caminhoCompartilhamento={caminhoCompartilhamento}
+        rotuloCopiar="Copiar pedido"
+        rotuloWhatsApp="Compartilhar no WhatsApp"
+        mensagemCopiado="Pedido copiado."
+        mensagemErro="Não foi possível copiar o pedido. Tente novamente."
+        variante="pedido"
+      />
+      <p className="border-slate-200/80 border-t pt-3 text-slate-500 text-xs">
+        Pela LAI, o órgão tem até 20 dias para responder, prorrogáveis por mais
+        10.
+      </p>
+    </div>
+  );
+}
+
 function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
   const [aberto, setAberto] = useState(false);
   if (!item.pedido) return null;
-  const idPainel = `pedido-${item.codigoPrincipioAtivo}`;
 
   return (
-    <div className="border-slate-100 border-b pb-3">
+    <>
       <button
         type="button"
-        aria-expanded={aberto}
-        aria-controls={idPainel}
-        aria-label={`${aberto ? "Fechar pedido" : "Pedir esclarecimento"} sobre ${item.nomePrincipioAtivo}`}
-        onClick={() => setAberto((atual) => !atual)}
-        className="inline-flex min-h-11 items-center font-semibold text-[13px] text-ink underline"
+        aria-label={`Pedir esclarecimento sobre ${item.nomePrincipioAtivo}`}
+        onClick={() => setAberto(true)}
+        className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent text-sm hover:underline"
       >
-        {aberto ? "Fechar pedido" : "Pedir esclarecimento"}
+        Pedir esclarecimento
+        <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </button>
-      {aberto && (
-        <div id={idPainel} className="mt-2 space-y-3">
-          <p className="whitespace-pre-line rounded-lg bg-slate-50 p-3 text-[13px] text-slate-700 leading-[1.6]">
-            {item.pedido.texto}
-          </p>
-          <p className="text-subtleText text-xs">
-            Base legal:{" "}
-            {LEIS_DO_PEDIDO.map((lei, indice) => (
-              <span key={lei.codigo}>
-                {indice > 0 && " · "}
-                <a
-                  href={urlLegislacao(lei.codigo)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 underline"
-                >
-                  {lei.rotulo}
-                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                </a>
-              </span>
-            ))}
-          </p>
-          <FarmaciaAcoesCivicas
-            requerimento={item.pedido.texto}
-            textoWhatsApp={item.pedido.textoWhatsApp}
-            caminhoCompartilhamento={item.href}
-            rotuloCopiar="Copiar pedido"
-            rotuloWhatsApp="Compartilhar no WhatsApp"
-            mensagemCopiado="Pedido copiado."
-            mensagemErro="Não foi possível copiar o pedido. Tente novamente."
-          />
-        </div>
-      )}
-    </div>
+      <ModalDialog
+        isOpen={aberto}
+        onClose={() => setAberto(false)}
+        title="Pedir esclarecimento"
+        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque`}
+        subtitleClassName="line-clamp-2"
+        badge={
+          <span className="inline-flex items-center gap-1 text-slate-500 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            Lei de Acesso à Informação
+          </span>
+        }
+        maxWidth="2xl"
+        showShareButton={false}
+      >
+        <PedidoEsclarecimentoConteudo
+          pedido={item.pedido}
+          caminhoCompartilhamento={item.href}
+        />
+      </ModalDialog>
+    </>
   );
 }
 
@@ -208,27 +262,52 @@ export function FarmaciaSentinelas({
 
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 rounded-xl border border-borderLine bg-white px-5 py-1">
         {visiveis.map((item) => (
-          <li key={item.codigoPrincipioAtivo}>
-            <Link
-              href={item.href}
-              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 ${item.pedido ? "" : "border-slate-100 border-b"} text-left hover:bg-[#f7f8fa]`}
-            >
-              <span className="min-w-0">
-                <span className="block font-semibold text-ink text-sm">
-                  {item.nomePrincipioAtivo}
+          <li
+            key={item.codigoPrincipioAtivo}
+            className="border-slate-100 border-b"
+          >
+            {item.pedido ? (
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-3">
+                <Link
+                  href={item.href}
+                  className="min-w-0 text-left hover:bg-[#f7f8fa]"
+                >
+                  <span className="block font-semibold text-ink text-sm">
+                    {item.nomePrincipioAtivo}
+                  </span>
+                  <span className="block text-subtleText text-xs">
+                    {item.rotuloCategoria}
+                  </span>
+                </Link>
+                <span className="flex flex-col items-end gap-0.5">
+                  <RotuloDisponibilidade
+                    item={item}
+                    totalUnidadesAtivas={totalUnidadesAtivas}
+                  />
+                  <PedidoEsclarecimento item={item} />
                 </span>
-                <span className="block text-subtleText text-xs">
-                  {item.rotuloCategoria}
+              </div>
+            ) : (
+              <Link
+                href={item.href}
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-[#f7f8fa]"
+              >
+                <span className="min-w-0">
+                  <span className="block font-semibold text-ink text-sm">
+                    {item.nomePrincipioAtivo}
+                  </span>
+                  <span className="block text-subtleText text-xs">
+                    {item.rotuloCategoria}
+                  </span>
                 </span>
-              </span>
-              <span className="flex flex-col items-end gap-1">
-                <RotuloDisponibilidade
-                  item={item}
-                  totalUnidadesAtivas={totalUnidadesAtivas}
-                />
-              </span>
-            </Link>
-            <PedidoEsclarecimento item={item} />
+                <span className="flex flex-col items-end gap-1">
+                  <RotuloDisponibilidade
+                    item={item}
+                    totalUnidadesAtivas={totalUnidadesAtivas}
+                  />
+                </span>
+              </Link>
+            )}
           </li>
         ))}
       </ul>
