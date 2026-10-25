@@ -23,7 +23,7 @@ export function FarmaciaBuscaForm({
       method="get"
       action={action}
       aria-label="Busca de medicamentos"
-      className={`flex flex-col sm:flex-row ${className}`}
+      className={`flex flex-col overflow-hidden rounded-md border border-ink focus-within:ring-2 focus-within:ring-brand/30 sm:flex-row ${className}`}
     >
       <label htmlFor="farmacia-busca" className="sr-only">
         Qual remédio você procura?
@@ -37,11 +37,11 @@ export function FarmaciaBuscaForm({
         defaultValue={defaultValue}
         placeholder="Qual remédio você procura?"
         autoComplete="off"
-        className="min-h-13 flex-1 rounded-md border border-line bg-page px-4 text-base text-ink placeholder:text-mute3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 sm:min-h-10 sm:text-sm"
+        className="min-h-13 flex-1 rounded-none border-0 bg-page px-4 text-base text-ink placeholder:text-mute3 focus:outline-none sm:min-h-10 sm:text-sm"
       />
       <button
         type="submit"
-        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-md bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10"
+        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10"
       >
         {rotuloBotaoMobile ? (
           <>
@@ -55,7 +55,7 @@ export function FarmaciaBuscaForm({
       {limparHref && (
         <Link
           href={limparHref}
-          className="inline-flex min-h-13 items-center justify-center gap-2 rounded-md border border-line bg-page px-5 font-semibold text-ink text-sm transition-colors hover:bg-line2/40 sm:min-h-10"
+          className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none border-line border-t bg-page px-5 font-semibold text-ink text-sm transition-colors hover:bg-line2/40 sm:min-h-10 sm:border-t-0 sm:border-l"
         >
           <X className="h-4 w-4" aria-hidden="true" />
           Limpar busca
