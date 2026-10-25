@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "../sidebar";
 
 vi.mock("next/navigation", () => ({
@@ -7,6 +7,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Sidebar Component", () => {
+  beforeEach(() => {
+    document.documentElement.classList.remove("dark");
+    localStorage.clear();
+  });
+
   it("exibe badge com contagem e pulso suave ao lado de Radar Cívico quando radarAlertCount > 0", () => {
     render(
       <Sidebar
@@ -96,17 +101,29 @@ describe("Sidebar Component", () => {
     );
   });
 
-  it("renderiza pwaInstallSlot quando fornecido", () => {
+  it("usa borda de tokens, sem fundo próprio no desktop, e marca o item ativo com filete", () => {
     render(
-      <Sidebar
-        portalName="Porciúncula"
-        portalSlug="porciuncula_prefeitura"
-        pwaInstallSlot={<button type="button">Instalar App Teste</button>}
-      />,
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+    );
+
+    const aside = screen.getByRole("complementary");
+    expect(aside).toHaveClass("border-r", "border-line");
+    expect(aside).not.toHaveClass("bg-white");
+
+    const ativo = screen.getByRole("link", { name: /Visão geral/i });
+    expect(ativo).toHaveClass("border-l-2", "border-ink", "font-semibold");
+  });
+
+  it("rodapé tem compartilhar e alternador de tema, sem slots de push/pwa", () => {
+    render(
+      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
     );
 
     expect(
-      screen.getByRole("button", { name: "Instalar App Teste" }),
+      screen.getByRole("button", { name: "Claro", pressed: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Escuro", pressed: false }),
     ).toBeInTheDocument();
   });
 

@@ -13,8 +13,6 @@ import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
-import { PushNotificationSettings } from "@/components/push-notification-settings";
-import { PwaInstallButton } from "@/components/pwa-installer";
 
 interface SidebarWrapperProps {
   portalName?: string;
@@ -226,10 +224,6 @@ export function SidebarWrapper({
       onExerciceChange={handleExerciceChange}
       selectedEntidades={selectedEntidades}
       onEntidadesChange={handleEntidadesChange}
-      pushNotificationSlot={
-        <PushNotificationSettings portalSlug={activePortalSlug} />
-      }
-      pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
       mobileHeaderRightSlot={
         effectiveEntidades && effectiveEntidades.length > 0 ? (
           <EntidadeSelectCompact

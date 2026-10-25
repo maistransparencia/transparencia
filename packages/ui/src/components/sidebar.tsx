@@ -21,6 +21,7 @@ import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 import { ShareButton } from "./share-button";
+import { ThemeToggle } from "./theme-toggle";
 
 export interface NavGroup {
   label: string;
@@ -68,8 +69,6 @@ export interface SidebarProps {
   portais?: PortalOption[];
   onPortalChange?: (portalSlug: string) => void;
   onOpenNewsletter?: () => void;
-  pushNotificationSlot?: React.ReactNode;
-  pwaInstallSlot?: React.ReactNode;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
   mobileShareSlot?: React.ReactNode;
@@ -94,19 +93,19 @@ function YearSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative w-fit border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
+      <div className="relative w-fit border-line border-b transition-colors focus-within:border-ink hover:border-mute3">
         <select
           id="exercice-select"
           aria-label="Selecionar Exercício"
           value={selectedYear}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-[10px]"
+          className="min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-xs"
         >
           {years.map((yr) => (
             <option
               key={yr}
               value={yr}
-              className="bg-white py-2 font-medium text-base text-ink sm:text-sm"
+              className="bg-page py-2 font-medium text-base text-ink sm:text-sm"
             >
               {yr}
             </option>
@@ -114,7 +113,7 @@ function YearSelect({
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2 text-mutedText"
+          className="pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2 text-mute2"
         />
       </div>
     );
@@ -126,13 +125,13 @@ function YearSelect({
         id="exercice-select"
         value={selectedYear}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-borderLine bg-white px-3 py-2.5 font-medium text-ink text-sm shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none sm:min-h-0 sm:py-2 sm:text-xs"
+        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page px-3 py-2.5 font-medium text-ink text-sm shadow-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none sm:min-h-0 sm:py-2 sm:text-xs"
       >
         {years.map((yr) => (
           <option
             key={yr}
             value={yr}
-            className="bg-white py-2 font-medium text-base text-ink sm:text-sm"
+            className="bg-page py-2 font-medium text-base text-ink sm:text-sm"
           >
             {yr}
           </option>
@@ -140,7 +139,7 @@ function YearSelect({
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-mutedText"
+        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
       />
     </div>
   );
@@ -159,7 +158,7 @@ export function PortalSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative w-fit max-w-[200px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400">
+      <div className="relative w-fit max-w-[200px] border-line border-b transition-colors focus-within:border-ink hover:border-mute3">
         <select
           id="portal-select-mobile"
           aria-label="Selecionar Município"
@@ -171,7 +170,7 @@ export function PortalSelect({
             <option
               key={p.portalSlug}
               value={p.portalSlug}
-              className="bg-white py-2 font-medium font-sans text-base text-ink sm:text-sm"
+              className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
             >
               {p.displayName}
             </option>
@@ -179,7 +178,7 @@ export function PortalSelect({
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-0.5 h-3.5 w-3.5 -translate-y-1/2 text-mutedText"
+          className="pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2 text-mute2"
         />
       </div>
     );
@@ -192,13 +191,13 @@ export function PortalSelect({
         aria-label="Selecionar Município"
         value={selectedSlug}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-lg border border-borderLine bg-white py-1.5 pr-8 pl-2.5 font-bold font-serif text-ink text-sm shadow-xs transition-colors hover:border-gray-400 focus:border-[#1d64d8] focus:outline-none"
+        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page py-1.5 pr-8 pl-2.5 font-bold font-serif text-ink text-sm shadow-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none"
       >
         {portais.map((p) => (
           <option
             key={p.portalSlug}
             value={p.portalSlug}
-            className="bg-white py-2 font-medium font-sans text-base text-ink sm:text-sm"
+            className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
           >
             {p.displayName}
           </option>
@@ -206,7 +205,7 @@ export function PortalSelect({
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mutedText"
+        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
       />
     </div>
   );
@@ -226,8 +225,6 @@ export function Sidebar({
   portalSlug,
   portais,
   onPortalChange,
-  pushNotificationSlot,
-  pwaInstallSlot,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
   mobileShareSlot,
@@ -370,10 +367,10 @@ export function Sidebar({
   return (
     <>
       {/* Top Header Móvel (< md) */}
-      <div className="sticky top-0 z-30 w-full border-borderLine border-b bg-white px-4 py-2 shadow-xs md:hidden">
+      <div className="sticky top-0 z-30 w-full border-line border-b bg-page px-4 py-2 shadow-xs md:hidden">
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-0.5">
               {!imgError && normalizedBrasao ? (
                 <Image
                   src={normalizedBrasao}
@@ -384,10 +381,7 @@ export function Sidebar({
                   height={32}
                 />
               ) : (
-                <Landmark
-                  strokeWidth={1.6}
-                  className="h-3.5 w-3.5 text-subtleText"
-                />
+                <Landmark strokeWidth={1.6} className="h-4 w-4 text-mute" />
               )}
             </div>
             {portais && portais.length > 0 && onPortalChange ? (
@@ -409,7 +403,7 @@ export function Sidebar({
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-2 border-slate-100 border-t pt-1.5 text-subtleText text-xs">
+        <div className="mt-2 flex items-center justify-between gap-2 border-line border-t pt-1.5 text-mute text-xs">
           <div className="flex items-center gap-3">
             <YearSelect
               years={years}
@@ -443,7 +437,7 @@ export function Sidebar({
       {/* Conteúdo da Sidebar (Desktop + Drawer Móvel com Animação de Slide) */}
       <aside
         className={cn(
-          "select-none border-borderLine border-r bg-white",
+          "select-none border-line border-r bg-page md:bg-transparent",
           "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-transform duration-300 ease-in-out",
           "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
           isMobileOpen
@@ -453,10 +447,10 @@ export function Sidebar({
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {/* Marca Superior / Brasão Municipal */}
-          <div className="border-borderLine border-b p-4">
+          <div className="border-line border-b p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-borderLine bg-gray-50 p-1 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-1">
                   {!imgError && normalizedBrasao ? (
                     <Image
                       src={normalizedBrasao}
@@ -467,10 +461,7 @@ export function Sidebar({
                       height={32}
                     />
                   ) : (
-                    <Landmark
-                      strokeWidth={1.6}
-                      className="h-5 w-5 text-subtleText"
-                    />
+                    <Landmark strokeWidth={1.6} className="h-5 w-5 text-mute" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -485,7 +476,7 @@ export function Sidebar({
                         onChange={onPortalChange}
                         variant="compact"
                       />
-                      <p className="text-[11px] text-mutedText">
+                      <p className="text-[11px] text-mute2">
                         Orçamento municipal · {stateUF}
                       </p>
                     </div>
@@ -494,7 +485,7 @@ export function Sidebar({
                       <h1 className="font-bold font-serif text-base text-ink leading-tight">
                         {displayTitle}
                       </h1>
-                      <p className="text-[11px] text-mutedText">
+                      <p className="text-[11px] text-mute2">
                         Orçamento municipal · {stateUF}
                       </p>
                     </>
@@ -504,7 +495,7 @@ export function Sidebar({
               <button
                 type="button"
                 onClick={() => setIsMobileOpen(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-borderLine bg-white text-mutedText shadow-xs transition-colors hover:bg-gray-50 hover:text-ink active:bg-gray-100 md:hidden"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
                 aria-label="Fechar menu"
               >
                 <X strokeWidth={2} className="h-4 w-4" />
@@ -513,13 +504,13 @@ export function Sidebar({
           </div>
 
           {/* Seção de Filtros */}
-          <div className="space-y-2.5 border-borderLine border-b bg-gray-50/50 px-4 py-3.5">
-            <p className="font-semibold text-[11px] text-mutedText">Filtros</p>
+          <div className="space-y-2.5 border-line border-b px-4 py-3.5">
+            <p className="font-semibold text-[11px] text-mute2">Filtros</p>
             <div className="space-y-2">
               <div>
                 <label
                   htmlFor="exercice-select"
-                  className="mb-1 block font-medium text-[11px] text-subtleText"
+                  className="mb-1 block font-medium text-[11px] text-mute"
                 >
                   Exercício
                 </label>
@@ -530,7 +521,7 @@ export function Sidebar({
                 />
               </div>
               <div>
-                <span className="mb-1 block font-medium text-[11px] text-subtleText">
+                <span className="mb-1 block font-medium text-[11px] text-mute">
                   Entidade
                 </span>
                 <MultiSelect
@@ -550,19 +541,17 @@ export function Sidebar({
                 href={visaoGeralHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isVisaoGeralActive
-                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
-                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                    ? "border-ink font-semibold text-ink"
+                    : "border-transparent text-mute hover:text-ink",
                 )}
               >
                 <LayoutDashboard
                   strokeWidth={1.6}
                   className={cn(
                     "h-4 w-4 shrink-0",
-                    isVisaoGeralActive
-                      ? "text-[oklch(0.55_0.11_250)]"
-                      : "text-mutedText",
+                    isVisaoGeralActive ? "text-ink" : "text-mute2",
                   )}
                 />
                 <span>Visão geral</span>
@@ -572,10 +561,10 @@ export function Sidebar({
                 href={radarHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isRadarActive
-                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
-                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                    ? "border-ink font-semibold text-ink"
+                    : "border-transparent text-mute hover:text-ink",
                 )}
               >
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -583,9 +572,7 @@ export function Sidebar({
                     strokeWidth={1.6}
                     className={cn(
                       "h-4 w-4 shrink-0",
-                      isRadarActive
-                        ? "text-[oklch(0.55_0.11_250)]"
-                        : "text-mutedText",
+                      isRadarActive ? "text-ink" : "text-mute2",
                     )}
                   />
                   <span className="truncate">Radar Cívico</span>
@@ -593,12 +580,12 @@ export function Sidebar({
                 {typeof radarAlertCount === "number" && radarAlertCount > 0 && (
                   <span
                     role="status"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 font-semibold text-[11px] text-red-700"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger bg-page px-2 py-0.5 font-semibold text-[11px] text-danger"
                     aria-label={`${radarAlertCount} alertas críticos apurados`}
                   >
                     <span
                       aria-hidden="true"
-                      className="h-1.5 w-1.5 rounded-full bg-red-600 motion-safe:animate-pulse motion-reduce:animate-none"
+                      className="h-1.5 w-1.5 rounded-full bg-danger motion-safe:animate-pulse motion-reduce:animate-none"
                     />
                     <span className="tabular-nums">{radarAlertCount}</span>
                   </span>
@@ -609,19 +596,17 @@ export function Sidebar({
                 href={farmaciaHref}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                   isFarmaciaActive
-                    ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
-                    : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                    ? "border-ink font-semibold text-ink"
+                    : "border-transparent text-mute hover:text-ink",
                 )}
               >
                 <Pill
                   strokeWidth={1.6}
                   className={cn(
                     "h-4 w-4 shrink-0",
-                    isFarmaciaActive
-                      ? "text-[oklch(0.55_0.11_250)]"
-                      : "text-mutedText",
+                    isFarmaciaActive ? "text-ink" : "text-mute2",
                   )}
                 />
                 <span>Farmácia SUS</span>
@@ -631,7 +616,7 @@ export function Sidebar({
             {/* Demais Grupos de Navegação */}
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-2">
-                <p className="mb-1.5 px-3 font-semibold text-[11px] text-mutedText">
+                <p className="mb-1.5 px-3 font-semibold text-[11px] text-mute2">
                   {group.label}
                 </p>
                 {group.items.map((item) => {
@@ -667,10 +652,10 @@ export function Sidebar({
                       href={itemHref}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
-                        "flex min-h-[44px] items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                        "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
                         isActive
-                          ? "bg-[oklch(0.55_0.11_250)]/10 font-semibold text-[oklch(0.55_0.11_250)]"
-                          : "text-subtleText hover:bg-gray-50 hover:text-ink",
+                          ? "border-ink font-semibold text-ink"
+                          : "border-transparent text-mute hover:text-ink",
                       )}
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -678,9 +663,7 @@ export function Sidebar({
                           strokeWidth={1.6}
                           className={cn(
                             "h-4 w-4 shrink-0",
-                            isActive
-                              ? "text-[oklch(0.55_0.11_250)]"
-                              : "text-mutedText",
+                            isActive ? "text-ink" : "text-mute2",
                           )}
                         />
                         <span className="truncate">{item.name}</span>
@@ -693,20 +676,14 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Rodapé com Compartilhamento, Notificações e Instalação do App */}
-        <div
-          className={cn(
-            "space-y-2.5 border-borderLine border-t bg-gray-50/50 p-4 md:space-y-2 md:p-3",
-            !pushNotificationSlot && !pwaInstallSlot && "hidden md:block",
-          )}
-        >
+        {/* Rodapé: compartilhar e alternador de tema */}
+        <div className="space-y-2 border-line border-t p-4 md:p-3">
           <div className="hidden md:block">
             {desktopShareSlot ?? (
               <ShareButton variant="sidebar" onShare={onShare} />
             )}
           </div>
-          {pushNotificationSlot}
-          {pwaInstallSlot}
+          <ThemeToggle />
         </div>
       </aside>
     </>

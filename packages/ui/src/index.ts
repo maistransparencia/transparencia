@@ -8,6 +8,7 @@ export * from "./components/ribbon";
 export * from "./components/segmented-button";
 export * from "./components/share-button";
 export * from "./components/sidebar";
+export * from "./components/theme-toggle";
 export * from "./components/tooltip";
 export * from "./components/truncated-cell-with-modal";
 export * from "./tokens";

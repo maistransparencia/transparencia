@@ -78,12 +78,12 @@ describe("MultiSelect Component", () => {
     // Valida anéis de foco visível (focus-visible) e acessibilidade
     expect(checkboxBtn).toHaveClass(
       "focus-visible:ring-1",
-      "focus-visible:ring-[#1d64d8]",
+      "focus-visible:ring-ink",
       "rounded-sm",
     );
     expect(labelBtn).toHaveClass(
       "focus-visible:ring-1",
-      "focus-visible:ring-[#1d64d8]",
+      "focus-visible:ring-ink",
       "rounded-sm",
     );
 
