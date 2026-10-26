@@ -217,7 +217,7 @@ export function ModalDialog({
               >
                 {title}
               </h2>
-              {badge && <div className="shrink-0">{badge}</div>}
+              {badge && <div className="max-w-full shrink-0">{badge}</div>}
             </div>
             {subtitle && (
               <p

@@ -225,7 +225,7 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque${item.pedido.dataEstoque ? ` de ${fmtDate(item.pedido.dataEstoque)}` : ""}`}
         subtitleClassName="line-clamp-2"
         badge={
-          <span className="inline-flex items-center gap-2 text-xs">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {item.pedido.rotuloMunicipio && (
               <span className="rounded-md bg-banbg px-2.5 py-1 font-semibold text-banfg">
                 {item.pedido.rotuloMunicipio}
