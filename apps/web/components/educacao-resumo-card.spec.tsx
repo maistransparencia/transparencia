@@ -39,10 +39,15 @@ describe("EducacaoResumoCard", () => {
       const card = screen.getByRole("region", {
         name: "Educação Básica e Desempenho Escolar",
       });
-      expect(card.className).toContain("border-[#e7e9ee]");
-      expect(card.className).not.toMatch(/emerald|amber|ring-/);
+      expect(card.className).toContain("border-ink");
+      expect(card.className).toContain("border-t-2");
+      expect(card.className).not.toMatch(
+        /rounded-2xl|shadow-sm|bg-white|emerald|amber|ring-/,
+      );
       expect(screen.getByText(base.enfaseTitulo as string).className).toContain(
-        { destaque: "emerald", atencao: "amber", neutro: "slate" }[enfaseTom],
+        { destaque: "text-ok", atencao: "text-warn", neutro: "text-mute2" }[
+          enfaseTom
+        ],
       );
     },
   );
@@ -70,14 +75,14 @@ describe("EducacaoResumoCard", () => {
     expect(
       screen.getByText("Indicadores oficiais do IDEB apurados pelo INEP/MEC."),
     ).toBeTruthy();
-    expect(screen.getByText("5,9").className).toContain("font-serif");
+    expect(screen.getByText("5,9").className).toContain("font-sans");
     expect(
       screen.getByText("Destaque: evolução de +1,4 ponto no IDEB").className,
-    ).toContain("emerald");
+    ).toContain("text-ok");
     expect(screen.getByText("+1,4 ponto")).toBeTruthy();
     expect(screen.getByText("Ciclo anterior: 4,5")).toBeTruthy();
     expect(screen.getByText("Meta do IDEB atingida").className).toContain(
-      "emerald",
+      "text-ok",
     );
     expect(screen.queryByText(/Anos iniciais|Anos finais/)).toBeNull();
     expect(screen.getByText("Classificação estadual")).toBeTruthy();
@@ -109,10 +114,10 @@ describe("EducacaoResumoCard", () => {
     );
     expect(
       screen.getByText("Atenção: queda de 0,3 ponto no IDEB").className,
-    ).toContain("amber");
-    expect(screen.getByText("-0,3 ponto").className).toContain("amber");
+    ).toContain("text-warn");
+    expect(screen.getByText("-0,3 ponto").className).toContain("text-warn");
     expect(screen.getByText("Meta do IDEB não atingida").className).toContain(
-      "amber",
+      "text-warn",
     );
   });
 
@@ -153,9 +158,9 @@ describe("EducacaoResumoCard", () => {
   });
 
   it.each([
-    { texto: "+2 posições", tom: "destaque", icone: "▲ ", classe: "emerald" },
-    { texto: "-3 posições", tom: "atencao", icone: "▼ ", classe: "amber" },
-    { texto: "Estável", tom: "neutro", icone: "", classe: "subtleText" },
+    { texto: "+2 posições", tom: "destaque", icone: "▲ ", classe: "text-ok" },
+    { texto: "-3 posições", tom: "atencao", icone: "▼ ", classe: "text-warn" },
+    { texto: "Estável", tom: "neutro", icone: "", classe: "text-mute2" },
   ] as const)("exibe variação de posições $texto", (caso) => {
     render(
       <EducacaoResumoCard

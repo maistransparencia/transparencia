@@ -214,19 +214,16 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       label: "Transferências da União",
       amountPerReal: `R$ ${(uniaoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: uniaoPct,
-      colorClass: "bg-blue-600",
     },
     {
       label: "Transferências do Estado",
       amountPerReal: `R$ ${(estadoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: estadoPct,
-      colorClass: "bg-sky-500",
     },
     {
       label: "Receita Própria",
       amountPerReal: `R$ ${(propriaArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: propriaPct,
-      colorClass: "bg-emerald-600",
     },
   ];
 
@@ -247,28 +244,24 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       formattedValue: fmtCompact(totalDotacao),
       percentage: 100,
       label: "100% autorizado",
-      color: "bg-blue-600",
     },
     {
       name: "Empenhado",
       formattedValue: fmtCompact(totalEmpenhado),
       percentage: Number(empPctDotacao.toFixed(1)),
       label: `${fmtPercent(empPctDotacao)} da dotação`,
-      color: "bg-indigo-600",
     },
     {
       name: "Liquidado",
       formattedValue: fmtCompact(totalLiquidado),
       percentage: Number(liqPctDotacao.toFixed(1)),
       label: `${fmtPercent(liqPctDotacao)} da dotação`,
-      color: "bg-sky-600",
     },
     {
       name: "Pago",
       formattedValue: fmtCompact(totalPago),
       percentage: Number(pagPctDotacao.toFixed(1)),
       label: `${fmtPercent(pagPctDotacao)} da dotação`,
-      color: "bg-emerald-600",
     },
   ];
 
@@ -605,7 +598,7 @@ export function getBadgeSeveridade(
     return {
       label: "Aporte Relevante",
       variant: "alto",
-      colorClass: "bg-blue-50 text-blue-900 border-blue-200",
+      colorClass: "bg-brand/10 text-brand border-brand/40",
     };
   }
 
@@ -613,20 +606,20 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass: "bg-rose-50 text-rose-900 border-rose-200",
+      colorClass: "bg-danger/10 text-danger border-danger/40",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass: "bg-amber-50 text-amber-950 border-amber-300",
+      colorClass: "bg-warn/10 text-warn border-warn/40",
     };
   }
   return {
     label: "Acompanhamento",
     variant: "moderado",
-    colorClass: "bg-slate-100 text-slate-800 border-slate-200",
+    colorClass: "bg-line2/40 text-mute2 border-line",
   };
 }
 

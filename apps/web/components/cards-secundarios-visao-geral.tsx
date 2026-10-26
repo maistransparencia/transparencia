@@ -1,4 +1,4 @@
-import { cn } from "@transparencia/ui";
+import { cn, corDoGrafico, type TokenCorGrafico } from "@transparencia/ui";
 import Link from "next/link";
 
 export interface AntiguidadeBarItem {
@@ -8,9 +8,9 @@ export interface AntiguidadeBarItem {
   percentageLiquidado?: number;
   percentageEmpenhado?: number;
   isCurrentYear?: boolean;
-  colorClass?: string;
-  liquidadoColorClass?: string;
-  empenhadoColorClass?: string;
+  corToken?: TokenCorGrafico;
+  liquidadoCorToken?: TokenCorGrafico;
+  empenhadoCorToken?: TokenCorGrafico;
 }
 
 export interface DespesasCardData {
@@ -58,6 +58,32 @@ export interface CardsSecundariosVisaoGeralProps {
   className?: string;
 }
 
+function CabecalhoColuna({
+  title,
+  linkText,
+  linkHref,
+}: {
+  title: string;
+  linkText: string;
+  linkHref?: string;
+}) {
+  return (
+    <header className="flex items-baseline justify-between gap-3 pb-4">
+      <h3 className="font-medium font-mono text-[11px] text-ink uppercase tracking-widest">
+        {title}
+      </h3>
+      {linkHref && (
+        <Link
+          href={linkHref}
+          className="shrink-0 text-brand text-xs transition-colors hover:underline"
+        >
+          {linkText}
+        </Link>
+      )}
+    </header>
+  );
+}
+
 export function CardsSecundariosVisaoGeral({
   despesas,
   licitacoes,
@@ -92,53 +118,49 @@ export function CardsSecundariosVisaoGeral({
   const pessoalFooter = pessoal?.footerText;
 
   return (
-    <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-3", className)}>
+    <div
+      className={cn(
+        "grid grid-cols-1 divide-y divide-line border-ink border-t-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
+        className,
+      )}
+    >
       {/* Card 1: Despesas */}
-      <div className="flex flex-col justify-between rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <div className="flex items-center justify-between border-[#f4f5f7] border-b pb-3">
-            <span className="font-bold font-serif text-base text-ink">
-              {despesasTitle}
-            </span>
-            {despesasLinkHref && (
-              <Link
-                href={despesasLinkHref}
-                className="font-medium text-subtleText text-xs transition-colors hover:text-accent"
-              >
-                {despesasLinkText}
-              </Link>
-            )}
-          </div>
+          <CabecalhoColuna
+            title={despesasTitle}
+            linkText={despesasLinkText}
+            linkHref={despesasLinkHref}
+          />
 
           {/* Destaque Numérico */}
-          <div className="my-4">
+          <div className="mb-4">
             {totalEmpenhado ? (
               <div>
-                <div className="font-bold font-serif text-2xl text-[oklch(0.55_0.11_25)] leading-none tracking-tight sm:text-3xl">
+                <div className="font-bold font-sans text-2xl text-danger leading-none tracking-tight sm:text-3xl">
                   {totalEmpenhado}
                 </div>
                 {totalLiquidado && (
-                  <div className="mt-1 font-medium text-[11px] text-subtleText">
+                  <div className="mt-3 text-mute2 text-xs">
                     {totalLiquidado} liquidados
+                    {despesasSubtext ? ` · ${despesasSubtext}` : ""}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-subtleText text-xs italic">
+              <div className="text-mute2 text-xs italic">
                 Sem restos a pagar registrados
               </div>
             )}
-            {despesasSubtext && (
-              <div className="mt-1.5 font-medium text-subtleText text-xs">
-                {despesasSubtext}
-              </div>
+            {despesasSubtext && !(totalEmpenhado && totalLiquidado) && (
+              <div className="mt-3 text-mute2 text-xs">{despesasSubtext}</div>
             )}
           </div>
 
           {/* Antiguidade Bars (Stacked Bipartida: Base Liquidado real, Topo Empenhado pendente; h-14 altura ampliada) */}
           {despesasBars.length > 0 && (
-            <div className="my-3 flex h-14 items-end gap-1.5">
+            <div className="my-3 flex h-12 items-end gap-1.5">
               {despesasBars.map((bar, idx) => {
                 const isHighlight =
                   bar.isCurrentYear ?? idx === despesasBars.length - 1;
@@ -147,15 +169,15 @@ export function CardsSecundariosVisaoGeral({
                   bar.percentageLiquidado !== undefined &&
                   bar.percentageEmpenhado !== undefined;
 
-                const liquidadoColor =
-                  bar.liquidadoColorClass ||
-                  (isHighlight ? "bg-[oklch(0.55_0.11_25)]" : "bg-[#c57983]");
-                const empenhadoColor =
-                  bar.empenhadoColorClass ||
-                  (isHighlight ? "bg-[#f0dadd]" : "bg-slate-200");
-                const fallbackColor =
-                  bar.colorClass ||
-                  (isHighlight ? "bg-[oklch(0.55_0.11_25)]" : "bg-slate-200");
+                const liquidadoColor = corDoGrafico(
+                  bar.liquidadoCorToken ?? (isHighlight ? "danger" : "mute2"),
+                );
+                const empenhadoColor = corDoGrafico(
+                  bar.empenhadoCorToken ?? "line",
+                );
+                const fallbackColor = corDoGrafico(
+                  bar.corToken ?? (isHighlight ? "danger" : "line"),
+                );
 
                 const totalPct = Math.min(100, Math.max(10, bar.percentage));
 
@@ -166,13 +188,13 @@ export function CardsSecundariosVisaoGeral({
                       className="group relative flex h-full flex-1 flex-col items-center justify-end"
                     >
                       <div
-                        className={cn(
-                          "w-full rounded-sm transition-all duration-300",
-                          fallbackColor,
-                        )}
-                        style={{ height: `${totalPct}%` }}
+                        className="w-full transition-all duration-300"
+                        style={{
+                          height: `${totalPct}%`,
+                          backgroundColor: fallbackColor,
+                        }}
                       />
-                      <span className="mt-1 text-[9px] text-mutedText">
+                      <span className="mt-1 font-mono text-[9px] text-mute2">
                         {bar.year}
                       </span>
                     </div>
@@ -197,33 +219,33 @@ export function CardsSecundariosVisaoGeral({
                     className="group relative flex h-full flex-1 flex-col items-center justify-end"
                   >
                     <div
-                      className="flex w-full flex-col overflow-hidden rounded-sm transition-all duration-300"
+                      className="flex w-full flex-col overflow-hidden transition-all duration-300"
                       style={{ height: `${totalPct}%` }}
                     >
                       {/* Topo: Empenhado residual (tom muted) */}
                       {empRatio > 0 && (
                         <div
-                          className={cn(
-                            "w-full transition-all",
-                            empenhadoColor,
-                          )}
-                          style={{ height: `${empRatio}%` }}
+                          className="w-full transition-all"
+                          style={{
+                            height: `${empRatio}%`,
+                            backgroundColor: empenhadoColor,
+                          }}
                           title={`Empenhado pendente (${bar.year})`}
                         />
                       )}
                       {/* Base: Liquidado real (cor viva) */}
                       {liqRatio > 0 && (
                         <div
-                          className={cn(
-                            "w-full transition-all",
-                            liquidadoColor,
-                          )}
-                          style={{ height: `${liqRatio}%` }}
+                          className="w-full transition-all"
+                          style={{
+                            height: `${liqRatio}%`,
+                            backgroundColor: liquidadoColor,
+                          }}
                           title={`Liquidado (${bar.year})`}
                         />
                       )}
                     </div>
-                    <span className="mt-1 text-[9px] text-mutedText">
+                    <span className="mt-1 font-mono text-[9px] text-mute2">
                       {bar.year}
                     </span>
                   </div>
@@ -235,53 +257,43 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {despesasFooter && (
-          <div className="mt-2 border-[#f4f5f7] border-t pt-2.5 font-medium text-[11px] text-subtleText">
-            {despesasFooter}
-          </div>
+          <div className="mt-4 text-mute2 text-xs">{despesasFooter}</div>
         )}
       </div>
 
       {/* Card 2: Licitações */}
-      <div className="flex flex-col justify-between rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <div className="flex items-center justify-between border-[#f4f5f7] border-b pb-3">
-            <span className="font-bold font-serif text-base text-ink">
-              {licitacoesTitle}
-            </span>
-            {licitacoesLinkHref && (
-              <Link
-                href={licitacoesLinkHref}
-                className="font-medium text-subtleText text-xs transition-colors hover:text-accent"
-              >
-                {licitacoesLinkText}
-              </Link>
-            )}
-          </div>
+          <CabecalhoColuna
+            title={licitacoesTitle}
+            linkText={licitacoesLinkText}
+            linkHref={licitacoesLinkHref}
+          />
 
           {/* Lista de Itens */}
-          <div className="my-3.5 space-y-2.5">
+          <div className="divide-y divide-line">
             {licitacoesItems.length > 0 ? (
               licitacoesItems.map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center gap-2 text-xs"
+                  className="flex items-center gap-3 py-2.5 text-xs first:pt-0"
                 >
                   <strong
                     className={cn(
-                      "w-7 shrink-0 font-bold font-serif text-base",
-                      item.isAlert ? "text-[oklch(0.55_0.11_25)]" : "text-ink",
+                      "w-9 shrink-0 font-bold font-sans text-base",
+                      item.isAlert ? "text-danger" : "text-ink",
                     )}
                   >
                     {item.count}
                   </strong>
-                  <span className="flex-1 truncate font-medium text-subtleText">
+                  <span className="flex-1 truncate text-mute2">
                     {item.label}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="py-4 text-center text-subtleText text-xs italic">
+              <div className="py-4 text-center text-mute2 text-xs italic">
                 Nenhum indicador registrado
               </div>
             )}
@@ -290,64 +302,55 @@ export function CardsSecundariosVisaoGeral({
       </div>
 
       {/* Card 3: Pessoal */}
-      <div className="flex flex-col justify-between rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
         <div>
           {/* Cabeçalho */}
-          <div className="flex items-center justify-between border-[#f4f5f7] border-b pb-3">
-            <span className="font-bold font-serif text-base text-ink">
-              {pessoalTitle}
-            </span>
-            {pessoalLinkHref && (
-              <Link
-                href={pessoalLinkHref}
-                className="font-medium text-subtleText text-xs transition-colors hover:text-accent"
-              >
-                {pessoalLinkText}
-              </Link>
-            )}
-          </div>
+          <CabecalhoColuna
+            title={pessoalTitle}
+            linkText={pessoalLinkText}
+            linkHref={pessoalLinkHref}
+          />
 
           {/* Destaque Numérico */}
-          <div className="my-4">
+          <div className="mb-4">
             {pessoalPercentFormatted ? (
-              <div className="font-bold font-serif text-2xl text-ink leading-none tracking-tight sm:text-3xl">
+              <div className="font-bold font-sans text-2xl text-ink leading-none tracking-tight sm:text-3xl">
                 {pessoalPercentFormatted}
               </div>
             ) : (
-              <div className="text-subtleText text-xs italic">
+              <div className="text-mute2 text-xs italic">
                 Sem dados de folha registrados
               </div>
             )}
             {pessoalSubtext && (
-              <div className="mt-1.5 font-medium text-subtleText text-xs">
-                {pessoalSubtext}
-              </div>
+              <div className="mt-3 text-mute2 text-xs">{pessoalSubtext}</div>
             )}
           </div>
 
           {/* Barra de Progresso + Marcador LRF */}
           {pessoalPercentFormatted && (
             <div className="my-3 space-y-1.5">
-              <div className="relative h-2.5 w-full overflow-visible rounded-md bg-[#f4f5f7]">
+              <div className="relative h-2 w-full overflow-visible bg-track">
                 {/* Progresso da Folha */}
                 <div
-                  className="h-full rounded-md bg-sky-600 transition-all duration-500"
+                  className="h-full transition-all duration-500"
                   style={{
+                    backgroundColor: corDoGrafico("brand"),
                     width: `${Math.min(100, Math.max(0, pessoalPercentVal))}%`,
                   }}
                 />
                 {/* Linha Vermelha de Limite LRF */}
                 <div
-                  className="absolute top-[-3px] z-10 h-4 w-0.5 bg-red-600"
+                  className="absolute top-[-3px] z-10 h-3.5 w-0.5 bg-danger"
                   style={{
                     left: `${Math.min(100, Math.max(0, lrfLimitVal))}%`,
                   }}
                   title={`Limite LRF: ${lrfLimitFormatted}`}
                 />
               </div>
-              <div className="flex items-center justify-between font-medium text-[10.5px] text-mutedText">
+              <div className="flex items-center justify-between font-mono text-[10.5px] text-mute2">
                 <span>{pessoalPercentVal}% atual</span>
-                <span className="font-semibold text-red-700">
+                <span className="text-danger">
                   limite LRF: {lrfLimitFormatted}
                 </span>
               </div>
@@ -357,9 +360,7 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {pessoalFooter && (
-          <div className="mt-2 border-[#f4f5f7] border-t pt-2.5 font-medium text-[11px] text-subtleText">
-            {pessoalFooter}
-          </div>
+          <div className="mt-4 text-mute2 text-xs">{pessoalFooter}</div>
         )}
       </div>
     </div>

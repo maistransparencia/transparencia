@@ -12,4 +12,46 @@ describe("ExternalLinkPill", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
     expect(link).toHaveClass("rounded-full", "border-pill");
   });
+
+  it("avisa leitores de tela que abre em nova aba", () => {
+    render(<ExternalLinkPill href="https://x.gov.br">Lei</ExternalLinkPill>);
+    expect(
+      screen.getByRole("link", { name: /abre em nova aba/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("repassa className e props extras", () => {
+    render(
+      <ExternalLinkPill
+        href="http://x.gov.br"
+        className="extra"
+        data-testid="pill"
+        aria-label="Lei federal"
+      >
+        Lei
+      </ExternalLinkPill>,
+    );
+    const link = screen.getByTestId("pill");
+    expect(link).toHaveClass("extra", "rounded-full");
+    expect(link).toHaveAttribute("aria-label", "Lei federal");
+  });
+
+  it.each(["javascript:alert(1)", "data:text/html,x", "/relativo", ""])(
+    "não renderiza link navegável para href inválido (%s)",
+    (href) => {
+      render(<ExternalLinkPill href={href}>Lei</ExternalLinkPill>);
+      expect(screen.queryByRole("link")).toBeNull();
+      expect(screen.getByText("Lei")).toBeInTheDocument();
+    },
+  );
+
+  it("alinha rótulo e ícone na mesma linha", () => {
+    render(
+      <ExternalLinkPill href="https://exemplo.gov.br">Lei</ExternalLinkPill>,
+    );
+    const link = screen.getByRole("link");
+    expect(link).toHaveClass("inline-flex", "items-center");
+    expect(screen.getByText("Lei")).toHaveClass("leading-none");
+    expect(link.querySelector("svg")).toHaveClass("shrink-0");
+  });
 });

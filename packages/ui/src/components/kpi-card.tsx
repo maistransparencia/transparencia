@@ -8,11 +8,66 @@ export interface KPICardProps {
     value: string | number;
     isPositive?: boolean;
   };
+  /** Destaque de marca. Tem precedência sobre `alert` quando ambos são informados. */
   accent?: boolean;
+  /** Destaque de atenção. Ignorado quando `accent` está ativo. */
   alert?: boolean;
+  /** Inverte a cor da tendência: use quando subir é ruim (ex.: dívida). */
+  invertTrend?: boolean;
   /** `divisoria`: sem caixa, filete e tipografia editorial. Sem valor, mantém o visual atual. */
   variant?: "padrao" | "divisoria";
   className?: string;
+}
+
+const temConteudo = (conteudo: React.ReactNode) =>
+  conteudo !== undefined &&
+  conteudo !== null &&
+  conteudo !== false &&
+  conteudo !== "" &&
+  conteudo !== 0;
+
+interface KPICardRodapeProps {
+  subtext?: React.ReactNode;
+  trend?: KPICardProps["trend"];
+  invertTrend: boolean;
+  /** `false` preserva o comportamento da variante padrão (renderiza `0`). */
+  omitirSubtextoVazio: boolean;
+  className: string;
+  trendPositiveClassName: string;
+  trendNegativeClassName: string;
+}
+
+/** Rodapé compartilhado entre as variantes; omitido quando não há conteúdo. */
+function KPICardRodape({
+  subtext,
+  trend,
+  invertTrend,
+  omitirSubtextoVazio,
+  className,
+  trendPositiveClassName,
+  trendNegativeClassName,
+}: KPICardRodapeProps) {
+  const temSubtexto = omitirSubtextoVazio ? temConteudo(subtext) : !!subtext;
+  if (!temSubtexto && !trend) return null;
+  const tendenciaBoa =
+    invertTrend && typeof trend?.isPositive === "boolean"
+      ? !trend.isPositive
+      : trend?.isPositive;
+  return (
+    <div className={className}>
+      {temSubtexto && <span>{subtext}</span>}
+      {trend && (
+        <span
+          className={cn(
+            "shrink-0 whitespace-nowrap font-semibold",
+            tendenciaBoa ? trendPositiveClassName : trendNegativeClassName,
+          )}
+        >
+          {trend.value}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export function KPICard({
@@ -22,6 +77,7 @@ export function KPICard({
   trend,
   accent = false,
   alert = false,
+  invertTrend = false,
   variant = "padrao",
   className,
 }: KPICardProps) {
@@ -41,21 +97,15 @@ export function KPICard({
             {value}
           </p>
         </div>
-        {(subtext || trend) && (
-          <div className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs">
-            {subtext && <span>{subtext}</span>}
-            {trend && (
-              <span
-                className={cn(
-                  "shrink-0 whitespace-nowrap font-semibold",
-                  trend.isPositive ? "text-ok" : "text-danger",
-                )}
-              >
-                {trend.value}
-              </span>
-            )}
-          </div>
-        )}
+        <KPICardRodape
+          subtext={subtext}
+          trend={trend}
+          invertTrend={invertTrend}
+          omitirSubtextoVazio
+          className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs"
+          trendPositiveClassName="text-ok"
+          trendNegativeClassName="text-danger"
+        />
       </div>
     );
   }
@@ -82,21 +132,15 @@ export function KPICard({
           {value}
         </p>
       </div>
-      {(subtext || trend) && (
-        <div className="mt-3 flex items-center justify-between gap-2 border-gray-100 border-t pt-2 text-mutedText text-xs">
-          {subtext && <span>{subtext}</span>}
-          {trend && (
-            <span
-              className={cn(
-                "shrink-0 whitespace-nowrap font-semibold",
-                trend.isPositive ? "text-emerald-600" : "text-rose-600",
-              )}
-            >
-              {trend.value}
-            </span>
-          )}
-        </div>
-      )}
+      <KPICardRodape
+        subtext={subtext}
+        trend={trend}
+        invertTrend={invertTrend}
+        omitirSubtextoVazio={false}
+        className="mt-3 flex items-center justify-between gap-2 border-gray-100 border-t pt-2 text-mutedText text-xs"
+        trendPositiveClassName="text-emerald-600"
+        trendNegativeClassName="text-rose-600"
+      />
     </div>
   );
 }

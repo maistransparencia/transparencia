@@ -18,4 +18,24 @@ describe("SectionHeader", () => {
     expect(screen.getByText("Resumo")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver tudo" })).toBeInTheDocument();
   });
+
+  it("usa h2 por padrão e aceita h1/h3", () => {
+    const { rerender } = render(<SectionHeader title="A" />);
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
+    rerender(<SectionHeader title="A" as="h1" />);
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    rerender(<SectionHeader title="A" as="h3" />);
+    expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
+  });
+
+  it.each([undefined, "", 0])(
+    "omite descrição e ação quando vazias (%s)",
+    (vazio) => {
+      const { container } = render(
+        <SectionHeader title="A" description={vazio} action={vazio} />,
+      );
+      expect(container.querySelector("p")).toBeNull();
+      expect(container.querySelectorAll("header > div > div")).toHaveLength(0);
+    },
+  );
 });

@@ -52,7 +52,7 @@ export default async function VisaoGeralPage({
     Boolean(viewModel.resumoObras);
 
   return (
-    <div className="space-y-9">
+    <div className="space-y-16 bg-page md:space-y-[104px]">
       <HeroFiscalCard
         portalName={viewModel.portalName}
         periodText={viewModel.periodText}
@@ -66,15 +66,10 @@ export default async function VisaoGeralPage({
       />
 
       {temDestaques && (
-        <section aria-labelledby="em-destaque-heading" className="space-y-3">
-          <div className="border-[#1a1d21] border-t-2 pt-3">
-            <h2
-              id="em-destaque-heading"
-              className="font-bold font-serif text-ink text-xl"
-            >
-              Em destaque
-            </h2>
-          </div>
+        <section
+          aria-label="Em destaque"
+          className="space-y-16 md:space-y-[104px]"
+        >
           <FarmaciaResumoCard
             status={viewModel.farmaciaStatus}
             detailUrl={viewModel.farmaciaDetailUrl}
@@ -106,17 +101,19 @@ export default async function VisaoGeralPage({
         ano={viewModel.selectedYear}
       />
 
-      <PipelineExecucao
-        stages={viewModel.pipelineStages}
-        detailUrl={viewModel.orcamentoDetailUrl}
-      />
+      <div className="space-y-8">
+        <PipelineExecucao
+          stages={viewModel.pipelineStages}
+          detailUrl={viewModel.orcamentoDetailUrl}
+        />
 
-      <SaldoCaixaResumoCard
-        posicaoFinanceira={viewModel.posicaoFinanceira}
-        ano={viewModel.selectedYear}
-        detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
-        hasEntityFilter={viewModel.hasEntityFilter}
-      />
+        <SaldoCaixaResumoCard
+          posicaoFinanceira={viewModel.posicaoFinanceira}
+          ano={viewModel.selectedYear}
+          detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
+          hasEntityFilter={viewModel.hasEntityFilter}
+        />
+      </div>
 
       <CardsSecundariosVisaoGeral
         despesas={viewModel.despesasCardData}

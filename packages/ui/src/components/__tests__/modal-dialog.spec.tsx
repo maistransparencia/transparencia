@@ -214,4 +214,72 @@ describe("ModalDialog tokens", () => {
     );
     expect(screen.getByText("Detalhes")).toHaveClass("font-serif");
   });
+
+  describe("ModalDialog acabamento", () => {
+    it("vira bottom sheet no mobile (sem raio inferior)", () => {
+      render(
+        <ModalDialog isOpen onClose={() => {}} title="Detalhes">
+          <p>x</p>
+        </ModalDialog>,
+      );
+      expect(screen.getByRole("dialog")).toHaveClass("max-sm:rounded-b-none");
+    });
+
+    it("botão voltar chama onBack e usa rótulo padrão", () => {
+      const aoVoltar = vi.fn();
+      render(
+        <ModalDialog
+          isOpen
+          onClose={() => {}}
+          title="Detalhes"
+          onBack={aoVoltar}
+        >
+          <p>x</p>
+        </ModalDialog>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+      expect(aoVoltar).toHaveBeenCalledTimes(1);
+    });
+
+    it("cabeçalho e rodapé se distinguem do corpo", () => {
+      render(
+        <ModalDialog
+          isOpen
+          onClose={() => {}}
+          title="Detalhes"
+          footer={<p>rod</p>}
+        >
+          <p>corpo</p>
+        </ModalDialog>,
+      );
+      const dialogo = screen.getByRole("dialog");
+      const cabecalho = screen.getByText("Detalhes").closest("div.border-b");
+      const rodape = screen.getByText("rod").parentElement;
+      expect(cabecalho).toHaveClass("bg-line2/40");
+      expect(rodape).toHaveClass("bg-line2/40");
+      expect(screen.getByText("corpo").parentElement).not.toHaveClass(
+        "bg-line2/40",
+      );
+      expect(dialogo).toContainElement(rodape);
+    });
+
+    it("botões de fechar e voltar têm foco visível", () => {
+      render(
+        <ModalDialog
+          isOpen
+          onClose={() => {}}
+          title="Detalhes"
+          onBack={() => {}}
+        >
+          <p>x</p>
+        </ModalDialog>,
+      );
+      expect(screen.getByRole("button", { name: "Fechar modal" })).toHaveClass(
+        "focus-visible:ring-2",
+      );
+      expect(screen.getByRole("button", { name: "Voltar" })).toHaveClass(
+        "focus-visible:ring-2",
+      );
+    });
+  });
 });

@@ -6,24 +6,36 @@ export interface SectionHeaderProps {
   description?: React.ReactNode;
   /** Link ou botão alinhado à direita do título. */
   action?: React.ReactNode;
+  /** Nível semântico do título (padrão `h2`). */
+  as?: "h1" | "h2" | "h3";
   className?: string;
 }
+
+const temConteudo = (conteudo: React.ReactNode) =>
+  conteudo !== undefined &&
+  conteudo !== null &&
+  conteudo !== false &&
+  conteudo !== "" &&
+  conteudo !== 0;
 
 export function SectionHeader({
   title,
   description,
   action,
+  as: Titulo = "h2",
   className,
 }: SectionHeaderProps) {
   return (
     <header className={cn("border-ink border-t-2 pt-4 pb-5", className)}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-semibold font-serif text-ink text-xl sm:text-2xl">
+        <Titulo className="font-semibold font-serif text-ink text-xl sm:text-2xl">
           {title}
-        </h2>
-        {action && <div className="shrink-0 text-sm">{action}</div>}
+        </Titulo>
+        {temConteudo(action) && (
+          <div className="shrink-0 text-sm">{action}</div>
+        )}
       </div>
-      {description && (
+      {temConteudo(description) && (
         <p className="mt-1.5 max-w-3xl text-mute2 text-sm leading-relaxed">
           {description}
         </p>

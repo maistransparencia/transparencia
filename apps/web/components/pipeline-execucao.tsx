@@ -1,6 +1,10 @@
-import { cn } from "@transparencia/ui";
+import {
+  cn,
+  corDoGrafico,
+  SectionHeader,
+  type TokenCorGrafico,
+} from "@transparencia/ui";
 import Link from "next/link";
-import React from "react";
 
 export interface ExecutionStage {
   name: string;
@@ -8,7 +12,8 @@ export interface ExecutionStage {
   formattedValue: string;
   percentage: number;
   label: string;
-  color?: string;
+  /** Token semântico da cor da barra (ver `corDoGrafico`). */
+  corToken?: TokenCorGrafico;
 }
 
 export interface PipelineExecucaoProps {
@@ -28,64 +33,55 @@ export function PipelineExecucao({
 
   return (
     <div className={cn("w-full", className)}>
-      {/* Cabeçalho de Seção */}
-      <div className="mb-3.5 flex items-baseline justify-between border-[#1a1d21] border-t-2 pt-3">
-        <h2 className="font-bold font-serif text-ink text-xl">{title}</h2>
-        {detailUrl && (
-          <Link
-            href={detailUrl}
-            className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent text-xs hover:underline"
-          >
-            Ver detalhes →
-          </Link>
-        )}
-      </div>
+      <SectionHeader
+        title={title}
+        action={
+          detailUrl ? (
+            <Link
+              href={detailUrl}
+              className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand text-xs hover:underline"
+            >
+              Ver detalhes →
+            </Link>
+          ) : undefined
+        }
+      />
 
       {/* Container Principal */}
-      <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-sm">
+      <div>
         {hasStages ? (
-          <div className="flex flex-col items-stretch justify-between gap-4 md:flex-row md:gap-2">
-            {stages.map((stage, idx) => (
-              <React.Fragment key={stage.name}>
-                <div className="flex min-w-0 flex-1 flex-col justify-between">
-                  <div>
-                    <div className="mb-2 font-semibold text-ink text-xs">
-                      {stage.name}
-                    </div>
-                    <div className="mb-3 h-2.5 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
-                      <div
-                        className={cn(
-                          "h-full rounded-md transition-all duration-500",
-                          stage.color || "bg-accent",
-                        )}
-                        style={{
-                          width: `${Math.min(100, Math.max(0, stage.percentage))}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-bold font-serif text-ink text-lg tracking-tight">
-                      {stage.formattedValue}
-                    </div>
-                    <div className="mt-0.5 font-medium text-subtleText text-xs">
-                      {stage.label}
-                    </div>
-                  </div>
+          <div className="flex flex-col items-stretch justify-between divide-y divide-line sm:flex-row sm:divide-x sm:divide-y-0">
+            {stages.map((stage) => (
+              <div
+                key={stage.name}
+                className="flex min-w-0 flex-1 flex-col py-5 sm:px-5 sm:last:pr-0 sm:first:pl-0"
+              >
+                <div className="mb-2 font-medium font-mono text-[10px] text-ink uppercase tracking-widest">
+                  {stage.name}
                 </div>
-
-                {idx < stages.length - 1 && (
-                  <div className="hidden select-none items-center justify-center px-2 text-[#c7ccd4] text-lg md:flex">
-                    ›
-                  </div>
-                )}
-              </React.Fragment>
+                <div className="mb-4 h-1.5 w-full overflow-hidden bg-track">
+                  <div
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, stage.percentage))}%`,
+                      backgroundColor: corDoGrafico(stage.corToken ?? "brand"),
+                    }}
+                  />
+                </div>
+                <div className="font-bold font-sans text-ink text-xl tracking-tight">
+                  {stage.formattedValue}
+                </div>
+                <div className="mt-1 text-mute2 text-xs">{stage.label}</div>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="py-6 text-center text-subtleText text-xs">
+          <div className="py-6 text-center text-mute2 text-xs">
             Nenhuma etapa de execução orçamentária disponível.
           </div>
+        )}
+        {hasStages && (
+          <div aria-hidden="true" className="mt-6 border-line border-t" />
         )}
       </div>
     </div>

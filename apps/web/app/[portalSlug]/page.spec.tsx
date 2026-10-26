@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadVisaoGeralData } from "./loader";
@@ -128,9 +130,7 @@ describe("VisaoGeralPage", () => {
         name: /ver detalhamento por entidade em execução orçamentária/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Em destaque" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
     expect(screen.queryByText(/Sentinela cívica/i)).not.toBeInTheDocument();
     expect(
       screen.getByRole("region", {
@@ -339,9 +339,7 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(
-      screen.getByRole("heading", { name: "Em destaque" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
     expect(screen.queryByTestId("destaque-linha")).toBeNull();
     expect(
       screen.getByRole("region", {
@@ -378,5 +376,75 @@ describe("VisaoGeralPage", () => {
         name: "Educação Básica e Desempenho Escolar",
       }),
     ).toBeNull();
+  });
+
+  it("cada seção abre com SectionHeader (filete de 2px) e espaçamento responsivo", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ resumoFarmacia: { status: "apagao" } }),
+    );
+    const { container } = render(await VisaoGeralPage(props));
+    const titulos = [
+      "Radar Cívico Municipal (2024)",
+      "Do orçamento autorizado ao pagamento",
+    ];
+    titulos.forEach((titulo) => {
+      const cabecalho = screen
+        .getByRole("heading", { name: titulo })
+        .closest("header");
+      expect(cabecalho).toHaveClass("border-t-2", "border-ink");
+    });
+    const raiz = container.firstElementChild;
+    expect(raiz).toHaveClass("space-y-16", "md:space-y-[104px]", "bg-page");
+  });
+
+  it("não usa caixas com sombra nem hex nos arquivos migrados", () => {
+    const arquivos = [
+      "app/[portalSlug]/page.tsx",
+      "components/hero-fiscal-card.tsx",
+      "components/destaque-linha.tsx",
+      "components/radar-civico-feed.tsx",
+      "components/pipeline-execucao.tsx",
+      "components/saldo-caixa-resumo-card.tsx",
+      "components/cards-secundarios-visao-geral.tsx",
+      "components/obras-resumo-card.tsx",
+      "components/educacao-resumo-card.tsx",
+      "components/farmacia/farmacia-resumo-card.tsx",
+    ];
+    arquivos.forEach((arquivo) => {
+      const conteudo = readFileSync(resolve(process.cwd(), arquivo), "utf8");
+      expect(conteudo, arquivo).not.toMatch(
+        /rounded-2xl|rounded-\[14px\]|shadow-sm|bg-white|#[0-9a-fA-F]{6}\b/,
+      );
+    });
+  });
+
+  it("é agnóstico de tenant: outra UF e série de 2017 a 2027", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        portalSlug: "outra_cidade_prefeitura",
+        context: {
+          currentYear: 2027,
+          selectedYear: 2027,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        portalConfig: {
+          displayName: "Outra Cidade",
+          uf: "MG",
+          dataExtracao: "2027-12-31",
+          dataExtracaoDate: new Date("2027-12-31"),
+        },
+      }),
+    );
+    const { container } = render(
+      await VisaoGeralPage({
+        params: Promise.resolve({ portalSlug: "outra_cidade_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "Radar Cívico Municipal (2027)" }),
+    ).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/Porci[uú]ncula|Natividade/);
   });
 });
