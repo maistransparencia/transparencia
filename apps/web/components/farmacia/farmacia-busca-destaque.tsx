@@ -24,7 +24,7 @@ export function FarmaciaBuscaDestaque({
         method="get"
         action={`${action}#resultados`}
         aria-label="Busca de medicamentos"
-        className="flex items-center gap-2.5 rounded-md border-[1.5px] border-ink bg-page py-1.5 pr-1.5 pl-[18px]"
+        className="flex items-center gap-2.5 overflow-hidden rounded-md border-[1.5px] border-ink bg-page pl-[18px]"
       >
         <Search
           className="h-[18px] w-[18px] shrink-0 text-mute2"
@@ -56,7 +56,7 @@ export function FarmaciaBuscaDestaque({
         )}
         <button
           type="submit"
-          className="h-[46px] shrink-0 rounded-md bg-ink px-[22px] font-semibold text-[15px] text-onink hover:bg-ink/80"
+          className="-my-px -mr-px shrink-0 self-stretch bg-ink px-7 font-semibold text-[15px] text-onink hover:bg-ink/80"
         >
           Buscar
         </button>
@@ -68,7 +68,7 @@ export function FarmaciaBuscaDestaque({
             <Link
               key={exemplo.nomePrincipioAtivo}
               href={exemplo.href}
-              className="text-[13px] text-ink underline-offset-4 hover:underline"
+              className="text-[14px] text-brand underline-offset-4 hover:underline"
             >
               {exemplo.nomePrincipioAtivo}
             </Link>

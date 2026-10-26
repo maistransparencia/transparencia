@@ -8,7 +8,7 @@ export function FarmaciaSeloTransparencia({
   dataAtualizacao,
 }: FarmaciaSeloTransparenciaProps) {
   return (
-    <p className="flex items-center gap-2 self-start border-line border-y px-3 py-2 text-mute text-xs">
+    <p className="flex items-center gap-2 self-start font-mono text-[12px] text-mute uppercase tracking-wider">
       <span
         className="h-[7px] w-[7px] shrink-0 rounded-full bg-ok"
         aria-hidden="true"

@@ -8,12 +8,6 @@ import { useId, useRef, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { FarmaciaAcoesCivicas } from "./farmacia-acoes-civicas";
 
-/** Grupo de filtros com `aria-pressed`: sem o papel `tab` padrão da variante. */
-const SEM_PAPEL_DE_ABA = {
-  role: undefined,
-  "aria-selected": undefined,
-} as const;
-
 export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
   nomePrincipioAtivo: string;
@@ -302,13 +296,11 @@ export function FarmaciaSentinelas({
 
       <fieldset
         aria-label="Filtrar por categoria"
-        className="m-0 flex flex-wrap gap-x-4 gap-y-1 border-0 p-0"
+        className="m-0 flex flex-wrap gap-2 border-0 p-0"
       >
         <SegmentedButton
-          variant="tabs"
           active={categoria === null}
-          {...SEM_PAPEL_DE_ABA}
-          aria-pressed={categoria === null}
+          size="md"
           onClick={() => setCategoria(null)}
         >
           Todos
@@ -316,10 +308,8 @@ export function FarmaciaSentinelas({
         {categorias.map((item) => (
           <SegmentedButton
             key={item.codigo}
-            variant="tabs"
             active={categoria === item.codigo}
-            {...SEM_PAPEL_DE_ABA}
-            aria-pressed={categoria === item.codigo}
+            size="md"
             onClick={() => setCategoria(item.codigo)}
           >
             {item.rotulo}

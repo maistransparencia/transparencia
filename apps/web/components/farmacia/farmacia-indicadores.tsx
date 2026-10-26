@@ -18,10 +18,12 @@ export function FarmaciaIndicadores({
       {indicadores.map((indicador) => (
         <div
           key={indicador.codigo}
-          className="flex flex-1 flex-col gap-1 py-3.5 sm:px-4 sm:first:pl-0"
+          className="flex flex-1 flex-col gap-1.5 py-4 sm:px-4 sm:first:pl-0"
         >
-          <dt className="font-medium text-mute2 text-xs">{indicador.rotulo}</dt>
-          <dd className="font-bold font-serif text-[26px] text-ink">
+          <dt className="font-medium font-mono text-[11px] text-mute2 uppercase tracking-wider">
+            {indicador.rotulo}
+          </dt>
+          <dd className="font-bold font-sans text-[32px] text-ink">
             {indicador.valor}
           </dd>
           {indicador.nota && (
