@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, MessageCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 
 export interface FarmaciaAcoesCivicasProps {
@@ -75,17 +75,22 @@ export function FarmaciaAcoesCivicas({
         <button
           type="button"
           onClick={handleCopiar}
-          className={BOTOES_CLASS[variante].principal}
+          className={`${BOTOES_CLASS[variante].principal} ${feedback === "copiado" ? "border-ok bg-ok text-onink hover:bg-ok" : ""}`}
         >
-          <Copy className="h-4 w-4" aria-hidden="true" />
-          {rotuloCopiar}
+          {feedback === "copiado" ? (
+            <>
+              Copiado
+              <Check className="h-4 w-4" aria-hidden="true" />
+            </>
+          ) : (
+            rotuloCopiar
+          )}
         </button>
         <button
           type="button"
           onClick={handleWhatsApp}
           className={BOTOES_CLASS[variante].secundario}
         >
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
           {rotuloWhatsApp}
         </button>
       </div>

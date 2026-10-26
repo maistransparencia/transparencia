@@ -1,7 +1,12 @@
 "use client";
 
-import { fmtNumber, ModalDialog, SegmentedButton } from "@transparencia/ui";
-import { ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  fmtDate,
+  fmtNumber,
+  ModalDialog,
+  SegmentedButton,
+} from "@transparencia/ui";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { useId, useRef, useState } from "react";
@@ -18,7 +23,12 @@ export interface FarmaciaSentinelaItem {
   unidadesSomenteCombinacao: number;
   href: string;
   /** Pedido de esclarecimento; só existe para essencial sem registro de estoque. */
-  pedido?: { texto: string; textoWhatsApp: string } | null;
+  pedido?: {
+    texto: string;
+    textoWhatsApp: string;
+    dataEstoque: string | null;
+    rotuloMunicipio: string;
+  } | null;
 }
 
 const LEIS_DO_PEDIDO = [
@@ -97,14 +107,9 @@ function PedidoEsclarecimentoConteudo({
     <div className="space-y-4">
       <div className="space-y-2 text-mute text-sm leading-relaxed">
         <p>
-          O texto abaixo já está pronto e pode ser editado. Inclua seu nome e um
-          contato: a lei pede a identificação de quem faz o pedido. Copie e
-          envie pelo canal oficial de acesso à informação da Prefeitura, ou
-          compartilhe pelo WhatsApp.
-        </p>
-        <p>
-          Não aparecer na lista não quer dizer que o remédio acabou. Pode ser
-          que a unidade não tenha informado.
+          O texto abaixo já está pronto e pode ser editado. Copie e envie pelo
+          canal oficial de acesso à informação da Prefeitura, ou compartilhe
+          pelo WhatsApp.
         </p>
       </div>
       <div className="space-y-1.5">
@@ -112,7 +117,7 @@ function PedidoEsclarecimentoConteudo({
           <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
             Texto do pedido
           </label>
-          <span className="text-mute3 text-xs tabular-nums">
+          <span className="font-mono text-mute3 text-xs tabular-nums">
             {fmtNumber(texto.length)} caracteres
           </span>
         </div>
@@ -167,8 +172,8 @@ function PedidoEsclarecimentoConteudo({
         }
       />
       <p className="border-line border-t pt-3 text-mute2 text-xs">
-        Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
-        tem até 20 dias. Pode prorrogar por mais 10 dias, com justificativa.
+        Pela LAI, o órgão tem até 20 dias para responder, prorrogáveis por mais
+        10.
       </p>
     </div>
   );
@@ -216,12 +221,16 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         isOpen={aberto}
         onClose={fechar}
         title="Pedir esclarecimento"
-        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque`}
+        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque${item.pedido.dataEstoque ? ` de ${fmtDate(item.pedido.dataEstoque)}` : ""}`}
         subtitleClassName="line-clamp-2"
         badge={
-          <span className="inline-flex items-center gap-1 text-mute2 text-xs">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Lei de Acesso à Informação
+          <span className="inline-flex items-center gap-2 text-xs">
+            {item.pedido.rotuloMunicipio && (
+              <span className="rounded-md bg-banbg px-2.5 py-1 font-semibold text-banfg">
+                {item.pedido.rotuloMunicipio}
+              </span>
+            )}
+            <span className="text-mute2">Lei de Acesso à Informação</span>
           </span>
         }
         maxWidth="2xl"

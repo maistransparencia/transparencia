@@ -73,7 +73,12 @@ export interface FarmaciaEssencialItem {
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
-  pedido: { texto: string; textoWhatsApp: string } | null;
+  pedido: {
+    texto: string;
+    textoWhatsApp: string;
+    dataEstoque: string | null;
+    rotuloMunicipio: string;
+  } | null;
 }
 
 function rotuloGrupoTerapeutico(codigo: string): string {
@@ -89,7 +94,11 @@ function statusEssencial(item: FarmaciaSentinelaDTO): StatusEssencial {
 function buildEssenciais(
   portalSlug: string,
   sentinelas: FarmaciaSentinelaDTO[],
-  contextoPedido: { portalName: string; dataPosicaoMaisRecente: string | null },
+  contextoPedido: {
+    portalName: string;
+    portalUf: string;
+    dataPosicaoMaisRecente: string | null;
+  },
 ): FarmaciaEssencialItem[] {
   return sentinelas.map((item) => {
     const status = statusEssencial(item);
@@ -110,6 +119,13 @@ function buildEssenciais(
                 nomeMedicamento: item.nomePrincipioAtivo,
                 dataPosicaoMaisRecente: contextoPedido.dataPosicaoMaisRecente,
               }),
+              dataEstoque: contextoPedido.dataPosicaoMaisRecente,
+              rotuloMunicipio: [
+                contextoPedido.portalName,
+                contextoPedido.portalUf,
+              ]
+                .filter(Boolean)
+                .join(" - "),
               textoWhatsApp: buildTextoWhatsAppPedido({
                 portalName: contextoPedido.portalName,
                 nomeMedicamento: item.nomePrincipioAtivo,
@@ -321,7 +337,7 @@ export function buildPedidoEsclarecimento(params: {
   return [
     `À Secretaria Municipal de Saúde ${destinatario}.`,
     "",
-    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. O art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
+    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), e no art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, que obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS, solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
   ].join("\n");
 }
 
@@ -401,6 +417,7 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
 
   const essenciais = buildEssenciais(portalSlug, sentinelas.sentinelas, {
     portalName,
+    portalUf: raw.portalUf,
     dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,
   });
 

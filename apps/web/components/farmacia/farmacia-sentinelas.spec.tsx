@@ -32,6 +32,8 @@ const essenciais = [
     pedido: {
       texto: "Pedido sobre Captopril",
       textoWhatsApp: "Pedido WhatsApp:",
+      dataEstoque: "2026-10-19",
+      rotuloMunicipio: "Prefeitura de Teste - UF",
     },
   }),
   item({
@@ -146,7 +148,7 @@ describe("FarmaciaSentinelas", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("oferece Pedir esclarecimento so para essencial sem registro, com links das leis", () => {
+  it("oferece Pedir esclarecimento so para essencial sem registro, com links das leis", async () => {
     render(
       <FarmaciaSentinelas
         essenciais={essenciais}
@@ -170,12 +172,24 @@ describe("FarmaciaSentinelas", () => {
     expect(
       screen.getByRole("button", { name: "Copiar pedido" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Prefeitura de Teste - UF")).toBeInTheDocument();
+    expect(screen.getByText(/não aparece no estoque de /)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pela LAI, o órgão tem até 20 dias/),
+    ).toBeInTheDocument();
     const lei = screen.getByRole("link", {
       name: /Lei de Acesso à Informação/,
     });
     expect(lei.getAttribute("href")).toContain("planalto.gov.br");
     expect(lei).toHaveAttribute("target", "_blank");
     expect(lei).toHaveAttribute("rel", "noopener noreferrer");
+
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Copiar pedido" }));
+    const copiado = await screen.findByRole("button", { name: /Copiado/ });
+    expect(copiado).toHaveClass("bg-ok");
 
     fireEvent.change(screen.getByLabelText("Texto do pedido"), {
       target: { value: "Texto editado" },

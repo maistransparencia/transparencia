@@ -76,6 +76,7 @@ async function fetchRawFarmaciaData(
   return {
     portalSlug: tenantSlug,
     portalName: portalConfig?.displayName ?? "",
+    portalUf: portalConfig?.uf ?? "",
     context,
     farmacia,
     sentinelas,
