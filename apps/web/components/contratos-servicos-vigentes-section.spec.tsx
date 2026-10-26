@@ -609,4 +609,89 @@ describe("ContratosServicosVigentesSection", () => {
     fireEvent.click(linha);
     expect(linha).toHaveAttribute("aria-expanded", "true");
   });
+
+  it("painel mostra status e aditamento; inexecutado oculta barra e saldo", () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection
+        contratos={[
+          { ...mockContratos[0], valorAditado: 5000 },
+          {
+            ...mockContratos[1],
+            contratoServicoId: "ctr-inex",
+            statusExecucao: "inexecutado",
+          },
+        ]}
+        portalSlug="porciuncula_prefeitura"
+        ano={2024}
+      />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    fireEvent.click(
+      within(tbody).getAllByRole("button", {
+        name: "Expandir detalhes da linha",
+      })[0],
+    );
+    expect(within(tbody).getByText("Com aditamento")).toBeInTheDocument();
+    expect(within(tbody).getAllByText("Em Execução").length).toBeGreaterThan(0);
+    expect(within(tbody).getByText("Saldo")).toBeInTheDocument();
+    expect(within(tbody).getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  it("painel de contrato inexecutado oculta barra de % pago e saldo", () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection
+        contratos={[{ ...mockContratos[0], statusExecucao: "inexecutado" }]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Não Executados (1)" }));
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    fireEvent.click(
+      within(tbody).getByRole("button", { name: "Expandir detalhes da linha" }),
+    );
+    expect(within(tbody).getAllByText("Não Executado").length).toBeGreaterThan(
+      0,
+    );
+    expect(within(tbody).queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(within(tbody).queryByText("Saldo")).not.toBeInTheDocument();
+  });
+
+  it("mobile mostra rótulo Empenhado e selo de status no resumo", () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection contratos={mockContratos} />,
+    );
+    const linha = container.querySelector(
+      "div[role='button'][aria-expanded]",
+    ) as HTMLElement;
+    expect(linha).toHaveTextContent("Empenhado");
+    expect(linha).toHaveTextContent("Em Execução");
+  });
+
+  it("deep link ?contratoNumero= leva à página da linha e a expande", () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/porciuncula_prefeitura/licitacoes?contratoNumero=0012%2F24",
+    );
+    const muitos: ContratoServicoVigente[] = Array.from(
+      { length: 12 },
+      (_, i) => ({
+        ...mockContratos[0],
+        contratoServicoId: `ctr-m-${i}`,
+        contratoNumero: `${String(i + 1).padStart(4, "0")}/24`,
+        fornecedorNome: `Fornecedor ${i + 1}`,
+      }),
+    );
+    const { container } = render(
+      <ContratosServicosVigentesSection
+        contratos={muitos}
+        portalSlug="porciuncula_prefeitura"
+        ano={2024}
+      />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    expect(within(tbody).getByText("Fornecedor 12")).toBeInTheDocument();
+    expect(
+      within(tbody).getByRole("button", { name: "Recolher detalhes da linha" }),
+    ).toBeInTheDocument();
+  });
 });

@@ -3,6 +3,7 @@
 import { BProgress } from "@bprogress/core";
 import type { ContratoServicoVigente } from "@transparencia/db";
 import {
+  Badge,
   type Column,
   cn,
   DenseTable,
@@ -21,6 +22,12 @@ interface ContratosServicosVigentesSectionProps {
 }
 
 type FilterStatus = "em_execucao" | "concluido" | "inexecutado" | "todos";
+
+function statusBadgeVariant(status?: string | null) {
+  if (status === "concluido") return "success";
+  if (status === "inexecutado") return "danger";
+  return "default";
+}
 
 export function ContratosServicosVigentesSection({
   contratos,
@@ -356,6 +363,15 @@ export function ContratosServicosVigentesSection({
     }));
   }, [filteredContratos]);
 
+  const revealRowId =
+    highlightedId === null
+      ? null
+      : (tableData.find(
+          (c) =>
+            c.contratoServicoId === highlightedId ||
+            c.contratoNumero === highlightedId,
+        )?.contratoServicoId ?? null);
+
   if ((!contratos || contratos.length === 0) && !selectedContrato) {
     return null;
   }
@@ -433,9 +449,20 @@ export function ContratosServicosVigentesSection({
   ];
 
   const renderContratoExpandedRow = (row: (typeof tableData)[number]) => {
-    const percentualPago = Math.min(100, Math.max(0, row.percentualPago ?? 0));
+    const percentualPago = Number.isFinite(row.percentualPago)
+      ? Math.min(100, Math.max(0, row.percentualPago))
+      : 0;
+    const inexecutado = row.statusExecucao === "inexecutado";
     return (
       <div className="space-y-4 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={statusBadgeVariant(row.statusExecucao)}>
+            {row.statusLabel}
+          </Badge>
+          {(row.valorAditado ?? 0) > 0 && (
+            <Badge variant="accent">Com aditamento</Badge>
+          )}
+        </div>
         <p className="text-ink leading-relaxed">{row.objetoDescricao || "—"}</p>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
@@ -462,35 +489,39 @@ export function ContratosServicosVigentesSection({
               {fmtCurrency(row.totalPago)}
             </dd>
           </div>
-          <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Saldo
-            </dt>
-            <dd className="mt-1 font-bold font-mono text-warn tabular-nums">
-              {fmtCurrency(row.saldoPendente)}
-            </dd>
-          </div>
+          {!inexecutado && (
+            <div>
+              <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+                Saldo
+              </dt>
+              <dd className="mt-1 font-bold font-mono text-warn tabular-nums">
+                {fmtCurrency(row.saldoPendente)}
+              </dd>
+            </div>
+          )}
         </dl>
-        <div className="space-y-1.5">
-          <div
-            className="h-1 w-full overflow-hidden rounded-full bg-line"
-            role="progressbar"
-            aria-label="Percentual do empenhado já pago"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={percentualPago}
-          >
+        {!inexecutado && (
+          <div className="space-y-1.5">
             <div
-              className="h-full bg-brand"
-              style={{
-                width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
-              }}
-            />
+              className="h-1 w-full overflow-hidden rounded-full bg-line"
+              role="progressbar"
+              aria-label="Percentual do empenhado já pago"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percentualPago}
+            >
+              <div
+                className="h-full bg-brand"
+                style={{
+                  width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
+                }}
+              />
+            </div>
+            <p className="font-mono text-mute2 tabular-nums">
+              {fmtPercent(percentualPago)} do empenhado foi pago
+            </p>
           </div>
-          <p className="font-mono text-mute2 tabular-nums">
-            {fmtPercent(row.percentualPago)} do empenhado foi pago
-          </p>
-        </div>
+        )}
         <div>
           <button
             type="button"
@@ -593,14 +624,22 @@ export function ContratosServicosVigentesSection({
                   >
                     {row.fornecedorNome}
                   </button>
-                  <span className="shrink-0 font-bold font-mono text-ink text-sm tabular-nums">
-                    {fmtCurrency(row.totalEmpenhado)}
+                  <span className="shrink-0 text-right">
+                    <span className="block font-mono text-[10px] text-mute2 uppercase tracking-wider">
+                      Empenhado
+                    </span>
+                    <span className="font-bold font-mono text-ink text-sm tabular-nums">
+                      {fmtCurrency(row.totalEmpenhado)}
+                    </span>
                   </span>
                 </div>
                 <p className="line-clamp-2 text-ink text-xs leading-snug">
                   {row.objetoDescricao || "—"}
                 </p>
-                <div className="text-[11px] text-mute2 tabular-nums">
+                <div className="flex items-center justify-between gap-3 text-[11px] text-mute2 tabular-nums">
+                  <Badge variant={statusBadgeVariant(row.statusExecucao)}>
+                    {row.statusLabel}
+                  </Badge>
                   <span className="font-mono">{row.vigenciaFormatada}</span>
                 </div>
               </div>
@@ -609,6 +648,7 @@ export function ContratosServicosVigentesSection({
           };
         }}
         hideCsvOnMobile
+        revealRowId={revealRowId}
         hideSearch
         rowClassName={(row) => {
           const isMatch =

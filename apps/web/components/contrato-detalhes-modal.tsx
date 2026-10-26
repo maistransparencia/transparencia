@@ -155,7 +155,7 @@ export function ContratoDetalhesModal({
             </div>
             <Link
               href={`/${portalSlug || "portal"}/licitacoes?ano=${contrato.ano}&contratoNumero=${encodeURIComponent(contrato.contratoNumero || contrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
-              className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-warn"
+              className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-ink"
             >
               <span>Mudar painel para {contrato.ano}</span>
             </Link>
@@ -206,7 +206,7 @@ export function ContratoDetalhesModal({
                 <button
                   type="button"
                   onClick={handleLicitacaoClick}
-                  className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand underline decoration-brand/40 hover:text-brand hover:decoration-brand/40"
+                  className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand underline decoration-brand/40 hover:text-ink hover:decoration-ink/40"
                   title="Ver detalhes do processo licitatório vinculado"
                 >
                   <span>{contrato.licitacaoNumero}</span>

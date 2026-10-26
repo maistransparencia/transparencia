@@ -672,14 +672,6 @@ export function LicitacoesEmAndamentoSection({
               Sala de Disputa
             </ExternalLinkPill>
           )}
-          {row.linkSistemaOrigem && row.fonteObjeto === "pncp" && (
-            <ExternalLinkPill
-              href={row.linkSistemaOrigem}
-              className="rounded-md px-4 py-2 font-semibold"
-            >
-              Ver no PNCP
-            </ExternalLinkPill>
-          )}
         </div>
       </div>
     );
@@ -717,8 +709,13 @@ export function LicitacoesEmAndamentoSection({
           <p className="line-clamp-2 text-ink text-xs leading-snug">
             {row.objeto}
           </p>
-          <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
-            <span>{row.modalidadeFormatada}</span>
+          <div className="flex items-center justify-between gap-3 text-[11px] text-mute2">
+            <span className="flex flex-wrap items-center gap-1.5">
+              <Badge variant={situacaoBadgeVariant(row.situacaoCodigo)}>
+                {row.situacaoFormatada}
+              </Badge>
+              <span>{row.modalidadeFormatada}</span>
+            </span>
             <span className="font-mono tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </span>
@@ -728,6 +725,17 @@ export function LicitacoesEmAndamentoSection({
       detalhes: null,
     };
   };
+
+  const revealRowId =
+    highlightedNumero === null
+      ? null
+      : (tableData.find(
+          (item) =>
+            item.licitacaoNumero === highlightedNumero ||
+            item.licitacaoId === highlightedNumero ||
+            item.licitacaoNumero?.replace(/^0+/, "") ===
+              highlightedNumero.replace(/^0+/, ""),
+        )?.licitacaoId ?? null);
 
   const totalProcessos = licitacoes.length;
 
@@ -810,6 +818,7 @@ export function LicitacoesEmAndamentoSection({
               renderMobileRow={renderLicitacaoMobileRow}
               renderExpandedRow={renderLicitacaoExpandedRow}
               hideCsvOnMobile
+              revealRowId={revealRowId}
               hideSearch
               searchPlaceholder="Buscar por objeto, edital, órgão, modalidade ou situação..."
               searchableKeys={[
@@ -878,7 +887,7 @@ export function LicitacoesEmAndamentoSection({
                   href={selectedLicitacaoForItens.linkSistemaOrigem}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand hover:underline"
+                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-ink hover:underline"
                 >
                   <span>Abrir Sala de Disputa no PNCP</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -916,7 +925,7 @@ export function LicitacoesEmAndamentoSection({
                       </div>
                       <Link
                         href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
-                        className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-warn"
+                        className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-ink"
                       >
                         <span>
                           Mudar painel para {selectedLicitacaoForItens.ano}

@@ -69,6 +69,11 @@ export interface DenseTableProps<T> {
   hideSearch?: boolean;
   /** Oculta o botão de exportar CSV em telas < sm. */
   hideCsvOnMobile?: boolean;
+  /**
+   * Valor do `rowKey` da linha a ser revelada (deep link): a tabela vai até a
+   * página que a contém, expande a linha e rola até ela. Requer `rowKey`.
+   */
+  revealRowId?: string | null;
   rowClassName?: (row: T, index: number) => string | undefined;
   onFilteredDataChange?: (rows: T[]) => void;
   footerLabel?: string;
@@ -124,6 +129,7 @@ export function DenseTable<T extends Record<string, any>>({
   renderExpandedRow,
   hideSearch = false,
   hideCsvOnMobile = false,
+  revealRowId,
   rowClassName,
   onFilteredDataChange,
   footerLabel = "Total",
@@ -184,7 +190,7 @@ export function DenseTable<T extends Record<string, any>>({
     }
   };
 
-  const mobileSortableColumns = columns.filter(
+  const mobileSortableColumns = visibleColumns.filter(
     (col) => (col.sortable ?? sortable) && col.accessorKey !== undefined,
   );
 
@@ -192,7 +198,8 @@ export function DenseTable<T extends Record<string, any>>({
     setPage(1);
     setExpandedRowId(null);
     if (!value) {
-      setSortKey(null);
+      setSortKey(defaultSortKey ?? null);
+      setSortDir(defaultSortDir ?? "asc");
       return;
     }
     const col = mobileSortableColumns.find(
@@ -273,6 +280,38 @@ export function DenseTable<T extends Record<string, any>>({
     const start = (currentPage - 1) * pageSize;
     return sortedData.slice(start, start + pageSize);
   }, [sortedData, pageSize, currentPage]);
+
+  const revealedRowIdRef = useRef<string | null>(null);
+  const pendingScrollRowIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!revealRowId || !rowKey) return;
+    if (revealedRowIdRef.current === revealRowId) return;
+    const index = sortedData.findIndex(
+      (row) => String(row[rowKey]) === revealRowId,
+    );
+    if (index < 0) return;
+    revealedRowIdRef.current = revealRowId;
+    pendingScrollRowIdRef.current = revealRowId;
+    if (pageSize) setPage(Math.floor(index / pageSize) + 1);
+    setExpandedRowId(revealRowId);
+  }, [revealRowId, rowKey, sortedData, pageSize]);
+
+  useEffect(() => {
+    const pendingId = pendingScrollRowIdRef.current;
+    if (!pendingId || expandedRowId !== pendingId) return;
+    pendingScrollRowIdRef.current = null;
+    containerRef.current
+      ?.querySelectorAll("[data-row-id]")
+      .forEach((element) => {
+        if (
+          element.getAttribute("data-row-id") === pendingId &&
+          typeof element.scrollIntoView === "function"
+        ) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+  }, [expandedRowId]);
 
   const handleExportCsv = () => {
     if (!sortedData.length) return;
@@ -463,7 +502,12 @@ export function DenseTable<T extends Record<string, any>>({
             </label>
             <select
               id={`${sortSelectId}-mobile-sort`}
-              value={sortKey ? String(sortKey) : ""}
+              value={
+                sortKey &&
+                mobileSortableColumns.some((col) => col.accessorKey === sortKey)
+                  ? String(sortKey)
+                  : ""
+              }
               onChange={(e) => handleMobileSortKeyChange(e.target.value)}
               className="min-w-0 flex-1 rounded-md border border-line bg-page px-2 py-1.5 text-ink text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
@@ -506,6 +550,7 @@ export function DenseTable<T extends Record<string, any>>({
             return (
               <div
                 key={`m-${rKey}`}
+                data-row-id={rKey}
                 className="border-line border-b last:border-b-0"
               >
                 {/* biome-ignore lint/a11y/useSemanticElements: o resumo contém links/botões próprios, então não pode ser um <button> */}
@@ -661,6 +706,7 @@ export function DenseTable<T extends Record<string, any>>({
                 return (
                   <Fragment key={`tr-${rKey}`}>
                     <tr
+                      data-row-id={rKey}
                       onClick={
                         renderExpandedRow
                           ? (event) => {

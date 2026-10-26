@@ -817,4 +817,59 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(within(tbody2).queryByText("Homologação")).not.toBeInTheDocument();
   });
+
+  it("mobile mostra o selo de situação no resumo e o painel não oferece 'Ver no PNCP'", () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={[
+          {
+            ...sampleItems[0],
+            fonteObjeto: "pncp",
+            linkSistemaOrigem: "https://pncp.gov.br/app/editais/1/2025/1",
+          },
+        ]}
+      />,
+    );
+    const linha = container.querySelector(
+      "div[role='button'][aria-expanded]",
+    ) as HTMLElement;
+    expect(linha).toHaveTextContent(/em andamento/i);
+    expandirPrimeiraLinha(container);
+    expect(screen.queryByText("Ver no PNCP")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Sala de Disputa").length).toBeGreaterThan(0);
+  });
+
+  it("deep link ?numero= leva à página da linha, expande e rola até ela", () => {
+    const rolar = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = rolar;
+    const muitos: LicitacaoEmAndamentoDTO[] = Array.from(
+      { length: 12 },
+      (_, i) => ({
+        ...sampleItems[0],
+        licitacaoId: `lic-m-${i}`,
+        licitacaoNumero: `PE ${String(i + 1).padStart(3, "0")}/2025`,
+        valorEstimado: (20 - i) * 1000,
+        valor: (20 - i) * 1000,
+      }),
+    );
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL(
+        "http://localhost:3000/porciuncula/licitacoes?numero=PE 012/2025",
+      ),
+    });
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={muitos} />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    expect(within(tbody).getByText("PE 012/2025")).toBeInTheDocument();
+    expect(
+      within(tbody).getByRole("button", { name: "Recolher detalhes da linha" }),
+    ).toBeInTheDocument();
+    expect(rolar).toHaveBeenCalled();
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: new URL("http://localhost:3000/porciuncula/licitacoes"),
+    });
+  });
 });

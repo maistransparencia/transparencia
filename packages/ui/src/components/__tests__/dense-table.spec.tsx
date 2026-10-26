@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Column, DenseTable } from "../dense-table";
 
@@ -697,5 +697,110 @@ describe("DenseTable - mobile com painel expandido, ordenação e CSV", () => {
       container.querySelector('button[aria-label="Baixar CSV"]'),
     ).toBeNull();
     expect(screen.getByText("Baixar CSV")).toBeInTheDocument();
+  });
+});
+
+describe("DenseTable - exportOnly no CSV, reset do accordion e deep link", () => {
+  type Linha = { id: string; nome: string; extra: string; valor: number };
+  const dados: Linha[] = Array.from({ length: 5 }, (_, i) => ({
+    id: String(i + 1),
+    nome: `Nome${i + 1}`,
+    extra: `extra${i + 1}`,
+    valor: (i + 1) * 10,
+  }));
+  const colunas: Column<Linha>[] = [
+    { header: "Nome", accessorKey: "nome", sortable: true },
+    { header: "Valor", accessorKey: "valor", sortable: true },
+    { header: "Extra", accessorKey: "extra", exportOnly: true },
+  ];
+  const renderTabela = (extra = {}) =>
+    render(
+      <DenseTable
+        data={dados}
+        columns={colunas}
+        rowKey="id"
+        pageSize={2}
+        searchableKeys={["nome"]}
+        enableExportCsv={false}
+        renderMobileRow={(row) => ({
+          resumo: <span>resumo {row.nome}</span>,
+          detalhes: null,
+        })}
+        renderExpandedRow={(row) => <div>painel {row.nome}</div>}
+        {...extra}
+      />,
+    );
+  const abertas = (container: HTMLElement) =>
+    container.querySelectorAll("tbody [aria-expanded='true']").length;
+
+  it("CSV inclui cabeçalho e valores da coluna exportOnly", async () => {
+    let conteudo = "";
+    const blobOriginal = global.Blob;
+    global.Blob = class {
+      constructor(partes: BlobPart[]) {
+        conteudo = partes.join("");
+      }
+    } as unknown as typeof Blob;
+    URL.createObjectURL = vi.fn(() => "blob:x");
+    URL.revokeObjectURL = vi.fn();
+    render(<DenseTable data={dados} columns={colunas} rowKey="id" />);
+    fireEvent.click(screen.getByText("Baixar CSV"));
+    global.Blob = blobOriginal;
+    expect(conteudo).toContain('"Extra"');
+    expect(conteudo).toContain('"extra3"');
+  });
+
+  it("fecha a linha expandida ao ordenar, paginar e buscar", () => {
+    const { container } = renderTabela();
+    const abrir = () =>
+      fireEvent.click(
+        screen.getAllByRole("button", {
+          name: "Expandir detalhes da linha",
+        })[0],
+      );
+    abrir();
+    expect(abertas(container)).toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: /ordenar por valor/i }));
+    expect(abertas(container)).toBe(0);
+    abrir();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(abertas(container)).toBe(0);
+    abrir();
+    fireEvent.change(screen.getByPlaceholderText("Buscar..."), {
+      target: { value: "Nome" },
+    });
+    expect(abertas(container)).toBe(0);
+  });
+
+  it("painel mobile renderiza o conteúdo de renderExpandedRow no container mobile", () => {
+    const { container } = renderTabela();
+    const mobile = container.querySelector(
+      "div.sm\\:hidden div[data-row-id]",
+    ) as HTMLElement;
+    fireEvent.click(mobile.querySelector("[role='button']") as HTMLElement);
+    expect(within(mobile).getByText("painel Nome1")).toBeInTheDocument();
+  });
+
+  it("opções do select mobile não incluem colunas exportOnly e 'Ordem padrão' restaura o sort padrão", () => {
+    renderTabela({ defaultSortKey: "valor", defaultSortDir: "desc" });
+    const select = screen.getByLabelText("Ordenar por") as HTMLSelectElement;
+    expect(
+      Array.from(select.options).map((option) => option.textContent),
+    ).toEqual(["Ordem padrão", "Nome", "Valor"]);
+    expect(select.value).toBe("valor");
+    fireEvent.change(select, { target: { value: "nome" } });
+    expect(select.value).toBe("nome");
+    fireEvent.change(select, { target: { value: "" } });
+    expect(select.value).toBe("valor");
+  });
+
+  it("revealRowId vai à página da linha (página 2), expande e rola até ela", () => {
+    const rolar = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = rolar;
+    const { container } = renderTabela({ revealRowId: "3" });
+    expect(screen.getAllByText("Nome3").length).toBeGreaterThan(0);
+    expect(abertas(container)).toBe(1);
+    expect(screen.getAllByText("painel Nome3").length).toBeGreaterThan(0);
+    expect(rolar).toHaveBeenCalled();
   });
 });
