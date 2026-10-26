@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface FarmaciaAcoesCivicasProps {
   requerimento: string;
@@ -17,6 +17,9 @@ export interface FarmaciaAcoesCivicasProps {
   /** Telemetria das ações; recebe só o tipo, nunca o texto copiado. */
   onAcao?: (acao: "copiado" | "copia_falhou" | "whatsapp") => void;
 }
+
+/** Tempo em que o botão fica em "Copiado" antes de voltar ao rótulo original. */
+const DURACAO_FEEDBACK_COPIA_MS = 2500;
 
 type FeedbackCopia = "idle" | "copiado" | "erro";
 
@@ -45,6 +48,15 @@ export function FarmaciaAcoesCivicas({
   onAcao,
 }: FarmaciaAcoesCivicasProps) {
   const [feedback, setFeedback] = useState<FeedbackCopia>("idle");
+
+  useEffect(() => {
+    if (feedback !== "copiado") return;
+    const temporizador = setTimeout(
+      () => setFeedback("idle"),
+      DURACAO_FEEDBACK_COPIA_MS,
+    );
+    return () => clearTimeout(temporizador);
+  }, [feedback]);
 
   const handleCopiar = async () => {
     setFeedback("idle");
@@ -95,7 +107,12 @@ export function FarmaciaAcoesCivicas({
         </button>
       </div>
       {feedback === "copiado" && (
-        <p role="status" className="mt-2 font-medium text-xs">
+        <p
+          role="status"
+          className={
+            variante === "pedido" ? "sr-only" : "mt-2 font-medium text-xs"
+          }
+        >
           {mensagemCopiado}
         </p>
       )}

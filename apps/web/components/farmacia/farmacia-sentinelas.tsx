@@ -107,9 +107,10 @@ function PedidoEsclarecimentoConteudo({
     <div className="space-y-4">
       <div className="space-y-2 text-mute text-sm leading-relaxed">
         <p>
-          O texto abaixo já está pronto e pode ser editado. Copie e envie pelo
-          canal oficial de acesso à informação da Prefeitura, ou compartilhe
-          pelo WhatsApp.
+          O texto abaixo já está pronto e pode ser editado. Inclua seu nome e um
+          contato: a lei pede a identificação de quem faz o pedido. Copie e
+          envie pelo canal oficial de acesso à informação da Prefeitura, ou
+          compartilhe pelo WhatsApp.
         </p>
       </div>
       <div className="space-y-1.5">

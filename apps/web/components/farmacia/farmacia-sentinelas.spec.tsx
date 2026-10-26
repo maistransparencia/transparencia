@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -190,6 +190,17 @@ describe("FarmaciaSentinelas", () => {
     fireEvent.click(screen.getByRole("button", { name: "Copiar pedido" }));
     const copiado = await screen.findByRole("button", { name: /Copiado/ });
     expect(copiado).toHaveClass("bg-ok");
+
+    expect(
+      screen.getByText(/Inclua seu nome e um contato/),
+    ).toBeInTheDocument();
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole("button", { name: "Copiar pedido" }),
+        ).toBeInTheDocument(),
+      { timeout: 4000 },
+    );
 
     fireEvent.change(screen.getByLabelText("Texto do pedido"), {
       target: { value: "Texto editado" },
