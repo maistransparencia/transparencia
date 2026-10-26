@@ -36,6 +36,11 @@ describe("PipelineExecucao", () => {
     expect(cores).toEqual(["var(--ok)", "var(--brand)"]);
   });
 
+  it("nao renderiza o filete final quando nao ha etapas", () => {
+    const { container } = render(<PipelineExecucao stages={[]} />);
+    expect(container.querySelector("[aria-hidden='true'].border-t")).toBeNull();
+  });
+
   it("renderiza a barra acima do valor em cada etapa", () => {
     render(<PipelineExecucao stages={etapas} />);
     const valor = screen.getByText("R$ 5 mi");

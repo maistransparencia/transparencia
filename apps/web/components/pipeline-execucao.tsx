@@ -80,7 +80,9 @@ export function PipelineExecucao({
             Nenhuma etapa de execução orçamentária disponível.
           </div>
         )}
-        <div aria-hidden="true" className="mt-6 border-line border-t" />
+        {hasStages && (
+          <div aria-hidden="true" className="mt-6 border-line border-t" />
+        )}
       </div>
     </div>
   );

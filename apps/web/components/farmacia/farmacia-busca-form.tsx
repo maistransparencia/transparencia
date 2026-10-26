@@ -41,7 +41,7 @@ export function FarmaciaBuscaForm({
       />
       <button
         type="submit"
-        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10"
+        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none border-ink border-t bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10 sm:border-t-0"
       >
         {rotuloBotaoMobile ? (
           <>

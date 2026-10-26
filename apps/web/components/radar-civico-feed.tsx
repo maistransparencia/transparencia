@@ -61,7 +61,7 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
       >
         <span
           data-testid="radar-severidade-badge"
-          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium font-mono text-[10px] uppercase tracking-wider sm:w-12 ${severidade.classe}`}
+          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium font-mono text-[10px] uppercase tracking-wider sm:w-16 ${severidade.classe}`}
         >
           <span aria-hidden="true" className="text-[8px]">
             ■
@@ -143,7 +143,7 @@ export function RadarCivicoFeed({
             aria-hidden="true"
             className="hidden gap-4 px-3 pb-2 font-mono text-[10px] text-mute2 uppercase tracking-widest sm:flex"
           >
-            <span className="w-12 shrink-0">Nível</span>
+            <span className="w-16 shrink-0">Nível</span>
             <span>Ocorrência</span>
           </div>
           <ul className="divide-y divide-line border-line border-y">

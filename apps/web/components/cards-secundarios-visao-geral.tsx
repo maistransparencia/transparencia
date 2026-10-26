@@ -153,7 +153,7 @@ export function CardsSecundariosVisaoGeral({
                 Sem restos a pagar registrados
               </div>
             )}
-            {despesasSubtext && !totalLiquidado && (
+            {despesasSubtext && !(totalEmpenhado && totalLiquidado) && (
               <div className="mt-3 text-mute2 text-xs">{despesasSubtext}</div>
             )}
           </div>
