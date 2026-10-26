@@ -42,11 +42,11 @@ const mockContratos: ContratoSemLicitacaoItem[] = [
 ];
 
 describe("LicitacoesTable", () => {
-  it("não renderiza o select de ordenação legado na toolbar", () => {
+  it("não renderiza o select de ordenação legado na toolbar (só o controle mobile do DenseTable)", () => {
     render(<LicitacoesTable data={mockContratos} />);
 
-    expect(screen.queryByText("Ordenar por")).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText("Ordenar por")).toHaveLength(1);
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
   });
 
   it("renderiza ordenado inicialmente por maior valor (desc)", () => {

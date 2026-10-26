@@ -281,7 +281,7 @@ describe("ContratosServicosVigentesSection", () => {
     });
   });
 
-  it("abre o modal ao clicar no botão 'Detalhes' na tabela ou no card", async () => {
+  it("abre o modal ao clicar no nome do fornecedor", async () => {
     render(
       <ContratosServicosVigentesSection
         contratos={mockContratos}
@@ -290,7 +290,9 @@ describe("ContratosServicosVigentesSection", () => {
       />,
     );
 
-    const detalhesButtons = screen.getAllByRole("button", { name: "Detalhes" });
+    const detalhesButtons = screen.getAllByRole("button", {
+      name: "JUSTINA REGINA R. MONTEIRO",
+    });
     expect(detalhesButtons.length).toBeGreaterThan(0);
 
     fireEvent.click(detalhesButtons[0]);
@@ -551,5 +553,60 @@ describe("ContratosServicosVigentesSection", () => {
     const banner = screen.getByText(/pertence ao exercício de/i);
     expect(banner).toHaveTextContent("2025");
     expect(banner).toHaveTextContent("2026");
+  });
+
+  it("não renderiza cartões iniciais e expande a linha com detalhe do contrato", () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection contratos={mockContratos} />,
+    );
+    expect(
+      container.querySelector("article, [data-testid='contrato-card']"),
+    ).toBeNull();
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    expect(within(tbody).queryByText("Ver detalhes")).not.toBeInTheDocument();
+    fireEvent.click(
+      within(tbody).getAllByRole("button", {
+        name: "Expandir detalhes da linha",
+      })[0],
+    );
+    expect(within(tbody).getByText("Ver detalhes")).toBeInTheDocument();
+    expect(
+      within(tbody).getByText(/do empenhado foi pago/),
+    ).toBeInTheDocument();
+    expect(
+      within(tbody).getByRole("progressbar", {
+        name: /percentual do empenhado/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("clicar na linha expande; clicar no fornecedor abre o modal sem expandir", async () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection contratos={mockContratos} />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    fireEvent.click(within(tbody).getByText(/Locação de Imóvel/));
+    expect(within(tbody).getByText("Ver detalhes")).toBeInTheDocument();
+    fireEvent.click(within(tbody).getAllByText(/Locação de Imóvel/)[0]);
+    expect(within(tbody).queryByText("Ver detalhes")).not.toBeInTheDocument();
+
+    fireEvent.click(
+      within(tbody).getByRole("button", { name: "JUSTINA REGINA R. MONTEIRO" }),
+    );
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(within(tbody).queryByText("Ver detalhes")).not.toBeInTheDocument();
+  });
+
+  it("mobile: resumo mostra o empenhado (não o pago) e a linha é tocável", () => {
+    const { container } = render(
+      <ContratosServicosVigentesSection contratos={mockContratos} />,
+    );
+    const linha = container.querySelector(
+      "div[role='button'][aria-expanded]",
+    ) as HTMLElement;
+    expect(linha).toHaveTextContent("R$ 24.000,00");
+    expect(linha).not.toHaveTextContent("R$ 18.000,00");
+    fireEvent.click(linha);
+    expect(linha).toHaveAttribute("aria-expanded", "true");
   });
 });

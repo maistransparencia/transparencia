@@ -52,8 +52,6 @@
     "apps/web/app/privacidade/page.tsx",
     "apps/web/app/termos/page.tsx",
     "apps/web/components/city-interest-block.tsx",
-    "apps/web/components/contrato-detalhes-modal.tsx",
-    "apps/web/components/contrato-servico-vigente-card.tsx",
     "apps/web/components/decimo-terceiro-card.tsx",
     "apps/web/components/decomposicao-divida-popover.tsx",
     "apps/web/components/educacao/categoria-contrato-card.tsx",
@@ -62,7 +60,6 @@
     "apps/web/components/educacao/fonte-recurso-card.tsx",
     "apps/web/components/emendas-card.tsx",
     "apps/web/components/folha-lrf-history-chart.tsx",
-    "apps/web/components/licitacoes-spotlight-modal.tsx",
     "apps/web/components/newsletter-modal.tsx",
     "apps/web/components/obras/obras-civic-disclaimer.tsx",
     "apps/web/components/obras/obras-contratos-vinculados.tsx",
@@ -93,8 +90,7 @@
     "apps/web/components/tabela-totais-row.tsx",
     "apps/web/components/termometro-opacidade-fiscal.tsx",
     "packages/ui/src/components/alert-box.tsx",
-    "packages/ui/src/components/kpi-card.tsx",
-    "packages/ui/src/components/modal-dialog.tsx"
+    "packages/ui/src/components/kpi-card.tsx"
   ],
   "paleta-fixa-do-tailwind": [
     "apps/web/app/[portalSlug]/obras/view-model.ts",
@@ -111,8 +107,6 @@
     "apps/web/components/carros-chefe-arrecadacao.tsx",
     "apps/web/components/city-interest-block.tsx",
     "apps/web/components/city-interest-modal.tsx",
-    "apps/web/components/contrato-detalhes-modal.tsx",
-    "apps/web/components/contrato-servico-vigente-card.tsx",
     "apps/web/components/decimo-terceiro-card.tsx",
     "apps/web/components/decomposicao-divida-popover.tsx",
     "apps/web/components/distribuicao-modalidades-chart.tsx",
@@ -133,7 +127,6 @@
     "apps/web/components/folha-lrf-history-chart.tsx",
     "apps/web/components/funil-execucao-horizontal.tsx",
     "apps/web/components/gasto-por-funcao-bars.tsx",
-    "apps/web/components/licitacoes-spotlight-modal.tsx",
     "apps/web/components/mobile-bottom-nav.tsx",
     "apps/web/components/newsletter-feedback-banner.tsx",
     "apps/web/components/newsletter-modal.tsx",

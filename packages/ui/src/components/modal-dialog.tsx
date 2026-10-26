@@ -188,8 +188,8 @@ export function ModalDialog({
         aria-label={ariaLabel}
         tabIndex={-1}
         className={cn(
-          "relative flex max-h-[85vh] w-full flex-col overflow-hidden border border-line bg-page shadow-2xl transition-all duration-200",
-          "self-end rounded-xl max-sm:rounded-b-none",
+          "relative flex max-h-[85vh] w-full flex-col overflow-hidden border border-line bg-page transition-all duration-200",
+          "self-end rounded-md max-sm:rounded-b-none",
           "sm:self-center",
           maxWidthClass,
           className,

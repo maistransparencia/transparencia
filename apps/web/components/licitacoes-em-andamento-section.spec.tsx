@@ -50,7 +50,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     },
   ];
 
-  it("renderiza cabeçalho, contagem, top cards e tabela DenseTable", () => {
+  it("renderiza cabeçalho, contagem e tabela DenseTable sem cartões de destaque", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
     expect(
@@ -58,10 +58,10 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/2 processos em aberto/i)).toBeInTheDocument();
 
-    // Destaque Top 3
     expect(
-      screen.getByText("Processos em Destaque por Relevância"),
-    ).toBeInTheDocument();
+      screen.queryByText("Processos em Destaque por Relevância"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("top-destaques-grid")).not.toBeInTheDocument();
 
     // Tabela completa
     expect(
@@ -75,55 +75,79 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     );
   });
 
-  it("ordena os cards em destaque por maior valor estimado", () => {
-    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+  const expandirPrimeiraLinha = (container: HTMLElement) => {
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    fireEvent.click(
+      within(tbody).getAllByRole("button", {
+        name: "Expandir detalhes da linha",
+      })[0],
+    );
+    return tbody;
+  };
 
-    const destaquesGrid = screen.getByTestId("top-destaques-grid");
-    const cards = within(destaquesGrid).getAllByRole("article");
-    expect(cards).toHaveLength(2);
-    // CP 002/2025 tem 1.200.000 vs PE 001/2025 com 250.000
-    expect(cards[0]).toHaveTextContent("CP 002/2025");
-    expect(cards[1]).toHaveTextContent("PE 001/2025");
+  const numerosNaTabela = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("tbody tr"))
+      .map((tr) => tr.querySelector("td")?.textContent ?? "")
+      .filter((texto) => /\d{3}\/2025/.test(texto));
+
+  it("ordena a tabela por padrão pelo maior valor estimado (destaques no topo)", () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    expect(numerosNaTabela(container)).toEqual(["CP 002/2025", "PE 001/2025"]);
   });
 
-  it("limita os cards de destaque a 4 itens quando há mais de 4 licitações", () => {
+  it("mantém a ordem decrescente por valor com mais de 4 licitações e permite ordenar por coluna", () => {
     const cincoItens: LicitacaoEmAndamentoDTO[] = [
       ...sampleItems,
-      {
+      ...[
+        ["PE 003/2025", 500000],
+        ["PE 004/2025", 800000],
+        ["PE 005/2025", 100000],
+      ].map(([numero, valor], idx) => ({
         ...sampleItems[0],
-        licitacaoId: "lic-003",
-        licitacaoNumero: "PE 003/2025",
-        valorEstimado: 500000,
-        valor: 500000,
-      },
-      {
-        ...sampleItems[0],
-        licitacaoId: "lic-004",
-        licitacaoNumero: "PE 004/2025",
-        valorEstimado: 800000,
-        valor: 800000,
-      },
-      {
-        ...sampleItems[0],
-        licitacaoId: "lic-005",
-        licitacaoNumero: "PE 005/2025",
-        valorEstimado: 100000,
-        valor: 100000,
-      },
+        licitacaoId: `lic-00${idx + 3}`,
+        licitacaoNumero: String(numero),
+        valorEstimado: Number(valor),
+        valor: Number(valor),
+      })),
     ];
 
-    render(<LicitacoesEmAndamentoSection licitacoes={cincoItens} />);
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={cincoItens} />,
+    );
+    expect(numerosNaTabela(container)).toEqual([
+      "CP 002/2025",
+      "PE 004/2025",
+      "PE 003/2025",
+      "PE 001/2025",
+      "PE 005/2025",
+    ]);
 
-    const destaquesGrid = screen.getByTestId("top-destaques-grid");
-    const cards = within(destaquesGrid).getAllByRole("article");
-    expect(cards).toHaveLength(4);
-    // Ordenação esperada dos 4 maiores:
-    // CP 002/2025 (1.200.000), PE 004/2025 (800.000), PE 003/2025 (500.000), PE 001/2025 (250.000)
-    // O menor (PE 005/2025 de 100.000) não entra nos cards
-    expect(cards[0]).toHaveTextContent("CP 002/2025");
-    expect(cards[1]).toHaveTextContent("PE 004/2025");
-    expect(cards[2]).toHaveTextContent("PE 003/2025");
-    expect(cards[3]).toHaveTextContent("PE 001/2025");
+    fireEvent.click(
+      screen.getByRole("button", { name: /ordenar por processo/i }),
+    );
+    expect(numerosNaTabela(container)[0]).toBe("CP 002/2025");
+    fireEvent.click(
+      screen.getByRole("button", { name: /ordenar por processo/i }),
+    );
+    expect(numerosNaTabela(container)[0]).toBe("PE 005/2025");
+  });
+
+  it("expande a linha no desktop com objeto completo, ações e sem remover o sort", () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    expect(within(tbody).queryByText("Ver detalhes")).not.toBeInTheDocument();
+    fireEvent.click(
+      within(tbody).getAllByRole("button", {
+        name: "Expandir detalhes da linha",
+      })[0],
+    );
+    expect(within(tbody).getByText("Ver detalhes")).toBeInTheDocument();
+    expect(within(tbody).getByText("Homologação")).toBeInTheDocument();
+    expect(within(tbody).getByText("Modalidade")).toBeInTheDocument();
   });
 
   it("não exibe busca própria da tabela (a busca é única, via Spotlight)", () => {
@@ -158,13 +182,22 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       },
     ];
 
-    render(<LicitacoesEmAndamentoSection licitacoes={itensEnriquecidos} />);
-
-    // Badges de fonte do objeto
-    expect(screen.getAllByText("PNCP").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Contrato Local").length).toBeGreaterThanOrEqual(
-      1,
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={itensEnriquecidos} />,
     );
+
+    // Fonte do objeto aparece no painel expandido (CP 002 é a 1ª linha por valor)
+    const tbody = expandirPrimeiraLinha(container);
+    expect(tbody).toHaveTextContent("Contrato Local");
+    fireEvent.click(
+      within(tbody).getByRole("button", { name: "Recolher detalhes da linha" }),
+    );
+    fireEvent.click(
+      within(tbody).getAllByRole("button", {
+        name: "Expandir detalhes da linha",
+      })[1],
+    );
+    expect(tbody).toHaveTextContent("PNCP");
 
     // Link da sala de disputa
     const disputeLinks = screen.getAllByRole("link", {
@@ -216,9 +249,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       />,
     );
 
-    const buttons = screen.getAllByRole("button", {
-      name: /detalhes/i,
-    });
+    const buttons = screen.getAllByRole("button", { name: "PE 001/2025" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
 
     // Abre o modal
@@ -250,7 +281,10 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       },
     ];
 
-    render(<LicitacoesEmAndamentoSection licitacoes={itemHomologado} />);
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={itemHomologado} />,
+    );
+    expandirPrimeiraLinha(container);
 
     // Valor homologado de 150.000 (economia de 25%)
     expect(screen.getAllByText(/150\.000/).length).toBeGreaterThanOrEqual(1);
@@ -258,7 +292,10 @@ describe("LicitacoesEmAndamentoSection Component", () => {
   });
 
   it("exibe 'ainda não homologada' quando valorHomologado é nulo, sem 'Em disputa'", () => {
-    render(<LicitacoesEmAndamentoSection licitacoes={[sampleItems[0]]} />);
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={[sampleItems[0]]} />,
+    );
+    expandirPrimeiraLinha(container);
 
     expect(
       screen.getAllByText(/ainda não homologada/i).length,
@@ -267,7 +304,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
   });
 
   it("licitação homologada mostra o valor homologado e nunca 'Em andamento' no mesmo registro", () => {
-    render(
+    const { container } = render(
       <LicitacoesEmAndamentoSection
         licitacoes={[
           {
@@ -280,6 +317,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       />,
     );
 
+    expandirPrimeiraLinha(container);
     expect(screen.getAllByText("Homologada").length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Em andamento")).not.toBeInTheDocument();
     expect(screen.queryByText(/Em disputa/i)).not.toBeInTheDocument();
@@ -308,10 +346,18 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       />,
     );
 
-    const linha = (numero: string) =>
-      Array.from(container.querySelectorAll("tbody tr")).find((tr) =>
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    // Accordion: abre uma linha por vez e devolve o painel dela
+    const linha = (numero: string) => {
+      const principal = Array.from(tbody.querySelectorAll("tr")).find((tr) =>
         tr.textContent?.includes(numero),
       ) as HTMLElement;
+      const seta = within(principal).getByRole("button", {
+        name: /detalhes da linha/,
+      });
+      if (seta.getAttribute("aria-expanded") !== "true") fireEvent.click(seta);
+      return principal.nextElementSibling as HTMLElement;
+    };
     expect(linha("EM-ANDAMENTO")).toHaveTextContent("ainda não homologada");
     expect(linha("HOMOLOGADA")).toHaveTextContent("valor não informado");
     expect(linha("HOMOLOGADA")).not.toHaveTextContent("ainda não homologada");
@@ -340,15 +386,45 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza linhas mobile expansíveis com resumo e detalhes", () => {
+  it("renderiza linhas mobile tocáveis em accordion com o mesmo painel do desktop", () => {
     const { container } = render(
       <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
     );
 
-    const linhas = container.querySelectorAll("details");
+    const linhas = container.querySelectorAll(
+      "div[role='button'][aria-expanded]",
+    );
     expect(linhas).toHaveLength(sampleItems.length);
-    expect(linhas[0].querySelector("summary")).toHaveTextContent("CP 002/2025");
-    expect(linhas[0]).toHaveTextContent("Valor Estimado");
+    expect(linhas[0]).toHaveTextContent("CP 002/2025");
+    expect(container.querySelectorAll("details")).toHaveLength(0);
+
+    fireEvent.click(linhas[0]);
+    expect(linhas[0]).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(linhas[1]);
+    expect(linhas[0]).toHaveAttribute("aria-expanded", "false");
+    expect(linhas[1]).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("no mobile, tocar no número do processo abre o modal e não expande a linha", async () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    const linha = container.querySelector(
+      "div[role='button'][aria-expanded]",
+    ) as HTMLElement;
+    fireEvent.click(within(linha).getByRole("button", { name: "CP 002/2025" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(linha).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("não oferece Baixar CSV no mobile e oferece ordenação compacta", () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    expect(
+      container.querySelector('button[aria-label="Baixar CSV"]'),
+    ).toBeNull();
+    expect(screen.getByLabelText("Ordenar por")).toBeInTheDocument();
   });
 
   it("abre automaticamente o modal de itens quando URL possui ?numero=...#itens", () => {
@@ -645,7 +721,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     );
 
     const btnItens = screen.getAllByRole("button", {
-      name: /detalhes/i,
+      name: "PE 001/2025",
     })[0];
     fireEvent.click(btnItens);
 
@@ -694,15 +770,13 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("abre o modal completo 360° ao clicar no botão do número do processo na tabela", async () => {
+  it("abre o modal completo 360° ao clicar em Ver detalhes no painel expandido da tabela", async () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
-    const processoButtons = screen.getAllByRole("button", {
-      name: "PE 001/2025",
-    });
-    expect(processoButtons.length).toBeGreaterThan(0);
-
-    fireEvent.click(processoButtons[0]);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[1],
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toBeInTheDocument();
@@ -723,5 +797,24 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(
       within(dialog).getByText("1.500 - Recursos Livres"),
     ).toBeInTheDocument();
+  });
+
+  it("clicar na linha expande; clicar no número do processo abre o modal sem expandir", async () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    const tbody = container.querySelector("tbody") as HTMLElement;
+    fireEvent.click(within(tbody).getByText(/Reforma e ampliação/));
+    expect(within(tbody).getByText("Homologação")).toBeInTheDocument();
+
+    const { container: c2 } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+    const tbody2 = c2.querySelector("tbody") as HTMLElement;
+    fireEvent.click(
+      within(tbody2).getByRole("button", { name: "PE 001/2025" }),
+    );
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(within(tbody2).queryByText("Homologação")).not.toBeInTheDocument();
   });
 });

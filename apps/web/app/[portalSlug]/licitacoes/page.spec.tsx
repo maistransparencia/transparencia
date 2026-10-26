@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadLicitacoesData } from "./loader";
 
@@ -109,7 +109,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/20[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Alerta de Concentração de Contratações Diretas/),
+      screen.queryByText(/Concentração de contratações diretas/),
     ).not.toBeInTheDocument();
   });
 
@@ -136,7 +136,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/75[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(/Alerta de Concentração de Contratações Diretas:/),
+      screen.getByText(/Concentração de contratações diretas\./),
     ).toBeInTheDocument();
 
     const linkArt74 = screen.getByRole("link", {
@@ -171,7 +171,7 @@ describe("LicitacoesPage", () => {
         /No consolidado municipal de 2024, embora as contratações diretas representem/,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/card acima/)).toBeInTheDocument();
+    expect(screen.queryByText(/card acima/)).not.toBeInTheDocument();
   });
 
   it("não exibe alerta quando entidade filtrada possui contratação direta baixa", async () => {
@@ -207,7 +207,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/10[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Alerta de Concentração de Contratações Diretas:/),
+      screen.queryByText(/Concentração de contratações diretas\./),
     ).not.toBeInTheDocument();
   });
 
@@ -275,8 +275,11 @@ describe("LicitacoesPage", () => {
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/042\/2024/).length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
     expect(
-      screen.getAllByText("Secretaria de Obras").length,
+      screen.getAllByText(/Secretaria de Obras/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText("Contratação de empresa para reforma de pontes")
@@ -329,11 +332,14 @@ describe("LicitacoesPage", () => {
     const element = await LicitacoesPage(props);
     render(element);
 
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
     expect(
       screen.getAllByRole("link", { name: /sala de disputa/i })[0],
     ).toHaveAttribute("href", "https://pncp.gov.br/app/editais/123/2024/1");
     expect(
-      screen.getAllByRole("button", { name: /detalhes/i })[0],
+      screen.getAllByRole("button", { name: /ver detalhes/i })[0],
     ).toBeInTheDocument();
   });
 

@@ -13,7 +13,6 @@ import {
 } from "@transparencia/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoDetalhesModal } from "./contrato-detalhes-modal";
-import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
 interface ContratosServicosVigentesSectionProps {
   contratos: ContratoServicoVigente[];
@@ -361,19 +360,17 @@ export function ContratosServicosVigentesSection({
     return null;
   }
 
-  const top3 = filteredContratos.slice(0, 3);
-
   const columns: Column<(typeof tableData)[number]>[] = [
     {
       header: "Fornecedor",
       accessorKey: "fornecedorNome",
       sortable: true,
-      className: "min-w-[180px] max-w-[220px]",
+      className: "min-w-[180px] max-w-[240px] font-semibold text-ink",
       renderCell: (row) => (
         <button
           type="button"
           onClick={() => handleOpenContratoDetails(row)}
-          className="cursor-pointer text-left font-medium text-ink hover:text-blue-600 hover:underline"
+          className="cursor-pointer text-left font-semibold text-ink hover:text-brand hover:underline"
           title="Ver detalhes do contrato"
         >
           {row.fornecedorNome}
@@ -384,81 +381,129 @@ export function ContratosServicosVigentesSection({
       header: "Objeto",
       accessorKey: "objetoDescricao",
       sortable: true,
-      className: "min-w-[220px] max-w-[320px]",
+      className: "min-w-[220px] max-w-[360px] text-ink",
       renderCell: (row) => (
-        <div className="space-y-1">
-          <p
-            className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
-            title={row.objetoDescricao}
-          >
-            {row.objetoDescricao || "—"}
-          </p>
-          <button
-            type="button"
-            onClick={() => handleOpenContratoDetails(row)}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
-            title="Abrir detalhes completos do contrato"
-          >
-            <span>Detalhes</span>
-          </button>
-        </div>
+        <p
+          className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
+          title={row.objetoDescricao}
+        >
+          {row.objetoDescricao || "—"}
+        </p>
       ),
-    },
-    {
-      header: "Status",
-      accessorKey: "statusLabel",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-ink text-xs",
     },
     {
       header: "Vigência",
       accessorKey: "vigenciaFormatada",
       sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-mute2",
+      className: "min-w-[120px] font-mono text-mute2 tabular-nums",
     },
     {
       header: "Empenhado",
       accessorKey: "totalEmpenhado",
-      format: "currency",
       align: "right",
       sortable: true,
-      isSerifNumeric: true,
+      className: "whitespace-nowrap font-bold font-mono tabular-nums",
+      renderCell: (row) => fmtCurrency(row.totalEmpenhado),
+    },
+    {
+      header: "Status",
+      accessorKey: "statusLabel",
+      exportOnly: true,
     },
     {
       header: "Liquidado",
       accessorKey: "totalLiquidado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "Pago",
       accessorKey: "totalPago",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "Saldo Pendente",
       accessorKey: "saldoPendente",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "% Pago",
       accessorKey: "percentualPago",
-      format: "percent",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
   ];
+
+  const renderContratoExpandedRow = (row: (typeof tableData)[number]) => {
+    const percentualPago = Math.min(100, Math.max(0, row.percentualPago ?? 0));
+    return (
+      <div className="space-y-4 text-xs">
+        <p className="text-ink leading-relaxed">{row.objetoDescricao || "—"}</p>
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Contrato
+            </dt>
+            <dd className="mt-1 font-mono text-ink tabular-nums">
+              {row.contratoNumero || "S/N"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Vigência
+            </dt>
+            <dd className="mt-1 font-mono text-ink tabular-nums">
+              {row.vigenciaFormatada || "—"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Pago
+            </dt>
+            <dd className="mt-1 font-bold font-mono text-ink tabular-nums">
+              {fmtCurrency(row.totalPago)}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Saldo
+            </dt>
+            <dd className="mt-1 font-bold font-mono text-warn tabular-nums">
+              {fmtCurrency(row.saldoPendente)}
+            </dd>
+          </div>
+        </dl>
+        <div className="space-y-1.5">
+          <div
+            className="h-1 w-full overflow-hidden rounded-full bg-line"
+            role="progressbar"
+            aria-label="Percentual do empenhado já pago"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percentualPago}
+          >
+            <div
+              className="h-full bg-brand"
+              style={{
+                width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
+              }}
+            />
+          </div>
+          <p className="font-mono text-mute2 tabular-nums">
+            {fmtPercent(row.percentualPago)} do empenhado foi pago
+          </p>
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => handleOpenContratoDetails(row)}
+            className="inline-flex cursor-pointer items-center rounded-md bg-ink px-4 py-2 font-semibold text-onink text-xs hover:opacity-90"
+            title="Abrir detalhes completos do contrato"
+          >
+            Ver detalhes
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
@@ -515,26 +560,7 @@ export function ContratosServicosVigentesSection({
         </SegmentedButton>
       </div>
 
-      {/* Top 3 Cards Grid */}
-      {top3.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {top3.map((c, idx) => (
-            <ContratoServicoVigenteCard
-              key={
-                c.contratoServicoId ||
-                `${c.fornecedorNome}-${c.fornecedorCnpj}-${idx}`
-              }
-              contrato={c}
-              onOpenDetails={() => handleOpenContratoDetails(c)}
-              isHighlighted={
-                Boolean(highlightedId) &&
-                (c.contratoServicoId === highlightedId ||
-                  c.contratoNumero === highlightedId)
-              }
-            />
-          ))}
-        </div>
-      ) : (
+      {filteredContratos.length === 0 && (
         <div className="rounded-md border border-line border-dashed p-6 text-center text-mute2 text-sm">
           Nenhum contrato encontrado para a visão "{statusFilter}".
         </div>
@@ -544,6 +570,7 @@ export function ContratosServicosVigentesSection({
       <DenseTable
         data={tableData}
         columns={columns}
+        renderExpandedRow={renderContratoExpandedRow}
         renderMobileRow={(row) => {
           const isMatch =
             Boolean(highlightedId) &&
@@ -553,67 +580,35 @@ export function ContratosServicosVigentesSection({
             resumo: (
               <div
                 className={cn(
-                  "space-y-0.5",
+                  "space-y-1",
                   isMatch && "ring-2 ring-brand ring-offset-2",
                 )}
               >
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="truncate font-bold text-ink text-sm">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenContratoDetails(row)}
+                    className="min-w-0 cursor-pointer truncate text-left font-bold text-ink text-sm hover:text-brand hover:underline"
+                    title="Ver detalhes do contrato"
+                  >
                     {row.fornecedorNome}
-                  </span>
-                  <span className="shrink-0 font-bold font-serif text-ink text-sm">
-                    {fmtCurrency(row.totalPago)}
+                  </button>
+                  <span className="shrink-0 font-bold font-mono text-ink text-sm tabular-nums">
+                    {fmtCurrency(row.totalEmpenhado)}
                   </span>
                 </div>
                 <p className="line-clamp-2 text-ink text-xs leading-snug">
                   {row.objetoDescricao || "—"}
                 </p>
-                <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
-                  <span className="font-semibold">{row.statusLabel}</span>
-                  <span>{row.vigenciaFormatada}</span>
+                <div className="text-[11px] text-mute2 tabular-nums">
+                  <span className="font-mono">{row.vigenciaFormatada}</span>
                 </div>
               </div>
             ),
-            detalhes: (
-              <div className="space-y-3">
-                <dl className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
-                  <div>
-                    <dt className="text-[11px] text-mute2">Empenhado</dt>
-                    <dd className="font-bold font-serif text-ink">
-                      {fmtCurrency(row.totalEmpenhado)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] text-mute2">Liquidado</dt>
-                    <dd className="font-bold font-serif text-ink">
-                      {fmtCurrency(row.totalLiquidado)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] text-mute2">Saldo Pendente</dt>
-                    <dd className="font-bold font-serif text-ink">
-                      {fmtCurrency(row.saldoPendente)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] text-mute2">% Pago</dt>
-                    <dd className="font-bold font-serif text-ink">
-                      {fmtPercent(row.percentualPago)}
-                    </dd>
-                  </div>
-                </dl>
-                <button
-                  type="button"
-                  onClick={() => handleOpenContratoDetails(row)}
-                  className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-pill px-3 py-1 font-medium text-ink text-xs hover:border-mute3"
-                  title="Abrir detalhes completos do contrato"
-                >
-                  Detalhes
-                </button>
-              </div>
-            ),
+            detalhes: null,
           };
         }}
+        hideCsvOnMobile
         hideSearch
         rowClassName={(row) => {
           const isMatch =

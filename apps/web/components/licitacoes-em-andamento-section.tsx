@@ -21,10 +21,8 @@ import {
 } from "@transparencia/ui";
 import {
   AlertCircle,
-  Calendar,
   ChevronLeft,
   ChevronRight,
-  Coins,
   ExternalLink,
   Package,
 } from "lucide-react";
@@ -101,7 +99,7 @@ function ValorHomologadoCelula({
   }
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      <span className="font-bold font-serif text-ok">
+      <span className="font-bold font-mono text-ok tabular-nums">
         {fmtCurrency(valorHomologado)}
       </span>
       {economia !== null && (
@@ -295,11 +293,6 @@ export function LicitacoesEmAndamentoSection({
       };
     });
   }, [sortedByRelevance]);
-
-  // Top 4 para cards de destaque
-  const topDestaques: LicitacaoTableRow[] = useMemo(() => {
-    return tableData.slice(0, 4);
-  }, [tableData]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -536,102 +529,56 @@ export function LicitacoesEmAndamentoSection({
       header: "Processo",
       accessorKey: "licitacaoNumero",
       sortable: true,
-      className: "whitespace-nowrap font-semibold text-ink",
+      className: "whitespace-nowrap font-bold font-mono text-ink tabular-nums",
       renderCell: (row) => (
-        <div className="space-y-1">
-          <button
-            type="button"
-            onClick={() => handleOpenRowDetails(row)}
-            className="cursor-pointer text-left font-semibold text-ink hover:text-blue-600 hover:underline"
-            title="Ver detalhes da licitação"
-          >
-            {row.licitacaoNumero || "S/N"}
-          </button>
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            {row.linkSistemaOrigem && (
-              <a
-                href={row.linkSistemaOrigem}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-[11px] text-blue-600 hover:text-blue-800 hover:underline"
-                title="Acessar sala de disputa pública oficial"
-              >
-                <span>Disputa</span>
-                <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => handleOpenRowDetails(row)}
-              className="inline-flex cursor-pointer items-center gap-0.5 font-medium text-[11px] text-mute2 hover:text-ink"
-              title="Visualizar detalhes da licitação"
-            >
-              <span>Detalhes</span>
-            </button>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Órgão",
-      accessorKey: "entidadeNome",
-      sortable: true,
-      className: "min-w-[150px] max-w-[220px] truncate text-ink",
-      renderCell: (row) => row.entidadeNome || "—",
-    },
-    {
-      header: "Modalidade",
-      accessorKey: "modalidadeFormatada",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap",
-      renderCell: (row) => (
-        <Badge variant="accent">{row.modalidadeFormatada}</Badge>
+        <button
+          type="button"
+          onClick={() => handleOpenRowDetails(row)}
+          className="cursor-pointer text-left font-bold font-mono text-ink hover:text-brand hover:underline"
+          title="Ver detalhes da licitação"
+        >
+          {row.licitacaoNumero || "S/N"}
+        </button>
       ),
     },
     {
       header: "Objeto",
       accessorKey: "objeto",
       sortable: true,
-      className: "min-w-[220px] max-w-[340px] text-ink",
+      className: "min-w-[220px] max-w-[420px] text-ink",
       renderCell: (row) => (
-        <div className="space-y-1">
-          <p
-            className="line-clamp-2 text-ink text-xs leading-relaxed"
-            title={row.objeto}
-          >
-            {row.objeto || "—"}
-          </p>
-          {((fonteObjeto) =>
-            fonteObjeto && (
-              <div className="flex items-center gap-2">
-                <span className="rounded bg-line2 px-1.5 py-0.5 text-[10px] text-mute2">
-                  {getFonteObjetoBadge(row.fonteObjeto)}
-                </span>
-              </div>
-            ))(getFonteObjetoBadge(row.fonteObjeto))}
-        </div>
+        <p
+          className="line-clamp-2 text-ink text-xs leading-relaxed"
+          title={row.objeto}
+        >
+          {row.objeto || "—"}
+        </p>
       ),
+    },
+    {
+      header: "Modalidade",
+      accessorKey: "modalidadeFormatada",
+      sortable: true,
+      className: "whitespace-nowrap text-mute2",
     },
     {
       header: "Abertura",
       accessorKey: "dataAbertura",
       sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-mute2",
+      className: "whitespace-nowrap font-mono text-mute2 tabular-nums",
       renderCell: (row) =>
         row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada",
     },
     {
-      header: "Valor Estimado",
+      header: "Valor Est.",
       accessorKey: "valorFinal",
       sortable: true,
       align: "right",
-      isSerifNumeric: true,
+      className: "whitespace-nowrap",
       renderCell: (row) => {
         if (typeof row.valorFinal === "number" && row.valorFinal > 0) {
           return (
-            <span className="font-bold font-serif text-ink">
+            <span className="font-bold font-mono text-ink tabular-nums">
               {fmtCurrency(row.valorFinal)}
             </span>
           );
@@ -641,37 +588,102 @@ export function LicitacoesEmAndamentoSection({
       exportValue: (row) => (row.valorFinal !== null ? row.valorFinal : ""),
     },
     {
+      header: "Órgão",
+      accessorKey: "entidadeNome",
+      exportOnly: true,
+      exportValue: (row) => row.entidadeNome ?? "",
+    },
+    {
       header: "Homologado",
       accessorKey: "valorHomologado",
-      sortable: true,
-      align: "right",
-      isSerifNumeric: true,
-      renderCell: (row) => {
-        return (
-          <div className="text-right">
-            <ValorHomologadoCelula
-              valorHomologado={row.valorHomologado}
-              situacaoCodigo={row.situacaoCodigo}
-              economia={calcularEconomia(row.valorFinal, row.valorHomologado)}
-            />
-          </div>
-        );
-      },
+      exportOnly: true,
       exportValue: (row) => (row.valorHomologado ? row.valorHomologado : ""),
     },
     {
       header: "Situação",
       accessorKey: "situacaoFormatada",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap",
-      renderCell: (row) => (
-        <Badge variant={situacaoBadgeVariant(row.situacaoCodigo)}>
-          {row.situacaoFormatada}
-        </Badge>
-      ),
+      exportOnly: true,
     },
   ];
+
+  const renderLicitacaoExpandedRow = (row: LicitacaoTableRow) => {
+    const valorEst = row.valorEstimado ?? row.valorFinal;
+    const fonteBadge = getFonteObjetoBadge(row.fonteObjeto);
+    return (
+      <div className="space-y-4 text-xs">
+        <p className="text-ink leading-relaxed">{row.objeto || "—"}</p>
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Modalidade
+            </dt>
+            <dd className="mt-1 text-ink">{row.modalidadeFormatada}</dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Abertura
+            </dt>
+            <dd className="mt-1 font-mono text-ink tabular-nums">
+              {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Situação
+            </dt>
+            <dd className="mt-1">
+              <Badge variant={situacaoBadgeVariant(row.situacaoCodigo)}>
+                {row.situacaoFormatada}
+              </Badge>
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
+              Homologação
+            </dt>
+            <dd className="mt-1">
+              <ValorHomologadoCelula
+                valorHomologado={row.valorHomologado}
+                situacaoCodigo={row.situacaoCodigo}
+                economia={calcularEconomia(valorEst, row.valorHomologado)}
+              />
+            </dd>
+          </div>
+        </dl>
+        {(row.entidadeNome || fonteBadge) && (
+          <p className="text-mute2 uppercase">
+            {[row.entidadeNome, fonteBadge].filter(Boolean).join(" · ")}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleOpenRowDetails(row)}
+            className="inline-flex cursor-pointer items-center rounded-md bg-ink px-4 py-2 font-semibold text-onink text-xs hover:opacity-90"
+            title="Visualizar detalhes da licitação"
+          >
+            Ver detalhes
+          </button>
+          {row.linkSistemaOrigem && (
+            <ExternalLinkPill
+              href={row.linkSistemaOrigem}
+              className="rounded-md px-4 py-2 font-semibold"
+            >
+              Sala de Disputa
+            </ExternalLinkPill>
+          )}
+          {row.linkSistemaOrigem && row.fonteObjeto === "pncp" && (
+            <ExternalLinkPill
+              href={row.linkSistemaOrigem}
+              className="rounded-md px-4 py-2 font-semibold"
+            >
+              Ver no PNCP
+            </ExternalLinkPill>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderLicitacaoMobileRow = (row: LicitacaoTableRow) => {
     const isHighlighted =
@@ -679,23 +691,26 @@ export function LicitacoesEmAndamentoSection({
       (row.licitacaoNumero === highlightedNumero ||
         row.licitacaoId === highlightedNumero);
     const valorEst = row.valorEstimado ?? row.valorFinal;
-    const valorHom = row.valorHomologado;
-    const economia = calcularEconomia(valorEst, valorHom);
 
     return {
       resumo: (
         <div
           id={`licitacao-card-${row.licitacaoNumero || row.licitacaoId}`}
           className={cn(
-            "space-y-0.5",
+            "space-y-1",
             isHighlighted && "animate-pulse ring-2 ring-brand ring-offset-2",
           )}
         >
           <div className="flex items-baseline justify-between gap-3">
-            <span className="font-bold text-ink text-sm">
-              Processo {row.licitacaoNumero || "S/N"}
-            </span>
-            <span className="shrink-0 font-bold font-serif text-ink text-sm">
+            <button
+              type="button"
+              onClick={() => handleOpenRowDetails(row)}
+              className="cursor-pointer text-left font-bold font-mono text-ink text-sm hover:text-brand hover:underline"
+              title="Ver detalhes da licitação"
+            >
+              {row.licitacaoNumero || "S/N"}
+            </button>
+            <span className="shrink-0 font-bold font-mono text-ink text-sm tabular-nums">
               {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
             </span>
           </div>
@@ -703,61 +718,14 @@ export function LicitacoesEmAndamentoSection({
             {row.objeto}
           </p>
           <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
-            <span className="font-semibold">{row.situacaoFormatada}</span>
-            <span>
-              Abertura:{" "}
+            <span>{row.modalidadeFormatada}</span>
+            <span className="font-mono tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </span>
           </div>
         </div>
       ),
-      detalhes: (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Badge variant="accent">{row.modalidadeFormatada}</Badge>
-            {getFonteObjetoBadge(row.fonteObjeto) && (
-              <Badge>{getFonteObjetoBadge(row.fonteObjeto)}</Badge>
-            )}
-          </div>
-          {row.entidadeNome && (
-            <p className="text-mute2 text-xs">{row.entidadeNome}</p>
-          )}
-          <dl className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
-            <div>
-              <dt className="text-[11px] text-mute2">Valor Estimado</dt>
-              <dd className="mt-0.5 font-bold font-serif text-ink">
-                {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
-              </dd>
-            </div>
-            <div className="text-right">
-              <dt className="text-[11px] text-mute2">Homologado</dt>
-              <dd className="mt-0.5">
-                <ValorHomologadoCelula
-                  valorHomologado={valorHom}
-                  situacaoCodigo={row.situacaoCodigo}
-                  economia={economia}
-                />
-              </dd>
-            </div>
-          </dl>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleOpenRowDetails(row)}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-pill px-3 py-1 font-medium text-ink text-xs hover:border-mute3"
-              title="Visualizar detalhes da licitação"
-            >
-              <Package className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Detalhes</span>
-            </button>
-            {row.linkSistemaOrigem && (
-              <ExternalLinkPill href={row.linkSistemaOrigem}>
-                Sala de Disputa
-              </ExternalLinkPill>
-            )}
-          </div>
-        </div>
-      ),
+      detalhes: null,
     };
   };
 
@@ -829,169 +797,6 @@ export function LicitacoesEmAndamentoSection({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Top Destaques Cards Grid (4 itens em 2 colunas) */}
-          {topDestaques.length > 0 && (
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold text-ink text-xs tracking-wider">
-                  Processos em Destaque por Relevância
-                </h3>
-                <span className="text-mute3 text-xs">
-                  {topDestaques.length === 1
-                    ? "Maior valor estimado"
-                    : `Top ${topDestaques.length} de maior valor`}
-                </span>
-              </div>
-              <div
-                data-testid="top-destaques-grid"
-                className="grid grid-cols-1 gap-x-8 md:grid-cols-2"
-              >
-                {topDestaques.map((item) => {
-                  const valorEst = item.valorEstimado ?? item.valor;
-                  const valorHom = item.valorHomologado;
-                  const economia = (() => {
-                    if (valorEst && valorHom && valorHom < valorEst) {
-                      return ((valorEst - valorHom) / valorEst) * 100;
-                    }
-                    return null;
-                  })();
-
-                  const dataAberturaTexto = item.dataAbertura
-                    ? fmtDate(item.dataAbertura)
-                    : "Abertura não informada";
-
-                  return (
-                    <article
-                      key={item.licitacaoId}
-                      className="flex flex-col justify-between border-line border-t py-5"
-                    >
-                      <div className="space-y-3">
-                        {/* Linha 1: Badges horizontais com wrap */}
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant="accent">
-                            {item.modalidadeFormatada ||
-                              fmtLicitacaoModalidade(item.modalidade)}
-                          </Badge>
-                          <Badge
-                            variant={situacaoBadgeVariant(item.situacaoCodigo)}
-                          >
-                            {item.situacaoFormatada}
-                          </Badge>
-                          {item.fonteObjeto === "pncp" && (
-                            <span
-                              className="inline-block rounded-sm border border-ok/40 px-2 py-0.5 font-semibold text-[10px] text-ok"
-                              title="Objeto des-truncado via PNCP"
-                            >
-                              PNCP
-                            </span>
-                          )}
-                          {item.fonteObjeto === "contrato_local" && (
-                            <span
-                              className="inline-block rounded-sm border border-line px-2 py-0.5 font-semibold text-[10px] text-mute2"
-                              title="Objeto des-truncado via contrato local"
-                            >
-                              Contrato Local
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Linha 2: Processo e Órgão empilhados verticalmente */}
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenRowDetails(item)}
-                            className="cursor-pointer text-left font-bold text-ink text-sm hover:text-blue-600 hover:underline"
-                            title="Ver detalhes da licitação"
-                          >
-                            Processo {item.licitacaoNumero || "S/N"}
-                          </button>
-                          {item.entidadeNome && (
-                            <p className="mt-0.5 truncate text-mute2 text-xs">
-                              {item.entidadeNome}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Linha 3: Objeto */}
-                        <div>
-                          <p
-                            className="line-clamp-3 text-ink text-xs leading-relaxed"
-                            title={item.objeto}
-                          >
-                            {item.objeto}
-                          </p>
-                        </div>
-
-                        {/* Linha 4: Data de abertura */}
-                        <div className="flex items-center gap-1.5 text-mute2 text-xs">
-                          <Calendar
-                            className="h-3.5 w-3.5 shrink-0"
-                            aria-hidden="true"
-                          />
-                          <span>Abertura: {dataAberturaTexto}</span>
-                        </div>
-
-                        {/* Linha 5: Grade financeira 2 colunas */}
-                        <div className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
-                          <div>
-                            <span className="block text-[11px] text-mute3">
-                              Valor Estimado
-                            </span>
-                            <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-ink">
-                              <Coins
-                                className="h-3.5 w-3.5 text-mute3"
-                                aria-hidden="true"
-                              />
-                              <span className="truncate">
-                                {valorEst
-                                  ? fmtCurrency(valorEst)
-                                  : "Não divulgado"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className="block text-[11px] text-mute3">
-                              Homologado
-                            </span>
-                            <div className="mt-0.5">
-                              <ValorHomologadoCelula
-                                valorHomologado={valorHom}
-                                situacaoCodigo={item.situacaoCodigo}
-                                economia={economia}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Linha 6: Ações no rodapé */}
-                      <div className="mt-3 flex items-center justify-between border-line border-t pt-2.5 text-xs">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenRowDetails(item)}
-                          className="inline-flex cursor-pointer items-center gap-1 font-medium text-mute2 transition-colors hover:text-ink"
-                          title="Visualizar detalhes da licitação"
-                        >
-                          <Package
-                            className="h-3.5 w-3.5 text-mute3"
-                            aria-hidden="true"
-                          />
-                          <span>Detalhes</span>
-                        </button>
-
-                        {item.linkSistemaOrigem && (
-                          <ExternalLinkPill href={item.linkSistemaOrigem}>
-                            Sala de Disputa
-                          </ExternalLinkPill>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Tabela Completa via DenseTable */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -1003,6 +808,8 @@ export function LicitacoesEmAndamentoSection({
               data={tableData}
               columns={columns}
               renderMobileRow={renderLicitacaoMobileRow}
+              renderExpandedRow={renderLicitacaoExpandedRow}
+              hideCsvOnMobile
               hideSearch
               searchPlaceholder="Buscar por objeto, edital, órgão, modalidade ou situação..."
               searchableKeys={[
@@ -1071,7 +878,7 @@ export function LicitacoesEmAndamentoSection({
                   href={selectedLicitacaoForItens.linkSistemaOrigem}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand hover:underline"
                 >
                   <span>Abrir Sala de Disputa no PNCP</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -1095,9 +902,9 @@ export function LicitacoesEmAndamentoSection({
                 {selectedLicitacaoForItens.ano &&
                   ano &&
                   selectedLicitacaoForItens.ano !== ano && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50/90 px-4 py-3 text-amber-900 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-3 text-warn text-xs">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                        <AlertCircle className="h-4 w-4 shrink-0 text-warn" />
                         <span>
                           Este processo pertence ao exercício de{" "}
                           <strong className="font-semibold">
@@ -1109,7 +916,7 @@ export function LicitacoesEmAndamentoSection({
                       </div>
                       <Link
                         href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
-                        className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
+                        className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-warn"
                       >
                         <span>
                           Mudar painel para {selectedLicitacaoForItens.ano}
@@ -1165,16 +972,16 @@ export function LicitacoesEmAndamentoSection({
 
                 {/* Bloco de Rastreabilidade Orçamentária e Fonte de Recursos */}
                 {selectedLicitacaoForItens.fontesRecursos && (
-                  <div className="rounded-md border border-blue-200/80 bg-blue-50/50 p-3.5 sm:p-4">
+                  <div className="rounded-md border border-brand/30 bg-brand/10 p-3.5 sm:p-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-blue-900 text-xs uppercase tracking-wider">
+                      <span className="font-semibold text-brand text-xs uppercase tracking-wider">
                         Fonte de Recursos / Destinação Orçamentária
                       </span>
                       <a
                         href={urlLegislacao("lei14133Ato20212024", "art18")}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs hover:underline"
+                        className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
                         title="Art. 18, VIII da Lei 14.133/2021"
                       >
                         <span>Art. 18 da Lei 14.133/21</span>
@@ -1189,7 +996,7 @@ export function LicitacoesEmAndamentoSection({
                         .map((cleanFonte) => (
                           <span
                             key={cleanFonte}
-                            className="inline-flex items-center rounded-md border border-blue-200 bg-page px-2.5 py-1 font-medium text-blue-900 text-xs"
+                            className="inline-flex items-center rounded-md border border-brand/30 bg-page px-2.5 py-1 font-medium text-brand text-xs"
                           >
                             {cleanFonte}
                           </span>
@@ -1225,7 +1032,7 @@ export function LicitacoesEmAndamentoSection({
                     <span className="font-medium text-mute2 text-xs">
                       Valor Estimado
                     </span>
-                    <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
+                    <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorFinal
                         ? fmtCurrency(selectedLicitacaoForItens.valorFinal)
                         : selectedLicitacaoForItens.valorEstimado
@@ -1240,7 +1047,7 @@ export function LicitacoesEmAndamentoSection({
                     <span className="font-medium text-mute2 text-xs">
                       Valor Homologado
                     </span>
-                    <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
+                    <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorHomologado
                         ? fmtCurrency(selectedLicitacaoForItens.valorHomologado)
                         : textoSemValorHomologado(
@@ -1263,7 +1070,7 @@ export function LicitacoesEmAndamentoSection({
                         const diff = est - hom;
                         const pct = (diff / est) * 100;
                         return (
-                          <p className="mt-1 font-semibold font-serif text-base text-emerald-700 sm:text-lg">
+                          <p className="mt-1 font-mono font-semibold text-base text-ok tabular-nums sm:text-lg">
                             {fmtCurrency(diff)}{" "}
                             <span className="font-sans text-xs">
                               (-{pct.toFixed(1)}%)
@@ -1310,7 +1117,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 font-semibold text-white text-xs transition-colors hover:bg-blue-700"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-1.5 font-semibold text-onink text-xs transition-colors hover:opacity-90"
                               >
                                 <span>Acessar Sala de Disputa no PNCP</span>
                                 <ExternalLink
@@ -1352,7 +1159,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                               }}
                               aria-label="Rolar tabela para a esquerda"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
                             >
                               <ChevronLeft className="h-4 w-4" />
                             </button>
@@ -1371,7 +1178,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                               }}
                               aria-label="Rolar tabela para a direita"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
                             >
                               <ChevronRight className="h-4 w-4" />
                             </button>
@@ -1404,7 +1211,7 @@ export function LicitacoesEmAndamentoSection({
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-line">
                               {itens.map((it) => (
                                 <tr key={it.itemId} className="hover:bg-line2">
                                   <td className="px-3 py-2.5 text-center font-bold text-ink">
@@ -1485,7 +1292,7 @@ export function LicitacoesEmAndamentoSection({
                                   </td>
                                   <td className="whitespace-nowrap px-3 py-2.5 text-center">
                                     {it.percentualDesconto != null ? (
-                                      <span className="font-semibold text-emerald-700">
+                                      <span className="font-semibold text-ok">
                                         {it.percentualDesconto}%
                                       </span>
                                     ) : (

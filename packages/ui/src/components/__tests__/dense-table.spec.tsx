@@ -508,3 +508,194 @@ describe("DenseTable - formato Divisórias, renderMobileRow e hideSearch", () =>
     expect(screen.getByLabelText("Baixar CSV")).toBeInTheDocument();
   });
 });
+
+describe("DenseTable - renderExpandedRow e exportOnly", () => {
+  type Linha = { id: string; nome: string; extra: string };
+  const dados: Linha[] = [
+    { id: "1", nome: "Alfa", extra: "x1" },
+    { id: "2", nome: "Beta", extra: "x2" },
+  ];
+  const colunas: Column<Linha>[] = [
+    { header: "Nome", accessorKey: "nome", sortable: true },
+    { header: "Extra", accessorKey: "extra", exportOnly: true },
+  ];
+
+  it("expande e recolhe o painel de detalhe da linha no desktop", () => {
+    render(
+      <DenseTable
+        data={dados}
+        columns={colunas}
+        rowKey="id"
+        enableExportCsv={false}
+        renderExpandedRow={(row) => <div>Detalhe de {row.nome}</div>}
+      />,
+    );
+    expect(screen.queryByText("Detalhe de Alfa")).not.toBeInTheDocument();
+    const [primeiro] = screen.getAllByRole("button", {
+      name: "Expandir detalhes da linha",
+    });
+    fireEvent.click(primeiro);
+    expect(screen.getByText("Detalhe de Alfa")).toBeInTheDocument();
+    expect(primeiro).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(primeiro);
+    expect(screen.queryByText("Detalhe de Alfa")).not.toBeInTheDocument();
+  });
+
+  it("não exibe colunas exportOnly na tabela e mantém o sort por coluna", () => {
+    render(
+      <DenseTable
+        data={dados}
+        columns={colunas}
+        rowKey="id"
+        enableExportCsv={false}
+        renderExpandedRow={() => null}
+      />,
+    );
+    expect(
+      screen.queryByRole("columnheader", { name: /extra/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /ordenar por nome/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("sem renderExpandedRow não há botão de expandir", () => {
+    render(
+      <DenseTable data={dados} columns={colunas} enableExportCsv={false} />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Expandir detalhes da linha" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clicar na linha alterna o painel, mas clicar em botão interno não", () => {
+    const aoClicar = vi.fn();
+    render(
+      <DenseTable
+        data={dados}
+        columns={[
+          {
+            header: "Nome",
+            accessorKey: "nome",
+            renderCell: (row) => (
+              <button type="button" onClick={aoClicar}>
+                abrir {row.nome}
+              </button>
+            ),
+          },
+          { header: "Extra", accessorKey: "extra" },
+        ]}
+        rowKey="id"
+        enableExportCsv={false}
+        renderExpandedRow={(row) => <div>Detalhe de {row.nome}</div>}
+      />,
+    );
+    fireEvent.click(screen.getByText("x1"));
+    expect(screen.getByText("Detalhe de Alfa")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("x1"));
+    expect(screen.queryByText("Detalhe de Alfa")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("abrir Alfa"));
+    expect(aoClicar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Detalhe de Alfa")).not.toBeInTheDocument();
+    // a seta continua alternando uma única vez (sem duplo toggle)
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
+    expect(screen.getByText("Detalhe de Alfa")).toBeInTheDocument();
+  });
+
+  it("comporta-se como accordion: expandir uma linha fecha a outra", () => {
+    render(
+      <DenseTable
+        data={dados}
+        columns={colunas}
+        rowKey="id"
+        enableExportCsv={false}
+        renderExpandedRow={(row) => <div>Detalhe de {row.nome}</div>}
+      />,
+    );
+    fireEvent.click(screen.getByText("Alfa"));
+    expect(screen.getByText("Detalhe de Alfa")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Beta"));
+    expect(screen.getByText("Detalhe de Beta")).toBeInTheDocument();
+    expect(screen.queryByText("Detalhe de Alfa")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Beta"));
+    expect(screen.queryByText("Detalhe de Beta")).not.toBeInTheDocument();
+  });
+});
+
+describe("DenseTable - mobile com painel expandido, ordenação e CSV", () => {
+  type Linha = { id: string; nome: string; valor: number };
+  const dados: Linha[] = [
+    { id: "1", nome: "Alfa", valor: 10 },
+    { id: "2", nome: "Beta", valor: 30 },
+    { id: "3", nome: "Gama", valor: 20 },
+  ];
+  const colunas: Column<Linha>[] = [
+    { header: "Nome", accessorKey: "nome", sortable: true },
+    { header: "Valor", accessorKey: "valor", sortable: true },
+  ];
+  const renderTabela = (extra = {}) =>
+    render(
+      <DenseTable
+        data={dados}
+        columns={colunas}
+        rowKey="id"
+        renderMobileRow={(row) => ({
+          resumo: <span>resumo {row.nome}</span>,
+          detalhes: null,
+        })}
+        renderExpandedRow={(row) => <div>painel {row.nome}</div>}
+        {...extra}
+      />,
+    );
+
+  it("mobile: toque na linha alterna (accordion) e o painel é o do renderExpandedRow", () => {
+    const { container } = renderTabela();
+    const linhas = container.querySelectorAll(
+      "div[role='button'][aria-expanded]",
+    );
+    expect(linhas).toHaveLength(3);
+    fireEvent.click(linhas[0]);
+    expect(screen.getAllByText("painel Alfa").length).toBeGreaterThan(0);
+    fireEvent.keyDown(linhas[1], { key: "Enter" });
+    expect(linhas[0]).toHaveAttribute("aria-expanded", "false");
+    expect(linhas[1]).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("mobile: select 'Ordenar por' e botão de direção refletem o sort", () => {
+    const { container } = renderTabela();
+    const ordem = () =>
+      Array.from(
+        container.querySelectorAll("div[role='button'][aria-expanded]"),
+      ).map((el) => el.textContent);
+    fireEvent.change(screen.getByLabelText("Ordenar por"), {
+      target: { value: "valor" },
+    });
+    expect(ordem()).toEqual(["resumo Alfa", "resumo Gama", "resumo Beta"]);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ordem crescente, alternar para decrescente",
+      }),
+    );
+    expect(ordem()).toEqual(["resumo Beta", "resumo Gama", "resumo Alfa"]);
+    expect(
+      screen.getByRole("button", {
+        name: "Ordem decrescente, alternar para crescente",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("sem renderMobileRow não há controle de ordenação mobile", () => {
+    render(<DenseTable data={dados} columns={colunas} sortable />);
+    expect(screen.queryByLabelText("Ordenar por")).not.toBeInTheDocument();
+  });
+
+  it("hideCsvOnMobile remove apenas o botão CSV mobile", () => {
+    const { container } = renderTabela({ hideCsvOnMobile: true });
+    expect(
+      container.querySelector('button[aria-label="Baixar CSV"]'),
+    ).toBeNull();
+    expect(screen.getByText("Baixar CSV")).toBeInTheDocument();
+  });
+});
