@@ -321,10 +321,10 @@ describe("ContratosServicosVigentesSection", () => {
 
     const rows = screen.getAllByRole("row");
     const highlightedRow = rows.find((r) =>
-      r.className.includes("border-l-amber-500"),
+      r.className.includes("border-l-warn"),
     );
     expect(highlightedRow).toBeDefined();
-    expect(highlightedRow).toHaveClass("bg-amber-50/70");
+    expect(highlightedRow).toHaveClass("bg-line2");
   });
 
   it("exibe a fonte principal em destaque e a destinação orçamentária no modal de detalhes", async () => {

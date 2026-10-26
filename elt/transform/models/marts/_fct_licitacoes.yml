@@ -54,6 +54,17 @@ models:
         data_type: numeric(15, 2)
       - name: situacao
         data_type: text
+      - name: situacao_codigo
+        data_type: text
+        description: "Situação normalizada: homologada, em_andamento, encerrada, deserta, fracassada, cancelada, classificada ou nao_informada. Valor homologado do PNCP prevalece sobre situação de andamento."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [homologada, em_andamento, encerrada, deserta, fracassada, cancelada, classificada, nao_informada]
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "<> 'em_andamento' or coalesce(valor_homologado, 0) = 0"
       - name: data_abertura
         data_type: date
         tests:

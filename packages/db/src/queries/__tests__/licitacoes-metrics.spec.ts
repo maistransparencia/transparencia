@@ -331,6 +331,7 @@ describe("licitacoes-metrics", () => {
         valorEstimado: 100000,
         valorHomologado: 85000,
         situacao: "em_andamento",
+        fonteObjeto: "pncp",
       });
 
       const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
@@ -341,6 +342,7 @@ describe("licitacoes-metrics", () => {
       expect(item).toBeDefined();
       expect(item?.valorEstimado).toBe(100000);
       expect(item?.valorHomologado).toBe(85000);
+      expect(item?.situacaoCodigo).toBe("homologada");
     });
 
     it("deve carregar fonteObjeto e linkSistemaOrigem da licitacao", async () => {
@@ -368,6 +370,29 @@ describe("licitacoes-metrics", () => {
       expect(lic?.linkSistemaOrigem).toBe(
         "https://pncp.gov.br/app/editais/28920999000106/2024/50",
       );
+    });
+
+    it("deve excluir linha municipal com valor homologado e situacao em andamento da lista de abertas", async () => {
+      await seedLicitacao({
+        portalSlug: FIXTURE_PORTAL,
+        ano: 2024,
+        empresaId: "1",
+        licitacaoNumero: "077/2024",
+        modalidade: "Pregao",
+        objeto: "Municipal já homologada",
+        valor: 1000,
+        valorHomologado: 900,
+        situacao: "em andamento",
+        fonteObjeto: "municipal",
+      });
+
+      const resultado = await getLicitacoesEmAndamentoMetrics(FIXTURE_PORTAL, {
+        ano: 2024,
+      });
+
+      expect(
+        resultado.find((r) => r.licitacaoNumero === "077/2024"),
+      ).toBeUndefined();
     });
 
     it("deve incluir compras do PNCP com situacao homologado ou divulgada e excluir canceladas/fracassadas", async () => {
@@ -641,6 +666,7 @@ describe("licitacoes-metrics", () => {
       expect(lic).not.toBeNull();
       expect(lic?.licitacaoNumero).toBe("000397");
       expect(lic?.situacao).toBe("homologada");
+      expect(lic?.situacaoCodigo).toBe("homologada");
       expect(lic?.objeto).toBe("Locação de tendas para feira");
       expect(lic?.valorHomologado).toBe(3200);
       expect(lic?.entidadeNome).toBe("Secretaria de Testes");

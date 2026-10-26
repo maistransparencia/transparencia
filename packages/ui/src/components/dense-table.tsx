@@ -58,6 +58,11 @@ export interface DenseTableProps<T> {
   csvButtonLabel?: string;
   recordLabel?: string;
   renderMobileCard?: (row: T) => React.ReactNode;
+  renderMobileRow?: (row: T) => {
+    resumo: React.ReactNode;
+    detalhes: React.ReactNode;
+  };
+  hideSearch?: boolean;
   rowClassName?: (row: T, index: number) => string | undefined;
   onFilteredDataChange?: (rows: T[]) => void;
   footerLabel?: string;
@@ -86,9 +91,9 @@ function SortIcon({
     );
   }
   if (sortDir === "asc") {
-    return <ChevronUp className="h-3.5 w-3.5 text-[#2b6cb0]" />;
+    return <ChevronUp className="h-3.5 w-3.5 text-brand" />;
   }
-  return <ChevronDown className="h-3.5 w-3.5 text-[#2b6cb0]" />;
+  return <ChevronDown className="h-3.5 w-3.5 text-brand" />;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: T accepts any typed object model
@@ -109,6 +114,8 @@ export function DenseTable<T extends Record<string, any>>({
   csvButtonLabel = "Baixar CSV",
   recordLabel = "registros",
   renderMobileCard,
+  renderMobileRow,
+  hideSearch = false,
   rowClassName,
   onFilteredDataChange,
   footerLabel = "Total",
@@ -336,19 +343,21 @@ export function DenseTable<T extends Record<string, any>>({
     return pages;
   }, [totalPages, currentPage]);
 
+  const hasMobileRenderer = Boolean(renderMobileRow ?? renderMobileCard);
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        "scroll-mt-20 overflow-hidden rounded-xl border border-borderLine bg-white shadow-xs sm:scroll-mt-24",
+        "scroll-mt-20 overflow-hidden bg-page sm:scroll-mt-24",
         className,
       )}
     >
-      {(searchableKeys !== undefined || enableExportCsv) && (
-        <div className="flex items-center justify-between gap-2 border-borderLine border-b bg-gray-50/50 p-3">
-          {searchableKeys !== undefined ? (
+      {((searchableKeys !== undefined && !hideSearch) || enableExportCsv) && (
+        <div className="flex items-center justify-between gap-2 border-line border-b py-3">
+          {searchableKeys !== undefined && !hideSearch ? (
             <div className="flex flex-1 items-center gap-2">
-              <Search className="h-4 w-4 shrink-0 text-mutedText" />
+              <Search className="h-4 w-4 shrink-0 text-mute2" />
               <input
                 type="text"
                 value={query}
@@ -357,7 +366,7 @@ export function DenseTable<T extends Record<string, any>>({
                   setPage(1);
                 }}
                 placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-ink text-xs placeholder:text-mutedText focus:outline-none"
+                className="w-full bg-transparent text-ink text-xs placeholder:text-mute2 focus:outline-none"
               />
             </div>
           ) : (
@@ -371,17 +380,17 @@ export function DenseTable<T extends Record<string, any>>({
                 onClick={handleExportCsv}
                 disabled={sortedData.length === 0}
                 aria-label={csvButtonLabel}
-                className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:hidden"
+                className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-md border border-line bg-page px-3 py-2.5 text-ink transition-colors hover:border-mute3 hover:bg-line2 disabled:opacity-40 sm:hidden"
               >
-                <Download className="h-3.5 w-3.5 text-slate-500" />
+                <Download className="h-3.5 w-3.5 text-mute2" />
               </button>
               <button
                 type="button"
                 onClick={handleExportCsv}
                 disabled={sortedData.length === 0}
-                className="hidden shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 text-xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:inline-flex"
+                className="hidden shrink-0 items-center justify-center gap-1.5 rounded-md border border-line bg-page px-3 py-1.5 font-medium text-ink text-xs transition-colors hover:border-mute3 hover:bg-line2 disabled:opacity-40 sm:inline-flex"
               >
-                <Download className="h-3.5 w-3.5 text-slate-500" />
+                <Download className="h-3.5 w-3.5 text-mute2" />
                 <span>{csvButtonLabel}</span>
               </button>
             </>
@@ -389,10 +398,29 @@ export function DenseTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {renderMobileCard && displayedData.length > 0 && (
-        <div className="block divide-y divide-borderLine border-borderLine border-b bg-white sm:hidden">
+      {renderMobileRow && displayedData.length > 0 && (
+        <div className="block border-line border-b sm:hidden">
+          {displayedData.map((row, idx) => {
+            const { resumo, detalhes } = renderMobileRow(row);
+            return (
+              <details
+                key={rowKey ? String(row[rowKey]) : idx}
+                className="group border-line border-b last:border-b-0"
+              >
+                <summary className="cursor-pointer list-none py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden">
+                  {resumo}
+                </summary>
+                <div className="pb-3 text-xs">{detalhes}</div>
+              </details>
+            );
+          })}
+        </div>
+      )}
+
+      {!renderMobileRow && renderMobileCard && displayedData.length > 0 && (
+        <div className="block divide-y divide-line border-line border-b sm:hidden">
           {displayedData.map((row, idx) => (
-            <div key={rowKey ? String(row[rowKey]) : idx} className="p-3.5">
+            <div key={rowKey ? String(row[rowKey]) : idx} className="py-3.5">
               {renderMobileCard(row)}
             </div>
           ))}
@@ -402,12 +430,12 @@ export function DenseTable<T extends Record<string, any>>({
       <div
         className={cn(
           "overflow-x-auto",
-          renderMobileCard && displayedData.length > 0 && "hidden sm:block",
+          hasMobileRenderer && displayedData.length > 0 && "hidden sm:block",
         )}
       >
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-borderLine border-b bg-gray-100/70 font-semibold text-subtleText uppercase tracking-wider">
+            <tr className="border-ink border-b font-semibold text-mute2 uppercase tracking-wider">
               {columns.map((col, _idx) => {
                 const isSortable =
                   (col.sortable ?? sortable) && col.accessorKey !== undefined;
@@ -430,13 +458,13 @@ export function DenseTable<T extends Record<string, any>>({
                         onClick={() => handleSort(col.accessorKey)}
                         aria-label={`Ordenar por ${col.header.toLowerCase()}`}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded px-1 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+                          "inline-flex items-center gap-1.5 rounded px-1 font-bold uppercase transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                           col.align === "right" && "ml-auto justify-end",
                           col.align === "center" && "justify-center",
                         )}
                       >
                         <span>{col.header}</span>
-                        <span className="inline-flex shrink-0 items-center text-slate-400">
+                        <span className="inline-flex shrink-0 items-center text-mute3">
                           <SortIcon isSorted={isSorted} sortDir={sortDir} />
                         </span>
                       </button>
@@ -456,12 +484,12 @@ export function DenseTable<T extends Record<string, any>>({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {displayedData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-6 text-center text-mutedText italic"
+                  className="px-4 py-6 text-center text-mute2 italic"
                 >
                   {emptyMessage}
                 </td>
@@ -473,7 +501,7 @@ export function DenseTable<T extends Record<string, any>>({
                   <tr
                     key={`tr-${rKey}`}
                     className={cn(
-                      "transition-colors hover:bg-gray-50/80",
+                      "transition-colors hover:bg-line2",
                       rowClassName?.(row, index),
                     )}
                   >
@@ -509,7 +537,7 @@ export function DenseTable<T extends Record<string, any>>({
           </tbody>
           {columns.some((col) => col.footer !== undefined) && (
             <tfoot>
-              <tr className="border-borderLine border-t-2 bg-slate-100 font-bold text-slate-900">
+              <tr className="border-ink border-t-2 font-bold text-ink">
                 {columns.map((col, idx) => (
                   <td
                     key={String(col.accessorKey || col.header)}
@@ -529,14 +557,14 @@ export function DenseTable<T extends Record<string, any>>({
       </div>
 
       {pageSize && (
-        <div className="flex flex-col items-center justify-between gap-3 border-slate-100 border-t bg-white px-4 py-3 text-slate-500 text-xs sm:flex-row sm:px-5">
+        <div className="flex flex-col items-center justify-between gap-3 border-line border-t py-3 text-mute2 text-xs sm:flex-row">
           <div>
             Mostrando{" "}
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-ink">
               {displayedData.length}
             </span>{" "}
             de{" "}
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-ink">
               {filteredData.length}
             </span>{" "}
             {recordLabel}
@@ -549,17 +577,14 @@ export function DenseTable<T extends Record<string, any>>({
                 aria-label="Página anterior"
                 disabled={currentPage <= 1}
                 onClick={() => handlePageChange(currentPage - 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-ink transition-colors hover:bg-line2 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &larr;
               </button>
 
               {pageNumbers.map((pageNum) =>
                 typeof pageNum === "string" ? (
-                  <span
-                    key={pageNum}
-                    className="px-1 font-semibold text-slate-400"
-                  >
+                  <span key={pageNum} className="px-1 font-semibold text-mute3">
                     ...
                   </span>
                 ) : (
@@ -569,10 +594,10 @@ export function DenseTable<T extends Record<string, any>>({
                     aria-label={`Página ${pageNum}`}
                     onClick={() => handlePageChange(pageNum)}
                     className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-lg font-semibold text-xs transition-colors sm:h-7 sm:w-7",
+                      "flex h-9 w-9 items-center justify-center rounded-md font-semibold text-xs transition-colors sm:h-7 sm:w-7",
                       pageNum === currentPage
-                        ? "bg-[#2b6cb0] text-white"
-                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                        ? "bg-ink text-onink"
+                        : "border border-line text-ink hover:bg-line2",
                     )}
                   >
                     {pageNum}
@@ -585,7 +610,7 @@ export function DenseTable<T extends Record<string, any>>({
                 aria-label="Próxima página"
                 disabled={currentPage >= totalPages}
                 onClick={() => handlePageChange(currentPage + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-ink transition-colors hover:bg-line2 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &rarr;
               </button>

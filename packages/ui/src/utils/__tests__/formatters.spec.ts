@@ -3,6 +3,7 @@ import {
   fmtCompact,
   fmtCpfCnpj,
   fmtLicitacaoModalidade,
+  fmtLicitacaoSituacaoCodigo,
   getPartialYearPeriod,
   maskCpfCnpj,
 } from "../formatters";
@@ -187,5 +188,26 @@ describe("fmtCompact", () => {
 
   it("usa moeda completa abaixo de mil", () => {
     expect(fmtCompact(999).replace(/\s/g, " ")).toBe("R$ 999");
+  });
+});
+
+describe("fmtLicitacaoSituacaoCodigo", () => {
+  it.each([
+    ["homologada", "Homologada"],
+    ["em_andamento", "Em andamento"],
+    ["encerrada", "Encerrada"],
+    ["deserta", "Deserta"],
+    ["fracassada", "Fracassada"],
+    ["cancelada", "Cancelada"],
+    ["classificada", "Classificada"],
+    ["nao_informada", "Não informada"],
+  ])("rotula o código %s como %s", (codigo, rotulo) => {
+    expect(fmtLicitacaoSituacaoCodigo(codigo, "texto ignorado")).toBe(rotulo);
+  });
+
+  it("recorre ao texto da situação quando o código é ausente ou desconhecido", () => {
+    expect(fmtLicitacaoSituacaoCodigo(null, "Aberta")).toBe("Aberta");
+    expect(fmtLicitacaoSituacaoCodigo("outro", "suspensa")).toBe("Suspensa");
+    expect(fmtLicitacaoSituacaoCodigo(undefined, null)).toBe("Em andamento");
   });
 });

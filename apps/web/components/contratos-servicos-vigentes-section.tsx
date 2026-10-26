@@ -4,8 +4,11 @@ import { BProgress } from "@bprogress/core";
 import type { ContratoServicoVigente } from "@transparencia/db";
 import {
   type Column,
+  cn,
   DenseTable,
+  fmtCurrency,
   fmtDate,
+  fmtPercent,
   SegmentedButton,
 } from "@transparencia/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -370,7 +373,7 @@ export function ContratosServicosVigentesSection({
         <button
           type="button"
           onClick={() => handleOpenContratoDetails(row)}
-          className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
+          className="cursor-pointer text-left font-medium text-ink hover:text-blue-600 hover:underline"
           title="Ver detalhes do contrato"
         >
           {row.fornecedorNome}
@@ -385,7 +388,7 @@ export function ContratosServicosVigentesSection({
       renderCell: (row) => (
         <div className="space-y-1">
           <p
-            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
+            className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
             title={row.objetoDescricao}
           >
             {row.objetoDescricao || "—"}
@@ -406,14 +409,14 @@ export function ContratosServicosVigentesSection({
       accessorKey: "statusLabel",
       sortable: true,
       align: "center",
-      className: "whitespace-nowrap font-medium text-slate-700 text-xs",
+      className: "whitespace-nowrap font-medium text-ink text-xs",
     },
     {
       header: "Vigência",
       accessorKey: "vigenciaFormatada",
       sortable: true,
       align: "center",
-      className: "whitespace-nowrap font-medium text-slate-600",
+      className: "whitespace-nowrap font-medium text-mute2",
     },
     {
       header: "Empenhado",
@@ -465,21 +468,21 @@ export function ContratosServicosVigentesSection({
           <h2 className="font-bold font-serif text-ink text-xl tracking-tight">
             Contratos de Serviços Vigentes
           </h2>
-          <p className="text-slate-600 text-xs leading-relaxed sm:text-sm">
+          <p className="text-mute2 text-xs leading-relaxed sm:text-sm">
             Principais contratos de serviços de terceiros em execução, ordenados
             pelo menor valor pago e maior saldo pendente para evidenciar
             potenciais exposições fiscais.
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-borderLine bg-gray-100 px-2.5 py-1 font-medium text-subtleText text-xs">
+        <span className="shrink-0 rounded-full border border-line px-2.5 py-1 font-medium text-mute2 text-xs">
           {filteredContratos.length} de {contratos.length}{" "}
           {contratos.length === 1 ? "contrato" : "contratos"}
         </span>
       </div>
 
       {/* Segmented Filter Pills */}
-      <div className="flex flex-wrap items-center gap-2 border-slate-200/80 border-b pb-3">
-        <span className="font-semibold text-slate-700 text-xs">
+      <div className="flex flex-wrap items-center gap-2 border-line border-b pb-3">
+        <span className="font-semibold text-ink text-xs">
           Status de Execução:
         </span>
         <SegmentedButton
@@ -532,7 +535,7 @@ export function ContratosServicosVigentesSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-300 border-dashed p-6 text-center text-slate-500 text-sm">
+        <div className="rounded-md border border-line border-dashed p-6 text-center text-mute2 text-sm">
           Nenhum contrato encontrado para a visão "{statusFilter}".
         </div>
       )}
@@ -541,24 +544,84 @@ export function ContratosServicosVigentesSection({
       <DenseTable
         data={tableData}
         columns={columns}
-        renderMobileCard={(row) => (
-          <ContratoServicoVigenteCard
-            contrato={row}
-            onOpenDetails={() => handleOpenContratoDetails(row)}
-            isHighlighted={
-              Boolean(highlightedId) &&
-              (row.contratoServicoId === highlightedId ||
-                row.contratoNumero === highlightedId)
-            }
-          />
-        )}
+        renderMobileRow={(row) => {
+          const isMatch =
+            Boolean(highlightedId) &&
+            (row.contratoServicoId === highlightedId ||
+              row.contratoNumero === highlightedId);
+          return {
+            resumo: (
+              <div
+                className={cn(
+                  "space-y-0.5",
+                  isMatch && "ring-2 ring-brand ring-offset-2",
+                )}
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate font-bold text-ink text-sm">
+                    {row.fornecedorNome}
+                  </span>
+                  <span className="shrink-0 font-bold font-serif text-ink text-sm">
+                    {fmtCurrency(row.totalPago)}
+                  </span>
+                </div>
+                <p className="line-clamp-2 text-ink text-xs leading-snug">
+                  {row.objetoDescricao || "—"}
+                </p>
+                <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
+                  <span className="font-semibold">{row.statusLabel}</span>
+                  <span>{row.vigenciaFormatada}</span>
+                </div>
+              </div>
+            ),
+            detalhes: (
+              <div className="space-y-3">
+                <dl className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
+                  <div>
+                    <dt className="text-[11px] text-mute2">Empenhado</dt>
+                    <dd className="font-bold font-serif text-ink">
+                      {fmtCurrency(row.totalEmpenhado)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-mute2">Liquidado</dt>
+                    <dd className="font-bold font-serif text-ink">
+                      {fmtCurrency(row.totalLiquidado)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-mute2">Saldo Pendente</dt>
+                    <dd className="font-bold font-serif text-ink">
+                      {fmtCurrency(row.saldoPendente)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-mute2">% Pago</dt>
+                    <dd className="font-bold font-serif text-ink">
+                      {fmtPercent(row.percentualPago)}
+                    </dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  onClick={() => handleOpenContratoDetails(row)}
+                  className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-pill px-3 py-1 font-medium text-ink text-xs hover:border-mute3"
+                  title="Abrir detalhes completos do contrato"
+                >
+                  Detalhes
+                </button>
+              </div>
+            ),
+          };
+        }}
+        hideSearch
         rowClassName={(row) => {
           const isMatch =
             Boolean(highlightedId) &&
             (row.contratoServicoId === highlightedId ||
               row.contratoNumero === highlightedId);
           return isMatch
-            ? "bg-amber-50/70 border-l-4 border-l-amber-500 font-medium"
+            ? "bg-line2 border-l-4 border-l-warn font-medium"
             : undefined;
         }}
         searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."

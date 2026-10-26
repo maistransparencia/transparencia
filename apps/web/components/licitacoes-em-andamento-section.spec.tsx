@@ -22,6 +22,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       discriminacao: null,
       dataAbertura: "2025-04-10",
       situacao: "aberta",
+      situacaoCodigo: "em_andamento",
       entidadeNome: "Fundo Municipal de Saúde",
       valorEstimado: 250000,
       valorHomologado: null,
@@ -40,6 +41,7 @@ describe("LicitacoesEmAndamentoSection Component", () => {
       discriminacao: null,
       dataAbertura: "2025-05-15",
       situacao: "publicado",
+      situacaoCodigo: "em_andamento",
       entidadeNome: "Secretaria de Educação",
       valorEstimado: 1200000,
       valorHomologado: null,
@@ -124,92 +126,12 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(cards[3]).toHaveTextContent("PE 001/2025");
   });
 
-  it("filtra itens na tabela pela busca do DenseTable", () => {
+  it("não exibe busca própria da tabela (a busca é única, via Spotlight)", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
 
-    const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto.*modalidade/i,
-    );
-    fireEvent.change(searchInput, { target: { value: "medicamentos" } });
-
-    // Na tabela filtrada, deve encontrar apenas o PE 001/2025
-    const rows = screen.getAllByRole("row");
-    // Header + 1 linha de dado
-    expect(rows).toHaveLength(2);
-    expect(rows[1]).toHaveTextContent("PE 001/2025");
-    expect(rows[1]).not.toHaveTextContent("CP 002/2025");
-  });
-
-  it("filtra itens na busca por modalidade com espaços ou discriminação", () => {
-    const itemsComDiscriminacao: LicitacaoEmAndamentoDTO[] = [
-      {
-        ...sampleItems[0],
-        objeto: "Contratação de empresa especializada",
-        discriminacao: "Fornecimento de antibióticos e seringas",
-        modalidade: "pregao_eletronico",
-      },
-      sampleItems[1],
-    ];
-
-    render(<LicitacoesEmAndamentoSection licitacoes={itemsComDiscriminacao} />);
-    const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto.*modalidade/i,
-    );
-
-    // Busca por termo na discriminação
-    fireEvent.change(searchInput, { target: { value: "antibioticos" } });
-    const rowsDiscriminacao = screen.getAllByRole("row");
-    expect(rowsDiscriminacao).toHaveLength(2);
-    expect(rowsDiscriminacao[1]).toHaveTextContent("PE 001/2025");
-
-    // Busca por modalidade com espaços em vez de snake_case
-    fireEvent.change(searchInput, { target: { value: "pregao eletronico" } });
-    const rowsModalidade = screen.getAllByRole("row");
-    expect(rowsModalidade).toHaveLength(2);
-    expect(rowsModalidade[1]).toHaveTextContent("PE 001/2025");
-  });
-
-  it("filtra itens na tabela pela situação (ex: 'em andamento')", () => {
-    const itensComSituacaoDiferente: LicitacaoEmAndamentoDTO[] = [
-      {
-        ...sampleItems[0],
-        licitacaoId: "lic-andamento",
-        licitacaoNumero: "PE 101/2025",
-        situacao: "em_andamento",
-      },
-      {
-        ...sampleItems[1],
-        licitacaoId: "lic-homologada",
-        licitacaoNumero: "CP 102/2025",
-        situacao: "homologada",
-      },
-    ];
-
-    render(
-      <LicitacoesEmAndamentoSection licitacoes={itensComSituacaoDiferente} />,
-    );
-
-    const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto.*modalidade/i,
-    );
-    fireEvent.change(searchInput, { target: { value: "em andamento" } });
-
-    const rows = screen.getAllByRole("row");
-    expect(rows).toHaveLength(2);
-    expect(rows[1]).toHaveTextContent("PE 101/2025");
-    expect(rows[1]).toHaveTextContent("Em andamento");
-    expect(rows[1]).not.toHaveTextContent("CP 102/2025");
-  });
-
-  it("exibe estado vazio na tabela quando a busca não retorna resultados", () => {
-    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
-
-    const searchInput = screen.getByPlaceholderText(
-      /Buscar por objeto.*modalidade/i,
-    );
-    fireEvent.change(searchInput, { target: { value: "termo_inexistente" } });
-
-    expect(screen.getByText("Nenhum registro encontrado.")).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText(/Buscar por objeto.*modalidade/i),
+    ).not.toBeInTheDocument();
   });
 
   it("exibe estado vazio padrão quando a lista de itens é vazia", () => {
@@ -335,10 +257,98 @@ describe("LicitacoesEmAndamentoSection Component", () => {
     expect(screen.getAllByText("-25%").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("exibe badge 'Em disputa' quando valorHomologado é nulo", () => {
+  it("exibe 'ainda não homologada' quando valorHomologado é nulo, sem 'Em disputa'", () => {
     render(<LicitacoesEmAndamentoSection licitacoes={[sampleItems[0]]} />);
 
-    expect(screen.getAllByText(/Em disputa/i).length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(/ainda não homologada/i).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/Em disputa/i)).not.toBeInTheDocument();
+  });
+
+  it("licitação homologada mostra o valor homologado e nunca 'Em andamento' no mesmo registro", () => {
+    render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={[
+          {
+            ...sampleItems[0],
+            situacao: "Em Andamento",
+            situacaoCodigo: "homologada",
+            valorHomologado: 90000,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByText("Homologada").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Em andamento")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Em disputa/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ainda não homologada/i)).not.toBeInTheDocument();
+  });
+
+  it("texto de valor homologado ausente depende da situação", () => {
+    const base = sampleItems[0];
+    const comCodigo = (
+      licitacaoId: string,
+      situacaoCodigo: LicitacaoEmAndamentoDTO["situacaoCodigo"],
+    ): LicitacaoEmAndamentoDTO => ({
+      ...base,
+      licitacaoId,
+      licitacaoNumero: licitacaoId,
+      situacaoCodigo,
+      valorHomologado: null,
+    });
+    const { container } = render(
+      <LicitacoesEmAndamentoSection
+        licitacoes={[
+          comCodigo("EM-ANDAMENTO", "em_andamento"),
+          comCodigo("HOMOLOGADA", "homologada"),
+          comCodigo("CANCELADA", "cancelada"),
+        ]}
+      />,
+    );
+
+    const linha = (numero: string) =>
+      Array.from(container.querySelectorAll("tbody tr")).find((tr) =>
+        tr.textContent?.includes(numero),
+      ) as HTMLElement;
+    expect(linha("EM-ANDAMENTO")).toHaveTextContent("ainda não homologada");
+    expect(linha("HOMOLOGADA")).toHaveTextContent("valor não informado");
+    expect(linha("HOMOLOGADA")).not.toHaveTextContent("ainda não homologada");
+    expect(linha("CANCELADA")).not.toHaveTextContent("ainda não homologada");
+  });
+
+  it("fallback da busca não trata valor como homologado quando situação não é homologada", async () => {
+    render(<LicitacoesEmAndamentoSection licitacoes={sampleItems} />);
+
+    window.dispatchEvent(
+      new CustomEvent("licitacao:selected", {
+        detail: {
+          numero: "XX 999/2025",
+          objeto: "Objeto vindo da busca",
+          valor: 7777,
+          status: "Em Andamento",
+          statusCodigo: "em_andamento",
+          fromSearch: true,
+        },
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByText("ainda não homologada"),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza linhas mobile expansíveis com resumo e detalhes", () => {
+    const { container } = render(
+      <LicitacoesEmAndamentoSection licitacoes={sampleItems} />,
+    );
+
+    const linhas = container.querySelectorAll("details");
+    expect(linhas).toHaveLength(sampleItems.length);
+    expect(linhas[0].querySelector("summary")).toHaveTextContent("CP 002/2025");
+    expect(linhas[0]).toHaveTextContent("Valor Estimado");
   });
 
   it("abre automaticamente o modal de itens quando URL possui ?numero=...#itens", () => {

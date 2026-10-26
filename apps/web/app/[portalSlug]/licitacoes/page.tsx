@@ -6,6 +6,7 @@ import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
+import { LicitacoesTempoNaPagina } from "@/components/licitacoes-tempo-na-pagina";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -69,20 +70,21 @@ export default async function LicitacoesPage({
 
   return (
     <div className="space-y-8 pb-10">
+      <LicitacoesTempoNaPagina />
       {/* Header & Subtitle */}
       <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
+        <h1 className="font-bold font-serif text-3xl text-ink">
           Licitações e Contratos
         </h1>
-        <p className="mt-2 max-w-4xl text-slate-600 text-xs leading-relaxed sm:text-sm">
+        <p className="mt-2 max-w-4xl text-mute2 text-xs leading-relaxed sm:text-sm">
           Contratos sem licitação são comuns e frequentemente legais — dispensas
           de baixo valor e inexigibilidades são permitidas por lei. O ponto de
           atenção são os contratos{" "}
-          <strong className="font-semibold text-slate-900">
+          <strong className="font-semibold text-ink">
             acima de {fmtCurrency(limiteDispensaComprasServicos)} sem licitação
           </strong>
           , que exigem justificativa formal.
@@ -122,9 +124,9 @@ export default async function LicitacoesPage({
 
       {/* Warning Alert Banner - Concentração de Dispensas */}
       {hasAnomaliaDispensa && (
-        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md border-warn border-l-4 bg-line2 p-4 text-ink text-xs sm:text-sm">
           <div>
-            <span className="font-bold text-[#9c4221]">
+            <span className="font-bold text-warn">
               Alerta de Concentração de Contratações Diretas:
             </span>{" "}
             {(() => {
@@ -174,7 +176,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-warn"
             >
               Art. 74 (Inexigibilidade)
               <ExternalLink
@@ -188,7 +190,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-warn"
             >
               Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)
               <ExternalLink
@@ -202,7 +204,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-warn"
             >
               Art. 86 (Adesão a Ata)
               <ExternalLink
@@ -217,10 +219,10 @@ export default async function LicitacoesPage({
 
       {/* Warning Alert Banner - Fracionamento */}
       {numCasosFracionamento > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md border-warn border-l-4 bg-line2 p-4 text-ink text-xs sm:text-sm">
           <span className="mt-0.5 shrink-0 text-base">⚠️</span>
           <div>
-            <span className="font-bold text-[#9c4221]">
+            <span className="font-bold text-warn">
               {numCasosFracionamento}{" "}
               {numCasosFracionamento === 1 ? "caso" : "casos"} de possível
               fracionamento.
@@ -251,22 +253,19 @@ export default async function LicitacoesPage({
       <section className="space-y-4">
         <div className="border-ink border-t-2 pt-8">
           <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-            <h2 className="font-bold font-serif text-slate-900 text-xl">
+            <h2 className="font-bold font-serif text-ink text-xl">
               Contratos acima do limite, sem licitação
             </h2>
-            <span className="font-medium text-slate-400 text-xs">
+            <span className="font-medium text-mute3 text-xs">
               {acimaLimiteGaps.length} contratos · exige justificativa formal
             </span>
           </div>
 
-          <p className="mb-4 text-slate-600 text-xs leading-relaxed sm:text-sm">
+          <p className="mb-4 text-mute2 text-xs leading-relaxed sm:text-sm">
             Cada linha merece análise da justificativa oficial. Quando o mesmo
             fornecedor aparece várias vezes com valores próximos ao teto de{" "}
             {fmtCurrency(limiteDispensaComprasServicos)}, pode indicar{" "}
-            <strong className="font-semibold text-slate-900">
-              fracionamento
-            </strong>
-            .
+            <strong className="font-semibold text-ink">fracionamento</strong>.
           </p>
         </div>
 

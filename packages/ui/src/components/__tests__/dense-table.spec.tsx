@@ -416,3 +416,95 @@ describe("DenseTable - rodapé e onFilteredDataChange", () => {
     expect(onFilteredDataChange).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("DenseTable - formato Divisórias, renderMobileRow e hideSearch", () => {
+  const columns: Column<TestItem>[] = [
+    { header: "Nome", accessorKey: "nome", sortable: true },
+    { header: "Valor", accessorKey: "valor", format: "currency" },
+  ];
+  const data: TestItem[] = [
+    { id: "1", nome: "Item Alpha", valor: 1000 },
+    { id: "2", nome: "Item Beta", valor: 2500 },
+  ];
+
+  it("contêiner não usa rounded-xl, border nem shadow-xs e usa filetes ink/line", () => {
+    const { container } = render(
+      <DenseTable data={data} columns={columns} rowKey="id" />,
+    );
+
+    const raiz = container.firstElementChild as HTMLElement;
+    expect(raiz).not.toHaveClass("rounded-xl");
+    expect(raiz).not.toHaveClass("border");
+    expect(raiz).not.toHaveClass("shadow-xs");
+    expect(container.querySelector("thead tr")).toHaveClass("border-ink");
+    expect(container.querySelector("tbody")).toHaveClass("divide-line");
+  });
+
+  it("renderMobileRow renderiza <details> com resumo e detalhes", () => {
+    const { container } = render(
+      <DenseTable
+        data={data}
+        columns={columns}
+        rowKey="id"
+        renderMobileRow={(row) => ({
+          resumo: <span>Resumo {row.nome}</span>,
+          detalhes: <span>Detalhes {row.nome}</span>,
+        })}
+      />,
+    );
+
+    const linhas = container.querySelectorAll("details");
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0].querySelector("summary")).toHaveTextContent(
+      "Resumo Item Alpha",
+    );
+    expect(linhas[0]).toHaveTextContent("Detalhes Item Alpha");
+    expect(container.querySelector("table")?.parentElement).toHaveClass(
+      "hidden",
+    );
+  });
+
+  it("renderMobileRow tem precedência sobre renderMobileCard", () => {
+    const { container } = render(
+      <DenseTable
+        data={data}
+        columns={columns}
+        rowKey="id"
+        renderMobileCard={(row) => <span>Card {row.nome}</span>}
+        renderMobileRow={(row) => ({
+          resumo: <span>Resumo {row.nome}</span>,
+          detalhes: <span>Detalhes {row.nome}</span>,
+        })}
+      />,
+    );
+
+    expect(container.querySelectorAll("details")).toHaveLength(2);
+    expect(screen.queryByText("Card Item Alpha")).not.toBeInTheDocument();
+  });
+
+  it("hideSearch esconde o campo de busca; padrão preserva", () => {
+    const { rerender } = render(
+      <DenseTable
+        data={data}
+        columns={columns}
+        searchableKeys={["nome"]}
+        searchPlaceholder="Buscar aqui"
+      />,
+    );
+    expect(screen.getByPlaceholderText("Buscar aqui")).toBeInTheDocument();
+
+    rerender(
+      <DenseTable
+        data={data}
+        columns={columns}
+        searchableKeys={["nome"]}
+        searchPlaceholder="Buscar aqui"
+        hideSearch
+      />,
+    );
+    expect(
+      screen.queryByPlaceholderText("Buscar aqui"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Baixar CSV")).toBeInTheDocument();
+  });
+});
