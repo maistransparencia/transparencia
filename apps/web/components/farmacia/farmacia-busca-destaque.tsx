@@ -56,7 +56,7 @@ export function FarmaciaBuscaDestaque({
         )}
         <button
           type="submit"
-          className="-my-px -mr-px shrink-0 self-stretch bg-ink px-7 font-semibold text-[15px] text-onink hover:bg-ink/80"
+          className="-my-px -mr-px shrink-0 self-stretch bg-ink px-7 font-semibold text-[15px] text-onink hover:bg-ink/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
         >
           Buscar
         </button>

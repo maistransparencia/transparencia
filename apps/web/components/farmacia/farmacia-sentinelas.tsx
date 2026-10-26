@@ -112,6 +112,10 @@ function PedidoEsclarecimentoConteudo({
           envie pelo canal oficial de acesso à informação da Prefeitura, ou
           compartilhe pelo WhatsApp.
         </p>
+        <p>
+          Não aparecer na lista não quer dizer que o remédio acabou. Pode ser
+          que a unidade não tenha informado.
+        </p>
       </div>
       <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
@@ -173,8 +177,8 @@ function PedidoEsclarecimentoConteudo({
         }
       />
       <p className="border-line border-t pt-3 text-mute2 text-xs">
-        Pela LAI, o órgão tem até 20 dias para responder, prorrogáveis por mais
-        10.
+        Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
+        tem até 20 dias. Pode prorrogar por mais 10 dias, com justificativa.
       </p>
     </div>
   );

@@ -175,7 +175,7 @@ describe("FarmaciaSentinelas", () => {
     expect(screen.getByText("Prefeitura de Teste - UF")).toBeInTheDocument();
     expect(screen.getByText(/não aparece no estoque de /)).toBeInTheDocument();
     expect(
-      screen.getByText(/Pela LAI, o órgão tem até 20 dias/),
+      screen.getByText(/Pode prorrogar por mais 10 dias, com justificativa/),
     ).toBeInTheDocument();
     const lei = screen.getByRole("link", {
       name: /Lei de Acesso à Informação/,
@@ -191,6 +191,9 @@ describe("FarmaciaSentinelas", () => {
     const copiado = await screen.findByRole("button", { name: /Copiado/ });
     expect(copiado).toHaveClass("bg-ok");
 
+    expect(
+      screen.getByText(/Não aparecer na lista não quer dizer/),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Inclua seu nome e um contato/),
     ).toBeInTheDocument();
