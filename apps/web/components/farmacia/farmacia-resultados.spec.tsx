@@ -115,6 +115,14 @@ describe("FarmaciaResultados", () => {
       );
     expect(ids()).toEqual(["u1", "u2"]);
     fireEvent.click(screen.getByRole("button", { name: "Por remédio" }));
+    expect(screen.getByRole("button", { name: "Por remédio" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Por unidade" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
     expect(ids()).toEqual(["u1", "u2"]);
   });
 
@@ -122,9 +130,9 @@ describe("FarmaciaResultados", () => {
     render(<FarmaciaResultados {...props} />);
     const card = screen.getByText("Farmácia Básica").closest("li");
     fireEvent.focus(card as HTMLElement);
-    expect(card?.className).toContain("border-accent");
+    expect(card?.className).toContain("bg-line2");
     fireEvent.blur(card as HTMLElement);
-    expect(card?.className).not.toContain("border-accent");
+    expect(card?.className).not.toContain("bg-line2");
   });
 
   it("alterna para a visao por remedio", () => {
@@ -137,9 +145,9 @@ describe("FarmaciaResultados", () => {
     render(<FarmaciaResultados {...props} />);
     const card = screen.getByText("Farmácia Básica").closest("li");
     fireEvent.mouseEnter(card as HTMLElement);
-    expect(card?.className).toContain("border-accent");
+    expect(card?.className).toContain("bg-line2");
     fireEvent.mouseLeave(card as HTMLElement);
-    expect(card?.className).not.toContain("border-accent");
+    expect(card?.className).not.toContain("bg-line2");
   });
 
   it("unidade sem coordenadas aparece na lista e sem marcadores oculta o mapa", () => {

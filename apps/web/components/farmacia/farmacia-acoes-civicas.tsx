@@ -1,7 +1,7 @@
 "use client";
 
-import { Copy, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export interface FarmaciaAcoesCivicasProps {
   requerimento: string;
@@ -18,18 +18,21 @@ export interface FarmaciaAcoesCivicasProps {
   onAcao?: (acao: "copiado" | "copia_falhou" | "whatsapp") => void;
 }
 
+/** Tempo em que o botão fica em "Copiado" antes de voltar ao rótulo original. */
+const DURACAO_FEEDBACK_COPIA_MS = 2500;
+
 type FeedbackCopia = "idle" | "copiado" | "erro";
 
 const BOTAO_BASE =
-  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 font-semibold text-sm transition-colors";
+  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-4 font-semibold text-sm transition-colors";
 const BOTOES_CLASS = {
   alerta: {
-    principal: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
-    secundario: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
+    principal: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
+    secundario: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
   },
   pedido: {
-    principal: `${BOTAO_BASE} flex-1 border-accent bg-accent text-white hover:opacity-90`,
-    secundario: `${BOTAO_BASE} flex-1 border-borderLine bg-white text-ink hover:bg-slate-50`,
+    principal: `${BOTAO_BASE} flex-1 border-brand bg-brand text-onink hover:opacity-90`,
+    secundario: `${BOTAO_BASE} flex-1 border-line bg-page text-ink hover:bg-line2`,
   },
 } as const;
 
@@ -45,6 +48,15 @@ export function FarmaciaAcoesCivicas({
   onAcao,
 }: FarmaciaAcoesCivicasProps) {
   const [feedback, setFeedback] = useState<FeedbackCopia>("idle");
+
+  useEffect(() => {
+    if (feedback !== "copiado") return;
+    const temporizador = setTimeout(
+      () => setFeedback("idle"),
+      DURACAO_FEEDBACK_COPIA_MS,
+    );
+    return () => clearTimeout(temporizador);
+  }, [feedback]);
 
   const handleCopiar = async () => {
     setFeedback("idle");
@@ -75,22 +87,32 @@ export function FarmaciaAcoesCivicas({
         <button
           type="button"
           onClick={handleCopiar}
-          className={BOTOES_CLASS[variante].principal}
+          className={`${BOTOES_CLASS[variante].principal} ${feedback === "copiado" ? "border-ok bg-ok text-onink hover:bg-ok" : ""}`}
         >
-          <Copy className="h-4 w-4" aria-hidden="true" />
-          {rotuloCopiar}
+          {feedback === "copiado" ? (
+            <>
+              Copiado
+              <Check className="h-4 w-4" aria-hidden="true" />
+            </>
+          ) : (
+            rotuloCopiar
+          )}
         </button>
         <button
           type="button"
           onClick={handleWhatsApp}
           className={BOTOES_CLASS[variante].secundario}
         >
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
           {rotuloWhatsApp}
         </button>
       </div>
       {feedback === "copiado" && (
-        <p role="status" className="mt-2 font-medium text-xs">
+        <p
+          role="status"
+          className={
+            variante === "pedido" ? "sr-only" : "mt-2 font-medium text-xs"
+          }
+        >
           {mensagemCopiado}
         </p>
       )}

@@ -1,7 +1,12 @@
 "use client";
 
-import { fmtNumber, ModalDialog } from "@transparencia/ui";
-import { ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  fmtDate,
+  fmtNumber,
+  ModalDialog,
+  SegmentedButton,
+} from "@transparencia/ui";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { useId, useRef, useState } from "react";
@@ -18,7 +23,12 @@ export interface FarmaciaSentinelaItem {
   unidadesSomenteCombinacao: number;
   href: string;
   /** Pedido de esclarecimento; só existe para essencial sem registro de estoque. */
-  pedido?: { texto: string; textoWhatsApp: string } | null;
+  pedido?: {
+    texto: string;
+    textoWhatsApp: string;
+    dataEstoque: string | null;
+    rotuloMunicipio: string;
+  } | null;
 }
 
 const LEIS_DO_PEDIDO = [
@@ -31,10 +41,6 @@ export interface FarmaciaSentinelasProps {
   essenciais: FarmaciaSentinelaItem[];
   categorias: { codigo: string; rotulo: string }[];
   totalUnidadesAtivas: number;
-}
-
-function chipClasse(ativo: boolean): string {
-  return `rounded-full border px-3 py-[5px] text-[13px] ${ativo ? "border-ink bg-ink text-white" : "border-borderLine bg-white text-ink"}`;
 }
 
 function RotuloDisponibilidade({
@@ -52,11 +58,11 @@ function RotuloDisponibilidade({
             <span
               // biome-ignore lint/suspicious/noArrayIndexKey: quadradinhos posicionais, sem identidade própria
               key={indice}
-              className={`h-2 w-2 rounded-[2px] ${indice < item.unidadesComRegistro ? "bg-accent" : "bg-slate-200"}`}
+              className={`h-2 w-2 rounded-sm ${indice < item.unidadesComRegistro ? "bg-brand" : "bg-line"}`}
             />
           ))}
         </span>
-        <span className="text-[11px] text-slate-600 tabular-nums">
+        <span className="text-[11px] text-mute tabular-nums">
           {fmtNumber(item.unidadesComRegistro)} de{" "}
           {fmtNumber(totalUnidadesAtivas)} unidades
         </span>
@@ -64,7 +70,7 @@ function RotuloDisponibilidade({
     );
   }
   return (
-    <span className="text-[11px] text-attention">
+    <span className="text-[11px] text-warn">
       {item.status === "somente_combinacao"
         ? "só em combinação"
         : "não aparece no estoque"}
@@ -99,7 +105,7 @@ function PedidoEsclarecimentoConteudo({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 text-slate-600 text-sm leading-relaxed">
+      <div className="space-y-2 text-mute text-sm leading-relaxed">
         <p>
           O texto abaixo já está pronto e pode ser editado. Inclua seu nome e um
           contato: a lei pede a identificação de quem faz o pedido. Copie e
@@ -116,7 +122,7 @@ function PedidoEsclarecimentoConteudo({
           <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
             Texto do pedido
           </label>
-          <span className="text-slate-400 text-xs tabular-nums">
+          <span className="font-mono text-mute3 text-xs tabular-nums">
             {fmtNumber(texto.length)} caracteres
           </span>
         </div>
@@ -128,9 +134,9 @@ function PedidoEsclarecimentoConteudo({
             aoEditar();
           }}
           rows={9}
-          className="w-full resize-y rounded-xl border border-borderLine bg-slate-50 p-3 text-[14px] text-slate-700 leading-[1.6]"
+          className="w-full resize-y rounded-md border border-line bg-line2 p-3 text-[14px] text-ink leading-[1.6]"
         />
-        <p className="text-subtleText text-xs">
+        <p className="text-mute2 text-xs">
           Base legal:{" "}
           {LEIS_DO_PEDIDO.map((lei, indice) => (
             <span key={lei.codigo}>
@@ -145,7 +151,7 @@ function PedidoEsclarecimentoConteudo({
                     lei: lei.codigo,
                   })
                 }
-                className="inline-flex cursor-pointer items-center gap-1 text-accent underline"
+                className="inline-flex cursor-pointer items-center gap-1 text-brand underline"
               >
                 {lei.rotulo}
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -170,7 +176,7 @@ function PedidoEsclarecimentoConteudo({
           })
         }
       />
-      <p className="border-slate-200/80 border-t pt-3 text-slate-500 text-xs">
+      <p className="border-line border-t pt-3 text-mute2 text-xs">
         Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
         tem até 20 dias. Pode prorrogar por mais 10 dias, com justificativa.
       </p>
@@ -211,7 +217,7 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         type="button"
         aria-label={`Pedir esclarecimento sobre ${item.nomePrincipioAtivo}`}
         onClick={abrir}
-        className="inline-flex cursor-pointer items-center gap-1 py-1 font-semibold text-accent text-xs hover:underline"
+        className="inline-flex cursor-pointer items-center gap-1 py-1 font-semibold text-brand text-xs hover:underline"
       >
         Pedir esclarecimento
         <ArrowRight className="h-3 w-3" aria-hidden="true" />
@@ -220,12 +226,16 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         isOpen={aberto}
         onClose={fechar}
         title="Pedir esclarecimento"
-        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque`}
+        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque${item.pedido.dataEstoque ? ` de ${fmtDate(item.pedido.dataEstoque)}` : ""}`}
         subtitleClassName="line-clamp-2"
         badge={
-          <span className="inline-flex items-center gap-1 text-slate-500 text-xs">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Lei de Acesso à Informação
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {item.pedido.rotuloMunicipio && (
+              <span className="rounded-md bg-banbg px-2.5 py-1 font-semibold text-banfg">
+                {item.pedido.rotuloMunicipio}
+              </span>
+            )}
+            <span className="text-mute2">Lei de Acesso à Informação</span>
           </span>
         }
         maxWidth="2xl"
@@ -267,17 +277,17 @@ export function FarmaciaSentinelas({
         >
           Remédios essenciais
         </h2>
-        <p className="text-[13px] text-subtleText">
+        <p className="text-[13px] text-mute2">
           Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada remédio
           da lista nacional aparece no estoque. Clique para buscar.
         </p>
       </div>
 
-      <details className="rounded-[10px] border border-borderLine bg-white px-4 py-3">
+      <details className="border-line border-y px-1 py-3">
         <summary className="cursor-pointer font-semibold text-[13px] text-ink">
           Como ler esta lista
         </summary>
-        <p className="mt-2.5 text-[13px] text-slate-600 leading-[1.65]">
+        <p className="mt-2.5 text-[13px] text-mute leading-[1.65]">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
           lista nacional (
           <a
@@ -302,43 +312,38 @@ export function FarmaciaSentinelas({
         aria-label="Filtrar por categoria"
         className="m-0 flex flex-wrap gap-2 border-0 p-0"
       >
-        <button
-          type="button"
-          aria-pressed={categoria === null}
+        <SegmentedButton
+          active={categoria === null}
+          size="md"
           onClick={() => setCategoria(null)}
-          className={chipClasse(categoria === null)}
         >
           Todos
-        </button>
+        </SegmentedButton>
         {categorias.map((item) => (
-          <button
+          <SegmentedButton
             key={item.codigo}
-            type="button"
-            aria-pressed={categoria === item.codigo}
+            active={categoria === item.codigo}
+            size="md"
             onClick={() => setCategoria(item.codigo)}
-            className={chipClasse(categoria === item.codigo)}
           >
             {item.rotulo}
-          </button>
+          </SegmentedButton>
         ))}
       </fieldset>
 
-      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 rounded-xl border border-borderLine bg-white px-5 py-1">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 border-line border-t">
         {visiveis.map((item) => (
-          <li
-            key={item.codigoPrincipioAtivo}
-            className="border-slate-100 border-b"
-          >
+          <li key={item.codigoPrincipioAtivo} className="border-line border-b">
             {item.pedido ? (
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-3">
                 <Link
                   href={item.href}
-                  className="min-w-0 text-left hover:bg-[#f7f8fa]"
+                  className="min-w-0 text-left hover:bg-line2"
                 >
                   <span className="block font-semibold text-ink text-sm">
                     {item.nomePrincipioAtivo}
                   </span>
-                  <span className="block text-subtleText text-xs">
+                  <span className="block text-mute2 text-xs">
                     {item.rotuloCategoria}
                   </span>
                 </Link>
@@ -353,13 +358,13 @@ export function FarmaciaSentinelas({
             ) : (
               <Link
                 href={item.href}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-[#f7f8fa]"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-line2"
               >
                 <span className="min-w-0">
                   <span className="block font-semibold text-ink text-sm">
                     {item.nomePrincipioAtivo}
                   </span>
-                  <span className="block text-subtleText text-xs">
+                  <span className="block text-mute2 text-xs">
                     {item.rotuloCategoria}
                   </span>
                 </span>

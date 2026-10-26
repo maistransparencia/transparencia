@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -32,6 +32,8 @@ const essenciais = [
     pedido: {
       texto: "Pedido sobre Captopril",
       textoWhatsApp: "Pedido WhatsApp:",
+      dataEstoque: "2026-10-19",
+      rotuloMunicipio: "Prefeitura de Teste - UF",
     },
   }),
   item({
@@ -64,10 +66,10 @@ describe("FarmaciaSentinelas", () => {
     expect(screen.getAllByText("3 de 5 unidades")).toHaveLength(2);
     const quadradinhos = screen
       .getByRole("link", { name: /Losartana/ })
-      .querySelectorAll("span.rounded-\\[2px\\]");
+      .querySelectorAll("span.rounded-sm");
     expect(quadradinhos).toHaveLength(5);
     expect(
-      [...quadradinhos].filter((q) => q.className.includes("bg-accent")),
+      [...quadradinhos].filter((q) => q.className.includes("bg-brand")),
     ).toHaveLength(3);
     expect(container.textContent).not.toContain("8 unidades");
   });
@@ -98,6 +100,13 @@ describe("FarmaciaSentinelas", () => {
       "/portal_x/farmacia?q=Losartana",
     );
     fireEvent.click(screen.getByRole("button", { name: "Diabetes" }));
+    expect(screen.getByRole("button", { name: "Diabetes" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: "Diabetes" }),
+    ).not.toHaveAttribute("aria-selected");
     expect(screen.queryByRole("link", { name: /Losartana/ })).toBeNull();
     expect(
       screen.getByRole("link", { name: /Metformina/ }),
@@ -139,7 +148,7 @@ describe("FarmaciaSentinelas", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("oferece Pedir esclarecimento so para essencial sem registro, com links das leis", () => {
+  it("oferece Pedir esclarecimento so para essencial sem registro, com links das leis", async () => {
     render(
       <FarmaciaSentinelas
         essenciais={essenciais}
@@ -163,12 +172,38 @@ describe("FarmaciaSentinelas", () => {
     expect(
       screen.getByRole("button", { name: "Copiar pedido" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Prefeitura de Teste - UF")).toBeInTheDocument();
+    expect(screen.getByText(/não aparece no estoque de /)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pode prorrogar por mais 10 dias, com justificativa/),
+    ).toBeInTheDocument();
     const lei = screen.getByRole("link", {
       name: /Lei de Acesso à Informação/,
     });
     expect(lei.getAttribute("href")).toContain("planalto.gov.br");
     expect(lei).toHaveAttribute("target", "_blank");
     expect(lei).toHaveAttribute("rel", "noopener noreferrer");
+
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Copiar pedido" }));
+    const copiado = await screen.findByRole("button", { name: /Copiado/ });
+    expect(copiado).toHaveClass("bg-ok");
+
+    expect(
+      screen.getByText(/Não aparecer na lista não quer dizer/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Inclua seu nome e um contato/),
+    ).toBeInTheDocument();
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole("button", { name: "Copiar pedido" }),
+        ).toBeInTheDocument(),
+      { timeout: 4000 },
+    );
 
     fireEvent.change(screen.getByLabelText("Texto do pedido"), {
       target: { value: "Texto editado" },

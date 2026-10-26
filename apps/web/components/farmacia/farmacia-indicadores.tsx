@@ -14,21 +14,21 @@ export function FarmaciaIndicadores({
   if (indicadores.length === 0) return null;
 
   return (
-    <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3">
+    <dl className="flex flex-col divide-y divide-line border-line border-y sm:flex-row sm:divide-x sm:divide-y-0">
       {indicadores.map((indicador) => (
         <div
           key={indicador.codigo}
-          className="flex flex-col gap-1 rounded-[10px] border border-borderLine bg-white px-4 py-3.5"
+          className="flex flex-1 flex-col gap-1.5 py-4 sm:px-4 sm:first:pl-0"
         >
-          <dt className="font-medium text-subtleText text-xs">
+          <dt className="font-medium font-mono text-[11px] text-mute2 uppercase tracking-wider">
             {indicador.rotulo}
           </dt>
-          <dd className="font-bold font-serif text-[26px] text-ink">
+          <dd className="font-bold font-sans text-[32px] text-ink">
             {indicador.valor}
           </dd>
           {indicador.nota && (
             <dd
-              className={`text-xs ${indicador.notaAtencao ? "text-attention" : "text-subtleText"}`}
+              className={`text-xs ${indicador.notaAtencao ? "text-warn" : "text-mute2"}`}
             >
               {indicador.nota}
             </dd>

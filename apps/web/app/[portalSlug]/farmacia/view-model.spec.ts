@@ -27,6 +27,8 @@ function makeRaw(opts: {
   dataPosicaoMaisRecente?: string | null;
   diasDesdePosicaoMaisRecente?: number | null;
   indicadores?: Record<string, number>;
+  portalUf?: string;
+  portalName?: string;
 }) {
   const unidades = Array.from({ length: opts.unidades ?? 0 }, (_, i) => ({
     idUnidade: `u${i}`,
@@ -46,7 +48,8 @@ function makeRaw(opts: {
   }));
   return {
     portalSlug: "portal_x",
-    portalName: "Prefeitura X",
+    portalName: opts.portalName ?? "Prefeitura X",
+    portalUf: opts.portalUf ?? "",
     context: { busca: opts.busca ?? "" },
     farmacia: {
       status: "conforme",
@@ -450,6 +453,25 @@ describe("buildFarmaciaViewModel pedido por remedio", () => {
     expect(metformina.pedido?.textoWhatsApp.toLowerCase()).not.toMatch(
       /esgotad|zerad|descumpr/,
     );
+  });
+
+  it("pedido traz data do estoque, rotulo do municipio com UF e citacao das leis", () => {
+    const completo = buildFarmaciaViewModel(
+      makeRaw({ dataPosicaoMaisRecente: "2026-10-18", portalUf: "XX" }),
+    ).essenciais[1].pedido;
+    expect(completo?.dataEstoque).toBe("2026-10-18");
+    expect(completo?.rotuloMunicipio).toBe("Prefeitura X - XX");
+    expect(completo?.texto).toMatch(/Lei nº 8\.080\/1990/);
+    expect(completo?.texto).toMatch(/Lei nº 14\.654\/2023/);
+
+    const semUf = buildFarmaciaViewModel(makeRaw({})).essenciais[1].pedido;
+    expect(semUf?.dataEstoque).toBeNull();
+    expect(semUf?.rotuloMunicipio).toBe("Prefeitura X");
+
+    const semNome = buildFarmaciaViewModel(
+      makeRaw({ portalName: "", portalUf: "XX" }),
+    ).essenciais[1].pedido;
+    expect(semNome?.rotuloMunicipio).toBe("XX");
   });
 
   it("sem data usa redacao generica e sem portalName cita o municipio", () => {

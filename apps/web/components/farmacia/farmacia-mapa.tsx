@@ -1,7 +1,6 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { TOKENS } from "@transparencia/ui";
 import { useEffect, useRef } from "react";
 
 export interface FarmaciaMapaMarcador {
@@ -31,9 +30,9 @@ function escapeHtml(texto: string): string {
 function htmlMarcador(numero: number, destacado: boolean): string {
   const tamanho = destacado ? 28 : 22;
   const halo = destacado
-    ? `0 0 0 6px color-mix(in oklch, ${TOKENS.colors.accent} 22%, transparent)`
+    ? `0 0 0 6px color-mix(in oklch, var(--brand) 22%, transparent)`
     : "none";
-  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${TOKENS.colors.accent};border:2px solid #fff;box-shadow:${halo};color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">${numero}</div>`;
+  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:var(--brand);border:2px solid var(--page);box-shadow:${halo};color:var(--onink);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">${numero}</div>`;
 }
 
 function iconeMarcador(
@@ -50,7 +49,7 @@ function iconeMarcador(
   });
 }
 
-/** Mapa Leaflet (tiles Esri, igual a Obras) com marcadores numerados por unidade. */
+/** Mapa Leaflet (tiles Esri claros; no tema escuro, filtro CSS em globals.css) com marcadores numerados por unidade. */
 export function FarmaciaMapa({
   marcadores,
   idDestacado,
@@ -162,7 +161,7 @@ export function FarmaciaMapa({
       data-testid="farmacia-mapa"
       role="application"
       aria-label="Mapa das unidades com o medicamento em estoque"
-      className="h-full w-full"
+      className="farmacia-mapa h-full w-full"
     />
   );
 }
