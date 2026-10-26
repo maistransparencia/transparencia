@@ -25,7 +25,7 @@ export function FarmaciaFonteDados({
       >
         Fonte dos dados
       </h2>
-      <p className="text-slate-600 text-sm leading-relaxed">
+      <p className="text-mute text-sm leading-relaxed">
         Os dados vêm da lista de estoque que cada unidade de saúde envia ao
         Ministério da Saúde e que fica no portal de dados abertos
         (BNAFAR/Hórus). Este portal mostra a lista mais recente enviada. Se um
@@ -33,7 +33,7 @@ export function FarmaciaFonteDados({
         informado.
       </p>
       {dataAtualizacao && (
-        <p className="text-slate-600 text-sm">
+        <p className="text-mute text-sm">
           Lista mais recente: {fmtDate(dataAtualizacao)}.
         </p>
       )}

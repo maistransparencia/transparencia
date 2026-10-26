@@ -107,3 +107,39 @@ h3,
 .serif {
   font-family: var(--font-source-serif);
 }
+
+/*
+ * Mapa da Farmácia SUS: controles Leaflet nos tokens do tema e tiles escuros.
+ * Decisão do spike: filtro CSS sobre os tiles Esri claros (sem domínio nem dependência nova).
+ */
+.farmacia-mapa .leaflet-bar {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: none;
+  overflow: hidden;
+}
+.farmacia-mapa .leaflet-bar a {
+  background-color: var(--page);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+.farmacia-mapa .leaflet-bar a:hover {
+  background-color: var(--line2);
+}
+.farmacia-mapa .leaflet-bar a:first-child,
+.farmacia-mapa .leaflet-bar a:last-child {
+  border-radius: 0;
+}
+.farmacia-mapa .leaflet-control-attribution {
+  background: var(--page);
+  color: var(--mute2);
+}
+.farmacia-mapa .leaflet-control-attribution a {
+  color: var(--mute);
+}
+.dark .farmacia-mapa.leaflet-container {
+  background: var(--line2);
+}
+.dark .farmacia-mapa .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}

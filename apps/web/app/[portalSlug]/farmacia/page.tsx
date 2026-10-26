@@ -59,7 +59,7 @@ export default async function FarmaciaPage({
           exemplos={viewModel.exemplos}
         />
         {conforme && viewModel.hasBuscaCurta && (
-          <p className="text-subtleText text-xs">
+          <p className="text-mute2 text-xs">
             Digite pelo menos 2 letras para buscar.
           </p>
         )}
@@ -69,11 +69,8 @@ export default async function FarmaciaPage({
       </div>
 
       {viewModel.status === "indisponivel" && (
-        <div className="flex flex-col items-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-6 text-center">
-          <AlertCircle
-            className="mb-2 h-6 w-6 text-subtleText/60"
-            aria-hidden="true"
-          />
+        <div className="flex flex-col items-center border-line border-y px-4 py-8 text-center">
+          <AlertCircle className="mb-2 h-6 w-6 text-mute3" aria-hidden="true" />
           <p className="font-medium text-ink text-sm">
             As informações sobre o estoque de medicamentos não estão disponíveis
             no momento.

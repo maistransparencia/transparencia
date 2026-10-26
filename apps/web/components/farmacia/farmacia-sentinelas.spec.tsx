@@ -64,10 +64,10 @@ describe("FarmaciaSentinelas", () => {
     expect(screen.getAllByText("3 de 5 unidades")).toHaveLength(2);
     const quadradinhos = screen
       .getByRole("link", { name: /Losartana/ })
-      .querySelectorAll("span.rounded-\\[2px\\]");
+      .querySelectorAll("span.rounded-sm");
     expect(quadradinhos).toHaveLength(5);
     expect(
-      [...quadradinhos].filter((q) => q.className.includes("bg-accent")),
+      [...quadradinhos].filter((q) => q.className.includes("bg-brand")),
     ).toHaveLength(3);
     expect(container.textContent).not.toContain("8 unidades");
   });
@@ -98,6 +98,13 @@ describe("FarmaciaSentinelas", () => {
       "/portal_x/farmacia?q=Losartana",
     );
     fireEvent.click(screen.getByRole("button", { name: "Diabetes" }));
+    expect(screen.getByRole("button", { name: "Diabetes" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: "Diabetes" }),
+    ).not.toHaveAttribute("aria-selected");
     expect(screen.queryByRole("link", { name: /Losartana/ })).toBeNull();
     expect(
       screen.getByRole("link", { name: /Metformina/ }),

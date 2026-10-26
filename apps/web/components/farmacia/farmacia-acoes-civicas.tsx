@@ -21,15 +21,15 @@ export interface FarmaciaAcoesCivicasProps {
 type FeedbackCopia = "idle" | "copiado" | "erro";
 
 const BOTAO_BASE =
-  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 font-semibold text-sm transition-colors";
+  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-4 font-semibold text-sm transition-colors";
 const BOTOES_CLASS = {
   alerta: {
-    principal: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
-    secundario: `${BOTAO_BASE} border-rose-300 bg-white text-rose-900 hover:bg-rose-100`,
+    principal: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
+    secundario: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
   },
   pedido: {
-    principal: `${BOTAO_BASE} flex-1 border-accent bg-accent text-white hover:opacity-90`,
-    secundario: `${BOTAO_BASE} flex-1 border-borderLine bg-white text-ink hover:bg-slate-50`,
+    principal: `${BOTAO_BASE} flex-1 border-brand bg-brand text-onink hover:opacity-90`,
+    secundario: `${BOTAO_BASE} flex-1 border-line bg-page text-ink hover:bg-line2`,
   },
 } as const;
 

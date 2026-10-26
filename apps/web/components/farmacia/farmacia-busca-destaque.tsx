@@ -24,10 +24,10 @@ export function FarmaciaBuscaDestaque({
         method="get"
         action={`${action}#resultados`}
         aria-label="Busca de medicamentos"
-        className="flex items-center gap-2.5 rounded-xl border-[1.5px] border-ink bg-white py-1.5 pr-1.5 pl-[18px] shadow-xs"
+        className="flex items-center gap-2.5 rounded-md border-[1.5px] border-ink bg-page py-1.5 pr-1.5 pl-[18px]"
       >
         <Search
-          className="h-[18px] w-[18px] shrink-0 text-subtleText"
+          className="h-[18px] w-[18px] shrink-0 text-mute2"
           aria-hidden="true"
         />
         <label htmlFor="farmacia-busca" className="sr-only">
@@ -43,32 +43,32 @@ export function FarmaciaBuscaDestaque({
           onChange={(evento) => setTermo(evento.target.value)}
           placeholder="Nome do remédio, ex.: losartana"
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent py-3 text-[17px] text-ink outline-none placeholder:text-mutedText [&::-webkit-search-cancel-button]:appearance-none"
+          className="min-w-0 flex-1 bg-transparent py-3 text-[17px] text-ink outline-none placeholder:text-mute2 [&::-webkit-search-cancel-button]:appearance-none"
         />
         {(termo.length > 0 || defaultValue.length > 0) && (
           <Link
             href={action}
             aria-label="Limpar busca"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-canvas text-lg text-subtleText hover:bg-borderLine"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-lg text-mute2 hover:bg-line2"
           >
             ×
           </Link>
         )}
         <button
           type="submit"
-          className="h-[46px] shrink-0 rounded-lg bg-ink px-[22px] font-semibold text-[15px] text-white hover:bg-ink/80"
+          className="h-[46px] shrink-0 rounded-md bg-ink px-[22px] font-semibold text-[15px] text-onink hover:bg-ink/80"
         >
           Buscar
         </button>
       </form>
       {exemplos.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[13px] text-subtleText">Mais procurados:</span>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span className="text-[13px] text-mute2">Mais procurados:</span>
           {exemplos.map((exemplo) => (
             <Link
               key={exemplo.nomePrincipioAtivo}
               href={exemplo.href}
-              className="rounded-full border border-borderLine bg-white px-3 py-[5px] text-[13px] text-ink hover:border-ink"
+              className="text-[13px] text-ink underline-offset-4 hover:underline"
             >
               {exemplo.nomePrincipioAtivo}
             </Link>
