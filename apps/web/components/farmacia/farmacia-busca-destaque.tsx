@@ -23,7 +23,7 @@ export function FarmaciaBuscaDestaque({
       <form
         method="get"
         action={`${action}#resultados`}
-        aria-label="Busca de medicamentos"
+        aria-label="Busca de remédios"
         className="flex items-center gap-2.5 overflow-hidden rounded-md border-[1.5px] border-ink bg-page pl-[18px]"
       >
         <Search

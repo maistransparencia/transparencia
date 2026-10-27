@@ -2,6 +2,8 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
+import { MapaGestosAviso } from "@/components/mapa/mapa-gestos-aviso";
+import { useMapaGestos } from "@/hooks/use-mapa-gestos";
 
 export interface FarmaciaMapaMarcador {
   id: string;
@@ -58,6 +60,10 @@ export function FarmaciaMapa({
 }: FarmaciaMapaProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapaRef = useRef<import("leaflet").Map | null>(null);
+  const { isMac, mostrarAviso, tipoAviso } = useMapaGestos(
+    containerRef,
+    mapaRef,
+  );
   const grupoRef = useRef<import("leaflet").LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const marcadoresLeafletRef = useRef<Map<string, import("leaflet").Marker>>(
@@ -156,12 +162,21 @@ export function FarmaciaMapa({
   }, [idDestacado]);
 
   return (
-    <div
-      ref={containerRef}
-      data-testid="farmacia-mapa"
-      role="application"
-      aria-label="Mapa das unidades com o medicamento em estoque"
-      className="farmacia-mapa h-full w-full"
-    />
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        data-testid="farmacia-mapa"
+        role="application"
+        aria-label="Mapa das unidades com o medicamento em estoque"
+        className="farmacia-mapa h-full w-full"
+      />
+      {mostrarAviso && (
+        <MapaGestosAviso
+          tipo={tipoAviso}
+          isMac={isMac}
+          testId="farmacia-mapa-zoom-hint"
+        />
+      )}
+    </div>
   );
 }

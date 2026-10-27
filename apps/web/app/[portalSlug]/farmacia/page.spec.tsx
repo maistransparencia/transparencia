@@ -88,7 +88,7 @@ describe("FarmaciaPage", () => {
       "18/10/2026",
     );
     expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
+      screen.getByRole("form", { name: "Busca de remédios" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
@@ -99,6 +99,45 @@ describe("FarmaciaPage", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/Onde encontrar/)).toBeNull();
     expect(screen.queryByTestId("mapa-mock")).toBeNull();
+  });
+
+  describe("indice a-z", () => {
+    const comIndice = (farmacia: Record<string, unknown>) => ({
+      ...makeRaw(farmacia),
+      context: { busca: "", letra: "", letrasVisiveis: 6, itensVisiveis: 25 },
+      indice: {
+        status: farmacia.status ?? "conforme",
+        totalUnidades: 4,
+        letrasDisponiveis: ["A"],
+        totalLetras: 1,
+        letras: [
+          {
+            letra: "A",
+            totalMedicamentos: 1,
+            medicamentos: [
+              { nomeMedicamento: "Amoxicilina", unidadesComEstoque: 2 },
+            ],
+          },
+        ],
+      },
+    });
+
+    it("conforme: mostra a secao 'Procurar por letra' com os chips", async () => {
+      loadFarmaciaDataMock.mockResolvedValue(comIndice({}));
+      render(await FarmaciaPage(props));
+      expect(
+        screen.getByRole("heading", { name: "Procurar por letra" }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("2 de 4 unidades")).toBeInTheDocument();
+    });
+
+    it("fora de conforme: nao mostra a secao", async () => {
+      loadFarmaciaDataMock.mockResolvedValue(comIndice({ status: "apagao" }));
+      render(await FarmaciaPage(props));
+      expect(
+        screen.queryByRole("heading", { name: "Procurar por letra" }),
+      ).toBeNull();
+    });
   });
 
   it("conforme com busca: resultados por unidade com mapa e sem filtro por unidade", async () => {
@@ -197,7 +236,7 @@ describe("FarmaciaPage", () => {
       screen.getByRole("button", { name: /Compartilhar no WhatsApp/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("form", { name: "Busca de medicamentos" }),
+      screen.queryByRole("form", { name: "Busca de remédios" }),
     ).toBeNull();
   });
 
@@ -206,7 +245,7 @@ describe("FarmaciaPage", () => {
     render(await FarmaciaPage(props));
     expect(screen.getByText(/não estão disponíveis/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("form", { name: "Busca de medicamentos" }),
+      screen.queryByRole("form", { name: "Busca de remédios" }),
     ).toBeNull();
   });
 
