@@ -9,7 +9,7 @@ const exemplos = [
 describe("FarmaciaBuscaDestaque", () => {
   it("formulario GET com campo q e chips de mais procurados", () => {
     render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={exemplos} />);
-    const form = screen.getByRole("form", { name: "Busca de medicamentos" });
+    const form = screen.getByRole("form", { name: "Busca de remédios" });
     expect(form).toHaveAttribute("method", "get");
     expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
@@ -73,7 +73,7 @@ describe("FarmaciaBuscaDestaque ancora de resultados", () => {
   it("envia o formulario para a secao de resultados", () => {
     render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={[]} />);
     expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
+      screen.getByRole("form", { name: "Busca de remédios" }),
     ).toHaveAttribute("action", "/p/farmacia#resultados");
   });
 });
