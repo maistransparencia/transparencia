@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("leaflet/dist/leaflet.css", () => ({}));
@@ -131,5 +131,50 @@ describe("FarmaciaMapa", () => {
       ).toBe(true),
     );
     expect(leaflet.L.marker.mock.calls.length).toBe(criados);
+  });
+
+  it("avisa que o zoom exige Cmd/Ctrl quando a roda é usada sem modificador", async () => {
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    fireEvent.wheel(screen.getByTestId("farmacia-mapa"), { deltaY: 100 });
+
+    expect(
+      await screen.findByTestId("farmacia-mapa-zoom-hint"),
+    ).toHaveTextContent(/scroll para aplicar zoom no mapa/i);
+  });
+
+  it("avisa para usar dois dedos quando o toque com 1 dedo se move", async () => {
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    const mapa = screen.getByTestId("farmacia-mapa");
+    const tocar = (tipo: string, clientY: number) => {
+      const evento = new Event(tipo, { bubbles: true, cancelable: true });
+      Object.defineProperty(evento, "touches", {
+        value: [{ clientX: 100, clientY }],
+      });
+      mapa.dispatchEvent(evento);
+    };
+    tocar("touchstart", 100);
+    tocar("touchmove", 130);
+
+    expect(
+      await screen.findByTestId("farmacia-mapa-zoom-hint"),
+    ).toHaveTextContent(/use dois dedos para mover o mapa/i);
   });
 });
