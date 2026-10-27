@@ -65,7 +65,6 @@
     "apps/web/components/obras/obras-empenhos-federais.tsx",
     "apps/web/components/obras/obras-grafico-avanco-duplo.tsx",
     "apps/web/components/obras/obras-interactive-section.tsx",
-    "apps/web/components/obras/obras-mapa-interativo.tsx",
     "apps/web/components/obras/obras-paralisadas-section.tsx",
     "apps/web/components/pessoal-regime-section.tsx",
     "apps/web/components/previdencia-actuarial-risk-section.tsx",

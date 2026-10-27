@@ -22,7 +22,7 @@ export function FarmaciaBuscaForm({
     <form
       method="get"
       action={action}
-      aria-label="Busca de medicamentos"
+      aria-label="Busca de remédios"
       className={`flex flex-col overflow-hidden rounded-md border border-ink focus-within:ring-2 focus-within:ring-brand/30 sm:flex-row ${className}`}
     >
       <label htmlFor="farmacia-busca" className="sr-only">
