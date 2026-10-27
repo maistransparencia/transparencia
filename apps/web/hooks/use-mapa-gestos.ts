@@ -80,12 +80,13 @@ export function useMapaGestos(
         return;
       }
 
+      // Mapa ainda carregando: deixa o navegador tratar o Ctrl+roda
+      const mapa = mapaRef.current;
+      if (!mapa) return;
+
       e.preventDefault();
       e.stopPropagation();
       setMostrarAviso(false);
-
-      const mapa = mapaRef.current;
-      if (!mapa) return;
 
       ultimoPonto = mapa.mouseEventToContainerPoint(e);
       deltaAcumulado += e.deltaY;
@@ -118,8 +119,8 @@ export function useMapaGestos(
 
     let inicioToque: { x: number; y: number } | null = null;
 
-    const totalToques = (e: TouchEvent) =>
-      e.targetTouches?.length ?? e.touches.length;
+    // `touches` conta todos os dedos na tela, mesmo em elementos diferentes
+    const totalToques = (e: TouchEvent) => e.touches.length;
 
     const handleTouchStart = (e: TouchEvent) => {
       const mapa = mapaRef.current;
@@ -127,7 +128,7 @@ export function useMapaGestos(
 
       const toques = totalToques(e);
       if (toques === 1) {
-        const toque = e.targetTouches?.[0] ?? e.touches[0];
+        const toque = e.touches[0];
         inicioToque = { x: toque.clientX, y: toque.clientY };
         // 1 dedo não arrasta o mapa: libera a rolagem nativa da página
         if (typeof mapa.dragging?.disable === "function") {
@@ -145,7 +146,7 @@ export function useMapaGestos(
     const handleTouchMove = (e: TouchEvent) => {
       const toques = totalToques(e);
       if (toques === 1 && inicioToque) {
-        const toque = e.targetTouches?.[0] ?? e.touches[0];
+        const toque = e.touches[0];
         const distancia = Math.hypot(
           toque.clientX - inicioToque.x,
           toque.clientY - inicioToque.y,

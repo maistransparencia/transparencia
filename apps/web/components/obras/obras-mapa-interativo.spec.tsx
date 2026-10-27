@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import L from "leaflet";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ObrasMapaInterativo } from "./obras-mapa-interativo";
@@ -364,6 +364,100 @@ describe("ObrasMapaInterativo", () => {
     // O zoom do mapa deve ter sido acionado
     expect(mockMap.setZoomAround).toHaveBeenCalledWith({ x: 100, y: 100 }, 14, {
       animate: true,
+    });
+  });
+
+  describe("zoom por trackpad (debounce)", () => {
+    const rolarComModificador = (alvo: HTMLElement, deltaY: number) =>
+      alvo.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+
+    const renderizarMapa = async () => {
+      render(
+        <ObrasMapaInterativo markers={[]} center={[-20.9634, -42.0408]} />,
+      );
+      await waitFor(() => expect(L.map).toHaveBeenCalled());
+      const container = screen.getByTestId("obras-mapa-container");
+      return container.firstElementChild as HTMLElement;
+    };
+
+    it("aplica o zoom depois de 60 ms quando o delta acumulado é pequeno mas passa de 20", async () => {
+      const mapaInterno = await renderizarMapa();
+      vi.useFakeTimers();
+      try {
+        rolarComModificador(mapaInterno, -30);
+        expect(mockMap.setZoomAround).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(60);
+
+        expect(mockMap.setZoomAround).toHaveBeenCalledWith(
+          { x: 100, y: 100 },
+          14,
+          { animate: true },
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("descarta o gesto quando o delta acumulado fica abaixo de 20", async () => {
+      const mapaInterno = await renderizarMapa();
+      vi.useFakeTimers();
+      try {
+        rolarComModificador(mapaInterno, -10);
+        vi.advanceTimersByTime(60);
+
+        expect(mockMap.setZoomAround).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("oculta o aviso sozinho depois de 1,5 s", async () => {
+      const mapaInterno = await renderizarMapa();
+      vi.useFakeTimers();
+      try {
+        act(() => {
+          mapaInterno.dispatchEvent(
+            new WheelEvent("wheel", {
+              deltaY: 100,
+              bubbles: true,
+              cancelable: true,
+            }),
+          );
+        });
+        expect(screen.getByTestId("obras-mapa-zoom-hint")).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(1500);
+        });
+
+        expect(
+          screen.queryByTestId("obras-mapa-zoom-hint"),
+        ).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("não dispara zoom pendente depois que o mapa é desmontado", async () => {
+      const mapaInterno = await renderizarMapa();
+      vi.useFakeTimers();
+      try {
+        rolarComModificador(mapaInterno, -30);
+        cleanup();
+        vi.advanceTimersByTime(60);
+
+        expect(mockMap.setZoomAround).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 
