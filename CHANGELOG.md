@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Mapa da Farmácia SUS sem prender a rolagem)
+* **Rolar a página sem travar no mapa:** No mapa das unidades da Farmácia SUS, a roda do mouse só aplica zoom com Ctrl (⌘ no Mac) pressionado, e no celular o mapa só se move com dois dedos. Com um dedo, a página continua rolando normalmente, e um aviso explica como mexer no mapa. É o mesmo comportamento do mapa de obras.
+
 ### 🌟 Destaques da Versão (Índice A–Z na Farmácia SUS)
 * **Procurar remédio por letra:** A página da Farmácia SUS ganhou a seção "Procurar por letra", entre a busca e os resultados. Cada letra mostra 3 remédios com "N de M unidades" e o link "Ver todos com A"; o botão "Ver mais" revela as próximas letras, de 6 em 6. No celular, a faixa de letras rola na horizontal. A letra escolhida fica no endereço da página (`?letra=A`), então o link pode ser compartilhado. Letras sem remédios ficam desabilitadas.
 * **Grupo "0–9" no índice:** Remédios cujo nome não começa com letra (número ou símbolo) ganham o chip "0–9", depois do Z. O chip só aparece quando existe algum, então nenhum remédio fica fora do índice.
