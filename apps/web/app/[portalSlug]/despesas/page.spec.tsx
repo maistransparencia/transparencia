@@ -74,7 +74,9 @@ describe("DespesasPage", () => {
     expect(
       screen.getByText("Radar de Gastos Sensíveis & Controle Fiscal"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Combustíveis & Frotas")).toBeInTheDocument();
+    expect(screen.getAllByText("Combustíveis & Frotas").length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("ano corrente: cabeçalho indica exercício parcial", async () => {

@@ -64,7 +64,7 @@ export default async function DespesasPage({
       {/* Header Principal */}
       <div>
         <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
-          FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
+          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-ink">
@@ -109,11 +109,7 @@ export default async function DespesasPage({
       <section className="space-y-6">
         <SectionHeader
           title="Radar de Gastos Sensíveis & Controle Fiscal"
-          description={
-            isCurrentYear
-              ? `Acompanhamento das contas mais vigiadas pelo munícipe e peso relativo no orçamento pago de ${selectedYear}.`
-              : `Acompanhamento das contas mais vigiadas pelo munícipe e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`
-          }
+          description={`Acompanhamento das contas mais vigiadas pelo munícipe, peso de cada categoria no orçamento pago de ${selectedYear} e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`}
         />
 
         <RadarGastosSensiveis
@@ -122,7 +118,6 @@ export default async function DespesasPage({
           anoAnterior={radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}
           portalSlug={portalSlug}
           entidades={resolvedSearchParams.entidades}
-          isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
 
