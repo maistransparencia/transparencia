@@ -554,6 +554,16 @@ describe("buildIndiceAz", () => {
     passoItens: 25,
   };
 
+  it("sem 'Ver mais' quando o limite visivel ja e o maximo", () => {
+    expect(
+      buildIndiceAz({
+        ...parametros,
+        indice: { ...(indice as object), totalLetras: 30 } as never,
+        context: { ...contexto, letrasVisiveis: 27 },
+      })?.hrefMais,
+    ).toBeNull();
+  });
+
   it("sem indice ou sem letras nao ha secao", () => {
     expect(buildIndiceAz({ ...parametros, indice: null })).toBeNull();
     expect(

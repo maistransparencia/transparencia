@@ -6,8 +6,11 @@ import {
   getPortalConfig,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+import { getPostHogServer } from "@/posthog-server";
 import {
   FARMACIA_BUSCA_MINIMO_CARACTERES,
+  FARMACIA_INDICE_MAXIMO_ITENS,
+  FARMACIA_INDICE_MAXIMO_LETRAS,
   FARMACIA_INDICE_PASSO_ITENS,
   FARMACIA_INDICE_PASSO_LETRAS,
 } from "./view-model";
@@ -24,8 +27,6 @@ const FARMACIA_INDICE_ITENS_POR_LETRA = 3;
 /** A busca traz todas as unidades com o remédio: o mapa e as duas visões dependem do conjunto completo. */
 export const FARMACIA_LIMITE_UNIDADES_BUSCA = 200;
 
-const FARMACIA_INDICE_MAXIMO_ITENS = 1000;
-const FARMACIA_INDICE_MAXIMO_LETRAS = 26;
 /** Letra A–Z ou o grupo "0-9" dos nomes que não começam com letra. */
 const LETRA_VALIDA = /^(?:[A-Z]|0-9)$/;
 
@@ -103,7 +104,12 @@ async function fetchRawFarmaciaData(
         : context.letra
           ? context.itensVisiveis
           : FARMACIA_INDICE_ITENS_POR_LETRA,
-    }).catch(() => null),
+    }).catch((erro: unknown) => {
+      getPostHogServer()?.captureException(erro as Error, undefined, {
+        route: "farmacia:indice-az",
+      });
+      return null;
+    }),
   ]);
 
   // Sentinelas só fazem sentido quando há estoque vigente (estado conforme).

@@ -370,6 +370,9 @@ const LIMITE_MEDICAMENTOS_LETRA_SELECIONADA = 25;
 const LETRA_NUMEROS_INDICE = "0-9";
 const LETRA_INDICE_VALIDA = /^(?:[A-Z]|0-9)$/;
 
+// Chave de agrupamento: "AMOXICILINA" e "Amoxicilina" são o mesmo remédio.
+const NOME_MEDICAMENTO_CHAVE_SQL = sql<string>`lower(unaccent(${NOME_MEDICAMENTO_NORMALIZADO_SQL}))`;
+
 const PRIMEIRO_CARACTERE_SQL = sql<string>`upper(left(unaccent(${NOME_MEDICAMENTO_NORMALIZADO_SQL}), 1))`;
 // Nomes que não começam com letra (número ou símbolo) vão para o grupo "0-9".
 const INICIAL_MEDICAMENTO_SQL = sql<string>`case when ${PRIMEIRO_CARACTERE_SQL} ~ '^[A-Z]$' then ${PRIMEIRO_CARACTERE_SQL} else ${sql.lit(LETRA_NUMEROS_INDICE)} end`;
@@ -422,7 +425,7 @@ export async function getFarmaciaIndiceAlfabetico(
     linhasBase()
       .select([
         INICIAL_MEDICAMENTO_SQL.as("inicial"),
-        sql<number>`count(distinct ${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+        sql<number>`count(distinct ${NOME_MEDICAMENTO_CHAVE_SQL})`.as(
           "total_medicamentos",
         ),
       ])
@@ -465,16 +468,18 @@ export async function getFarmaciaIndiceAlfabetico(
   const posicionados = linhasBase()
     .select([
       INICIAL_MEDICAMENTO_SQL.as("inicial"),
-      NOME_MEDICAMENTO_NORMALIZADO_SQL.as("nome_medicamento"),
+      sql<string>`min(${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+        "nome_medicamento",
+      ),
       sql<number>`count(distinct ${ID_UNIDADE_SQL})`.as("unidades_com_estoque"),
-      sql<number>`row_number() over (partition by ${INICIAL_MEDICAMENTO_SQL} order by unaccent(lower(${NOME_MEDICAMENTO_NORMALIZADO_SQL})), ${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+      sql<number>`row_number() over (partition by ${INICIAL_MEDICAMENTO_SQL} order by ${NOME_MEDICAMENTO_CHAVE_SQL})`.as(
         "posicao",
       ),
     ])
     .where(
       sql<boolean>`${INICIAL_MEDICAMENTO_SQL} in (${sql.join(letrasAlvo)})`,
     )
-    .groupBy([INICIAL_MEDICAMENTO_SQL, NOME_MEDICAMENTO_NORMALIZADO_SQL]);
+    .groupBy([INICIAL_MEDICAMENTO_SQL, NOME_MEDICAMENTO_CHAVE_SQL]);
 
   const linhas = await db
     .selectFrom(posicionados.as("posicionados"))

@@ -697,6 +697,30 @@ describe("getFarmaciaIndiceAlfabetico", () => {
     );
   }
 
+  it("trata nomes que diferem so na caixa como o mesmo remedio", async () => {
+    await Promise.all(
+      [
+        ["1", "1001", "AMOXICILINA"],
+        ["2", "1002", "Amoxicilina"],
+      ].map(([idRegistro, codigoCnes, nomeMedicamento]) =>
+        seedFarmacia({
+          ...base,
+          portalSlug: PORTAL_A,
+          idRegistro,
+          codigoCnes,
+          nomeUnidade: `UBS ${codigoCnes}`,
+          nomeMedicamento,
+          quantidadeEstoque: 10,
+          dataPosicaoEstoque: "2026-10-18",
+        }),
+      ),
+    );
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "A" });
+    expect(indice.letras[0]?.totalMedicamentos).toBe(1);
+    expect(indice.letras[0]?.medicamentos).toHaveLength(1);
+    expect(indice.letras[0]?.medicamentos[0]?.unidadesComEstoque).toBe(2);
+  });
+
   it("lista as letras disponiveis e limita letras e itens por letra, ordenando sem acento", async () => {
     await seedIndice(PORTAL_A);
     const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, {

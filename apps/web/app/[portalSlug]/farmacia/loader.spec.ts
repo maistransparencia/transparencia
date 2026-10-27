@@ -48,7 +48,7 @@ describe("parseFarmaciaContext", () => {
     });
     expect(
       parseFarmaciaContext({ letras: "999", itens: "999999" }),
-    ).toMatchObject({ letrasVisiveis: 26, itensVisiveis: 1000 });
+    ).toMatchObject({ letrasVisiveis: 27, itensVisiveis: 1000 });
     expect(parseFarmaciaContext({ letras: "-3", itens: "abc" })).toMatchObject({
       letrasVisiveis: 6,
       itensVisiveis: 25,

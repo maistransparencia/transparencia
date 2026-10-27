@@ -12,6 +12,9 @@ export const FARMACIA_BUSCA_MINIMO_CARACTERES = 2;
 /** Quantas letras o índice A–Z revela por vez e quantos itens uma letra revela por vez. */
 export const FARMACIA_INDICE_PASSO_LETRAS = 6;
 export const FARMACIA_INDICE_PASSO_ITENS = 25;
+/** A–Z mais o grupo "0-9". */
+export const FARMACIA_INDICE_MAXIMO_LETRAS = 27;
+export const FARMACIA_INDICE_MAXIMO_ITENS = 1000;
 
 type FarmaciaRawData = Awaited<ReturnType<typeof loadFarmaciaData>>;
 
@@ -444,6 +447,8 @@ export function buildIndiceAz(params: {
     if (modo === "resumo")
       return {
         faltam: faltamLetras,
+        visiveis: context.letrasVisiveis,
+        maximo: FARMACIA_INDICE_MAXIMO_LETRAS,
         unidade: ["letra", "letras"] as const,
         passo: params.passoLetras,
         href: buildIndiceHref(portalSlug, {
@@ -452,6 +457,8 @@ export function buildIndiceAz(params: {
       };
     return {
       faltam: faltamItens,
+      visiveis: context.itensVisiveis,
+      maximo: FARMACIA_INDICE_MAXIMO_ITENS,
       unidade: ["remédio", "remédios"] as const,
       passo: params.passoItens,
       href: buildIndiceHref(portalSlug, {
@@ -486,7 +493,10 @@ export function buildIndiceAz(params: {
         ? `Mostrando ${fmtNumber(letra.medicamentos.length)} de ${fmtNumber(letra.totalMedicamentos)}`
         : "";
     })(),
-    hrefMais: proximoPasso.faltam > 0 ? proximoPasso.href : null,
+    hrefMais:
+      proximoPasso.faltam > 0 && proximoPasso.visiveis < proximoPasso.maximo
+        ? proximoPasso.href
+        : null,
     rotuloMais: `Ver mais ${fmtNumber(quantosRevela)} ${quantosRevela === 1 ? proximoPasso.unidade[0] : proximoPasso.unidade[1]}`,
     hrefResumo,
   };
