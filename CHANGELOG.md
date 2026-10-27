@@ -5,6 +5,11 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Índice A–Z na Farmácia SUS)
+* **Procurar remédio por letra:** A página da Farmácia SUS ganhou a seção "Procurar por letra", entre a busca e os resultados. Cada letra mostra 3 remédios com "N de M unidades que informaram estoque" e o link "Ver todos com A"; o botão "Ver mais" revela as próximas letras, de 6 em 6. No celular, a faixa de letras rola na horizontal. A letra escolhida fica no endereço da página (`?letra=A`), então o link pode ser compartilhado. Letras sem remédios ficam desabilitadas.
+* **Grupo "0–9" no índice:** Remédios cujo nome não começa com letra (número ou símbolo) ganham o chip "0–9", depois do Z. O chip só aparece quando existe algum, então nenhum remédio fica fora do índice.
+* **Busca por remédios com espaços duplicados:** A busca da Farmácia SUS agora encontra remédios cujo nome vem da fonte com espaços duplicados (ex.: "XAROPE  120 ML"), como os que aparecem no índice A–Z. Antes, clicar no nome da lista podia dizer que o medicamento não foi encontrado.
+
 ### 🌟 Destaques da Versão (Download do estoque da Farmácia SUS)
 * **Lista completa de estoque em planilha:** Na seção "Fonte dos dados" da página da Farmácia SUS, o link "Baixar a lista completa de estoque (planilha CSV)" baixa o que cada unidade informou ter em estoque na lista mais recente, com lote, quantidade e validade quando informada. Se um remédio não aparece, isso não prova que faltou: a unidade pode não ter informado.
 

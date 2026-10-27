@@ -7,6 +7,7 @@ import posthog from "posthog-js";
 import { useId, useRef, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { FarmaciaAcoesCivicas } from "./farmacia-acoes-civicas";
+import { FarmaciaDisponibilidadeUnidades } from "./farmacia-disponibilidade-unidades";
 
 export interface FarmaciaSentinelaItem {
   codigoPrincipioAtivo: string;
@@ -46,21 +47,10 @@ function RotuloDisponibilidade({
 }) {
   if (item.status === "no_estoque") {
     return (
-      <>
-        <span className="flex gap-[3px]" aria-hidden="true">
-          {Array.from({ length: totalUnidadesAtivas }, (_, indice) => (
-            <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: quadradinhos posicionais, sem identidade própria
-              key={indice}
-              className={`h-2 w-2 rounded-[2px] ${indice < item.unidadesComRegistro ? "bg-accent" : "bg-slate-200"}`}
-            />
-          ))}
-        </span>
-        <span className="text-[11px] text-slate-600 tabular-nums">
-          {fmtNumber(item.unidadesComRegistro)} de{" "}
-          {fmtNumber(totalUnidadesAtivas)} unidades
-        </span>
-      </>
+      <FarmaciaDisponibilidadeUnidades
+        unidadesComRegistro={item.unidadesComRegistro}
+        totalUnidadesAtivas={totalUnidadesAtivas}
+      />
     );
   }
   return (

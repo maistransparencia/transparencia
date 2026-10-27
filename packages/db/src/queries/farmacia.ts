@@ -65,6 +65,9 @@ const STATUS_VALIDOS: readonly StatusConformidadeFarmacia[] = [
 
 const ID_UNIDADE_SQL = sql<string>`coalesce(codigo_cnes, nome_unidade, id_registro)`;
 
+// A fonte publica um registro por lote e com espaços irregulares no nome.
+const NOME_MEDICAMENTO_NORMALIZADO_SQL = sql<string>`btrim(regexp_replace(coalesce(nome_medicamento, ''), '\\s+', ' ', 'g'))`;
+
 function toIsoDateString(val: unknown): string | null {
   if (!val) return null;
   if (val instanceof Date) {
@@ -211,7 +214,7 @@ export async function getFarmaciaSus(
   filtros?: GetFarmaciaSusFiltros,
 ): Promise<FarmaciaSusDTO> {
   const resumo = await getResumoFarmaciaSus(portalSlug);
-  const termo = filtros?.busca?.trim() ?? "";
+  const termo = (filtros?.busca ?? "").trim().replace(/\s+/g, " ");
 
   if (resumo.status !== "conforme" || termo.length < TAMANHO_MINIMO_BUSCA) {
     return { ...resumo, ...BUSCA_VAZIA };
@@ -231,7 +234,7 @@ export async function getFarmaciaSus(
       .where("portal_slug", "=", cleanSlug)
       .where("status_conformidade", "=", "conforme")
       .where(
-        sql<boolean>`unaccent(lower(coalesce(nome_medicamento, ''))) LIKE '%' || unaccent(lower(${escapeLikePattern(termo)})) || '%' ESCAPE '\\'`,
+        sql<boolean>`unaccent(lower(${NOME_MEDICAMENTO_NORMALIZADO_SQL})) LIKE '%' || unaccent(lower(${escapeLikePattern(termo)})) || '%' ESCAPE '\\'`,
       );
     return idUnidade
       ? consulta.where(sql<boolean>`${ID_UNIDADE_SQL} = ${idUnidade}`)
@@ -257,8 +260,8 @@ export async function getFarmaciaSus(
 
   const ids = unidadesPagina.map((u) => u.id_unidade);
 
-  // A fonte publica um registro por lote; o cidadão quer o total por medicamento.
-  const nomeMedicamentoNormalizado = sql<string>`btrim(regexp_replace(coalesce(nome_medicamento, ''), '\\s+', ' ', 'g'))`;
+  // O cidadão quer o total por medicamento, não por lote.
+  const nomeMedicamentoNormalizado = NOME_MEDICAMENTO_NORMALIZADO_SQL;
   const linhas = await linhasBase()
     .select([
       ID_UNIDADE_SQL.as("id_unidade"),
@@ -331,6 +334,179 @@ export async function getFarmaciaSus(
     totalApresentacoes: remedios.length,
     unidades,
     remedios,
+  };
+}
+
+export interface FarmaciaIndiceMedicamentoDTO {
+  nomeMedicamento: string;
+  unidadesComEstoque: number;
+}
+
+export interface FarmaciaIndiceLetraDTO {
+  letra: string;
+  totalMedicamentos: number;
+  medicamentos: FarmaciaIndiceMedicamentoDTO[];
+}
+
+export interface FarmaciaIndiceDTO {
+  status: StatusConformidadeFarmacia;
+  totalUnidades: number;
+  /** Todas as letras que têm ao menos um medicamento, em ordem alfabética. */
+  letrasDisponiveis: string[];
+  totalLetras: number;
+  letras: FarmaciaIndiceLetraDTO[];
+}
+
+export interface GetFarmaciaIndiceFiltros {
+  /** Quando informada, devolve só esta letra; sem ela, as primeiras `limiteLetras` letras. */
+  letra?: string;
+  limiteLetras?: number;
+  limiteMedicamentosPorLetra?: number;
+}
+
+const LIMITE_LETRAS_INDICE_PADRAO = 6;
+const LIMITE_MEDICAMENTOS_POR_LETRA_RESUMO = 3;
+const LIMITE_MEDICAMENTOS_LETRA_SELECIONADA = 25;
+const LETRA_NUMEROS_INDICE = "0-9";
+const LETRA_INDICE_VALIDA = /^(?:[A-Z]|0-9)$/;
+
+const PRIMEIRO_CARACTERE_SQL = sql<string>`upper(left(unaccent(${NOME_MEDICAMENTO_NORMALIZADO_SQL}), 1))`;
+// Nomes que não começam com letra (número ou símbolo) vão para o grupo "0-9".
+const INICIAL_MEDICAMENTO_SQL = sql<string>`case when ${PRIMEIRO_CARACTERE_SQL} ~ '^[A-Z]$' then ${PRIMEIRO_CARACTERE_SQL} else ${sql.lit(LETRA_NUMEROS_INDICE)} end`;
+
+const INDICE_VAZIO = {
+  totalUnidades: 0,
+  letrasDisponiveis: [],
+  totalLetras: 0,
+  letras: [],
+};
+
+/**
+ * Índice alfabético do estoque da Farmácia SUS: medicamentos agrupados pela
+ * inicial do nome (A–Z, sem acento). Nomes que não começam com letra formam o
+ * grupo "0-9", listado depois do Z e só presente quando existe algum.
+ */
+export async function getFarmaciaIndiceAlfabetico(
+  portalSlug: string,
+  filtros?: GetFarmaciaIndiceFiltros,
+): Promise<FarmaciaIndiceDTO> {
+  const resumo = await getResumoFarmaciaSus(portalSlug);
+  if (resumo.status !== "conforme") {
+    return { status: resumo.status, ...INDICE_VAZIO };
+  }
+
+  const cleanSlug = portalSlug.trim();
+  const letraPedida = filtros?.letra?.trim().toUpperCase();
+  const limiteLetras = Math.max(
+    1,
+    Math.floor(filtros?.limiteLetras ?? LIMITE_LETRAS_INDICE_PADRAO),
+  );
+  const limiteMedicamentos = Math.max(
+    1,
+    Math.floor(
+      filtros?.limiteMedicamentosPorLetra ??
+        (letraPedida
+          ? LIMITE_MEDICAMENTOS_LETRA_SELECIONADA
+          : LIMITE_MEDICAMENTOS_POR_LETRA_RESUMO),
+    ),
+  );
+
+  const linhasBase = () =>
+    db
+      .selectFrom("fct_farmacia_estoque")
+      .where("portal_slug", "=", cleanSlug)
+      .where("status_conformidade", "=", "conforme")
+      .where(sql<boolean>`${NOME_MEDICAMENTO_NORMALIZADO_SQL} <> ''`);
+
+  const [contagens, totais] = await Promise.all([
+    linhasBase()
+      .select([
+        INICIAL_MEDICAMENTO_SQL.as("inicial"),
+        sql<number>`count(distinct ${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+          "total_medicamentos",
+        ),
+      ])
+      .groupBy(INICIAL_MEDICAMENTO_SQL)
+      .orderBy(
+        sql`${INICIAL_MEDICAMENTO_SQL} = ${sql.lit(LETRA_NUMEROS_INDICE)}`,
+      )
+      .orderBy("inicial")
+      .execute(),
+    linhasBase()
+      .select(
+        sql<number>`count(distinct ${ID_UNIDADE_SQL})`.as("total_unidades"),
+      )
+      .executeTakeFirst(),
+  ]);
+
+  const letrasDisponiveis = contagens.map((c) => c.inicial);
+  const totalPorLetra = new Map(
+    contagens.map((c) => [
+      c.inicial,
+      toNumberOrNull(c.total_medicamentos) ?? 0,
+    ]),
+  );
+  const letrasAlvo = (() => {
+    if (!letraPedida) return letrasDisponiveis.slice(0, limiteLetras);
+    return LETRA_INDICE_VALIDA.test(letraPedida) &&
+      totalPorLetra.has(letraPedida)
+      ? [letraPedida]
+      : [];
+  })();
+
+  const base = {
+    status: resumo.status,
+    totalUnidades: toNumberOrNull(totais?.total_unidades) ?? 0,
+    letrasDisponiveis,
+    totalLetras: letrasDisponiveis.length,
+  };
+  if (letrasAlvo.length === 0) return { ...base, letras: [] };
+
+  const posicionados = linhasBase()
+    .select([
+      INICIAL_MEDICAMENTO_SQL.as("inicial"),
+      NOME_MEDICAMENTO_NORMALIZADO_SQL.as("nome_medicamento"),
+      sql<number>`count(distinct ${ID_UNIDADE_SQL})`.as("unidades_com_estoque"),
+      sql<number>`row_number() over (partition by ${INICIAL_MEDICAMENTO_SQL} order by unaccent(lower(${NOME_MEDICAMENTO_NORMALIZADO_SQL})), ${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+        "posicao",
+      ),
+    ])
+    .where(
+      sql<boolean>`${INICIAL_MEDICAMENTO_SQL} in (${sql.join(letrasAlvo)})`,
+    )
+    .groupBy([INICIAL_MEDICAMENTO_SQL, NOME_MEDICAMENTO_NORMALIZADO_SQL]);
+
+  const linhas = await db
+    .selectFrom(posicionados.as("posicionados"))
+    .select(["inicial", "nome_medicamento", "unidades_com_estoque"])
+    .where("posicao", "<=", limiteMedicamentos)
+    .orderBy("inicial")
+    .orderBy("posicao")
+    .execute();
+
+  const medicamentosPorLetra = linhas.reduce<
+    Map<string, FarmaciaIndiceMedicamentoDTO[]>
+  >(
+    (acc, linha) =>
+      new Map(acc).set(linha.inicial, [
+        ...(acc.get(linha.inicial) ?? []),
+        {
+          nomeMedicamento: linha.nome_medicamento,
+          unidadesComEstoque: toNumberOrNull(linha.unidades_com_estoque) ?? 0,
+        },
+      ]),
+    new Map(),
+  );
+
+  return {
+    ...base,
+    letras: letrasAlvo.map(
+      (letra): FarmaciaIndiceLetraDTO => ({
+        letra,
+        totalMedicamentos: totalPorLetra.get(letra) ?? 0,
+        medicamentos: medicamentosPorLetra.get(letra) ?? [],
+      }),
+    ),
   };
 }
 

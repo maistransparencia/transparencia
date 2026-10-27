@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { FarmaciaCabecalho } from "@/components/farmacia/farmacia-cabecalho";
 import { FarmaciaFonteDados } from "@/components/farmacia/farmacia-fonte-dados";
 import { FarmaciaIndicadores } from "@/components/farmacia/farmacia-indicadores";
+import { FarmaciaIndiceAz } from "@/components/farmacia/farmacia-indice-az";
 import { FarmaciaResultados } from "@/components/farmacia/farmacia-resultados";
 import { FarmaciaSentinelas } from "@/components/farmacia/farmacia-sentinelas";
 import { FarmaciaSusSentinelaBanner } from "@/components/farmacia/farmacia-sus-sentinela-banner";
@@ -10,6 +11,7 @@ import { createPortalMetadata } from "@/lib/metadata";
 import { type FarmaciaSearchParams, loadFarmaciaData } from "./loader";
 import {
   buildFarmaciaViewModel,
+  ID_SECAO_INDICE,
   LEI_FARMACIA_SUS_URL,
   LEI_ORGANICA_SAUDE_URL,
 } from "./view-model";
@@ -88,6 +90,13 @@ export default async function FarmaciaPage({
           diasDesdePosicaoMaisRecente={viewModel.diasDesdePosicaoMaisRecente}
           requerimento={viewModel.requerimento}
           textoWhatsApp={viewModel.textoWhatsApp}
+        />
+      )}
+
+      {conforme && viewModel.indiceAz && (
+        <FarmaciaIndiceAz
+          indice={viewModel.indiceAz}
+          idSecao={ID_SECAO_INDICE}
         />
       )}
 

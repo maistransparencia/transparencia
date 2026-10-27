@@ -88,7 +88,7 @@ describe("FarmaciaPage", () => {
       "18/10/2026",
     );
     expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
+      screen.getByRole("form", { name: "Busca de remédios" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
@@ -197,7 +197,7 @@ describe("FarmaciaPage", () => {
       screen.getByRole("button", { name: /Compartilhar no WhatsApp/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("form", { name: "Busca de medicamentos" }),
+      screen.queryByRole("form", { name: "Busca de remédios" }),
     ).toBeNull();
   });
 
@@ -206,7 +206,7 @@ describe("FarmaciaPage", () => {
     render(await FarmaciaPage(props));
     expect(screen.getByText(/não estão disponíveis/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("form", { name: "Busca de medicamentos" }),
+      screen.queryByRole("form", { name: "Busca de remédios" }),
     ).toBeNull();
   });
 

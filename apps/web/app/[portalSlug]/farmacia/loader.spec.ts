@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@transparencia/db", () => ({
+  getFarmaciaIndiceAlfabetico: vi.fn(),
   getFarmaciaLotesAVencer: vi.fn(),
   getFarmaciaSentinelas: vi.fn(),
   getFarmaciaSus: vi.fn(),
@@ -8,6 +9,7 @@ vi.mock("@transparencia/db", () => ({
 }));
 
 const {
+  getFarmaciaIndiceAlfabetico,
   getFarmaciaLotesAVencer,
   getFarmaciaSentinelas,
   getFarmaciaSus,
@@ -24,12 +26,40 @@ describe("parseFarmaciaContext", () => {
   it("usa o primeiro valor quando o parametro se repete e ignora os demais", () => {
     expect(
       parseFarmaciaContext({ q: ["dip", "outro"], unidade: "x" } as never),
-    ).toEqual({ busca: "dip" });
+    ).toMatchObject({ busca: "dip" });
+  });
+
+  it("aceita so uma letra A-Z e normaliza a caixa", () => {
+    expect(parseFarmaciaContext({ letra: " a " }).letra).toBe("A");
+    expect(parseFarmaciaContext({ letra: "0-9" }).letra).toBe("0-9");
+    expect(parseFarmaciaContext({ letra: "ab" }).letra).toBe("");
+    expect(parseFarmaciaContext({ letra: "1" }).letra).toBe("");
+    expect(parseFarmaciaContext({}).letra).toBe("");
+  });
+
+  it("usa os passos padrao e limita letras e itens revelados", () => {
+    expect(parseFarmaciaContext({})).toMatchObject({
+      letrasVisiveis: 6,
+      itensVisiveis: 25,
+    });
+    expect(parseFarmaciaContext({ letras: "12", itens: "50" })).toMatchObject({
+      letrasVisiveis: 12,
+      itensVisiveis: 50,
+    });
+    expect(
+      parseFarmaciaContext({ letras: "999", itens: "999999" }),
+    ).toMatchObject({ letrasVisiveis: 26, itensVisiveis: 1000 });
+    expect(parseFarmaciaContext({ letras: "-3", itens: "abc" })).toMatchObject({
+      letrasVisiveis: 6,
+      itensVisiveis: 25,
+    });
   });
 });
 
 describe("loadFarmaciaData", () => {
   beforeEach(() => {
+    vi.mocked(getFarmaciaIndiceAlfabetico).mockReset();
+    vi.mocked(getFarmaciaIndiceAlfabetico).mockResolvedValue(null as never);
     vi.mocked(getFarmaciaLotesAVencer).mockResolvedValue(null as never);
   });
 
@@ -141,5 +171,47 @@ describe("loadFarmaciaData", () => {
     await expect(loadFarmaciaData("  ", {})).rejects.toThrow(
       "portalSlug vazio",
     );
+  });
+
+  it("pede o resumo do indice sem letra e todos os itens da letra escolhida", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({ unidades: [] } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+
+    await loadFarmaciaData("portal_x", { letras: "12" });
+    expect(getFarmaciaIndiceAlfabetico).toHaveBeenLastCalledWith("portal_x", {
+      letra: "",
+      limiteLetras: 12,
+      limiteMedicamentosPorLetra: 3,
+    });
+
+    await loadFarmaciaData("portal_x", { letra: "a", itens: "50" });
+    expect(getFarmaciaIndiceAlfabetico).toHaveBeenLastCalledWith("portal_x", {
+      letra: "A",
+      limiteLetras: 6,
+      limiteMedicamentosPorLetra: 50,
+    });
+  });
+
+  it("com busca por texto o indice serve so de navegacao", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({ unidades: [] } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+
+    await loadFarmaciaData("portal_x", { q: "dipirona", letra: "A" });
+    expect(getFarmaciaIndiceAlfabetico).toHaveBeenLastCalledWith("portal_x", {
+      letra: undefined,
+      limiteLetras: 1,
+      limiteMedicamentosPorLetra: 1,
+    });
+  });
+
+  it("isola a falha do indice sem derrubar a busca", async () => {
+    vi.mocked(getFarmaciaSus).mockResolvedValue({ unidades: [] } as never);
+    vi.mocked(getPortalConfig).mockResolvedValue(null as never);
+    vi.mocked(getFarmaciaIndiceAlfabetico).mockRejectedValue(
+      new Error("falha"),
+    );
+
+    const result = await loadFarmaciaData("portal_x", {});
+    expect(result.indice).toBeNull();
   });
 });

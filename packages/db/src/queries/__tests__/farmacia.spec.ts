@@ -11,6 +11,7 @@ import {
   calcularIndicadoresFarmacia,
   FARMACIA_JANELA_LOTES_A_VENCER_DIAS,
   getFarmaciaEstoqueExportRecords,
+  getFarmaciaIndiceAlfabetico,
   getFarmaciaLotesAVencer,
   getFarmaciaSentinelas,
   getFarmaciaSus,
@@ -210,6 +211,33 @@ describe("farmacia queries", () => {
         dataPosicaoEstoque: "2026-10-18",
       },
     ]);
+  });
+
+  it("encontra o medicamento mesmo quando o nome cru tem espacos duplicados", async () => {
+    await seedFarmacia({
+      portalSlug: PORTAL_A,
+      idRegistro: "1",
+      statusConformidade: "conforme",
+      dataColeta: "2026-10-20",
+      dataPosicaoMaisRecente: "2026-10-18",
+      diasDesdePosicaoMaisRecente: 2,
+      codigoCnes: "1001",
+      nomeUnidade: "UBS Centro",
+      nomeMedicamento: "ACEBROFILINA 5 MG/ML XAROPE  120 ML",
+      quantidadeEstoque: 4,
+      dataPosicaoEstoque: "2026-10-18",
+    });
+    const nomeDoIndice = "ACEBROFILINA 5 MG/ML XAROPE 120 ML";
+    const comEspacoSimples = await getFarmaciaSus(PORTAL_A, {
+      busca: nomeDoIndice,
+    });
+    expect(comEspacoSimples.remedios.map((r) => r.nomeMedicamento)).toEqual([
+      nomeDoIndice,
+    ]);
+    const comEspacoDuplo = await getFarmaciaSus(PORTAL_A, {
+      busca: "  xarope   120 ml ",
+    });
+    expect(comEspacoDuplo.remedios).toHaveLength(1);
   });
 
   it("filtra por unidade e pagina", async () => {
@@ -631,5 +659,185 @@ describe("getFarmaciaEstoqueExportRecords", () => {
     const b = await getFarmaciaEstoqueExportRecords(PORTAL_B);
     expect(b.map((r) => r.nomeMedicamento)).toEqual(["So do B"]);
     expect(b.every((r) => r.portalSlug === PORTAL_B)).toBe(true);
+  });
+});
+
+describe("getFarmaciaIndiceAlfabetico", () => {
+  const base = {
+    statusConformidade: "conforme",
+    dataColeta: "2026-10-20",
+    dataPosicaoMaisRecente: "2026-10-18",
+    diasDesdePosicaoMaisRecente: 2,
+  };
+
+  async function seedIndice(portalSlug: string) {
+    const itens: [string, string, string][] = [
+      ["1", "1001", "Ácido fólico 5mg"],
+      ["2", "1001", "Amoxicilina"],
+      ["3", "1002", "Amoxicilina"],
+      ["4", "1001", "Atenolol 50mg"],
+      ["5", "1002", "Azitromicina 500mg"],
+      ["6", "1001", "Bromexina"],
+      ["7", "1002", "  dipirona   sódica "],
+      ["8", "1001", "500 mg soro"],
+    ];
+    await Promise.all(
+      itens.map(([idRegistro, codigoCnes, nomeMedicamento]) =>
+        seedFarmacia({
+          ...base,
+          portalSlug,
+          idRegistro,
+          codigoCnes,
+          nomeUnidade: `UBS ${codigoCnes}`,
+          nomeMedicamento,
+          quantidadeEstoque: 10,
+          dataPosicaoEstoque: "2026-10-18",
+        }),
+      ),
+    );
+  }
+
+  it("lista as letras disponiveis e limita letras e itens por letra, ordenando sem acento", async () => {
+    await seedIndice(PORTAL_A);
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, {
+      limiteLetras: 2,
+      limiteMedicamentosPorLetra: 3,
+    });
+    expect(indice.status).toBe("conforme");
+    expect(indice.letrasDisponiveis).toEqual(["A", "B", "D", "0-9"]);
+    expect(indice.totalLetras).toBe(4);
+    expect(indice.letras.map((l) => l.letra)).toEqual(["A", "B"]);
+    expect(indice.letras[0]).toEqual({
+      letra: "A",
+      totalMedicamentos: 4,
+      medicamentos: [
+        { nomeMedicamento: "Ácido fólico 5mg", unidadesComEstoque: 1 },
+        { nomeMedicamento: "Amoxicilina", unidadesComEstoque: 2 },
+        { nomeMedicamento: "Atenolol 50mg", unidadesComEstoque: 1 },
+      ],
+    });
+  });
+
+  it("devolve so a letra pedida, sem diferenciar caixa, com o total de unidades do portal", async () => {
+    await seedIndice(PORTAL_A);
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, {
+      letra: "a",
+      limiteMedicamentosPorLetra: 25,
+    });
+    expect(indice.letras).toHaveLength(1);
+    expect(indice.letras[0].medicamentos.map((m) => m.nomeMedicamento)).toEqual(
+      [
+        "Ácido fólico 5mg",
+        "Amoxicilina",
+        "Atenolol 50mg",
+        "Azitromicina 500mg",
+      ],
+    );
+    expect(indice.totalUnidades).toBe(2);
+    expect(indice.letrasDisponiveis).toEqual(["A", "B", "D", "0-9"]);
+  });
+
+  it("normaliza espacos do nome", async () => {
+    await seedIndice(PORTAL_A);
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "D" });
+    expect(indice.letras[0].medicamentos).toEqual([
+      { nomeMedicamento: "dipirona sódica", unidadesComEstoque: 1 },
+    ]);
+  });
+
+  it("agrupa nomes que nao comecam com letra em 0-9, depois do Z", async () => {
+    await seedIndice(PORTAL_A);
+    await seedFarmacia({
+      ...base,
+      portalSlug: PORTAL_A,
+      idRegistro: "10",
+      codigoCnes: "1002",
+      nomeUnidade: "UBS 1002",
+      nomeMedicamento: "(+) simbolo",
+      quantidadeEstoque: 1,
+      dataPosicaoEstoque: "2026-10-18",
+    });
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, {
+      letra: "0-9",
+    });
+    expect(indice.letrasDisponiveis.at(-1)).toBe("0-9");
+    expect(indice.letras).toEqual([
+      {
+        letra: "0-9",
+        totalMedicamentos: 2,
+        medicamentos: [
+          { nomeMedicamento: "(+) simbolo", unidadesComEstoque: 1 },
+          { nomeMedicamento: "500 mg soro", unidadesComEstoque: 1 },
+        ],
+      },
+    ]);
+  });
+
+  it("sem nomes fora de A-Z nao cria o grupo 0-9", async () => {
+    await seedFarmacia({
+      ...base,
+      portalSlug: PORTAL_A,
+      idRegistro: "1",
+      codigoCnes: "1001",
+      nomeUnidade: "UBS 1001",
+      nomeMedicamento: "Amoxicilina",
+      quantidadeEstoque: 1,
+      dataPosicaoEstoque: "2026-10-18",
+    });
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A);
+    expect(indice.letrasDisponiveis).toEqual(["A"]);
+    expect(
+      (await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "0-9" })).letras,
+    ).toEqual([]);
+  });
+
+  it("letra invalida ou sem itens devolve lista vazia mantendo as letras disponiveis", async () => {
+    await seedIndice(PORTAL_A);
+    const semItens = await getFarmaciaIndiceAlfabetico(PORTAL_A, {
+      letra: "W",
+    });
+    expect(semItens.letras).toEqual([]);
+    expect(semItens.letrasDisponiveis).toEqual(["A", "B", "D", "0-9"]);
+    const invalida = await getFarmaciaIndiceAlfabetico(PORTAL_A, {
+      letra: "1%",
+    });
+    expect(invalida.letras).toEqual([]);
+  });
+
+  it("nao cruza dados entre portais", async () => {
+    await seedIndice(PORTAL_A);
+    await seedFarmacia({
+      ...base,
+      portalSlug: PORTAL_B,
+      idRegistro: "9",
+      codigoCnes: "1001",
+      nomeUnidade: "UBS Outra",
+      nomeMedicamento: "Zinco",
+      quantidadeEstoque: 3,
+      dataPosicaoEstoque: "2026-10-18",
+    });
+    const a = await getFarmaciaIndiceAlfabetico(PORTAL_A);
+    const b = await getFarmaciaIndiceAlfabetico(PORTAL_B);
+    expect(a.letrasDisponiveis).not.toContain("Z");
+    expect(b.letrasDisponiveis).toEqual(["Z"]);
+    expect(b.totalUnidades).toBe(1);
+  });
+
+  it("slug invalido ou portal fora de conforme devolve vazio", async () => {
+    expect((await getFarmaciaIndiceAlfabetico("  ")).letras).toEqual([]);
+    await seedFarmacia({
+      portalSlug: PORTAL_A,
+      idRegistro: "status",
+      statusConformidade: "apagao",
+      dataPosicaoMaisRecente: "2026-09-01",
+      diasDesdePosicaoMaisRecente: 49,
+    });
+    const apagao = await getFarmaciaIndiceAlfabetico(PORTAL_A);
+    expect(apagao).toMatchObject({
+      status: "apagao",
+      letrasDisponiveis: [],
+      letras: [],
+      totalLetras: 0,
+    });
   });
 });
