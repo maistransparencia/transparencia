@@ -44,15 +44,15 @@ export interface LicitacoesTableProps {
 function getModalidadeBadgeVariant(modalidadeStr?: string | null) {
   const mod = (modalidadeStr || "Dispensa").toLowerCase();
   if (mod.includes("inexigibilidade")) {
-    return "bg-[#edf2f7] text-[#2b6cb0] border-[#cbd5e0]";
+    return "border-brand text-brand";
   }
   if (mod.includes("dispensa")) {
-    return "bg-[#fffaf0] text-[#9c4221] border-[#feebc8]";
+    return "border-warn text-warn";
   }
   if (mod.includes("pregã") || mod.includes("pregao")) {
-    return "bg-[#ebf8ff] text-[#2c5282] border-[#bee3f8]";
+    return "border-ink text-ink";
   }
-  return "bg-slate-100 text-slate-700 border-slate-200";
+  return "border-line text-mute2";
 }
 
 export function LicitacoesTable({
@@ -85,11 +85,11 @@ export function LicitacoesTable({
           const fracCount = fracionamentoVendors[row.fornecedor] || 0;
           return (
             <div className="align-top">
-              <div className="font-bold text-slate-900 leading-snug">
+              <div className="font-bold text-ink leading-snug">
                 {row.fornecedor}
               </div>
               {fracCount >= 3 && (
-                <div className="mt-1 inline-flex items-center gap-1 rounded border border-[#feebc8] bg-[#fffaf0] px-2 py-0.5 font-medium text-[#9c4221] text-[11px]">
+                <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
                   <span>⚠️</span> {fracCount} contratos próximos ao teto
                 </div>
               )}
@@ -102,7 +102,7 @@ export function LicitacoesTable({
         accessorKey: "objeto",
         sortable: true,
         align: "left",
-        className: "max-w-xs text-slate-600 leading-normal whitespace-normal",
+        className: "max-w-xs text-mute2 leading-normal whitespace-normal",
         renderCell: (row) => (
           <TruncatedCellWithModal
             text={row.objeto}
@@ -142,7 +142,7 @@ export function LicitacoesTable({
         align: "right",
         isSerifNumeric: true,
         className:
-          "text-right font-bold font-serif text-slate-900 text-sm whitespace-nowrap",
+          "text-right font-bold font-serif text-ink text-sm whitespace-nowrap",
         sortValue: (row) => Number(row.valorContrato || 0),
         exportValue: (row) => {
           const val =
@@ -170,7 +170,7 @@ export function LicitacoesTable({
         sortable: true,
         defaultSortDir: "desc",
         align: "right",
-        className: "text-right text-slate-500 whitespace-nowrap",
+        className: "text-right text-mute2 whitespace-nowrap",
         sortValue: (row) => (row.ano || 0) * 12 + (row.mes || 0),
         exportValue: (row) => row.periodo || "",
       },
@@ -178,7 +178,7 @@ export function LicitacoesTable({
     [fracionamentoVendors],
   );
 
-  const renderContratoMobileCard = (row: ContratoSemLicitacaoItem) => {
+  const renderContratoMobileRow = (row: ContratoSemLicitacaoItem) => {
     const isHighlighted = highlightedNumero && row.numero === highlightedNumero;
     const fracCount = fracionamentoVendors[row.fornecedor] || 0;
     const valNum =
@@ -186,78 +186,64 @@ export function LicitacoesTable({
         ? row.valorContrato
         : parseFloat(String(row.valorContrato ?? "0").replace(",", ".")) || 0;
 
-    return (
-      <article
-        key={row.numero}
-        id={`contrato-card-${row.numero}`}
-        className={cn(
-          "flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs transition-all",
-          isHighlighted && "animate-pulse ring-2 ring-accent ring-offset-2",
-        )}
-      >
-        <div className="space-y-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <span className="font-bold text-slate-900 text-sm">
-                Contrato {row.numero}
-              </span>
-              <p className="font-medium text-slate-600 text-xs">
-                {row.fornecedor}
-              </p>
-            </div>
-            <span
-              className={cn(
-                "inline-block rounded-md border px-2 py-0.5 font-semibold text-[10px]",
-                getModalidadeBadgeVariant(row.modalidade),
-              )}
-            >
-              {row.modalidade || "Dispensa"}
+    return {
+      resumo: (
+        <div
+          id={`contrato-card-${row.numero}`}
+          className={cn(
+            "space-y-0.5",
+            isHighlighted && "animate-pulse ring-2 ring-brand ring-offset-2",
+          )}
+        >
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="font-bold text-ink text-sm">
+              Contrato {row.numero}
+            </span>
+            <span className="shrink-0 font-bold font-serif text-ink text-sm">
+              {fmtCurrency(valNum)}
             </span>
           </div>
-
+          <p className="line-clamp-2 text-ink text-xs leading-snug">
+            {row.objeto}
+          </p>
+          <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
+            <span>{row.modalidade || "Dispensa"}</span>
+            <span>{row.periodo || "—"}</span>
+          </div>
+        </div>
+      ),
+      detalhes: (
+        <div className="space-y-2.5">
+          <div>
+            <span className="block text-[11px] text-mute2">Fornecedor</span>
+            <span className="font-medium text-ink">{row.fornecedor}</span>
+          </div>
           {fracCount >= 3 && (
-            <div className="inline-flex items-center gap-1 rounded border border-[#feebc8] bg-[#fffaf0] px-2 py-0.5 font-medium text-[#9c4221] text-[11px]">
+            <div className="inline-flex items-center gap-1 rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
               <span>⚠️</span> {fracCount} contratos próximos ao teto
             </div>
           )}
-
-          <div>
-            <TruncatedCellWithModal
-              text={row.objeto}
-              modalTitle={`Contrato ${row.numero} — ${row.fornecedor}`}
-              characterThreshold={120}
-              maxLines={3}
-              badge={row.modalidade || "Dispensa"}
-              secondaryText={
-                row.fundlegal ? `Fundamento legal: ${row.fundlegal}` : undefined
-              }
-            />
-          </div>
-
-          <div className="flex items-baseline justify-between border-slate-100 border-t pt-2 text-xs">
-            <div>
-              <span className="block text-[11px] text-slate-400">Período</span>
-              <span className="font-medium text-slate-600">
-                {row.periodo || "—"}
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="block text-[11px] text-slate-400">Valor</span>
-              <span className="font-bold font-serif text-slate-900 text-sm">
-                {fmtCurrency(valNum)}
-              </span>
-            </div>
-          </div>
+          <TruncatedCellWithModal
+            text={row.objeto}
+            modalTitle={`Contrato ${row.numero} — ${row.fornecedor}`}
+            characterThreshold={120}
+            maxLines={3}
+            badge={row.modalidade || "Dispensa"}
+            secondaryText={
+              row.fundlegal ? `Fundamento legal: ${row.fundlegal}` : undefined
+            }
+          />
         </div>
-      </article>
-    );
+      ),
+    };
   };
 
   return (
     <DenseTable
       data={data}
       columns={columns}
-      renderMobileCard={renderContratoMobileCard}
+      renderMobileRow={renderContratoMobileRow}
+      hideSearch
       rowKey="numero"
       searchPlaceholder="Buscar fornecedor, objeto ou modalidade..."
       searchableKeys={["fornecedor", "objeto", "modalidade", "numero"]}

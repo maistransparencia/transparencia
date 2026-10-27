@@ -104,12 +104,14 @@ describe("searchLicitacoesEContratos", () => {
     expect(licitacao.numero).toBe("0043/24");
     expect(licitacao.tipo).toBe("licitacao");
     expect(licitacao.href).toContain("numero=0043%2F24");
+    expect(licitacao.statusCodigo).toBe("em_andamento");
 
     const contrato = result.contratos[0];
     expect(contrato.numero).toBe("0043/24");
     expect(contrato.tipo).toBe("contrato");
     expect(contrato.fornecedorNome).toBe("JUSTINA REGINA R. MONTEIRO");
     expect(contrato.href).toContain("contratoNumero=0043%2F24");
+    expect(contrato.statusCodigo).toBeNull();
   });
 
   it("deve buscar por termos sem acento via unaccent (ex: 'locacao de veiculos')", async () => {

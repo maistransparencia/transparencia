@@ -2,6 +2,7 @@ export * from "./components/alert-box";
 export * from "./components/badge";
 export * from "./components/dense-table";
 export * from "./components/external-link-pill";
+export * from "./components/indicadores-linha";
 export * from "./components/kpi-card";
 export * from "./components/modal-dialog";
 export * from "./components/multi-select";

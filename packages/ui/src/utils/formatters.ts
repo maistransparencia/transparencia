@@ -131,6 +131,28 @@ export function fmtLicitacaoSituacao(situacao?: string | null): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+const LICITACAO_SITUACAO_CODIGO_LABELS: Record<string, string> = {
+  homologada: "Homologada",
+  em_andamento: "Em andamento",
+  encerrada: "Encerrada",
+  deserta: "Deserta",
+  fracassada: "Fracassada",
+  cancelada: "Cancelada",
+  classificada: "Classificada",
+  nao_informada: "Não informada",
+};
+
+/** Rótulo da situação normalizada na camada de dados (situacao_codigo). */
+export function fmtLicitacaoSituacaoCodigo(
+  codigo?: string | null,
+  situacaoTexto?: string | null,
+): string {
+  if (codigo && LICITACAO_SITUACAO_CODIGO_LABELS[codigo]) {
+    return LICITACAO_SITUACAO_CODIGO_LABELS[codigo];
+  }
+  return fmtLicitacaoSituacao(situacaoTexto);
+}
+
 function parseReferenceDate(
   val: Date | string | null | undefined,
 ): Date | null {

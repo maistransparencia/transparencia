@@ -1,11 +1,16 @@
-import { cn, fmtCurrency, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  cn,
+  fmtCurrency,
+  fmtPercent,
+  IndicadoresLinha,
+} from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
-import { KPIGrid } from "@/components/kpi-grid";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
+import { LicitacoesTempoNaPagina } from "@/components/licitacoes-tempo-na-pagina";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -69,20 +74,21 @@ export default async function LicitacoesPage({
 
   return (
     <div className="space-y-8 pb-10">
+      <LicitacoesTempoNaPagina />
       {/* Header & Subtitle */}
       <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
+        <h1 className="font-bold font-serif text-3xl text-ink">
           Licitações e Contratos
         </h1>
-        <p className="mt-2 max-w-4xl text-slate-600 text-xs leading-relaxed sm:text-sm">
+        <p className="mt-2 max-w-4xl text-mute2 text-xs leading-relaxed sm:text-sm">
           Contratos sem licitação são comuns e frequentemente legais — dispensas
           de baixo valor e inexigibilidades são permitidas por lei. O ponto de
           atenção são os contratos{" "}
-          <strong className="font-semibold text-slate-900">
+          <strong className="font-semibold text-ink">
             acima de {fmtCurrency(limiteDispensaComprasServicos)} sem licitação
           </strong>
           , que exigem justificativa formal.
@@ -94,38 +100,47 @@ export default async function LicitacoesPage({
         </div>
       </div>
 
-      <KPIGrid columns={5}>
-        <KPICard
-          title="Taxa de Contratação Direta"
-          value={fmtPercent(taxaContratacaoDireta)}
-          accent
-        />
-        <KPICard
-          title="Acima do limite s/ licitação"
-          value={
-            <span
-              className={cn(acimaLimiteGaps.length > 0 && "text-amber-600")}
-            >
-              {acimaLimiteGaps.length}
-            </span>
-          }
-          alert={acimaLimiteGaps.length > 0}
-          accent={false}
-        />
-        <KPICard title="Sem processo licitatório" value={gaps.length} />
-        <KPICard title="Adesões de ata (carona)" value={adesao.quantidade} />
-        <KPICard
-          title="Empenhos via ata externa"
-          value={adesaoExterna.quantidade}
-        />
-      </KPIGrid>
+      <IndicadoresLinha
+        indicadores={[
+          {
+            codigo: "taxa_contratacao_direta",
+            rotulo: "Taxa de Contratação Direta",
+            valor: fmtPercent(taxaContratacaoDireta),
+            destaque: true,
+          },
+          {
+            codigo: "acima_limite_sem_licitacao",
+            rotulo: "Acima do limite s/ licitação",
+            valor: (
+              <span className={cn(acimaLimiteGaps.length > 0 && "text-warn")}>
+                {acimaLimiteGaps.length}
+              </span>
+            ),
+          },
+          {
+            codigo: "sem_processo_licitatorio",
+            rotulo: "Sem processo licitatório",
+            valor: gaps.length,
+          },
+          {
+            codigo: "adesoes_ata",
+            rotulo: "Adesões de ata (carona)",
+            valor: adesao.quantidade,
+          },
+          {
+            codigo: "empenhos_ata_externa",
+            rotulo: "Empenhos via ata externa",
+            valor: adesaoExterna.quantidade,
+          },
+        ]}
+      />
 
       {/* Warning Alert Banner - Concentração de Dispensas */}
       {hasAnomaliaDispensa && (
-        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md bg-warn/10 p-4 text-ink text-xs sm:text-sm">
           <div>
-            <span className="font-bold text-[#9c4221]">
-              Alerta de Concentração de Contratações Diretas:
+            <span className="font-bold text-warn">
+              Concentração de contratações diretas.
             </span>{" "}
             {(() => {
               if (isFilteredByEntidade) {
@@ -146,11 +161,13 @@ export default async function LicitacoesPage({
                 <>
                   No consolidado municipal de {selectedYear}, embora as
                   contratações diretas representem{" "}
-                  <strong>{fmtPercent(taxaContratacaoDireta)}</strong> do volume
-                  financeiro apurado (card acima),{" "}
+                  <strong className="font-bold">
+                    {fmtPercent(taxaContratacaoDireta)}
+                  </strong>{" "}
+                  do volume financeiro apurado,{" "}
                   {alertaDispensa?.valorObservado != null ? (
                     <>
-                      <strong>
+                      <strong className="font-bold">
                         {fmtPercent(alertaDispensa.valorObservado)}
                       </strong>{" "}
                       dos processos de compras públicas foram realizados
@@ -174,7 +191,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
             >
               Art. 74 (Inexigibilidade)
               <ExternalLink
@@ -188,7 +205,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
             >
               Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)
               <ExternalLink
@@ -202,7 +219,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
-              className="inline-flex items-center gap-0.5 font-semibold underline hover:text-[#9c4221]"
+              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
             >
               Art. 86 (Adesão a Ata)
               <ExternalLink
@@ -217,10 +234,10 @@ export default async function LicitacoesPage({
 
       {/* Warning Alert Banner - Fracionamento */}
       {numCasosFracionamento > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md bg-warn/10 p-4 text-ink text-xs sm:text-sm">
           <span className="mt-0.5 shrink-0 text-base">⚠️</span>
           <div>
-            <span className="font-bold text-[#9c4221]">
+            <span className="font-bold text-warn">
               {numCasosFracionamento}{" "}
               {numCasosFracionamento === 1 ? "caso" : "casos"} de possível
               fracionamento.
@@ -251,22 +268,19 @@ export default async function LicitacoesPage({
       <section className="space-y-4">
         <div className="border-ink border-t-2 pt-8">
           <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-            <h2 className="font-bold font-serif text-slate-900 text-xl">
+            <h2 className="font-bold font-serif text-ink text-xl">
               Contratos acima do limite, sem licitação
             </h2>
-            <span className="font-medium text-slate-400 text-xs">
+            <span className="font-medium text-mute3 text-xs">
               {acimaLimiteGaps.length} contratos · exige justificativa formal
             </span>
           </div>
 
-          <p className="mb-4 text-slate-600 text-xs leading-relaxed sm:text-sm">
+          <p className="mb-4 text-mute2 text-xs leading-relaxed sm:text-sm">
             Cada linha merece análise da justificativa oficial. Quando o mesmo
             fornecedor aparece várias vezes com valores próximos ao teto de{" "}
             {fmtCurrency(limiteDispensaComprasServicos)}, pode indicar{" "}
-            <strong className="font-semibold text-slate-900">
-              fracionamento
-            </strong>
-            .
+            <strong className="font-semibold text-ink">fracionamento</strong>.
           </p>
         </div>
 

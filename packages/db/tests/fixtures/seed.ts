@@ -788,6 +788,7 @@ export interface LicitacaoRow {
   valorEstimado?: number | null;
   valorHomologado?: number | null;
   situacao?: string;
+  situacaoCodigo?: string;
   dataAbertura?: string | null;
   carona?: string | null;
   fonteObjeto?: string | null;
@@ -813,6 +814,39 @@ export interface LicitacaoItemRow {
   situacaoItem?: string | null;
 }
 
+const SITUACOES_EM_ANDAMENTO = [
+  "em andamento",
+  "em_andamento",
+  "aberta",
+  "em aberto",
+  "publicada",
+  "publicado",
+  "divulgada no pncp",
+];
+
+// Espelha a regra de situacao_codigo de int_licitacoes_consolidadas (dbt).
+function derivarSituacaoCodigo(
+  situacao: string,
+  valorHomologado?: number | null,
+): string {
+  const normalizada = situacao
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (["homologada", "homologado"].includes(normalizada)) return "homologada";
+  if (SITUACOES_EM_ANDAMENTO.includes(normalizada)) {
+    return (valorHomologado ?? 0) > 0 ? "homologada" : "em_andamento";
+  }
+  if (["encerrada", "encerrado"].includes(normalizada)) return "encerrada";
+  if (["deserta", "deserto"].includes(normalizada)) return "deserta";
+  if (["fracassada", "fracassado"].includes(normalizada)) return "fracassada";
+  if (/revogad|anulad|cancelad/.test(normalizada)) return "cancelada";
+  if (["classificada", "classificado"].includes(normalizada))
+    return "classificada";
+  return "nao_informada";
+}
+
 export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
   await db
     .insertInto("fct_licitacoes")
@@ -834,6 +868,12 @@ export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
             : 100000,
       valor_homologado: row.valorHomologado ?? null,
       situacao: row.situacao ?? "em_andamento",
+      situacao_codigo:
+        row.situacaoCodigo ??
+        derivarSituacaoCodigo(
+          row.situacao ?? "em_andamento",
+          row.valorHomologado,
+        ),
       data_abertura: row.dataAbertura ? row.dataAbertura : null,
       carona: row.carona ?? null,
       fonte_objeto: row.fonteObjeto ?? "municipal",

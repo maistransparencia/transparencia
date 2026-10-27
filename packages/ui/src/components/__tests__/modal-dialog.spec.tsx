@@ -207,11 +207,11 @@ describe("ModalDialog tokens", () => {
       </ModalDialog>,
     );
     expect(screen.getByRole("dialog")).toHaveClass(
-      "rounded-xl",
+      "rounded-md",
       "border-line",
       "bg-page",
-      "shadow-2xl",
     );
+    expect(screen.getByRole("dialog")).not.toHaveClass("shadow-2xl");
     expect(screen.getByText("Detalhes")).toHaveClass("font-serif");
   });
 

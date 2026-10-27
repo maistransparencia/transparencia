@@ -2,6 +2,16 @@ import { sql } from "kysely";
 import { db } from "../client";
 import { NEAR_THRESHOLD_PCT } from "../constants";
 
+export type LicitacaoSituacaoCodigo =
+  | "homologada"
+  | "em_andamento"
+  | "encerrada"
+  | "deserta"
+  | "fracassada"
+  | "cancelada"
+  | "classificada"
+  | "nao_informada";
+
 export interface ContratoSemLicitacaoMetricsDTO {
   ano: number;
   empresa: string;
@@ -546,6 +556,7 @@ export interface LicitacaoEmAndamentoDTO {
   valorEstimado: number | null;
   valorHomologado: number | null;
   situacao: string;
+  situacaoCodigo: LicitacaoSituacaoCodigo;
   dataAbertura: string | null;
   carona: string | null;
   fonteObjeto?: string | null;
@@ -706,6 +717,7 @@ export async function getLicitacoesEmAndamentoMetrics(
       "l.valor_estimado",
       "l.valor_homologado",
       "l.situacao",
+      "l.situacao_codigo",
       "l.data_abertura",
       "l.carona",
       "l.fonte_objeto",
@@ -715,10 +727,10 @@ export async function getLicitacoesEmAndamentoMetrics(
     .where("l.portal_slug", "=", cleanSlug)
     .where(
       sql<boolean>`(
-        lower(replace(trim(l.situacao), ' ', '_')) in ('em_andamento', 'aberta', 'em_aberto', 'publicada', 'publicado')
+        l.situacao_codigo = 'em_andamento'
         or (
           l.fonte_objeto = 'pncp'
-          and lower(replace(trim(coalesce(l.situacao, '')), ' ', '_')) not in ('encerrada', 'encerrado', 'fracassada', 'fracassado', 'anulada', 'anulado', 'revogada', 'revogado', 'deserta')
+          and l.situacao_codigo not in ('encerrada', 'fracassada', 'cancelada', 'deserta')
         )
       )`,
     );
@@ -779,6 +791,7 @@ export async function getLicitacoesEmAndamentoMetrics(
         .trim()
         .toLowerCase()
         .replace(/\s+/g, "_"),
+      situacaoCodigo: r.situacao_codigo as LicitacaoSituacaoCodigo,
       dataAbertura: toIsoDateString(r.data_abertura),
       carona: r.carona ? String(r.carona) : null,
       fonteObjeto: r.fonte_objeto ? String(r.fonte_objeto) : "municipal",
@@ -875,6 +888,7 @@ export async function getLicitacaoByNumero(
       "l.valor_estimado",
       "l.valor_homologado",
       "l.situacao",
+      "l.situacao_codigo",
       "l.data_abertura",
       "l.carona",
       "l.fonte_objeto",
@@ -935,6 +949,7 @@ export async function getLicitacaoByNumero(
       .trim()
       .toLowerCase()
       .replace(/\s+/g, "_"),
+    situacaoCodigo: r.situacao_codigo as LicitacaoSituacaoCodigo,
     dataAbertura: toIsoDateString(r.data_abertura),
     carona: r.carona ? String(r.carona) : null,
     fonteObjeto: r.fonte_objeto ? String(r.fonte_objeto) : "municipal",
