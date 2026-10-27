@@ -78,6 +78,48 @@ describe("RadarGastosSensiveis Component", () => {
     },
   ];
 
+  it("não renderiza nada quando não há itens", () => {
+    const { container } = render(
+      <RadarGastosSensiveis itens={[]} anoAtual={2026} anoAnterior={2025} />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("colore selos de variação por token", () => {
+    const { container } = render(
+      <RadarGastosSensiveis
+        itens={sampleItens}
+        anoAtual={2026}
+        anoAnterior={2025}
+      />,
+    );
+
+    expect(container.querySelector(".text-danger")).not.toBeNull();
+    expect(container.querySelector(".text-ok")).not.toBeNull();
+  });
+
+  it("cada categoria renderiza o próprio ícone", () => {
+    const { container } = render(
+      <RadarGastosSensiveis
+        itens={sampleItens}
+        anoAtual={2026}
+        anoAnterior={2025}
+      />,
+    );
+
+    for (const icone of [
+      "fuel",
+      "truck",
+      "building-2",
+      "party-popper",
+      "plane",
+      "hammer",
+    ]) {
+      expect(container.querySelector(`svg.lucide-${icone}`)).not.toBeNull();
+    }
+  });
+
   it("renderiza todos os 6 cards de gastos sensíveis incluindo Locação de Imóveis", () => {
     render(
       <RadarGastosSensiveis

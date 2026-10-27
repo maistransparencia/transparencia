@@ -281,6 +281,33 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(auditButton).toBeInTheDocument();
   });
 
+  it.each([
+    ["critico", "danger", "Uso Elevado de .99"],
+    ["atencao", "warn", "Atenção (.99)"],
+    ["baixo", "ok", "Uso Esperado de .99"],
+  ] as const)(
+    "classificacao %s usa o token %s",
+    (classificacao, token, rotulo) => {
+      const dados = {
+        ...sampleData,
+        exercicioAtual: {
+          ...sampleData.exercicioAtual,
+          classificacaoRisco: classificacao,
+        },
+      } as unknown as OpacidadeContabilMetricsDTO;
+      render(<TermometroOpacidadeFiscal data={dados} />);
+      const selo = screen.getByText(rotulo).closest("span");
+      expect(selo?.className).toContain(`text-${token}`);
+    },
+  );
+
+  it("não renderiza cartão arredondado com sombra", () => {
+    render(<TermometroOpacidadeFiscal data={sampleData} />);
+    const raiz = screen.getByTestId("termometro-opacidade-fiscal");
+    expect(raiz.className).toContain("border-t-2");
+    expect(raiz.className).not.toMatch(/rounded|shadow|bg-white/);
+  });
+
   it("retorna null se os dados forem nulos", () => {
     const { container } = render(<TermometroOpacidadeFiscal data={null} />);
     expect(container).toBeEmptyDOMElement();

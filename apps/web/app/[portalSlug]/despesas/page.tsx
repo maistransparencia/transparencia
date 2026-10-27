@@ -1,9 +1,13 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  KPICard,
+  SectionHeader,
+} from "@transparencia/ui";
 import type { Metadata } from "next";
 import { KPIGrid } from "@/components/kpi-grid";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
-import { SectionHeader } from "@/components/section-header";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
@@ -59,14 +63,14 @@ export default async function DespesasPage({
     <div className="space-y-10">
       {/* Header Principal */}
       <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
           FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-ink">
           Despesas & Controle de Gastos
         </h1>
-        <p className="mt-1 max-w-3xl text-sm text-subtleText leading-relaxed">
+        <p className="mt-1 max-w-3xl text-mute2 text-sm leading-relaxed">
           Onde o dinheiro municipal foi aplicado: termômetro de desembolso real,
           radar de contas sensíveis com comparativo interanual e auditoria de
           passivos herdados.
@@ -74,23 +78,27 @@ export default async function DespesasPage({
       </div>
 
       {/* Ato 1: Termômetro Macro do Exercício (4 KPIs) */}
-      <KPIGrid columns={4}>
+      <KPIGrid columns={4} variant="divisoria">
         <KPICard
+          variant="divisoria"
           title="Total empenhado"
           value={fmtCompact(metricasGerais.empenhado)}
           subtext={`no exercício ${selectedYear}`}
         />
         <KPICard
+          variant="divisoria"
           title="Total liquidado"
           value={fmtCompact(metricasGerais.liquidado)}
           subtext="serviços e bens atestados"
         />
         <KPICard
+          variant="divisoria"
           title="Total pago"
           value={fmtCompact(metricasGerais.pago)}
           subtext="desembolso efetivo de caixa"
         />
         <KPICard
+          variant="divisoria"
           title="Taxa de quitação"
           value={fmtPercent(metricasGerais.taxaPagamento)}
           subtext={`${fmtPercent(metricasGerais.taxaLiquidacao)} liquidado`}
@@ -136,14 +144,14 @@ export default async function DespesasPage({
         />
 
         {/* Banner Informativo Visível */}
-        <div className="space-y-2.5 rounded-xl border-[#2B5278] border-l-4 bg-[#F0F6FD] p-4 text-[#1B3A5A] text-sm leading-relaxed">
+        <div className="space-y-2.5 border-banfg border-y bg-banbg py-4 text-banfg text-sm leading-relaxed">
           <p>
             São despesas empenhadas em anos anteriores ainda não pagas —
             compromissos legais que continuam válidos até serem quitados ou
             cancelados.
           </p>
-          <div className="border-[#d0e2f7] border-t pt-2.5 text-[#20456c] text-xs">
-            <strong className="mb-1 block font-semibold text-[#132c46]">
+          <div className="border-line border-t pt-2.5 text-xs">
+            <strong className="mb-1 block font-semibold">
               Categorização Contábil (Norma STN/MCASP):
             </strong>
             <ul className="space-y-1">
@@ -161,11 +169,12 @@ export default async function DespesasPage({
         </div>
 
         {/* 3 KPI Grid */}
-        <KPIGrid columns={3}>
+        <KPIGrid columns={3} variant="divisoria">
           <KPICard
+            variant="divisoria"
             title="Total pendente"
             value={
-              <span className="font-bold text-amber-900">
+              <span className="font-bold text-warn">
                 {fmtCompact(restosResumo.totalPendente)}
               </span>
             }
@@ -176,10 +185,12 @@ export default async function DespesasPage({
             }
           />
           <KPICard
+            variant="divisoria"
             title="Fornecedores aguardando"
             value={restosResumo.fornecedoresAguardando}
           />
           <KPICard
+            variant="divisoria"
             title="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
           />

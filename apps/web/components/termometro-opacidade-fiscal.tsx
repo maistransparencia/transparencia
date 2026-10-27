@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ExternalLink,
   Layers,
+  Lightbulb,
   ShieldCheck,
 } from "lucide-react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -32,9 +33,9 @@ function getRiscoConfig(
   if (classificacao === "critico") {
     return {
       label: "Uso Elevado de .99",
-      badgeClass: "bg-rose-50 text-rose-800 border-rose-200",
-      barClass: "bg-rose-500",
-      textColor: "text-rose-800",
+      badgeClass: "border-danger text-danger",
+      barClass: "bg-danger",
+      textColor: "text-danger",
       statusText: "Elevado",
       icon: AlertTriangle,
     };
@@ -42,18 +43,18 @@ function getRiscoConfig(
   if (classificacao === "atencao") {
     return {
       label: "Atenção (.99)",
-      badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
-      barClass: "bg-amber-500",
-      textColor: "text-amber-800",
+      badgeClass: "border-warn text-warn",
+      barClass: "bg-warn",
+      textColor: "text-warn",
       statusText: "Atenção",
       icon: AlertTriangle,
     };
   }
   return {
     label: "Uso Esperado de .99",
-    badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    barClass: "bg-emerald-500",
-    textColor: "text-emerald-700",
+    badgeClass: "border-ok text-ok",
+    barClass: "bg-ok",
+    textColor: "text-ok",
     statusText: "Esperado",
     icon: ShieldCheck,
   };
@@ -96,11 +97,11 @@ function ElementoResidualRow({
       {/* Topo: Código, Descrição e Badge de Classificação */}
       <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <span className="shrink-0 font-bold text-[11px] text-slate-700">
+          <span className="shrink-0 font-bold text-[11px] text-ink">
             {elem.elementoCodigo}.99
           </span>
           <span
-            className="truncate font-medium text-slate-800"
+            className="truncate font-medium text-ink"
             title={elem.elementoDescricao}
           >
             {elem.elementoDescricao}
@@ -108,14 +109,14 @@ function ElementoResidualRow({
         </div>
         {elem.tipoResidual === "estrutural" ? (
           <span
-            className="inline-flex shrink-0 items-center rounded bg-sky-100 px-1.5 py-0.5 font-medium text-[10px] text-sky-800"
+            className="inline-flex shrink-0 items-center rounded-md border border-line px-1.5 py-0.5 font-medium text-[11px] text-mute2"
             title="Despesa compulsória por obrigação legal ou ordem judicial"
           >
             Estrutural
           </span>
         ) : (
           <span
-            className="inline-flex shrink-0 items-center rounded bg-amber-100/80 px-1.5 py-0.5 font-medium text-[10px] text-amber-900"
+            className="inline-flex shrink-0 items-center rounded-md border border-warn px-1.5 py-0.5 font-medium text-[11px] text-warn"
             title="Despesa passível de detalhamento específico no plano de contas"
           >
             Evitável
@@ -130,11 +131,11 @@ function ElementoResidualRow({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`Percentual do elemento ${elem.elementoCodigo}.99`}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
+        className="h-1.5 w-full overflow-hidden rounded-sm bg-track"
       >
         <div
-          className={`h-full rounded-full transition-all duration-300 ${
-            elem.tipoResidual === "estrutural" ? "bg-sky-600" : "bg-slate-700"
+          className={`h-full rounded-sm transition-all duration-300 ${
+            elem.tipoResidual === "estrutural" ? "bg-brand" : "bg-mute"
           }`}
           style={{
             width: `${pct}%`,
@@ -143,11 +144,11 @@ function ElementoResidualRow({
       </div>
 
       {/* Abaixo da barra: Linha com Valor Monetário e Percentual */}
-      <div className="flex items-center justify-between text-slate-600 text-xs">
-        <span className="font-semibold text-slate-900">
+      <div className="flex items-center justify-between text-mute2 text-xs">
+        <span className="font-semibold text-ink">
           {fmtCompact(elem.totalPago)}
         </span>
-        <span className="font-medium text-[11px] text-slate-500">
+        <span className="font-medium text-[11px] text-mute2">
           {fmtPercent(elem.percentualDoResidual99)}
         </span>
       </div>
@@ -181,25 +182,25 @@ export function TermometroOpacidadeFiscal({
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all ${className}`}
+      className={`border-ink border-t-2 pt-6 ${className}`}
       data-testid="termometro-opacidade-fiscal"
     >
       {/* Cabeçalho do Card */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-              <Layers className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-line px-2.5 py-0.5 font-medium text-mute2 text-xs">
+              <Layers className="h-3.5 w-3.5 shrink-0 text-mute2" />
               Classificação Orçamentária
             </span>
             <span
-              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 font-semibold text-xs ${risco.badgeClass}`}
+              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2.5 py-0.5 font-semibold text-xs ${risco.badgeClass}`}
             >
               <StatusIcon className="h-3.5 w-3.5 shrink-0" />
               {risco.label}
             </span>
           </div>
-          <h2 className="font-bold text-lg text-slate-900">
+          <h2 className="font-bold text-ink text-lg">
             Monitoramento de Gastos Genéricos (Subitens .99)
           </h2>
         </div>
@@ -211,10 +212,10 @@ export function TermometroOpacidadeFiscal({
               href={baseLegalPrincipal.urlBaseLegal}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+              className="inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 font-medium text-mute2 text-xs hover:bg-line2 hover:text-ink"
             >
               <span>Referência: {baseLegalPrincipal.baseLegal}</span>
-              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-mute2" />
             </a>
           )}
 
@@ -229,7 +230,7 @@ export function TermometroOpacidadeFiscal({
       </div>
 
       {/* Descrição Didática e Cidadã */}
-      <p className="mt-3 text-slate-600 text-sm leading-relaxed">
+      <p className="mt-3 text-mute2 text-sm leading-relaxed">
         Acompanhamento da proporção de despesas municipais registradas sob
         subitens genéricos de apoio (como{" "}
         <em>&ldquo;Outros Serviços de Terceiros - PJ&rdquo;</em> e{" "}
@@ -241,48 +242,48 @@ export function TermometroOpacidadeFiscal({
       </p>
 
       {/* Termômetro Visual com Legendas Alinhadas com os Marcadores */}
-      <div className="mt-6 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+      <div className="mt-6 space-y-3 border-line border-y py-4">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">
+          <span className="font-semibold text-ink">
             Taxa de Uso de Subitens Genéricos:{" "}
             <span className={`font-bold text-base ${risco.textColor}`}>
               {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
             </span>
           </span>
-          <span className="text-slate-500">
+          <span className="text-mute2">
             Parâmetros do Portal: até {limiares.limiteAtencaoPct}% esperado ·
             acima de {limiares.limiteCriticoPct}% elevado
           </span>
         </div>
 
         {/* Barra de Progresso com Marcadores */}
-        <div className="relative h-4 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className="relative h-4 w-full overflow-hidden rounded-sm bg-track">
           <div
             className={`h-full transition-all duration-500 ${risco.barClass}`}
             style={{ width: `${taxaExibida}%` }}
           />
           {/* Marcador de 15% */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-slate-400/80"
+            className="absolute top-0 bottom-0 w-0.5 bg-mute2"
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
             title={`Limite de Atenção (${limiares.limiteAtencaoPct}%)`}
           />
           {/* Marcador de 30% */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-slate-600/80"
+            className="absolute top-0 bottom-0 w-0.5 bg-ink"
             style={{ left: `${limiares.limiteCriticoPct}%` }}
             title={`Limite Elevado (${limiares.limiteCriticoPct}%)`}
           />
         </div>
 
         {/* Legendas com Posicionamento Absoluto Exato e Responsivo */}
-        <div className="relative h-4 text-[11px] text-slate-500">
+        <div className="relative h-4 text-[11px] text-mute2">
           <span className="absolute left-0">
             <span className="hidden sm:inline">0% (Mínimo)</span>
             <span className="sm:hidden">0%</span>
           </span>
           <span
-            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-amber-700"
+            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-warn"
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
           >
             <span className="hidden sm:inline">
@@ -291,7 +292,7 @@ export function TermometroOpacidadeFiscal({
             <span className="sm:hidden">{limiares.limiteAtencaoPct}%</span>
           </span>
           <span
-            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-rose-700"
+            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-danger"
             style={{ left: `${limiares.limiteCriticoPct}%` }}
           >
             <span className="hidden sm:inline">
@@ -304,55 +305,51 @@ export function TermometroOpacidadeFiscal({
       </div>
 
       {/* Grid de 4 Indicadores Informativos */}
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+      <div className="mt-6 grid grid-cols-2 divide-line border-line border-y md:grid-cols-4 md:divide-x md:[&>*:first-child]:pl-0 max-md:[&>*:nth-child(2n)]:border-l max-md:[&>*:nth-child(2n+1)]:pl-0 max-md:[&>*:nth-child(n+3)]:border-t [&>*]:px-4 [&>*]:py-3.5 max-md:[&>*]:border-line">
+        <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-slate-500 text-xs">
-              Total Pago em .99
-            </span>
-            <span className="mt-1 block font-bold text-lg text-slate-900">
+            <span className="block text-mute2 text-xs">Total Pago em .99</span>
+            <span className="mt-1 block font-bold text-ink text-lg">
               {fmtCompact(exercicioAtual.pagoResidual99)}
             </span>
           </div>
-          <span className="mt-2 text-[11px] text-slate-500">
+          <span className="mt-2 text-[11px] text-mute2">
             {fmtPercent(exercicioAtual.taxaValorOpacidadePct)} de{" "}
             {fmtCompact(exercicioAtual.totalPago)} pagos
           </span>
         </div>
 
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+        <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-slate-500 text-xs">
-              Empenhos em .99
-            </span>
-            <span className="mt-1 block font-bold text-lg text-slate-900">
+            <span className="block text-mute2 text-xs">Empenhos em .99</span>
+            <span className="mt-1 block font-bold text-ink text-lg">
               {fmtNumber(exercicioAtual.empenhosResidual99)}
             </span>
           </div>
-          <span className="mt-2 text-[11px] text-slate-500">
+          <span className="mt-2 text-[11px] text-mute2">
             {fmtPercent(exercicioAtual.taxaEmpenhosOpacidadePct)} de{" "}
             {fmtNumber(exercicioAtual.totalEmpenhos)} atos
           </span>
         </div>
 
-        <div className="flex flex-col justify-between rounded-xl border border-amber-100 bg-amber-50/40 p-3.5 shadow-none">
+        <div className="flex flex-col justify-between">
           <div>
-            <span className="block font-medium text-amber-900 text-xs">
+            <span className="block font-medium text-warn text-xs">
               Genéricos com Objeto Mapeado
             </span>
-            <span className="mt-1 block font-bold text-amber-900 text-lg">
+            <span className="mt-1 block font-bold text-lg text-warn">
               {fmtCompact(exercicioAtual.pagoDesvioSensivel99)}
             </span>
           </div>
-          <span className="mt-2 text-[11px] text-amber-700">
+          <span className="mt-2 text-[11px] text-warn">
             {fmtPercent(exercicioAtual.taxaDesvioSensivelPct)} de{" "}
             {fmtCompact(exercicioAtual.pagoResidual99)} em .99
           </span>
         </div>
 
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-none">
+        <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-slate-500 text-xs">
+            <span className="block text-mute2 text-xs">
               Faixa de Concentração
             </span>
             <span
@@ -361,7 +358,7 @@ export function TermometroOpacidadeFiscal({
               {risco.statusText}
             </span>
           </div>
-          <span className="mt-2 text-[11px] text-slate-500">
+          <span className="mt-2 text-[11px] text-mute2">
             Parâmetro Metodológico
           </span>
         </div>
@@ -376,18 +373,18 @@ export function TermometroOpacidadeFiscal({
           const demaisElementos = data.elementosResidual99.slice(5);
 
           return (
-            <div className="mt-6 space-y-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+            <div className="mt-6 space-y-3.5 border-line border-t pt-5">
               <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
                 <div>
-                  <h3 className="font-semibold text-slate-900 text-sm">
+                  <h3 className="font-semibold text-ink text-sm">
                     Concentração por Elemento Pai (Subitens .99)
                   </h3>
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-mute2 text-xs">
                     Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
                     pagos em .99 entre as naturezas orçamentárias
                   </p>
                 </div>
-                <span className="font-medium text-[11px] text-slate-400">
+                <span className="font-medium text-[11px] text-mute2">
                   Top {top5Elementos.length} de{" "}
                   {data.elementosResidual99.length} naturezas
                 </span>
@@ -395,13 +392,13 @@ export function TermometroOpacidadeFiscal({
 
               {/* Callout Narrativo do Achado Principal */}
               {elemPrincipal && elemPrincipal.percentualDoResidual99 >= 30 && (
-                <div className="rounded-lg border border-amber-200/80 bg-amber-50/80 p-3 text-amber-950 text-xs">
+                <div className="border-warn border-l-2 bg-banbg py-3 pr-3 pl-3 text-banfg text-xs">
                   <div className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-200 text-[10px]">
-                      💡
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+                      <Lightbulb className="h-4 w-4" aria-hidden="true" />
                     </span>
                     <p className="leading-relaxed">
-                      <strong className="font-bold text-amber-900">
+                      <strong className="font-bold">
                         Achado de Concentração:
                       </strong>{" "}
                       <span>
@@ -411,12 +408,12 @@ export function TermometroOpacidadeFiscal({
                         ({fmtPercent(elemPrincipal.percentualDoResidual99)}) de
                         todos os gastos sob subitens genéricos está concentrada
                         no código{" "}
-                        <strong className="font-semibold text-amber-900">
+                        <strong className="font-semibold">
                           {elemPrincipal.elementoCodigo}.99 (
                           {elemPrincipal.elementoDescricao})
                         </strong>
                         , somando{" "}
-                        <strong className="font-semibold text-amber-900">
+                        <strong className="font-semibold">
                           {fmtCompact(elemPrincipal.totalPago)}
                         </strong>
                         . É nesta rubrica que reside a maior oportunidade de
@@ -436,15 +433,15 @@ export function TermometroOpacidadeFiscal({
 
               {/* Expansão das demais naturezas identificadas */}
               {demaisElementos.length > 0 && (
-                <details className="group/demais mt-2 rounded-lg border border-slate-200/70 bg-white/70 p-3 transition-all">
-                  <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-slate-700 text-xs hover:text-slate-900">
+                <details className="group/demais mt-2 border-line border-t pt-3">
+                  <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
                     <span>
                       Ver todas as {data.elementosResidual99.length} naturezas
                       residuais
                     </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 transition-transform group-open/demais:rotate-180" />
+                    <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
                   </summary>
-                  <div className="mt-3 space-y-2.5 border-slate-100 border-t pt-2.5">
+                  <div className="mt-3 space-y-2.5 border-line border-t pt-2.5">
                     {demaisElementos.map((elem) => (
                       <ElementoResidualRow
                         key={elem.elementoCodigo}
@@ -456,8 +453,8 @@ export function TermometroOpacidadeFiscal({
               )}
 
               {/* Nota Metodológica Didática */}
-              <p className="border-slate-200/70 border-t pt-2.5 text-[11px] text-slate-500 leading-relaxed">
-                <strong className="font-semibold text-slate-700">
+              <p className="border-line border-t pt-2.5 text-[11px] text-mute2 leading-relaxed">
+                <strong className="font-semibold text-ink">
                   Nota Metodológica:
                 </strong>{" "}
                 Despesas compulsórias por ordem judicial (como Sentenças{" "}
@@ -481,36 +478,36 @@ export function TermometroOpacidadeFiscal({
         if (historicoAnterior.length === 0) return null;
 
         return (
-          <details className="group mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all">
-            <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-slate-800 text-sm sm:items-center">
+          <details className="group mt-4 border-line border-t pt-4">
+            <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
               <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
                 <span>
                   Evolução Histórica de Opacidade (Exercícios Anteriores
                   Fechados)
                 </span>
-                <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-full bg-slate-200 px-2.5 py-0.5 font-normal text-slate-700 text-xs">
+                <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
                   {historicoAnterior.length === 1
                     ? historicoAnterior[0]?.ano
                     : `${historicoAnterior[0]?.ano} – ${historicoAnterior[historicoAnterior.length - 1]?.ano}`}
                 </span>
               </div>
-              <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180 sm:mt-0" />
+              <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
             </summary>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+            <div className="mt-4 grid grid-cols-2 gap-x-4 sm:grid-cols-3 md:grid-cols-5">
               {historicoAnterior.map((h) => {
                 const configAno = getRiscoConfig(h.classificacaoRisco);
                 return (
                   <div
                     key={h.ano}
-                    className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3 shadow-none"
+                    className="flex flex-col justify-between border-line border-t py-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 text-sm">
+                      <span className="font-bold text-ink text-sm">
                         {h.ano}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 font-semibold text-[10px] ${configAno.badgeClass}`}
+                        className={`rounded-md border px-2 py-0.5 font-semibold text-[11px] ${configAno.badgeClass}`}
                       >
                         {configAno.statusText}
                       </span>
@@ -521,7 +518,7 @@ export function TermometroOpacidadeFiscal({
                       >
                         {fmtPercent(h.taxaValorOpacidadePct)}
                       </span>
-                      <span className="block text-[11px] text-slate-500">
+                      <span className="block text-[11px] text-mute2">
                         {fmtCompact(h.pagoResidual99)} pagos
                       </span>
                     </div>
@@ -535,23 +532,23 @@ export function TermometroOpacidadeFiscal({
 
       {/* Gaveta de Maiores Fornecedores em Subitens .99 */}
       {topCredores.length > 0 && (
-        <details className="group mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all">
-          <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-slate-800 text-sm sm:items-center">
+        <details className="group mt-4 border-line border-t pt-4">
+          <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
               <span>
                 Maiores Fornecedores em Subitens Genéricos (.99) (Top{" "}
                 {topCredores.length})
               </span>
-              <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-full bg-slate-200 px-2.5 py-0.5 font-normal text-slate-700 text-xs">
+              <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
                 Detalhamento por Fornecedor
               </span>
             </div>
-            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180 sm:mt-0" />
+            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
           </summary>
 
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-slate-700 text-xs">
-              <thead className="border-slate-200 border-b bg-slate-100/70 font-semibold text-slate-600">
+            <table className="w-full text-left text-ink text-xs">
+              <thead className="border-ink border-b font-semibold text-mute2">
                 <tr>
                   <th className="px-3 py-2.5">#</th>
                   <th className="px-3 py-2.5">Fornecedor / CNPJ</th>
@@ -562,7 +559,7 @@ export function TermometroOpacidadeFiscal({
                   <th className="px-3 py-2.5">Descrição do Objeto</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/70">
+              <tbody className="divide-y divide-line">
                 {topCredores.map((credor) => {
                   const hasCategoriaSugerida =
                     credor.categoriaPredominante !==
@@ -572,37 +569,37 @@ export function TermometroOpacidadeFiscal({
                   return (
                     <tr
                       key={credor.credorCodigo + credor.ranking}
-                      className="hover:bg-slate-100/50"
+                      className="hover:bg-line2"
                     >
-                      <td className="px-3 py-2.5 font-semibold text-slate-500">
+                      <td className="px-3 py-2.5 font-semibold text-mute2">
                         #{credor.ranking}
                       </td>
                       <td className="px-3 py-2.5">
-                        <div className="font-semibold text-slate-900">
+                        <div className="font-semibold text-ink">
                           {credor.credorNome}
                         </div>
-                        <div className="text-[11px] text-slate-400">
+                        <div className="text-[11px] text-mute2">
                           {credor.credorCodigo}
                         </div>
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-bold text-slate-900">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-bold text-ink">
                         {fmtCurrency(credor.totalPago)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2.5">
                         {hasCategoriaSugerida ? (
-                          <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 font-medium text-[11px] text-amber-900">
+                          <span className="inline-flex items-center rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
                             {formatCategoriaSensivel(
                               credor.categoriaPredominante,
                             )}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-md bg-slate-200/70 px-2 py-0.5 text-[11px] text-slate-600">
+                          <span className="inline-flex items-center rounded-md bg-pill px-2 py-0.5 text-[11px] text-mute2">
                             Sem categoria específica
                           </span>
                         )}
                       </td>
                       <td
-                        className="max-w-xs truncate px-3 py-2.5 text-[11px] text-slate-600"
+                        className="max-w-xs truncate px-3 py-2.5 text-[11px] text-mute2"
                         title={credor.amostraObjeto}
                       >
                         {credor.amostraObjeto}

@@ -92,6 +92,15 @@ const CATEGORIA_CONFIG: Record<
   },
 };
 
+const ICONES = {
+  fuel: Fuel,
+  truck: Truck,
+  building: Building2,
+  party: PartyPopper,
+  plane: Plane,
+  hammer: Hammer,
+} as const;
+
 export function RadarGastosSensiveis({
   itens,
   anoAtual,
@@ -105,46 +114,13 @@ export function RadarGastosSensiveis({
   if (!itens || itens.length === 0) return null;
 
   const renderIcon = (icone: RadarIcon) => {
-    switch (icone) {
-      case "fuel":
-        return <Fuel className="h-5 w-5 text-amber-700" />;
-      case "truck":
-        return <Truck className="h-5 w-5 text-blue-700" />;
-      case "building":
-        return <Building2 className="h-5 w-5 text-indigo-700" />;
-      case "party":
-        return <PartyPopper className="h-5 w-5 text-purple-700" />;
-      case "plane":
-        return <Plane className="h-5 w-5 text-sky-700" />;
-      case "hammer":
-        return <Hammer className="h-5 w-5 text-emerald-700" />;
-      default:
-        return <Fuel className="h-5 w-5 text-amber-700" />;
-    }
-  };
-
-  const getIconBg = (icone: RadarIcon) => {
-    switch (icone) {
-      case "fuel":
-        return "bg-amber-50 border-amber-200/70";
-      case "truck":
-        return "bg-blue-50 border-blue-200/70";
-      case "building":
-        return "bg-indigo-50 border-indigo-200/70";
-      case "party":
-        return "bg-purple-50 border-purple-200/70";
-      case "plane":
-        return "bg-sky-50 border-sky-200/70";
-      case "hammer":
-        return "bg-emerald-50 border-emerald-200/70";
-      default:
-        return "bg-slate-50 border-slate-200/70";
-    }
+    const Icone = ICONES[icone] ?? Fuel;
+    return <Icone className="h-5 w-5 text-brand" aria-hidden="true" />;
   };
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 border-line border-t sm:grid-cols-2 lg:grid-cols-3">
         {itens.map((item) => {
           const config = CATEGORIA_CONFIG[item.categoria] ?? {
             titulo: item.categoria,
@@ -165,43 +141,39 @@ export function RadarGastosSensiveis({
           return (
             <div
               key={item.categoria}
-              className="flex flex-col justify-between rounded-2xl border border-borderLine bg-white p-4 shadow-sm transition-all hover:border-ink/20"
+              className="flex flex-col justify-between border-line border-b py-4 sm:px-4 lg:[&:not(:nth-child(3n+1))]:border-l sm:max-lg:[&:nth-child(2n)]:border-l sm:max-lg:[&:nth-child(2n+1)]:pl-0 lg:[&:nth-child(3n+1)]:pl-0"
             >
               {/* Header do Card: Ícone e Badge */}
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between gap-2">
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${getIconBg(
-                      config.icone,
-                    )}`}
-                  >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-line">
                     {renderIcon(config.icone)}
                   </div>
 
                   <div className="flex items-center gap-1.5">
                     {/* Badge de Variação ou Peso no Orçamento */}
                     {isCurrentYear ? (
-                      <span className="inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+                      <span className="inline-flex shrink-0 whitespace-nowrap rounded-md border border-line px-2.5 py-0.5 font-medium text-mute2 text-xs">
                         {pesoOrcamento}% do pago em {anoAtual}
                       </span>
                     ) : (
                       <>
                         {isAumento && item.variacaoPercentual !== null && (
-                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 font-semibold text-rose-700 text-xs">
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-danger px-2.5 py-0.5 font-semibold text-danger text-xs">
                             <TrendingUp className="h-3.5 w-3.5" />+
                             {item.variacaoPercentual}% vs {anoAnterior}
                           </span>
                         )}
 
                         {isEconomia && item.variacaoPercentual !== null && (
-                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-700 text-xs">
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-ok px-2.5 py-0.5 font-semibold text-ok text-xs">
                             <TrendingDown className="h-3.5 w-3.5" />
                             {item.variacaoPercentual}% vs {anoAnterior}
                           </span>
                         )}
 
                         {!isAumento && !isEconomia && (
-                          <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600 text-xs">
+                          <span className="shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
                             {(() => {
                               if (item.variacaoPercentual === null) {
                                 return "Sem histórico";
@@ -233,16 +205,16 @@ export function RadarGastosSensiveis({
                   <h4 className="font-bold text-base text-ink">
                     {config.titulo}
                   </h4>
-                  <p className="mt-1 line-clamp-2 text-subtleText text-xs leading-relaxed">
+                  <p className="mt-1 line-clamp-2 text-mute2 text-xs leading-relaxed">
                     {config.descricao}
                   </p>
                 </div>
               </div>
 
               {/* Footer Estruturado: Valor Pago + Status de Dívida Real */}
-              <div className="mt-4 border-borderLine border-t pt-3.5">
+              <div className="mt-4 border-line border-t pt-3.5">
                 <div className="space-y-0.5">
-                  <span className="font-semibold text-[11px] text-subtleText uppercase tracking-wider">
+                  <span className="font-semibold text-[11px] text-mute2 uppercase tracking-wider">
                     Total pago no ano
                   </span>
                   <div className="whitespace-nowrap font-bold font-serif text-2xl text-ink leading-tight">
@@ -267,11 +239,11 @@ export function RadarGastosSensiveis({
                     (item.valorEmpenhadoAnoAtual ?? 0) === 0
                   ) {
                     return (
-                      <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 text-xs">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-500">
+                      <div className="mt-3 flex items-center justify-between border-line border-t pt-2 text-xs">
+                        <div className="flex items-center gap-1.5 font-medium text-mute2">
                           <span>Sem despesas no ano</span>
                         </div>
-                        <span className="whitespace-nowrap font-medium text-slate-500">
+                        <span className="whitespace-nowrap font-medium text-mute2">
                           R$ 0,00
                         </span>
                       </div>
@@ -279,12 +251,12 @@ export function RadarGastosSensiveis({
                   }
 
                   return (
-                    <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 text-xs">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-600">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                    <div className="mt-3 flex items-center justify-between border-line border-t pt-2 text-xs">
+                      <div className="flex items-center gap-1.5 font-medium text-mute2">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-ok" />
                         <span>Serviços atestados:</span>
                       </div>
-                      <span className="whitespace-nowrap font-semibold text-emerald-700">
+                      <span className="whitespace-nowrap font-semibold text-ok">
                         100% quitados
                       </span>
                     </div>
