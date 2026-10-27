@@ -5,7 +5,7 @@ import { FarmaciaBuscaForm } from "./farmacia-busca-form";
 describe("FarmaciaBuscaForm", () => {
   it("formulario GET com campo q obrigatorio e minimo de 2 caracteres", () => {
     render(<FarmaciaBuscaForm action="/portal_x/farmacia" />);
-    const form = screen.getByRole("form", { name: "Busca de medicamentos" });
+    const form = screen.getByRole("form", { name: "Busca de remédios" });
     expect(form).toHaveAttribute("action", "/portal_x/farmacia");
     expect(form).toHaveAttribute("method", "get");
     const campo = screen.getByPlaceholderText("Qual remédio você procura?");

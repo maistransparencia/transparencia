@@ -1,10 +1,20 @@
-import type { FarmaciaSentinelaDTO } from "@transparencia/db";
+import type {
+  FarmaciaIndiceDTO,
+  FarmaciaSentinelaDTO,
+} from "@transparencia/db";
 import { fmtDate, fmtNumber, toTitleCase } from "@transparencia/ui";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { isValidMapCoordinate } from "@/lib/tile-calc";
 import type { loadFarmaciaData } from "./loader";
 
 export const FARMACIA_BUSCA_MINIMO_CARACTERES = 2;
+
+/** Quantas letras o índice A–Z revela por vez e quantos itens uma letra revela por vez. */
+export const FARMACIA_INDICE_PASSO_LETRAS = 6;
+export const FARMACIA_INDICE_PASSO_ITENS = 25;
+/** A–Z mais o grupo "0-9". */
+export const FARMACIA_INDICE_MAXIMO_LETRAS = 27;
+export const FARMACIA_INDICE_MAXIMO_ITENS = 1000;
 
 type FarmaciaRawData = Awaited<ReturnType<typeof loadFarmaciaData>>;
 
@@ -13,6 +23,9 @@ export const LEI_ORGANICA_SAUDE_URL = urlLegislacao("lei8080");
 
 /** Âncora da seção de resultados: leva o usuário direto à resposta da busca. */
 export const ID_SECAO_RESULTADOS = "resultados";
+
+/** Âncora do índice A–Z: mantém o usuário na seção ao trocar de letra ou revelar mais. */
+export const ID_SECAO_INDICE = "indice";
 
 function buildFarmaciaHref(portalSlug: string, busca: string): string {
   const base = `/${portalSlug}/farmacia`;
@@ -344,8 +357,153 @@ export function buildTextoWhatsApp(params: {
   return `${municipio}: alerta sobre a disponibilidade de medicamentos na Farmácia SUS (Lei nº 14.654/2023). ${detalhe} Confira e fiscalize:`;
 }
 
+const LETRAS_DO_ALFABETO = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+/** Grupo dos nomes que não começam com letra; só vira chip quando existe. */
+const LETRA_NUMEROS = "0-9";
+
+function rotuloLetra(letra: string): string {
+  return letra === LETRA_NUMEROS ? "0–9" : letra;
+}
+
+function buildIndiceHref(
+  portalSlug: string,
+  params: Record<string, string>,
+): string {
+  const base = `/${portalSlug}/farmacia`;
+  const query = new URLSearchParams(params).toString();
+  return `${base}${query ? `?${query}` : ""}#${ID_SECAO_INDICE}`;
+}
+
+function rotuloTotalMedicamentos(total: number): string {
+  return `${fmtNumber(total)} ${total === 1 ? "remédio" : "remédios"}`;
+}
+
+function definirModoIndice(
+  busca: string,
+  letra: string,
+): "resumo" | "letra" | "busca" {
+  if (busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES) return "busca";
+  return letra ? "letra" : "resumo";
+}
+
+export function buildIndiceAz(params: {
+  portalSlug: string;
+  indice: FarmaciaIndiceDTO | null;
+  context: Pick<
+    FarmaciaRawData["context"],
+    "busca" | "letra" | "letrasVisiveis" | "itensVisiveis"
+  >;
+  totalUnidadesAtivas: number;
+  passoLetras: number;
+  passoItens: number;
+}) {
+  const { portalSlug, indice, context } = params;
+  if (!indice || indice.letrasDisponiveis.length === 0) return null;
+
+  const modo = definirModoIndice(context.busca, context.letra);
+  const letraSelecionada = modo === "letra" ? context.letra : null;
+  const hrefResumo = buildIndiceHref(portalSlug, {});
+  const disponiveis = new Set(indice.letrasDisponiveis);
+
+  const chips = [
+    {
+      codigo: "todas",
+      rotulo: "A–Z",
+      href: hrefResumo,
+      ativo: modo === "resumo",
+    },
+    ...[
+      ...LETRAS_DO_ALFABETO,
+      ...(disponiveis.has(LETRA_NUMEROS) ? [LETRA_NUMEROS] : []),
+    ].map((letra) => ({
+      codigo: letra,
+      rotulo: rotuloLetra(letra),
+      href: disponiveis.has(letra)
+        ? buildIndiceHref(portalSlug, { letra })
+        : null,
+      ativo: letra === letraSelecionada,
+    })),
+  ];
+
+  const grupos = indice.letras.map((l) => ({
+    letra: l.letra,
+    rotuloLetra: rotuloLetra(l.letra),
+    rotuloTotal: rotuloTotalMedicamentos(l.totalMedicamentos),
+    medicamentos: l.medicamentos.map((m) => ({
+      nomeMedicamento: formatarNomeMedicamento(m.nomeMedicamento),
+      unidadesComEstoque: m.unidadesComEstoque,
+      href: buildFarmaciaHref(portalSlug, m.nomeMedicamento),
+    })),
+    hrefTodos: buildIndiceHref(portalSlug, { letra: l.letra }),
+    rotuloTodos: `Ver todos com ${rotuloLetra(l.letra)}`,
+  }));
+
+  const faltamLetras = indice.totalLetras - indice.letras.length;
+  const letra = indice.letras[0];
+  const faltamItens = letra
+    ? letra.totalMedicamentos - letra.medicamentos.length
+    : 0;
+  const proximoPasso = (() => {
+    if (modo === "resumo")
+      return {
+        faltam: faltamLetras,
+        visiveis: context.letrasVisiveis,
+        maximo: FARMACIA_INDICE_MAXIMO_LETRAS,
+        unidade: ["letra", "letras"] as const,
+        passo: params.passoLetras,
+        href: buildIndiceHref(portalSlug, {
+          letras: String(context.letrasVisiveis + params.passoLetras),
+        }),
+      };
+    return {
+      faltam: faltamItens,
+      visiveis: context.itensVisiveis,
+      maximo: FARMACIA_INDICE_MAXIMO_ITENS,
+      unidade: ["remédio", "remédios"] as const,
+      passo: params.passoItens,
+      href: buildIndiceHref(portalSlug, {
+        letra: context.letra,
+        itens: String(context.itensVisiveis + params.passoItens),
+      }),
+    };
+  })();
+  const quantosRevela = Math.min(proximoPasso.passo, proximoPasso.faltam);
+
+  return {
+    chips,
+    modo,
+    letraSelecionada,
+    rotuloLetraSelecionada: letraSelecionada
+      ? rotuloLetra(letraSelecionada)
+      : null,
+    totalUnidades: Math.max(
+      params.totalUnidadesAtivas || indice.totalUnidades,
+      ...indice.letras.flatMap((l) =>
+        l.medicamentos.map((m) => m.unidadesComEstoque),
+      ),
+    ),
+    grupos,
+    rotuloTotalLetra: letra
+      ? rotuloTotalMedicamentos(letra.totalMedicamentos)
+      : "",
+    rotuloProgresso: (() => {
+      if (modo === "resumo")
+        return `Mostrando ${fmtNumber(indice.letras.length)} de ${fmtNumber(indice.totalLetras)} letras`;
+      return letra
+        ? `Mostrando ${fmtNumber(letra.medicamentos.length)} de ${fmtNumber(letra.totalMedicamentos)}`
+        : "";
+    })(),
+    hrefMais:
+      proximoPasso.faltam > 0 && proximoPasso.visiveis < proximoPasso.maximo
+        ? proximoPasso.href
+        : null,
+    rotuloMais: `Ver mais ${fmtNumber(quantosRevela)} ${quantosRevela === 1 ? proximoPasso.unidade[0] : proximoPasso.unidade[1]}`,
+    hrefResumo,
+  };
+}
+
 export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
-  const { farmacia, context, portalSlug, portalName, sentinelas } = raw;
+  const { farmacia, context, portalSlug, portalName, sentinelas, indice } = raw;
   const formAction = `/${portalSlug}/farmacia`;
   const hasBusca = context.busca.length >= FARMACIA_BUSCA_MINIMO_CARACTERES;
   const hasBuscaCurta = context.busca.length > 0 && !hasBusca;
@@ -416,6 +574,14 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
     hasBuscaCurta,
     formAction,
     exemplos: buildExemplosFarmacia(sentinelas.sentinelas, formAction),
+    indiceAz: buildIndiceAz({
+      portalSlug,
+      indice,
+      context,
+      totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
+      passoLetras: FARMACIA_INDICE_PASSO_LETRAS,
+      passoItens: FARMACIA_INDICE_PASSO_ITENS,
+    }),
     indicadores: buildIndicadores(raw, dataAtualizacao),
     resumoBusca: buildResumoBusca({
       totalApresentacoes: farmacia.totalApresentacoes,

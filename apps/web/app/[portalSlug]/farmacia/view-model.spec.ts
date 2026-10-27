@@ -9,6 +9,7 @@ vi.mock("@transparencia/db", () => ({
 
 const {
   buildFarmaciaViewModel,
+  buildIndiceAz,
   buildFatoApagao,
   buildPedidoEsclarecimento,
   buildTelefoneHref,
@@ -513,5 +514,168 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     expect(vm.indicadores.some((i) => i.codigo === "lotes_a_vencer")).toBe(
       false,
     );
+  });
+});
+
+describe("buildIndiceAz", () => {
+  const indice = {
+    status: "conforme",
+    totalUnidades: 4,
+    letrasDisponiveis: ["A", "B", "D"],
+    totalLetras: 3,
+    letras: [
+      {
+        letra: "A",
+        totalMedicamentos: 4,
+        medicamentos: [
+          { nomeMedicamento: "AMOXICILINA", unidadesComEstoque: 2 },
+          { nomeMedicamento: "Atenolol 50mg", unidadesComEstoque: 1 },
+        ],
+      },
+      {
+        letra: "B",
+        totalMedicamentos: 1,
+        medicamentos: [{ nomeMedicamento: "Bromexina", unidadesComEstoque: 1 }],
+      },
+    ],
+  } as never;
+  const contexto = {
+    busca: "",
+    letra: "",
+    letrasVisiveis: 2,
+    itensVisiveis: 25,
+  };
+  const parametros = {
+    portalSlug: "portal_x",
+    indice,
+    context: contexto,
+    totalUnidadesAtivas: 7,
+    passoLetras: 6,
+    passoItens: 25,
+  };
+
+  it("sem 'Ver mais' quando o limite visivel ja e o maximo", () => {
+    expect(
+      buildIndiceAz({
+        ...parametros,
+        indice: { ...(indice as object), totalLetras: 30 } as never,
+        context: { ...contexto, letrasVisiveis: 27 },
+      })?.hrefMais,
+    ).toBeNull();
+  });
+
+  it("sem indice ou sem letras nao ha secao", () => {
+    expect(buildIndiceAz({ ...parametros, indice: null })).toBeNull();
+    expect(
+      buildIndiceAz({
+        ...parametros,
+        indice: { ...(indice as object), letrasDisponiveis: [] } as never,
+      }),
+    ).toBeNull();
+  });
+
+  it("resumo: A-Z ativo, letras sem itens desabilitadas e links por letra", () => {
+    const vm = buildIndiceAz(parametros);
+    expect(vm?.modo).toBe("resumo");
+    const porCodigo = new Map(vm?.chips.map((c) => [c.codigo, c]));
+    expect(vm?.chips).toHaveLength(27);
+    expect(porCodigo.get("todas")).toMatchObject({
+      rotulo: "A–Z",
+      ativo: true,
+    });
+    expect(porCodigo.get("B")?.href).toBe("/portal_x/farmacia?letra=B#indice");
+    expect(porCodigo.get("C")?.href).toBeNull();
+    expect(vm?.grupos[0]).toMatchObject({
+      letra: "A",
+      rotuloTotal: "4 remédios",
+      rotuloTodos: "Ver todos com A",
+      hrefTodos: "/portal_x/farmacia?letra=A#indice",
+    });
+    expect(vm?.grupos[1].rotuloTotal).toBe("1 remédio");
+    expect(vm?.grupos[0].medicamentos[0]).toMatchObject({
+      nomeMedicamento: "Amoxicilina",
+      href: "/portal_x/farmacia?q=AMOXICILINA#resultados",
+    });
+    expect(vm?.totalUnidades).toBe(7);
+  });
+
+  it("resumo: revela o proximo passo de letras com o que falta", () => {
+    const vm = buildIndiceAz(parametros);
+    expect(vm?.rotuloProgresso).toBe("Mostrando 2 de 3 letras");
+    expect(vm?.hrefMais).toBe("/portal_x/farmacia?letras=8#indice");
+    expect(vm?.rotuloMais).toBe("Ver mais 1 letra");
+    const completo = buildIndiceAz({
+      ...parametros,
+      indice: {
+        ...(indice as object),
+        totalLetras: 2,
+      } as never,
+    });
+    expect(completo?.hrefMais).toBeNull();
+  });
+
+  it("letra: marca o chip, mostra o progresso e propoe mais itens", () => {
+    const vm = buildIndiceAz({
+      ...parametros,
+      context: { ...contexto, letra: "A", itensVisiveis: 2 },
+      indice: {
+        ...(indice as object),
+        letras: [(indice as { letras: unknown[] }).letras[0]],
+      } as never,
+    });
+    expect(vm?.modo).toBe("letra");
+    expect(vm?.letraSelecionada).toBe("A");
+    expect(vm?.chips.find((c) => c.ativo)?.codigo).toBe("A");
+    expect(vm?.rotuloProgresso).toBe("Mostrando 2 de 4");
+    expect(vm?.hrefMais).toBe("/portal_x/farmacia?letra=A&itens=27#indice");
+    expect(vm?.rotuloMais).toBe("Ver mais 2 remédios");
+  });
+
+  it("busca por texto: nenhum chip marcado e sem lista", () => {
+    const vm = buildIndiceAz({
+      ...parametros,
+      context: { ...contexto, busca: "dipirona", letra: "A" },
+    });
+    expect(vm?.modo).toBe("busca");
+    expect(vm?.chips.some((c) => c.ativo)).toBe(false);
+  });
+
+  it("usa o total de unidades do indice quando nao ha unidades ativas nas sentinelas", () => {
+    const vm = buildIndiceAz({ ...parametros, totalUnidadesAtivas: 0 });
+    expect(vm?.totalUnidades).toBe(4);
+  });
+
+  it("0-9 vira chip depois do Z so quando o grupo existe", () => {
+    const comNumeros = buildIndiceAz({
+      ...parametros,
+      indice: {
+        ...(indice as object),
+        letrasDisponiveis: ["A", "0-9"],
+        totalLetras: 2,
+        letras: [
+          {
+            letra: "0-9",
+            totalMedicamentos: 1,
+            medicamentos: [
+              { nomeMedicamento: "5-fluorouracila", unidadesComEstoque: 1 },
+            ],
+          },
+        ],
+      } as never,
+      context: { ...contexto, letra: "0-9" },
+    });
+    expect(comNumeros?.chips).toHaveLength(28);
+    expect(comNumeros?.chips.at(-1)).toMatchObject({
+      codigo: "0-9",
+      rotulo: "0–9",
+      href: "/portal_x/farmacia?letra=0-9#indice",
+      ativo: true,
+    });
+    expect(comNumeros?.grupos[0]).toMatchObject({
+      rotuloLetra: "0–9",
+      rotuloTodos: "Ver todos com 0–9",
+    });
+    expect(comNumeros?.rotuloLetraSelecionada).toBe("0–9");
+    expect(buildIndiceAz(parametros)?.chips).toHaveLength(27);
   });
 });

@@ -48,7 +48,7 @@ describe("FarmaciaResumoCard", () => {
   it("conforme: campo de busca que leva a rota com q", () => {
     render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
     expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
+      screen.getByRole("form", { name: "Busca de remédios" }),
     ).toHaveAttribute("action", detailUrl);
     expect(
       screen.getByPlaceholderText("Qual remédio você procura?"),
@@ -62,7 +62,7 @@ describe("FarmaciaResumoCard", () => {
     ).toBeNull();
     expect(screen.getByText("Buscar no estoque")).toBeInTheDocument();
     expect(
-      screen.getByRole("form", { name: "Busca de medicamentos" }),
+      screen.getByRole("form", { name: "Busca de remédios" }),
     ).toHaveAttribute("action", detailUrl);
   });
 
