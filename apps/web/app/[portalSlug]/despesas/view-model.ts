@@ -97,15 +97,6 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
       raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
     ),
     metricasGerais,
-    barrasEtapas: {
-      empenhado: metricasGerais.empenhado > 0 ? 100 : 0,
-      liquidado: limitarLargura(
-        dividir(metricasGerais.liquidado, metricasGerais.empenhado),
-      ),
-      pago: limitarLargura(
-        dividir(metricasGerais.pago, metricasGerais.empenhado),
-      ),
-    },
     areasPorEtapa: buildAreasPorEtapa(raw.areasPorFuncao),
     fornecedoresLinhas: buildFornecedoresLinhas(
       raw.topFornecedores,

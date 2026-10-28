@@ -57,34 +57,12 @@ export default async function DespesasPage({
     isCurrentYear,
     partialPeriod,
     metricasGerais,
-    barrasEtapas,
     areasPorEtapa,
     fornecedoresLinhas,
     radarGastosSensiveis,
     restosResumo,
     opacidadeContabil,
   } = viewModel;
-
-  const etapasComparadas = [
-    {
-      rotulo: "Reservado",
-      valor: metricasGerais.empenhado,
-      largura: barrasEtapas.empenhado,
-      classeBarra: "bg-brand",
-    },
-    {
-      rotulo: "Serviço entregue",
-      valor: metricasGerais.liquidado,
-      largura: barrasEtapas.liquidado,
-      classeBarra: "bg-brand/60",
-    },
-    {
-      rotulo: "Dinheiro que saiu",
-      valor: metricasGerais.pago,
-      largura: barrasEtapas.pago,
-      classeBarra: "bg-brand",
-    },
-  ];
 
   return (
     <div className="space-y-10">
@@ -131,29 +109,6 @@ export default async function DespesasPage({
             subtext="Do valor reservado, a parte que já foi paga (taxa de quitação)."
           />
         </KPIGrid>
-
-        <figure
-          className="m-0 mb-8 space-y-3"
-          aria-label="Comparação entre as três etapas, cada uma sobre o valor reservado"
-        >
-          {etapasComparadas.map((etapa) => (
-            <div
-              key={etapa.rotulo}
-              className="grid grid-cols-1 gap-1 text-ink text-sm sm:grid-cols-[200px_1fr_120px] sm:items-center sm:gap-4"
-            >
-              <span>{etapa.rotulo}</span>
-              <span className="block h-2 w-full overflow-hidden bg-track">
-                <span
-                  className={`block h-full ${etapa.classeBarra}`}
-                  style={{ width: `${etapa.largura}%` }}
-                />
-              </span>
-              <span className="tabular-nums sm:text-right">
-                {fmtCompact(etapa.valor)}
-              </span>
-            </div>
-          ))}
-        </figure>
 
         <details className="group">
           <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">

@@ -159,15 +159,5 @@ describe("buildDespesasViewModel", () => {
       }),
     );
     expect(vm.fornecedoresLinhas[0]?.percentualTotalPago).toBe(0);
-    expect(vm.barrasEtapas).toEqual({ empenhado: 0, liquidado: 0, pago: 0 });
-  });
-
-  it("barras das etapas são relativas ao valor reservado", () => {
-    const vm = buildDespesasViewModel(makeRaw());
-    expect(vm.barrasEtapas).toEqual({
-      empenhado: 100,
-      liquidado: 80,
-      pago: 70,
-    });
   });
 });
