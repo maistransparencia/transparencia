@@ -296,6 +296,25 @@ describe("TermometroOpacidadeFiscal Component", () => {
     },
   );
 
+  it("posiciona um único marcador na taxa atual sobre faixas verde, amarela e vermelha", () => {
+    const { container } = render(
+      <TermometroOpacidadeFiscal data={sampleData} />,
+    );
+    const marcadores = screen.getAllByTestId("termometro-marcador");
+    expect(marcadores).toHaveLength(1);
+    expect(marcadores[0]).toHaveStyle({
+      left: `${sampleData.exercicioAtual.taxaValorOpacidadePct}%`,
+    });
+    const faixas = container.querySelectorAll(
+      ".bg-ok-fill, .bg-warn-fill, .bg-danger-fill",
+    );
+    expect(Array.from(faixas, (f) => f.className)).toEqual([
+      expect.stringContaining("bg-ok-fill"),
+      expect.stringContaining("bg-warn-fill"),
+      expect.stringContaining("bg-danger-fill"),
+    ]);
+  });
+
   it("não renderiza cartão arredondado com sombra", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
     const raiz = screen.getByTestId("termometro-opacidade-fiscal");

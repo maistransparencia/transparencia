@@ -36,7 +36,6 @@ function getRiscoConfig(
   }
   return {
     badgeClass: "border-ok text-ok",
-    barClass: "bg-ok",
     textColor: "text-ok",
     statusText: "Normal",
   };
@@ -214,23 +213,32 @@ export function TermometroOpacidadeFiscal({
           {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
         </p>
 
-        {/* Barra de Progresso com Marcadores */}
-        <div className="relative h-3.5 w-full overflow-hidden bg-track">
+        {/* Faixas empilhadas (verde, amarelo, vermelho) com um único marcador da taxa atual */}
+        <div
+          className="relative py-1"
+          role="img"
+          aria-label={`${fmtPercent(exercicioAtual.taxaValorOpacidadePct)} dos pagamentos em Outros`}
+        >
+          <div className="flex h-3.5 w-full overflow-hidden bg-track">
+            <div
+              className="h-full bg-ok-fill"
+              style={{ width: `${limiares.limiteAtencaoPct}%` }}
+            />
+            <div
+              className="h-full bg-warn-fill"
+              style={{
+                width: `${limiares.limiteCriticoPct - limiares.limiteAtencaoPct}%`,
+              }}
+            />
+            <div
+              className="h-full bg-danger-fill"
+              style={{ width: `${100 - limiares.limiteCriticoPct}%` }}
+            />
+          </div>
           <div
-            className={`h-full transition-all duration-500 ${risco.barClass}`}
-            style={{ width: `${taxaExibida}%` }}
-          />
-          {/* Marcador de 15% */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-ink"
-            style={{ left: `${limiares.limiteAtencaoPct}%` }}
-            title={`Merece atenção (${limiares.limiteAtencaoPct}%)`}
-          />
-          {/* Marcador de 30% */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-ink"
-            style={{ left: `${limiares.limiteCriticoPct}%` }}
-            title={`Limite Elevado (${limiares.limiteCriticoPct}%)`}
+            className="absolute top-0 bottom-0 w-1 -translate-x-1/2 bg-ink"
+            style={{ left: `${taxaExibida}%` }}
+            data-testid="termometro-marcador"
           />
         </div>
 
