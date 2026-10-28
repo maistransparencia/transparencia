@@ -35,7 +35,7 @@ export function FornecedorDocumentoDetalhe({
           href={`/${portalSlug}/licitacoes?ano=${ano}&q=${cnpj}`}
           className="inline-flex items-center gap-1 font-medium text-ink underline underline-offset-2 hover:text-brand"
         >
-          Ver licitações e contratos de {ano}
+          Ver licitações e contratos
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>
       )}

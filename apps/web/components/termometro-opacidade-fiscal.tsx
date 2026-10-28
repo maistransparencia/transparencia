@@ -174,21 +174,23 @@ export function TermometroOpacidadeFiscal({
         <em>&ldquo;Outros serviços de terceiros&rdquo;</em>), fica difícil saber
         no que o dinheiro foi usado. Um pouco de &ldquo;Outros&rdquo; é normal.
         Aqui você vê quanto foi e onde pesa mais. A lei exige que o orçamento
-        detalhe a despesa ao menos por tipo de gasto (
-        {baseLegalPrincipal.urlBaseLegal ? (
-          <a
-            href={baseLegalPrincipal.urlBaseLegal}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-ink underline underline-offset-2 hover:text-brand"
-          >
-            {baseLegalPrincipal.baseLegal}
-            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-          </a>
-        ) : (
-          baseLegalPrincipal.baseLegal
+        detalhe a despesa ao menos por tipo de gasto
+        {baseLegalPrincipal.urlBaseLegal && (
+          <>
+            {" ("}
+            <a
+              href={baseLegalPrincipal.urlBaseLegal}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-ink underline underline-offset-2 hover:text-brand"
+            >
+              {baseLegalPrincipal.baseLegal}
+              <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </a>
+            {")"}
+          </>
         )}
-        ). Os limites de {limiares.limiteAtencaoPct}% e{" "}
+        . Os limites de {limiares.limiteAtencaoPct}% e{" "}
         {limiares.limiteCriticoPct}% são referências do portal, não da lei.
         &ldquo;Outros&rdquo; fica um nível abaixo desse mínimo: não é
         irregularidade, mas dificulta acompanhar o gasto.

@@ -100,7 +100,7 @@ Acessível através do grupo **Temas** no menu de navegação lateral (Sidebar),
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos
 
-Esta seção detalha a execução orçamentária e financeira do município em rolagem única, na ordem: resumo (Reservado, Serviço entregue, Dinheiro que saiu e Quanto já foi pago, com as três etapas comparadas ao valor reservado e nunca somadas), para quais áreas o dinheiro foi (áreas por função de governo com seletor de etapa), quem mais recebeu (principais fornecedores por valor pago e percentual do total pago, documento como vem da fonte), gastos que merecem acompanhamento (radar e termômetro de subitens genéricos) e dívidas de anos anteriores. O radar e o termômetro seguem descritos nos atos abaixo:
+Esta seção detalha a execução orçamentária e financeira do município em rolagem única, na ordem: resumo (Reservado, Serviço entregue, Dinheiro que saiu e Quanto já foi pago, com as três etapas comparadas ao valor reservado e nunca somadas), para quais áreas o dinheiro foi (áreas por função de governo com seletor de etapa), quem mais recebeu (principais fornecedores por valor pago e percentual do total pago, documento como vem da fonte e link por CNPJ para licitações e contratos; a folha de pagamento dos servidores fica fora da lista), gastos que merecem acompanhamento (radar e termômetro de subitens genéricos) e dívidas de anos anteriores. O radar e o termômetro seguem descritos nos atos abaixo:
 
 #### Ato 1: Saúde Financeira & Comparativo Anual (YoY)
 - **Termômetro Macro de Execução:** Total empenhado, liquidado e pago do exercício, acompanhado de taxas de liquidação e quitação, com comparação percentual direta em relação ao mesmo período do exercício anterior (YoY).
@@ -129,6 +129,7 @@ Esta seção detalha a execução orçamentária e financeira do município em r
   - *Residual Evitável (Discricionário):* Despesas em serviços (`39.99`, `36.99`), materiais (`30.99`) e compras onde a administração pública dispõe de subitens específicos no plano de contas para individualizar o objeto.
 - **Evolução Histórica (Exercícios Anteriores Fechados):** Série histórica comparativa das taxas de opacidade e montantes pagos em .99 ao longo dos anos fiscais anteriores fechados.
 - **Gastos com Categoria Sugerida pelo Objeto:** Inferência orçamentária fundamentada no catálogo oficial da Portaria STN/SOF nº 163/2001 e MCASP para despesas lançadas em subitens residuais (`.99`), identificando a destinação real do gasto a partir da descrição do objeto e perfil do fornecedor (ex: Consórcios Públicos/Saúde, Limpeza Urbana & Resíduos, Plantões Médicos, Bloqueios & Sentenças Judiciais, Terceirização de Mão de Obra, Previdência, Consultorias Técnicas, Locação de Máquinas/Veículos, Locação de Imóveis, Combustíveis, Eventos, Diárias e Obras).
+- **Termômetro em linguagem cidadã:** Subitens `.99` são apresentados como "Outros" (ex.: "Outros serviços de terceiros"), com a lei (Lei 4.320/64, Arts. 5º e 15) como link no texto; "Obrigatório por lei" e "Poderia ser detalhado" são critérios do portal, não da lei.
 - **Maiores Fornecedores em Subitens Genéricos:** Lista dos principais fornecedores pagos sob rubricas `.99`, detalhando razão social, CNPJ/CPF, total pago, categoria sugerida pelo objeto e descrição do serviço contratado.
 
 
@@ -136,6 +137,7 @@ Esta seção detalha a execução orçamentária e financeira do município em r
 - **Single Source of Truth (SSOT):** Alinhamento contábil e matemático rigoroso com os números consolidados da visão geral do município.
 - **Dívida Real / Processada (Liquidado Pendente):** Compromissos onde o fornecedor já cumpriu integralmente o contrato e o serviço foi atestado pela fiscalização, restando exclusivamente o desembolso pelo tesouro municipal.
 - **Dívida Não-Processada (Empenhado a Liquidar):** Recursos reservados no orçamento para contratos ou obras em andamento que ainda necessitam de atesto/liquidação.
+- **"Quem mais espera receber":** Cada um dos Top 5 fornecedores expande para mostrar o documento e, se for CNPJ completo, um link para `/[portalSlug]/licitacoes?q=[cnpj]`; CPF nunca vira link.
 - **Série Histórica e Ranking de Credores:** Gráfico de evolução empilhada do passivo por ano de inscrição e ranking dos Top 5 maiores fornecedores aguardando pagamento com a devida segregação (Liquidado vs Empenhado).
 
 #### Ato 4: Diárias e Viagens
@@ -248,6 +250,7 @@ Esta seção disponibiliza a transparência sobre os processos de compras e cont
 - **Valor do Contrato:** O valor total homologado ou firmado no instrumento contratual.
 - **Valores Empenhados e Pagos por Contrato:** O acompanhamento financeiro de quanto do valor do contrato já foi empenhado e quanto já foi efetivamente pago.
 - **Contratos de Serviços Vigentes e Plurianuais:** Monitoramento dos principais contratos de serviços de terceiros no município, incluindo vigência (data de início e vencimento atualizado), celebração, indicador de contrato plurianual, mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`), fornecedor, status de execução (`em_execucao`, `concluido`, `inexecutado`), totais empenhado, liquidado e pago, percentual quitado e saldo pendente financeiro.
+- **Busca pré-preenchida (`?q=`):** `/[portalSlug]/licitacoes?q=[termo]` abre a busca Spotlight já preenchida (ex.: CNPJ de um fornecedor), em todos os anos; o parâmetro sai da URL ao fechar a busca.
 - **Deep-Link e Visão 360° de Contratos:** Suporte a links diretos na URL (`/[portalSlug]/licitacoes?contratoNumero=...` ou `?contratoId=...` ou `?numero=...#contratos-servicos-vigentes`) e integração com a busca global Spotlight com retenção do termo pesquisado em camadas (`zIndex="z-[60]"`). Modal analítico com identificação completa, status semântico, fornecedor, CNPJ formatado (`fmtCpfCnpj`), objeto integral des-truncado, vigência e métricas financeiras completas (empenhado, liquidado, pago, saldo pendente e percentual pago). Conta com endpoint público sob demanda em `/api/[portalSlug]/contratos/details` (com rate limit de 60 req/min).
 
 ---

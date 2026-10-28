@@ -47,7 +47,7 @@ describe("RestosAPagarVendorsChart", () => {
       />,
     );
     expect(
-      screen.getByRole("link", { name: /Ver licitações e contratos de 2026/ }),
+      screen.getByRole("link", { name: /Ver licitações e contratos/ }),
     ).toHaveAttribute(
       "href",
       "/portal_teste/licitacoes?ano=2026&q=05422000000101",

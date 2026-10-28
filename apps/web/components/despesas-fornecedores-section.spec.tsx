@@ -76,7 +76,7 @@ describe("DespesasFornecedoresSection", () => {
       />,
     );
     const links = screen.getAllByRole("link", {
-      name: /Ver licitações e contratos de 2026/,
+      name: /Ver licitações e contratos/,
     });
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute(

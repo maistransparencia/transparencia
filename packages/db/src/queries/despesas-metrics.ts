@@ -204,9 +204,10 @@ export async function getRestosAPagarResumoMetrics(
 
         return {
           fornecedor,
-          fornecedorDocumento: r.fornecedor_cpf_cnpj
-            ? String(r.fornecedor_cpf_cnpj)
-            : null,
+          fornecedorDocumento:
+            r.fornecedor_nome && r.fornecedor_cpf_cnpj
+              ? String(r.fornecedor_cpf_cnpj)
+              : null,
           valorTotal: pend,
           liquidado: liqPend,
           empenhadoALiquidar: empALiq,
@@ -236,9 +237,29 @@ export async function getRestosAPagarResumoMetrics(
     const restosCancelados = Number(result?.restos_cancelados ?? 0);
     const saldoRestos = Number(result?.saldo_restos ?? 0);
 
-    const topFornecedores: RestosAPagarVendorItemDTO[] = [
-      ...fornecedoresComSaldo,
-    ]
+    const fornecedoresAgregados = [
+      ...fornecedoresComSaldo
+        .reduce((acc, v) => {
+          const chave = `${v.fornecedor}|${v.fornecedorDocumento ?? ""}`;
+          const atual = acc.get(chave);
+          return acc.set(
+            chave,
+            atual
+              ? {
+                  ...atual,
+                  valorTotal: atual.valorTotal + v.valorTotal,
+                  liquidado: atual.liquidado + v.liquidado,
+                  empenhadoALiquidar:
+                    atual.empenhadoALiquidar + v.empenhadoALiquidar,
+                  valor: atual.valor + v.valor,
+                }
+              : v,
+          );
+        }, new Map<string, (typeof fornecedoresComSaldo)[number]>())
+        .values(),
+    ];
+
+    const topFornecedores: RestosAPagarVendorItemDTO[] = fornecedoresAgregados
       .sort((a, b) => b.valorTotal - a.valorTotal)
       .slice(0, 5);
 

@@ -463,6 +463,10 @@ export interface DespesaRow {
   ano: number;
   fonte: string;
   categoriaGastoSensivel?: string;
+  fornecedorNome?: string;
+  fornecedorCpfCnpj?: string;
+  grupoNatureza?: string;
+  descricao?: string;
   empenhado?: number;
   liquidado?: number;
   pago?: number;
@@ -479,6 +483,10 @@ export async function seedDespesa(row: DespesaRow): Promise<void> {
       ano: row.ano,
       fonte: row.fonte,
       categoria_gasto_sensivel: row.categoriaGastoSensivel ?? null,
+      fornecedor_nome: row.fornecedorNome ?? null,
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+      grupo_natureza: row.grupoNatureza ?? null,
+      descricao: row.descricao ?? null,
       empenhado: row.empenhado ?? 0,
       liquidado: row.liquidado ?? 0,
       pago: row.pago ?? 0,

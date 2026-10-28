@@ -20,7 +20,11 @@ export const dynamic = "force-dynamic";
 
 interface LicitacoesPageProps {
   params: Promise<{ portalSlug: string }>;
-  searchParams: Promise<{ ano?: string; entidades?: string; q?: string }>;
+  searchParams: Promise<{
+    ano?: string;
+    entidades?: string;
+    q?: string | string[];
+  }>;
 }
 
 export async function generateMetadata({
@@ -50,6 +54,10 @@ export default async function LicitacoesPage({
   const { portalSlug } = await params;
   const resolvedSearchParams = await searchParams;
   const rawData = await loadLicitacoesData(portalSlug, resolvedSearchParams);
+  const termoBruto = Array.isArray(resolvedSearchParams.q)
+    ? resolvedSearchParams.q[0]
+    : resolvedSearchParams.q;
+  const termoInicial = termoBruto?.trim().slice(0, 100) || undefined;
   const viewModel = buildLicitacoesViewModel(rawData);
 
   const {
@@ -99,7 +107,7 @@ export default async function LicitacoesPage({
           <LicitacoesSearchBar
             portalSlug={portalSlug}
             ano={selectedYear}
-            termoInicial={resolvedSearchParams.q?.trim() || undefined}
+            termoInicial={termoInicial}
           />
         </div>
       </div>

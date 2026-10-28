@@ -58,7 +58,7 @@ export function RestosAPagarVendorsChart({
 
           return (
             <details
-              key={`${item.fornecedor}-${item.fornecedorDocumento ?? ""}-${total}`}
+              key={`${item.fornecedor}-${item.fornecedorDocumento ?? ""}`}
               className="group"
             >
               <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">

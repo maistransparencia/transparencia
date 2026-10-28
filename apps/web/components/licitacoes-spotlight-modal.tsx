@@ -122,7 +122,7 @@ export function LicitacoesSpotlightModal({
     document.body.style.overflow = "hidden";
 
     setSearchTerm(termoInicial ?? "");
-    setScope(termoInicial ? "ano_atual" : "todos");
+    setScope("todos");
     setResults({ licitacoes: [], contratos: [], total: 0 });
     setSelectedIndex(0);
     setLoading(false);
