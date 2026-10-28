@@ -219,7 +219,7 @@ function VariacaoBadge({
   }
   if (tendencia === "aumento") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-danger px-2.5 py-0.5 font-semibold text-danger text-xs">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-warn-text px-2.5 py-0.5 font-semibold text-warn-text text-xs">
         <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />+
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -244,7 +244,7 @@ function VariacaoBadge({
 
 function ValorDivida({ valor }: { valor: number }) {
   if (valor <= 0) {
-    return <span className="text-mute2 text-xs">Sem dívida</span>;
+    return <span className="text-mute2 text-xs">Nada pendente</span>;
   }
   return (
     <span className="font-bold font-mono text-warn-text tabular-nums">
@@ -367,7 +367,7 @@ export function RadarGastosSensiveis({
       ),
     },
     {
-      header: "DÍVIDA REAL ACUM.",
+      header: "AINDA A PAGAR (ACUM.)",
       accessorKey: "dividaReal",
       align: "right",
       className: "whitespace-nowrap",
@@ -428,7 +428,7 @@ export function RadarGastosSensiveis({
                 </span>
               </div>
               <div className="flex items-baseline justify-between gap-3 pl-11 text-xs">
-                <span className="text-mute2">Dívida real</span>
+                <span className="text-mute2">Ainda a pagar (acum.)</span>
                 <ValorDivida valor={linha.dividaReal} />
               </div>
             </div>

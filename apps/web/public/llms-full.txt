@@ -100,7 +100,7 @@ Acessível através do grupo **Temas** no menu de navegação lateral (Sidebar),
 
 ### 1.2. Execução das Despesas Públicas & Controle de Gastos
 
-Esta seção detalha a execução orçamentária e financeira do município através de 3 atos de transparência e auditoria social:
+Esta seção detalha a execução orçamentária e financeira do município em rolagem única, na ordem: resumo (Reservado, Serviço entregue, Dinheiro que saiu e Quanto já foi pago, com as três etapas comparadas ao valor reservado e nunca somadas), para quais áreas o dinheiro foi (áreas por função de governo com seletor de etapa), quem mais recebeu (principais fornecedores por valor pago e percentual do total pago, documento como vem da fonte), gastos que merecem acompanhamento (radar e termômetro de subitens genéricos) e dívidas de anos anteriores. O radar e o termômetro seguem descritos nos atos abaixo:
 
 #### Ato 1: Saúde Financeira & Comparativo Anual (YoY)
 - **Termômetro Macro de Execução:** Total empenhado, liquidado e pago do exercício, acompanhado de taxas de liquidação e quitação, com comparação percentual direta em relação ao mesmo período do exercício anterior (YoY).
@@ -114,7 +114,7 @@ Esta seção detalha a execução orçamentária e financeira do município atra
 - **Métricas do Radar Sensível:**
   - *Total Pago no Ano:* Montante financeiro liquidado e desembolsado.
   - *Comparativo de Tendência:* Variação percentual frente ao ano anterior (sinalizando economia obtida ou aumento de desembolso) ou percentual sobre o total pago no exercício (em anos correntes).
-  - *Dívida Real Acumulada:* Montante liquidado dessas contas que ainda está pendente de quitação.
+  - *Ainda a pagar (acumulado):* Montante liquidado dessas contas que ainda está pendente de quitação.
 
 #### Ato 2: Monitoramento de Gastos Genéricos (Subitens .99)
 - **Referência Normativa:** Princípio da Especificação Orçamentária (Lei Federal nº 4.320/1964, Arts. 5º e 15) e orientações técnicas de transparência pública.
@@ -500,7 +500,7 @@ Esta seção documenta a arquitetura de consolidação contábil, a metodologia 
   - Em telas de dispositivos móveis, o portal disponibiliza uma barra fixa inferior ergonômica com 5 abas de toque generoso para exploração cívica ágil:
     1. **Início / Visão Geral** (`/[portalSlug]`): Painel executivo com os principais indicadores municipais.
     2. **Receitas** (`/[portalSlug]/receitas`): Tributos próprios, repasses e transferências especiais.
-    3. **Despesas** (`/[portalSlug]/despesas`): Execução orçamentária, gastos sensíveis e restos a pagar.
+    3. **Despesas** (`/[portalSlug]/despesas`): Execução orçamentária (resumo em três etapas), áreas, principais fornecedores, gastos que merecem acompanhamento e dívidas de anos anteriores (restos a pagar).
     4. **Licitações** (`/[portalSlug]/licitacoes`): Contratos, dispensas e processos licitatórios.
     5. **Mais / Menu Lateral**: Botão de ação que abre a gaveta lateral com acesso direto às demais seções do portal (Orçamento, Quadro de Pessoal, Saúde Pública e Previdência RPPS).
   - *Sinalização e Badges do Radar Cívico:* Quando o exercício consultado possui anomalias de severidade crítica apuradas pelo motor estatístico, a aba "Mais" exibe um indicador luminoso discreto no mobile e o menu lateral desktop exibe um badge numérico com pulso suave ao lado de "Radar Cívico". Os dados são alimentados de forma atômica pela rota pública `/api/[portalSlug]/radar/count?ano=YYYY`.

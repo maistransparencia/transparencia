@@ -8,12 +8,14 @@ interface MetricasDespesas {
 
 import {
   getAnaliseDespesasMetrics,
+  getDespesasPorFuncaoMetrics,
   getEntidades,
   getOpacidadeContabilMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getRadarGastosSensiveisMetrics,
   getRestosAPagarResumoMetrics,
+  getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
@@ -102,6 +104,8 @@ function requireEmpresaIdsForMetrics(
   return empresaIds;
 }
 
+const LIMITE_FORNECEDORES = 10;
+
 async function fetchRawDespesasData(
   portalSlug: string,
   searchParams: DespesasSearchParams,
@@ -121,6 +125,8 @@ async function fetchRawDespesasData(
     posicaoDetalhes,
     opacidadeContabil,
     portalConfig,
+    areasPorFuncao,
+    topFornecedores,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
     getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
@@ -128,6 +134,13 @@ async function fetchRawDespesasData(
     getPosicaoFiscalDetalhesMetrics(tenantSlug, selectedYear, empresaIds),
     getOpacidadeContabilMetrics(tenantSlug, selectedYear),
     getPortalConfig(tenantSlug),
+    getDespesasPorFuncaoMetrics(tenantSlug, selectedYear, empresaIds),
+    getTopFornecedoresExecucaoMetrics({
+      portalSlug: tenantSlug,
+      year: selectedYear,
+      empresaIds,
+      limit: LIMITE_FORNECEDORES,
+    }),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
@@ -157,10 +170,12 @@ async function fetchRawDespesasData(
     radarGastosSensiveis,
     restosResumo: restosResumoEnriquecido,
     opacidadeContabil,
+    areasPorFuncao,
+    topFornecedores,
   };
 }
 
 export const loadDespesasData = createCachedDataLoader(
   fetchRawDespesasData,
-  "despesas-v6",
+  "despesas-v7",
 );

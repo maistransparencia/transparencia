@@ -95,7 +95,8 @@ describe("RadarGastosSensiveis Component", () => {
       />,
     );
 
-    expect(container.querySelector(".text-danger")).not.toBeNull();
+    expect(container.querySelector(".text-warn-text")).not.toBeNull();
+    expect(container.querySelector(".text-danger")).toBeNull();
     expect(container.querySelector(".text-ok")).not.toBeNull();
     expect(screen.getAllByText("Sem histórico").length).toBeGreaterThan(0);
   });
@@ -211,8 +212,10 @@ describe("RadarGastosSensiveis Component", () => {
     );
 
     // desktop e mobile são renderizados juntos; o CSS alterna a exibição
-    expect(container.querySelectorAll(".text-warn-text").length).toBe(2);
-    expect(screen.getAllByText("Sem dívida").length).toBe(10);
+    expect(container.querySelectorAll(".font-bold.text-warn-text").length).toBe(
+      2,
+    );
+    expect(screen.getAllByText("Nada pendente").length).toBe(10);
   });
 
   it("calcula o percentual do pago sobre o total de despesas pagas", () => {

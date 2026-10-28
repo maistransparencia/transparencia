@@ -7,6 +7,8 @@ const ARQUIVOS = [
   "components/radar-gastos-sensiveis.tsx",
   "components/restos-a-pagar-vendors-chart.tsx",
   "app/[portalSlug]/despesas/page.tsx",
+  "components/despesas-areas-section.tsx",
+  "components/despesas-fornecedores-section.tsx",
 ].map((caminho) => ({
   nome: caminho,
   fonte: readFileSync(join(__dirname, "..", caminho), "utf8"),
@@ -34,7 +36,7 @@ describe("Despesas no padrão Divisórias", () => {
       /import \{[^}]*\bSectionHeader\b[^}]*\} from "@transparencia\/ui"/,
     );
     expect(pagina.match(/variant="divisoria"/g)?.length).toBeGreaterThanOrEqual(
-      9,
+      7,
     );
   });
 });

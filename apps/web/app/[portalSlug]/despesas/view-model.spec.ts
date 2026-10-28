@@ -67,4 +67,107 @@ describe("buildDespesasViewModel", () => {
     expect(vm.restosResumo).toEqual(raw.restosResumo);
     expect(vm.opacidadeContabil).toEqual(raw.opacidadeContabil);
   });
+
+  it("ordena as áreas por etapa e calcula percentual sobre a soma da mesma etapa", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        areasPorFuncao: [
+          {
+            funcaoCodigo: "10",
+            funcaoNome: "Saúde",
+            totalEmpenhado: 100,
+            totalLiquidado: 90,
+            totalPago: 10,
+          },
+          {
+            funcaoCodigo: "12",
+            funcaoNome: "Educação",
+            totalEmpenhado: 300,
+            totalLiquidado: 60,
+            totalPago: 30,
+          },
+        ],
+      }),
+    );
+    expect(vm.areasPorEtapa.pago.map((a) => a.nome)).toEqual([
+      "Educação",
+      "Saúde",
+    ]);
+    expect(vm.areasPorEtapa.liquidado.map((a) => a.nome)).toEqual([
+      "Saúde",
+      "Educação",
+    ]);
+    expect(vm.areasPorEtapa.pago[0]?.percentualEtapa).toBe(75);
+    expect(vm.areasPorEtapa.pago[0]?.larguraBarra).toBe(100);
+    expect(vm.areasPorEtapa.pago[1]?.larguraBarra).toBeCloseTo(33.33, 1);
+    // etapas nunca são somadas: cada linha mantém os três valores separados
+    expect(vm.areasPorEtapa.empenhado[0]).toMatchObject({
+      empenhado: 300,
+      liquidado: 60,
+      pago: 30,
+      valor: 300,
+    });
+  });
+
+  it("áreas e fornecedores vazios geram listas vazias", () => {
+    const vm = buildDespesasViewModel(makeRaw());
+    expect(vm.areasPorEtapa.pago).toEqual([]);
+    expect(vm.fornecedoresLinhas).toEqual([]);
+  });
+
+  it("percentual de fornecedor usa o total pago geral, não o do DTO", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        topFornecedores: [
+          {
+            fornecedorNome: "Empresa A",
+            fornecedorCpfCnpj: "00.000.000/0001-00",
+            totalPago: 70,
+            totalEmpenhado: 80,
+            percentualPago: 100,
+          },
+        ],
+      }),
+    );
+    expect(vm.fornecedoresLinhas[0]).toMatchObject({
+      nome: "Empresa A",
+      documento: "00.000.000/0001-00",
+      valorPago: 70,
+      percentualTotalPago: 10,
+    });
+  });
+
+  it("total pago zero não divide por zero", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        metricasGerais: {
+          empenhado: 0,
+          liquidado: 0,
+          pago: 0,
+          taxaLiquidacao: 0,
+          taxaPagamento: 0,
+        },
+        topFornecedores: [
+          {
+            fornecedorNome: "Empresa A",
+            fornecedorCpfCnpj: null,
+            totalPago: 0,
+            totalEmpenhado: 0,
+            percentualPago: 0,
+          },
+        ],
+      }),
+    );
+    expect(vm.fornecedoresLinhas[0]?.percentualTotalPago).toBe(0);
+    expect(vm.barrasEtapas).toEqual({ empenhado: 0, liquidado: 0, pago: 0 });
+  });
+
+  it("barras das etapas são relativas ao valor reservado", () => {
+    const vm = buildDespesasViewModel(makeRaw());
+    expect(vm.barrasEtapas).toEqual({
+      empenhado: 100,
+      liquidado: 80,
+      pago: 70,
+    });
+  });
 });
