@@ -13,7 +13,7 @@ describe("RestosAPagarVendorsChart", () => {
     );
 
     expect(screen.getByText(/Fornecedor Alfa/i)).toBeInTheDocument();
-    expect(container.querySelector(".bg-warn")).not.toBeNull();
+    expect(container.querySelector(".bg-warn-fill")).not.toBeNull();
     expect(container.querySelector(".bg-brand")).not.toBeNull();
   });
 

@@ -200,7 +200,7 @@ describe("RadarGastosSensiveis Component", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("destaca a dívida real com token warn e indica categorias sem dívida", () => {
+  it("destaca a dívida real com os tokens de aviso e indica categorias sem dívida", () => {
     const { container } = render(
       <RadarGastosSensiveis
         itens={sampleItens}
@@ -211,7 +211,7 @@ describe("RadarGastosSensiveis Component", () => {
     );
 
     // desktop e mobile são renderizados juntos; o CSS alterna a exibição
-    expect(container.querySelectorAll(".text-warn").length).toBe(2);
+    expect(container.querySelectorAll(".text-warn-text").length).toBe(2);
     expect(screen.getAllByText("Sem dívida").length).toBe(10);
   });
 

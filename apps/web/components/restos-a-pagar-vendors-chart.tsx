@@ -32,7 +32,7 @@ export function RestosAPagarVendorsChart({
         {/* Legenda Stacked */}
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-warn" />
+            <span className="h-2.5 w-2.5 rounded-sm bg-warn-fill" />
             <span className="font-medium text-mute2">
               Liquidado (Dívida Real)
             </span>
@@ -80,7 +80,7 @@ export function RestosAPagarVendorsChart({
                 >
                   {liq > 0 && (
                     <div
-                      className="h-full bg-warn"
+                      className="h-full bg-warn-fill"
                       style={{ width: `${liqPct}%` }}
                       title={`Liquidado (Dívida Real): ${fmtCompact(liq)}`}
                     />

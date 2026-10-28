@@ -17,6 +17,8 @@ export const TOKENS = {
     danger: "var(--danger)",
     ok: "var(--ok)",
     warn: "var(--warn)",
+    warnFill: "var(--warn-fill)",
+    warnText: "var(--warn-text)",
     // Aliases legados, removidos na story 20.9.
     accent: "var(--brand)",
     warning: "var(--warn)",

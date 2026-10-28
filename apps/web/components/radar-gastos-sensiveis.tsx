@@ -180,7 +180,7 @@ function DecomposicaoDivida({
             <span className="order-last col-span-2 sm:order-none sm:col-span-1">
               <BarraProporcao
                 percentual={Math.max(entidade.percentual, 1)}
-                className="bg-warn"
+                className="bg-warn-fill"
                 trilhaClassName="bg-pill"
               />
             </span>
@@ -247,7 +247,7 @@ function ValorDivida({ valor }: { valor: number }) {
     return <span className="text-mute2 text-xs">Sem dívida</span>;
   }
   return (
-    <span className="font-bold font-mono text-warn tabular-nums underline decoration-1 decoration-dashed underline-offset-4">
+    <span className="font-bold font-mono text-warn-text tabular-nums">
       {fmtCompact(valor)}
     </span>
   );
