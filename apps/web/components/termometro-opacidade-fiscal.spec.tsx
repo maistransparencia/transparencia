@@ -137,23 +137,22 @@ describe("TermometroOpacidadeFiscal Component", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
-      screen.getByText("Monitoramento de Gastos Genéricos (Subitens .99)"),
+      screen.getByText("Gastos registrados como “Outros”"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Uso Elevado de .99")).toBeInTheDocument();
     expect(screen.getByText("56.40%")).toBeInTheDocument();
     expect(
-      screen.getByText("Referência: Lei 4.320/1964 Arts. 5º e 15"),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: /Lei 4.320\/1964 Arts. 5º e 15/ }),
+    ).toHaveAttribute("target", "_blank");
   });
 
   it("renderiza a quebra por elemento pai de despesas .99 com callout investigativo e badges", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
-      screen.getByText("Concentração por Elemento Pai (Subitens .99)"),
+      screen.getByText("Em que tipos de gasto “Outros” aparece mais"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Top 3 de 3 naturezas")).toBeInTheDocument();
-    expect(screen.getByText("Achado de Concentração:")).toBeInTheDocument();
+    expect(screen.getByText("3 maiores de 3 tipos")).toBeInTheDocument();
+    expect(screen.getByText("Onde pesa mais:")).toBeInTheDocument();
     expect(screen.getByText("39.99")).toBeInTheDocument();
     expect(
       screen.getByText("Outros Serviços de Terceiros - Pessoa Jurídica"),
@@ -162,9 +161,11 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getByText("36.99")).toBeInTheDocument();
     expect(screen.getAllByText("91.99").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Sentenças Judiciais")).toBeInTheDocument();
-    expect(screen.getByText("Estrutural")).toBeInTheDocument();
-    expect(screen.getAllByText("Evitável")).toHaveLength(2);
-    expect(screen.getByText(/Nota Metodológica:/)).toBeInTheDocument();
+    expect(screen.getAllByText("Obrigatório por lei")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Poderia ser detalhado")).toHaveLength(3);
+    expect(
+      screen.getByText(/O portal separa os gastos em dois grupos/),
+    ).toBeInTheDocument();
   });
 
   it("renderiza os elementos residuais com estrutura responsiva (código, descrição, badge, barra e valores)", () => {
@@ -183,9 +184,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
-      screen.getByText(
-        "Evolução Histórica de Opacidade (Exercícios Anteriores Fechados)",
-      ),
+      screen.getByText("Como foi nos anos anteriores"),
     ).toBeInTheDocument();
     expect(screen.getByText("2024 – 2025")).toBeInTheDocument();
     expect(screen.getByText("2024")).toBeInTheDocument();
@@ -199,9 +198,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
       historico: [sampleData.historico[1], sampleData.historico[2]], // 2025 e 2026
     };
     render(<TermometroOpacidadeFiscal data={singleYearData} />);
-    const summary = screen.getByText(
-      "Evolução Histórica de Opacidade (Exercícios Anteriores Fechados)",
-    );
+    const summary = screen.getByText("Como foi nos anos anteriores");
     expect(summary).toBeInTheDocument();
     expect(screen.getAllByText("2025").length).toBeGreaterThan(0);
   });
@@ -210,18 +207,14 @@ describe("TermometroOpacidadeFiscal Component", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
-      screen.getByText(
-        "Maiores Fornecedores em Subitens Genéricos (.99) (Top 2)",
-      ),
+      screen.getByText("Quem mais recebeu em “Outros” (2 maiores)"),
     ).toBeInTheDocument();
     expect(screen.getByText("CODESP CONSORCIO DE SAUDE")).toBeInTheDocument();
     expect(screen.getByText("COOPERATIVA DE CATADORES")).toBeInTheDocument();
     expect(
       screen.getByText("Locação de Máquinas & Frotas"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Classificação Sugerida pelo Objeto"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Parece ser de")).toBeInTheDocument();
   });
 
   it("renderiza corretamente as novas categorias sugeridas na gaveta de credores", () => {
@@ -282,9 +275,9 @@ describe("TermometroOpacidadeFiscal Component", () => {
   });
 
   it.each([
-    ["critico", "danger", "Uso Elevado de .99"],
-    ["atencao", "warn", "Atenção (.99)"],
-    ["baixo", "ok", "Uso Esperado de .99"],
+    ["critico", "danger", "Muito alto"],
+    ["atencao", "warn", "Atenção"],
+    ["baixo", "ok", "Normal"],
   ] as const)(
     "classificacao %s usa o token %s",
     (classificacao, token, rotulo) => {
@@ -296,15 +289,17 @@ describe("TermometroOpacidadeFiscal Component", () => {
         },
       } as unknown as OpacidadeContabilMetricsDTO;
       render(<TermometroOpacidadeFiscal data={dados} />);
-      const selo = screen.getByText(rotulo).closest("span");
-      expect(selo?.className).toContain(`text-${token}`);
+      const classes = screen
+        .getAllByText(rotulo)
+        .map((elemento) => elemento.closest("span")?.className ?? "");
+      expect(classes.some((c) => c.includes(`text-${token}`))).toBe(true);
     },
   );
 
   it("não renderiza cartão arredondado com sombra", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
     const raiz = screen.getByTestId("termometro-opacidade-fiscal");
-    expect(raiz.className).toContain("border-t-2");
+    expect(raiz.className).toContain("border-t-1");
     expect(raiz.className).not.toMatch(/rounded|shadow|bg-white/);
   });
 

@@ -41,13 +41,14 @@ export function DespesasAreasSection({
 
   return (
     <div className="space-y-4" data-testid="despesas-areas">
-      <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
+      <fieldset className="m-0 grid min-w-0 grid-cols-3 gap-2 border-0 p-0 sm:flex sm:flex-wrap">
         <legend className="sr-only">Etapa do dinheiro</legend>
         {OPCOES_ETAPA.map((opcao) => (
           <SegmentedButton
             key={opcao.etapa}
             active={opcao.etapa === etapa}
             onClick={() => setEtapa(opcao.etapa)}
+            className="justify-center text-center leading-tight"
           >
             {opcao.rotulo}
           </SegmentedButton>

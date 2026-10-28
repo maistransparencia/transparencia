@@ -1,19 +1,18 @@
 import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import { ChevronDown } from "lucide-react";
 import type { FornecedorLinha } from "@/app/[portalSlug]/despesas/view-model";
+import { FornecedorDocumentoDetalhe } from "./fornecedor-documento-detalhe";
 
 export interface DespesasFornecedoresSectionProps {
   fornecedores: FornecedorLinha[];
+  portalSlug: string;
+  ano: number;
 }
-
-/** Documento só é exibido como vem da fonte; 11 dígitos sem máscara nunca são renderizados. */
-const CPF_SEM_MASCARA = /(?<!\d)(\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})(?!\d)/;
-
-const documentoExibivel = (documento: string | null) =>
-  documento && !CPF_SEM_MASCARA.test(documento) ? documento : null;
 
 export function DespesasFornecedoresSection({
   fornecedores,
+  portalSlug,
+  ano,
 }: DespesasFornecedoresSectionProps) {
   if (fornecedores.length === 0) return null;
 
@@ -21,7 +20,6 @@ export function DespesasFornecedoresSection({
     <div className="space-y-3" data-testid="despesas-fornecedores">
       <div>
         {fornecedores.map((fornecedor) => {
-          const documento = documentoExibivel(fornecedor.documento);
           return (
             <details
               key={`${fornecedor.nome}-${fornecedor.documento ?? ""}`}
@@ -48,11 +46,11 @@ export function DespesasFornecedoresSection({
                   />
                 </span>
               </summary>
-              <p className="pb-4 text-mute text-sm">
-                {documento
-                  ? `Documento: ${documento}`
-                  : "Documento não informado"}
-              </p>
+              <FornecedorDocumentoDetalhe
+                documento={fornecedor.documento}
+                portalSlug={portalSlug}
+                ano={ano}
+              />
             </details>
           );
         })}

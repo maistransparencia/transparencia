@@ -7,12 +7,14 @@ vi.mock("./licitacoes-spotlight-modal", () => ({
   LicitacoesSpotlightModal: ({
     isOpen,
     onClose,
+    termoInicial,
   }: {
     isOpen: boolean;
     onClose: () => void;
+    termoInicial?: string;
   }) =>
     isOpen ? (
-      <div data-testid="mock-spotlight-modal">
+      <div data-testid="mock-spotlight-modal" data-termo={termoInicial}>
         <button type="button" onClick={onClose}>
           Fechar Modal
         </button>
@@ -173,5 +175,23 @@ describe("LicitacoesSearchBar", () => {
 
     // Com o modal aberto, a pílula deve se ocultar
     expect(floatingWrapper).toHaveClass("opacity-0");
+  });
+
+  it("abre a busca já preenchida com o termo inicial e o descarta ao fechar", () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/portal/licitacoes?ano=2026&q=05422000000101",
+    );
+    render(
+      <LicitacoesSearchBar portalSlug="portal" termoInicial="05422000000101" />,
+    );
+    expect(screen.getByTestId("mock-spotlight-modal")).toHaveAttribute(
+      "data-termo",
+      "05422000000101",
+    );
+    fireEvent.click(screen.getByText("Fechar Modal"));
+    expect(screen.queryByTestId("mock-spotlight-modal")).toBeNull();
+    expect(window.location.search).toBe("?ano=2026");
   });
 });

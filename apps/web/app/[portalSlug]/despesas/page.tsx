@@ -195,7 +195,11 @@ export default async function DespesasPage({
             title="Quem mais recebeu"
             description={`As empresas e pessoas que mais receberam em ${selectedYear}, com a parte de cada uma no total pago. A folha de pagamento dos servidores não entra nesta lista.`}
           />
-          <DespesasFornecedoresSection fornecedores={fornecedoresLinhas} />
+          <DespesasFornecedoresSection
+            fornecedores={fornecedoresLinhas}
+            portalSlug={portalSlug}
+            ano={selectedYear}
+          />
         </section>
       )}
 
@@ -263,7 +267,11 @@ export default async function DespesasPage({
 
         {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (
-          <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
+          <RestosAPagarVendorsChart
+            items={restosResumo.topFornecedores}
+            portalSlug={portalSlug}
+            ano={selectedYear}
+          />
         )}
 
         <details className="group">

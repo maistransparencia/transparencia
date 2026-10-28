@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 interface LicitacoesPageProps {
   params: Promise<{ portalSlug: string }>;
-  searchParams: Promise<{ ano?: string; entidades?: string }>;
+  searchParams: Promise<{ ano?: string; entidades?: string; q?: string }>;
 }
 
 export async function generateMetadata({
@@ -96,7 +96,11 @@ export default async function LicitacoesPage({
 
         {/* Global Spotlight Search Bar */}
         <div className="mt-5 w-full">
-          <LicitacoesSearchBar portalSlug={portalSlug} ano={selectedYear} />
+          <LicitacoesSearchBar
+            portalSlug={portalSlug}
+            ano={selectedYear}
+            termoInicial={resolvedSearchParams.q?.trim() || undefined}
+          />
         </div>
       </div>
 

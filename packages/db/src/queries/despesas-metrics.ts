@@ -8,6 +8,7 @@ export interface ResumoDiariasMetricsDTO {
 
 export interface RestosAPagarVendorItemDTO {
   fornecedor: string;
+  fornecedorDocumento: string | null;
   valorTotal: number;
   liquidado: number;
   empenhadoALiquidar: number;
@@ -171,6 +172,7 @@ export async function getRestosAPagarResumoMetrics(
         .selectFrom("fct_despesas")
         .select((eb) => [
           "fornecedor_nome",
+          "fornecedor_cpf_cnpj",
           "descricao",
           eb.fn.sum<string>("empenhado").as("empenhado"),
           eb.fn.sum<string>("liquidado").as("liquidado"),
@@ -180,7 +182,7 @@ export async function getRestosAPagarResumoMetrics(
         .where("fonte", "=", "restos_a_pagar")
         .where("ano", "=", year)
         .where("empresa_id", "in", empresaIds)
-        .groupBy(["fornecedor_nome", "descricao"])
+        .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj", "descricao"])
         .execute(),
     ]);
 
@@ -202,6 +204,9 @@ export async function getRestosAPagarResumoMetrics(
 
         return {
           fornecedor,
+          fornecedorDocumento: r.fornecedor_cpf_cnpj
+            ? String(r.fornecedor_cpf_cnpj)
+            : null,
           valorTotal: pend,
           liquidado: liqPend,
           empenhadoALiquidar: empALiq,
