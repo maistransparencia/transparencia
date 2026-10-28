@@ -4,6 +4,7 @@ import {
   KPICard,
   SectionHeader,
 } from "@transparencia/ui";
+import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import { KPIGrid } from "@/components/kpi-grid";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
@@ -138,31 +139,6 @@ export default async function DespesasPage({
           description="Despesas contratadas em exercícios passados ainda não quitadas pela prefeitura."
         />
 
-        {/* Banner Informativo Visível */}
-        <div className="space-y-2.5 border-banfg border-y bg-banbg py-4 text-banfg text-sm leading-relaxed">
-          <p>
-            São despesas empenhadas em anos anteriores ainda não pagas —
-            compromissos legais que continuam válidos até serem quitados ou
-            cancelados.
-          </p>
-          <div className="border-line border-t pt-2.5 text-xs">
-            <strong className="mb-1 block font-semibold">
-              Categorização Contábil (Norma STN/MCASP):
-            </strong>
-            <ul className="space-y-1">
-              <li>
-                • <strong>Restos Processados:</strong> Dívidas de serviços já
-                prestados ou bens entregues e liquidados (com direito adquirido
-                do credor).
-              </li>
-              <li>
-                • <strong>Restos Não Processados:</strong> Obras ou contratos em
-                andamento pendentes de medição e liquidação.
-              </li>
-            </ul>
-          </div>
-        </div>
-
         {/* 3 KPI Grid */}
         <KPIGrid columns={3} variant="divisoria">
           <KPICard
@@ -195,6 +171,37 @@ export default async function DespesasPage({
         {restosResumo.topFornecedores.length > 0 && (
           <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
         )}
+
+        <details className="group border-line border-t pt-4">
+          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+            <span>O que são restos a pagar?</span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-4 max-w-[70ch] space-y-2.5 text-ink text-sm leading-relaxed">
+            <p>
+              Restos a pagar são despesas assumidas em anos anteriores que ainda
+              não foram pagas. Elas continuam valendo até serem pagas ou
+              canceladas.
+            </p>
+            <p>Há dois tipos:</p>
+            <ul className="space-y-1.5">
+              <li>
+                • <strong>Já entregues e conferidos</strong> (restos
+                processados): o fornecedor já fez o serviço ou entregou o bem, e
+                a prefeitura ainda não pagou.
+              </li>
+              <li>
+                • <strong>Ainda em andamento</strong> (restos não processados):
+                obra ou contrato em andamento, que ainda precisa de conferência
+                antes do pagamento.
+              </li>
+            </ul>
+            <p className="text-mute2">
+              Ter resto a pagar não indica erro. Boa parte é prazo normal de
+              execução. Para entender cada caso, vale consultar o processo.
+            </p>
+          </div>
+        </details>
       </section>
     </div>
   );

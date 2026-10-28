@@ -10,6 +10,8 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Dotação orçamentária | Verba prevista para uma finalidade neste ano | "Dinheiro disponível" |
 | Dotação atualizada | Verba prevista, já com os ajustes feitos no ano | |
 | Restos a pagar | Contas de anos anteriores que ainda estão sendo pagas | "Dívida" sem contexto |
+| Restos a pagar processados | Já entregues e conferidos: o fornecedor cumpriu a sua parte e falta o pagamento | "Direito adquirido do credor" |
+| Restos a pagar não processados | Ainda em andamento: depende de conferência antes do pagamento | "Pendente de liquidação" |
 | Receita Corrente Líquida (RCL) | Receita do município nos últimos 12 meses, usada como base para limites da lei | |
 | Limite prudencial | Nível de alerta em que a lei já impede novos aumentos de despesa com pessoal | |
 | Dispensa de licitação | Compra feita sem concorrência, nos casos que a lei permite | "Compra irregular" |
