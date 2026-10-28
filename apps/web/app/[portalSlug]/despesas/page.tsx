@@ -83,36 +83,49 @@ export default async function DespesasPage({
 
       {/* 1. Resumo: reservado, entregue, pago */}
       <section className="space-y-6" data-testid="despesas-resumo">
-        <KPIGrid columns={4} variant="divisoria">
+        <div className="space-y-2" data-testid="despesas-resumo-destaque">
+          <p className="font-mono text-mute2 text-xs uppercase tracking-wider">
+            Dinheiro que saiu (pago) em {selectedYear}
+          </p>
+          <p className="font-bold text-5xl text-brand tabular-nums leading-none sm:text-6xl">
+            {fmtCompact(metricasGerais.pago)}
+          </p>
+          <p className="max-w-xl text-mute text-sm leading-relaxed">
+            Valor que já saiu do caixa e foi pago a quem prestou o serviço ou
+            vendeu o produto.
+            {metricasGerais.empenhado > 0 && (
+              <>
+                {" "}
+                Isso é{" "}
+                <strong>{fmtPercent(metricasGerais.taxaPagamento)}</strong> do
+                que estava reservado ({fmtCompact(metricasGerais.empenhado)}). O
+                restante não é, necessariamente, dívida: pode ser serviço em
+                andamento ou pagamento previsto para os próximos meses.
+              </>
+            )}
+          </p>
+        </div>
+
+        <KPIGrid columns={2} variant="divisoria">
           <KPICard
             variant="divisoria"
             title="Reservado (empenhado)"
             value={fmtCompact(metricasGerais.empenhado)}
-            subtext="Valor que a prefeitura separou para pagar contratos e compras."
+            subtext="Valor que a prefeitura separou no orçamento para pagar contratos e compras."
           />
           <KPICard
             variant="divisoria"
             title="Serviço entregue (liquidado)"
             value={fmtCompact(metricasGerais.liquidado)}
-            subtext="Parte do reservado em que o serviço ou produto já foi recebido e conferido."
-          />
-          <KPICard
-            variant="divisoria"
-            title="Dinheiro que saiu (pago)"
-            value={fmtCompact(metricasGerais.pago)}
-            subtext="Parte que já saiu do caixa e chegou a quem prestou o serviço."
-          />
-          <KPICard
-            variant="divisoria"
-            title="Quanto já foi pago"
-            value={fmtPercent(metricasGerais.taxaPagamento)}
-            subtext="Do valor reservado, a parte que já foi paga (taxa de quitação)."
+            subtext="Parte do reservado em que o serviço ou produto já foi recebido e conferido, mesmo que ainda não tenha sido pago."
           />
         </KPIGrid>
 
         <details className="group">
           <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
-            <span>Como ler estes números: as três etapas não se somam</span>
+            <span>
+              Como ler estes números: reservado, entregue e pago não se somam
+            </span>
             <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
           </summary>
           <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">

@@ -168,10 +168,32 @@ describe("DespesasPage", () => {
       "Dívidas de anos anteriores",
     ]);
     expect(
-      screen.getByText("Como ler estes números: as três etapas não se somam"),
+      screen.getByText(
+        "Como ler estes números: reservado, entregue e pago não se somam",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("Quanto já foi pago")).toBeInTheDocument();
+    const destaque = screen.getByTestId("despesas-resumo-destaque");
+    expect(destaque).toHaveTextContent("Dinheiro que saiu (pago) em");
+    expect(destaque).toHaveTextContent("70.00%");
     expect(screen.getByText("Empresa A")).toBeInTheDocument();
+  });
+
+  it("omite a frase do percentual quando nada foi reservado", async () => {
+    loadDespesasDataMock.mockResolvedValue(
+      makeRaw({
+        metricasGerais: {
+          empenhado: 0,
+          liquidado: 0,
+          pago: 0,
+          taxaLiquidacao: 0,
+          taxaPagamento: 0,
+        },
+      }),
+    );
+    render(await DespesasPage(props));
+    expect(
+      screen.getByTestId("despesas-resumo-destaque"),
+    ).not.toHaveTextContent("do que estava reservado");
   });
 
   it("omite áreas e fornecedores quando as listas vêm vazias", async () => {
