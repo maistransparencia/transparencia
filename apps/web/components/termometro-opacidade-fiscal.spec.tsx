@@ -203,7 +203,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getAllByText("2025").length).toBeGreaterThan(0);
   });
 
-  it("renderiza a tabela de top credores em .99 com categorias sugeridas pelo objeto", () => {
+  it("renderiza a lista de top credores em .99 com categorias sugeridas pelo objeto", () => {
     render(<TermometroOpacidadeFiscal data={sampleData} />);
 
     expect(
@@ -214,7 +214,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(
       screen.getByText("Locação de Máquinas & Frotas"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Parece ser de")).toBeInTheDocument();
+    expect(screen.getAllByText(/Parece ser de:/).length).toBeGreaterThan(0);
   });
 
   it("renderiza corretamente as novas categorias sugeridas na gaveta de credores", () => {

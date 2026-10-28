@@ -3,12 +3,7 @@ import type {
   OpacidadeCredorDTO,
   OpacidadeMetricasExercicioDTO,
 } from "@transparencia/db";
-import {
-  fmtCompact,
-  fmtCurrency,
-  fmtNumber,
-  fmtPercent,
-} from "@transparencia/ui";
+import { fmtCompact, fmtNumber, fmtPercent } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, Lightbulb } from "lucide-react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { ShowYourWorkButton } from "./show-your-work-button";
@@ -132,6 +127,7 @@ export function TermometroOpacidadeFiscal({
   if (!data?.exercicioAtual) return null;
 
   const { exercicioAtual, limiares, topCredores, basesLegais } = data;
+  const maiorTotalCredor = Math.max(...topCredores.map((c) => c.totalPago), 1);
   const risco = getRiscoConfig(exercicioAtual.classificacaoRisco);
 
   const baseLegalPrincipal = basesLegais.find(
@@ -509,69 +505,58 @@ export function TermometroOpacidadeFiscal({
             <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
           </summary>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-ink text-xs">
-              <thead className="border-ink border-b font-semibold text-mute2">
-                <tr>
-                  <th className="px-3 py-2.5">#</th>
-                  <th className="px-3 py-2.5">Fornecedor / CNPJ</th>
-                  <th className="px-3 py-2.5">
-                    Total pago em &ldquo;Outros&rdquo;
-                  </th>
-                  <th className="px-3 py-2.5">Parece ser de</th>
-                  <th className="px-3 py-2.5">O que diz o pagamento</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {topCredores.map((credor) => {
-                  const hasCategoriaSugerida =
-                    credor.categoriaPredominante !==
-                      "sem_classificacao_especifica" &&
-                    credor.pagoDesvioSensivel > 0;
+          <div className="mt-2">
+            {topCredores.map((credor) => {
+              const hasCategoriaSugerida =
+                credor.categoriaPredominante !==
+                  "sem_classificacao_especifica" &&
+                credor.pagoDesvioSensivel > 0;
+              const larguraBarra = Math.min(
+                100,
+                (credor.totalPago / maiorTotalCredor) * 100,
+              );
 
-                  return (
-                    <tr
-                      key={credor.credorCodigo + credor.ranking}
-                      className="hover:bg-line2"
+              return (
+                <div
+                  key={credor.credorCodigo + credor.ranking}
+                  className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3"
+                >
+                  <span className="font-medium text-ink text-sm">
+                    {credor.credorNome}
+                    <span className="ml-2 font-mono text-mute2 text-xs">
+                      {credor.credorCodigo}
+                    </span>
+                  </span>
+                  <span className="text-right text-ink text-sm tabular-nums">
+                    {fmtCompact(credor.totalPago)}
+                  </span>
+                  <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
+                    <span
+                      className="block h-full bg-brand"
+                      style={{ width: `${larguraBarra}%` }}
+                    />
+                  </span>
+                  <span className="col-span-full text-mute2 text-xs">
+                    Parece ser de:{" "}
+                    {hasCategoriaSugerida ? (
+                      <span className="font-medium text-warn">
+                        {formatCategoriaSensivel(credor.categoriaPredominante)}
+                      </span>
+                    ) : (
+                      <span>Não identificado</span>
+                    )}
+                  </span>
+                  {credor.amostraObjeto && (
+                    <span
+                      className="col-span-full truncate text-mute2 text-xs"
+                      title={credor.amostraObjeto}
                     >
-                      <td className="px-3 py-2.5 font-semibold text-mute2">
-                        #{credor.ranking}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="font-semibold text-ink">
-                          {credor.credorNome}
-                        </div>
-                        <div className="text-[11px] text-mute2">
-                          {credor.credorCodigo}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-bold text-ink">
-                        {fmtCurrency(credor.totalPago)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2.5">
-                        {hasCategoriaSugerida ? (
-                          <span className="inline-flex items-center rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
-                            {formatCategoriaSensivel(
-                              credor.categoriaPredominante,
-                            )}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-md bg-pill px-2 py-0.5 text-[11px] text-mute2">
-                            Não identificado
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        className="max-w-xs truncate px-3 py-2.5 text-[11px] text-mute2"
-                        title={credor.amostraObjeto}
-                      >
-                        {credor.amostraObjeto}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      {credor.amostraObjeto}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </details>
       )}
