@@ -19,13 +19,13 @@ export function DespesasFornecedoresSection({
 
   return (
     <div className="space-y-3" data-testid="despesas-fornecedores">
-      <div className="border-line border-t">
+      <div>
         {fornecedores.map((fornecedor) => {
           const documento = documentoExibivel(fornecedor.documento);
           return (
             <details
               key={`${fornecedor.nome}-${fornecedor.documento ?? ""}`}
-              className="group border-line border-b"
+              className="group"
             >
               <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
                 <span className="font-medium text-ink text-sm">
@@ -48,7 +48,7 @@ export function DespesasFornecedoresSection({
                   />
                 </span>
               </summary>
-              <p className="border-line2 border-t pt-1.5 pb-4 text-mute text-sm">
+              <p className="pb-4 text-mute text-sm">
                 {documento
                   ? `Documento: ${documento}`
                   : "Documento não informado"}

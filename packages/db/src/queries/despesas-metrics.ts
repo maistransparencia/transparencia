@@ -528,6 +528,12 @@ export async function getTopFornecedoresExecucaoMetrics(options: {
       .where("ano", "=", year)
       .where("fonte", "=", "exercicio")
       .where("empresa_id", "in", empresaIds)
+      .where((eb) =>
+        eb.or([
+          eb("grupo_natureza", "is", null),
+          eb("grupo_natureza", "!=", "1"),
+        ]),
+      )
       .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj"])
       .orderBy("total_pago", "desc")
       .limit(limit)

@@ -133,7 +133,7 @@ export default async function DespesasPage({
         </KPIGrid>
 
         <figure
-          className="m-0 space-y-3"
+          className="m-0 mb-8 space-y-3"
           aria-label="Comparação entre as três etapas, cada uma sobre o valor reservado"
         >
           {etapasComparadas.map((etapa) => (
@@ -160,7 +160,7 @@ export default async function DespesasPage({
             <span>Como ler estes números: as três etapas não se somam</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 max-w-[70ch] space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
             <p>
               Uma compra pública tem três passos: a prefeitura{" "}
               <strong>reserva</strong> o valor (empenho),{" "}
@@ -193,7 +193,7 @@ export default async function DespesasPage({
         <section className="space-y-6">
           <SectionHeader
             title="Quem mais recebeu"
-            description={`As empresas e pessoas que mais receberam em ${selectedYear}, com a parte de cada uma no total pago.`}
+            description={`As empresas e pessoas que mais receberam em ${selectedYear}, com a parte de cada uma no total pago. A folha de pagamento dos servidores não entra nesta lista.`}
           />
           <DespesasFornecedoresSection fornecedores={fornecedoresLinhas} />
         </section>
@@ -271,7 +271,7 @@ export default async function DespesasPage({
             <span>O que são restos a pagar?</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 max-w-[70ch] space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
             <p>
               É a conta que sobra de um ano para o outro. Isso é comum:
               contratos assinados no fim do ano podem ser pagos no começo do

@@ -15,22 +15,18 @@ export interface DespesasAreasSectionProps {
 const OPCOES_ETAPA: {
   etapa: EtapaDespesa;
   rotulo: string;
-  nota: string;
 }[] = [
   {
     etapa: "empenhado",
     rotulo: "Reservado",
-    nota: "Mostrando o valor reservado por área.",
   },
   {
     etapa: "liquidado",
     rotulo: "Serviço entregue",
-    nota: "Mostrando o valor de serviços já entregues por área.",
   },
   {
     etapa: "pago",
     rotulo: "Dinheiro que saiu",
-    nota: "Mostrando o dinheiro que já saiu por área.",
   },
 ];
 
@@ -41,8 +37,6 @@ export function DespesasAreasSection({
 
   if (areasPorEtapa.pago.length === 0) return null;
 
-  const opcaoAtual =
-    OPCOES_ETAPA.find((opcao) => opcao.etapa === etapa) ?? OPCOES_ETAPA[2];
   const linhas = areasPorEtapa[etapa];
 
   return (
@@ -59,13 +53,9 @@ export function DespesasAreasSection({
           </SegmentedButton>
         ))}
       </fieldset>
-      <p className="text-mute2 text-sm">{opcaoAtual?.nota}</p>
-      <div className="border-line border-t">
+      <div>
         {linhas.map((area) => (
-          <details
-            key={`${area.codigo}-${area.nome}`}
-            className="group border-line border-b"
-          >
+          <details key={`${area.codigo}-${area.nome}`} className="group">
             <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
               <span className="font-medium text-ink text-sm">
                 {area.nome}
@@ -88,15 +78,15 @@ export function DespesasAreasSection({
               </span>
             </summary>
             <dl className="space-y-1.5 pb-4 text-mute text-sm">
-              <div className="flex justify-between gap-3 border-line2 border-t pt-1.5">
+              <div className="flex justify-between gap-3">
                 <dt>Reservado</dt>
                 <dd className="tabular-nums">{fmtCompact(area.empenhado)}</dd>
               </div>
-              <div className="flex justify-between gap-3 border-line2 border-t pt-1.5">
+              <div className="flex justify-between gap-3">
                 <dt>Serviço entregue</dt>
                 <dd className="tabular-nums">{fmtCompact(area.liquidado)}</dd>
               </div>
-              <div className="flex justify-between gap-3 border-line2 border-t pt-1.5">
+              <div className="flex justify-between gap-3">
                 <dt>Dinheiro que saiu</dt>
                 <dd className="tabular-nums">{fmtCompact(area.pago)}</dd>
               </div>
