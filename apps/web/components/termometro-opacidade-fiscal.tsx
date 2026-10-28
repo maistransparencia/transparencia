@@ -373,100 +373,107 @@ export function TermometroOpacidadeFiscal({
           const demaisElementos = data.elementosResidual99.slice(5);
 
           return (
-            <div className="mt-6 space-y-3.5 border-line border-t pt-5">
-              <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
-                <div>
-                  <h3 className="font-semibold text-ink text-sm">
-                    Concentração por Elemento Pai (Subitens .99)
-                  </h3>
-                  <p className="text-mute2 text-xs">
-                    Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
-                    pagos em .99 entre as naturezas orçamentárias
-                  </p>
+            <details className="group mt-6 border-line border-t pt-4">
+              <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                  <span>Concentração por Elemento Pai (Subitens .99)</span>
+                  <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
+                    Top {top5Elementos.length} de{" "}
+                    {data.elementosResidual99.length} naturezas
+                  </span>
                 </div>
-                <span className="font-medium text-[11px] text-mute2">
-                  Top {top5Elementos.length} de{" "}
-                  {data.elementosResidual99.length} naturezas
-                </span>
-              </div>
+                <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
+              </summary>
 
-              {/* Callout Narrativo do Achado Principal */}
-              {elemPrincipal && elemPrincipal.percentualDoResidual99 >= 30 && (
-                <div className="border-warn border-l-2 bg-banbg py-3 pr-3 pl-3 text-banfg text-xs">
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-                      <Lightbulb className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <p className="leading-relaxed">
-                      <strong className="font-bold">
-                        Achado de Concentração:
-                      </strong>{" "}
+              <div className="mt-4 space-y-3.5">
+                <p className="text-mute2 text-xs">
+                  Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
+                  pagos em .99 entre as naturezas orçamentárias
+                </p>
+
+                {/* Callout Narrativo do Achado Principal */}
+                {elemPrincipal &&
+                  elemPrincipal.percentualDoResidual99 >= 30 && (
+                    <div className="border-warn-fill border-l-2 bg-warn-fill/15 py-3 pr-3 pl-3 text-ink text-xs">
+                      <div className="flex items-start gap-2.5">
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center text-warn-text">
+                          <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <p className="leading-relaxed">
+                          <strong className="font-bold">
+                            Achado de Concentração:
+                          </strong>{" "}
+                          <span>
+                            {elemPrincipal.percentualDoResidual99 >= 50
+                              ? "Mais da metade"
+                              : `Cerca de ${fmtPercent(elemPrincipal.percentualDoResidual99)}`}{" "}
+                            ({fmtPercent(elemPrincipal.percentualDoResidual99)})
+                            de todos os gastos sob subitens genéricos está
+                            concentrada no código{" "}
+                            <strong className="font-semibold">
+                              {elemPrincipal.elementoCodigo}.99 (
+                              {elemPrincipal.elementoDescricao})
+                            </strong>
+                            , somando{" "}
+                            <strong className="font-semibold">
+                              {fmtCompact(elemPrincipal.totalPago)}
+                            </strong>
+                            . É nesta rubrica que reside a maior oportunidade de
+                            especificação contábil pelo município.
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Lista dos Top 5 Elementos */}
+                <div className="space-y-2.5 pt-1">
+                  {top5Elementos.map((elem) => (
+                    <ElementoResidualRow
+                      key={elem.elementoCodigo}
+                      elem={elem}
+                    />
+                  ))}
+                </div>
+
+                {/* Expansão das demais naturezas identificadas */}
+                {demaisElementos.length > 0 && (
+                  <details className="group/demais mt-2 border-line border-t pt-3">
+                    <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
                       <span>
-                        {elemPrincipal.percentualDoResidual99 >= 50
-                          ? "Mais da metade"
-                          : `Cerca de ${fmtPercent(elemPrincipal.percentualDoResidual99)}`}{" "}
-                        ({fmtPercent(elemPrincipal.percentualDoResidual99)}) de
-                        todos os gastos sob subitens genéricos está concentrada
-                        no código{" "}
-                        <strong className="font-semibold">
-                          {elemPrincipal.elementoCodigo}.99 (
-                          {elemPrincipal.elementoDescricao})
-                        </strong>
-                        , somando{" "}
-                        <strong className="font-semibold">
-                          {fmtCompact(elemPrincipal.totalPago)}
-                        </strong>
-                        . É nesta rubrica que reside a maior oportunidade de
-                        especificação contábil pelo município.
+                        Ver todas as {data.elementosResidual99.length} naturezas
+                        residuais
                       </span>
-                    </p>
-                  </div>
-                </div>
-              )}
+                      <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
+                    </summary>
+                    <div className="mt-3 space-y-2.5 border-line border-t pt-2.5">
+                      {demaisElementos.map((elem) => (
+                        <ElementoResidualRow
+                          key={elem.elementoCodigo}
+                          elem={elem}
+                        />
+                      ))}
+                    </div>
+                  </details>
+                )}
 
-              {/* Lista dos Top 5 Elementos */}
-              <div className="space-y-2.5 pt-1">
-                {top5Elementos.map((elem) => (
-                  <ElementoResidualRow key={elem.elementoCodigo} elem={elem} />
-                ))}
+                {/* Nota Metodológica Didática */}
+                <p className="border-line border-t pt-2.5 text-[11px] text-mute2 leading-relaxed">
+                  <strong className="font-semibold text-ink">
+                    Nota Metodológica:
+                  </strong>{" "}
+                  Despesas compulsórias por ordem judicial (como Sentenças{" "}
+                  <em>91.99</em>) ou encargos legais (como Contribuições
+                  Patronais <em>13.99</em>) são classificadas como{" "}
+                  <strong>Estruturais</strong> por determinação do plano de
+                  contas da STN. Já contratações de serviços (
+                  <em>39.99/36.99</em>) e materiais (<em>30.99</em>) são
+                  consideradas <strong>Evitáveis</strong>, pois contam com
+                  rubricas específicas na legislação orçamentária para
+                  discriminação do objeto.
+                </p>
               </div>
-
-              {/* Expansão das demais naturezas identificadas */}
-              {demaisElementos.length > 0 && (
-                <details className="group/demais mt-2 border-line border-t pt-3">
-                  <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
-                    <span>
-                      Ver todas as {data.elementosResidual99.length} naturezas
-                      residuais
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
-                  </summary>
-                  <div className="mt-3 space-y-2.5 border-line border-t pt-2.5">
-                    {demaisElementos.map((elem) => (
-                      <ElementoResidualRow
-                        key={elem.elementoCodigo}
-                        elem={elem}
-                      />
-                    ))}
-                  </div>
-                </details>
-              )}
-
-              {/* Nota Metodológica Didática */}
-              <p className="border-line border-t pt-2.5 text-[11px] text-mute2 leading-relaxed">
-                <strong className="font-semibold text-ink">
-                  Nota Metodológica:
-                </strong>{" "}
-                Despesas compulsórias por ordem judicial (como Sentenças{" "}
-                <em>91.99</em>) ou encargos legais (como Contribuições Patronais{" "}
-                <em>13.99</em>) são classificadas como{" "}
-                <strong>Estruturais</strong> por determinação do plano de contas
-                da STN. Já contratações de serviços (<em>39.99/36.99</em>) e
-                materiais (<em>30.99</em>) são consideradas{" "}
-                <strong>Evitáveis</strong>, pois contam com rubricas específicas
-                na legislação orçamentária para discriminação do objeto.
-              </p>
-            </div>
+            </details>
           );
         })()}
 
