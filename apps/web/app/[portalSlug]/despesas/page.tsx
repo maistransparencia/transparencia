@@ -172,12 +172,12 @@ export default async function DespesasPage({
           <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
         )}
 
-        <details className="group border-line border-t pt-4">
+        <details className="group">
           <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
             <span>O que são restos a pagar?</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 max-w-[70ch] space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
             <p>
               Restos a pagar são despesas assumidas em anos anteriores que ainda
               não foram pagas. Elas continuam valendo até serem pagas ou
