@@ -143,7 +143,13 @@ function BarraProporcao({
   );
 }
 
-function DecomposicaoDivida({ linha }: { linha: LinhaRadar }) {
+function DecomposicaoDivida({
+  linha,
+  baixarRegistros,
+}: {
+  linha: LinhaRadar;
+  baixarRegistros?: React.ReactNode;
+}) {
   if (linha.dividaReal <= 0) {
     return (
       <p className="text-mute2 text-xs">
@@ -154,15 +160,14 @@ function DecomposicaoDivida({ linha }: { linha: LinhaRadar }) {
 
   return (
     <div className="space-y-3">
-      <p className="font-semibold text-ink text-xs">
-        Decomposição da dívida real{" "}
-        <span className="font-normal text-mute2">
-          · total{" "}
-          <span className="font-mono tabular-nums">
-            {fmtCurrency(linha.dividaReal)}
-          </span>
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="font-semibold text-ink text-xs">
+          Decomposição da dívida real
+        </p>
+        <span className="text-right font-bold font-mono text-ink text-sm tabular-nums">
+          {fmtCurrency(linha.dividaReal)}
         </span>
-      </p>
+      </div>
       <ul className="space-y-1">
         {linha.decomposicao.map((entidade) => (
           <li
@@ -188,6 +193,7 @@ function DecomposicaoDivida({ linha }: { linha: LinhaRadar }) {
           </li>
         ))}
       </ul>
+      {baixarRegistros}
       <p className="max-w-[70ch] text-mute2 text-xs leading-relaxed">
         A dívida real compreende empenhos liquidados do exercício ainda não
         pagos, somados aos Restos a Pagar de anos anteriores.
@@ -388,14 +394,30 @@ export function RadarGastosSensiveis({
         hideSearch
         enableExportCsv={false}
         recordLabel="categorias"
-        renderExpandedRow={(linha) => <DecomposicaoDivida linha={linha} />}
+        renderExpandedRow={(linha) => (
+          <DecomposicaoDivida
+            linha={linha}
+            baixarRegistros={
+              portalSlug && (
+                <ShowYourWorkButton
+                  variante="link"
+                  rotulo="Baixar registros (CSV)"
+                  portalSlug={portalSlug}
+                  ano={anoAtual}
+                  tipo="gasto_sensivel"
+                  categoria={linha.categoria}
+                  entidades={entidades}
+                  tituloContexto={linha.titulo}
+                  className="sm:hidden"
+                />
+              )
+            }
+          />
+        )}
         renderMobileRow={(linha) => ({
           resumo: (
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="min-w-0 flex-1">{renderCategoria(linha)}</div>
-                {renderMenuAuditoria(linha)}
-              </div>
+              {renderCategoria(linha)}
               <div className="pl-11">
                 <VariacaoBadge linha={linha} anoAnterior={anoAnterior} />
               </div>

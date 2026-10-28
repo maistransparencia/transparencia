@@ -241,7 +241,33 @@ describe("RadarGastosSensiveis Component", () => {
     const auditButtons = screen.getAllByRole("button", {
       name: /opções de auditoria/i,
     });
-    expect(auditButtons.length).toBe(12);
+    expect(auditButtons.length).toBe(6);
+  });
+
+  it("oferece o link Baixar registros (CSV) dentro do accordion expandido", () => {
+    render(
+      <RadarGastosSensiveis
+        itens={sampleItens}
+        anoAtual={2026}
+        anoAnterior={2025}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    expect(
+      screen.queryByText("Baixar registros (CSV)"),
+    ).not.toBeInTheDocument();
+
+    const botao = screen
+      .getAllByText("Locação de Imóveis")
+      .map((el) => el.closest("tr"))
+      .find((tr) => tr !== null)
+      ?.querySelector("button[aria-expanded]");
+    fireEvent.click(botao as HTMLElement);
+
+    expect(
+      screen.getAllByText("Baixar registros (CSV)").length,
+    ).toBeGreaterThan(0);
   });
 
   it("retorna null se a lista de itens estiver vazia", () => {
