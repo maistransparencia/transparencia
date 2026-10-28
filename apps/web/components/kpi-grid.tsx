@@ -19,7 +19,7 @@ export function KPIGrid({
     <div
       className={cn(
         variant === "divisoria"
-          ? "grid divide-x divide-line *:border-e-0 *:py-3 *:first:pl-0 max-sm:divide-y"
+          ? "grid divide-x divide-line *:border-line *:border-e-0 *:py-3 *:first:pl-0 max-sm:divide-y"
           : "grid gap-4",
         variant === "divisoria" &&
           columns === 2 &&

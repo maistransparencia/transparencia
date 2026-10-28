@@ -74,7 +74,27 @@ describe("DespesasPage", () => {
     expect(
       screen.getByText("Radar de Gastos Sensíveis & Controle Fiscal"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Combustíveis & Frotas")).toBeInTheDocument();
+    expect(screen.getAllByText("Combustíveis & Frotas").length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("ano corrente: cabeçalho indica exercício parcial", async () => {
+    loadDespesasDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2026,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        portalConfig: { dataExtracaoDate: "2026-09-30" },
+      }),
+    );
+
+    render(await DespesasPage(props));
+
+    expect(screen.getByText(/EXERCÍCIO 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/PARCIAL/)).toBeInTheDocument();
   });
 
   it("esconde seções condicionais quando as listas vêm vazias", async () => {

@@ -7,7 +7,8 @@ import {
   MoreVertical,
 } from "lucide-react";
 import posthog from "posthog-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export interface ShowYourWorkButtonProps {
   portalSlug: string;
@@ -47,7 +48,13 @@ export function ShowYourWorkButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [posicaoMenu, setPosicaoMenu] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const botaoRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -61,12 +68,19 @@ export function ShowYourWorkButton({
     if (!isOpen) return;
 
     function handleClickOutside(event: MouseEvent) {
+      const alvo = event.target as Node;
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        !containerRef.current.contains(alvo) &&
+        !menuRef.current?.contains(alvo)
       ) {
         setIsOpen(false);
       }
+    }
+
+    // O menu é fixo em relação à janela; fechar ao rolar/redimensionar evita que fique solto.
+    function fecharMenu() {
+      setIsOpen(false);
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -77,11 +91,32 @@ export function ShowYourWorkButton({
 
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", fecharMenu);
+    window.addEventListener("scroll", fecharMenu, true);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", fecharMenu);
+      window.removeEventListener("scroll", fecharMenu, true);
     };
+  }, [isOpen]);
+
+  // Portal + posição fixa: contêineres com overflow (ex.: DenseTable) não cortam o menu.
+  useLayoutEffect(() => {
+    if (!isOpen || !botaoRef.current) {
+      setPosicaoMenu(null);
+      return;
+    }
+    const botao = botaoRef.current.getBoundingClientRect();
+    const alturaMenu = menuRef.current?.offsetHeight ?? 0;
+    const cabeAbaixo = botao.bottom + 6 + alturaMenu <= window.innerHeight;
+    setPosicaoMenu({
+      top: cabeAbaixo
+        ? botao.bottom + 6
+        : Math.max(8, botao.top - 6 - alturaMenu),
+      right: Math.max(8, window.innerWidth - botao.right),
+    });
   }, [isOpen]);
 
   const handleDownload = async () => {
@@ -206,6 +241,7 @@ export function ShowYourWorkButton({
     <div ref={containerRef} className={`relative inline-block ${className}`}>
       {/* Botão sutil de 3 pontos (Menu) */}
       <button
+        ref={botaoRef}
         type="button"
         onClick={() => {
           setIsOpen((prev) => !prev);
@@ -221,54 +257,62 @@ export function ShowYourWorkButton({
       </button>
 
       {/* Menu Dropdown Suspenso */}
-      {isOpen && (
-        <div
-          className="absolute top-full right-0 z-40 mt-1.5 min-w-60 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
-          role="menu"
-        >
-          <div className="mb-1 border-slate-100 border-b px-2 pb-1.5">
-            <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
-              Auditoria Cívica
-            </span>
-            {tituloContexto && (
-              <p className="truncate font-medium text-slate-700 text-xs">
-                {tituloContexto}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 focus:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            role="menuitem"
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="fixed z-50 min-w-60 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
+            style={{
+              top: posicaoMenu?.top ?? 0,
+              right: posicaoMenu?.right ?? 0,
+              visibility: posicaoMenu ? "visible" : "hidden",
+            }}
+            role="menu"
           >
-            {isDownloading ? (
-              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" />
-            ) : (
-              <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
-            )}
-            <div className="flex flex-col">
-              <span className="font-medium text-slate-800 text-xs">
-                {isDownloading
-                  ? "Gerando planilha..."
-                  : "Baixar registros (CSV)"}
+            <div className="mb-1 border-slate-100 border-b px-2 pb-1.5">
+              <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
+                Auditoria Cívica
               </span>
-              <span className="text-[10px] text-slate-400">
-                Planilha empenho a empenho
-              </span>
+              {tituloContexto && (
+                <p className="truncate font-medium text-slate-700 text-xs">
+                  {tituloContexto}
+                </p>
+              )}
             </div>
-          </button>
 
-          {errorMessage && (
-            <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-rose-100 bg-rose-50 p-2 text-rose-700 text-xs">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 focus:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              role="menuitem"
+            >
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" />
+              ) : (
+                <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
+              )}
+              <div className="flex flex-col">
+                <span className="font-medium text-slate-800 text-xs">
+                  {isDownloading
+                    ? "Gerando planilha..."
+                    : "Baixar registros (CSV)"}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  Planilha empenho a empenho
+                </span>
+              </div>
+            </button>
+
+            {errorMessage && (
+              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-rose-100 bg-rose-50 p-2 text-rose-700 text-xs">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

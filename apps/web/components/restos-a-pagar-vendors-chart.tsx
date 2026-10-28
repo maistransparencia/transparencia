@@ -25,23 +25,21 @@ export function RestosAPagarVendorsChart({
   const maxVal = Math.max(...items.map(getVal), 1);
 
   return (
-    <div
-      className={`space-y-4 rounded-2xl border border-borderLine bg-white p-6 ${className}`}
-    >
+    <div className={`space-y-4 border-line border-y py-5 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         {title && <h4 className="font-bold text-base text-ink">{title}</h4>}
 
         {/* Legenda Stacked */}
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-600" />
-            <span className="font-medium text-ink/70">
+            <span className="h-2.5 w-2.5 rounded-sm bg-warn-fill" />
+            <span className="font-medium text-mute2">
               Liquidado (Dívida Real)
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-            <span className="font-medium text-ink/70">
+            <span className="h-2.5 w-2.5 rounded-sm bg-brand" />
+            <span className="font-medium text-mute2">
               Empenhado (Não Processado)
             </span>
           </div>
@@ -77,19 +75,19 @@ export function RestosAPagarVendorsChart({
               {/* Stacked Bar sem fundo cinza total para evitar falsa ideia de progresso */}
               <div className="flex h-3.5 w-full items-center">
                 <div
-                  className="flex h-full overflow-hidden rounded-full transition-all duration-300"
+                  className="flex h-full overflow-hidden rounded-sm transition-all duration-300"
                   style={{ width: `${barWidthPct}%` }}
                 >
                   {liq > 0 && (
                     <div
-                      className="h-full bg-amber-600"
+                      className="h-full bg-warn-fill"
                       style={{ width: `${liqPct}%` }}
                       title={`Liquidado (Dívida Real): ${fmtCompact(liq)}`}
                     />
                   )}
                   {naoProc > 0 && (
                     <div
-                      className="h-full bg-amber-300"
+                      className="h-full bg-brand"
                       style={{ width: `${naoProcPct}%` }}
                       title={`Empenhado (Não Processado): ${fmtCompact(naoProc)}`}
                     />
@@ -97,7 +95,7 @@ export function RestosAPagarVendorsChart({
                 </div>
               </div>
 
-              <div className="flex justify-between text-[11px] text-ink/60">
+              <div className="flex justify-between text-[11px] text-mute2">
                 {total === 0 ? (
                   <span>Sem pendências</span>
                 ) : (

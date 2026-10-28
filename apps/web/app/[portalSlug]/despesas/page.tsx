@@ -1,9 +1,14 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  KPICard,
+  SectionHeader,
+} from "@transparencia/ui";
+import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import { KPIGrid } from "@/components/kpi-grid";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
-import { SectionHeader } from "@/components/section-header";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
@@ -59,14 +64,14 @@ export default async function DespesasPage({
     <div className="space-y-10">
       {/* Header Principal */}
       <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-          FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
+        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
+          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
         <h1 className="font-bold font-serif text-3xl text-ink">
           Despesas & Controle de Gastos
         </h1>
-        <p className="mt-1 max-w-3xl text-sm text-subtleText leading-relaxed">
+        <p className="mt-1 max-w-3xl text-mute2 text-sm leading-relaxed">
           Onde o dinheiro municipal foi aplicado: termômetro de desembolso real,
           radar de contas sensíveis com comparativo interanual e auditoria de
           passivos herdados.
@@ -74,23 +79,27 @@ export default async function DespesasPage({
       </div>
 
       {/* Ato 1: Termômetro Macro do Exercício (4 KPIs) */}
-      <KPIGrid columns={4}>
+      <KPIGrid columns={4} variant="divisoria">
         <KPICard
+          variant="divisoria"
           title="Total empenhado"
           value={fmtCompact(metricasGerais.empenhado)}
           subtext={`no exercício ${selectedYear}`}
         />
         <KPICard
+          variant="divisoria"
           title="Total liquidado"
           value={fmtCompact(metricasGerais.liquidado)}
           subtext="serviços e bens atestados"
         />
         <KPICard
+          variant="divisoria"
           title="Total pago"
           value={fmtCompact(metricasGerais.pago)}
           subtext="desembolso efetivo de caixa"
         />
         <KPICard
+          variant="divisoria"
           title="Taxa de quitação"
           value={fmtPercent(metricasGerais.taxaPagamento)}
           subtext={`${fmtPercent(metricasGerais.taxaLiquidacao)} liquidado`}
@@ -101,11 +110,7 @@ export default async function DespesasPage({
       <section className="space-y-6">
         <SectionHeader
           title="Radar de Gastos Sensíveis & Controle Fiscal"
-          description={
-            isCurrentYear
-              ? `Acompanhamento das contas mais vigiadas pelo munícipe e peso relativo no orçamento pago de ${selectedYear}.`
-              : `Acompanhamento das contas mais vigiadas pelo munícipe e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`
-          }
+          description={`Acompanhamento das contas mais vigiadas pelo munícipe, peso de cada categoria no orçamento pago de ${selectedYear} e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`}
         />
 
         <RadarGastosSensiveis
@@ -114,7 +119,6 @@ export default async function DespesasPage({
           anoAnterior={radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}
           portalSlug={portalSlug}
           entidades={resolvedSearchParams.entidades}
-          isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
 
@@ -135,37 +139,13 @@ export default async function DespesasPage({
           description="Despesas contratadas em exercícios passados ainda não quitadas pela prefeitura."
         />
 
-        {/* Banner Informativo Visível */}
-        <div className="space-y-2.5 rounded-xl border-[#2B5278] border-l-4 bg-[#F0F6FD] p-4 text-[#1B3A5A] text-sm leading-relaxed">
-          <p>
-            São despesas empenhadas em anos anteriores ainda não pagas —
-            compromissos legais que continuam válidos até serem quitados ou
-            cancelados.
-          </p>
-          <div className="border-[#d0e2f7] border-t pt-2.5 text-[#20456c] text-xs">
-            <strong className="mb-1 block font-semibold text-[#132c46]">
-              Categorização Contábil (Norma STN/MCASP):
-            </strong>
-            <ul className="space-y-1">
-              <li>
-                • <strong>Restos Processados:</strong> Dívidas de serviços já
-                prestados ou bens entregues e liquidados (com direito adquirido
-                do credor).
-              </li>
-              <li>
-                • <strong>Restos Não Processados:</strong> Obras ou contratos em
-                andamento pendentes de medição e liquidação.
-              </li>
-            </ul>
-          </div>
-        </div>
-
         {/* 3 KPI Grid */}
-        <KPIGrid columns={3}>
+        <KPIGrid columns={3} variant="divisoria">
           <KPICard
+            variant="divisoria"
             title="Total pendente"
             value={
-              <span className="font-bold text-amber-900">
+              <span className="font-bold text-warn">
                 {fmtCompact(restosResumo.totalPendente)}
               </span>
             }
@@ -176,10 +156,12 @@ export default async function DespesasPage({
             }
           />
           <KPICard
+            variant="divisoria"
             title="Fornecedores aguardando"
             value={restosResumo.fornecedoresAguardando}
           />
           <KPICard
+            variant="divisoria"
             title="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
           />
@@ -189,6 +171,37 @@ export default async function DespesasPage({
         {restosResumo.topFornecedores.length > 0 && (
           <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
         )}
+
+        <details className="group">
+          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+            <span>O que são restos a pagar?</span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
+            <p>
+              Restos a pagar são despesas assumidas em anos anteriores que ainda
+              não foram pagas. Elas continuam valendo até serem pagas ou
+              canceladas.
+            </p>
+            <p>Há dois tipos:</p>
+            <ul className="space-y-1.5">
+              <li>
+                • <strong>Já entregues e conferidos</strong> (restos
+                processados): o fornecedor já fez o serviço ou entregou o bem, e
+                a prefeitura ainda não pagou.
+              </li>
+              <li>
+                • <strong>Ainda em andamento</strong> (restos não processados):
+                obra ou contrato em andamento, que ainda precisa de conferência
+                antes do pagamento.
+              </li>
+            </ul>
+            <p className="text-mute2">
+              Ter resto a pagar não indica erro. Boa parte é prazo normal de
+              execução. Para entender cada caso, vale consultar o processo.
+            </p>
+          </div>
+        </details>
       </section>
     </div>
   );
