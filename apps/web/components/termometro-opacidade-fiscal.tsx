@@ -80,65 +80,46 @@ function ElementoResidualRow({
   const pct = Math.max(0, Math.min(100, elem.percentualDoResidual99 || 0));
 
   return (
-    <div className="space-y-1">
-      {/* Topo: Código, Descrição e Badge de Classificação */}
-      <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <span className="shrink-0 font-bold text-[11px] text-ink">
-            {elem.elementoCodigo}.99
-          </span>
-          <span
-            className="truncate font-medium text-ink"
-            title={elem.elementoDescricao}
-          >
-            {elem.elementoDescricao}
-          </span>
-        </div>
-        {elem.tipoResidual === "estrutural" ? (
-          <span
-            className="inline-flex shrink-0 items-center rounded-md border border-line px-1.5 py-0.5 font-medium text-[11px] text-mute2"
-            title="Obrigatório por lei ou decisão judicial"
-          >
-            Obrigatório por lei
-          </span>
-        ) : (
-          <span
-            className="inline-flex shrink-0 items-center rounded-md border border-warn px-1.5 py-0.5 font-medium text-[11px] text-warn"
-            title="Poderia ter sido registrado com mais detalhe"
-          >
-            Poderia ser detalhado
-          </span>
-        )}
-      </div>
+    <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3">
+      <span className="font-medium text-ink text-sm">
+        <span className="mr-2 font-mono text-mute2 text-xs">
+          {elem.elementoCodigo}.99
+        </span>
+        {elem.elementoDescricao}
+        <span className="ml-2 font-mono text-mute2 text-xs">
+          {fmtPercent(elem.percentualDoResidual99)}
+        </span>
+      </span>
+      <span className="text-right text-ink text-sm tabular-nums">
+        {fmtCompact(elem.totalPago)}
+      </span>
 
-      {/* Centro: Barra de Progresso Horizontal em Largura Total */}
       <div
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`Percentual do elemento ${elem.elementoCodigo}.99`}
-        className="h-1.5 w-full overflow-hidden rounded-sm bg-track"
+        className="col-span-full block h-1.5 w-full overflow-hidden bg-track"
       >
-        <div
-          className={`h-full rounded-sm transition-all duration-300 ${
-            elem.tipoResidual === "estrutural" ? "bg-brand" : "bg-mute"
-          }`}
-          style={{
-            width: `${pct}%`,
-          }}
-        />
+        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
 
-      {/* Abaixo da barra: Linha com Valor Monetário e Percentual */}
-      <div className="flex items-center justify-between text-mute2 text-xs">
-        <span className="font-semibold text-ink">
-          {fmtCompact(elem.totalPago)}
+      {elem.tipoResidual === "estrutural" ? (
+        <span
+          className="col-span-full text-mute2 text-xs"
+          title="Obrigatório por lei ou decisão judicial"
+        >
+          Obrigatório por lei
         </span>
-        <span className="font-medium text-[11px] text-mute2">
-          {fmtPercent(elem.percentualDoResidual99)}
+      ) : (
+        <span
+          className="col-span-full text-warn text-xs"
+          title="Poderia ter sido registrado com mais detalhe"
+        >
+          Poderia ser detalhado
         </span>
-      </div>
+      )}
     </div>
   );
 }
@@ -219,12 +200,9 @@ export function TermometroOpacidadeFiscal({
 
       {/* Termômetro Visual com Legendas Alinhadas com os Marcadores */}
       <div className="mt-6 space-y-3 py-4">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-ink">
-            Parte dos pagamentos em &ldquo;Outros&rdquo;:{" "}
-            <span className={`font-bold text-base ${risco.textColor}`}>
-              {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
-            </span>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs">
+          <span className="font-medium text-ink text-sm">
+            Parte dos pagamentos em &ldquo;Outros&rdquo;
           </span>
           <span className="text-mute2">
             Referência do portal: até {limiares.limiteAtencaoPct}% é comum ·
@@ -232,15 +210,21 @@ export function TermometroOpacidadeFiscal({
           </span>
         </div>
 
+        <p
+          className={`font-bold text-4xl tabular-nums leading-none ${risco.textColor}`}
+        >
+          {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
+        </p>
+
         {/* Barra de Progresso com Marcadores */}
-        <div className="relative h-4 w-full overflow-hidden rounded-sm bg-track">
+        <div className="relative h-3.5 w-full overflow-hidden bg-track">
           <div
             className={`h-full transition-all duration-500 ${risco.barClass}`}
             style={{ width: `${taxaExibida}%` }}
           />
           {/* Marcador de 15% */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-mute2"
+            className="absolute top-0 bottom-0 w-0.5 bg-ink"
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
             title={`Merece atenção (${limiares.limiteAtencaoPct}%)`}
           />
@@ -405,7 +389,7 @@ export function TermometroOpacidadeFiscal({
                   </p>
 
                   {/* Lista dos Top 5 Elementos */}
-                  <div className="space-y-2.5 pt-1">
+                  <div>
                     {top5Elementos.map((elem) => (
                       <ElementoResidualRow
                         key={elem.elementoCodigo}
@@ -416,14 +400,14 @@ export function TermometroOpacidadeFiscal({
 
                   {/* Expansão das demais naturezas identificadas */}
                   {demaisElementos.length > 0 && (
-                    <details className="group/demais mt-2 border-line border-t pt-3">
+                    <details className="group/demais mt-2 pt-3">
                       <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
                         <span>
                           Ver todos os {data.elementosResidual99.length} tipos
                         </span>
                         <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
                       </summary>
-                      <div className="mt-3 space-y-2.5 border-line border-t pt-2.5">
+                      <div className="mt-1">
                         {demaisElementos.map((elem) => (
                           <ElementoResidualRow
                             key={elem.elementoCodigo}
