@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Remédios só com lote vencido na Farmácia SUS)
+* **Remédio só com lote vencido não parece mais disponível:** Na busca, no índice A–Z e nos remédios essenciais da Farmácia SUS, o remédio cujos lotes com saldo estão todos vencidos deixa de ser um link e aparece como "Sem lote dentro da validade na lista", com o botão "Pedir esclarecimento". Isso aparece também quando a busca traz outros remédios. A lista não prova falta de estoque nem entrega de remédio vencido.
+* **Mesmo critério em todas as telas:** Só conta como lote utilizável o que tem saldo maior que zero e validade em dia (ou sem validade informada), na busca, no índice e no indicador de lotes a vencer.
+
 ### 🌟 Destaques da Versão (Mapa da Farmácia SUS sem prender a rolagem)
 * **Rolar a página sem travar no mapa:** No mapa das unidades da Farmácia SUS, a roda do mouse só aplica zoom com Ctrl (⌘ no Mac) pressionado, e no celular o mapa só se move com dois dedos. Com um dedo, a página continua rolando normalmente, e um aviso explica como mexer no mapa. É o mesmo comportamento do mapa de obras.
 

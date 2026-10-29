@@ -40,6 +40,7 @@ function indice(
           {
             nomeMedicamento: "Amoxicilina",
             unidadesComEstoque: 3,
+            semLoteValido: null,
             href: "/p/farmacia?q=Amoxicilina#resultados",
           },
         ],
@@ -55,6 +56,52 @@ function indice(
 }
 
 describe("FarmaciaIndiceAz", () => {
+  it("remedio so com lote vencido nao e link e oferece o pedido de esclarecimento", () => {
+    const base = indice();
+    const grupo = base.grupos[0];
+    const medicamento = grupo?.medicamentos[0];
+    if (!grupo || !medicamento) throw new Error("fixture sem medicamento");
+    render(
+      <FarmaciaIndiceAz
+        idSecao="indice"
+        indice={{
+          ...base,
+          grupos: [
+            {
+              ...grupo,
+              medicamentos: [
+                {
+                  ...medicamento,
+                  nomeMedicamento: "Captopril",
+                  href: null,
+                  semLoteValido: {
+                    rotulo: "Sem lote dentro da validade na lista",
+                    caminhoCompartilhamento:
+                      "/p/farmacia?q=Captopril#resultados",
+                    pedido: { texto: "Pedido", textoWhatsApp: "Zap" },
+                  },
+                },
+                medicamento,
+              ],
+            },
+          ],
+        }}
+      />,
+    );
+    expect(
+      screen.getAllByText("Sem lote dentro da validade na lista"),
+    ).toHaveLength(1);
+    expect(screen.queryByRole("link", { name: /Captopril/ })).toBeNull();
+    expect(
+      screen.getByRole("button", {
+        name: "Pedir esclarecimento sobre Captopril",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Amoxicilina/ }),
+    ).toBeInTheDocument();
+  });
+
   it("marca A–Z, desabilita letra sem itens e linka as demais", () => {
     render(<FarmaciaIndiceAz indice={indice()} idSecao="indice" />);
     const nav = screen.getByRole("navigation", { name: "Índice alfabético" });

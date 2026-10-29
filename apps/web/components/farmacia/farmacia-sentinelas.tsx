@@ -14,7 +14,13 @@ export interface FarmaciaSentinelaItem {
   nomePrincipioAtivo: string;
   codigoCategoria: string;
   rotuloCategoria: string;
-  status: "no_estoque" | "somente_combinacao" | "sem_registro";
+  status:
+    | "no_estoque"
+    | "somente_vencido"
+    | "somente_combinacao"
+    | "sem_registro";
+  /** Rótulo do estado sem lote válido; nulo nos demais. */
+  rotuloSituacao?: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
@@ -38,6 +44,14 @@ function chipClasse(ativo: boolean): string {
   return `rounded-full border px-3 py-[5px] text-[13px] ${ativo ? "border-ink bg-ink text-white" : "border-borderLine bg-white text-ink"}`;
 }
 
+function rotuloDoStatus(item: FarmaciaSentinelaItem): string {
+  if (item.status === "somente_vencido" && item.rotuloSituacao) {
+    return item.rotuloSituacao;
+  }
+  if (item.status === "somente_combinacao") return "só em combinação";
+  return "não aparece no estoque";
+}
+
 function RotuloDisponibilidade({
   item,
   totalUnidadesAtivas,
@@ -54,11 +68,7 @@ function RotuloDisponibilidade({
     );
   }
   return (
-    <span className="text-[11px] text-attention">
-      {item.status === "somente_combinacao"
-        ? "só em combinação"
-        : "não aparece no estoque"}
-    </span>
+    <span className="text-[11px] text-attention">{rotuloDoStatus(item)}</span>
   );
 }
 
@@ -168,7 +178,16 @@ function PedidoEsclarecimentoConteudo({
   );
 }
 
-function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
+export type PedidoEsclarecimentoItem = Pick<
+  FarmaciaSentinelaItem,
+  "codigoPrincipioAtivo" | "nomePrincipioAtivo" | "href" | "pedido"
+> & { rotuloSituacao?: string | null };
+
+export function PedidoEsclarecimento({
+  item,
+}: {
+  item: PedidoEsclarecimentoItem;
+}) {
   const [aberto, setAberto] = useState(false);
   const editouRef = useRef(false);
   if (!item.pedido) return null;
@@ -210,7 +229,7 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         isOpen={aberto}
         onClose={fechar}
         title="Pedir esclarecimento"
-        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque`}
+        subtitle={`${item.nomePrincipioAtivo} · ${item.rotuloSituacao ?? "não aparece no estoque"}`}
         subtitleClassName="line-clamp-2"
         badge={
           <span className="inline-flex items-center gap-1 text-slate-500 text-xs">

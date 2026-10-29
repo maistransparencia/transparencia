@@ -268,6 +268,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
         destaqueCardInicial: false,
         unidadesComRegistro: 1,
         unidadesSomenteCombinacao: 0,
+        unidadesSomenteLoteVencido: 0,
       },
     ];
     const [essencial] = buildFarmaciaViewModel(raw).essenciais;
@@ -471,6 +472,8 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     totalLotesAVencer: 2,
     totalRemediosAVencer: 1,
     totalLotesVencidosComSaldo: 0,
+    totalRemediosSomenteVencidos: 0,
+    totalLotesRemediosSomenteVencidos: 0,
     dataVencimentoMaisProxima: "2026-11-05",
   };
   const comLotes = (valor: unknown) =>
@@ -484,9 +487,43 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
     );
     expect(indicador?.valor).toBe("2");
     expect(indicador?.rotulo).toContain("60");
-    expect(indicador?.nota).toContain("1 remédio");
-    expect(indicador?.nota).toContain("05/11/2026");
+    expect(indicador?.nota).toBe(
+      "2 lotes, de 1 remédio. O primeiro vence em 05/11/2026.",
+    );
+    expect(indicador?.detalhe).toBeNull();
   });
+
+  it("explica que lotes e remedios sao contagens diferentes", () => {
+    const indicador = buildFarmaciaViewModel(
+      comLotes({ ...lotes, totalLotesAVencer: 36, totalRemediosAVencer: 23 }),
+    ).indicadores.find((i) => i.codigo === "lotes_a_vencer");
+    expect(indicador?.valor).toBe("36");
+    expect(indicador?.nota).toContain("36 lotes, de 23 remédios diferentes.");
+  });
+
+  it.each([
+    [1, 1, "1 remédio tem só lote com a validade vencida (1 lote)."],
+    [102, 162, "102 remédios têm só lotes com a validade vencida (162 lotes)."],
+  ])(
+    "mostra remedios so com lotes vencidos (%i remedios, %i lotes)",
+    (remedios, lotesVencidos, trecho) => {
+      const indicador = buildFarmaciaViewModel(
+        comLotes({
+          ...lotes,
+          totalRemediosSomenteVencidos: remedios,
+          totalLotesRemediosSomenteVencidos: lotesVencidos,
+        }),
+      ).indicadores.find((i) => i.codigo === "lotes_a_vencer");
+      expect(indicador?.nota).not.toContain("Na lista de estoque");
+      expect(indicador?.detalhe?.paragrafos[0]).toBe(
+        `Na lista de estoque mais recente, ${trecho}`,
+      );
+      expect(indicador?.detalhe?.paragrafos[1]).toContain(
+        "Não significa que o remédio",
+      );
+      expect(indicador?.notaAtencao).toBe(true);
+    },
+  );
 
   it("com tudo ja vencido mostra 0 a vencer e os vencidos com saldo", () => {
     const indicador = buildFarmaciaViewModel(
@@ -495,13 +532,16 @@ describe("buildFarmaciaViewModel lotes a vencer", () => {
         totalLotesAVencer: 0,
         totalRemediosAVencer: 0,
         totalLotesVencidosComSaldo: 2,
+        totalRemediosSomenteVencidos: 2,
+        totalLotesRemediosSomenteVencidos: 2,
         dataVencimentoMaisProxima: null,
       }),
     ).indicadores.find((i) => i.codigo === "lotes_a_vencer");
     expect(indicador?.valor).toBe("0");
     expect(indicador?.nota).toContain("Nenhum vence em até 60 dias");
-    expect(indicador?.nota).toContain(
-      "2 lotes aparecem como vencidos na lista de estoque mais recente",
+    expect(indicador?.detalhe?.resumo).toBe("2 remédios só com lote vencido");
+    expect(indicador?.detalhe?.paragrafos[0]).toContain(
+      "2 remédios têm só lotes com a validade vencida (2 lotes)",
     );
     expect(indicador?.notaAtencao).toBe(true);
   });
@@ -545,7 +585,12 @@ describe("buildIndiceAz", () => {
     letrasVisiveis: 2,
     itensVisiveis: 25,
   };
+  const contextoPedido = {
+    portalName: "Prefeitura de Teste",
+    dataPosicaoMaisRecente: "2026-10-18",
+  };
   const parametros = {
+    contextoPedido,
     portalSlug: "portal_x",
     indice,
     context: contexto,
@@ -677,5 +722,138 @@ describe("buildIndiceAz", () => {
     });
     expect(comNumeros?.rotuloLetraSelecionada).toBe("0–9");
     expect(buildIndiceAz(parametros)?.chips).toHaveLength(27);
+  });
+});
+
+describe("remedio so com lote vencido", () => {
+  const contexto = {
+    portalName: "Prefeitura de Teste",
+    dataPosicaoMaisRecente: "2026-10-18",
+  };
+
+  it("o pedido troca a constatacao e pede lote dentro da validade, mantendo a base legal", () => {
+    const texto = buildPedidoEsclarecimento({
+      ...contexto,
+      nomeMedicamento: "Captopril",
+      situacao: "somente_vencido",
+    });
+    expect(texto).toContain("arts. 10 e 11 da Lei nº 12.527/2011");
+    expect(texto).toContain("art. 6º-A da Lei nº 8.080/1990");
+    expect(texto).toContain(
+      "todos os lotes desse item que constam na lista estão com a validade vencida",
+    );
+    expect(texto).not.toContain("até a baixa");
+    expect(texto).toContain(
+      "Peço informar se há lote desse medicamento dentro da validade em alguma unidade e, se não houver, a previsão de reposição.",
+    );
+    expect(texto).not.toContain("não consta registro de estoque");
+  });
+
+  it("o texto do WhatsApp diz que os lotes estao vencidos na lista", () => {
+    const texto = buildTextoWhatsAppPedido({
+      portalName: contexto.portalName,
+      nomeMedicamento: "Captopril",
+      situacao: "somente_vencido",
+    });
+    expect(texto).toContain(
+      "Na lista de estoque divulgada, todos os lotes desse remédio estão com a validade vencida.",
+    );
+    expect(texto).not.toContain("não aparece na lista");
+  });
+
+  it("essencial so com lote vencido tem estado proprio, pedido e resumo no cartao", () => {
+    const raw = makeRaw({});
+    raw.sentinelas.sentinelas = [
+      {
+        codigoPrincipioAtivo: "captopril",
+        nomePrincipioAtivo: "Captopril",
+        grupoTerapeutico: "cardiovascular",
+        ordemExibicao: 1,
+        destaqueCardInicial: false,
+        unidadesComRegistro: 0,
+        unidadesSomenteCombinacao: 0,
+        unidadesSomenteLoteVencido: 2,
+      },
+    ];
+    raw.sentinelas.indicadores = {
+      totalEssenciais: 1,
+      essenciaisNoEstoque: 0,
+      essenciaisSomenteLoteVencido: 1,
+      essenciaisSomenteCombinacao: 0,
+      essenciaisSemRegistro: 0,
+    };
+    const vm = buildFarmaciaViewModel(raw);
+    expect(vm.essenciais[0]).toMatchObject({
+      status: "somente_vencido",
+      rotuloSituacao: "Sem lote dentro da validade na lista",
+    });
+    expect(vm.essenciais[0]?.pedido?.texto).toContain("validade vencida");
+    const cartao = vm.indicadores.find(
+      (i) => i.codigo === "essenciais_no_estoque",
+    );
+    expect(cartao?.valor).toBe("0 de 1");
+    expect(cartao?.nota).toBe("1 só com lote vencido");
+  });
+
+  it("no indice, o remedio so vencido perde o link e ganha o pedido", () => {
+    const indice = {
+      status: "conforme",
+      totalUnidades: 4,
+      letrasDisponiveis: ["C"],
+      totalLetras: 1,
+      letras: [
+        {
+          letra: "C",
+          totalMedicamentos: 2,
+          medicamentos: [
+            {
+              nomeMedicamento: "Captopril",
+              unidadesComEstoque: 0,
+              situacaoValidade: "somente_vencido",
+            },
+            {
+              nomeMedicamento: "Carvedilol",
+              unidadesComEstoque: 2,
+              situacaoValidade: "com_lote_valido",
+            },
+          ],
+        },
+      ],
+    } as never;
+    const vm = buildIndiceAz({
+      portalSlug: "portal_x",
+      indice,
+      context: { busca: "", letra: "", letrasVisiveis: 6, itensVisiveis: 25 },
+      totalUnidadesAtivas: 4,
+      passoLetras: 6,
+      passoItens: 25,
+      contextoPedido: contexto,
+    });
+    const [captopril, carvedilol] = vm?.grupos[0]?.medicamentos ?? [];
+    expect(captopril?.href).toBeNull();
+    expect(captopril?.semLoteValido?.rotulo).toBe(
+      "Sem lote dentro da validade na lista",
+    );
+    expect(captopril?.semLoteValido?.pedido.texto).toContain("Captopril");
+    expect(carvedilol?.href).toContain("q=Carvedilol");
+    expect(carvedilol?.semLoteValido).toBeNull();
+  });
+
+  it("mapeia remedios so vencidos da busca com nome formatado, link, rotulo e pedido", () => {
+    const raw = makeRaw({ busca: "captopril", unidades: 1 });
+    const vm = buildFarmaciaViewModel({
+      ...raw,
+      farmacia: {
+        ...raw.farmacia,
+        medicamentosSemLoteValido: ["captopril 25mg"],
+      },
+    } as Parameters<typeof buildFarmaciaViewModel>[0]);
+    expect(vm.medicamentosSemLoteValido).toHaveLength(1);
+    const [item] = vm.medicamentosSemLoteValido;
+    expect(item.nomeMedicamento.toLowerCase()).toContain("captopril");
+    expect(item.href).toContain("q=captopril");
+    expect(item.rotulo).toBe("Sem lote dentro da validade na lista");
+    expect(item.pedido.texto).toContain("validade vencida");
+    expect(item.pedido.texto).not.toContain("baixa ou o descarte");
   });
 });

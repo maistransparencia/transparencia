@@ -4,11 +4,18 @@ import {
   type FarmaciaIndiceChipItem,
   FarmaciaIndiceChips,
 } from "./farmacia-indice-chips";
+import { PedidoEsclarecimento } from "./farmacia-sentinelas";
 
 export interface FarmaciaIndiceMedicamento {
   nomeMedicamento: string;
   unidadesComEstoque: number;
-  href: string;
+  /** Nulo quando o remédio só tem lote vencido: deixa de ser link. */
+  href: string | null;
+  semLoteValido: {
+    rotulo: string;
+    caminhoCompartilhamento: string;
+    pedido: { texto: string; textoWhatsApp: string };
+  } | null;
 }
 
 export interface FarmaciaIndiceGrupo {
@@ -43,6 +50,36 @@ export interface FarmaciaIndiceAzProps {
 const CLASSE_LINK_ACAO =
   "inline-flex min-h-11 items-center font-semibold text-accent text-sm underline underline-offset-4";
 
+function LinhaSemLoteValido({
+  medicamento,
+  semLoteValido,
+}: {
+  medicamento: FarmaciaIndiceMedicamento;
+  semLoteValido: NonNullable<FarmaciaIndiceMedicamento["semLoteValido"]>;
+}) {
+  return (
+    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-3 text-left">
+      <span className="block min-w-0 font-semibold text-ink text-sm">
+        {medicamento.nomeMedicamento}
+      </span>
+      <span className="flex flex-col items-end gap-0.5">
+        <span className="text-[11px] text-attention">
+          {semLoteValido.rotulo}
+        </span>
+        <PedidoEsclarecimento
+          item={{
+            codigoPrincipioAtivo: medicamento.nomeMedicamento,
+            nomePrincipioAtivo: medicamento.nomeMedicamento,
+            href: semLoteValido.caminhoCompartilhamento,
+            pedido: semLoteValido.pedido,
+            rotuloSituacao: semLoteValido.rotulo.toLowerCase(),
+          }}
+        />
+      </span>
+    </div>
+  );
+}
+
 function LinhaMedicamento({
   medicamento,
   totalUnidades,
@@ -50,10 +87,20 @@ function LinhaMedicamento({
   medicamento: FarmaciaIndiceMedicamento;
   totalUnidades: number;
 }) {
+  if (medicamento.semLoteValido) {
+    return (
+      <li className="border-slate-100 border-b">
+        <LinhaSemLoteValido
+          medicamento={medicamento}
+          semLoteValido={medicamento.semLoteValido}
+        />
+      </li>
+    );
+  }
   return (
     <li className="border-slate-100 border-b">
       <Link
-        href={medicamento.href}
+        href={medicamento.href ?? "#"}
         className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-[#f7f8fa]"
       >
         <span className="block min-w-0 font-semibold text-ink text-sm">

@@ -106,6 +106,7 @@ export default async function FarmaciaPage({
           resumo={viewModel.resumoBusca}
           unidades={viewModel.unidades}
           remedios={viewModel.remedios}
+          semLoteValido={viewModel.medicamentosSemLoteValido}
           marcadores={viewModel.mapMarkers}
         />
       )}

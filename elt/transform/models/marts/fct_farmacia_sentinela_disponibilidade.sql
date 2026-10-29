@@ -36,7 +36,8 @@ itens_normalizados as (
         portal_slug,
         codigo_cnes,
         {{ target.schema }}.unaccent(lower(btrim(regexp_replace(nome_medicamento, '\s+', ' ', 'g')))) as nome_normalizado,
-        quantidade_estoque
+        quantidade_estoque,
+        data_validade
     from {{ ref('fct_farmacia_estoque') }}
     where status_conformidade = 'conforme'
         and codigo_cnes is not null
@@ -50,7 +51,10 @@ apresentacoes as (
         itens_normalizados.codigo_cnes,
         prefixos.codigo_principio_ativo,
         itens_normalizados.nome_normalizado,
-        sum(coalesce(itens_normalizados.quantidade_estoque, 0)) as quantidade_apresentacao
+        sum(coalesce(itens_normalizados.quantidade_estoque, 0)) as quantidade_apresentacao,
+        -- A validade e comparada com hoje na consulta (o mart so e reconstruido nos dias uteis).
+        coalesce(bool_or(itens_normalizados.data_validade is null) filter (where itens_normalizados.quantidade_estoque > 0), false) as possui_lote_sem_validade,
+        max(itens_normalizados.data_validade) filter (where itens_normalizados.quantidade_estoque > 0) as data_validade_mais_tardia
     from itens_normalizados
     inner join prefixos
         on itens_normalizados.nome_normalizado ~ ('^' || prefixos.prefixo_nome_normalizado || '([ ,(]|$)')
@@ -100,7 +104,9 @@ apresentacoes_com_estoque as (
         portal_slug,
         codigo_cnes,
         codigo_principio_ativo,
-        count(*) as quantidade_apresentacoes_com_estoque
+        count(*) as quantidade_apresentacoes_com_estoque,
+        bool_or(possui_lote_sem_validade) as possui_lote_sem_validade,
+        max(data_validade_mais_tardia) as data_validade_mais_tardia
     from apresentacoes
     where quantidade_apresentacao > 0
     group by portal_slug, codigo_cnes, codigo_principio_ativo
@@ -120,6 +126,8 @@ select
         else 'sem_registro_estoque'
     end as status_disponibilidade,
     coalesce(apresentacoes_com_estoque.quantidade_apresentacoes_com_estoque, 0)::integer as quantidade_apresentacoes_com_estoque,
+    coalesce(apresentacoes_com_estoque.possui_lote_sem_validade, false) as possui_lote_sem_validade,
+    apresentacoes_com_estoque.data_validade_mais_tardia,
     coalesce(apresentacoes_combinacao_com_estoque.quantidade_apresentacoes_combinacao_com_estoque, 0)::integer as quantidade_apresentacoes_combinacao_com_estoque
 from unidades_ativas
 cross join sentinelas

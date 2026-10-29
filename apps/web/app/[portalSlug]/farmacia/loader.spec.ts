@@ -92,6 +92,7 @@ describe("loadFarmaciaData", () => {
       indicadores: {
         totalEssenciais: 0,
         essenciaisNoEstoque: 0,
+        essenciaisSomenteLoteVencido: 0,
         essenciaisSomenteCombinacao: 0,
         essenciaisSemRegistro: 0,
       },
@@ -143,6 +144,8 @@ describe("loadFarmaciaData", () => {
       totalLotesAVencer: 1,
       totalRemediosAVencer: 1,
       totalLotesVencidosComSaldo: 0,
+      totalRemediosSomenteVencidos: 0,
+      totalLotesRemediosSomenteVencidos: 0,
       dataVencimentoMaisProxima: "2026-11-01",
     };
     vi.mocked(getFarmaciaSus).mockResolvedValue({
