@@ -47,7 +47,7 @@ function getModalidadeBadgeVariant(modalidadeStr?: string | null) {
     return "border-brand text-brand";
   }
   if (mod.includes("dispensa")) {
-    return "border-warn text-warn";
+    return "border-warn-text text-warn-text";
   }
   if (mod.includes("pregã") || mod.includes("pregao")) {
     return "border-ink text-ink";
@@ -89,7 +89,7 @@ export function LicitacoesTable({
                 {row.fornecedor}
               </div>
               {fracCount >= 3 && (
-                <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
+                <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-warn-text px-2 py-0.5 font-medium text-[11px] text-warn-text">
                   <span>⚠️</span> {fracCount} contratos próximos ao teto
                 </div>
               )}
@@ -219,7 +219,7 @@ export function LicitacoesTable({
             <span className="font-medium text-ink">{row.fornecedor}</span>
           </div>
           {fracCount >= 3 && (
-            <div className="inline-flex items-center gap-1 rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
+            <div className="inline-flex items-center gap-1 rounded-md border border-warn-text px-2 py-0.5 font-medium text-[11px] text-warn-text">
               <span>⚠️</span> {fracCount} contratos próximos ao teto
             </div>
           )}

@@ -50,10 +50,10 @@ describe("KPICard", () => {
       </>,
     );
     expect(screen.getByText("VA")).toHaveClass("text-brand");
-    expect(screen.getByText("VB")).toHaveClass("text-warn");
+    expect(screen.getByText("VB")).toHaveClass("text-warn-text");
     expect(screen.getByText("sub")).toBeInTheDocument();
-    expect(screen.getByText("+1")).toHaveClass("text-ok");
-    expect(screen.getByText("-1")).toHaveClass("text-danger");
+    expect(screen.getByText("+1")).toHaveClass("text-ok-text");
+    expect(screen.getByText("-1")).toHaveClass("text-danger-text");
   });
 
   it("divisoria sem subtext e trend não renderiza rodapé", () => {
@@ -86,7 +86,7 @@ describe("KPICard", () => {
         invertTrend
       />,
     );
-    expect(screen.getByText("+5%")).toHaveClass("text-danger");
+    expect(screen.getByText("+5%")).toHaveClass("text-danger-text");
   });
 
   it("accent tem precedência sobre alert", () => {
@@ -117,6 +117,6 @@ describe("KPICard", () => {
         invertTrend
       />,
     );
-    expect(screen.getByText("+5%")).toHaveClass("text-danger");
+    expect(screen.getByText("+5%")).toHaveClass("text-danger-text");
   });
 });

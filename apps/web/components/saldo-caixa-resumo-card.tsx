@@ -38,8 +38,8 @@ function getMesNome(mes: number): string {
 }
 
 function getVariacaoTextClass(variacao: number): string {
-  if (variacao > 0) return "text-ok";
-  if (variacao < 0) return "text-danger";
+  if (variacao > 0) return "text-ok-text";
+  if (variacao < 0) return "text-danger-text";
   return "text-mute2";
 }
 

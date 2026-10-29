@@ -27,8 +27,8 @@ const BOTAO_BASE =
   "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-4 font-semibold text-sm transition-colors";
 const BOTOES_CLASS = {
   alerta: {
-    principal: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
-    secundario: `${BOTAO_BASE} border-danger bg-page text-danger hover:bg-line2`,
+    principal: `${BOTAO_BASE} border-danger-text bg-page text-danger-text hover:bg-line2`,
+    secundario: `${BOTAO_BASE} border-danger-text bg-page text-danger-text hover:bg-line2`,
   },
   pedido: {
     principal: `${BOTAO_BASE} flex-1 border-brand bg-brand text-onink hover:opacity-90`,
@@ -87,7 +87,7 @@ export function FarmaciaAcoesCivicas({
         <button
           type="button"
           onClick={handleCopiar}
-          className={`${BOTOES_CLASS[variante].principal} ${feedback === "copiado" ? "border-ok bg-ok text-onink hover:bg-ok" : ""}`}
+          className={`${BOTOES_CLASS[variante].principal} ${feedback === "copiado" ? "border-ok-text bg-ok-text text-onink hover:bg-ok-text" : ""}`}
         >
           {feedback === "copiado" ? (
             <>

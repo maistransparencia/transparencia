@@ -494,7 +494,7 @@ export function ContratosServicosVigentesSection({
               <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
                 Saldo
               </dt>
-              <dd className="mt-1 font-bold font-mono text-warn tabular-nums">
+              <dd className="mt-1 font-bold font-mono text-warn-text tabular-nums">
                 {fmtCurrency(row.saldoPendente)}
               </dd>
             </div>

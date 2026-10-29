@@ -20,23 +20,23 @@ function getRiscoConfig(
 ) {
   if (classificacao === "critico") {
     return {
-      badgeClass: "border-danger text-danger",
-      barClass: "bg-danger",
-      textColor: "text-danger",
+      badgeClass: "border-danger-text text-danger-text",
+      barClass: "bg-danger-fill",
+      textColor: "text-danger-text",
       statusText: "Muito alto",
     };
   }
   if (classificacao === "atencao") {
     return {
-      badgeClass: "border-warn text-warn",
-      barClass: "bg-warn",
-      textColor: "text-warn",
+      badgeClass: "border-warn-text text-warn-text",
+      barClass: "bg-warn-fill",
+      textColor: "text-warn-text",
       statusText: "Atenção",
     };
   }
   return {
-    badgeClass: "border-ok text-ok",
-    textColor: "text-ok",
+    badgeClass: "border-ok-text text-ok-text",
+    textColor: "text-ok-text",
     statusText: "Normal",
   };
 }
@@ -108,7 +108,7 @@ function ElementoResidualRow({
         </span>
       ) : (
         <span
-          className="col-span-full text-warn text-xs"
+          className="col-span-full text-warn-text text-xs"
           title="Poderia ter sido registrado com mais detalhe"
         >
           Poderia ser detalhado
@@ -249,7 +249,7 @@ export function TermometroOpacidadeFiscal({
             <span className="sm:hidden">0%</span>
           </span>
           <span
-            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-warn"
+            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-warn-text"
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
           >
             <span className="hidden sm:inline">
@@ -258,7 +258,7 @@ export function TermometroOpacidadeFiscal({
             <span className="sm:hidden">{limiares.limiteAtencaoPct}%</span>
           </span>
           <span
-            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-danger"
+            className="absolute -translate-x-1/2 whitespace-nowrap font-medium text-danger-text"
             style={{ left: `${limiares.limiteCriticoPct}%` }}
           >
             <span className="hidden sm:inline">
@@ -304,14 +304,14 @@ export function TermometroOpacidadeFiscal({
 
         <div className="flex flex-col justify-between">
           <div>
-            <span className="block font-medium text-warn text-xs">
+            <span className="block font-medium text-warn-text text-xs">
               Em &ldquo;Outros&rdquo;, mas dá para saber do que se trata
             </span>
-            <span className="mt-1 block font-bold text-lg text-warn">
+            <span className="mt-1 block font-bold text-lg text-warn-text">
               {fmtCompact(exercicioAtual.pagoDesvioSensivel99)}
             </span>
           </div>
-          <span className="mt-2 text-[11px] text-warn">
+          <span className="mt-2 text-[11px] text-warn-text">
             {fmtPercent(exercicioAtual.taxaDesvioSensivelPct)} de{" "}
             {fmtCompact(exercicioAtual.pagoResidual99)} em &ldquo;Outros&rdquo;
             (estimativa pela descrição do pagamento)
@@ -549,7 +549,7 @@ export function TermometroOpacidadeFiscal({
                   <span className="col-span-full text-mute2 text-xs">
                     Parece ser de:{" "}
                     {hasCategoriaSugerida ? (
-                      <span className="font-medium text-warn">
+                      <span className="font-medium text-warn-text">
                         {formatCategoriaSensivel(credor.categoriaPredominante)}
                       </span>
                     ) : (

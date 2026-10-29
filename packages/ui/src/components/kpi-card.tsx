@@ -91,7 +91,7 @@ export function KPICard({
           <p
             className={cn(
               "font-semibold text-[26px] leading-tight",
-              accent ? "text-brand" : alert ? "text-warn" : "text-ink",
+              accent ? "text-brand" : alert ? "text-warn-text" : "text-ink",
             )}
           >
             {value}
@@ -103,8 +103,8 @@ export function KPICard({
           invertTrend={invertTrend}
           omitirSubtextoVazio
           className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs"
-          trendPositiveClassName="text-ok"
-          trendNegativeClassName="text-danger"
+          trendPositiveClassName="text-ok-text"
+          trendNegativeClassName="text-danger-text"
         />
       </div>
     );

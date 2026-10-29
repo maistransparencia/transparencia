@@ -50,7 +50,7 @@ describe("FarmaciaIndicadores", () => {
     expect(screen.getByText("6")).toBeInTheDocument();
     expect(
       screen.getByText("2 não aparecem na lista de estoque").className,
-    ).toContain("text-warn");
+    ).toContain("text-warn-text");
   });
 
   it("sem indicadores omite o bloco", () => {

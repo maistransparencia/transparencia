@@ -16,16 +16,24 @@ const extrairBloco = (css: string, seletor: string): string => {
   return css.slice(abertura + 1, fechamento);
 };
 
-/** Lê as declarações `--token: valor;` de um bloco (`:root` ou `.dark`). */
+/** Lê as declarações `--token: valor;` de um bloco (`:root` ou `.dark`), resolvendo aliases `var(--outro)`. */
 export const lerTokensDoBloco = (
   css: string,
   seletor: ":root" | "\\.dark",
-): Record<string, string> =>
-  Object.fromEntries(
+): Record<string, string> => {
+  const declarados = Object.fromEntries(
     [...extrairBloco(css, seletor).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)].map(
       ([, nome, valor]) => [nome, valor.trim()],
     ),
   );
+  const resolver = (valor: string): string => {
+    const alvo = valor.match(/^var\(--([\w-]+)\)$/)?.[1];
+    return alvo && declarados[alvo] ? resolver(declarados[alvo]) : valor;
+  };
+  return Object.fromEntries(
+    Object.entries(declarados).map(([nome, valor]) => [nome, resolver(valor)]),
+  );
+};
 
 /** Lê `--color-nome: var(--token);` do bloco `@theme inline`: nome da utility -> token. */
 export const lerCoresDoTema = (

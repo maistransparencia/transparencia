@@ -224,7 +224,7 @@ function VariacaoBadge({
   }
   if (tendencia === "economia") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-ok px-2.5 py-0.5 font-semibold text-ok text-xs">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-ok-text px-2.5 py-0.5 font-semibold text-ok-text text-xs">
         <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
         {variacaoPercentual}% vs {anoAnterior}
       </span>

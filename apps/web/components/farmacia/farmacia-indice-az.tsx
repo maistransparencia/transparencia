@@ -66,7 +66,9 @@ function LinhaSemLoteValido({
         {medicamento.nomeMedicamento}
       </span>
       <span className="flex flex-col items-end gap-0.5">
-        <span className="text-[11px] text-warn">{semLoteValido.rotulo}</span>
+        <span className="text-[11px] text-warn-text">
+          {semLoteValido.rotulo}
+        </span>
         <PedidoEsclarecimento
           item={{
             codigoPrincipioAtivo: medicamento.nomeMedicamento,

@@ -87,7 +87,7 @@ export function HeroFiscalCard({
               `Arrecadado no ano até agora ${portalName ? `· ${portalName}` : ""}`}
           </span>
           {statusBadgeText && (
-            <span className="inline-flex shrink-0 items-center rounded-md border border-warn/40 bg-warn/10 px-2.5 py-0.5 font-medium text-[11px] text-warn">
+            <span className="inline-flex shrink-0 items-center rounded-md border border-warn-text/40 bg-warn-fill/10 px-2.5 py-0.5 font-medium text-[11px] text-warn-text">
               {statusBadgeText}
             </span>
           )}

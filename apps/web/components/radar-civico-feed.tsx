@@ -21,8 +21,8 @@ export interface RadarCivicoFeedProps {
 }
 
 const SEVERIDADE_POR_GRAU: Record<string, { label: string; classe: string }> = {
-  critico: { label: "Alta", classe: "text-danger" },
-  alto: { label: "Média", classe: "text-warn" },
+  critico: { label: "Alta", classe: "text-danger-text" },
+  alto: { label: "Média", classe: "text-warn-text" },
 };
 
 const SEVERIDADE_PADRAO = { label: "Baixa", classe: "text-mute2" };
@@ -123,7 +123,7 @@ export function RadarCivicoFeed({
           data-testid="radar-empty-state"
           className="flex items-start gap-4 border-line border-y py-6"
         >
-          <div className="shrink-0 rounded-full bg-ok/10 p-2 text-ok">
+          <div className="shrink-0 rounded-full bg-ok-fill/10 p-2 text-ok-text">
             <ShieldCheck className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>

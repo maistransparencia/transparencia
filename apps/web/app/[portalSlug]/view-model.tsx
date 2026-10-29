@@ -606,14 +606,14 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass: "bg-danger/10 text-danger border-danger/40",
+      colorClass: "bg-danger-fill/10 text-danger-text border-danger-text/40",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass: "bg-warn/10 text-warn border-warn/40",
+      colorClass: "bg-warn-fill/10 text-warn-text border-warn-text/40",
     };
   }
   return {

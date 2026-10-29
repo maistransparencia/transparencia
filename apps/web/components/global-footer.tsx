@@ -157,7 +157,7 @@ export function GlobalFooter({
             {!isRootPage && (displayExtractionDate || officialLink) ? (
               <p className="flex items-start gap-2 text-mute2 leading-relaxed">
                 <span
-                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ok"
+                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ok-fill"
                   aria-hidden="true"
                 />
                 <span>

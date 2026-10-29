@@ -39,7 +39,7 @@ export function PushNotificationSettings({
       <div role="status" aria-live="polite" className="space-y-1">
         <p className={`${linhaStatusClass} font-medium text-ink`}>
           <AlertCircle
-            className="h-4 w-4 shrink-0 text-warn"
+            className="h-4 w-4 shrink-0 text-warn-text"
             aria-hidden="true"
           />
           Notificações bloqueadas
@@ -59,7 +59,10 @@ export function PushNotificationSettings({
     return (
       <div role="status" aria-live="polite" className="space-y-2">
         <p className={`${linhaStatusClass} font-medium text-ink`}>
-          <BellRing className="h-4 w-4 shrink-0 text-ok" aria-hidden="true" />
+          <BellRing
+            className="h-4 w-4 shrink-0 text-ok-text"
+            aria-hidden="true"
+          />
           Notificações ativas
         </p>
         <button
@@ -107,7 +110,7 @@ export function PushNotificationSettings({
         {isActionLoading ? "Ativando..." : "Ativar"}
       </button>
       {error && (
-        <p className="text-danger text-xs leading-tight" role="alert">
+        <p className="text-danger-text text-xs leading-tight" role="alert">
           {error}
         </p>
       )}

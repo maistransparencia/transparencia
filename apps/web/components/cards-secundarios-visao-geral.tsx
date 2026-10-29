@@ -138,7 +138,7 @@ export function CardsSecundariosVisaoGeral({
           <div className="mb-4">
             {totalEmpenhado ? (
               <div>
-                <div className="font-bold font-sans text-2xl text-danger leading-none tracking-tight sm:text-3xl">
+                <div className="font-bold font-sans text-2xl text-danger-text leading-none tracking-tight sm:text-3xl">
                   {totalEmpenhado}
                 </div>
                 {totalLiquidado && (
@@ -282,7 +282,7 @@ export function CardsSecundariosVisaoGeral({
                   <strong
                     className={cn(
                       "w-9 shrink-0 font-bold font-sans text-base",
-                      item.isAlert ? "text-danger" : "text-ink",
+                      item.isAlert ? "text-danger-text" : "text-ink",
                     )}
                   >
                     {item.count}
@@ -341,7 +341,7 @@ export function CardsSecundariosVisaoGeral({
                 />
                 {/* Linha Vermelha de Limite LRF */}
                 <div
-                  className="absolute top-[-3px] z-10 h-3.5 w-0.5 bg-danger"
+                  className="absolute top-[-3px] z-10 h-3.5 w-0.5 bg-danger-fill"
                   style={{
                     left: `${Math.min(100, Math.max(0, lrfLimitVal))}%`,
                   }}
@@ -350,7 +350,7 @@ export function CardsSecundariosVisaoGeral({
               </div>
               <div className="flex items-center justify-between font-mono text-[10.5px] text-mute2">
                 <span>{pessoalPercentVal}% atual</span>
-                <span className="text-danger">
+                <span className="text-danger-text">
                   limite LRF: {lrfLimitFormatted}
                 </span>
               </div>

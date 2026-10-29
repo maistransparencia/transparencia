@@ -143,9 +143,9 @@ export function ContratoDetalhesModal({
     >
       <div className="space-y-6 py-2" data-testid="contrato-detalhes-modal">
         {contrato.ano && ano && contrato.ano !== ano && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-3 text-warn text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn-text/30 bg-warn-fill/10 px-4 py-3 text-warn-text text-xs">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-warn" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-warn-text" />
               <span>
                 Este contrato pertence ao exercício de{" "}
                 <strong className="font-semibold">{contrato.ano}</strong> (você
@@ -155,7 +155,7 @@ export function ContratoDetalhesModal({
             </div>
             <Link
               href={`/${portalSlug || "portal"}/licitacoes?ano=${contrato.ano}&contratoNumero=${encodeURIComponent(contrato.contratoNumero || contrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
-              className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-ink"
+              className="inline-flex items-center gap-1 font-semibold text-warn-text underline decoration-warn-text/40 underline-offset-2 transition-colors hover:text-ink"
             >
               <span>Mudar painel para {contrato.ano}</span>
             </Link>
@@ -350,7 +350,7 @@ export function ContratoDetalhesModal({
 
             <div className="rounded-md border border-line bg-page p-3.5">
               <span className="font-medium text-mute2 text-xs">Pago</span>
-              <p className="mt-1 font-mono font-semibold text-base text-ok tabular-nums sm:text-lg">
+              <p className="mt-1 font-mono font-semibold text-base text-ok-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalPago)}
               </p>
             </div>
@@ -359,7 +359,7 @@ export function ContratoDetalhesModal({
               <span className="font-medium text-mute2 text-xs">
                 Saldo Pendente
               </span>
-              <p className="mt-1 font-mono font-semibold text-base text-warn tabular-nums sm:text-lg">
+              <p className="mt-1 font-mono font-semibold text-base text-warn-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.saldoPendente)}
               </p>
             </div>
@@ -377,7 +377,7 @@ export function ContratoDetalhesModal({
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-line">
               <div
-                className="h-full rounded-full bg-ok transition-all duration-300"
+                className="h-full rounded-full bg-ok-fill transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.max(0, contrato.percentualPago || 0))}%`,
                 }}

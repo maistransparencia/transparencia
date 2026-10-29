@@ -5,7 +5,7 @@ import { Badge } from "../badge";
 describe("Badge", () => {
   it("usa rounded-sm e tokens", () => {
     render(<Badge variant="success">Ok</Badge>);
-    expect(screen.getByText("Ok")).toHaveClass("rounded-sm", "text-ok");
+    expect(screen.getByText("Ok")).toHaveClass("rounded-sm", "text-ok-text");
   });
 
   it("variante padrão usa borda line e texto mute2", () => {

@@ -20,7 +20,7 @@ describe("IndicadoresLinha", () => {
     );
     expect(screen.getByText("30%").className).toContain("text-brand");
     expect(screen.getByText("4").className).toContain("text-ink");
-    expect(screen.getByText("Atencao").className).toContain("text-warn");
+    expect(screen.getByText("Atencao").className).toContain("text-warn-text");
     expect(container.querySelector("dl")?.className).toContain("divide-x");
     expect(container.innerHTML).not.toContain("rounded");
   });

@@ -84,7 +84,7 @@ function RemediosSemLoteValido({
             {remedio.nomeMedicamento}
           </span>
           <span className="flex flex-col items-end gap-0.5">
-            <span className="text-[11px] text-warn">{remedio.rotulo}</span>
+            <span className="text-[11px] text-warn-text">{remedio.rotulo}</span>
             <PedidoEsclarecimento
               item={{
                 codigoPrincipioAtivo: remedio.nomeMedicamento,

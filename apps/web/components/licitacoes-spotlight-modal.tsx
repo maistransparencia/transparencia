@@ -454,9 +454,9 @@ export function LicitacoesSpotlightModal({
         {errorMessage && (
           <div
             role="alert"
-            className="mx-3 mt-3 flex items-start gap-2.5 rounded-md border border-danger/30 bg-danger/10 p-3 text-danger text-xs"
+            className="mx-3 mt-3 flex items-start gap-2.5 rounded-md border border-danger-text/30 bg-danger-fill/10 p-3 text-danger-text text-xs"
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -704,7 +704,7 @@ export function LicitacoesSpotlightModal({
                                 className={cn(
                                   "rounded px-1.5 py-0.5 text-[10px]",
                                   item.status === "vigente"
-                                    ? "bg-ok/10 text-ok"
+                                    ? "bg-ok-fill/10 text-ok-text"
                                     : "bg-line2 text-mute2",
                                 )}
                               >
@@ -755,7 +755,7 @@ export function LicitacoesSpotlightModal({
                           )}
                           {isContratoVigenteAnoAnterior &&
                             (item.dataInicio || item.vencimentoAtual) && (
-                              <p className="mt-0.5 font-medium text-warn text-xs">
+                              <p className="mt-0.5 font-medium text-warn-text text-xs">
                                 {(() => {
                                   if (item.dataInicio && item.vencimentoAtual) {
                                     return `Vigência: ${fmtDate(item.dataInicio)} a ${fmtDate(item.vencimentoAtual)}`;
