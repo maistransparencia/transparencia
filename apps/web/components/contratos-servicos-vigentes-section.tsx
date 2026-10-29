@@ -511,7 +511,7 @@ export function ContratosServicosVigentesSection({
               aria-valuenow={percentualPago}
             >
               <div
-                className="h-full bg-brand"
+                className="h-full bg-brand-fill"
                 style={{
                   width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
                 }}

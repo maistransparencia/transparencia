@@ -17,7 +17,7 @@ export function FarmaciaDisponibilidadeUnidades({
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: quadradinhos posicionais, sem identidade própria
             key={indice}
-            className={`h-2 w-2 rounded-sm ${indice < unidadesComRegistro ? "bg-brand" : "bg-line"}`}
+            className={`h-2 w-2 rounded-sm ${indice < unidadesComRegistro ? "bg-brand-fill" : "bg-line"}`}
           />
         ))}
       </span>

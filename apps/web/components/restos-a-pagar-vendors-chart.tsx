@@ -42,7 +42,7 @@ export function RestosAPagarVendorsChart({
             Já entregue, falta pagar
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 bg-brand" aria-hidden="true" />
+            <span className="h-2.5 w-2.5 bg-brand-fill" aria-hidden="true" />
             Ainda em andamento
           </span>
         </div>
@@ -84,7 +84,7 @@ export function RestosAPagarVendorsChart({
                       />
                     )}
                     {emAndamento > 0 && (
-                      <span className="block h-full flex-1 bg-brand" />
+                      <span className="block h-full flex-1 bg-brand-fill" />
                     )}
                   </span>
                 </span>

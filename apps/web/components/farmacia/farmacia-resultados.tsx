@@ -322,7 +322,7 @@ export function FarmaciaResultados({
                           aria-hidden="true"
                         >
                           <div
-                            className="h-full rounded-sm bg-brand"
+                            className="h-full rounded-sm bg-brand-fill"
                             style={{ width: `${item.percentualBarra}%` }}
                           />
                         </div>
@@ -351,7 +351,7 @@ export function FarmaciaResultados({
             </div>
             <p className="mt-2 flex items-center gap-2 text-mute2 text-xs">
               <span
-                className="h-2.5 w-2.5 rounded-full bg-brand"
+                className="h-2.5 w-2.5 rounded-full bg-brand-fill"
                 aria-hidden="true"
               />
               Tem o remédio

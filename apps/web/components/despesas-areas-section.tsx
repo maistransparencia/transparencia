@@ -73,7 +73,7 @@ export function DespesasAreasSection({
               </span>
               <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
                 <span
-                  className="block h-full bg-brand"
+                  className="block h-full bg-brand-fill"
                   style={{ width: `${area.larguraBarra}%` }}
                 />
               </span>

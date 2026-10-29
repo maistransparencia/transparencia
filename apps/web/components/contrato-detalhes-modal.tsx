@@ -248,7 +248,7 @@ export function ContratoDetalhesModal({
                 <div className="flex flex-wrap items-center gap-2">
                   {contrato.fontePrincipal && (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-brand/30 bg-page px-2.5 py-1 font-semibold text-brand text-xs">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand" />
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-fill" />
                       {contrato.fontePrincipal}
                       <span className="rounded bg-brand/10 px-1 py-0.5 font-normal text-[10px] text-brand">
                         Principal

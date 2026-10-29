@@ -23,7 +23,7 @@ export const TOKENS_CORES_GRAFICO = [
 
 export type TokenCorGrafico = (typeof TOKENS_CORES_GRAFICO)[number];
 
-/** Devolve `var(--token)` para usar em `fill`/`stroke` do recharts. */
+/** Tokens de intenção que têm o par `*-fill` correspondente. */
 const TOKENS_COM_PREENCHIMENTO = {
   brand: "brandFill",
   danger: "dangerFill",
@@ -33,7 +33,10 @@ const TOKENS_COM_PREENCHIMENTO = {
   Record<TokenCorGrafico, keyof typeof TOKENS.colors>
 >;
 
-/** Cores de intenção usam o tom `*-fill` (vivo); `*-text` é só para texto. */
+/**
+ * Devolve `var(--token)` para usar em `fill`/`stroke` do recharts.
+ * Cores de intenção usam o tom `*-fill` (vivo); `*-text` é só para texto.
+ */
 export const corDoGrafico = (token: TokenCorGrafico): string =>
   token in TOKENS_COM_PREENCHIMENTO
     ? TOKENS.colors[

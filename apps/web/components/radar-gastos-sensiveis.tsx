@@ -335,7 +335,7 @@ export function RadarGastosSensiveis({
         <div className="flex items-center gap-3">
           <BarraProporcao
             percentual={linha.larguraBarra}
-            className="bg-brand"
+            className="bg-brand-fill"
           />
           <span className="min-w-10 text-right font-mono text-ink tabular-nums">
             {formatarPercentual(linha.percentualPago)}

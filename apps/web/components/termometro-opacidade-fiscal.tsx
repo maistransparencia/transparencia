@@ -96,7 +96,7 @@ function ElementoResidualRow({
         aria-label={`Percentual do elemento ${elem.elementoCodigo}.99`}
         className="col-span-full block h-1.5 w-full overflow-hidden bg-track"
       >
-        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-brand-fill" style={{ width: `${pct}%` }} />
       </div>
 
       {elem.tipoResidual === "estrutural" ? (
@@ -542,7 +542,7 @@ export function TermometroOpacidadeFiscal({
                   </span>
                   <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
                     <span
-                      className="block h-full bg-brand"
+                      className="block h-full bg-brand-fill"
                       style={{ width: `${larguraBarra}%` }}
                     />
                   </span>
