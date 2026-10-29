@@ -3,6 +3,29 @@ import { describe, expect, it } from "vitest";
 import { FarmaciaIndicadores } from "./farmacia-indicadores";
 
 describe("FarmaciaIndicadores", () => {
+  it("recolhe a explicacao longa em um bloco expansivel", () => {
+    render(
+      <FarmaciaIndicadores
+        indicadores={[
+          {
+            codigo: "lotes",
+            rotulo: "Lotes",
+            valor: "36",
+            nota: "36 lotes, de 23 remédios diferentes.",
+            notaAtencao: true,
+            detalhe: {
+              resumo: "102 remédios só com lote vencido",
+              paragrafos: ["Primeiro.", "Segundo."],
+            },
+          },
+        ]}
+      />,
+    );
+    const resumo = screen.getByText("102 remédios só com lote vencido");
+    expect(resumo.closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByText("Segundo.")).toBeInTheDocument();
+  });
+
   it("renderiza os cartoes com nota de atencao", () => {
     render(
       <FarmaciaIndicadores

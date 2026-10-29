@@ -1,5 +1,6 @@
 import type {
   FarmaciaIndiceDTO,
+  FarmaciaIndiceMedicamentoDTO,
   FarmaciaSentinelaDTO,
 } from "@transparencia/db";
 import { fmtDate, fmtNumber, toTitleCase } from "@transparencia/ui";
@@ -72,10 +73,15 @@ const ROTULOS_GRUPO_TERAPEUTICO: Record<string, string> = {
   saude_mental: "Saúde mental",
 };
 
+export type SituacaoPedido = "sem_registro" | "somente_vencido";
+
 export type StatusEssencial =
   | "no_estoque"
+  | "somente_vencido"
   | "somente_combinacao"
   | "sem_registro";
+
+export const ROTULO_SEM_LOTE_VALIDO = "Sem lote dentro da validade na lista";
 
 export interface FarmaciaEssencialItem {
   codigoPrincipioAtivo: string;
@@ -83,6 +89,8 @@ export interface FarmaciaEssencialItem {
   codigoCategoria: string;
   rotuloCategoria: string;
   status: StatusEssencial;
+  /** Rótulo do estado sem lote válido; nulo nos demais. */
+  rotuloSituacao: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
@@ -95,14 +103,27 @@ function rotuloGrupoTerapeutico(codigo: string): string {
 
 function statusEssencial(item: FarmaciaSentinelaDTO): StatusEssencial {
   if (item.unidadesComRegistro > 0) return "no_estoque";
+  if (item.unidadesSomenteLoteVencido > 0) return "somente_vencido";
   if (item.unidadesSomenteCombinacao > 0) return "somente_combinacao";
   return "sem_registro";
+}
+
+function buildPedidosDoMedicamento(params: {
+  nomeMedicamento: string;
+  situacao: SituacaoPedido;
+  portalName: string;
+  dataPosicaoMaisRecente: string | null;
+}): { texto: string; textoWhatsApp: string } {
+  return {
+    texto: buildPedidoEsclarecimento(params),
+    textoWhatsApp: buildTextoWhatsAppPedido(params),
+  };
 }
 
 function buildEssenciais(
   portalSlug: string,
   sentinelas: FarmaciaSentinelaDTO[],
-  contextoPedido: { portalName: string; dataPosicaoMaisRecente: string | null },
+  contextoPedido: ContextoPedido,
 ): FarmaciaEssencialItem[] {
   return sentinelas.map((item) => {
     const status = statusEssencial(item);
@@ -112,22 +133,18 @@ function buildEssenciais(
       codigoCategoria: item.grupoTerapeutico,
       rotuloCategoria: rotuloGrupoTerapeutico(item.grupoTerapeutico),
       status,
+      rotuloSituacao:
+        status === "somente_vencido" ? ROTULO_SEM_LOTE_VALIDO : null,
       unidadesComRegistro: item.unidadesComRegistro,
       unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
       href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
       pedido:
-        status === "sem_registro"
-          ? {
-              texto: buildPedidoEsclarecimento({
-                portalName: contextoPedido.portalName,
-                nomeMedicamento: item.nomePrincipioAtivo,
-                dataPosicaoMaisRecente: contextoPedido.dataPosicaoMaisRecente,
-              }),
-              textoWhatsApp: buildTextoWhatsAppPedido({
-                portalName: contextoPedido.portalName,
-                nomeMedicamento: item.nomePrincipioAtivo,
-              }),
-            }
+        status === "sem_registro" || status === "somente_vencido"
+          ? buildPedidosDoMedicamento({
+              nomeMedicamento: item.nomePrincipioAtivo,
+              situacao: status,
+              ...contextoPedido,
+            })
           : null,
     };
   });
@@ -152,6 +169,8 @@ export interface FarmaciaIndicador {
   valor: string;
   nota: string | null;
   notaAtencao: boolean;
+  /** Explicação recolhida: não estica o card, e o texto diz o que o dado não mostra. */
+  detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
 function buildIndicadoresEstoque(
@@ -168,6 +187,9 @@ function buildIndicadoresEstoque(
       : null,
     indicadores.essenciaisSomenteCombinacao > 0
       ? `${fmtNumber(indicadores.essenciaisSomenteCombinacao)} só em combinação`
+      : null,
+    indicadores.essenciaisSomenteLoteVencido > 0
+      ? `${fmtNumber(indicadores.essenciaisSomenteLoteVencido)} só com lote vencido`
       : null,
   ].filter((parte): parte is string => parte !== null);
 
@@ -204,6 +226,17 @@ function buildIndicadoresEstoque(
   return cartoes.filter((c): c is FarmaciaIndicador => c !== null);
 }
 
+const AVISO_CONTEXTO_LOTES_VENCIDOS =
+  "Isto mostra o que consta na lista de estoque enviada pela farmácia. Não significa que o remédio vencido foi entregue. A lista pode manter lotes vencidos até a baixa ou o descarte.";
+
+function rotuloContagem(
+  total: number,
+  singular: string,
+  plural: string,
+): string {
+  return `${fmtNumber(total)} ${total === 1 ? singular : plural}`;
+}
+
 function buildIndicadorLotesAVencer(
   lotes: FarmaciaRawData["lotesAVencer"],
 ): FarmaciaIndicador[] {
@@ -212,28 +245,31 @@ function buildIndicadorLotesAVencer(
     lotes.totalLotesAVencer === 0
       ? `Nenhum vence em até ${fmtNumber(lotes.janelaDias)} dias`
       : [
-          `${fmtNumber(lotes.totalRemediosAVencer)} ${lotes.totalRemediosAVencer === 1 ? "remédio" : "remédios"}`,
+          `${rotuloContagem(lotes.totalLotesAVencer, "lote", "lotes")}, de ${rotuloContagem(lotes.totalRemediosAVencer, "remédio", "remédios diferentes")}.`,
           lotes.dataVencimentoMaisProxima
-            ? `o primeiro vence em ${fmtDate(lotes.dataVencimentoMaisProxima)}`
+            ? `O primeiro vence em ${fmtDate(lotes.dataVencimentoMaisProxima)}.`
             : null,
         ]
           .filter((parte): parte is string => parte !== null)
-          .join(" · ");
-  const detalheVencidos =
-    lotes.totalLotesVencidosComSaldo > 0
-      ? `${fmtNumber(lotes.totalLotesVencidosComSaldo)} ${lotes.totalLotesVencidosComSaldo === 1 ? "lote aparece como vencido" : "lotes aparecem como vencidos"} na lista de estoque mais recente`
+          .join(" ");
+  const detalheSomenteVencidos =
+    lotes.totalRemediosSomenteVencidos > 0
+      ? `Na lista de estoque mais recente, ${rotuloContagem(lotes.totalRemediosSomenteVencidos, "remédio tem só lote", "remédios têm só lotes")} com a validade vencida (${rotuloContagem(lotes.totalLotesRemediosSomenteVencidos, "lote", "lotes")}).`
       : null;
-  const nota = [detalheAVencer, detalheVencidos]
-    .filter((parte): parte is string => parte !== null)
-    .join(" · ");
   return [
     {
       codigo: "lotes_a_vencer",
       rotulo: `Lotes que vencem em até ${fmtNumber(lotes.janelaDias)} dias`,
       valor: fmtNumber(lotes.totalLotesAVencer),
-      nota,
+      nota: detalheAVencer,
       notaAtencao:
-        lotes.totalLotesAVencer > 0 || lotes.totalLotesVencidosComSaldo > 0,
+        lotes.totalLotesAVencer > 0 || lotes.totalRemediosSomenteVencidos > 0,
+      detalhe: detalheSomenteVencidos
+        ? {
+            resumo: `${rotuloContagem(lotes.totalRemediosSomenteVencidos, "remédio", "remédios")} só com lote vencido`,
+            paragrafos: [detalheSomenteVencidos, AVISO_CONTEXTO_LOTES_VENCIDOS],
+          }
+        : null,
     },
   ];
 }
@@ -326,6 +362,7 @@ export function buildPedidoEsclarecimento(params: {
   portalName: string;
   nomeMedicamento: string;
   dataPosicaoMaisRecente: string | null;
+  situacao?: SituacaoPedido;
 }): string {
   const destinatario = destinatarioDoMunicipio(params.portalName);
   const posicao = params.dataPosicaoMaisRecente
@@ -334,15 +371,24 @@ export function buildPedidoEsclarecimento(params: {
   return [
     `À Secretaria Municipal de Saúde ${destinatario}.`,
     "",
-    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. O art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS. ${posicao}, não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição.`,
+    `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. O art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS. ${posicao}, ${
+      params.situacao === "somente_vencido"
+        ? "todos os lotes desse item que constam na lista estão com a validade vencida. Entendo que a lista pode manter lotes vencidos até a baixa ou o descarte. Peço informar se há lote desse medicamento dentro da validade em alguma unidade e, se não houver, a previsão de reposição."
+        : "não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição."
+    }`,
   ].join("\n");
 }
 
 export function buildTextoWhatsAppPedido(params: {
   portalName: string;
   nomeMedicamento: string;
+  situacao?: SituacaoPedido;
 }): string {
-  return `Pedido de esclarecimento à Secretaria de Saúde ${destinatarioDoMunicipio(params.portalName)} sobre ${params.nomeMedicamento} na Farmácia SUS (Lei nº 14.654/2023). O remédio não aparece na lista de estoque divulgada. Confira:`;
+  const situacao =
+    params.situacao === "somente_vencido"
+      ? "Na lista de estoque divulgada, todos os lotes desse remédio estão com a validade vencida."
+      : "O remédio não aparece na lista de estoque divulgada.";
+  return `Pedido de esclarecimento à Secretaria de Saúde ${destinatarioDoMunicipio(params.portalName)} sobre ${params.nomeMedicamento} na Farmácia SUS (Lei nº 14.654/2023). ${situacao} Confira:`;
 }
 
 export function buildTextoWhatsApp(params: {
@@ -386,6 +432,43 @@ function definirModoIndice(
   return letra ? "letra" : "resumo";
 }
 
+interface ContextoPedido {
+  portalName: string;
+  dataPosicaoMaisRecente: string | null;
+}
+
+/** Remédio só com lote vencido deixa de ser link e passa a oferecer o pedido de esclarecimento. */
+function buildLinhaMedicamentoIndice(
+  portalSlug: string,
+  medicamento: Pick<
+    FarmaciaIndiceMedicamentoDTO,
+    "nomeMedicamento" | "situacaoValidade"
+  >,
+  contextoPedido: ContextoPedido,
+) {
+  if (medicamento.situacaoValidade !== "somente_vencido") {
+    return {
+      href: buildFarmaciaHref(portalSlug, medicamento.nomeMedicamento),
+      semLoteValido: null,
+    };
+  }
+  return {
+    href: null,
+    semLoteValido: {
+      rotulo: ROTULO_SEM_LOTE_VALIDO,
+      caminhoCompartilhamento: buildFarmaciaHref(
+        portalSlug,
+        medicamento.nomeMedicamento,
+      ),
+      pedido: buildPedidosDoMedicamento({
+        nomeMedicamento: medicamento.nomeMedicamento,
+        situacao: "somente_vencido",
+        ...contextoPedido,
+      }),
+    },
+  };
+}
+
 export function buildIndiceAz(params: {
   portalSlug: string;
   indice: FarmaciaIndiceDTO | null;
@@ -396,8 +479,9 @@ export function buildIndiceAz(params: {
   totalUnidadesAtivas: number;
   passoLetras: number;
   passoItens: number;
+  contextoPedido: ContextoPedido;
 }) {
-  const { portalSlug, indice, context } = params;
+  const { portalSlug, indice, context, contextoPedido } = params;
   if (!indice || indice.letrasDisponiveis.length === 0) return null;
 
   const modo = definirModoIndice(context.busca, context.letra);
@@ -432,7 +516,7 @@ export function buildIndiceAz(params: {
     medicamentos: l.medicamentos.map((m) => ({
       nomeMedicamento: formatarNomeMedicamento(m.nomeMedicamento),
       unidadesComEstoque: m.unidadesComEstoque,
-      href: buildFarmaciaHref(portalSlug, m.nomeMedicamento),
+      ...buildLinhaMedicamentoIndice(portalSlug, m, contextoPedido),
     })),
     hrefTodos: buildIndiceHref(portalSlug, { letra: l.letra }),
     rotuloTodos: `Ver todos com ${rotuloLetra(l.letra)}`,
@@ -581,7 +665,24 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
       totalUnidadesAtivas: sentinelas.totalUnidadesAtivas,
       passoLetras: FARMACIA_INDICE_PASSO_LETRAS,
       passoItens: FARMACIA_INDICE_PASSO_ITENS,
+      contextoPedido: {
+        portalName,
+        dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,
+      },
     }),
+    medicamentosSemLoteValido: (farmacia.medicamentosSemLoteValido ?? []).map(
+      (nome) => ({
+        nomeMedicamento: formatarNomeMedicamento(nome),
+        href: buildFarmaciaHref(portalSlug, nome),
+        rotulo: ROTULO_SEM_LOTE_VALIDO,
+        pedido: buildPedidosDoMedicamento({
+          nomeMedicamento: nome,
+          situacao: "somente_vencido",
+          portalName,
+          dataPosicaoMaisRecente: farmacia.dataPosicaoMaisRecente,
+        }),
+      }),
+    ),
     indicadores: buildIndicadores(raw, dataAtualizacao),
     resumoBusca: buildResumoBusca({
       totalApresentacoes: farmacia.totalApresentacoes,

@@ -4,6 +4,7 @@ export interface FarmaciaIndicadorItem {
   valor: string;
   nota: string | null;
   notaAtencao: boolean;
+  detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
 export function FarmaciaIndicadores({
@@ -31,6 +32,20 @@ export function FarmaciaIndicadores({
               className={`text-xs ${indicador.notaAtencao ? "text-attention" : "text-subtleText"}`}
             >
               {indicador.nota}
+            </dd>
+          )}
+          {indicador.detalhe && (
+            <dd>
+              <details className="text-subtleText text-xs">
+                <summary className="cursor-pointer font-medium text-attention underline underline-offset-4">
+                  {indicador.detalhe.resumo}
+                </summary>
+                {indicador.detalhe.paragrafos.map((paragrafo) => (
+                  <p key={paragrafo} className="mt-1">
+                    {paragrafo}
+                  </p>
+                ))}
+              </details>
             </dd>
           )}
         </div>

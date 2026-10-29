@@ -27,6 +27,7 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Posição de estoque | A lista de estoque de um dia específico | |
 | SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
 | Lote (de remédio) | Remessa de um mesmo remédio com a mesma data de validade | "Lote irregular", "lote vencido" sem dizer que consta com saldo na lista |
+| Remédio só com lote vencido | "Na lista de estoque, todos os lotes dele estão com a validade vencida" | "Remédio vencido", "sem estoque", "irregular" |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.

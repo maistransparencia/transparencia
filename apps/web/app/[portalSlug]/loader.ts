@@ -38,6 +38,7 @@ const SENTINELAS_FARMACIA_VAZIO: FarmaciaSentinelasDTO = {
   indicadores: {
     totalEssenciais: 0,
     essenciaisNoEstoque: 0,
+    essenciaisSomenteLoteVencido: 0,
     essenciaisSomenteCombinacao: 0,
     essenciaisSemRegistro: 0,
   },
