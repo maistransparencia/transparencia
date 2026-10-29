@@ -370,7 +370,10 @@ export function Sidebar({
   return (
     <>
       {/* Top Header Móvel (< md) */}
-      <div className="sticky top-0 z-30 w-full border-borderLine border-b bg-white px-4 py-2 shadow-xs md:hidden">
+      <div
+        data-cabecalho-movel
+        className="sticky top-0 z-30 w-full border-borderLine border-b bg-white px-4 py-2 shadow-xs md:hidden"
+      >
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-borderLine bg-gray-50 p-0.5 shadow-xs">
