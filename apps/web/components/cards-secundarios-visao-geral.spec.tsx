@@ -22,9 +22,9 @@ describe("CardsSecundariosVisaoGeral", () => {
       />,
     );
     expect(coresDeFundo(container)).toEqual([
-      "var(--ok)",
+      "var(--ok-fill)",
       "var(--line)",
-      "var(--danger)",
+      "var(--danger-fill)",
     ]);
   });
 
@@ -45,7 +45,7 @@ describe("CardsSecundariosVisaoGeral", () => {
       />,
     );
     const cores = coresDeFundo(container);
-    expect(cores).toContain("var(--ok)");
+    expect(cores).toContain("var(--ok-fill)");
     expect(cores).toContain("var(--line)");
   });
 
@@ -58,7 +58,7 @@ describe("CardsSecundariosVisaoGeral", () => {
         }}
       />,
     );
-    expect(coresDeFundo(container)).toContain("var(--brand)");
+    expect(coresDeFundo(container)).toContain("var(--brand-fill)");
   });
 
   it("usa uma única régua superior e cabeçalhos de coluna com link de detalhes", () => {

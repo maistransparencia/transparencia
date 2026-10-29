@@ -16,17 +16,17 @@ export function AlertBox({
   className,
 }: AlertBoxProps) {
   const icons = {
-    warning: <AlertTriangle className="h-5 w-5 shrink-0 text-warn" />,
-    danger: <AlertCircle className="h-5 w-5 shrink-0 text-danger" />,
+    warning: <AlertTriangle className="h-5 w-5 shrink-0 text-warn-text" />,
+    danger: <AlertCircle className="h-5 w-5 shrink-0 text-danger-text" />,
     info: <Info className="h-5 w-5 shrink-0 text-brand" />,
-    success: <CheckCircle className="h-5 w-5 shrink-0 text-ok" />,
+    success: <CheckCircle className="h-5 w-5 shrink-0 text-ok-text" />,
   };
 
   const styles = {
-    warning: "border-warn/40 bg-warn/10 text-ink",
-    danger: "border-danger/40 bg-danger/10 text-ink",
+    warning: "border-warn-text/40 bg-warn-fill/10 text-ink",
+    danger: "border-danger-text/40 bg-danger-fill/10 text-ink",
     info: "border-brand/40 bg-brand/10 text-ink",
-    success: "border-ok/40 bg-ok/10 text-ink",
+    success: "border-ok-text/40 bg-ok-fill/10 text-ink",
   };
 
   return (

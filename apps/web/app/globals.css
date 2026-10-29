@@ -32,13 +32,17 @@
   --banbg: #eef4fd;
   --banfg: #3a5a86;
   --brand: oklch(0.5 0.11 250);
-  --danger: oklch(0.55 0.17 25);
+  --brand-fill: var(--brand);
+  --brand-text: var(--brand);
+  --danger: var(--danger-text);
   --danger-fill: oklch(0.63 0.2 27);
-  --ok: oklch(0.5 0.1 155);
+  --danger-text: oklch(0.55 0.17 25);
+  --ok: var(--ok-text);
   --ok-fill: oklch(0.68 0.16 155);
-  --warn: oklch(0.5 0.11 70);
+  --ok-text: oklch(0.5 0.1 155);
+  --warn: var(--warn-text);
   --warn-fill: oklch(0.77 0.16 70);
-  --warn-text: oklch(0.55 0.14 55);
+  --warn-text: oklch(0.53 0.14 55);
 }
 
 .dark {
@@ -57,11 +61,15 @@
   --banbg: #182233;
   --banfg: #9bbbe6;
   --brand: oklch(0.75 0.11 250);
-  --danger: oklch(0.7 0.16 25);
+  --brand-fill: oklch(0.6 0.15 255);
+  --brand-text: var(--brand);
+  --danger: var(--danger-text);
   --danger-fill: oklch(0.63 0.2 27);
-  --ok: oklch(0.75 0.12 155);
+  --danger-text: oklch(0.7 0.16 25);
+  --ok: var(--ok-text);
   --ok-fill: oklch(0.68 0.16 155);
-  --warn: oklch(0.78 0.13 70);
+  --ok-text: oklch(0.75 0.12 155);
+  --warn: var(--warn-text);
   --warn-fill: oklch(0.77 0.16 70);
   --warn-text: oklch(0.83 0.15 80);
 }
@@ -81,10 +89,14 @@
   --color-banbg: var(--banbg);
   --color-banfg: var(--banfg);
   --color-brand: var(--brand);
+  --color-brand-fill: var(--brand-fill);
+  --color-brand-text: var(--brand-text);
   --color-danger: var(--danger);
   --color-danger-fill: var(--danger-fill);
+  --color-danger-text: var(--danger-text);
   --color-ok: var(--ok);
   --color-ok-fill: var(--ok-fill);
+  --color-ok-text: var(--ok-text);
   --color-warn: var(--warn);
   --color-warn-fill: var(--warn-fill);
   --color-warn-text: var(--warn-text);

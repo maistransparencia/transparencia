@@ -209,7 +209,7 @@ export default async function DespesasPage({
             variant="divisoria"
             title="Total pendente"
             value={
-              <span className="font-bold text-warn">
+              <span className="font-bold text-warn-text">
                 {fmtCompact(restosResumo.totalPendente)}
               </span>
             }

@@ -73,7 +73,9 @@ function RotuloDisponibilidade({
       />
     );
   }
-  return <span className="text-[11px] text-warn">{rotuloDoStatus(item)}</span>;
+  return (
+    <span className="text-[11px] text-warn-text">{rotuloDoStatus(item)}</span>
+  );
 }
 
 /** Telemetria do pedido: nunca enviar o texto do pedido, só o tipo de interação. */

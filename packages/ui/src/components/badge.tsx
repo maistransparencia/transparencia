@@ -15,9 +15,10 @@ export function Badge({
   const styles = {
     default: "border-line bg-line2/40 text-mute2",
     accent: "border-brand/40 bg-brand/10 font-semibold text-brand",
-    warning: "border-warn/40 bg-warn/10 font-semibold text-warn",
-    danger: "border-danger/40 bg-danger/10 font-semibold text-danger",
-    success: "border-ok/40 bg-ok/10 font-semibold text-ok",
+    warning: "border-warn-text/40 bg-warn-fill/10 font-semibold text-warn-text",
+    danger:
+      "border-danger-text/40 bg-danger-fill/10 font-semibold text-danger-text",
+    success: "border-ok-text/40 bg-ok-fill/10 font-semibold text-ok-text",
   };
 
   return (

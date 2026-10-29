@@ -11,7 +11,7 @@ describe("AlertBox", () => {
     );
     expect(screen.getByText("Atenção")).toBeInTheDocument();
     expect(screen.getByText("Texto")).toBeInTheDocument();
-    expect(container.firstElementChild).toHaveClass("border-danger/40");
+    expect(container.firstElementChild).toHaveClass("border-danger-text/40");
     expect(container.firstElementChild?.className).not.toMatch(
       /rose|amber|slate/,
     );

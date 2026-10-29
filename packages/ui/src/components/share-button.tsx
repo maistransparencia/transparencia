@@ -118,7 +118,7 @@ export function ShareButton({
           onClick={handleShare}
           className={cn(
             "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink active:scale-95",
-            copied && "border-ok text-ok",
+            copied && "border-ok-text text-ok-text",
             className,
           )}
           aria-label={
@@ -129,7 +129,7 @@ export function ShareButton({
           title={copied ? "Link copiado!" : "Compartilhar página"}
         >
           {copied ? (
-            <Check className="h-3.5 w-3.5 text-ok" />
+            <Check className="h-3.5 w-3.5 text-ok-text" />
           ) : (
             <Share2 className="h-3.5 w-3.5" />
           )}
@@ -152,7 +152,7 @@ export function ShareButton({
       onClick={handleShare}
       className={cn(
         "flex w-full items-center justify-center gap-2 rounded-md border border-line bg-page px-3 py-2.5 font-medium text-ink text-xs transition-colors hover:border-mute3 active:scale-[0.99]",
-        copied && "border-ok text-ok hover:text-ok",
+        copied && "border-ok-text text-ok-text hover:text-ok-text",
         className,
       )}
       aria-label={
@@ -164,11 +164,11 @@ export function ShareButton({
     >
       {copied ? (
         <>
-          <Check className="h-3.5 w-3.5 shrink-0 text-ok" />
+          <Check className="h-3.5 w-3.5 shrink-0 text-ok-text" />
           <span
             role="status"
             aria-live="polite"
-            className="font-semibold text-ok"
+            className="font-semibold text-ok-text"
           >
             Link copiado!
           </span>

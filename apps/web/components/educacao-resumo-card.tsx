@@ -35,14 +35,14 @@ const IDEB_INEP_URL =
   "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb";
 
 const CLASSES_FAIXA_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "bg-ok/10 text-ok",
-  atencao: "bg-warn/10 text-warn",
+  destaque: "bg-ok-fill/10 text-ok-text",
+  atencao: "bg-warn-fill/10 text-warn-text",
   neutro: "bg-line2/40 text-mute2",
 };
 
 const CLASSES_TEXTO_POR_TOM: Record<EducacaoResumoTom, string> = {
-  destaque: "text-ok",
-  atencao: "text-warn",
+  destaque: "text-ok-text",
+  atencao: "text-warn-text",
   neutro: "text-mute2",
 };
 

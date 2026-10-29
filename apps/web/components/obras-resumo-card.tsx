@@ -201,11 +201,11 @@ export function ObrasResumoCard({
   const getMarkerBgClass = (situacao: string) => {
     switch (situacao) {
       case "em_execucao":
-        return "bg-brand ring-brand/40";
+        return "bg-brand-fill ring-brand-fill/40";
       case "concluida":
-        return "bg-ok ring-ok/40";
+        return "bg-ok-fill ring-ok-fill/40";
       case "paralisada":
-        return "bg-danger ring-danger/40";
+        return "bg-danger-fill ring-danger-fill/40";
       default:
         return "bg-mute3 ring-line";
     }

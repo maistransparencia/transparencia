@@ -583,12 +583,12 @@ export function Sidebar({
                 {typeof radarAlertCount === "number" && radarAlertCount > 0 && (
                   <span
                     role="status"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger bg-page px-2 py-0.5 font-semibold text-[11px] text-danger"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger-text bg-page px-2 py-0.5 font-semibold text-[11px] text-danger-text"
                     aria-label={`${radarAlertCount} alertas críticos apurados`}
                   >
                     <span
                       aria-hidden="true"
-                      className="h-1.5 w-1.5 rounded-full bg-danger motion-safe:animate-pulse motion-reduce:animate-none"
+                      className="h-1.5 w-1.5 rounded-full bg-danger-fill motion-safe:animate-pulse motion-reduce:animate-none"
                     />
                     <span className="tabular-nums">{radarAlertCount}</span>
                   </span>

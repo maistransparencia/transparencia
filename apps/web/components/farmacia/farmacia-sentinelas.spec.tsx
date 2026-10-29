@@ -189,7 +189,7 @@ describe("FarmaciaSentinelas", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Copiar pedido" }));
     const copiado = await screen.findByRole("button", { name: /Copiado/ });
-    expect(copiado).toHaveClass("bg-ok");
+    expect(copiado).toHaveClass("bg-ok-text");
 
     expect(
       screen.getByText(/Não aparecer na lista não quer dizer/),

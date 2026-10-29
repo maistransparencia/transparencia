@@ -96,8 +96,8 @@ describe("RadarGastosSensiveis Component", () => {
     );
 
     expect(container.querySelector(".text-warn-text")).not.toBeNull();
-    expect(container.querySelector(".text-danger")).toBeNull();
-    expect(container.querySelector(".text-ok")).not.toBeNull();
+    expect(container.querySelector(".text-danger-text")).toBeNull();
+    expect(container.querySelector(".text-ok-text")).not.toBeNull();
     expect(screen.getAllByText("Sem histórico").length).toBeGreaterThan(0);
   });
 

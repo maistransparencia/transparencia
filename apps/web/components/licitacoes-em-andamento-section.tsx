@@ -99,11 +99,11 @@ function ValorHomologadoCelula({
   }
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      <span className="font-bold font-mono text-ok tabular-nums">
+      <span className="font-bold font-mono text-ok-text tabular-nums">
         {fmtCurrency(valorHomologado)}
       </span>
       {economia !== null && (
-        <span className="inline-block rounded-sm bg-ok/10 px-1 py-0.5 font-semibold text-[10px] text-ok">
+        <span className="inline-block rounded-sm bg-ok-fill/10 px-1 py-0.5 font-semibold text-[10px] text-ok-text">
           -{Math.round(economia)}%
         </span>
       )}
@@ -911,9 +911,9 @@ export function LicitacoesEmAndamentoSection({
                 {selectedLicitacaoForItens.ano &&
                   ano &&
                   selectedLicitacaoForItens.ano !== ano && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-3 text-warn text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn-text/30 bg-warn-fill/10 px-4 py-3 text-warn-text text-xs">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-warn" />
+                        <AlertCircle className="h-4 w-4 shrink-0 text-warn-text" />
                         <span>
                           Este processo pertence ao exercício de{" "}
                           <strong className="font-semibold">
@@ -925,7 +925,7 @@ export function LicitacoesEmAndamentoSection({
                       </div>
                       <Link
                         href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
-                        className="inline-flex items-center gap-1 font-semibold text-warn underline decoration-warn/40 underline-offset-2 transition-colors hover:text-ink"
+                        className="inline-flex items-center gap-1 font-semibold text-warn-text underline decoration-warn-text/40 underline-offset-2 transition-colors hover:text-ink"
                       >
                         <span>
                           Mudar painel para {selectedLicitacaoForItens.ano}
@@ -1079,7 +1079,7 @@ export function LicitacoesEmAndamentoSection({
                         const diff = est - hom;
                         const pct = (diff / est) * 100;
                         return (
-                          <p className="mt-1 font-mono font-semibold text-base text-ok tabular-nums sm:text-lg">
+                          <p className="mt-1 font-mono font-semibold text-base text-ok-text tabular-nums sm:text-lg">
                             {fmtCurrency(diff)}{" "}
                             <span className="font-sans text-xs">
                               (-{pct.toFixed(1)}%)
@@ -1301,7 +1301,7 @@ export function LicitacoesEmAndamentoSection({
                                   </td>
                                   <td className="whitespace-nowrap px-3 py-2.5 text-center">
                                     {it.percentualDesconto != null ? (
-                                      <span className="font-semibold text-ok">
+                                      <span className="font-semibold text-ok-text">
                                         {it.percentualDesconto}%
                                       </span>
                                     ) : (

@@ -5,16 +5,16 @@ import type { FonteOficial } from "@/lib/constants/fontes-oficiais";
 export type DestaqueTom = "positivo" | "atencao" | "alerta" | "neutro";
 
 const CLASSES_BADGE_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "border-ok/40 bg-ok/10 text-ok",
-  atencao: "border-warn/40 bg-warn/10 text-warn",
-  alerta: "border-danger/40 bg-danger/10 text-danger",
+  positivo: "border-ok-text/40 bg-ok-fill/10 text-ok-text",
+  atencao: "border-warn-text/40 bg-warn-fill/10 text-warn-text",
+  alerta: "border-danger-text/40 bg-danger-fill/10 text-danger-text",
   neutro: "border-line bg-line2/40 text-mute2",
 };
 
 const CLASSES_ICONE_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "bg-ok/10 text-ok",
-  atencao: "bg-warn/10 text-warn",
-  alerta: "bg-danger/10 text-danger",
+  positivo: "bg-ok-fill/10 text-ok-text",
+  atencao: "bg-warn-fill/10 text-warn-text",
+  alerta: "bg-danger-fill/10 text-danger-text",
   neutro: "bg-line2/40 text-mute2",
 };
 

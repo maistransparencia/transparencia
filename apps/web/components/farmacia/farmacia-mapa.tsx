@@ -34,7 +34,7 @@ function htmlMarcador(numero: number, destacado: boolean): string {
   const halo = destacado
     ? `0 0 0 6px color-mix(in oklch, var(--brand) 22%, transparent)`
     : "none";
-  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:var(--brand);border:2px solid var(--page);box-shadow:${halo};color:var(--onink);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">${numero}</div>`;
+  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:var(--brand-fill);border:2px solid var(--page);box-shadow:${halo};color:var(--onink);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">${numero}</div>`;
 }
 
 function iconeMarcador(

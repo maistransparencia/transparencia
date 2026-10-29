@@ -124,7 +124,9 @@ export default async function LicitacoesPage({
             codigo: "acima_limite_sem_licitacao",
             rotulo: "Acima do limite s/ licitação",
             valor: (
-              <span className={cn(acimaLimiteGaps.length > 0 && "text-warn")}>
+              <span
+                className={cn(acimaLimiteGaps.length > 0 && "text-warn-text")}
+              >
                 {acimaLimiteGaps.length}
               </span>
             ),
@@ -149,9 +151,9 @@ export default async function LicitacoesPage({
 
       {/* Warning Alert Banner - Concentração de Dispensas */}
       {hasAnomaliaDispensa && (
-        <div className="flex items-start gap-3 rounded-md bg-warn/10 p-4 text-ink text-xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md bg-warn-fill/10 p-4 text-ink text-xs sm:text-sm">
           <div>
-            <span className="font-bold text-warn">
+            <span className="font-bold text-warn-text">
               Concentração de contratações diretas.
             </span>{" "}
             {(() => {
@@ -246,10 +248,10 @@ export default async function LicitacoesPage({
 
       {/* Warning Alert Banner - Fracionamento */}
       {numCasosFracionamento > 0 && (
-        <div className="flex items-start gap-3 rounded-md bg-warn/10 p-4 text-ink text-xs sm:text-sm">
+        <div className="flex items-start gap-3 rounded-md bg-warn-fill/10 p-4 text-ink text-xs sm:text-sm">
           <span className="mt-0.5 shrink-0 text-base">⚠️</span>
           <div>
-            <span className="font-bold text-warn">
+            <span className="font-bold text-warn-text">
               {numCasosFracionamento}{" "}
               {numCasosFracionamento === 1 ? "caso" : "casos"} de possível
               fracionamento.
