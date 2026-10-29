@@ -7,6 +7,7 @@ export interface IndicadorLinhaItem {
   nota?: string | null;
   notaAtencao?: boolean;
   destaque?: boolean;
+  detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
 export function IndicadoresLinha({
@@ -36,6 +37,20 @@ export function IndicadoresLinha({
               className={`text-xs ${indicador.notaAtencao ? "text-warn" : "text-mute2"}`}
             >
               {indicador.nota}
+            </dd>
+          )}
+          {indicador.detalhe && (
+            <dd>
+              <details className="text-mute2 text-xs">
+                <summary className="cursor-pointer font-medium text-warn underline underline-offset-4">
+                  {indicador.detalhe.resumo}
+                </summary>
+                {indicador.detalhe.paragrafos.map((paragrafo) => (
+                  <p key={paragrafo} className="mt-1">
+                    {paragrafo}
+                  </p>
+                ))}
+              </details>
             </dd>
           )}
         </div>

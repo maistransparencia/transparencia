@@ -56,5 +56,8 @@ models:
         data_type: text
       - name: quantidade_estoque
         data_type: numeric(15, 3)
+      - name: data_validade
+        data_type: date
+        description: Validade do lote; nula quando a fonte nao informa (lote sem validade conta como utilizavel). O filtro por hoje e aplicado na consulta.
       - name: data_posicao_estoque
         data_type: date

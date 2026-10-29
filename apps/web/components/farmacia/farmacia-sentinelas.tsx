@@ -19,7 +19,13 @@ export interface FarmaciaSentinelaItem {
   nomePrincipioAtivo: string;
   codigoCategoria: string;
   rotuloCategoria: string;
-  status: "no_estoque" | "somente_combinacao" | "sem_registro";
+  status:
+    | "no_estoque"
+    | "somente_vencido"
+    | "somente_combinacao"
+    | "sem_registro";
+  /** Rótulo do estado sem lote válido; nulo nos demais. */
+  rotuloSituacao?: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
   href: string;
@@ -44,6 +50,14 @@ export interface FarmaciaSentinelasProps {
   totalUnidadesAtivas: number;
 }
 
+function rotuloDoStatus(item: FarmaciaSentinelaItem): string {
+  if (item.status === "somente_vencido" && item.rotuloSituacao) {
+    return item.rotuloSituacao;
+  }
+  if (item.status === "somente_combinacao") return "só em combinação";
+  return "não aparece no estoque";
+}
+
 function RotuloDisponibilidade({
   item,
   totalUnidadesAtivas,
@@ -59,13 +73,7 @@ function RotuloDisponibilidade({
       />
     );
   }
-  return (
-    <span className="text-[11px] text-warn">
-      {item.status === "somente_combinacao"
-        ? "só em combinação"
-        : "não aparece no estoque"}
-    </span>
-  );
+  return <span className="text-[11px] text-warn">{rotuloDoStatus(item)}</span>;
 }
 
 /** Telemetria do pedido: nunca enviar o texto do pedido, só o tipo de interação. */
@@ -174,7 +182,16 @@ function PedidoEsclarecimentoConteudo({
   );
 }
 
-function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
+export type PedidoEsclarecimentoItem = Pick<
+  FarmaciaSentinelaItem,
+  "codigoPrincipioAtivo" | "nomePrincipioAtivo" | "href" | "pedido"
+> & { rotuloSituacao?: string | null };
+
+export function PedidoEsclarecimento({
+  item,
+}: {
+  item: PedidoEsclarecimentoItem;
+}) {
   const [aberto, setAberto] = useState(false);
   const editouRef = useRef(false);
   if (!item.pedido) return null;
@@ -216,7 +233,7 @@ function PedidoEsclarecimento({ item }: { item: FarmaciaSentinelaItem }) {
         isOpen={aberto}
         onClose={fechar}
         title="Pedir esclarecimento"
-        subtitle={`${item.nomePrincipioAtivo} · não aparece no estoque${item.pedido.dataEstoque ? ` de ${fmtDate(item.pedido.dataEstoque)}` : ""}`}
+        subtitle={`${item.nomePrincipioAtivo} · ${item.rotuloSituacao ?? `não aparece no estoque${item.pedido.dataEstoque ? ` de ${fmtDate(item.pedido.dataEstoque)}` : ""}`}`}
         subtitleClassName="line-clamp-2"
         badge={
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">

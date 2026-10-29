@@ -1097,6 +1097,7 @@ export interface FarmaciaEstoqueRow {
   longitudeUnidade?: number | null;
   nomeMedicamento?: string | null;
   quantidadeEstoque?: number | null;
+  dataValidade?: string | null;
   dataPosicaoEstoque?: string | null;
 }
 
@@ -1118,6 +1119,7 @@ export async function seedFarmacia(row: FarmaciaEstoqueRow): Promise<void> {
       longitude_unidade: row.longitudeUnidade ?? null,
       nome_medicamento: row.nomeMedicamento ?? null,
       quantidade_estoque: row.quantidadeEstoque ?? null,
+      data_validade: row.dataValidade ?? null,
       data_posicao_estoque: row.dataPosicaoEstoque ?? null,
     })
     .execute();
@@ -1163,6 +1165,9 @@ export interface FarmaciaSentinelaRow {
   statusDisponibilidade?: string;
   quantidadeApresentacoesComEstoque?: number;
   quantidadeApresentacoesCombinacaoComEstoque?: number;
+  /** Padrão: lote sem validade informada, que conta como utilizável. */
+  possuiLoteSemValidade?: boolean;
+  dataValidadeMaisTardia?: string | null;
 }
 
 export async function seedFarmaciaSentinela(
@@ -1185,6 +1190,8 @@ export async function seedFarmaciaSentinela(
         (status === "com_registro_estoque" ? 1 : 0),
       quantidade_apresentacoes_combinacao_com_estoque:
         row.quantidadeApresentacoesCombinacaoComEstoque ?? 0,
+      possui_lote_sem_validade: row.possuiLoteSemValidade ?? true,
+      data_validade_mais_tardia: row.dataValidadeMaisTardia ?? null,
     })
     .execute();
 }
