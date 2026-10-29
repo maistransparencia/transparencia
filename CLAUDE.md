@@ -22,10 +22,20 @@ Este repositório possui limites estritos de consumo de tokens (Spend Cap). Todo
 
 ---
 
-## 3. USO INTELIGENTE DE SUBAGENTES (CONTEXT TRUNCATION)
+## 3. USO CRITERIOSO DE SUBAGENTES (CONTEXT TRUNCATION)
 
-- **Minimização de histórico acumulado:** Quando enfrentar um problema complexo que exija múltiplos passos, não tente resolver tudo em um único chat de longos turnos.
-- **Delegar para Subagentes (`Agent`):** Despache subagentes curtos e ultra-focados (via ferramenta `Agent`) com instruções exatas de pesquisa ou edição. Como cada subagente inicia com um contexto limpo e retorna apenas o resultado final para o agente pai, isso trunca o histórico do chat principal e poupa milhares de tokens em chamadas acumuladas subsequentes.
+- **Regra geral:** faça o trabalho no chat principal. Um subagente começa sem contexto, relê o que precisa e devolve só um resumo; isso poupa o histórico do chat principal, mas pode aumentar o gasto total. Delegue apenas quando o ganho for claro.
+- **Delegue quando:**
+  - a tarefa exige **varrer muitos arquivos ou pastas** e só o resultado interessa (mapear usos de um padrão, levantar divergências entre páginas);
+  - a leitura é **pesada e descartável** (logs, saídas de teste longas, documentos grandes de planejamento);
+  - as partes são **independentes** e podem rodar em paralelo.
+- **Não delegue quando:**
+  - a busca é pontual e um `Grep`/`Glob` resolve;
+  - o trabalho já está no contexto do chat (o subagente teria que reler tudo);
+  - a tarefa é uma **edição pequena** ou depende de decisões que o usuário está tomando na conversa;
+  - o subagente teria que reler a maior parte dos mesmos arquivos que o chat principal já leu (por exemplo, uma revisão de documentos que acabaram de ser escritos nesta sessão).
+- **Como delegar:** instruções curtas e exatas (arquivos, o que verificar, formato do retorno compacto). Peça só o resultado, sem transcrição de arquivos. Um subagente por tarefa, nunca vários com o mesmo escopo.
+- **Custo declarado:** antes de disparar revisões multi-lente ou subagentes de mais de ~50 mil tokens, avise o usuário e use a lente mais barata que responda à pergunta.
 
 ---
 
@@ -85,6 +95,13 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 - **Preservação de `portal_slug` em Agrupamentos:** Toda agregação (`GROUP BY`) em modelos marts ou métricas derivadas deve incluir `portal_slug` no grão de particionamento, garantindo que nenhum indicador misture ou unifique métricas de municípios distintos.
 - **Fallbacks e Defaults Neutros:** Nunca defina fallbacks com nomes ou cidades fixas de um tenant específico (ex: proibido `coalesce(cidade, 'PORCIUNCULA')` ou `coalesce(portal_slug, 'porciuncula_prefeitura')` ou `uf ?? 'RJ'`). Utilize sempre condicionais dinâmicas baseadas no próprio `portal_slug` ou valores nulos/neutros (`'OUTROS'`, `'NAO_INFORMADO'`, `''`).
 - **Checklist de Code Review Multi-Tenant & Agnóstico:** Todo reviewer ou agente ao auditar código deve responder: *"Se este portal pertencer a outro estado da federação (ex: MG, SP) e o histórico temporal iniciar em 2017 ou terminar em 2027, este componente ou query continuará funcionando com fidelidade e sem exibir dados trocados?"*. Se a resposta for não, a alteração deve ser rejeitada imediatamente.
+
+---
+
+## 25. PADRÕES VISUAIS BASE (`DESIGN.md` E `EXPERIENCE.md`)
+
+- **Contrato Visual na Raiz:** `DESIGN.md` (aparência) e `EXPERIENCE.md` (comportamento) definem os estilos dos elementos base (`h1`–`h4`, `p`, `dl`, `table`, listas, links), os papéis visuais (`eyebrow`, `stat-value`, `panel`, `section`...) e o painel de indicador. Leia-os antes de criar ou alterar qualquer UI em `apps/web` ou `packages/ui`.
+- **Elemento nu primeiro:** use o elemento sem classe de tamanho; papéis são nomeados pelo papel, nunca pelo elemento; sem `h5`/`h6`, sem `slate-*`/`gray-*`, sem `font-mono` fora de `table` e `numeric`.
 
 ---
 
