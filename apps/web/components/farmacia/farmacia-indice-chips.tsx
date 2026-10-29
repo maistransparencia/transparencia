@@ -38,6 +38,8 @@ const FRACAO_ROLAGEM_SETA = 0.7;
 export function FarmaciaIndiceChips({ chips }: FarmaciaIndiceChipsProps) {
   const faixaRef = useRef<HTMLDivElement>(null);
   const [escondidas, setEscondidas] = useState({ antes: false, depois: false });
+  const [topo, setTopo] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const atualizarSetas = useCallback(() => {
     const faixa = faixaRef.current;
@@ -72,6 +74,37 @@ export function FarmaciaIndiceChips({ chips }: FarmaciaIndiceChipsProps) {
     return () => observador.disconnect();
   }, [atualizarSetas]);
 
+  // Cola a faixa logo abaixo do cabeçalho fixo do celular, cuja altura varia.
+  useEffect(() => {
+    const cabecalho = document.querySelector<HTMLElement>(
+      "[data-cabecalho-movel]",
+    );
+    if (!cabecalho || typeof ResizeObserver === "undefined") return;
+    const ajustar = () => setTopo(cabecalho.offsetHeight);
+    ajustar();
+    const observador = new ResizeObserver(ajustar);
+    observador.observe(cabecalho);
+    return () => observador.disconnect();
+  }, []);
+
+  // Ao trocar de letra com a página rolada, volta ao início da lista, logo
+  // abaixo da faixa fixa. Os links usam scroll={false} para não ir ao topo da página.
+  const voltarAoInicioDaLista = () => {
+    const container = containerRef.current;
+    const lista = container?.nextElementSibling;
+    if (!container || !lista) return;
+    const inicio =
+      lista.getBoundingClientRect().top +
+      window.scrollY -
+      topo -
+      container.offsetHeight;
+    if (window.scrollY <= inicio) return;
+    const reduzir = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    window.scrollTo({ top: inicio, behavior: reduzir ? "auto" : "smooth" });
+  };
+
   const rolar = (direcao: -1 | 1) => {
     const faixa = faixaRef.current;
     faixa?.scrollBy({
@@ -80,59 +113,66 @@ export function FarmaciaIndiceChips({ chips }: FarmaciaIndiceChipsProps) {
   };
 
   return (
-    <div className="relative">
-      {escondidas.antes && (
-        <button
-          type="button"
-          aria-label="Ver letras anteriores"
-          onClick={() => rolar(-1)}
-          className={`${CLASSE_SETA} left-0`}
+    <div
+      ref={containerRef}
+      className="sticky z-20 -mx-4 border-borderLine border-b bg-white px-4 py-2 sm:-mx-6 sm:px-6 md:static md:mx-0 md:border-b-0 md:px-0 md:py-0"
+      style={{ top: topo }}
+    >
+      <div className="relative">
+        {escondidas.antes && (
+          <button
+            type="button"
+            aria-label="Ver letras anteriores"
+            onClick={() => rolar(-1)}
+            className={`${CLASSE_SETA} left-0`}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
+        <div
+          ref={faixaRef}
+          onScroll={atualizarSetas}
+          className="relative overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
         >
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-        </button>
-      )}
-      <div
-        ref={faixaRef}
-        onScroll={atualizarSetas}
-        className="relative overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
-      >
-        <nav
-          aria-label="Índice alfabético"
-          className="flex w-max min-w-full justify-between gap-0.5"
-        >
-          {chips.map((chip) =>
-            chip.href && !chip.ativo ? (
-              <Link
-                key={chip.codigo}
-                href={chip.href}
-                scroll={false}
-                className={chipClasse(chip)}
-              >
-                {chip.rotulo}
-              </Link>
-            ) : (
-              <span
-                key={chip.codigo}
-                className={chipClasse(chip)}
-                aria-current={chip.ativo ? "true" : undefined}
-                aria-disabled={chip.ativo ? undefined : "true"}
-              >
-                {chip.rotulo}
-              </span>
-            ),
-          )}
-        </nav>
+          <nav
+            aria-label="Índice alfabético"
+            className="flex w-max min-w-full justify-between gap-0.5"
+          >
+            {chips.map((chip) =>
+              chip.href && !chip.ativo ? (
+                <Link
+                  key={chip.codigo}
+                  href={chip.href}
+                  scroll={false}
+                  onClick={voltarAoInicioDaLista}
+                  className={chipClasse(chip)}
+                >
+                  {chip.rotulo}
+                </Link>
+              ) : (
+                <span
+                  key={chip.codigo}
+                  className={chipClasse(chip)}
+                  aria-current={chip.ativo ? "true" : undefined}
+                  aria-disabled={chip.ativo ? undefined : "true"}
+                >
+                  {chip.rotulo}
+                </span>
+              ),
+            )}
+          </nav>
+        </div>
+        {escondidas.depois && (
+          <button
+            type="button"
+            aria-label="Ver próximas letras"
+            onClick={() => rolar(1)}
+            className={`${CLASSE_SETA} right-0`}
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
       </div>
-      {escondidas.depois && (
-        <button
-          type="button"
-          aria-label="Ver próximas letras"
-          onClick={() => rolar(1)}
-          className={`${CLASSE_SETA} right-0`}
-        >
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </button>
-      )}
     </div>
   );
 }
