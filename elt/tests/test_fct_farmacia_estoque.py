@@ -45,14 +45,22 @@ def raw(conn):
             {"p": portal, "s": status, "d": f"{_dia(dias_atras)}T{hora}"},
         )
 
-    def estoque(portal, id_registro, cnes, medicamento, data_posicao, quantidade="10"):
+    def estoque(portal, id_registro, cnes, medicamento, data_posicao, quantidade="10", validade=None):
         conn.execute(
             text(
                 f"INSERT INTO {_SCHEMA}.estoque_medicamentos "
-                "(portal_slug, id_registro, codigo_cnes, nome_medicamento, quantidade_estoque, data_posicao_estoque) "
-                "VALUES (:p, :i, :c, :m, :q, :d)"
+                "(portal_slug, id_registro, codigo_cnes, nome_medicamento, quantidade_estoque, data_posicao_estoque, data_validade) "
+                "VALUES (:p, :i, :c, :m, :q, :d, :v)"
             ),
-            {"p": portal, "i": id_registro, "c": cnes, "m": medicamento, "q": quantidade, "d": data_posicao},
+            {
+                "p": portal,
+                "i": id_registro,
+                "c": cnes,
+                "m": medicamento,
+                "q": quantidade,
+                "d": data_posicao,
+                "v": validade,
+            },
         )
 
     def cnes(portal, codigo, nome):
@@ -109,6 +117,26 @@ def test_transmissor_recente_e_conforme_com_itens_vigentes_e_isolamento_de_tenan
 
     # Portal B tem coleta bem-sucedida e nenhum estoque: não herda dados do portal A.
     assert [(linha[0], linha[1]) for linha in _linhas(conn, portal_b)] == [("apagao", None)]
+
+
+def test_data_validade_do_lote_e_exposta_e_nula_quando_a_fonte_nao_informa(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "d1", "1001", "Dipirona", _dia(1), validade=_dia(-3))
+    raw.estoque(portal, "d2", "1001", "Amoxicilina", _dia(1))
+    conn.commit()
+
+    linhas = conn.execute(
+        text(
+            "SELECT nome_medicamento, data_validade FROM analytics.fct_farmacia_estoque "
+            "WHERE portal_slug = :p ORDER BY nome_medicamento"
+        ),
+        {"p": portal},
+    ).fetchall()
+    assert [(linha[0], linha[1].isoformat() if linha[1] else None) for linha in linhas] == [
+        ("Amoxicilina", None),
+        ("Dipirona", _dia(-3)),
+    ]
 
 
 def test_posicao_defasada_e_apagao_sem_itens(conn, raw, portais):

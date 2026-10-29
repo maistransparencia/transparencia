@@ -45,6 +45,8 @@ export interface FarmaciaSusDTO extends ResumoFarmaciaSusDTO {
   totalApresentacoes: number;
   unidades: FarmaciaSusUnidadeDTO[];
   remedios: FarmaciaSusRemedioDTO[];
+  /** Remédios que casam com a busca e só têm lotes vencidos (nível portal). */
+  medicamentosSemLoteValido: string[];
 }
 
 export interface GetFarmaciaSusFiltros {
@@ -56,12 +58,16 @@ export interface GetFarmaciaSusFiltros {
 
 const LIMITE_UNIDADES_PADRAO = 10;
 const TAMANHO_MINIMO_BUSCA = 2;
+const LIMITE_MEDICAMENTOS_SEM_LOTE_VALIDO = 20;
 
 const STATUS_VALIDOS: readonly StatusConformidadeFarmacia[] = [
   "conforme",
   "apagao",
   "indisponivel",
 ];
+
+// Estoque utilizável: lote sem validade informada ou dentro da validade hoje.
+const LOTE_UTILIZAVEL_SQL = sql<boolean>`(data_validade is null or data_validade >= current_date)`;
 
 const ID_UNIDADE_SQL = sql<string>`coalesce(codigo_cnes, nome_unidade, id_registro)`;
 
@@ -111,6 +117,7 @@ const BUSCA_VAZIA = {
   totalApresentacoes: 0,
   unidades: [],
   remedios: [],
+  medicamentosSemLoteValido: [],
 };
 
 /** Agrupa o estoque por remédio, do maior total para o menor. */
@@ -228,18 +235,40 @@ export async function getFarmaciaSus(
   const offset = Math.max(0, Math.floor(filtros?.offsetUnidades ?? 0));
   const idUnidade = filtros?.idUnidade?.trim();
 
+  const condicaoBusca = sql<boolean>`unaccent(lower(${NOME_MEDICAMENTO_NORMALIZADO_SQL})) LIKE '%' || unaccent(lower(${escapeLikePattern(termo)})) || '%' ESCAPE '\\'`;
+
   const linhasBase = () => {
     const consulta = db
       .selectFrom("fct_farmacia_estoque")
       .where("portal_slug", "=", cleanSlug)
       .where("status_conformidade", "=", "conforme")
-      .where(
-        sql<boolean>`unaccent(lower(${NOME_MEDICAMENTO_NORMALIZADO_SQL})) LIKE '%' || unaccent(lower(${escapeLikePattern(termo)})) || '%' ESCAPE '\\'`,
-      );
+      .where(condicaoBusca)
+      .where(LOTE_UTILIZAVEL_SQL);
     return idUnidade
       ? consulta.where(sql<boolean>`${ID_UNIDADE_SQL} = ${idUnidade}`)
       : consulta;
   };
+
+  // Com filtro de unidade a busca é sobre aquela unidade; "sem lote válido" é visão do portal.
+  const medicamentosSemLoteValido = idUnidade
+    ? []
+    : (
+        await db
+          .selectFrom("fct_farmacia_estoque")
+          .select(
+            sql<string>`min(${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
+              "nome_medicamento",
+            ),
+          )
+          .where("portal_slug", "=", cleanSlug)
+          .where("status_conformidade", "=", "conforme")
+          .where(condicaoBusca)
+          .groupBy(NOME_MEDICAMENTO_CHAVE_SQL)
+          .having(sql<boolean>`not bool_or(${LOTE_UTILIZAVEL_SQL})`)
+          .orderBy("nome_medicamento")
+          .limit(LIMITE_MEDICAMENTOS_SEM_LOTE_VALIDO)
+          .execute()
+      ).map((linha) => linha.nome_medicamento);
 
   const unidadesPagina = await linhasBase()
     .select([
@@ -255,7 +284,7 @@ export async function getFarmaciaSus(
     .execute();
 
   if (unidadesPagina.length === 0) {
-    return { ...resumo, ...BUSCA_VAZIA };
+    return { ...resumo, ...BUSCA_VAZIA, medicamentosSemLoteValido };
   }
 
   const ids = unidadesPagina.map((u) => u.id_unidade);
@@ -334,12 +363,17 @@ export async function getFarmaciaSus(
     totalApresentacoes: remedios.length,
     unidades,
     remedios,
+    medicamentosSemLoteValido,
   };
 }
+
+export type SituacaoValidadeMedicamento = "com_lote_valido" | "somente_vencido";
 
 export interface FarmaciaIndiceMedicamentoDTO {
   nomeMedicamento: string;
   unidadesComEstoque: number;
+  /** `somente_vencido` quando nenhuma unidade tem lote utilizável (nível portal). */
+  situacaoValidade: SituacaoValidadeMedicamento;
 }
 
 export interface FarmaciaIndiceLetraDTO {
@@ -376,6 +410,30 @@ const NOME_MEDICAMENTO_CHAVE_SQL = sql<string>`lower(unaccent(${NOME_MEDICAMENTO
 const PRIMEIRO_CARACTERE_SQL = sql<string>`upper(left(unaccent(${NOME_MEDICAMENTO_NORMALIZADO_SQL}), 1))`;
 // Nomes que não começam com letra (número ou símbolo) vão para o grupo "0-9".
 const INICIAL_MEDICAMENTO_SQL = sql<string>`case when ${PRIMEIRO_CARACTERE_SQL} ~ '^[A-Z]$' then ${PRIMEIRO_CARACTERE_SQL} else ${sql.lit(LETRA_NUMEROS_INDICE)} end`;
+
+/**
+ * CTEs com os lotes que constam com saldo na lista vigente (mart
+ * `fct_farmacia_estoque`: última posição de cada unidade ativa). Lote sem
+ * validade informada entra, pois conta como utilizável por remédio.
+ */
+const lotesVigentesCtesSql = (portalSlug: string) => sql`
+  lotes_vigentes as (
+    select portal_slug, ${NOME_MEDICAMENTO_CHAVE_SQL} as chave_medicamento, data_validade
+    from fct_farmacia_estoque
+    where portal_slug = ${portalSlug}
+      and status_conformidade = 'conforme'
+      and quantidade_estoque > 0
+  ),
+  lotes_por_remedio as (
+    select
+      portal_slug,
+      chave_medicamento,
+      count(*) filter (where data_validade < current_date) as total_lotes_vencidos,
+      count(*) filter (where data_validade is null or data_validade >= current_date) as total_lotes_validos
+    from lotes_vigentes
+    group by portal_slug, chave_medicamento
+  )
+`;
 
 const INDICE_VAZIO = {
   totalUnidades: 0,
@@ -471,7 +529,9 @@ export async function getFarmaciaIndiceAlfabetico(
       sql<string>`min(${NOME_MEDICAMENTO_NORMALIZADO_SQL})`.as(
         "nome_medicamento",
       ),
-      sql<number>`count(distinct ${ID_UNIDADE_SQL})`.as("unidades_com_estoque"),
+      sql<number>`count(distinct ${ID_UNIDADE_SQL}) filter (where ${LOTE_UTILIZAVEL_SQL})`.as(
+        "unidades_com_estoque",
+      ),
       sql<number>`row_number() over (partition by ${INICIAL_MEDICAMENTO_SQL} order by ${NOME_MEDICAMENTO_CHAVE_SQL})`.as(
         "posicao",
       ),
@@ -498,6 +558,10 @@ export async function getFarmaciaIndiceAlfabetico(
         {
           nomeMedicamento: linha.nome_medicamento,
           unidadesComEstoque: toNumberOrNull(linha.unidades_com_estoque) ?? 0,
+          situacaoValidade:
+            toNumberOrNull(linha.unidades_com_estoque) === 0
+              ? "somente_vencido"
+              : "com_lote_valido",
         },
       ]),
     new Map(),
@@ -523,11 +587,14 @@ export interface FarmaciaSentinelaDTO {
   destaqueCardInicial: boolean;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
+  /** Unidades em que o princípio ativo só tem lotes vencidos. */
+  unidadesSomenteLoteVencido: number;
 }
 
 export interface FarmaciaIndicadoresDTO {
   totalEssenciais: number;
   essenciaisNoEstoque: number;
+  essenciaisSomenteLoteVencido: number;
   essenciaisSomenteCombinacao: number;
   essenciaisSemRegistro: number;
 }
@@ -541,6 +608,7 @@ export interface FarmaciaSentinelasDTO {
 const INDICADORES_VAZIO: FarmaciaIndicadoresDTO = {
   totalEssenciais: 0,
   essenciaisNoEstoque: 0,
+  essenciaisSomenteLoteVencido: 0,
   essenciaisSomenteCombinacao: 0,
   essenciaisSemRegistro: 0,
 };
@@ -557,16 +625,26 @@ export function calcularIndicadoresFarmacia(
 ): FarmaciaIndicadoresDTO {
   const noEstoque = sentinelas.filter((s) => s.unidadesComRegistro > 0);
   const restantes = sentinelas.filter((s) => s.unidadesComRegistro === 0);
-  const somenteCombinacao = restantes.filter(
+  const somenteLoteVencido = restantes.filter(
+    (s) => s.unidadesSomenteLoteVencido > 0,
+  );
+  const semLoteVencido = restantes.filter(
+    (s) => s.unidadesSomenteLoteVencido === 0,
+  );
+  const somenteCombinacao = semLoteVencido.filter(
     (s) => s.unidadesSomenteCombinacao > 0,
   );
   return {
     totalEssenciais: sentinelas.length,
     essenciaisNoEstoque: noEstoque.length,
+    essenciaisSomenteLoteVencido: somenteLoteVencido.length,
     essenciaisSomenteCombinacao: somenteCombinacao.length,
-    essenciaisSemRegistro: restantes.length - somenteCombinacao.length,
+    essenciaisSemRegistro: semLoteVencido.length - somenteCombinacao.length,
   };
 }
+
+// O mart só é reconstruído nos dias úteis; a validade é comparada com hoje na leitura.
+const SENTINELA_LOTE_UTILIZAVEL_SQL = sql<boolean>`(possui_lote_sem_validade or coalesce(data_validade_mais_tardia >= current_date, false))`;
 
 /**
  * Disponibilidade dos medicamentos-sentinela (RENAME 2024) lida do mart
@@ -587,11 +665,14 @@ export async function getFarmaciaSentinelas(
       sql<number>`min(ordem_exibicao)`.as("ordem_exibicao"),
       sql<boolean>`bool_or(destaque_card_inicial)`.as("destaque_card_inicial"),
       sql<number>`count(*)`.as("total_unidades_ativas"),
-      sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque')`.as(
+      sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque' and ${SENTINELA_LOTE_UTILIZAVEL_SQL})`.as(
         "unidades_com_registro",
       ),
       sql<number>`count(*) filter (where status_disponibilidade = 'sem_registro_estoque' and quantidade_apresentacoes_combinacao_com_estoque > 0)`.as(
         "unidades_somente_combinacao",
+      ),
+      sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque' and not ${SENTINELA_LOTE_UTILIZAVEL_SQL})`.as(
+        "unidades_somente_lote_vencido",
       ),
     ])
     .where("portal_slug", "=", portalSlug.trim())
@@ -612,6 +693,8 @@ export async function getFarmaciaSentinelas(
       unidadesComRegistro: toNumberOrNull(l.unidades_com_registro) ?? 0,
       unidadesSomenteCombinacao:
         toNumberOrNull(l.unidades_somente_combinacao) ?? 0,
+      unidadesSomenteLoteVencido:
+        toNumberOrNull(l.unidades_somente_lote_vencido) ?? 0,
     }),
   );
 
@@ -635,6 +718,10 @@ export interface FarmaciaLotesAVencerDTO {
   totalRemediosAVencer: number;
   /** Lotes com validade anterior a hoje que ainda constam com saldo na posição vigente. */
   totalLotesVencidosComSaldo: number;
+  /** Remédios (nível portal) cujos lotes com saldo estão todos vencidos. */
+  totalRemediosSomenteVencidos: number;
+  /** Lotes vencidos pertencentes a esses remédios. */
+  totalLotesRemediosSomenteVencidos: number;
   dataVencimentoMaisProxima: string | null;
 }
 
@@ -644,12 +731,14 @@ const LOTES_A_VENCER_VAZIO: FarmaciaLotesAVencerDTO = {
   totalLotesAVencer: 0,
   totalRemediosAVencer: 0,
   totalLotesVencidosComSaldo: 0,
+  totalRemediosSomenteVencidos: 0,
+  totalLotesRemediosSomenteVencidos: 0,
   dataVencimentoMaisProxima: null,
 };
 
 /**
- * Lotes próximos do vencimento na posição vigente de cada unidade (última
- * `data_posicao_estoque` por CNES). Só lotes com saldo e validade informada.
+ * Lotes próximos do vencimento na lista vigente (unidades ativas, última
+ * posição de cada uma). Só lotes com saldo; a janela exige validade informada.
  */
 export async function getFarmaciaLotesAVencer(
   portalSlug: string,
@@ -658,37 +747,34 @@ export async function getFarmaciaLotesAVencer(
   if (!isPortalSlugValido(portalSlug)) return LOTES_A_VENCER_VAZIO;
   const slug = portalSlug.trim();
 
+  const janela = Math.floor(janelaDias);
   const { rows } = await sql<{
     total_lotes_com_validade: string | number;
     total_lotes_a_vencer: string | number;
     total_remedios_a_vencer: string | number;
     total_lotes_vencidos_com_saldo: string | number;
+    total_remedios_somente_vencidos: string | number;
+    total_lotes_remedios_somente_vencidos: string | number;
     data_vencimento_mais_proxima: unknown;
   }>`
-    with posicao_vigente as (
-      select portal_slug, codigo_cnes, max(data_posicao_estoque) as data_posicao_vigente
-      from fct_farmacia_estoque_historico
-      where portal_slug = ${slug}
-      group by portal_slug, codigo_cnes
+    with ${lotesVigentesCtesSql(slug)},
+    resumo_lotes as (
+      select
+        count(*) filter (where data_validade is not null) as total_lotes_com_validade,
+        count(*) filter (where data_validade between current_date and current_date + ${janela}::int) as total_lotes_a_vencer,
+        count(distinct chave_medicamento) filter (where data_validade between current_date and current_date + ${janela}::int) as total_remedios_a_vencer,
+        count(*) filter (where data_validade < current_date) as total_lotes_vencidos_com_saldo,
+        min(data_validade) filter (where data_validade >= current_date) as data_vencimento_mais_proxima
+      from lotes_vigentes
     ),
-    lotes_vigentes as (
-      select h.nome_medicamento, h.data_validade
-      from fct_farmacia_estoque_historico h
-      inner join posicao_vigente v
-        on h.portal_slug = v.portal_slug
-        and h.codigo_cnes is not distinct from v.codigo_cnes
-        and h.data_posicao_estoque = v.data_posicao_vigente
-      where h.portal_slug = ${slug}
-        and h.data_validade is not null
-        and h.quantidade_estoque > 0
+    resumo_remedios_somente_vencidos as (
+      select
+        count(*) as total_remedios_somente_vencidos,
+        coalesce(sum(total_lotes_vencidos), 0) as total_lotes_remedios_somente_vencidos
+      from lotes_por_remedio
+      where total_lotes_vencidos > 0 and total_lotes_validos = 0
     )
-    select
-      count(*) as total_lotes_com_validade,
-      count(*) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_lotes_a_vencer,
-      count(distinct lower(nome_medicamento)) filter (where data_validade between current_date and current_date + ${Math.floor(janelaDias)}::int) as total_remedios_a_vencer,
-      count(*) filter (where data_validade < current_date) as total_lotes_vencidos_com_saldo,
-      min(data_validade) filter (where data_validade >= current_date) as data_vencimento_mais_proxima
-    from lotes_vigentes
+    select * from resumo_lotes cross join resumo_remedios_somente_vencidos
   `.execute(db);
 
   const linha = rows[0];
@@ -701,6 +787,10 @@ export async function getFarmaciaLotesAVencer(
     totalRemediosAVencer: toNumberOrNull(linha.total_remedios_a_vencer) ?? 0,
     totalLotesVencidosComSaldo:
       toNumberOrNull(linha.total_lotes_vencidos_com_saldo) ?? 0,
+    totalRemediosSomenteVencidos:
+      toNumberOrNull(linha.total_remedios_somente_vencidos) ?? 0,
+    totalLotesRemediosSomenteVencidos:
+      toNumberOrNull(linha.total_lotes_remedios_somente_vencidos) ?? 0,
     dataVencimentoMaisProxima:
       totalLotesAVencer > 0
         ? toIsoDateString(linha.data_vencimento_mais_proxima)

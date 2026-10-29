@@ -35,6 +35,7 @@ estoque_valido as (
         estoque.codigo_cnes,
         estoque.nome_medicamento,
         estoque.quantidade_estoque,
+        estoque.data_validade,
         estoque.data_posicao_estoque
     from {{ ref('stg_farmacia_sus__estoque_medicamentos') }} as estoque
     inner join coletas
@@ -72,6 +73,7 @@ itens_ativos as (
         estoque_valido.codigo_cnes,
         estoque_valido.nome_medicamento,
         estoque_valido.quantidade_estoque,
+        estoque_valido.data_validade,
         estoque_valido.data_posicao_estoque
     from estoque_valido
     inner join unidades_ativas
@@ -151,6 +153,7 @@ itens_vigentes as (
         unidades.longitude_unidade,
         itens_ativos.nome_medicamento,
         itens_ativos.quantidade_estoque,
+        itens_ativos.data_validade,
         itens_ativos.data_posicao_estoque
     from status_portal
     inner join itens_ativos
@@ -178,6 +181,7 @@ portais_sem_itens as (
         null::numeric(12, 8) as longitude_unidade,
         null::text as nome_medicamento,
         null::numeric(15, 3) as quantidade_estoque,
+        null::date as data_validade,
         null::date as data_posicao_estoque
     from status_portal
     where status_conformidade <> 'conforme'

@@ -407,12 +407,35 @@ describe("getFarmaciaSentinelas", () => {
     expect(b.totalUnidadesAtivas).toBe(1);
   });
 
+  it("decide na leitura se o lote ja venceu, mesmo com o mart construido dias antes", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "dipirona",
+      possuiLoteSemValidade: false,
+      dataValidadeMaisTardia: dataRelativa(2),
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1002",
+      codigoPrincipioAtivo: "dipirona",
+      possuiLoteSemValidade: false,
+      dataValidadeMaisTardia: dataRelativa(-2),
+    });
+    const [dipirona] = (await getFarmaciaSentinelas(PORTAL_A)).sentinelas;
+    expect(dipirona).toMatchObject({
+      unidadesComRegistro: 1,
+      unidadesSomenteLoteVencido: 1,
+    });
+  });
+
   it("portal sem linhas ou slug inválido devolve vazio", async () => {
     expect(await getFarmaciaSentinelas(PORTAL_A)).toEqual({
       totalUnidadesAtivas: 0,
       indicadores: {
         totalEssenciais: 0,
         essenciaisNoEstoque: 0,
+        essenciaisSomenteLoteVencido: 0,
         essenciaisSomenteCombinacao: 0,
         essenciaisSemRegistro: 0,
       },
@@ -440,11 +463,22 @@ describe("getFarmaciaSentinelas", () => {
       codigoPrincipioAtivo: "losartana",
       statusDisponibilidade: "sem_registro_estoque",
     });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "captopril",
+      possuiLoteSemValidade: false,
+      dataValidadeMaisTardia: dataRelativa(-3),
+    });
     const resultado = await getFarmaciaSentinelas(PORTAL_A);
     expect(resultado.totalUnidadesAtivas).toBe(1);
+    expect(
+      resultado.sentinelas.find((s) => s.codigoPrincipioAtivo === "captopril"),
+    ).toMatchObject({ unidadesComRegistro: 0, unidadesSomenteLoteVencido: 1 });
     expect(resultado.indicadores).toEqual({
-      totalEssenciais: 3,
+      totalEssenciais: 4,
       essenciaisNoEstoque: 1,
+      essenciaisSomenteLoteVencido: 1,
       essenciaisSomenteCombinacao: 1,
       essenciaisSemRegistro: 1,
     });
@@ -454,9 +488,129 @@ describe("getFarmaciaSentinelas", () => {
     expect(calcularIndicadoresFarmacia([])).toEqual({
       totalEssenciais: 0,
       essenciaisNoEstoque: 0,
+      essenciaisSomenteLoteVencido: 0,
       essenciaisSomenteCombinacao: 0,
       essenciaisSemRegistro: 0,
     });
+  });
+});
+
+describe("getFarmaciaSus com lotes vencidos", () => {
+  const lote = ({
+    idRegistro,
+    codigoCnes,
+    nomeMedicamento,
+    quantidadeEstoque,
+    dataValidade,
+    portalSlug = PORTAL_A,
+  }: {
+    idRegistro: string;
+    codigoCnes: string;
+    nomeMedicamento: string;
+    quantidadeEstoque: number;
+    dataValidade: string | null;
+    portalSlug?: string;
+  }) =>
+    seedFarmacia({
+      portalSlug,
+      idRegistro,
+      statusConformidade: "conforme",
+      dataColeta: "2026-10-20",
+      dataPosicaoMaisRecente: "2026-10-18",
+      diasDesdePosicaoMaisRecente: 2,
+      codigoCnes,
+      nomeUnidade: `UBS ${codigoCnes}`,
+      nomeMedicamento,
+      quantidadeEstoque,
+      dataPosicaoEstoque: "2026-10-18",
+      dataValidade,
+    });
+
+  it("soma so lotes utilizaveis por unidade e nao lista unidade so com lote vencido", async () => {
+    await Promise.all([
+      lote({
+        idRegistro: "1",
+        codigoCnes: "1001",
+        nomeMedicamento: "Dipirona 500mg",
+        quantidadeEstoque: 5,
+        dataValidade: dataRelativa(-3),
+      }),
+      lote({
+        idRegistro: "2",
+        codigoCnes: "1001",
+        nomeMedicamento: "Dipirona 500mg",
+        quantidadeEstoque: 7,
+        dataValidade: dataRelativa(120),
+      }),
+      lote({
+        idRegistro: "3",
+        codigoCnes: "1002",
+        nomeMedicamento: "Dipirona 500mg",
+        quantidadeEstoque: 40,
+        dataValidade: dataRelativa(-1),
+      }),
+      lote({
+        idRegistro: "4",
+        codigoCnes: "1002",
+        nomeMedicamento: "Amoxicilina",
+        quantidadeEstoque: 3,
+        dataValidade: null,
+      }),
+    ]);
+
+    const resultado = await getFarmaciaSus(PORTAL_A, { busca: "dipirona" });
+    expect(resultado.unidades.map((u) => u.idUnidade)).toEqual(["1001"]);
+    expect(resultado.totalQuantidadeEstoque).toBe(7);
+    expect(resultado.remedios[0]).toMatchObject({
+      nomeMedicamento: "Dipirona 500mg",
+      totalQuantidadeEstoque: 7,
+      totalUnidadesComEstoque: 1,
+    });
+    expect(resultado.medicamentosSemLoteValido).toEqual([]);
+  });
+
+  it("lista o remedio que so tem lotes vencidos, sem unidades, isolado por portal", async () => {
+    await Promise.all([
+      lote({
+        idRegistro: "1",
+        codigoCnes: "1001",
+        nomeMedicamento: "Captopril 25mg",
+        quantidadeEstoque: 5,
+        dataValidade: dataRelativa(-3),
+      }),
+      lote({
+        idRegistro: "2",
+        codigoCnes: "1002",
+        nomeMedicamento: "Captopril 25mg",
+        quantidadeEstoque: 9,
+        dataValidade: dataRelativa(-30),
+      }),
+      lote({
+        idRegistro: "3",
+        codigoCnes: "1001",
+        nomeMedicamento: "Captopril 50mg",
+        quantidadeEstoque: 2,
+        dataValidade: dataRelativa(60),
+      }),
+      lote({
+        idRegistro: "4",
+        codigoCnes: "1001",
+        nomeMedicamento: "Captopril 25mg",
+        quantidadeEstoque: 9,
+        dataValidade: dataRelativa(60),
+        portalSlug: PORTAL_B,
+      }),
+    ]);
+
+    const resultado = await getFarmaciaSus(PORTAL_A, { busca: "captopril" });
+    expect(resultado.medicamentosSemLoteValido).toEqual(["Captopril 25mg"]);
+    expect(resultado.remedios.map((r) => r.nomeMedicamento)).toEqual([
+      "Captopril 50mg",
+    ]);
+
+    const soVencido = await getFarmaciaSus(PORTAL_A, { busca: "captopril 25" });
+    expect(soVencido.unidades).toEqual([]);
+    expect(soVencido.medicamentosSemLoteValido).toEqual(["Captopril 25mg"]);
   });
 });
 
@@ -467,13 +621,45 @@ function dataRelativa(dias: number): string {
 }
 
 describe("getFarmaciaLotesAVencer", () => {
+  const baseMart = {
+    statusConformidade: "conforme",
+    dataColeta: dataRelativa(0),
+    dataPosicaoMaisRecente: dataRelativa(-1),
+    diasDesdePosicaoMaisRecente: 1,
+  };
+  const lote = ({
+    portalSlug,
+    idRegistro,
+    nomeMedicamento,
+    dataValidade,
+    codigoCnes = "1001",
+    quantidadeEstoque = 1,
+  }: {
+    portalSlug: string;
+    idRegistro: string;
+    nomeMedicamento: string;
+    dataValidade: string | null;
+    codigoCnes?: string;
+    quantidadeEstoque?: number;
+  }) =>
+    seedFarmacia({
+      ...baseMart,
+      portalSlug,
+      idRegistro,
+      codigoCnes,
+      nomeUnidade: `UBS ${codigoCnes}`,
+      nomeMedicamento,
+      quantidadeEstoque,
+      dataPosicaoEstoque: dataRelativa(-1),
+      dataValidade,
+    });
+
   it("omite o card quando nenhum lote tem validade", async () => {
-    await seedFarmaciaHistorico({
+    await lote({
       portalSlug: PORTAL_A,
       idRegistro: "h1",
-      codigoCnes: "1001",
       nomeMedicamento: "Dipirona",
-      dataPosicaoEstoque: dataRelativa(-1),
+      dataValidade: null,
     });
     const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
     expect(resultado.totalLotesComValidade).toBe(0);
@@ -481,49 +667,35 @@ describe("getFarmaciaLotesAVencer", () => {
     expect(resultado.dataVencimentoMaisProxima).toBeNull();
   });
 
-  it("conta lotes na janela, remedios distintos e o vencimento mais proximo na posicao vigente", async () => {
-    const base = { portalSlug: PORTAL_A, codigoCnes: "1001" };
-    const posicao = dataRelativa(-1);
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "h1",
-      nomeMedicamento: "Dipirona",
-      numeroLote: "A",
-      dataPosicaoEstoque: posicao,
-      dataValidade: dataRelativa(20),
-    });
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "h2",
-      nomeMedicamento: "Dipirona",
-      numeroLote: "B",
-      dataPosicaoEstoque: posicao,
-      dataValidade: dataRelativa(10),
-    });
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "h3",
-      nomeMedicamento: "Amoxicilina",
-      dataPosicaoEstoque: posicao,
-      dataValidade: dataRelativa(FARMACIA_JANELA_LOTES_A_VENCER_DIAS + 30),
-    });
-    // posição antiga da mesma unidade não é vigente
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "h4",
-      nomeMedicamento: "Losartana",
-      dataPosicaoEstoque: dataRelativa(-10),
-      dataValidade: dataRelativa(5),
-    });
-    // outro portal não contamina
-    await seedFarmaciaHistorico({
-      portalSlug: PORTAL_B,
-      idRegistro: "h5",
-      codigoCnes: "1001",
-      nomeMedicamento: "Dipirona",
-      dataPosicaoEstoque: posicao,
-      dataValidade: dataRelativa(3),
-    });
+  it("conta lotes na janela, remedios distintos e o vencimento mais proximo", async () => {
+    await Promise.all([
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "h1",
+        nomeMedicamento: "Dipirona",
+        dataValidade: dataRelativa(20),
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "h2",
+        nomeMedicamento: "DIPIRONA",
+        dataValidade: dataRelativa(10),
+        codigoCnes: "1002",
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "h3",
+        nomeMedicamento: "Amoxicilina",
+        dataValidade: dataRelativa(FARMACIA_JANELA_LOTES_A_VENCER_DIAS + 30),
+      }),
+      // outro portal não contamina
+      lote({
+        portalSlug: PORTAL_B,
+        idRegistro: "h5",
+        nomeMedicamento: "Dipirona",
+        dataValidade: dataRelativa(3),
+      }),
+    ]);
 
     const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
     expect(resultado).toEqual({
@@ -532,29 +704,93 @@ describe("getFarmaciaLotesAVencer", () => {
       totalLotesAVencer: 2,
       totalRemediosAVencer: 1,
       totalLotesVencidosComSaldo: 0,
+      totalRemediosSomenteVencidos: 0,
+      totalLotesRemediosSomenteVencidos: 0,
       dataVencimentoMaisProxima: dataRelativa(10),
     });
   });
 
+  it("separa remedios so com lotes vencidos dos que tem lote utilizavel, por portal", async () => {
+    await Promise.all([
+      // só vencido: dois lotes, grafias que diferem na caixa e nos espaços
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "s1",
+        nomeMedicamento: "Dipirona",
+        dataValidade: dataRelativa(-5),
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "s2",
+        nomeMedicamento: " DIPIRONA ",
+        dataValidade: dataRelativa(-9),
+        codigoCnes: "1002",
+      }),
+      // misto: lote vencido + lote válido em outra unidade
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "m1",
+        nomeMedicamento: "Amoxicilina",
+        dataValidade: dataRelativa(-2),
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "m2",
+        nomeMedicamento: "Amoxicilina",
+        dataValidade: dataRelativa(200),
+        codigoCnes: "1002",
+      }),
+      // lote sem validade conta como utilizável
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "n1",
+        nomeMedicamento: "Losartana",
+        dataValidade: dataRelativa(-2),
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "n2",
+        nomeMedicamento: "Losartana",
+        dataValidade: null,
+      }),
+      // só vencido em um único lote
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "s3",
+        nomeMedicamento: "Atenolol",
+        dataValidade: dataRelativa(-1),
+      }),
+      // outro portal com o mesmo nome não contamina
+      lote({
+        portalSlug: PORTAL_B,
+        idRegistro: "o1",
+        nomeMedicamento: "Dipirona",
+        dataValidade: dataRelativa(30),
+      }),
+    ]);
+
+    const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
+    expect(resultado.totalRemediosSomenteVencidos).toBe(2);
+    expect(resultado.totalLotesRemediosSomenteVencidos).toBe(3);
+    expect(resultado.totalLotesVencidosComSaldo).toBe(5);
+  });
+
   it("conta lotes ja vencidos com saldo e ignora vencidos sem saldo", async () => {
-    const base = {
-      portalSlug: PORTAL_A,
-      codigoCnes: "1001",
-      dataPosicaoEstoque: dataRelativa(-1),
-    };
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "v1",
-      nomeMedicamento: "Dipirona",
-      dataValidade: dataRelativa(-5),
-    });
-    await seedFarmaciaHistorico({
-      ...base,
-      idRegistro: "v2",
-      nomeMedicamento: "Amoxicilina",
-      quantidadeEstoque: 0,
-      dataValidade: dataRelativa(-3),
-    });
+    await Promise.all([
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "v1",
+        nomeMedicamento: "Dipirona",
+        dataValidade: dataRelativa(-5),
+      }),
+      lote({
+        portalSlug: PORTAL_A,
+        idRegistro: "v2",
+        nomeMedicamento: "Amoxicilina",
+        dataValidade: dataRelativa(-3),
+        quantidadeEstoque: 0,
+      }),
+    ]);
     const resultado = await getFarmaciaLotesAVencer(PORTAL_A);
     expect(resultado.totalLotesComValidade).toBe(1);
     expect(resultado.totalLotesVencidosComSaldo).toBe(1);
@@ -662,6 +898,8 @@ describe("getFarmaciaEstoqueExportRecords", () => {
   });
 });
 
+const SEM_LOTE_VENCIDO = { situacaoValidade: "com_lote_valido" } as const;
+
 describe("getFarmaciaIndiceAlfabetico", () => {
   const base = {
     statusConformidade: "conforme",
@@ -735,9 +973,21 @@ describe("getFarmaciaIndiceAlfabetico", () => {
       letra: "A",
       totalMedicamentos: 4,
       medicamentos: [
-        { nomeMedicamento: "Ácido fólico 5mg", unidadesComEstoque: 1 },
-        { nomeMedicamento: "Amoxicilina", unidadesComEstoque: 2 },
-        { nomeMedicamento: "Atenolol 50mg", unidadesComEstoque: 1 },
+        {
+          nomeMedicamento: "Ácido fólico 5mg",
+          unidadesComEstoque: 1,
+          ...SEM_LOTE_VENCIDO,
+        },
+        {
+          nomeMedicamento: "Amoxicilina",
+          unidadesComEstoque: 2,
+          ...SEM_LOTE_VENCIDO,
+        },
+        {
+          nomeMedicamento: "Atenolol 50mg",
+          unidadesComEstoque: 1,
+          ...SEM_LOTE_VENCIDO,
+        },
       ],
     });
   });
@@ -765,7 +1015,11 @@ describe("getFarmaciaIndiceAlfabetico", () => {
     await seedIndice(PORTAL_A);
     const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "D" });
     expect(indice.letras[0].medicamentos).toEqual([
-      { nomeMedicamento: "dipirona sódica", unidadesComEstoque: 1 },
+      {
+        nomeMedicamento: "dipirona sódica",
+        unidadesComEstoque: 1,
+        ...SEM_LOTE_VENCIDO,
+      },
     ]);
   });
 
@@ -790,11 +1044,96 @@ describe("getFarmaciaIndiceAlfabetico", () => {
         letra: "0-9",
         totalMedicamentos: 2,
         medicamentos: [
-          { nomeMedicamento: "(+) simbolo", unidadesComEstoque: 1 },
-          { nomeMedicamento: "500 mg soro", unidadesComEstoque: 1 },
+          {
+            nomeMedicamento: "(+) simbolo",
+            unidadesComEstoque: 1,
+            ...SEM_LOTE_VENCIDO,
+          },
+          {
+            nomeMedicamento: "500 mg soro",
+            unidadesComEstoque: 1,
+            ...SEM_LOTE_VENCIDO,
+          },
         ],
       },
     ]);
+  });
+
+  it("conta so unidades com lote utilizavel e marca o remedio so com lotes vencidos", async () => {
+    const lote = ({
+      idRegistro,
+      codigoCnes,
+      nomeMedicamento,
+      dataValidade,
+    }: {
+      idRegistro: string;
+      codigoCnes: string;
+      nomeMedicamento: string;
+      dataValidade: string | null;
+    }) =>
+      seedFarmacia({
+        ...base,
+        portalSlug: PORTAL_A,
+        idRegistro,
+        codigoCnes,
+        nomeUnidade: `UBS ${codigoCnes}`,
+        nomeMedicamento,
+        quantidadeEstoque: 10,
+        dataPosicaoEstoque: "2026-10-18",
+        dataValidade,
+      });
+    await Promise.all([
+      lote({
+        idRegistro: "1",
+        codigoCnes: "1001",
+        nomeMedicamento: "AMOXICILINA",
+        dataValidade: dataRelativa(-5),
+      }),
+      lote({
+        idRegistro: "2",
+        codigoCnes: "1002",
+        nomeMedicamento: "Amoxicilina",
+        dataValidade: dataRelativa(-8),
+      }),
+      lote({
+        idRegistro: "3",
+        codigoCnes: "1001",
+        nomeMedicamento: "Atenolol",
+        dataValidade: dataRelativa(-3),
+      }),
+      lote({
+        idRegistro: "4",
+        codigoCnes: "1002",
+        nomeMedicamento: "Atenolol",
+        dataValidade: dataRelativa(90),
+      }),
+      lote({
+        idRegistro: "5",
+        codigoCnes: "1001",
+        nomeMedicamento: "Azitromicina",
+        dataValidade: null,
+      }),
+    ]);
+
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "A" });
+    const porNome = new Map(
+      (indice.letras[0]?.medicamentos ?? []).map((m) => [m.nomeMedicamento, m]),
+    );
+    expect(indice.letras[0]?.totalMedicamentos).toBe(3);
+    expect(porNome.get("AMOXICILINA")).toMatchObject({
+      situacaoValidade: "somente_vencido",
+      unidadesComEstoque: 0,
+    });
+    expect(porNome.get("Atenolol")).toMatchObject({
+      situacaoValidade: "com_lote_valido",
+      unidadesComEstoque: 1,
+    });
+    expect(porNome.get("Azitromicina")).toMatchObject({
+      situacaoValidade: "com_lote_valido",
+      unidadesComEstoque: 1,
+    });
+    // unidade que só tem lote vencido continua ativa: o total mede frescor da lista
+    expect(indice.totalUnidades).toBe(2);
   });
 
   it("sem nomes fora de A-Z nao cria o grupo 0-9", async () => {

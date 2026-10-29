@@ -45,14 +45,22 @@ def raw(conn):
             {"p": portal, "d": f"{_dia(0)}T12:00:00"},
         )
 
-    def estoque(portal, id_registro, cnes, medicamento, data_posicao, quantidade="10"):
+    def estoque(portal, id_registro, cnes, medicamento, data_posicao, quantidade="10", validade=None):
         conn.execute(
             text(
                 f"INSERT INTO {_SCHEMA}.estoque_medicamentos "
-                "(portal_slug, id_registro, codigo_cnes, nome_medicamento, quantidade_estoque, data_posicao_estoque) "
-                "VALUES (:p, :i, :c, :m, :q, :d)"
+                "(portal_slug, id_registro, codigo_cnes, nome_medicamento, quantidade_estoque, data_posicao_estoque, data_validade) "
+                "VALUES (:p, :i, :c, :m, :q, :d, :v)"
             ),
-            {"p": portal, "i": id_registro, "c": cnes, "m": medicamento, "q": quantidade, "d": data_posicao},
+            {
+                "p": portal,
+                "i": id_registro,
+                "c": cnes,
+                "m": medicamento,
+                "q": quantidade,
+                "d": data_posicao,
+                "v": validade,
+            },
         )
 
     yield type("Raw", (), {"coleta": staticmethod(coleta), "estoque": staticmethod(estoque)})
@@ -85,6 +93,35 @@ def test_casa_sal_acento_e_apresentacao_e_gera_linha_explicita_para_ausentes(con
     assert mapa["losartana"] == ("com_registro_estoque", 2)
     assert mapa["acido_acetilsalicilico"] == ("com_registro_estoque", 1)
     assert mapa["captopril"] == ("sem_registro_estoque", 0)
+
+
+def test_expoe_validade_dos_lotes_para_a_consulta_decidir_o_que_ja_venceu(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "v1", "1001", "Captopril 25mg", _dia(1), validade=_dia(5))
+    raw.estoque(portal, "v2", "1001", "Captopril 25mg", _dia(1), validade=_dia(9))
+    raw.estoque(portal, "v3", "1001", "Dipirona", _dia(1), validade=_dia(1))
+    raw.estoque(portal, "v4", "1001", "Dipirona", _dia(1))
+    raw.estoque(portal, "v5", "1001", "Metformina 850mg", _dia(1), validade=_dia(2))
+    raw.estoque(portal, "v6", "1001", "Metformina 850mg", _dia(1), validade=_dia(-90))
+    raw.estoque(portal, "v7", "1001", "Losartana Potássica 50mg", _dia(1), quantidade="0", validade=_dia(-5))
+    conn.commit()
+
+    linhas = conn.execute(
+        text(
+            "SELECT codigo_principio_ativo, status_disponibilidade, possui_lote_sem_validade, data_validade_mais_tardia "
+            "FROM analytics.fct_farmacia_sentinela_disponibilidade WHERE portal_slug = :p AND codigo_cnes = :c"
+        ),
+        {"p": portal, "c": "1001"},
+    ).fetchall()
+    mapa = {linha[0]: (linha[1], linha[2], linha[3].isoformat() if linha[3] else None) for linha in linhas}
+    # lotes todos vencidos: segue com registro; quem decide e a consulta, com a data de hoje
+    assert mapa["captopril"] == ("com_registro_estoque", False, _dia(5))
+    assert mapa["dipirona"] == ("com_registro_estoque", True, _dia(1))
+    assert mapa["metformina"] == ("com_registro_estoque", False, _dia(-90))
+    # lote sem saldo nao conta nem para a validade
+    assert mapa["losartana"] == ("sem_registro_estoque", False, None)
+    assert mapa["anlodipino"] == ("sem_registro_estoque", False, None)
 
 
 def test_dose_fixa_e_insulina_analoga_nao_casam(conn, raw, portais):
