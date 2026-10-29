@@ -61,7 +61,7 @@
   --banbg: #182233;
   --banfg: #9bbbe6;
   --brand: oklch(0.75 0.11 250);
-  --brand-fill: var(--brand);
+  --brand-fill: oklch(0.6 0.15 255);
   --brand-text: var(--brand);
   --danger: var(--danger-text);
   --danger-fill: oklch(0.63 0.2 27);

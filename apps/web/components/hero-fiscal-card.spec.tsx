@@ -35,8 +35,8 @@ describe("HeroFiscalCard", () => {
     const cores = Array.from(
       container.querySelectorAll<HTMLElement>("[style*='width']"),
     ).map((barra) => barra.style.backgroundColor);
-    expect(cores).toContain("var(--ok)");
-    expect(cores.filter((cor) => cor === "var(--brand)")).toHaveLength(1);
+    expect(cores).toContain("var(--ok-fill)");
+    expect(cores.filter((cor) => cor === "var(--brand-fill)")).toHaveLength(1);
     expect(cores.filter((cor) => cor === "var(--ink)")).toHaveLength(1);
   });
 });

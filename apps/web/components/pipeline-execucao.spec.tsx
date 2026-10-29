@@ -33,7 +33,7 @@ describe("PipelineExecucao", () => {
     const cores = Array.from(
       container.querySelectorAll<HTMLElement>("[style*='width']"),
     ).map((barra) => barra.style.backgroundColor);
-    expect(cores).toEqual(["var(--ok)", "var(--brand)"]);
+    expect(cores).toEqual(["var(--ok-fill)", "var(--brand-fill)"]);
   });
 
   it("nao renderiza o filete final quando nao ha etapas", () => {
