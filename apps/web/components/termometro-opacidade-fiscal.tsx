@@ -3,20 +3,8 @@ import type {
   OpacidadeCredorDTO,
   OpacidadeMetricasExercicioDTO,
 } from "@transparencia/db";
-import {
-  fmtCompact,
-  fmtCurrency,
-  fmtNumber,
-  fmtPercent,
-} from "@transparencia/ui";
-import {
-  AlertTriangle,
-  ChevronDown,
-  ExternalLink,
-  Layers,
-  Lightbulb,
-  ShieldCheck,
-} from "lucide-react";
+import { fmtCompact, fmtNumber, fmtPercent } from "@transparencia/ui";
+import { ChevronDown, ExternalLink, Lightbulb } from "lucide-react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
@@ -32,31 +20,24 @@ function getRiscoConfig(
 ) {
   if (classificacao === "critico") {
     return {
-      label: "Uso Elevado de .99",
       badgeClass: "border-danger text-danger",
       barClass: "bg-danger",
       textColor: "text-danger",
-      statusText: "Elevado",
-      icon: AlertTriangle,
+      statusText: "Muito alto",
     };
   }
   if (classificacao === "atencao") {
     return {
-      label: "Atenção (.99)",
       badgeClass: "border-warn text-warn",
       barClass: "bg-warn",
       textColor: "text-warn",
       statusText: "Atenção",
-      icon: AlertTriangle,
     };
   }
   return {
-    label: "Uso Esperado de .99",
     badgeClass: "border-ok text-ok",
-    barClass: "bg-ok",
     textColor: "text-ok",
-    statusText: "Esperado",
-    icon: ShieldCheck,
+    statusText: "Normal",
   };
 }
 
@@ -82,7 +63,7 @@ function formatCategoriaSensivel(
   if (cat === "obras_infraestrutura") return "Obras & Infraestrutura";
   if (cat === "locacao_imoveis") return "Locação de Imóveis";
   if (cat === "diarias_viagens") return "Diárias & Viagens";
-  return "Subitem Genérico (.99)";
+  return "Outros (sem categoria definida)";
 }
 
 function ElementoResidualRow({
@@ -93,65 +74,46 @@ function ElementoResidualRow({
   const pct = Math.max(0, Math.min(100, elem.percentualDoResidual99 || 0));
 
   return (
-    <div className="space-y-1">
-      {/* Topo: Código, Descrição e Badge de Classificação */}
-      <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <span className="shrink-0 font-bold text-[11px] text-ink">
-            {elem.elementoCodigo}.99
-          </span>
-          <span
-            className="truncate font-medium text-ink"
-            title={elem.elementoDescricao}
-          >
-            {elem.elementoDescricao}
-          </span>
-        </div>
-        {elem.tipoResidual === "estrutural" ? (
-          <span
-            className="inline-flex shrink-0 items-center rounded-md border border-line px-1.5 py-0.5 font-medium text-[11px] text-mute2"
-            title="Despesa compulsória por obrigação legal ou ordem judicial"
-          >
-            Estrutural
-          </span>
-        ) : (
-          <span
-            className="inline-flex shrink-0 items-center rounded-md border border-warn px-1.5 py-0.5 font-medium text-[11px] text-warn"
-            title="Despesa passível de detalhamento específico no plano de contas"
-          >
-            Evitável
-          </span>
-        )}
-      </div>
+    <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3">
+      <span className="font-medium text-ink text-sm">
+        <span className="mr-2 font-mono text-mute2 text-xs">
+          {elem.elementoCodigo}.99
+        </span>
+        {elem.elementoDescricao}
+        <span className="ml-2 font-mono text-mute2 text-xs">
+          {fmtPercent(elem.percentualDoResidual99)}
+        </span>
+      </span>
+      <span className="text-right text-ink text-sm tabular-nums">
+        {fmtCompact(elem.totalPago)}
+      </span>
 
-      {/* Centro: Barra de Progresso Horizontal em Largura Total */}
       <div
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`Percentual do elemento ${elem.elementoCodigo}.99`}
-        className="h-1.5 w-full overflow-hidden rounded-sm bg-track"
+        className="col-span-full block h-1.5 w-full overflow-hidden bg-track"
       >
-        <div
-          className={`h-full rounded-sm transition-all duration-300 ${
-            elem.tipoResidual === "estrutural" ? "bg-brand" : "bg-mute"
-          }`}
-          style={{
-            width: `${pct}%`,
-          }}
-        />
+        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
 
-      {/* Abaixo da barra: Linha com Valor Monetário e Percentual */}
-      <div className="flex items-center justify-between text-mute2 text-xs">
-        <span className="font-semibold text-ink">
-          {fmtCompact(elem.totalPago)}
+      {elem.tipoResidual === "estrutural" ? (
+        <span
+          className="col-span-full text-mute2 text-xs"
+          title="Obrigatório por lei ou decisão judicial"
+        >
+          Obrigatório por lei
         </span>
-        <span className="font-medium text-[11px] text-mute2">
-          {fmtPercent(elem.percentualDoResidual99)}
+      ) : (
+        <span
+          className="col-span-full text-warn text-xs"
+          title="Poderia ter sido registrado com mais detalhe"
+        >
+          Poderia ser detalhado
         </span>
-      </div>
+      )}
     </div>
   );
 }
@@ -164,8 +126,8 @@ export function TermometroOpacidadeFiscal({
   if (!data?.exercicioAtual) return null;
 
   const { exercicioAtual, limiares, topCredores, basesLegais } = data;
+  const maiorTotalCredor = Math.max(...topCredores.map((c) => c.totalPago), 1);
   const risco = getRiscoConfig(exercicioAtual.classificacaoRisco);
-  const StatusIcon = risco.icon;
 
   const baseLegalPrincipal = basesLegais.find(
     (b) => b.chave.includes("especificacao") || b.baseLegal.includes("4.320"),
@@ -182,104 +144,108 @@ export function TermometroOpacidadeFiscal({
 
   return (
     <div
-      className={`border-ink border-t-2 pt-6 ${className}`}
+      className={`border-ink border-t-1 pt-6 ${className}`}
       data-testid="termometro-opacidade-fiscal"
     >
       {/* Cabeçalho do Card */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-line px-2.5 py-0.5 font-medium text-mute2 text-xs">
-              <Layers className="h-3.5 w-3.5 shrink-0 text-mute2" />
-              Classificação Orçamentária
-            </span>
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2.5 py-0.5 font-semibold text-xs ${risco.badgeClass}`}
-            >
-              <StatusIcon className="h-3.5 w-3.5 shrink-0" />
-              {risco.label}
-            </span>
-          </div>
           <h2 className="font-bold text-ink text-lg">
-            Monitoramento de Gastos Genéricos (Subitens .99)
+            Gastos registrados como &ldquo;Outros&rdquo;
           </h2>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          {/* Link Referência Normativa */}
-          {baseLegalPrincipal.urlBaseLegal && (
-            <a
-              href={baseLegalPrincipal.urlBaseLegal}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 font-medium text-mute2 text-xs hover:bg-line2 hover:text-ink"
-            >
-              <span>Referência: {baseLegalPrincipal.baseLegal}</span>
-              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-mute2" />
-            </a>
-          )}
-
+        <div className="flex shrink-0 items-center gap-2">
           {/* Botão sutil de 3 pontos para Show Your Work */}
           <ShowYourWorkButton
             portalSlug={portalSlug || data.portalSlug}
             ano={exercicioAtual.ano}
             tipo="opacidade_99"
-            tituloContexto="Gastos Genéricos (.99)"
+            tituloContexto="Gastos registrados como Outros"
           />
         </div>
       </div>
 
       {/* Descrição Didática e Cidadã */}
       <p className="mt-3 text-mute2 text-sm leading-relaxed">
-        Acompanhamento da proporção de despesas municipais registradas sob
-        subitens genéricos de apoio (como{" "}
-        <em>&ldquo;Outros Serviços de Terceiros - PJ&rdquo;</em> e{" "}
-        <em>&ldquo;Outros Materiais&rdquo;</em>). A Lei Federal nº 4.320/64
-        (Arts. 5º e 15) recomenda que as despesas sejam devidamente
-        especificadas; as faixas de {limiares.limiteAtencaoPct}% e{" "}
-        {limiares.limiteCriticoPct}% são parâmetros metodológicos do portal para
-        acompanhamento estatístico da concentração desses gastos.
+        Todo gasto da prefeitura é registrado com um tipo. Quando cai em{" "}
+        <em>&ldquo;Outros&rdquo;</em> (por exemplo,{" "}
+        <em>&ldquo;Outros serviços de terceiros&rdquo;</em>), fica difícil saber
+        no que o dinheiro foi usado. Um pouco de &ldquo;Outros&rdquo; é normal.
+        Aqui você vê quanto foi e onde pesa mais. A lei exige que o orçamento
+        detalhe a despesa ao menos por tipo de gasto
+        {baseLegalPrincipal.urlBaseLegal && (
+          <>
+            {" ("}
+            <a
+              href={baseLegalPrincipal.urlBaseLegal}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-ink underline underline-offset-2 hover:text-brand"
+            >
+              {baseLegalPrincipal.baseLegal}
+              <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </a>
+            {")"}
+          </>
+        )}
+        . Os limites de {limiares.limiteAtencaoPct}% e{" "}
+        {limiares.limiteCriticoPct}% são referências do portal, não da lei.
+        &ldquo;Outros&rdquo; fica um nível abaixo desse mínimo: não é
+        irregularidade, mas dificulta acompanhar o gasto.
       </p>
 
       {/* Termômetro Visual com Legendas Alinhadas com os Marcadores */}
-      <div className="mt-6 space-y-3 border-line border-y py-4">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-ink">
-            Taxa de Uso de Subitens Genéricos:{" "}
-            <span className={`font-bold text-base ${risco.textColor}`}>
-              {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
-            </span>
+      <div className="mt-6 space-y-3 py-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs">
+          <span className="font-medium text-ink text-sm">
+            Parte dos pagamentos em &ldquo;Outros&rdquo;
           </span>
           <span className="text-mute2">
-            Parâmetros do Portal: até {limiares.limiteAtencaoPct}% esperado ·
-            acima de {limiares.limiteCriticoPct}% elevado
+            Referência do portal: até {limiares.limiteAtencaoPct}% é comum ·
+            acima de {limiares.limiteCriticoPct}% merece atenção
           </span>
         </div>
 
-        {/* Barra de Progresso com Marcadores */}
-        <div className="relative h-4 w-full overflow-hidden rounded-sm bg-track">
+        <p
+          className={`font-bold text-4xl tabular-nums leading-none ${risco.textColor}`}
+        >
+          {fmtPercent(exercicioAtual.taxaValorOpacidadePct)}
+        </p>
+
+        {/* Faixas empilhadas (verde, amarelo, vermelho) com um único marcador da taxa atual */}
+        <div
+          className="relative py-1"
+          role="img"
+          aria-label={`${fmtPercent(exercicioAtual.taxaValorOpacidadePct)} dos pagamentos em Outros`}
+        >
+          <div className="flex h-3.5 w-full overflow-hidden bg-track">
+            <div
+              className="h-full bg-ok-fill"
+              style={{ width: `${limiares.limiteAtencaoPct}%` }}
+            />
+            <div
+              className="h-full bg-warn-fill"
+              style={{
+                width: `${limiares.limiteCriticoPct - limiares.limiteAtencaoPct}%`,
+              }}
+            />
+            <div
+              className="h-full bg-danger-fill"
+              style={{ width: `${100 - limiares.limiteCriticoPct}%` }}
+            />
+          </div>
           <div
-            className={`h-full transition-all duration-500 ${risco.barClass}`}
-            style={{ width: `${taxaExibida}%` }}
-          />
-          {/* Marcador de 15% */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-mute2"
-            style={{ left: `${limiares.limiteAtencaoPct}%` }}
-            title={`Limite de Atenção (${limiares.limiteAtencaoPct}%)`}
-          />
-          {/* Marcador de 30% */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-ink"
-            style={{ left: `${limiares.limiteCriticoPct}%` }}
-            title={`Limite Elevado (${limiares.limiteCriticoPct}%)`}
+            className="absolute top-0 bottom-0 w-1 -translate-x-1/2 bg-ink"
+            style={{ left: `${taxaExibida}%` }}
+            data-testid="termometro-marcador"
           />
         </div>
 
         {/* Legendas com Posicionamento Absoluto Exato e Responsivo */}
         <div className="relative h-4 text-[11px] text-mute2">
           <span className="absolute left-0">
-            <span className="hidden sm:inline">0% (Mínimo)</span>
+            <span className="hidden sm:inline">0%</span>
             <span className="sm:hidden">0%</span>
           </span>
           <span
@@ -287,7 +253,7 @@ export function TermometroOpacidadeFiscal({
             style={{ left: `${limiares.limiteAtencaoPct}%` }}
           >
             <span className="hidden sm:inline">
-              Atenção ({limiares.limiteAtencaoPct}%)
+              Merece atenção ({limiares.limiteAtencaoPct}%)
             </span>
             <span className="sm:hidden">{limiares.limiteAtencaoPct}%</span>
           </span>
@@ -296,7 +262,7 @@ export function TermometroOpacidadeFiscal({
             style={{ left: `${limiares.limiteCriticoPct}%` }}
           >
             <span className="hidden sm:inline">
-              Elevado (&gt;{limiares.limiteCriticoPct}%)
+              Muito alto (&gt;{limiares.limiteCriticoPct}%)
             </span>
             <span className="sm:hidden">&gt;{limiares.limiteCriticoPct}%</span>
           </span>
@@ -304,11 +270,13 @@ export function TermometroOpacidadeFiscal({
         </div>
       </div>
 
-      {/* Grid de 4 Indicadores Informativos */}
+      {/* Grid de Indicadores Informativos */}
       <div className="mt-6 grid grid-cols-2 divide-line border-line border-y md:grid-cols-4 md:divide-x md:[&>*:first-child]:pl-0 max-md:[&>*:nth-child(2n)]:border-l max-md:[&>*:nth-child(2n+1)]:pl-0 max-md:[&>*:nth-child(n+3)]:border-t [&>*]:px-4 [&>*]:py-3.5 max-md:[&>*]:border-line">
         <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-mute2 text-xs">Total Pago em .99</span>
+            <span className="block text-mute2 text-xs">
+              Pago em &ldquo;Outros&rdquo;
+            </span>
             <span className="mt-1 block font-bold text-ink text-lg">
               {fmtCompact(exercicioAtual.pagoResidual99)}
             </span>
@@ -321,21 +289,23 @@ export function TermometroOpacidadeFiscal({
 
         <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-mute2 text-xs">Empenhos em .99</span>
+            <span className="block text-mute2 text-xs">
+              Compras e contratos em &ldquo;Outros&rdquo;
+            </span>
             <span className="mt-1 block font-bold text-ink text-lg">
               {fmtNumber(exercicioAtual.empenhosResidual99)}
             </span>
           </div>
           <span className="mt-2 text-[11px] text-mute2">
             {fmtPercent(exercicioAtual.taxaEmpenhosOpacidadePct)} de{" "}
-            {fmtNumber(exercicioAtual.totalEmpenhos)} atos
+            {fmtNumber(exercicioAtual.totalEmpenhos)} compras e contratos
           </span>
         </div>
 
         <div className="flex flex-col justify-between">
           <div>
             <span className="block font-medium text-warn text-xs">
-              Genéricos com Objeto Mapeado
+              Em &ldquo;Outros&rdquo;, mas dá para saber do que se trata
             </span>
             <span className="mt-1 block font-bold text-lg text-warn">
               {fmtCompact(exercicioAtual.pagoDesvioSensivel99)}
@@ -343,15 +313,14 @@ export function TermometroOpacidadeFiscal({
           </div>
           <span className="mt-2 text-[11px] text-warn">
             {fmtPercent(exercicioAtual.taxaDesvioSensivelPct)} de{" "}
-            {fmtCompact(exercicioAtual.pagoResidual99)} em .99
+            {fmtCompact(exercicioAtual.pagoResidual99)} em &ldquo;Outros&rdquo;
+            (estimativa pela descrição do pagamento)
           </span>
         </div>
 
         <div className="flex flex-col justify-between">
           <div>
-            <span className="block text-mute2 text-xs">
-              Faixa de Concentração
-            </span>
+            <span className="block text-mute2 text-xs">Situação</span>
             <span
               className={`mt-1 block font-bold text-base ${risco.textColor}`}
             >
@@ -359,7 +328,7 @@ export function TermometroOpacidadeFiscal({
             </span>
           </div>
           <span className="mt-2 text-[11px] text-mute2">
-            Parâmetro Metodológico
+            Pela referência do portal
           </span>
         </div>
       </div>
@@ -373,107 +342,103 @@ export function TermometroOpacidadeFiscal({
           const demaisElementos = data.elementosResidual99.slice(5);
 
           return (
-            <details className="group mt-6 border-line border-t pt-4">
-              <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
-                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-                  <span>Concentração por Elemento Pai (Subitens .99)</span>
-                  <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
-                    Top {top5Elementos.length} de{" "}
-                    {data.elementosResidual99.length} naturezas
-                  </span>
+            <>
+              {/* Callout Narrativo do Achado Principal */}
+              {elemPrincipal && elemPrincipal.percentualDoResidual99 >= 30 && (
+                <div className="mt-6 border-warn-fill border-l-2 bg-warn-fill/15 py-3 pr-3 pl-3 text-ink text-sm">
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center text-warn-text">
+                      <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <p className="leading-relaxed">
+                      <strong className="font-bold">Onde pesa mais:</strong>{" "}
+                      <span>
+                        {elemPrincipal.percentualDoResidual99 >= 50
+                          ? "Mais da metade"
+                          : "Boa parte"}{" "}
+                        ({fmtPercent(elemPrincipal.percentualDoResidual99)}) do
+                        que foi pago em &ldquo;Outros&rdquo; é do tipo{" "}
+                        <strong className="font-semibold">
+                          {elemPrincipal.elementoCodigo}.99 (
+                          {elemPrincipal.elementoDescricao})
+                        </strong>
+                        , somando{" "}
+                        <strong className="font-semibold">
+                          {fmtCompact(elemPrincipal.totalPago)}
+                        </strong>
+                        . Vale consultar os pagamentos desse tipo.
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
-              </summary>
+              )}
 
-              <div className="mt-4 space-y-3.5">
-                <p className="text-mute2 text-xs">
-                  Distribuição dos {fmtCompact(exercicioAtual.pagoResidual99)}{" "}
-                  pagos em .99 entre as naturezas orçamentárias
-                </p>
+              <details className="group mt-6 border-line border-t pt-4">
+                <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
+                  <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                    <span>
+                      Em que tipos de gasto &ldquo;Outros&rdquo; aparece mais
+                    </span>
+                    <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
+                      {top5Elementos.length} maiores de{" "}
+                      {data.elementosResidual99.length} tipos
+                    </span>
+                  </div>
+                  <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
+                </summary>
 
-                {/* Callout Narrativo do Achado Principal */}
-                {elemPrincipal &&
-                  elemPrincipal.percentualDoResidual99 >= 30 && (
-                    <div className="border-warn-fill border-l-2 bg-warn-fill/15 py-3 pr-3 pl-3 text-ink text-xs">
-                      <div className="flex items-start gap-2.5">
-                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center text-warn-text">
-                          <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                <div className="mt-4 space-y-3.5">
+                  <p className="text-mute2 text-xs">
+                    Como se dividem os{" "}
+                    {fmtCompact(exercicioAtual.pagoResidual99)} pagos em
+                    &ldquo;Outros&rdquo; entre os tipos de gasto
+                  </p>
+
+                  {/* Lista dos Top 5 Elementos */}
+                  <div>
+                    {top5Elementos.map((elem) => (
+                      <ElementoResidualRow
+                        key={elem.elementoCodigo}
+                        elem={elem}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Expansão das demais naturezas identificadas */}
+                  {demaisElementos.length > 0 && (
+                    <details className="group/demais mt-2 pt-3">
+                      <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
+                        <span>
+                          Ver todos os {data.elementosResidual99.length} tipos
                         </span>
-                        <p className="leading-relaxed">
-                          <strong className="font-bold">
-                            Achado de Concentração:
-                          </strong>{" "}
-                          <span>
-                            {elemPrincipal.percentualDoResidual99 >= 50
-                              ? "Mais da metade"
-                              : `Cerca de ${fmtPercent(elemPrincipal.percentualDoResidual99)}`}{" "}
-                            ({fmtPercent(elemPrincipal.percentualDoResidual99)})
-                            de todos os gastos sob subitens genéricos está
-                            concentrada no código{" "}
-                            <strong className="font-semibold">
-                              {elemPrincipal.elementoCodigo}.99 (
-                              {elemPrincipal.elementoDescricao})
-                            </strong>
-                            , somando{" "}
-                            <strong className="font-semibold">
-                              {fmtCompact(elemPrincipal.totalPago)}
-                            </strong>
-                            . É nesta rubrica que reside a maior oportunidade de
-                            especificação contábil pelo município.
-                          </span>
-                        </p>
+                        <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
+                      </summary>
+                      <div className="mt-1">
+                        {demaisElementos.map((elem) => (
+                          <ElementoResidualRow
+                            key={elem.elementoCodigo}
+                            elem={elem}
+                          />
+                        ))}
                       </div>
-                    </div>
+                    </details>
                   )}
 
-                {/* Lista dos Top 5 Elementos */}
-                <div className="space-y-2.5 pt-1">
-                  {top5Elementos.map((elem) => (
-                    <ElementoResidualRow
-                      key={elem.elementoCodigo}
-                      elem={elem}
-                    />
-                  ))}
+                  {/* Nota Metodológica Didática */}
+                  <p className="border-line border-t pt-2.5 text-mute2 text-xs leading-relaxed">
+                    <strong className="font-semibold text-ink">
+                      Nem todo &ldquo;Outros&rdquo; é problema.
+                    </strong>{" "}
+                    O portal separa os gastos em dois grupos, por critério
+                    próprio: <strong>Obrigatório por lei</strong> (como
+                    sentenças judiciais, <em>91.99</em>, e encargos de pessoal,{" "}
+                    <em>13.99</em>) e <strong>Poderia ser detalhado</strong>{" "}
+                    (como serviços, <em>39.99/36.99</em>, e materiais,{" "}
+                    <em>30.99</em>). É uma classificação do portal, não da lei.
+                  </p>
                 </div>
-
-                {/* Expansão das demais naturezas identificadas */}
-                {demaisElementos.length > 0 && (
-                  <details className="group/demais mt-2 border-line border-t pt-3">
-                    <summary className="flex cursor-pointer select-none items-center justify-between font-medium text-mute2 text-xs hover:text-ink">
-                      <span>
-                        Ver todas as {data.elementosResidual99.length} naturezas
-                        residuais
-                      </span>
-                      <ChevronDown className="h-3.5 w-3.5 text-mute2 transition-transform group-open/demais:rotate-180" />
-                    </summary>
-                    <div className="mt-3 space-y-2.5 border-line border-t pt-2.5">
-                      {demaisElementos.map((elem) => (
-                        <ElementoResidualRow
-                          key={elem.elementoCodigo}
-                          elem={elem}
-                        />
-                      ))}
-                    </div>
-                  </details>
-                )}
-
-                {/* Nota Metodológica Didática */}
-                <p className="border-line border-t pt-2.5 text-[11px] text-mute2 leading-relaxed">
-                  <strong className="font-semibold text-ink">
-                    Nota Metodológica:
-                  </strong>{" "}
-                  Despesas compulsórias por ordem judicial (como Sentenças{" "}
-                  <em>91.99</em>) ou encargos legais (como Contribuições
-                  Patronais <em>13.99</em>) são classificadas como{" "}
-                  <strong>Estruturais</strong> por determinação do plano de
-                  contas da STN. Já contratações de serviços (
-                  <em>39.99/36.99</em>) e materiais (<em>30.99</em>) são
-                  consideradas <strong>Evitáveis</strong>, pois contam com
-                  rubricas específicas na legislação orçamentária para
-                  discriminação do objeto.
-                </p>
-              </div>
-            </details>
+              </details>
+            </>
           );
         })()}
 
@@ -488,10 +453,7 @@ export function TermometroOpacidadeFiscal({
           <details className="group mt-4 border-line border-t pt-4">
             <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
               <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-                <span>
-                  Evolução Histórica de Opacidade (Exercícios Anteriores
-                  Fechados)
-                </span>
+                <span>Como foi nos anos anteriores</span>
                 <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
                   {historicoAnterior.length === 1
                     ? historicoAnterior[0]?.ano
@@ -543,79 +505,68 @@ export function TermometroOpacidadeFiscal({
           <summary className="flex cursor-pointer select-none items-start justify-between gap-2 font-semibold text-ink text-sm sm:items-center">
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
               <span>
-                Maiores Fornecedores em Subitens Genéricos (.99) (Top{" "}
-                {topCredores.length})
+                Quem mais recebeu em &ldquo;Outros&rdquo; ({topCredores.length}{" "}
+                maiores)
               </span>
               <span className="inline-flex w-fit shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-normal text-mute2 text-xs">
-                Detalhamento por Fornecedor
+                Por fornecedor
               </span>
             </div>
             <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180 sm:mt-0" />
           </summary>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-ink text-xs">
-              <thead className="border-ink border-b font-semibold text-mute2">
-                <tr>
-                  <th className="px-3 py-2.5">#</th>
-                  <th className="px-3 py-2.5">Fornecedor / CNPJ</th>
-                  <th className="px-3 py-2.5">Total Pago (.99)</th>
-                  <th className="px-3 py-2.5">
-                    Classificação Sugerida pelo Objeto
-                  </th>
-                  <th className="px-3 py-2.5">Descrição do Objeto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {topCredores.map((credor) => {
-                  const hasCategoriaSugerida =
-                    credor.categoriaPredominante !==
-                      "sem_classificacao_especifica" &&
-                    credor.pagoDesvioSensivel > 0;
+          <div className="mt-2">
+            {topCredores.map((credor) => {
+              const hasCategoriaSugerida =
+                credor.categoriaPredominante !==
+                  "sem_classificacao_especifica" &&
+                credor.pagoDesvioSensivel > 0;
+              const larguraBarra = Math.min(
+                100,
+                (credor.totalPago / maiorTotalCredor) * 100,
+              );
 
-                  return (
-                    <tr
-                      key={credor.credorCodigo + credor.ranking}
-                      className="hover:bg-line2"
+              return (
+                <div
+                  key={credor.credorCodigo + credor.ranking}
+                  className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3"
+                >
+                  <span className="font-medium text-ink text-sm">
+                    {credor.credorNome}
+                    <span className="ml-2 font-mono text-mute2 text-xs">
+                      {credor.credorCodigo}
+                    </span>
+                  </span>
+                  <span className="text-right text-ink text-sm tabular-nums">
+                    {fmtCompact(credor.totalPago)}
+                  </span>
+                  <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
+                    <span
+                      className="block h-full bg-brand"
+                      style={{ width: `${larguraBarra}%` }}
+                    />
+                  </span>
+                  <span className="col-span-full text-mute2 text-xs">
+                    Parece ser de:{" "}
+                    {hasCategoriaSugerida ? (
+                      <span className="font-medium text-warn">
+                        {formatCategoriaSensivel(credor.categoriaPredominante)}
+                      </span>
+                    ) : (
+                      <span>Não identificado</span>
+                    )}
+                  </span>
+                  {credor.amostraObjeto && (
+                    <span
+                      className="col-span-full truncate text-mute2 text-xs"
+                      title={credor.amostraObjeto}
                     >
-                      <td className="px-3 py-2.5 font-semibold text-mute2">
-                        #{credor.ranking}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="font-semibold text-ink">
-                          {credor.credorNome}
-                        </div>
-                        <div className="text-[11px] text-mute2">
-                          {credor.credorCodigo}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-bold text-ink">
-                        {fmtCurrency(credor.totalPago)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2.5">
-                        {hasCategoriaSugerida ? (
-                          <span className="inline-flex items-center rounded-md border border-warn px-2 py-0.5 font-medium text-[11px] text-warn">
-                            {formatCategoriaSensivel(
-                              credor.categoriaPredominante,
-                            )}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-md bg-pill px-2 py-0.5 text-[11px] text-mute2">
-                            Sem categoria específica
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        className="max-w-xs truncate px-3 py-2.5 text-[11px] text-mute2"
-                        title={credor.amostraObjeto}
-                      >
-                        {credor.amostraObjeto}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      {credor.amostraObjeto}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </details>
       )}

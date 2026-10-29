@@ -30,6 +30,8 @@ export interface LicitacoesSpotlightModalProps {
   onClose: () => void;
   portalSlug: string;
   ano?: number;
+  /** Termo para abrir a busca já preenchida (ex.: CNPJ vindo de outra página). */
+  termoInicial?: string;
   onSelect?: (item: SearchResultItem) => void;
 }
 
@@ -46,6 +48,7 @@ export function LicitacoesSpotlightModal({
   onClose,
   portalSlug,
   ano,
+  termoInicial,
   onSelect,
 }: LicitacoesSpotlightModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,7 +121,7 @@ export function LicitacoesSpotlightModal({
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    setSearchTerm("");
+    setSearchTerm(termoInicial ?? "");
     setScope("todos");
     setResults({ licitacoes: [], contratos: [], total: 0 });
     setSelectedIndex(0);
@@ -144,7 +147,7 @@ export function LicitacoesSpotlightModal({
         BProgress.done();
       }
     };
-  }, [isOpen, portalSlug, ano]);
+  }, [isOpen, portalSlug, ano, termoInicial]);
 
   // Busca assíncrona debounced com AbortController
   useEffect(() => {

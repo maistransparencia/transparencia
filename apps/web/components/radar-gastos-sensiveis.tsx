@@ -132,11 +132,9 @@ function BarraProporcao({
 }) {
   const largura = Math.min(100, Math.max(0, percentual));
   return (
-    <span
-      className={`block h-1.5 w-full overflow-hidden rounded-full ${trilhaClassName}`}
-    >
+    <span className={`block h-1.5 w-full overflow-hidden ${trilhaClassName}`}>
       <span
-        className={`block h-full rounded-full ${className}`}
+        className={`block h-full ${className}`}
         style={{ width: `${largura}%` }}
       />
     </span>
@@ -168,27 +166,26 @@ function DecomposicaoDivida({
           {fmtCurrency(linha.dividaReal)}
         </span>
       </div>
-      <ul className="space-y-1">
+      <ul>
         {linha.decomposicao.map((entidade) => (
           <li
             key={entidade.empresaId}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-1 sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1.6fr)_minmax(0,0.9fr)_minmax(0,1.1fr)]"
+            className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3"
           >
-            <span className="min-w-0 text-ink text-sm">
+            <span className="font-medium text-ink text-sm">
               {entidade.entidadeNome}
+              <span className="ml-2 font-mono text-mute2 text-xs">
+                {formatarPercentual(entidade.percentual)}
+              </span>
             </span>
-            <span className="order-last col-span-2 sm:order-none sm:col-span-1">
+            <span className="text-right text-ink text-sm tabular-nums">
+              {fmtCurrency(entidade.valorDivida)}
+            </span>
+            <span className="col-span-full">
               <BarraProporcao
                 percentual={Math.max(entidade.percentual, 1)}
                 className="bg-warn-fill"
-                trilhaClassName="bg-pill"
               />
-            </span>
-            <span className="hidden text-right font-mono text-mute2 text-xs tabular-nums sm:block">
-              {formatarPercentual(entidade.percentual)}
-            </span>
-            <span className="text-right font-bold font-mono text-ink text-sm tabular-nums">
-              {fmtCurrency(entidade.valorDivida)}
             </span>
           </li>
         ))}
@@ -219,7 +216,7 @@ function VariacaoBadge({
   }
   if (tendencia === "aumento") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-danger px-2.5 py-0.5 font-semibold text-danger text-xs">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-warn-text px-2.5 py-0.5 font-semibold text-warn-text text-xs">
         <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />+
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -244,7 +241,7 @@ function VariacaoBadge({
 
 function ValorDivida({ valor }: { valor: number }) {
   if (valor <= 0) {
-    return <span className="text-mute2 text-xs">Sem dívida</span>;
+    return <span className="text-mute2 text-xs">Nada pendente</span>;
   }
   return (
     <span className="font-bold font-mono text-warn-text tabular-nums">
@@ -367,7 +364,7 @@ export function RadarGastosSensiveis({
       ),
     },
     {
-      header: "DÍVIDA REAL ACUM.",
+      header: "AINDA A PAGAR (ACUM.)",
       accessorKey: "dividaReal",
       align: "right",
       className: "whitespace-nowrap",
@@ -428,7 +425,7 @@ export function RadarGastosSensiveis({
                 </span>
               </div>
               <div className="flex items-baseline justify-between gap-3 pl-11 text-xs">
-                <span className="text-mute2">Dívida real</span>
+                <span className="text-mute2">Ainda a pagar (acum.)</span>
                 <ValorDivida valor={linha.dividaReal} />
               </div>
             </div>

@@ -8,15 +8,19 @@ import { LicitacoesSpotlightModal } from "./licitacoes-spotlight-modal";
 export interface LicitacoesSearchBarProps {
   portalSlug: string;
   ano?: number;
+  /** Abre a busca já preenchida (parâmetro `q` da URL). */
+  termoInicial?: string;
   className?: string;
 }
 
 export function LicitacoesSearchBar({
   portalSlug,
   ano,
+  termoInicial,
   className,
 }: LicitacoesSearchBarProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(Boolean(termoInicial));
+  const [termoAplicado, setTermoAplicado] = useState(termoInicial);
   const [isMac, setIsMac] = useState(false);
   const [isScrolledPast, setIsScrolledPast] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -114,9 +118,18 @@ export function LicitacoesSearchBar({
       {isModalOpen && (
         <LicitacoesSpotlightModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setTermoAplicado(undefined);
+            const url = new URL(window.location.href);
+            if (url.searchParams.has("q")) {
+              url.searchParams.delete("q");
+              window.history.replaceState(null, "", url);
+            }
+          }}
           portalSlug={portalSlug}
           ano={ano}
+          termoInicial={termoAplicado}
         />
       )}
     </>

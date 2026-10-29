@@ -156,6 +156,117 @@ describe("despesas-metrics (smoke)", () => {
     }
   });
 
+  it("deve excluir folha (grupo_natureza 1) dos maiores fornecedores e manter grupo nulo", async () => {
+    const { createFixturePortalSlug, cleanupFixtures, seedDespesa } =
+      await import("../../../tests/fixtures/seed");
+    const portalSlug = createFixturePortalSlug();
+
+    try {
+      const base = {
+        portalSlug,
+        empresaId: "1",
+        ano: TEST_YEAR,
+        fonte: "exercicio",
+      };
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "FOLHA DE PAGAMENTO E OUTROS",
+        grupoNatureza: "1",
+        pago: 9000,
+      });
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "FORNECEDOR SERVICOS",
+        grupoNatureza: "3",
+        pago: 500,
+      });
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "FORNECEDOR SEM GRUPO",
+        pago: 300,
+      });
+
+      const fornecedores = await getTopFornecedoresExecucaoMetrics({
+        portalSlug,
+        year: TEST_YEAR,
+        empresaIds: ["1"],
+        limit: 5,
+      });
+
+      expect(fornecedores.map((f) => f.fornecedorNome)).toEqual([
+        "FORNECEDOR SERVICOS",
+        "FORNECEDOR SEM GRUPO",
+      ]);
+    } finally {
+      await cleanupFixtures(portalSlug);
+    }
+  });
+
+  it("deve expor o documento dos fornecedores de restos e agregar por fornecedor e documento", async () => {
+    const { createFixturePortalSlug, cleanupFixtures, seedDespesa } =
+      await import("../../../tests/fixtures/seed");
+    const portalSlug = createFixturePortalSlug();
+
+    try {
+      const base = {
+        portalSlug,
+        empresaId: "1",
+        ano: TEST_YEAR,
+        fonte: "restos_a_pagar",
+      };
+      // Mesmo fornecedor e documento em duas descrições: uma única linha somada.
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "EMPRESA ALFA",
+        fornecedorCpfCnpj: "05.422.000/0001-01",
+        descricao: "obra a",
+        empenhado: 400,
+        liquidado: 400,
+        pago: 100,
+      });
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "EMPRESA ALFA",
+        fornecedorCpfCnpj: "05.422.000/0001-01",
+        descricao: "obra b",
+        empenhado: 200,
+        liquidado: 0,
+        pago: 0,
+      });
+      // Mesmo nome com outro documento: linha separada.
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "EMPRESA ALFA",
+        fornecedorCpfCnpj: "11.222.333/0001-44",
+        empenhado: 150,
+      });
+      // Sem documento: null.
+      await seedDespesa({
+        ...base,
+        fornecedorNome: "EMPRESA BETA",
+        empenhado: 50,
+      });
+
+      const restos = await getRestosAPagarResumoMetrics(portalSlug, TEST_YEAR, [
+        "1",
+      ]);
+
+      expect(
+        restos.topFornecedores.map((f) => [
+          f.fornecedor,
+          f.fornecedorDocumento,
+          f.valorTotal,
+        ]),
+      ).toEqual([
+        ["EMPRESA ALFA", "05.422.000/0001-01", 500],
+        ["EMPRESA ALFA", "11.222.333/0001-44", 150],
+        ["EMPRESA BETA", null, 50],
+      ]);
+    } finally {
+      await cleanupFixtures(portalSlug);
+    }
+  });
+
   it("deve buscar maiores fornecedores do exercício como array", async () => {
     const fornecedores = await getTopFornecedoresExecucaoMetrics({
       portalSlug: PORTAL_SLUG,

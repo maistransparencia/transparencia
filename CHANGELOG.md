@@ -5,6 +5,25 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Despesas detalhadas com os dados existentes)
+* **Início da página de Despesas:** O topo mostra o "Dinheiro que saiu (pago)" no ano em destaque e uma frase com a parte já paga do valor reservado, avisando que o restante não é necessariamente dívida. Abaixo ficam os cards Reservado (empenhado) e Serviço entregue (liquidado) e a explicação "Como ler estes números". As barras comparativas e o card "Quanto já foi pago" saíram.
+* **Quem mais recebeu e quem mais espera receber:** Cada fornecedor expande para mostrar o documento e, quando é CNPJ completo, o link "Ver licitações e contratos", que abre a busca de `/licitacoes` já preenchida em todos os anos. CPF nunca vira link. A folha de pagamento dos servidores não entra na lista de fornecedores, e os restos a pagar passam a ser somados por fornecedor e documento.
+* **Gastos registrados como "Outros":** O termômetro de opacidade foi reescrito em linguagem cidadã, com a lei citada como link e uma barra de faixas verde (até 15%), amarela (15% a 30%) e vermelha (acima de 30%), com um único marcador na taxa atual.
+
+### ✨ Novas Funcionalidades (Added)
+* **Busca de licitações pré-preenchida (`?q=`):** `LicitacoesSearchBar` e `LicitacoesSpotlightModal` aceitam `termoInicial`, abrem a busca preenchida em todos os anos e removem `q` da URL ao fechar. Valores repetidos de `q` usam o primeiro e são limitados a 100 caracteres.
+* **`FornecedorDocumentoDetalhe`:** Novo componente com o documento do fornecedor e o link por CNPJ, usado em "Quem mais recebeu" e "Quem mais espera receber".
+* **Seletor de etapa por área:** A seção de áreas alterna entre Reservado, Serviço entregue e Dinheiro que saiu, com os três valores de cada área no detalhe.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **`getTopFornecedoresExecucaoMetrics`:** Exclui o grupo de natureza 1 (pessoal), cujos empenhos globais de folha vinham com o nome do primeiro servidor.
+* **`getRestosAPagarResumoMetrics`:** `RestosAPagarVendorItemDTO` ganha `fornecedorDocumento`, e os fornecedores são agregados por nome e documento antes do top 5.
+* **Tokens de cor `ok-fill` e `danger-fill`:** Novos tokens de preenchimento (tema claro e escuro) em `globals.css` e `tokens.ts`, ao lado do `warn-fill`, para barras e faixas com melhor contraste.
+* **Listas no padrão de barras da página:** Radar de Gastos Sensíveis, restos a pagar, tipos de gasto e fornecedores seguem o mesmo padrão de lista, sem divisórias e com barras de cantos retos.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **`llms.txt` e `llms-full.txt`:** Descrevem o novo resumo de despesas, a exclusão da folha em "Quem mais recebeu", o link por CNPJ, "Quem mais espera receber", o termômetro em linguagem cidadã e a busca `?q=`.
+
 ### 🌟 Destaques da Versão (Remédios só com lote vencido na Farmácia SUS)
 * **Remédio só com lote vencido não parece mais disponível:** Na busca, no índice A–Z e nos remédios essenciais da Farmácia SUS, o remédio cujos lotes com saldo estão todos vencidos deixa de ser um link e aparece como "Sem lote dentro da validade na lista", com o botão "Pedir esclarecimento". Isso aparece também quando a busca traz outros remédios. A lista não prova falta de estoque nem entrega de remédio vencido.
 * **Mesmo critério em todas as telas:** Só conta como lote utilizável o que tem saldo maior que zero e validade em dia (ou sem validade informada), na busca, no índice e no indicador de lotes a vencer.

@@ -70,9 +70,9 @@ describe("DespesasPage", () => {
     expect(
       screen.getByText("Despesas & Controle de Gastos"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Total empenhado")).toBeInTheDocument();
+    expect(screen.getByText("Reservado (empenhado)")).toBeInTheDocument();
     expect(
-      screen.getByText("Radar de Gastos Sensíveis & Controle Fiscal"),
+      screen.getByText("Gastos que merecem acompanhamento"),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Combustíveis & Frotas").length).toBeGreaterThan(
       0,
@@ -132,5 +132,78 @@ describe("DespesasPage", () => {
     render(element);
 
     expect(screen.getByText("Fornecedor X")).toBeInTheDocument();
+  });
+
+  it("ordena as seções: resumo, áreas, fornecedores, acompanhamento, dívidas", async () => {
+    loadDespesasDataMock.mockResolvedValue(
+      makeRaw({
+        areasPorFuncao: [
+          {
+            funcaoCodigo: "10",
+            funcaoNome: "Saúde",
+            totalEmpenhado: 100,
+            totalLiquidado: 90,
+            totalPago: 80,
+          },
+        ],
+        topFornecedores: [
+          {
+            fornecedorNome: "Empresa A",
+            fornecedorCpfCnpj: "00.000.000/0001-00",
+            totalPago: 70,
+            totalEmpenhado: 80,
+            percentualPago: 100,
+          },
+        ],
+      }),
+    );
+    const { container } = render(await DespesasPage(props));
+    const titulos = Array.from(container.querySelectorAll("h2")).map(
+      (h) => h.textContent,
+    );
+    expect(titulos).toEqual([
+      "Para quais áreas o dinheiro foi",
+      "Quem mais recebeu",
+      "Gastos que merecem acompanhamento",
+      "Dívidas de anos anteriores",
+    ]);
+    expect(
+      screen.getByText(
+        "Como ler estes números: reservado, entregue e pago não se somam",
+      ),
+    ).toBeInTheDocument();
+    const destaque = screen.getByTestId("despesas-resumo-destaque");
+    expect(destaque).toHaveTextContent("Dinheiro que saiu (pago) em");
+    expect(destaque).toHaveTextContent("70.00%");
+    expect(screen.getByText("Empresa A")).toBeInTheDocument();
+  });
+
+  it("omite a frase do percentual quando nada foi reservado", async () => {
+    loadDespesasDataMock.mockResolvedValue(
+      makeRaw({
+        metricasGerais: {
+          empenhado: 0,
+          liquidado: 0,
+          pago: 0,
+          taxaLiquidacao: 0,
+          taxaPagamento: 0,
+        },
+      }),
+    );
+    render(await DespesasPage(props));
+    expect(
+      screen.getByTestId("despesas-resumo-destaque"),
+    ).not.toHaveTextContent("do que estava reservado");
+  });
+
+  it("omite áreas e fornecedores quando as listas vêm vazias", async () => {
+    loadDespesasDataMock.mockResolvedValue(
+      makeRaw({ areasPorFuncao: [], topFornecedores: [] }),
+    );
+    render(await DespesasPage(props));
+    expect(
+      screen.queryByText("Para quais áreas o dinheiro foi"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Quem mais recebeu")).not.toBeInTheDocument();
   });
 });
