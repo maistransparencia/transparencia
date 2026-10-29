@@ -6,6 +6,7 @@ export interface FarmaciaIndicadorItem {
   valor: string;
   nota: string | null;
   notaAtencao: boolean;
+  detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
 export function FarmaciaIndicadores({

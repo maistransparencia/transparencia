@@ -70,6 +70,16 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: possui_lote_sem_validade
+        description: "Algum lote com saldo do principio ativo nao informa validade (conta como utilizavel)."
+        data_type: boolean
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: data_validade_mais_tardia
+        description: "Maior validade entre os lotes com saldo do principio ativo; nula sem lote com validade. A comparacao com hoje e feita na consulta."
+        data_type: date
       - name: quantidade_apresentacoes_combinacao_com_estoque
         description: "Apresentações em dose fixa (com '+' ou 'associada') que contêm o princípio ativo e têm saldo. Não contam como o sentinela; explicam por que a busca textual encontra o nome."
         data_type: integer

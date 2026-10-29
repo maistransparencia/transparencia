@@ -120,6 +120,7 @@ async function fetchRawFarmaciaData(
       totalEssenciais: 0,
       essenciaisNoEstoque: 0,
       essenciaisSomenteCombinacao: 0,
+      essenciaisSomenteLoteVencido: 0,
       essenciaisSemRegistro: 0,
     },
     sentinelas: [],
