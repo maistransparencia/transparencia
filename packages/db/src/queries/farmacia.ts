@@ -66,8 +66,8 @@ const STATUS_VALIDOS: readonly StatusConformidadeFarmacia[] = [
   "indisponivel",
 ];
 
-// Estoque utilizável: lote sem validade informada ou dentro da validade hoje.
-const LOTE_UTILIZAVEL_SQL = sql<boolean>`(data_validade is null or data_validade >= current_date)`;
+// Estoque utilizável: lote com saldo, sem validade informada ou dentro da validade hoje.
+const LOTE_UTILIZAVEL_SQL = sql<boolean>`(quantidade_estoque > 0 and (data_validade is null or data_validade >= current_date))`;
 
 const ID_UNIDADE_SQL = sql<string>`coalesce(codigo_cnes, nome_unidade, id_registro)`;
 
@@ -263,6 +263,7 @@ export async function getFarmaciaSus(
           .where("portal_slug", "=", cleanSlug)
           .where("status_conformidade", "=", "conforme")
           .where(condicaoBusca)
+          .where("quantidade_estoque", ">", 0)
           .groupBy(NOME_MEDICAMENTO_CHAVE_SQL)
           .having(sql<boolean>`not bool_or(${LOTE_UTILIZAVEL_SQL})`)
           .orderBy("nome_medicamento")
@@ -532,6 +533,9 @@ export async function getFarmaciaIndiceAlfabetico(
       sql<number>`count(distinct ${ID_UNIDADE_SQL}) filter (where ${LOTE_UTILIZAVEL_SQL})`.as(
         "unidades_com_estoque",
       ),
+      sql<boolean>`coalesce(bool_or(quantidade_estoque > 0 and data_validade < current_date), false)`.as(
+        "possui_lote_vencido_com_saldo",
+      ),
       sql<number>`row_number() over (partition by ${INICIAL_MEDICAMENTO_SQL} order by ${NOME_MEDICAMENTO_CHAVE_SQL})`.as(
         "posicao",
       ),
@@ -543,7 +547,12 @@ export async function getFarmaciaIndiceAlfabetico(
 
   const linhas = await db
     .selectFrom(posicionados.as("posicionados"))
-    .select(["inicial", "nome_medicamento", "unidades_com_estoque"])
+    .select([
+      "inicial",
+      "nome_medicamento",
+      "unidades_com_estoque",
+      "possui_lote_vencido_com_saldo",
+    ])
     .where("posicao", "<=", limiteMedicamentos)
     .orderBy("inicial")
     .orderBy("posicao")
@@ -559,7 +568,8 @@ export async function getFarmaciaIndiceAlfabetico(
           nomeMedicamento: linha.nome_medicamento,
           unidadesComEstoque: toNumberOrNull(linha.unidades_com_estoque) ?? 0,
           situacaoValidade:
-            toNumberOrNull(linha.unidades_com_estoque) === 0
+            linha.possui_lote_vencido_com_saldo &&
+            (toNumberOrNull(linha.unidades_com_estoque) ?? 0) === 0
               ? "somente_vencido"
               : "com_lote_valido",
         },

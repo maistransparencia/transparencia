@@ -227,7 +227,7 @@ function buildIndicadoresEstoque(
 }
 
 const AVISO_CONTEXTO_LOTES_VENCIDOS =
-  "Isto mostra o que consta na lista de estoque enviada pela farmácia. Não significa que o remédio vencido foi entregue. A lista pode manter lotes vencidos até a baixa ou o descarte.";
+  "Isto mostra o que consta na lista de estoque enviada pela farmácia. Não significa que o remédio vencido foi entregue nem que está disponível.";
 
 function rotuloContagem(
   total: number,
@@ -373,7 +373,7 @@ export function buildPedidoEsclarecimento(params: {
     "",
     `Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação), solicito esclarecimento sobre o medicamento ${params.nomeMedicamento}. O art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS. ${posicao}, ${
       params.situacao === "somente_vencido"
-        ? "todos os lotes desse item que constam na lista estão com a validade vencida. Entendo que a lista pode manter lotes vencidos até a baixa ou o descarte. Peço informar se há lote desse medicamento dentro da validade em alguma unidade e, se não houver, a previsão de reposição."
+        ? "todos os lotes desse item que constam na lista estão com a validade vencida. Peço informar se há lote desse medicamento dentro da validade em alguma unidade e, se não houver, a previsão de reposição."
         : "não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição."
     }`,
   ].join("\n");

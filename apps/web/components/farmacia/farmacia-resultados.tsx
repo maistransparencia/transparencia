@@ -207,6 +207,8 @@ export function FarmaciaResultados({
         </fieldset>
       </div>
 
+      <RemediosSemLoteValido remedios={semLoteValido} />
+
       <div className="flex flex-col-reverse gap-5 lg:flex-row">
         <ul className="flex min-w-0 flex-1 flex-col gap-3">
           {modo === "unidade" &&

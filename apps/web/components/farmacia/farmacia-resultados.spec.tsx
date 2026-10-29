@@ -164,4 +164,42 @@ describe("FarmaciaResultados", () => {
     expect(screen.queryByTestId("mapa-mock")).toBeNull();
     expect(document.body.textContent).not.toMatch(/esgotad|zerad/i);
   });
+
+  const semLoteValido = [
+    {
+      nomeMedicamento: "Captopril 25 mg",
+      href: "/porciuncula/farmacia?q=Captopril",
+      rotulo: "Sem lote dentro da validade na lista",
+      pedido: { texto: "pedido captopril", textoWhatsApp: "whats captopril" },
+    },
+  ];
+
+  it("sem resultado com remédio só vencido mostra o rótulo e o pedido, sem o card de não aparece", () => {
+    render(
+      <FarmaciaResultados
+        {...props}
+        unidades={[]}
+        remedios={[]}
+        marcadores={[]}
+        semLoteValido={semLoteValido}
+      />,
+    );
+    expect(screen.getByText("Captopril 25 mg")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sem lote dentro da validade na lista"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Pedir esclarecimento/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/não aparece na lista de estoque/)).toBeNull();
+  });
+
+  it("com resultados também mostra o remédio só vencido da busca", () => {
+    render(<FarmaciaResultados {...props} semLoteValido={semLoteValido} />);
+    expect(screen.getByText("Módulo Norte")).toBeInTheDocument();
+    expect(screen.getByText("Captopril 25 mg")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sem lote dentro da validade na lista"),
+    ).toBeInTheDocument();
+  });
 });

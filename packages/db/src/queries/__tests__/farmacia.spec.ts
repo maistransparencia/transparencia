@@ -612,6 +612,67 @@ describe("getFarmaciaSus com lotes vencidos", () => {
     expect(soVencido.unidades).toEqual([]);
     expect(soVencido.medicamentosSemLoteValido).toEqual(["Captopril 25mg"]);
   });
+
+  it("lote sem saldo nao conta como utilizavel e busca, indice e lotes a vencer concordam", async () => {
+    await Promise.all([
+      lote({
+        idRegistro: "1",
+        codigoCnes: "1001",
+        nomeMedicamento: "Enalapril 10mg",
+        quantidadeEstoque: 0,
+        dataValidade: dataRelativa(60),
+      }),
+      lote({
+        idRegistro: "2",
+        codigoCnes: "1001",
+        nomeMedicamento: "Enalapril 10mg",
+        quantidadeEstoque: 5,
+        dataValidade: dataRelativa(-3),
+      }),
+      lote({
+        idRegistro: "3",
+        codigoCnes: "1002",
+        nomeMedicamento: "Enalapril 20mg",
+        quantidadeEstoque: 0,
+        dataValidade: dataRelativa(-3),
+      }),
+    ]);
+
+    const busca = await getFarmaciaSus(PORTAL_A, { busca: "enalapril" });
+    expect(busca.medicamentosSemLoteValido).toEqual(["Enalapril 10mg"]);
+    expect(busca.unidades).toEqual([]);
+
+    const indice = await getFarmaciaIndiceAlfabetico(PORTAL_A, { letra: "E" });
+    const porNome = new Map(
+      (indice.letras[0]?.medicamentos ?? []).map((m) => [m.nomeMedicamento, m]),
+    );
+    expect(porNome.get("Enalapril 10mg")).toMatchObject({
+      situacaoValidade: "somente_vencido",
+      unidadesComEstoque: 0,
+    });
+    expect(porNome.get("Enalapril 20mg")).toMatchObject({
+      situacaoValidade: "com_lote_valido",
+      unidadesComEstoque: 0,
+    });
+
+    const lotes = await getFarmaciaLotesAVencer(PORTAL_A);
+    expect(lotes?.totalRemediosSomenteVencidos).toBe(1);
+  });
+
+  it("com filtro de unidade nao calcula remedios sem lote valido", async () => {
+    await lote({
+      idRegistro: "1",
+      codigoCnes: "1001",
+      nomeMedicamento: "Captopril 25mg",
+      quantidadeEstoque: 5,
+      dataValidade: dataRelativa(-3),
+    });
+    const resultado = await getFarmaciaSus(PORTAL_A, {
+      busca: "captopril",
+      idUnidade: "1001",
+    });
+    expect(resultado.medicamentosSemLoteValido).toEqual([]);
+  });
 });
 
 function dataRelativa(dias: number): string {

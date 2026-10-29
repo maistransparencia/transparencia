@@ -742,7 +742,7 @@ describe("remedio so com lote vencido", () => {
     expect(texto).toContain(
       "todos os lotes desse item que constam na lista estão com a validade vencida",
     );
-    expect(texto).toContain("a lista pode manter lotes vencidos até a baixa");
+    expect(texto).not.toContain("até a baixa");
     expect(texto).toContain(
       "Peço informar se há lote desse medicamento dentro da validade em alguma unidade e, se não houver, a previsão de reposição.",
     );
@@ -837,5 +837,23 @@ describe("remedio so com lote vencido", () => {
     expect(captopril?.semLoteValido?.pedido.texto).toContain("Captopril");
     expect(carvedilol?.href).toContain("q=Carvedilol");
     expect(carvedilol?.semLoteValido).toBeNull();
+  });
+
+  it("mapeia remedios so vencidos da busca com nome formatado, link, rotulo e pedido", () => {
+    const raw = makeRaw({ busca: "captopril", unidades: 1 });
+    const vm = buildFarmaciaViewModel({
+      ...raw,
+      farmacia: {
+        ...raw.farmacia,
+        medicamentosSemLoteValido: ["captopril 25mg"],
+      },
+    } as Parameters<typeof buildFarmaciaViewModel>[0]);
+    expect(vm.medicamentosSemLoteValido).toHaveLength(1);
+    const [item] = vm.medicamentosSemLoteValido;
+    expect(item.nomeMedicamento.toLowerCase()).toContain("captopril");
+    expect(item.href).toContain("q=captopril");
+    expect(item.rotulo).toBe("Sem lote dentro da validade na lista");
+    expect(item.pedido.texto).toContain("validade vencida");
+    expect(item.pedido.texto).not.toContain("baixa ou o descarte");
   });
 });
