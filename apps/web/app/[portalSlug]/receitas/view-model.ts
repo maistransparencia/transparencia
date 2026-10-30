@@ -80,56 +80,6 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     },
   ];
 
-  const tableData = [
-    {
-      fonte: "Receita Própria (Municipal)",
-      previsto: rec.receitaPropriaPrevisto,
-      arrecadado: rec.receitaPropriaArrecadado,
-      pct:
-        rec.receitaPropriaPrevisto > 0
-          ? (rec.receitaPropriaArrecadado / rec.receitaPropriaPrevisto) * 100
-          : 0,
-    },
-    {
-      fonte: "Transferências da União",
-      previsto: rec.transferenciasUniaoPrevisto,
-      arrecadado: rec.transferenciasUniaoArrecadado,
-      pct:
-        rec.transferenciasUniaoPrevisto > 0
-          ? (rec.transferenciasUniaoArrecadado /
-              rec.transferenciasUniaoPrevisto) *
-            100
-          : 0,
-    },
-    {
-      fonte: "Transferências do Estado",
-      previsto: rec.transferenciasEstadoPrevisto,
-      arrecadado: rec.transferenciasEstadoArrecadado,
-      pct:
-        rec.transferenciasEstadoPrevisto > 0
-          ? (rec.transferenciasEstadoArrecadado /
-              rec.transferenciasEstadoPrevisto) *
-            100
-          : 0,
-    },
-    {
-      fonte: "Entradas fora do orçamento (caixas e retenções)",
-      previsto: 0,
-      arrecadado: rec.receitaExtraOrcamentariaArrecadado,
-      pct: null,
-    },
-    {
-      fonte: "Total do orçamento (sem as entradas fora do orçamento)",
-      previsto: rec.totalPrevisto,
-      arrecadado: rec.totalArrecadado,
-      pct:
-        rec.totalPrevisto > 0
-          ? (rec.totalArrecadado / rec.totalPrevisto) * 100
-          : 0,
-      className: "font-semibold bg-line2",
-    },
-  ];
-
   const variationText = (() => {
     if (rec.totalPctChange === null) {
       return "Orçamento aprovado";
@@ -166,7 +116,6 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     totalPrev,
     pctArrecadadoAnual,
     origensData,
-    tableData,
     totalExtraOrcamentario: rec.receitaExtraOrcamentariaArrecadado,
     variationText,
     cardDependencia,

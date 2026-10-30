@@ -4,7 +4,6 @@ import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
-import { ReceitasOrigemTabela } from "@/components/receitas-origem-tabela";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadReceitasData } from "./loader";
 import { buildReceitasViewModel } from "./view-model";
@@ -53,7 +52,6 @@ export default async function ReceitasPage({
     totalPrev,
     pctArrecadadoAnual,
     origensData,
-    tableData,
     variationText,
     cardDependencia,
   } = viewModel;
@@ -155,10 +153,6 @@ export default async function ReceitasPage({
         issIptu={rec.issIptuArrecadado || 0}
         totalArrecadado={totalArr}
       />
-
-      <div className="pt-4">
-        <ReceitasOrigemTabela data={tableData} />
-      </div>
 
       {cardDependencia && (
         <RadarAnomaliaCard

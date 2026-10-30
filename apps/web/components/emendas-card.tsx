@@ -59,7 +59,7 @@ export function EmendasCard({
   return (
     <section
       className={cn(
-        "panel border! grid grid-cols-1 items-start gap-6 rounded-md! p-6! lg:grid-cols-12 lg:gap-0",
+        "panel panel-brand border! grid grid-cols-1 items-start gap-6 rounded-md! p-6! lg:grid-cols-12 lg:gap-0",
         className,
       )}
     >
