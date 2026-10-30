@@ -17,19 +17,22 @@ export function CarrosChefeArrecadacao({
 }: CarrosChefeArrecadacaoProps) {
   const items = [
     {
-      label: "FPM · repasse do governo federal aos municípios",
+      nome: "FPM",
+      descricao: "Repasse do governo federal aos municípios",
       value: fpm,
       color: "bg-ok-fill",
     },
     {
-      label:
-        "ICMS · parte do imposto estadual sobre vendas, repassada pelo estado",
+      nome: "ICMS",
+      descricao:
+        "Parte do imposto estadual sobre vendas, repassada pelo estado",
       value: icms,
       color: "bg-brand-fill",
     },
     {
-      label:
-        "ISS e IPTU · impostos cobrados pelo próprio município (serviços e imóveis)",
+      nome: "ISS e IPTU",
+      descricao:
+        "Impostos cobrados pelo próprio município (serviços e imóveis)",
       value: issIptu,
       color: "bg-warn-fill",
     },
@@ -51,19 +54,10 @@ export function CarrosChefeArrecadacao({
           const barWidth = (item.value / maxVal) * 100;
 
           return (
-            <div key={item.label} className="space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-                <span className="font-semibold text-ink">{item.label}</span>
-
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold font-serif text-base text-ink">
-                    {fmtCompact(item.value)}
-                  </span>
-                  <span className="caption font-medium">
-                    ({pctOfTotal.toFixed(1).replace(".", ",")}% de tudo que
-                    entrou)
-                  </span>
-                </div>
+            <div key={item.nome} className="space-y-1.5">
+              <div>
+                <p className="font-semibold text-ink text-sm">{item.nome}</p>
+                <p className="caption">{item.descricao}</p>
               </div>
 
               <div className="h-3 w-full overflow-hidden bg-track">
@@ -77,6 +71,13 @@ export function CarrosChefeArrecadacao({
                   }}
                 />
               </div>
+
+              <p className="caption">
+                <span className="numeric font-semibold text-ink">
+                  {fmtCompact(item.value)}
+                </span>{" "}
+                · {pctOfTotal.toFixed(1).replace(".", ",")}% de tudo que entrou
+              </p>
             </div>
           );
         })}
