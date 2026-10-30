@@ -8,6 +8,7 @@ import {
   resolvePortalSlug,
   Sidebar,
 } from "@transparencia/ui";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
@@ -211,6 +212,8 @@ export function SidebarWrapper({
 
   return (
     <Sidebar
+      linkComponent={Link}
+      currentPathname={pathname}
       portalName={effectivePortalName}
       stateUF={effectiveStateUF}
       portalTitle={effectivePortalTitle}

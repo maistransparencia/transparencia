@@ -2,11 +2,37 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "../sidebar";
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/porciuncula_prefeitura",
-}));
-
 describe("Sidebar Component", () => {
+  it("renderiza itens de navegacao como <a href> por padrao", () => {
+    render(
+      <Sidebar
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura/radar"
+      />,
+    );
+    const radar = screen.getByRole("link", { name: /Radar Cívico/ });
+    expect(radar.tagName).toBe("A");
+    expect(radar).toHaveAttribute("href");
+  });
+
+  it("usa o componente de link injetado", () => {
+    render(
+      <Sidebar
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+        linkComponent={({ href, className, children }) => (
+          <a href={href} className={className} data-injetado="sim">
+            {children}
+          </a>
+        )}
+      />,
+    );
+    expect(screen.getByRole("link", { name: /Radar Cívico/ })).toHaveAttribute(
+      "data-injetado",
+      "sim",
+    );
+  });
+
   beforeEach(() => {
     document.documentElement.classList.remove("dark");
     localStorage.clear();
@@ -15,6 +41,7 @@ describe("Sidebar Component", () => {
   it("exibe badge com contagem e pulso suave ao lado de Radar Cívico quando radarAlertCount > 0", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={3}
@@ -35,6 +62,7 @@ describe("Sidebar Component", () => {
   it("não exibe badge quando radarAlertCount for 0", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={0}
@@ -49,7 +77,11 @@ describe("Sidebar Component", () => {
 
   it("não exibe badge quando radarAlertCount for indefinido", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     expect(
@@ -61,6 +93,7 @@ describe("Sidebar Component", () => {
   it("renderiza o item de navegação Radar Cívico", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={5}
@@ -72,7 +105,11 @@ describe("Sidebar Component", () => {
 
   it("renderiza o item solto Farmácia SUS logo abaixo de Radar Cívico", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const farmacia = screen.getByRole("link", { name: /^Farmácia SUS$/ });
@@ -90,7 +127,11 @@ describe("Sidebar Component", () => {
 
   it("renderiza o item de navegação Obras Públicas", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const obrasLink = screen.getByRole("link", { name: /Obras Públicas/i });
@@ -103,7 +144,11 @@ describe("Sidebar Component", () => {
 
   it("usa borda de tokens, sem fundo próprio no desktop, e marca o item ativo com filete", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const aside = screen.getByRole("complementary");
@@ -116,7 +161,11 @@ describe("Sidebar Component", () => {
 
   it("drawer mobile fechado fica invisível (fora da tela e fora do foco) e visível no desktop", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const aside = screen.getByRole("complementary");
@@ -125,7 +174,11 @@ describe("Sidebar Component", () => {
 
   it("rodapé tem compartilhar e alternador de tema, sem slots de push/pwa", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     expect(
@@ -139,6 +192,7 @@ describe("Sidebar Component", () => {
   it("renderiza o item de previdência com a sigla correspondente quando habilitado", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Natividade"
         portalSlug="natividade_prefeitura"
         previdencia={{
@@ -160,6 +214,7 @@ describe("Sidebar Component", () => {
   it("oculta o item de previdência quando previdencia.habilitado for false", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Município Sem RPPS"
         portalSlug="sem_rpps"
         previdencia={{
@@ -199,6 +254,7 @@ describe("Sidebar Component", () => {
 
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         portais={mockPortais}
@@ -219,7 +275,11 @@ describe("Sidebar Component", () => {
 
   it("renderiza os botões de compartilhamento no cabeçalho mobile e no rodapé do sidebar", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const mobileShare = screen.getByRole("button", {
@@ -236,6 +296,7 @@ describe("Sidebar Component", () => {
   it("permite customização via mobileShareSlot e desktopShareSlot", () => {
     render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         mobileShareSlot={<button type="button">Custom Mobile Share</button>}
@@ -266,6 +327,7 @@ describe("Sidebar Component", () => {
     try {
       render(
         <Sidebar
+          currentPathname="/porciuncula_prefeitura"
           portalName="Porciúncula"
           portalSlug="porciuncula_prefeitura"
           onShare={onShare}
@@ -291,7 +353,11 @@ describe("Sidebar Component", () => {
 
   it("renderiza o item de navegação Educação no grupo de temas canônicos", () => {
     render(
-      <Sidebar portalName="Porciúncula" portalSlug="porciuncula_prefeitura" />,
+      <Sidebar
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
+      />,
     );
 
     const educacaoLink = screen.getByRole("link", { name: /educação/i });
@@ -326,11 +392,32 @@ describe("Sidebar Component", () => {
   it("renderiza img do brasao quando brasaoAsset e informado", () => {
     const { container } = render(
       <Sidebar
+        currentPathname="/porciuncula_prefeitura"
         portalName="Portal"
         portalSlug="portal_teste"
         brasaoAsset="brasao-teste.svg"
       />,
     );
     expect(container.querySelector("img")).not.toBeNull();
+  });
+
+  it("volta ao ícone cívico quando o brasão falha ao carregar", () => {
+    const { container } = render(
+      <Sidebar
+        portalName="Portal"
+        portalSlug="portal_teste"
+        brasaoAsset="brasao-teste.svg"
+      />,
+    );
+    const imagens = Array.from(container.querySelectorAll("img"));
+    expect(imagens.length).toBeGreaterThan(0);
+    fireEvent.error(imagens[0]);
+    expect(container.querySelector("img")).toBeNull();
+  });
+
+  it("não marca nenhum item como ativo sem currentPathname", () => {
+    render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
+    const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });
+    expect(visaoGeral).not.toHaveClass("border-ink");
   });
 });

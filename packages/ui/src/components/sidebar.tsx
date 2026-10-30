@@ -13,10 +13,13 @@ import {
   Users,
   X,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
@@ -52,7 +55,24 @@ export interface PortalOption {
   previdencia?: PrevidenciaNavConfig;
 }
 
+export interface LinkComponentProps {
+  href: string;
+  onClick?: () => void;
+  className?: string;
+  children?: ReactNode;
+}
+
+export type LinkComponent = ComponentType<LinkComponentProps>;
+
+const DefaultLink: LinkComponent = ({ href, onClick, className, children }) => (
+  <a href={href} onClick={onClick} className={className}>
+    {children}
+  </a>
+);
+
 export interface SidebarProps {
+  linkComponent?: LinkComponent;
+  currentPathname?: string | null;
   portalName?: string;
   stateUF?: string;
   portalTitle?: string;
@@ -234,8 +254,9 @@ export function Sidebar({
   onMobileOpenChange,
   radarAlertCount,
   previdencia,
+  linkComponent: Link = DefaultLink,
+  currentPathname: pathname,
 }: SidebarProps) {
-  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const [internalExercice, setInternalExercice] = useState(String(currentYear));
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
@@ -375,13 +396,11 @@ export function Sidebar({
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-0.5">
               {!imgError && normalizedBrasao ? (
-                <Image
+                <img
                   src={normalizedBrasao}
                   alt={`Brasão de ${portalName}`}
                   className="h-full w-full object-contain"
                   onError={() => setImgError(true)}
-                  width={32}
-                  height={32}
                 />
               ) : (
                 <Landmark strokeWidth={1.6} className="h-4 w-4 text-mute" />
@@ -455,13 +474,11 @@ export function Sidebar({
               <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-1">
                   {!imgError && normalizedBrasao ? (
-                    <Image
+                    <img
                       src={normalizedBrasao}
                       alt={`Brasão de ${portalName}`}
                       className="h-full w-full object-contain"
                       onError={() => setImgError(true)}
-                      width={32}
-                      height={32}
                     />
                   ) : (
                     <Landmark strokeWidth={1.6} className="h-5 w-5 text-mute" />
