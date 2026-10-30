@@ -1,0 +1,3078 @@
+---
+stepsCompleted:
+  - step-01-validate-prerequisites
+  - step-02-design-epics
+  - step-03-create-stories
+  - step-04-final-validation
+inputDocuments:
+  - _bmad-output/planning-artifacts/prds/prd-transparencia-2026-08-01/prd.md
+  - _bmad-output/planning-artifacts/architecture/architecture-transparencia-2026-08-01/ARCHITECTURE-SPINE.md
+---
+
+# transparencia - Epic Breakdown
+
+## Overview
+
+This document provides the complete epic and story breakdown for transparencia, decomposing the requirements from the PRD, UX Design if it exists, and Architecture requirements into implementable stories.
+
+## Requirements Inventory
+
+### Functional Requirements
+
+- **FR1 (FR-1.1)**: O dbt deve fornecer o modelo `fct_posicao_fiscal_metricas.sql` pré-calculando total arrecadado, despesas pagas, restos pagos e pendentes (separados por gestão anterior vs. atual com auxílio do ano de referência em `dim_metadata`).
+- **FR2 (FR-1.2)**: O dbt deve fornecer o modelo `fct_analise_despesas_metricas.sql` pré-agregando totais empenhados, liquidados e pagos por órgãos, unidades e funções contábeis.
+- **FR3 (FR-1.3)**: O dbt deve fornecer os modelos `fct_execucao_orcamentaria_metricas.sql`, `fct_fontes_receita_metricas.sql`, `fct_historia_caprem_metricas.sql` e `fct_historia_saude_metricas.sql`, suportados por tabelas dimensionais canônicas padronizadas conforme normas oficiais (STN/MCASP).
+- **FR4 (FR-1.4)**: Todos os modelos de métricas e dimensões devem incluir a dimensão `portal_slug` em seu agrupamento obrigatório quando aplicável a multi-tenant.
+- **FR5 (FR-2.1)**: A camada `@transparencia/db` deve substituir scripts monolíticos de montagem de telas por leitores burros atômicos (ex: `getPosicaoFiscalMetrics(portalSlug, ano)`, `getHistoriaCapremMetrics(portalSlug, ano)`).
+- **FR6 (FR-2.2)**: Nenhuma função em `@transparencia/db` pode conter chamadas a `sql` com agregações `SUM()`, `AVG()` ou `GROUP BY` sobre dados transacionais brutos ou casts e mapeamentos hardcoded em runtime.
+- **FR7 (FR-2.3)**: Todas as funções leitoras devem exigir obrigatoriamente o parâmetro `portalSlug`.
+- **FR8 (FR-3.1)**: Mover componentes de domínio de `packages/ui/src/components/` para `apps/web/components/` (ex: `caprem-hero-section.tsx`, `saude-emendas-section.tsx`, `posicao-fiscal-hero.tsx`).
+- **FR9 (FR-3.2)**: Manter em `packages/ui` apenas primitivas agnósticas de design system (ex: `button.tsx`, `card.tsx`, `dense-table.tsx`, `kpi-card.tsx`).
+- **FR10 (FR-4.1)**: Os data loaders e a composição de View Models devem residir em `apps/web/app/` (próximo às rotas que renderizam as telas, como `apps/web/app/[portalSlug]/caprem/page.tsx`).
+- **FR11 (FR-4.2)**: Os componentes UI devem receber apenas DTOs prontos passados via props.
+
+### NonFunctional Requirements
+
+- **NFR1 (NFR-1.1)**: Desempenho e Latência: Leituras das páginas principais (ex: Posição Fiscal, CAPREM, Saúde) na web devem responder em menos de 100ms no banco de dados PostgreSQL devido à pré-materialização física (`materialized='table'`).
+- **NFR2 (NFR-2.1)**: Integridade e Tolerância Zero a Erros: Testes fiscais e balanços contábeis (ex: `empenhado >= liquidado >= pago`, adimplência atuarial CAPREM) devem falhar a compilação do dbt caso haja discrepância nos dados.
+- **NFR3 (NFR-3.1)**: Manutencibilidade e Testabilidade: Mudanças em schemas de staging exigem atualização em `_sources.yml` para garantir que os testes de integração (`make test`) passem sem erro.
+- **NFR4 (NFR-3.2)**: Manutencibilidade e Testabilidade: Testes TypeScript (`make test/ts`) devem validar que todas as queries Kysely mantêm tipagem forte e passam o filtro `portal_slug`.
+- **NFR5 (Preservação Visual)**: Nenhuma visualização ou tela existente deve ser removida durante a refatoração. A aplicação web deve manter total paridade visual e comportamental com a versão existente para facilitar a migração.
+- **NFR6 (Conformidade STN/MCASP)**: A classificação orçamentária de elementos de despesa, naturezas, funções e subfunções deve seguir rigorosamente as tabelas e normas oficiais da Secretaria do Tesouro Nacional (STN) e Manual de Contabilidade Aplicada ao Setor Público (MCASP).
+
+### Additional Requirements
+
+- **AD-1**: dbt Marts de Métricas em `elt/transform/models/marts/metrics/` como Única Fonte da Verdade Contábil (SSOT).
+- **AD-2**: Todos os modelos em `elt/transform/models/marts/metrics/` devem ser configurados com `materialized='table'` no dbt.
+- **AD-3**: O pacote `@transparencia/db` conterá apenas funções leitoras atômicas e genéricas ("pass-through") que espelham diretamente as tabelas/marts do dbt (`selectFrom('fct_..._metricas').where('portal_slug', '=', portalSlug)`).
+- **AD-4**: `packages/ui` restrito a primitivas genéricas e componentes de domínio em `apps/web/components/`. Co-localização de data loaders em `apps/web/app/`.
+- **AD-5**: Isolamento Multi-tenant Obrigatório via `portal_slug` em dbt (`GROUP BY portal_slug`) e Kysely.
+- **AD-6**: Protocolo de Validação Fiscais em dbt (`dbt test`) e aprovação estrita de `make test` (Python/dbt) e `make test/ts` (TypeScript/Kysely).
+- **ASSUMPTION-1**: Projeções Enxutas de Métricas em `marts/metrics/` omitindo campos de texto longo como histórico de empenhos.
+- **ASSUMPTION-2**: Referência de Gestão em `dim_metadata` (`ano_inicio_gestao_atual`) para cálculo de restos a pagar anterior vs. atual.
+- **ASSUMPTION-3**: Estrutura Plana de Componentes em `apps/web/components/` com nomes descritivos com hífens.
+
+### UX Design Requirements
+
+*Nenhum documento de especificação UX dedicado encontrado. Os requisitos de UI são derivados diretamente dos requisitos FR8-FR11, AD-4 e NFR5 (reorganização da UI, separação de primitivas e componentes de domínio, garantindo 100% de preservação da paridade visual das telas existentes).*
+
+### FR Coverage Map
+
+- **FR1 (FR-1.1)**: Epic 1 - Modelo `fct_posicao_fiscal_metricas.sql` pré-calculando saldos e restos a pagar por gestão.
+- **FR2 (FR-1.2)**: Epic 1 - Modelo `fct_analise_despesas_metricas.sql` pré-agregando totais por órgãos, unidades e funções.
+- **FR3 (FR-1.3)**: Epic 1 - Auditoria de queries legadas, dimensões canônicas STN/MCASP (`dim_elemento_despesa`, `dim_natureza_despesa`, `dim_funcao_subfuncao`) e modelos `fct_execucao_orcamentaria_metricas.sql`, `fct_fontes_receita_metricas.sql`, `fct_historia_caprem_metricas.sql` e `fct_historia_saude_metricas.sql`.
+- **FR4 (FR-1.4)**: Epic 1 - Inclusão da dimensão `portal_slug` em todos os agrupamentos dbt.
+- **FR5 (FR-2.1)**: Epic 2 - Substituição de queries monolíticas por leitores burros atômicos em `@transparencia/db`.
+- **FR6 (FR-2.2)**: Epic 2 - Eliminação de `SUM()`, `AVG()`, `GROUP BY`, `CAST` e dicionários JS hardcoded em runtime no Kysely.
+- **FR7 (FR-2.3)**: Epic 2 - Filtro obrigatório de `portalSlug` em todas as funções leitoras.
+- **FR8 (FR-3.1)**: Epic 3 - Migração dos componentes de domínio de `packages/ui` para `apps/web/components/`.
+- **FR9 (FR-3.2)**: Epic 3 - Manutenção exclusiva de primitivas agnósticas no `packages/ui`.
+- **FR10 (FR-4.1)**: Epic 3 - Co-localização de Data Loaders e composição de View Models em `apps/web/app/`.
+- **FR11 (FR-4.2)**: Epic 3 - Transmissão de DTOs puros via props para componentes de UI.
+
+## Epic List
+
+- [Epic 1: Descoberta de Domínios, Dimensões Canônicas (STN/MCASP) e SSOT no dbt](#epic-1-descoberta-de-domínios-dimensões-canônicas-stnmcasp-e-ssot-no-dbt)
+- [Epic 2: Leitores Atômicos e Contratos de Dados no `@transparencia/db`](#epic-2-leitores-atômicos-e-contratos-de-dados-no-transparenciadb)
+- [Epic 3: Reorganização da UI e Co-localização de Loaders no `apps/web`](#epic-3-reorganização-da-ui-e-co-localização-de-loaders-no-appsweb)
+- [Epic 4: Experiência Visual, Responsividade Mobile, SEO & Otimização para LLMs](#epic-4-experiência-visual-responsividade-mobile-seo--otimização-para-llms)
+- [Epic 5: Arquitetura Analytics Serverless (DuckDB + Parquet R2), Servidor MCP & Assistente Fiscal com Evals](#epic-5-arquitetura-analytics-serverless-duckdb--parquet-r2-servidor-mcp--assistente-fiscal-com-evals)
+- [Epic 6: Reformulação Fiscal da Homepage e Redesenho da Página de Despesas Detalhadas](#epic-6-reformulação-fiscal-da-homepage-e-redesenho-da-página-de-despesas-detalhadas)
+- [Epic 7: Distribuição Cívica, Engajamento Comunitário, Newsletters Automatizadas e Social Sharing Dinâmico](#epic-7-distribuição-cívica-engajamento-comunitário-newsletters-automatizadas-e-social-sharing-dinâmico)
+- [Epic 8: Auditabilidade Cívica ('Show Your Work'), Transparência Metodológica e Navegação Mobile Contínua](#epic-8-auditabilidade-cívica-show-your-work-transparência-metodológica-e-navegação-mobile-contínua)
+- [Epic 9: Consistência Cívica, Indicadores da Saúde e Disponibilidade Financeira SICONFI (MSC)](#epic-9-consistência-cívica-indicadores-da-saúde-e-disponibilidade-financeira-siconfi-msc)
+- [Epic 10: Fundação, Higiene de Dados e Isolamento de Schema](#epic-10-fundação-higiene-de-dados-e-isolamento-de-schema)
+- [Epic 11: Automação da Ingestão de Dados, Notificações PWA e Fontes Consolidadas (TCE-RJ e SICONFI)](#epic-11-automação-da-ingestão-de-dados-notificações-pwa-e-fontes-consolidadas-tce-rj-e-siconfi)
+- [Epic 12: Radar Cívico Ativo, Detecção de Anomalias e Funil de Engajamento](#epic-12-radar-cívico-ativo-detecção-de-anomalias-e-funil-de-engajamento)
+- [Epic 13: Usabilidade Cívica, Descoberta Global e Governança](#epic-13-usabilidade-cívica-descoberta-global-e-governança)
+- [Epic 14: Sustentabilidade Previdenciária e Patrimônio Financeiro da CAPREM](#epic-14-sustentabilidade-previdenciária-e-patrimônio-financeiro-da-caprem)
+- [Epic 15: Expansão Regional Noroeste Fluminense (Cluster Sigcorp), RPPS Canônico (`fct_previdencia_*`) e Módulos Dinâmicos por Portal](#epic-15-expansão-regional-noroeste-fluminense-cluster-sigcorp-rpps-canônico-fct_previdencia_-e-módulos-dinâmicos-por-portal)
+- [Epic 16: Ingestão Regional Cluster Pronim/Cidade360 e Lançamento do Polo Regional de Itaperuna](#epic-16-ingestão-regional-cluster-pronimcidade360-e-lançamento-do-polo-regional-de-itaperuna)
+- [Epic 17: Radar Cívico de Obras Públicas, Medições Físicas e Impacto Urbano](#epic-17-radar-cívico-de-obras-públicas-medições-físicas-e-impacto-urbano)
+- [Epic 18: Tema Canônico da Educação Básica, Desempenho Pedagógico (IDEB/SAEB) e Responsabilidade Fiscal (MDE/FUNDEB)](#epic-18-tema-canônico-da-educação-básica-desempenho-pedagógico-idebsaeb-e-responsabilidade-fiscal-mdefundeb)
+- [Epic 19: Remodelagem da Homepage para Utilidade Pública, Sentinela da Farmácia SUS (Lei 14.654/2023) e Ação Cívica](#epic-19-remodelagem-da-homepage-para-utilidade-pública-sentinela-da-farmácia-sus-lei-146542023-e-ação-cívica)
+- [Epic 20: Tema Divisórias: Identidade Visual Minimalista, Tema Claro/Escuro Acessível e Migração dos Componentes](#epic-20-tema-divisórias-identidade-visual-minimalista-tema-claroescuro-acessível-e-migração-dos-componentes)
+- [Epic 21: Assistência Social, Programas de Transferência de Renda (CGU) e Impacto Econômico Municipal](#epic-21-assistência-social-programas-de-transferência-de-renda-cgu-e-impacto-econômico-municipal)
+- [Epic 22: Busca Global por Categorias](#epic-22-busca-global-por-categorias)
+- [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
+
+---
+
+## Epic 1: Descoberta de Domínios, Dimensões Canônicas (STN/MCASP) e SSOT no dbt
+
+Realizar o inventário e auditoria de todas as queries TypeScript legadas para extrair regras contábeis ocultas, criar as tabelas de dimensões canônicas oficiais do setor público (`dim_elemento_despesa`, `dim_natureza_despesa`, `dim_funcao_subfuncao`) baseadas nas normas da Secretaria do Tesouro Nacional (STN/MCASP) e consolidar os marts de métricas no dbt materializados fisicamente (`materialized='table'`).
+
+### Story 1.1: Fase de Descoberta e Auditoria de Regras Fiscais Ocultas no TypeScript
+
+As a data/fiscal architect,
+I want to audit all legacy TypeScript queries in `@transparencia/db/src/queries/` to catalog all domain-specific filters, element mappings, and hardcoded constants,
+So that no domain logic or accounting rule is lost during the migration to dbt.
+
+**Acceptance Criteria:**
+
+**Given** as funções leitoras legadas em `@transparencia/db/src/queries/` (ex: `historia_caprem.ts`, `historia_saude.ts`, `posicao_fiscal.ts`, `despesas.ts`)
+**When** a auditoria de regras contábeis e de-para ocultos for realizada
+**Then** é gerado um inventário mapeando todas as constantes hardcoded (ex: `CAPREM_CODE`, `CASP_CNPJ`, códigos de elemento `13`, `46`, `71`, `91`, `97`), joins com credores específicos e fórmulas de cálculo atuarial/saúde.
+**And** cada item do inventário é associado à especificação correspondente nas tabelas oficiais do STN/MCASP.
+
+### Story 1.2: Modelagem das Dimensões Canônicas Fiscais (STN/MCASP) no dbt
+
+As a data engineer,
+I want canonical dimension tables for expense elements, nature of expense, functions, and subfunctions built in dbt according to official STN/MCASP standards,
+So that all metrics models join against standardized official classifications rather than using hardcoded JavaScript dictionaries.
+
+**Acceptance Criteria:**
+
+**Given** a especificação oficial de classificação orçamentária da Portaria STN/SOF nº 163/2001 e Portaria STN nº 448/2002 (MCASP)
+**When** as dimensões `dim_elemento_despesa.sql`, `dim_natureza_despesa.sql` e `dim_funcao_subfuncao.sql` são criadas no dbt
+**Then** elas contêm o catálogo completo e oficial de elementos de despesa, especificações, descrições e títulos contábeis regulamentados.
+**And** o de-para legado (ex: `ELEMENTO_LABELS`) é totalmente substituído pelo `JOIN` nativo com `dim_elemento_despesa`.
+**And** a suíte `make test` executa e valida as novas dimensões no banco de testes efêmero.
+
+### Story 1.3: Modelo de Métricas de Posição Fiscal no dbt (`fct_posicao_fiscal_metricas`)
+
+As a fiscal analyst / system,
+I want pre-calculated financial metrics for daily and annual fiscal positioning in a materialized dbt table,
+So that screen queries do not calculate totals from raw transactional data at runtime.
+
+**Acceptance Criteria:**
+
+**Given** as tabelas raw de receita e despesa sincronizadas em `_sources.yml` e o schema efêmero configurado
+**When** o comando `dbt run --select fct_posicao_fiscal_metricas` é executado
+**Then** a tabela física `fct_posicao_fiscal_metricas` é criada em `elt/transform/models/marts/metrics/` com materialização `table` contendo as colunas `portal_slug`, `ano`, `total_arrecadado`, `despesas_pagas`, `restos_pagos_no_ano`, `restos_pendentes_adm_anterior`, `restos_pendentes_adm_atual` e `saldo_estimado`.
+**And** os restos a pagar são corretamente segregados entre gestão anterior e atual utilizando a referência em `dim_metadata`.
+**And** a dimensão `portal_slug` é obrigatoriamente incluída no agrupamento do modelo.
+**And** os testes do dbt (`total_arrecadado >= 0`) e a suíte `make test` executam e passam com 100% de sucesso.
+
+### Story 1.4: Modelo de Métricas de Análise de Despesas no dbt (`fct_analise_despesas_metricas`)
+
+As a fiscal analyst / system,
+I want pre-aggregated totals for empenhado, liquidado, and pago grouped by portal_slug, ano, orgao, unidade, and funcao,
+So that expense breakdowns load instantly with strict accounting consistency.
+
+**Acceptance Criteria:**
+
+**Given** as tabelas de staging de empenhos, liquidações e pagamentos
+**When** o modelo `fct_analise_despesas_metricas` é executado no dbt
+**Then** a tabela física `fct_analise_despesas_metricas` é criada com `materialized='table'` contendo agrupamento por `portal_slug`, `ano`, `orgao_codigo`, `unidade_codigo` e `funcao_codigo`.
+**And** o modelo pré-calcula os somatórios de `total_empenhado`, `total_liquidado` e `total_pago`.
+**And** o teste fiscal de invariante contábil (`total_empenhado >= total_liquidado AND total_liquidado >= total_pago`) é declarado em `schema.yml` e validado via `dbt test`.
+**And** a suíte de testes `make test` é aprovada sem erros.
+
+### Story 1.5: Modelos de Métricas de Domínio Específico no dbt (`fct_execucao_orcamentaria_metricas`, `fct_fontes_receita_metricas`, `fct_historia_caprem_metricas` e `fct_historia_saude_metricas`)
+
+As a fiscal analyst / system,
+I want pre-aggregated budgetary execution, revenue sources, CAPREM actuarial metrics, and Health story metrics models in dbt using official dimension tables,
+So that domain-specific cross-referencing, casts, and complex filtering happen at data materialization time without runtime overhead.
+
+**Acceptance Criteria:**
+
+**Given** as tabelas raw de empenhos, folhas de pagamento, credores e as dimensões `dim_elemento_despesa`, `dim_natureza_despesa`, `dim_funcao_subfuncao`
+**When** os modelos `fct_execucao_orcamentaria_metricas`, `fct_fontes_receita_metricas`, `fct_historia_caprem_metricas` e `fct_historia_saude_metricas` são executados no dbt
+**Then** todas as tabelas são materializadas fisicamente (`materialized='table'`) em `elt/transform/models/marts/metrics/` contendo a dimensão obrigatória `portal_slug`.
+**And** `fct_historia_caprem_metricas` utiliza as tabelas de dimensões oficiais para cruzamentos de empenhos patronais/aportes e indicadores atuariais.
+**And** `fct_historia_saude_metricas` consolida os indicadores de aplicação da saúde.
+**And** os testes de schema dbt e `make test` são aprovados com sucesso.
+
+---
+
+## Epic 2: Leitores Atômicos e Contratos de Dados no `@transparencia/db`
+
+Refatorar a biblioteca de acesso a dados `@transparencia/db` para agir estritamente como um leitor burro "pass-through" fortemente tipado via Kysely, eliminando todas as agregações runtime em TypeScript e impondo a filtragem por `portalSlug`.
+
+### Story 2.1: Leitores Burros Atômicos para Posição Fiscal (`getPosicaoFiscalMetrics`)
+
+As a developer,
+I want an atomic Kysely reader function for Posição Fiscal metrics in `@transparencia/db`,
+So that server components receive strongly typed DTOs directly from pre-materialized dbt marts without runtime SQL aggregations.
+
+**Acceptance Criteria:**
+
+**Given** a tabela materializada `fct_posicao_fiscal_metricas` no banco PostgreSQL
+**When** a função `getPosicaoFiscalMetrics(portalSlug: string, ano: number)` é chamada
+**Then** ela executa uma query Kysely simples `.selectFrom('fct_posicao_fiscal_metricas').where('portal_slug', '=', portalSlug).where('ano', '=', ano).executeTakeFirst()`.
+**And** ela não contém nenhuma chamada a `sql` bruto com `SUM()`, `AVG()` ou `GROUP BY` sobre dados transacionais.
+**And** o parâmetro `portalSlug` é obrigatório no contrato de tipos.
+**And** o teste de paridade TypeScript `make test/ts` passa sem erros de tipagem.
+
+### Story 2.2: Leitores Burros Atômicos para Domínios Específicos (Despesas, Receitas, CAPREM e Saúde)
+
+As a developer,
+I want atomic Kysely reader functions for expense analysis, budget execution, CAPREM actuarial history, and Health story metrics in `@transparencia/db`,
+So that all backend queries act strictly as pass-through DTO providers with zero runtime SQL logic, hardcoded dictionaries, or type casting.
+
+**Acceptance Criteria:**
+
+**Given** os marts `fct_analise_despesas_metricas`, `fct_execucao_orcamentaria_metricas`, `fct_historia_caprem_metricas` e `fct_historia_saude_metricas`
+**When** as funções leitoras `getAnaliseDespesasMetrics`, `getExecucaoOrcamentariaMetrics`, `getHistoriaCapremMetrics` e `getHistoriaSaudeMetrics` são invocadas
+**Then** todas realizam estritamente `.selectFrom(...)` aplicando obrigatoriamente a cláusula `.where('portal_slug', '=', portalSlug)`.
+**And** o código legado monolítico de agregação e filtros runtime em `@transparencia/db/src/queries/historia_caprem.ts` e `historia_saude.ts` (incluindo `ELEMENTO_LABELS` hardcoded) é removido.
+**And** a suíte de testes de tipos `make test/ts` é aprovada com 100% de sucesso.
+
+---
+
+## Epic 3: Reorganização da UI e Co-localização de Loaders no `apps/web`
+
+Refatorar a camada de apresentação separando primitivas de design system em `packages/ui` de componentes de domínio em `apps/web/components/`, co-localizando data loaders e View Models em `apps/web/app/` e garantindo 100% de preservação da paridade visual e funcional existente.
+
+### Story 3.1: Desacoplamento da UI - Migração dos Componentes de Domínio para `apps/web/components/`
+
+As a frontend developer,
+I want domain-specific UI components moved from `packages/ui` to `apps/web/components/`,
+So that `packages/ui` contains only generic, agnostic design system primitives.
+
+**Acceptance Criteria:**
+
+**Given** componentes de domínio como `posicao-fiscal-hero.tsx`, `caprem-hero-section.tsx`, `saude-emendas-section.tsx` em `packages/ui`
+**When** a reorganização dos pacotes é executada
+**Then** todos os componentes específicos de domínio são movidos para o diretório plano `apps/web/components/`.
+**And** em `packages/ui/src/components/` permanecem exclusivamente primitivas agnósticas de design system (ex: `button.tsx`, `card.tsx`, `dense-table.tsx`, `kpi-card.tsx`).
+**And** todas as importações no `apps/web` são atualizadas sem causar falhas de compilação no `pnpm build`.
+
+### Story 3.2: Co-localização de Data Loaders e View Models em `apps/web/app/`
+
+As a developer,
+I want page data loaders and View Model composition co-located near their Next.js routes in `apps/web/app/`,
+So that pages fetch DTOs via `@transparencia/db` atomic readers and pass ready props to domain UI components.
+
+**Acceptance Criteria:**
+
+**Given** as rotas de páginas em `apps/web/app/` (Posição Fiscal, Despesas, Saúde, CAPREM, Receitas)
+**When** os data loaders são configurados nas rotas de `apps/web/app/` (incluindo `apps/web/app/[portalSlug]/caprem/page.tsx`)
+**Then** os data loaders buscam os dados utilizando exclusivamente os leitores atômicos do `@transparencia/db` (ex: `getHistoriaCapremMetrics(portalSlug, ano)`).
+**And** os componentes de UI de domínio em `apps/web/components/` recebem DTOs prontos como props.
+**And** 100% da paridade visual e funcional de todas as telas existentes é rigorosamente preservada sem remoção de nenhuma visualização ou gráfico (NFR5).
+**And** as suítes de validação `make test`, `make test/ts` e `pnpm build` passam com sucesso.
+
+### Story 3.3: Migração Completa dos Loaders Web para Leitores de Métricas
+
+As a developer,
+I want all route loaders in `apps/web/app/[portalSlug]` to consume the new `*-metrics` readers from `@transparencia/db` wherever coverage exists,
+So that the application fully realizes the architecture of pre-materialized metrics marts and removes residual dependence on legacy monolithic readers.
+
+**Acceptance Criteria:**
+
+**Given** os leitores atômicos de métricas já existentes em `@transparencia/db` (ex: `getPosicaoFiscalMetrics`, `getAnaliseDespesasMetrics`, `getExecucaoOrcamentariaMetrics`, `getFontesReceitaMetrics`, `getHistoriaCapremMetrics`, `getHistoriaSaudeMetrics`)
+**When** os loaders das rotas de domínio em `apps/web/app/[portalSlug]/` são refatorados
+**Then** toda rota com cobertura de métricas disponível passa a buscar dados exclusivamente via leitores `*-metrics`, preservando o filtro obrigatório por `portalSlug`.
+
+**And** o objetivo desta story é eliminar a dependência dos readers legados atuais na aplicação web para os domínios cobertos, mantendo apenas fluxos orientados a métricas.
+
+**And** para cada domínio sem cobertura total de DTO métrico (campos detalhados ainda não materializados), deve ser aberto e documentado um plano de extensão de métricas no dbt, analisado caso a caso (uma métrica por vez), com decisão explícita de implementação antes de qualquer mudança no loader.
+
+**And** qualquer fallback legado temporário deve ser excepcional, explicitamente rastreado com prazo de remoção no artefato da story, e não pode ser considerado estado final da migração.
+
+**And** nenhum loader de rota principal deve depender de agregação runtime em TypeScript para totais fiscais já cobertos por marts de métricas.
+
+**And** todos os contratos de props dos componentes em `apps/web/components/` permanecem estáveis, preservando 100% da paridade visual e funcional existente (NFR5).
+
+**And** a suíte completa de validação (`make test`, `make test/ts`, `pnpm build`) passa com sucesso.
+
+**And** é produzido um mapa de rastreabilidade por rota (reader legado anterior -> reader de métricas adotado -> gaps remanescentes -> decisão de implementação dbt), anexado aos artefatos da implementação.
+
+### Plano Pós-Story 3.3 (Aposentadoria Completa do Legado)
+
+Objetivo: eliminar toda dependência residual de queries legadas nos domínios cobertos e completar cobertura métrica para Pessoal e Licitações.
+
+#### Story 3.4: Validação Final e Gate de Encerramento da Story 3.3
+
+As a developer,
+I want to execute the full validation gate (`make test`, `make test/ts`, `pnpm build`) and register evidence,
+So that Story 3.3 closes with objective proof of stability before expanding scope.
+
+Entregáveis:
+- Evidências dos três comandos no artefato da story.
+- Checklist 3.3 totalmente concluído.
+
+#### Story 3.5: Complemento Métrico de Visão Geral e Orçamento
+
+As a data+web developer,
+I want to expand metrics coverage for fiscal details and budget functional breakdown,
+So that `loadVisaoGeralData` e `loadOrcamentoData` removam fallbacks legados restantes.
+
+Entregáveis:
+- Extensão dos marts para restos pendentes/top credores e dimensão funcional consolidada.
+- Readers de métricas correspondentes em `@transparencia/db`.
+- Remoção de fallback legado nesses dois loaders.
+
+#### Story 3.6: Complemento Métrico de Despesas, Saúde e CAPREM
+
+As a data+web developer,
+I want metrics for HHI/diárias/restos (Despesas), tendência/contratação/fontes (Saúde) e séries/natureza/cadprev (CAPREM),
+So that these domains stop depending on legacy query composition.
+
+Entregáveis:
+- Novos/ajustados marts em `elt/transform/models/marts/metrics/`.
+- Readers `*-metrics` dedicados para os blocos faltantes.
+- Remoção dos fallbacks controlados nos três loaders.
+
+#### Story 3.7: Métricas de Pessoal e Licitações (Cobertura Total)
+
+As a data+web developer,
+I want to create dedicated marts/readers for Pessoal and Licitações,
+So that both routes migrate from 100% legacy to 100% metrics.
+
+Entregáveis:
+- `fct_pessoal_metricas` e `fct_licitacoes_metricas` (ou partições equivalentes por subdomínio).
+- Readers de métricas para folha/chefias/13o/proventos/departamental e gaps/adesão/anomalias/modalidades.
+- Migração completa de `apps/web/app/[portalSlug]/pessoal/loader.ts` e `apps/web/app/[portalSlug]/licitacoes/loader.ts`.
+
+#### Story 3.8: Hard Cutover e Remoção Definitiva do Legado
+
+As a maintainer,
+I want to remove legacy query paths no longer needed,
+So that architecture remains SSOT via dbt marts + atomic metric readers.
+
+Entregáveis:
+- Remoção de imports/chamadas legadas substituídas.
+- Atualização de testes de paridade para contratos métricos finais.
+- Changelog de aposentadoria do legado por domínio.
+
+Critérios de saída da fase:
+- Nenhum loader de rota principal depende de agregação runtime para domínios cobertos.
+- `portalSlug` explícito em todos os fluxos da web.
+- Suíte completa verde em cada story de corte (`make test`, `make test/ts`, `pnpm build`).
+
+---
+
+## Epic 4: Experiência Visual, Responsividade Mobile, SEO & Otimização para LLMs
+
+Garantir que a plataforma TransparenciaWeb seja visualmente impecável em dispositivos móveis, com títulos dinâmicos padronizados, suporte a favicon personalizável (corrigindo a colisão de rota do Next.js no loader dinâmico), totalmente otimizada para motores de busca (SEO) e consumo automatizado por LLMs/IAs, além de alinhar as diretrizes de código do repositório em todo o código TypeScript/Frontend.
+
+### Story 4.1: Correção de Roteamento do Favicon e Suporte a Ícones Personalizados
+
+As a platform user / auditor,
+I want the application to serve favicon requests properly without triggering server route exceptions,
+So that browser tab icons render correctly and metric loaders are not invoked for static assets like `favicon.ico`.
+
+**Acceptance Criteria:**
+- **Given** uma requisição estática para `GET /favicon.ico`
+- **When** o servidor Next.js processa a rota
+- **Then** a requisição não deve colidir com o parâmetro dinâmico `[portalSlug]` de `app/[portalSlug]`.
+- **And** a função `requireEmpresaIdsForMetrics` nunca deve ser invocada com o slug `"favicon.ico"`.
+- **And** a aplicação deve expor suporte completo no Next.js Metadata (`metadata.icons`) para carregar o favicon fornecido pelo usuário.
+
+### Story 4.2: Títulos Dinâmicos de Página com Prefixo TransparenciaWeb
+
+As a portal visitor,
+I want clear, descriptive page titles with the `TransparenciaWeb` prefix on every page,
+So that I can immediately identify the current section and municipal entity in my browser tabs and bookmarks.
+
+**Acceptance Criteria:**
+- **Given** qualquer página renderizada no portal (ex: `/visao-geral`, `/despesas`, `/caprem`, `/saude`)
+- **When** a página é carregada no navegador
+- **Then** o título HTML da página deve seguir a estrutura `TransparenciaWeb - [Nome da Tela] | [Entidade do Portal]`.
+- **And** o `layout.tsx` raiz do Next.js deve definir um `title.template` padronizado.
+
+### Story 4.3: Responsividade Mobile e Adequação para Telas Menores
+
+As a mobile device user,
+I want tables, KPI cards, navigation menus, and year selectors to adapt to smaller screens,
+So that I can consult public transparency data smoothly on smartphones and tablets.
+
+**Acceptance Criteria:**
+- **Given** um dispositivo móvel com largura de tela entre 360px e 430px
+- **When** o usuário navega pelas telas do portal
+- **Then** as tabelas (`dense-table`, tabelas de despesas e contratos) devem possuir rolagem horizontal suave ou layout adaptativo sem quebrar o container.
+- **And** componentes de KPI (`kpi-card`) e seletores de filtros devem reorganizar-se em colunas responsivas utilizando breakpoints Tailwind (`sm:`, `md:`).
+- **And** botões e elementos interativos devem possuir área de toque mínima adequada (44x44px).
+
+### Story 4.4: Investigação e Correção de Emendas via PIX Zeradas em "Recebido por Emendas Parlamentares"
+
+As a municipal transparency user / auditor,
+I want "Recebido por emendas parlamentares" and "Emendas PIX" metrics to correctly reflect the data present in `raw.emendas_cad`,
+So that PIX transfer amendments are accurately reported in the portal header and revenues dashboard instead of showing zero.
+
+**Acceptance Criteria:**
+- **Given** registros de emendas via PIX cadastrados na tabela `raw.emendas_cad` (`stg_porciuncula_prefeitura__emendas_cad`)
+- **When** os modelos dbt (`int_emendas_consolidadas.sql`, `fct_emendas.sql` e `fct_fontes_receita_metricas.sql`) forem processados e agregados
+- **Then** a identificação/categorização de emendas PIX vs. individuais em `fct_emendas` deve capturar corretamente as modalidades/tipos de transferência PIX.
+- **And** o modelo de métricas `fct_fontes_receita_metricas` deve retornar o saldo `emendas_pix_arrecadado` maior que 0 quando existirem registros válidos.
+- **And** o leitor Kysely (`getFontesReceitaMetrics`) e a UI (`EmendasCard` / `emendas-card.tsx` em "Recebido por emendas parlamentares") devem exibir o valor correto e não zerado.
+- **And** a suíte de testes fiscais dbt (`make test`) e testes TypeScript (`make test/ts`) deve ser atualizada com asserções de paridade para validar a não zeragem.
+
+### Story 4.5: Estruturação para Leitura por LLMs (LLM-Friendly App Architecture)
+
+As an AI agent / LLM or accessibility screen reader,
+I want structured HTML5 semantics, JSON-LD metadata, and a standard `/llms.txt` file,
+So that I can extract, query, and process municipal transparency data accurately.
+
+**Acceptance Criteria:**
+- **Given** um agente de IA acessando a aplicação web
+- **When** o agente analisa o código HTML e endpoints da aplicação
+- **Then** o layout deve utilizar tags semânticas HTML5 (`<header>`, `<main>`, `<section>`, `<article>`, `<table>` acessíveis).
+- **And** o portal deve disponibilizar os arquivos `/llms.txt` e `/llms-full.txt` detalhando as rotas, APIs e estrutura dos dados públicos.
+- **And** as páginas principais devem conter esquemas `Schema.org` (`GovernmentOrganization`, `DataCatalog`, `Dataset`) serializados em JSON-LD.
+
+### Story 4.6: SEO Básico (Meta Tags, Open Graph, Sitemap & Robots)
+
+As a municipal transparency manager,
+I want the portal to feature full search engine metadata and social sharing previews,
+So that citizens can easily find transparency information on search engines and social platforms.
+
+**Acceptance Criteria:**
+- **Given** indexadores de busca ou crawlers de redes sociais
+- **When** o portal é indexado ou compartilhado
+- **Then** o Next.js Metadata API deve fornecer meta tags dinâmicas de `description`, `keywords`, `canonical` e `robots`.
+- **And** meta tags Open Graph (`og:title`, `og:description`, `og:image`, `og:type`, `og:site_name`) e Twitter Cards devem estar configuradas.
+- **And** rotas para `sitemap.xml` dinâmico e `robots.txt` devem estar ativas e válidas.
+
+### Story 4.7: Suporte a PWA (Progressive Web App - Instalabilidade e Notificações de Extração)
+
+As a municipal portal user / citizen,
+I want the TransparenciaWeb platform to function as a Progressive Web App (PWA) that is installable on my mobile or desktop browser and capable of sending push notifications when new municipal extraction data is published,
+So that I can quickly access transparency data from my home screen and stay immediately informed of new fiscal data updates.
+
+**Acceptance Criteria:**
+- **Given** um munícipe acessando a aplicação web em um navegador compatível (Chrome, Safari, Edge, Firefox)
+- **When** o portal é carregado
+- **Then** a aplicação deve fornecer um arquivo Web App Manifest (`manifest.webmanifest` ou `manifest.json`) configurado com `name: "TransparenciaWeb - Transparência Pública Municipal"`, `short_name: "TransparenciaWeb"`, `theme_color: "#1e3a8a"`, `background_color: "#0f172a"`, `display: "standalone"`, `start_url: "/"`, e ícones em resoluções 192x192 e 512x512.
+- **And** o navegador deve habilitar o prompt nativo de instalação ("Adicionar à Tela de Início" / "Instalar App").
+- **And** o Service Worker (`sw.js`) deve ser registrado para gerenciar cache estático e suporte offline do app shell.
+- **And** a aplicação deve integrar com a Web Push / Notification API para alertar o usuário quando a data de extração (`dataExtracao` em `dim_portais`) for atualizada no banco de dados.
+
+### Story 4.8: Aplicação de Diretrizes do Projeto no Código Frontend (Non-Python Files)
+
+As a code maintainer,
+I want all TypeScript, React components, and styling files to strictly comply with `AGENTS.md` guidelines,
+So that code readability, immutability, explicit metric naming, and type safety are enforced across the workspace.
+
+**Acceptance Criteria:**
+- **Given** o repositório de código TypeScript em `apps/web`, `packages/ui` e `packages/db`
+- **When** a auditoria e refatoração de código for concluída
+- **Then** todas as variáveis de métrica e DTOs devem utilizar nomes explícitos (zero abreviações opacas).
+- **And** transformações de dados devem ser puras e imutáveis (`.map`, `.filter`, `.reduce`).
+- **And** as suítes de validação (`pnpm build` e `pnpm test`) devem rodar 100% limpas e sem warnings de tipagem.
+
+### Story 4.9: Modelagem dbt e Exibição de Receitas Extra-Orçamentárias no Portal
+
+As a municipal transparency user / auditor,
+I want extra-budgetary revenues (such as tax retentions, consignments, deposits, and payroll loans) modeled in dbt and presented on the Receitas page,
+So that citizens have complete visibility over all financial inflows managed by the municipality alongside budgetary revenues.
+
+**Acceptance Criteria:**
+- **Given** a tabela raw `receita_extra_orcamentaria` (já declarada no `_sources.yml`)
+- **When** o modelo de staging `stg_porciuncula_prefeitura__receita_extra_orcamentaria.sql` for executado no dbt
+- **Then** os dados de entrada de receitas extra-orçamentárias devem ser normalizados com o campo `portal_slug` e tipos padronizados (`ano`, `empresa`, `codigo`, `descricao`, `valor`, `dtlan`, `empresanome`).
+- **And** os dados extra-orçamentários devem ser integrados no modelo intermediário unificado `int_receitas_consolidadas.sql` sob o classificador `tipo_receita = 'extra_orcamentaria'`, evitando a criação desnecessária de novos modelos `int_`.
+- **And** os modelos marts `fct_receita_extra_orcamentaria.sql` (para listagem detalhada) e `fct_fontes_receita_metricas.sql` (para agregação da métrica `receita_extra_orcamentaria_arrecadado`) devem ser criados/estendidos com materialização física (`materialized='table'`), consolidando totais e listagens por `portal_slug` e `ano`.
+- **And** no pacote `@transparencia/db`, o leitor `getFontesReceitaMetrics` deve ser estendido para incluir `receitaExtraOrcamentariaArrecadado` e a leitora `getReceitasExtraOrcamentariasList` deve ser criada aplicando obrigatoriamente o filtro `portal_slug`.
+- **And** na aplicação web (`apps/web/app/[portalSlug]/receitas`), o loader e a View Model devem consumir as novas métricas e exibir um novo card de KPI ("Receitas Extra-Orçamentárias") no resumo de receitas e uma tabela detalhada de lançamentos extra-orçamentários na interface.
+- **And** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` devem ser atualizados conforme a Regra 12 de `AGENTS.md` para documentar o novo conjunto de dados públicos.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) devem passar com 100% de sucesso.
+
+### Story 4.13: Parametrização Dinâmica de Limites Fiscais (Seed `seed_constantes_fiscais`) na UI de Licitações
+
+As a municipal transparency user / auditor,
+I want the Licitações page to dynamically display the exact legal limits for bidding exemptions (limites de dispensa) corresponding to the selected fiscal year (exercício),
+So that explanation texts and alert tooltips reflect the actual decree/law applicable for that year (e.g. Decreto 12.343/2024 for 2025 vs Decreto 12.807/2025 for 2026) without hardcoded static amounts.
+
+**Acceptance Criteria:**
+- **Given** o seed `seed_constantes_fiscais.csv` contendo os limites históricos e vigentes de dispensa de licitação (`limite_dispensa_compras_servicos`, `limite_dispensa_obras_engenharia`, `limite_dispensa_veiculos`) por período de ano
+- **When** o usuário seleciona um ano/exercício específico na rota `/licitacoes` (ex: 2023, 2024, 2025, 2026)
+- **Then** a função leitora/loader de métricas de licitação (`getLicitacoesMetrics`) em `@transparencia/db` deve expor o valor numérico do limite de dispensa de compras/serviços vigente no ano selecionado (`limiteDispensaComprasServicos`).
+- **And** o texto explicativo no cabeçalho de `apps/web/app/[portalSlug]/licitacoes/page.tsx` deve formatar dinamicamente o valor retornado (substituindo o valor fixo hardcoded de `R$ 62.725,59` por `acima de R$ {limiteDispensaFormatado} sem licitação`), explicitando a base legal correspondente ao exercício exibido.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) devem passar com 100% de sucesso.
+
+### Story 4.14: Derivação de Status de Inexecução Contratual e Filtro de Segmentação de Execução na UI
+
+As a citizen / municipal transparency auditor,
+I want the contracts list and section to classify expired contracts with zero execution (`liquidado = 0` / `pago = 0`) as unexecuted/rescinded and provide an execution status filter,
+So that unexecuted contracts are cleanly segregated from active/executed contracts without cluttering contract cards with excess text or hidden tooltips.
+
+**Acceptance Criteria:**
+- **Given** o modelo dbt `fct_contratos_servicos_vigentes.sql` e os componentes UI em `apps/web/components/contratos-servicos-vigentes-section.tsx` e `contrato-servico-vigente-card.tsx`
+- **When** um contrato possui data de vencimento anterior ao ano/data atual e apresenta liquidação zerada (`total_liquidado = 0`)
+- **Then** a leitora `@transparencia/db` / View Model da página deve derivar a propriedade de status de execução (ex: `statusExecucao: 'inexecutado' | 'em_execucao' | 'concluido'`).
+- **And** a UI da seção de contratos deve fornecer um filtro de segmentação limpo por status de execução (ex: `Em Execução` [padrão], `Concluídos`, `Não Executados`), permitindo ao usuário auditar contratos inexecutados sob demanda sem poluir visualmente os cards padrão.
+- **And** para contratos classificados como não executados na visão filtrada, exibir apenas um badge de status simples e minimalista (ex: badge neutro `Sem Execução Orçamentária` / `Não Executado`), sem adicionar blocos de texto explicativo ou tooltips nos cards.
+- **And** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` devem ser atualizados caso novos campos públicos de status de execução sejam expostos.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) devem passar com 100% de sucesso.
+
+### Story 4.15: Revelação Progressiva e Segregação Didática de Restos a Pagar e Contratos Plurianuais na UI
+
+As a citizen / municipal auditor,
+I want the Restos a Pagar cards and Contract detail drawers to segregate processed vs unprocessed liabilities and multi-year contract celebration years using progressive disclosure,
+So that I can clearly audit financial obligations without cluttering the main UI with redundant badges or text boxes.
+
+**Acceptance Criteria:**
+- **Given** os componentes de Posição Fiscal e Licitações/Contratos em `apps/web/components/` (ex: `posicao-fiscal-hero.tsx`, `contratos-servicos-vigentes-section.tsx`, `contrato-servico-vigente-card.tsx`)
+- **When** o usuário visualiza o card de Restos a Pagar no painel de Posição Fiscal ou abre o Drawer de Detalhes de um contrato plurianual
+- **Then** o card principal de Restos a Pagar deve apresentar um indicador discreto de informação `(i)` com tooltip simples em hover explicando a diferença entre Restos Processados (dívidas de serviços já prestados) e Não Processados (obras/serviços contratados em andamento).
+- **And** no Drawer de Detalhes ao clicar no card ou contrato, exibir a segregação por mandato de origem (`Gestão Atual [2025-2028]` vs `Gestões Anteriores [Pré-2025]`) e as datas de celebração/vigência de contratos plurianuais.
+- **And** a listagem principal deve permanecer limpa, sem adição de blocos de texto promocionais ou badges ruidosos que causem poluição visual ou sobrecarga cognitiva na UI principal.
+- **And** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` devem ser atualizados caso novos campos públicos de segregação de restos ou vigências contábeis sejam expostos.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) devem passar com 100% de sucesso.
+
+---
+
+
+## Epic 5: Arquitetura Analytics Serverless (DuckDB + Parquet R2), Servidor MCP & Assistente Fiscal com Evals
+
+### Overview
+Evolução da camada de inteligência de dados de transparência fiscal para uma arquitetura moderna baseada em **MCP (Model Context Protocol)**, DuckDB-WASM e arquivos Parquet particionados hospedados no Cloudflare R2, agregando uma camada de contexto orientada a **Skills (Markdown)** e um **Harness de Avaliação Determinística (Evals)**, alinhada às melhores práticas de agentes de IA (posthog.com/newsletter/building-ai-agents).
+
+> [!NOTE]
+> **Decisão Arquitetural (Evolução por Adição + MCP First):**
+> Manter o pipeline dbt/PostgreSQL 100% intocado para garantir os testes de integração fiscais. Uma etapa pós-materialização exporta os marts do PostgreSQL para arquivos `.parquet` comprimidos (Snappy) e os sincroniza com o Cloudflare R2.
+> A camada de inteligência expõe os marts através de um **Servidor/Ferramentas MCP** (`transparencia-mcp`), permitindo que tanto o assistente no frontend quanto agentes LLM externos consultem os dados com 100% de exatidão fiscal.
+
+---
+
+### Story 5.1: Exportação Automatizada de Marts PostgreSQL para `.parquet` Snappy e Sync MinIO/R2
+
+As a data engineer,
+I want a Python/DuckDB post-processing script (`elt/export_marts_parquet.py`) and sync script (`elt/scripts/sync_parquet.py`) that export all Postgres marts to Parquet and upload to Cloudflare R2 / MinIO,
+So that we maintain a clean Parquet analytics store without altering the dbt Postgres adapter or integration tests.
+
+**Acceptance Criteria:**
+- **Given** o banco PostgreSQL populado com os marts de métricas materializados (`fct_*_metricas`, `dim_*`, `seed_*`) pós-execução do dbt
+- **When** o script `elt/export_marts_parquet.py` é executado
+- **Then** ele conecta ao PostgreSQL via DuckDB nativo (com fallback SQLAlchemy/pandas) e exporta cada mart para `target/parquet/` em formato `.parquet` comprimido com Snappy.
+- **And** o script `elt/scripts/sync_parquet.py` sincroniza os arquivos para o Cloudflare R2 (produção) ou MinIO S3 local (dev), verificando ETag/ContentLength para evitar re-uploads.
+- **And** a suíte de testes `elt/tests/test_export_marts_parquet.py` e `test_sync_parquet.py` executa e passa com 100% de sucesso.
+
+---
+
+### Story 5.2: Motor de Execução DuckDB-WASM e Registro Dinâmico dos 25 Marts Parquet (`duckdb-executor.ts`)
+
+As a fullstack developer,
+I want an atomic DuckDB-WASM execution module (`apps/web/lib/duckdb-executor.ts`) that runs server-side (Node.js) and client-side (Browser),
+So that SQL queries against Parquet files hosted on R2/MinIO execute instantly with automatic `HugeInt` 128-bit casting.
+
+**Acceptance Criteria:**
+- **Given** os 25 arquivos Parquet de marts (`MART_TABLES`) armazenados no R2 ou sistema de arquivos local
+- **When** a função `getDuckDbInstance()` ou `queryDuckDbParquet(sql)` é invocada no `apps/web`
+- **Then** o DuckDB-WASM é inicializado via `eval("require")` no Node.js (Vercel Serverless) ou `Web Worker` no navegador.
+- **And** todas as 25 tabelas fato/dimensão são registradas como views relacionais nativas no DuckDB.
+- **And** valores numéricos de somatórios fiscais são protegidos por `CAST AS DOUBLE` prevenindo falhas de conversão de 128-bit.
+
+---
+
+### Story 5.3: Servidor & Ferramentas MCP (`transparencia-mcp`) para Consulta Dinâmica e Taxonomia Fiscal
+
+As a developer / AI ecosystem user,
+I want a Model Context Protocol (MCP) server exposing tools to inspect taxonomia, schema definitions, and execute analytical DuckDB queries,
+So that internal web chat agents and external LLM agents (Claude, ChatGPT, etc.) query municipal transparency data via a standard, secure protocol.
+
+**Acceptance Criteria:**
+- **Given** o repositório TransparenciaWeb
+- **When** um agente de IA acessa o servidor MCP `transparencia-mcp` (ou endpoint MCP em Next.js)
+- **Then** as ferramentas MCP `list_marts_taxonomia`, `get_mart_schema` e `query_duckdb_mart` são expostas com JSON Schema estrito.
+- **And** a ferramenta de taxonomia permite ao agente explorar tabelas, dimensões e colunas sob demanda sem entupir o prompt inicial com todo o schema do banco.
+
+---
+
+### Story 5.4: Camada de Contexto & Skills em Markdown (Regras Fiscais STN/MCASP)
+
+As an AI prompt engineer / data architect,
+I want structured Markdown Skills detailing accounting rules (STN/MCASP), fiscal formulas, Restos a Pagar rules, and domain-specific query patterns,
+So that the AI agent generates accurate DuckDB queries without domain or accounting hallucinations.
+
+**Acceptance Criteria:**
+- **Given** a documentação de regras de negócio contábeis em `_bmad/skills/` ou `apps/web/lib/skills/`
+- **When** o assistente fiscal prepara a chamada ao LLM
+- **Then** o sistema injeta a Skill correspondente ao domínio solicitado (Posição Fiscal, CAPREM, Saúde, Licitações, Pessoal).
+- **And** o prompt combina **Layered Runtime Context Injection** (`portal_slug` ativo, ano do exercício selecionado, rota atual).
+
+---
+
+### Story 5.5: Assistente Fiscal no Frontend (`assistant-chat-drawer.tsx` + Tool Calling, Charts & Feedback Telemetry)
+
+As a citizen / auditor,
+I want an interactive chat drawer accessible from the header featuring suggested questions, formatted answers, KPI cards, charts, and feedback buttons (Thumbs Up / Down),
+So that I can explore municipal transparency data in natural language with visual evidence and rate response quality in real-time.
+
+**Acceptance Criteria:**
+- **Given** o botão "Perguntar aos Dados" no cabeçalho do portal
+- **When** o usuário abre o `assistant-chat-drawer.tsx` e envia uma pergunta
+- **Then** o backend invoca o LLM via Tool Calling / ReAct executando a query DuckDB correspondente.
+- **And** a resposta renderiza a explicação textual, KPI cards formatados (`fmtMoney`), gráfico dinâmico (barras/linhas) e a query SQL gerada para auditoria do cidadão.
+- **And** cada resposta do assistente renderiza botões de avaliação rápida (👍 Útil / 👎 Impreciso) que disparam o evento de telemetria `ai_feedback` (`score`, `message_id`, `answer_snippet`, `portal_slug`, `ano`) diretamente para o PostHog.
+
+---
+
+### Story 5.6: Harness de Avaliação Determinística (Evals) & Suíte de Testes de Paridade de IA (`make test/evals`)
+
+As a quality engineer,
+I want an automated Evals test harness (`make test/evals` ou `pnpm test`) running benchmark questions against the agent,
+So that regressions, hallucinations, or wrong calculation outputs are caught before deployment.
+
+**Acceptance Criteria:**
+- **Given** um conjunto de mais de 50 perguntas de benchmark (ex: `eval-12` testando retenção patronal e rombo previdenciário do CAPREM) com gabarito fiscal extraído dos marts dbt
+- **When** o comando `make test/evals` ou `pnpm test` é executado
+- **Then** o harness dispara as perguntas para a pipeline do assistente/MCP e compara os valores numéricos gerados contra o gabarito.
+- **And** o teste falha se a discrepância percentual for maior que 0% em métricas contábeis.
+
+---
+
+### Story 5.7 (Deferred / Post-V1): Avaliador Automatizado (*LLM-as-a-Judge*) & Webhooks de Qualidade no PostHog
+
+As a lead AI engineer / product manager,
+I want an automated LLM-as-a-Judge pipeline that periodically audits production conversation traces from PostHog and alerts on low-score feedbacks,
+So that we continuously measure agent accuracy, catch edge-case hallucinations, and auto-generate benchmark test cases without manual log inspection.
+
+**Acceptance Criteria (Deferred):**
+- **Given** as gerações de IA registradas no PostHog via evento `$ai_generation` e os feedbacks negativos via `ai_feedback` (`score: -1`)
+- **When** o cron/worker de avaliação diária (*LLM-as-a-Judge*) é executado à meia-noite
+- **Then** ele lê todas as respostas do dia no PostHog, submete a um modelo avaliador (Gemini 3.6 Flash) para checar a fidelidade contra os resultados SQL do DuckDB e gera um relatório diário de acurácia (ex: 98.4% de precisão).
+- **And** webhooks automatizados notificam o time via Slack/E-mail imediatamente quando um feedback `score: -1` (👎) for capturado no PostHog.
+- **And** as interações reais que geraram dúvidas ou imprecisões são convertidas automaticamente em novos casos de teste no `benchmark-questions.ts`.
+
+---
+
+### Story 5.8: Limpeza do DuckDB-WASM e Migração da IA para PostgreSQL
+
+As a fullstack developer,
+I want to remove the experimental DuckDB-WASM execution infrastructure and align AI/MCP tools to execute directly against Supabase PostgreSQL via `@transparencia/db`,
+So that we eliminate cold-start issues, network timeouts (10s), Vercel bundle size limits (50MB), and dynamic WASM downloads to `/tmp`.
+
+**Acceptance Criteria:**
+- **Given** o módulo `apps/web/lib/duckdb-executor.ts`
+- **When** o código é refatorado
+- **Then** a dependência `@duckdb/duckdb-wasm`, downloads para `/tmp` e conexões com o MotherDuck são eliminados.
+- **And** a função `queryDuckDbParquet` invoca a função `executeRawSql` exposta em `@transparencia/db` utilizando Kysely sobre PostgreSQL.
+- **And** a configuração `next.config.js` é limpa de entradas de WASM e `package.json` remove a dependência.
+- **And** todas as suítes de testes (`pnpm test`) e compilação (`pnpm build`) passam com 100% de sucesso.
+
+---
+
+### Story 5.9: Otimização de Índices e Performance no Supabase PostgreSQL
+
+As a database architect,
+I want functional indexes on `unaccent(lower(...))` and a strict `statement_timeout` configured in Supabase Postgres,
+So that text search queries run instantly and abusive queries are automatically terminated without degrading web dashboard performance.
+
+**Acceptance Criteria:**
+- **Given** o banco de dados PostgreSQL gerenciado no Supabase
+- **When** o script de otimização de índices for executado
+- **Then** as extensões `unaccent` e `pg_trgm` são ativadas.
+- **And** índices expressionais btree em `unaccent(lower(...))` são criados para as colunas de busca em `fct_despesas`, `fct_licitacoes` e `dim_credor`.
+- **And** a role do Postgres ou conexões do assistente configuram `statement_timeout = '5000ms'` (5 segundos).
+
+---
+
+### Story 5.10: Trava de Segurança e Rate Limiting no MCP / Vercel Edge
+
+As a backend engineer,
+I want a Rate Limiting middleware at the Vercel Edge / API layer limiting anonymous users to 5 queries per day,
+So that public infrastructure is protected from automated abuse and scraping.
+
+**Acceptance Criteria:**
+- **Given** uma requisição de usuário anônimo enviada para `/api/mcp` ou assistente
+- **When** o usuário atinge o limite de 5 consultas em 24 horas
+- **Then** o servidor responde com erro HTTP 429 (`QUOTA_EXCEEDED` com `code: "ANONYMOUS_LIMIT_REACHED"`).
+- **And** clientes MCP externos exigem chave de API assinada (`API_KEY`) para requisições ilimitadas.
+
+---
+
+### Story 5.11: Funil de Conversão (Segway UI) e Integração Supabase Auth no Assistente
+
+As a product manager / UX designer,
+I want the assistant chat drawer to display remaining anonymous queries and present a seamless sign-up modal via Supabase Auth upon reaching the limit,
+So that free users are smoothly converted into registered users to unlock full historical access and benefits.
+
+**Acceptance Criteria:**
+- **Given** o componente de chat do assistente em `assistant-chat-drawer.tsx`
+- **When** o usuário interage com o assistente
+- **Then** o topo da gaveta exibe o contador discreto de perguntas restantes.
+- **And** ao receber o status 429 (`QUOTA_EXCEEDED`), a UI abre o modal de cadastro via Supabase Auth (Google / Magic Link).
+- **And** após a autenticação, a cota do usuário é ampliada e o acesso histórico completo é desbloqueado.
+
+---
+
+### Story 5.12: Expurgo Geral e Limpeza Definitiva de DuckDB e Cloudflare R2
+
+As a fullstack developer,
+I want to remove all residual dependencies, parquet sync scripts, and DuckDB references from the repository,
+So that the codebase remains 100% clean, focused exclusively on Supabase PostgreSQL, and free of legacy technical debt.
+
+**Acceptance Criteria:**
+- **Given** a conclusão da migração serverless para PostgreSQL/Supabase
+- **When** o processo de limpeza for executado
+- **Then** as dependências `duckdb` e arquivos legados Parquet/R2 são totalmente expurgados.
+- **And** todas as suítes de testes (`make test` e `pnpm test`) continuam 100% limpas e verdes.
+
+---
+
+### Story 5.13: Experiência Avançada de Uso, Cache KV Resiliente, SQL AST Guardrails e Telemetria de Token
+
+As a fullstack engineer / product designer,
+I want persistent local state (via native `useReducer` + `React Context`), route-aware question suggestions, resilient KV caching with graceful fallbacks (to PostHog and in-memory `Map` rate limiting), SQL AST Guardrails, and internal token usage telemetry,
+So that the AI assistant delivers instant, secure, cost-monitored, and highly usable transparency interactions for citizens without single points of failure.
+
+**Acceptance Criteria:**
+- **Given** a gaveta de chat `assistant-chat-drawer.tsx` e a API do assistente
+- **When** o usuário interage com o assistente fiscal
+- **Then** o histórico de mensagens é restaurado do `localStorage` via `useReducer` + `React Context` sem dependências de estado externas.
+- **And** o cabeçalho inclui um botão para reiniciar a conversa ("Nova Conversa") limpando o estado local.
+- **And** o bloco de sugestões é ocultado após a 1ª pergunta, mantendo um botão de toggle para expandir/recolher.
+- **And** as sugestões de pergunta adaptam-se dinamicamente à rota ativa (`/saude`, `/caprem`, etc.) e os resultados em tabela oferecem exportação para CSV.
+- **And** um aviso legal estático no rodapé orienta o usuário a checar os dados antes de citações formais.
+- **And** o middleware de cache KV responde perguntas idênticas em < 5ms; se o KV falhar, a requisição captura a exceção no PostHog (`$exception`) e prossegue consultando o Postgres diretamente.
+- **And** o rate limit em `lib/rate-limit.ts` utiliza o KV distribuído como primário e recua suavemente para o `Map<string, RateLimitEntry>` em memória caso o KV esteja indisponível.
+- **And** o middleware `sql-guardrail.ts` restringe queries a `SELECT`, exige `portal_slug`, e aplica `LIMIT 100` exclusivamente em buscas detalhadas, **preservando o cálculo contábil integral em queries de agregação (`SUM`, `AVG`, `GROUP BY`)**.
+- **And** a telemetria interna rastreia a métrica de tokens consumidos (`ai_token_usage`) enviando para o PostHog sem exibir contadores na UI.
+
+---
+
+### Story 5.15: Blindagem de Guard-Rails, Rate Limit 429 UI & Superadmin Mode, Hero Welcome Card (Lucide Icons) e Supabase Auth Onboarding
+
+**Status:** Completed 🎉
+
+As a product manager / lead fullstack engineer,
+I want explicit HTTP 429 error handling in `assistant-chat-drawer.tsx`, Superadmin bypass mode in `lib/rate-limit.ts`, PostHog rate limit telemetry, persistent local chat history, 100% removal of unicode emojis in favor of `lucide-react` icons, and a Supabase Auth conversion onboarding flow,
+So that users receive friendly, actionable rate-limit feedback leading to account creation, developers can test without restrictions using Superadmin mode, and the chat UI delivers a clean, consistent, high-converting experience.
+
+**Acceptance Criteria:**
+- **Given** uma requisição do assistente que retorna HTTP 429 (`QUOTA_EXCEEDED`) pelo middleware `proxy.ts`
+- **When** o `assistant-chat-drawer.tsx` processar a resposta
+- **Then** ele **não** deve exibir a mensagem de erro genérica ("Desculpe, ocorreu um erro...").
+- **And** para usuários anônimos (`ANONYMOUS_LIMIT_REACHED`), deve exibir um card amigável com um Call-To-Action destacado para criação de conta via Supabase Auth (`@supabase/ssr`).
+- **And** para usuários autenticados (`USER_LIMIT_REACHED`), deve exibir uma mensagem clara informando o horário exato do reset da quota diária.
+- **And** o evento `ai_rate_limit_reached` (`user_type`, `limit_count`, `reset_at`, `portal_slug`, `current_route`) deve ser enviado para o PostHog para rastreamento de funil.
+- **And** o módulo `lib/rate-limit.ts` deve suportar o modo **Superadmin** (via header `x-superadmin-key` ou role `superadmin`), contornando 100% dos limites de requisição.
+- **And** todos os emojis unicode (como 🛑, 🚀, 🔒, ⚡) na gaveta de chat e prompts do agente devem ser substituídos por componentes SVG nativos da biblioteca `lucide-react`.
+- **And** o estado inicial da gaveta de chat deve exibir um Hero Card de Boas-Vindas centralizado apresentando os benefícios do portal (respostas em tempo real, gráficos, histórico) com ícones Lucide.
+- **And** no ambiente de desenvolvimento/localhost, o histórico de mensagens da conversa deve ser restaurado de forma resiliente via `localStorage`.
+
+---
+
+### Story 5.16: Histórico de Conversas Local-First & Telemetria Anônima Desvinculada de Identidade
+
+**Status:** Completed 🎉
+
+As a portal user / citizen,
+I want my AI assistant chat history to be saved locally in my browser by default and my conversation telemetry to be completely decoupled from my user identity,
+So that I can revisit, rename, and manage my past fiscal queries across multiple sessions without feeling monitored or uncomfortable creating an account, while enabling future anonymous LLM-as-a-Judge evaluations.
+
+**Acceptance Criteria:**
+- **Given** o assistente fiscal em `assistant-chat-drawer.tsx`
+- **When** o usuário interage e troca de conversas
+- **Then** as conversas são salvas no `localStorage` por slug de portal com títulos e timestamps.
+- **And** a UI da gaveta permite criar novas conversas, trocar entre sessões recentes e limpar todo o histórico local.
+- **And** a telemetria do PostHog é sanitizada para desvincular textos de prompts de identidades de usuários logados (`distinct_id` anônimo/descartável `eval_id`).
+
+---
+
+### Story 5.17: Limitador de Caracteres, Guardrails de Escopo, Fallback Lucide & PostHog MCP Analytics
+
+**Status:** Completed 🎉
+
+As a portal user and system admin,
+I want the AI assistant chat to provide character limits, scope guardrails (protecting individual salaries), Lucide-icon fallback navigation chips, and PostHog MCP Analytics with quota alerts at 70%,
+So that citizens enjoy a smooth, direct chat experience, sensitive data is protected, and administrators receive real-time telemetry and threshold warnings before free-tier AI quotas expire.
+
+**Acceptance Criteria:**
+- **Given** a caixa de entrada do assistente e a API de chat
+- **When** o usuário digita uma pergunta
+- **Then** o input aplica `maxLength={300}` com contador visual visível a partir de 210 caracteres e tom âmbar a partir de 270 caracteres.
+- **And** o System Prompt (`context-builder.ts` e `lrf-pessoal.md`) orienta a IA a recusar consultas de salários/remunerações individuais de servidores por nome/CPF (sem `if`s de string em TypeScript conforme Regra 15 do `AGENTS.md`).
+- **And** a resposta do assistente utiliza o componente `AssistantFallbackChips` com ícones do `lucide-react` para oferecer atalhos de refinamento (`Search`) e navegação interna (`ExternalLink`) para as rotas da própria aplicação (`/[portalSlug]/pessoal`, `/despesas`, `/licitacoes`, `/saude`, `/caprem`).
+- **And** as ferramentas MCP registram eventos de observabilidade no PostHog (`$mcp_tool_call` e `$ai_token_usage`) de forma 100% stateless (conforme Regra 14 do `AGENTS.md`), disparando alertas de cota para o admin no PostHog ao atingir 70% do Free Tier.
+
+---
+
+### Story 5.18: Modal de Compartilhamento Social Estilo YouTube & Rate Limiting MCP Stateless
+
+**Status:** Completed 🎉
+
+
+As a portal user and system admin,
+I want a YouTube-style social sharing modal on assistant responses (with direct links to WhatsApp, X/Twitter, Telegram, LinkedIn, and Copy Text/Link with custom SVG icons) and stateless rate-limiting on MCP endpoints,
+So that citizens can effortlessly share structured fiscal insights and citations on social media to generate organic engagement, while system administrators prevent API/MCP abuse through robust, stateless rate limits.
+
+**Acceptance Criteria:**
+- **Given** cada mensagem finalizada do assistente no drawer de chat (`assistant-chat-drawer.tsx`)
+- **When** o usuário clica no botão `[Compartilhar]` (com ícone Lucide `Share2`)
+- **Then** um modal estilo YouTube exibe a citação formatada (`> "Trecho..." \n\nFonte: MaisTransparência \nURL`) e botões de compartilhamento direto com ícones SVG vetoriais (`social-icons.tsx`).
+- **And** ao clicar no botão do WhatsApp, X/Twitter, Telegram ou LinkedIn, abre a URL de compartilhamento nativa em nova aba (`target="_blank"`), com truncamento inteligente a 280 caracteres para o Twitter.
+- **And** ao clicar em "Copiar Citação & Link", a citação inteira é copiada para a área de transferência com feedback de confirmação.
+- **And** o servidor MCP e as APIs de chat aplicam rate limiting estateless (`lib/rate-limit.ts`) por IP/Token e validação rigorosa de parâmetros no backend (Regras 14 e 16 do `AGENTS.md`).
+
+---
+
+## Epic 6: Reformulação Fiscal da Homepage e Redesenho da Página de Despesas Detalhadas
+
+Reformular a experiência visual e a precisão contábil da Homepage e da página de Despesas Detalhadas (`/despesas`), reestruturando o Card de Despesas com fracionamento claro entre valores Empenhados e Liquidados (Dívida Real), removendo seções com métricas ambíguas (Donut de Gastos Locais e Maiores Credores na Homepage), adotando agrupamentos por Áreas de Interesse Público (Funções STN) com ícones do pacote `lucide-react`, e otimizando a performance dos data loaders através de marts dbt pré-agregados.
+
+### Story 6.1: Reformulação do Card de Despesas e Antiguidade de Restos a Pagar na Homepage
+
+As a citizen / municipal auditor,
+I want the Homepage Despesas card to display a clean Hero metric separating Empenhado and Liquidado amounts, along with proportion-filled annual bars and mobile-friendly inline text without tooltips,
+So that I can immediately understand the real executed debt without confusing budget reservations with actual financial liabilities.
+
+**Acceptance Criteria:**
+- **Given** o componente de Card de Despesas da Homepage em `apps/web/components/cards-secundarios-visao-geral.tsx`
+- **When** o card de despesas é renderizado no portal
+- **Then** a métrica principal no topo exibe o valor formatado em formato ultra-clean de linha única: `R$ XX.Xmi / R$ X.Xmi liquidados`.
+- **And** o texto de apoio exibe `pendentes a N fornecedores` sem a presença de tooltips em hover, prevenindo acionamentos acidentais em dispositivos móveis.
+- **And** as barras de antiguidade por ano exibem preenchimento proporcional empilhado/bipartido, onde a base inferior da barra (cor viva/destaque) indica a porcentagem com valor **Liquidado** real e o topo (tom sutil/muted) indica o saldo apenas **Empenhado**.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) passam com 100% de sucesso.
+
+### Story 6.2: Despoluição da Homepage e Transferência do Ranking de Credores para a Página Dedicada
+
+As a citizen / municipal portal visitor,
+I want the "Maiores Credores da Gestão Atual" section removed from the Homepage overview,
+So that the homepage remains concise, high-level, and focused on macro fiscal indicators, while supplier-level details are cleanly hosted on the detailed expenses page.
+
+**Acceptance Criteria:**
+- **Given** a visão geral da Homepage em `apps/web/app/[portalSlug]/page.tsx`
+- **When** a rota principal do portal é carregada
+- **Then** a seção "Maiores Credores da Gestão Atual" não é mais renderizada na Homepage.
+- **And** o View Model em `apps/web/app/[portalSlug]/view-model.tsx` e o loader correspondente não carregam mais os dados brutos de credores para a tela inicial.
+- **And** a interface da Homepage permanece limpa e focada exclusivamente nos cards macrofiscais.
+
+### Story 6.3: Mart dbt (`fct_despesas_por_funcao_metricas`) e Reader Kysely (`getDespesasPorFuncaoMetrics`) — DISPENSADA
+
+**Status:** Cancelada / Dispensada (Decisão de Produto)  
+*Nota: A visualização de gastos por Função STN ("Para onde vai o gasto, por função") já é entregue e mantida de forma dedicada na página de Execução Orçamentária (`/orcamento`). Para evitar redundâncias entre rotas e sobrecarga de marts duplicados, a distribuição por função não será duplicada na página `/despesas`.*
+
+### Story 6.4: Redesenho Cidadão da Interface da Página de Despesas Detalhadas (`/despesas`)
+
+As a citizen / municipal auditor,
+I want a 2-section layout on `/despesas` featuring macro execution KPIs with YoY delta comparison, a transparent Restos a Pagar section highlighting Liquidado amounts (Dívida Real), and travel expenses without exposing individual server names,
+So that I can easily understand where the municipal spending bottlenecks are, whether expenses are increasing or decreasing compared to previous years, and inspect actual executed liabilities.
+
+**Acceptance Criteria:**
+- **Given** a página de despesas em `apps/web/app/[portalSlug]/despesas/page.tsx`
+- **When** o usuário acessa a rota `/despesas`
+- **Then** a interface é organizada em 2 seções principais: (1) Saúde Financeira & Comparativo Anual; (2) Restos a Pagar & Dívida Real com Liquidados.
+- **And** a seção de Restos a Pagar exibe o fracionamento explícito com o valor **Liquidado (Dívida Real / Processada)** e **Empenhado a Liquidar (Não-Processada)**, mantendo paridade visual com o card da visão geral da Homepage.
+- **And** a seção de Diárias e Viagens exibe o custo total e médias do exercício comparados ao ano anterior, removendo gráficos de favorecidos individuais por nome de servidor.
+- **And** todos os componentes são responsivos e adaptáveis para telas mobile sem tooltips perigosos em hover.
+
+### Story 6.5: Leitores Fiscais Comparativos (YoY) e Cálculo de Dívida Real em `@transparencia/db`
+
+As a web developer / data analyst,
+I want atomic metric readers in `@transparencia/db` for year-over-year expense comparisons and Restos a Pagar liquidation breakdowns,
+So that the `/despesas` route loader executes pre-aggregated, high-performance queries responding in under 10ms without performing manual math in presentation components.
+
+**Acceptance Criteria:**
+- **Given** as funções leitoras em `@transparencia/db/src/queries/`
+- **When** solicitadas pelo loader de despesas
+- **Then** a camada `@transparencia/db` fornece leitores atômicos para variação percentual do exercício atual em relação ao anterior (YoY) e detalhamento de liquidação de Restos a Pagar.
+- **And** a execução do loader `loadDespesasData` realiza no máximo 5 consultas leitoras paralelas.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) passam com 100% de sucesso.
+
+### Story 6.6: Atualização dos Guias de Consumo Público de IA (`llms.txt` e `llms-full.txt`)
+
+As an AI agent / external LLM,
+I want updated `/llms.txt` and `/llms-full.txt` documentation describing the new public expense metrics, STN function classifications, and restructured page routes,
+So that external AI tools accurately interpret municipal expense execution stages and public interest breakdown according to Rule 12 of `AGENTS.md`.
+
+**Acceptance Criteria:**
+- **Given** a reestruturação das métricas públicas de despesas na Homepage e na rota `/despesas`
+- **When** as alterações de interface e banco forem concluídas
+- **Then** os arquivos públicos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados documentando as novas métricas de liquidação, funções STN e tabelas de credores expostas aos cidadãos e assistentes de IA.
+- **And** o conteúdo foca estritamente no entendimento do cidadão/agente externo sobre os conceitos orçamentários sem detalhes internos de código.
+
+### Story 6.7: Radar de Opacidade Orçamentária e Auditoria Forense de Subitens Residuais (`.99`)
+
+As a citizen, investigative journalist, or public prosecutor / auditor,
+I want an automated forensic radar that measures the municipality's degree of accounting opacity (the proportion of expenditures buried under generic residual sub-items `.99`, such as `3.3.90.39.99` and `3.3.90.30.99`) and highlights textual mismatches where real sensitive spending (e.g. sanitation, fleet rental, public events, or construction) was hidden under general codes,
+So that I can detect systematic attempts to evade public procurement thresholds, violate the Budgetary Specification Principle (Law 4.320/64, Arts. 5 and 15), and obscure public spending from civic oversight.
+
+**Acceptance Criteria:**
+- **Given** o modelo mart dbt `fct_despesas` e os lançamentos orçamentários municipais
+- **When** as métricas de conformidade orçamentária forem compiladas pelo dbt e consultadas via `@transparencia/db`
+- **Then** é calculada a **Taxa de Opacidade Contábil** do exercício (razão entre o total pago em subitens residuais `.99` e o total pago do orçamento municipal).
+- **And** são identificados os maiores credores recebedores de recursos sob a rubrica `.99` juntamente com a amostra real de seus objetos contratuais para apontar desvios de classificação orçamentária (ex: consórcios intermunicipais, limpeza urbana, locação de palcos e vans).
+- **And** a rota `/despesas` apresenta um painel/card dedicado de **"Termômetro de Opacidade Contábil"** categorizando o nível de risco (ex: Normal < 15%, Atenção 15-30%, Crítico > 30%) com histórico comparativo anual.
+- **And** as suítes de validação (`make test`, `make test/ts` e `pnpm build`) passam com 100% de sucesso.
+
+---
+
+### Story 6.8: Modelo Intermediário de Reclassificação Orçamentária STN e Inferência de Natureza Sugerida
+
+As a data engineer, citizen, or public auditor,
+I want an intermediate dbt model (`int_despesas_reclassificadas`) backed by a canonical seed of STN/MCASP budget expense codes (`seed_naturezas_despesa_stn`) that infers a standardized `natureza_despesa_codigo_sugerido` and `categoria_objeto_sugerida` from raw spending objects,
+So that `fct_despesas` is decoupled from monolithic regex rules, ambiguous classifications (such as waste management containers misclassified as generic vehicles) are properly resolved, and citizens can inspect accurate suggested classifications across public consortia, waste management, medical shifts, judicial injunctions, and outsourced labor.
+
+**Acceptance Criteria:**
+- **Given** os lançamentos orçamentários brutos em `int_despesas_consolidadas`
+- **When** a pipeline do dbt processa a reclassificação orçamentária
+- **Then** um seed SSOT `seed_naturezas_despesa_stn.csv` é criado contendo os subitens oficiais da Portaria STN/SOF e suas respectivas categorias macro do portal.
+- **And** o modelo intermediário `int_despesas_reclassificadas` aplica a inferência léxica priorizada para gerar a coluna `natureza_despesa_codigo_sugerido`.
+- **And** o mart `fct_despesas` consome `int_despesas_reclassificadas`, expõe `natureza_despesa_codigo_sugerido` e simplifica a derivação de `categoria_gasto_sensivel` de forma desacoplada e sem regexes redundantes.
+- **And** a tabela de maiores fornecedores e a camada `@transparencia/db` são enriquecidas com as novas categorias sugeridas (*Consórcios de Saúde*, *Limpeza Urbana & Resíduos*, *Plantões Médicos*, *Sentenças & Bloqueios Judiciais*, *Mão de Obra Terceirizada*, etc.).
+- **And** todas as suítes de validação (`make test`, `pnpm test` e `pnpm build`) passam com 100% de sucesso.
+
+---
+
+## Epic 7: Distribuição Cívica, Engajamento Comunitário, Newsletters Automatizadas e Social Sharing Dinâmico
+
+Construir a infraestrutura de distribuição orgânica, engajamento cidadão recorrente e compartilhamento social para a população de Porciúncula (com arquitetura multi-tenant escalável para futuros municípios), integrando geração dinâmica de imagens OpenGraph (OG Cards) na edge para WhatsApp e redes sociais, sistema de newsletter e alertas municipais com Resend e React Email (com suporte nativo a double opt-in e unsubscribe conforme LGPD), automação de despachos pós-cargas de ELT e bot de publicação de manchetes fiscais no X.com (`@mtransparenciax`).
+
+### Story 7.1: Geração Dinâmica de Imagens OpenGraph (OG Cards) para Compartilhamento Social e WhatsApp
+
+As a citizen or journalist sharing a portal URL on WhatsApp, X (Twitter), or Telegram,
+I want each page route (`/`, `/despesas`, `/licitacoes`, `/saude`) to automatically generate an informative 1200x630 dynamic OpenGraph preview card with real-time fiscal figures (e.g. Total Paid, Opacity Rate, Sensitive Spend Highlights),
+So that recipients in community groups can immediately understand the context and be encouraged to click and inspect municipal public data.
+
+**Acceptance Criteria:**
+- **Given** as rotas públicas do portal em `apps/web/app/[portalSlug]/`
+- **When** um link da Homepage (`/`), Despesas (`/despesas`), Licitações (`/licitacoes`) ou Saúde (`/saude`) é compartilhado em redes sociais ou mensageiros (WhatsApp, Telegram, X, iMessage)
+- **Then** o Next.js gera dinamicamente na edge (via `ImageResponse` / `@vercel/og` / Satori) uma imagem PNG de 1200x630px personalizada para aquele `portalSlug`.
+- **And** a imagem do card de `/despesas` exibe o Total Pago do exercício, a barra/status do Termômetro de Opacidade (`.99`) e os destaques das principais contas vigiadas (Combustíveis, Frotas).
+- **And** a imagem do card da Homepage exibe o balanço geral (Receita vs Despesa) e o indicador de limite de pessoal da LRF.
+- **And** a geração de imagem é tipada, consome as queries Kysely existentes e mantém tempo de resposta ultrarrápido com cache na edge.
+- **And** as suítes de teste de renderização e build (`pnpm build`) passam com 100% de sucesso.
+
+### Story 7.2: Infraestrutura de Newsletter Cívica com Resend, React Email, Modal Interativo e Links Sociais
+
+As a resident of Porciúncula, civic leader, or public auditor,
+I want to click a newsletter subscription button to open an engaging modal dialog where I can enter my email, as well as access official social media links (e.g. X.com / `@mtransparenciax` driven by environment variables),
+So that I can follow municipal spending directly in my email inbox with guaranteed privacy, double opt-in, and one-click unsubscribe compliant with LGPD.
+
+**Acceptance Criteria:**
+- **Given** o banco de dados e a camada web do portal
+- **When** o usuário clica no botão de inscrição no Header/Sidebar ou no Footer
+- **Then** um modal interativo e acessível (`newsletter-modal.tsx`) é exibido com título amigável, badge do município (`portalSlug`), explicação clara da frequência (sem spam) e formulário com validação em tempo real.
+- **And** ao submeter o e-mail, o registro é salvo com isolamento multi-tenant (`portal_slug`) e status pendente de confirmação.
+- **And** um e-mail transacional de confirmação (double opt-in) é disparado via **Resend** utilizando template desenhado em **React Email** (`@react-email/components`) com o design system do projeto.
+- **And** os e-mails enviados incluem suporte nativo aos cabeçalhos normativos de cancelamento de inscrição com 1 clique (RFC 8058 `List-Unsubscribe`) e link de cancelamento no rodapé.
+- **And** o cancelamento atualiza o status na tabela do banco e sincroniza com a API de Audiences/Contacts do Resend.
+- **And** é disponibilizado o componente `social-links.tsx` no Header/Sidebar e Footer renderizando o ícone oficial do X.com apontando para a URL/handle parametrizada via variável de ambiente (`NEXT_PUBLIC_X_URL` / `NEXT_PUBLIC_X_HANDLE`), com arquitetura extensível para novas redes sociais.
+- **And** todas as suítes de testes (`newsletter-modal.spec.tsx`, `make test/ts` e `pnpm test`) passam com 100% de sucesso.
+
+
+### Story 7.3: Automação de Alertas Pós-ELT e Boletim Periódico Municipal ("Radar Porciúncula")
+
+As a subscribed citizen or municipal auditor,
+I want to receive an automated notification whenever the data pipeline processes a new batch of municipal expenses, as well as a monthly digest ("Radar Porciúncula"),
+So that I am automatically alerted to relevant spending deltas, large new contracts, and changes in accounting opacity without having to manually check the portal daily.
+
+**Acceptance Criteria:**
+- **Given** a conclusão com sucesso do pipeline de ELT (`dbt run` / carga de novos empenhos)
+- **When** o script de despacho de alertas periódicos for executado
+- **Then** é compilado um resumo contendo o delta de novos pagamentos do período, os maiores novos contratos assinados e a taxa de uso de subitens `.99`.
+- **And** o boletim é despachado via Resend para todos os assinantes confirmados e ativos daquele `portal_slug`.
+- **And** o layout do e-mail é 100% responsivo para leitura em clientes móveis (Gmail, Apple Mail, Outlook).
+
+### Story 7.4: Integração Social e Bot Automatizado no X.com (`@mtransparenciax`)
+
+As a follower of `@mtransparenciax` on X (Twitter),
+I want automated public posts highlighting new data extraction completions, monthly spending totals, and portal release notes,
+So that municipal transparency findings reach journalists, regional activists, and civic influencers across social networks.
+
+**Acceptance Criteria:**
+- **Given** uma nova carga de dados concluída pelo pipeline ou uma nova release publicada no `CHANGELOG.md`
+- **When** o workflow de automação social for acionado
+- **Then** é publicada uma mensagem estruturada na conta `@mtransparenciax` contendo os destaques fiscais resumidos e link encurtado direto para a página correspondente.
+- **And** a publicação inclui hashtags temáticas da cidade e de controle social (`#Porciuncula`, `#TransparenciaFiscal`).
+- **And** o workflow trata falhas de API com tolerância a erros sem bloquear o pipeline principal de dados.
+
+### Story 7.5: Documentação de Canais de Distribuição e Sincronização dos Guias de IA (`llms.txt`)
+
+As an external AI assistant, search engine, or citizen,
+I want updated documentation in `llms.txt` and `llms-full.txt` explaining available notification channels, subscription endpoints, and LGPD privacy policies,
+So that AI agents consuming the portal can inform citizens on how to subscribe to automated municipal spending alerts in accordance with Rule 12 of `AGENTS.md`.
+
+**Acceptance Criteria:**
+- **Given** a inclusão dos canais de newsletter, alertas de extração e compartilhamento social
+- **When** as funcionalidades forem integradas
+- **Then** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados documentando os novos recursos de inscrição e distribuição pública.
+- **And** as diretrizes de governança e privacidade de dados são explicitadas.
+
+### Story 7.6: Centralização, Tipagem e Validação de Variáveis de Ambiente com `@t3-oss/t3-env` e Zod
+
+As a developer or site reliability engineer,
+I want all client and server environment variables to be strictly declared, validated at build-time and runtime, and strongly typed using `@t3-oss/t3-env` (`@t3-oss/env-nextjs`) and Zod,
+So that missing secrets, malformed URLs, or configuration mismatches fail fast with clear diagnostic messages before reaching production, and client-side code never accidentally leaks private server credentials.
+
+**Acceptance Criteria:**
+- **Given** o ecossistema de variáveis de ambiente do projeto (`DATABASE_URL`, `RESEND_API_KEY`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, credenciais sociais do X e Facebook, etc.)
+- **When** o pacote `@t3-oss/env-nextjs` e `zod` forem integrados em `apps/web/env.ts` (com versões fixas/pinadas conforme Regra 7 de `AGENTS.md`)
+- **Then** as variáveis são formalmente segregadas em escopos `server` e `client` (`NEXT_PUBLIC_*`), validadas por schemas Zod estritos com tipos explícitos (`z.string()`, `z.string().url()`, `z.coerce.number()`, etc.).
+- **And** fallbacks seguros e valores padrão são configurados para parâmetros opcionais em desenvolvimento local e testes (`RESEND_FROM_EMAIL`, `DATABASE_POOL_MAX`, `NEXT_PUBLIC_PROJECT_NAME`), mantendo opcionais segredos de serviços externos (`RESEND_API_KEY`, tokens do X e Facebook).
+- **And** a opção `emptyStringAsUndefined: true` é habilitada para evitar que strings vazias (`""`) passem despercebidas como variáveis válidas configuradas.
+- **And** a flag `skipValidation: !!process.env.SKIP_ENV_VALIDATION` é suportada para viabilizar builds de compilação em pipelines de CI/Docker sem necessidade de segredos reais.
+- **And** é criado e sincronizado um arquivo `.env.example` completo e autodocumentado na raiz do repositório e em `apps/web/`, detalhando o propósito de cada variável de ambiente.
+- **And** todos os acessos dispersos a `process.env` em `apps/web` (componentes, data loaders, rotas de API, bots e scripts CLI) são migrados para o objeto canônico e tipado importado de `@/env`.
+- **And** é implementada uma suíte de testes automatizados (`apps/web/env.spec.ts`) cobrindo cenários de validação bem-sucedida, valores padrão e rejeição de formatos inválidos.
+- **And** todas as validações mandatórias (`pnpm test`, `pnpm build`, `make test` e `make check`) passam com 100% de aprovação.
+
+---
+
+## Epic 8: Auditabilidade Cívica ('Show Your Work'), Transparência Metodológica e Navegação Mobile Contínua
+
+Elevar a autoridade técnica e a usabilidade do portal através de auditoria direta dos dados brutos por cidadãos, vereadores e órgãos de controle, implementando o botão "Baixar Registros Deste Valor" (Show Your Work) em streaming CSV com paridade matemática exata, popovers decompostos da Dívida Real por entidade/órgão para contextualizar despesas sensíveis, badges explícitos de perímetro contábil (`Consolidado` vs. `Filtrado por Órgão`), barra fixa de navegação contínua no rodapé para dispositivos móveis (`MobileBottomNav`) e atualização da documentação metodológica pública para cidadãos e assistentes de IA (`llms.txt`).
+
+### Story 8.1: Estabilização do CI e Alinhamento dos Testes de Variáveis de Ambiente e Redes Sociais
+
+As a developer or CI/CD reliability engineer,
+I want the automated test suites (`env.spec.ts` and `social-links.spec.tsx`) to accurately reflect the canonical default fallback URL for Facebook (`https://facebook.com/profile.php?id=`),
+So that continuous integration pipelines run completely green without false-positive failures on default environment configurations.
+
+**Acceptance Criteria:**
+- **Given** o módulo canônico `apps/web/env.ts` com o valor padrão institucional `NEXT_PUBLIC_FACEBOOK_URL` definido como `"https://facebook.com/profile.php?id="`
+- **When** as suítes de testes `apps/web/env.spec.ts` e `apps/web/components/social-links.spec.tsx` forem executadas
+- **Then** as asserções de teste validam com precisão o valor padrão `"https://facebook.com/profile.php?id="` sem divergências.
+- **And** a telemetria do PostHog disparada no clique do link do Facebook nos testes reflete a URL esperada.
+- **And** todas as validações mandatórias (`make test/ts`, `pnpm test`, `make test`, `make check` e `pnpm build`) passam com 100% de sucesso.
+
+### Story 8.2: Barra Fixa de Navegação Mobile Contínua (`MobileBottomNav`) com Stepper Cívico e Seletor de Ano
+
+As a mobile citizen browsing the municipal transparency portal,
+I want a sticky bottom navigation bar with "Previous" and "Next" stepper controls, a quick link to Overview, and an integrated year switcher,
+So that I can fluidly flip through all portal sections (Overview, Expenses, Revenue, Budget, Procurement, Personnel, Health, Pension) with one hand without getting trapped on the homepage.
+
+**Acceptance Criteria:**
+- **Given** as rotas públicas do portal em `apps/web/app/[portalSlug]/`
+- **When** o usuário acessa o portal em telas menores (`md:hidden`)
+- **Then** uma barra fixa elegante (`MobileBottomNav`) é renderizada no rodapé com `z-50`, fundo translúcido (`backdrop-blur`) e padding de segurança inferior (`pb-safe`).
+- **And** a barra exibe o botão `← Anterior` com o label da rota anterior e o botão `Próximo →` com o label da próxima rota, respeitando a sequência canônica de páginas do portal.
+- **And** no centro da barra, há um botão de retorno para `🏠 Início` e um seletor compacto de exercício/ano (ou badge de ano ativo).
+- **And** o layout global mobile adiciona padding inferior adequado (`pb-20`) para evitar que a barra sobreponha rodapés, botões ou dados tabulares.
+- **And** a barra fica oculta automaticamente em visualização desktop (`md:block hidden`).
+- **And** todas as suítes de teste de renderização mobile passam com 100% de sucesso.
+
+### Story 8.3: Infraestrutura "Show Your Work" — Exportação Direta de Dados Brutos (CSV) por Card e Métrica
+
+As a city councilor, investigative journalist, or public prosecutor,
+I want to click a "Download Records for this Metric" button on any sensitive spending or opacity card to receive a raw CSV file,
+So that I can verify line-by-line each commitment, creditor, invoice, and payment, confirming that the mathematical sum matches the displayed total cent-for-cent.
+
+**Acceptance Criteria:**
+- **Given** os cards analíticos de gastos sensíveis, termômetro de opacidade (`.99`) e despesas por função
+- **When** o usuário clica no botão de auditoria `📥 Baixar Registros (CSV)`
+- **Then** é acionado um endpoint de API seguro e em streaming (`/api/[portalSlug]/export`) que consulta a base Kysely e gera um arquivo CSV formatado.
+- **And** o arquivo CSV inclui BOM UTF-8 (`\uFEFF`) e delimitador padrão (vírgula ou ponto-e-vírgula configurável) para abertura nativa e perfeita no Microsoft Excel e Google Sheets sem corrupção de caracteres acentuados.
+- **And** o arquivo CSV contém as colunas de auditoria canônicas: `numero_empenho`, `data_empenho`, `orgao_nome`, `credor_nome`, `credor_cpf_cnpj`, `objeto_descricao`, `valor_empenhado`, `valor_liquidado`, `valor_pago`, `natureza_codigo`.
+- **And** a soma da coluna `valor_pago` do arquivo baixado é exatamente idêntica ao número agregado exibido no card da interface.
+- **And** a geração é realizada em streaming assíncrono para prevenir estouro de memória no servidor e suporta rate-limiting anônimo.
+- **And** testes automatizados validam a integridade dos dados, headers de download e correspondência centavo a centavo com as queries do portal.
+
+### Story 8.4: Popover Decomposto da Dívida Real por Entidade no Radar de Gastos Sensíveis
+
+As a citizen or public auditor inspecting sensitive expense metrics (such as Accumulated Fuel Debt),
+I want to click or tap the debt figure to open a decomposed popover showing a mini-table with proportional percentage bars by municipal entity,
+So that I can immediately understand which municipal entity (e.g. Health Fund for ambulances vs. City Hall cabinet) generated the liability, preventing misinformation and false assumptions.
+
+**Acceptance Criteria:**
+- **Given** os cards do Radar de Gastos Sensíveis (ex: Combustíveis & Frotas) na página de despesas ou homepage
+- **When** o usuário interage (clique, toque no mobile ou hover no desktop) com o valor da Dívida Real Acumulada
+- **Then** abre-se um Popover acessível e interativo (Radix UI / Popover) detalhando a composição exata por entidade/órgão.
+- **And** o popover exibe cada entidade (ex: *Fundo Municipal de Saúde*, *Prefeitura Municipal*, *Fundo de Meio Ambiente*) com o valor em reais, o percentual relativo e uma barra de progresso visual proporcional.
+- **And** o componente lida graciosamente com entidades secundárias de baixo valor agrupando-as ou ordenando-as em ordem decrescente de relevância.
+- **And** o popover possui foco gerenciado, fechamento por clique fora ou tecla Escape e excelente legibilidade em dispositivos móveis.
+- **And** testes unitários e de componente cobrem a abertura do popover, cálculos proporcionais e acessibilidade.
+
+### Story 8.5: Seletor Compacto de Perímetro Institucional no Header Móvel (`Consolidado` vs. `Filtrado por Entidade`)
+
+As a user navigating municipal metrics on mobile devices,
+I want a compact institutional perimeter dropdown in the top mobile header mirroring the year dropdown,
+So that I can immediately identify and toggle between consolidated and entity-filtered views without cluttering page cards or needing to open the full drawer menu.
+
+**Acceptance Criteria:**
+- **Given** o cabeçalho superior móvel (`Top Header Móvel (< md)`) em `packages/ui/src/components/sidebar.tsx`
+- **When** a página é renderizada em dispositivos móveis (`md:hidden`)
+- **Then** no lado oposto ao seletor de ano (`YearSelect variant="compact"`), é renderizado um gatilho de seleção de entidade com rigorosa simetria visual externa (mesma tipografia `text-xs font-medium text-ink`, borda inferior `border-b border-borderLine`, altura compacta e ícone `ChevronDown` discreto).
+- **When** nenhuma entidade estiver filtrada (visão padrão consolidada)
+- **Then** o gatilho exibe o rótulo `Consolidado` (ou `Todas`) acompanhado da seta indicadora.
+- **When** uma ou mais entidades estiverem selecionadas no filtro
+- **Then** o gatilho reflete o escopo ativo (nome da entidade para seleção única, ou `N entidades` para seleção múltipla) com destaque visual sutil indicando filtro ativo.
+- **When** o usuário toca ou clica no gatilho
+- **Then** abre-se um Popover/Dropdown flutuante compacto e acessível posicionado logo abaixo do gatilho, exibindo a lista de entidades disponíveis com checkboxes interativos e opção de alternar rapidamente entre "Todas as entidades (Consolidado)" e órgãos individuais.
+- **And** a seleção é sincronizada em tempo real com o parâmetro de busca `entidades` na URL via `useQueryState("entidades")`, atualizando dinamicamente as métricas da página e mantendo paridade com o filtro da Sidebar do desktop.
+- **And** o componente possui foco gerenciado, fechamento por clique fora ou tecla Escape e atributos WAI-ARIA adequados (`aria-haspopup="dialog"`, `aria-expanded`).
+- **And** testes unitários e de componente cobrem ambos os estados do gatilho, abertura/fechamento do popover e manipulação dos checkboxes.
+
+### Story 8.6: Documentação Metodológica Cívica e Sincronização dos Guias de IA (`llms.txt`)
+
+As an external AI assistant, investigative researcher, or citizen,
+I want updated documentation in `llms.txt` and `llms-full.txt` describing the calculation methodologies, the "Show Your Work" export endpoints, and the institutional consolidation rules,
+So that AI agents consuming the portal can explain to citizens exactly how calculations were derived and provide direct download links to audit spreadsheets in accordance with Rule 12 of `AGENTS.md`.
+
+**Acceptance Criteria:**
+- **Given** a inclusão dos endpoints de exportação CSV, popovers de decomposição da dívida e badges de perímetro
+- **When** as histórias da Epic 8 forem integradas
+- **Then** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados documentando a especificação dos endpoints de download CSV, notas metodológicas e critérios de consolidação institucional.
+- **And** a suíte de testes automatizados de integridade e leak-check (`llms-guides.spec.ts`) valida a documentação com 100% de sucesso.
+
+---
+
+## Epic 9: Consistência Cívica, Indicadores da Saúde e Disponibilidade Financeira SICONFI (MSC)
+
+Garantir fidelidade cronológica na data de extração, responsividade e ordenação consistente, redesign com tom de alerta e indicadores HHI na Saúde, e ingestão oficial dos saldos bancários e de caixa da Matriz de Saldos Contábeis (MSC) do Tesouro Nacional / SICONFI.
+
+### Story 9.1: Quick-Wins de Consistência na UI: Data de Extração Real, Responsividade Mobile no Elemento Pai (.99) e Ordenação Nativa em Licitações
+
+As a citizen or municipal transparency analyst accessing the portal on desktop or mobile devices,
+I want the partial year indicator to reflect the exact month of data extraction, the generic expense breakdown card (.99) to display comfortably on mobile screens without squished labels, and the contracts table under procurement to sort by clicking column headers like all other tables in the portal,
+So that I get accurate chronological context, flawless mobile readability, and a consistent, standard navigation experience across the platform.
+
+### Story 9.2: Redesign de Indicadores na Página da Saúde: Emendas Parlamentares em Linha Única, Alerta Âmbar no Hero e Concentração de Fornecedores HHI
+
+As a civic researcher or citizen auditing public health expenditure,
+I want the health overview to display parliamentary amendments in an uncluttered single-line format, highlight unspent allocations with amber warnings in the hero, and classify pharmaceutical supplier concentration using the Herfindahl-Hirschman Index (HHI),
+So that I can immediately detect underutilization of earmarked funds and dependency on concentrated suppliers.
+
+### Story 9.3: Pipeline ELT & Modelagem SICONFI: Extração da MSC Patrimonial e Mart de Disponibilidade de Caixa por Entidade
+
+As a civic researcher, public manager, or citizen seeking audited treasury balances,
+I want the ELT pipeline to ingest the official Monthly Accounting Balance Matrix (MSC Patrimonial - Classe 1) directly from the National Treasury Secretariat (STN / SICONFI API) and transform it into a consolidated dbt mart of cash availability by municipal entity (City Hall, Health Fund, Social Assistance Fund, Pension Fund, and City Council),
+So that our database can accurately report the true bank and cash balances for each autonomous fund without relying on inaccurate budgetary flow estimates.
+
+### Story 9.4: Apresentação da Posição Financeira e Saldo em Caixa por Entidade na Web
+
+As a citizen, journalist, or public policy researcher exploring the transparency portal,
+I want to view the verified bank and cash balances for each municipal entity (such as the Social Assistance Fund, Health Fund, City Hall, and Pension Fund) with full attribution to the National Treasury Secretariat (STN/SICONFI),
+So that I can clearly see how much actual money each entity holds in bank accounts without confusing cash availability with uncommitted budget surplus.
+
+### Story 9.5: Painel de Pessoal por Regime Jurídico e Vínculo Funcional na Página /pessoal
+
+As a citizen, journalist, or public administration analyst auditing personnel expenditures,
+I want to view municipal staff and payroll broken down by legal regime and appointment type (concursados/efetivos, comissionados/livre nomeação, contratos temporários e RPPS/previdenciários),
+So that I can identify spending bottlenecks, assess the balance between career civil servants and political appointees, and monitor compliance with fiscal transparency standards.
+
+**Acceptance Criteria:**
+- **Given** os dados brutos de folha em `raw_porciuncula_prefeitura.pessoal` contendo campos nativos de classificação (`tiporegime`, `tipocontrato`, `situacaofuncional`, `matricula`)
+- **When** o modelo staging `stg_porciuncula_prefeitura__pessoal` e `_sources.yml` forem atualizados
+- **Then** as colunas nativas de classificação e vínculo são resgatadas e higienizadas (removendo a necessidade de aproximações heurísticas por substring).
+- **When** a fato atômica `fct_pessoal` (via `int_pessoal_consolidado`) for compilada
+- **Then** centraliza a categorização canônica em lowercase snake_case (`categoria_regime`: `efetivo_concurso`, `efetivo_comissao`, `comissionado`, `contrato_temporario`, `agente_politico`, `rpps_inativos`) e `regime_previdenciario` (`rpps`, `rgps`, `sem_regime`), permitindo refatorar `fct_pessoal_folha_metricas` para eliminar filtros frágeis (`LIKE '%FG%'`).
+- **When** o modelo dbt mart `fct_pessoal_regime_metricas` é executado
+- **Then** os registros são consolidados por `portal_slug`, `ano`, `empresa_id` e `categoria_regime`, computando métricas explícitas (`total_profissionais`, `total_proventos`, `provento_medio`, `percentual_profissionais`, `percentual_folha`).
+- **When** a camada de dados Kysely (`@transparencia/db`) for consultada via reader `getPessoalRegimeMetrics`
+- **Then** retorna DTOs tipados com chaves estritamente em `camelCase` e transformações funcionais imutáveis.
+- **When** o usuário acessa a rota pública `/pessoal`
+- **Then** é exibida uma seção dedicada e responsiva ("Composição do Quadro por Regime e Vínculo") apresentando a distribuição visual por categoria funcional, headcount, volume total de proventos e provento médio com badges semânticas, respeitando filtros de ano e entidade.
+- **And** a funcionalidade de download CSV "Show Your Work" permite exportar a discriminação por regime de contratação.
+- **And** a documentação em `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` é sincronizada conforme a Regra 12 de `AGENTS.md`.
+- **And** a suíte de testes de integração e TypeScript (`make test`, `pnpm --filter web test`, `pnpm test`) valida a funcionalidade com 100% de sucesso.
+
+**Deferred Work (Backlog Futuro):**
+- `dim_servidor`: Modelagem de dimensão cadastral de servidores (aproveitando `matricula`, `cpf` anonimizado, `dataadmissao` e `datadesligamento` do raw) para análises avançadas de trajetória funcional, antiguidade e evolução salarial histórica individual.
+
+## Epic 10: Fundação, Higiene de Dados e Isolamento de Schema
+
+Modernizar e blindar a infraestrutura de dados e analytics, eliminando warnings do dbt, consolidando modelos redundantes, isolando marts analíticos no schema dedicado `analytics` (com atualização das queries Kysely e permissões de acesso) e instituindo governança rígida sobre as fixtures de teste no CI/CD.
+
+### Story 10.1: Auditoria, Enxugamento de Modelos Redundantes e Zero Warnings no dbt
+
+As a data engineer and analytics developer maintaining the pipeline,
+I want to eliminate all compiler warnings, deprecations, and configuration anomalies in dbt, while auditing and consolidating redundant or overlapping transformation models,
+So that compilation is fast, maintainable, and free of technical noise or duplicate data processing.
+
+### Story 10.2: Isolamento dos Marts Analíticos no Schema Dedicado `analytics`
+
+As a system architect and backend engineer querying public fiscal data,
+I want all dbt marts and analytics views to reside in a dedicated `analytics` schema (instead of `public`), with updated database roles/permissions in `elt/migrations/grant_readonly.sql` and corresponding Kysely queries in `@transparencia/db`,
+So that analytics data is cleanly segregated from staging/raw schemas with robust security boundaries, preserving full transparency and seamless consumption across web applications.
+
+### Story 10.3: Blindagem de CI/CD e Governança Estrita de Fixtures `.sql` de Teste
+
+As a quality assurance engineer and developer submitting pull requests,
+I want an automated validation mechanism in CI and local test suites that enforces synchronization between dbt models and test `.sql` fixtures,
+So that PRs cannot be merged if fixtures are outdated, preventing silent test suite degradation and ensuring reliable parity testing across environments.
+
+## Epic 11: Automação da Ingestão de Dados, Notificações PWA e Fontes Consolidadas (TCE-RJ e SICONFI)
+
+Eliminar a dependência de extrações manuais em localhost através da automação do pipeline de ingestão (Cloudflare Workers, Containers e Cron Triggers), integrar notificações nativas e Web Push no PWA (com infraestrutura VAPID, consentimento/opt-in amigável e gatilhos automáticos para novas extrações e novas versões do app) e conduzir investigação e implementação de viabilidade de dados unificados no estado do Rio de Janeiro (TCE-RJ / SIGFIS e SICONFI) para acelerar o onboarding multi-cidade sem scrapers ad-hoc.
+
+### Story 11.1: Spike de R&D — Viabilidade de Dados Granulares no TCE-RJ (SIGFIS) & SICONFI
+
+As a data engineer and municipal civic researcher,
+I want to audit and prototype extractions from the TCE-RJ (SIGFIS / Dados Abertos) and SICONFI APIs for municipalities in the state of Rio de Janeiro (specifically Porciúncula),
+So that we determine whether granular expenditures (empenhos, liquidações, pagamentos), payroll, contracts, and tenders can be ingested from centralized state/federal sources instead of maintaining custom municipal portal scrapers.
+
+**Acceptance Criteria:**
+- **Given** as APIs públicas e portais de dados abertos do TCE-RJ (SIGFIS) e SICONFI (STN)
+- **When** o spike de pesquisa técnica for executado para o município de Porciúncula (e amostragem de outros municípios fluminenses)
+- **Then** produz um documento de viabilidade técnica (`tce-rj-sigfis-viability-report.md`) mapeando a granularidade disponível (despesas por item/favorecido, contratos, licitações, folha nominal de servidores).
+- **And** estabelece uma matriz de comparação (cobertura, defasagem temporal de publicação, estabilidade de API e esforço de integração) entre a extração direta do portal municipal vs. ingestão unificada via TCE-RJ / SICONFI.
+- **And** define uma recomendação arquitetural clara de migração ou modelo híbrido para expansão multi-cidade no estado do Rio de Janeiro.
+
+### Story 11.2: Infraestrutura de Automação de Ingestão de Dados (Cloudflare)
+
+As a DevOps and platform engineer,
+I want an automated cloud pipeline for scheduled ELT extraction using Cloudflare services (Workers / Containers / Cron Triggers),
+So that data ingestion runs periodically without manual intervention on localhost, with structured logging, failure alerts, and webhook triggers upon completion.
+
+**Acceptance Criteria:**
+- **Given** o pipeline de extração Python existente em `elt/`
+- **When** empacotado e configurado para execução automatizada em nuvem (ex: Cloudflare Container / Worker agendado via Cron Trigger)
+- **Then** a ingestão é executada periodicamente em horários programados sem depender de intervenção manual no localhost.
+- **And** falhas de extração geram alertas monitoráveis e logs estruturados com telemetria adequada.
+- **And** na conclusão bem-sucedida de cada ciclo de ingestão, o pipeline dispara um webhook interno seguro notificando o serviço de dados e preparando os gatilhos de atualização.
+
+### Story 11.3: Backend & Infraestrutura de Web Push (VAPID, Subscriptions & Dispatcher)
+
+As a backend engineer and transparency platform architect,
+I want a robust Web Push notification infrastructure supporting VAPID keys, subscription persistence, and notification dispatching,
+So that the platform can send push notifications to registered citizen devices whenever new data extractions are processed or new application versions are released.
+
+**Acceptance Criteria:**
+- **Given** a especificação do padrão W3C Web Push e chaves VAPID configuradas de forma segura via `@/env`
+- **When** um cliente PWA solicita inscrição ou cancelamento de notificações
+- **Then** os endpoints `/api/push/subscribe` e `/api/push/unsubscribe` validam e persistem os dados de subscrição (`endpoint`, `keys.p256dh`, `keys.auth`) em tabela dedicada no banco de dados (`push_subscriptions`) utilizando exclusivamente o tipo `TEXT` no PostgreSQL e DTOs em `camelCase`.
+- **When** um evento de nova extração de dados ou deploy de versão for acionado
+- **Then** um serviço dispatcher dispara mensagens de push formatadas para as subscriptions ativas, tratando e podando automaticamente inscrições expiradas ou revogadas (HTTP 410 Gone).
+
+### Story 11.4: Frontend & UX de Consentimento e Gestão de Notificações no PWA
+
+As a citizen using the municipal transparency portal as an installed PWA or browser application,
+I want a non-intrusive, clear, and contextual interface to opt in or out of push notifications,
+So that I receive timely system alerts when new municipal public spending data is extracted or when the app is updated, without receiving unsolicited browser permission prompts.
+
+**Acceptance Criteria:**
+- **Given** um usuário navegando no portal web ou executando o PWA instalado no desktop ou dispositivo móvel
+- **When** uma oportunidade contextual for apresentada (ex: banner sutil de extração, rodapé ou configurações)
+- **Then** o sistema oferece uma explicação clara do valor cívico das notificações antes de solicitar permissão nativa.
+- **When** o usuário confirma o opt-in
+- **Then** invoca `Notification.requestPermission()`, registra a subscrição no Service Worker (`sw.js`) e envia os dados para o endpoint de backend.
+- **When** a permissão for concedida e novos dados forem publicados
+- **Then** o usuário recebe uma notificação nativa do sistema operacional mesmo com o app fechado, com clique direcionando para a rota relevante da aplicação.
+- **And** caso a permissão seja negada pelo usuário, o app respeita a decisão de forma elegante sem spam de novos prompts.
+
+## Epic 12: Radar Cívico Ativo, Detecção de Anomalias e Funil de Engajamento
+
+Transformar o portal da transparência em uma plataforma proativa de controle social e engajamento cívico, implementando motor estatístico no dbt para detecção de anomalias (segregando fluxos homólogos de estoques/snapshots instantâneos como explosão de comissionados e rombos de caixa), exibindo um feed mobile-first factual e não-acusatório na Homepage para guiar o cidadão para páginas profundas, ativando distribuição multicanal (Web Push e redes sociais) e disponibilizando o acompanhamento preventivo em tempo real de licitações abertas e em andamento em compras públicas e na saúde.
+
+### Story 12.1: Modelagem dbt do Motor Estatístico de Anomalias Fiscais (Fluxo Homólogo vs. Estoque 1:1)
+
+As a data engineer and municipal auditor,
+I want a dedicated dbt mart (`fct_anomalias_fiscais_metricas`) that applies rigorous statistical detection (IQR e Z-score modificado) segregating flux metrics (comparação temporal homóloga mês-a-mês) from snapshot/structural metrics (comparação direta 1:1 de comissionados em pessoal e saldo em caixa),
+So that anomalies are mathematically sound, immune to false-positives in partial fiscal years, and categorized with factual severity.
+
+**Acceptance Criteria:**
+- **Given** os marts consolidados de despesas, licitações, pessoal (`fct_pessoal_regime_metricas`) e saldos em caixa SICONFI (`fct_siconfi_caixa_por_entidade_metricas`)
+- **When** o modelo analítico `fct_anomalias_fiscais_metricas` for compilado no dbt
+- **Then** aplica regras estritas de diferenciação metodológica:
+  - *Métricas de Fluxo (Despesas por Função e Licitações):* Para anos parciais (ano corrente), compara estritamente o período homólogo equivalente mês-a-mês (ex: Jan-Ago 2024 vs Jan-Ago de anos anteriores), prevenindo anomalias sazonais ilusórias.
+  - *Métricas de Estoque/Snapshot (Pessoal e Disponibilidade Financeira):* Aplica comparação direta 1:1 do snapshot atual ativo (ex: headcount de comissionados e saldo de caixa bancário) contra as médias históricas do mesmo período de anos anteriores.
+- **And** padroniza classificadores e dimensões em lowercase snake_case: `tipo_anomalia` (`explosao_comissionados`, `rombo_caixa`, `pico_despesa_homologa`, `concentracao_dispensa`), `dimensao_referencia` (`saude`, `educacao`, `comissionados`, `recursos_livres`, `dispensas`), `grau_severidade` (`critico`, `alto`, `moderado`), `desvio_percentual`, `valor_observado`, `valor_esperado`, `mes_inicial`, `mes_final` e `deep_link_rota`.
+- **And** delega a composição textual factual e explicável para a camada de apresentação/ViewModel a partir das métricas brutas e dimensões padronizadas.
+
+### Story 12.2: Camada de Acesso a Dados Kysely (`@transparencia/db`) com Roteamento Canônico e DTOs Tipados
+
+As a fullstack engineer developing civic interfaces,
+I want typed Kysely readers (`getRadarCivicoAlertas`) that return anomalies ordered by severity and civic relevance with pre-built deep links and contextual metrics,
+So that UI components and background dispatchers consume clean, functional data with zero business logic leakage.
+
+**Acceptance Criteria:**
+- **Given** o schema `analytics` e o mart `fct_anomalias_fiscais_metricas`
+- **When** o reader `getRadarCivicoAlertas(portalSlug, options)` for executado em `@transparencia/db`
+- **Then** retorna DTOs tipados com chaves estritamente em `camelCase` (`tipoAnomalia`, `dimensaoReferencia`, `grauSeveridade`, `desvioPercentual`, `valorObservado`, `valorEsperado`, `deepLinkRota`, `mesInicial`, `mesFinal`), utilizando programação funcional imutável.
+- **And** inclui parâmetros dinâmicos de filtro (portal, ano, severidade mínima e entidade) com ordenação prioritária por severidade decrescente e impacto financeiro/estrutural.
+- **And** as rotas de destino (`deepLinkRota`) preservam os searchParams relevantes para navegação contínua (ex: `/[portalSlug]/pessoal?ano=2024#comissionados`).
+
+### Story 12.3: Feed Mobile-First do Radar Cívico na Homepage com Linguagem Factual e Funil de Navegação
+
+As a citizen browsing the transparency portal on mobile,
+I want an engaging, factual, and non-accusatory "Civic Radar" card feed on the homepage highlighting notable anomalies (e.g., comissionados surge, health expenditure spikes),
+So that I am intuitively guided out of the homepage into deep thematic sections without encountering aggressive or misleading headlines.
+
+**Acceptance Criteria:**
+- **Given** um usuário acessando o portal web (desktop ou dispositivo móvel)
+- **When** a Homepage for renderizada
+- **Then** exibe a seção destacada "Radar Cívico Municipal" posicionada no primeiro scroll da tela, contendo cards interativos baseados nos alertas do backend.
+- **And** cada card exibe título objetivo, badge semântica de severidade, indicador de "Comparação Homóloga" ou "Posição Atual" e texto estritamente factual (ex: *"Em 2024, o número de cargos comissionados registrou um aumento de +65% em relação à média dos últimos anos"*).
+- **And** cada card contém um botão de ação claro direcionando o cidadão para a página temática correspondente (`/pessoal`, `/saude`, `/despesas`, `/licitacoes`), operando como funil ativo de exploração.
+- **And** disponibiliza botão de ação rápida "Compartilhar no WhatsApp" que gera mensagem com resumo factual e link direto para a página.
+
+### Story 12.4: Distribuição Multicanal: Web Push, Cards Sociais e Telemetria PostHog
+
+As a civic engagement coordinator and platform user,
+I want confirmed critical anomalies to automatically trigger Web Push notifications, generate dynamic OpenGraph social cards, and track mobile navigation funnels in PostHog,
+So that relevant civic findings are actively distributed across social channels (@mtransparenciax) and mobile devices, converting passive visitors into engaged researchers.
+
+**Acceptance Criteria:**
+- **Given** a infraestrutura de Web Push PWA implementada na Epic 11 e o bot social `@mtransparenciax` da Epic 7
+- **When** um novo ciclo de ingestão registrar anomalias de severidade `critico`
+- **Then** dispara automaticamente notificações push com deep links para os dispositivos cadastrados no PWA.
+- **And** integra com o gerador de OpenGraph images dinâmico para renderizar cartões visuais otimizados para redes sociais (X, Instagram, WhatsApp).
+- **And** instrumenta telemetria PostHog (`civic_radar_card_viewed`, `civic_radar_card_clicked`, `civic_radar_whatsapp_shared`, `funnel_home_to_internal_page`) para validar empiricamente a saída dos usuários da Homepage.
+
+### Story 12.5: Radar de Licitações Abertas, Taxa de Contratação Direta e Alertas nas Páginas de Licitações e Saúde
+
+As a citizen, local supplier, or investigative journalist,
+I want to view the overall direct contracting rate (dispensas/inexigibilidades) with anomaly context, and monitor all ongoing and open public tenders ("Em Andamento") on `/licitacoes` and specifically for healthcare procurement on `/saude`,
+So that I can monitor public procurement processes in real-time before contracts are awarded and understand whether the municipality is excessively relying on purchases without competitive bidding.
+
+**Acceptance Criteria:**
+- **Given** os dados de licitações em `analytics.fct_licitacoes` contendo registros com `situacao = 'Em Andamento'` (ou normalizado para `em_andamento`) e as anomalias de `concentracao_dispensa` em `analytics.fct_anomalias_fiscais_metricas`
+- **When** o reader Kysely `getLicitacoesEmAndamentoMetrics` for consultado
+- **Then** resgata a relação completa de compras públicas abertas com `licitacaoNumero`, `modalidade`, `objeto`, `dataAbertura`, `valorEstimado` e `entidadeNome`.
+- **When** o usuário acessa a rota `/[portalSlug]/licitacoes`
+- **Then** exibe na grade de KPIs o indicador consolidado de "Taxa de Contratação Direta" (% do volume financeiro total em dispensas, inexigibilidades e adesões a ata), acompanhado de badge e banner explicativo quando o exercício apresentar a anomalia `concentracao_dispensa` (ex: 48,87% em 2025 e 72,57% em 2026).
+- **And** exibe uma seção dedicada "Licitações Abertas e em Andamento" com contadores, busca textual por objeto e listagem estruturada com badges de modalidade e prazo de abertura.
+- **When** o usuário acessa a rota `/[portalSlug]/saude`
+- **Then** a área de compras públicas da Saúde exibe um bloco específico destacando as licitações em andamento da pasta (medicamentos, insumos e equipamentos médicos).
+- **And** o Radar Cívico da Homepage apresenta pílula de alerta indicando o volume de compras públicas atualmente em andamento no município com deep link para a seção.
+
+### Story 12.6: Página de Histórico do Radar Cívico com Seções Anuais Cronológicas em Temas
+
+As a citizen, researcher, or municipal auditor,
+I want a dedicated page (`/[portalSlug]/radar`) accessible from the "Temas" sidebar group that aggregates all civic radar alerts across all available fiscal years organized into chronological sections,
+So that I can audit historical governance anomalies and fiscal patterns across time without cluttering the current-year homepage feed.
+
+**Acceptance Criteria:**
+- **Given** o menu lateral de navegação (Sidebar) em qualquer página do portal
+- **When** o grupo `Temas` for renderizado
+- **Then** exibe o link "Radar Cívico" direcionando para `/[portalSlug]/radar` acompanhado do ícone `ShieldAlert`.
+- **When** o usuário acessa a rota `/[portalSlug]/radar`
+- **Then** exibe os alertas de anomalias detectadas em todos os anos disponíveis, agrupados por exercício em ordem cronológica decrescente.
+- **And** os exercícios que não apresentarem anomalias apuradas são omitidos da listagem visual.
+- **And** cada seção anual exibe o cabeçalho do exercício com contagem e severidade dos alertas, seguido de grade responsiva em 2 colunas (`md:grid md:grid-cols-2 gap-4`) utilizando o componente `RadarAnomaliaCard`.
+- **And** uma barra de atalhos rápidos/âncoras permite rolagem suave para qualquer exercício listado.
+- **And** caso nenhum alerta exista em todo o histórico, exibe estado de conformidade global.
+- **And** sincroniza os guias de consumo por IA (`apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`).
+
+### Story 12.7: Expansão do Radar Cívico: Detecção de Anomalias Previdenciárias (CAPREM / RPPS)
+
+As a citizen, civil servant, or municipal fiscal auditor,
+I want the civic radar engine (`fct_anomalias_fiscais_metricas`) to detect severe pension system liabilities (actuarial contribution defaults on Element 97 and unremitted employer contributions on Element 13),
+So that unconstitutional pension defaults and structural actuarial risks are proactively identified, explained with official legal foundations, and deep-linked into the dedicated CAPREM portal.
+
+**Acceptance Criteria:**
+- **Given** os marts consolidados de previdência municipal (`fct_caprem_tendencia_atuarial_metricas` e `fct_historia_caprem_metricas`)
+- **When** o modelo analítico `fct_anomalias_fiscais_metricas` for compilado no dbt
+- **Then** adiciona a detecção de anomalias previdenciárias padronizadas em `lowercase snake_case`:
+  - `inadimplencia_aporte_rpps`: inadimplência na cobertura de déficit atuarial (Elemento 97), quando `aporte_exigido > 0` e a taxa de adimplência for inferior a 90% (severidade `alto`) ou inferior a 70% (severidade `critico`).
+  - `retencao_patronal_rpps`: retenção de cota patronal não repassada ao RPPS (`rombo_patronal_nao_repassado` no Elemento 13 > 0 e valor absoluto > R$ 20.000,00), com severidade `critico`.
+- **And** estabelece rotas de destino (`deepLinkRota`) com âncoras temáticas para a página do CAPREM (`/[portalSlug]/caprem?ano=[ano]#atuarial` e `/[portalSlug]/caprem?ano=[ano]#patronal`).
+- **And** atualiza os leitores e tipos Kysely em `packages/db` (`TipoAnomalia` com `"inadimplencia_aporte_rpps"` e `"retencao_patronal_rpps"`).
+- **And** inclui o catálogo preliminar de candidatos a alertas sob análise para ativação posterior: compras e itens licitados da Story 12.8 (`desconto_nulo_pregao`, `disparidade_preco_item`, `concentracao_itens_fornecedor`, `desagio_extremo_inexequibilidade`, `compras_abertas_itens_criticos`) e harmonização cadastral de pessoal (`inconsistencia_vinculo_pessoal`).
+- **And** atualiza as fixtures compactadas de banco (`make db/fixture/dump`) e valida integridade via `make test`.
+- **And** mapeia na camada de apresentação (`apps/web`) textos neutros e factuais com links oficiais para o [Art. 40 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40) e [Lei Federal nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
+
+### Story 12.8: Des-truncamento, Itens Licitados e Enriquecimento de Licitações (Contratos Internos, PNCP e TCE-RJ)
+
+As a citizen, civic researcher, or municipal fiscal auditor,  
+I want the transparency platform to enrich municipal tender objects and ingest item-level procurement data (including estimated reference prices, quantities, winning suppliers, and homologated prices) from the federal PNCP API and local contracts,  
+So that truncated tender descriptions (150 chars) are replaced by untruncated descriptions and citizens can inspect individual line items and dispute results across all civic dashboards, search filters, and the Civic Radar.
+
+**Acceptance Criteria:**
+- **Given** que contratos locais em `raw_porciuncula_prefeitura.contratos` já possuem `objeto_completo` íntegro (até 1.041 chars) e que licitações estão truncadas em 150 caracteres na API municipal
+- **When** o modelo intermediário `int_licitacoes_consolidadas.sql` for compilado
+- **Then** aplica enriquecimento hierárquico `COALESCE(pncp.objeto, contrato_local.objeto_completo, licitacao_tce.objeto, municipal.discr)` e expõe a proveniência em `fonte_objeto`.
+- **And** ingere compras, editais e metadados via API do PNCP (`https://pncp.gov.br/api/pncp/`) a partir de 2024, resgatando `objetoCompra` integral e `linkSistemaOrigem` (sala de disputa do pregão).
+- **And** extrai e ingere a lista integral de itens licitados (`/compras/{ano}/{sequencial}/itens`) e os resultados de homologação por item com dados de fornecedores vencedores e descontos obtidos (`/itens/{numeroItem}/resultados`).
+- **And** cria o modelo staging e o mart analítico `fct_licitacoes_itens` consolidando preços estimados vs. homologados e deságios.
+- **And** atualiza o mart `fct_licitacoes` e cria o leitor Kysely `getLicitacaoItens` em `@transparencia/db` com DTOs em `camelCase`.
+- **And** regera a fixture de banco (`make db/fixture/dump`) e valida a suíte de testes com `make test`.
+- **And** exibe tabela expansível de itens licitados e links da sala de disputa na interface web, sincronizando os guias de IA (`apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`).
+
+### Story 12.9: Componente Reutilizável de Truncamento Inteligente e Modal de Leitura para Células Extensas em Tabelas
+
+As a citizen, civic researcher, or municipal fiscal auditor,  
+I want table cells with extensive textual content (such as tender and contract objects) to display a compact truncated preview with an intuitive visual indicator that opens the full text in an accessible modal dialog upon click or keyboard interaction,  
+So that I can read, audit, and copy comprehensive procurement objects without breaking table density, layout responsiveness, or mobile usability.
+
+**Acceptance Criteria:**
+- **Given** que textos longos de objetos de compras e contratos (500 a 1.200 caracteres) quebram a legibilidade das tabelas densas
+- **When** o componente `TruncatedCellWithModal` for renderizado em `@transparencia/ui`
+- **Then** exibe até 2 linhas de texto (`line-clamp-2`) acompanhado de um indicador visual sutil de expansão (*"Ver mais"* ou ícone discreto) quando o texto superar o limite.
+- **And** clicar ou pressionar Enter/Espaço na célula abre o modal acessível `ModalDialog` exibindo o texto completo formatado, contexto do registro (processo/contrato/fornecedor) e botão de ação rápida "Copiar texto completo".
+- **And** em telas móveis (`< 640px`), o modal se adapta responsivamente como Bottom Sheet.
+- **And** integra o componente nas tabelas de licitações (`LicitacoesTable`), licitações em andamento (`LicitacoesEmAndamentoSection`), contratos vigentes (`ContratosServicosVigentesSection`) e saúde (`SaudeContratacaoSection`).
+- **And** na página de licitações (`LicitacoesTable` e `LicitacoesPage`), quando acessada via deep link com parâmetro de busca (ex: `?numero=[numero]` ou `?filtro=sem_licitacao` / `?modalidade=dispensa`), aplica auto-filtro instantâneo na tabela ou posiciona a visualização via scroll suave com destaque visual temporário (highlight pulse) na linha do certame em auditoria; e se a URL contiver a âncora `#itens` (ex: `?numero=000290#itens`), abre automaticamente o modal com os itens licitados, preços unitários e fornecedores do respectivo pregão.
+- **And** para a anomalia de inconsistência de vínculos de pessoal (`inconsistencia_vinculo_pessoal`), disponibiliza no card do Radar Cívico ou na seção de regime de pessoal (`#regime`) um gatilho de auditoria nominal que abre o `ModalDialog` com a listagem completa e paginada/pesquisável dos servidores com divergência cadastral apurada (Nome, Cargo, Categoria Declarada de Origem, Regime Jurídico Atribuído e Lotação), permitindo conferência e auditoria cívica transparente sem quebrar a densidade da interface.
+- **And** valida os testes unitários em `packages/ui` e `apps/web` via `make test/ts`.
+
+---
+
+## Epic 13: Usabilidade Cívica, Descoberta Global e Governança
+
+Elevar o patamar de usabilidade, encontrabilidade e governança cívica do portal da transparência através de sete intervenções estratégicas: busca global unificada de compras públicas (licitações e contratos via FTS no PostgreSQL com modal spotlight), sinalização inteligente e acessível do Radar Cívico nos pontos de navegação, seleção rápida e intuitiva de entidade única ("apenas esta") no seletor institucional, formalização da anomalia de dependência fiscal de transferências no dbt para exercícios fechados com embasamento no Art. 11 da LRF, institucionalização de Termos de Uso e Política de Privacidade aderentes à LAI e LGPD, otimização da densidade de tela mobile com toolbar em linha única para exportação CSV, e rolagem suave automática com compensação de cabeçalho fixo na paginação de tabelas densas.
+
+### Story 13.1: Busca Global de Licitações e Contratos com Spotlight Modal e Postgres FTS
+
+As a citizen, journalist, or civic researcher,  
+I want a prominent and intuitive global search bar on the procurement page that opens a fast, keyboard-friendly spotlight modal to search across all public bids, tenders, and contracts,  
+So that I can locate any procurement process, object description, or contracted supplier in seconds without having to hunt for embedded table filters.
+
+**Acceptance Criteria:**
+- **Given** a página pública de licitações e contratos (`/[portalSlug]/licitacoes`)
+- **When** o usuário acessa a página ou pressiona o atalho de teclado `⌘K` / `Ctrl+K`
+- **Then** exibe no topo da página (hero/header de licitações) uma barra de busca em destaque com atalho visual legível (*"Buscar número, processo, fornecedor ou objeto de licitação e contrato..."*).
+- **And** ao focar ou clicar no campo, abre um modal interativo (Spotlight / Command Dialog com transição fluida, adaptando-se para visualização fullscreen no mobile).
+- **And** a consulta de busca é processada nativamente no PostgreSQL utilizando Kysely em `@transparencia/db` (`searchLicitacoesEContratos`), combinando `tsvector` com `unaccent`, `websearch_to_tsquery('portuguese', ...)` e operador de similaridade trigram (`pg_trgm`) sobre `objeto`, `numero`, `fornecedor_nome` e `processo_adm`.
+- **And** os resultados da busca são agrupados e segregados visualmente em duas seções: *Licitações Encontradas* e *Contratos*, exibindo número, valor formatado, status/modalidade, objeto resumido e link de navegação direta.
+- **And** ao selecionar um resultado, o usuário é direcionado diretamente para o registro correspondente (ou linha destacada na tabela com scroll suave).
+- **And** inclui cobertura de testes unitários e de integração validando busca exata por número com máscara/barra, busca por palavras sem acento e busca por razão social parcial.
+
+### Story 13.2: Visibilidade e Sinalização do Radar Cívico na Navegação Desktop e Mobile
+
+As a citizen or municipal fiscal auditor,  
+I want clear, non-intrusive notification badges and status indicators for the Civic Radar in the primary navigation,  
+So that I am immediately alerted to active critical fiscal anomalies without cluttering or sensationalizing the homepage hero section.
+
+**Acceptance Criteria:**
+- **Given** a existência de anomalias de severidade crítica apuradas pelo Radar Cívico para o exercício fiscal selecionado
+- **When** o usuário navega pelo portal em qualquer dispositivo
+- **Then** no menu lateral desktop (`Sidebar`), exibe ao lado do item "Radar Cívico" um badge numérico com a quantidade de alertas críticos (ex: `🚨 3`) acompanhado de um indicador pontual com pulso sutil (`motion-safe:animate-pulse`, respeitando `motion-reduce:animate-none` para acessibilidade).
+- **And** na barra de navegação móvel (`MobileBottomNav`), exibe um dot discreto de notificação no botão "Mais" (onde a rota do Radar está aninhada), preservando a Topbar móvel limpa e desafogada.
+- **And** a contagem de alertas ativos é resgatada através de uma consulta atômica e leve no `@transparencia/db` (`getRadarAnomaliasCount({ portalSlug, ano })`), sem impacto de latência no SSR do layout base.
+- **And** caso o exercício fiscal selecionado não possua anomalias ativas (contagem igual a 0), os badges e indicadores luminosos permanecem totalmente ocultos.
+- **And** valida os estados visuais e acessibilidade (`aria-label` descritivo) via testes automatizados em `packages/ui` e `apps/web`.
+
+### Story 13.3: Seleção Rápida de Entidade Única ("Apenas Esta") no Multi-Select Institucional
+
+As a citizen, researcher, or municipal auditor,  
+I want to select a single government entity in the multi-select dropdown with one click by clicking its label text, while retaining multi-selection toggles on the checkboxes,  
+So that I can quickly isolate one specific municipal agency without having to manually uncheck every other option.
+
+**Acceptance Criteria:**
+- **Given** o componente reutilizável `MultiSelect` em `packages/ui` utilizado na Sidebar e no Header
+- **When** o usuário abre o dropdown de entidades
+- **Then** cada linha de opção é segregada em duas zonas de interação acessíveis (sem elementos `<button>` aninhados no DOM):
+  - *Área do Checkbox*: clicar no quadradinho do checkbox executa a alternância tradicional de seleção múltipla (toggle da entidade no array de selecionados).
+  - *Área do Label/Texto*: clicar no texto da entidade executa a ação de **seleção exclusiva**, desmarcando instantaneamente todas as demais e selecionando apenas aquela entidade (`onChange([opt.id])`).
+- **And** no desktop, ao passar o mouse sobre a linha da entidade (hover), exibe um indicador sutil à direita com o texto *"apenas"* para reforçar a previsibilidade da ação.
+- **And** a opção "Todas as entidades" continua resetando a seleção para o conjunto completo (`[]`).
+- **And** valida acessibilidade via teclado, atributos ARIA e testes unitários em `packages/ui/src/components/multi-select.spec.tsx` cobrindo o clique isolado no checkbox e o clique direto no label.
+
+### Story 13.4: Modelagem e Integração da Anomalia de Dependência Fiscal no dbt e Radar Cívico
+
+As a citizen, municipal fiscal auditor, or public manager,  
+I want the fiscal dependency on external transfers to be modeled as an official first-class civic anomaly for closed fiscal years, backed by Article 11 of the Fiscal Responsibility Law (LRF),  
+So that structural revenue vulnerability is systematically tracked across the Civic Radar, digests, and revenue dashboards without creating false alarms during in-progress fiscal years.
+
+**Acceptance Criteria:**
+- **Given** o modelo analítico dbt de anomalias fiscais `fct_anomalias_fiscais_metricas.sql`
+- **When** o modelo for compilado no dbt
+- **Then** adiciona a detecção analítica da anomalia `dependencia_transferencias` (com dimensão de referência `receita_propria`):
+  - *Regra Temporal Estrita (Opção A)*: A anomalia é gerada exclusivamente para exercícios fiscais fechados e consolidados (`ano < extract(year from current_date)`), prevenindo falsos positivos decorrentes da sazonalidade de vencimento do IPTU/ISS em exercícios correntes em andamento.
+  - *Critério de Disparo*: Percentual de receita própria (`(impostos + taxas + contribuicao_melhoria) / total_receita_corrente`) inferior a 10%, classificado com severidade `critico`.
+  - *Deep Link*: Rota canônica `/[portalSlug]/receitas`.
+- **And** atualiza o catálogo de tipos em `@transparencia/db` (`TipoAnomalia` com `"dependencia_transferencias"`).
+- **And** formata no gerador narrativo factual (`radar-civico-narrative.ts`) a explicação descritiva neutra e objetiva, incluindo citação e link oficial para o [Art. 11 da LC 101/2000 (LRF)](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11) em conformidade com as Regras 11 e 20 do AGENTS.md.
+- **And** na página `/[portalSlug]/receitas`, substitui o `AlertBox` pontual pelo componente canônico do Radar Cívico (`RadarAnomaliaCard` ou banner temático de anomalia) quando houver anomalia apurada.
+- **And** regera os fixtures compactados de teste via `make db/fixture/dump` (Regra 21) e valida com `make test`.
+
+### Story 13.5: Criação das Páginas Estáticas de Termos de Uso e Política de Privacidade
+
+As a platform user, citizen, or public authority,  
+I want to consult transparent and legally grounded Terms of Use and Privacy Policy pages,  
+So that I understand the civic, non-partisan nature of the platform, the legal foundation for publishing public data under the LAI, and the strict adherence to the LGPD.
+
+**Acceptance Criteria:**
+- **Given** a aplicação web pública (`apps/web`)
+- **When** o usuário acessa as rotas `/termos` e `/privacidade`
+- **Then** renderiza páginas estáticas (`export const dynamic = 'force-static'`) com tipografia em prosa confortável, cabeçalhos semânticos claros e metadados de SEO canônicos (`apps/web/lib/metadata.ts`).
+- **And** os Termos de Uso esclarecem a natureza cívica e independente da plataforma, ausência de fins lucrativos, compilação de dados oficiais baseada na [Lei Federal nº 12.527/2011 (LAI)](https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm) e [LC nº 131/2009](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp131.htm), legitimidade de divulgação salarial amparada pelo Tema 483 do STF e transparência em compras sob a [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm).
+- **And** a Política de Privacidade detalha a conformidade com a [LGPD (Lei nº 13.709/2018)](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm), a coleta estritamente mínima (apenas e-mail voluntário com double opt-in para boletim, com descadastro em 1 clique), telemetria anônima e compromisso inegociável de não comercialização de dados.
+- **And** adiciona links institucionais discretos no rodapé global ([`GlobalFooter`](file:///Volumes/Projects/transparencia/apps/web/components/global-footer.tsx)): *"Termos de Uso"* e *"Política de Privacidade"*.
+- **And** sincroniza os arquivos de documentação para agentes de IA (`apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`) conforme a Regra 12 do AGENTS.md.
+- **And** adiciona testes automatizados de renderização e integridade dos links de rodapé.
+
+### Story 13.6: Otimização da Barra de Ferramentas e Botão "Baixar CSV" no Mobile
+
+As a mobile user browsing financial and procurement tables,  
+I want the table search input and CSV export action to be arranged horizontally in a single compact row,  
+So that valuable vertical screen space is preserved and table data is immediately visible above the fold.
+
+**Acceptance Criteria:**
+- **Given** o componente reutilizável `DenseTable` em `packages/ui` utilizado em todas as tabelas analíticas da plataforma
+- **When** a tabela for renderizada em telas pequenas/mobile (`< 640px`)
+- **Then** a barra de ferramentas superior adota layout em linha única (`flex items-center justify-between gap-2`), mantendo o campo de busca e o botão de exportação CSV lado a lado.
+- **And** em visualização mobile (`< sm`), o botão de exportação se compacta como pílula com o ícone `<Download />` e rótulo simplificado *"CSV"*, preservando área de toque mínima acessível de 40px e `aria-label="Baixar planilha CSV"`.
+- **And** em telas desktop (`>= sm`), o botão expande exibindo o rótulo completo parametrizado (ex: *"Baixar CSV"*).
+- **And** a redução de altura vertical beneficia universalmente todas as tabelas do portal (Licitações, Contratos, Despesas, Receitas, Pessoal e Saúde).
+- **And** valida os testes unitários de `packages/ui/src/components/dense-table.spec.tsx` garantindo o disparo correto do download CSV em ambos os viewports.
+
+### Story 13.7: Scroll Suave Automático para o Topo da Tabela ao Paginar
+
+As a mobile and desktop user navigating through paginated table pages,  
+I want the viewport to smoothly scroll back to the top of the table whenever I switch pages,  
+So that I am immediately positioned at the first row of the new page without having to manually scroll back through the entire list.
+
+**Acceptance Criteria:**
+- **Given** qualquer tabela paginada renderizada com `DenseTable` em `packages/ui`
+- **When** o usuário clica em um número de página ou nos botões de navegação anterior/próximo (`←` ou `→`)
+- **Then** além de atualizar a fatia de registros exibidos, a visualização rola suavemente para o início da tabela utilizando `scrollIntoView({ behavior: 'smooth', block: 'start' })`.
+- **And** a referência do topo é gerenciada isoladamente via `useRef<HTMLDivElement>(null)` no container raiz do `DenseTable`, sem uso de IDs globais estáticos para prevenir colisões em páginas com múltiplas tabelas.
+- **And** o elemento raiz recebe classe utilitária de compensação `scroll-mt-20 sm:scroll-mt-24` (scroll margin top de ~80px a ~96px), garantindo que a barra de busca e o cabeçalho da tabela não fiquem encobertos pela barra de navegação superior fixa.
+- **And** valida o acionamento de `scrollIntoView` via testes unitários com mock no Vitest em `packages/ui/src/components/dense-table.spec.tsx`.
+
+### Story 13.8: Deep-Link e Modal de Detalhes de Contratos com Retenção de Busca
+
+As a citizen, journalist, or public auditor,  
+I want to click on a contract search result or direct URL link and immediately view a detailed 360° modal of the contract without losing my search context,  
+So that I can inspect full contract details, supplier credentials, and financial execution metrics with complete parity to procurement processes.
+
+**Acceptance Criteria:**
+- **Given** a seção de contratos de serviços vigentes (`ContratosServicosVigentesSection`) na rota `/[portalSlug]/licitacoes`
+- **When** a página for carregada com parâmetro `contratoNumero` (ou `contratoId`), ou receber o evento `contrato:selected`
+- **Then** abre automaticamente o Modal de Detalhes do Contrato (`ModalDialog`) exibindo dados completos (número, ano, status, fornecedor, CNPJ formatado, objeto integral, vigência, empenhado, liquidado, pago, saldo pendente e percentual pago).
+- **And** rola suavemente até `#contratos-servicos-vigentes` e aplica highlight sutil na linha correspondente da tabela se visível.
+- **And** quando selecionado a partir da busca Spotlight (`LicitacoesSpotlightModal`), preserva a busca em camadas e disponibiliza botão de retorno à busca, sem perder os termos e resultados anteriores ao fechar o contrato.
+- **And** inclui cobertura de testes unitários e de integração validando deep-link, abertura via evento e renderização de métricas fiscais.
+
+### Story 13.9: Desacoplamento de Rotas de Navegação do Mart `fct_anomalias_fiscais_metricas`
+
+As a developer maintaining the codebase,
+I want the `fct_anomalias_fiscais_metricas` mart to expose only semantic data fields (without any hardcoded URL strings),
+So that routing logic lives exclusively in `apps/web` and any future navigation refactoring requires no dbt reprocessing.
+
+**Acceptance Criteria:**
+- **Given** o modelo `elt/transform/models/marts/metrics/fct_anomalias_fiscais_metricas.sql`
+- **When** o modelo for refatorado
+- **Then** a coluna `deep_link_rota` é completamente removida do mart — nenhum CTE deve mais construir strings de URL.
+- **And** o campo `licitacao_numero TEXT` é adicionado à projeção final do mart, preenchido com o número da licitação nos CTEs `desconto_nulo_anomalias` e `desagio_extremo_anomalias`, e `NULL` em todos os demais.
+- **And** o arquivo `packages/db/src/queries/radar-civico-alertas.ts` remove `"deep_link_rota"` do `.select()` do Kysely e adiciona `"licitacao_numero"`.
+- **And** o DTO `RadarCivicoAlertaDTO` remove a propriedade `deepLinkRota` e adiciona `licitacaoNumero: string | null`.
+- **And** a função `enrichDeepLink` e quaisquer referências a construção de URL são removidas de `packages/db`.
+- **And** é criada a função `buildAlertaUrl(alerta: RadarCivicoAlertaDTO, opts?: { entidade?: string }): string` dentro de `apps/web`, próxima aos componentes que renderizam os alertas, mapeando `tipoAnomalia` para rota base, query params e âncora conforme a tabela canônica abaixo:
+
+| `tipoAnomalia` | Rota base | Âncora |
+|---|---|---|
+| `pico_despesa_homologa` | `/despesas` | — |
+| `explosao_comissionados` | `/pessoal` | `#comissionados` |
+| `rombo_caixa` | `/receitas` | `#saldo-caixa` |
+| `concentracao_dispensa` | `/licitacoes` | — |
+| `opacidade_gastos_genericos` | `/despesas` | `#gastos-genericos` |
+| `inadimplencia_aporte_rpps` | `/caprem` | `#atuarial` |
+| `retencao_patronal_rpps` | `/caprem` | `#patronal` |
+| `desconto_nulo_pregao` | `/licitacoes` | `#itens` + `&numero=licitacaoNumero` |
+| `desagio_extremo_inexequibilidade` | `/licitacoes` | `#itens` + `&numero=licitacaoNumero` |
+| `inconsistencia_vinculo_pessoal` | `/pessoal` | `#regime` |
+| `dependencia_transferencias` | `/receitas` | — |
+
+- **And** todos os componentes de alerta existentes em `apps/web` passam a usar `buildAlertaUrl(alerta)` em vez de consumir `deepLinkRota` diretamente do DTO.
+- **And** as fixtures compactadas são regeradas via `make db/fixture/dump` e a suíte completa de testes passa via `make test` e `make test/ts`.
+
+### Story 13.10: Refinamento da Busca de Licitações e Contratos: Vigência Plurianual, Fornecedores Homologados e Calibração Textual
+
+As a citizen, journalist, or public auditor,  
+I want the global search for procurements and contracts to accurately find suppliers, respect multi-year contract validity periods, and eliminate false-positive fuzzy matches,  
+So that I can reliably locate ongoing contracts from previous years (e.g. 2024 contracts active in 2026), search procurement processes by winning bidder, and find companies regardless of punctuation variations.
+
+**Acceptance Criteria:**
+- **Given** a query unificada de busca em `packages/db/src/queries/licitacoes-contratos-search.ts`
+- **When** um usuário busca contratos sob o escopo de um determinado ano de exercício (ex: `ano = 2026`)
+- **Then** a filtragem temporal de contratos não se restringe apenas ao ano de assinatura (`ano = :anoParam`), mas inclui todos os contratos cuja vigência cubra o exercício solicitado (`ano_exercicio >= EXTRACT(YEAR FROM data_inicio) AND (vencimento_atual IS NULL OR EXTRACT(YEAR FROM vencimento_atual) >= ano_exercicio)`), garantindo que contratos plurianuais assinados em anos anteriores continuem visíveis e localizáveis enquanto estiverem vigentes ou executados no exercício.
+- **And** para a busca de licitações, a consulta passa a correlacionar com `analytics.fct_licitacoes_itens` para incluir `fornecedor_nome` e `fornecedor_cpf_cnpj` dos itens homologados no índice de busca e projeção de resultados, permitindo encontrar processos licitatórios pelo nome ou documento da empresa vencedora (ex: busca por "DOHA" retornando os processos homologados para a empresa).
+- **And** calibra o threshold e regras de similaridade trigramática (`word_similarity` / `similarity`), exigindo comprimento mínimo de caracteres (ex: `>= 5` letras) ou pontuação mínima elevada (ex: `> 0.50`), eliminando os falsos positivos em que palavras de 4 letras (como "doha") geravam match com a preposição "do" presente nos objetos de editais.
+- **And** implementa normalização de pontuação e caracteres especiais em nomes corporativos e razões sociais (ex: desconsiderando pontos e espaçamentos irregulares como `L.PHILIPPE` vs `L. PHILIPPE` vs `L PHILIPPE`), assegurando paridade de correspondência tanto no FTS quanto em `ILIKE`.
+- **And** no modal de busca (`LicitacoesSpotlightModal`), resultados de contratos vigentes originados de anos anteriores exibem claramente o badge do ano de celebração e o período de vigência atual.
+- **And** inclui suíte completa de testes automatizados em `packages/db/src/queries/__tests__/licitacoes-contratos-search.spec.ts` cobrindo busca de licitações por fornecedor homologado, contratos vigentes plurianuais, tolerância a pontuação corporativa e ausência de falsos positivos trigramáticos.
+
+---
+
+## Epic 14: Sustentabilidade Previdenciária e Patrimônio Financeiro da CAPREM
+
+Tornar visível e auditável pelo cidadão a trajetória de desidratação da poupança previdenciária da CAPREM (Instituto de Previdência dos Servidores de Porciúncula), expondo com rigor contábil — a partir dos dados oficiais da Secretaria do Tesouro Nacional (SICONFI / MSC Patrimonial) — a queda do patrimônio financeiro do RPPS de R$ 60,4 milhões em 2021 para R$ 35,9 milhões em 2025. A epic corrige a captura incompleta das contas de investimentos do RPPS na camada de dados, constrói a série histórica plurianual consolidada (caixa + aplicações), adiciona diagnóstico de causas estruturais (déficit de contribuição, patronal em atraso e diluição da base de efetivos) e integra um alerta automatizado de sustentabilidade atuarial no Radar Cívico — garantindo que a fala do vereador Saulo possa ser verificada publicamente em tempo real por qualquer cidadão.
+
+### Story 14.1: Captura das Contas de Investimentos do RPPS na MSC Patrimonial e Consolidação do Saldo Financeiro Total
+
+As a citizen or fiscal auditor,  
+I want the CAPREM financial dashboard to show the real total financial assets of the pension fund — including not just checking accounts but also the investment portfolio managed in financial markets —  
+So that the actual size and trajectory of the pension savings can be verified against official SICONFI/STN data.
+
+**Acceptance Criteria:**
+- **Given** o modelo de staging `stg_siconfi_msc_patrimonial.sql` em `elt/transform/models/staging/porciuncula_prefeitura/`
+- **When** o modelo for recompilado no dbt
+- **Then** a cláusula `conta_contabil like '111%'` é expandida para incluir também as contas de investimentos e aplicações temporárias a curto prazo da classe `114%` **exclusivamente quando** `poder_orgao = '10132'` (Instituto de Previdência / CAPREM), sem afetar a captura do caixa geral do Executivo (`10131`) nem da Câmara (`20231`).
+- **And** a segregação entre `saldo_recursos_vinculados` (aplicações em fundos RPPS regulamentados pelo CMN — fontes `18%`, `28%`, `98%`) e `saldo_recursos_livres` é mantida corretamente na mart downstream `fct_saldo_caixa_siconfi`.
+- **And** o `CapremSaldoCaixaCard` na rota `/[portalSlug]/caprem` passa a exibir o saldo total consolidado (caixa em conta corrente `111%` + carteira de aplicações `114%`), refletindo os valores oficiais do STN.
+- **And** os testes de paridade existentes em `packages/db/tests` (`siconfi-caixa-metrics.spec.ts`) são atualizados para cobrir o cenário de consolidação caixa + aplicações para o órgão `10132`, validando que o Executivo não é afetado.
+- **And** as fixtures compactadas são regeradas via `make db/fixture/dump` e a suíte completa de testes passa via `make test` e `make test/ts`.
+
+### Story 14.2: Série Histórica Plurianual do Patrimônio Financeiro do RPPS (2021–Corrente)
+
+As a citizen, journalist, or municipal council member,  
+I want to see a year-by-year evolution of the total CAPREM financial patrimony since 2021,  
+So that I can objectively verify the magnitude of pension savings depletion raised in the council session and hold the executive accountable.
+
+**Acceptance Criteria:**
+- **Given** os dados consolidados da mart `fct_saldo_caixa_siconfi` após a Story 14.1 (cobrindo caixa `111%` + aplicações `114%` para o órgão `10132`)
+- **When** a função `getCapremActuarialTrendMetrics` em `packages/db/src/queries/historia-caprem-metrics.ts` for chamada
+- **Then** o DTO `CapremActuarialTrendDTO` é estendido com o campo `patrimonioFinanceiroTotal: number` representando o saldo final de cada exercício (caixa + carteira de investimentos, conforme posição do último mês disponível do ano).
+- **And** a série cobre no mínimo os exercícios de 2021 a 2025, com o ano corrente retornando o saldo da última competência homologada no SICONFI.
+- **And** o DTO expõe adicionalmente `variacaoPatrimonioAbs: number` e `variacaoPatrimonioPct: number` (variação absoluta e percentual em relação ao exercício anterior), calculados diretamente na query Kysely sem duplicar lógica já presente no modelo dbt.
+- **And** um novo modelo analítico dbt `fct_caprem_patrimonio_historico_metricas.sql` materializa a série anual com `portal_slug`, `ano`, `mes_referencia`, `saldo_caixa`, `saldo_aplicacoes`, `patrimonio_total`, `inconsistencia_declaracao_flag`, `variacao_abs` e `variacao_pct`, seguindo as Regras 9 e 10 do AGENTS.md (nomes explícitos e `lowercase snake_case`).
+- **And** o modelo implementa a flag determinística e agnóstica `inconsistencia_declaracao_flag: boolean` que detecta exercícios onde a declaração de aplicações financeiras na MSC foi omitida ou invertida (`saldo_aplicacoes = 0` circundado por anos com carteira expressiva `> 10.000.000`).
+- **And** em exercícios marcados com `inconsistencia_declaracao_flag = true` ou cujo exercício anterior tenha a flag ativa (ex: 2022 e 2023), o dbt aplica quebra de série metodológica definindo `variacao_abs = null` e `variacao_pct = null`, eliminando variações ilusórias causadas por anomalias de reporte.
+- **And** o modelo é coberto por schema contract (`_fct_caprem_patrimonio_historico_metricas.yml`) com testes `not_null` e `positive_values` nos campos de patrimônio e `not_null` em `inconsistencia_declaracao_flag`.
+- **And** as fixtures são regeradas via `make db/fixture/dump` e validadas com `make test`.
+
+### Story 14.3: Visualização de Desidratação da Poupança e Diagnóstico de Causas na Rota `/caprem`
+
+As a citizen, council member, or civic journalist,  
+I want the CAPREM page to show a clear multi-year chart of pension fund depletion along with an objective diagnosis of its structural causes,  
+So that I can understand not just that the savings are shrinking, but why — and what the risk horizon looks like.
+
+**Acceptance Criteria:**
+- **Given** a série histórica plurianual do patrimônio (`patrimonioFinanceiroTotal`, `inconsistenciaDeclaracaoFlag`, `variacaoPatrimonioPct`) da Story 14.2 disponível no DTO de `actuarialTrend`
+- **When** o usuário acessa a rota `/[portalSlug]/caprem`
+- **Then** a seção `CapremSaldoCaixaCard` ou uma nova seção `CapremPatrimonioHistoricoSection` renderiza um gráfico de área ou linha (`LineChart` / `AreaChart` via Recharts) com a série anual do patrimônio total, eixo Y em R$ e eixo X por exercício, destacando visualmente a trajetória de queda de 2021 para o ano mais recente.
+- **And** caso um exercício possua `inconsistenciaDeclaracaoFlag = true` (ex: 2022), a UI renderiza um badge de aviso / nota de transparência metodológica ("Inconsistência de Declaração na MSC") esclarecendo a omissão de aplicações informada pelo ente ao SICONFI.
+- **And** no exercício imediatamente subsequente à quebra de série (ex: 2023), a variação percentual é exibida como `N/D` (com tooltip metodológico de quebra de série) em vez de exibir taxas irreais decorrentes da inconsistência do ano anterior.
+- **And** acima do gráfico, três KPI cards contextualizadores exibem: (1) *Patrimônio em [ano base]* (pico histórico observado), (2) *Patrimônio Atual* com variação percentual em relação ao pico, e (3) *Queima Média Anual* (diferença total / número de anos).
+- **And** abaixo do gráfico, uma seção de diagnóstico objetivo e não-acusatório exibe as três causas estruturais identificadas, cada uma com ícone semântico, valor quantitativo e referência legal quando aplicável:
+  - **Déficit de Contribuição**: rombo anual entre arrecadação e benefícios pagos, com referência à [Lei nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm).
+  - **Cota Patronal em Atraso**: valor de `rombo_patronal_nao_repassado` do exercício selecionado, com referência ao [Art. 40 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40).
+  - **Diluição da Base Contributiva**: razão atual de servidores temporários/efetivos vs. razão histórica, explicando que temporários contribuem para o RGPS e não para o RPPS local.
+- **And** todos os links para legislação abrem em `target="_blank" rel="noopener noreferrer"` com ícone `ExternalLink`, em conformidade com a Regra 20 do AGENTS.md.
+- **And** os guias de consumo por IA (`apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`) são sincronizados com as novas métricas e seções conforme a Regra 12 do AGENTS.md.
+- **And** a suíte de testes de view model (`caprem/view-model.spec.ts`) é atualizada cobrindo os novos campos de patrimônio histórico e os KPIs de queima.
+
+### Story 14.4: Alerta de Sustentabilidade Atuarial do RPPS no Radar Cívico
+
+As a citizen, pension council member, or fiscal auditor,  
+I want the Civic Radar to automatically generate a critical alert when the pension fund's financial patrimony falls by more than 20% over a rolling 3-year window,  
+So that the depletion risk is proactively surfaced across the platform and not only visible to those who navigate to the CAPREM page.
+
+**Acceptance Criteria:**
+- **Given** os dados do novo modelo `fct_caprem_patrimonio_historico_metricas` contendo a série anual do patrimônio financeiro do RPPS
+- **When** o modelo analítico `fct_anomalias_fiscais_metricas.sql` for compilado no dbt
+- **Then** é adicionada a detecção da anomalia `desidratacao_patrimonio_rpps` com as seguintes regras:
+  - *Critério*: `variacao_pct` acumulada nos últimos 3 exercícios disponíveis inferior a `-20%`, aplicável exclusivamente a exercícios fechados (`ano < extract(year from current_date)`).
+  - *Severidade*: `critico`.
+  - *Deep Link*: `/[portalSlug]/caprem?ano=[ano]#patrimonio`.
+  - *Narrativa*: texto factual e não-acusatório gerado no `radar-civico-narrative.ts` explicando a queda percentual, o valor absoluto consumido e o horizonte de risco estimado se mantida a taxa de queima atual.
+- **And** o `TipoAnomalia` em `@transparencia/db` é atualizado com `"desidratacao_patrimonio_rpps"`.
+- **And** links obrigatórios no card do Radar Cívico para a [Resolução CMN nº 4.963/2021](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolução%20CMN&numero=4963) (política de investimentos RPPS) e para a [Lei nº 9.717/1998](https://www.planalto.gov.br/ccivil_03/leis/l9717.htm), com `target="_blank" rel="noopener noreferrer"` (Regra 20).
+- **And** as fixtures compactadas são regeradas via `make db/fixture/dump`, os tipos Kysely atualizados e a suíte completa de testes validada via `make test` e `make test/ts`.
+
+### Story 14.5: Consolidação da Rota /caprem: Remoção de Cards Redundantes e Foco Documental no CADPREV
+
+As a citizen, council member, or municipal employee,  
+I want the CAPREM page to present a clean, non-repetitive information hierarchy by removing redundant KPI cards already addressed in the Structural Causes Diagnosis,  
+So that I can focus directly on the official debt acknowledgment agreements (CADPREV) and historical actuarial coverage without cognitive clutter.
+
+**Acceptance Criteria:**
+- **Given** a existência da nova seção `CapremPatrimonioHistoricoSection` que já diagnostica de forma aprofundada o Déficit no Aporte Atuarial, a Cota Patronal em Atraso e a Diluição da Base Contributiva
+- **When** a rota `/[portalSlug]/caprem` for renderizada
+- **Then** a seção `CapremActuarialRiskSection` tem seu grid de 4 cards de topo (`<KPIGrid columns={3}>`) descontinuado e removido, eliminando a duplicação direta de valores e conceitos com a seção anterior.
+- **And** a seção é reestruturada e renomeada para **"Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)"**, com descrição focada no monitoramento de acordos formais de confissão de dívida e cumprimento histórico dos aportes de equilíbrio atuarial.
+- **And** a tabela de **Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)** passa a ter posição de destaque no topo da seção, preservando todas as colunas de registro, objeto, valor empenhado e valor pago.
+- **And** a tabela de **Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2026)** é mantida na sequência como fonte documental da série histórica de adimplência do Elemento 97 e amortização de dívidas.
+- **And** os guias de consumo por IA (`apps/web/public/llms.txt` e `apps/web/public/llms-full.txt`) são atualizados refletindo a estrutura consolidada da rota `/caprem` conforme a Regra 12 do AGENTS.md.
+- **And** a suíte de testes de componentes (`caprem-actuarial-risk-section.spec.tsx` e `page.spec.tsx`) é atualizada e validada com 100% de aprovação via `pnpm test`.
+
+---
+
+## Epic 15: Expansão Regional Noroeste Fluminense (Cluster Sigcorp), RPPS Canônico (`fct_previdencia_*`) e Módulos Dinâmicos por Portal
+
+Desacoplar o núcleo analítico e a camada de apresentação de amarras institucionais locais (eliminando o acoplamento do `CAPREM` e generalizando os marts analíticos para `fct_previdencia_*` e rotas `/previdencia`), parametrizar temas e institutos previdenciários no `PortalConfig`, abstrair o extrator da API Sigcorp em um conector genérico parametrizado e realizar o rollout oficial dos municípios de Natividade (~15 mil hab., RPPS IPAMN) e Bom Jesus do Itabapoana (~35 mil hab., RPPS FUNPREV), expandindo o alcance cívico da plataforma para ~70 mil cidadãos no Noroeste Fluminense sem duplicação de infraestrutura.
+
+### Story 15.1: Generalização Analítica do RPPS no dbt (`fct_previdencia_*`), Particionamento Multi-Portal e Governança de Fixtures
+
+As a data engineer, civic developer, or public auditor,  
+I want the dbt mart models for municipal pensions to be standardized under the canonical prefix `fct_previdencia_*` with mandatory `portal_slug` partitioning across all aggregations,  
+So that the analytical data layer seamlessly scales to any municipality in the region while maintaining 100% test parity and strict fixture governance (Rule 21).
+
+**Acceptance Criteria:**
+- **Given** os modelos de métricas previdenciárias em `elt/transform/models/marts/metrics/` (`fct_historia_caprem_metricas.sql`, `fct_caprem_entidades_metricas.sql`, `fct_caprem_cadprev_metricas.sql`, `fct_caprem_patrimonio_historico_metricas.sql`, `fct_caprem_tendencia_atuarial_metricas.sql`, `fct_caprem_natureza_metricas.sql`)
+- **When** a refatoração analítica for implementada no dbt
+- **Then** todos os marts com prefixo `caprem` são renomeados para o prefixo canônico `fct_previdencia_*` (ex: `fct_previdencia_historia_metricas.sql`, `fct_previdencia_patrimonio_historico_metricas.sql`, `fct_previdencia_tendencia_atuarial_metricas.sql`, `fct_previdencia_cadprev_metricas.sql`, `fct_previdencia_entidades_metricas.sql`, `fct_previdencia_natureza_metricas.sql`).
+- **And** a coluna `portal_slug` é incluída de forma mandatória em todas as cláusulas `GROUP BY` e projeções finais de todas as CTEs dos novos modelos.
+- **And** os arquivos de documentação e contratos de esquema (`_fct_previdencia_*.yml`) são renomeados e atualizados com testes `not_null` e integridade referencial em `portal_slug`.
+- **And** os modelos downstream de anomalias fiscais (`fct_anomalias_fiscais_metricas.sql`) e referências internas são atualizados para consumir os novos marts `fct_previdencia_*`.
+- **And** o fixture de teste compactado `packages/db/tests/fixtures/schema.sql.gz` é obrigatoriamente regerado via `make db/fixture/dump` e sua conformidade validada via `make db/fixture/check` em estrito cumprimento à Regra 21 do `AGENTS.md`.
+- **And** a suíte de testes de integração do dbt e backend passa com 100% de sucesso via `make test`.
+
+---
+
+### Story 15.2: Camada de Dados Kysely (`@transparencia/db`) e Parametrização de Previdência e Temas no `PortalConfig`
+
+As a backend engineer or UI developer,  
+I want typed Kysely queries reading from `fct_previdencia_*` filtered by `portal_slug`, alongside an expanded `PortalConfig` schema with dynamic pension metadata and civic highlights,  
+So that domain logic, municipal pension names, and portal themes are strictly typed, functional, and decoupled from hardcoded municipality assumptions (Rules 2, 9, 10 and 18).
+
+**Acceptance Criteria:**
+- **Given** a camada de dados em `packages/db/src/queries/`
+- **When** os leitores e tipos forem atualizados para refletir o schema gerado na Story 15.1
+- **Then** os arquivos de queries (ex: `historia-caprem-metrics.ts` ➔ `historia-previdencia-metrics.ts` ou equivalente) são renomeados e adaptados para consultar `analytics.fct_previdencia_*` com filtro obrigatório `.where('portal_slug', '=', portalSlug)`.
+- **And** todas as propriedades de interfaces, tipos e DTOs em TypeScript utilizam estritamente a convenção `camelCase` (Regra 18) e nomes semânticos explícitos (Regra 9).
+- **And** o seed `seed_portais.csv` e o mart `dim_portais.sql` são estendidos com as colunas explícitas `previdencia_habilitado` (BOOLEAN), `previdencia_sigla` (TEXT), `previdencia_nome` (TEXT) e `highlights_json` (TEXT contendo array JSON serializado de temas), eliminando joins adicionais e garantindo leitura em tempo constante.
+- **And** a função `getPortalConfig` em `packages/db/src/queries/metadata.ts` é estendida para mapear as novas colunas com parsing defensivo para os tipos estruturados:
+  ```ts
+  previdencia: {
+    habilitado: boolean;
+    sigla: string; // ex: "CAPREM", "IPAMN", "FUNPREV", "RPPSI"
+    nome: string;  // nome oficial do instituto / fundo
+  };
+  highlights: Array<{ slug: string; titulo: string; descricao?: string; icone: string }>;
+  ```
+- **And** o registro de Porciúncula (`porciuncula_prefeitura`) em `seed_portais.csv` é atualizado com `previdencia_habilitado = true`, `previdencia_sigla = 'CAPREM'`, `previdencia_nome = 'Caixa de Aposentadoria e Pensões dos Servidores Públicos de Porciúncula'` e os destaques correspondentes em `highlights_json`.
+- **And** a suíte de testes de queries e paridade em `packages/db` (`metadata.spec.ts`, `make test/ts` e `pnpm test`) passa com 100% de sucesso.
+
+---
+
+### Story 15.3: Camada Web: Roteamento Canônico `/[portalSlug]/previdencia`, Redirect 308 e Navegação Dinâmica por Portal
+
+As a citizen, municipal employee, or search engine crawler,  
+I want the portal to feature a canonical `/[portalSlug]/previdencia` route with automatic 308 redirect from legacy `/caprem` paths and a dynamic sidebar/nav reflecting local themes and pension institute names,  
+So that navigation feels natural for any municipality, existing bookmarks/SEO links for Porciúncula remain unbroken, and interface components display the accurate local pension acronym.
+
+**Acceptance Criteria:**
+- **Given** a estrutura de rotas em `apps/web/app/[portalSlug]/`
+- **When** a rota `/[portalSlug]/previdencia/` for implementada
+- **Then** a rota `/[portalSlug]/previdencia/` substitui `/[portalSlug]/caprem/` como destino canônico, renderizando as seções de sustentabilidade atuarial, patrimônio financeiro e acordos CADPREV.
+- **And** é configurado um redirecionamento HTTP 308 permanente de `/[portalSlug]/caprem/` para `/[portalSlug]/previdencia/` (e sub-rotas/âncoras associadas), preservando integridade para SEO, compartilhamentos em mensageiros e histórico público.
+- **And** os componentes visuais de previdência (`patrimonio-historico-section`, `saldo-caixa-card`, etc.) recebem a sigla institucional (`portal.previdencia.sigla`) via View Model e formatam cabeçalhos e rótulos de forma dinâmica (ex: *"Patrimônio Financeiro da CAPREM"*, *"Patrimônio Financeiro do IPAMN"*).
+- **And** a barra lateral (`packages/ui/src/components/sidebar.tsx`) e a barra móvel (`apps/web/components/mobile-bottom-nav.tsx`) tornam-se orientadas a dados, renderizando o link de Previdência somente quando `portal.previdencia.habilitado === true`.
+- **And** os links para legislações (Art. 40 da CF/88, Lei 9.717/98, Resolução CMN 4.963/21) permanecem acessíveis com `target="_blank" rel="noopener noreferrer"` e ícone `ExternalLink` (Regra 20).
+- **And** todos os testes unitários de componentes e rotas passam com 100% de aprovação via `pnpm test` e o build compila sem erros (`pnpm build`).
+
+---
+
+### Story 15.4: Generalização do Extrator Fiorilli/Sigcorp, Pipelines de Ingestão (Natividade, Bom Jesus, Bônus São Fidélis) e Spike Técnico de Campos dos Goytacazes
+
+As a data engineer, civic hacker, or transparency advocate,  
+I want the existing Fiorilli/Sigcorp REST API extractor abstracted into a generic configurable module (`elt/extract/fiorilli/`), configured for Natividade, Bom Jesus do Itabapoana and São Fidélis, alongside an automated profiling spike assessing the data volume of Campos dos Goytacazes,  
+So that raw fiscal data from three municipalities can be ingested into staging with zero code duplication, while infrastructure and database capacity are reliably planned for the future rollout of Campos dos Goytacazes (~480k citizens).
+
+**Acceptance Criteria:**
+- **Given** a implementação do extrator de Porciúncula em `elt/extract/porciuncula_prefeitura/` baseada na API Fiorilli (`/Transparencia/versaoJson/DadosAbertos`)
+- **When** o código for refatorado para uma estrutura genérica em `elt/extract/fiorilli/` (ou módulo base reutilizável)
+- **Then** o extrator aceita parâmetros dinâmicos de portal (`base_url`, `porta`, `cod_ibge`, `portal_slug`, `ano_inicial`, `empresa_padrao`).
+- **And** são criados os arquivos de configuração declarativos para:
+  - **Natividade** (`elt/portals/natividade_prefeitura.yml`, IBGE `3303401`, RPPS: `IPAMN`)
+  - **Bom Jesus do Itabapoana** (`elt/portals/bom_jesus_itabapoana_prefeitura.yml`, IBGE `3300605`, RPPS: `FUNPREV`)
+  - **São Fidélis (Bônus)** (`elt/portals/sao_fidelis_prefeitura.yml`, IBGE `3304805`, RPPS: `FASP`, base host Fiorilli `riodejaneiro1.dcfiorilli.com.br:8079`)
+- **And** as fontes raw dos três novos municípios são devidamente mapeadas no arquivo de fontes `_sources.yml` correspondente, em estrita conformidade com a Regra 5 do `AGENTS.md`.
+- **And** o arquivo de setup de testes `elt/conftest.py` é atualizado com fixtures sintéticas locais para validar os novos portais sem disparar requisições para a internet pública (Regra 15).
+- **And** é desenvolvido o **Spike Técnico de Volumetria de Campos dos Goytacazes** (`elt/extract/spikes/spike_campos_volume.py`), realizando profiling exploratório dos endpoints de Campos (`riodejaneiro1.dcfiorilli.com.br:8079/Transparencia/versaoJson/DadosAbertos`), catalogando volume de empenhos por ano, limites de paginação, tempo médio de resposta e produzindo uma nota técnica (`_bmad-output/planning-artifacts/spike-volumetria-campos-dos-goytacazes.md`) com requisitos de infraestrutura e particionamento dbt.
+- **And** a suíte de testes de extração e staging passa com 100% de sucesso via `make test`.
+
+---
+
+### Story 15.5: Rollout do Portal de Natividade (NATPREVI), Homologação Cívica e Atualização dos Guias de IA (`llms.txt`)
+
+As a resident of Natividade, external AI agent, or public auditor,  
+I want to navigate a live municipal portal for Natividade with complete fiscal indicators, accompanied by updated AI documentation in `llms.txt` and `llms-full.txt`,  
+So that citizens of Natividade have access to transparent public accounts and autonomous AI agents can query their fiscal data in accordance with Rule 12.
+
+**Acceptance Criteria:**
+- **Given** os dados brutos e modelos analíticos processados para Natividade (`/natividade`) e sua entidade previdenciária (`NATPREVI`)
+- **When** o portal de Natividade for habilitado na aplicação web
+- **Then** as páginas públicas (Homepage, Despesas, Receitas, Licitações, Pessoal e Previdência) renderizam os números fiscais corretos de Natividade sem contaminação cruzada de dados (`portal_slug` isolado).
+- **And** o seletor de portais no cabeçalho/menu permite alternar perfeitamente entre Porciúncula e Natividade, preservando o ano e sub-rota ativos (removendo entidades de um município ao alternar para outro).
+- **And** para o pipeline de receitas de Natividade, em virtude do bug estrutural confirmado na API JSON da Fiorilli (onde `ARRECADADO_TOTAL` retorna `0` para qualquer exercício anterior ao ano corrente), a extração de receitas para o exercício atual (`date.today().year`) consome a API JSON, enquanto a série histórica fechada (2021 a 2025) utiliza a esteira de exportação de relatórios CSV via automação Playwright/DevExpress (`elt/extract/fiorilli/natividade_prefeitura/receitas_csv.py`) e carga SQL (`elt/load/fiorilli/natividade_prefeitura/load_receitas_csv.py`), com arquivos armazenados em `data/raw/natividade_prefeitura/receitas_csv/`.
+- **And** os arquivos públicos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` documentam as rotas municipais de Natividade, a rota canônica `/previdencia` (NATPREVI) e os parâmetros de consumo por agentes externos de IA (Regra 12).
+- **And** todas as baterias de teste e linters do projeto (`make test`, `make test/ts`, `make check`, `pnpm build`) passam com 100% de sucesso.
+
+---
+
+### Story 15.6: Rollout do Portal de Bom Jesus do Itabapoana (FUNPREV), Homologação Cívica e Atualização dos Guias de IA
+
+As a resident of Bom Jesus do Itabapoana, external AI agent, or public auditor,  
+I want to navigate a live municipal portal for Bom Jesus do Itabapoana with complete fiscal indicators, accompanied by updated AI documentation in `llms.txt` and `llms-full.txt`,  
+So that citizens of Bom Jesus do Itabapoana have access to transparent public accounts and autonomous AI agents can query their fiscal data in accordance with Rule 12.
+
+**Acceptance Criteria:**
+- **Given** os dados brutos e modelos analíticos processados para Bom Jesus do Itabapoana (`/bom-jesus-do-itabapoana`) e sua entidade previdenciária (`FUNPREV`)
+- **When** o portal de Bom Jesus do Itabapoana for homologado e habilitado nas rotas públicas da aplicação web
+- **Then** as páginas públicas (Homepage, Despesas, Receitas, Licitações, Pessoal e Previdência) renderizam os números fiscais corretos de Bom Jesus do Itabapoana com isolamento estrito de `portal_slug`.
+- **And** o seletor de portais no cabeçalho/menu incorpora Bom Jesus do Itabapoana entre as opções ativas, preservando o ano e a sub-rota selecionada.
+- **And** a esteira dedicada de extração e carga de receitas históricas CSV (`elt/extract/fiorilli/bom_jesus_itabapoana_prefeitura/receitas_csv.py` e `elt/load/fiorilli/bom_jesus_itabapoana_prefeitura/load_receitas_csv.py`) é executada e homologada contra o portal oficial, salvando em `data/raw/bom_jesus_itabapoana_prefeitura/receitas_csv/`.
+- **And** os arquivos públicos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` incorporam a documentação das rotas, indicadores e API de exportação de Bom Jesus do Itabapoana (Regra 12).
+- **And** todas as baterias de teste e linters do projeto (`make test`, `make test/ts`, `make check`, `pnpm build`) passam com 100% de sucesso.
+
+---
+
+### Story 15.7: Rollout do Portal de São Fidélis (FASP), Homologação Cívica e Atualização dos Guias de IA
+
+As a resident of São Fidélis, external AI agent, or public auditor,  
+I want to navigate a live municipal portal for São Fidélis with complete fiscal indicators, accompanied by updated AI documentation in `llms.txt` and `llms-full.txt`,  
+So that citizens of São Fidélis have access to transparent public accounts and autonomous AI agents can query their fiscal data in accordance with Rule 12.
+
+**Acceptance Criteria:**
+- **Given** os dados brutos, semente de órgãos (`seed_sao_fidelis_prefeitura_orgaos.csv`) e modelos analíticos de São Fidélis (`/sao-fidelis`) e sua entidade previdenciária (`FASP`)
+- **When** o portal de São Fidélis for homologado e habilitado nas rotas públicas da aplicação web
+- **Then** as páginas públicas (Homepage, Despesas, Receitas, Licitações, Pessoal e Previdência) renderizam os números fiscais corretos de São Fidélis com isolamento estrito de `portal_slug`.
+- **And** o seletor de portais no cabeçalho/menu incorpora São Fidélis entre as opções ativas, preservando o ano e a sub-rota selecionada.
+- **And** a esteira dedicada de extração e carga de receitas históricas CSV (`elt/extract/fiorilli/sao_fidelis_prefeitura/receitas_csv.py` e `elt/load/fiorilli/sao_fidelis_prefeitura/load_receitas_csv.py`) é executada e homologada contra o portal oficial, salvando em `data/raw/sao_fidelis_prefeitura/receitas_csv/`.
+- **And** os arquivos públicos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` incorporam a documentação das rotas, indicadores e API de exportação de São Fidélis (Regra 12).
+- **And** todas as baterias de teste e linters do projeto (`make test`, `make test/ts`, `make check`, `pnpm build`) passam com 100% de sucesso.
+
+---
+
+## Epic 16: Ingestão Regional Cluster Pronim/Cidade360 e Lançamento do Polo Regional de Itaperuna
+
+Desenvolver a família de extratores para o ecossistema GovBR / Pronim TB (`cidade360.cloud`) com gerenciamento de sessão e extração de lotes, integrando o polo regional de Itaperuna (~101 mil cidadãos, RPPSI e polo regional de saúde) e pavimentando a inclusão de Varre-Sai e Laje do Muriaé na plataforma de transparência fiscal.
+
+---
+
+## Epic 17: Radar Cívico de Obras Públicas, Medições Físicas e Impacto Urbano
+
+Transformar o portal em uma ferramenta de fiscalização cívica de alto impacto urbano no cotidiano do cidadão, integrando a esteira oficial de dados abertos do ObrasGov.br (`api-publica.obrasgov.gestao.gov.br`) aos portais municipais para exibir obras públicas georreferenciadas no mapa, percentuais auditáveis de avanço físico vs. financeiro, prazos de entrega e justificativas formais de paralisações ou atrasos que afetam a população.
+
+### Story 17.1: Pipeline ELT ObrasGov, Ingestão Multi-Tenant e Modelagem Mart (`fct_obras`) no dbt
+
+As a data engineer and civic auditor,  
+I want an automated multi-tenant pipeline that extracts public works, geometries, and physical execution measurements from the ObrasGov.br API into canonical dbt models,  
+So that the platform maintains verified, structured data on municipal infrastructure projects with strict multi-tenant isolation.
+
+**Acceptance Criteria:**
+- **Given** os portais municipais configurados com código IBGE canônico (`cod_ibge`) em seus respectivos manifestos (ex: `porciuncula_prefeitura.yml` e `natividade_prefeitura.yml`)
+- **When** o pipeline de extração e carga `elt/extract/obrasgov.py` e `elt/load/obrasgov.py` for executado
+- **Then** os dados dos endpoints `/geometria`, `/projeto-investimento`, `/execucao-fisica` e `/historico-situacao-cancelada-paralisada` são ingeridos na camada raw com idempotência e controle de requisições.
+- **And** os modelos de staging `stg_obrasgov__projetos.sql`, `stg_obrasgov__geometrias.sql`, `stg_obrasgov__execucoes_fisicas.sql` e o mart `fct_obras.sql` são criados no dbt materializados como tabela.
+- **And** o modelo mart `fct_obras.sql` implementa rigorosamente o particionamento e join por `portal_slug` (Regra 23 do `AGENTS.md`), contendo as colunas métricas: `portal_slug`, `id_projeto`, `nome_obra`, `situacao`, `orgao_responsavel`, `valor_investimento_previsto`, `percentual_execucao_fisica`, `data_ultima_medicao`, `latitude`, `longitude`, `motivo_paralisacao`, `data_inicio_prevista`, `data_fim_prevista`.
+- **And** os valores de `situacao` seguem o padrão lowercase snake_case (`em_execucao`, `paralisada`, `concluida`, `cadastrada`) em conformidade com a Regra 10.
+- **And** o fixture de teste `packages/db/tests/fixtures/schema.sql.gz` é sincronizado via `make db/fixture/dump` e validado via `make db/fixture/check` (Regra 21).
+- **And** a suíte de testes dbt e testes unitários em Python passam com 100% de sucesso via `make test`.
+
+---
+
+### Story 17.2: Contratos de Dados, Tipagem Estrita e Queries Kysely no `@transparencia/db`
+
+As a backend engineer,  
+I want type-safe Kysely query functions and immutable domain DTOs in `@transparencia/db/src/queries/obras.ts`,  
+So that frontend pages can query public works metrics cleanly without embedding raw SQL or mutating state in presentation layers.
+
+**Acceptance Criteria:**
+- **Given** o mart analítico `fct_obras` disponível no banco de dados e devidamente tipado no schema Kysely
+- **When** as funções leitoras `getObrasPorPortal(portalSlug, filtros)` e `getObraDetalhe(portalSlug, idProjeto)` forem chamadas
+- **Then** elas retornam coleções e DTOs puros com campos estritamente formatados em `camelCase` (Regra 18 do `AGENTS.md`): `idProjeto`, `nomeObra`, `situacao`, `orgaoResponsavel`, `valorInvestimentoPrevisto`, `percentualExecucaoFisica`, `dataUltimaMedicao`, `latitude`, `longitude`, `motivoParalisacao`.
+- **And** a consulta permite filtros por situação (`status`: 'todas' | 'em_execucao' | 'paralisada' | 'concluida') e busca textual normalizada.
+- **And** as funções são escritas em estilo funcional e imutável (Regra 2), sem loops imperativos com variáveis mutáveis.
+- **And** testes unitários de integração no TypeScript cobrem as queries contra o banco de testes efêmero via `make test/ts`.
+
+---
+
+### Story 17.3: Rota Pública `/obras`, Mapa Interativo de Impacto Urbano e Filtros Cívicos no `apps/web`
+
+As a citizen or resident impacted by local public works,  
+I want to navigate an interactive municipal map showing active construction sites, street repairs, and infrastructure projects,  
+So that I understand what is being built in my city, where detours or disruptions are occurring, and what the expected completion timeline is.
+
+**Acceptance Criteria:**
+- **Given** a rota pública `/[portalSlug]/obras` implementada em `apps/web/app/[portalSlug]/obras/page.tsx`
+- **When** o munícipe acessa a página
+- **Then** um mapa interativo é renderizado com marcadores georreferenciados para cada obra registrada no município, codificados visualmente por status:
+  - 🟢 **Em Execução:** obras ativas gerando intervenções ou avançando cronograma.
+  - 🔴 **Paralisada:** obras interrompidas que requerem atenção da comunidade e do poder público.
+  - 🔵 **Concluída:** infraestruturas entregues à sociedade.
+  - ⚪ **Cadastrada / Planejada:** projetos em fase preparatória ou licitação.
+- **And** ao clicar ou selecionar um marcador/card, o mapa centraliza e abre um painel resumo contendo: nome popular da obra, órgão responsável, valor do investimento, data de previsão de término e percentual de avanço físico.
+- **And** controles de filtro na interface permitem alternar rapidamente entre "Todas", "Em Andamento (Obras Ativas)" e "Paralisadas (Atenção)".
+- **And** a rota é co-localizada com loader desacoplado do `@transparencia/db`, mantendo a apresentação puramente declarativa (Regra 2).
+- **And** o layout é totalmente responsivo para dispositivos móveis, adaptando o mapa para visualização touch e lista vertical expansível.
+
+---
+
+### Story 17.4: Dossiê Detalhado da Obra, Auditoria de Avanço Físico vs. Financeiro e Fundamentação Legal
+
+As a citizen, civic hacker, or public prosecutor,  
+I want a detailed dossier for each public work comparing official physical completion percentage against financial expenditure disbursements,  
+So that I can detect anomalies where public funds were heavily disbursed while physical construction remains stalled or lagging.
+
+**Acceptance Criteria:**
+- **Given** o card ou página de detalhe da obra em `/[portalSlug]/obras/[idProjeto]`
+- **When** o usuário inspeciona o detalhamento de uma obra
+- **Then** a interface exibe o comparativo gráfico de barras duplas:
+  - **Execução Física Oficial (%):** boletim de medição técnica presencial extraído do ObrasGov.br com data da última aferição.
+  - **Execução Financeira (%):** relação entre desembolsos/pagamentos e valor total contratado.
+- **And** caso a obra esteja com status `paralisada`, um alerta cívico destacado exibe a data da paralisação e a `justificativa_cancelada_paralisada` registrada oficialmente no sistema governamental.
+- **And** links externos oficiais e seguros com `target="_blank"` e `rel="noopener noreferrer"` direcionam para o ObrasGov.br e legislações aplicáveis (Lei 14.133/2021) em conformidade com a Regra 20 do `AGENTS.md`.
+- **And** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados para documentar a nova rota `/obras`, seus indicadores e convenções de medição física (Regra 12).
+- **And** todas as validações estáticas e de tipagem passam com sucesso (`pnpm build`, `tsc --noEmit`).
+
+---
+
+### Story 17.5: Correlação de Obras Públicas com Contratos Municipais e Licitações
+
+As a citizen, civic auditor, or public prosecutor,  
+I want to see the specific municipal contracts and procurement processes linked to a public work,  
+So that I can verify which contractor won the bid, how much was actually contracted, and follow through with civic oversight via direct links to local contracts and tenders.
+
+**Acceptance Criteria:**
+- **Given** uma obra pública inspecionada no modal de detalhes em `/[portalSlug]/obras?idProjeto=[idProjeto]`
+- **When** o usuário consulta as informações da obra
+- **Then** a plataforma realiza a correlação analítica (relacionamento 1:N opcional) entre `fct_obras` e os contratos municipais em `fct_contratos` (utilizando cruzamento por tenant `portal_slug`, propostas/emendas ministeriais na descrição e/ou termos identificadores do objeto e órgão executor).
+- **And** no modal de detalhes da obra, renderiza uma seção dedicada: *"Contratos e Licitações Vinculados"*:
+  - Para cada contrato identificado, exibe número do contrato com badge de status, fornecedor/empreiteira contratada com CPF/CNPJ mascarado, valor contratado formatado (`fmtCurrency`) e modalidade licitatória.
+  - Disponibiliza links diretos de deep link para o contrato no portal municipal (`/[portalSlug]/contratos?numero=[contratoNumero]`) ou para a licitação (`/[portalSlug]/licitacoes?numero=[licitacaoNumero]`), em conformidade com as regras de UX e deep linking (Regra 24).
+  - Caso nenhum contrato local possua correspondência direta (ex: contratação 100% federal direta sem execução municipal), exibe uma mensagem contextual neutra e amigável: *"Nenhum contrato municipal diretamente correlacionado"*.
+- **And** a query Kysely em `@transparencia/db/src/queries/obras.ts` retorna a lista imutável e fortemente tipada de contratos relacionados sem efetuar mutações em memória (Regra 2).
+- **And** inclui cobertura de testes no backend/TypeScript (`make test/ts`) validando o retorno de contratos correlacionados e cenários de obras sem vínculo contratual.
+
+---
+
+### Story 17.6: Card Resumo de Obras Públicas na Visão Geral (Homepage)
+
+As a citizen or taxpayer visiting the municipal homepage (`/[portalSlug]`),  
+I want a high-level summary card of municipal public works positioned right after the secondary cards,  
+So that I can immediately see the total planned investment, the physical breakdown across active, completed, and stalled works, and seamlessly navigate to the full interactive works map.
+
+**Acceptance Criteria:**
+- **Given** a página inicial do portal municipal (`/[portalSlug]`)
+- **When** a página é renderizada
+- **Then** exibe uma seção de destaque dedicada de largura total (`ObrasResumoCard`), posicionada estrategicamente logo abaixo de `CardsSecundariosVisaoGeral` e antes de `RadarCivicoFeed`.
+- **And** o card segue rigorosamente o design system e o padrão do `SaldoCaixaResumoCard`:
+  - **Cabeçalho:** Título *"Obras Públicas e Investimentos Urbanos"*, subtítulo explicativo com a fonte oficial (*"Painel oficial de intervenções urbanas (ObrasGov.br)"*) e badge de fonte/versão.
+  - **Destaque Numérico:** Montante consolidado de investimento previsto formatado em tipografia de destaque (`font-serif`, ex: `R$ 93.1mi`).
+  - **Barra Segmentada Empilhada:** Barra proporcional horizontal (`role="progressbar"`) refletindo a distribuição do investimento previsto entre *Não iniciadas* (cinza), *Em execução* (azul), *Concluídas* (verde) e *Paralisadas* (vermelho/rosa).
+  - **Legenda e Contadores:** Linhas com contagem de obras e montantes compactos (`kpis.emExecucao`, `kpis.paralisadas`, `kpis.concluidas`, `kpis.cadastradas`).
+  - **Alerta de Paralisação:** Se houver obras paralisadas (`paralisadas > 0`), destaca visualmente o indicador para chamar atenção cívica para o desperdício de recursos parados.
+  - **Ação Direta (Call to Action):** Link de deep link direcionando para a rota dedicada de obras (`/[portalSlug]/obras`): *"Ver mapa e detalhes das obras"*.
+- **And** o data loader `loadVisaoGeralData` em `apps/web/app/[portalSlug]/loader.ts` é atualizado para consultar o resumo de obras via `@transparencia/db` (`getResumoObrasPorPortal`) em paralelo com `Promise.all`.
+- **And** caso o município não possua obras cadastradas no ObrasGov.br, renderiza um empty state neutro e elegante no padrão do design system.
+- **And** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados para registrar o novo bloco de obras na Visão Geral e suas convenções (Regra 12).
+- **And** todos os testes de frontend e tipagem passam com sucesso (`pnpm build`, `tsc --noEmit`).
+
+---
+
+## Epic 18: Tema Canônico da Educação Básica, Desempenho Pedagógico (IDEB/SAEB) e Responsabilidade Fiscal (MDE/FUNDEB)
+
+Estruturar o tema canônico da Educação no MaisTransparência, integrando dados oficiais de desempenho pedagógico (série histórica do IDEB, proficiências Saeb de Língua Portuguesa e Matemática e fluxo escolar de aprovação apurados pelo INEP/MEC) com a execução orçamentária municipal (Função 12 - Educação), auditoria dos limites constitucionais ([Art. 212 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212) para MDE 25% e [Art. 212-A da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a) para FUNDEB 70%), cálculo inédito de Custo Anual por Aluno e uma experiência cívica moderna e transparente desenhada em conjunto com a especialista de UX/UI (Sally).
+
+---
+
+### Story 18.1: Ingestão de Dados Educacionais Oficiais do INEP, dbt Seed e Workflow de Atualização Automatizada (`check-inep-ideb-updates.yml`)
+
+As a data engineer and maintainer,  
+I want a canonical, versioned dbt seed for municipal IDEB data coupled with a lightweight, automated GitHub Actions monitor,  
+So that MaisTransparência stays automatically updated whenever new biennial cycles are published by INEP without polluting daily CI pipelines or requiring manual reminders.
+
+**Acceptance Criteria:**
+- **Given** o script de processamento em `elt/scripts/sync_inep_ideb_seed.py`
+- **When** executado
+- **Then** baixa os pacotes oficiais consolidados do IDEB diretamente dos servidores do INEP (`divulgacao_anos_iniciais_municipios_2025.zip` e `divulgacao_anos_finais_municipios_2025.zip`), extrai os indicadores de 2021 a 2025 para os municípios do estado e gera o arquivo estruturado `elt/transform/seeds/seed_inep_ideb.csv`.
+- **And** declara a seed em `elt/transform/seeds/seeds.yml` com tipos estritos e documentação de colunas.
+- **And** cria o modelo de staging `elt/transform/models/staging/nacional/stg_inep__ideb.sql` a partir do seed com colunas em lowercase snake_case (`cod_ibge`, `ano`, `rede`, `etapa_ensino`, `nota_ideb`, `meta_ideb`, `saeb_matematica`, `saeb_lingua_portuguesa`, `taxa_aprovacao`).
+- **And** implementa o workflow autônomo `.github/workflows/check-inep-ideb-updates.yml`:
+  - **Gatilho:** Cron mensal (dia 1º às 08:00 UTC) e `workflow_dispatch` manual.
+  - **Verificação Leve ("Ping"):** Faz requisição HTTP `HEAD` ultraleve contra os endpoints do INEP para o próximo ano de ciclo bienal (ex: 2027) antes de fazer qualquer download pesado.
+  - **Idempotência:** Se o ano mais recente já constar no seed ou se o servidor retornar 404, o workflow encerra em menos de 5 segundos sem consumir recursos.
+  - **Pull Request Automático:** Caso um novo ciclo seja detectado (`200 OK`), o workflow executa a sincronização, regera o fixture de teste (`make db/fixture/dump`) e abre automaticamente um Pull Request via `peter-evans/create-pull-request` com título `"feat(data): atualizar seed do IDEB com novo ciclo [ANO]"`.
+- **And** regera o fixture compactado de testes `packages/db/tests/fixtures/schema.sql.gz` executando `make db/fixture/dump` e valida paridade com `make test` (Regra 21).
+
+---
+
+### Story 18.2: Fato Analítica de Métricas Educacionais e Cruzamento Orçamentário (`fct_educacao_metricas`)
+
+As an analytics engineer,  
+I want a unified fact table crossing pedagogical outcomes with municipal budgetary execution (Function 12 - Education),  
+So that we can compute the real annual investment per student and audit constitutional mandates alongside educational performance.
+
+**Acceptance Criteria:**
+- **Given** os modelos `stg_inep__ideb` e `fct_orcamento_despesa`
+- **When** o modelo `elt/transform/models/marts/metrics/fct_educacao_metricas.sql` é compilado
+- **Then** materializa como tabela física (`materialized='table'`, Regra 2) com grão único por `portal_slug`, `ano` e `etapa_ensino`.
+- **And** inclui obrigatoriamente a cláusula de particionamento e join por tenant: `ON a.portal_slug = b.portal_slug` (Regra 23, zero tenant leakage).
+- **And** calcula as métricas pedagógicas:
+  - `nota_ideb`, `meta_ideb`, `atingiu_meta_flag`.
+  - `saeb_matematica`, `saeb_lingua_portuguesa`, `indicador_fluxo_aprovacao`.
+  - `crescimento_pontos_ideb`: variação em pontos em relação ao ciclo bienal anterior via função analítica `LAG()`.
+  - `variacao_saeb_matematica` e `variacao_saeb_portugues`.
+- **And** cruza com os dados orçamentários da Função 12 (Educação) para computar:
+  - `despesa_liquidada_educacao`: montante liquidado no exercício na Função 12.
+  - `total_matriculas_rede_municipal`: contagem de matrículas ativas da rede.
+  - `custo_anual_por_aluno`: `despesa_liquidada_educacao / nullif(total_matriculas_rede_municipal, 0)`.
+- **And** inclui testes genéricos do dbt (`not_null`, `unique` na chave surrogate `portal_slug || '_' || ano || '_' || etapa_ensino`).
+- **And** a suíte de testes de integração passa com sucesso (`make test`).
+
+---
+
+### Story 18.3: Camada de Dados Kysely (`@transparencia/db`) com Contratos Fortemente Tipados em camelCase
+
+As a frontend and API developer,  
+I want atomic pass-through readers in `@transparencia/db` with strict camelCase DTOs,  
+So that the web application can query educational metrics with high performance, strong type safety, and zero business logic in the presentation layer.
+
+**Acceptance Criteria:**
+- **Given** o pacote `@transparencia/db`
+- **When** o leitor `getEducacaoMetrics(portalSlug: string)` é invocado
+- **Then** consulta a tabela `fct_educacao_metricas` filtrando estritamente por `where('portal_slug', '=', portalSlug)` (Regra 2).
+- **And** todas as propriedades de interfaces e DTOs utilizam rigorosamente a convenção **camelCase** (Regra 18):
+  - `notaIdeb`, `metaIdeb`, `atingiuMeta`, `crescimentoPontosIdeb`.
+  - `saebMatematica`, `saebLinguaPortuguesa`, `indicadorFluxoAprovacao`.
+  - `despesaLiquidadaEducacao`, `totalMatriculasRedeMunicipal`, `custoAnualPorAluno`.
+  - `etapaEnsino` (`'anosIniciais' | 'anosFinais'`).
+- **And** implementa a função auxiliar `getResumoEducacao(portalSlug: string)` para alimentar o card de destaque da homepage com os KPIs mais recentes do ciclo 2025.
+- **And** inclui suíte de testes unitários com Vitest em `packages/db/src/queries/__tests__/educacao-metrics.spec.ts` validando o retorno de Porciúncula (Ideb 5,9, crescimento de +1,4 ponto) e Natividade.
+- **And** a validação de tipos passa sem erros (`pnpm --filter @transparencia/db check-types` e `make test/ts`).
+
+---
+
+### Story 18.4: Página Temática da Educação (`/[portalSlug]/educacao`) com Especificações de UX/UI (Sally)
+
+As a citizen, teacher, or public auditor,  
+I want a dedicated, accessible, and comprehensive Education page in `/[portalSlug]/educacao`,  
+So that I can clearly understand school quality, verify the historic breakthrough of the city, and audit municipal investments with complete civic context.
+
+**Acceptance Criteria:**
+- **Given** a rota `apps/web/app/[portalSlug]/educacao/page.tsx`
+- **When** o cidadão acessa a página
+- **Then** a interface renderiza uma experiência cívica de alto impacto dividida em 4 blocos desenhados segundo o Design System:
+  - **Bloco 1: Hero & Destaque do Ciclo 2025 ("Troféu Cívico"):**
+    - Card de destaque com badge dourada: *"🏆 Maior crescimento do Estado do Rio de Janeiro nos Anos Iniciais (+1,4 ponto) e Rede Municipal no Top 10 dos Anos Finais"*.
+    - KPIs principais: Nota Atual (5,9), Nota Anterior (4,5), Posição no Ranking Estadual (46º lugar, subindo 43 posições) e Custo Anual por Aluno.
+  - **Bloco 2: Linha do Tempo e Gráfico Histórico do IDEB (2021–2025):**
+    - Gráfico interativo e limpo com os três ciclos recentes (2021, 2023 e 2025) com alternância entre *Anos Iniciais* e *Anos Finais*.
+    - Foco estritamente institucional e cívico, **sem nomes de prefeitos ou agentes políticos** (a conquista pertence à comunidade escolar e à rede municipal).
+    - Evidencia a trajetória recente: o patamar de 2021 (5,2), a queda de 2023 (4,5) e a grande virada em 2025 (5,9).
+    - Linha de referência da Meta do MEC e da Média Estadual da rede pública (RJ).
+  - **Bloco 3: Painel de Responsabilidade Fiscal da Educação:**
+    - Termômetro visual do MDE (25% mínimo constitucional) com hyperlink oficial para o [Art. 212 da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212) (Regra 20).
+    - Termômetro do FUNDEB 70% com link para o [Art. 212-A da CF/88](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a).
+    - Gráfico de correlação: Evolução do Custo por Aluno vs. Desempenho no IDEB.
+  - **Bloco 4: Contratos e Compras da Educação:**
+    - Listagem auditável dos contratos da Secretaria de Educação (fornecimento de merenda escolar PNAE, transporte escolar PNATE e manutenção escolar) com links diretos para o detalhe em modal (Regra 24).
+- **And** todas as condicionais complexas na UI utilizam IIFE ou funções auxiliares, sem ternários aninhados (Regra 13).
+- **And** todos os links para legislações incluem `target="_blank"`, `rel="noopener noreferrer"` e ícone acessível (Regra 20).
+- **And** a página é totalmente responsiva em dispositivos móveis e atinge nota 100% no Lighthouse de acessibilidade.
+
+---
+
+### Story 18.5: Card Resumo de Educação na Homepage (`/[portalSlug]`) e Sincronização de Contexto para LLMs
+
+As a citizen visiting the city homepage (`/[portalSlug]`),  
+I want a concise, high-visibility Educational Summary Card,  
+So that I can instantly see the latest IDEB score, its evolution, goal status and state ranking, and navigate smoothly to the full educational module.
+
+**Acceptance Criteria:**
+- **Given** a página inicial do portal municipal (`apps/web/app/[portalSlug]/page.tsx`)
+- **When** a página é carregada
+- **Then** renderiza o componente `EducacaoResumoCard` na seção de cards principais, contendo:
+  - Título *"Educação Básica e Desempenho Escolar"* com badge de fonte oficial em link externo (*"INEP / IDEB"*, `target="_blank"`, `rel="noopener noreferrer"`, ícone `ExternalLink`) apontando para a página oficial do IDEB no INEP.
+  - Nota do IDEB em destaque tipográfico (`font-serif`, ex: `5.9`), acompanhada do badge de evolução (`+1.4 ponto`).
+  - Rótulo do indicador principal *"Nota do IDEB (1º ao 5º ano)"* (anos iniciais), com ciclo anterior e evolução em pontos; sem faixa de etapas (anos iniciais/finais).
+  - Situação da meta do IDEB (atingida ou não atingida), exibida apenas quando houver meta no ciclo.
+  - Classificação estadual (`posicaoRanking` de `totalMunicipios`), apenas quando disponível, sem UF fixa.
+  - Sem despesa liquidada em educação no card (não reconcilia com os indicadores financeiros do topo da home); variação de posições no ranking exibida junto à classificação.
+  - Layout em duas colunas no desktop (nota; classificação estadual) com alturas iguais, compacto no mobile; rodapé com divisor (`border-t`) sempre visível, ícone `Info` + *"Indicadores oficiais do IDEB apurados pelo INEP/MEC."* e CTA à direita.
+  - Ênfase positiva (faixa verde, ex.: *"Destaque: evolução de +1,4 ponto no IDEB"* ou *"Meta do IDEB atingida"*) quando a evolução for >= 1,0 ponto ou a meta for atingida; ênfase de atenção (tom âmbar) quando houver queda ou meta não atingida; neutro nos demais casos. A regra de destaque é compartilhada com a página `/educacao`.
+  - Botão de ação cívica (CTA) direcionando para `/[portalSlug]/educacao`: *"Ver indicadores pedagógicos e despesas detalhadas"*.
+- **And** o data loader `loadVisaoGeralData` em `apps/web/app/[portalSlug]/loader.ts` consulta `getResumoEducacaoPorPortal` em paralelo com `Promise.all`.
+- **And** atualiza os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` documentando a rota pública `/[portalSlug]/educacao`, os conceitos do IDEB, Saeb, MDE (25%) e FUNDEB (70%) da página de educação, e o conteúdo do card (sem custo por aluno nem MDE), para consumo por agentes de IA externos (Regra 12).
+- **And** todos os testes automatizados e builds passam com 100% de sucesso (`pnpm build`, `tsc --noEmit`, `make test`).
+
+
+### Story 18.6: Consistência de Dados e Textos da Educação (Etapa do IDEB, Formatação Compacta pt-BR e Sincronização de Contexto para LLMs)
+
+As a citizen and as an external AI agent consulting the Education module,  
+I want the displayed IDEB stage, compact currency values and public descriptions to be accurate and consistent with what the portal actually shows,  
+So that I never read a score from the wrong school stage, a number with a foreign decimal separator, or documentation that describes indicators the portal no longer displays.
+
+**Acceptance Criteria:**
+- **Given** `getResumoEducacao` em `packages/db/src/queries/educacao-metrics.ts`, que hoje usa os anos iniciais como fonte principal e cai para os anos finais quando a nota inicial é nula (`primary.notaIdeb ?? secondary?.notaIdeb`)
+- **When** um município não possui nota do IDEB dos anos iniciais para o ciclo
+- **Then** a nota, a evolução, a meta e o ranking do resumo **não** são preenchidos com dados dos anos finais: o campo retorna `null`, de modo que o card da home (rótulo "Nota do IDEB (1º ao 5º ano)") e o troféu da `/[portalSlug]/educacao` exibem "—" ou ocultam o indicador, sem misturar etapas
+  - **And** testes de paridade em `packages/db` cobrem município com nota inicial, sem nota inicial e com nota apenas nos anos finais
+- **Given** o helper compartilhado `fmtCompact` em `packages/ui/src/utils/formatters.ts`, que formata com ponto decimal (ex.: `R$ 33.3mi`)
+- **When** valores compactos são exibidos em qualquer tela (home, orçamento, obras, educação, cards OpenGraph)
+- **Then** usam a convenção pt-BR com vírgula decimal (ex.: `R$ 33,3 mi`), de forma consistente com `fmtCurrency`, `fmtPercent` e `fmtNumber`
+  - **And** todos os testes unitários, snapshots e specs que dependem do formato anterior são atualizados e passam
+- **Given** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` e o card OpenGraph de `/[portalSlug]/educacao/opengraph-image`
+- **When** a descrição da rota `/[portalSlug]/educacao` e do card de compartilhamento é revisada contra o que a página realmente exibe
+- **Then** nenhuma menção a indicadores que a página e o card da home não exibem mais (percentual de MDE, custo anual por aluno) permanece; os textos descrevem apenas os indicadores públicos vigentes, e o card OpenGraph exibe somente dados efetivamente apresentados na página (Regra 12)
+- **And** todos os testes automatizados e builds passam com 100% de sucesso (`pnpm build`, `tsc --noEmit`, `make test/ts`, `make test`).
+
+
+### Story 18.7: Linha de Totais Fixa nas Tabelas de Contratos/Emendas e Emendas Parlamentares da Educação com Rastreabilidade de Empenhos
+
+As a citizen auditing education spending,  
+I want a fixed totals row below the education contracts table and to see the parliamentary amendments destined to Education with their linked commitment notes (as already done for Health),  
+So that I can see at a glance how much was committed, settled, paid and still pending, and follow each amendment up to the actual expenditure.
+
+**Acceptance Criteria:**
+- **Given** a tabela "Contratos e Compras da Educação" em `apps/web/components/educacao/educacao-contratos-section.tsx`
+- **When** a tabela é exibida (inclusive com filtro de categoria ou busca aplicados)
+- **Then** uma linha fixa de totais no rodapé exibe a soma de **Empenhado, Liquidado, Pago e Saldo Pendente** dos contratos atualmente filtrados, usando `fmtCurrency` e o mesmo estilo do totalizador de Emendas da Saúde (fundo `slate-100`, rótulo "Total", valores em negrito)
+  - **And** os totais são calculados a partir dos registros filtrados e não variam com a paginação da tabela
+- **Given** a página `/[portalSlug]/educacao` e o exercício selecionado
+- **When** existem emendas parlamentares destinadas à Educação no exercício
+- **Then** uma seção "Emendas parlamentares destinadas à Educação" é exibida seguindo o mesmo padrão de `apps/web/components/saude-emendas-section.tsx`: KPIs (total autorizado, total empenhado, taxa de empenho, maior emenda), tabela com coluna "Rastreabilidade" (quantidade de empenhos) e modal "Detalhes" com as notas de empenho vinculadas (empenhado, liquidado, pago, saldo a executar), com o mesmo deep linking por query param
+  - **And** a classificação das emendas da Educação e o vínculo com os empenhos ficam em `@transparencia/db` (query tipada em camelCase, reaproveitando `EmendaEmpenhoItemDTO`) e, se necessário, no modelo dbt correspondente, com fixtures regeneradas (`make db/fixture/dump`)
+  - **And** quando não houver emendas, a seção exibe estado neutro ou é omitida, sem dados de outro município (Regra 23)
+- **Given** a seção de Emendas da Saúde em `apps/web/components/saude-emendas-section.tsx`
+- **When** a tabela é exibida
+- **Then** o rodapé de totais usa o mesmo componente/estilo compartilhado da linha de totais da Educação, apresentando Autorizado e Empenhado de forma consistente (extraído para um componente reutilizável em `packages/ui` ou `apps/web/components`)
+- **Given** a Regra 12
+- **When** as rotas e seções acima são alteradas
+- **Then** `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` descrevem a linha de totais e as emendas da Educação
+  - **And** todos os testes automatizados e builds passam com 100% de sucesso (`pnpm build`, `tsc --noEmit`, `make test/ts`, `make test`, `make db/fixture/check`).
+
+---
+
+## Epic 19: Remodelagem da Homepage para Utilidade Pública, Sentinela da Farmácia SUS (Lei 14.654/2023) e Ação Cívica
+
+Remodelar a arquitetura de informação da página inicial (`apps/web/app/[portalSlug]/page.tsx`), transformando o portal em uma utilidade pública indispensável ao cidadão comum conforme especificado em `handoff-remodelagem-home-utilidade.md`. Promover a primeira dobra para os serviços e direitos essenciais — com destaque prioritário para a **Consulta de Estoque de Remédios da Farmácia SUS** e **Sentinela de Conformidade** ([Lei Federal nº 14.654/2023](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14654.htm)), o Troféu Cívico da Educação e o alerta de Obras Públicas paralisadas —, municiando o cidadão com ferramentas de utilidade direta (saber se o remédio está no posto e onde buscar) e ferramentas de ação imediata (cópia de requerimentos formais para o Ministério Público/Câmara e compartilhamento no WhatsApp quando houver omissão de dados), mantendo a inteligência orçamentária e financeira consolidada como base de sustentação.
+
+---
+
+### Story 19.1: Pipeline ELT da Farmácia SUS (Lei 14.654/2023): Estoque BNAFAR/Hórus e Estabelecimentos CNES
+
+As a data engineer,  
+I want an automated ELT pipeline that ingests municipal SUS pharmacy stock (BNAFAR/Hórus) and health facilities (CNES) from the Ministry of Health open data API,  
+So that the portal has a tenant-isolated, auditable mart to power the medication search and the Lei 14.654/2023 compliance sentinel.
+
+**Escopo:** somente ELT (extract/load Python + dbt). Toda a UI e a camada `@transparencia/db` foram movidas para a Story 19.2.
+
+**Acceptance Criteria:**
+- **Given** os endpoints oficiais `GET https://apidadosabertos.saude.gov.br/daf/estoque-medicamentos-bnafar-horus?codigo_municipio={ibge6}` e `GET https://apidadosabertos.saude.gov.br/assistencia-a-saude/cnes-estabelecimentos?co_ibge={ibge6}`
+- **When** o pipeline global (`ingestion-pipeline.yml`) ou `make elt/farmacia-sus [PORTAL=...]` é executado
+- **Then** o extrator (`elt/extract/farmacia_sus.py`) pagina as duas APIs por IBGE de 6 dígitos de cada portal, deduplica o CNES pela competência mais recente (`nu_comp`) e registra cada coleta como `sucesso` ou `falha`, sem nunca tratar falha de coleta como apagão.
+- **And** o loader (`elt/load/farmacia_sus.py`) grava em `raw_farmacia_sus` (`estoque_medicamentos`, `estabelecimentos_cnes`, `coletas`) com `portal_slug` na chave primária e sem payload bruto.
+- **And** o dbt expõe `fct_farmacia_estoque` classificando cada portal como `conforme`, `apagao` (0 itens ou posição defasada > 15 dias, calculada por CNES) ou `indisponivel` (coleta ausente, falha ou antiga), com coordenadas das unidades (`latitude_unidade`, `longitude_unidade`, CNES primário e estoque como complemento), em lowercase snake_case (Regras 9, 10 e 23).
+- **And** a ingestão roda dentro do `ingestion-pipeline.yml` global, sem workflow dedicado.
+- **And** `make check`, `make test` e `make db/fixture/check` passam.
+
+---
+
+### Story 19.2: Página da Farmácia SUS (`/[portalSlug]/saude/farmacia`), Camada de Dados e Card-Resumo na Home
+
+As a citizen seeking essential medication or a civic auditor,  
+I want a dedicated Farmácia SUS page with a search-first experience and a compact summary on the homepage,  
+So that I can find which health facility has my medicine without cluttering the homepage, and see or act on Lei 14.654/2023 violations.
+
+**Acceptance Criteria:**
+- **Given** o mart `fct_farmacia_estoque` da Story 19.1
+- **When** `getFarmaciaSus(portalSlug)` é consumida em `@transparencia/db/src/queries/farmacia.ts` (somente leitura do mart, sem `fetch`, DTOs `camelCase`, isolamento por `portal_slug`)
+- **Then** a rota `/[portalSlug]/saude/farmacia` renderiza a busca **vazia por padrão** ("Qual remédio você procura?"), resultados **agrupados por unidade** (nome, endereço, telefone, quantidade, data da posição) com paginação ("Ver mais unidades") e filtro por unidade, com deep link (`?q=...&unidade=...`).
+- **And** exibe mapa das unidades (`latitudeUnidade`/`longitudeUnidade`), reutilizando o mini-mapa de Obras; unidade sem coordenada aparece só na lista.
+- **And** trata os estados: `conforme` (selo "Estoque Transparente — Atualizado em [data]"), `apagao` (sentinela citando a [Lei 14.654/2023](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14654.htm) com `target="_blank"` e `rel="noopener noreferrer"`, botões "Copiar Requerimento de Fiscalização" (Art. 6º-A da Lei 8.080/1990) e "Compartilhar no WhatsApp", **somente nesta rota na 19.2; estendido à home na Story 19.4**) e `indisponivel` (mensagem neutra).
+- **And** a home exibe apenas um **card-resumo compacto** abaixo do resumo fiscal (sem lista de medicamentos): campo "Qual remédio você procura?" no estado `conforme`, faixa curta com "Ver detalhes" no `apagao`, e nada no `indisponivel`.
+- **And** `llms.txt` e `llms-full.txt` documentam a rota (Regra 12); vocabulário e componentes do design system (Regra 24); sem nomes de município/UF fixos (Regra 23).
+
+---
+
+### Story 19.3: Reorganização da Arquitetura da Homepage (Dobra de Sentinela Cívica & Troféus da Cidade)
+
+As a citizen or local taxpayer,  
+I want the homepage hierarchy restructured to prioritize real-life civic impact over raw accounting tables,  
+So that I immediately understand public service quality, municipal breakthroughs, and critical red flags upon landing on the portal.
+
+**Acceptance Criteria:**
+- **Given** a página inicial `apps/web/app/[portalSlug]/page.tsx`
+- **When** a página é renderizada
+- **Then** a estrutura de blocos segue estritamente a arquitetura de informação do handoff de produto:
+  - **1. Header do Município:** Identidade cívica, nome oficial da cidade e brasão.
+  - **2. Dobra Superior (Sentinela Cívica & Utilidade):**
+    - Card-resumo da Farmácia SUS e faixa de alerta da Lei 14.654/2023 (Story 19.2; sem lista de medicamentos na home).
+    - `EducacaoTrofeuCard` (conquista do IDEB 2025 da Epic 18: salto de 4,5 para 5,9 e maior crescimento do RJ).
+    - `ObrasParalisadasAlertaCard` (resumo de obras travadas e recursos públicos paralisados da Epic 17).
+  - **3. Radar Cívico:** Feed de anomalias promovido e ordenado por severidade e impacto social.
+  - **4. Painel Fiscal Resumido:** Indicador consolidado de saúde fiscal e disponibilidade de caixa líquido.
+  - *(Sem seção de trilhas temáticas na página: a exploração por tema vive na navegação lateral e na bottom bar.)*
+- **And** o data loader `loadVisaoGeralData` em `apps/web/app/[portalSlug]/loader.ts` orquestra todas as consultas via `@transparencia/db` em paralelo com `Promise.all`.
+- **And** nenhum nome de município ou estado é declarado de forma hardcoded (Regra 23, zero tenant leakage).
+- **And** na sidebar desktop (`packages/ui/src/components/sidebar.tsx`) o grupo "Temas" aparece antes do grupo "Administrativo", que continua aberto.
+- **And** a bottom bar mobile (`apps/web/components/mobile-bottom-nav.tsx`) exibe Início, Saúde, Educação, Obras e "Mais" (o "Mais" abre os itens administrativos e a Previdência quando habilitada), com alvos de toque de pelo menos 44 px e `aria-label`; a lista de temas vem de uma fonte única compartilhada com a sidebar.
+- **And** o fallback `"/brasao-porciuncula.png"` em `normalizedBrasao` no `sidebar.tsx` é removido: sem brasão informado, renderiza-se o ícone cívico neutro (Regra 23).
+
+---
+
+### Story 19.4: Ação Cívica no Card da Farmácia na Home
+
+As a citizen who finds no up-to-date pharmacy stock information for my city,  
+I want to act right from the homepage card (copy a request to a councilor or the health secretary, or share it on WhatsApp),  
+So that I do not need to open the pharmacy page to react to the lack of disclosure.
+
+**Contexto:** decisão anterior à descoberta dos dados de estoque de Natividade. O estado `apagao` (0 itens ou posição com mais de 15 dias, Story 19.1) já aparece na home como faixa "Sem informação de estoque" com "Ver detalhes", mas os botões de ação existem só em `/[portalSlug]/saude/farmacia` (Story 19.2). Esta story **estende o `FarmaciaResumoCard` existente**; não cria componente novo e não altera a camada de dados.
+
+**Acceptance Criteria:**
+- **Given** o `FarmaciaResumoCard` (`apps/web/components/farmacia/farmacia-resumo-card.tsx`) com `status === "apagao"`
+- **When** renderizado na home
+- **Then** exibe, além do texto de contexto e do link "Ver detalhes", os botões "Copiar Requerimento de Fiscalização" e "Compartilhar no WhatsApp", reutilizando a lógica do `farmacia-sus-sentinela-banner.tsx` por extração de um trecho compartilhado (sem duplicar clipboard, texto do requerimento nem link do WhatsApp).
+- **And** o gatilho continua sendo somente `apagao`: `conforme` mantém a busca e `indisponivel` continua sem render, pois pode ser falha de coleta ou ausência de publicação e não deve induzir ação.
+- **And** a palavra "apagão" não aparece na UI; o rótulo e o contexto seguem o `editor-cidadao` (ex.: "Sem informação de estoque"; contexto que diz que o dado não mostra falta de remédio, e sim ausência de divulgação atualizada), indício e nunca acusação.
+- **And** a restrição "somente nesta rota" da Story 19.2 é revogada para esses dois botões; a [Lei 14.654/2023](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14654.htm) e o Art. 6º-A da Lei 8.080/1990 citados têm link oficial com `target="_blank"` e `rel="noopener noreferrer"`.
+- **And** a citação legal é corrigida de "Art. 6º-B" para **"Art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023"** (texto verificado no DOU de 24/08/2023 e no Planalto) no requerimento, na sentinela, nos testes e nos documentos de contexto; "divulgação quinzenal" tem base direta nesse artigo. O gatilho de 15 dias é parâmetro do portal e não prazo legal, e o requerimento fala em "possível descumprimento".
+- **And** sem município, UF ou ano fixos (Regra 23); `make test/ts` e build passam.
+
+**Fora de escopo (referências):** limites de pessoal da LRF lidos do seed (issue #61); termômetros de MDE 25% e Saúde 15% e `PainelSaudeFiscalCard` (`deferred-work.md`, refinamento da 19-4).
+
+---
+
+### Story 19.7: Sincronização da Nova Arquitetura da Home em `llms.txt` e Otimizações de Acessibilidade Mobile
+
+As an AI agent or assistive technology user,  
+I want the redesigned homepage structure fully documented and perfectly accessible across all viewports,  
+So that external LLMs and screen readers understand the civic priorities of the portal.
+
+**Acceptance Criteria:**
+- **Given** as alterações na página inicial
+- **When** finalizada a implementação
+- **Then** os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` são atualizados documentando a nova hierarquia, a página da Farmácia SUS, a entrada por tema `/farmacia`, o card-resumo e a faixa da Lei 14.654/2023 e as convenções de sentinela cívica (Regra 12).
+- **And** a página inicial atinge nota 100% no Lighthouse de Acessibilidade e SEO em mobile.
+- **And** todos os testes estáticos e de tipagem passam com sucesso (`pnpm build`, `tsc --noEmit`, `make test`).
+
+---
+
+### Story 19.8: Histórico de Estoque da Farmácia SUS (Snapshots Diários e Histórico de Coletas)
+
+As a data analyst and civic auditor,  
+I want the daily pharmacy stock snapshots and the collection history preserved instead of overwritten,  
+So that we can prove how long a municipality went without transmitting and, in the future, compute stockout duration, turnover and expiry statistics.
+
+**Prioridade:** executar antes de iniciar a coleta diária em produção, pois cada dia sem acumular é histórico perdido. Independe das stories de UI.
+
+**Acceptance Criteria:**
+- **Given** o pipeline ELT da Story 19.1
+- **When** o loader grava o estoque
+- **Then** `raw_farmacia_sus.estoque_medicamentos` passa a ser append-only e idempotente, com chave `(portal_slug, id_registro, data_posicao_estoque)` (rodar duas vezes no mesmo dia não duplica) e registra a origem do dado (`sigla_sistema_origem`).
+- **And** `raw_farmacia_sus.coletas` acumula uma linha por execução (portal, data da coleta, status, totais), em vez de manter só a última.
+- **And** o dbt expõe um modelo incremental `fct_farmacia_estoque_historico` (grão: portal, unidade, medicamento, lote e data da posição, com quantidade e validade) e uma visão do histórico de coletas por portal, em lowercase snake_case e com `portal_slug` nas chaves e agrupamentos (Regras 9, 10 e 23).
+- **And** o mart atual `fct_farmacia_estoque` continua devolvendo a última posição de cada unidade, sem alterar seu contrato.
+- **And** testes cobrem a idempotência, a preservação do histórico em recargas e a coleta com falha (não apaga o histórico); `make check`, `make test` e `make db/fixture/check` passam.
+
+---
+
+### Story 19.9: Medicamentos-Sentinela da Farmácia SUS: Disponibilidade por Unidade sob a Busca
+
+As a citizen looking for essential medication,
+I want to see, right below the search box, the most common essential medicines and in how many health facilities each one has reported stock,
+So that I can spot at a glance which basic medicines are missing from the reported stock and click to find where the available ones are.
+
+**Contexto:** a fonte (BNAFAR/Hórus) não publica saídas nem dispensação e só traz itens com saldo, então não há ranking de demanda nem como afirmar "estoque zerado". A lista é editorial, baseada na RENAME 2024 (Anexo I, Componente Básico) e na PNAUM. Fundamentação, lista de 21 itens e riscos em `handoff-sentinelas-farmacia-sus.md`.
+
+**Acceptance Criteria:**
+- **Given** a lista de sentinelas do handoff (19 itens do núcleo, sem azitromicina, mais `fluoxetina` e `amitriptilina`)
+- **When** o dbt é executado
+- **Then** existe o seed `seed_farmacia_medicamentos_sentinela` (declarado em `seeds.yml` com `column_types` em `text`, Regra 16) com `codigo_principio_ativo`, `nome_principio_ativo`, `prefixo_nome_normalizado`, `grupo_terapeutico` e `ordem_exibicao`; códigos em lowercase snake_case sem acento (Regra 10), colunas com nomes explícitos (Regra 9), sem município, UF ou portal (Regra 23). Um mesmo `codigo_principio_ativo` pode ter mais de uma linha (ex.: `insulina` com os prefixos `insulina humana nph` e `insulina humana regular`).
+- **And** o mart `fct_farmacia_sentinela_disponibilidade` (contrato `enforced` e `unique_combination_of_columns` em `_fct_farmacia_sentinela_disponibilidade.yml`, como o mart-pai) é derivado de `fct_farmacia_estoque` filtrado em `status_conformidade = 'conforme'` e tem grão `(portal_slug, codigo_cnes, codigo_principio_ativo)`, com `status_disponibilidade` em `com_registro_estoque` / `sem_registro_estoque` e `quantidade_apresentacoes_com_estoque`. Todo `JOIN` e `GROUP BY` inclui `portal_slug` (Regra 23).
+- **And** o **casamento** usa `{{ target.schema }}.unaccent(lower(nome_medicamento))` (Regra 11) com a regra `^prefixo_nome_normalizado([ ,(]|$)`, **excluindo** nomes com `+` ou "associada" (combinações em dose fixa não são o sentinela). Isso evita falsos positivos reais da base: `amoxicilina + clavulanato`, `atenolol + clortalidona`, `losartana + hidroclorotiazida`, `paracetamol + codeína`, `furosemida + cloreto de potássio`, e as insulinas análogas (aspart, glargina, lispro etc.), que não são a NPH/regular do Anexo I. Variações de sal ("losartana potássica", "dipirona sódica", "levotiroxina sódica") continuam casando pelo prefixo.
+- **And** o denominador são as **unidades ativas** derivadas do próprio mart de estoque (`distinct codigo_cnes` dos itens de portal `conforme`); a combinação unidade × sentinela é gerada por `cross join` do seed (tabela de ~21 linhas, sem `portal_slug`) com as unidades ativas, já filtradas por portal. `com_registro_estoque` exige ao menos uma apresentação com `quantidade_estoque > 0`. **Não se somam quantidades entre apresentações** (mL, comprimidos e frascos não são comparáveis); o mart expõe só a contagem. O CNES apenas enriquece nome e endereço, então unidade que nunca transmitiu não entra na conta; a interface escreve "N de M unidades que informaram estoque".
+- **And** `getFarmaciaSentinelas(portalSlug)` em `@transparencia/db/src/queries/farmacia.ts` devolve DTOs camelCase (ex.: `unidadesComRegistro`, `totalUnidadesAtivas`, `grupoTerapeutico`), somente leitura do mart, sem lógica na camada de apresentação.
+- **And** a rota `/[portalSlug]/saude/farmacia` exibe, abaixo da busca e **somente no estado `conforme`**, os sentinelas agrupados por `grupo_terapeutico`; clicar em um item leva à busca preenchida (`?q=`). Nos estados `apagao` e `indisponivel` o bloco não aparece.
+- **And** o texto ao cidadão usa "não aparece na lista de estoque" (nunca "esgotado" ou "zerado"), em linguagem simples (revisão `editor-cidadao`; entradas novas em `docs/glossario-cidadao.md`), e traz nota de que a lista vem da RENAME 2024, com **link oficial** para o PDF do Ministério da Saúde (Regra 20, chave `rename2024` em `apps/web/lib/constants/legislacao.ts`), e de que a fonte publica apenas itens com saldo. Não há ranking de demanda.
+- **And** rótulos vêm da camada de UI a partir dos códigos (Regra 10), componentes do design system (Regra 24), `llms.txt` e `llms-full.txt` atualizados (Regra 12).
+- **And** testes cobrem: casamento por princípio ativo com apresentações, sais e acentos diferentes, **combinações em dose fixa e insulinas análogas não casando**, item totalmente ausente, apresentação com quantidade zero contando como sem registro, unidade inativa fora do denominador e isolamento entre portais; `make check`, `make test`, `make test/ts` e `make db/test/build` passam (Regra 21: não há fixture versionado).
+- **And** (decisão posterior) o mart expõe `quantidade_apresentacoes_combinacao_com_estoque` e a query `unidadesSomenteCombinacao`: combinações em dose fixa continuam **não** contando como o sentinela, mas quando a unidade só tem o princípio ativo em combinação (ex.: `valsartana + hidroclorotiazida`) o item mostra "só aparece misturado com outro remédio em N de M unidades", para não contradizer a busca textual, que encontra o nome.
+- **And** (decisão posterior) a página da farmácia mostra o link "Limpar busca" no formulário quando há busca ativa (`FarmaciaBuscaForm`, prop opcional `limparHref`), voltando à rota sem `?q=`, `unidade` e `limite`.
+- **And** (decisão posterior) o card da Farmácia SUS na página inicial (`conforme`) exibe até 6 pílulas de exemplo ("Exemplos:") que levam à busca preenchida. A eleição é dado, não UI: coluna `destaque_card_inicial` no seed (`dipirona`, `paracetamol`, `losartana`, `metformina`, `amoxicilina`, `omeprazol`), exposta no mart e em `destaqueCardInicial`; só aparecem os que têm `unidadesComRegistro > 0` no município, e uma falha da consulta não derruba a página inicial.
+- **And** (operação) o pipeline `elt/farmacia-sus` roda `dbt seed --full-refresh` do seed de sentinelas antes do mart, porque colunas novas exigem recriar a tabela do seed. Até o seed e o mart serem reconstruídos em um ambiente, o bloco de sentinelas e as pílulas ficam ocultos (a consulta falha e é descartada).
+
+**Dependências:** 19.1 (concluída) e 19.2 (página e query base). Independe da 19.8, que depois pode enriquecer o bloco com "sem registro há N dias".
+
+
+---
+
+### Story 19.11: Redesenho do Conteúdo da Página da Farmácia SUS (Busca em Destaque, Resultados com Mapa e Remédios Essenciais)
+
+As a citizen looking for medication in my city,  
+I want the pharmacy page to put the search first and show where each medicine is available on a map and by unit,  
+So that I find the nearest unit with stock quickly and see at a glance which essential medicines the city reports.
+
+**Contexto:** refatoração de layout **só da área de conteúdo** de `/[portalSlug]/saude/farmacia`, a partir do handoff de design em `_bmad-output/planning-artifacts/design_handoff_farmacia_sus/` (README + protótipos `.dc.html`). **Não alterar** sidebar, banner superior, header/bottom nav mobile e footer. **A rota não muda nesta story** (a mudança para `/[portalSlug]/farmacia` é da 19.10). Os dados do protótipo são placeholders: usar **os dados reais** do projeto. Executar **antes da 19.10**; depende da 19.8 e da 19.9 (concluídas).
+
+**Acceptance Criteria:**
+- **Given** a página atual da farmácia
+- **When** renderizada
+- **Then** segue o layout do handoff: (1) cabeçalho com eyebrow "Temas · Saúde · Farmácia SUS", H1, lead de uma linha e selo de atualização; busca em destaque (lupa, "×" dentro do campo, botão Buscar, Enter busca) com chips "Mais procurados"; 3 indicadores; (2) seção "Onde encontrar …" com seletor "Por unidade | Por remédio" e mapa; (3) seção "Remédios essenciais" com "Como ler esta lista" recolhível (texto da RENAME inalterado), filtro por categoria e lista de cobertura.
+- **And** o selo da Lei 14.654/2023 é mantido, com os estados `conforme`, `apagao` e `indisponivel`.
+- **And** os chips "Mais procurados" usam o critério já estabelecido na 19.9 (mesma fonte das pílulas da home), sem lista fixa no componente.
+- **And** busca sem distinção de acento e caixa, por substring; estado vazio sem prometer que o remédio acabou ("não aparecer na lista não prova que o remédio acabou"), texto revisado pelo `editor-cidadao`.
+- **And** mapa Leaflet + Esri World Light Gray (igual a Obras), com marcadores numerados para unidades com resultado, pontos cinza para as demais, `fitBounds` recalculado a cada busca e hover/clique sincronizados entre card e marcador; em mobile o mapa fica acima da lista.
+- **And** os 3 indicadores (unidades que informaram estoque, essenciais no estoque, última atualização) e os agrupamentos por unidade e por remédio são calculados em `@transparencia/db`; a apresentação só renderiza. Nenhum "8 unidades", "Há N dias" ou intervalo de datas fixo (Regra 23).
+- **And** tokens mapeados para os existentes em `packages/ui/src/tokens.ts` (Regra 24), acrescentando só os que faltarem; fixtures de teste sem os números inventados do protótipo.
+- **And** `make test/ts`, `pnpm typecheck` passam.
+
+**Dependências:** 19.8 e 19.9. **Bloqueia:** 19.10.
+
+---
+
+### Story 19.10: Página Dedicada da Farmácia SUS (`/[portalSlug]/farmacia`) com Estatísticas de Estoque e Ação por Medicamento
+
+As a citizen looking for medication in my city,  
+I want a dedicated pharmacy page, independent of the Health section, that shows the stock search, the essential medicines and how current the reported stock is,  
+So that I find medicine, understand how reliable the information is and know how to act when an essential medicine has no reported stock.
+
+**Contexto:** hoje a farmácia vive em `/[portalSlug]/saude/farmacia` (Story 19.2). A página passa a ter identidade própria porque deixa de ser só uma busca: reúne estatísticas de estoque, sentinelas e ações. **Sem redirect da rota antiga:** a página ainda não foi lançada, então a rota é movida, e não duplicada. Executar **depois das Stories 19.8, 19.9 e 19.11**: o layout (busca, 3 indicadores, resultados com mapa, essenciais) já vem da 19.11, e esta story adiciona rota, lotes a vencer e a ação por sentinela.
+
+**Acceptance Criteria:**
+- **Given** a rota `/[portalSlug]/farmacia`
+- **When** a página é renderizada
+- **Then** reúne, em ordem: busca de medicamento (19.2), estatísticas de estoque, medicamentos-sentinela (19.9) e a sentinela de conformidade da Lei 14.654/2023, preservando os estados `conforme`, `apagao` e `indisponivel`.
+- **And** a rota antiga `/[portalSlug]/saude/farmacia` é removida (sem redirect), e todas as referências são atualizadas: link do card da home, URL embutida no requerimento e no texto de WhatsApp, navegação, `llms.txt`, `llms-full.txt` (Regra 12), metadados e testes.
+- **And** o sidebar (`packages/ui/src/components/sidebar.tsx`) ganha o item solto "Farmácia SUS" (fora de qualquer grupo), logo abaixo de "Radar Cívico", apontando para `/[portalSlug]/farmacia`; a barra mobile só muda se tiver o mesmo menu.
+- **And** exibe estatísticas calculadas na camada `@transparencia/db` (somente leitura de marts, sem lógica na apresentação): unidades que informaram estoque, itens com saldo, data da última atualização e, quando a validade estiver disponível (19.8), lotes próximos do vencimento. Cada número traz contexto e a fonte, com os helpers canônicos de formatação.
+- **And** para cada sentinela em `sem_registro_estoque`, há um botão de ação que gera um pedido de esclarecimento sobre aquele medicamento (copiar texto e compartilhar no WhatsApp), reutilizando o trecho compartilhado de ações da Story 19.4, sem duplicar clipboard nem link.
+- **And** o texto nunca diz "esgotado" ou "zerado" (a fonte só publica itens com saldo): usa "sem registro de estoque informado", tom de indício, revisado pelo `editor-cidadao`.
+- **And** a base legal do pedido foi verificada pelo `jurista-fiscal` no texto oficial do Planalto (24/10/2026): arts. 10 e 11 da Lei 12.527/2011 (pedido; resposta em até 20 dias, prorrogáveis por mais 10) e art. 6º-A da Lei 8.080/1990, incluído pela Lei 14.654/2023 (divulgação quinzenal e acessível do estoque das farmácias públicas do SUS). O pedido nunca afirma falta do medicamento nem descumprimento: a lei obriga a divulgar o estoque, não a mantê-lo. Texto-base, com campos vindos dos dados (medicamento, data da posição, unidade) e links oficiais das duas leis (Regra 20): "Com base nos arts. 10 e 11 da Lei nº 12.527/2011 (Lei de Acesso à Informação) e no art. 6º-A da Lei nº 8.080/1990, incluído pela Lei nº 14.654/2023, que obriga a divulgação quinzenal e acessível dos estoques de medicamentos das farmácias públicas do SUS, solicito esclarecimento sobre o medicamento [nome]. Na posição de estoque divulgada em [data], não consta registro de estoque informado para esse item. Peço informar se o medicamento está disponível e, caso não esteja, a previsão de reposição." Pendente de confirmação, sem bloquear: leitura do art. 9º da Lei 8.080 (alcance sobre a gestão municipal) e do art. 1º da LAI.
+- **And** sem município, UF ou ano fixos (Regra 23); componentes do design system (Regra 24); `make test/ts` e `tsc --noEmit` passam.
+
+**Dependências:** 19.8 (histórico e validade), 19.9 (sentinelas) e 19.11 (redesenho do layout; os indicadores básicos já existem, aqui entra apenas o card de lotes a vencer, condicional à validade). A 19.5 e a 19.6 (opcionais) ficam para depois, pois a decisão sobre elas depende desta página.
+
+---
+
+### Story 19.12: Download do Estoque Completo da Farmácia SUS em CSV
+
+As a citizen, journalist or councilor who wants to check the pharmacy stock,  
+I want to download the full stock list of my city as a CSV,  
+So that I can cross-check it with other sources without depending on the search box.
+
+**Contexto:** a página da Farmácia SUS só mostra o estoque por busca. O endpoint `/api/[portalSlug]/export` hoje atende só despesas, caixa e pessoal (cinco tipos, todos com `ano`), monta o CSV em memória e já aplica `checkRateLimit` e `escapeCsvCell`. Executar **depois da Story 19.10** (rota `/[portalSlug]/farmacia` e seção "Fonte dos dados" no fim da página).
+
+**Acceptance Criteria:**
+- **Given** o endpoint de exportação
+- **When** recebe o tipo `estoque_farmacia` com um `portalSlug` válido, sem `ano`
+- **Then** devolve o CSV da posição de estoque vigente do portal (a mesma que alimenta a página), com `Content-Disposition` no formato `estoque_farmacia_<portalSlug>.csv`, mantendo `checkRateLimit` e `escapeCsvCell`; portal inválido ou sem estoque vigente responde de forma neutra, sem vazar dados de outro tenant (Regra 23).
+- **And** a leitura vive em `@transparencia/db` (somente leitura do mart `fct_farmacia_estoque`, com `portal_slug` no filtro), com colunas explícitas em snake_case (Regra 9): `portal_slug`, `codigo_cnes`, `nome_estabelecimento`, `nome_medicamento`, `numero_lote`, `quantidade_estoque`, `data_posicao_estoque` e, quando disponível, `data_validade`. Sem dado pessoal.
+- **And** se o volume justificar, a resposta é transmitida em stream em vez de montada inteira em memória; a decisão e a medida ficam registradas na spec.
+- **And** a seção "Fonte dos dados" da página exibe o link "Baixar a lista completa de estoque (CSV)", reaproveitando o botão de exportação existente (generalizado, sem duplicar download), com a legenda: "a lista traz só os remédios com estoque informado; um remédio ausente não prova que acabou" (nunca "esgotado" ou "zerado"), revisada pelo `editor-cidadao`.
+- **And** o link some quando o portal não está em `conforme`; sem município, UF ou ano fixos (Regra 23); `llms.txt` e `llms-full.txt` documentam o download (Regra 12); `make test/ts` e `tsc --noEmit` passam.
+
+**Dependências:** 19.10 (rota e seção "Fonte dos dados"). Decisão em aberto para a spec: delimitador e formatação numérica seguem o padrão do export atual (`;` e vírgula decimal quando solicitado).
+
+---
+
+### Story 19.13: Ajustes da Seção "Em destaque" da Home (Realce por Status e Ordem dos Cards)
+
+As a citizen opening the home page,  
+I want the "Em destaque" cards to look the same and follow a stable order,  
+So that no card seems more important or more "approved" just because of a colored glow.
+
+**Acceptance Criteria:**
+- **Given** a seção "Em destaque" da home
+- **When** renderizada
+- **Then** os cards da Farmácia SUS e de Educação Básica e Desempenho Escolar têm contorno neutro, sem o realce verde/âmbar que variava conforme o status dos dados; o status segue comunicado por texto e selo.
+- **And** a ordem é Farmácia SUS, Obras e Educação, sem deixar vazio quando algum card não tem dado.
+- **And** só apresentação (sem mudança em `@transparencia/db`); sem município, UF ou ano fixos (Regra 23); testes atualizados.
+
+**Dependências:** 19.3 e 19.4.
+
+---
+
+### Story 19.5 (opcional): Entrada por Tema na Raiz (`/farmacia`) com Seletor de Cidade e Faixa "Trocar cidade"
+
+> **Opcional, movida para o fim da Epic 19.** Só será decidida depois de definido todo o escopo da página da Farmácia SUS (19.8, 19.9 e demais ajustes da página). Sem spec até lá. A 19.6 depende desta.
+
+As a citizen receiving a shared link,  
+I want to open a thematic link such as `/farmacia` and choose my city,  
+So that sharing the subject, not the city, works on WhatsApp and I always know which city I am seeing.
+
+**Acceptance Criteria:**
+- **Given** o mecanismo genérico tema + cidade (reutilizável por `/obras`, `/educacao`), com a lista de temas derivada do código e sem confundir tema com `portalSlug`
+- **When** o usuário acessa `/farmacia` sem cidade salva
+- **Then** vê o seletor de cidade temático ("Em qual cidade você quer procurar remédios?") com a lista dos municípios obtida de `getAllPortais()` e o estado do estoque de cada um; ao escolher, grava `preferred_portal` e navega para `/[portalSlug]/saude/farmacia`.
+- **And** com `preferred_portal` válido, redireciona direto e exibe a faixa "Mostrando [cidade] · Trocar cidade" na página de destino.
+- **And** a página tem OpenGraph próprio; lista vazia de municípios mantém estado neutro (Regra 23); sem listas de cidades hard-coded.
+
+---
+
+### Story 19.6 (opcional): Atalho "Remédios" no Topbar Mobile
+
+> **Opcional, bloqueada pela 19.5.** Só entra se a 19.5 for implementada.
+
+As a mobile citizen,  
+I want a prominent "Remédios" shortcut in the top bar,  
+So that I reach the medication search in one tap.
+
+**Acceptance Criteria:**
+- **Given** o topbar mobile
+- **When** renderizado
+- **Then** exibe botão com ícone e texto "Remédios" (área de toque ≥ 44 px, `aria-label`) que leva a `/farmacia` (Story 19.5), ao lado do ícone de busca.
+- **And** não altera a barra de navegação inferior; acessibilidade e SEO mantêm nota 100% no Lighthouse mobile.
+
+---
+
+### Checklist de fechamento da Epic 19 (pendências de produção)
+
+> **Não fechar a Epic 19 sem concluir estes itens.** Todos exigem **autorização explícita do usuário** (Regra 15) e devem ocorrer **antes de iniciar a coleta diária da Farmácia SUS em produção** (Story 19.8).
+
+- [ ] Rodar em produção a migração de chaves primárias de `raw_farmacia_sus` (`ensure_farmacia_sus_tables`), incluindo a limpeza das linhas legadas de estoque com data fora do formato AAAA-MM-DD.
+- [ ] Rodar `dbt run --full-refresh` em `fct_farmacia_estoque_historico` (`on_schema_change='fail'` por causa da coluna `data_validade`).
+- [ ] Só então iniciar a coleta diária em produção (cada dia anterior sem acumular é histórico perdido).
+
+---
+
+## Epic 20: Tema Divisórias: Identidade Visual Minimalista, Tema Claro/Escuro Acessível e Migração dos Componentes
+
+Substituir o padrão de painéis com borda arredondada e sombra por uma linguagem editorial baseada em filetes (2px para seções, 1px para itens), tipografia hierárquica e colunas separadas por filete vertical, conforme `handoff-divisorias/ISSUE-divisorias.md` e os protótipos `Home - Divisorias.dc.html` e `Farmacia SUS - Padrao.dc.html` (pasta `_bmad-output/planning-artifacts/handoff-divisorias/`). Toda cor passa a ser variável CSS semântica; o tema escuro, opcional e escolhido pelo usuário, é um bônus de acessibilidade e troca apenas valores de variáveis. Raio de 6px só em controles; raio maior só em camadas flutuantes (modal, menus, tooltip).
+
+**Nota de numeração:** esta epic entra antes das antigas 20, 21 e 22, que foram renumeradas para 21 (Assistência Social), 22 (Busca Global) e 23 (Confiança e Transparência). As epics 21, 22 e 23 devem nascer já no padrão divisórias.
+
+**Decisões do produto (Julio, 2026-10-25):**
+- Fundo da página: **branco** (`page`), não mais cinza `#f4f5f7`.
+- Tema padrão: **claro**. O escuro só ativa se o usuário escolher no toggle (sem `prefers-color-scheme`); o script anti-flash apenas lê `localStorage["mt-tema"]`.
+- Contraste: **AA vence o protótipo**. `mute2`, `mute3`, `faint` e demais tons de texto podem ser escurecidos acima dos valores do handoff para atingir 4,5:1 (texto normal) e 3:1 (texto grande e componentes). Contas de cabeça sugerem que `mute3` do protótipo falha nos dois temas; validar com ferramenta.
+- Ordem de migração por tráfego real (PostHog, 180 dias): a Home do município concentra a maior parte dos visitantes; em seguida licitações, despesas, pessoal, receitas, orçamento, saúde e educação. A Farmácia SUS ainda não foi lançada (piloto sem público).
+- Pendência já resolvida: `text-attention` está em `packages/ui/src/tokens.ts` (`oklch(0.5 0.11 70)`), idêntico ao `warn` claro; vira alias de `warn`.
+
+**Decisão em aberto (resolver na Story 20.6):** formato das tabelas no mobile. Hoje `DenseTable` oferece `renderMobileCard` (um desenho de cartão por página, 11 arquivos usam o componente) e a lista fica longa demais. Candidatas: (A) linha de duas linhas com detalhes expansíveis, (B) API declarativa `mobileSummary` com `renderMobileCard` como saída de emergência, (C) tabela com rolagem horizontal, primeira coluna fixa e largura total. Decidir com protótipos usando licitações e despesas reais em 375px.
+
+**Restrições:** Regra 23 (sem literais de tenant, UF ou ano; nada de lista fixa de municípios), Regra 9 (nomes explícitos), Regra 20 (links externos com `target="_blank" rel="noopener noreferrer"`), regras de `.claude/rules/` para web/UI; camada de apresentação só renderiza dados de `@transparencia/db`. Sem `dark:` e sem cor hex fixa em componente. Imagens OG permanecem no tema claro. Padrão de commits: Conventional Commits em minúsculas, sem referência a story ou task.
+
+**Padrões base (decisão do Julio, 2026-10-29):** `DESIGN.md` e `EXPERIENCE.md` na raiz definem os elementos base, os papéis visuais e o `panel`, evolução do padrão de filetes (borda lateral de 3px por padrão, formato trocável por variável). As Stories 20.14 a 20.17 vêm **antes da 20.7**; as Stories 20.7 a 20.10 passam a usar elementos base e papéis nas páginas que tocam e removem suas entradas da lista de isentos; a Story 20.18 fecha a migração.
+
+**Fora do escopo:** navegação mobile (`MobileBottomNav` só troca tokens), mudança de dados ou queries, novas funcionalidades.
+
+**Pendência de insumo:** definir o formato da tabela mobile (Story 20.6). Ajustar a Story 23.x de "tema escuro e auditoria WCAG" no backlog, já que parte dela é absorvida aqui.
+
+---
+
+### Story 20.1: Tokens, Tema Claro/Escuro e Guarda de Arquitetura
+
+As a developer,  
+I want semantic color tokens as CSS variables with a light default and an optional dark theme,  
+So that every component changes theme by swapping variable values, never by scattering `dark:` classes.
+
+**Escopo:** `apps/web/app/globals.css` (`@theme` do Tailwind 4), `apps/web/tailwind.config.ts` (confirmar qual dos dois é a fonte de verdade e remover a duplicidade), `packages/ui/src/tokens.ts`, `apps/web/app/layout.tsx`.
+
+**Acceptance Criteria:**
+- **Given** a tabela de tokens do handoff (`page`, `ink`, `onink`, `line`, `line2`, `track`, `mute`, `mute2`, `mute3`, `faint`, `pill`, `banbg`, `banfg`, `brand`, `danger`, `ok`, `warn`)
+- **When** o app renderiza
+- **Then** cada token existe nos temas claro e escuro, com `page` branco no claro, ativados por `.dark` no `<html>`.
+- **And** o texto sobre `page` e sobre `banbg` atinge contraste mínimo AA (4,5:1; 3:1 para texto grande e controles) nos dois temas, validado com ferramenta; valores ajustados acima do protótipo ficam documentados na própria story.
+- **And** um script inline no `<head>` lê `localStorage["mt-tema"]` antes da hidratação, aplica `.dark` apenas se o valor for `dark`, e não causa flash; sem valor guardado, o tema é claro.
+- **And** `accent`, `borderLine`, `canvas`, `subtleText`, `mutedText`, `cardBg` e `text-attention` continuam existindo como aliases dos novos tokens, e `TOKENS` em `packages/ui/src/tokens.ts` aponta para `var(--...)`.
+- **And** existe um teste de arquitetura que falha se aparecer `dark:` ou cor hex fixa em componente novo, com uma lista de exceções que só pode encolher.
+- **And** `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+---
+
+### Story 20.2: Shell: Sidebar, Ribbon, Footer e Alternador de Tema
+
+As a citizen,  
+I want a calmer navigation shell with an easy way to choose light or dark theme,  
+So that I can read the portal comfortably on any device and lighting.
+
+**Escopo:** `packages/ui/src/components/sidebar.tsx`, `ribbon.tsx`, `apps/web/components/global-footer.tsx`, novo `theme-toggle.tsx`.
+
+**Acceptance Criteria:**
+- **Given** a sidebar
+- **When** renderizada
+- **Then** não tem fundo próprio e usa `border-r border-line`; o item ativo usa `border-l-2 border-ink font-semibold`, cada item tem ícone Lucide de 16px, os campos Exercício e Entidade usam `rounded-md border border-line` e o rodapé contém apenas "Compartilhar página" e o `ThemeToggle`.
+- **And** o `ThemeToggle` oferece `Claro | Escuro` com `Sun` e `Moon`, `aria-pressed` correto, persiste em `localStorage["mt-tema"]` e é operável por teclado.
+- **And** o ribbon usa `banbg`/`banfg` e o footer usa `border-t-2 border-ink` em três colunas (marca e fonte dos dados, "Neste dispositivo" com `PushNotificationPrompt` e `PwaInstaller`, "Alertas" com botão primário de e-mail).
+- **And** rótulos mono pequenos (`text-[10px]`) passam a no mínimo 11px com contraste AA.
+- **And** `sidebar.spec.tsx` e demais specs de classe são atualizados; sem município, UF ou ano fixos (Regra 23).
+
+**Dependências:** 20.1.
+
+---
+
+### Story 20.3: Componentes de `packages/ui` no Padrão Divisórias
+
+As a developer,  
+I want the shared UI components to offer the divider look,  
+So that pages can migrate without writing custom styles.
+
+**Acceptance Criteria:**
+- **Given** `KPICard`
+- **When** usado com `variant="divisoria"`
+- **Then** não tem borda, raio nem sombra, o rótulo é `font-mono` uppercase em `mute2` (contraste AA) e o valor é `text-[26px] font-semibold`; `KPIGrid` agrupa com `divide-x divide-line` (primeira coluna sem recuo) e a variante atual permanece até o fim da migração.
+- **And** `SegmentedButton` usa `rounded-md` com ativo `bg-ink text-onink` e ganha variante `tabs` (`border-b-2`); `Badge` usa `rounded-sm` e tokens; `ModalDialog` usa `rounded-xl border-line bg-page shadow-2xl` com títulos em `font-serif`; `AlertBox` mantém a caixa e troca só cores por tokens.
+- **And** novos componentes `SectionHeader` (filete de 2px, título serif, descrição e link de ação), `ExternalLinkPill` (`rounded-full border border-pill`, `ExternalLink` 12px, `target="_blank" rel="noopener noreferrer"`) e `StatRow`.
+- **And** um helper de cores de gráfico via variáveis CSS fica disponível para `recharts`.
+- **And** `modal-dialog.spec.tsx` e demais specs são atualizados.
+
+**Dependências:** 20.1.
+
+---
+
+### Story 20.4: Baseline Visual e Home no Padrão Divisórias
+
+As a citizen opening the municipal home,  
+I want the first page to be clean, readable and consistent,  
+So that I find the essential information without visual noise.
+
+**Escopo:** `municipal-landing-client.tsx`, `view-model.tsx` e as seções da Home (Em destaque, Radar Cívico, Execução Orçamentária, Restos a Pagar, Licitações, Pessoal).
+
+**Acceptance Criteria:**
+- **Given** a Home antes de qualquer alteração
+- **When** esta story começa
+- **Then** existem capturas de tela de referência (claro e escuro, desktop e mobile) versionadas como baseline dos testes visuais.
+- **And** cada seção abre com `SectionHeader`, blocos de dados usam colunas com filete (`sm:` em diante, empilhadas no mobile), o espaçamento entre seções é 104px no desktop e 64px no mobile e o fundo é branco.
+- **And** os gráficos da Home usam cores por variável e continuam legíveis nos dois temas.
+- **And** o cartão `rounded-2xl border shadow-sm` do resumo de Farmácia na Home vira seção com filete e usa `ExternalLinkPill`.
+- **And** nada de dados, queries ou textos é alterado; sem município, UF ou ano fixos (Regra 23).
+- **And** os ajustes herdados da revisão da Story 20.3 (abaixo) são resolvidos antes de a Home consumir os componentes.
+
+**Ajustes herdados da revisão da Story 20.3** (componentes de `packages/ui`; sem alterar o visual já aprovado):
+- `ModalDialog`: cabeçalho e rodapé distintos do corpo (hoje todos `bg-page`); botões de fechar e voltar com feedback de hover/ativo e anel de foco; teste do comportamento de bottom sheet no mobile (`max-sm:rounded-b-none`) e do botão voltar.
+- `SectionHeader`: prop para o nível do título (`h1`/`h2`/`h3`, padrão `h2`); não renderizar `description`/`action` quando vazios ou `0`/string vazia; testes de props opcionais ausentes.
+- `ExternalLinkPill`: texto `sr-only` "abre em nova aba"; validar que `href` usa `http`/`https`; teste de `className` e props extras.
+- `KPICard` `divisoria`: precedência documentada entre `accent` e `alert`; tratar `subtext`/`trend` vazios ou `0`; permitir inverter a cor da tendência para métricas em que subir é ruim (ex.: despesa); extrair o rodapé compartilhado com a variante padrão.
+- `chart-colors.ts`: trocar a lista de exclusão por lista de permissão de tokens; testar que todo token permitido resolve para `var(--...)` e que os aliases legados são rejeitados pelo tipo.
+- `SegmentedButton` `tabs`: sem `role="tab"` não usar `aria-pressed` de forma ambígua; contraste do estado `muted` (`mute3`) validado com o teste de contraste da 20.1; hover visível; `focus-visible:ring-inset`; estilo de `disabled`; testes de `size`.
+- Testes: preferir comportamento a nome de classe onde houver comportamento (foco, clique, ausência de rodapé); corrigir o título do teste do `Badge` para refletir o que ele verifica; teste de renderização claro/escuro para os tokens migrados; teste de que `index.ts` exporta os componentes novos.
+
+**Dependências:** 20.1, 20.2 e 20.3.
+
+---
+
+### Story 20.5: Farmácia SUS no Padrão Divisórias (Página Piloto)
+
+As a citizen searching for a medicine,  
+I want the pharmacy page to follow the new divider look in both themes,  
+So that the most useful tool of the portal is also the clearest.
+
+**Escopo:** `apps/web/components/farmacia/` (`farmacia-busca-destaque`, `farmacia-indicadores`, `farmacia-resultados`, `farmacia-sentinelas`, `farmacia-acoes-civicas`, `farmacia-mapa`, `farmacia-fonte-dados`, `farmacia-sus-sentinela-banner`, `page.tsx`).
+
+**Acceptance Criteria:**
+- **Given** a página da Farmácia SUS
+- **When** renderizada nos temas claro e escuro
+- **Then** não há cartões `rounded-xl` com borda e sombra, inclusive no mapa; indicadores em colunas com `divide-x`, abas `border-b-2`, estado vazio com `border-y border-line`, "Mais procurados" como links de texto e botões `rounded-md`.
+- **And** o mapa usa variáveis CSS nos marcadores e controles com `rounded-md`; a solução de tiles escuros (filtro CSS ou tiles escuros nativos) é decidida por spike curto com capturas de tela e documentada.
+- **And** os textos pt-BR do padrão atual são preservados ("em estoque", "Pedir esclarecimento") e `fmtNumber` do `packages/ui` continua sendo usado.
+- **And** specs `farmacia-*.spec.tsx` atualizados.
+
+**Dependências:** 20.3.
+
+---
+
+### Story 20.6: `DenseTable`, Formato Mobile e Tela de Licitações
+
+As a citizen reading tenders and expenses on a phone,  
+I want tables that show the key facts without endless scrolling,  
+So that I can understand what was bought, for how much and in what status.
+
+**Acceptance Criteria:**
+- **Given** o formato de tabela mobile em aberto (opções A, B e C do cabeçalho da epic)
+- **When** a story começa
+- **Then** três protótipos com licitações reais (incluindo contratos vigentes) em 375px são apresentados e o Julio escolhe um; a decisão fica registrada nesta story.
+- **And** o contêiner de `DenseTable` perde `rounded-xl border shadow-xs`, usa filete de cabeçalho `border-b border-ink` e linhas `border-b border-line`, e ocupa a largura total no mobile (sem espaços laterais).
+- **And** os cartões avulsos de licitações de maior valor, acima da tabela, também migram para o padrão divisórias.
+- **And** a situação exibida em licitações é coerente: o rótulo "Homologado" nunca aparece junto de "Em disputa" (a correção é no dado, em `@transparencia/db`/dbt, não só no texto da UI; códigos em snake_case, Regra 10) e o cidadão não vê duas situações contraditórias no mesmo registro.
+- **And** a busca flutuante "Buscar licitações e contratos" e a busca da tabela deixam de competir na mesma tela (uma só entrada de busca visível, sem cobrir o conteúdo); a busca global em si segue na Epic 22.
+- **And** a tela de licitações (incluindo a seção de contratos vigentes, para onde as rotas de contratos já redirecionam) fica migrada; despesas segue na Story 20.11; os demais usos de `DenseTable` continuam funcionando com os aliases.
+- **And** o comportamento é coberto por testes (uma suíte para o formato escolhido) e o tempo de permanência nas páginas de licitações no mobile é acompanhado no PostHog antes e depois.
+
+**Notas da sala (contabilidade, linguagem cidadã e jurídico):**
+- Contabilidade: "homologado" e "em disputa" são fases excludentes do processo. A coluna "Homologado" parece exibir o **valor homologado** com texto ao lado; antes de corrigir, conferir na origem se o campo está mal mapeado ou se um texto de fallback está sendo tratado como status.
+- Linguagem cidadã: quando não há valor homologado, exibir "ainda não homologada" (texto claro), nunca um selo que pareça outro dado; o cidadão não deve achar que o portal errou.
+- Jurídico: "não homologada" é um fato do processo, nunca indício de irregularidade; manter tom neutro.
+- Insumo visual: captura da tela de licitações no mobile (cartões longos, cerca de 2 registros por rolagem). Desenho de referência da Sally: linha com número do processo e valor, objeto em até 2 linhas, situação e abertura, e detalhes (modalidade, PNCP, órgão só na visão consolidada, Detalhes e Sala de Disputa como `ExternalLinkPill`) ao tocar; meta de 4 a 5 registros por tela.
+
+**Dependências:** 20.3.
+
+---
+
+### Story 20.7: Pessoal, Receitas e Orçamento
+
+**Acceptance Criteria:**
+- **Given** as páginas de pessoal, receitas e orçamento
+- **When** migradas
+- **Then** usam `KPICard variant="divisoria"`, `SectionHeader`, `AlertBox` e `Badge` com tokens, sem cartões com borda arredondada e sombra, nos dois temas.
+- **And** gráficos usam o helper de cores por variável e tabelas seguem a decisão da Story 20.6.
+- **And** specs atualizados e sem literais de tenant, UF ou ano (Regra 23).
+
+**Dependências:** 20.3 e 20.6.
+
+---
+
+### Story 20.8: Saúde e Educação
+
+**Acceptance Criteria:**
+- **Given** as páginas de saúde e educação básica
+- **When** migradas
+- **Then** seguem o mesmo padrão da Story 20.7, incluindo o card de educação na seção "Em destaque" da Home.
+- **And** specs atualizados e Regra 23 respeitada.
+
+**Dependências:** 20.3 e 20.6.
+
+---
+
+### Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Remoção dos Aliases
+
+**Acceptance Criteria:**
+- **Given** as páginas restantes (obras, previdência, radar cívico)
+- **When** migradas
+- **Then** seguem o padrão divisórias nos dois temas.
+- **And** todos os gráficos `recharts` restantes usam cores por variável.
+- **And** o mini mapa estático de `obras-resumo-card.tsx` (hoje base ArcGIS Light Gray) acompanha o tema escuro, achado nas capturas da Story 20.12.
+- **And** os aliases (`accent`, `borderLine`, `canvas`, `subtleText`, `mutedText`, `cardBg`, `text-attention`) são removidos, a variante antiga de `KPICard` é descontinuada e a lista de exceções do teste de arquitetura da Story 20.1 chega a zero.
+- **And** `pnpm typecheck`, `pnpm test`, `biome` e a suíte de testes visuais passam.
+
+**Dependências:** 20.4 a 20.8.
+
+---
+
+### Story 20.10: Acabamento do Shell: Notificações, Instalação do App e Rodapé
+
+As a citizen using push notifications and the installable app,  
+I want these controls to be accessible, give clear feedback and never show empty or misleading states,  
+So that I can turn alerts on or off with confidence on any device.
+
+**Origem:** itens adiados e rejeitados da revisão de código da Story 20.2 (`deferred-work.md`). Pode ser executada logo após a 20.2, sem depender das demais.
+
+**Escopo:** `apps/web/components/push-notification-settings.tsx`, `pwa-installer.tsx`, `global-footer.tsx`, `packages/ui/src/components/sidebar.tsx` (só o drawer), `apps/web/hooks/use-push-notifications.ts` e o teste de contraste dos tokens (20.1).
+
+**Acceptance Criteria:**
+- **Given** notificações bloqueadas no navegador
+- **When** o cidadão chega por teclado ou toque
+- **Then** as instruções para desbloquear são acessíveis (botão ou disclosure operável por teclado e toque, não apenas `title` com hover), em texto claro e sem jargão.
+- **And** ao ativar ou desativar, qualquer falha (inclusive `unsubscribe()` rejeitado) mostra mensagem de erro com `role="alert"` e nunca gera promessa rejeitada sem tratamento; os handlers de ativar e desativar compartilham uma única implementação.
+- **And** enquanto o estado real ainda carrega, o componente não exibe "Notificações desativadas" nem "ativas" (mostra carregando ou nada), e leitores de tela não anunciam estado errado.
+- **And** `PwaInstaller` e `PwaInstallButton` usam ícones Lucide de 16px no lugar de emojis (🚀, 📲, ✕), o nome do app vem de `env.NEXT_PUBLIC_PROJECT_NAME` (Regra 17) com a grafia correta, e não há `backdrop-blur` sobre fundo opaco nem borda dupla (`border` + `ring`).
+- **And** a coluna "Neste dispositivo" do rodapé só aparece quando há conteúdo (push ou instalação disponíveis); sem conteúdo, o rodapé continua em duas colunas sem título solto.
+- **And** o drawer móvel respeita `prefers-reduced-motion` (sem animação de deslize) e não anima ao cruzar o breakpoint `md`.
+- **And** o teste de contraste da Story 20.1 cobre `mute2` sobre `page` em `text-xs` nos dois temas (4,5:1); se falhar, o token é escurecido e o valor documentado.
+- **And** specs cobrem cada item acima; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Decisões da sala (PM):**
+- Incluído por baixo custo e ganho real: `prefers-reduced-motion`, tratamento de erro único, borda dupla e blur inútil.
+- Fora de escopo, por decisão: guard de `portalSlug` em tempo de execução nos três consumidores. O tipo obrigatório e o único chamador já protegido bastam; um guard extra só entra se surgir um segundo chamador sem slug.
+- Linguagem cidadã: mensagens de erro dizem o que fazer ("Não foi possível desativar. Tente novamente."), sem códigos técnicos.
+
+**Dependências:** 20.2.
+
+---
+
+### Story 20.11: Despesas no Padrão Divisórias
+
+As a citizen checking how the city spends its money,  
+I want the expenses page to follow the divider look and stay readable in both themes,  
+So that the third most visited page of the portal is as clear as the home.
+
+**Origem:** decisão do Julio ao separar despesas da Story 20.6. A página `apps/web/app/[portalSlug]/despesas/` não usa `DenseTable` (7 `KPICard`, 2 `KPIGrid`, 2 `SectionHeader`, `TermometroOpacidadeFiscal`, `RadarGastosSensiveis` e `RestosAPagarVendorsChart`); por isso não depende da decisão do formato mobile de tabelas.
+
+**Escopo:** `apps/web/app/[portalSlug]/despesas/page.tsx` e os componentes `termometro-opacidade-fiscal.tsx` (maior risco, cerca de 620 linhas), `radar-gastos-sensiveis.tsx` e `restos-a-pagar-vendors-chart.tsx`. O `opengraph-image.tsx` permanece no tema claro.
+
+**Acceptance Criteria:**
+- **Given** a página de despesas antes de qualquer alteração
+- **When** esta story começa
+- **Then** existem capturas de tela de referência (claro e escuro, desktop e mobile) como baseline.
+- **And** os `KPICard` passam a `variant="divisoria"` em `KPIGrid` com filete vertical, cada seção abre com o `SectionHeader` do padrão divisórias e não há cartões `rounded-xl` com borda e sombra, nos dois temas.
+- **And** os três componentes usam cores por variável (gráficos incluídos), legíveis nos dois temas e com contraste AA, sem `dark:` nem hex fixo (guarda da Story 20.1).
+- **And** nenhum dado, query ou texto de `@transparencia/db` é alterado; o rótulo "gasto" segue sempre qualificado (empenhado, liquidado ou pago) como já está na página.
+- **And** sem município, UF ou ano fixos (Regra 23); specs (`page.spec.tsx`, `view-model.spec.ts` e dos componentes) atualizados; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Dependências:** 20.3. Ordem de execução sugerida: logo após a 20.4 (despesas é a terceira página mais visitada).
+
+---
+
+### Story 20.12: Cores Semânticas no Tema Claro: Preenchimento e Texto Separados
+
+As a citizen reading the portal in the light theme,  
+I want warning, success and danger colors that look like their meaning and stay readable,  
+So that bars, badges and figures are distinguishable at a glance instead of all looking dark brown or dark green.
+
+**Origem:** observação do Julio (2026-10-27) ao revisar o Radar de Gastos Sensíveis na Story 20.11. O `warn` claro (`oklch(0.5 0.11 70)`) foi calibrado para texto AA e fica marrom escuro quando usado em barras e preenchimentos (em produção, a mesma situação usava `amber-500`). Alguns tons de verde (`ok`) estão igualmente escuros no tema claro. Um único token por intenção serve mal a dois usos: texto precisa de contraste alto, preenchimento precisa de vivacidade.
+
+**Já feito (Story 20.11):** `warn-fill` (âmbar vivo, barras e preenchimentos) e `warn-text` (âmbar escuro, texto) em `apps/web/app/globals.css` e `packages/ui/src/tokens.ts`, aplicados apenas em `radar-gastos-sensiveis.tsx` e `restos-a-pagar-vendors-chart.tsx`. Esta story generaliza o par para o restante do portal.
+
+**Escopo:**
+- Tokens: `globals.css` (`:root`, `.dark` e `@theme`), `packages/ui/src/tokens.ts` e `tokens.spec.ts`.
+- Usos de `warn` ainda no tom antigo: `termometro-opacidade-fiscal.tsx`, `despesas/page.tsx`, `hero-fiscal-card.tsx`, `radar-civico-feed.tsx`, `licitacoes-table.tsx`, `licitacoes-em-andamento-section.tsx`, `licitacoes-spotlight-modal.tsx`, `contratos-servicos-vigentes-section.tsx`, `contrato-detalhes-modal.tsx`, `educacao-resumo-card.tsx`, `destaque-linha.tsx`, `push-notification-settings.tsx`, `farmacia/farmacia-sentinelas.tsx`, `view-model.tsx` e, em `packages/ui`, `alert-box.tsx`, `badge.tsx` e `indicadores-linha.tsx`.
+- Auditoria de `ok`, `danger` e `brand` com o mesmo critério (texto versus preenchimento).
+
+**Acceptance Criteria:**
+- **Given** os tokens `warn`, `ok`, `danger` e `brand` no tema claro
+- **When** a auditoria é feita com ferramenta de contraste
+- **Then** existe uma tabela documentada nesta story com, para cada token, o valor atual, o contraste sobre `page` e sobre `track`/`line2`, e o veredito por uso (texto ou preenchimento).
+- **And** cada cor semântica com problema ganha o par `*-fill` (barras, legendas, ícones, preenchimento de selo) e `*-text` (números, rótulos, bordas de selo), nos dois temas, sem remover os tokens existentes; a decisão sobre `warn`/`ok`/`danger` virarem alias do tom de texto fica registrada.
+- **And** os usos listados no escopo migram: elementos gráficos para `*-fill` e texto para `*-text`, sem `dark:`, hex nem paleta fixa do Tailwind (guarda da Story 20.1; a lista de exceções só encolhe).
+- **And** `tokens.spec.ts` cobre os novos tokens nos dois temas e há teste de contraste: `*-text` sobre `page` e `banbg` com no mínimo 4,5:1; `*-fill` sobre `track` e `line2` com no mínimo 3:1.
+- **And** existem capturas de tela antes e depois (claro e escuro, desktop e mobile) de despesas, licitações e home, o que fecha o pendente de baseline visual da Story 20.11.
+- **And** nenhum dado, query ou texto é alterado; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Decisões em aberto:** (1) âmbar e verde de referência: usar os tons de produção (`amber-500`, `emerald-500`) como alvo de `*-fill`? (2) alertas e selos de `packages/ui` (`alert-box`, `badge`) entram nesta story ou numa seguinte, por afetarem o portal inteiro?
+
+**Dependências:** 20.1 e 20.11. Pode rodar em paralelo às demais migrações, mas as stories 20.7 a 20.10 devem passar a usar o par `*-fill`/`*-text` assim que ele existir.
+
+---
+
+### Story 20.13: Despesas Detalhadas: Reorganização da Página com os Dados Existentes
+
+As a citizen checking where the city's money went,  
+I want the expenses page to answer "how much was reserved, delivered and paid, for which areas and to whom" in plain language,  
+So that I understand the page without knowing public accounting terms.
+
+**Origem:** decisão do Julio (2026-10-28) após o mockup `handoff-divisorias/Despesas Detalhadas - Divisorias.html`, revisado pela Creuza (linguagem cidadã) e pelo Jurandir (base jurídica). A Epic 20 exclui "novas funcionalidades"; esta story abre uma exceção limitada: ela só reorganiza a página e passa a exibir dados de duas queries que já existem em `@transparencia/db` e hoje não são chamadas pelo app (`getDespesasPorFuncaoMetrics` e `getTopFornecedoresExecucaoMetrics`). Nenhuma query, DTO ou mart é criado ou alterado.
+
+**Referência visual:** `_bmad-output/planning-artifacts/handoff-divisorias/Despesas Detalhadas - Divisorias.html` (dados fictícios). Rolagem única, sem abas nem barra de âncoras.
+
+**Escopo:** `apps/web/app/[portalSlug]/despesas/` (`page.tsx`, `loader.ts`, `view-model.ts` e specs) e componentes de `apps/web/components/` usados pela página (`radar-gastos-sensiveis.tsx`, `restos-a-pagar-vendors-chart.tsx`, novos componentes de áreas e de fornecedores). `llms.txt` e `llms-full.txt` (Regra 12). O `opengraph-image.tsx` permanece como está.
+
+**Ordem final da página:** (1) resumo, sem título de seção; (2) para quais áreas o dinheiro foi; (3) quem mais recebeu; (4) gastos que merecem acompanhamento; (5) dívidas de anos anteriores.
+
+**Acceptance Criteria:**
+- **Given** a página de despesas antes de qualquer alteração
+- **When** esta story começa
+- **Then** existem capturas de tela de referência (claro e escuro, desktop e mobile); as capturas depois da mudança são coordenadas com a Story 20.12.
+- **And** o resumo é o primeiro bloco, sem `SectionHeader`, com `KPIGrid` divisória sem filete horizontal abaixo nem filete de 2px acima, e os rótulos "Reservado (empenhado)", "Serviço entregue (liquidado)", "Dinheiro que saiu (pago)" e "Quanto já foi pago", cada um com uma frase de contexto.
+- **And** o valor de "Quanto já foi pago" usa o mesmo cálculo da taxa de quitação atual, e a frase de apoio descreve esse cálculo como ele é, sem reinterpretá-lo.
+- **And** três barras comparam cada etapa com o valor reservado, sem somar etapas, e um accordion "Como ler estes números: as três etapas não se somam" explica a regra pago ≤ entregue ≤ reservado "dentro do mesmo ano", sem usar as palavras "desvio" ou "calote".
+- **And** "Para quais áreas o dinheiro foi" lista as áreas de `getDespesasPorFuncaoMetrics` em ordem decrescente, com seletor de etapa (`SegmentedButton`: Reservado, Serviço entregue, Dinheiro que saiu; padrão "Dinheiro que saiu"), valor, percentual da etapa selecionada e barra na cor `brand`.
+- **And** cada linha de área abre (com seta que gira) e mostra as três etapas daquela área; não há detalhamento por subfunção, que pertence à epic seguinte.
+- **And** "Quem mais recebeu" lista os fornecedores de `getTopFornecedoresExecucaoMetrics` com valor pago e percentual do total pago, com frase de contexto que diz que o valor mostra o que foi pago e não se o preço foi justo; a linha abre e mostra o documento do fornecedor exatamente como vem da fonte (CPF já mascarado na origem, sem nova máscara em TypeScript), e um teste garante que nenhum número de 11 dígitos sem máscara é renderizado.
+- **And** "Gastos que merecem acompanhamento" mantém a tabela accordion, o menu de auditoria e o CSV atuais, com título novo, descrição "Contas que a população mais acompanha: quanto cada categoria pesa no total pago em {ano} e como o valor pago mudou em relação a {ano − 1}.", coluna "Ainda a pagar (acum.)", texto "Nada pendente" no lugar de "Sem dívida" e aumento de variação em `warn-text` no lugar de `danger`; as linhas mostram seta indicando que abrem.
+- **And** o bloco de dívidas de anos anteriores mantém o accordion explicativo, com texto que diferencia restos a pagar já entregues e conferidos dos ainda em andamento, e os três indicadores atuais.
+- **And** os textos da página seguem a revisão da Creuza e do Jurandir: nenhuma lei é citada sem link oficial (Regra 20), nenhum artigo é citado sem verificação, e o rótulo "gasto" aparece sempre qualificado.
+- **And** o `TermometroOpacidadeFiscal` continua na página, sem alteração de conteúdo, logo depois do radar, porque o mockup não o previu; a decisão sobre mantê-lo ou movê-lo fica registrada nesta story.
+- **And** nenhum dado, query, DTO ou texto de `@transparencia/db` é alterado; percentuais por etapa são divisões simples no `view-model`, e qualquer outra lógica contábil continua na camada de dados.
+- **And** sem município, UF ou ano fixos (Regra 23), sem `dark:` nem hex fixo (guarda da Story 20.1), componentes canônicos do design system (Regra 24), propriedades em `camelCase` (Regra 18); `llms.txt` e `llms-full.txt` refletem as novas seções (Regra 12).
+- **And** specs (`page.spec.tsx`, `view-model.spec.ts` e dos componentes novos) cobrem a ordem das seções, o seletor de etapa, a regra de que etapas não se somam e o caso de lista vazia (estado neutro, sem município); `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Fora do escopo (epic seguinte de despesas, a numerar):** mês a mês, tipo de despesa por grupo e elemento, forma de contratação (exige mapeamento em dbt), subfunção das áreas, listagem de empenhos por fornecedor ou contrato e qualquer tabela geral de empenhos.
+
+**Dependências:** 20.3 e 20.11. Deve rodar antes da 20.12, que migra `despesas/page.tsx` para o par `*-fill` e `*-text`.
+
+---
+
+### Story 20.14: Elementos Base, Papéis Visuais e Plex Mono
+
+As a developer building or migrating a portal page,  
+I want the base HTML elements and a small set of named visual roles to carry the portal's look by default,  
+So that headings, paragraphs, indicator lists, tables and panels are the same on every page and change in one place.
+
+**Origem:** decisão do Julio (2026-10-29) antes de prosseguir com as stories 20.7 a 20.10. Contrato em `DESIGN.md` e `EXPERIENCE.md` na raiz do repositório (regra 25 do `CLAUDE.md`). O `panel` é a evolução do padrão de filetes desta epic: o padrão inicial é a borda lateral de 3px (um pouco mais marcada que o filete de 2px das seções, decisão do Julio), e o formato é trocável por variáveis CSS.
+
+**Escopo:** `apps/web/app/globals.css` (`@layer base`, `@utility`, `@theme inline`, variáveis `--panel-*`), carga da fonte IBM Plex Mono com `next/font` em `apps/web/app/layout.tsx` e `--font-mono`, `packages/ui/src/tokens.ts` se houver espelho dos tokens. Sem alteração de páginas nesta story.
+
+**Acceptance Criteria:**
+- **Given** o `DESIGN.md` e o `EXPERIENCE.md`
+- **When** a story termina
+- **Then** `h1` a `h4`, `p`, `dl`/`dt`/`dd`, `table`/`th`/`td`, `ul`/`ol` e `a` nascem estilizados em `@layer base`, com a escala, as fontes e as cores do `DESIGN.md`, e sem margem própria.
+- **And** os papéis `eyebrow`, `caption`, `lead`, `display`, `numeric`, `stat-value`, `stat-value-sm`, `stat-value-lg`, `panel` (com `panel-brand`, `panel-ok`, `panel-warn`, `panel-danger`), `section` e `list-text` existem como `@utility`, funcionam em qualquer tag e aceitam variantes do Tailwind e sobrescrita por classe.
+- **And** o `panel` lê `--panel-border-width`, `--panel-radius`, `--panel-shadow` e `--panel-padding` de `:root` (padrão: borda lateral de 3px, sem raio, sem sombra); trocar essas variáveis muda todos os painéis sem tocar em componentes.
+- **And** o IBM Plex Mono é carregado e exposto como `--font-mono`; `font-mono` só é usado em `table` e `numeric`.
+- **And** `tokens-contraste.spec.ts` cobre as combinações da tabela de contraste do `DESIGN.md` nos dois temas, com 4,5:1 para texto e 3:1 para o `focus-ring`.
+- **And** o `expandable-row` do `DESIGN.md` é comparado com o que o `DenseTable` entregou na Story 20.6; a diferença fica registrada nesta story e o ajuste é feito aqui só se for pequeno, senão vira decisão em aberto.
+- **And** nenhuma página é alterada, nenhum dado ou texto muda; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Decisões em aberto:** (1) ~~`stat-value-lg` em serifa: validar `tabular-nums` e o espaçamento de "R$"~~ — Resolvido na Story 20.16 (2026-10-30): conferido no Storybook, claro e escuro, desktop e mobile. `tabular-nums` iguala a largura dos algarismos e o espaço depois de "R$" (U+0020 ou U+00A0) fica idêntico; `stat-value-lg` permanece em serifa. (2) Nome da fonte mono caso o carregamento mude o tamanho do bundle de forma relevante.
+
+**Dependências:** 20.1 e 20.12. Deve rodar **antes da 20.7**.
+
+---
+
+### Story 20.15: `packages/ui` Sem Dependência do Next
+
+As a maintainer of the design system package,  
+I want `packages/ui` to import nothing from Next.js,  
+So that its components render in Storybook and in any consumer without mocks.
+
+**Origem:** decisão do Julio (2026-10-29). Hoje só `packages/ui/src/components/sidebar.tsx` importa `next/image`, `next/link` e `next/navigation` (`usePathname`); o `next` está só em `devDependencies` do pacote.
+
+**Escopo:** `packages/ui/src/components/sidebar.tsx` e specs, o wrapper em `apps/web` que injeta link e rota atual, `packages/ui/package.json`.
+
+**Acceptance Criteria:**
+- **Given** o `Sidebar`
+- **When** a story termina
+- **Then** ele recebe o componente de link por prop (padrão `<a>`), a rota atual por prop (`pathnameAtual`) e o logo como `<img>` simples ou slot, sem nenhum import de `next/*`.
+- **And** `apps/web` fornece um wrapper fino que injeta `next/link` e `usePathname()`, e o comportamento visível do shell não muda.
+- **And** um teste de arquitetura falha se qualquer arquivo de `packages/ui/src` importar `next` ou `next/*`.
+- **And** `next` sai de `devDependencies` de `packages/ui` se nada mais o usar; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Dependências:** 20.2. Pode rodar em paralelo à 20.14.
+
+---
+
+### Story 20.16: Storybook, Fase 1
+
+As a maintainer reviewing the visual standard,  
+I want a Storybook with the base elements and core components,  
+So that I can compare headings, indicator panels and tables side by side in both themes and at mobile and desktop width.
+
+**Origem:** decisão do Julio (2026-10-29). Storybook em `apps/storybook`; publicação futura em `storybook.maistransparencia.com` fica para outra story.
+
+**Escopo:** novo pacote `apps/storybook` (`@storybook/react-vite` e `@tailwindcss/vite`, versões exatas conforme a seção 7 do `CLAUDE.md`), importando o `globals.css` de `apps/web`. Fase 1 cobre elementos base, papéis, `panel` (os três formatos), `indicator`, `table` e `expandable-row`.
+
+**Acceptance Criteria:**
+- **Given** o `apps/storybook`
+- **When** `pnpm --filter storybook dev` roda
+- **Then** as stories mostram os elementos base e a escala de títulos, os papéis, o `panel` nos três formatos e nos quatro tons, o `indicator` nos três tamanhos de valor, a `table` com `numeric` e totais, e o `expandable-row` aberto e fechado.
+- **And** há alternador claro/escuro (classe `.dark`) e visões em largura mobile e desktop.
+- **And** o primeiro caso de teste é o valor da despesa em `stat-value-lg`; o resultado do `tabular-nums` e do espaçamento de "R$" é registrado e fecha a decisão em aberto da Story 20.14.
+- **And** o Storybook usa o mesmo `globals.css` do app (um teste ou verificação garante que ele não define estilos próprios para os elementos base).
+- **And** nenhum componente de `apps/web` é alterado; o build do Storybook é local, sem deploy; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Fora do escopo:** publicação, stories dos demais componentes de `packages/ui` (entram aos poucos, quando tocados) e teste visual automatizado.
+
+**Dependências:** 20.14 e 20.15.
+
+---
+
+### Story 20.17: Guardas de Teste dos Padrões Base
+
+As a reviewer of future pages,  
+I want automated checks that fail when a page ignores the base standard,  
+So that consistency does not decay with the next story.
+
+**Origem:** decisão do Julio (2026-10-29). Mesmo estilo de `apps/web/styles/tokens-uso.spec.ts`.
+
+**Escopo:** novos specs em `apps/web/styles/` e uma lista de isentos versionada.
+
+**Acceptance Criteria:**
+- **Given** o código de `apps/web` e `packages/ui/src`
+- **When** os specs rodam
+- **Then** falham: classes `slate-*`, `gray-*`, `text-black` e `text-white` em UI; classes de tamanho de fonte em `h1` a `h4`; `<h5>` e `<h6>`; `font-mono` fora de `table` e `numeric`.
+- **And** os isentos ficam em duas listas explícitas: *temporária* (páginas e modais ainda não migrados), que só pode diminuir (um teste falha se uma entrada deixar de ser necessária ou se a lista crescer), e *permanente* (e-mails, imagens OG, cores de série de gráficos, mapa Leaflet).
+- **And** a lista temporária nasce com todas as páginas que hoje violam as regras, e cada story de migração remove as suas entradas.
+- **And** `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Dependências:** 20.14. Deve rodar antes da 20.7.
+
+---
+
+### Story 20.18: Varredura Final dos Padrões Base
+
+As a citizen using any page of the portal,  
+I want every page and modal to follow the same base standard,  
+So that the portal reads as one product.
+
+**Origem:** decisão do Julio (2026-10-29). Fecha a migração gradual dos padrões base.
+
+**Escopo:** páginas e modais que as stories 20.7 a 20.10 e as epics seguintes não tocaram, inclusive os modais existentes (`LicitacoesSpotlightModal`, `ContratoDetalhesModal`, `ModalDialog`).
+
+**Acceptance Criteria:**
+- **Given** a lista de isentos temporários da Story 20.17
+- **When** a story termina
+- **Then** a lista está vazia; só a lista permanente permanece.
+- **And** cada página migrada usa elementos base e papéis, sem classes de tamanho em títulos e sem cores fora dos tokens, com capturas de tela antes e depois (claro e escuro, desktop e mobile).
+- **And** nenhum dado, query ou texto é alterado; `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Dependências:** 20.7 a 20.10 e 20.17.
+
+**Itens de ação para a retrospectiva da Epic 20:**
+- **Decidir a Story TD.1 (Idioma dos Identificadores).** Ao rodar `bmad-retrospective` para a Epic 20, depois da 20.18: (1) refazer a medição descrita na TD.1 (declarações, parâmetros, props, tipos e nomes de arquivo com identificador de infraestrutura em português, regra 26); (2) se o resultado for zero ou quase zero, descartar a TD.1; (3) se ainda houver ocorrências relevantes, registrar a linha da TD.1 no `sprint-status.yaml` (ação do operador, o arquivo é do orquestrador) e executá-la em branch própria a partir de `dev`. Registrar a decisão na retrospectiva.
+
+---
+
+## Epic 21: Assistência Social, Programas de Transferência de Renda (CGU) e Impacto Econômico Municipal
+
+Integrar os dados oficiais do Portal da Transparência da CGU (`portaldatransparencia.gov.br`) sobre programas federais de transferência de renda e benefícios ao cidadão (Bolsa Família, Benefício de Prestação Continuada - BPC/LOAS, Auxílio Gás e Seguro Defeso), mensurando o impacto financeiro real da injeção de renda federal na economia das famílias e do comércio local em comparação direta com a arrecadação tributária municipal.
+
+---
+
+### Story 21.1: Ingestão de Dados de Benefícios ao Cidadão da CGU e Staging dbt (`raw_nacional` e `stg_cgu__beneficios`)
+
+As a data engineer,  
+I want an automated extraction pipeline for federal citizen benefit transfers (Bolsa Família, BPC, Auxílio Gás) from the federal transparency portal,  
+So that MaisTransparência tracks federal social injection across all integrated municipalities.
+
+**Acceptance Criteria:**
+- **Given** o extrator em `elt/src/extractors/beneficios_cgu.py`
+- **When** o pipeline de extração é executado
+- **Then** extrai os dados consolidados de transferências a pessoas físicas por município a partir dos dados abertos da CGU (`portaldatransparencia.gov.br`).
+- **And** armazena os registros brutos em `raw_nacional.cgu_beneficios_municipios` com `cod_ibge`, `mes_competencia`, `ano`, `tipo_beneficio`, `quantidade_beneficiarios`, `valor_total_sacado`.
+- **And** cria o modelo de staging `elt/transform/models/staging/nacional/stg_cgu__beneficios.sql` com colunas padronizadas em lowercase snake_case (Regras 9 e 10).
+- **And** regera o fixture compactado de testes `packages/db/tests/fixtures/schema.sql.gz` executando `make db/fixture/dump` e valida paridade com `make test` (Regra 21).
+
+---
+
+### Story 21.2: Fato Analítica de Assistência Social e Comparativo com Arrecadação Local (`fct_beneficios_sociais_metricas`)
+
+As an analytics engineer,  
+I want a dedicated analytical fact table computing annual social benefit volumes and comparing them against local municipal tax revenues,  
+So that citizens and researchers can understand the macroeconomic weight of social transfers in the local economy.
+
+**Acceptance Criteria:**
+- **Given** os modelos `stg_cgu__beneficios` e `fct_fontes_receita_metricas`
+- **When** o modelo `elt/transform/models/marts/metrics/fct_beneficios_sociais_metricas.sql` é compilado
+- **Then** materializa como tabela física (`materialized='table'`, Regra 2) com grão único por `portal_slug` e `ano`.
+- **And** inclui obrigatoriamente a cláusula de join por tenant: `ON a.portal_slug = b.portal_slug` (Regra 23).
+- **And** calcula as métricas consolidadas:
+  - `total_bolsa_familia_ano`: montante total transferido via Bolsa Família no exercício.
+  - `familias_beneficiarias_media`: média de famílias atendidas.
+  - `total_bpc_ano`: montante transferido para idosos e PCDs em situação de vulnerabilidade.
+  - `total_injecao_social_federal`: soma de todos os benefícios sociais federais sacados no município.
+  - `arrecadacao_tributaria_propria`: total arrecadado com impostos locais (IPTU + ISS + ITBI).
+  - `razao_beneficios_sobre_impostos_proprios`: `total_injecao_social_federal / nullif(arrecadacao_tributaria_propria, 0)`.
+- **And** inclui testes genéricos do dbt (`not_null`, `unique`) e passa em `make test`.
+
+---
+
+### Story 21.3: Contratos Kysely `@transparencia/db` e Módulo Temático de Assistência Social (`/[portalSlug]/assistencia-social`)
+
+As a citizen or social assistance researcher,  
+I want a dedicated thematic page in `/[portalSlug]/assistencia-social` powered by strict Kysely queries,  
+So that I can explore local social protection coverage and economic impact through clear charts and tables.
+
+**Acceptance Criteria:**
+- **Given** o leitor atômico em `packages/db/src/queries/assistencia-social.ts`
+- **When** a rota `apps/web/app/[portalSlug]/assistencia-social/page.tsx` é acessada
+- **Then** exibe painel completo de assistência social com DTOs tipados em camelCase (`totalBolsaFamilia`, `familiasBeneficiarias`, `totalBpc`, `razaoBeneficiosSobreImpostosProprios`).
+- **And** renderiza gráfico histórico comparativo: *Injeção Federal de Benefícios vs. Arrecadação de Impostos Próprios do Município*.
+- **And** detalha a composição dos programas (Bolsa Família, BPC Idoso, BPC Deficiência, Auxílio Gás).
+- **And** inclui testes unitários no `@transparencia/db` (`make test/ts`).
+
+---
+
+### Story 21.4: Card de Injeção de Renda Social na Homepage Modular e Documentação Pública
+
+As a citizen visiting the city homepage,  
+I want a concise Social Income Injection Card integrated into the thematic section,  
+So that I can immediately perceive the economic scale of federal social protection in my town.
+
+**Acceptance Criteria:**
+- **Given** o componente `BeneficiosSociaisResumoCard` em `apps/web/components/beneficios-sociais-resumo-card.tsx`
+- **When** renderizado na seção temática da homepage
+- **Then** exibe o montante anual transferido (`fmtCurrency`), o número de famílias atendidas e o multiplicador econômico em relação aos tributos municipais.
+- **And** atualiza os arquivos `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` documentando a rota `/assistencia-social` e seus indicadores (Regra 12).
+- **And** todas as suítes de teste e verificações estáticas passam com sucesso (`pnpm build`, `tsc --noEmit`, `make test`).
+
+---
+
+## Epic 22: Busca Global por Categorias
+
+Criar uma busca global do portal (barra no topo, atalho `/`) que encontra, por município, itens de várias categorias — Tudo, Remédios, Obras, Contratos, Licitações, Servidores e Despesas — com resultados agrupados por categoria (máximo de 3 por grupo, com "Ver todos os resultados" levando à página da categoria com a busca preenchida). Direção visual no canvas da Sally (artboards 1 e 4). Observação: o Epic 21 já existe (Assistência Social); a busca global entra como Epic 22.
+
+---
+
+### Story 22.1: Consulta Unificada de Busca por Categorias em `@transparencia/db`
+
+As a citizen,  
+I want one query that searches across categories for my city,  
+So that I do not need to know which section holds the information.
+
+**Acceptance Criteria:**
+- **Given** um termo de busca e um `portalSlug`
+- **When** a consulta unificada é executada
+- **Then** retorna resultados agrupados por categoria (contagem total por categoria e até 3 itens por grupo), com DTOs `camelCase` e isolamento por `portal_slug` (Regra 23).
+
+---
+
+### Story 22.2: Barra de Busca Global com Abas por Categoria (Desktop e Mobile)
+
+As a citizen,  
+I want a global search bar with category tabs,  
+So that I can narrow results quickly on any device.
+
+**Acceptance Criteria:**
+- **Given** a consulta da Story 22.1
+- **When** o usuário digita na busca do topo
+- **Then** vê abas por categoria com contagem, resultados agrupados e "Ver todos os resultados"; no mobile as abas rolam na horizontal; o item "Remédios" reaproveita a busca da Story 19.2.
+
+
+---
+
+## Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)
+
+Dar ao cidadão, ao jornalista e ao vereador provas de que os números do portal são confiáveis: de onde vêm, quando foram atualizados, quando estão atrasados e como apontar um erro. Origem: pesquisa competitiva do politicometro.org (`research/competitive-politicometro-2026-10-24/research.md`, recomendações 1 a 3). O concorrente é complementar (amplo e centrado em pessoas); o nosso diferencial é a profundidade fiscal municipal, e esta epic reforça a confiança nela. Tudo que o site deles diz sobre a própria rotina é alegação não verificada; aqui adaptamos o padrão, não copiamos o conteúdo.
+
+**Restrições:** Regra 23 (sem literais de tenant, UF ou ano; tudo por `portal_slug`), Regra 9 (nomes explícitos), Regra 10 (códigos em snake_case; a UI traduz), lógica só em `@transparencia/db` (UI burra), linguagem cidadã e tom não acusatório (`editor-cidadao`), texto jurídico revisado por `jurista-fiscal`.
+
+**Fora do escopo (backlog):** fila de WhatsApp com confirmação dupla (só com demanda; exige opt-in e custo Meta; LGPD e tarifas não verificadas), tema escuro e auditoria de contraste AA (absorvidos pela Epic 20), "Usar no seu assistente".
+
+**Pendência de insumo:** prints/HTML de "Metodologia e fontes" e "Quem publica e quem não publica" do concorrente, a serem enviados pelo Julio, para detalhar as Stories 23.5 e 23.6.
+
+---
+
+### Story 23.1: Registro de Coletas por Fonte e Frequência Esperada
+
+As a maintainer,  
+I want every source load to leave a record (source, portal, loaded-at, expected frequency),  
+So that freshness can be computed instead of declared by hand.
+
+**Acceptance Criteria:**
+- **Given** o histórico de coletas já acumulado pela farmácia SUS (Epic 19) como modelo
+- **When** uma carga de qualquer fonte termina
+- **Then** é gravado um registro por `portal_slug` e `fonte` com `coletado_em` e `frequencia_esperada` (`diaria`, `semanal`, `mensal`, `anual`, `sob_demanda`), sem literais de tenant
+- **And** a cobertura começa pelas fontes já com data de carga e as demais ficam registradas como "frescor não monitorado" (nunca presumidas atualizadas).
+
+---
+
+### Story 23.2: Query de Frescor com Estado "Fora do Prazo Previsto"
+
+As a citizen,  
+I want to know if a dataset is up to date,  
+So that I do not trust a stale number.
+
+**Acceptance Criteria:**
+- **Given** o registro da Story 23.1
+- **When** `@transparencia/db` consulta o frescor de um `portalSlug`
+- **Then** retorna por fonte: `fonte`, `descricao_dados`, `frequencia_esperada`, `ultima_atualizacao` e `situacao` (`em_dia`, `fora_do_prazo`, `nao_monitorado`), com DTOs `camelCase`
+- **And** `fora_do_prazo` ocorre quando `ultima_atualizacao` é mais antiga que a frequência esperada, calculado só na camada de dados, com teste de paridade e isolamento entre portais.
+
+---
+
+### Story 23.3: Carga Segura: Parar e Avisar em Vez de Gravar Dado Errado
+
+As a maintainer,  
+I want a load that fails validation to stop and flag the source,  
+So that wrong data never overwrites good data.
+
+**Acceptance Criteria:**
+- **Given** uma fonte que ficou fora do ar ou mudou de formato
+- **When** a carga detecta a falha
+- **Then** os dados anteriores são preservados, a fonte passa a `fora_do_prazo` na Story 23.2 e o erro fica registrado para a equipe
+- **And** valor ausente na fonte aparece como "—" com explicação, nunca como zero.
+
+---
+
+### Story 23.4: Selo "Fonte · atualizado em" nos Blocos e Página "Como Atualizamos"
+
+As a citizen,  
+I want each block to show its source and update date, and a page listing all sources,  
+So that I can judge how current and how reliable what I see is.
+
+**Acceptance Criteria:**
+- **Given** a query da Story 23.2
+- **When** o usuário abre um bloco de dados ou a página "Como atualizamos" do município
+- **Then** cada bloco mostra "Fonte: … · atualizado em …" e a página mostra a tabela (fonte, o que traz, frequência, última atualização, situação) com aviso claro em `fora_do_prazo`
+- **And** os componentes apenas renderizam o DTO (UI burra), sem anos ou municípios fixos, com textos revisados pelo `editor-cidadao`.
+
+---
+
+### Story 23.5: "Reportar Erro" por Indicador
+
+As a citizen,  
+I want to report an error on a specific indicator,  
+So that wrong numbers are corrected quickly.
+
+**Acceptance Criteria:**
+- **Given** o `feedback-modal` existente
+- **When** o usuário aciona "Reportar erro" em um indicador
+- **Then** o envio leva `portal_slug`, identificador do indicador e a descrição, e o rótulo é explícito e visível em cada bloco
+- **And** o texto segue linguagem cidadã e tom não acusatório.
+
+---
+
+### Story 23.6: Direito de Resposta, Metodologia e Fontes, "Sobre" e "Quem Publica e Quem Não Publica"
+
+As a citizen or public official,  
+I want to know the methodology and sources, which municipalities publish what, and how to respond to a published number,  
+So that the portal is accountable for what it shows.
+
+**Acceptance Criteria:**
+- **Given** o `jurista-fiscal` validou o fluxo e o texto do direito de resposta (peso jurídico; LAI, LGPD)
+- **When** o usuário acessa as páginas "Sobre", "Metodologia e fontes" e "Quem publica e quem não publica"
+- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Reportar erro"
+- **And** hoje as fontes só aparecem em termos e privacidade; essas páginas passam a ser a referência, com promessas negativas explícitas (não inventa dado, não junta registros só pelo nome, não expõe dados pessoais além do já público).
+
+### Story 23.7: Origem das "Entradas Fora do Orçamento" em Receitas
+
+As a citizen reading the revenue page,  
+I want to see where the "entradas fora do orçamento" amount comes from,  
+So that I understand it is money withheld and passed on to others, not municipal revenue.
+
+**Origem:** decisão do Julio (2026-10-30), durante os ajustes visuais da Story 20.7, depois de perguntar de que origem financeira vem o valor exibido na linha "Entradas fora do orçamento" em `/receitas` (no exemplo de Porciúncula em 2026, R$ 13,7 mi, hoje só uma linha com texto explicativo). Opinião do John (PM): a story não pertence à Epic 20, porque exige regra de classificação nova na camada de dados; o tema (mostrar de onde vem um valor que o cidadão não entende) cabe aqui. Mockup da opção escolhida: https://claude.ai/artifact/2Dr16DYL6kcTjPqQxfMuit (opção 1, "De onde vem este valor").
+
+**Acceptance Criteria:**
+- **Given** os lançamentos extra-orçamentários já carregados por `portal_slug` e `ano` (`fct_receita_extra_orcamentaria`)
+- **When** a camada de dados classifica cada lançamento
+- **Then** cada lançamento recebe um código de categoria em lowercase snake_case, por exemplo `previdencia_servidores`, `emprestimo_consignado`, `imposto_renda_retido`, `previdencia_geral_inss`, `plano_saude_servidores`, `iss_retido`, `pensao_alimenticia` e `outros_descontos`, definido em dbt ou em `@transparencia/db` (nunca na UI) e sem literais de município, UF ou ano (Regras 10 e 23)
+- **And** a regra de classificação é testada com as descrições reais de pelo menos dois portais diferentes e com um lançamento de descrição desconhecida, que cai em `outros_descontos`, nunca é descartado; a soma das categorias é igual ao total de `receitaExtraOrcamentariaArrecadado`
+- **And** `@transparencia/db` expõe por `portalSlug` e `ano` o DTO em `camelCase` com `categoria`, `valorArrecadado` e `percentualDoTotal` (cálculo na camada de dados; nomes explícitos, Regra 9), com isolamento entre portais.
+- **Given** o DTO acima
+- **When** o cidadão abre `/receitas`
+- **Then** a linha "Entradas fora do orçamento" ganha um bloco recolhido "De onde vem este valor", fechado por padrão, com uma linha por categoria (rótulo em linguagem cidadã traduzido na UI, valor, barra e percentual do total), na ordem decrescente de valor, alcançável por teclado e legível no celular sem rolagem horizontal
+- **And** a UI só renderiza o DTO (UI burra) e nenhum nome de banco, plano de saúde ou beneficiário aparece na tela
+- **And** o bloco não aparece quando não há entradas fora do orçamento, e o estado vazio é neutro, sem município.
+- **Given** o texto da linha e do subtítulo
+- **When** a story é concluída
+- **Then** os textos são revisados pelo `editor-cidadao` e, antes de afirmar que o valor "não é dinheiro da prefeitura", o `contador-publico` confere se algum lançamento de `outros_descontos` (ou de outra categoria) é de fato receita da prefeitura; se houver, a frase é ajustada sem afirmação categórica
+- **And** o glossário (`docs/glossario-cidadao.md`) recebe as entradas novas e os specs de página, de view-model e de componente são atualizados.
+
+**Fora do escopo:** incluir as entradas fora do orçamento no total arrecadado (decisão de contabilidade, não de apresentação); listar lançamentos individuais ou nomes de beneficiários; mudar a carga ou a extração do relatório de origem.
+
+**Dependências:** nenhuma de código; usa o tema Divisórias já entregue pela Epic 20. Mudanças em dbt rodam só no banco local do Docker; qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+
+---
+
+## Backlog de Dívida Técnica
+
+Itens que não pertencem ao objetivo de nenhuma epic de produto. Entram na sprint só quando houver dor concreta (por exemplo, um review travado por causa do problema) e não bloqueiam nenhuma epic.
+
+### Story TD.1: Idioma dos Identificadores: Varredura do Legado (opcional)
+
+As a maintainer reading the codebase,  
+I want the identifiers that still break rule 26 of `.claude/rules/typescript.md` renamed,  
+So that infrastructure code is in English and domain terms stay in Portuguese everywhere.
+
+**Origem:** decisão do Julio (2026-10-30), a partir da regra 26. Opinião do John (PM): a story não pertence à Epic 20, porque não muda o que o cidadão vê nem o padrão visual. A regra 26 e o renome oportunista (código tocado é renomeado na própria story) já resolvem a maior parte; esta story só existe para o que sobrar.
+
+**Quando executar:** só se, no fim da Epic 20, a medição abaixo ainda achar ocorrências relevantes, ou se a dor for concreta. Se a medição der zero ou quase zero, a story é descartada.
+
+**Escopo (por critério, não por lista de arquivos):** todo arquivo `.ts` e `.tsx` de `apps` e `packages` que, no início da story, ainda tiver identificador de infraestrutura em português, conforme a regra 26: nomes de funções utilitárias, helpers, constantes técnicas, variáveis locais, parâmetros, props de UI e tipos genéricos. A medição de partida (2026-10-29) achou 34 declarações em 22 arquivos, só de `const`, `let` e `function` com um verbo ou substantivo técnico conhecido, então é um piso e envelhece conforme as stories visuais tocam esses arquivos.
+
+**Acceptance Criteria:**
+- **Given** o estado do repositório no início da story
+- **When** a story começa
+- **Then** a medição é refeita (declarações, parâmetros, props, tipos e nomes de arquivo) e a lista de ocorrências fica registrada no spec; se for zero, a story termina descartada.
+- **And** cada ocorrência da lista é renomeada para inglês quando for puramente de infraestrutura; termos que um contador ou advogado reconheceria (teste de fronteira da regra 26) permanecem em português, inclusive nomes mistos (o termo de domínio é preservado).
+- **And** nenhum DTO, coluna, campo exportado de `@transparencia/db`, código de dados (regra 10), texto de UI nem descrição de `it(...)`/`describe(...)` é alterado.
+- **And** o renome não muda comportamento: `pnpm typecheck`, `pnpm test` e `biome` passam sem alterar asserções.
+
+**Fora do escopo:** arquivos de domínio, contratos de dados e lint de idioma (avaliar só se a regra escrita não bastar).
+
+**Dependências:** nenhuma. Recomenda-se rodar depois do fim da Epic 20 para a medição pegar o código já migrado.
+

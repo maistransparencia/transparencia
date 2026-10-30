@@ -56,26 +56,34 @@ out/
 .pnpm-debug.log*
 next-env.d.ts
 
-.bmad-loop/
-.claude/settings.local.json
+# BMAD: ignora o instalado, versiona o que é do projeto
+_bmad/*
+!_bmad/config.toml
+!_bmad/config.yaml
+!_bmad/custom/
+_bmad/custom/*.user.toml
+_bmad-output/planning-artifacts/*
+!_bmad-output/planning-artifacts/epics.md
+!_bmad-output/planning-artifacts/architecture/
+!_bmad-output/planning-artifacts/prds/
+_bmad-output/story-*.md
+.bmad-loop/profiles/claude-personal.toml
+_bmad-output/specs/
+_bmad-output/scratch/
+_bmad-output/*.html
+_bmad-output/party-mode/
+_bmad-output/.DS_Store
+.bmad-loop/runs/
+.bmad-loop/cache/
 .claude/skills/bmad-*
 .claude/skills/wds-*
 .claude/skills/bmod-*
 .claude/skills/memory
 .claude/skills/sync
 .claude/skills/mcp-analytics
-_bmad
-_bmad-output
-.claude/skills/memory
-.claude/skills/sync
-.claude/skills/bmad-*
-.claude/skills/wds-*/*
-.bmad-loop/runs/
-.bmad-loop/cache/
-.bmad-loop/policy.toml
+.claude/settings.local.json
 
 *.tsbuildinfo
-_bmad/render/
 
 # Playwright
 apps/web/test-results/
