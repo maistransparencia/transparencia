@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { loadPessoalData } from "./loader";
 import { buildPessoalViewModel } from "./view-model";
 
+const LIMITES_LRF = { maximo: 54, prudencial: 51.3, alerta: 48.6 };
+
 type RawData = Awaited<ReturnType<typeof loadPessoalData>>;
 
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
@@ -38,6 +40,7 @@ describe("buildPessoalViewModel", () => {
       receitaCorrenteLiquida: 0,
       percentualFolha: 0,
       statusLrf: "normal",
+      limitesLrf: null,
     });
   });
 
@@ -58,6 +61,8 @@ describe("buildPessoalViewModel", () => {
             totalPago: 900,
             rclProxy: 2000,
             percentualFolha: 45,
+            statusLrf: "normal",
+            limitesLrf: LIMITES_LRF,
           },
         ],
       }),
@@ -76,6 +81,8 @@ describe("buildPessoalViewModel", () => {
             totalPago: 900,
             rclProxy: 2000,
             percentualFolha: 50,
+            statusLrf: "alerta",
+            limitesLrf: LIMITES_LRF,
           },
         ],
       }),
@@ -92,6 +99,8 @@ describe("buildPessoalViewModel", () => {
             totalPago: 900,
             rclProxy: 2000,
             percentualFolha: 52.5,
+            statusLrf: "prudencial",
+            limitesLrf: LIMITES_LRF,
           },
         ],
       }),
@@ -110,6 +119,8 @@ describe("buildPessoalViewModel", () => {
             totalPago: 900,
             rclProxy: 2000,
             percentualFolha: 60,
+            statusLrf: "excedido",
+            limitesLrf: LIMITES_LRF,
           },
         ],
       }),
@@ -133,6 +144,8 @@ describe("buildPessoalViewModel", () => {
             totalPago: 200,
             rclProxy: 10000,
             percentualFolha: 2.4,
+            statusLrf: "normal",
+            limitesLrf: LIMITES_LRF,
           },
         ],
       }),
@@ -144,7 +157,10 @@ describe("buildPessoalViewModel", () => {
     );
     expect(vm.folhaKpi.alert).toBe(false);
     expect(vm.headerDescription).toContain(
-      "desta entidade na receita corrente líquida do município",
+      "desta entidade pesa na receita do município",
+    );
+    expect(vm.limitesLrfDescricao).toBe(
+      "limita o gasto total com pessoal a 54% da RCL no Poder Executivo.",
     );
   });
 

@@ -46,7 +46,7 @@ describe("PessoalPage", () => {
 
     expect(screen.getByText("Folha de Pagamento")).toBeInTheDocument();
     expect(
-      screen.getByText("Efetivos no comando das chefias"),
+      screen.getByText("Chefias ocupadas por concursados"),
     ).toBeInTheDocument();
   });
 

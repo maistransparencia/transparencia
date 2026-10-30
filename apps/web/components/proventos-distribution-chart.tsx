@@ -1,4 +1,4 @@
-import { Badge, SectionHeader } from "@transparencia/ui";
+import { SectionHeader } from "@transparencia/ui";
 
 export interface SalaryBinItem {
   faixa: string;
@@ -21,7 +21,7 @@ export function ProventosDistributionChart({
     <section className="space-y-4">
       <SectionHeader
         title="Distribuição dos Proventos Brutos"
-        action={<Badge>Consolidado Municipal</Badge>}
+        eyebrow="Consolidado Municipal"
         description="Dados consolidados de todos os servidores do município (a folha analítica individual não é segregada por entidade no portal de origem). O gráfico utiliza os proventos (remuneração bruta) como aproximação."
       />
 

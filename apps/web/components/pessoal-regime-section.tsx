@@ -18,7 +18,7 @@ import {
   SectionHeader,
   Tooltip,
 } from "@transparencia/ui";
-import { ExternalLink, UserCheck } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
@@ -170,7 +170,7 @@ export function PessoalRegimeSection({
           ),
         },
         {
-          header: "Regime Harmonizado",
+          header: "Regime nesta tela",
           accessorKey: "categoriaRegime",
           sortable: true,
           className: "whitespace-nowrap",
@@ -199,7 +199,7 @@ export function PessoalRegimeSection({
           align: "right",
           isSerifNumeric: true,
           renderCell: (row) => (
-            <span className="font-semibold font-serif text-ink">
+            <span className="numeric text-ink">
               {fmtCurrency(row.proventos)}
             </span>
           ),
@@ -208,62 +208,55 @@ export function PessoalRegimeSection({
       [],
     );
 
-  const renderDivergenciaMobileCard = (
-    row: ServidorDivergenciaCadastralDTO,
-  ) => {
+  const renderDivergenciaMobileRow = (row: ServidorDivergenciaCadastralDTO) => {
     const style = getRegimeStyle(row.categoriaRegime);
     const rotulo =
       CATEGORIA_REGIME_LABELS[
         row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
       ] ?? row.categoriaRegime;
-    return (
-      <article className="flex flex-col justify-between border-line border-y py-4">
-        <div className="space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <span className="font-semibold text-ink text-sm">
-                {row.cargo || "Cargo não informado"}
-              </span>
-              {row.matricula && (
-                <span className="ml-1.5 text-[11px] text-mute2">
-                  #{row.matricula}
-                </span>
-              )}
-            </div>
+    return {
+      resumo: (
+        <div className="space-y-1">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 font-semibold text-ink text-sm">
+              {row.cargo || "Cargo não informado"}
+            </span>
+            <span className="numeric shrink-0 text-ink text-sm">
+              {fmtCurrency(row.proventos)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-mute2 text-xs">
+            <span className="min-w-0">
+              {row.orgaoNome || "Órgão não informado"}
+            </span>
             <span
               className={cn(
-                "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
+                "inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
                 style.badge,
               )}
             >
               {rotulo}
             </span>
           </div>
-
-          <div className="text-mute text-xs">
-            {row.orgaoNome && (
-              <span className="block text-[11px] text-mute2">
-                {row.orgaoNome}
-              </span>
-            )}
-          </div>
-
-          <div className="bg-line2 p-2 text-xs">
-            <span className="eyebrow block">Vínculo Declarado na Origem</span>
-            <span className="font-medium text-ink">
-              {row.vinculo || row.categoriaFuncional || "Não especificado"}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between border-line border-t pt-2 text-xs">
-            <span className="caption">Proventos Brutos</span>
-            <span className="font-semibold font-serif text-ink text-sm">
-              {fmtCurrency(row.proventos)}
-            </span>
-          </div>
         </div>
-      </article>
-    );
+      ),
+      detalhes: (
+        <dl className="space-y-1 text-mute2">
+          {row.matricula ? (
+            <div className="flex justify-between gap-3">
+              <dt>Matrícula</dt>
+              <dd className="numeric text-ink">{row.matricula}</dd>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-3">
+            <dt>Vínculo na origem</dt>
+            <dd className="text-right text-ink">
+              {row.vinculo || row.categoriaFuncional || "Não especificado"}
+            </dd>
+          </div>
+        </dl>
+      ),
+    };
   };
 
   if (!data || data.length === 0) {
@@ -274,7 +267,7 @@ export function PessoalRegimeSection({
       >
         <SectionHeader
           title="Quadro e Folha por Regime Jurídico"
-          action={<Badge>Consolidado Municipal</Badge>}
+          eyebrow="Consolidado Municipal"
           description={`Sem dados de regime funcional disponíveis para o exercício de ${ano}.`}
         />
       </section>
@@ -294,21 +287,19 @@ export function PessoalRegimeSection({
       className={cn("space-y-6", className)}
     >
       <SectionHeader
+        eyebrow="Consolidado Municipal"
         title="Quadro e Folha por Regime Jurídico"
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge>Consolidado Municipal</Badge>
-            {portalSlug ? (
-              <ShowYourWorkButton
-                portalSlug={portalSlug}
-                ano={ano}
-                tipo="pessoal_regime"
-                tituloContexto="Regimes e Vínculos Funcionais"
-              />
-            ) : null}
-          </div>
+          portalSlug ? (
+            <ShowYourWorkButton
+              portalSlug={portalSlug}
+              ano={ano}
+              tipo="pessoal_regime"
+              tituloContexto="Regimes e Vínculos Funcionais"
+            />
+          ) : null
         }
-        description={`Distribuição dos ${fmtNumber(totalProfissionais)} profissionais e ${fmtCompact(totalFolha)} na folha mensal de referência (${mesTexto}) por vínculo funcional e regime de contratação.`}
+        description={`Como os ${fmtNumber(totalProfissionais)} servidores se dividem por tipo de vínculo com a prefeitura e quanto cada grupo recebe. A folha de ${mesTexto} soma ${fmtCompact(totalFolha)}.`}
       />
 
       {/* Barra de Distribuição Visual Proporcional do Quadro */}
@@ -393,7 +384,7 @@ export function PessoalRegimeSection({
       </div>
 
       {/* Grid de Cards de Cada Categoria de Regime */}
-      <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {data.map((item) => {
           const style = getRegimeStyle(item.categoriaRegime);
           const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
@@ -401,7 +392,7 @@ export function PessoalRegimeSection({
           return (
             <div
               key={item.categoriaRegime}
-              className="flex flex-col justify-between border-line border-t py-4"
+              className="panel flex flex-col justify-between border-0! border-t-[3px]! px-0! py-4! sm:px-4!"
             >
               <div>
                 {/* Header do Card com Rótulo e Badge */}
@@ -425,7 +416,7 @@ export function PessoalRegimeSection({
                 {/* Métricas Principais: Profissionais e Proventos */}
                 <div className="mt-4 space-y-2 border-line2 border-t pt-3">
                   <div className="flex items-baseline justify-between">
-                    <span className="caption">Profissionais</span>
+                    <span className="caption">Servidores</span>
                     <div className="flex items-baseline gap-1.5">
                       {item.variacaoProfissionais !== null &&
                         item.variacaoProfissionais !== undefined && (
@@ -470,7 +461,7 @@ export function PessoalRegimeSection({
                   </div>
 
                   <div className="flex items-baseline justify-between">
-                    <span className="caption">Provento Médio</span>
+                    <span className="caption">Média por servidor</span>
                     <span className="font-semibold text-ink text-sm">
                       {fmtCompact(item.proventoMedio)}
                     </span>
@@ -480,9 +471,9 @@ export function PessoalRegimeSection({
 
               {/* Footer do Card: Impacto na Folha Total */}
               <div className="mt-3 flex items-center justify-between border-line2 border-t pt-2.5 text-xs">
-                <span className="caption">Impacto na Folha Mensal</span>
+                <span className="caption">Parcela da folha mensal</span>
                 <span className="font-medium text-ink">
-                  {fmtPercent(item.percentualFolha)} da despesa
+                  {fmtPercent(item.percentualFolha)} da folha
                 </span>
               </div>
             </div>
@@ -492,20 +483,21 @@ export function PessoalRegimeSection({
 
       {/* Nota de Auditoria Cívica: 100% data-driven, exibida estritamente quando há divergências registradas */}
       {typeof totalDivergencias === "number" && totalDivergencias > 0 ? (
-        <AlertBox type="info" title="Harmonização de Vínculos Cadastrais">
+        <AlertBox type="info" title="Vínculos reclassificados">
           <div className="space-y-2 text-xs leading-relaxed">
             <p>
-              Neste exercício, identificamos{" "}
+              Em {ano},{" "}
               <strong className="font-semibold text-ink">
                 {fmtNumber(totalDivergencias)}{" "}
                 {totalDivergencias === 1
-                  ? "profissional cadastrado"
-                  : "profissionais cadastrados"}
+                  ? "servidor aparece"
+                  : "servidores aparecem"}
               </strong>{" "}
-              com inconsistências de vínculo no portal de origem (como funções
-              comissionadas ou temporárias registradas sob categorias atípicas).
-              Para garantir rigor fiscal, classificamos cada vínculo com base na
-              forma real de provimento e nos preceitos do{" "}
+              no portal da prefeitura com o vínculo registrado de forma
+              diferente da função que exercem (por exemplo, cargo em comissão
+              cadastrado em outra categoria). É um problema de cadastro, não
+              indica irregularidade. Aqui, cada vínculo foi classificado pela
+              forma real de ingresso, conforme o{" "}
               <a
                 href={urlLegislacao("constituicao", "art37")}
                 target="_blank"
@@ -522,13 +514,9 @@ export function PessoalRegimeSection({
                 <button
                   type="button"
                   onClick={() => setIsDivergenciasModalOpen(true)}
-                  className="mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-page px-3 py-1.5 font-medium text-ink text-xs transition-colors hover:bg-line2"
+                  className="inline-flex min-h-11 cursor-pointer items-center font-medium text-brand-text text-sm underline underline-offset-2"
                 >
-                  <UserCheck className="h-3.5 w-3.5 text-mute2" />
-                  <span>
-                    Ver lista de profissionais auditados (
-                    {servidoresDivergentes.length})
-                  </span>
+                  Ver detalhes ({servidoresDivergentes.length})
                 </button>
               </div>
             )}
@@ -540,12 +528,15 @@ export function PessoalRegimeSection({
       <ModalDialog
         isOpen={isDivergenciasModalOpen}
         onClose={() => setIsDivergenciasModalOpen(false)}
-        title={`Profissionais com Divergência Cadastral Auditada — ${ano}`}
-        subtitle={`Relação dos ${servidoresDivergentes.length} servidores municipais com harmonização de regime jurídico em ${ano}.`}
+        title={`Servidores com vínculo reclassificado — ${ano}`}
+        subtitle={`Dos ${fmtNumber(totalProfissionais)} servidores do município, ${fmtNumber(servidoresDivergentes.length)} ${servidoresDivergentes.length === 1 ? "teve" : "tiveram"} o vínculo reclassificado em ${ano}. A tabela mostra o tipo cadastrado na origem e o regime usado nesta tela.`}
         maxWidth="5xl"
         footer={
           <div className="flex w-full items-center justify-between text-mute2 text-xs">
-            <span>{servidoresDivergentes.length} profissionais listados</span>
+            <span>
+              {fmtNumber(servidoresDivergentes.length)} de{" "}
+              {fmtNumber(totalProfissionais)} servidores do município
+            </span>
             <button
               type="button"
               onClick={() => setIsDivergenciasModalOpen(false)}
@@ -559,7 +550,7 @@ export function PessoalRegimeSection({
         <DenseTable
           data={servidoresDivergentes}
           columns={divergenciasColumns}
-          renderMobileCard={renderDivergenciaMobileCard}
+          renderMobileRow={renderDivergenciaMobileRow}
           searchPlaceholder="Buscar por matrícula, cargo ou órgão..."
           searchableKeys={[
             "matricula",
@@ -575,7 +566,7 @@ export function PessoalRegimeSection({
           defaultSortDir="desc"
           enableExportCsv={true}
           exportFilename={`divergencias_cadastrais_pessoal_${ano}.csv`}
-          recordLabel="profissionais"
+          recordLabel="servidores"
           rowKey="matricula"
         />
       </ModalDialog>

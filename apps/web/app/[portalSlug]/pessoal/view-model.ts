@@ -4,6 +4,14 @@ import type { loadPessoalData } from "./loader";
 
 type PessoalRawData = Awaited<ReturnType<typeof loadPessoalData>>;
 
+const numeroPtBr = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+const numeroPtBrComSinal = new Intl.NumberFormat("pt-BR", {
+  maximumFractionDigits: 1,
+  signDisplay: "exceptZero",
+});
+
+const fmtLimite = (valor: number) => `${numeroPtBr.format(valor)}%`;
+
 export function buildPessoalViewModel(raw: PessoalRawData) {
   const selectedYear = raw.context.selectedYear;
   const previousYear = selectedYear - 1;
@@ -18,51 +26,71 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       receitaCorrenteLiquida: 0,
       percentualFolha: 0,
       statusLrf: "normal" as const,
+      limitesLrf: null,
     };
 
   const previousYearRow = raw.folhaData.find((r) => r.ano === previousYear);
 
-  const statusLrf =
-    currentYearRow.statusLrf ??
-    (() => {
-      if (currentYearRow.percentualFolha > 54) return "excedido";
-      if (currentYearRow.percentualFolha >= 51.3) return "prudencial";
-      if (currentYearRow.percentualFolha >= 48.6) return "alerta";
-      return "normal";
-    })();
+  const statusLrf = currentYearRow.statusLrf ?? "normal";
+  const limites = currentYearRow.limitesLrf ?? null;
+  const textoLimite = (
+    comLimite: (valor: string) => string,
+    semLimite: string,
+    valor: number | undefined,
+  ) => (valor === undefined ? semLimite : comLimite(fmtLimite(valor)));
 
   const folhaKpi = (() => {
     if (isEntidadeFiltrada) {
       return {
         title: "Pessoal / Receita Municipal",
-        subtext: "impacto no teto da LRF do município (54%)",
+        subtext: textoLimite(
+          (v) => `impacto no teto da LRF do município (${v})`,
+          "impacto no teto da LRF do município",
+          limites?.maximo,
+        ),
         alert: false,
       };
     }
     if (statusLrf === "excedido") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: "acima do teto de 54%",
+        subtext: textoLimite(
+          (v) => `acima do teto de ${v}`,
+          "acima do teto da LRF",
+          limites?.maximo,
+        ),
         alert: true,
       };
     }
     if (statusLrf === "prudencial") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: "acima do limite prudencial (51,3%)",
+        subtext: textoLimite(
+          (v) => `acima do limite prudencial (${v})`,
+          "acima do limite prudencial",
+          limites?.prudencial,
+        ),
         alert: true,
       };
     }
     if (statusLrf === "alerta") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: "acima do limite de alerta (48,6%)",
+        subtext: textoLimite(
+          (v) => `acima do limite de alerta (${v})`,
+          "acima do limite de alerta",
+          limites?.alerta,
+        ),
         alert: true,
       };
     }
     return {
       title: "Gasto com Pessoal (LRF)",
-      subtext: "dentro dos limites da LRF (teto 54%)",
+      subtext: textoLimite(
+        (v) => `dentro dos limites da LRF (teto ${v})`,
+        "dentro dos limites da LRF",
+        limites?.maximo,
+      ),
       alert: false,
     };
   })();
@@ -76,9 +104,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
         currentYearRow.percentualFolha - previousYearRow.percentualFolha
       ).toFixed(1),
     );
-    const sinal = diff > 0 ? "+" : "";
     return {
-      value: `${sinal}${diff} p.p. vs ${previousYear}`,
+      value: `${numeroPtBrComSinal.format(diff)} p.p. vs ${previousYear}`,
       isPositive: diff <= 0,
     };
   })();
@@ -93,9 +120,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       return undefined;
     }
     const diff = Number((raw.pctChefias - raw.prevPctChefias).toFixed(1));
-    const sinal = diff > 0 ? "+" : "";
     return {
-      value: `${sinal}${diff} p.p. vs ${previousYear}`,
+      value: `${numeroPtBrComSinal.format(diff)} p.p. vs ${previousYear}`,
       isPositive: diff >= 0,
     };
   })();
@@ -111,9 +137,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
         100
       ).toFixed(1),
     );
-    const sinal = diff > 0 ? "+" : "";
     return {
-      value: `${sinal}${diff}% vs ${previousYear}`,
+      value: `${numeroPtBrComSinal.format(diff)}% vs ${previousYear}`,
       isPositive: diff <= 0,
     };
   })();
@@ -156,8 +181,36 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
   });
 
   const headerDescription = isEntidadeFiltrada
-    ? "Impacto da folha de pagamento desta entidade na receita corrente líquida do município. A Lei de Responsabilidade Fiscal limita o gasto total com pessoal a 54% da RCL para o Poder Executivo."
-    : "Comprometimento da Receita Corrente Líquida (RCL) com a despesa total com pessoal. A Lei de Responsabilidade Fiscal limita esse gasto a 54% para o Poder Executivo (com limites de alerta a 48,6% e prudencial a 51,3%).";
+    ? "Quanto a folha de pagamento desta entidade pesa na receita do município, a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses."
+    : "Quanto da receita do município vai para o pagamento de pessoal. A base é a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses.";
+
+  /** Continuação da frase "A Lei de Responsabilidade Fiscal ..." (a lei vira link na página). */
+  const limitesLrfDescricao = (() => {
+    if (!limites) return null;
+    if (isEntidadeFiltrada) {
+      return `limita o gasto total com pessoal a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo.`;
+    }
+    return `limita esse gasto a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo; ${fmtLimite(limites.alerta)} é o limite de alerta e ${fmtLimite(limites.prudencial)}, o limite prudencial.`;
+  })();
+
+  const somaServidores = (itens: { totalProfissionais: number }[]) =>
+    itens.reduce((total, item) => total + item.totalProfissionais, 0);
+  const totalServidores = somaServidores(regimeMetrics);
+  const totalServidoresAnterior = somaServidores(raw.prevRegimeMetrics ?? []);
+  const servidoresTrend = (() => {
+    if (totalServidoresAnterior === 0) return undefined;
+    const diff = Number(
+      (
+        ((totalServidores - totalServidoresAnterior) /
+          totalServidoresAnterior) *
+        100
+      ).toFixed(1),
+    );
+    return {
+      value: `${numeroPtBrComSinal.format(diff)}% vs ${previousYear}`,
+      isPositive: diff >= 0,
+    };
+  })();
 
   return {
     selectedYear,
@@ -165,6 +218,9 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     isCurrentYear: raw.context.isCurrentYear,
     isEntidadeFiltrada,
     headerDescription,
+    limitesLrfDescricao,
+    totalServidores,
+    servidoresTrend,
     folhaKpi,
     folhaTrend,
     chefiasTrend,

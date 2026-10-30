@@ -1,9 +1,11 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import { fmtCompact, fmtNumber, fmtPercent, KPICard } from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
 import { KPIGrid } from "@/components/kpi-grid";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadPessoalData } from "./loader";
 import { buildPessoalViewModel } from "./view-model";
@@ -53,6 +55,9 @@ export default async function PessoalPage({
     servidoresDivergentes,
     currentYearRow,
     headerDescription,
+    limitesLrfDescricao,
+    totalServidores,
+    servidoresTrend,
     folhaKpi,
     folhaTrend,
     chefiasTrend,
@@ -62,13 +67,44 @@ export default async function PessoalPage({
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-2">
-        <p className="eyebrow">
+        <p className="eyebrow text-brand-text!">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </p>
         <h1>Folha de Pagamento</h1>
-        <p className="lead">{headerDescription}</p>
+        <p className="text-mute2 text-sm leading-relaxed">
+          {headerDescription}
+          {limitesLrfDescricao ? (
+            <>
+              {" "}
+              A{" "}
+              <a
+                href={urlLegislacao("lrf", "art20")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+              >
+                <span>Lei de Responsabilidade Fiscal</span>
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>{" "}
+              {limitesLrfDescricao}
+            </>
+          ) : null}
+        </p>
       </div>
+
+      <section className="space-y-2" data-testid="pessoal-destaque">
+        <p className="eyebrow">Total pago em folha</p>
+        <p className="stat-value-lg text-brand-text">
+          {fmtCompact(currentYearRow.totalFolha)}
+        </p>
+        <p className="caption flex flex-wrap gap-x-3">
+          <span>proventos brutos, {selectedYear}</span>
+          {!isCurrentYear && totalFolhaTrend && (
+            <span>{totalFolhaTrend.value}</span>
+          )}
+        </p>
+      </section>
 
       <KPIGrid columns={3} variant="divisoria">
         <KPICard
@@ -78,23 +114,28 @@ export default async function PessoalPage({
           subtext={folhaKpi.subtext}
           trend={folhaTrend}
           alert={folhaKpi.alert}
-          accent
         />
         <KPICard
           variant="divisoria"
-          title="Efetivos no comando das chefias"
+          title="Chefias ocupadas por concursados"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
-          subtext="cargos de liderança concursados (total municipal)"
+          subtext="das funções de chefia do município são de servidores concursados"
           trend={chefiasTrend}
         />
         <KPICard
           variant="divisoria"
-          title="Total pago em folha"
-          value={fmtCompact(currentYearRow.totalFolha)}
-          subtext={`proventos brutos, ${selectedYear}`}
-          {...(!isCurrentYear && { trend: totalFolhaTrend })}
+          title="Total de servidores"
+          value={fmtNumber(totalServidores)}
+          subtext="no quadro de pessoal, por regime jurídico"
+          trend={servidoresTrend}
         />
       </KPIGrid>
+      {folhaTrend || chefiasTrend ? (
+        <p className="caption -mt-4">
+          p.p. significa pontos percentuais, a diferença entre dois percentuais.
+          Por exemplo, de 40% para 46% são 6 p.p.
+        </p>
+      ) : null}
 
       {/* Personnel by Legal Regime and Appointment Type */}
       <PessoalRegimeSection
