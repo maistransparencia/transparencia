@@ -1,7 +1,7 @@
 "use client";
 
 import type { SiconfiEvolucaoMensalPontoDTO } from "@transparencia/db";
-import { corDoGrafico, fmtCompact, fmtCurrency } from "@transparencia/ui";
+import { corDoGrafico, fmtCurrency } from "@transparencia/ui";
 import { useId } from "react";
 import {
   Area,
@@ -75,6 +75,32 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
+const MILHAO = 1_000_000;
+const MIL = 1_000;
+const LARGURA_CARACTERE_EIXO = 6.6;
+const FOLGA_EIXO = 8;
+
+function formatarEixo(valor: number): string {
+  if (valor === 0) return "0";
+  const numero = (n: number) =>
+    n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  if (Math.abs(valor) >= MILHAO) return `${numero(valor / MILHAO)} mi`;
+  return `${numero(valor / MIL)} mil`;
+}
+
+/** Largura do eixo Y ajustada ao maior rótulo, para o gráfico ocupar o resto. */
+function larguraEixo(pontos: SiconfiEvolucaoMensalPontoDTO[]): number {
+  const maior = Math.max(
+    ...pontos.flatMap((p) => [
+      Math.abs(p.saldoCaixaBancos),
+      Math.abs(p.saldoRecursosLivres),
+    ]),
+  );
+  return Math.ceil(
+    formatarEixo(maior).length * LARGURA_CARACTERE_EIXO + FOLGA_EIXO,
+  );
+}
+
 export function SaldoCaixaEvolucaoMensalChart({
   pontos,
   className = "",
@@ -99,11 +125,13 @@ export function SaldoCaixaEvolucaoMensalChart({
           <span className="inline-block h-0 w-4 border-mute border-t-2 border-dashed" />
           Total em caixa
         </span>
+        <span className="text-mute2">Valores em reais</span>
       </div>
 
-      <div className="h-[220px] w-full sm:h-[270px]">
+      <div className="h-[220px] w-full sm:h-[270px] [&_*]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
+            accessibilityLayer={false}
             data={pontos}
             margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
           >
@@ -125,13 +153,11 @@ export function SaldoCaixaEvolucaoMensalChart({
               tickLine={false}
             />
             <YAxis
-              tickFormatter={(val: number) =>
-                val === 0 ? "0" : fmtCompact(val)
-              }
+              tickFormatter={formatarEixo}
               tick={{ fill: corDoGrafico("mute2"), fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              width={72}
+              width={larguraEixo(pontos)}
             />
             <Tooltip
               content={renderCustomTooltip}

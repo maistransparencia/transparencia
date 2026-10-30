@@ -8,14 +8,14 @@ import {
   cn,
   fmtCompact,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
   SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import { AlertCircle, ExternalLink } from "lucide-react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
-import { KPIGrid } from "./kpi-grid";
 import { SaldoCaixaEvolucaoMensalChart } from "./saldo-caixa-evolucao-mensal-chart";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
@@ -265,59 +265,43 @@ export function SaldoCaixaEntidadesSection({
         )}
       </div>
 
-      <dl className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        <div className="py-3 sm:pr-5">
-          <dt className="eyebrow">
-            {isPrevidencia
+      <IndicatorPanel>
+        <Indicator
+          label={
+            isPrevidencia
               ? "Total em caixa e aplicações"
-              : "Total em caixa e bancos"}
-          </dt>
-          <dd className="stat-value mt-1">{fmtCompact(totalCaixa)}</dd>
-          {variacaoAnualTotal !== undefined && variacaoAnualTotal !== null && (
-            <dd className="caption">
-              {getVariacaoTexto(variacaoAnualTotal, ano - 1)}
-            </dd>
-          )}
-        </div>
-        <div className="py-3 sm:px-5">
-          <dt className="eyebrow">Recursos livres</dt>
-          <dd
-            className={cn(
-              "stat-value mt-1",
-              totalLivres < 0 && "text-danger-text",
-            )}
-          >
-            {fmtCompact(totalLivres)}
-          </dd>
-          <dd className="caption">
-            Podem ser usados em qualquer despesa
-            {totalCaixa > 0
+              : "Total em caixa e bancos"
+          }
+          value={fmtCompact(totalCaixa)}
+          note={
+            variacaoAnualTotal !== undefined && variacaoAnualTotal !== null
+              ? getVariacaoTexto(variacaoAnualTotal, ano - 1)
+              : undefined
+          }
+        />
+        <Indicator
+          label="Recursos livres"
+          value={fmtCompact(totalLivres)}
+          tone={totalLivres < 0 ? "danger" : "default"}
+          note={`Podem ser usados em qualquer despesa${
+            totalCaixa > 0
               ? ` (${fmtPercent(percentualLivresGeral, 0)} do total)`
-              : ""}
-          </dd>
-        </div>
-        <div className="py-3 sm:pl-5">
-          <dt className="eyebrow">
-            {isPrevidencia
-              ? "Recursos vinculados (RPPS)"
-              : "Recursos vinculados"}
-          </dt>
-          <dd
-            className={cn(
-              "stat-value mt-1",
-              totalVinculados < 0 && "text-danger-text",
-            )}
-          >
-            {fmtCompact(totalVinculados)}
-          </dd>
-          <dd className="caption">
-            Só podem ser usados na finalidade definida por lei
-            {totalCaixa > 0
+              : ""
+          }`}
+        />
+        <Indicator
+          label={
+            isPrevidencia ? "Recursos vinculados (RPPS)" : "Recursos vinculados"
+          }
+          value={fmtCompact(totalVinculados)}
+          tone={totalVinculados < 0 ? "danger" : "default"}
+          note={`Só podem ser usados na finalidade definida por lei${
+            totalCaixa > 0
               ? ` (${fmtPercent(percentualVinculadosGeral, 0)} do total)`
-              : ""}
-          </dd>
-        </div>
-      </dl>
+              : ""
+          }`}
+        />
+      </IndicatorPanel>
 
       {evolucaoMensal && evolucaoMensal.pontos.length > 0 && (
         <div className="panel panel-brand border! space-y-5 rounded-md! p-4! sm:p-6!">
@@ -334,40 +318,36 @@ export function SaldoCaixaEntidadesSection({
             </p>
           </div>
 
-          <KPIGrid columns={3} variant="divisoria">
-            <KPICard
-              variant="divisoria"
-              title="Média mensal dos recursos livres"
+          <IndicatorPanel bare size="sm">
+            <Indicator
+              label="Média mensal dos recursos livres"
               value={fmtCompact(evolucaoMensal.mediaRecursosLivres)}
-              subtext="média dos saldos dos meses informados"
-              accent
+              note="média dos saldos dos meses informados"
             />
-            <KPICard
-              variant="divisoria"
-              title="Menor saldo do ano"
+            <Indicator
+              label="Menor saldo do ano"
               value={fmtCompact(evolucaoMensal.minRecursosLivres)}
-              subtext={`em ${(
+              note={`em ${(
                 evolucaoMensal.pontos.find(
                   (p) =>
                     p.mesReferencia === evolucaoMensal.mesMinRecursosLivres,
                 )?.mesNome ?? `mês ${evolucaoMensal.mesMinRecursosLivres}`
               ).toLowerCase()}`}
             />
-            <KPICard
-              variant="divisoria"
-              title="Queda desde o maior saldo"
+            <Indicator
+              label="Queda desde o maior saldo"
               value={
                 evolucaoMensal.queimaPicoRecursosLivres > 0
                   ? fmtCompact(evolucaoMensal.queimaPicoRecursosLivres)
                   : "Sem queda"
               }
-              subtext={
+              note={
                 evolucaoMensal.queimaPicoRecursosLivres > 0
                   ? "do mês de maior saldo até o último mês informado"
                   : "o último mês tem o maior saldo do ano"
               }
             />
-          </KPIGrid>
+          </IndicatorPanel>
 
           <SaldoCaixaEvolucaoMensalChart
             pontos={evolucaoMensal.pontos}

@@ -50,10 +50,10 @@ describe("Pessoal, Receitas e Orçamento no padrão Divisórias", () => {
     },
   );
 
-  it("pessoal usa KPIs divisória, receitas e orçamento usam o destaque; receitas e orçamento usam SectionHeader do UI", () => {
+  it("pessoal usa IndicatorPanel, receitas e orçamento usam o destaque; receitas e orçamento usam SectionHeader do UI", () => {
     const [pessoal, receitas, orcamento] = ARQUIVOS.map((a) => a.fonte);
     expect(pessoal).toContain('data-testid="pessoal-destaque"');
-    expect(pessoal).toContain('<KPIGrid columns={3} variant="divisoria">');
+    expect(pessoal).toContain("<IndicatorPanel>");
     expect(receitas).toContain('data-testid="receitas-destaque"');
     expect(orcamento).toContain('data-testid="orcamento-destaque"');
     for (const pagina of [receitas, orcamento]) {

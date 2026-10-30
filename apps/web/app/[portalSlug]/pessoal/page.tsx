@@ -1,8 +1,13 @@
-import { fmtCompact, fmtNumber, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtNumber,
+  fmtPercent,
+  Indicator,
+  IndicatorPanel,
+} from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
-import { KPIGrid } from "@/components/kpi-grid";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -106,32 +111,29 @@ export default async function PessoalPage({
         </p>
       </section>
 
-      <KPIGrid columns={3} variant="divisoria">
-        <KPICard
-          variant="divisoria"
-          title={folhaKpi.title}
+      <IndicatorPanel>
+        <Indicator
+          label={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
-          subtext={folhaKpi.subtext}
+          note={folhaKpi.subtext}
           trend={folhaTrend}
-          alert={folhaKpi.alert}
+          tone={folhaKpi.alert ? "warn" : "default"}
         />
-        <KPICard
-          variant="divisoria"
-          title="Chefias ocupadas por concursados"
+        <Indicator
+          label="Chefias ocupadas por concursados"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
-          subtext="das funções de chefia do município são de servidores concursados"
+          note="das funções de chefia do município são de servidores concursados"
           trend={chefiasTrend}
         />
-        <KPICard
-          variant="divisoria"
-          title="Total de servidores"
+        <Indicator
+          label="Total de servidores"
           value={fmtNumber(totalServidores)}
-          subtext="no quadro de pessoal, por regime jurídico"
+          note="no quadro de pessoal, por regime jurídico"
           trend={servidoresTrend}
         />
-      </KPIGrid>
+      </IndicatorPanel>
       {folhaTrend || chefiasTrend ? (
-        <p className="caption -mt-4">
+        <p className="caption">
           p.p. significa pontos percentuais, a diferença entre dois percentuais.
           Por exemplo, de 40% para 46% são 6 p.p.
         </p>

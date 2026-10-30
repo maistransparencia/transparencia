@@ -1,14 +1,14 @@
 import {
   fmtCompact,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
   SectionHeader,
 } from "@transparencia/ui";
 import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import { DespesasAreasSection } from "@/components/despesas-areas-section";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
-import { KPIGrid } from "@/components/kpi-grid";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
@@ -106,20 +106,18 @@ export default async function DespesasPage({
           </p>
         </div>
 
-        <KPIGrid columns={2} variant="divisoria">
-          <KPICard
-            variant="divisoria"
-            title="Reservado (empenhado)"
+        <IndicatorPanel>
+          <Indicator
+            label="Reservado (empenhado)"
             value={fmtCompact(metricasGerais.empenhado)}
-            subtext="Valor que a prefeitura separou no orçamento para pagar contratos e compras."
+            note="Valor que a prefeitura separou no orçamento para pagar contratos e compras."
           />
-          <KPICard
-            variant="divisoria"
-            title="Serviço entregue (liquidado)"
+          <Indicator
+            label="Serviço entregue (liquidado)"
             value={fmtCompact(metricasGerais.liquidado)}
-            subtext="Parte do reservado em que o serviço ou produto já foi recebido e conferido, mesmo que ainda não tenha sido pago."
+            note="Parte do reservado em que o serviço ou produto já foi recebido e conferido, mesmo que ainda não tenha sido pago."
           />
-        </KPIGrid>
+        </IndicatorPanel>
 
         <details className="group">
           <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
@@ -204,34 +202,28 @@ export default async function DespesasPage({
           description={`Compras feitas em anos passados que ainda não foram pagas e foram levadas para ${selectedYear}.`}
         />
 
-        <KPIGrid columns={3} variant="divisoria">
-          <KPICard
-            variant="divisoria"
-            title="Total pendente"
-            value={
-              <span className="font-bold text-warn-text">
-                {fmtCompact(restosResumo.totalPendente)}
-              </span>
-            }
-            subtext={
+        <IndicatorPanel tone="warn">
+          <Indicator
+            label="Total pendente"
+            value={fmtCompact(restosResumo.totalPendente)}
+            tone="warn"
+            note={
               restosResumo.totalLiquidadoPendente > 0
                 ? `${fmtCompact(restosResumo.totalLiquidadoPendente)} liquidados`
                 : `pendentes a ${restosResumo.fornecedoresAguardando} fornecedores`
             }
           />
-          <KPICard
-            variant="divisoria"
-            title="Fornecedores aguardando"
+          <Indicator
+            label="Fornecedores aguardando"
             value={restosResumo.fornecedoresAguardando}
-            subtext="Empresas e pessoas com valores em aberto."
+            note="Empresas e pessoas com valores em aberto."
           />
-          <KPICard
-            variant="divisoria"
-            title="Pendência mais antiga desde"
+          <Indicator
+            label="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
-            subtext="Quanto mais antiga, mais atenção merece."
+            note="Quanto mais antiga, mais atenção merece."
           />
-        </KPIGrid>
+        </IndicatorPanel>
 
         {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (
