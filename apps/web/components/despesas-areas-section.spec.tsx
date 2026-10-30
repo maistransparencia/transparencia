@@ -48,11 +48,11 @@ describe("DespesasAreasSection", () => {
         (s) => s.textContent,
       );
     expect(resumos()[0]).toContain("Educação");
-    expect(resumos()[0]).toContain("75.00%");
+    expect(resumos()[0]).toContain("75,00%");
 
     fireEvent.click(screen.getByRole("button", { name: "Serviço entregue" }));
     expect(resumos()[0]).toContain("Saúde");
-    expect(resumos()[0]).toContain("60.00%");
+    expect(resumos()[0]).toContain("60,00%");
     expect(nomesNaOrdem().length).toBe(2);
   });
 

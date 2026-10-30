@@ -2,6 +2,8 @@ import type React from "react";
 import { cn } from "../utils/cn";
 
 export interface SectionHeaderProps {
+  /** Escopo ou categoria acima do título (ex.: "Consolidado Municipal"). */
+  eyebrow?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
   /** Link ou botão alinhado à direita do título. */
@@ -19,6 +21,7 @@ const temConteudo = (conteudo: React.ReactNode) =>
   conteudo !== 0;
 
 export function SectionHeader({
+  eyebrow,
   title,
   description,
   action,
@@ -27,8 +30,15 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <header className={cn("border-ink border-t-2 pt-4 pb-5", className)}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <Titulo className="font-semibold font-serif text-ink text-xl sm:text-2xl">
+      {temConteudo(eyebrow) && <p className="eyebrow mb-1.5">{eyebrow}</p>}
+      <div
+        className={cn(
+          "flex items-baseline justify-between gap-x-4 gap-y-1",
+          // Com eyebrow, a ação é compacta (ícone) e fica na linha do título.
+          !temConteudo(eyebrow) && "flex-wrap",
+        )}
+      >
+        <Titulo className="min-w-0 font-semibold font-serif text-ink text-xl sm:text-2xl">
           {title}
         </Titulo>
         {temConteudo(action) && (

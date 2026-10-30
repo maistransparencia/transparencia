@@ -9,6 +9,8 @@ export interface FolhaVsServicosMetricsDTO {
   receitaCorrenteLiquida: number;
   percentualFolha: number;
   statusLrf: "normal" | "alerta" | "prudencial" | "excedido";
+  /** Limites vigentes no ano (seed_constantes_fiscais); `null` quando não cadastrados. */
+  limitesLrf: LimitesLrfPessoal | null;
 }
 
 export interface DecimoTerceiroExecucaoMetricsDTO {
@@ -38,7 +40,7 @@ const CHAVES_LIMITES_LRF_PESSOAL = {
   lrf_limite_alerta_executivo: "alerta",
 } as const;
 
-interface LimitesLrfPessoal {
+export interface LimitesLrfPessoal {
   maximo: number;
   prudencial: number;
   alerta: number;
@@ -192,6 +194,7 @@ export async function getFolhaVsServicosMetrics({
       receitaCorrenteLiquida,
       percentualFolha,
       statusLrf,
+      limitesLrf: limites ?? null,
     };
   });
 }

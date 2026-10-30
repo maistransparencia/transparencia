@@ -464,6 +464,24 @@ describe("DenseTable - formato Divisórias, renderMobileRow e hideSearch", () =>
     );
   });
 
+  it("renderMobileRow mostra o indicador de expansão só quando há detalhes", () => {
+    const { container } = render(
+      <DenseTable
+        data={data}
+        columns={columns}
+        rowKey="id"
+        renderMobileRow={(row) => ({
+          resumo: <span>Resumo {row.nome}</span>,
+          detalhes: row.id === "1" ? <span>Detalhes</span> : null,
+        })}
+      />,
+    );
+
+    const linhas = container.querySelectorAll("details");
+    expect(linhas[0].querySelector("summary svg")).not.toBeNull();
+    expect(linhas[1].querySelector("summary svg")).toBeNull();
+  });
+
   it("renderMobileRow tem precedência sobre renderMobileCard", () => {
     const { container } = render(
       <DenseTable

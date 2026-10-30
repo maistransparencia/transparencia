@@ -65,7 +65,7 @@ describe("ReceitasPage", () => {
     render(element);
 
     expect(screen.getByText("Fontes de Receita")).toBeInTheDocument();
-    expect(screen.getByText("Total Arrecadado Real")).toBeInTheDocument();
+    expect(screen.getByText("Total arrecadado")).toBeInTheDocument();
   });
 
   it("não exibe o card de anomalia de dependência quando não há alerta", async () => {

@@ -607,8 +607,14 @@ export function DenseTable<T extends Record<string, any>>({
                 key={rowKey ? String(row[rowKey]) : idx}
                 className="group border-line border-b last:border-b-0"
               >
-                <summary className="cursor-pointer list-none py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden">
-                  {resumo}
+                <summary className="flex cursor-pointer list-none items-start gap-2 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">{resumo}</div>
+                  {detalhes ? (
+                    <ChevronRight
+                      className="mt-1 h-4 w-4 shrink-0 text-mute transition-transform group-open:rotate-90"
+                      aria-hidden="true"
+                    />
+                  ) : null}
                 </summary>
                 <div className="pb-3 text-xs">{detalhes}</div>
               </details>
@@ -743,7 +749,7 @@ export function DenseTable<T extends Record<string, any>>({
                             (col.isSerifNumeric ||
                               col.format === "currency" ||
                               col.format === "compact") &&
-                              "font-semibold font-serif",
+                              "numeric",
                             row.className,
                           )}
                         >

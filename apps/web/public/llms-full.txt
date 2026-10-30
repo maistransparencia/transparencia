@@ -217,6 +217,8 @@ Esta seção apresenta a arrecadação de recursos, o ciclo completo do orçamen
 - **Liquidado:** A confirmação legal da entrega do bem ou prestação do serviço contratado (atesto de liquidação), constituindo a obrigação de pagamento do município.
 - **Pago:** O efetivo desembolso financeiro e saída de recursos da conta bancária da prefeitura em favor do credor.
 - **Funil de Execução Orçamentária:** Visualização sequencial demonstrando a taxa de avanço de cada estágio (Empenhado, Liquidado e Pago) em relação ao total autorizado.
+- **Orçamento já pago:** Percentual da dotação atualizada que já foi efetivamente pago no exercício, com a comparação ao percentual pago ao fim do ano anterior inteiro (referência de ritmo; o pagamento varia de mês para mês e um exercício em andamento não é comparável a um exercício fechado).
+- **Empenhado acima da dotação:** Alerta exibido na execução por órgão quando o valor empenhado supera a dotação atualizada (indício a conferir, por exemplo créditos adicionais ainda não refletidos na fonte; não é, por si, prova de irregularidade).
 - **Despesas por Função de Governo:** Distribuição temática das despesas pagas segundo a classificação funcional oficial da STN (Saúde, Educação, Administração, Urbanismo, etc.).
 - **Execução por Órgão e Unidade Gestora:** Demonstrativo da dotação, empenho, liquidação e pagamento por secretaria municipal, fundo e órgão executor.
 - **Disponibilidade Financeira em Caixa e Bancos por Entidade (SICONFI / STN):** Demonstrativo de estoques financeiros homologados pela Secretaria do Tesouro Nacional na Matriz de Saldos Contábeis (MSC), desagregado por entidade do Poder Executivo:

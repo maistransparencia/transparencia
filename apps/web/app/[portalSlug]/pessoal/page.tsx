@@ -1,9 +1,16 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtNumber,
+  fmtPercent,
+  Indicator,
+  IndicatorPanel,
+} from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
-import { KPIGrid } from "@/components/kpi-grid";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadPessoalData } from "./loader";
 import { buildPessoalViewModel } from "./view-model";
@@ -53,6 +60,9 @@ export default async function PessoalPage({
     servidoresDivergentes,
     currentYearRow,
     headerDescription,
+    limitesLrfDescricao,
+    totalServidores,
+    servidoresTrend,
     folhaKpi,
     folhaTrend,
     chefiasTrend,
@@ -61,43 +71,73 @@ export default async function PessoalPage({
 
   return (
     <div className="space-y-8 pb-10">
-      {/* Header & Subtitle */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+      <div className="space-y-2">
+        <p className="eyebrow text-brand-text!">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
-          Folha de Pagamento
-        </h1>
-        <p className="mt-2 max-w-4xl text-slate-600 text-xs leading-relaxed sm:text-sm">
+        </p>
+        <h1>Folha de Pagamento</h1>
+        <p className="text-mute2 text-sm leading-relaxed">
           {headerDescription}
+          {limitesLrfDescricao ? (
+            <>
+              {" "}
+              A{" "}
+              <a
+                href={urlLegislacao("lrf", "art20")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+              >
+                <span>Lei de Responsabilidade Fiscal</span>
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>{" "}
+              {limitesLrfDescricao}
+            </>
+          ) : null}
         </p>
       </div>
 
-      {/* 3 Key KPI Cards */}
-      <KPIGrid columns={3}>
-        <KPICard
-          title={folhaKpi.title}
+      <section className="space-y-2" data-testid="pessoal-destaque">
+        <p className="eyebrow">Total pago em folha</p>
+        <p className="stat-value-lg text-brand-text">
+          {fmtCompact(currentYearRow.totalFolha)}
+        </p>
+        <p className="caption flex flex-wrap gap-x-3">
+          <span>proventos brutos, {selectedYear}</span>
+          {!isCurrentYear && totalFolhaTrend && (
+            <span>{totalFolhaTrend.value}</span>
+          )}
+        </p>
+      </section>
+
+      <IndicatorPanel>
+        <Indicator
+          label={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
-          subtext={folhaKpi.subtext}
+          note={folhaKpi.subtext}
           trend={folhaTrend}
-          alert={folhaKpi.alert}
-          accent
+          tone={folhaKpi.alert ? "warn" : "default"}
         />
-        <KPICard
-          title="Efetivos no comando das chefias"
+        <Indicator
+          label="Chefias ocupadas por concursados"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
-          subtext="cargos de liderança concursados (total municipal)"
+          note="das funções de chefia do município são de servidores concursados"
           trend={chefiasTrend}
         />
-        <KPICard
-          title="Total pago em folha"
-          value={fmtCompact(currentYearRow.totalFolha)}
-          subtext={`proventos brutos, ${selectedYear}`}
-          {...(!isCurrentYear && { trend: totalFolhaTrend })}
+        <Indicator
+          label="Total de servidores"
+          value={fmtNumber(totalServidores)}
+          note="no quadro de pessoal, por regime jurídico"
+          trend={servidoresTrend}
         />
-      </KPIGrid>
+      </IndicatorPanel>
+      {folhaTrend || chefiasTrend ? (
+        <p className="caption">
+          p.p. significa pontos percentuais, a diferença entre dois percentuais.
+          Por exemplo, de 40% para 46% são 6 p.p.
+        </p>
+      ) : null}
 
       {/* Personnel by Legal Regime and Appointment Type */}
       <PessoalRegimeSection
@@ -119,7 +159,7 @@ export default async function PessoalPage({
           pctPago={decimo13.pctPago}
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500 text-sm shadow-sm">
+        <div className="border-line border-y py-6 text-center text-mute2 text-sm">
           Sem dados de 13º salário para {selectedYear}.
         </div>
       )}

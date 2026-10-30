@@ -139,7 +139,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(
       screen.getByText("Gastos registrados como “Outros”"),
     ).toBeInTheDocument();
-    expect(screen.getByText("56.40%")).toBeInTheDocument();
+    expect(screen.getByText("56,40%")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Lei 4.320\/1964 Arts. 5º e 15/ }),
     ).toHaveAttribute("target", "_blank");
@@ -157,7 +157,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(
       screen.getByText("Outros Serviços de Terceiros - Pessoa Jurídica"),
     ).toBeInTheDocument();
-    expect(screen.getByText("70.92%")).toBeInTheDocument();
+    expect(screen.getByText("70,92%")).toBeInTheDocument();
     expect(screen.getByText("36.99")).toBeInTheDocument();
     expect(screen.getAllByText("91.99").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Sentenças Judiciais")).toBeInTheDocument();
@@ -173,11 +173,11 @@ describe("TermometroOpacidadeFiscal Component", () => {
 
     // Valida valores monetários formatados e percentuais dos elementos
     expect(screen.getAllByText("R$ 4,0 mi").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("70.92%").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("70,92%").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("R$ 1,0 mi")).toBeInTheDocument();
-    expect(screen.getByText("17.73%")).toBeInTheDocument();
+    expect(screen.getByText("17,73%")).toBeInTheDocument();
     expect(screen.getByText("R$ 640,0 mil")).toBeInTheDocument();
-    expect(screen.getByText("11.35%")).toBeInTheDocument();
+    expect(screen.getByText("11,35%")).toBeInTheDocument();
   });
 
   it("renderiza a evolução histórica de anos anteriores fechados", () => {
@@ -189,7 +189,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getByText("2024 – 2025")).toBeInTheDocument();
     expect(screen.getByText("2024")).toBeInTheDocument();
     expect(screen.getByText("2025")).toBeInTheDocument();
-    expect(screen.getAllByText("25.00%").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("25,00%").length).toBeGreaterThan(0);
   });
 
   it("renderiza ano único no badge quando há apenas um exercício anterior", () => {

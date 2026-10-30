@@ -1,13 +1,8 @@
-import {
-  DenseTable,
-  fmtCompact,
-  KPICard,
-  toTitleCase,
-} from "@transparencia/ui";
+import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
+import { ExecucaoOrgaosTable } from "@/components/execucao-orgaos-table";
 import { FunnelExecucaoHorizontal } from "@/components/funil-execucao-horizontal";
 import { GastoPorFuncaoBars } from "@/components/gasto-por-funcao-bars";
-import { KPIGrid } from "@/components/kpi-grid";
 import { SaldoCaixaEntidadesSection } from "@/components/saldo-caixa-entidades-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadOrcamentoData } from "./loader";
@@ -53,98 +48,88 @@ export default async function OrcamentoPage({
     partialPeriod,
     items,
     totalDotacao,
-    totalEmpenhado,
-    totalLiquidado,
     totalPago,
-    empPct,
-    liqPct,
-    pagPct,
+    percentualPago,
     funnelStages,
     funcItems,
-    orgaosCols,
+    execucaoAnoAnterior,
   } = viewModel;
 
+  const temOrcamento = totalDotacao > 0;
+
   return (
-    <div className="space-y-6">
-      {/* Eyebrow + Título + Subtítulo */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <p className="eyebrow text-brand-text!">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
-          Execução Orçamentária
-        </h1>
-        <p className="mt-2 text-sm text-subtleText leading-relaxed">
-          Cada real passa por quatro estágios legais antes de sair do caixa:{" "}
-          <strong className="font-semibold text-ink">reservar</strong>{" "}
-          (empenho),{" "}
-          <strong className="font-semibold text-ink">
-            confirmar a entrega
-          </strong>{" "}
-          (liquidação) e{" "}
-          <strong className="font-semibold text-ink">pagar</strong>. Veja quanto
-          do orçamento já avançou em cada etapa.
+        </p>
+        <h1>Execução Orçamentária</h1>
+        <p className="text-mute2 text-sm leading-relaxed">
+          Todo ano a prefeitura tem um orçamento: o limite do que pode gastar.
+          Aqui você acompanha quanto desse limite já foi reservado, entregue e
+          pago.
         </p>
       </div>
 
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Dotação Atualizada"
-          value={fmtCompact(totalDotacao)}
-          subtext="100% autorizado"
-          accent
-        />
-        <KPICard
-          title="Empenhado"
-          value={fmtCompact(totalEmpenhado)}
-          subtext={`${empPct.toFixed(0)}% da dotação`}
-        />
-        <KPICard
-          title="Liquidado"
-          value={fmtCompact(totalLiquidado)}
-          subtext={`${liqPct.toFixed(0)}% da dotação`}
-        />
-        <KPICard
-          title="Pago"
-          value={fmtCompact(totalPago)}
-          subtext={`${pagPct.toFixed(0)}% da dotação`}
-        />
-      </KPIGrid>
+      <section className="space-y-2" data-testid="orcamento-destaque">
+        <p className="eyebrow">Orçamento já pago</p>
+        {temOrcamento ? (
+          <>
+            <p className="stat-value-lg text-brand-text">
+              {fmtPercent(percentualPago, 0)}
+            </p>
+            <p className="caption">
+              {fmtCompact(totalPago)} pagos de {fmtCompact(totalDotacao)}{" "}
+              autorizados em {selectedYear}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="stat-value-lg">—</p>
+            <p className="caption">
+              Ainda não há orçamento autorizado registrado para {selectedYear}.
+            </p>
+          </>
+        )}
+      </section>
 
-      {/* Funil da Execução */}
-      <FunnelExecucaoHorizontal stages={funnelStages} />
+      {execucaoAnoAnterior.percentualPago !== null ? (
+        <p
+          className="text-mute2 text-sm leading-relaxed"
+          data-testid="orcamento-ano-anterior"
+        >
+          Para comparar: em {execucaoAnoAnterior.anoAnterior}, o ano inteiro
+          terminou com {fmtPercent(execucaoAnoAnterior.percentualPago, 0)} do
+          orçamento pago. Os pagamentos variam de mês para mês.
+        </p>
+      ) : null}
 
-      {/* Para onde vai o gasto, por função */}
+      <section className="space-y-4">
+        <SectionHeader
+          title="Do orçamento ao pagamento"
+          description="Até onde o dinheiro do orçamento já avançou."
+        />
+        <FunnelExecucaoHorizontal stages={funnelStages} />
+      </section>
+
       {funcItems.length > 0 && (
-        <div className="space-y-4 border-ink border-t-2 pt-6">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-bold font-serif text-ink text-xl">
-              Para onde vai o gasto, por função
-            </h2>
-            <span className="font-medium text-subtleText text-xs">
-              valor pago por função
-            </span>
-          </div>
-
+        <section className="space-y-4">
+          <SectionHeader
+            title="Quanto foi pago em cada área"
+            description="Valor já pago em cada área de atuação da prefeitura, como saúde e educação."
+          />
           <GastoPorFuncaoBars items={funcItems} />
-        </div>
+        </section>
       )}
 
-      {/* Execução por Órgão */}
-      <div className="space-y-4 border-ink border-t-2 pt-6">
-        <h2 className="font-bold font-serif text-ink text-xl">
-          Execução por Órgão e Unidade Gestora
-        </h2>
-        <DenseTable
-          data={items.map((item) => ({
-            ...item,
-            descricao: toTitleCase(item.descricao),
-          }))}
-          columns={orgaosCols}
-          searchableKeys={["descricao"]}
+      <section className="space-y-4">
+        <SectionHeader
+          title="Execução por secretaria e fundo"
+          description="Quanto cada uma recebeu de orçamento e quanto já reservou e pagou."
         />
-      </div>
+        <ExecucaoOrgaosTable items={items} />
+      </section>
 
       {/* Disponibilidade Financeira em Caixa (SICONFI / STN) */}
       {viewModel.posicaoFinanceira && (

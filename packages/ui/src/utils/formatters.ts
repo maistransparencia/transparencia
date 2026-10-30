@@ -30,10 +30,13 @@ export function fmtCompact(value: number): string {
   }).format(value);
 }
 
-export function fmtPercent(value: number | null | undefined): string {
+export function fmtPercent(
+  value: number | null | undefined,
+  fractionDigits = 2,
+): string {
   if (value === null || value === undefined || Number.isNaN(value))
-    return "0,00%";
-  return `${value.toFixed(2)}%`;
+    return `${(0).toFixed(fractionDigits).replace(".", ",")}%`;
+  return `${value.toFixed(fractionDigits).replace(".", ",")}%`;
 }
 
 export function fmtNumber(value: number): string {

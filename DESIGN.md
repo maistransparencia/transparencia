@@ -131,7 +131,7 @@ typography:
     lineHeight: '1.15'
   stat-value-lg:
     fontFamily: 'Source Serif 4'
-    fontSize: 36px
+    fontSize: 48px
     fontWeight: '700'
     lineHeight: '1'
   stat-value-lg-md:
@@ -278,7 +278,7 @@ Três famílias, cada uma com um papel:
 |---|---|---|---|
 | `stat-value-sm` | `text-xl` | `text-2xl` | painéis densos |
 | `stat-value` | `text-2xl` | `text-3xl` | padrão dos painéis |
-| `stat-value-lg` | `text-4xl` | `text-6xl` | um valor principal por página (hero) |
+| `stat-value-lg` | `text-5xl` | `text-6xl` | um valor principal por página (hero) |
 
 Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading-none`. A cor muda **só** para tom semântico (`-text`). Não há variante em cor de marca.
 

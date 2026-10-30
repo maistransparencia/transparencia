@@ -12,6 +12,12 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Restos a pagar | Contas de anos anteriores que ainda estão sendo pagas | "Dívida" sem contexto |
 | Restos a pagar processados | Já entregues e conferidos: o fornecedor cumpriu a sua parte e falta o pagamento | "Direito adquirido do credor" |
 | Restos a pagar não processados | Ainda em andamento: depende de conferência antes do pagamento | "Pendente de liquidação" |
+| LOA (Lei Orçamentária Anual) | Lei que diz quanto a prefeitura pode gastar e quanto espera arrecadar no ano | "Orçamento fixo" |
+| FPM | Repasse do governo federal aos municípios | |
+| ICMS (cota-parte) | Parte do imposto estadual sobre vendas que o estado repassa ao município | |
+| Receita extra-orçamentária | Dinheiro que passa pelo caixa da prefeitura, mas não faz parte do orçamento (retenções e caixas) | "Receita própria" |
+| Emenda Pix | Transferência especial de deputado ou senador direto ao município, sem destino fixado | |
+| Empenho | Valor reservado para um gasto | "Gasto" sem qualificação |
 | Receita Corrente Líquida (RCL) | Receita do município nos últimos 12 meses, usada como base para limites da lei | |
 | Limite prudencial | Nível de alerta em que a lei já impede novos aumentos de despesa com pessoal | |
 | Dispensa de licitação | Compra feita sem concorrência, nos casos que a lei permite | "Compra irregular" |

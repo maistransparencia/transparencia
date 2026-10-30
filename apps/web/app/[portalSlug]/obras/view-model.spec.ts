@@ -299,7 +299,7 @@ describe("obras/view-model", () => {
       expect(vm.situacao).toBe("em_execucao");
       expect(vm.situacaoVisual.label).toBe("Em Execução");
       expect(vm.valorInvestimentoFormatado).toContain("1.450.000,50");
-      expect(vm.percentualFisicoFormatado).toBe("78.40%");
+      expect(vm.percentualFisicoFormatado).toBe("78,40%");
       expect(vm.dataUltimaMedicaoFormatada).toBe("15/05/2024");
       expect(vm.hasCoordinates).toBe(true);
 

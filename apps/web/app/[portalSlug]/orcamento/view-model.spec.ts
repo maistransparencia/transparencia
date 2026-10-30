@@ -26,11 +26,17 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
 }
 
 describe("buildOrcamentoViewModel", () => {
+  it("não envia cores de paleta fixa para o funil (usa os tokens do componente)", () => {
+    const vm = buildOrcamentoViewModel(makeRaw());
+    expect(vm.funnelStages).toHaveLength(4);
+    for (const etapa of vm.funnelStages) {
+      expect(etapa).not.toHaveProperty("colorClass");
+    }
+  });
+
   it("calcula os percentuais de execução relativos à dotação", () => {
     const vm = buildOrcamentoViewModel(makeRaw());
-    expect(vm.empPct).toBe(80);
-    expect(vm.liqPct).toBe(70);
-    expect(vm.pagPct).toBe(60);
+    expect(vm.percentualPago).toBe(60);
   });
 
   it("evita divisão por zero quando a dotação é zero", () => {
@@ -45,9 +51,7 @@ describe("buildOrcamentoViewModel", () => {
         },
       }),
     );
-    expect(vm.empPct).toBe(0);
-    expect(vm.liqPct).toBe(0);
-    expect(vm.pagPct).toBe(0);
+    expect(vm.percentualPago).toBe(0);
   });
 
   it("agrupa funcionalData por função somando pago (ou empenhado como fallback)", () => {

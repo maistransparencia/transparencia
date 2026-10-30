@@ -29,14 +29,16 @@ describe("Despesas no padrão Divisórias", () => {
     },
   );
 
-  it("a página usa SectionHeader de @transparencia/ui e KPIs divisoria", () => {
+  it("a página usa SectionHeader e IndicatorPanel de @transparencia/ui", () => {
     const pagina = ARQUIVOS[3]?.fonte ?? "";
     expect(pagina).not.toContain("@/components/section-header");
     expect(pagina).toMatch(
       /import \{[^}]*\bSectionHeader\b[^}]*\} from "@transparencia\/ui"/,
     );
-    expect(pagina.match(/variant="divisoria"/g)?.length).toBeGreaterThanOrEqual(
-      7,
+    expect(pagina).toMatch(
+      /import \{[^}]*\bIndicatorPanel\b[^}]*\} from "@transparencia\/ui"/,
     );
+    expect(pagina).not.toContain("KPICard");
+    expect(pagina.match(/<Indicator\b/g)?.length).toBeGreaterThanOrEqual(5);
   });
 });

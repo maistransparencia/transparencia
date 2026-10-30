@@ -57,7 +57,7 @@ describe("ObrasDetalheModal Component", () => {
     expect(screen.getByText("Secretaria de Obras")).toBeInTheDocument();
     expect(screen.getByText("Em Execução")).toBeInTheDocument();
     expect(screen.getByText("R$ 1.200.000,00")).toBeInTheDocument();
-    expect(screen.getByText("55.00%")).toBeInTheDocument();
+    expect(screen.getByText("55,00%")).toBeInTheDocument();
   });
 
   it("exibe alerta destacado de obra paralisada com justificativa oficial e base legal", () => {
