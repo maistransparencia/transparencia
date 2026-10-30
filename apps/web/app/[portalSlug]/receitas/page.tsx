@@ -74,8 +74,9 @@ export default async function ReceitasPage({
           <strong className="font-semibold text-ink">planejou arrecadar</strong>{" "}
           no ano (previsão da Lei Orçamentária Anual, a LOA) com o que{" "}
           <strong className="font-semibold text-ink">de fato entrou</strong> no
-          caixa, por origem do dinheiro. Inclui também entradas que não fazem
-          parte do orçamento, como retenções e caixas.
+          caixa, por origem do dinheiro. As entradas que não fazem parte do
+          orçamento, como retenções e caixas, aparecem à parte e não entram no
+          total.
         </p>
       </div>
 
