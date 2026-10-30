@@ -1,8 +1,7 @@
-import { fmtCompact, KPICard, SectionHeader } from "@transparencia/ui";
+import { fmtCompact, SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
-import { KPIGrid } from "@/components/kpi-grid";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { ReceitasOrigemTabela } from "@/components/receitas-origem-tabela";
@@ -59,6 +58,11 @@ export default async function ReceitasPage({
     cardDependencia,
   } = viewModel;
 
+  const percentualArrecadadoLimitado = Math.min(
+    100,
+    Math.max(0, pctArrecadadoAnual),
+  );
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -77,40 +81,43 @@ export default async function ReceitasPage({
         </p>
       </div>
 
-      <section className="space-y-2" data-testid="receitas-destaque">
-        <p className="eyebrow">Total arrecadado</p>
-        <p className="stat-value-lg text-brand-text">{fmtCompact(totalArr)}</p>
-        <p className="caption">
-          {isCurrentYear
-            ? `arrecadado no período (${partialPeriod || "até agora"})`
-            : `exercício ${selectedYear}`}
-        </p>
-      </section>
-
-      <KPIGrid columns={2} variant="divisoria">
-        <KPICard
-          variant="divisoria"
-          title="Previsto para o ano (LOA)"
-          value={fmtCompact(totalPrev)}
-          subtext={variationText}
-        />
+      <section className="space-y-4" data-testid="receitas-destaque">
         <div className="space-y-2">
-          <div className="flex items-center justify-between font-semibold text-ink text-sm">
-            <span>Quanto da previsão já foi arrecadado</span>
-            <span className="numeric">
-              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
-            </span>
-          </div>
-          <div className="h-3.5 w-full overflow-hidden bg-track">
+          <p className="eyebrow">Total arrecadado</p>
+          <p className="stat-value-lg text-brand-text">
+            {fmtCompact(totalArr)}
+          </p>
+          <p className="caption">
+            {isCurrentYear
+              ? `arrecadado no período (${partialPeriod || "até agora"})`
+              : `exercício ${selectedYear}`}
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <div
+            className="h-3.5 w-full overflow-hidden bg-track"
+            role="progressbar"
+            aria-valuenow={Math.round(percentualArrecadadoLimitado)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Quanto da previsão já foi arrecadado"
+          >
             <div
               className="h-full bg-brand-fill transition-all duration-500"
-              style={{
-                width: `${Math.min(100, Math.max(0, pctArrecadadoAnual))}%`,
-              }}
+              style={{ width: `${percentualArrecadadoLimitado}%` }}
             />
           </div>
+          <p className="text-ink text-sm">
+            <span className="numeric font-semibold">
+              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
+            </span>{" "}
+            da previsão para o ano já foi arrecadado (previsto:{" "}
+            <span className="font-semibold">{fmtCompact(totalPrev)}</span>)
+          </p>
+          <p className="caption">{variationText} na previsão</p>
         </div>
-      </KPIGrid>
+      </section>
 
       <EmendasCard
         totalEmendas={rec.emendasTotalArrecadado || 0}
