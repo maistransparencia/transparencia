@@ -33,7 +33,7 @@ export function fmtCompact(value: number): string {
 export function fmtPercent(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value))
     return "0,00%";
-  return `${value.toFixed(2)}%`;
+  return `${value.toFixed(2).replace(".", ",")}%`;
 }
 
 export function fmtNumber(value: number): string {

@@ -174,7 +174,7 @@ describe("DespesasPage", () => {
     ).toBeInTheDocument();
     const destaque = screen.getByTestId("despesas-resumo-destaque");
     expect(destaque).toHaveTextContent("Dinheiro que saiu (pago) em");
-    expect(destaque).toHaveTextContent("70.00%");
+    expect(destaque).toHaveTextContent("70,00%");
     expect(screen.getByText("Empresa A")).toBeInTheDocument();
   });
 

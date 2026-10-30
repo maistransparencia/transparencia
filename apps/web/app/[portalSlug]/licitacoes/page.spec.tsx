@@ -245,7 +245,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getAllByText(/60[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByText(
-        /Nas entidades selecionadas em 2024, 60\.00% do volume apurado/,
+        /Nas entidades selecionadas em 2024, 60,00% do volume apurado/,
       ),
     ).toBeInTheDocument();
   });

@@ -37,7 +37,7 @@ describe("DespesasFornecedoresSection", () => {
     );
     expect(container.textContent).toContain("00.000.000/0001-00");
     expect(container.textContent).toContain("***.123.456-**");
-    expect(container.textContent).toContain("10.00%");
+    expect(container.textContent).toContain("10,00%");
   });
 
   it("nunca renderiza número de 11 dígitos sem máscara", () => {
