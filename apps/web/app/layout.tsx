@@ -10,6 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
+import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 import { GlobalFooter } from "@/components/global-footer";
@@ -215,8 +216,12 @@ export default async function RootLayout({
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} ${sourceSerif4.variable}`}
     >
       <head>
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema */}
-        <script dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }} />
+        <Script
+          id="tema-anti-flash"
+          strategy="beforeInteractive"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema
+          dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }}
+        />
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>
