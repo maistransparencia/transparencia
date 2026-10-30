@@ -126,7 +126,7 @@ Estado nunca é comunicado só por cor: sempre há texto ou ícone junto.
 ## Verificação visual
 
 - **Storybook:** em `apps/storybook`, importando o mesmo `globals.css` do `apps/web`, com alternador claro/escuro e viewport mobile/desktop. A fase 1 cobre elementos base, papéis, `panel`, `indicator`, `table` e `expandable-row`. A publicação em `storybook.maistransparencia.com` e as stories dos demais componentes ficam para uma fase posterior.
-- **Primeiro caso de teste:** o valor da despesa em `stat-value-lg`. Verificar `tabular-nums` e o espaçamento de "R$" e da vírgula no Source Serif. Se ficar estranho, `stat-value-lg` passa para `font-sans` (uma linha no papel).
+- **Primeiro caso de teste:** o valor da despesa em `stat-value-lg`. Verificar `tabular-nums` e o espaçamento de "R$" e da vírgula no Source Serif. Resultado (Story 20.16, 2026-10-30): sem estranheza nos dois temas e nas duas larguras; `stat-value-lg` permanece em serifa.
 
 ## Guardas de teste
 
@@ -164,5 +164,5 @@ Estilo de `apps/web/styles/tokens-uso.spec.ts`, ativas desde o início:
 ## Open Questions
 
 - `[NOTE FOR UX]` O resumo inline da `expandable-row` é sempre menor que o `ModalDialog`? Fecha na story de licitações, antes de aplicar o padrão em contratos.
-- `[ASSUMPTION]` `stat-value-lg` em serifa: valida na primeira story do Storybook (`tabular-nums` e "R$").
+- `[RESOLVIDO]` `stat-value-lg` em serifa: validado na Story 20.16 (`tabular-nums` e "R$"), sem ajuste.
 - `[ASSUMPTION]` Estados de carregando, vazio e erro seguem o que o `DenseTable` já faz; revisar na primeira story de `panel`.
