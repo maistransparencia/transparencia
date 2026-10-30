@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
-import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 import { GlobalFooter } from "@/components/global-footer";
@@ -141,6 +141,12 @@ const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex",
 });
 
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-ibm-plex-mono",
+});
+
 const sourceSerif4 = Source_Serif_4({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
@@ -206,7 +212,7 @@ export default async function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${ibmPlexSans.variable} ${sourceSerif4.variable}`}
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} ${sourceSerif4.variable}`}
     >
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema */}

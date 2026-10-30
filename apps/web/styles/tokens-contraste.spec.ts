@@ -78,6 +78,32 @@ describe("contraste dos tokens (WCAG AA)", () => {
       );
     });
 
+    describe("combinações do DESIGN.md", () => {
+      const fundos = ["page", "line2"];
+      const textos = [
+        "ink",
+        "mute",
+        "brand-text",
+        "ok-text",
+        "warn-text",
+        "danger-text",
+      ];
+      it.each(
+        textos.flatMap((texto) =>
+          fundos.map((fundo) => [texto, fundo] as const),
+        ),
+      )("%s sobre %s tem pelo menos 4,5:1", (texto, fundo) => {
+        expect(
+          razaoContraste(tokens[texto], tokens[fundo]),
+        ).toBeGreaterThanOrEqual(4.5);
+      });
+      it.each(fundos)("focus-ring sobre %s tem pelo menos 3:1", (fundo) => {
+        expect(
+          razaoContraste(tokens["focus-ring"], tokens[fundo]),
+        ).toBeGreaterThanOrEqual(3);
+      });
+    });
+
     it("mute3 sobre page tem pelo menos 3:1 (limite de controle)", () => {
       expect(razaoContraste(tokens.mute3, tokens.page)).toBeGreaterThanOrEqual(
         3,

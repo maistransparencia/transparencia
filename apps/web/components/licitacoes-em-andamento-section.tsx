@@ -610,27 +610,21 @@ export function LicitacoesEmAndamentoSection({
     const valorEst = row.valorEstimado ?? row.valorFinal;
     const fonteBadge = getFonteObjetoBadge(row.fonteObjeto);
     return (
-      <div className="space-y-4 text-xs">
-        <p className="text-ink leading-relaxed">{row.objeto || "—"}</p>
+      <div className="space-y-4">
+        <p className="text-ink">{row.objeto || "—"}</p>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Modalidade
-            </dt>
+            <dt className="eyebrow">Modalidade</dt>
             <dd className="mt-1 text-ink">{row.modalidadeFormatada}</dd>
           </div>
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Abertura
-            </dt>
+            <dt className="eyebrow">Abertura</dt>
             <dd className="mt-1 font-mono text-ink tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </dd>
           </div>
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Situação
-            </dt>
+            <dt className="eyebrow">Situação</dt>
             <dd className="mt-1">
               <Badge variant={situacaoBadgeVariant(row.situacaoCodigo)}>
                 {row.situacaoFormatada}
@@ -638,9 +632,7 @@ export function LicitacoesEmAndamentoSection({
             </dd>
           </div>
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Homologação
-            </dt>
+            <dt className="eyebrow">Homologação</dt>
             <dd className="mt-1">
               <ValorHomologadoCelula
                 valorHomologado={row.valorHomologado}
@@ -651,7 +643,7 @@ export function LicitacoesEmAndamentoSection({
           </div>
         </dl>
         {(row.entidadeNome || fonteBadge) && (
-          <p className="text-mute2 uppercase">
+          <p className="caption uppercase">
             {[row.entidadeNome, fonteBadge].filter(Boolean).join(" · ")}
           </p>
         )}
@@ -659,16 +651,13 @@ export function LicitacoesEmAndamentoSection({
           <button
             type="button"
             onClick={() => handleOpenRowDetails(row)}
-            className="inline-flex cursor-pointer items-center rounded-md bg-ink px-4 py-2 font-semibold text-onink text-xs hover:opacity-90"
+            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
             title="Visualizar detalhes da licitação"
           >
             Ver detalhes
           </button>
           {row.linkSistemaOrigem && (
-            <ExternalLinkPill
-              href={row.linkSistemaOrigem}
-              className="rounded-md px-4 py-2 font-semibold"
-            >
+            <ExternalLinkPill href={row.linkSistemaOrigem} className="min-h-11">
               Sala de Disputa
             </ExternalLinkPill>
           )}

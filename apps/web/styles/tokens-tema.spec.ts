@@ -19,7 +19,7 @@ const coresDoTema = lerCoresDoTema();
 const tokensPorTema = lerTokensPorTema();
 const nomesDeCor = (tema: "claro" | "escuro"): string[] =>
   Object.keys(tokensPorTema[tema])
-    .filter((nome) => !nome.startsWith("font-"))
+    .filter((nome) => !nome.startsWith("font-") && !nome.startsWith("panel-"))
     .sort();
 
 describe("@theme inline de globals.css", () => {

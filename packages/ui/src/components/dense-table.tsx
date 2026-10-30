@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  ChevronRight,
   ChevronsUpDown,
   ChevronUp,
   Download,
@@ -578,16 +579,16 @@ export function DenseTable<T extends Record<string, any>>({
                   className="flex cursor-pointer items-start gap-2 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   <div className="min-w-0 flex-1">{resumo}</div>
-                  <ChevronDown
+                  <ChevronRight
                     className={cn(
-                      "mt-1 h-3.5 w-3.5 shrink-0 text-mute2 transition-transform",
-                      isExpanded && "rotate-180",
+                      "mt-1 h-4 w-4 shrink-0 text-mute transition-transform",
+                      isExpanded && "rotate-90",
                     )}
                     aria-hidden="true"
                   />
                 </div>
                 {isExpanded && (
-                  <div className="bg-line2 px-3 py-3">
+                  <div className="border-line border-t px-3 py-3">
                     {renderExpandedRow(row)}
                   </div>
                 )}
@@ -681,18 +682,13 @@ export function DenseTable<T extends Record<string, any>>({
                   </th>
                 );
               })}
-              {renderExpandedRow && (
-                <th scope="col" className="w-8 px-1 py-2.5">
-                  <span className="sr-only">Expandir detalhes</span>
-                </th>
-              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {displayedData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={visibleColumns.length + (renderExpandedRow ? 1 : 0)}
+                  colSpan={visibleColumns.length}
                   className="px-4 py-6 text-center text-mute2 italic"
                 >
                   {emptyMessage}
@@ -725,10 +721,11 @@ export function DenseTable<T extends Record<string, any>>({
                       className={cn(
                         "transition-colors hover:bg-line2",
                         renderExpandedRow && "cursor-pointer",
+                        isExpanded && "bg-line2",
                         rowClassName?.(row, index),
                       )}
                     >
-                      {visibleColumns.map((col) => (
+                      {visibleColumns.map((col, colIndex) => (
                         <td
                           key={`td-${rKey}-${String(col.accessorKey || col.header)}`}
                           title={
@@ -750,37 +747,41 @@ export function DenseTable<T extends Record<string, any>>({
                             row.className,
                           )}
                         >
-                          {renderCellValue(col, row)}
+                          {renderExpandedRow && colIndex === 0 ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandedRow(rKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={
+                                  isExpanded
+                                    ? "Recolher detalhes da linha"
+                                    : "Expandir detalhes da linha"
+                                }
+                                className="inline-flex min-h-11 min-w-8 shrink-0 cursor-pointer items-center justify-center rounded text-mute hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                              >
+                                <ChevronRight
+                                  className={cn(
+                                    "h-4 w-4 transition-transform",
+                                    isExpanded && "rotate-90",
+                                  )}
+                                  aria-hidden="true"
+                                />
+                              </button>
+                              <span className="min-w-0">
+                                {renderCellValue(col, row)}
+                              </span>
+                            </div>
+                          ) : (
+                            renderCellValue(col, row)
+                          )}
                         </td>
                       ))}
-                      {renderExpandedRow && (
-                        <td className="w-8 px-1 py-2 text-center align-middle">
-                          <button
-                            type="button"
-                            onClick={() => toggleExpandedRow(rKey)}
-                            aria-expanded={isExpanded}
-                            aria-label={
-                              isExpanded
-                                ? "Recolher detalhes da linha"
-                                : "Expandir detalhes da linha"
-                            }
-                            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded text-mute2 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                          >
-                            <ChevronDown
-                              className={cn(
-                                "h-3.5 w-3.5 transition-transform",
-                                isExpanded && "rotate-180",
-                              )}
-                              aria-hidden="true"
-                            />
-                          </button>
-                        </td>
-                      )}
                     </tr>
                     {isExpanded && renderExpandedRow && (
-                      <tr className="bg-line2">
+                      <tr className="border-line border-t hover:bg-transparent">
                         <td
-                          colSpan={visibleColumns.length + 1}
+                          colSpan={visibleColumns.length}
                           className="px-4 py-4 text-ink"
                         >
                           {renderExpandedRow(row)}
