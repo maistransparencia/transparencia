@@ -17,6 +17,13 @@
   color-scheme: light;
   --font-ibm-plex: "IBM Plex Sans", sans-serif;
   --font-source-serif: "Source Serif 4", serif;
+  --font-ibm-plex-mono: "IBM Plex Mono", monospace;
+
+  /* Formato do panel: trocar aqui muda todos os painéis (DESIGN.md > panel). */
+  --panel-border-width: 0 0 0 3px;
+  --panel-radius: 0;
+  --panel-shadow: none;
+  --panel-padding: 0.25rem 0 0.25rem 1rem;
 
   --page: #ffffff;
   --ink: #1a1d21;
@@ -34,6 +41,7 @@
   --brand: oklch(0.5 0.11 250);
   --brand-fill: var(--brand);
   --brand-text: var(--brand);
+  --focus-ring: var(--brand-fill);
   --danger: var(--danger-text);
   --danger-fill: oklch(0.63 0.2 27);
   --danger-text: oklch(0.55 0.17 25);
@@ -63,6 +71,7 @@
   --brand: oklch(0.75 0.11 250);
   --brand-fill: oklch(0.6 0.15 255);
   --brand-text: var(--brand);
+  --focus-ring: var(--brand-fill);
   --danger: var(--danger-text);
   --danger-fill: oklch(0.63 0.2 27);
   --danger-text: oklch(0.7 0.16 25);
@@ -91,6 +100,7 @@
   --color-brand: var(--brand);
   --color-brand-fill: var(--brand-fill);
   --color-brand-text: var(--brand-text);
+  --color-focus-ring: var(--focus-ring);
   --color-danger: var(--danger);
   --color-danger-fill: var(--danger-fill);
   --color-danger-text: var(--danger-text);
@@ -115,6 +125,7 @@
 
   --font-sans: var(--font-ibm-plex), "IBM Plex Sans", sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
 }
 
 body {
@@ -130,6 +141,242 @@ h2,
 h3,
 .serif {
   font-family: var(--font-source-serif);
+}
+
+/*
+ * Elementos base (DESIGN.md): nascem estilizados, sem margem própria.
+ * Espaço é do contêiner. Utilities do Tailwind sobrescrevem estas regras.
+ */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--font-source-serif);
+    color: var(--ink);
+  }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  @media (min-width: 48rem) {
+    h1 {
+      font-size: 1.875rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+    }
+    h4 {
+      font-size: 1.125rem;
+    }
+    p {
+      font-size: 1rem;
+    }
+  }
+  dl,
+  dt,
+  dd {
+    margin: 0;
+  }
+  dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li + li {
+    margin-top: 0;
+  }
+  a {
+    color: var(--brand-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  table {
+    border-collapse: collapse;
+    font-family: var(--font-ibm-plex-mono);
+  }
+  th {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 0.625rem 0.75rem;
+    color: var(--ink);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--line2);
+  }
+  tbody tr:hover {
+    background-color: var(--line2);
+  }
+  tfoot td {
+    font-weight: 600;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-ibm-plex);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+@utility caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--mute);
+}
+
+@utility lead {
+  max-width: 65ch;
+  color: var(--mute);
+}
+
+@utility display {
+  font-family: var(--font-source-serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  @media (min-width: 48rem) {
+    font-size: 3rem;
+  }
+}
+
+@utility numeric {
+  font-family: var(--font-ibm-plex-mono);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility stat-value {
+  font-family: var(--font-source-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 1.875rem;
+  }
+}
+
+@utility stat-value-sm {
+  font-family: var(--font-source-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 1.5rem;
+  }
+}
+
+@utility stat-value-lg {
+  font-family: var(--font-source-serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 3.75rem;
+  }
+}
+
+@utility panel {
+  border-style: solid;
+  border-color: var(--panel-border-color, var(--line));
+  border-width: var(--panel-border-width);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  padding: var(--panel-padding);
+}
+
+@utility panel-brand {
+  --panel-border-color: var(--brand-fill);
+}
+
+@utility panel-ok {
+  --panel-border-color: var(--ok-fill);
+}
+
+@utility panel-warn {
+  --panel-border-color: var(--warn-fill);
+}
+
+@utility panel-danger {
+  --panel-border-color: var(--danger-fill);
+}
+
+@utility section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  & > :is(h1, h2, h3, h4) {
+    margin-bottom: -0.75rem;
+  }
+}
+
+@utility list-text {
+  list-style: disc;
+  padding-left: 1.25rem;
+  & > li + li {
+    margin-top: 0.25rem;
+  }
 }
 
 /*
