@@ -108,19 +108,21 @@ export default async function ReceitasPage({
           </div>
         </div>
 
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-1">
-          <div className="space-y-1">
-            <dt className="eyebrow">Já arrecadado da previsão</dt>
-            <dd className="numeric font-semibold text-ink text-left!">
+        <dl className="divide-y divide-line border-line border-y text-sm">
+          <div className="flex items-baseline justify-between gap-4 py-2">
+            <dt className="text-mute2">Já arrecadado da previsão</dt>
+            <dd className="numeric font-semibold text-ink">
               {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
             </dd>
           </div>
-          <div className="space-y-1">
-            <dt className="eyebrow">Previsto para o ano (LOA)</dt>
-            <dd className="numeric font-semibold text-ink text-left!">
+          <div className="flex items-baseline justify-between gap-4 py-2">
+            <div>
+              <dt className="text-mute2">Previsto para o ano (LOA)</dt>
+              <dd className="caption">{variationText}</dd>
+            </div>
+            <dd className="numeric font-semibold text-ink">
               {fmtCompact(totalPrev)}
             </dd>
-            <dd className="caption">{variationText}</dd>
           </div>
         </dl>
       </section>
