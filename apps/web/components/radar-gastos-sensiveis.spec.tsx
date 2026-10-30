@@ -113,11 +113,13 @@ describe("RadarGastosSensiveis Component", () => {
 
     const primeiraLinha = container.querySelector("tbody tr");
     const celulas = primeiraLinha?.querySelectorAll("td") ?? [];
-    const celulaMenu = celulas[celulas.length - 2];
+    const celulaMenu = celulas[celulas.length - 1];
     expect(
       celulaMenu?.querySelector("button[aria-label*='auditoria' i]"),
     ).not.toBeNull();
-    expect(celulas[0]?.querySelector("button")).toBeNull();
+    expect(
+      celulas[0]?.querySelector("button[aria-label*='Expandir' i]"),
+    ).not.toBeNull();
   });
 
   it("cada categoria renderiza o próprio ícone", () => {

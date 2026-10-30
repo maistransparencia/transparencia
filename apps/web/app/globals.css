@@ -221,7 +221,8 @@ h3,
   li + li {
     margin-top: 0;
   }
-  a {
+  /* Só link dentro de texto corrido; navegação, pílulas, cartões e tabelas são componentes. */
+  :is(p, li, dd) a:not([class]) {
     color: var(--brand-text);
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -232,7 +233,6 @@ h3,
   }
   table {
     border-collapse: collapse;
-    font-family: var(--font-ibm-plex-mono);
   }
   th {
     padding: 0.625rem 0.75rem;

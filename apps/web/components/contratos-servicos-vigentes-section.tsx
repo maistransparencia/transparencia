@@ -454,7 +454,7 @@ export function ContratosServicosVigentesSection({
       : 0;
     const inexecutado = row.statusExecucao === "inexecutado";
     return (
-      <div className="space-y-4 text-xs">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={statusBadgeVariant(row.statusExecucao)}>
             {row.statusLabel}
@@ -463,38 +463,30 @@ export function ContratosServicosVigentesSection({
             <Badge variant="accent">Com aditamento</Badge>
           )}
         </div>
-        <p className="text-ink leading-relaxed">{row.objetoDescricao || "—"}</p>
+        <p className="text-ink">{row.objetoDescricao || "—"}</p>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Contrato
-            </dt>
+            <dt className="eyebrow">Contrato</dt>
             <dd className="mt-1 font-mono text-ink tabular-nums">
               {row.contratoNumero || "S/N"}
             </dd>
           </div>
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Vigência
-            </dt>
+            <dt className="eyebrow">Vigência</dt>
             <dd className="mt-1 font-mono text-ink tabular-nums">
               {row.vigenciaFormatada || "—"}
             </dd>
           </div>
           <div>
-            <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-              Pago
-            </dt>
-            <dd className="mt-1 font-bold font-mono text-ink tabular-nums">
+            <dt className="eyebrow">Pago</dt>
+            <dd className="mt-1 font-bold text-ink tabular-nums">
               {fmtCurrency(row.totalPago)}
             </dd>
           </div>
           {!inexecutado && (
             <div>
-              <dt className="font-mono text-[11px] text-mute2 uppercase tracking-wider">
-                Saldo
-              </dt>
-              <dd className="mt-1 font-bold font-mono text-warn-text tabular-nums">
+              <dt className="eyebrow">Saldo</dt>
+              <dd className="mt-1 font-bold text-warn-text tabular-nums">
                 {fmtCurrency(row.saldoPendente)}
               </dd>
             </div>
@@ -517,7 +509,7 @@ export function ContratosServicosVigentesSection({
                 }}
               />
             </div>
-            <p className="font-mono text-mute2 tabular-nums">
+            <p className="caption tabular-nums">
               {fmtPercent(percentualPago)} do empenhado foi pago
             </p>
           </div>
@@ -526,7 +518,7 @@ export function ContratosServicosVigentesSection({
           <button
             type="button"
             onClick={() => handleOpenContratoDetails(row)}
-            className="inline-flex cursor-pointer items-center rounded-md bg-ink px-4 py-2 font-semibold text-onink text-xs hover:opacity-90"
+            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
             title="Abrir detalhes completos do contrato"
           >
             Ver detalhes
