@@ -11,7 +11,8 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
   const totalLiquidado = summary.totalLiquidado;
   const totalPago = summary.totalPago;
 
-  const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
+  const percentualPago =
+    totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
   const funnelStages = [
     {
@@ -61,7 +62,7 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     totalEmpenhado,
     totalLiquidado,
     totalPago,
-    pagPct,
+    percentualPago,
     funnelStages,
     funcItems,
     execucaoAnoAnterior: raw.execucaoAnoAnterior,

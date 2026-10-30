@@ -128,7 +128,10 @@ export function SaldoCaixaEvolucaoMensalChart({
         <span className="text-mute2">Valores em reais</span>
       </div>
 
-      <div className="h-[220px] w-full sm:h-[270px] [&_*]:outline-none">
+      <div
+        className="h-[220px] w-full sm:h-[270px] [&_*]:outline-none"
+        aria-hidden="true"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             accessibilityLayer={false}
@@ -185,6 +188,27 @@ export function SaldoCaixaEvolucaoMensalChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <table className="sr-only">
+        <caption>Saldo em caixa mês a mês</caption>
+        <thead>
+          <tr>
+            <th scope="col">Mês</th>
+            <th scope="col">Recursos livres</th>
+            <th scope="col">Recursos vinculados</th>
+            <th scope="col">Total em caixa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pontos.map((ponto) => (
+            <tr key={ponto.mesReferencia}>
+              <th scope="row">{ponto.mesNome}</th>
+              <td>{fmtCurrency(ponto.saldoRecursosLivres)}</td>
+              <td>{fmtCurrency(ponto.saldoRecursosVinculados)}</td>
+              <td>{fmtCurrency(ponto.saldoCaixaBancos)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

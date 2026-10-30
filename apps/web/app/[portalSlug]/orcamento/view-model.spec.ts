@@ -36,7 +36,7 @@ describe("buildOrcamentoViewModel", () => {
 
   it("calcula os percentuais de execução relativos à dotação", () => {
     const vm = buildOrcamentoViewModel(makeRaw());
-    expect(vm.pagPct).toBe(60);
+    expect(vm.percentualPago).toBe(60);
   });
 
   it("evita divisão por zero quando a dotação é zero", () => {
@@ -51,7 +51,7 @@ describe("buildOrcamentoViewModel", () => {
         },
       }),
     );
-    expect(vm.pagPct).toBe(0);
+    expect(vm.percentualPago).toBe(0);
   });
 
   it("agrupa funcionalData por função somando pago (ou empenhado como fallback)", () => {

@@ -67,6 +67,30 @@ describe("OrcamentoPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("mostra traço e explicação quando não há orçamento autorizado", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(
+      makeRaw({
+        summary: {
+          totalDotacao: 0,
+          totalEmpenhado: 0,
+          totalLiquidado: 0,
+          totalPago: 0,
+          taxaExecucao: 0,
+        },
+      }),
+    );
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    const destaque = screen.getByTestId("orcamento-destaque");
+    expect(destaque).toHaveTextContent("—");
+    expect(destaque).toHaveTextContent(
+      "Ainda não há orçamento autorizado registrado para 2024.",
+    );
+    expect(destaque).not.toHaveTextContent("0%");
+  });
+
   it("compara com o ano anterior inteiro quando há dado", async () => {
     loadOrcamentoDataMock.mockResolvedValue(
       makeRaw({

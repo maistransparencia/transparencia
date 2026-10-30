@@ -48,6 +48,13 @@ function getMesNome(mes: number): string {
   return MESES_NOMES[mes] ?? `Mês ${String(mes).padStart(2, "0")}`;
 }
 
+function descricaoPeriodoEvolucao(pontos: Array<{ mesNome: string }>): string {
+  const primeiro = (pontos[0]?.mesNome ?? "").toLowerCase();
+  const ultimo = (pontos[pontos.length - 1]?.mesNome ?? "").toLowerCase();
+  if (pontos.length <= 1) return `Saldo dos recursos livres em ${primeiro}.`;
+  return `Saldo dos recursos livres de ${primeiro} a ${ultimo}.`;
+}
+
 function getVariacaoTexto(variacao: number, anoAnterior: number): string {
   if (variacao === 0) return `Igual a ${anoAnterior}`;
   const valor = fmtPercent(
@@ -308,13 +315,7 @@ export function SaldoCaixaEntidadesSection({
           <div className="space-y-1">
             <h3>Como o caixa mudou mês a mês</h3>
             <p className="text-mute2 text-sm leading-relaxed">
-              Saldo dos recursos livres de{" "}
-              {(evolucaoMensal.pontos[0]?.mesNome ?? "").toLowerCase()} a{" "}
-              {(
-                evolucaoMensal.pontos[evolucaoMensal.pontos.length - 1]
-                  ?.mesNome ?? ""
-              ).toLowerCase()}
-              .
+              {descricaoPeriodoEvolucao(evolucaoMensal.pontos)}
             </p>
           </div>
 
@@ -433,7 +434,7 @@ export function SaldoCaixaEntidadesSection({
                     {entidade.saldoCaixaBancos < 0 ? (
                       <div className="mt-3 border-danger-fill border-l-2 py-1 pl-2.5 text-[11px] text-danger-text leading-snug">
                         Saldo negativo neste mês: os pagamentos superaram o que
-                        entrou nesta fonte. Merece atenção.
+                        entrou nesta entidade. Merece atenção.
                       </div>
                     ) : (
                       <div className="mt-3">

@@ -141,20 +141,17 @@ async function fetchRawOrcamentoData(
     portalConfig,
     posicaoFinanceira,
     evolucaoMensal,
+    execucaoAnoAnterior,
   ] = await Promise.all([
     getExecucaoOrcamentariaMetrics(tenantSlug, selectedYear, empresaIds),
     getOrcamentoFuncionalMetrics(tenantSlug, selectedYear, empresaIds),
     getPortalConfig(tenantSlug),
     getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
     getSiconfiEvolucaoMensal(tenantSlug, selectedYear),
+    getExecucaoAnoAnterior(tenantSlug, selectedYear, empresaIds),
   ]);
 
   const items = mapExecucaoMetricsToLegacyItems(execucaoMetrics);
-  const execucaoAnoAnterior = await getExecucaoAnoAnterior(
-    tenantSlug,
-    selectedYear,
-    empresaIds,
-  );
 
   return {
     portalSlug: tenantSlug,

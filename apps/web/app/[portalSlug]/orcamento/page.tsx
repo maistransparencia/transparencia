@@ -49,11 +49,13 @@ export default async function OrcamentoPage({
     items,
     totalDotacao,
     totalPago,
-    pagPct,
+    percentualPago,
     funnelStages,
     funcItems,
     execucaoAnoAnterior,
   } = viewModel;
+
+  const temOrcamento = totalDotacao > 0;
 
   return (
     <div className="space-y-8">
@@ -72,11 +74,24 @@ export default async function OrcamentoPage({
 
       <section className="space-y-2" data-testid="orcamento-destaque">
         <p className="eyebrow">Orçamento já pago</p>
-        <p className="stat-value-lg text-brand-text">{fmtPercent(pagPct, 0)}</p>
-        <p className="caption">
-          {fmtCompact(totalPago)} pagos de {fmtCompact(totalDotacao)}{" "}
-          autorizados em {selectedYear}
-        </p>
+        {temOrcamento ? (
+          <>
+            <p className="stat-value-lg text-brand-text">
+              {fmtPercent(percentualPago, 0)}
+            </p>
+            <p className="caption">
+              {fmtCompact(totalPago)} pagos de {fmtCompact(totalDotacao)}{" "}
+              autorizados em {selectedYear}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="stat-value-lg">—</p>
+            <p className="caption">
+              Ainda não há orçamento autorizado registrado para {selectedYear}.
+            </p>
+          </>
+        )}
       </section>
 
       {execucaoAnoAnterior.percentualPago !== null ? (

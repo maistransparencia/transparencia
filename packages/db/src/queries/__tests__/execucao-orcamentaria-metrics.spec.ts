@@ -46,17 +46,15 @@ describe("getExecucaoAnoAnterior", () => {
     expect(execucao.percentualPago).toBeNull();
   });
 
-  it("calcula o pago do ano anterior sobre a dotação atualizada", async () => {
+  it("devolve percentual nulo quando o ano anterior não tem dotação", async () => {
     const entidades = await getEntidades(PORTAL_SLUG);
     const empresaIds = entidades.map((e: { id: string }) => e.id);
     const execucao = await getExecucaoAnoAnterior(
       PORTAL_SLUG,
-      TEST_YEAR,
+      TEST_YEAR - 100,
       empresaIds.length > 0 ? empresaIds : ["1"],
     );
-    expect(execucao.anoAnterior).toBe(TEST_YEAR - 1);
-    if (execucao.percentualPago !== null) {
-      expect(execucao.percentualPago).toBeGreaterThanOrEqual(0);
-    }
+    expect(execucao.anoAnterior).toBe(TEST_YEAR - 101);
+    expect(execucao.percentualPago).toBeNull();
   });
 });
