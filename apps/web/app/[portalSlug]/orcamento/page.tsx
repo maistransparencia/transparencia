@@ -2,6 +2,7 @@ import {
   DenseTable,
   fmtCompact,
   KPICard,
+  SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
@@ -65,17 +66,14 @@ export default async function OrcamentoPage({
   } = viewModel;
 
   return (
-    <div className="space-y-6">
-      {/* Eyebrow + Título + Subtítulo */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <p className="eyebrow">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
-          Execução Orçamentária
-        </h1>
-        <p className="mt-2 text-sm text-subtleText leading-relaxed">
+        </p>
+        <h1>Execução Orçamentária</h1>
+        <p className="lead">
           Cada real passa por quatro estágios legais antes de sair do caixa:{" "}
           <strong className="font-semibold text-ink">reservar</strong>{" "}
           (empenho),{" "}
@@ -88,24 +86,28 @@ export default async function OrcamentoPage({
         </p>
       </div>
 
-      <KPIGrid columns={4}>
+      <KPIGrid columns={4} variant="divisoria">
         <KPICard
+          variant="divisoria"
           title="Dotação Atualizada"
           value={fmtCompact(totalDotacao)}
           subtext="100% autorizado"
           accent
         />
         <KPICard
+          variant="divisoria"
           title="Empenhado"
           value={fmtCompact(totalEmpenhado)}
           subtext={`${empPct.toFixed(0)}% da dotação`}
         />
         <KPICard
+          variant="divisoria"
           title="Liquidado"
           value={fmtCompact(totalLiquidado)}
           subtext={`${liqPct.toFixed(0)}% da dotação`}
         />
         <KPICard
+          variant="divisoria"
           title="Pago"
           value={fmtCompact(totalPago)}
           subtext={`${pagPct.toFixed(0)}% da dotação`}
@@ -115,27 +117,18 @@ export default async function OrcamentoPage({
       {/* Funil da Execução */}
       <FunnelExecucaoHorizontal stages={funnelStages} />
 
-      {/* Para onde vai o gasto, por função */}
       {funcItems.length > 0 && (
-        <div className="space-y-4 border-ink border-t-2 pt-6">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-bold font-serif text-ink text-xl">
-              Para onde vai o gasto, por função
-            </h2>
-            <span className="font-medium text-subtleText text-xs">
-              valor pago por função
-            </span>
-          </div>
-
+        <section className="space-y-4">
+          <SectionHeader
+            title="Para onde vai o gasto, por função"
+            description="valor pago por função"
+          />
           <GastoPorFuncaoBars items={funcItems} />
-        </div>
+        </section>
       )}
 
-      {/* Execução por Órgão */}
-      <div className="space-y-4 border-ink border-t-2 pt-6">
-        <h2 className="font-bold font-serif text-ink text-xl">
-          Execução por Órgão e Unidade Gestora
-        </h2>
+      <section className="space-y-4">
+        <SectionHeader title="Execução por Órgão e Unidade Gestora" />
         <DenseTable
           data={items.map((item) => ({
             ...item,
@@ -144,7 +137,7 @@ export default async function OrcamentoPage({
           columns={orgaosCols}
           searchableKeys={["descricao"]}
         />
-      </div>
+      </section>
 
       {/* Disponibilidade Financeira em Caixa (SICONFI / STN) */}
       {viewModel.posicaoFinanceira && (

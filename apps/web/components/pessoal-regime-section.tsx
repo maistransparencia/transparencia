@@ -5,6 +5,8 @@ import type {
   ServidorDivergenciaCadastralDTO,
 } from "@transparencia/db";
 import {
+  AlertBox,
+  Badge,
   type Column,
   cn,
   DenseTable,
@@ -13,9 +15,10 @@ import {
   fmtNumber,
   fmtPercent,
   ModalDialog,
+  SectionHeader,
   Tooltip,
 } from "@transparencia/ui";
-import { ExternalLink, Info, UserCheck } from "lucide-react";
+import { ExternalLink, UserCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CATEGORIA_REGIME_LABELS } from "@/lib/constants/pessoal";
@@ -47,51 +50,51 @@ function getRegimeStyle(categoria: string): RegimeStyle {
   switch (categoria) {
     case "efetivo_concurso":
       return {
-        barBg: "bg-emerald-500",
-        badge: "border-emerald-200 bg-emerald-50 text-emerald-800",
-        dot: "bg-emerald-500",
+        barBg: "bg-ok-fill",
+        badge: "border-ok-text/40 bg-ok-fill/10 text-ok-text",
+        dot: "bg-ok-fill",
         description: "Servidores estatutários concursados",
       };
     case "efetivo_comissao":
       return {
-        barBg: "bg-lime-500",
-        badge: "border-lime-200 bg-lime-50 text-lime-800",
-        dot: "bg-lime-500",
+        barBg: "bg-brand-fill",
+        badge: "border-brand/40 bg-brand/10 text-brand",
+        dot: "bg-brand-fill",
         description: "Concursados em liderança ou chefia",
       };
     case "comissionado":
       return {
-        barBg: "bg-amber-500",
-        badge: "border-amber-200 bg-amber-50 text-amber-800",
-        dot: "bg-amber-500",
+        barBg: "bg-warn-fill",
+        badge: "border-warn-text/40 bg-warn-fill/10 text-warn-text",
+        dot: "bg-warn-fill",
         description: "Livre nomeação externa (confiança)",
       };
     case "contrato_temporario":
       return {
-        barBg: "bg-sky-500",
-        badge: "border-sky-200 bg-sky-50 text-sky-800",
-        dot: "bg-sky-500",
+        barBg: "bg-mute2",
+        badge: "border-line bg-line2/40 text-mute2",
+        dot: "bg-mute2",
         description: "Contratos temporários de interesse público",
       };
     case "agente_politico":
       return {
-        barBg: "bg-violet-500",
-        badge: "border-violet-200 bg-violet-50 text-violet-800",
-        dot: "bg-violet-500",
+        barBg: "bg-ink",
+        badge: "border-line bg-line2/40 text-mute2",
+        dot: "bg-ink",
         description: "Prefeito, secretários e dirigentes eletivos",
       };
     case "rpps_inativos":
       return {
-        barBg: "bg-indigo-500",
-        badge: "border-indigo-200 bg-indigo-50 text-indigo-800",
-        dot: "bg-indigo-500",
+        barBg: "bg-faint",
+        badge: "border-line bg-line2/40 text-mute2",
+        dot: "bg-faint",
         description: "Aposentados e pensionistas do RPPS",
       };
     default:
       return {
-        barBg: "bg-slate-400",
-        badge: "border-slate-200 bg-slate-50 text-slate-700",
-        dot: "bg-slate-400",
+        barBg: "bg-pill",
+        badge: "border-line bg-line2/40 text-mute2",
+        dot: "bg-pill",
         description:
           "Vínculos excepcionais e provimentos atípicos no portal de origem",
       };
@@ -138,21 +141,21 @@ export function PessoalRegimeSection({
           header: "Matrícula",
           accessorKey: "matricula",
           sortable: true,
-          className: "whitespace-nowrap text-xs text-slate-500",
+          className: "whitespace-nowrap text-xs text-mute2",
           renderCell: (row) => row.matricula || "—",
         },
         {
           header: "Cargo / Função",
           accessorKey: "cargo",
           sortable: true,
-          className: "min-w-[160px] font-semibold text-slate-900",
+          className: "min-w-[160px] font-semibold text-ink",
           renderCell: (row) => row.cargo || "—",
         },
         {
           header: "Órgão",
           accessorKey: "orgaoNome",
           sortable: true,
-          className: "min-w-[140px] text-slate-600",
+          className: "min-w-[140px] text-mute",
           renderCell: (row) => row.orgaoNome || "—",
         },
         {
@@ -161,9 +164,9 @@ export function PessoalRegimeSection({
           sortable: true,
           className: "whitespace-nowrap",
           renderCell: (row) => (
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600 text-xs">
+            <Badge>
               {row.vinculo || row.categoriaFuncional || "Não especificado"}
-            </span>
+            </Badge>
           ),
         },
         {
@@ -180,7 +183,7 @@ export function PessoalRegimeSection({
             return (
               <span
                 className={cn(
-                  "inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[11px]",
+                  "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
                   style.badge,
                 )}
               >
@@ -196,7 +199,7 @@ export function PessoalRegimeSection({
           align: "right",
           isSerifNumeric: true,
           renderCell: (row) => (
-            <span className="font-bold font-serif text-slate-900">
+            <span className="font-semibold font-serif text-ink">
               {fmtCurrency(row.proventos)}
             </span>
           ),
@@ -214,22 +217,22 @@ export function PessoalRegimeSection({
         row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
       ] ?? row.categoriaRegime;
     return (
-      <article className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs">
+      <article className="flex flex-col justify-between border-line border-y py-4">
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="font-bold text-slate-900 text-sm">
+              <span className="font-semibold text-ink text-sm">
                 {row.cargo || "Cargo não informado"}
               </span>
               {row.matricula && (
-                <span className="ml-1.5 text-[11px] text-slate-400">
+                <span className="ml-1.5 text-[11px] text-mute2">
                   #{row.matricula}
                 </span>
               )}
             </div>
             <span
               className={cn(
-                "inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[10px]",
+                "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
                 style.badge,
               )}
             >
@@ -237,26 +240,24 @@ export function PessoalRegimeSection({
             </span>
           </div>
 
-          <div className="text-slate-600 text-xs">
+          <div className="text-mute text-xs">
             {row.orgaoNome && (
-              <span className="block text-[11px] text-slate-500">
+              <span className="block text-[11px] text-mute2">
                 {row.orgaoNome}
               </span>
             )}
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-2 text-xs">
-            <span className="block font-semibold text-[10px] text-slate-400 uppercase">
-              Vínculo Declarado na Origem
-            </span>
-            <span className="font-medium text-slate-700">
+          <div className="bg-line2 p-2 text-xs">
+            <span className="eyebrow block">Vínculo Declarado na Origem</span>
+            <span className="font-medium text-ink">
               {row.vinculo || row.categoriaFuncional || "Não especificado"}
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between border-slate-100 border-t pt-2 text-xs">
-            <span className="text-[11px] text-slate-400">Proventos Brutos</span>
-            <span className="font-bold font-serif text-slate-900 text-sm">
+          <div className="flex items-baseline justify-between border-line border-t pt-2 text-xs">
+            <span className="caption">Proventos Brutos</span>
+            <span className="font-semibold font-serif text-ink text-sm">
               {fmtCurrency(row.proventos)}
             </span>
           </div>
@@ -269,24 +270,13 @@ export function PessoalRegimeSection({
     return (
       <section
         aria-label="Quadro e Folha por Regime Jurídico"
-        className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
+        className={cn("space-y-4", className)}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-bold text-lg text-slate-900">
-                Quadro e Folha por Regime Jurídico
-              </h2>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-                Consolidado Municipal
-              </span>
-            </div>
-            <p className="mt-1 text-slate-500 text-xs sm:text-sm">
-              Sem dados de regime funcional disponíveis para o exercício de{" "}
-              {ano}.
-            </p>
-          </div>
-        </div>
+        <SectionHeader
+          title="Quadro e Folha por Regime Jurídico"
+          action={<Badge>Consolidado Municipal</Badge>}
+          description={`Sem dados de regime funcional disponíveis para o exercício de ${ano}.`}
+        />
       </section>
     );
   }
@@ -301,64 +291,35 @@ export function PessoalRegimeSection({
     <section
       id="regime"
       aria-label="Quadro e Folha por Regime Jurídico"
-      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6 ${className}`}
+      className={cn("space-y-6", className)}
     >
-      {/* Header com Contexto e Botão Show Your Work */}
-      <div className="visible sm:hidden">
-        <div className="flex items-center justify-between">
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-            Consolidado Municipal
-          </span>
-          {portalSlug ? (
-            <ShowYourWorkButton
-              portalSlug={portalSlug}
-              ano={ano}
-              tipo="pessoal_regime"
-              tituloContexto="Regimes e Vínculos Funcionais"
-            />
-          ) : null}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
+      <SectionHeader
+        title="Quadro e Folha por Regime Jurídico"
+        action={
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-bold text-lg text-slate-900">
-              Quadro e Folha por Regime Jurídico
-            </h2>
-            <span className="hidden sm:inline">
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-                Consolidado Municipal
-              </span>
-            </span>
+            <Badge>Consolidado Municipal</Badge>
+            {portalSlug ? (
+              <ShowYourWorkButton
+                portalSlug={portalSlug}
+                ano={ano}
+                tipo="pessoal_regime"
+                tituloContexto="Regimes e Vínculos Funcionais"
+              />
+            ) : null}
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Distribuição dos {fmtNumber(totalProfissionais)} profissionais e{" "}
-            {fmtCompact(totalFolha)} na folha mensal de referência ({mesTexto})
-            por vínculo funcional e regime de contratação.
-          </p>
-        </div>
-        <div className="hidden sm:inline">
-          {portalSlug ? (
-            <ShowYourWorkButton
-              portalSlug={portalSlug}
-              ano={ano}
-              tipo="pessoal_regime"
-              tituloContexto="Regimes e Vínculos Funcionais"
-            />
-          ) : null}
-        </div>
-      </div>
+        }
+        description={`Distribuição dos ${fmtNumber(totalProfissionais)} profissionais e ${fmtCompact(totalFolha)} na folha mensal de referência (${mesTexto}) por vínculo funcional e regime de contratação.`}
+      />
 
       {/* Barra de Distribuição Visual Proporcional do Quadro */}
-      <div className="mt-6 space-y-1">
-        <div className="flex items-center justify-between text-slate-500 text-xs">
+      <div className="space-y-1">
+        <div className="caption flex items-center justify-between">
           <span className="font-medium">Proporção no Quadro de Pessoal</span>
           <span>Total: {fmtNumber(totalProfissionais)} servidores</span>
         </div>
 
         <div
-          className="flex h-3 w-full rounded-full"
+          className="flex h-3 w-full gap-px bg-track"
           role="progressbar"
           aria-valuenow={100}
           aria-valuemin={0}
@@ -396,21 +357,21 @@ export function PessoalRegimeSection({
                   className="block h-full"
                   style={{ width: `${item.percentualProfissionais}%` }}
                   contentClassName={cn(
-                    "w-56 border-slate-700 bg-slate-900 p-2.5 shadow-lg",
+                    "w-56 border-line bg-page p-2.5",
                     alignmentClasses,
                   )}
                   content={
                     <div className="space-y-1 text-xs">
-                      <div className="flex items-center gap-1.5 font-semibold text-white">
+                      <div className="flex items-center gap-1.5 font-semibold text-ink">
                         <span
-                          className={`h-2 w-2 rounded-full ${style.dot}`}
+                          className={`h-2 w-2 rounded-sm ${style.dot}`}
                           aria-hidden="true"
                         />
                         <span>{rotulo}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 text-slate-300">
+                      <div className="flex items-center justify-between gap-3 text-mute">
                         <span>{fmtPercent(item.percentualProfissionais)}</span>
-                        <span className="font-medium text-white">
+                        <span className="font-medium text-ink">
                           {fmtNumber(item.totalProfissionais)} servidores
                         </span>
                       </div>
@@ -422,11 +383,7 @@ export function PessoalRegimeSection({
                     aria-label={`${rotulo}: ${fmtPercent(
                       item.percentualProfissionais,
                     )} (${fmtNumber(item.totalProfissionais)} servidores)`}
-                    className={`h-full w-full transition-all ${style.barBg} ${
-                      isFirst ? "rounded-l-full" : ""
-                    } ${
-                      isLast ? "rounded-r-full" : ""
-                    } cursor-pointer hover:brightness-110 focus:outline-none focus:ring-1 focus:ring-slate-400`}
+                    className={`h-full w-full transition-all ${style.barBg} cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring`}
                   />
                 </Tooltip>
               );
@@ -436,7 +393,7 @@ export function PessoalRegimeSection({
       </div>
 
       {/* Grid de Cards de Cada Categoria de Regime */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
         {data.map((item) => {
           const style = getRegimeStyle(item.categoriaRegime);
           const rotulo = item.categoriaRegimeRotulo || item.categoriaRegime;
@@ -444,42 +401,36 @@ export function PessoalRegimeSection({
           return (
             <div
               key={item.categoriaRegime}
-              className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-xs"
+              className="flex flex-col justify-between border-line border-t py-4"
             >
               <div>
                 {/* Header do Card com Rótulo e Badge */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`h-2.5 w-2.5 rounded-full ${style.dot}`}
+                      className={`h-2.5 w-2.5 rounded-sm ${style.dot}`}
                       aria-hidden="true"
                     />
-                    <h3 className="font-semibold text-slate-900 text-sm">
-                      {rotulo}
-                    </h3>
+                    <h3>{rotulo}</h3>
                   </div>
                   <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}
+                    className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}
                   >
                     {fmtPercent(item.percentualProfissionais)}
                   </span>
                 </div>
 
-                <p className="mt-1 text-slate-500 text-xs">
-                  {style.description}
-                </p>
+                <p className="caption mt-1">{style.description}</p>
 
                 {/* Métricas Principais: Profissionais e Proventos */}
-                <div className="mt-4 space-y-2 border-slate-100 border-t pt-3">
+                <div className="mt-4 space-y-2 border-line2 border-t pt-3">
                   <div className="flex items-baseline justify-between">
-                    <span className="text-slate-500 text-xs">
-                      Profissionais
-                    </span>
+                    <span className="caption">Profissionais</span>
                     <div className="flex items-baseline gap-1.5">
                       {item.variacaoProfissionais !== null &&
                         item.variacaoProfissionais !== undefined && (
                           <span
-                            className="shrink-0 whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            className="shrink-0 whitespace-nowrap rounded-sm bg-line2 px-1.5 py-0.5 font-medium text-[11px] text-mute2"
                             title={`Variação de ${item.variacaoProfissionais > 0 ? `+${item.variacaoProfissionais}%` : `${item.variacaoProfissionais}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoProfissionais > 0
@@ -488,19 +439,19 @@ export function PessoalRegimeSection({
                             vs {ano - 1}
                           </span>
                         )}
-                      <span className="font-semibold text-slate-900 text-sm">
+                      <span className="font-semibold text-ink text-sm">
                         {fmtNumber(item.totalProfissionais)}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-baseline justify-between">
-                    <span className="text-slate-500 text-xs">Folha Mensal</span>
+                    <span className="caption">Folha Mensal</span>
                     <div className="flex items-baseline gap-1.5">
                       {item.variacaoFolha !== null &&
                         item.variacaoFolha !== undefined && (
                           <span
-                            className="shrink-0 whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[10px] text-slate-600"
+                            className="shrink-0 whitespace-nowrap rounded-sm bg-line2 px-1.5 py-0.5 font-medium text-[11px] text-mute2"
                             title={`Variação de ${item.variacaoFolha > 0 ? `+${item.variacaoFolha}%` : `${item.variacaoFolha}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoFolha > 0
@@ -510,7 +461,7 @@ export function PessoalRegimeSection({
                           </span>
                         )}
                       <span
-                        className="font-semibold text-slate-900 text-sm"
+                        className="font-semibold text-ink text-sm"
                         title={fmtCurrency(item.totalProventos)}
                       >
                         {fmtCompact(item.totalProventos)}
@@ -519,10 +470,8 @@ export function PessoalRegimeSection({
                   </div>
 
                   <div className="flex items-baseline justify-between">
-                    <span className="text-slate-500 text-xs">
-                      Provento Médio
-                    </span>
-                    <span className="font-semibold text-slate-900 text-sm">
+                    <span className="caption">Provento Médio</span>
+                    <span className="font-semibold text-ink text-sm">
                       {fmtCompact(item.proventoMedio)}
                     </span>
                   </div>
@@ -530,9 +479,9 @@ export function PessoalRegimeSection({
               </div>
 
               {/* Footer do Card: Impacto na Folha Total */}
-              <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
-                <span className="text-slate-400">Impacto na Folha Mensal</span>
-                <span className="font-medium text-slate-800">
+              <div className="mt-3 flex items-center justify-between border-line2 border-t pt-2.5 text-xs">
+                <span className="caption">Impacto na Folha Mensal</span>
+                <span className="font-medium text-ink">
                   {fmtPercent(item.percentualFolha)} da despesa
                 </span>
               </div>
@@ -543,18 +492,11 @@ export function PessoalRegimeSection({
 
       {/* Nota de Auditoria Cívica: 100% data-driven, exibida estritamente quando há divergências registradas */}
       {typeof totalDivergencias === "number" && totalDivergencias > 0 ? (
-        <div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-slate-700 sm:p-5">
-          <Info
-            className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
-            aria-hidden="true"
-          />
+        <AlertBox type="info" title="Harmonização de Vínculos Cadastrais">
           <div className="space-y-2 text-xs leading-relaxed">
-            <h4 className="font-semibold text-slate-900 text-sm">
-              Harmonização de Vínculos Cadastrais
-            </h4>
-            <p className="text-slate-600">
+            <p className="text-mute">
               Neste exercício, identificamos{" "}
-              <strong className="font-semibold text-slate-900">
+              <strong className="font-semibold text-ink">
                 {fmtNumber(totalDivergencias)}{" "}
                 {totalDivergencias === 1
                   ? "profissional cadastrado"
@@ -568,10 +510,10 @@ export function PessoalRegimeSection({
                 href={urlLegislacao("constituicao", "art37")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-slate-800 underline decoration-slate-400 underline-offset-2 transition-colors hover:text-slate-950"
+                className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
               >
                 <span>Art. 37 da Constituição Federal</span>
-                <ExternalLink className="h-3 w-3 shrink-0 text-slate-400" />
+                <ExternalLink className="h-3 w-3 shrink-0" />
               </a>
               .
             </p>
@@ -580,9 +522,9 @@ export function PessoalRegimeSection({
                 <button
                   type="button"
                   onClick={() => setIsDivergenciasModalOpen(true)}
-                  className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-700 text-xs shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+                  className="mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-page px-3 py-1.5 font-medium text-ink text-xs transition-colors hover:bg-line2"
                 >
-                  <UserCheck className="h-3.5 w-3.5 text-slate-500" />
+                  <UserCheck className="h-3.5 w-3.5 text-mute2" />
                   <span>
                     Ver lista de profissionais auditados (
                     {servidoresDivergentes.length})
@@ -591,7 +533,7 @@ export function PessoalRegimeSection({
               </div>
             )}
           </div>
-        </div>
+        </AlertBox>
       ) : null}
 
       {/* Modal de Auditoria Nominal de Inconsistências de Vínculos */}
@@ -602,12 +544,12 @@ export function PessoalRegimeSection({
         subtitle={`Relação dos ${servidoresDivergentes.length} servidores municipais com harmonização de regime jurídico em ${ano}.`}
         maxWidth="5xl"
         footer={
-          <div className="flex w-full items-center justify-between text-slate-500 text-xs">
+          <div className="flex w-full items-center justify-between text-mute2 text-xs">
             <span>{servidoresDivergentes.length} profissionais listados</span>
             <button
               type="button"
               onClick={() => setIsDivergenciasModalOpen(false)}
-              className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200"
+              className="min-h-11 rounded-md bg-line2 px-3 py-1.5 font-medium text-ink hover:bg-line"
             >
               Fechar
             </button>

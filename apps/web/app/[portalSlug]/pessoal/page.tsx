@@ -61,23 +61,18 @@ export default async function PessoalPage({
 
   return (
     <div className="space-y-8 pb-10">
-      {/* Header & Subtitle */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+      <div className="space-y-2">
+        <p className="eyebrow">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
-          Folha de Pagamento
-        </h1>
-        <p className="mt-2 max-w-4xl text-slate-600 text-xs leading-relaxed sm:text-sm">
-          {headerDescription}
         </p>
+        <h1>Folha de Pagamento</h1>
+        <p className="lead">{headerDescription}</p>
       </div>
 
-      {/* 3 Key KPI Cards */}
-      <KPIGrid columns={3}>
+      <KPIGrid columns={3} variant="divisoria">
         <KPICard
+          variant="divisoria"
           title={folhaKpi.title}
           value={fmtPercent(currentYearRow.percentualFolha)}
           subtext={folhaKpi.subtext}
@@ -86,12 +81,14 @@ export default async function PessoalPage({
           accent
         />
         <KPICard
+          variant="divisoria"
           title="Efetivos no comando das chefias"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}
           subtext="cargos de liderança concursados (total municipal)"
           trend={chefiasTrend}
         />
         <KPICard
+          variant="divisoria"
           title="Total pago em folha"
           value={fmtCompact(currentYearRow.totalFolha)}
           subtext={`proventos brutos, ${selectedYear}`}
@@ -119,7 +116,7 @@ export default async function PessoalPage({
           pctPago={decimo13.pctPago}
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500 text-sm shadow-sm">
+        <div className="border-line border-y py-6 text-center text-mute2 text-sm">
           Sem dados de 13º salário para {selectedYear}.
         </div>
       )}
