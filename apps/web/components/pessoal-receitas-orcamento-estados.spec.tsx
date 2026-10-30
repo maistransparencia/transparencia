@@ -22,7 +22,7 @@ describe("estados de borda no padrão Divisórias", () => {
     );
     expect(
       screen.getByText(
-        "Valores descontados de salários e de pagamentos (previdência, imposto de renda, empréstimos consignados) que a prefeitura apenas repassa a terceiros. Não são receita da prefeitura.",
+        "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas não é dinheiro da prefeitura.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/do previsto já arrecadado/)).toBeNull();
