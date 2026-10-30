@@ -74,7 +74,8 @@ describe("guarda de estilos do Storybook", () => {
   });
 
   it("registra o resultado de stat-value-lg para a decisao da 20.14", () => {
-    // Resultado conferido no navegador (tema claro, 2026-10-30): com
+    // Resultado conferido no navegador (claro e escuro, desktop e mobile,
+    // 2026-10-30; mesmo resultado nos quatro casos): com
     // tabular-nums em Source Serif 4, "1.111.111,11" e "8.888.888,88" ficam
     // com a mesma largura, e o espaco comum (U+0020) e o nao separavel
     // (U+00A0) apos "R$" ficam visualmente identicos. Decisao da 20.14:
