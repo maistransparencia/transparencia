@@ -106,15 +106,23 @@ export default async function ReceitasPage({
               style={{ width: `${percentualArrecadadoLimitado}%` }}
             />
           </div>
-          <p className="text-ink text-sm">
-            <span className="numeric font-semibold">
-              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
-            </span>{" "}
-            da previsão para o ano já foi arrecadado (previsto:{" "}
-            <span className="font-semibold">{fmtCompact(totalPrev)}</span>)
-          </p>
-          <p className="caption">{variationText} na previsão</p>
         </div>
+
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-1">
+          <div className="space-y-1">
+            <dt className="eyebrow">Já arrecadado da previsão</dt>
+            <dd className="numeric font-semibold text-ink text-left!">
+              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
+            </dd>
+          </div>
+          <div className="space-y-1">
+            <dt className="eyebrow">Previsto para o ano (LOA)</dt>
+            <dd className="numeric font-semibold text-ink text-left!">
+              {fmtCompact(totalPrev)}
+            </dd>
+            <dd className="caption">{variationText}</dd>
+          </div>
+        </dl>
       </section>
 
       <EmendasCard
