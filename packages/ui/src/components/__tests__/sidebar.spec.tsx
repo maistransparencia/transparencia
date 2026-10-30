@@ -7,7 +7,7 @@ describe("Sidebar Component", () => {
     render(
       <Sidebar
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura/radar"
+        currentPathname="/porciuncula_prefeitura/radar"
       />,
     );
     const radar = screen.getByRole("link", { name: /Radar Cívico/ });
@@ -19,8 +19,8 @@ describe("Sidebar Component", () => {
     render(
       <Sidebar
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
-        componenteLink={({ href, className, children }) => (
+        currentPathname="/porciuncula_prefeitura"
+        linkComponent={({ href, className, children }) => (
           <a href={href} className={className} data-injetado="sim">
             {children}
           </a>
@@ -41,7 +41,7 @@ describe("Sidebar Component", () => {
   it("exibe badge com contagem e pulso suave ao lado de Radar Cívico quando radarAlertCount > 0", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={3}
@@ -62,7 +62,7 @@ describe("Sidebar Component", () => {
   it("não exibe badge quando radarAlertCount for 0", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={0}
@@ -80,7 +80,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -93,7 +93,7 @@ describe("Sidebar Component", () => {
   it("renderiza o item de navegação Radar Cívico", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         radarAlertCount={5}
@@ -108,7 +108,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -130,7 +130,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -147,7 +147,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -164,7 +164,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -177,7 +177,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -192,7 +192,7 @@ describe("Sidebar Component", () => {
   it("renderiza o item de previdência com a sigla correspondente quando habilitado", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Natividade"
         portalSlug="natividade_prefeitura"
         previdencia={{
@@ -214,7 +214,7 @@ describe("Sidebar Component", () => {
   it("oculta o item de previdência quando previdencia.habilitado for false", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Município Sem RPPS"
         portalSlug="sem_rpps"
         previdencia={{
@@ -254,7 +254,7 @@ describe("Sidebar Component", () => {
 
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         portais={mockPortais}
@@ -278,7 +278,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -296,7 +296,7 @@ describe("Sidebar Component", () => {
   it("permite customização via mobileShareSlot e desktopShareSlot", () => {
     render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
         mobileShareSlot={<button type="button">Custom Mobile Share</button>}
@@ -327,7 +327,7 @@ describe("Sidebar Component", () => {
     try {
       render(
         <Sidebar
-          pathnameAtual="/porciuncula_prefeitura"
+          currentPathname="/porciuncula_prefeitura"
           portalName="Porciúncula"
           portalSlug="porciuncula_prefeitura"
           onShare={onShare}
@@ -356,7 +356,7 @@ describe("Sidebar Component", () => {
       <Sidebar
         portalName="Porciúncula"
         portalSlug="porciuncula_prefeitura"
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
       />,
     );
 
@@ -392,7 +392,7 @@ describe("Sidebar Component", () => {
   it("renderiza img do brasao quando brasaoAsset e informado", () => {
     const { container } = render(
       <Sidebar
-        pathnameAtual="/porciuncula_prefeitura"
+        currentPathname="/porciuncula_prefeitura"
         portalName="Portal"
         portalSlug="portal_teste"
         brasaoAsset="brasao-teste.svg"
@@ -415,7 +415,7 @@ describe("Sidebar Component", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
-  it("não marca nenhum item como ativo sem pathnameAtual", () => {
+  it("não marca nenhum item como ativo sem currentPathname", () => {
     render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });
     expect(visaoGeral).not.toHaveClass("border-ink");

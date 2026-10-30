@@ -55,24 +55,24 @@ export interface PortalOption {
   previdencia?: PrevidenciaNavConfig;
 }
 
-export interface PropsComponenteLink {
+export interface LinkComponentProps {
   href: string;
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
 }
 
-export type ComponenteLink = ComponentType<PropsComponenteLink>;
+export type LinkComponent = ComponentType<LinkComponentProps>;
 
-const LinkPadrao: ComponenteLink = ({ href, onClick, className, children }) => (
+const DefaultLink: LinkComponent = ({ href, onClick, className, children }) => (
   <a href={href} onClick={onClick} className={className}>
     {children}
   </a>
 );
 
 export interface SidebarProps {
-  componenteLink?: ComponenteLink;
-  pathnameAtual?: string | null;
+  linkComponent?: LinkComponent;
+  currentPathname?: string | null;
   portalName?: string;
   stateUF?: string;
   portalTitle?: string;
@@ -254,8 +254,8 @@ export function Sidebar({
   onMobileOpenChange,
   radarAlertCount,
   previdencia,
-  componenteLink: Link = LinkPadrao,
-  pathnameAtual: pathname,
+  linkComponent: Link = DefaultLink,
+  currentPathname: pathname,
 }: SidebarProps) {
   const currentYear = new Date().getFullYear();
   const [internalExercice, setInternalExercice] = useState(String(currentYear));

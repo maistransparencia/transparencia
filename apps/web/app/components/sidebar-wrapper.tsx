@@ -212,8 +212,8 @@ export function SidebarWrapper({
 
   return (
     <Sidebar
-      componenteLink={Link}
-      pathnameAtual={pathname}
+      linkComponent={Link}
+      currentPathname={pathname}
       portalName={effectivePortalName}
       stateUF={effectiveStateUF}
       portalTitle={effectivePortalTitle}

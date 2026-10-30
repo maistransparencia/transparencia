@@ -107,7 +107,7 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ## REGRAS POR ESCOPO
 
-As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14 e 18 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
+As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14, 18 e 26 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
 
 ---
 
