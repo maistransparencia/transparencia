@@ -20,25 +20,21 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
       name: "Dotação",
       value: totalDotacao,
       formattedValue: fmtCompact(totalDotacao),
-      colorClass: "bg-blue-600",
     },
     {
       name: "Empenhado",
       value: totalEmpenhado,
       formattedValue: fmtCompact(totalEmpenhado),
-      colorClass: "bg-blue-500",
     },
     {
       name: "Liquidado",
       value: totalLiquidado,
       formattedValue: fmtCompact(totalLiquidado),
-      colorClass: "bg-sky-500",
     },
     {
       name: "Pago",
       value: totalPago,
       formattedValue: fmtCompact(totalPago),
-      colorClass: "bg-cyan-500",
     },
   ];
 

@@ -26,6 +26,14 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
 }
 
 describe("buildOrcamentoViewModel", () => {
+  it("não envia cores de paleta fixa para o funil (usa os tokens do componente)", () => {
+    const vm = buildOrcamentoViewModel(makeRaw());
+    expect(vm.funnelStages).toHaveLength(4);
+    for (const etapa of vm.funnelStages) {
+      expect(etapa).not.toHaveProperty("colorClass");
+    }
+  });
+
   it("calcula os percentuais de execução relativos à dotação", () => {
     const vm = buildOrcamentoViewModel(makeRaw());
     expect(vm.empPct).toBe(80);
