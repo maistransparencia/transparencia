@@ -11,9 +11,12 @@ describe("AlertBox", () => {
     );
     expect(screen.getByText("Atenção")).toBeInTheDocument();
     expect(screen.getByText("Texto")).toBeInTheDocument();
-    expect(container.firstElementChild).toHaveClass("border-danger-text/40");
+    expect(container.firstElementChild).toHaveClass(
+      "border-l-2",
+      "border-danger-fill",
+    );
     expect(container.firstElementChild?.className).not.toMatch(
-      /rose|amber|slate/,
+      /rose|amber|slate|rounded|shadow/,
     );
   });
 });

@@ -18,21 +18,21 @@ export function AlertBox({
   const icons = {
     warning: <AlertTriangle className="h-5 w-5 shrink-0 text-warn-text" />,
     danger: <AlertCircle className="h-5 w-5 shrink-0 text-danger-text" />,
-    info: <Info className="h-5 w-5 shrink-0 text-brand" />,
+    info: <Info className="h-5 w-5 shrink-0 text-brand-text" />,
     success: <CheckCircle className="h-5 w-5 shrink-0 text-ok-text" />,
   };
 
   const styles = {
-    warning: "border-warn-text/40 bg-warn-fill/10 text-ink",
-    danger: "border-danger-text/40 bg-danger-fill/10 text-ink",
-    info: "border-brand/40 bg-brand/10 text-ink",
-    success: "border-ok-text/40 bg-ok-fill/10 text-ink",
+    warning: "border-warn-fill bg-warn-fill/15",
+    danger: "border-danger-fill bg-danger-fill/15",
+    info: "border-brand-fill bg-brand-fill/15",
+    success: "border-ok-fill bg-ok-fill/15",
   };
 
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-xl border p-4 text-sm leading-relaxed",
+        "flex gap-3 border-l-2 py-3 pr-3 pl-3 text-ink text-sm leading-relaxed",
         styles[type],
         className,
       )}

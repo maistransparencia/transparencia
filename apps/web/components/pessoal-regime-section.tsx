@@ -319,7 +319,7 @@ export function PessoalRegimeSection({
         </div>
 
         <div
-          className="flex h-3 w-full gap-px bg-track"
+          className="flex h-3 w-full gap-px"
           role="progressbar"
           aria-valuenow={100}
           aria-valuemin={0}
@@ -354,7 +354,7 @@ export function PessoalRegimeSection({
                 <Tooltip
                   key={item.categoriaRegime}
                   position="top"
-                  className="block h-full"
+                  className="h-full items-stretch"
                   style={{ width: `${item.percentualProfissionais}%` }}
                   contentClassName={cn(
                     "w-56 border-line bg-page p-2.5",
@@ -383,7 +383,7 @@ export function PessoalRegimeSection({
                     aria-label={`${rotulo}: ${fmtPercent(
                       item.percentualProfissionais,
                     )} (${fmtNumber(item.totalProfissionais)} servidores)`}
-                    className={`h-full w-full transition-all ${style.barBg} cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring`}
+                    className={`block h-full w-full transition-all ${style.barBg} cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring`}
                   />
                 </Tooltip>
               );
@@ -494,7 +494,7 @@ export function PessoalRegimeSection({
       {typeof totalDivergencias === "number" && totalDivergencias > 0 ? (
         <AlertBox type="info" title="Harmonização de Vínculos Cadastrais">
           <div className="space-y-2 text-xs leading-relaxed">
-            <p className="text-mute">
+            <p>
               Neste exercício, identificamos{" "}
               <strong className="font-semibold text-ink">
                 {fmtNumber(totalDivergencias)}{" "}
