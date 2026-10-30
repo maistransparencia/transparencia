@@ -116,7 +116,7 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
       fonte: "Entradas fora do orçamento (caixas e retenções)",
       previsto: 0,
       arrecadado: rec.receitaExtraOrcamentariaArrecadado,
-      pct: 0,
+      pct: null,
     },
     {
       fonte: "Total do orçamento (sem as entradas fora do orçamento)",

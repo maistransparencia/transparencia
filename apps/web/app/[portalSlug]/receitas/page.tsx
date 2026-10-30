@@ -1,7 +1,6 @@
 import {
   DenseTable,
   fmtCompact,
-  fmtPercent,
   KPICard,
   SectionHeader,
 } from "@transparencia/ui";
@@ -83,14 +82,6 @@ export default async function ReceitasPage({
       accessorKey: "pct" as const,
       align: "right" as const,
       format: "percent" as const,
-      renderCell: (row: {
-        previsto: number;
-        arrecadado: number;
-        pct: number;
-      }) =>
-        row.previsto === 0 && row.arrecadado > 0
-          ? "Sem valor previsto"
-          : fmtPercent(row.pct),
     },
   ];
 
