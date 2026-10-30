@@ -176,11 +176,13 @@ h3,
     font-weight: 600;
     line-height: 1.35;
   }
-  p {
-    margin: 0;
+  /* O corpo (14px, 16px em md) é do body: p herda, então text-xs/text-sm do contêiner continuam valendo. */
+  body {
     font-size: 0.875rem;
     line-height: 1.5;
-    color: var(--ink);
+  }
+  p {
+    margin: 0;
   }
   @media (min-width: 48rem) {
     h1 {
@@ -195,7 +197,7 @@ h3,
     h4 {
       font-size: 1.125rem;
     }
-    p {
+    body {
       font-size: 1rem;
     }
   }
