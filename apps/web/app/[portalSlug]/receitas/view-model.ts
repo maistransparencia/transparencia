@@ -71,8 +71,9 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
           : 0,
     },
     {
-      // A receita extra-orçamentária não tem valor previsto, então o percentual realizado é sempre 100%
-      fonte: "Receita Extra-Orçamentária",
+      // A receita extra-orçamentária não tem valor previsto: a UI não exibe percentual
+      fonte: "Entradas fora do orçamento",
+      semPrevisao: true,
       previsto: rec.receitaExtraOrcamentariaArrecadado,
       arrecadado: rec.receitaExtraOrcamentariaArrecadado,
       pctRealizado: 100,
@@ -112,13 +113,13 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
           : 0,
     },
     {
-      fonte: "Receita Extra-Orçamentária (Entradas de Caixas / Retenções)",
+      fonte: "Entradas fora do orçamento (caixas e retenções)",
       previsto: 0,
       arrecadado: rec.receitaExtraOrcamentariaArrecadado,
       pct: 0,
     },
     {
-      fonte: "Total Orçamentário",
+      fonte: "Total do orçamento (sem as entradas fora do orçamento)",
       previsto: rec.totalPrevisto,
       arrecadado: rec.totalArrecadado,
       pct:

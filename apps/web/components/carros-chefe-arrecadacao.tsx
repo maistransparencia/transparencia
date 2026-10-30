@@ -17,17 +17,19 @@ export function CarrosChefeArrecadacao({
 }: CarrosChefeArrecadacaoProps) {
   const items = [
     {
-      label: "FPM · Fundo de Participação dos Municípios",
+      label: "FPM · repasse do governo federal aos municípios",
       value: fpm,
       color: "bg-ok-fill",
     },
     {
-      label: "ICMS · cota-parte estadual",
+      label:
+        "ICMS · parte do imposto estadual sobre vendas, repassada pelo estado",
       value: icms,
       color: "bg-brand-fill",
     },
     {
-      label: "ISS + IPTU · tributos municipais",
+      label:
+        "ISS e IPTU · impostos cobrados pelo próprio município (serviços e imóveis)",
       value: issIptu,
       color: "bg-warn-fill",
     },
@@ -38,8 +40,8 @@ export function CarrosChefeArrecadacao({
   return (
     <section className={cn("space-y-4", className)}>
       <SectionHeader
-        title="Os 3 carros-chefe da arrecadação"
-        description="De onde vem, de verdade, a maior parte do dinheiro — sem as rubricas contábeis."
+        title="As 3 maiores fontes de dinheiro"
+        description="De onde vem a maior parte do dinheiro, sem os códigos contábeis."
       />
 
       <div className="space-y-5">
@@ -58,7 +60,8 @@ export function CarrosChefeArrecadacao({
                     {fmtCompact(item.value)}
                   </span>
                   <span className="caption font-medium">
-                    ({pctOfTotal.toFixed(1).replace(".", ",")}% do total)
+                    ({pctOfTotal.toFixed(1).replace(".", ",")}% de tudo que
+                    entrou)
                   </span>
                 </div>
               </div>

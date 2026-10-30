@@ -29,7 +29,7 @@ function LinhaEmenda({
         <div className="flex items-center gap-2">
           <span className="font-semibold text-ink">{fmtCompact(valor)}</span>
           <span className="caption font-medium">
-            ({percentual.toFixed(1).replace(".", ",")}% do total)
+            ({percentual.toFixed(1).replace(".", ",")}% do total de emendas)
           </span>
         </div>
       </div>
@@ -70,29 +70,30 @@ export function EmendasCard({
 
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="stat-value">{fmtCompact(totalEmendas)}</span>
-          <span className="text-mute2 text-sm">/</span>
+          <span className="caption font-medium">
+            recebidos. Já reservados (empenhados) para gastos:
+          </span>
           <span className="font-semibold text-base text-mute2">
             {fmtCompact(emendasTotalEmpenhado)}
           </span>
-          <span className="caption font-medium">empenhados</span>
         </div>
 
         <p className="text-mute text-xs leading-relaxed">
-          Recurso extraordinário/político, separado dos repasses constitucionais
-          automáticos (FPM, ICMS). Mostra quanto entrou por articulação
-          parlamentar.
+          Dinheiro enviado por deputados e senadores para obras e serviços do
+          município. É diferente dos repasses que chegam todo mês por lei (FPM e
+          ICMS).
         </p>
       </div>
 
       <div className="space-y-4 lg:col-span-6 lg:border-line lg:border-l lg:pl-6">
         <LinhaEmenda
-          rotulo="Emendas Individuais / de Bancada"
+          rotulo="Emendas individuais ou de bancada"
           valor={emendasIndividuais}
           percentual={percentualIndividuais}
           corBarra="bg-brand-fill"
         />
         <LinhaEmenda
-          rotulo="Emendas PIX / Transf. Especiais"
+          rotulo="Emendas Pix (transferências especiais, sem destino fixado)"
           valor={emendasPix}
           percentual={percentualPix}
           corBarra="bg-ok-fill"

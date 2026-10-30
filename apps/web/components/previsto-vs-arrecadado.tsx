@@ -5,6 +5,7 @@ export interface PrevistoVsArrecadadoItem {
   previsto: number;
   arrecadado: number;
   pctRealizado: number;
+  semPrevisao?: boolean;
   previstoFormatted?: string;
   arrecadadoFormatted?: string;
 }
@@ -43,7 +44,7 @@ export function PrevistoVsArrecadadoOrigem({
             : 0;
 
         const falta = Math.max(0, item.previsto - item.arrecadado);
-        const faltaText = falta > 0 ? ` · faltam ${fmtCompact(falta)}` : "";
+        const faltaText = falta > 0 ? ` · restam ${fmtCompact(falta)}` : "";
 
         const isPropria =
           item.fonte.toLowerCase().includes("própria") ||
@@ -76,7 +77,9 @@ export function PrevistoVsArrecadadoOrigem({
             </div>
 
             <div className="caption mt-1 font-medium">
-              {Math.round(item.pctRealizado)}% realizado{faltaText}
+              {item.semPrevisao
+                ? "Sem valor previsto, pois não faz parte do orçamento"
+                : `${Math.round(item.pctRealizado)}% do previsto já arrecadado${faltaText}`}
             </div>
           </div>
         );

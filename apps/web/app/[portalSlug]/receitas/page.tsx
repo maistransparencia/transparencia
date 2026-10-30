@@ -79,10 +79,18 @@ export default async function ReceitasPage({
       format: "currency" as const,
     },
     {
-      header: "Execução (%)",
+      header: "Arrecadado do previsto (%)",
       accessorKey: "pct" as const,
       align: "right" as const,
       format: "percent" as const,
+      renderCell: (row: {
+        previsto: number;
+        arrecadado: number;
+        pct: number;
+      }) =>
+        row.previsto === 0 && row.arrecadado > 0
+          ? "Sem valor previsto"
+          : fmtPercent(row.pct),
     },
   ];
 
@@ -90,27 +98,26 @@ export default async function ReceitasPage({
     <div className="space-y-8">
       <div className="space-y-2">
         <p className="eyebrow text-brand-text!">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
+          ADMINISTRATIVO · ANO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </p>
         <h1>Fontes de Receita</h1>
         <p className="lead">
           Compara o que a prefeitura{" "}
           <strong className="font-semibold text-ink">planejou arrecadar</strong>{" "}
-          (previsão da LOA) com o que{" "}
-          <strong className="font-semibold text-ink">
-            efetivamente entrou
-          </strong>{" "}
-          no caixa, por origem do recurso e movimentações extra-orçamentárias.
+          no ano (previsão da Lei Orçamentária Anual, a LOA) com o que{" "}
+          <strong className="font-semibold text-ink">de fato entrou</strong> no
+          caixa, por origem do dinheiro. Inclui também entradas que não fazem
+          parte do orçamento, como retenções e caixas.
         </p>
       </div>
 
       <section className="space-y-2" data-testid="receitas-destaque">
-        <p className="eyebrow">Total Arrecadado Real</p>
+        <p className="eyebrow">Total arrecadado</p>
         <p className="stat-value-lg text-brand-text">{fmtCompact(totalArr)}</p>
         <p className="caption">
           {isCurrentYear
-            ? "arrecadado acumulado até a data"
+            ? `arrecadado no período (${partialPeriod || "até agora"})`
             : `exercício ${selectedYear}`}
         </p>
       </section>
@@ -118,14 +125,16 @@ export default async function ReceitasPage({
       <KPIGrid columns={2} variant="divisoria">
         <KPICard
           variant="divisoria"
-          title="Previsão Orçamentária (LOA)"
+          title="Previsto para o ano (LOA)"
           value={fmtCompact(totalPrev)}
           subtext={variationText}
         />
         <div className="space-y-2">
           <div className="flex items-center justify-between font-semibold text-ink text-sm">
-            <span>Progresso de arrecadação anual</span>
-            <span className="numeric">{fmtPercent(pctArrecadadoAnual)}</span>
+            <span>Quanto da previsão já foi arrecadado</span>
+            <span className="numeric">
+              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
+            </span>
           </div>
           <div className="h-3.5 w-full overflow-hidden bg-track">
             <div
@@ -150,7 +159,7 @@ export default async function ReceitasPage({
 
       <section className="space-y-3">
         <SectionHeader
-          title="Previsto vs. arrecadado por origem"
+          title="Previsto e arrecadado, por origem do dinheiro"
           action={
             <div className="caption flex items-center gap-4 font-medium">
               <span className="flex items-center gap-1.5">
@@ -162,7 +171,7 @@ export default async function ReceitasPage({
               </span>
             </div>
           }
-          description="O comprimento da barra é o valor previsto — mesma régua de R$ para todas as origens, então os tamanhos são comparáveis. A parte cheia é o que já entrou no caixa."
+          description="A barra inteira é o valor previsto. A parte colorida é o que já entrou. Todas usam a mesma escala, então dá para comparar."
         />
 
         <PrevistoVsArrecadadoOrigem items={origensData} />

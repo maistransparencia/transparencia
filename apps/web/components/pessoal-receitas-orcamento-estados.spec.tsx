@@ -2,9 +2,30 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DecimoTerceiroCard } from "./decimo-terceiro-card";
 import { GastoPorFuncaoBars } from "./gasto-por-funcao-bars";
+import { PrevistoVsArrecadadoOrigem } from "./previsto-vs-arrecadado";
 import { ProventosDistributionChart } from "./proventos-distribution-chart";
 
 describe("estados de borda no padrão Divisórias", () => {
+  it("origem sem previsão não exibe percentual realizado", () => {
+    render(
+      <PrevistoVsArrecadadoOrigem
+        items={[
+          {
+            fonte: "Entradas fora do orçamento",
+            previsto: 10,
+            arrecadado: 10,
+            pctRealizado: 100,
+            semPrevisao: true,
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByText("Sem valor previsto, pois não faz parte do orçamento"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/do previsto já arrecadado/)).toBeNull();
+  });
+
   it("histograma vazio mostra mensagem com filete, sem cartão", () => {
     render(
       <ProventosDistributionChart
