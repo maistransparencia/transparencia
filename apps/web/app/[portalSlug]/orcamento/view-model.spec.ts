@@ -36,8 +36,6 @@ describe("buildOrcamentoViewModel", () => {
 
   it("calcula os percentuais de execução relativos à dotação", () => {
     const vm = buildOrcamentoViewModel(makeRaw());
-    expect(vm.empPct).toBe(80);
-    expect(vm.liqPct).toBe(70);
     expect(vm.pagPct).toBe(60);
   });
 
@@ -53,8 +51,6 @@ describe("buildOrcamentoViewModel", () => {
         },
       }),
     );
-    expect(vm.empPct).toBe(0);
-    expect(vm.liqPct).toBe(0);
     expect(vm.pagPct).toBe(0);
   });
 

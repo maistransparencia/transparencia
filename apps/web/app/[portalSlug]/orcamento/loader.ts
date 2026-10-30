@@ -1,5 +1,6 @@
 import {
   getEntidades,
+  getExecucaoAnoAnterior,
   getExecucaoOrcamentariaMetrics,
   getOrcamentoFuncionalMetrics,
   getPortalConfig,
@@ -109,6 +110,7 @@ function mapExecucaoMetricsToLegacyItems(
       pago: item.totalPago,
       dotacaoAtualizada: item.totalDotacaoAtualizada,
       taxaExecucao: item.taxaExecucao,
+      percentualPago: item.percentualPago,
       alerta: item.alertaExecucao,
     }))
     .sort((a, b) => {
@@ -148,6 +150,11 @@ async function fetchRawOrcamentoData(
   ]);
 
   const items = mapExecucaoMetricsToLegacyItems(execucaoMetrics);
+  const execucaoAnoAnterior = await getExecucaoAnoAnterior(
+    tenantSlug,
+    selectedYear,
+    empresaIds,
+  );
 
   return {
     portalSlug: tenantSlug,
@@ -156,6 +163,7 @@ async function fetchRawOrcamentoData(
     items,
     funcionalData,
     summary: summarizeExecucao(items),
+    execucaoAnoAnterior,
     posicaoFinanceira,
     evolucaoMensal,
   };

@@ -16,29 +16,28 @@ export function GastoPorFuncaoBars({ items, maxVal }: GastoPorFuncaoBarsProps) {
   const max = maxVal || Math.max(...items.map((i) => i.valor), 1);
 
   return (
-    <div className="space-y-4 border-line border-y py-5">
+    <div className="space-y-4">
       {items.map((item) => {
         const widthPct = Math.min(100, Math.max(0, (item.valor / max) * 100));
         const color = item.colorClass || "bg-brand-fill";
         const formattedVal = item.valorFormatted || fmtCompact(item.valor);
 
         return (
-          <div
-            key={item.funcao}
-            className="flex items-center gap-4 font-medium text-xs"
-          >
-            <span className="w-32 shrink-0 truncate font-semibold text-ink">
-              {item.funcao}
-            </span>
-            <div className="h-4 flex-1 overflow-hidden bg-track">
+          <div key={item.funcao} className="space-y-1.5">
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="min-w-0 font-semibold text-ink text-sm">
+                {item.funcao}
+              </p>
+              <p className="shrink-0 whitespace-nowrap font-semibold text-ink text-sm tabular-nums">
+                {formattedVal}
+              </p>
+            </div>
+            <div className="h-3 overflow-hidden bg-track">
               <div
                 className={cn("h-full transition-all duration-500", color)}
                 style={{ width: `${widthPct}%` }}
               />
             </div>
-            <span className="ml-2 min-w-20 shrink-0 text-right font-semibold font-serif text-ink text-sm">
-              {formattedVal}
-            </span>
           </div>
         );
       })}

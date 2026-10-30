@@ -31,6 +31,10 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       totalPago: 600,
       taxaExecucao: 80,
     },
+    execucaoAnoAnterior: {
+      anoAnterior: 2023,
+      percentualPago: null,
+    },
     ...overrides,
   } as unknown as RawData;
 }
@@ -48,7 +52,34 @@ describe("OrcamentoPage", () => {
     render(element);
 
     expect(screen.getByText("Execução Orçamentária")).toBeInTheDocument();
-    expect(screen.getByText("Dotação Atualizada")).toBeInTheDocument();
+    expect(screen.getByText("Reservado (empenhado)")).toBeInTheDocument();
+  });
+
+  it("destaca o percentual do orçamento já pago", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(makeRaw());
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    expect(screen.getByTestId("orcamento-destaque")).toHaveTextContent("60%");
+    expect(
+      screen.queryByTestId("orcamento-ano-anterior"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("compara com o ano anterior inteiro quando há dado", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(
+      makeRaw({
+        execucaoAnoAnterior: { anoAnterior: 2023, percentualPago: 85 },
+      }),
+    );
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    expect(screen.getByTestId("orcamento-ano-anterior")).toHaveTextContent(
+      "Para comparar: em 2023, o ano inteiro terminou com 85% do orçamento pago.",
+    );
   });
 
   it("esconde a seção 'por função' quando não há dados funcionais", async () => {
@@ -58,7 +89,7 @@ describe("OrcamentoPage", () => {
     render(element);
 
     expect(
-      screen.queryByText("Para onde vai o gasto, por função"),
+      screen.queryByText("Quanto foi pago em cada área"),
     ).not.toBeInTheDocument();
   });
 
@@ -73,7 +104,7 @@ describe("OrcamentoPage", () => {
     render(element);
 
     expect(
-      screen.getByText("Para onde vai o gasto, por função"),
+      screen.getByText("Quanto foi pago em cada área"),
     ).toBeInTheDocument();
   });
 
@@ -139,7 +170,7 @@ describe("OrcamentoPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /disponibilidade financeira em caixa e bancos/i,
+        name: /dinheiro em caixa e nos bancos/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Prefeitura Municipal")).toBeInTheDocument();
@@ -188,9 +219,7 @@ describe("OrcamentoPage", () => {
     render(element);
 
     expect(
-      screen.getByText(
-        /Disponibilidade contábil exibida na visão consolidada municipal/i,
-      ),
+      screen.getByText(/Este saldo é do município todo/i),
     ).toBeInTheDocument();
   });
 
@@ -259,12 +288,12 @@ describe("OrcamentoPage", () => {
     render(element);
 
     expect(
-      screen.getByText("Evolução Mensal e Queima de Caixa no Exercício"),
+      screen.getByText("Como o caixa mudou mês a mês"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Média Mensal (Recursos Livres)"),
+      screen.getByText("Média mensal dos recursos livres"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Piso Operacional no Ano")).toBeInTheDocument();
-    expect(screen.getByText("Queima Intra-anual de Caixa")).toBeInTheDocument();
+    expect(screen.getByText("Menor saldo do ano")).toBeInTheDocument();
+    expect(screen.getByText("Queda desde o maior saldo")).toBeInTheDocument();
   });
 });

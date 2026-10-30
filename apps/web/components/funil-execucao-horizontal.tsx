@@ -2,6 +2,7 @@ import { cn, fmtCompact } from "@transparencia/ui";
 
 export interface FunnelStage {
   name: string;
+  description?: string;
   value: number;
   formattedValue?: string;
   colorClass?: string;
@@ -24,37 +25,38 @@ export function FunnelExecucaoHorizontal({
   const maxVal = Math.max(...stages.map((s) => s.value), 1);
 
   return (
-    <section className="space-y-4 border-line border-y py-5">
-      <h2>Funil da execução</h2>
-      <div className="space-y-3">
-        {stages.map((stage, idx) => {
-          const widthPct = Math.min(
-            100,
-            Math.max(0, (stage.value / maxVal) * 100),
-          );
-          const valText = stage.formattedValue || fmtCompact(stage.value);
-          const color =
-            stage.colorClass || CORES_PADRAO[idx % CORES_PADRAO.length];
+    <div className="space-y-5">
+      {stages.map((stage, idx) => {
+        const widthPct = Math.min(
+          100,
+          Math.max(0, (stage.value / maxVal) * 100),
+        );
+        const valText = stage.formattedValue || fmtCompact(stage.value);
+        const color =
+          stage.colorClass || CORES_PADRAO[idx % CORES_PADRAO.length];
 
-          return (
-            <div
-              key={stage.name}
-              className="flex items-center gap-4 font-medium text-xs"
-            >
-              <span className="w-24 shrink-0 text-mute">{stage.name}</span>
-              <div className="relative flex h-9 flex-1 items-center overflow-hidden bg-track">
-                <div
-                  className={cn("h-full transition-all duration-500", color)}
-                  style={{ width: `${widthPct}%` }}
-                />
+        return (
+          <div key={stage.name} className="space-y-2">
+            <div className="flex items-baseline justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-semibold text-ink text-sm">{stage.name}</p>
+                {stage.description ? (
+                  <p className="caption">{stage.description}</p>
+                ) : null}
               </div>
-              <span className="min-w-20 shrink-0 whitespace-nowrap text-right font-semibold text-ink text-xs">
+              <p className="shrink-0 whitespace-nowrap font-semibold text-ink text-sm tabular-nums">
                 {valText}
-              </span>
+              </p>
             </div>
-          );
-        })}
-      </div>
-    </section>
+            <div className="h-3 overflow-hidden bg-track">
+              <div
+                className={cn("h-full transition-all duration-500", color)}
+                style={{ width: `${widthPct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
