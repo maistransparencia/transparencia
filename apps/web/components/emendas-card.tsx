@@ -23,16 +23,8 @@ function LinhaEmenda({
   corBarra,
 }: LinhaEmendaProps) {
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between text-xs">
-        <span className="font-medium text-ink">{rotulo}</span>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-ink">{fmtCompact(valor)}</span>
-          <span className="caption font-medium">
-            ({percentual.toFixed(1).replace(".", ",")}% do total de emendas)
-          </span>
-        </div>
-      </div>
+    <div className="space-y-1.5">
+      <p className="font-medium text-ink text-sm">{rotulo}</p>
       <div className="h-2 w-full overflow-hidden bg-track">
         <div
           className={cn(
@@ -42,6 +34,12 @@ function LinhaEmenda({
           style={{ width: `${Math.min(100, Math.max(0, percentual))}%` }}
         />
       </div>
+      <p className="caption">
+        <span className="numeric font-semibold text-ink">
+          {fmtCompact(valor)}
+        </span>{" "}
+        · {percentual.toFixed(1).replace(".", ",")}% do total de emendas
+      </p>
     </div>
   );
 }

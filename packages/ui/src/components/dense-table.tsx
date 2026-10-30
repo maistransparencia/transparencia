@@ -743,7 +743,7 @@ export function DenseTable<T extends Record<string, any>>({
                             (col.isSerifNumeric ||
                               col.format === "currency" ||
                               col.format === "compact") &&
-                              "font-semibold font-serif",
+                              "numeric",
                             row.className,
                           )}
                         >

@@ -1,15 +1,11 @@
-import {
-  DenseTable,
-  fmtCompact,
-  KPICard,
-  SectionHeader,
-} from "@transparencia/ui";
+import { fmtCompact, KPICard, SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
 import { KPIGrid } from "@/components/kpi-grid";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
+import { ReceitasOrigemTabela } from "@/components/receitas-origem-tabela";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadReceitasData } from "./loader";
 import { buildReceitasViewModel } from "./view-model";
@@ -63,28 +59,6 @@ export default async function ReceitasPage({
     cardDependencia,
   } = viewModel;
 
-  const tableCols = [
-    { header: "Origem da Receita", accessorKey: "fonte" as const },
-    {
-      header: "Previsto",
-      accessorKey: "previsto" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Arrecadado",
-      accessorKey: "arrecadado" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Arrecadado do previsto (%)",
-      accessorKey: "pct" as const,
-      align: "right" as const,
-      format: "percent" as const,
-    },
-  ];
-
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -93,7 +67,7 @@ export default async function ReceitasPage({
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </p>
         <h1>Fontes de Receita</h1>
-        <p className="lead">
+        <p className="text-mute2 text-sm leading-relaxed">
           Compara o que a prefeitura{" "}
           <strong className="font-semibold text-ink">planejou arrecadar</strong>{" "}
           no ano (previsão da Lei Orçamentária Anual, a LOA) com o que{" "}
@@ -176,11 +150,7 @@ export default async function ReceitasPage({
       />
 
       <div className="pt-4">
-        <DenseTable
-          data={tableData}
-          columns={tableCols}
-          enableExportCsv={false}
-        />
+        <ReceitasOrigemTabela data={tableData} />
       </div>
 
       {cardDependencia && (

@@ -25,7 +25,7 @@ export function PrevistoVsArrecadadoOrigem({
     Math.max(...items.flatMap((item) => [item.previsto, item.arrecadado]), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {items.map((item) => {
         // O comprimento da trilha representa o previsto (ou arrecadado se superado), com piso mínimo de 18% para manter legibilidade visual
         const baseVal = Math.max(item.previsto, item.arrecadado);
@@ -53,7 +53,7 @@ export function PrevistoVsArrecadadoOrigem({
         const barColorClass = isPropria ? "bg-ok-fill" : "bg-brand-fill";
 
         return (
-          <div key={`previsto-vs-arrecadado-${item.fonte}`} className="py-4">
+          <div key={`previsto-vs-arrecadado-${item.fonte}`}>
             <div className="mb-2 flex items-center justify-between text-sm">
               <span className="font-semibold text-ink">{item.fonte}</span>
               <span className="caption font-medium">
