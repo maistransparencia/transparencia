@@ -78,7 +78,7 @@ export function PrevistoVsArrecadadoOrigem({
 
             <div className="caption mt-1 font-medium">
               {item.semPrevisao
-                ? "Sem valor previsto, pois não faz parte do orçamento"
+                ? "Valores descontados de salários e de pagamentos (previdência, imposto de renda, empréstimos consignados) que a prefeitura apenas repassa a terceiros. Não são receita da prefeitura."
                 : `${Math.round(item.pctRealizado)}% do previsto já arrecadado${faltaText}`}
             </div>
           </div>
