@@ -89,7 +89,7 @@ export default async function ReceitasPage({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="eyebrow">
+        <p className="eyebrow text-brand-text!">
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </p>
@@ -105,6 +105,16 @@ export default async function ReceitasPage({
         </p>
       </div>
 
+      <section className="space-y-2" data-testid="receitas-destaque">
+        <p className="eyebrow">Total Arrecadado Real</p>
+        <p className="stat-value-lg text-brand-text">{fmtCompact(totalArr)}</p>
+        <p className="caption">
+          {isCurrentYear
+            ? "arrecadado acumulado até a data"
+            : `exercício ${selectedYear}`}
+        </p>
+      </section>
+
       <KPIGrid columns={2} variant="divisoria">
         <KPICard
           variant="divisoria"
@@ -112,32 +122,21 @@ export default async function ReceitasPage({
           value={fmtCompact(totalPrev)}
           subtext={variationText}
         />
-        <KPICard
-          variant="divisoria"
-          title="Total Arrecadado Real"
-          value={fmtCompact(totalArr)}
-          subtext={
-            isCurrentYear
-              ? "arrecadado acumulado até a data"
-              : `exercício ${selectedYear}`
-          }
-        />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between font-semibold text-ink text-sm">
+            <span>Progresso de arrecadação anual</span>
+            <span className="numeric">{fmtPercent(pctArrecadadoAnual)}</span>
+          </div>
+          <div className="h-3.5 w-full overflow-hidden bg-track">
+            <div
+              className="h-full bg-brand-fill transition-all duration-500"
+              style={{
+                width: `${Math.min(100, Math.max(0, pctArrecadadoAnual))}%`,
+              }}
+            />
+          </div>
+        </div>
       </KPIGrid>
-
-      <div className="space-y-2 border-line border-y py-4">
-        <div className="flex items-center justify-between font-semibold text-ink text-sm">
-          <span>Progresso de arrecadação anual</span>
-          <span className="numeric">{fmtPercent(pctArrecadadoAnual)}</span>
-        </div>
-        <div className="h-3.5 w-full overflow-hidden bg-track">
-          <div
-            className="h-full bg-brand-fill transition-all duration-500"
-            style={{
-              width: `${Math.min(100, Math.max(0, pctArrecadadoAnual))}%`,
-            }}
-          />
-        </div>
-      </div>
 
       <EmendasCard
         totalEmendas={rec.emendasTotalArrecadado || 0}
@@ -177,7 +176,11 @@ export default async function ReceitasPage({
       />
 
       <div className="pt-4">
-        <DenseTable data={tableData} columns={tableCols} />
+        <DenseTable
+          data={tableData}
+          columns={tableCols}
+          enableExportCsv={false}
+        />
       </div>
 
       {cardDependencia && (

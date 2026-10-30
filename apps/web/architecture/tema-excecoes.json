@@ -74,7 +74,6 @@
     "apps/web/app/[portalSlug]/obras/view-model.ts",
     "apps/web/app/[portalSlug]/previdencia/page.tsx",
     "apps/web/app/[portalSlug]/radar/page.tsx",
-    "apps/web/app/[portalSlug]/receitas/view-model.ts",
     "apps/web/app/[portalSlug]/saude/page.tsx",
     "apps/web/app/municipal-landing-client.tsx",
     "apps/web/app/privacidade/page.tsx",

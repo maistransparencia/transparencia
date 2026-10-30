@@ -23,7 +23,7 @@ function LinhaEmenda({
   corBarra,
 }: LinhaEmendaProps) {
   return (
-    <div className="py-3">
+    <div>
       <div className="mb-1.5 flex items-center justify-between text-xs">
         <span className="font-medium text-ink">{rotulo}</span>
         <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export function EmendasCard({
   return (
     <section
       className={cn(
-        "grid grid-cols-1 items-start gap-6 border-line border-y py-6 lg:grid-cols-12 lg:gap-0",
+        "panel grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-0",
         className,
       )}
     >
@@ -84,7 +84,7 @@ export function EmendasCard({
         </p>
       </div>
 
-      <div className="divide-y divide-line lg:col-span-6 lg:border-line lg:border-l lg:pl-6">
+      <div className="space-y-4 lg:col-span-6 lg:border-line lg:border-l lg:pl-6">
         <LinhaEmenda
           rotulo="Emendas Individuais / de Bancada"
           valor={emendasIndividuais}

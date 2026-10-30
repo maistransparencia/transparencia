@@ -24,7 +24,7 @@ export function PrevistoVsArrecadadoOrigem({
     Math.max(...items.flatMap((item) => [item.previsto, item.arrecadado]), 1);
 
   return (
-    <div className="divide-y divide-line border-line border-y">
+    <div className="space-y-6">
       {items.map((item) => {
         // O comprimento da trilha representa o previsto (ou arrecadado se superado), com piso mínimo de 18% para manter legibilidade visual
         const baseVal = Math.max(item.previsto, item.arrecadado);

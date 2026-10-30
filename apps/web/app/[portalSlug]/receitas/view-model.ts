@@ -125,7 +125,7 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
         rec.totalPrevisto > 0
           ? (rec.totalArrecadado / rec.totalPrevisto) * 100
           : 0,
-      className: "font-semibold bg-gray-200",
+      className: "font-semibold bg-line2",
     },
   ];
 
