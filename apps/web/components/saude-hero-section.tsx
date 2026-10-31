@@ -11,20 +11,11 @@ export interface SaudeHeroOrcamentoProps {
   fornecedoresAtivosCount: number;
 }
 
-export interface SaudeHeroFontesProps {
-  uniaoSusPct: number;
-  estadoPct: number;
-  propriaPct: number;
-  repassesPrefeitura: number;
-  emendasParlamentares: number;
-}
-
 export interface SaudeHeroSectionProps {
   ano: number;
   isCurrentYear: boolean;
   partialPeriod: string;
   orcamento: SaudeHeroOrcamentoProps;
-  fontesReceita: SaudeHeroFontesProps;
 }
 
 export function SaudeHeroSection({
@@ -32,9 +23,8 @@ export function SaudeHeroSection({
   isCurrentYear,
   partialPeriod,
   orcamento,
-  fontesReceita,
 }: SaudeHeroSectionProps) {
-  const susPct = fontesReceita.uniaoSusPct ?? 0;
+  const naoPago = Math.max(0, orcamento.empenhado - orcamento.pago);
 
   const empenhadoRatio =
     orcamento.dotacao > 0
@@ -66,33 +56,32 @@ export function SaudeHeroSection({
         </p>
 
         <h1>
-          {susPct} de cada R$ 100 que entram na saúde vêm do Governo Federal
-          (SUS). O que o município faz com esse dinheiro depende de como
-          contrata.
+          {isCurrentYear
+            ? `O Fundo Municipal de Saúde já pagou ${fmtCompact(orcamento.pago)} dos ${fmtCompact(orcamento.empenhado)} que reservou em ${ano}.`
+            : `O Fundo Municipal de Saúde reservou ${fmtCompact(orcamento.empenhado)} em ${ano} e pagou ${fmtCompact(orcamento.pago)}.`}
         </h1>
 
         <p className="lead">
           {isCurrentYear ? (
             <>
-              O Fundo Municipal de Saúde já reservou{" "}
+              Até agora, o Fundo reservou{" "}
               <strong className="text-ink">
                 {fmtCompact(orcamento.empenhado)}
               </strong>{" "}
-              em {ano} para despesas da saúde (empenho). É{" "}
-              {fmtPercent(orcamento.taxaExecucao * 100)} da verba prevista para
-              o ano, de {fmtCompact(orcamento.dotacao)}. Reservar não é pagar:
-              veja quanto já foi entregue e quanto já foi pago.
+              para despesas da saúde (empenho). Isso é{" "}
+              {fmtPercent(orcamento.taxaExecucao * 100)} dos{" "}
+              {fmtCompact(orcamento.dotacao)} previstos para o ano. Reservar não
+              é pagar: veja no painel quanto já foi entregue e quanto já foi
+              pago.
             </>
           ) : (
             <>
-              O Fundo Municipal de Saúde reservou{" "}
-              <strong className="text-ink">
-                {fmtCompact(orcamento.empenhado)}
-              </strong>{" "}
-              em {ano} para despesas da saúde (empenho), ou{" "}
-              {fmtPercent(orcamento.taxaExecucao * 100)} da verba prevista para
-              o ano, de {fmtCompact(orcamento.dotacao)}. Desse valor,{" "}
-              {fmtCompact(orcamento.pago)} já foi pago.
+              O valor reservado para despesas da saúde (empenho) é{" "}
+              {fmtPercent(orcamento.taxaExecucao * 100)} dos{" "}
+              {fmtCompact(orcamento.dotacao)} previstos para o ano.
+              {naoPago > 0
+                ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
+                : ""}
             </>
           )}
         </p>
@@ -117,7 +106,7 @@ export function SaudeHeroSection({
           <div className="space-y-2">
             <Indicator
               size="sm"
-              label="Serviço entregue (liquidado)"
+              label="Serviço ou produto entregue (liquidado)"
               value={fmtCompact(orcamento.liquidado)}
               note={`${fmtPercent(liquidadoRatio)} do reservado`}
             />
