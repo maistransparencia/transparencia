@@ -3,7 +3,7 @@
 ) }}
 
 with orgaos_saude as (
-    select portal_slug, empresa_id
+    select portal_slug, empresa_id, orgao_nome
     from {{ ref('dim_orgao') }}
     where lower(unaccent(orgao_nome)) ilike '%saude%'
 ),
@@ -76,18 +76,49 @@ receitas_saude as (
                 else 0
             end
         ) as receita_uniao,
-        sum(
+        -- 1723.50 é filho de 1720: só entra quando a raiz 1720 não existe, para não contar duas vezes
+        coalesce(
+            nullif(sum(case when r.tipo_receita = 'estado' and r.codigo = '1720.00.0.0.00.00' then coalesce(r.arrecadado, 0) else 0 end), 0),
+            sum(case when r.tipo_receita = 'estado' and r.codigo = '1723.50.0.1.00.00' then coalesce(r.arrecadado, 0) else 0 end)
+        ) + sum(
             case
-                when r.tipo_receita = 'estado' and r.codigo in ('1720.00.0.0.00.00', '1723.50.0.1.00.00', '2420.00.0.0.00.00')
+                when r.tipo_receita = 'estado' and r.codigo = '2420.00.0.0.00.00'
                 then coalesce(r.arrecadado, 0)
                 else 0
             end
-        ) as receita_estado
+        ) as receita_estado,
+        sum(
+            case
+                when r.tipo_receita = 'orcamentaria' and r.codigo in ('1000.00.0.0.00.00', '2000.00.0.0.00.00')
+                then coalesce(r.arrecadado, 0)
+                else 0
+            end
+        ) as receita_orcamentaria_total
     from {{ ref('fct_receitas') }} r
     join orgaos_saude o
         on r.portal_slug = o.portal_slug
         and r.empresa_id = o.empresa_id
     group by r.portal_slug, r.ano
+),
+
+-- Repasse financeiro medido: lado de quem paga, para qualquer recebedor de saúde.
+-- O recebedor é identificado pelo termo "saude", o mesmo critério de orgaos_saude, para
+-- não depender da grafia exata do fundo em cada portal. O lado de quem recebe (empresa_id
+-- de um órgão de saúde) repete o valor na coluna devolucao e não entra na soma.
+repasses_saude as (
+    select
+        t.portal_slug,
+        t.ano,
+        sum(coalesce(t.repasse, 0)) as repasse_recebido
+    from {{ ref('fct_transferencias') }} t
+    where lower(unaccent(t.entidade_recebedora)) ilike '%saude%'
+        and not exists (
+            select 1
+            from orgaos_saude o
+            where o.portal_slug = t.portal_slug
+                and o.empresa_id = t.empresa_id
+        )
+    group by t.portal_slug, t.ano
 ),
 
 emendas_saude as (
@@ -162,22 +193,23 @@ select
     coalesce(h.hhi_concentracao_fornecedores, 0) as hhi_concentracao_fornecedores,
     coalesce(rs.receita_uniao, 0)::numeric(15, 2) as receita_uniao_saude,
     coalesce(rs.receita_estado, 0)::numeric(15, 2) as receita_estado_saude,
-    greatest(0, coalesce(ls.total_empenhado, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0))::numeric(15, 2) as repasses_prefeitura_saude,
+    coalesce(rp.repasse_recebido, 0)::numeric(15, 2) as repasses_prefeitura_saude,
+    greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0))::numeric(15, 2) as receita_outras_saude,
+    entrada.total_entrada::numeric(15, 2) as total_entrada_saude,
+    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer else 0 end as uniao_sus_pct,
+    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer else 0 end as estado_pct,
+    case when entrada.total_entrada > 0 then round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer else 0 end as propria_pct,
     case
-        when coalesce(ls.total_empenhado, 0) > 0
-        then round((coalesce(rs.receita_uniao, 0) / greatest(coalesce(ls.total_empenhado, 0), coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0))) * 100)::integer
+        when entrada.total_entrada > 0
+        then greatest(
+            0,
+            100
+            - round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer
+            - round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer
+            - round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer
+        )::integer
         else 0
-    end as uniao_sus_pct,
-    case
-        when coalesce(ls.total_empenhado, 0) > 0
-        then round((coalesce(rs.receita_estado, 0) / greatest(coalesce(ls.total_empenhado, 0), coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0))) * 100)::integer
-        else 0
-    end as estado_pct,
-    case
-        when coalesce(ls.total_empenhado, 0) > 0
-        then greatest(0, 100 - round((coalesce(rs.receita_uniao, 0) / greatest(coalesce(ls.total_empenhado, 0), coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0))) * 100)::integer - round((coalesce(rs.receita_estado, 0) / greatest(coalesce(ls.total_empenhado, 0), coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0))) * 100)::integer)::integer
-        else 0
-    end as propria_pct
+    end as outras_receitas_pct
 from chaves_base cb
 left join dotacao_saude_orgao dso
     on cb.portal_slug = dso.portal_slug
@@ -188,6 +220,14 @@ left join linhas_saude ls
 left join receitas_saude rs
     on cb.portal_slug = rs.portal_slug
     and cb.ano = rs.ano
+left join repasses_saude rp
+    on cb.portal_slug = rp.portal_slug
+    and cb.ano = rp.ano
+cross join lateral (
+    select
+        coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0) + coalesce(rp.repasse_recebido, 0)
+        + greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0)) as total_entrada
+) entrada
 left join emendas_saude es
     on cb.portal_slug = es.portal_slug
     and cb.ano = es.ano

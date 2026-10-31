@@ -63,7 +63,17 @@ export interface FontesReceitaSaudeDTO {
   uniaoSusPct: number;
   estadoPct: number;
   propriaPct: number;
+  outrasReceitasPct: number;
+  /** Transferências da União (SUS) recebidas pelo fundo, em reais. */
+  receitaUniao: number;
+  /** Transferências do Estado recebidas pelo fundo, em reais. */
+  receitaEstado: number;
+  /** Repasse financeiro medido da entidade pagadora ao fundo, em reais. */
   repassesPrefeitura: number;
+  /** Receita orçamentária do fundo que não vem da União nem do Estado. */
+  receitaOutras: number;
+  /** União + Estado + repasse + outras receitas. */
+  totalEntrada: number;
   emendasParlamentares: number;
 }
 
@@ -238,7 +248,12 @@ export async function getSaudeFontesReceitaMetrics(params: {
     uniaoSusPct: 0,
     estadoPct: 0,
     propriaPct: 0,
+    outrasReceitasPct: 0,
+    receitaUniao: 0,
+    receitaEstado: 0,
     repassesPrefeitura: 0,
+    receitaOutras: 0,
+    totalEntrada: 0,
     emendasParlamentares: 0,
   };
 
@@ -249,7 +264,12 @@ export async function getSaudeFontesReceitaMetrics(params: {
         "uniao_sus_pct",
         "estado_pct",
         "propria_pct",
+        "outras_receitas_pct",
+        "receita_uniao_saude",
+        "receita_estado_saude",
         "repasses_prefeitura_saude",
+        "receita_outras_saude",
+        "total_entrada_saude",
         "emendas_saude_arrecadado",
       ])
       .where("portal_slug", "=", params.portalSlug)
@@ -262,7 +282,12 @@ export async function getSaudeFontesReceitaMetrics(params: {
       uniaoSusPct: Number(row.uniao_sus_pct ?? 0),
       estadoPct: Number(row.estado_pct ?? 0),
       propriaPct: Number(row.propria_pct ?? 0),
+      outrasReceitasPct: Number(row.outras_receitas_pct ?? 0),
+      receitaUniao: Number(row.receita_uniao_saude ?? 0),
+      receitaEstado: Number(row.receita_estado_saude ?? 0),
       repassesPrefeitura: Number(row.repasses_prefeitura_saude ?? 0),
+      receitaOutras: Number(row.receita_outras_saude ?? 0),
+      totalEntrada: Number(row.total_entrada_saude ?? 0),
       emendasParlamentares: Number(row.emendas_saude_arrecadado ?? 0),
     };
   } catch {
