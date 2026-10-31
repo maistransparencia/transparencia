@@ -105,6 +105,15 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
+## 27. CONTEÚDO DE PÁGINA PARTE DA PERGUNTA DO CIDADÃO
+
+- **Público-alvo:** o objetivo principal do portal é informar o **cidadão**, não o contador, o advogado ou o auditor. A profundidade técnica existe, mas fica atrás de um "Ver detalhes".
+- **Pergunta primeiro:** todo bloco de página (seção, gráfico, indicador) responde a uma pergunta que o cidadão faria, escrita em linguagem comum (ex: "A Prefeitura aplica o mínimo exigido em saúde?"). Sem a pergunta, o bloco não entra. A pergunta é escolhida antes do dado, e a régua que a responde (limite legal, ano anterior, comparação) vem junto do número.
+- **Dado derivado diz que é derivado:** valor calculado por diferença ou estimado (ex: "receita própria = gasto menos repasses") nunca aparece como fato medido. A tela diz que é estimativa e como foi calculada.
+- **Ordem da página:** a tese do título é provada na sequência; seções para especialistas (auditoria, tabelas longas, modais) ficam no fim.
+
+---
+
 ## REGRAS POR ESCOPO
 
 As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14, 18 e 26 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
