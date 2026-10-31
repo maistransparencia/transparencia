@@ -12,8 +12,10 @@ describe("SaudeEvolucaoAnual", () => {
     render(<SaudeEvolucaoAnual data={data} selectedYear={2025} />);
     expect(screen.getByText("2024")).toBeTruthy();
     expect(screen.getByText("2025")).toBeTruthy();
-    expect(screen.getAllByText("Reservado")).toHaveLength(2);
-    expect(screen.getAllByText("Pago")).toHaveLength(2);
+    expect(screen.getByText("Reservado (empenhado)")).toBeTruthy();
+    expect(screen.getByText("Pago")).toBeTruthy();
+    expect(screen.getByText("R$ 50,0 mi")).toBeTruthy();
+    expect(screen.getByText("R$ 45,0 mi")).toBeTruthy();
   });
 
   it("avisa que o ano em andamento não deve ser comparado com anos completos", () => {
@@ -24,7 +26,9 @@ describe("SaudeEvolucaoAnual", () => {
         partialPeriod="jan–out"
       />,
     );
-    expect(screen.getByText("em andamento")).toBeTruthy();
+    expect(
+      screen.getByText(/em andamento/, { selector: "span.caption" }),
+    ).toBeTruthy();
     expect(
       screen.getByText(/não deve ser comparado com anos completos/),
     ).toBeTruthy();

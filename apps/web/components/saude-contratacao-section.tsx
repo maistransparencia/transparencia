@@ -115,7 +115,7 @@ export function SaudeContratacaoSection({
           return (
             <li key={caminho.tipoContratacao} className="space-y-2">
               <div className="flex items-baseline justify-between gap-4">
-                <h3>{caminho.nome}</h3>
+                <span className="font-semibold text-ink">{caminho.nome}</span>
                 <span className="caption shrink-0">
                   {caminho.quantidade} {caminho.unidade}
                 </span>
@@ -198,7 +198,7 @@ export function SaudeContratacaoSection({
               return (
                 <article
                   key={lic.licitacaoId}
-                  className="flex flex-col justify-between border-line border-t pt-4"
+                  className="panel flex flex-col justify-between border-0! border-t-[3px]! px-0! py-4! sm:px-4!"
                 >
                   <div className="space-y-3">
                     {/* Linha 1: Badges horizontais com wrap */}

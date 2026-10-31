@@ -41,7 +41,7 @@ export function SaudeOrigemRecursos({
       nome: "Transferências do Estado",
       valor: fontes.receitaEstado,
       percentual: fontes.estadoPct,
-      corClasse: "bg-mute2",
+      corClasse: "bg-ok-fill",
     },
     {
       chave: "prefeitura",
@@ -55,20 +55,20 @@ export function SaudeOrigemRecursos({
       nome: "Outras receitas do Fundo",
       valor: fontes.receitaOutras,
       percentual: fontes.outrasReceitasPct,
-      corClasse: "bg-mute3",
+      corClasse: "bg-warn-fill",
     },
   ];
 
   return (
     <div className={cn("space-y-6", className)}>
-      <p className="lead">
+      <p className="text-mute">
         Em {ano}, entraram{" "}
         <strong className="text-ink">{fmtCompact(fontes.totalEntrada)}</strong>{" "}
         no Fundo Municipal de Saúde. Veja de onde veio cada parte.
       </p>
 
       <div
-        className="flex h-3 w-full overflow-hidden bg-track"
+        className="flex h-3 w-full gap-0.5 overflow-hidden bg-track"
         role="img"
         aria-label={origens
           .map((origem) => `${origem.nome} ${origem.percentual}%`)
