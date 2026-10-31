@@ -66,17 +66,6 @@ ideb_metricas as (
     from ideb_base
 ),
 
-despesas_educacao as (
-    select
-        portal_slug,
-        ano,
-        sum(coalesce(liquidado, 0))::numeric(15, 2) as despesa_liquidada_educacao
-    from {{ ref('fct_despesas') }}
-    where fonte = 'exercicio'
-      and (funcao = '12' or {{ target.schema }}.unaccent(lower(coalesce(funcao_nome, ''))) like '%educa%')
-    group by portal_slug, ano
-),
-
 matriculas as (
     select
         portal_slug,
@@ -101,16 +90,8 @@ select
     i.crescimento_pontos_ideb,
     i.variacao_saeb_matematica,
     i.variacao_saeb_portugues,
-    d.despesa_liquidada_educacao,
-    m.total_matriculas_rede_municipal,
-    round(
-        (d.despesa_liquidada_educacao / nullif(m.total_matriculas_rede_municipal, 0))::numeric,
-        2
-    )::numeric(15, 2) as custo_anual_por_aluno
+    m.total_matriculas_rede_municipal
 from ideb_metricas i
-left join despesas_educacao d
-    on i.portal_slug = d.portal_slug
-    and i.ano = d.ano
 left join matriculas m
     on i.portal_slug = m.portal_slug
     and i.ano = m.ano
