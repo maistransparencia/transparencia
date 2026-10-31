@@ -5,6 +5,29 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Página de Educação em torno do reservado e do pago)
+* **Educação começa pelo dinheiro:** O topo diz quanto a Prefeitura reservou (empenhado) e quanto pagou em educação no ano (função 12, Prefeitura inteira), com o liquidado ao lado. Reservar não é pagar, e o texto avisa quanto ficou sem pagar dentro do ano.
+* **Pago por aluno (estimativa):** Soma do que foi pago em educação, sem o Ensino Superior, dividida pelas matrículas da rede municipal do Censo Escolar do mesmo ano. Só aparece em ano encerrado; "Ver detalhes" mostra o pago por área e os anos anteriores, em valores da época.
+* **Seções na ordem da pergunta do cidadão:** O que entrou, Como mudou ao longo dos anos, Como o Fundo contrata, Quem recebe o dinheiro da educação, Aprendizado dos alunos e Emendas na educação. O IDEB passa a ser lido por etapa (Anos Iniciais e Anos Finais), com ano de apuração, meta, ciclo anterior e classificação entre as redes municipais do estado.
+* **Contratos só do Fundo:** A lista deixa de misturar contratos de outros órgãos que citavam escola ou merenda no objeto.
+
+### ✨ Novas Funcionalidades (Added)
+* **`fct_educacao_execucao_metricas`:** Novo mart dbt por portal e ano com empenhado, liquidado e pago da função 12, pago do Ensino Superior (subfunção 364), matrículas e `pago_por_aluno` (nulo no ano corrente e sem matrículas).
+* **`getEducacaoExecucaoAnual`, `getEducacaoPagoPorSubfuncao` e `getTopFornecedoresEducacaoMetrics`:** Série anual, pago por subfunção e maiores fornecedores da função 12 em `@transparencia/db`.
+* **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.
+
+### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **`getEducacaoContratos`:** Passa a filtrar só pelo `empresa_id` do Fundo, sem busca de texto no objeto nem na fonte de recursos.
+* **`EvolucaoAnual` e `EmendasSection`:** Renomeados de `SaudeEvolucaoAnual` e `SaudeEmendasSection` e compartilhados entre saúde e educação.
+* **`SectionHeader`:** A cópia local de `apps/web/components` saiu; saúde, educação e previdência usam a versão de `@transparencia/ui`.
+
+### 🗑️ Removido (Removed)
+* **Painel fiscal da educação:** Saem o gráfico despesa × IDEB, o Troféu Cívico, a barra de composição de "O que entrou", as colunas `despesa_liquidada_educacao` e `custo_anual_por_aluno` de `fct_educacao_metricas` e o campo `custoAnualPorAluno` dos DTOs.
+
+### ⚖️ Governança & Documentação Pública (Governance & Docs)
+* **`llms.txt` e `llms-full.txt`:** Descrevem a nova página de educação, o pago por aluno como estimativa e os contratos do Fundo.
+* **`docs/glossario-cidadao.md`:** Nova entrada IDEB.
+
 ### 🌟 Destaques da Versão (Despesas detalhadas com os dados existentes)
 * **Início da página de Despesas:** O topo mostra o "Dinheiro que saiu (pago)" no ano em destaque e uma frase com a parte já paga do valor reservado, avisando que o restante não é necessariamente dívida. Abaixo ficam os cards Reservado (empenhado) e Serviço entregue (liquidado) e a explicação "Como ler estes números". As barras comparativas e o card "Quanto já foi pago" saíram.
 * **Quem mais recebeu e quem mais espera receber:** Cada fornecedor expande para mostrar o documento e, quando é CNPJ completo, o link "Ver licitações e contratos", que abre a busca de `/licitacoes` já preenchida em todos os anos. CPF nunca vira link. A folha de pagamento dos servidores não entra na lista de fornecedores, e os restos a pagar passam a ser somados por fornecedor e documento.
