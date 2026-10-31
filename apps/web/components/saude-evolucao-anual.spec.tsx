@@ -18,19 +18,10 @@ describe("SaudeEvolucaoAnual", () => {
     expect(screen.getByText("R$ 45,0 mi")).toBeTruthy();
   });
 
-  it("avisa que o ano em andamento não deve ser comparado com anos completos", () => {
-    render(
-      <SaudeEvolucaoAnual
-        data={data}
-        partialYear={2025}
-        partialPeriod="jan–out"
-      />,
-    );
+  it("marca o ano em andamento", () => {
+    render(<SaudeEvolucaoAnual data={data} partialYear={2025} />);
     expect(
       screen.getByText(/em andamento/, { selector: "span.caption" }),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(/não deve ser comparado com anos completos/),
     ).toBeTruthy();
   });
 

@@ -11,7 +11,6 @@ export interface SaudeEvolucaoAnualProps {
   selectedYear?: number;
   /** Ano ainda em andamento: os valores são acumulados até o período informado. */
   partialYear?: number;
-  partialPeriod?: string;
   className?: string;
 }
 
@@ -44,7 +43,6 @@ export function SaudeEvolucaoAnual({
   data,
   selectedYear,
   partialYear,
-  partialPeriod,
   className,
 }: SaudeEvolucaoAnualProps) {
   if (data.length === 0) {
@@ -59,19 +57,6 @@ export function SaudeEvolucaoAnual({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <p className="text-mute">
-        Quanto o Fundo reservou (empenhado) e quanto já pagou em cada ano.
-        Reservar não é pagar: a diferença é o que ainda não saiu do caixa.
-        {partialYear !== undefined ? (
-          <>
-            {" "}
-            O ano de {partialYear} está em andamento
-            {partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser
-            comparado com anos completos.
-          </>
-        ) : null}
-      </p>
-
       <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm" aria-hidden="true">
         <li className="flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 bg-brand-fill" />

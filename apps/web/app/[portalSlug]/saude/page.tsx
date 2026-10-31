@@ -128,18 +128,31 @@ export default async function SaudePage({
 
       {/* Seção 2: O que entrou no Fundo (Existente) */}
       <section className="space-y-6">
-        <SectionHeader title="O que entrou" />
+        <SectionHeader
+          title="O que entrou"
+          description={
+            saude.fontesReceita.totalEntrada > 0
+              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. Veja de onde veio cada parte.`
+              : undefined
+          }
+        />
         <SaudeOrigemRecursos fontes={saude.fontesReceita} ano={selectedYear} />
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}
       <section className="space-y-6">
-        <SectionHeader title="Como mudou ao longo dos anos" />
+        <SectionHeader
+          title="Como mudou ao longo dos anos"
+          description={`Quanto o Fundo reservou (empenhado) e quanto já pagou em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
+            isCurrentYear
+              ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
+              : ""
+          }`}
+        />
         <SaudeEvolucaoAnual
           data={saude.executionTrend}
           selectedYear={selectedYear}
           partialYear={isCurrentYear ? selectedYear : undefined}
-          partialPeriod={partialPeriod}
         />
       </section>
 

@@ -40,7 +40,9 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
     const { container } = render(
       <SaudeEmendasSection ano={2026} emendasStats={stats(0)} />,
     );
-    expect(container.textContent).toMatch(/Não foi possível identificar/);
+    expect(container.textContent).toMatch(
+      /não foi possível identificar emendas/,
+    );
     expect(screen.queryByText("Recebida como receita")).toBeNull();
   });
 });

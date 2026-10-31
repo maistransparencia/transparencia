@@ -61,12 +61,6 @@ export function SaudeOrigemRecursos({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <p className="text-mute">
-        Em {ano}, entraram{" "}
-        <strong className="text-ink">{fmtCompact(fontes.totalEntrada)}</strong>{" "}
-        no Fundo Municipal de Saúde. Veja de onde veio cada parte.
-      </p>
-
       <div
         className="flex h-3 w-full gap-0.5 overflow-hidden bg-track"
         role="img"

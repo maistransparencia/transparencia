@@ -339,31 +339,26 @@ export function SaudeEmendasSection({
       <SectionHeader
         eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
         title={titulo}
+        description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
       />
-      <p className="text-mute">
-        {descricao} O que importa não é só quanto foi autorizado, mas se esse
-        dinheiro chegou e foi usado.
-      </p>
 
       {emendasStats.totalAutorizado > 0 && (
         <AlertBox type="info" title="O dinheiro das emendas chegou?">
           {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
-          emendas.{" "}
+          emendas
           {totalRecebidoFundo > 0 ? (
             <>
-              {fmtCompact(totalRecebidoFundo)} ({fmtPercent(percentualRecebido)}
-              ) aparecem como receita arrecadada pela entidade, identificados
-              pelo valor.{" "}
+              ; {fmtCompact(totalRecebidoFundo)} (
+              {fmtPercent(percentualRecebido)}) aparecem como receita da
+              entidade, identificados pelo valor
             </>
           ) : (
             <>
-              Não foi possível identificar, pelos valores, emendas que aparecem
-              como receita arrecadada.{" "}
+              ; não foi possível identificar emendas que aparecem como receita
             </>
           )}
-          O valor empenhado vem do cadastro de emendas do portal e pode estar
-          desatualizado: empenho zerado ali não significa que o dinheiro não foi
-          usado. Para conferir, consulte as notas de empenho da emenda.
+          . O empenho vem do cadastro de emendas do portal e pode estar
+          desatualizado: zero ali não significa que o dinheiro não foi usado.
         </AlertBox>
       )}
 

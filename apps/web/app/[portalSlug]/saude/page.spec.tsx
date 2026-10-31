@@ -234,4 +234,20 @@ describe("SaudePage", () => {
       screen.getByText(/Sem pagamentos a fornecedores registrados/),
     ).toBeInTheDocument();
   });
+
+  it("avisa na evolução anual que o ano em andamento não deve ser comparado", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2026, isCurrentYear: true },
+        saude: { executionTrend: [{ ano: 2026, empenhado: 10, pago: 5 }] },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    const { container } = render(element);
+
+    expect(container.textContent).toMatch(
+      /O ano de 2026 está em andamento.*não deve ser comparado com anos completos/,
+    );
+  });
 });
