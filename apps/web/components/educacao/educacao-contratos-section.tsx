@@ -176,7 +176,8 @@ export function EducacaoContratosSection({
           <>
             Contratos do Fundo vigentes em {ano}: merenda escolar (
             {renderBaseLegal(BASES_LEGAIS[0])}), transporte escolar (
-            {renderBaseLegal(BASES_LEGAIS[1])}), locação de imóveis (
+            {renderBaseLegal(BASES_LEGAIS[1])}), locação de imóveis (sem
+            licitação, quando só aquele imóvel atende:{" "}
             {renderBaseLegal(BASES_LEGAIS[2])}) e manutenção das escolas.
           </>
         }

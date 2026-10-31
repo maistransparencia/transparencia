@@ -98,7 +98,7 @@ export function FonteRecursoModal({
                     key={ponto.ano}
                     aria-current={selecionado ? "true" : undefined}
                     className={cn(
-                      "grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 border-line2 border-b px-3 py-2 last:border-b-0",
+                      "grid grid-cols-[3.5rem_1fr_9.5rem] items-center gap-3 border-line2 border-b px-3 py-2 last:border-b-0",
                       selecionado && "bg-line2",
                     )}
                   >
@@ -128,7 +128,7 @@ export function FonteRecursoModal({
                     </span>
                     <span
                       className={cn(
-                        "numeric text-sm",
+                        "numeric whitespace-nowrap text-sm",
                         selecionado && "font-semibold",
                       )}
                     >
@@ -150,7 +150,7 @@ export function FonteRecursoModal({
             <section aria-label="De que são compostos" className="space-y-3">
               <h3>De que são compostos em {ano}</h3>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead>
                     <tr>
                       <th scope="col">Natureza da receita</th>

@@ -2,7 +2,7 @@
 title: 'Reorganização da página de Educação no padrão da Saúde'
 type: 'feature'
 created: '2026-10-31'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: 'c620865afa2f6642950e6e8df7f77b52868a00fd'
 review_loop_iteration: 0
@@ -78,6 +78,16 @@ Pago por aluno e total de alunos retirados depois da implementação: o seed `se
 ## Spec Change Log
 
 ## Review Triage Log
+
+| Revisão | Achado | Veredito | Tratamento |
+|---|---|---|---|
+| contador-publico | `fct_educacao_execucao_metricas` somava `empenhado` bruto; o líquido é 3% a 9% menor (Porciúncula 2025: R$ 36,35 mi contra R$ 33,55 mi) | alto | corrigido: soma `empenhado_liquido` (commit `a21adaba`) |
+| contador-publico | parte paga aos maiores fornecedores dividia por pago total com salários, mas a lista exclui pessoal | alto | corrigido: base `pago_sem_pessoal_educacao` e nota "sem contar salários" |
+| contador-publico | status "Não Executado" (pago zero com empenho) e rótulo "Empenhado" são do portal inteiro | médio | não alterado na educação por consistência; recomendação portal-wide |
+| editor-cidadao | siglas sem explicação (FUNDEB, Saeb, PNAE, PNATE), "aporte", "empenhados no cadastro", "vinculados", aviso do IDEB repetia a descrição, "Média RJ" ambíguo, h1 sem dados afirmava ausência | médio | corrigidos e glossário ampliado |
+| jurista-fiscal | links das 7 leis conferidos no Planalto (11.947/2009, 10.880/2004, 14.113/2020, 9.766/1998, 12.858/2013, 7.990/1989, 14.133/2021): ementas batem | ok | sem ação |
+| jurista-fiscal | art. 74, V da Lei 14.133 é inexigibilidade por imóvel de localização específica, não regra geral de locação | médio | subtítulo reescrito |
+| jurista-fiscal | SIOPE 1.2 diz "60%", art. 26 da Lei 14.113/2020 fixa 70% | informativo | registrado na epic 24 (story 24.5) |
 
 ## Verification
 

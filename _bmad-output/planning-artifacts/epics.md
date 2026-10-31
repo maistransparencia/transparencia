@@ -3059,7 +3059,7 @@ Responder ao cidadão duas perguntas da página de educação que hoje ficam sem
 
 **Fora do escopo:** automatizar o formulário com captcha; reproduzir no portal as planilhas de receita e despesa do SIOPE; comparação entre municípios ou ranking de valor por aluno.
 
-**Riscos:** a API pode mudar sem aviso; o SIOPE é declaratório e homologado pelo FNDE, não é auditoria independente; o rótulo do indicador 1.2 cita "mínimo de 60%" e a regra atual do FUNDEB fala em 70% para profissionais da educação, o que o `contador-publico` e o `jurista-fiscal` precisam esclarecer antes de exibir.
+**Riscos:** a API pode mudar sem aviso; o SIOPE é declaratório e homologado pelo FNDE, não é auditoria independente; o rótulo do indicador 1.2 do SIOPE cita "mínimo de 60%" para o magistério, mas o art. 26 da Lei 14.113/2020 (verificado no texto do Planalto em 2026-10-31) fixa **70%** para a remuneração dos profissionais da educação em efetivo exercício, e a lei não menciona 60%. O indicador do SIOPE pode estar com o rótulo da regra antiga (Lei 11.494/2007): só exibir depois de o `contador-publico` conferir a fórmula.
 
 ---
 
@@ -3145,7 +3145,7 @@ So that I can tell if the rule is being met.
 - **Given** os indicadores 1.1 (aplicação em MDE) e 1.2 (magistério) do SIOPE e a pergunta "A Prefeitura aplica o mínimo exigido em educação?"
 - **When** o ano selecionado está encerrado
 - **Then** a página mostra o percentual aplicado ao lado do mínimo legal, com o texto "cumpriu" ou "ficou abaixo" junto do ícone (nunca só a cor) e a lei citada com link oficial (Regra 20)
-- **And** o limite legal vem de `seed_constantes_fiscais.csv`, não de literal no código, e o `jurista-fiscal` confirma o dispositivo aplicável (Art. 212 e Art. 212-A da CF/88) e esclarece a divergência entre "60%" no rótulo do SIOPE e a regra atual do FUNDEB antes de publicar
+- **And** o limite legal vem de `seed_constantes_fiscais.csv`, não de literal no código, e o `jurista-fiscal` confirma o dispositivo aplicável (Art. 212 e Art. 212-A da CF/88) e confirma que o piso do FUNDEB é de 70% (art. 26 da Lei 14.113/2020, https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14113.htm) e não os 60% do rótulo antigo do SIOPE, antes de publicar
 - **And** abaixo do mínimo, o tom é factual e não acusatório ("indício", nunca "irregularidade")
 - **And** o `contador-publico` valida a base de cálculo, o ano em andamento é marcado como parcial e `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
 
