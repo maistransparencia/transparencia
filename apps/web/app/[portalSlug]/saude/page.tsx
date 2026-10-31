@@ -100,7 +100,7 @@ export default async function SaudePage({
           fontesReceita={saude.fontesReceita}
         />
 
-        <IndicatorPanel columns={3}>
+        <IndicatorPanel columns={4}>
           <Indicator
             label="Emendas na saúde"
             value={fmtCompact(totalEmendas)}
@@ -113,6 +113,11 @@ export default async function SaudePage({
           <Indicator
             label="Fornecedores ativos"
             value={saude.orcamento.fornecedoresAtivosCount}
+          />
+          <Indicator
+            label="Medicamentos e insumos"
+            value={fmtCompact(saude.orcamento.medicamentosInsumos)}
+            note="reservados (empenhados) em material farmacológico e suporte terapêutico"
           />
         </IndicatorPanel>
       </div>
