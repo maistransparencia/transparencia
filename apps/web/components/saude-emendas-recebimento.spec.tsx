@@ -46,7 +46,8 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
     expect(container.textContent).toMatch(/pode estar desatualizado/);
     expect(container.textContent).toMatch(/com o número da proposta/);
     expect(screen.getByText("Aparece na receita")).toBeTruthy();
-    expect(screen.getByText("1713.50.1.1.29.00")).toBeTruthy();
+    expect(container.textContent).toMatch(/trans\.sus portaria/i);
+    expect(container.textContent).not.toMatch(/1713\.50/);
   });
 
   it("diz que não foi possível identificar quando nada aparece como receita", () => {

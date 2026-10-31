@@ -265,7 +265,7 @@ export function SaudeEmendasSection({
               className="block text-xs"
               title={
                 row.receitaDescricao
-                  ? `Receita: ${row.receitaDescricao}`
+                  ? `Receita: ${row.receitaDescricao}${row.receitaCodigo ? ` (código ${row.receitaCodigo})` : ""}`
                   : undefined
               }
             >
@@ -277,8 +277,10 @@ export function SaudeEmendasSection({
               >
                 {confirmada ? "Aparece na receita" : "Receita de mesmo valor"}
               </span>
-              {row.receitaCodigo ? (
-                <span className="caption block">{row.receitaCodigo}</span>
+              {row.receitaDescricao ? (
+                <span className="caption line-clamp-2 block max-w-[220px]">
+                  {toTitleCase(row.receitaDescricao)}
+                </span>
               ) : null}
             </span>
           );
@@ -389,18 +391,8 @@ export function SaudeEmendasSection({
           )}
           O empenho vem do cadastro de emendas do portal e pode estar
           desatualizado: zero ali não significa que o dinheiro não foi usado.
-          {portalSlug ? (
-            <>
-              {" "}
-              <Link
-                href={`/${portalSlug}/receitas?ano=${ano}`}
-                className="text-brand-text underline underline-offset-2"
-              >
-                Ver as receitas do ano
-              </Link>
-              .
-            </>
-          ) : null}
+          Para conferir uma emenda, procure no portal oficial do município a
+          receita indicada na tabela.
         </AlertBox>
       )}
 
