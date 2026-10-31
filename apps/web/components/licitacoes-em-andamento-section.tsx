@@ -767,7 +767,7 @@ export function LicitacoesEmAndamentoSection({
                 href={FONTES_OFICIAIS.pncp.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+                className="inline-flex items-center gap-0.5 font-medium text-brand-text hover:underline"
               >
                 PNCP (Portal Nacional de Contratações Públicas)
                 <ExternalLink className="inline h-3 w-3" />
@@ -777,7 +777,7 @@ export function LicitacoesEmAndamentoSection({
                 href={urlLegislacao("lei14133", "art174")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+                className="inline-flex items-center gap-0.5 font-medium text-brand-text hover:underline"
               >
                 Art. 174 da Lei 14.133/2021
                 <ExternalLink className="inline h-3 w-3" />

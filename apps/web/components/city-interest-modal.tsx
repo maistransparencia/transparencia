@@ -27,7 +27,7 @@ const FIELD_MESSAGES: Record<FieldName, string> = {
 };
 
 const INPUT_CLASS =
-  "min-h-11 w-full rounded-lg border border-borderLine bg-white px-3 text-base text-ink placeholder:text-subtleText focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 aria-[invalid=true]:border-rose-600 sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-line bg-page px-3 text-base text-ink placeholder:text-mute focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 aria-[invalid=true]:border-rose-600 sm:text-sm";
 
 function validate(values: {
   cidade: string;
@@ -193,14 +193,14 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <h3 className="font-semibold text-ink text-lg">
             Pronto, avisaremos você
           </h3>
-          <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+          <p className="mt-2 text-mute text-sm leading-relaxed">
             Anotamos {savedCity.cidade} ({savedCity.uf}). Quando ela entrar no
             portal, você recebe um e-mail.
           </p>
           <button
             type="button"
             onClick={handleClose}
-            className="mt-6 min-h-11 w-full rounded-lg bg-accent px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-6 min-h-11 w-full rounded-lg bg-brand-fill px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Voltar para a lista de cidades
           </button>
@@ -310,11 +310,11 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
                 }}
                 aria-invalid={errors.consentimento ? true : undefined}
                 aria-describedby={describedBy("consentimento")}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-accent focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-brand focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
               />
               <label
                 htmlFor="city-interest-consentimento"
-                className="min-h-6 text-slate-700 text-sm leading-snug"
+                className="min-h-6 text-mute text-sm leading-snug"
               >
                 Concordo em receber este aviso por e-mail. Meus dados são usados
                 só para isso, conforme a{" "}
@@ -322,7 +322,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
                   href="/privacidade"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-accent underline underline-offset-2"
+                  className="font-medium text-brand-text underline underline-offset-2"
                 >
                   Política de Privacidade
                 </Link>
@@ -346,7 +346,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {status === "loading" ? (
               <>

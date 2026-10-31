@@ -213,7 +213,7 @@ export function ShowYourWorkButton({
           type="button"
           onClick={handleDownload}
           disabled={isDownloading}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-sm underline focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-sm underline focus:outline-none focus:ring-2 focus:ring-line disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isDownloading ? (
             <Loader2
@@ -226,7 +226,7 @@ export function ShowYourWorkButton({
           {isDownloading ? "Gerando planilha..." : rotulo}
         </button>
         {legenda && (
-          <p className="text-slate-600 text-sm leading-relaxed">{legenda}</p>
+          <p className="text-mute text-sm leading-relaxed">{legenda}</p>
         )}
         {errorMessage && (
           <p role="alert" className="text-rose-700 text-sm">
@@ -247,7 +247,7 @@ export function ShowYourWorkButton({
           setIsOpen((prev) => !prev);
           setErrorMessage(null);
         }}
-        className="flex size-7 min-h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+        className="flex size-7 min-h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg text-mute3 transition-colors hover:bg-line2 hover:text-mute focus:outline-none focus:ring-2 focus:ring-line"
         aria-label="Opções de auditoria"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -261,7 +261,7 @@ export function ShowYourWorkButton({
         createPortal(
           <div
             ref={menuRef}
-            className="fixed z-50 min-w-60 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
+            className="fixed z-50 min-w-60 rounded-lg border border-line bg-page p-2 shadow-lg"
             style={{
               top: posicaoMenu?.top ?? 0,
               right: posicaoMenu?.right ?? 0,
@@ -269,12 +269,12 @@ export function ShowYourWorkButton({
             }}
             role="menu"
           >
-            <div className="mb-1 border-slate-100 border-b px-2 pb-1.5">
-              <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
+            <div className="mb-1 border-line2 border-b px-2 pb-1.5">
+              <span className="font-semibold text-[10px] text-mute3 uppercase tracking-wider">
                 Auditoria Cívica
               </span>
               {tituloContexto && (
-                <p className="truncate font-medium text-slate-700 text-xs">
+                <p className="truncate font-medium text-mute text-xs">
                   {tituloContexto}
                 </p>
               )}
@@ -284,21 +284,21 @@ export function ShowYourWorkButton({
               type="button"
               onClick={handleDownload}
               disabled={isDownloading}
-              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 focus:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-line2 focus:bg-line2 disabled:cursor-not-allowed disabled:opacity-60"
               role="menuitem"
             >
               {isDownloading ? (
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" />
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-brand-text" />
               ) : (
                 <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
               )}
               <div className="flex flex-col">
-                <span className="font-medium text-slate-800 text-xs">
+                <span className="font-medium text-ink text-xs">
                   {isDownloading
                     ? "Gerando planilha..."
                     : "Baixar registros (CSV)"}
                 </span>
-                <span className="text-[10px] text-slate-400">
+                <span className="text-[10px] text-mute3">
                   Planilha empenho a empenho
                 </span>
               </div>

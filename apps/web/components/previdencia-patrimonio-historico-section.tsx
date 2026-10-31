@@ -253,7 +253,6 @@ export function PrevidenciaPatrimonioHistoricoSection({
       {/* 3 KPI Cards Analíticos de Topo */}
       <KPIGrid columns={3} variant="divisoria">
         <KPICard
-          variant="divisoria"
           title="Pico Histórico"
           value={fmtCompact(resumo.patrimonioPico)}
           subtext={
@@ -263,7 +262,6 @@ export function PrevidenciaPatrimonioHistoricoSection({
           }
         />
         <KPICard
-          variant="divisoria"
           title="Patrimônio Atual"
           value={fmtCompact(resumo.patrimonioAtual)}
           subtext="Retração acumulada frente ao pico"
@@ -277,7 +275,6 @@ export function PrevidenciaPatrimonioHistoricoSection({
           }
         />
         <KPICard
-          variant="divisoria"
           title="Queima Média Anual"
           value={`${fmtCompact(resumo.queimaMediaAnual)}/ano`}
           subtext={

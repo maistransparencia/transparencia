@@ -174,7 +174,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label="Navegação móvel"
-      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      className="fixed right-0 bottom-0 left-0 z-30 border-line border-t bg-page/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
         {PRIMARY_NAV_TABS.map((tab, index) => {
@@ -196,14 +196,14 @@ export function MobileBottomNav({
               className={cn(
                 "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
                 isActive
-                  ? "bg-[oklch(0.5_0.11_250)]/10 font-bold text-[oklch(0.5_0.11_250)]"
-                  : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+                  ? "bg-brand/10 font-bold text-brand-text"
+                  : "font-medium text-mute2 hover:text-ink active:bg-line2",
               )}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isActive && "scale-110 text-[oklch(0.5_0.11_250)]",
+                  isActive && "scale-110 text-brand-text",
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
@@ -228,21 +228,21 @@ export function MobileBottomNav({
           className={cn(
             "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
             isMoreActive
-              ? "bg-[oklch(0.5_0.11_250)]/10 font-bold text-[oklch(0.5_0.11_250)]"
-              : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+              ? "bg-brand/10 font-bold text-brand-text"
+              : "font-medium text-mute2 hover:text-ink active:bg-line2",
           )}
         >
           <div className="relative inline-flex items-center justify-center">
             {isMenuOpen ? (
               <X
-                className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.5_0.11_250)] transition-transform"
+                className="h-5 w-5 shrink-0 scale-110 text-brand-text transition-transform"
                 strokeWidth={2.2}
               />
             ) : (
               <Menu
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isMoreActive && "scale-110 text-[oklch(0.5_0.11_250)]",
+                  isMoreActive && "scale-110 text-brand-text",
                 )}
                 strokeWidth={isMoreActive ? 2.2 : 1.8}
               />

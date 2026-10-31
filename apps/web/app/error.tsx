@@ -24,12 +24,12 @@ export default function RouteError({
       <h1 className="font-bold font-serif text-2xl text-ink">
         Não foi possível carregar esta página
       </h1>
-      <p className="text-subtleText">
+      <p className="text-mute">
         Tivemos um problema ao consultar os dados fiscais deste portal. Isso
         costuma ser temporário — tente novamente em instantes.
       </p>
       {error.digest && (
-        <p className="text-mutedText text-xs">
+        <p className="text-mute2 text-xs">
           Código de referência: <span>{error.digest}</span>
         </p>
       )}

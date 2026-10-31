@@ -99,7 +99,7 @@ export function StaticTileMap({
 
   return (
     <div className={`flex flex-col ${className}`}>
-      <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+      <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-line bg-line2">
         <Image
           src={tileInfo.url}
           alt={alt}
@@ -120,12 +120,12 @@ export function StaticTileMap({
             />
           ))}
         </div>
-        <span className="absolute right-1 bottom-1 rounded bg-white/80 px-1 text-[10px] text-slate-600">
+        <span className="absolute right-1 bottom-1 rounded bg-page/80 px-1 text-[10px] text-mute">
           Tiles © Esri
         </span>
       </div>
       {hasMarkersOmitted && (
-        <p className="mt-1 text-[11px] text-subtleText">
+        <p className="mt-1 text-[11px] text-mute">
           {positionedMarkers.length} de {validMarkers.length} unidades no mapa
         </p>
       )}

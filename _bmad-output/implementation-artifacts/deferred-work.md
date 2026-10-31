@@ -394,3 +394,18 @@ source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-esc
 severity: low
 reason: Spec exige conferência jurídica; o texto é anterior a esta story.
 status: open
+
+### DW-24: Capturas antes/depois (claro e escuro) e suíte de testes visuais não foram executadas (AC 4 e 5 parciais).
+origin: spec-deferred 8ac9cf51ee58
+location: apps/web/e2e/visual
+source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
+reason: O Registro admite que não foram feitas; a troca de paleta e de raios foi mecânica por regra. Verificar tooltip, feedback-modal, push-notification-prompt, modais de newsletter e de interesse na cidade, KPICard sem variant e bg-accent -> brand-fill no tema escuro.
+status: open
+
+### DW-25: Paleta fixa emerald/blue/red/amber/rose não é coberta pela regra paleta-fixa-do-tailwind (privacidade, termos, modais).
+origin: spec-deferred 7d297fef4509
+location: apps/web/architecture/varredura-tema.ts:9
+source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
+severity: low
+reason: A regra só casa bg-white e slate/gray; páginas com bg-emerald-50 etc. podem destoar no tema escuro. Preexistente ao escopo da story.
+status: open

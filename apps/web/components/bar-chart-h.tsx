@@ -17,7 +17,7 @@ export interface BarChartHProps {
 export function BarChartH({
   data,
   maxVal,
-  barColor = "oklch(0.55 0.11 250)",
+  barColor = "var(--brand-fill)",
 }: BarChartHProps) {
   const max = maxVal || Math.max(...data.map((d) => d.value), 1);
 

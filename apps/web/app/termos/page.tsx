@@ -87,11 +87,11 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-24 border-slate-200 border-t pt-10 first:border-t-0 first:pt-0"
+      className="scroll-mt-24 border-line border-t pt-10 first:border-t-0 first:pt-0"
     >
       <h2
         id={`${id}-title`}
-        className="!mt-0 flex items-baseline gap-3 font-semibold text-2xl text-slate-900 tracking-tight"
+        className="!mt-0 flex items-baseline gap-3 font-semibold text-2xl text-ink tracking-tight"
       >
         <span className="font-medium text-base text-emerald-700 tabular-nums">
           {index + 1}.
@@ -125,18 +125,16 @@ export default function TermosPage() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-20">
       {/* Cabeçalho */}
       <header className="max-w-3xl">
-        <h1 className="font-bold text-4xl text-slate-900 tracking-tight sm:text-5xl">
+        <h1 className="font-bold text-4xl text-ink tracking-tight sm:text-5xl">
           Termos de Uso
         </h1>
-        <p className="mt-4 text-slate-500 text-sm">
+        <p className="mt-4 text-mute2 text-sm">
           Última atualização: <time dateTime="2026-09">setembro de 2026</time>
         </p>
-        <p className="mt-6 text-lg text-slate-600 leading-8">
+        <p className="mt-6 text-lg text-mute leading-8">
           Bem-vindo ao{" "}
-          <strong className="font-semibold text-slate-900">
-            MaisTransparencia
-          </strong>
-          . Ao utilizar esta plataforma, você concorda com os termos descritos
+          <strong className="font-semibold text-ink">MaisTransparencia</strong>.
+          Ao utilizar esta plataforma, você concorda com os termos descritos
           abaixo. Leia-os com atenção.
         </p>
       </header>
@@ -144,7 +142,7 @@ export default function TermosPage() {
       {/* Resumo */}
       <aside
         aria-labelledby="resumo-title"
-        className="mt-10 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8"
+        className="mt-10 max-w-3xl rounded-lg border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8"
       >
         <h2
           id="resumo-title"
@@ -169,17 +167,15 @@ export default function TermosPage() {
         {/* Sumário */}
         <nav aria-label="Seções destes termos" className="hidden lg:block">
           <div className="sticky top-24">
-            <p className="font-semibold text-slate-900 text-sm">Nesta página</p>
-            <ol className="mt-4 space-y-1 border-slate-200 border-l">
+            <p className="font-semibold text-ink text-sm">Nesta página</p>
+            <ol className="mt-4 space-y-1 border-line border-l">
               {sections.map((s, i) => (
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-slate-600 text-sm transition-colors hover:border-emerald-700 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-emerald-700 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                   >
-                    <span className="text-slate-400 tabular-nums">
-                      {i + 1}.
-                    </span>
+                    <span className="text-mute3 tabular-nums">{i + 1}.</span>
                     {s.title}
                   </a>
                 </li>
@@ -189,7 +185,7 @@ export default function TermosPage() {
         </nav>
 
         {/* Conteúdo */}
-        <article className="prose prose-slate prose-li:my-1.5 max-w-3xl space-y-10 prose-a:font-medium prose-a:text-emerald-800 prose-strong:text-slate-900 prose-p:leading-7 prose-a:decoration-emerald-300 prose-a:underline-offset-4 prose-li:marker:text-emerald-700 hover:prose-a:decoration-emerald-700">
+        <article className="prose prose-slate prose-li:my-1.5 max-w-3xl space-y-10 prose-a:font-medium prose-a:text-emerald-800 prose-strong:text-ink prose-p:leading-7 prose-a:decoration-emerald-300 prose-a:underline-offset-4 prose-li:marker:text-emerald-700 hover:prose-a:decoration-emerald-700">
           <Section index={0}>
             <p>
               O MaisTransparencia é uma plataforma cívica independente de
@@ -216,13 +212,13 @@ export default function TermosPage() {
               fundamental de acesso à informação garantido pela Constituição
               Federal de 1988 (Art. 5.º, XXXIII) e pelas seguintes normas:
             </p>
-            <dl className="not-prose mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200">
+            <dl className="not-prose mt-6 divide-y divide-line rounded-lg border border-line">
               {legalBases.map((law) => (
                 <div
                   key={law.name}
                   className="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6"
                 >
-                  <dt className="font-semibold text-slate-900 text-sm">
+                  <dt className="font-semibold text-ink text-sm">
                     {law.href ? (
                       <a
                         href={law.href}
@@ -237,12 +233,12 @@ export default function TermosPage() {
                       law.name
                     )}
                     {law.detail && (
-                      <span className="block font-normal text-slate-500">
+                      <span className="block font-normal text-mute2">
                         {law.detail}
                       </span>
                     )}
                   </dt>
-                  <dd className="text-slate-700 text-sm leading-6">
+                  <dd className="text-mute text-sm leading-6">
                     {law.description}
                   </dd>
                 </div>
@@ -262,8 +258,8 @@ export default function TermosPage() {
               </ExternalLink>
               .
             </p>
-            <div className="not-prose mt-6 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-700 text-sm leading-6">
-              <strong className="font-semibold text-slate-900">
+            <div className="not-prose mt-6 rounded-lg border border-line bg-line2 px-5 py-4 text-mute text-sm leading-6">
+              <strong className="font-semibold text-ink">
                 Não são exibidos:
               </strong>{" "}
               dados individualizados nominais de servidores públicos de
@@ -318,7 +314,7 @@ export default function TermosPage() {
                 exibidos sem a devida consulta a profissionais habilitados.
               </li>
             </ul>
-            <div className="not-prose mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 text-sm leading-6">
+            <div className="not-prose mt-6 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 text-sm leading-6">
               Os dados são fornecidos{" "}
               <em className="font-medium">“como estão”</em> para fins de
               controle social e auditoria cidadã. Para fins jurídicos ou de

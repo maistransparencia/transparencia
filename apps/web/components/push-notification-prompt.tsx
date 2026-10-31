@@ -238,7 +238,7 @@ function PushNotificationPromptContent({
   return (
     <section
       aria-label="Consentimento de Notificações Cívicas"
-      className="fixed right-4 bottom-24 z-50 max-w-md rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl ring-1 ring-slate-900/5 sm:right-6 md:bottom-6"
+      className="fixed right-4 bottom-24 z-50 max-w-md rounded-lg border border-line bg-page p-4 text-ink shadow-2xl ring-1 ring-ink/5 sm:right-6 md:bottom-6"
     >
       <div className="flex items-start gap-3.5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -247,20 +247,20 @@ function PushNotificationPromptContent({
 
         <div className="flex-1 space-y-1.5">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900 text-sm">
+            <h3 className="font-semibold text-ink text-sm">
               Notificações de Contas Públicas
             </h3>
             <button
               type="button"
               onClick={handleDismiss}
-              className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-md p-1 text-mute3 transition-colors hover:bg-line2 hover:text-mute focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="Fechar aviso de notificações"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <p className="text-slate-600 text-xs leading-relaxed">
+          <p className="text-mute text-xs leading-relaxed">
             Acompanhe em tempo real novos gastos, empenhos e liquidações da
             prefeitura com a frequência exigida pelo{" "}
             <a
@@ -286,7 +286,7 @@ function PushNotificationPromptContent({
             <button
               type="button"
               onClick={handleDismiss}
-              className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 text-xs transition-colors hover:bg-slate-50 hover:text-slate-800"
+              className="cursor-pointer rounded-lg border border-line bg-page px-3 py-1.5 font-medium text-mute text-xs transition-colors hover:bg-line2 hover:text-ink"
             >
               Agora não
             </button>

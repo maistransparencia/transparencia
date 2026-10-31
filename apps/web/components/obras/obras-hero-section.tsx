@@ -158,26 +158,22 @@ export function ObrasHeroSection({
 
       <KPIGrid columns={4} variant="divisoria">
         <KPICard
-          variant="divisoria"
           title="Em execução"
           value={kpis.emExecucao}
           subtext="Obras em andamento"
         />
         <KPICard
-          variant="divisoria"
           title="Paralisadas"
           value={kpis.paralisadas}
           subtext="Merecem atenção"
           alert={kpis.paralisadas > 0}
         />
         <KPICard
-          variant="divisoria"
           title="Concluídas"
           value={kpis.concluidas}
           subtext="Entregues à população"
         />
         <KPICard
-          variant="divisoria"
           title="Avanço físico médio"
           value={kpis.percentualMedioExecucaoFormatado}
           subtext="Nas obras em andamento, conforme informado ao ObrasGov.br"

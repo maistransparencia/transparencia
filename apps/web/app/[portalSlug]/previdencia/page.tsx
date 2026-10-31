@@ -142,25 +142,21 @@ export default async function PrevidenciaPage({
       {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
       <KPIGrid columns={4} variant="divisoria">
         <KPICard
-          variant="divisoria"
           title="Valor reservado (empenhado)"
           value={fmtCompact(previdencia.totalEmpenhado)}
           subtext="Compromissos com a previdência no ano"
         />
         <KPICard
-          variant="divisoria"
           title="Repassado ao fundo (pago)"
           value={fmtCompact(previdencia.totalPago)}
           subtext="Dinheiro que já saiu"
         />
         <KPICard
-          variant="divisoria"
           title="Repasse extra para equilibrar o fundo"
           value={fmtCompact(previdencia.totalAporteAtuarial)}
           subtext="Aporte para cobrir o rombo previsto (elemento 97)"
         />
         <KPICard
-          variant="divisoria"
           title="Quanto do reservado já foi pago"
           value={fmtPercent(Math.min(100, previdencia.taxaExecucao * 100))}
           subtext="Pago dividido pelo reservado no ano"

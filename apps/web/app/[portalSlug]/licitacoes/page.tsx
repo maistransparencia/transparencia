@@ -205,7 +205,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
-              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
             >
               Art. 74 (Inexigibilidade)
               <ExternalLink
@@ -219,7 +219,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
-              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
             >
               Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)
               <ExternalLink
@@ -233,7 +233,7 @@ export default async function LicitacoesPage({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
-              className="inline-flex items-center gap-0.5 font-medium text-accent underline underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
             >
               Art. 86 (Adesão a Ata)
               <ExternalLink

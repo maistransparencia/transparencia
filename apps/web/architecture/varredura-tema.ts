@@ -9,6 +9,8 @@ export const regrasTema = {
     /(?<![\w-])(?:text|fill|stroke|placeholder)-(?:faint|pill|line2|line|track)(?![\w-])/,
   "paleta-fixa-do-tailwind":
     /(?<![\w-])(?:bg-white|(?:bg|border|text)-(?:gray|slate)-\d+)(?![\w-])/,
+  "alias-legado-removido":
+    /(?<![\w-])(?:text|bg|border|ring|outline|fill|stroke|divide|placeholder|from|to|via|decoration|shadow)-(?:accent|canvas|cardBg|borderLine|subtleText|mutedText|attention|warning|inactive|success)(?![\w-])/,
   "raio-antigo":
     /rounded(?:-(?:t|r|b|l|s|e|tl|tr|bl|br|ss|se|es|ee))?-(?:xl|2xl|\[10px\])(?![\w-])/,
 } as const;
@@ -19,6 +21,27 @@ export const excecoesPermanentes: readonly string[] = [
   "apps/web/app/opengraph-image.tsx",
   "apps/web/app/manifest.ts",
 ];
+
+/**
+ * Exceções legítimas e permanentes por regra, cada uma com o motivo.
+ * Diferem de `tema-excecoes.json`, que é dívida temporária e deve ficar vazia.
+ */
+export const excecoesPermanentesPorRegra: Partial<
+  Record<RegraTema, Record<string, string>>
+> = {
+  "cor-hex-literal": {
+    "apps/web/components/emails/newsletter-confirmation.tsx":
+      "e-mail: clientes de e-mail não resolvem variáveis CSS nem temas",
+    "apps/web/components/emails/radar-digest.tsx":
+      "e-mail: clientes de e-mail não resolvem variáveis CSS nem temas",
+    "apps/web/components/og/og-card-template.tsx":
+      "imagem OG: renderizada fora do navegador (satori), sempre em tema claro",
+    "apps/web/components/og/og-home-card-template.tsx":
+      "imagem OG: renderizada fora do navegador (satori), sempre em tema claro",
+    "apps/web/components/distribuicao-modalidades-chart.tsx":
+      "cor de série de gráfico: uma cor categórica por modalidade, sem token semântico equivalente",
+  },
+};
 
 const raizRepositorio = path.resolve(__dirname, "../../..");
 const diretoriosVarridos = [
@@ -63,6 +86,10 @@ export const varrerViolacoes = (): Record<RegraTema, string[]> => {
     (Object.keys(regrasTema) as RegraTema[]).map((regra) => [
       regra,
       arquivos
+        .filter(
+          ({ arquivo }) =>
+            !(arquivo in (excecoesPermanentesPorRegra[regra] ?? {})),
+        )
         .filter(({ conteudo }) => regrasTema[regra].test(conteudo))
         .map(({ arquivo }) => arquivo),
     ]),

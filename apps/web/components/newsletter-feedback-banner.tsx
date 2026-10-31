@@ -31,9 +31,9 @@ function getBannerConfig(status: string): BannerConfig | null {
       icon: Info,
       title: "Inscrição cancelada com sucesso.",
       description: "Você não receberá mais os informativos por e-mail.",
-      bgColor: "bg-gray-50",
-      borderColor: "border-gray-200",
-      textColor: "text-gray-900",
+      bgColor: "bg-line2",
+      borderColor: "border-line",
+      textColor: "text-ink",
     };
   }
 

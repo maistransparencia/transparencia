@@ -60,14 +60,14 @@ export function TruncatedCellWithModal({
     return (
       <div
         className={cn(
-          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          "text-left font-normal text-mute text-xs leading-relaxed",
           className,
         )}
       >
         <span className="text-inherit leading-relaxed">{text}</span>
         {secondaryText && (
           <p
-            className="line-clamp-1 pt-0.5 text-[11px] text-slate-400 italic"
+            className="line-clamp-1 pt-0.5 text-[11px] text-mute3 italic"
             title={secondaryText}
           >
             {secondaryText}
@@ -96,7 +96,7 @@ export function TruncatedCellWithModal({
     <>
       <div
         className={cn(
-          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          "text-left font-normal text-mute text-xs leading-relaxed",
           className,
         )}
       >
@@ -113,7 +113,7 @@ export function TruncatedCellWithModal({
         </p>
         {secondaryText && (
           <p
-            className="line-clamp-1 pt-0.5 text-[11px] text-slate-400 italic"
+            className="line-clamp-1 pt-0.5 text-[11px] text-mute3 italic"
             title={secondaryText}
           >
             {secondaryText}
@@ -145,7 +145,7 @@ export function TruncatedCellWithModal({
                 "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 font-medium text-xs shadow-2xs transition-colors",
                 copied
                   ? "border border-emerald-300 bg-emerald-50 text-emerald-700"
-                  : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100",
+                  : "border border-line bg-page text-mute hover:bg-line2 active:bg-track",
               )}
             >
               {copied ? (
@@ -158,7 +158,7 @@ export function TruncatedCellWithModal({
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                  <Copy className="h-4 w-4 text-mute2" aria-hidden="true" />
                   <span>Copiar texto completo</span>
                 </>
               )}
@@ -182,7 +182,7 @@ export function TruncatedCellWithModal({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 font-medium text-slate-700 text-xs transition-colors hover:bg-slate-50 active:bg-slate-100"
+                className="rounded-lg border border-line bg-page px-3.5 py-2 font-medium text-mute text-xs transition-colors hover:bg-line2 active:bg-track"
               >
                 Fechar
               </button>
@@ -192,11 +192,11 @@ export function TruncatedCellWithModal({
       >
         <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-2">
           {secondaryText && (
-            <div className="rounded-md border border-slate-200/60 bg-slate-50 p-2.5 text-slate-600 text-xs">
+            <div className="rounded-md border border-line/60 bg-line2 p-2.5 text-mute text-xs">
               {secondaryText}
             </div>
           )}
-          <p className="select-text whitespace-pre-wrap font-sans text-slate-800 text-sm leading-relaxed">
+          <p className="select-text whitespace-pre-wrap font-sans text-ink text-sm leading-relaxed">
             {text}
           </p>
         </div>

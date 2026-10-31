@@ -111,18 +111,6 @@
   --color-warn-fill: var(--warn-fill);
   --color-warn-text: var(--warn-text);
 
-  /* Aliases legados, removidos na story 20.9. */
-  --color-accent: var(--brand);
-  --color-canvas: var(--page);
-  --color-cardBg: var(--page);
-  --color-borderLine: var(--line);
-  --color-subtleText: var(--mute);
-  --color-mutedText: var(--mute2);
-  --color-attention: var(--warn);
-  --color-warning: var(--warn);
-  --color-inactive: var(--mute3);
-  --color-success: var(--ok);
-
   --font-sans: var(--font-ibm-plex), "IBM Plex Sans", sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
   --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;

@@ -44,7 +44,7 @@ export function Tooltip({
       ) : (
         <span
           role="img"
-          className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-slate-100 font-bold text-[10px] text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
+          className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-line2 font-bold text-[10px] text-mute2 transition-colors hover:bg-track hover:text-ink"
           aria-label={ariaLabel || "Mais informações"}
         >
           i
@@ -53,7 +53,7 @@ export function Tooltip({
       <div
         role="tooltip"
         className={cn(
-          "pointer-events-none absolute z-30 hidden w-64 rounded-lg border border-slate-700 bg-slate-900 p-3 font-sans text-white shadow-xl transition-all group-focus-within:block group-hover:block",
+          "pointer-events-none absolute z-30 hidden w-64 rounded-lg border border-ink bg-ink p-3 font-sans text-onink shadow-xl transition-all group-focus-within:block group-hover:block",
           positionClasses[position],
           contentClassName,
         )}
