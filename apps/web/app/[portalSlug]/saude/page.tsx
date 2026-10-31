@@ -14,19 +14,10 @@ import { KPIGrid } from "@/components/kpi-grid";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
+import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
-
-const SaudeFontesDonut = nextDynamic(
-  () =>
-    import("@/components/saude-fontes-donut").then(
-      (mod) => mod.SaudeFontesDonut,
-    ),
-  {
-    loading: () => <div className="h-[280px] w-full animate-pulse bg-line2" />,
-  },
-);
 
 const SaudeTrendChart = nextDynamic(
   () =>
@@ -151,23 +142,7 @@ export default async function SaudePage({
       {/* Seção 2: O que entrou no Fundo (Existente) */}
       <section className="space-y-6">
         <SectionHeader title="O que entrou" />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <SaudeFontesDonut data={saude.fontesReceita} ano={selectedYear} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <KPICard
-              variant="divisoria"
-              title="Repasses da Prefeitura ao Fundo"
-              value={fmtCompact(saude.fontesReceita.repassesPrefeitura)}
-            />
-            <KPICard
-              variant="divisoria"
-              title="Emendas parlamentares"
-              value={fmtCompact(saude.fontesReceita.emendasParlamentares)}
-            />
-          </div>
-        </div>
+        <SaudeOrigemRecursos fontes={saude.fontesReceita} ano={selectedYear} />
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}

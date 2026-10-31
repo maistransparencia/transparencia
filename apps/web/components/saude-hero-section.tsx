@@ -66,8 +66,9 @@ export function SaudeHeroSection({
         </p>
 
         <h1>
-          {susPct} de cada R$ 100 da saúde vêm do SUS. O que o município faz com
-          esse dinheiro depende de como contrata.
+          {susPct} de cada R$ 100 que entram na saúde vêm do Governo Federal
+          (SUS). O que o município faz com esse dinheiro depende de como
+          contrata.
         </h1>
 
         <p className="lead">

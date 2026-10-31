@@ -8,7 +8,7 @@ const CAMINHOS = [
   "components/saude-hero-section.tsx",
   "components/saude-contratacao-section.tsx",
   "components/saude-emendas-section.tsx",
-  "components/saude-fontes-donut.tsx",
+  "components/saude-origem-recursos.tsx",
   "components/saude-trend-chart.tsx",
   "components/educacao-resumo-card.tsx",
   "components/educacao/categoria-contrato-card.tsx",
