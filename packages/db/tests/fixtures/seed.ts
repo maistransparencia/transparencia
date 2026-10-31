@@ -1256,7 +1256,6 @@ export interface EducacaoMetricaRow {
   crescimentoPontosIdeb?: number | null;
   variacaoSaebMatematica?: number | null;
   variacaoSaebPortugues?: number | null;
-  totalMatriculasRedeMunicipal?: number | null;
 }
 
 export async function seedEducacaoMetricas(
@@ -1291,8 +1290,6 @@ export async function seedEducacaoMetricas(
           crescimento_pontos_ideb: r.crescimentoPontosIdeb ?? null,
           variacao_saeb_matematica: r.variacaoSaebMatematica ?? null,
           variacao_saeb_portugues: r.variacaoSaebPortugues ?? null,
-          total_matriculas_rede_municipal:
-            r.totalMatriculasRedeMunicipal ?? null,
         };
       }),
     )
@@ -1305,9 +1302,6 @@ export interface EducacaoExecucaoRow {
   empenhado?: number;
   liquidado?: number;
   pago?: number;
-  pagoEnsinoSuperior?: number;
-  totalMatriculasRedeMunicipal?: number | null;
-  pagoPorAluno?: number | null;
 }
 
 export async function seedEducacaoExecucao(
@@ -1325,10 +1319,6 @@ export async function seedEducacaoExecucao(
         empenhado_educacao: r.empenhado ?? 0,
         liquidado_educacao: r.liquidado ?? 0,
         pago_educacao: r.pago ?? 0,
-        pago_ensino_superior: r.pagoEnsinoSuperior ?? 0,
-        pago_sem_ensino_superior: (r.pago ?? 0) - (r.pagoEnsinoSuperior ?? 0),
-        total_matriculas_rede_municipal: r.totalMatriculasRedeMunicipal ?? null,
-        pago_por_aluno: r.pagoPorAluno ?? null,
       })),
     )
     .execute();

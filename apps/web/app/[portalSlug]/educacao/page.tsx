@@ -1,6 +1,5 @@
 import {
   fmtCompact,
-  fmtNumber,
   fmtPercent,
   Indicator,
   IndicatorPanel,
@@ -13,7 +12,6 @@ import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-apren
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
-import { EducacaoPagoPorAluno } from "@/components/educacao/educacao-pago-por-aluno";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -102,28 +100,7 @@ export default async function EducacaoPage({
           execucao={execucao}
         />
 
-        <IndicatorPanel columns={4}>
-          <EducacaoPagoPorAluno
-            ano={selectedYear}
-            isCurrentYear={isCurrentYear}
-            pagoPorAluno={execucao.pagoPorAluno}
-            totalMatriculas={execucao.totalMatriculasRedeMunicipal}
-            subfuncoes={viewModel.pagoPorSubfuncao}
-            historico={viewModel.pagoPorAlunoHistorico}
-          />
-          <Indicator
-            label="Alunos na rede municipal"
-            value={
-              execucao.totalMatriculasRedeMunicipal === null
-                ? "—"
-                : fmtNumber(execucao.totalMatriculasRedeMunicipal)
-            }
-            note={
-              execucao.totalMatriculasRedeMunicipal === null
-                ? `sem matrículas do Censo Escolar para ${selectedYear}`
-                : `Censo Escolar ${selectedYear}`
-            }
-          />
+        <IndicatorPanel columns={2}>
           <Indicator
             label="Emendas na educação"
             value={

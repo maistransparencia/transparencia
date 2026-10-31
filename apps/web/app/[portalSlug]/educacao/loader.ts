@@ -4,7 +4,6 @@ import {
   type EducacaoMediasEstaduais,
   type EducacaoMetricDTO,
   type EducacaoOrigemRecursosDTO,
-  type EducacaoPagoSubfuncaoDTO,
   type EducacaoRankingEstadualDTO,
   type EmendasEducacaoStatsDTO,
   type EtapaEnsino,
@@ -15,7 +14,6 @@ import {
   getEducacaoMediasEstaduais,
   getEducacaoMetrics,
   getEducacaoOrigemRecursos,
-  getEducacaoPagoPorSubfuncao,
   getEducacaoRankingEstadual,
   getPortalConfig,
   getResumoEducacao,
@@ -79,7 +77,6 @@ export interface RawEducacaoData {
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
   execucaoAnual: EducacaoExecucaoAnualDTO[];
-  pagoPorSubfuncao: EducacaoPagoSubfuncaoDTO[];
   topFornecedores: FornecedorExecucaoItemDTO[];
   rankingAnosIniciais: EducacaoRankingEstadualDTO | null;
   rankingAnosFinais: EducacaoRankingEstadualDTO | null;
@@ -100,7 +97,6 @@ export async function fetchRawEducacaoCoreData(
     emendas,
     origemRecursos,
     execucaoAnual,
-    pagoPorSubfuncao,
     topFornecedores,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
@@ -117,10 +113,6 @@ export async function fetchRawEducacaoCoreData(
       ano: targetAno ?? new Date().getFullYear(),
     }),
     getEducacaoExecucaoAnual(tenantSlug),
-    getEducacaoPagoPorSubfuncao(
-      tenantSlug,
-      targetAno ?? new Date().getFullYear(),
-    ),
     getTopFornecedoresEducacaoMetrics({
       portalSlug: tenantSlug,
       year: targetAno ?? new Date().getFullYear(),
@@ -147,7 +139,6 @@ export async function fetchRawEducacaoCoreData(
     emendas,
     origemRecursos,
     execucaoAnual,
-    pagoPorSubfuncao,
     topFornecedores,
     rankingAnosIniciais,
     rankingAnosFinais,

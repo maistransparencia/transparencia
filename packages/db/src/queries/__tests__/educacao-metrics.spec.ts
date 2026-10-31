@@ -91,7 +91,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: 0.5,
           variacaoSaebMatematica: 12.5,
           variacaoSaebPortugues: 14.2,
-          totalMatriculasRedeMunicipal: 2290,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -108,7 +107,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: null,
           variacaoSaebMatematica: null,
           variacaoSaebPortugues: null,
-          totalMatriculasRedeMunicipal: null,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -125,7 +123,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: -0.7,
           variacaoSaebMatematica: -20.61,
           variacaoSaebPortugues: -22.68,
-          totalMatriculasRedeMunicipal: null,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -142,7 +139,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: 1.4,
           variacaoSaebMatematica: 28.21,
           variacaoSaebPortugues: 35.31,
-          totalMatriculasRedeMunicipal: 2290,
         },
       ]);
 
@@ -173,7 +169,6 @@ describe("educacao-metrics", () => {
       expect(metrics[2].saebMatematica).toBe(218.39);
       expect(metrics[2].saebLinguaPortuguesa).toBe(210.91);
       expect(metrics[2].indicadorFluxoAprovacao).toBe(0.984589);
-      expect(metrics[2].totalMatriculasRedeMunicipal).toBe(2290);
 
       expect(metrics[3].ano).toBe(2025);
       expect(metrics[3].etapaEnsino).toBe("anosFinais");
@@ -305,7 +300,6 @@ describe("educacao-metrics", () => {
           saebMatematica: 218.39,
           saebLinguaPortuguesa: 210.91,
           indicadorFluxoAprovacao: 0.984589,
-          totalMatriculasRedeMunicipal: 2290,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -316,7 +310,6 @@ describe("educacao-metrics", () => {
           saebMatematica: 245.1,
           saebLinguaPortuguesa: 250.3,
           indicadorFluxoAprovacao: 0.9512,
-          totalMatriculasRedeMunicipal: 2290,
         },
       ]);
 
@@ -327,7 +320,6 @@ describe("educacao-metrics", () => {
       expect(resumo?.ano).toBe(2025);
       expect(resumo?.notaIdeb).toBe(5.9);
       expect(resumo?.crescimentoPontosIdeb).toBe(1.4);
-      expect(resumo?.totalMatriculasRedeMunicipal).toBe(2290);
 
       expect(resumo?.anosIniciais?.etapaEnsino).toBe("anosIniciais");
       expect(resumo?.anosIniciais?.notaIdeb).toBe(5.9);
@@ -412,7 +404,6 @@ describe("educacao-metrics", () => {
         saebMatematica: 200.0,
         saebLinguaPortuguesa: 200.0,
         indicadorFluxoAprovacao: 0.95,
-        totalMatriculasRedeMunicipal: 0,
       });
 
       const resumo = await getResumoEducacao(PORTAL_NATIVIDADE, 2021);
@@ -423,7 +414,6 @@ describe("educacao-metrics", () => {
       expect(resumo?.notaIdeb).toBe(5.5);
       expect(resumo?.metaIdeb).toBe(5.3);
       expect(resumo?.atingiuMeta).toBe(true);
-      expect(resumo?.totalMatriculasRedeMunicipal).toBe(0);
     });
 
     it("não preenche indicadores do IDEB com anosFinais quando anosIniciais não existe", async () => {
@@ -434,7 +424,6 @@ describe("educacao-metrics", () => {
         etapaEnsino: "anosFinais",
         notaIdeb: 4.9,
         crescimentoPontosIdeb: 0.6,
-        totalMatriculasRedeMunicipal: 1500,
       });
 
       const resumoFinais = await getResumoEducacao(PORTAL_FALLBACK);
@@ -467,7 +456,6 @@ describe("educacao-metrics", () => {
           etapaEnsino: "anosFinais",
           notaIdeb: 5.1,
           crescimentoPontosIdeb: 0.8,
-          totalMatriculasRedeMunicipal: 1000,
         },
       ]);
 

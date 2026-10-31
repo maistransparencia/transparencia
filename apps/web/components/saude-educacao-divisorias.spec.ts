@@ -18,7 +18,6 @@ const CAMINHOS = [
   "components/educacao/educacao-hero-section.tsx",
   "components/educacao/educacao-historico-section.tsx",
   "components/educacao/educacao-origem-recursos-section.tsx",
-  "components/educacao/educacao-pago-por-aluno.tsx",
   "components/educacao/fonte-recurso-modal.tsx",
 ];
 

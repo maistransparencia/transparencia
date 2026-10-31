@@ -15,7 +15,6 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoEmendasMetrics: vi.fn(),
   getEducacaoOrigemRecursos: vi.fn(),
   getEducacaoExecucaoAnual: vi.fn(),
-  getEducacaoPagoPorSubfuncao: vi.fn(),
   getTopFornecedoresEducacaoMetrics: vi.fn(),
   getEducacaoRankingEstadual: vi.fn(),
 }));
@@ -94,7 +93,6 @@ describe("educacao/loader", () => {
           crescimentoPontosIdeb: 1.4,
           variacaoSaebMatematica: 16.29,
           variacaoSaebPortugues: 16.41,
-          totalMatriculasRedeMunicipal: 2290,
         },
       ];
       const mockResumo = {
@@ -108,7 +106,6 @@ describe("educacao/loader", () => {
         saebMatematica: 218.39,
         saebLinguaPortuguesa: 210.91,
         indicadorFluxoAprovacao: 0.985,
-        totalMatriculasRedeMunicipal: 2290,
         anosIniciais: mockMetrics[0],
         anosFinais: null,
       };
@@ -179,14 +176,7 @@ describe("educacao/loader", () => {
           empenhado: 1500,
           liquidado: 1350,
           pago: 1200,
-          pagoEnsinoSuperior: 200,
-          pagoSemEnsinoSuperior: 1000,
-          totalMatriculasRedeMunicipal: 4,
-          pagoPorAluno: 250,
         },
-      ]);
-      vi.mocked(dbModule.getEducacaoPagoPorSubfuncao).mockResolvedValue([
-        { subfuncao: "361", subfuncaoNome: "Ensino Fundamental", pago: 1000 },
       ]);
       vi.mocked(dbModule.getTopFornecedoresEducacaoMetrics).mockResolvedValue(
         [],
@@ -202,12 +192,7 @@ describe("educacao/loader", () => {
         contratoNumero: "0443/25",
       });
 
-      expect(data.execucaoAnual[0].pagoPorAluno).toBe(250);
-      expect(data.pagoPorSubfuncao).toHaveLength(1);
-      expect(dbModule.getEducacaoPagoPorSubfuncao).toHaveBeenCalledWith(
-        "porciuncula_prefeitura",
-        2025,
-      );
+      expect(data.execucaoAnual[0].pago).toBe(1200);
       expect(dbModule.getTopFornecedoresEducacaoMetrics).toHaveBeenCalledWith({
         portalSlug: "porciuncula_prefeitura",
         year: 2025,

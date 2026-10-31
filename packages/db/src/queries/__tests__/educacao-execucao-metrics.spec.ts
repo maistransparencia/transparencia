@@ -7,7 +7,6 @@ import {
 } from "../../../tests/fixtures/seed";
 import {
   getEducacaoExecucaoAnual,
-  getEducacaoPagoPorSubfuncao,
   getTopFornecedoresEducacaoMetrics,
 } from "../educacao-execucao-metrics";
 
@@ -20,7 +19,7 @@ afterEach(async () => {
 
 describe("educacao-execucao-metrics", () => {
   describe("getEducacaoExecucaoAnual", () => {
-    it("retorna a série anual ordenada, com pago por aluno nulo quando não calculado", async () => {
+    it("retorna a série anual ordenada, só do portal pedido", async () => {
       await seedEducacaoExecucao([
         {
           portalSlug: PORTAL_A,
@@ -28,9 +27,6 @@ describe("educacao-execucao-metrics", () => {
           empenhado: 1500,
           liquidado: 1350,
           pago: 1200,
-          pagoEnsinoSuperior: 200,
-          totalMatriculasRedeMunicipal: 4,
-          pagoPorAluno: 250,
         },
         { portalSlug: PORTAL_A, ano: 2024, empenhado: 900, pago: 800 },
         { portalSlug: PORTAL_B, ano: 2025, empenhado: 1, pago: 1 },
@@ -39,78 +35,15 @@ describe("educacao-execucao-metrics", () => {
       const serie = await getEducacaoExecucaoAnual(PORTAL_A);
 
       expect(serie.map((linha) => linha.ano)).toEqual([2024, 2025]);
-      expect(serie[0].pagoPorAluno).toBeNull();
       expect(serie[1]).toMatchObject({
         empenhado: 1500,
+        liquidado: 1350,
         pago: 1200,
-        pagoSemEnsinoSuperior: 1000,
-        totalMatriculasRedeMunicipal: 4,
-        pagoPorAluno: 250,
       });
     });
 
     it("retorna vazio para portal vazio", async () => {
       expect(await getEducacaoExecucaoAnual(" ")).toEqual([]);
-    });
-  });
-
-  describe("getEducacaoPagoPorSubfuncao", () => {
-    it("soma o pago da função 12 por subfunção e ignora outras funções, anos e portais", async () => {
-      const base = { empresaId: "1", ano: 2025, fonte: "exercicio" };
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_A,
-        funcao: "12",
-        subfuncao: "361",
-        subfuncaoNome: "Ensino Fundamental",
-        pago: 700,
-      });
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_A,
-        funcao: "12",
-        subfuncao: "361",
-        subfuncaoNome: "Ensino Fundamental",
-        pago: 300,
-      });
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_A,
-        funcao: "12",
-        subfuncao: "364",
-        subfuncaoNome: "Ensino Superior",
-        pago: 50,
-      });
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_A,
-        funcao: "10",
-        subfuncao: "301",
-        subfuncaoNome: "Atenção Básica",
-        pago: 999,
-      });
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_A,
-        ano: 2024,
-        funcao: "12",
-        subfuncao: "361",
-        subfuncaoNome: "Ensino Fundamental",
-        pago: 999,
-      });
-      await seedDespesa({
-        ...base,
-        portalSlug: PORTAL_B,
-        funcao: "12",
-        subfuncao: "361",
-        subfuncaoNome: "Ensino Fundamental",
-        pago: 999,
-      });
-
-      expect(await getEducacaoPagoPorSubfuncao(PORTAL_A, 2025)).toEqual([
-        { subfuncao: "361", subfuncaoNome: "Ensino Fundamental", pago: 1000 },
-        { subfuncao: "364", subfuncaoNome: "Ensino Superior", pago: 50 },
-      ]);
     });
   });
 

@@ -5,7 +5,6 @@ import type {
   EducacaoMediasEstaduais,
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
-  EducacaoPagoSubfuncaoDTO,
   EducacaoRankingEstadualDTO,
   EmendasEducacaoStatsDTO,
   EtapaEnsino,
@@ -72,10 +71,6 @@ export interface EducacaoExecucaoAnoView {
   pago: number;
   /** Falso quando não há despesa da função 12 registrada no ano. */
   temDados: boolean;
-  /** Estimativa; só existe em exercício encerrado com matrículas do Censo do mesmo ano. */
-  pagoPorAluno: number | null;
-  totalMatriculasRedeMunicipal: number | null;
-  pagoEnsinoSuperior: number;
 }
 
 export interface AprendizadoEtapa {
@@ -102,9 +97,6 @@ export interface EducacaoViewModel {
   selectedEtapa: EtapaEnsino;
   execucao: EducacaoExecucaoAnoView;
   serieAnual: Array<{ ano: number; empenhado: number; pago: number }>;
-  pagoPorSubfuncao: EducacaoPagoSubfuncaoDTO[];
-  /** Pago por aluno de cada exercício encerrado, em valores da época. */
-  pagoPorAlunoHistorico: Array<{ ano: number; pagoPorAluno: number }>;
   topFornecedores: FornecedorExecucaoItemDTO[];
   aprendizado: {
     anosIniciais: AprendizadoEtapa;
@@ -285,9 +277,6 @@ const execucaoVazia = (ano: number): EducacaoExecucaoAnoView => ({
   liquidado: 0,
   pago: 0,
   temDados: false,
-  pagoPorAluno: null,
-  totalMatriculasRedeMunicipal: null,
-  pagoEnsinoSuperior: 0,
 });
 
 function buildExecucaoAno(
@@ -304,9 +293,6 @@ function buildExecucaoAno(
     liquidado: linha.liquidado,
     pago: linha.pago,
     temDados: linha.empenhado > 0 || linha.pago > 0,
-    pagoPorAluno: linha.pagoPorAluno,
-    totalMatriculasRedeMunicipal: linha.totalMatriculasRedeMunicipal,
-    pagoEnsinoSuperior: linha.pagoEnsinoSuperior,
   };
 }
 
@@ -325,7 +311,6 @@ export function buildEducacaoViewModel(raw: {
   origemRecursos?: EducacaoOrigemRecursosDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
   execucaoAnual?: EducacaoExecucaoAnualDTO[];
-  pagoPorSubfuncao?: EducacaoPagoSubfuncaoDTO[];
   topFornecedores?: FornecedorExecucaoItemDTO[];
   rankingAnosIniciais?: EducacaoRankingEstadualDTO | null;
   rankingAnosFinais?: EducacaoRankingEstadualDTO | null;
@@ -394,10 +379,6 @@ export function buildEducacaoViewModel(raw: {
       empenhado,
       pago,
     })),
-    pagoPorSubfuncao: raw.pagoPorSubfuncao ?? [],
-    pagoPorAlunoHistorico: execucaoAnual.flatMap(({ ano, pagoPorAluno }) =>
-      pagoPorAluno === null ? [] : [{ ano, pagoPorAluno }],
-    ),
     topFornecedores: raw.topFornecedores ?? [],
     aprendizado: {
       anosIniciais: buildAprendizadoEtapa({

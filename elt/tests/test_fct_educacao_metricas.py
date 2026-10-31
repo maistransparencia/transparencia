@@ -38,8 +38,7 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
                 saeb_matematica,
                 variacao_saeb_matematica,
                 saeb_lingua_portuguesa,
-                variacao_saeb_portugues,
-                total_matriculas_rede_municipal
+                variacao_saeb_portugues
             FROM analytics.fct_educacao_metricas
             WHERE portal_slug = 'porciuncula_prefeitura'
               AND etapa_ensino = 'anos_iniciais'
@@ -58,7 +57,6 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2021[3])) == Decimal("6.4")
     assert r2021[4] is False  # meta não atingida (5.2 < 6.4)
     assert r2021[5] is None  # sem ciclo anterior via LAG
-    assert r2021[10] == 2210
 
     # Ciclo 2023 (Retração pós-pandemia)
     r2023 = rows[1]
@@ -71,7 +69,6 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2023[7])) == Decimal("-20.61")
     assert Decimal(str(r2023[8])) == Decimal("175.60")
     assert Decimal(str(r2023[9])) == Decimal("-22.68")
-    assert r2023[10] == 2250
 
     # Ciclo 2025 (Recuperação histórica de +1,4 ponto )
     r2025 = rows[2]
@@ -84,7 +81,6 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2025[7])) == Decimal("28.21")  # 218.39 - 190.18
     assert Decimal(str(r2025[8])) == Decimal("210.91")
     assert Decimal(str(r2025[9])) == Decimal("35.31")  # 210.91 - 175.60
-    assert r2025[10] == 2290
 
 
 def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
@@ -96,8 +92,7 @@ def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
                 ano,
                 etapa_ensino,
                 nota_ideb,
-                crescimento_pontos_ideb,
-                total_matriculas_rede_municipal
+                crescimento_pontos_ideb
             FROM analytics.fct_educacao_metricas
             WHERE portal_slug = 'natividade_prefeitura'
               AND etapa_ensino = 'anos_iniciais'
@@ -113,7 +108,6 @@ def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
     assert r2025[0] == 2025
     assert Decimal(str(r2025[2])) == Decimal("6.0")
     assert Decimal(str(r2025[3])) == Decimal("0.3")  # 6.0 - 5.7
-    assert r2025[4] == 1790
 
     # Verifica ausência de registros sem portal_slug (Regra 23)
     null_portals = conn.execute(

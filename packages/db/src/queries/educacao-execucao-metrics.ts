@@ -6,25 +6,10 @@ export interface EducacaoExecucaoAnualDTO {
   empenhado: number;
   liquidado: number;
   pago: number;
-  pagoEnsinoSuperior: number;
-  pagoSemEnsinoSuperior: number;
-  totalMatriculasRedeMunicipal: number | null;
-  /** Estimativa; nula no exercício corrente e sem matrículas do Censo do mesmo ano. */
-  pagoPorAluno: number | null;
 }
-
-export interface EducacaoPagoSubfuncaoDTO {
-  subfuncao: string;
-  subfuncaoNome: string;
-  pago: number;
-}
-
-const numeroOuNulo = (valor: unknown): number | null =>
-  valor === null || valor === undefined ? null : Number(valor);
 
 /**
- * Série anual da Função 12 (Educação) da Prefeitura: reservado (empenhado), liquidado e pago,
- * com o pago por aluno calculado no dbt.
+ * Série anual da Função 12 (Educação) da Prefeitura: reservado (empenhado), liquidado e pago.
  */
 export async function getEducacaoExecucaoAnual(
   portalSlug: string,
@@ -46,49 +31,6 @@ export async function getEducacaoExecucaoAnual(
       empenhado: Number(row.empenhado_educacao ?? 0),
       liquidado: Number(row.liquidado_educacao ?? 0),
       pago: Number(row.pago_educacao ?? 0),
-      pagoEnsinoSuperior: Number(row.pago_ensino_superior ?? 0),
-      pagoSemEnsinoSuperior: Number(row.pago_sem_ensino_superior ?? 0),
-      totalMatriculasRedeMunicipal: numeroOuNulo(
-        row.total_matriculas_rede_municipal,
-      ),
-      pagoPorAluno: numeroOuNulo(row.pago_por_aluno),
-    }));
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Pago por subfunção da Função 12 no exercício, do maior para o menor.
- */
-export async function getEducacaoPagoPorSubfuncao(
-  portalSlug: string,
-  ano: number,
-): Promise<EducacaoPagoSubfuncaoDTO[]> {
-  const cleanSlug = (portalSlug ?? "").trim();
-  if (!cleanSlug) {
-    return [];
-  }
-  try {
-    const rows = await db
-      .selectFrom("fct_despesas")
-      .select((eb) => [
-        "subfuncao",
-        "subfuncao_nome",
-        eb.fn.sum<string>("pago").as("total_pago"),
-      ])
-      .where("portal_slug", "=", cleanSlug)
-      .where("ano", "=", ano)
-      .where("fonte", "=", "exercicio")
-      .where("funcao", "=", "12")
-      .groupBy(["subfuncao", "subfuncao_nome"])
-      .orderBy("total_pago", "desc")
-      .execute();
-
-    return rows.map((row) => ({
-      subfuncao: String(row.subfuncao ?? ""),
-      subfuncaoNome: String(row.subfuncao_nome ?? "").trim(),
-      pago: Number(row.total_pago ?? 0),
     }));
   } catch {
     return [];

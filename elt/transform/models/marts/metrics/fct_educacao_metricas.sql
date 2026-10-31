@@ -64,14 +64,6 @@ ideb_metricas as (
             2
         )::numeric(5, 2) as variacao_saeb_portugues
     from ideb_base
-),
-
-matriculas as (
-    select
-        portal_slug,
-        ano,
-        total_matriculas_rede_municipal
-    from {{ ref('seed_censo_escolar_matriculas') }}
 )
 
 select
@@ -89,9 +81,5 @@ select
     i.indicador_fluxo_aprovacao,
     i.crescimento_pontos_ideb,
     i.variacao_saeb_matematica,
-    i.variacao_saeb_portugues,
-    m.total_matriculas_rede_municipal
+    i.variacao_saeb_portugues
 from ideb_metricas i
-left join matriculas m
-    on i.portal_slug = m.portal_slug
-    and i.ano = m.ano

@@ -24,7 +24,6 @@ function metrica(
     crescimentoPontosIdeb: null,
     variacaoSaebMatematica: null,
     variacaoSaebPortugues: null,
-    totalMatriculasRedeMunicipal: null,
     ...parcial,
   };
 }
@@ -37,10 +36,6 @@ function execucao(
     empenhado: 0,
     liquidado: 0,
     pago: 0,
-    pagoEnsinoSuperior: 0,
-    pagoSemEnsinoSuperior: 0,
-    totalMatriculasRedeMunicipal: null,
-    pagoPorAluno: null,
     ...parcial,
   };
 }
@@ -97,10 +92,6 @@ describe("educacao/view-model", () => {
           empenhado: 1500,
           liquidado: 1350,
           pago: 1200,
-          pagoEnsinoSuperior: 200,
-          pagoSemEnsinoSuperior: 1000,
-          totalMatriculasRedeMunicipal: 4,
-          pagoPorAluno: 250,
         }),
       ],
       context: CONTEXTO_2025,
@@ -111,15 +102,10 @@ describe("educacao/view-model", () => {
       empenhado: 1500,
       pago: 1200,
       temDados: true,
-      pagoPorAluno: 250,
-      totalMatriculasRedeMunicipal: 4,
     });
     expect(vm.serieAnual).toEqual([
       { ano: 2024, empenhado: 900, pago: 800 },
       { ano: 2025, empenhado: 1500, pago: 1200 },
-    ]);
-    expect(vm.pagoPorAlunoHistorico).toEqual([
-      { ano: 2025, pagoPorAluno: 250 },
     ]);
   });
 
@@ -133,7 +119,6 @@ describe("educacao/view-model", () => {
     });
 
     expect(vm.execucao.temDados).toBe(false);
-    expect(vm.execucao.pagoPorAluno).toBeNull();
   });
 
   it("monta o aprendizado por etapa com a última nota até o ano selecionado, ciclo anterior e classificação", () => {

@@ -55,7 +55,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: null,
         variacaoSaebMatematica: null,
         variacaoSaebPortugues: null,
-        totalMatriculasRedeMunicipal: 2300,
       },
       {
         educacaoMetricaId: "2",
@@ -73,7 +72,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: -0.7,
         variacaoSaebMatematica: -8.69,
         variacaoSaebPortugues: -3.78,
-        totalMatriculasRedeMunicipal: 2280,
       },
       {
         educacaoMetricaId: "3",
@@ -91,7 +89,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: 1.4,
         variacaoSaebMatematica: 16.29,
         variacaoSaebPortugues: 16.41,
-        totalMatriculasRedeMunicipal: 2290,
       },
       {
         educacaoMetricaId: "4",
@@ -109,7 +106,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: 0.4,
         variacaoSaebMatematica: 5.0,
         variacaoSaebPortugues: 6.0,
-        totalMatriculasRedeMunicipal: 2290,
       },
     ],
     resumo: {
@@ -118,7 +114,6 @@ function makeRawEducacaoData(
       notaIdeb: 5.9,
       crescimentoPontosIdeb: 1.4,
       despesaLiquidadaEducacao: 34291936.64,
-      totalMatriculasRedeMunicipal: 2290,
       posicaoRanking: 46,
       totalMunicipios: 92,
       variacaoPosicoes: 32,
@@ -268,29 +263,13 @@ function makeRawEducacaoData(
         empenhado: 30_000_000,
         liquidado: 29_000_000,
         pago: 28_000_000,
-        pagoEnsinoSuperior: 500_000,
-        pagoSemEnsinoSuperior: 27_500_000,
-        totalMatriculasRedeMunicipal: 2275,
-        pagoPorAluno: 12_087.91,
       },
       {
         ano: 2025,
         empenhado: 36_000_000,
         liquidado: 34_291_936.64,
         pago: 32_000_000,
-        pagoEnsinoSuperior: 600_000,
-        pagoSemEnsinoSuperior: 31_400_000,
-        totalMatriculasRedeMunicipal: 2290,
-        pagoPorAluno: 13_711.79,
       },
-    ],
-    pagoPorSubfuncao: [
-      {
-        subfuncao: "361",
-        subfuncaoNome: "Ensino Fundamental",
-        pago: 29_000_000,
-      },
-      { subfuncao: "364", subfuncaoNome: "Ensino Superior", pago: 600_000 },
     ],
     topFornecedores: [
       {
@@ -330,9 +309,6 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
       /A Prefeitura reservou R\$ 36,0 mi em educação em 2025 e pagou R\$ 32,0 mi\./,
     );
-    expect(screen.getByText("Pago por aluno")).toBeInTheDocument();
-    expect(screen.getByText("Alunos na rede municipal")).toBeInTheDocument();
-    expect(screen.getByText("Censo Escolar 2025")).toBeInTheDocument();
 
     const titulos = screen
       .getAllByRole("heading", { level: 2 })
@@ -369,71 +345,6 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
       within(secao).getByText("entre 92 redes municipais"),
-    ).toBeInTheDocument();
-  });
-
-  it("não calcula pago por aluno no ano corrente e explica o motivo", async () => {
-    loadEducacaoDataMock.mockResolvedValue(
-      makeRawEducacaoData({
-        context: {
-          selectedYear: 2026,
-          isCurrentYear: true,
-          selectedEtapa: "anosIniciais",
-        },
-        execucaoAnual: [
-          {
-            ano: 2026,
-            empenhado: 20_000_000,
-            liquidado: 15_000_000,
-            pago: 10_000_000,
-            pagoEnsinoSuperior: 0,
-            pagoSemEnsinoSuperior: 10_000_000,
-            totalMatriculasRedeMunicipal: 2310,
-            pagoPorAluno: null,
-          },
-        ],
-      }),
-    );
-
-    render(
-      await EducacaoPage({
-        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
-
-    expect(
-      screen.getByText("só calculado para anos encerrados"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /já pagou/,
-    );
-  });
-
-  it("abre os detalhes do pago por aluno com o aviso de estimativa e o Ensino Superior fora da conta", async () => {
-    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
-
-    render(
-      await EducacaoPage({
-        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
-
-    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
-    const dialog = screen.getByRole("dialog");
-    expect(
-      within(dialog).getByText("Detalhes do pago por aluno"),
-    ).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(/Não é o gasto direto em sala de aula/),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("Ensino Fundamental")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(/Fora da conta: Ensino Superior/),
-    ).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(/sem correção pela inflação/),
     ).toBeInTheDocument();
   });
 

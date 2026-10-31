@@ -83,7 +83,6 @@ export interface EducacaoMetricDTO {
   crescimentoPontosIdeb: number | null;
   variacaoSaebMatematica: number | null;
   variacaoSaebPortugues: number | null;
-  totalMatriculasRedeMunicipal: number | null;
 }
 
 export interface ResumoEducacaoDTO {
@@ -97,7 +96,6 @@ export interface ResumoEducacaoDTO {
   saebLinguaPortuguesa: number | null;
   indicadorFluxoAprovacao: number | null;
   despesaLiquidadaEducacao: number | null;
-  totalMatriculasRedeMunicipal: number | null;
   posicaoRanking?: number | null;
   totalMunicipios?: number | null;
   variacaoPosicoes?: number | null;
@@ -142,9 +140,6 @@ function mapRowToEducacaoMetricDTO(
     crescimentoPontosIdeb: toNumberOrNull(row.crescimento_pontos_ideb),
     variacaoSaebMatematica: toNumberOrNull(row.variacao_saeb_matematica),
     variacaoSaebPortugues: toNumberOrNull(row.variacao_saeb_portugues),
-    totalMatriculasRedeMunicipal: toIntegerOrNull(
-      row.total_matriculas_rede_municipal,
-    ),
   };
 }
 
@@ -253,7 +248,7 @@ export async function getResumoEducacao(
 
   // Despesa e matrículas independem da etapa; indicadores do IDEB usam só anos iniciais.
   const contexto = [anosIniciais, anosFinais, metrics[0]];
-  const primeiroContexto = <T>(
+  const _primeiroContexto = <T>(
     selecionar: (linha: (typeof metrics)[number]) => T | null | undefined,
   ): T | null =>
     contexto.reduce<T | null>(
@@ -305,9 +300,6 @@ export async function getResumoEducacao(
     saebLinguaPortuguesa: anosIniciais?.saebLinguaPortuguesa ?? null,
     indicadorFluxoAprovacao: anosIniciais?.indicadorFluxoAprovacao ?? null,
     despesaLiquidadaEducacao: despesaLiquidadaReal,
-    totalMatriculasRedeMunicipal: primeiroContexto(
-      (linha) => linha.totalMatriculasRedeMunicipal,
-    ),
     posicaoRanking: ranking?.posicaoRanking ?? null,
     totalMunicipios: ranking?.totalMunicipios ?? null,
     variacaoPosicoes: ranking?.variacaoPosicoes ?? null,

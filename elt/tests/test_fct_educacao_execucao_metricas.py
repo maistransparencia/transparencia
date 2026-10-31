@@ -5,35 +5,34 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import text
 
-ANO_ENCERRADO = 2025
+ANO_TESTE = 2025
 
 
 @pytest.fixture
 def seed_despesas_educacao(conn):
     """Insere despesas sintéticas (Função 12 e outra função) em Porciúncula e Natividade."""
     despesas = [
-        ("porciuncula_prefeitura", "1", "1", "12", "Educação", "361", "1000.00", "900.00"),
-        ("porciuncula_prefeitura", "1", "2", "12", "Educação", "364", "300.00", "200.00"),
-        ("porciuncula_prefeitura", "1", "3", "10", "Saúde", "301", "500.00", "500.00"),
-        ("natividade_prefeitura", "1", "1", "12", "Educação", "361", "800.00", "700.00"),
+        ("porciuncula_prefeitura", "1", "1", "12", "Educação", "1000.00", "900.00"),
+        ("porciuncula_prefeitura", "1", "2", "12", "Educação", "300.00", "200.00"),
+        ("porciuncula_prefeitura", "1", "3", "10", "Saúde", "500.00", "500.00"),
+        ("natividade_prefeitura", "1", "1", "12", "Educação", "800.00", "700.00"),
     ]
-    for portal, empresa, numero, funcao, funcao_nome, subfuncao, empenhado, pago in despesas:
+    for portal, empresa, numero, funcao, funcao_nome, empenhado, pago in despesas:
         conn.execute(
             text(
                 f"""
                 INSERT INTO raw_{portal}.despesas_gerais
-                    (ano, empresa, numero, funcao, funcaonome, subfuncao, empenhado, pago)
-                VALUES (:ano, :empresa, :numero, :funcao, :funcao_nome, :subfuncao, :empenhado, :pago)
+                    (ano, empresa, numero, funcao, funcaonome, empenhado, pago)
+                VALUES (:ano, :empresa, :numero, :funcao, :funcao_nome, :empenhado, :pago)
                 ON CONFLICT (ano, empresa, numero) DO UPDATE SET pago = EXCLUDED.pago
                 """
             ),
             {
-                "ano": ANO_ENCERRADO,
+                "ano": ANO_TESTE,
                 "empresa": empresa,
                 "numero": numero,
                 "funcao": funcao,
                 "funcao_nome": funcao_nome,
-                "subfuncao": subfuncao,
                 "empenhado": empenhado,
                 "pago": pago,
             },
@@ -45,7 +44,7 @@ def seed_despesas_educacao(conn):
             text(
                 f"DELETE FROM raw_{portal}.despesas_gerais WHERE ano = :ano AND empresa = '1' AND numero IN ('1', '2', '3')"
             ),
-            {"ano": ANO_ENCERRADO},
+            {"ano": ANO_TESTE},
         )
     conn.commit()
 
@@ -66,27 +65,23 @@ def test_fct_educacao_execucao_metricas_grain(conn):
 
 
 @pytest.mark.usefixtures("seed_despesas_educacao")
-def test_fct_educacao_execucao_metricas_pago_por_aluno_sem_ensino_superior(conn):
-    """Pago por aluno exclui a subfunção 364 e não mistura portais."""
+def test_fct_educacao_execucao_metricas_soma_funcao_12_sem_cruzar_portais(conn):
+    """Soma só a função 12 de cada portal."""
     rows = {
         row[0]: row[1:]
         for row in conn.execute(
             text(
                 """
-                SELECT portal_slug, pago_educacao, pago_ensino_superior,
-                       pago_sem_ensino_superior, total_matriculas_rede_municipal, pago_por_aluno
+                SELECT portal_slug, empenhado_educacao, pago_educacao
                 FROM analytics.fct_educacao_execucao_metricas
                 WHERE ano = :ano
                 """
             ),
-            {"ano": ANO_ENCERRADO},
+            {"ano": ANO_TESTE},
         ).fetchall()
     }
 
-    pago, superior, sem_superior, matriculas, pago_por_aluno = rows["porciuncula_prefeitura"]
+    empenhado, pago = rows["porciuncula_prefeitura"]
+    assert Decimal(str(empenhado)) >= Decimal("1300.00")
     assert Decimal(str(pago)) >= Decimal("1100.00")
-    assert Decimal(str(sem_superior)) == Decimal(str(pago)) - Decimal(str(superior))
-    assert matriculas == 2290
-    assert Decimal(str(pago_por_aluno)) == (Decimal(str(sem_superior)) / matriculas).quantize(Decimal("0.01"))
-
-    assert rows["natividade_prefeitura"][3] == 1790
+    assert Decimal(str(rows["natividade_prefeitura"][1])) >= Decimal("700.00")
