@@ -125,6 +125,12 @@ Rodada 2 (2026-10-31) — `8a2be965..HEAD` em `apps/web` (passe único, 4 reviso
 - `false` Remoção de `custo_anual_por_aluno` e da seed de matrículas sem registro — foi intencional (`4119348f`) e documentada (`7ff5aa3e`); `despesaLiquidadaEducacao` segue no DTO.
 - `low` Arredondamento de percentuais no limite, `round(valor)` em reais inteiros, `array_agg(...)[1]` ignorando linhas já confirmadas, `limit` sem teto, `having pago > 0` e ano `NaN` nos fornecedores, `repasses_saude` por nome — improváveis nos dados atuais e o remédio acrescenta lógica.
 
+**Rodada 3 (packages/ui, apps/storybook, DESIGN.md/EXPERIENCE.md, docs) — revisão inline, sem subagentes (diff de 164 linhas):** nenhum achado high/medium; nenhum patch, nenhum defer.
+**Rejected:**
+- `false` Stories de `AlertBox`/`SectionHeader` repetem a marcação em vez de importar o componente — é o padrão das 8 stories do Storybook (nenhuma importa `@transparencia/ui`).
+- `false` `DESIGN.md` x código — `alert-box` (borda 3px, `h-4`, `p` semibold), `section-header` (`text-mute`, `mt-1.5`), `panel-top`/`panel-interactive` (`globals.css`) e divisórias de `DenseTable` (`border-line`) batem com o spec.
+- `false` Teste de `AlertBox` e `DenseTable` ajustados às novas classes; título como `p` (regra 25, sem `h4`) coberto.
+
 ## Verification
 
 **Commands:**
