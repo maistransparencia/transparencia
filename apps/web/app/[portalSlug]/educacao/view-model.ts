@@ -69,6 +69,8 @@ export interface EducacaoExecucaoAnoView {
   empenhado: number;
   liquidado: number;
   pago: number;
+  /** Pago sem despesa de pessoal: base da parte paga aos maiores fornecedores. */
+  pagoSemPessoal: number;
   /** Falso quando não há despesa da função 12 registrada no ano. */
   temDados: boolean;
 }
@@ -276,6 +278,7 @@ const execucaoVazia = (ano: number): EducacaoExecucaoAnoView => ({
   empenhado: 0,
   liquidado: 0,
   pago: 0,
+  pagoSemPessoal: 0,
   temDados: false,
 });
 
@@ -292,6 +295,7 @@ function buildExecucaoAno(
     empenhado: linha.empenhado,
     liquidado: linha.liquidado,
     pago: linha.pago,
+    pagoSemPessoal: linha.pagoSemPessoal,
     temDados: linha.empenhado > 0 || linha.pago > 0,
   };
 }

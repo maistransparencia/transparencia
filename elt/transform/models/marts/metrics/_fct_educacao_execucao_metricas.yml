@@ -34,7 +34,7 @@ models:
 
       - name: empenhado_educacao
         data_type: numeric(15, 2)
-        description: "Total empenhado no exercício na Função 12 (Educação)"
+        description: "Total empenhado no exercício na Função 12 (Educação), já descontadas as anulações (empenho líquido)"
 
       - name: liquidado_educacao
         data_type: numeric(15, 2)
@@ -44,19 +44,23 @@ models:
         data_type: numeric(15, 2)
         description: "Total pago no exercício na Função 12 (Educação)"
 
+      - name: pago_sem_pessoal_educacao
+        data_type: numeric(15, 2)
+        description: "Pago na Função 12 sem o grupo de natureza 1 (pessoal e encargos), base para a parte paga aos maiores fornecedores"
+
 unit_tests:
   - name: test_educacao_execucao_soma_funcao_12_do_exercicio
-    description: "Soma só a função 12 do exercício, ignora restos a pagar e outras funções e isola portais"
+    description: "Soma só a função 12 do exercício pelo empenho líquido (descontadas as anulações), ignora restos a pagar e outras funções e isola portais"
     model: fct_educacao_execucao_metricas
     given:
       - input: ref('fct_despesas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", empenhado: 1200.00, liquidado: 1100.00, pago: 1000.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", empenhado: 300.00, liquidado: 250.00, pago: 200.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "restos_a_pagar", funcao: "12", empenhado: 0, liquidado: 0, pago: 999.00 }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "10", empenhado: 50.00, liquidado: 50.00, pago: 50.00 }
-          - { portal_slug: "natividade_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", empenhado: 500.00, liquidado: 500.00, pago: 400.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", empenhado: 1200.00, empenhado_liquido: 1100.00, liquidado: 1100.00, pago: 1000.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", grupo_natureza: "1", empenhado: 300.00, empenhado_liquido: 300.00, liquidado: 250.00, pago: 200.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "restos_a_pagar", funcao: "12", empenhado: 0, empenhado_liquido: 0, liquidado: 0, pago: 999.00 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, fonte: "exercicio", funcao: "10", empenhado: 50.00, empenhado_liquido: 50.00, liquidado: 50.00, pago: 50.00 }
+          - { portal_slug: "natividade_prefeitura", ano: 2025, fonte: "exercicio", funcao: "12", empenhado: 500.00, empenhado_liquido: 500.00, liquidado: 500.00, pago: 400.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empenhado_educacao: 1500.00, liquidado_educacao: 1350.00, pago_educacao: 1200.00 }
-        - { portal_slug: "natividade_prefeitura", ano: 2025, empenhado_educacao: 500.00, liquidado_educacao: 500.00, pago_educacao: 400.00 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, empenhado_educacao: 1400.00, liquidado_educacao: 1350.00, pago_educacao: 1200.00, pago_sem_pessoal_educacao: 1000.00 }
+        - { portal_slug: "natividade_prefeitura", ano: 2025, empenhado_educacao: 500.00, liquidado_educacao: 500.00, pago_educacao: 400.00, pago_sem_pessoal_educacao: 400.00 }

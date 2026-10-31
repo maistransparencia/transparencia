@@ -176,6 +176,7 @@ describe("educacao/loader", () => {
           empenhado: 1500,
           liquidado: 1350,
           pago: 1200,
+          pagoSemPessoal: 1200,
         },
       ]);
       vi.mocked(dbModule.getTopFornecedoresEducacaoMetrics).mockResolvedValue(

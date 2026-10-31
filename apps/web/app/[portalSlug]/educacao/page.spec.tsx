@@ -263,12 +263,14 @@ function makeRawEducacaoData(
         empenhado: 30_000_000,
         liquidado: 29_000_000,
         pago: 28_000_000,
+        pagoSemPessoal: 28_000_000,
       },
       {
         ano: 2025,
         empenhado: 36_000_000,
         liquidado: 34_291_936.64,
         pago: 32_000_000,
+        pagoSemPessoal: 32_000_000,
       },
     ],
     topFornecedores: [

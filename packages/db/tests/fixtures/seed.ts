@@ -1302,6 +1302,7 @@ export interface EducacaoExecucaoRow {
   empenhado?: number;
   liquidado?: number;
   pago?: number;
+  pagoSemPessoal?: number;
 }
 
 export async function seedEducacaoExecucao(
@@ -1319,6 +1320,7 @@ export async function seedEducacaoExecucao(
         empenhado_educacao: r.empenhado ?? 0,
         liquidado_educacao: r.liquidado ?? 0,
         pago_educacao: r.pago ?? 0,
+        pago_sem_pessoal_educacao: r.pagoSemPessoal ?? r.pago ?? 0,
       })),
     )
     .execute();

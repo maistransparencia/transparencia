@@ -6,6 +6,8 @@ export interface EducacaoExecucaoAnualDTO {
   empenhado: number;
   liquidado: number;
   pago: number;
+  /** Pago sem despesa de pessoal: base da parte paga aos maiores fornecedores. */
+  pagoSemPessoal: number;
 }
 
 /**
@@ -31,6 +33,7 @@ export async function getEducacaoExecucaoAnual(
       empenhado: Number(row.empenhado_educacao ?? 0),
       liquidado: Number(row.liquidado_educacao ?? 0),
       pago: Number(row.pago_educacao ?? 0),
+      pagoSemPessoal: Number(row.pago_sem_pessoal_educacao ?? 0),
     }));
   } catch {
     return [];

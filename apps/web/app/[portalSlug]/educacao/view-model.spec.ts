@@ -36,6 +36,7 @@ function execucao(
     empenhado: 0,
     liquidado: 0,
     pago: 0,
+    pagoSemPessoal: 0,
     ...parcial,
   };
 }

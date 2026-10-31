@@ -79,7 +79,7 @@ export default async function EducacaoPage({
 
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
-    execucao.pago,
+    execucao.pagoSemPessoal,
   );
   const valorPagoTopFornecedores = fornecedoresLinhas.reduce(
     (total, fornecedor) => total + fornecedor.valorPago,
@@ -157,12 +157,12 @@ export default async function EducacaoPage({
               <Indicator
                 label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
                 value={fmtPercent(concentracaoTopFornecedores)}
-                note={`do que a Prefeitura pagou em educação em ${selectedYear}`}
+                note={`do que a Prefeitura pagou em educação em ${selectedYear}, sem contar salários`}
               />
               <Indicator
                 label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
                 value={fmtCompact(valorPagoTopFornecedores)}
-                note={`de ${fmtCompact(execucao.pago)} pagos pela Prefeitura em educação`}
+                note={`de ${fmtCompact(execucao.pagoSemPessoal)} pagos em educação, sem contar salários`}
               />
             </IndicatorPanel>
             <DespesasFornecedoresSection

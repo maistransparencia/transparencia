@@ -17,6 +17,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.
 
 ### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **Reservado da educação pelo empenho líquido:** `fct_educacao_execucao_metricas` soma `empenhado_liquido` (descontadas as anulações) em vez do empenhado bruto, que inflava o reservado em 3% a 9%. A parte paga aos maiores fornecedores passa a usar como base o pago sem salários (`pago_sem_pessoal_educacao`), a mesma base da lista de fornecedores.
 * **`panel` clicável:** Novas classes `panel-top` (borda no topo) e `panel-interactive` (cursor, borda `line` → `brand-fill` no hover e no foco, anel de foco, estado desabilitado), documentadas em `DESIGN.md` e `EXPERIENCE.md` e usadas nos cards de categoria de contratos.
 * **Contratos da educação:** A tabela completa passa ao formato compacto com linha expansível (padrão das licitações em aberto da saúde), com cartão de resumo no celular; o modal de cada categoria usa a mesma tabela. A base legal fica no subtítulo da seção.
 * **Aprendizado dos alunos:** O seletor de etapa do gráfico fica ao lado do título do gráfico, e a nota sobre o IDEB usa o `AlertBox`.

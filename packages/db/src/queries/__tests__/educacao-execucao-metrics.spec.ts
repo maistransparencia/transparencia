@@ -27,6 +27,7 @@ describe("educacao-execucao-metrics", () => {
           empenhado: 1500,
           liquidado: 1350,
           pago: 1200,
+          pagoSemPessoal: 1000,
         },
         { portalSlug: PORTAL_A, ano: 2024, empenhado: 900, pago: 800 },
         { portalSlug: PORTAL_B, ano: 2025, empenhado: 1, pago: 1 },
@@ -39,6 +40,7 @@ describe("educacao-execucao-metrics", () => {
         empenhado: 1500,
         liquidado: 1350,
         pago: 1200,
+        pagoSemPessoal: 1000,
       });
     });
 
