@@ -466,6 +466,9 @@ export interface DespesaRow {
   fornecedorNome?: string;
   fornecedorCpfCnpj?: string;
   grupoNatureza?: string;
+  funcao?: string;
+  subfuncao?: string;
+  subfuncaoNome?: string;
   descricao?: string;
   empenhado?: number;
   liquidado?: number;
@@ -486,6 +489,9 @@ export async function seedDespesa(row: DespesaRow): Promise<void> {
       fornecedor_nome: row.fornecedorNome ?? null,
       fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
       grupo_natureza: row.grupoNatureza ?? null,
+      funcao: row.funcao ?? null,
+      subfuncao: row.subfuncao ?? null,
+      subfuncao_nome: row.subfuncaoNome ?? null,
       descricao: row.descricao ?? null,
       empenhado: row.empenhado ?? 0,
       liquidado: row.liquidado ?? 0,
@@ -1250,9 +1256,7 @@ export interface EducacaoMetricaRow {
   crescimentoPontosIdeb?: number | null;
   variacaoSaebMatematica?: number | null;
   variacaoSaebPortugues?: number | null;
-  despesaLiquidadaEducacao?: number | null;
   totalMatriculasRedeMunicipal?: number | null;
-  custoAnualPorAluno?: number | null;
 }
 
 export async function seedEducacaoMetricas(
@@ -1287,12 +1291,45 @@ export async function seedEducacaoMetricas(
           crescimento_pontos_ideb: r.crescimentoPontosIdeb ?? null,
           variacao_saeb_matematica: r.variacaoSaebMatematica ?? null,
           variacao_saeb_portugues: r.variacaoSaebPortugues ?? null,
-          despesa_liquidada_educacao: r.despesaLiquidadaEducacao ?? null,
           total_matriculas_rede_municipal:
             r.totalMatriculasRedeMunicipal ?? null,
-          custo_anual_por_aluno: r.custoAnualPorAluno ?? null,
         };
       }),
+    )
+    .execute();
+}
+
+export interface EducacaoExecucaoRow {
+  portalSlug: string;
+  ano: number;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+  pagoEnsinoSuperior?: number;
+  totalMatriculasRedeMunicipal?: number | null;
+  pagoPorAluno?: number | null;
+}
+
+export async function seedEducacaoExecucao(
+  row: EducacaoExecucaoRow | EducacaoExecucaoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_execucao_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empenhado_educacao: r.empenhado ?? 0,
+        liquidado_educacao: r.liquidado ?? 0,
+        pago_educacao: r.pago ?? 0,
+        pago_ensino_superior: r.pagoEnsinoSuperior ?? 0,
+        pago_sem_ensino_superior: (r.pago ?? 0) - (r.pagoEnsinoSuperior ?? 0),
+        total_matriculas_rede_municipal: r.totalMatriculasRedeMunicipal ?? null,
+        pago_por_aluno: r.pagoPorAluno ?? null,
+      })),
     )
     .execute();
 }
@@ -1354,6 +1391,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_execucao_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
