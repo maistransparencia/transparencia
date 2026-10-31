@@ -282,3 +282,26 @@ location: apps/web/components/saude-contratacao-section.tsx
 source_spec: `20-8-saude-e-educacao.md`
 reason: Só testes e guardas de código-fonte; contraste de `text-mute2` em `text-xs` e seções que mantêm `<section>`/`h2` próprios em `saude-contratacao-section.tsx` e `saude-emendas-section.tsx` (em vez de `SectionHeader`/`AlertBox`) não foram conferidos no navegador.
 status: open
+
+## Deferred from: code review of 20-8-saude-e-educacao.md (2026-10-31)
+
+### DW-9: `receita_outras_saude` zera sem as linhas-raiz orçamentárias
+origin: code-review 2026-10-31
+location: elt/transform/models/marts/metrics/fct_historia_saude_metricas.sql
+source_spec: `20-8-saude-e-educacao.md`
+reason: Sem `1000.00.0.0.00.00`/`2000.00.0.0.00.00` em `fct_receitas`, as outras receitas ficam em 0 e os percentuais são inflados (severidade média, não verificada). Funciona nos dois portais atuais; conferir ao integrar um terceiro.
+status: open
+
+### DW-10: `getEducacaoContratos` vazio sem órgão com "fundo" e "educa" no nome
+origin: code-review 2026-10-31
+location: packages/db/src/queries/educacao-metrics.ts
+source_spec: `20-8-saude-e-educacao.md`
+reason: Portal cujo fundo tenha outro nome mostra lista vazia (severidade média, não verificada). A restrição ao fundo é intencional (commit 7d9e92bb); conferir ao integrar novo portal.
+status: open
+
+### DW-11: Texto de "indício" para `valor_igual` e `totalReceitaPossivel` nas emendas
+origin: code-review 2026-10-31
+location: apps/web/components/emendas-section.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: Regra 27 (dado derivado diz que é derivado). Fora do diff da rodada 1; verificar na rodada de `apps/web`.
+status: open

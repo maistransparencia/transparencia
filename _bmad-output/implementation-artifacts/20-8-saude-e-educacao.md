@@ -88,6 +88,31 @@ deferred:
   - `[false]` `reject` guarda de Regra 23 permitir "Nota Informativa do Ideb 2025" e "Lei 14.133/2021" — são nomes oficiais de documentos preservados pela spec; não é ano de contexto.
   - `[false]` `reject` lacunas de teste da matriz (estado vazio, `neutro`, `animate-pulse`) — mudanças só de classes, cobertas pela guarda de código-fonte e pelos specs existentes que seguem verdes.
 
+### Review Findings
+
+Rodada 1 (2026-10-31) — `8a2be965..HEAD` restrito a `packages/db` e `elt/` (4 camadas). Rodadas de `apps/web` e `packages/ui` ainda pendentes.
+
+- [x] [Review][Decision→Rejeitado] Gasto com "medicamentos" inclui todo o elemento 3.3.90.32 — medido no banco local: o `3.3.90.32` fora dos outros critérios pesa 5–98% do total por ano, mas os fornecedores são quase todos distribuidoras de medicamentos e drogarias; o resto (ótica, supermercado, padaria, nutrição) fica em torno de 4% (ex.: Porciúncula 2022). "Medicamentos e insumos" já cobre o que entra e a descrição do yml explicita o critério.
+- [x] [Review][Patch] Colunas novas `uniao_sus_pct`, `estado_pct`, `propria_pct`, `outras_receitas_pct` e DTO `outrasReceitasPct` violam a Regra 9 (renomear para `percentual_*`) [elt/transform/models/marts/metrics/fct_historia_saude_metricas.sql, packages/db/src/queries/historia-saude-metrics.ts]
+- [x] [Review][Patch] `getSaudeLicitacoesMetrics`, `getSaudeFontesReceitaMetrics` e `getSaudeExecutionTrendMetrics` sem teste de DB (isolamento por `portal_slug`/`empresa_id`, mapeamento de colunas, `pago`); `tipo_contratacao` nulo vira `""` e a consulta não ordena [packages/db/src/queries/historia-saude-metrics.ts]
+- [x] [Review][Patch] `montarEmendasStats`: campos `totalRecebidoFundo`, `totalReceitaPossivel`, `receitaCodigo`/`receitaDescricao` sem asserção [packages/db/src/queries/emendas-parlamentares.ts]
+- [x] [Review][Patch] `confirmadas` não garante uma emenda por linha de receita (duas emendas de mesmo valor e mesma proposta confirmam a mesma linha e somam `valor_recebido_fundo` em dobro), contra o comentário do cabeçalho [elt/transform/models/marts/fct_emendas.sql]
+- [x] [Review][Patch] `percentualPago` de `getTopFornecedoresEducacaoMetrics` divide pelo total do top N (sempre soma 100%); a página recalcula pelo total da função, então o campo do DTO engana [packages/db/src/queries/educacao-execucao-metrics.ts]
+- [x] [Review][Patch] Resíduos: `_primeiroContexto`/`contexto` mortos e comentário velho em `educacao-metrics.ts`; descrição "…, fluxo escolar, fluxo escolar" em `_fct_educacao_metricas.yml`; nome do teste `…growth_and_financials` e espaço em `+1,4 ponto )` — corrigidos; as asserções `>=` de `test_fct_educacao_execucao_metricas.py` ficaram como estão (o teste lê o mart já construído, então igualdade exata exigiria rodar o dbt dentro do teste) [packages/db, elt/tests]
+- [x] [Review][Defer] Sem as linhas-raiz orçamentárias (`1000.00…`/`2000.00…`) o portal fica com `receita_outras_saude` zerada e percentuais inflados — deferred: funciona nos dois portais atuais; conferir ao integrar um terceiro portal
+- [x] [Review][Defer] `getEducacaoContratos` devolve vazio se o portal não tiver órgão com "fundo" e "educa" no nome — deferred: restrição ao fundo é intencional (7d9e92bb); conferir ao integrar novo portal
+- [x] [Review][Defer] Texto de "indício" para `valor_igual`/`totalReceitaPossivel` na tela de emendas — deferred: está em `apps/web`, entra na rodada 2
+
+**Rejected:**
+- `false` Escopo do spec ("Never: alterar `@transparencia/db`", "só migração visual") violado — o escopo da story cresceu nos commits manuais posteriores (`feat(db)`, `fix(db)`); o remédio seria editar o spec.
+- `false` `fct_emendas` filtra `tipo_receita = 'orcamentaria'` e nunca confirma — `fct_emendas` tem 8 confirmadas em Porciúncula (R$ 6,14 mi) e há linhas `1713.5%` com tipo `orcamentaria` nos dois portais.
+- `false` Fan-out do join por `numero_emenda`/`resumo` — 73 linhas e 73 `emenda_id` distintos no banco local.
+- `false` Percentuais de saúde somando 101–102 — todos os anos dos dois portais somam exatamente 100.
+- `false` Fallback por `funcao_nome` perdido em `fct_educacao_execucao_metricas` — zero despesas sem `funcao` com nome de educação nos dois portais.
+- `false` Literais de tenant/ano em testes e fixtures (Regra 23) — a regra mira marts e frontend, não fixtures de teste.
+- `false` Remoção de `custo_anual_por_aluno` e da seed de matrículas sem registro — foi intencional (`4119348f`) e documentada (`7ff5aa3e`); `despesaLiquidadaEducacao` segue no DTO.
+- `low` Arredondamento de percentuais no limite, `round(valor)` em reais inteiros, `array_agg(...)[1]` ignorando linhas já confirmadas, `limit` sem teto, `having pago > 0` e ano `NaN` nos fornecedores, `repasses_saude` por nome — improváveis nos dados atuais e o remédio acrescenta lógica.
+
 ## Verification
 
 **Commands:**
