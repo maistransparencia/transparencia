@@ -161,10 +161,8 @@ export function SaudeContratacaoSection({
       <div className="space-y-4 border-line border-t pt-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <h3>Compras e Licitações da Saúde em Andamento</h3>
-              <Badge variant="accent">Em Aberto</Badge>
-            </div>
+            <p className="eyebrow mb-1.5 text-brand-text!">Em aberto</p>
+            <h3>Compras e Licitações da Saúde em Andamento</h3>
             <p className="mt-0.5 text-mute text-xs leading-relaxed">
               Processos licitatórios abertos da pasta de saúde (medicamentos,
               insumos hospitalares e equipamentos).
