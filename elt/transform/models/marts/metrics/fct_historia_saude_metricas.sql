@@ -29,14 +29,14 @@ linhas_saude as (
         sum(coalesce(d.pago, 0)) as total_pago,
         sum(
             case
-                when d.subfuncao = '303' or d.subfuncao_nome ilike '%farmac%' or d.subfuncao_nome ilike '%medicam%' or d.natureza_despesa_codigo like '3.3.90.30.09%' or d.natureza_despesa_codigo like '3.3.90.32.02%'
+                when d.subfuncao = '303' or d.subfuncao_nome ilike '%farmac%' or d.subfuncao_nome ilike '%medicam%' or d.natureza_despesa_codigo like '3.3.90.30.09%' or d.natureza_despesa_codigo like '3.3.90.32%'
                 then coalesce(d.empenhado_liquido, 0)
                 else 0
             end
         ) as medicamentos_insumos_empenhado,
         sum(
             case
-                when d.subfuncao = '303' or d.subfuncao_nome ilike '%farmac%' or d.subfuncao_nome ilike '%medicam%' or d.natureza_despesa_codigo like '3.3.90.30.09%' or d.natureza_despesa_codigo like '3.3.90.32.02%'
+                when d.subfuncao = '303' or d.subfuncao_nome ilike '%farmac%' or d.subfuncao_nome ilike '%medicam%' or d.natureza_despesa_codigo like '3.3.90.30.09%' or d.natureza_despesa_codigo like '3.3.90.32%'
                 then coalesce(d.pago, 0)
                 else 0
             end

@@ -72,7 +72,7 @@ models:
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Despesas com medicamentos e insumos farmacêuticos empenhadas: subfunção 10.303, subitem 3.3.90.30.09 (material farmacológico) ou 3.3.90.32.02 (medicamentos para distribuição gratuita), contando cada empenho uma vez; a prática de classificação muda de um ano para outro, por isso os critérios combinados; o subitem genérico 3.3.90.32.99 fica de fora por misturar medicamentos com outros materiais"
+        description: "Despesas com medicamentos e insumos farmacêuticos empenhadas: subfunção 10.303, subitem 3.3.90.30.09 (material farmacológico) ou elemento 3.3.90.32 (material ou serviço para distribuição gratuita, que inclui medicamentos e outros itens entregues ao cidadão), contando cada empenho uma vez; a prática de classificação muda de um ano para outro, por isso os critérios combinados"
         tests:
           - not_null
       - name: medicamentos_insumos_pago
@@ -187,7 +187,7 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "303", elemento: "30", empresa_id: "2", fornecedor_nome: "FARMACEUTICA A", dotacao_atualizada: 200000.00, empenhado_liquido: 100000.00, liquidado: 80000.00, pago: 60000.00, subfuncao_nome: "ASSISTENCIA FARMACEUTICA", fonte: "exercicio" }
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "91", empresa_id: "2", fornecedor_nome: "FORNECEDOR B", dotacao_atualizada: 100000.00, empenhado_liquido: 50000.00, liquidado: 40000.00, pago: 30000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "30", natureza_despesa_codigo: "3.3.90.30.09", empresa_id: "2", fornecedor_nome: "FORNECEDOR C", dotacao_atualizada: 0, empenhado_liquido: 20000.00, liquidado: 15000.00, pago: 10000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
-          - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "32", natureza_despesa_codigo: "3.3.90.32.02", empresa_id: "2", fornecedor_nome: "FORNECEDOR D", dotacao_atualizada: 0, empenhado_liquido: 10000.00, liquidado: 8000.00, pago: 5000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "32", natureza_despesa_codigo: "3.3.90.32.99", empresa_id: "2", fornecedor_nome: "FORNECEDOR D", dotacao_atualizada: 0, empenhado_liquido: 10000.00, liquidado: 8000.00, pago: 5000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
       - input: ref('fct_despesas_por_orgao')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "2", dotacao_atualizada: 300000.00, empenhado: 150000.00, liquidado: 120000.00, pago: 90000.00 }
