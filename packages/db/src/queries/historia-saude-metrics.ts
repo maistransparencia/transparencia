@@ -51,6 +51,11 @@ export interface EmendaSaudeDTO {
   empenhos: EmendaEmpenhoItemDTO[];
   /** Valor da emenda quando aparece como receita arrecadada pelo fundo (indício por valor). */
   valorRecebidoFundo: number;
+  /** confirmado_por_proposta, valor_igual (só o valor coincide) ou nao_identificado. */
+  recebimentoFundo: string;
+  /** Linha de receita correspondente, para o cidadão conferir. */
+  receitaCodigo: string | null;
+  receitaDescricao: string | null;
 }
 
 export interface EmendasStatsSaudeDTO {
@@ -58,6 +63,8 @@ export interface EmendasStatsSaudeDTO {
   totalEmpenhado: number;
   /** Soma das emendas que aparecem como receita arrecadada pelo fundo. */
   totalRecebidoFundo: number;
+  /** Soma das emendas com receita de mesmo valor, sem o número da proposta (indício fraco). */
+  totalReceitaPossivel: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: EmendaSaudeDTO[];
@@ -166,6 +173,7 @@ export async function getSaudeEmendasMetrics(
     totalAutorizado: 0,
     totalEmpenhado: 0,
     totalRecebidoFundo: 0,
+    totalReceitaPossivel: 0,
     taxaEmpenho: 0,
     maiorEmenda: 0,
     lista: [],

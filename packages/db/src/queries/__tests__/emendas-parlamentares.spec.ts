@@ -34,6 +34,8 @@ function emenda(dados: {
     destinacao: "destinacao",
     valor_recebido_fundo: 0,
     recebimento_fundo: "nao_identificado",
+    receita_codigo: null,
+    receita_descricao: null,
   };
 }
 

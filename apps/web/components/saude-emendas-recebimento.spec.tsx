@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { SaudeEmendasSection } from "./saude-emendas-section";
 
-const emenda = (valorRecebidoFundo: number) => ({
+const emenda = (
+  valorRecebidoFundo: number,
+  recebimentoFundo = "confirmado_por_proposta",
+) => ({
   id: "1",
   numero: "10",
   objeto: "Custeio",
@@ -14,15 +17,24 @@ const emenda = (valorRecebidoFundo: number) => ({
   atoNormativo: "ato",
   destinacao: "custeio",
   valorRecebidoFundo,
+  recebimentoFundo,
+  receitaCodigo: "1713.50.1.1.29.00",
+  receitaDescricao: "TRANS.SUS PORTARIA",
 });
 
-const stats = (totalRecebidoFundo: number) => ({
+const stats = (totalRecebidoFundo: number, totalReceitaPossivel = 0) => ({
   totalAutorizado: 1_000_000,
   totalEmpenhado: 0,
   totalRecebidoFundo,
+  totalReceitaPossivel,
   taxaEmpenho: 0,
   maiorEmenda: 1_000_000,
-  lista: [emenda(totalRecebidoFundo)],
+  lista: [
+    emenda(
+      totalRecebidoFundo,
+      totalRecebidoFundo > 0 ? "confirmado_por_proposta" : "valor_igual",
+    ),
+  ],
 });
 
 describe("SaudeEmendasSection: chegada do dinheiro", () => {
@@ -30,10 +42,11 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
     const { container } = render(
       <SaudeEmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
     );
-    expect(screen.getByText("Chegou à entidade")).toBeTruthy();
+    expect(screen.getByText("Confirmada na receita")).toBeTruthy();
     expect(container.textContent).toMatch(/pode estar desatualizado/);
-    expect(container.textContent).toMatch(/identificados pelo valor/);
-    expect(screen.getByText("Recebida como receita")).toBeTruthy();
+    expect(container.textContent).toMatch(/com o número da proposta/);
+    expect(screen.getByText("Aparece na receita")).toBeTruthy();
+    expect(screen.getByText("1713.50.1.1.29.00")).toBeTruthy();
   });
 
   it("diz que não foi possível identificar quando nada aparece como receita", () => {
@@ -41,8 +54,8 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
       <SaudeEmendasSection ano={2026} emendasStats={stats(0)} />,
     );
     expect(container.textContent).toMatch(
-      /não foi possível identificar emendas/,
+      /Não foi possível identificar emendas na receita/,
     );
-    expect(screen.queryByText("Recebida como receita")).toBeNull();
+    expect(screen.queryByText("Aparece na receita")).toBeNull();
   });
 });

@@ -10,6 +10,7 @@ const mockStats: SaudeEmendasStatsProps = {
   totalAutorizado: 2031183,
   totalEmpenhado: 1015591,
   totalRecebidoFundo: 0,
+  totalReceitaPossivel: 0,
   taxaEmpenho: 0.5,
   maiorEmenda: 2031183,
   lista: [
@@ -26,6 +27,9 @@ const mockStats: SaudeEmendasStatsProps = {
       atoNormativo: "Portaria GM/MS 11.813/2026",
       destinacao: "Atenção Primária",
       valorRecebidoFundo: 0,
+      recebimentoFundo: "nao_identificado",
+      receitaCodigo: null,
+      receitaDescricao: null,
       qtdEmpenhos: 2,
       empenhos: [
         {
@@ -68,6 +72,9 @@ const mockStats: SaudeEmendasStatsProps = {
       atoNormativo: "",
       destinacao: "Média e Alta Complexidade",
       valorRecebidoFundo: 0,
+      recebimentoFundo: "nao_identificado",
+      receitaCodigo: null,
+      receitaDescricao: null,
       qtdEmpenhos: 0,
       empenhos: [],
     },
@@ -90,7 +97,9 @@ describe("SaudeEmendasSection", () => {
     expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Daniel Soranz").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/2 empenhos/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Bloco Orçamentário").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Empenho sem notas ligadas").length,
+    ).toBeGreaterThan(0);
   });
 
   it("abre modal com rastreabilidade ao clicar no botão de empenhos", () => {
@@ -224,6 +233,7 @@ describe("SaudeEmendasSection", () => {
       totalAutorizado: 1500000,
       totalEmpenhado: 200000,
       totalRecebidoFundo: 0,
+      totalReceitaPossivel: 0,
       taxaEmpenho: 200000 / 1500000,
       maiorEmenda: 1000000,
       lista: [
@@ -239,6 +249,9 @@ describe("SaudeEmendasSection", () => {
           atoNormativo: "",
           destinacao: "Atenção Primária",
           valorRecebidoFundo: 0,
+          recebimentoFundo: "nao_identificado",
+          receitaCodigo: null,
+          receitaDescricao: null,
           qtdEmpenhos: 0,
           empenhos: [],
         },
@@ -254,6 +267,9 @@ describe("SaudeEmendasSection", () => {
           atoNormativo: "",
           destinacao: "Média Complexidade",
           valorRecebidoFundo: 0,
+          recebimentoFundo: "nao_identificado",
+          receitaCodigo: null,
+          receitaDescricao: null,
           qtdEmpenhos: 1,
           empenhos: [
             {

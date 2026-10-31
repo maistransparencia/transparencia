@@ -15,6 +15,7 @@ export const emendasStatsVazio: EmendasStatsDTO = {
   totalAutorizado: 0,
   totalEmpenhado: 0,
   totalRecebidoFundo: 0,
+  totalReceitaPossivel: 0,
   taxaEmpenho: 0,
   maiorEmenda: 0,
   lista: [],
@@ -42,6 +43,11 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
       qtdEmpenhos: 0,
       empenhos: [],
       valorRecebidoFundo: Number(r.valor_recebido_fundo ?? 0),
+      recebimentoFundo: String(r.recebimento_fundo ?? "nao_identificado"),
+      receitaCodigo: r.receita_codigo ? String(r.receita_codigo) : null,
+      receitaDescricao: r.receita_descricao
+        ? String(r.receita_descricao)
+        : null,
     };
   });
 
@@ -74,6 +80,9 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     (sum, item) => sum + item.valorRecebidoFundo,
     0,
   );
+  const totalReceitaPossivel = sortedLista
+    .filter((item) => item.recebimentoFundo === "valor_igual")
+    .reduce((sum, item) => sum + item.valorAutorizado, 0);
   const maiorEmenda = sortedLista.reduce(
     (max, item) => Math.max(max, item.valorAutorizado),
     0,
@@ -83,6 +92,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     totalAutorizado,
     totalEmpenhado,
     totalRecebidoFundo,
+    totalReceitaPossivel,
     taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
     maiorEmenda,
     lista: sortedLista,

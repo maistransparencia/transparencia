@@ -37,12 +37,16 @@ export interface SaudeEmendaItem {
   qtdEmpenhos?: number;
   empenhos?: EmendaEmpenhoItemDTO[];
   valorRecebidoFundo?: number;
+  recebimentoFundo?: string;
+  receitaCodigo?: string | null;
+  receitaDescricao?: string | null;
 }
 
 export interface SaudeEmendasStatsProps {
   totalAutorizado: number;
   totalEmpenhado: number;
   totalRecebidoFundo?: number;
+  totalReceitaPossivel?: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: SaudeEmendaItem[];
@@ -117,6 +121,7 @@ export function SaudeEmendasSection({
 
   const countEmendas = emendasStats.lista.length;
   const totalRecebidoFundo = emendasStats.totalRecebidoFundo ?? 0;
+  const totalReceitaPossivel = emendasStats.totalReceitaPossivel ?? 0;
   const percentualRecebido =
     emendasStats.totalAutorizado > 0
       ? (totalRecebidoFundo / emendasStats.totalAutorizado) * 100
@@ -244,19 +249,37 @@ export function SaudeEmendasSection({
           return (
             <span
               className="inline-flex items-center whitespace-nowrap rounded-md bg-line2 px-2 py-0.5 font-medium text-mute text-xs"
-              title="Empenho executado em bloco orçamentário / folha de saúde"
+              title="O cadastro informa valor empenhado, mas o portal não liga essa emenda a notas de empenho específicas"
             >
-              Bloco Orçamentário
+              Empenho sem notas ligadas
             </span>
           );
         }
-        if ((row.valorRecebidoFundo ?? 0) > 0) {
+        if (
+          row.recebimentoFundo === "confirmado_por_proposta" ||
+          row.recebimentoFundo === "valor_igual"
+        ) {
+          const confirmada = row.recebimentoFundo === "confirmado_por_proposta";
           return (
             <span
-              className="whitespace-nowrap font-medium text-ok-text text-xs"
-              title="Aparece como receita arrecadada pela entidade, com o mesmo valor da emenda"
+              className="block text-xs"
+              title={
+                row.receitaDescricao
+                  ? `Receita: ${row.receitaDescricao}`
+                  : undefined
+              }
             >
-              Recebida como receita
+              <span
+                className={cn(
+                  "whitespace-nowrap font-medium",
+                  confirmada ? "text-ok-text" : "text-mute",
+                )}
+              >
+                {confirmada ? "Aparece na receita" : "Receita de mesmo valor"}
+              </span>
+              {row.receitaCodigo ? (
+                <span className="caption block">{row.receitaCodigo}</span>
+              ) : null}
             </span>
           );
         }
@@ -345,20 +368,39 @@ export function SaudeEmendasSection({
       {emendasStats.totalAutorizado > 0 && (
         <AlertBox type="info" title="O dinheiro das emendas chegou?">
           {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
-          emendas
+          emendas.{" "}
           {totalRecebidoFundo > 0 ? (
             <>
-              ; {fmtCompact(totalRecebidoFundo)} (
-              {fmtPercent(percentualRecebido)}) aparecem como receita da
-              entidade, identificados pelo valor
+              {fmtCompact(totalRecebidoFundo)} ({fmtPercent(percentualRecebido)}
+              ) aparecem na receita com o número da proposta
+              {totalReceitaPossivel > 0
+                ? `, e ${fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem confirmação`
+                : ""}
+              .{" "}
+            </>
+          ) : totalReceitaPossivel > 0 ? (
+            <>
+              Nenhuma foi confirmada na receita pelo número da proposta;{" "}
+              {fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem
+              confirmação.{" "}
             </>
           ) : (
-            <>
-              ; não foi possível identificar emendas que aparecem como receita
-            </>
+            <>Não foi possível identificar emendas na receita. </>
           )}
-          . O empenho vem do cadastro de emendas do portal e pode estar
+          O empenho vem do cadastro de emendas do portal e pode estar
           desatualizado: zero ali não significa que o dinheiro não foi usado.
+          {portalSlug ? (
+            <>
+              {" "}
+              <Link
+                href={`/${portalSlug}/receitas?ano=${ano}`}
+                className="text-brand-text underline underline-offset-2"
+              >
+                Ver as receitas do ano
+              </Link>
+              .
+            </>
+          ) : null}
         </AlertBox>
       )}
 
@@ -369,9 +411,9 @@ export function SaudeEmendasSection({
           note="valor das emendas"
         />
         <Indicator
-          label="Chegou à entidade"
+          label="Confirmada na receita"
           value={fmtCompact(totalRecebidoFundo)}
-          note={`${fmtPercent(percentualRecebido)} do autorizado, identificado pelo valor`}
+          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
         />
         <Indicator
           label="Empenhado no cadastro"
@@ -485,9 +527,9 @@ export function SaudeEmendasSection({
                   </button>
                 ) : temEmpenho ? (
                   <div className="flex items-center justify-between pt-1 text-mute text-xs">
-                    <span>Execução empenhada:</span>
+                    <span>Empenho informado:</span>
                     <span className="rounded-md bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
-                      Bloco Orçamentário
+                      Sem notas ligadas
                     </span>
                   </div>
                 ) : (
