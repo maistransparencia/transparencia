@@ -1,10 +1,21 @@
+import {
+  fmtCompact,
+  fmtNumber,
+  fmtPercent,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+} from "@transparencia/ui";
 import type { Metadata } from "next";
+import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
+import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-aprendizado-section";
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
-import { EducacaoFiscalSection } from "@/components/educacao/educacao-fiscal-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
-import { EducacaoHistoricoSection } from "@/components/educacao/educacao-historico-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
-import { SaudeEmendasSection } from "@/components/saude-emendas-section";
+import { EducacaoPagoPorAluno } from "@/components/educacao/educacao-pago-por-aluno";
+import { EmendasSection } from "@/components/emendas-section";
+import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -28,7 +39,7 @@ export async function generateMetadata({
   const { portalSlug } = await params;
   return createPortalMetadata("Educação Básica", portalSlug, {
     description:
-      "Acompanhamento cívico do desempenho educacional (IDEB, SAEB e fluxo escolar), despesa liquidada na educação e contratos da educação.",
+      "Quanto a Prefeitura reservou e pagou em educação, de onde vem o dinheiro, quem recebe e se os alunos estão aprendendo (IDEB).",
     path: "/educacao",
     keywords: [
       "educação",
@@ -49,48 +60,162 @@ export default async function EducacaoPage({
 
   const rawData = await loadEducacaoData(portalSlug, resolvedSearchParams);
   const viewModel = buildEducacaoViewModel(rawData);
+  const {
+    selectedYear,
+    isCurrentYear,
+    partialPeriod,
+    execucao,
+    emendas,
+    contratos,
+  } = viewModel;
+
+  const emendasSubtext = (() => {
+    if (emendas.totalAutorizado <= 0) {
+      return "Nenhuma emenda destinada no exercício";
+    }
+    if (emendas.totalEmpenhado === 0) {
+      return "Empenho ainda não informado no cadastro de emendas";
+    }
+    return `${fmtCompact(emendas.totalEmpenhado)} empenhados no cadastro (${fmtPercent(emendas.taxaEmpenho * 100)})`;
+  })();
+
+  const fornecedoresLinhas = buildFornecedoresLinhas(
+    viewModel.topFornecedores,
+    execucao.pago,
+  );
+  const valorPagoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.valorPago,
+    0,
+  );
+  const concentracaoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.percentualTotalPago,
+    0,
+  );
 
   return (
-    <div className="space-y-10 pb-16">
-      {/* Bloco 1: Hero Narrative com Troféu Cívico e KPIs */}
-      <EducacaoHeroSection
-        selectedYear={viewModel.selectedYear}
-        trofeuCivico={viewModel.trofeuCivico}
-      />
+    <div className="space-y-12 pb-12">
+      <div className="space-y-8">
+        <EducacaoHeroSection
+          ano={selectedYear}
+          isCurrentYear={isCurrentYear}
+          partialPeriod={partialPeriod}
+          execucao={execucao}
+        />
 
-      {/* Bloco 2: Linha do Tempo e Gráfico Histórico do IDEB */}
-      <EducacaoHistoricoSection
-        historico={viewModel.historico}
-        initialEtapa={viewModel.selectedEtapa}
-        municipioUf={viewModel.municipioUf}
-      />
+        <IndicatorPanel columns={4}>
+          <EducacaoPagoPorAluno
+            ano={selectedYear}
+            isCurrentYear={isCurrentYear}
+            pagoPorAluno={execucao.pagoPorAluno}
+            totalMatriculas={execucao.totalMatriculasRedeMunicipal}
+            subfuncoes={viewModel.pagoPorSubfuncao}
+            historico={viewModel.pagoPorAlunoHistorico}
+          />
+          <Indicator
+            label="Alunos na rede municipal"
+            value={
+              execucao.totalMatriculasRedeMunicipal === null
+                ? "—"
+                : fmtNumber(execucao.totalMatriculasRedeMunicipal)
+            }
+            note={
+              execucao.totalMatriculasRedeMunicipal === null
+                ? `sem matrículas do Censo Escolar para ${selectedYear}`
+                : `Censo Escolar ${selectedYear}`
+            }
+          />
+          <Indicator
+            label="Emendas na educação"
+            value={
+              emendas.totalAutorizado > 0
+                ? fmtCompact(emendas.totalAutorizado)
+                : "—"
+            }
+            note={emendasSubtext}
+          />
+          <Indicator
+            label="Contratos vinculados"
+            value={contratos.length}
+            note={`contratos do Fundo vigentes em ${selectedYear}`}
+          />
+        </IndicatorPanel>
+      </div>
 
-      {/* Bloco 3: Despesa na Educação vs. IDEB */}
-      <EducacaoFiscalSection fiscal={viewModel.fiscal} />
-
-      {/* Bloco 4: De onde vem o dinheiro (origem dos recursos do Fundo de Educação) */}
       {viewModel.origemRecursos && (
         <EducacaoOrigemRecursosSection
           origemRecursos={viewModel.origemRecursos}
         />
       )}
 
-      {/* Bloco 5: Contratos e Compras da Educação (PNAE, PNATE e Manutenção) */}
+      <section className="space-y-6">
+        <SectionHeader
+          title="Como mudou ao longo dos anos"
+          description={`Quanto a Prefeitura reservou (empenhado) e quanto já pagou em educação em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
+            isCurrentYear
+              ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
+              : ""
+          }`}
+        />
+        <EvolucaoAnual
+          data={viewModel.serieAnual}
+          selectedYear={selectedYear}
+          partialYear={isCurrentYear ? selectedYear : undefined}
+          mensagemVazia="Sem execução da educação registrada para comparar os anos."
+        />
+      </section>
+
       <EducacaoContratosSection
-        contratos={viewModel.contratos}
+        contratos={contratos}
         totaisPorCategoria={viewModel.contratosResumo.totaisPorCategoria}
         initialContratoNumero={resolvedSearchParams.contratoNumero}
         portalSlug={viewModel.portalSlug}
-        ano={viewModel.selectedYear}
+        ano={selectedYear}
       />
 
-      {/* Bloco 6: Emendas parlamentares destinadas à Educação */}
-      {viewModel.emendas.lista.length > 0 && (
-        <SaudeEmendasSection
-          ano={viewModel.selectedYear}
-          emendasStats={viewModel.emendas}
+      <section className="space-y-6">
+        <SectionHeader title="Quem recebe o dinheiro da educação" />
+        {fornecedoresLinhas.length > 0 ? (
+          <>
+            <IndicatorPanel columns={2}>
+              <Indicator
+                label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtPercent(concentracaoTopFornecedores)}
+                note={`do que a Prefeitura pagou em educação em ${selectedYear}`}
+              />
+              <Indicator
+                label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtCompact(valorPagoTopFornecedores)}
+                note={`de ${fmtCompact(execucao.pago)} pagos pela Prefeitura em educação`}
+              />
+            </IndicatorPanel>
+            <DespesasFornecedoresSection
+              fornecedores={fornecedoresLinhas}
+              portalSlug={portalSlug}
+              ano={selectedYear}
+              nota="O valor mostra o que foi pago, não se o preço foi justo."
+            />
+          </>
+        ) : (
+          <p className="border-line border-y py-4 text-mute">
+            Sem pagamentos a fornecedores registrados para a educação em{" "}
+            {selectedYear}.
+          </p>
+        )}
+      </section>
+
+      <EducacaoAprendizadoSection
+        aprendizado={viewModel.aprendizado}
+        historico={viewModel.historico}
+        initialEtapa={viewModel.selectedEtapa}
+        municipioUf={viewModel.municipioUf}
+      />
+
+      {emendas.lista.length > 0 && (
+        <EmendasSection
+          ano={selectedYear}
+          emendasStats={emendas}
           portalSlug={viewModel.portalSlug}
-          titulo="Emendas parlamentares destinadas à Educação"
+          titulo="Emendas na educação"
           descricao="Recursos que deputados e senadores destinaram à educação do município."
         />
       )}

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SaudeEmendasSection } from "./saude-emendas-section";
+import { EmendasSection } from "./emendas-section";
 
 const emenda = (
   valorRecebidoFundo: number,
@@ -37,10 +37,10 @@ const stats = (totalRecebidoFundo: number, totalReceitaPossivel = 0) => ({
   ],
 });
 
-describe("SaudeEmendasSection: chegada do dinheiro", () => {
+describe("EmendasSection: chegada do dinheiro", () => {
   it("mostra quanto chegou como receita e avisa que o empenho do cadastro pode estar desatualizado", () => {
     const { container } = render(
-      <SaudeEmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
+      <EmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
     );
     expect(screen.getByText("Confirmada na receita")).toBeTruthy();
     expect(container.textContent).toMatch(/pode estar desatualizado/);
@@ -51,7 +51,7 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
 
   it("mostra a receita correspondente ao expandir a linha", () => {
     const { container } = render(
-      <SaudeEmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
+      <EmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
     );
     const gatilho = container.querySelector<HTMLButtonElement>(
       "button[aria-expanded]",
@@ -67,7 +67,7 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
 
   it("diz que não foi possível identificar quando nada aparece como receita", () => {
     const { container } = render(
-      <SaudeEmendasSection ano={2026} emendasStats={stats(0)} />,
+      <EmendasSection ano={2026} emendasStats={stats(0)} />,
     );
     expect(container.textContent).toMatch(
       /Não foi possível identificar emendas na receita/,

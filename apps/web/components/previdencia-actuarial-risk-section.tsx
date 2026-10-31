@@ -1,7 +1,6 @@
 "use client";
 
-import { DenseTable } from "@transparencia/ui";
-import { SectionHeader } from "@/components/section-header";
+import { DenseTable, SectionHeader } from "@transparencia/ui";
 
 export interface AnnualActuarialTrend {
   ano: number;

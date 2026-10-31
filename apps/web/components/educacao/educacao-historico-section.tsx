@@ -1,7 +1,7 @@
 "use client";
 
 import type { EtapaEnsino } from "@transparencia/db";
-import { corDoGrafico, SegmentedButton } from "@transparencia/ui";
+import { corDoGrafico, ModalDialog, SegmentedButton } from "@transparencia/ui";
 import { CheckCircle, ExternalLink, Info } from "lucide-react";
 import { useState } from "react";
 import {
@@ -17,7 +17,6 @@ import type {
   IdebEtapaHistorico,
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
-import { SectionHeader } from "@/components/section-header";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface EducacaoHistoricoSectionProps {
@@ -124,6 +123,7 @@ export function EducacaoHistoricoSection({
   municipioUf,
 }: EducacaoHistoricoSectionProps) {
   const [activeEtapa, setActiveEtapa] = useState<EtapaEnsino>(initialEtapa);
+  const [detalhesAberto, setDetalhesAberto] = useState(false);
 
   const currentHistorico =
     activeEtapa === "anosIniciais"
@@ -134,19 +134,7 @@ export function EducacaoHistoricoSection({
   const pontoMaisRecente = currentHistorico.pontoMaisRecente;
 
   return (
-    <section
-      aria-label="Série Histórica e Linha do Tempo do IDEB"
-      className="space-y-4"
-    >
-      <SectionHeader
-        title={`Série Histórica do IDEB e Avaliações Oficiais${currentHistorico.periodoLabel ? ` (${currentHistorico.periodoLabel})` : ""}`}
-        description={
-          currentHistorico.possuiMeta
-            ? "Trajetória das notas do IDEB, proficiências SAEB e metas do Ministério da Educação, quando definidas."
-            : "Trajetória das notas do IDEB e proficiências SAEB."
-        }
-      />
-
+    <div className="space-y-4">
       {/* Tabs / Toggle de Etapa */}
       <div className="flex items-center gap-2 border-line border-b pb-2">
         <SegmentedButton
@@ -168,25 +156,16 @@ export function EducacaoHistoricoSection({
       {/* Container do Gráfico Recharts */}
       <div className="border-line border-t pt-5">
         <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-          <div>
-            <h3>Evolução da Nota IDEB — {currentHistorico.label}</h3>
-            <p className="text-mute text-xs">
-              Comparativo com a Média Estadual da rede pública
-              {municipioUf ? ` (${municipioUf})` : ""}
-              {currentHistorico.possuiMeta
-                ? " e com a Meta do MEC nos ciclos em que ela foi definida"
-                : ""}
-            </p>
-          </div>
+          <h3>Evolução da nota do IDEB</h3>
           <div className="flex items-center gap-4 font-medium text-mute text-xs">
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
-              Rede Municipal
+              Rede municipal
             </span>
             {currentHistorico.possuiMeta && (
               <span className="flex items-center gap-1.5">
                 <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
-                Meta MEC
+                Meta do MEC
               </span>
             )}
             <span className="flex items-center gap-1.5">
@@ -309,102 +288,126 @@ export function EducacaoHistoricoSection({
             <span className="sr-only">(abre em nova aba)</span>
           </a>
         </div>
-
-        <div className="mt-3 space-y-2 border-line border-t pt-3 text-mute text-xs">
-          <h4>Como ler a meta do IDEB</h4>
-          <p>
-            O MEC/INEP define a meta do IDEB separadamente para cada rede de
-            ensino de cada município, a partir do ponto de partida da rede. Por
-            isso municípios diferentes, e redes diferentes dentro do mesmo
-            município (municipal, estadual e pública, que reúne as duas), têm
-            metas diferentes. Compare a nota sempre com a meta da mesma rede.
-          </p>
-          {currentHistorico.anosSemMeta.length > 0 && (
-            <p>
-              {currentHistorico.ultimoAnoComMeta !== null &&
-                `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
-              Os resultados de {formatarAnos(currentHistorico.anosSemMeta)} não
-              têm metas definidas pelo INEP e podem ser comparados com os anos
-              anteriores.{" "}
-              <a
-                href={NOTA_INFORMATIVA_IDEB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-brand-text hover:underline hover:underline"
-              >
-                <span>Fonte: Nota Informativa do Ideb 2025</span>
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                <span className="sr-only">(abre em nova aba)</span>
-              </a>
-            </p>
-          )}
-        </div>
       </div>
 
-      {/* Cards de Proficiência Pedagógica (SAEB & Fluxo) */}
-      {pontoMaisRecente && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="border-line border-t pt-4">
-            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
-              SAEB — Língua Portuguesa
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-ink">
-                {pontoMaisRecente.saebLinguaPortuguesa !== null
-                  ? pontoMaisRecente.saebLinguaPortuguesa.toLocaleString(
-                      "pt-BR",
-                      {
-                        minimumFractionDigits: 1,
-                      },
-                    )
-                  : "—"}
-              </span>
-              <span className="text-mute text-xs">escala SAEB</span>
-            </div>
-            <p className="mt-1 text-mute text-xs">
-              Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
-            </p>
-          </div>
+      <div>
+        <button
+          type="button"
+          onClick={() => setDetalhesAberto(true)}
+          className="min-h-11 font-medium text-brand-text underline"
+        >
+          Ver detalhes
+        </button>
+      </div>
 
-          <div className="border-line border-t pt-4">
-            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
-              SAEB — Matemática
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-ink">
-                {pontoMaisRecente.saebMatematica !== null
-                  ? pontoMaisRecente.saebMatematica.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 1,
-                    })
-                  : "—"}
-              </span>
-              <span className="text-mute text-xs">escala SAEB</span>
-            </div>
-            <p className="mt-1 text-mute text-xs">
-              Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
-            </p>
-          </div>
+      <ModalDialog
+        isOpen={detalhesAberto}
+        onClose={() => setDetalhesAberto(false)}
+        title="Detalhes do IDEB"
+        subtitle={currentHistorico.label}
+        maxWidth="3xl"
+      >
+        <div className="space-y-6">
+          {pontoMaisRecente && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="border-line border-t pt-4">
+                <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
+                  SAEB — Língua Portuguesa
+                </span>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-bold font-serif text-3xl text-ink">
+                    {pontoMaisRecente.saebLinguaPortuguesa !== null
+                      ? pontoMaisRecente.saebLinguaPortuguesa.toLocaleString(
+                          "pt-BR",
+                          {
+                            minimumFractionDigits: 1,
+                          },
+                        )
+                      : "—"}
+                  </span>
+                  <span className="text-mute text-xs">escala SAEB</span>
+                </div>
+                <p className="mt-1 text-mute text-xs">
+                  Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
+                </p>
+              </div>
 
-          <div className="border-line border-t pt-4">
-            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
-              Taxa de Aprovação Escolar
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-ink">
-                {pontoMaisRecente.taxaAprovacao !== null
-                  ? `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 1,
-                    })}%`
-                  : "—"}
-              </span>
-              <CheckCircle className="inline h-4 w-4 text-ok-text" />
+              <div className="border-line border-t pt-4">
+                <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
+                  SAEB — Matemática
+                </span>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-bold font-serif text-3xl text-ink">
+                    {pontoMaisRecente.saebMatematica !== null
+                      ? pontoMaisRecente.saebMatematica.toLocaleString(
+                          "pt-BR",
+                          {
+                            minimumFractionDigits: 1,
+                          },
+                        )
+                      : "—"}
+                  </span>
+                  <span className="text-mute text-xs">escala SAEB</span>
+                </div>
+                <p className="mt-1 text-mute text-xs">
+                  Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
+                </p>
+              </div>
+
+              <div className="border-line border-t pt-4">
+                <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
+                  Taxa de Aprovação Escolar
+                </span>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-bold font-serif text-3xl text-ink">
+                    {pontoMaisRecente.taxaAprovacao !== null
+                      ? `${pontoMaisRecente.taxaAprovacao.toLocaleString(
+                          "pt-BR",
+                          {
+                            minimumFractionDigits: 1,
+                          },
+                        )}%`
+                      : "—"}
+                  </span>
+                  <CheckCircle className="inline h-4 w-4 text-ok-text" />
+                </div>
+                <p className="mt-1 text-mute text-xs">
+                  Indicador de fluxo regular dos alunos
+                </p>
+              </div>
             </div>
-            <p className="mt-1 text-mute text-xs">
-              Indicador de fluxo regular dos alunos
+          )}
+          <div className="mt-3 space-y-2 border-line border-t pt-3 text-mute text-xs">
+            <h4>Como ler a meta do IDEB</h4>
+            <p>
+              O MEC/INEP define a meta do IDEB separadamente para cada rede de
+              ensino de cada município, a partir do ponto de partida da rede.
+              Por isso municípios diferentes, e redes diferentes dentro do mesmo
+              município (municipal, estadual e pública, que reúne as duas), têm
+              metas diferentes. Compare a nota sempre com a meta da mesma rede.
             </p>
+            {currentHistorico.anosSemMeta.length > 0 && (
+              <p>
+                {currentHistorico.ultimoAnoComMeta !== null &&
+                  `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
+                Os resultados de {formatarAnos(currentHistorico.anosSemMeta)}{" "}
+                não têm metas definidas pelo INEP e podem ser comparados com os
+                anos anteriores.{" "}
+                <a
+                  href={NOTA_INFORMATIVA_IDEB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-brand-text hover:underline hover:underline"
+                >
+                  <span>Fonte: Nota Informativa do Ideb 2025</span>
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  <span className="sr-only">(abre em nova aba)</span>
+                </a>
+              </p>
+            )}
           </div>
         </div>
-      )}
-    </section>
+      </ModalDialog>
+    </div>
   );
 }

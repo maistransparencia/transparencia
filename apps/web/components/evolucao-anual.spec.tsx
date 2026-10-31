@@ -1,15 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SaudeEvolucaoAnual } from "./saude-evolucao-anual";
+import { EvolucaoAnual } from "./evolucao-anual";
 
 const data = [
   { ano: 2024, empenhado: 40_000_000, pago: 30_000_000 },
   { ano: 2025, empenhado: 50_000_000, pago: 45_000_000 },
 ];
 
-describe("SaudeEvolucaoAnual", () => {
+describe("EvolucaoAnual", () => {
   it("mostra reservado e pago de cada ano", () => {
-    render(<SaudeEvolucaoAnual data={data} selectedYear={2025} />);
+    render(<EvolucaoAnual data={data} selectedYear={2025} />);
     expect(screen.getByText("2024")).toBeTruthy();
     expect(screen.getByText("2025")).toBeTruthy();
     expect(screen.getByText("Reservado (empenhado)")).toBeTruthy();
@@ -19,7 +19,7 @@ describe("SaudeEvolucaoAnual", () => {
   });
 
   it("marca o ano em andamento", () => {
-    render(<SaudeEvolucaoAnual data={data} partialYear={2025} />);
+    render(<EvolucaoAnual data={data} partialYear={2025} />);
     expect(
       screen.getByText(/em andamento/, { selector: "span.caption" }),
     ).toBeTruthy();
@@ -27,7 +27,7 @@ describe("SaudeEvolucaoAnual", () => {
 
   it("mantém as barras entre 0% e 100% mesmo com pago acima do reservado", () => {
     const { container } = render(
-      <SaudeEvolucaoAnual data={[{ ano: 2025, empenhado: 10, pago: 30 }]} />,
+      <EvolucaoAnual data={[{ ano: 2025, empenhado: 10, pago: 30 }]} />,
     );
     const larguras = Array.from(
       container.querySelectorAll<HTMLElement>("div.h-full"),
@@ -38,11 +38,21 @@ describe("SaudeEvolucaoAnual", () => {
   });
 
   it("mostra estado vazio neutro sem dados", () => {
-    render(<SaudeEvolucaoAnual data={[]} />);
+    render(<EvolucaoAnual data={[]} />);
     expect(
-      screen.getByText(
-        "Sem execução da saúde registrada para comparar os anos.",
-      ),
+      screen.getByText("Sem execução registrada para comparar os anos."),
+    ).toBeTruthy();
+  });
+
+  it("aceita uma mensagem vazia própria de cada área", () => {
+    render(
+      <EvolucaoAnual
+        data={[]}
+        mensagemVazia="Sem execução da educação registrada."
+      />,
+    );
+    expect(
+      screen.getByText("Sem execução da educação registrada."),
     ).toBeTruthy();
   });
 });

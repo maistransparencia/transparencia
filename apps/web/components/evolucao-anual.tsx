@@ -1,16 +1,18 @@
 import { cn, fmtCompact } from "@transparencia/ui";
 
-export interface EvolucaoAnualSaude {
+export interface EvolucaoAnualPonto {
   ano: number;
   empenhado: number;
   pago: number;
 }
 
-export interface SaudeEvolucaoAnualProps {
-  data: EvolucaoAnualSaude[];
+export interface EvolucaoAnualProps {
+  data: EvolucaoAnualPonto[];
   selectedYear?: number;
   /** Ano ainda em andamento: os valores são acumulados até o período informado. */
   partialYear?: number;
+  /** Frase mostrada quando não há execução registrada em nenhum ano. */
+  mensagemVazia?: string;
   className?: string;
 }
 
@@ -39,16 +41,17 @@ function LinhaBarra({ valor, maior, corClasse }: LinhaBarraProps) {
   );
 }
 
-export function SaudeEvolucaoAnual({
+export function EvolucaoAnual({
   data,
   selectedYear,
   partialYear,
+  mensagemVazia = "Sem execução registrada para comparar os anos.",
   className,
-}: SaudeEvolucaoAnualProps) {
+}: EvolucaoAnualProps) {
   if (data.length === 0) {
     return (
       <p className={cn("border-line border-y py-4 text-mute", className)}>
-        Sem execução da saúde registrada para comparar os anos.
+        {mensagemVazia}
       </p>
     );
   }

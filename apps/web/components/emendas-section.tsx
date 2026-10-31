@@ -52,7 +52,7 @@ export interface SaudeEmendasStatsProps {
   lista: SaudeEmendaItem[];
 }
 
-export interface SaudeEmendasSectionProps {
+export interface EmendasSectionProps {
   ano: number;
   emendasStats: SaudeEmendasStatsProps;
   portalSlug?: string;
@@ -108,13 +108,13 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
   );
 }
 
-export function SaudeEmendasSection({
+export function EmendasSection({
   ano,
   emendasStats,
   portalSlug,
   titulo = TITULO_PADRAO,
   descricao = DESCRICAO_PADRAO,
-}: SaudeEmendasSectionProps) {
+}: EmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
   );

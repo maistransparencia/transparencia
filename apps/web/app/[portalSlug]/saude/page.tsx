@@ -9,9 +9,9 @@ import {
 import type { Metadata } from "next";
 import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { EmendasSection } from "@/components/emendas-section";
+import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
-import { SaudeEmendasSection } from "@/components/saude-emendas-section";
-import { SaudeEvolucaoAnual } from "@/components/saude-evolucao-anual";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -148,10 +148,11 @@ export default async function SaudePage({
               : ""
           }`}
         />
-        <SaudeEvolucaoAnual
+        <EvolucaoAnual
           data={saude.executionTrend}
           selectedYear={selectedYear}
           partialYear={isCurrentYear ? selectedYear : undefined}
+          mensagemVazia="Sem execução da saúde registrada para comparar os anos."
         />
       </section>
 
@@ -198,7 +199,7 @@ export default async function SaudePage({
       </section>
 
       {/* Seção 6: Emendas parlamentares destinadas à Saúde (Existente, com mais detalhes) */}
-      <SaudeEmendasSection
+      <EmendasSection
         ano={selectedYear}
         emendasStats={saude.emendasStats}
         portalSlug={portalSlug}

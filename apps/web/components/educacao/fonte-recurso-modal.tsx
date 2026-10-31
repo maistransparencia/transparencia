@@ -7,7 +7,6 @@ import {
   BASE_LEGAL_FONTE_RECURSO,
   DESCRICAO_FONTE_RECURSO,
   formatMesPorExtenso,
-  ID_PAINEL_FISCAL_EDUCACAO,
   ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
 
@@ -88,20 +87,6 @@ export function FonteRecursoModal({
           <p className="text-mute text-sm">
             {DESCRICAO_FONTE_RECURSO[fonte.grupoFonte]}
           </p>
-
-          {fonte.grupoFonte === "fundeb" && (
-            <p className="bg-line2 p-3 text-mute text-xs">
-              A aplicação mínima do FUNDEB está no{" "}
-              <a
-                href={`#${ID_PAINEL_FISCAL_EDUCACAO}`}
-                onClick={onClose}
-                className="font-medium text-brand-text underline underline-offset-2"
-              >
-                painel fiscal acima
-              </a>
-              .
-            </p>
-          )}
 
           <section aria-label="Ano a ano" className="space-y-2">
             <h3>Ano a ano{periodo}</h3>

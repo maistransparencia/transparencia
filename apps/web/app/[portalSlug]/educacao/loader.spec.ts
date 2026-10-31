@@ -14,6 +14,10 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoMediasEstaduais: vi.fn(),
   getEducacaoEmendasMetrics: vi.fn(),
   getEducacaoOrigemRecursos: vi.fn(),
+  getEducacaoExecucaoAnual: vi.fn(),
+  getEducacaoPagoPorSubfuncao: vi.fn(),
+  getTopFornecedoresEducacaoMetrics: vi.fn(),
+  getEducacaoRankingEstadual: vi.fn(),
 }));
 
 describe("educacao/loader", () => {
@@ -90,9 +94,7 @@ describe("educacao/loader", () => {
           crescimentoPontosIdeb: 1.4,
           variacaoSaebMatematica: 16.29,
           variacaoSaebPortugues: 16.41,
-          despesaLiquidadaEducacao: 34291936.64,
           totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14974.64,
         },
       ];
       const mockResumo = {
@@ -102,12 +104,11 @@ describe("educacao/loader", () => {
         metaIdeb: null,
         atingiuMeta: null,
         crescimentoPontosIdeb: 1.4,
+        despesaLiquidadaEducacao: null,
         saebMatematica: 218.39,
         saebLinguaPortuguesa: 210.91,
         indicadorFluxoAprovacao: 0.985,
-        despesaLiquidadaEducacao: 34291936.64,
         totalMatriculasRedeMunicipal: 2290,
-        custoAnualPorAluno: 14974.64,
         anosIniciais: mockMetrics[0],
         anosFinais: null,
       };
@@ -172,10 +173,55 @@ describe("educacao/loader", () => {
         fontes: [],
       });
 
+      vi.mocked(dbModule.getEducacaoExecucaoAnual).mockResolvedValue([
+        {
+          ano: 2025,
+          empenhado: 1500,
+          liquidado: 1350,
+          pago: 1200,
+          pagoEnsinoSuperior: 200,
+          pagoSemEnsinoSuperior: 1000,
+          totalMatriculasRedeMunicipal: 4,
+          pagoPorAluno: 250,
+        },
+      ]);
+      vi.mocked(dbModule.getEducacaoPagoPorSubfuncao).mockResolvedValue([
+        { subfuncao: "361", subfuncaoNome: "Ensino Fundamental", pago: 1000 },
+      ]);
+      vi.mocked(dbModule.getTopFornecedoresEducacaoMetrics).mockResolvedValue(
+        [],
+      );
+      vi.mocked(dbModule.getEducacaoRankingEstadual).mockResolvedValue({
+        posicaoRanking: 46,
+        totalMunicipios: 92,
+        variacaoPosicoes: 3,
+      });
+
       const data = await loadEducacaoData("porciuncula_prefeitura", {
         ano: "2025",
         contratoNumero: "0443/25",
       });
+
+      expect(data.execucaoAnual[0].pagoPorAluno).toBe(250);
+      expect(data.pagoPorSubfuncao).toHaveLength(1);
+      expect(dbModule.getEducacaoPagoPorSubfuncao).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        2025,
+      );
+      expect(dbModule.getTopFornecedoresEducacaoMetrics).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        year: 2025,
+        limit: 5,
+      });
+      expect(dbModule.getEducacaoRankingEstadual).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        expect.objectContaining({ etapaEnsino: "anosIniciais" }),
+      );
+      expect(dbModule.getEducacaoRankingEstadual).toHaveBeenCalledWith(
+        "porciuncula_prefeitura",
+        expect.objectContaining({ etapaEnsino: "anosFinais" }),
+      );
+      expect(data.rankingAnosFinais?.totalMunicipios).toBe(92);
 
       expect(data.portalSlug).toBe("porciuncula_prefeitura");
       expect(data.portalConfig?.cidadeClean).toBe("Porciúncula");

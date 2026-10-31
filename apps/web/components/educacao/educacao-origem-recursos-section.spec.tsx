@@ -48,35 +48,35 @@ function makeOrigem(
 }
 
 describe("EducacaoOrigemRecursosSection", () => {
-  it("mostra título, subtítulo dinâmico, barra e cards com valor compacto e percentual", () => {
+  it("mostra título, descrição dinâmica e um indicador por fonte com valor compacto e percentual", () => {
     render(
       <EducacaoOrigemRecursosSection
         origemRecursos={makeOrigem([FUNDEB, PNAE])}
       />,
     );
-    expect(screen.getByText("De onde vem o dinheiro")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "O que entrou" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Receitas do Fundo Municipal de Educação em 2025 – Não inclui o aporte da Prefeitura ao fundo.",
+        /Em 2025, entraram R\$ 18,8 mi no Fundo Municipal de Educação\. 61 de cada R\$ 100 vêm de FUNDEB\..*Não inclui o aporte da Prefeitura ao Fundo\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("composicao-recursos-bar")).toHaveAttribute(
-      "role",
-      "img",
-    );
-    const card = screen.getByTestId("fonte-card-fundeb");
-    expect(card).toHaveAccessibleName("FUNDEB, R$ 18,5 mi, 61% do total");
-    expect(within(card).getByText("Ver detalhes ›")).toBeInTheDocument();
+    expect(screen.queryByTestId("composicao-recursos-bar")).toBeNull();
+    const botao = screen.getByTestId("fonte-card-fundeb");
+    expect(botao).toHaveAccessibleName("Ver detalhes: FUNDEB");
+    expect(screen.getByText("R$ 18,5 mi")).toBeInTheDocument();
+    expect(screen.getByText(/61% do que entrou/)).toBeInTheDocument();
   });
 
-  it("esmaece e desabilita fontes sem valor no ano", () => {
+  it("mostra fontes sem valor no ano como traço, sem gatilho de detalhes", () => {
     render(
       <EducacaoOrigemRecursosSection origemRecursos={makeOrigem([FUNDEB])} />,
     );
-    const vazio = screen.getByTestId("fonte-card-pnate");
-    expect(vazio).toHaveAttribute("aria-disabled", "true");
-    fireEvent.click(vazio);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("fonte-card-pnate")).toBeNull();
+    expect(
+      screen.getAllByText("sem receita no exercício").length,
+    ).toBeGreaterThan(0);
   });
 
   it("abre o modal com ano a ano, composição e base legal ao tocar no card", () => {
@@ -99,9 +99,6 @@ describe("EducacaoOrigemRecursosSection", () => {
       "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14113.htm",
     );
     expect(lei).toHaveAttribute("target", "_blank");
-    expect(
-      within(dialog).getByRole("link", { name: "painel fiscal acima" }),
-    ).toHaveAttribute("href", "#painel-fiscal-educacao");
   });
 
   it("destaca o ano selecionado no histórico e na composição do modal", () => {
@@ -184,7 +181,7 @@ describe("EducacaoOrigemRecursosSection", () => {
     );
   });
 
-  it("marca o ano em andamento como parcial nos cards e no modal", () => {
+  it("marca o ano em andamento como parcial na descrição, nos indicadores e no modal", () => {
     render(
       <EducacaoOrigemRecursosSection
         origemRecursos={{
@@ -195,16 +192,10 @@ describe("EducacaoOrigemRecursosSection", () => {
       />,
     );
     expect(
-      screen.getByText("Ano em andamento: valores acumulados até julho."),
+      screen.getByText(/Ano em andamento: valores acumulados até julho\./),
     ).toBeInTheDocument();
-    const card = screen.getByTestId("fonte-card-fundeb");
-    expect(card).toHaveAccessibleName(
-      "FUNDEB, R$ 18,5 mi, 61% do total, valor parcial do ano",
-    );
-    expect(
-      within(card).getByText("61% do total · parcial"),
-    ).toBeInTheDocument();
-    fireEvent.click(card);
+    expect(screen.getByText(/61% do que entrou · parcial/)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("fonte-card-fundeb"));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText(/em 2025 \(parcial\)/)).toBeInTheDocument();
     expect(within(dialog).getByText("parcial")).toBeInTheDocument();

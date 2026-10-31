@@ -1,10 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { fmtCurrency } from "@transparencia/ui";
 import { describe, expect, it } from "vitest";
-import {
-  SaudeEmendasSection,
-  type SaudeEmendasStatsProps,
-} from "./saude-emendas-section";
+import { EmendasSection, type SaudeEmendasStatsProps } from "./emendas-section";
 
 const mockStats: SaudeEmendasStatsProps = {
   totalAutorizado: 2031183,
@@ -81,10 +78,10 @@ const mockStats: SaudeEmendasStatsProps = {
   ],
 };
 
-describe("SaudeEmendasSection", () => {
+describe("EmendasSection", () => {
   it("renderiza cabeçalho, KPIs e lista de emendas", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -104,7 +101,7 @@ describe("SaudeEmendasSection", () => {
 
   it("abre modal com rastreabilidade ao clicar no botão de empenhos", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -133,7 +130,7 @@ describe("SaudeEmendasSection", () => {
 
   it("abre modal com rastreabilidade ao clicar no nome do autor da emenda", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -176,7 +173,7 @@ describe("SaudeEmendasSection", () => {
     };
 
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={customStats}
         portalSlug="porciuncula_prefeitura"
@@ -211,7 +208,7 @@ describe("SaudeEmendasSection", () => {
 
   it("renderiza linhas mobile compactas com autor, valor e rastreabilidade", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -226,7 +223,7 @@ describe("SaudeEmendasSection", () => {
 
   it("mostra a proposta e a destinação ao expandir a linha no mobile", () => {
     const { container } = render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -305,7 +302,7 @@ describe("SaudeEmendasSection", () => {
     };
 
     const { container } = render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={unorderedStats}
         portalSlug="porciuncula_prefeitura"
@@ -321,7 +318,7 @@ describe("SaudeEmendasSection", () => {
 
   it("usa título e descrição customizados e rodapé com os totais na tabela", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         titulo="Emendas parlamentares destinadas à Educação"
@@ -345,7 +342,7 @@ describe("SaudeEmendasSection", () => {
   });
 
   it("recalcula o rodapé ao buscar na tabela", () => {
-    render(<SaudeEmendasSection ano={2026} emendasStats={mockStats} />);
+    render(<EmendasSection ano={2026} emendasStats={mockStats} />);
     fireEvent.change(screen.getByPlaceholderText(/Buscar/), {
       target: { value: "Soranz" },
     });

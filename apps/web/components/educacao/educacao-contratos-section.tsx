@@ -11,12 +11,12 @@ import {
   DenseTable,
   fmtCurrency,
   fmtDate,
+  SectionHeader,
 } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
-import { SectionHeader } from "@/components/section-header";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
@@ -43,6 +43,25 @@ const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
   "manutencao_geral",
   "locacao_imoveis",
   "outros",
+];
+
+const BASES_LEGAIS = [
+  {
+    rotulo: "Lei 11.947/2009 (PNAE)",
+    url: urlLegislacao("lei11947"),
+    ariaLabel: "Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto",
+  },
+  {
+    rotulo: "Lei 10.880/2004 (PNATE)",
+    url: urlLegislacao("lei10880"),
+    ariaLabel: "Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto",
+  },
+  {
+    rotulo: "Lei 14.133/2021, art. 74, V (locação de imóveis)",
+    url: urlLegislacao("lei14133", "art74v"),
+    ariaLabel:
+      "Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto",
+  },
 ];
 
 export function EducacaoContratosSection({
@@ -189,7 +208,7 @@ export function EducacaoContratosSection({
             type="button"
             onClick={() => handleOpenContrato(row.rawDto)}
             className="cursor-pointer text-left font-medium text-ink hover:text-brand-text hover:underline"
-            title="Ver detalhes do contrato"
+            title="Ver detalhes"
           >
             {row.fornecedorNome}
           </button>
@@ -213,7 +232,7 @@ export function EducacaoContratosSection({
             type="button"
             onClick={() => handleOpenContrato(row.rawDto)}
             className="inline-flex cursor-pointer items-center gap-1 font-medium text-brand-text text-xs hover:underline hover:underline"
-            title="Abrir detalhes completos do contrato"
+            title="Ver detalhes"
           >
             <span>Detalhes</span>
           </button>
@@ -296,51 +315,33 @@ export function EducacaoContratosSection({
   return (
     <section
       id="contratos-educacao"
-      aria-label="Contratos e Compras da Educação"
+      aria-label="Como o Fundo contrata"
       className="space-y-6"
     >
       <SectionHeader
-        title={`Contratos e Compras da Educação${ano ? ` · Exercício ${ano}` : ""}`}
-        description={
-          <span>
-            Auditoria dos contratos da pasta de ensino vigentes no exercício:
-            merenda escolar (
-            <a
-              href={urlLegislacao("lei11947")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
-              aria-label="Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto"
-            >
-              Lei nº 11.947/2009 (PNAE)
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), transporte escolar (
-            <a
-              href={urlLegislacao("lei10880")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
-              aria-label="Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto"
-            >
-              Lei nº 10.880/2004 (PNATE)
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), locação de imóveis (
-            <a
-              href={urlLegislacao("lei14133", "art74v")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
-              aria-label="Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto"
-            >
-              Lei nº 14.133/2021, Art. 74, V
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), manutenção das escolas e suprimentos operacionais.
-          </span>
-        }
+        title="Como o Fundo contrata"
+        description={`Contratos do Fundo vigentes em ${ano}: merenda, transporte escolar e manutenção.`}
       />
+
+      <p className="text-mute text-sm">
+        Base legal:{" "}
+        {BASES_LEGAIS.map((base, indice) => (
+          <span key={base.rotulo}>
+            {indice > 0 ? ", " : ""}
+            <a
+              href={base.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+              aria-label={base.ariaLabel}
+            >
+              {base.rotulo}
+              <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
+            </a>
+          </span>
+        ))}
+        .
+      </p>
 
       {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
