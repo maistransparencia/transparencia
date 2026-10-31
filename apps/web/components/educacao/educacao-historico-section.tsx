@@ -188,6 +188,7 @@ export function EducacaoHistoricoSection({
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
+              accessibilityLayer={false}
               data={chartData}
               margin={{ top: 20, right: 10, left: -30, bottom: 10 }}
             >
