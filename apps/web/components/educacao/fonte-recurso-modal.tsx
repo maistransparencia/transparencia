@@ -113,7 +113,12 @@ export function FonteRecursoModal({
                         <span className="caption block">parcial</span>
                       )}
                     </span>
-                    <span className="block h-3 bg-track">
+                    <span
+                      className={cn(
+                        "block h-3",
+                        selecionado ? "bg-page" : "bg-track",
+                      )}
+                    >
                       <span
                         className="block h-full bg-brand-fill"
                         style={{
@@ -145,7 +150,7 @@ export function FonteRecursoModal({
             <section aria-label="De que são compostos" className="space-y-3">
               <h3>De que são compostos em {ano}</h3>
               <div className="overflow-x-auto">
-                <table>
+                <table className="w-full">
                   <thead>
                     <tr>
                       <th scope="col">Natureza da receita</th>
