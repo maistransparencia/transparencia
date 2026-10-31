@@ -3,7 +3,7 @@ title: 'Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Mapa no Te
 type: 'feature'
 created: '2026-10-31'
 status: 'ready-for-dev'
-baseline_revision: ''
+baseline_revision: 'c74232d8831bda663cb7e0e0c7120b2bd62018cb'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
