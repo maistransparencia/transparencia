@@ -1,5 +1,6 @@
 "use client";
 
+import { corDoGrafico } from "@transparencia/ui";
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 export interface FontesReceitaSaude {
@@ -29,40 +30,36 @@ export function SaudeFontesDonut({
         {
           name: "Transferências União (SUS)",
           pct: data.uniaoSusPct,
-          color: "#2e7d32", // Green
-          fill: "#2e7d32", // Green
+          color: corDoGrafico("ok"),
+          fill: corDoGrafico("ok"),
         },
         {
           name: "Transferências Estado",
           pct: data.estadoPct,
-          color: "#b78103", // Gold/Yellow
-          fill: "#b78103", // Gold/Yellow
+          color: corDoGrafico("warn"),
+          fill: corDoGrafico("warn"),
         },
         {
           name: "Receita própria / repasse",
           pct: data.propriaPct,
-          color: "#1976d2", // Blue
-          fill: "#1976d2", // Blue
+          color: corDoGrafico("brand"),
+          fill: corDoGrafico("brand"),
         },
       ]
     : [
         {
           name: "Sem lançamentos de receita no período",
           pct: 100,
-          color: "#cbd5e1", // Slate-300
-          fill: "#cbd5e1", // Slate-300
+          color: corDoGrafico("line"),
+          fill: corDoGrafico("line"),
         },
       ];
 
   return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
-    >
+    <div className={`border-line border-t pt-6 ${className}`}>
       <div className="mb-4">
-        <h4 className="font-bold text-base text-slate-900">
-          Origem dos Recursos
-        </h4>
-        <p className="font-medium text-slate-500 text-xs">
+        <h4>Origem dos Recursos</h4>
+        <p className="font-medium text-mute text-xs">
           Fontes de receita do Fundo · {ano}
         </p>
       </div>
@@ -89,11 +86,10 @@ export function SaudeFontesDonut({
                   "Participação",
                 ]}
                 contentStyle={{
-                  backgroundColor: "#ffffff",
-                  borderColor: "#e2e8f0",
-                  borderRadius: "8px",
+                  backgroundColor: corDoGrafico("page"),
+                  borderColor: corDoGrafico("line"),
+                  borderRadius: 0,
                   fontSize: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                 }}
               />
             </PieChart>
@@ -109,8 +105,8 @@ export function SaudeFontesDonut({
                 style={{ backgroundColor: item.color }}
               />
               <div className="flex flex-1 items-center justify-between text-xs">
-                <span className="font-medium text-slate-700">{item.name}</span>
-                <span className="ml-2 font-bold text-slate-900">
+                <span className="font-medium text-ink">{item.name}</span>
+                <span className="ml-2 font-bold text-ink">
                   {item.pct.toFixed(1).replace(".", ",")}%
                 </span>
               </div>

@@ -1,9 +1,10 @@
 import {
   AlertBox,
-  cn,
+  Badge,
   fmtCompact,
   fmtPercent,
   KPICard,
+  SectionHeader,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
@@ -21,9 +22,7 @@ const SaudeFontesDonut = nextDynamic(
       (mod) => mod.SaudeFontesDonut,
     ),
   {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
+    loading: () => <div className="h-[280px] w-full animate-pulse bg-line2" />,
   },
 );
 
@@ -31,9 +30,7 @@ const SaudeTrendChart = nextDynamic(
   () =>
     import("@/components/saude-trend-chart").then((mod) => mod.SaudeTrendChart),
   {
-    loading: () => (
-      <div className="h-[320px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
+    loading: () => <div className="h-[320px] w-full animate-pulse bg-line2" />,
   },
 );
 
@@ -86,7 +83,7 @@ export default async function SaudePage({
     }
     if (totalEmpenhado === 0) {
       return (
-        <span className="font-semibold text-amber-700">
+        <span className="font-semibold text-warn-text">
           Nenhum valor empenhado
         </span>
       );
@@ -102,14 +99,10 @@ export default async function SaudePage({
       "Sem registros de aquisições de insumos ou contratos no exercício",
   };
 
-  const badgeColorClasses = (() => {
-    if (concentracao.nivel === "alta") {
-      return "text-rose-700 bg-rose-50 border-rose-200";
-    }
-    if (concentracao.nivel === "moderada") {
-      return "text-amber-700 bg-amber-50 border-amber-200";
-    }
-    return "text-emerald-700 bg-emerald-50 border-emerald-200";
+  const varianteConcentracao = (() => {
+    if (concentracao.nivel === "alta") return "danger" as const;
+    if (concentracao.nivel === "moderada") return "warning" as const;
+    return "success" as const;
   })();
 
   return (
@@ -125,22 +118,26 @@ export default async function SaudePage({
         />
 
         {/* Hero KPIs com KPIGrid e KPICard */}
-        <KPIGrid columns={4}>
+        <KPIGrid columns={4} variant="divisoria">
           <KPICard
+            variant="divisoria"
             title="Emendas na Saúde"
             value={fmtCompact(totalEmendas)}
             subtext={emendasSubtext}
             accent={hasEmendas && taxaEmpenho >= 0.7}
           />
           <KPICard
+            variant="divisoria"
             title="Contratos vinculados"
             value={saude.orcamento.contratosVinculadosCount}
           />
           <KPICard
+            variant="divisoria"
             title="Fornecedores ativos"
             value={saude.orcamento.fornecedoresAtivosCount}
           />
           <KPICard
+            variant="divisoria"
             title="Medicamentos e Insumos"
             value={fmtCompact(saude.orcamento.medicamentosInsumos)}
           />
@@ -156,20 +153,20 @@ export default async function SaudePage({
       )}
 
       {/* Seção 2: O que entrou no Fundo (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          O que entrou
-        </h2>
+      <section className="space-y-6">
+        <SectionHeader title="O que entrou" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
             <SaudeFontesDonut data={saude.fontesReceita} ano={selectedYear} />
           </div>
           <div className="flex flex-col gap-4">
             <KPICard
+              variant="divisoria"
               title="Repasses da Prefeitura ao Fundo"
               value={fmtCompact(saude.fontesReceita.repassesPrefeitura)}
             />
             <KPICard
+              variant="divisoria"
               title="Emendas parlamentares"
               value={fmtCompact(saude.fontesReceita.emendasParlamentares)}
             />
@@ -178,10 +175,8 @@ export default async function SaudePage({
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Empenhado no ano
-        </h2>
+      <section className="space-y-6">
+        <SectionHeader title="Empenhado no ano" />
         <SaudeTrendChart
           data={saude.executionTrend}
           selectedYear={selectedYear}
@@ -198,39 +193,35 @@ export default async function SaudePage({
       />
 
       {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Insumos e assistência farmacêutica
-        </h2>
-        <KPIGrid columns={3}>
+      <section className="space-y-6">
+        <SectionHeader title="Insumos e assistência farmacêutica" />
+        <KPIGrid columns={3} variant="divisoria">
           <KPICard
+            variant="divisoria"
             title="Medicamentos e insumos"
             value={fmtCompact(saude.farmaceutica.medicamentosInsumos)}
             subtext={`${fmtCompact(saude.farmaceutica.medicamentosInsumosPago)} pagos (Subfunção 10.303)`}
           />
           <KPICard
+            variant="divisoria"
             title="Judicialização da saúde"
             value={
-              <span className="font-bold text-amber-700">
+              <span className="font-bold text-warn-text">
                 {fmtCompact(saude.farmaceutica.judicializacao)}
               </span>
             }
             subtext={`${fmtCompact(saude.farmaceutica.judicializacaoPago)} pagos (sentenças judiciais)`}
           />
           <KPICard
+            variant="divisoria"
             title="Concentração de Fornecedores"
             value={
               <span className="flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-sm",
-                    badgeColorClasses,
-                  )}
-                >
+                <Badge variant={varianteConcentracao}>
                   {concentracao.label}
-                </span>
+                </Badge>
                 <span
-                  className="font-medium text-[11px] text-slate-500"
+                  className="caption"
                   title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
                 >
                   Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}

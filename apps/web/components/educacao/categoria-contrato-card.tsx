@@ -34,20 +34,20 @@ export function CategoriaContratoCard({
       onClick={vazia ? undefined : () => onOpen(categoria)}
       data-testid={`categoria-card-${categoria}`}
       className={cn(
-        "flex min-h-11 w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-2xs transition-colors",
+        "flex min-h-11 w-full flex-col gap-2 border-line border-t p-4 text-left transition-colors",
         vazia
           ? "cursor-default opacity-60"
-          : "cursor-pointer hover:border-accent/40 focus-visible:border-accent/40 focus-visible:outline-2 focus-visible:outline-accent",
+          : "cursor-pointer hover:border-brand-fill/40 focus-visible:border-brand-fill/40 focus-visible:outline-2 focus-visible:outline-brand-fill",
         className,
       )}
     >
-      <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+      <span className="font-semibold text-mute text-xs uppercase tracking-wider">
         {rotuloCategoria}
       </span>
       <span
         className={cn(
           "font-serif text-xl sm:text-2xl",
-          vazia ? "text-slate-400" : "text-slate-900",
+          vazia ? "text-mute2" : "text-ink",
         )}
       >
         {valorExibido}
@@ -60,14 +60,14 @@ export function CategoriaContratoCard({
             aria-valuenow={percentualPago}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="block h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+            className="block h-1.5 w-full overflow-hidden rounded-full bg-line2"
           >
             <span
-              className="block h-full rounded-full bg-accent"
+              className="block h-full rounded-full bg-brand-fill"
               style={{ width: `${percentualPago}%` }}
             />
           </span>
-          <span className="block text-[11px] text-slate-500">
+          <span className="block text-mute text-xs">
             {percentualPago}% pago do empenhado
           </span>
         </span>
@@ -75,7 +75,7 @@ export function CategoriaContratoCard({
       <span
         className={cn(
           "font-medium text-xs",
-          vazia ? "text-slate-400" : "text-accent",
+          vazia ? "text-mute2" : "text-brand-text",
         )}
       >
         {vazia ? rotuloContratos : `${rotuloContratos} ›`}

@@ -72,22 +72,24 @@ export function SaudeHeroSection({
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
       {/* Coluna Esquerda: Narrativa */}
       <div className="space-y-4 lg:col-span-7">
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+        <span className="inline-block font-semibold text-brand-text text-xs uppercase tracking-wider">
           TEMAS · FUNDO MUNICIPAL DE SAÚDE · {ano}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
 
-        <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
+        <h1>
           {susPct} de cada R$ 100 da saúde vêm do SUS.{" "}
-          <span className="text-accent">O que o município faz com eles</span> se
-          decide na forma de contratar.
+          <span className="text-brand-text">
+            O que o município faz com eles
+          </span>{" "}
+          se decide na forma de contratar.
         </h1>
 
-        <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
+        <p className="text-mute text-sm leading-relaxed sm:text-base">
           {isCurrentYear ? (
             <>
               O Fundo Municipal de Saúde já empenhou{" "}
-              <strong className="font-bold text-slate-900">
+              <strong className="font-bold text-ink">
                 {fmtCompact(orcamento.empenhado)}
               </strong>{" "}
               em {ano} — {fmtPercent(orcamento.taxaExecucao * 100)} da dotação
@@ -99,7 +101,7 @@ export function SaudeHeroSection({
           ) : (
             <>
               O Fundo Municipal de Saúde empenhou{" "}
-              <strong className="font-bold text-slate-900">
+              <strong className="font-bold text-ink">
                 {fmtCompact(orcamento.empenhado)}
               </strong>{" "}
               no exercício de {ano} — {fmtPercent(orcamento.taxaExecucao * 100)}{" "}
@@ -113,59 +115,57 @@ export function SaudeHeroSection({
       </div>
 
       {/* Coluna Direita: Card Visual do Empenho ao Pagamento */}
-      <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-sm lg:col-span-5">
+      <div className="border-line border-t pt-6 lg:col-span-5">
         <div className="mb-4 flex items-center justify-between gap-2">
           {isCurrentYear ? (
             <>
-              <span className="font-medium text-slate-500 text-xs">
+              <span className="font-medium text-mute text-xs">
                 Empenhado no ano até agora
               </span>
-              <span className="inline-flex shrink-0 items-center rounded-md border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 font-medium text-[11px] text-emerald-800">
+              <span className="inline-flex shrink-0 items-center rounded-md border border-ok-fill bg-ok-fill/15 px-2.5 py-0.5 font-medium text-ok-text text-xs">
                 no ritmo
               </span>
             </>
           ) : (
-            <span className="font-medium text-slate-500 text-xs">
+            <span className="font-medium text-mute text-xs">
               Empenhado no exercício
             </span>
           )}
         </div>
 
-        <div className="mb-2 font-bold font-serif text-3xl text-slate-900 tracking-tight sm:text-4xl">
+        <div className="mb-2 font-bold font-serif text-3xl text-ink tracking-tight sm:text-4xl">
           {fmtCompact(orcamento.empenhado)}
         </div>
 
         <div className="mb-6 space-y-1.5">
-          <div className="flex items-center justify-between font-medium text-slate-500 text-xs">
+          <div className="flex items-center justify-between font-medium text-mute text-xs">
             <span>
               {fmtPercent(orcamento.taxaExecucao * 100)} da dotação de{" "}
               {fmtCompact(orcamento.dotacao)}
             </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
+          <div className="h-2.5 w-full overflow-hidden rounded-md bg-line2">
             <div
-              className="h-full rounded-md bg-accent transition-all duration-500 ease-out"
+              className="h-full rounded-md bg-brand-fill transition-all duration-500 ease-out"
               style={{ width: `${empenhadoRatio}%` }}
             />
           </div>
         </div>
 
-        <div className="border-[#e7e9ee] border-t pt-4">
-          <h4 className="mb-3 font-semibold text-slate-500 text-xs uppercase tracking-wider">
-            DO EMPENHO ATÉ O PAGAMENTO
-          </h4>
+        <div className="border-line border-t pt-4">
+          <h4 className="mb-3 text-mute">DO EMPENHO ATÉ O PAGAMENTO</h4>
           <div className="space-y-3">
             {/* Liquidado */}
             <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="font-medium text-slate-900">Liquidado</span>
-                <span className="font-semibold text-slate-900">
+              <div className="flex items-center justify-between text-mute">
+                <span className="font-medium text-ink">Liquidado</span>
+                <span className="font-semibold text-ink">
                   {fmtCompact(orcamento.liquidado)}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
+              <div className="h-2 w-full overflow-hidden rounded-md bg-line2">
                 <div
-                  className="h-full rounded-md bg-sky-500 transition-all duration-500"
+                  className="h-full rounded-md bg-brand-fill transition-all duration-500"
                   style={{ width: `${liquidadoRatio}%` }}
                 />
               </div>
@@ -173,15 +173,15 @@ export function SaudeHeroSection({
 
             {/* Pago */}
             <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="font-medium text-slate-900">Pago</span>
-                <span className="font-semibold text-slate-900">
+              <div className="flex items-center justify-between text-mute">
+                <span className="font-medium text-ink">Pago</span>
+                <span className="font-semibold text-ink">
                   {fmtCompact(orcamento.pago)}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
+              <div className="h-2 w-full overflow-hidden rounded-md bg-line2">
                 <div
-                  className="h-full rounded-md bg-accent transition-all duration-500"
+                  className="h-full rounded-md bg-brand-fill transition-all duration-500"
                   style={{ width: `${pagoRatio}%` }}
                 />
               </div>
@@ -189,17 +189,17 @@ export function SaudeHeroSection({
 
             {/* Medicamentos e insumos */}
             <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="font-medium text-slate-900">
+              <div className="flex items-center justify-between text-mute">
+                <span className="font-medium text-ink">
                   Medicamentos e insumos
                 </span>
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-ink">
                   {fmtCompact(orcamento.medicamentosInsumos)}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
+              <div className="h-2 w-full overflow-hidden rounded-md bg-line2">
                 <div
-                  className="h-full rounded-md bg-emerald-500 transition-all duration-500"
+                  className="h-full rounded-md bg-ok-fill transition-all duration-500"
                   style={{ width: `${insumosRatio}%` }}
                 />
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { EtapaEnsino } from "@transparencia/db";
-import { SegmentedButton } from "@transparencia/ui";
+import { corDoGrafico, SegmentedButton } from "@transparencia/ui";
 import { CheckCircle, ExternalLink, Info } from "lucide-react";
 import { useState } from "react";
 import {
@@ -52,11 +52,11 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   const ponto = payload[0]?.payload;
 
   return (
-    <div className="min-w-[200px] space-y-1.5 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-md">
-      <div className="flex justify-between border-slate-100 border-b pb-1 font-bold font-serif text-slate-900 text-sm">
+    <div className="min-w-[200px] space-y-1.5 border border-line bg-page p-3 text-xs">
+      <div className="flex justify-between border-line border-b pb-1 font-bold font-serif text-ink text-sm">
         <span>Ciclo {label}</span>
         {ponto?.atingiuMeta && (
-          <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.2 font-semibold text-[10px] text-emerald-700">
+          <span className="rounded border border-ok-fill bg-ok-fill/15 px-1.5 py-0.2 font-semibold text-ok-text text-xs">
             Meta Atingida
           </span>
         )}
@@ -69,14 +69,14 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
               key={item.name}
               className="flex items-center justify-between gap-3"
             >
-              <span className="flex items-center gap-1.5 text-slate-600">
+              <span className="flex items-center gap-1.5 text-mute">
                 <span
                   className="inline-block h-2 w-2 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
                 {item.name}:
               </span>
-              <span className="font-bold text-slate-900">
+              <span className="font-bold text-ink">
                 {item.value.toLocaleString("pt-BR", {
                   minimumFractionDigits: 1,
                   maximumFractionDigits: 1,
@@ -87,11 +87,11 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
         })}
       </div>
       {ponto && (
-        <div className="mt-2 space-y-0.5 border-slate-100 border-t pt-2 text-[11px] text-slate-500">
+        <div className="mt-2 space-y-0.5 border-line border-t pt-2 text-mute text-xs">
           {ponto.saebLinguaPortuguesa !== null && (
             <div className="flex justify-between">
               <span>Saeb Português:</span>
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-ink">
                 {ponto.saebLinguaPortuguesa}
               </span>
             </div>
@@ -99,7 +99,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
           {ponto.saebMatematica !== null && (
             <div className="flex justify-between">
               <span>Saeb Matemática:</span>
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-ink">
                 {ponto.saebMatematica}
               </span>
             </div>
@@ -107,7 +107,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
           {ponto.taxaAprovacao !== null && (
             <div className="flex justify-between">
               <span>Taxa Aprovação:</span>
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-ink">
                 {ponto.taxaAprovacao}%
               </span>
             </div>
@@ -148,7 +148,7 @@ export function EducacaoHistoricoSection({
       />
 
       {/* Tabs / Toggle de Etapa */}
-      <div className="flex items-center gap-2 border-slate-200 border-b pb-2">
+      <div className="flex items-center gap-2 border-line border-b pb-2">
         <SegmentedButton
           onClick={() => setActiveEtapa("anosIniciais")}
           active={activeEtapa === "anosIniciais"}
@@ -166,13 +166,11 @@ export function EducacaoHistoricoSection({
       </div>
 
       {/* Container do Gráfico Recharts */}
-      <div className="rounded-xl border border-borderLine bg-white p-5 shadow-xs">
+      <div className="border-line border-t pt-5">
         <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-bold font-serif text-lg text-slate-900">
-              Evolução da Nota IDEB — {currentHistorico.label}
-            </h3>
-            <p className="text-slate-500 text-xs">
+            <h3>Evolução da Nota IDEB — {currentHistorico.label}</h3>
+            <p className="text-mute text-xs">
               Comparativo com a Média Estadual da rede pública
               {municipioUf ? ` (${municipioUf})` : ""}
               {currentHistorico.possuiMeta
@@ -180,19 +178,19 @@ export function EducacaoHistoricoSection({
                 : ""}
             </p>
           </div>
-          <div className="flex items-center gap-4 font-medium text-slate-600 text-xs">
+          <div className="flex items-center gap-4 font-medium text-mute text-xs">
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#1d64d8]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
               Rede Municipal
             </span>
             {currentHistorico.possuiMeta && (
               <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-3 border-[#64748b] border-t-2 border-dashed" />
+                <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
                 Meta MEC
               </span>
             )}
             <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-3 border-amber-600 border-t-2 border-dotted" />
+              <span className="h-0.5 w-3 border-warn-fill border-t-2 border-dotted" />
               {currentHistorico.mediaEstadualLabel}
             </span>
           </div>
@@ -207,14 +205,14 @@ export function EducacaoHistoricoSection({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#e2e8f0"
+                stroke={corDoGrafico("line")}
               />
               <XAxis
                 dataKey="ano"
-                stroke="#64748b"
+                stroke={corDoGrafico("mute")}
                 fontSize={12}
                 tickLine={false}
-                axisLine={{ stroke: "#cbd5e1" }}
+                axisLine={{ stroke: corDoGrafico("line") }}
               />
               <YAxis
                 domain={[
@@ -229,7 +227,7 @@ export function EducacaoHistoricoSection({
                       Math.ceil(Number.isFinite(dataMax) ? dataMax + 0.5 : 10),
                     ),
                 ]}
-                stroke="#64748b"
+                stroke={corDoGrafico("mute")}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -242,18 +240,18 @@ export function EducacaoHistoricoSection({
                 type="monotone"
                 dataKey="notaIdeb"
                 name="Nota IDEB"
-                stroke="#1d64d8"
+                stroke={corDoGrafico("brand")}
                 strokeWidth={3}
                 dot={{
                   r: 5,
-                  fill: "#1d64d8",
+                  fill: corDoGrafico("brand"),
                   strokeWidth: 2,
-                  stroke: "#ffffff",
+                  stroke: corDoGrafico("page"),
                 }}
                 activeDot={{
                   r: 7,
-                  fill: "#1d64d8",
-                  stroke: "#ffffff",
+                  fill: corDoGrafico("brand"),
+                  stroke: corDoGrafico("page"),
                   strokeWidth: 2,
                 }}
                 connectNulls
@@ -263,14 +261,14 @@ export function EducacaoHistoricoSection({
                   type="monotone"
                   dataKey="metaMec"
                   name="Meta MEC"
-                  stroke="#64748b"
+                  stroke={corDoGrafico("mute")}
                   strokeWidth={2}
                   strokeDasharray="4 4"
-                  dot={{ r: 4, fill: "#64748b" }}
+                  dot={{ r: 4, fill: corDoGrafico("mute") }}
                   activeDot={{
                     r: 6,
-                    fill: "#64748b",
-                    stroke: "#ffffff",
+                    fill: corDoGrafico("mute"),
+                    stroke: corDoGrafico("page"),
                     strokeWidth: 2,
                   }}
                   connectNulls={false}
@@ -280,10 +278,10 @@ export function EducacaoHistoricoSection({
                 type="monotone"
                 dataKey="mediaEstadual"
                 name={currentHistorico.mediaEstadualLabel}
-                stroke="#d97706"
+                stroke={corDoGrafico("warn")}
                 strokeWidth={2}
                 strokeDasharray="3 3"
-                dot={{ r: 3, fill: "#d97706" }}
+                dot={{ r: 3, fill: corDoGrafico("warn") }}
                 connectNulls
               />
             </LineChart>
@@ -291,9 +289,9 @@ export function EducacaoHistoricoSection({
         </div>
 
         {/* Linha explicativa institucional e fonte oficial */}
-        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 text-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-2 border-line border-y bg-line2 p-3 text-mute text-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-mute" />
             <p>
               O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo
               SAEB a cada dois anos. A evolução é resultado do trabalho conjunto
@@ -304,7 +302,7 @@ export function EducacaoHistoricoSection({
             href={FONTES_OFICIAIS.ideb.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"
+            className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-text hover:underline hover:underline"
           >
             <span>Fonte: Painel Oficial INEP</span>
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -312,10 +310,8 @@ export function EducacaoHistoricoSection({
           </a>
         </div>
 
-        <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-white p-3 text-slate-600 text-xs">
-          <h4 className="font-semibold text-slate-800 text-sm">
-            Como ler a meta do IDEB
-          </h4>
+        <div className="mt-3 space-y-2 border-line border-t pt-3 text-mute text-xs">
+          <h4>Como ler a meta do IDEB</h4>
           <p>
             O MEC/INEP define a meta do IDEB separadamente para cada rede de
             ensino de cada município, a partir do ponto de partida da rede. Por
@@ -334,7 +330,7 @@ export function EducacaoHistoricoSection({
                 href={NOTA_INFORMATIVA_IDEB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900 hover:underline"
+                className="inline-flex items-center gap-1 font-semibold text-brand-text hover:underline hover:underline"
               >
                 <span>Fonte: Nota Informativa do Ideb 2025</span>
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -348,12 +344,12 @@ export function EducacaoHistoricoSection({
       {/* Cards de Proficiência Pedagógica (SAEB & Fluxo) */}
       {pontoMaisRecente && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="block font-semibold text-slate-500 text-xs uppercase tracking-wider">
+          <div className="border-line border-t pt-4">
+            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
               SAEB — Língua Portuguesa
             </span>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-slate-900">
+              <span className="font-bold font-serif text-3xl text-ink">
                 {pontoMaisRecente.saebLinguaPortuguesa !== null
                   ? pontoMaisRecente.saebLinguaPortuguesa.toLocaleString(
                       "pt-BR",
@@ -363,47 +359,47 @@ export function EducacaoHistoricoSection({
                     )
                   : "—"}
               </span>
-              <span className="text-slate-500 text-xs">escala SAEB</span>
+              <span className="text-mute text-xs">escala SAEB</span>
             </div>
-            <p className="mt-1 text-slate-500 text-xs">
+            <p className="mt-1 text-mute text-xs">
               Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="block font-semibold text-slate-500 text-xs uppercase tracking-wider">
+          <div className="border-line border-t pt-4">
+            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
               SAEB — Matemática
             </span>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-slate-900">
+              <span className="font-bold font-serif text-3xl text-ink">
                 {pontoMaisRecente.saebMatematica !== null
                   ? pontoMaisRecente.saebMatematica.toLocaleString("pt-BR", {
                       minimumFractionDigits: 1,
                     })
                   : "—"}
               </span>
-              <span className="text-slate-500 text-xs">escala SAEB</span>
+              <span className="text-mute text-xs">escala SAEB</span>
             </div>
-            <p className="mt-1 text-slate-500 text-xs">
+            <p className="mt-1 text-mute text-xs">
               Ciclo {pontoMaisRecente.ano} &middot; {currentHistorico.label}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="block font-semibold text-slate-500 text-xs uppercase tracking-wider">
+          <div className="border-line border-t pt-4">
+            <span className="block font-semibold text-mute text-xs uppercase tracking-wider">
               Taxa de Aprovação Escolar
             </span>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-bold font-serif text-3xl text-slate-900">
+              <span className="font-bold font-serif text-3xl text-ink">
                 {pontoMaisRecente.taxaAprovacao !== null
                   ? `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", {
                       minimumFractionDigits: 1,
                     })}%`
                   : "—"}
               </span>
-              <CheckCircle className="inline h-4 w-4 text-emerald-600" />
+              <CheckCircle className="inline h-4 w-4 text-ok-text" />
             </div>
-            <p className="mt-1 text-slate-500 text-xs">
+            <p className="mt-1 text-mute text-xs">
               Indicador de fluxo regular dos alunos
             </p>
           </div>

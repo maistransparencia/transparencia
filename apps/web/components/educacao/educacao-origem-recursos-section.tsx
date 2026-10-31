@@ -43,7 +43,7 @@ export function EducacaoOrigemRecursosSection({
       />
 
       {parcial && mesReferencia !== null && (
-        <p className="-mt-2 text-slate-500 text-xs">
+        <p className="-mt-2 text-mute text-xs">
           Ano em andamento: valores acumulados até{" "}
           {formatMesPorExtenso(mesReferencia)}.
         </p>
@@ -52,7 +52,7 @@ export function EducacaoOrigemRecursosSection({
       <ComposicaoRecursosBar fontes={fontes} />
 
       {semReceitas ? (
-        <p className="text-slate-500 text-sm">
+        <p className="text-mute text-sm">
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (

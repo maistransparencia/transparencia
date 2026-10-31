@@ -63,17 +63,19 @@ export function EducacaoHeroSection({
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         {/* Coluna Esquerda: Narrativa Editorial no Padrão de Temas */}
         <div className="space-y-4 lg:col-span-7">
-          <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
+          <span className="inline-block font-semibold text-brand-text text-xs uppercase tracking-wider">
             {trofeuCivico.eyebrowLabel}
           </span>
 
-          <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
+          <h1>
             Do aprendizado aos recursos:{" "}
-            <span className="text-accent">acompanhe a evolução do IDEB</span> e
-            o rigor fiscal da educação no município.
+            <span className="text-brand-text">
+              acompanhe a evolução do IDEB
+            </span>{" "}
+            e o rigor fiscal da educação no município.
           </h1>
 
-          <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
+          <p className="text-mute text-sm leading-relaxed sm:text-base">
             Monitoramento auditável da evolução pedagógica (série histórica do
             IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
             INEP/MEC) integrada aos recursos orçamentários da Educação e aos
@@ -84,36 +86,34 @@ export function EducacaoHeroSection({
 
         {/* Coluna Direita: Card Visual de Destaque Cívico / Conquista Escolar */}
         <div
-          className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-xs lg:col-span-5"
+          className="border-line border-t pt-6 lg:col-span-5"
           data-testid="trofeu-civico-card"
         >
-          <div className="flex items-center justify-between gap-2 border-slate-100 border-b pb-3">
-            <span className="inline-block rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
+          <div className="flex items-center justify-between gap-2 border-line border-b pb-3">
+            <span className="inline-block rounded-md border border-line bg-line2 px-2.5 py-0.5 font-medium text-ink text-xs">
               Ciclo Oficial INEP/MEC {trofeuCivico.anoBaseIdeb}
             </span>
-            <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+            <span className="font-semibold text-mute text-xs uppercase tracking-wider">
               Indicador Oficial
             </span>
           </div>
 
-          <h2 className="mt-4 font-bold font-serif text-slate-900 text-xl leading-snug sm:text-2xl">
-            {trofeuCivico.destaqueBadgeTexto}
-          </h2>
+          <h2 className="mt-4">{trofeuCivico.destaqueBadgeTexto}</h2>
 
-          <p className="mt-3 text-slate-600 text-xs leading-relaxed">
+          <p className="mt-3 text-mute text-xs leading-relaxed">
             Indicador oficial apurado pelo INEP/MEC que combina o rendimento
             escolar (taxas de aprovação no Censo) com as médias de desempenho em
             Língua Portuguesa e Matemática apuradas pelo Saeb.
           </p>
 
           {trofeuCivico.totalMatriculas !== null && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 text-xs">
+            <div className="mt-4 flex items-center gap-2 border-line border-y bg-line2 px-3 py-2 text-ink text-xs">
               <Users
-                className="h-4 w-4 shrink-0 text-slate-500"
+                className="h-4 w-4 shrink-0 text-mute"
                 aria-hidden="true"
               />
               <span>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-ink">
                   {trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} alunos
                   matriculados
                 </strong>{" "}

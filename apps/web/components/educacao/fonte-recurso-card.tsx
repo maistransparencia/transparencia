@@ -42,14 +42,14 @@ export function FonteRecursoCard({
       onClick={vazia ? undefined : () => onOpen(grupoFonte)}
       data-testid={`fonte-card-${grupoFonte}`}
       className={cn(
-        "flex min-h-11 w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-2xs transition-colors",
+        "flex min-h-11 w-full flex-col gap-2 border-line border-t p-4 text-left transition-colors",
         vazia
           ? "cursor-default opacity-60"
-          : "cursor-pointer hover:border-accent/40 focus-visible:border-accent/40 focus-visible:outline-2 focus-visible:outline-accent",
+          : "cursor-pointer hover:border-brand-fill/40 focus-visible:border-brand-fill/40 focus-visible:outline-2 focus-visible:outline-brand-fill",
         className,
       )}
     >
-      <span className="flex items-center gap-2 font-semibold text-slate-500 text-xs uppercase tracking-wider">
+      <span className="flex items-center gap-2 font-semibold text-mute text-xs uppercase tracking-wider">
         <span
           aria-hidden="true"
           className={cn(
@@ -62,18 +62,20 @@ export function FonteRecursoCard({
       <span
         className={cn(
           "font-serif text-xl sm:text-2xl",
-          vazia ? "text-slate-400" : "text-slate-900",
+          vazia ? "text-mute2" : "text-ink",
         )}
       >
         {valor}
       </span>
-      <span className="text-slate-500 text-xs">
+      <span className="text-mute text-xs">
         {vazia
           ? "Sem receita no exercício"
           : `${percentual} do total${parcial ? " · parcial" : ""}`}
       </span>
       {!vazia && (
-        <span className="font-medium text-accent text-xs">Ver detalhes ›</span>
+        <span className="font-medium text-brand-text text-xs">
+          Ver detalhes ›
+        </span>
       )}
     </button>
   );

@@ -276,3 +276,9 @@ status: open
 - Spec 20.7 e DESIGN.md divergentes da pratica (KPIGrid, papel `lead`, textos, arquivos de dados). A correcao e editar spec/DESIGN.md.
 - `variacaoIntraAnualLivresPct` sem uso na tela; decidir na story da rota propria do caixa. Local: `packages/db/src/queries/siconfi-caixa-metrics.ts`.
 
+### DW-8: Sem validação visual nos temas claro e escuro das páginas de saúde e educação, nem teste de renderização do `Badge` de concentração de fornecedores por nível.
+origin: spec-deferred ce31d8a97867
+location: apps/web/components/saude-contratacao-section.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: Só testes e guardas de código-fonte; contraste de `text-mute2` em `text-xs` e seções que mantêm `<section>`/`h2` próprios em `saude-contratacao-section.tsx` e `saude-emendas-section.tsx` (em vez de `SectionHeader`/`AlertBox`) não foram conferidos no navegador.
+status: open

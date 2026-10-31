@@ -188,7 +188,7 @@ export function EducacaoContratosSection({
           <button
             type="button"
             onClick={() => handleOpenContrato(row.rawDto)}
-            className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
+            className="cursor-pointer text-left font-medium text-ink hover:text-brand-text hover:underline"
             title="Ver detalhes do contrato"
           >
             {row.fornecedorNome}
@@ -204,7 +204,7 @@ export function EducacaoContratosSection({
       renderCell: (row) => (
         <div className="space-y-1">
           <p
-            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
+            className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
             title={row.objetoDescricao}
           >
             {row.objetoDescricao || "—"}
@@ -212,7 +212,7 @@ export function EducacaoContratosSection({
           <button
             type="button"
             onClick={() => handleOpenContrato(row.rawDto)}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
+            className="inline-flex cursor-pointer items-center gap-1 font-medium text-brand-text text-xs hover:underline hover:underline"
             title="Abrir detalhes completos do contrato"
           >
             <span>Detalhes</span>
@@ -225,14 +225,14 @@ export function EducacaoContratosSection({
       accessorKey: "statusLabel",
       sortable: true,
       align: "center",
-      className: "whitespace-nowrap font-medium text-slate-700 text-xs",
+      className: "whitespace-nowrap font-medium text-ink text-xs",
     },
     {
       header: "Vigência",
       accessorKey: "vigenciaFormatada",
       sortable: true,
       align: "center",
-      className: "whitespace-nowrap font-medium text-slate-600",
+      className: "whitespace-nowrap font-medium text-mute",
     },
     {
       header: "Empenhado",
@@ -309,7 +309,7 @@ export function EducacaoContratosSection({
               href={urlLegislacao("lei11947")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
               aria-label="Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto"
             >
               Lei nº 11.947/2009 (PNAE)
@@ -320,7 +320,7 @@ export function EducacaoContratosSection({
               href={urlLegislacao("lei10880")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
               aria-label="Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto"
             >
               Lei nº 10.880/2004 (PNATE)
@@ -331,7 +331,7 @@ export function EducacaoContratosSection({
               href={urlLegislacao("lei14133", "art74v")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
+              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
               aria-label="Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto"
             >
               Lei nº 14.133/2021, Art. 74, V
@@ -358,7 +358,7 @@ export function EducacaoContratosSection({
         ))}
       </div>
       {contratos.length === 0 && (
-        <p className="text-slate-500 text-sm">
+        <p className="text-mute text-sm">
           Nenhum contrato registrado no exercício.
         </p>
       )}
@@ -366,9 +366,7 @@ export function EducacaoContratosSection({
       {/* Tabela completa: apenas em md+ */}
       {contratos.length > 0 && (
         <div className="hidden space-y-3 md:block">
-          <h3 className="font-semibold font-serif text-lg text-slate-900">
-            Ver todos os contratos
-          </h3>
+          <h3>Ver todos os contratos</h3>
           <DenseTable
             data={tableData}
             columns={columns}

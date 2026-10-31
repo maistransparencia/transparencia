@@ -73,4 +73,17 @@ describe("ComposicaoRecursosBar", () => {
       screen.getByTestId("composicao-recursos-bar").getAttribute("aria-label"),
     ).toContain("Não detalhado 6%");
   });
+
+  it("limita a largura dos segmentos entre 0% e 100%", () => {
+    const { container } = render(
+      <ComposicaoRecursosBar fontes={[fonte("fundeb", 130)]} />,
+    );
+    const larguras = Array.from(
+      container.querySelectorAll<HTMLElement>("span.block.h-full"),
+    ).map((el) => el.style.width);
+    expect(larguras.length).toBeGreaterThan(0);
+    for (const largura of larguras) {
+      expect(Number.parseFloat(largura)).toBeLessThanOrEqual(100);
+    }
+  });
 });

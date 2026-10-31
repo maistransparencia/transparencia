@@ -75,7 +75,7 @@ export function ComposicaoRecursosBar({ fontes }: ComposicaoRecursosBarProps) {
         aria-label={`Composição das receitas por fonte: ${descricao}`}
         data-testid="composicao-recursos-bar"
         className={cn(
-          "flex h-3 w-full gap-px overflow-hidden rounded-full bg-slate-100",
+          "flex h-3 w-full gap-px overflow-hidden rounded-full bg-line2",
           vazia && "opacity-60",
         )}
       >
@@ -83,7 +83,9 @@ export function ComposicaoRecursosBar({ fontes }: ComposicaoRecursosBarProps) {
           <span
             key={segmento.chave}
             className={cn("block h-full", segmento.corClasse)}
-            style={{ width: `${segmento.percentual}%` }}
+            style={{
+              width: `${Math.min(100, Math.max(0, segmento.percentual))}%`,
+            }}
           />
         ))}
       </div>
@@ -92,7 +94,7 @@ export function ComposicaoRecursosBar({ fontes }: ComposicaoRecursosBarProps) {
           {segmentos.map((segmento) => (
             <li
               key={segmento.chave}
-              className="flex items-center gap-1.5 text-[11px] text-slate-500"
+              className="flex items-center gap-1.5 text-mute text-xs"
             >
               <span
                 aria-hidden="true"

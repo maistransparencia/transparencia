@@ -54,26 +54,24 @@ export function SaudeContratacaoSection({
     orcamento.empenhado > 0 ? (caronaValor / orcamento.empenhado) * 100 : 0;
 
   const barColors: Record<string, string> = {
-    "Pregão eletrônico": "bg-accent",
-    "Adesão a ata (carona)": "bg-amber-700",
-    "Dispensa de licitação": "bg-teal-600",
-    Inexigibilidade: "bg-teal-400",
-    "Tomada de preços / outros": "bg-teal-300",
+    "Pregão eletrônico": "bg-brand-fill",
+    "Adesão a ata (carona)": "bg-warn-fill",
+    "Dispensa de licitação": "bg-ok-fill",
+    Inexigibilidade: "bg-mute2",
+    "Tomada de preços / outros": "bg-mute3",
   };
 
   return (
-    <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
+    <section className="space-y-6 border-line border-t-2 pt-8">
       {/* Header com Link */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-bold font-serif text-2xl text-slate-900">
-            Como o Fundo contrata
-          </h2>
-          <p className="mt-1 max-w-3xl text-slate-600 text-sm leading-relaxed">
+          <h2>Como o Fundo contrata</h2>
+          <p className="mt-1 max-w-3xl text-mute text-sm leading-relaxed">
             O que a prefeitura faz com o dinheiro que chega ao Fundo — quantos
             contratos assinou, com quantos fornecedores, e por qual caminho.
             Parte da saúde é comprada{" "}
-            <strong className="font-bold text-slate-900">
+            <strong className="font-bold text-ink">
               na carona de atas de outras prefeituras
             </strong>
             , sem licitação própria do município.
@@ -81,14 +79,14 @@ export function SaudeContratacaoSection({
         </div>
         <Link
           href={`/${portalSlug}/licitacoes`}
-          className="inline-flex shrink-0 items-center font-semibold text-accent text-sm hover:underline"
+          className="inline-flex shrink-0 items-center font-semibold text-brand-text text-sm hover:underline"
         >
           Ver todas as licitações &rarr;
         </Link>
       </div>
 
       {/* Banner de Alerta Âmbar */}
-      <div className="flex items-start gap-3 rounded-xl border-amber-600 border-l-4 bg-[#fffaf0] p-4 text-[#7b341e] text-xs shadow-2xs sm:text-sm">
+      <div className="flex items-start gap-3 border-warn-fill border-l-4 bg-line2 p-4 text-ink text-xs sm:text-sm">
         <div>
           {caronaValor > 0 ? (
             <>
@@ -129,7 +127,7 @@ export function SaudeContratacaoSection({
         <KPICard
           title="Adesões de ata (carona)"
           value={
-            <span className="font-bold text-amber-700">
+            <span className="font-bold text-warn-text">
               {licitacoesSaude.adesaoCaronaCount}
             </span>
           }
@@ -143,7 +141,7 @@ export function SaudeContratacaoSection({
         <KPICard
           title="Pago via ata externa"
           value={
-            <span className="font-bold text-accent">
+            <span className="font-bold text-brand-text">
               {fmtCompact(licitacoesSaude.pagoAtaExternaValor)}
             </span>
           }
@@ -152,12 +150,10 @@ export function SaudeContratacaoSection({
       </KPIGrid>
 
       {/* Card Visual de Distribuição de Modalidades */}
-      <div className="rounded-xl border border-[#e7e9ee] bg-white p-6 shadow-sm">
+      <div className="border-line border-t pt-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-bold font-serif text-lg text-slate-900">
-            Por qual caminho o Fundo contratou
-          </h3>
-          <span className="text-slate-500 text-xs">
+          <h3>Por qual caminho o Fundo contratou</h3>
+          <span className="text-mute text-xs">
             % do valor empenhado · {fmtCompact(orcamento.empenhado)}
           </span>
         </div>
@@ -165,18 +161,16 @@ export function SaudeContratacaoSection({
         <div className="space-y-4">
           {licitacoesSaude.modalidades.map(
             (mod: SaudeContratacaoModalidadeItem) => {
-              const colorClass = barColors[mod.nome] || "bg-slate-400";
+              const colorClass = barColors[mod.nome] || "bg-mute3";
               return (
                 <div key={mod.nome} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">
-                      {mod.nome}
-                    </span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-medium text-ink">{mod.nome}</span>
+                    <span className="font-bold text-ink">
                       {fmtCompact(mod.valor)}
                     </span>
                   </div>
-                  <div className="h-3 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
+                  <div className="h-3 w-full overflow-hidden rounded-md bg-line2">
                     <div
                       className={`h-full rounded-md transition-all duration-500 ${colorClass}`}
                       style={{
@@ -192,16 +186,14 @@ export function SaudeContratacaoSection({
       </div>
 
       {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
-      <div className="space-y-4 rounded-xl border border-[#e7e9ee] bg-white p-6 shadow-sm">
+      <div className="space-y-4 border-line border-t pt-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold font-serif text-lg text-slate-900">
-                Compras e Licitações da Saúde em Andamento
-              </h3>
+              <h3>Compras e Licitações da Saúde em Andamento</h3>
               <Badge variant="accent">Em Aberto</Badge>
             </div>
-            <p className="mt-0.5 text-slate-500 text-xs leading-relaxed">
+            <p className="mt-0.5 text-mute text-xs leading-relaxed">
               Processos licitatórios abertos da pasta de saúde (medicamentos,
               insumos hospitalares e equipamentos).
             </p>
@@ -212,7 +204,7 @@ export function SaudeContratacaoSection({
                 ? `/${portalSlug}/licitacoes?ano=${ano}#licitacoes-em-andamento`
                 : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
             }
-            className="inline-flex items-center gap-1 font-semibold text-accent text-xs hover:underline"
+            className="inline-flex items-center gap-1 font-semibold text-brand-text text-xs hover:underline"
           >
             Ver radar geral &rarr;
           </Link>
@@ -234,7 +226,7 @@ export function SaudeContratacaoSection({
               return (
                 <article
                   key={lic.licitacaoId}
-                  className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs transition-shadow hover:shadow-sm"
+                  className="flex flex-col justify-between border-line border-t pt-4"
                 >
                   <div className="space-y-3">
                     {/* Linha 1: Badges horizontais com wrap */}
@@ -247,7 +239,7 @@ export function SaudeContratacaoSection({
                       </Badge>
                       {lic.fonteObjeto === "pncp" && (
                         <span
-                          className="inline-block rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-[10px] text-emerald-700"
+                          className="inline-block rounded border border-ok-fill bg-ok-fill/15 px-2 py-0.5 font-semibold text-ok-text text-xs"
                           title="Objeto des-truncado via PNCP"
                         >
                           PNCP
@@ -255,7 +247,7 @@ export function SaudeContratacaoSection({
                       )}
                       {lic.fonteObjeto === "contrato_local" && (
                         <span
-                          className="inline-block rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-semibold text-[10px] text-indigo-700"
+                          className="inline-block rounded border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-semibold text-brand-text text-xs"
                           title="Objeto des-truncado via contrato local"
                         >
                           Contrato Local
@@ -265,11 +257,11 @@ export function SaudeContratacaoSection({
 
                     {/* Linha 2: Processo e Órgão empilhados verticalmente */}
                     <div>
-                      <span className="font-bold text-slate-900 text-sm">
+                      <span className="font-bold text-ink text-sm">
                         Processo {lic.licitacaoNumero || "S/N"}
                       </span>
                       {lic.entidadeNome && (
-                        <p className="mt-0.5 truncate text-slate-500 text-xs">
+                        <p className="mt-0.5 truncate text-mute text-xs">
                           {lic.entidadeNome}
                         </p>
                       )}
@@ -299,7 +291,7 @@ export function SaudeContratacaoSection({
                     </div>
 
                     {/* Linha 4: Data de abertura */}
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+                    <div className="flex items-center gap-1.5 text-mute text-xs">
                       <Calendar
                         className="h-3.5 w-3.5 shrink-0"
                         aria-hidden="true"
@@ -313,14 +305,14 @@ export function SaudeContratacaoSection({
                     </div>
 
                     {/* Linha 5: Grade financeira 2 colunas */}
-                    <div className="grid grid-cols-2 gap-2 border-slate-100 border-t pt-2.5 text-xs">
+                    <div className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
                       <div>
-                        <span className="block text-[11px] text-slate-400">
+                        <span className="block text-mute2 text-xs">
                           Valor Estimado
                         </span>
-                        <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-slate-900">
+                        <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-ink">
                           <Coins
-                            className="h-3.5 w-3.5 text-slate-400"
+                            className="h-3.5 w-3.5 text-mute2"
                             aria-hidden="true"
                           />
                           <span className="truncate">
@@ -329,16 +321,16 @@ export function SaudeContratacaoSection({
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="block text-[11px] text-slate-400">
+                        <span className="block text-mute2 text-xs">
                           Homologado
                         </span>
                         {valorHom ? (
                           <div className="mt-0.5 flex items-center justify-end gap-1">
-                            <span className="font-bold font-serif text-emerald-700">
+                            <span className="font-bold font-serif text-ok-text">
                               {fmtCurrency(valorHom)}
                             </span>
                             {economia !== null && (
-                              <span className="inline-block rounded bg-emerald-50 px-1 py-0.5 font-semibold text-[10px] text-emerald-700">
+                              <span className="inline-block rounded bg-ok-fill/15 px-1 py-0.5 font-semibold text-ok-text text-xs">
                                 -{Math.round(economia)}%
                               </span>
                             )}
@@ -346,7 +338,7 @@ export function SaudeContratacaoSection({
                         ) : (
                           <div className="mt-0.5 flex justify-end">
                             <span
-                              className="inline-block rounded bg-amber-50 px-1.5 py-0.5 font-medium text-[10px] text-amber-800"
+                              className="inline-block rounded bg-warn-fill/15 px-1.5 py-0.5 font-medium text-warn-text text-xs"
                               title="Em disputa pública ou aguardando adjudicação/homologação"
                             >
                               Em disputa
@@ -358,17 +350,17 @@ export function SaudeContratacaoSection({
                   </div>
 
                   {/* Linha 6: Ações no rodapé */}
-                  <div className="mt-3 flex items-center justify-between border-slate-100 border-t pt-2.5 text-xs">
+                  <div className="mt-3 flex items-center justify-between border-line border-t pt-2.5 text-xs">
                     <Link
                       href={
                         lic.licitacaoNumero
                           ? `/${portalSlug}/licitacoes?numero=${encodeURIComponent(lic.licitacaoNumero)}#itens`
                           : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
                       }
-                      className="inline-flex items-center gap-1 font-medium text-slate-600 transition-colors hover:text-slate-900"
+                      className="inline-flex items-center gap-1 font-medium text-mute transition-colors hover:text-ink"
                     >
                       <Package
-                        className="h-3.5 w-3.5 text-slate-400"
+                        className="h-3.5 w-3.5 text-mute2"
                         aria-hidden="true"
                       />
                       <span>Ver Itens Licitados</span>
@@ -379,7 +371,7 @@ export function SaudeContratacaoSection({
                         href={lic.linkSistemaOrigem}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded bg-blue-50 px-2.5 py-1 font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                        className="inline-flex items-center gap-1 rounded bg-brand-fill/15 px-2.5 py-1 font-medium text-brand-text transition-colors hover:bg-brand-fill/25"
                         title="Acessar sala de disputa pública externa"
                       >
                         <span>Sala de Disputa</span>
@@ -392,7 +384,7 @@ export function SaudeContratacaoSection({
             })}
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-200 border-dashed bg-slate-50/50 p-4 text-center text-slate-500 text-xs">
+          <div className="border-line border-y bg-line2 p-4 text-center text-mute text-xs">
             Nenhuma licitação da Saúde em andamento ou aberta no momento para
             este exercício.
           </div>

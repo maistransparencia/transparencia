@@ -1,10 +1,10 @@
 # Epic 20 Context: Tema Divisórias: Identidade Visual Minimalista, Tema Claro/Escuro Acessível e Migração dos Componentes
 
-<!-- Compiled from planning artifacts. Edit freely. Regenerate with compile-epic-context if planning docs change. -->
+<!-- Generated from planning artifacts. Regenerate with compile-epic-context if planning docs change. -->
 
 ## Goal
 
-Substituir o padrão de painéis com borda arredondada e sombra por uma linguagem editorial baseada em filetes (2px em seções, 1px em itens), tipografia hierárquica e colunas separadas por filete vertical. Toda cor passa a ser variável CSS semântica, o que viabiliza um tema escuro opcional (bônus de acessibilidade) trocando apenas valores de variáveis. A migração segue a ordem do tráfego real: Home, licitações, despesas, pessoal, receitas, orçamento, saúde e educação. As epics 21, 22 e 23 já devem nascer neste padrão.
+Substituir o padrão de painéis com borda arredondada e sombra por uma linguagem editorial baseada em filetes (2px em seções, 1px em itens), tipografia hierárquica e colunas separadas por filete vertical. Toda cor passa a ser variável CSS semântica, o que viabiliza um tema escuro opcional (bônus de acessibilidade) trocando apenas valores de variáveis. A migração segue a ordem do tráfego real: Home, licitações, despesas, pessoal, receitas, orçamento, saúde e educação. Os elementos base (`h1`-`h4`, `p`, `dl`, `table`, listas, links) e papéis visuais nomeados (`DESIGN.md`/`EXPERIENCE.md`) passam a carregar o visual por padrão. As epics 21, 22 e 23 já devem nascer neste padrão.
 
 ## Stories
 
@@ -21,6 +21,11 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - Story 20.11: Despesas no Padrão Divisórias
 - Story 20.12: Cores Semânticas no Tema Claro: Preenchimento e Texto Separados
 - Story 20.13: Despesas Detalhadas: Reorganização da Página com os Dados Existentes
+- Story 20.14: Elementos Base, Papéis Visuais e Plex Mono
+- Story 20.15: `packages/ui` Sem Dependência do Next
+- Story 20.16: Storybook, Fase 1
+- Story 20.17: Guardas de Teste dos Padrões Base
+- Story 20.18: Varredura Final dos Padrões Base
 
 ## Requirements & Constraints
 
@@ -34,6 +39,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - A camada de apresentação só renderiza dados tipados de `@transparencia/db`; as telas migradas não alteram dados, queries nem textos.
 - Fora do escopo: navegação mobile (`MobileBottomNav` só troca tokens), mudança de dados/queries e novas funcionalidades (única exceção limitada: a página de despesas passa a exibir áreas e fornecedores de queries já existentes, sem criar nem alterar query, DTO ou mart).
 - Despesas: o rótulo "gasto" é sempre qualificado (empenhado, liquidado ou pago). Etapas empenhado/liquidado/pago não se somam (pago ≤ liquidado ≤ empenhado dentro do mesmo ano); evitar as palavras "desvio" e "calote". Lei só citada com link oficial (Regra 20) e artigo só após verificação. Documento de fornecedor exibido como vem da fonte (CPF já mascarado na origem; nenhuma máscara nova em TypeScript e nenhum número de 11 dígitos sem máscara renderizado). `llms.txt` e `llms-full.txt` refletem as seções novas (Regra 12). Propriedades em `camelCase` (Regra 18) e componentes canônicos do design system (Regra 24).
+- Elementos base e papéis: sem `h5`/`h6`, sem `slate-*`/`gray-*`/`text-black`/`text-white`, sem classes de tamanho em `h1`-`h4`, `font-mono` só em `table` e `numeric`. Fonte mono: IBM Plex Mono via `next/font`, exposta como `--font-mono`.
 - Commits: Conventional Commits em minúsculas, sem referência a story ou task.
 - Qualidade: `pnpm typecheck`, `pnpm test` e `biome` devem passar; specs de classe e componentes atualizados.
 
@@ -50,6 +56,11 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - Cores semânticas: texto e preenchimento precisam de tokens separados. `warn-fill` (âmbar vivo, barras e preenchimentos) e `warn-text` (âmbar escuro, texto AA) já existem; a 20.12 generaliza o par `*-fill`/`*-text` para `warn`, `ok`, `danger` e `brand` sem remover os tokens atuais. Contraste exigido: `*-text` sobre `page` e `banbg` >= 4,5:1; `*-fill` sobre `track` e `line2` >= 3:1. Sem paleta fixa do Tailwind.
 - Despesas detalhadas: usar apenas `getDespesasPorFuncaoMetrics` e `getTopFornecedoresExecucaoMetrics` de `@transparencia/db`; percentuais por etapa são divisões simples no `view-model`, lógica contábil fica na camada de dados. Ordem da página: resumo (sem `SectionHeader`), áreas, fornecedores, gastos que merecem acompanhamento (tabela accordion, menu de auditoria e CSV atuais), dívidas de anos anteriores. `TermometroOpacidadeFiscal` permanece logo após o radar, sem mudar conteúdo. `opengraph-image.tsx` não muda. A referência visual é o mockup `handoff-divisorias/Despesas Detalhadas - Divisorias.html` (dados fictícios).
 - `PwaInstaller` usa `env.NEXT_PUBLIC_PROJECT_NAME` (Regra 17) e ícones Lucide de 16px no lugar de emojis.
+
+- Papéis como `@utility` em `globals.css`: `eyebrow`, `caption`, `lead`, `display`, `numeric`, `stat-value` (`-sm`/`-lg`), `panel` (`panel-brand`/`-ok`/`-warn`/`-danger`), `section`, `list-text`. O `panel` lê `--panel-border-width`, `--panel-radius`, `--panel-shadow` e `--panel-padding` de `:root` (padrão: borda lateral de 3px, sem raio, sem sombra); trocar as variáveis muda todos os painéis. `stat-value-lg` permanece em serifa com `tabular-nums` (validado no Storybook).
+- `packages/ui` não importa `next/*`: `Sidebar` recebe componente de link e `pathnameAtual` por prop; `apps/web` fornece wrapper com `next/link` e `usePathname()`. Teste de arquitetura falha se `packages/ui/src` importar `next`.
+- Storybook em `apps/storybook` (`@storybook/react-vite`, `@tailwindcss/vite`, versões exatas), reutiliza o `globals.css` do app sem estilos próprios para elementos base; alternador `.dark` e visões mobile/desktop. Sem deploy.
+- Guardas de teste em `apps/web/styles/` (estilo `tokens-uso.spec.ts`) com duas listas de isentos: temporária (só pode diminuir; cada story de migração remove suas entradas; vazia na 20.18) e permanente (e-mails, imagens OG, cores de série de gráficos, mapa Leaflet).
 
 ## UX & Interaction Patterns
 
@@ -69,6 +80,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - 20.4 depende de 20.1, 20.2 e 20.3 e inclui os ajustes herdados da revisão da 20.3 (ModalDialog, SectionHeader, ExternalLinkPill, KPICard, chart-colors, SegmentedButton).
 - 20.5 depende da 20.3. 20.6 depende da 20.3 e define o formato de tabela mobile.
 - 20.7 e 20.8 dependem de 20.3 e 20.6. 20.9 depende de 20.4 a 20.8.
+- 20.14 (depende de 20.1 e 20.12) e 20.17 (depende de 20.14) devem rodar antes da 20.7; 20.7 a 20.10 usam elementos base e papéis e removem suas entradas dos isentos. 20.15 depende da 20.2 e pode rodar em paralelo à 20.14; 20.16 depende de 20.14 e 20.15. 20.18 depende de 20.7 a 20.10 e 20.17.
 - 20.10 depende só da 20.2 e usa o teste de contraste da 20.1.
 - 20.11 (despesas) depende da 20.3, não usa `DenseTable` e deve rodar logo após a 20.4.
 - Ajustar a Story 23.x (tema escuro e auditoria WCAG), parcialmente absorvida por esta epic. As epics 21 a 23 devem seguir o padrão divisórias desde o início.

@@ -52,7 +52,7 @@ export default async function EducacaoPage({
 
   return (
     <div className="space-y-10 pb-16">
-      {/* Bloco 1: Hero Narrative com Troféu Cívico do Ciclo 2025 e KPIs */}
+      {/* Bloco 1: Hero Narrative com Troféu Cívico e KPIs */}
       <EducacaoHeroSection
         selectedYear={viewModel.selectedYear}
         trofeuCivico={viewModel.trofeuCivico}

@@ -106,19 +106,19 @@ export function ContratosCategoriaModal({
       maxWidth="3xl"
       zIndex="z-50"
       showShareButton={false}
-      footer={<p className="text-slate-500 text-xs">{rotuloQuantidade}</p>}
+      footer={<p className="text-mute text-xs">{rotuloQuantidade}</p>}
     >
       <div
         aria-hidden="true"
         className="-mt-1 mb-3 flex justify-center sm:hidden"
       >
-        <span className="h-1 w-10 rounded-full bg-slate-300" />
+        <span className="h-1 w-10 rounded-full bg-track" />
       </div>
 
       {exibeBusca && (
         <div className="relative mb-3">
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-mute2"
             aria-hidden="true"
           />
           <input
@@ -130,24 +130,24 @@ export function ContratosCategoriaModal({
             }}
             placeholder="Buscar por fornecedor, objeto ou número..."
             aria-label="Buscar contratos da categoria"
-            className="min-h-11 w-full rounded-lg border border-slate-200 bg-white py-2 pr-3 pl-9 text-slate-900 text-sm focus:border-accent focus:outline-none"
+            className="min-h-11 w-full border border-line py-2 pr-3 pl-9 text-ink text-sm focus:border-brand-fill focus:outline-none"
           />
         </div>
       )}
 
       {contratosFiltrados.length === 0 ? (
-        <div className="space-y-2 py-8 text-center text-slate-500 text-sm">
+        <div className="space-y-2 py-8 text-center text-mute text-sm">
           <p>Nenhum contrato encontrado para “{termoBusca.trim()}”.</p>
           <button
             type="button"
             onClick={() => setTermoBusca("")}
-            className="font-medium text-accent text-sm hover:underline"
+            className="font-medium text-brand-text text-sm hover:underline"
           >
             Limpar busca
           </button>
         </div>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-line">
           {contratosFiltrados.map((contrato, indice) => {
             const abrindo = contratoAbrindoId === contrato.contratoId;
             const desabilitado = Boolean(contratoAbrindoId) && !abrindo;
@@ -163,17 +163,17 @@ export function ContratosCategoriaModal({
                   onMouseEnter={() => setIndiceSelecionado(indice)}
                   data-testid={`contrato-lista-${contrato.contratoNumero}`}
                   className={cn(
-                    "flex min-h-11 w-full cursor-pointer flex-col gap-1 px-2 py-3 text-left transition-colors hover:bg-slate-50 disabled:cursor-default disabled:opacity-50",
-                    indice === indiceSelecionado && "bg-slate-50",
+                    "flex min-h-11 w-full cursor-pointer flex-col gap-1 px-2 py-3 text-left transition-colors hover:bg-line2 disabled:cursor-default disabled:opacity-50",
+                    indice === indiceSelecionado && "bg-line2",
                   )}
                 >
                   <span className="flex items-center justify-between gap-3">
-                    <span className="font-medium text-slate-500 text-xs">
+                    <span className="font-medium text-mute text-xs">
                       Contrato nº {contrato.contratoNumero}
                     </span>
-                    <span className="shrink-0 font-semibold font-serif text-slate-900 text-sm">
+                    <span className="shrink-0 font-semibold font-serif text-ink text-sm">
                       {abrindo ? (
-                        <span className="inline-flex items-center gap-1 font-medium font-sans text-accent text-xs">
+                        <span className="inline-flex items-center gap-1 font-medium font-sans text-brand-text text-xs">
                           <Loader2
                             className="h-3.5 w-3.5 animate-spin"
                             aria-hidden="true"
@@ -185,13 +185,13 @@ export function ContratosCategoriaModal({
                       )}
                     </span>
                   </span>
-                  <span className="font-medium text-slate-900 text-sm">
+                  <span className="font-medium text-ink text-sm">
                     {contrato.fornecedorNome}
                   </span>
-                  <span className="line-clamp-2 text-slate-600 text-xs">
+                  <span className="line-clamp-2 text-mute text-xs">
                     {contrato.objeto || "—"}
                   </span>
-                  <span className="text-slate-500 text-xs">{statusLabel}</span>
+                  <span className="text-mute text-xs">{statusLabel}</span>
                 </button>
               </li>
             );

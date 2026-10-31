@@ -1,6 +1,6 @@
 "use client";
 
-import { fmtCompact, fmtCurrency } from "@transparencia/ui";
+import { corDoGrafico, fmtCompact, fmtCurrency } from "@transparencia/ui";
 import {
   Bar,
   CartesianGrid,
@@ -33,8 +33,8 @@ function CorrelacaoTooltip({ active, payload, label }: CorrelacaoTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
-    <div className="min-w-[200px] space-y-1.5 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-md">
-      <div className="border-slate-100 border-b pb-1 font-bold font-serif text-slate-900 text-sm">
+    <div className="min-w-[200px] space-y-1.5 border border-line bg-page p-3 text-xs">
+      <div className="border-line border-b pb-1 font-bold font-serif text-ink text-sm">
         Ciclo {label}
       </div>
       <div className="space-y-1 pt-1">
@@ -57,14 +57,14 @@ function CorrelacaoTooltip({ active, payload, label }: CorrelacaoTooltipProps) {
               key={item.name}
               className="flex items-center justify-between gap-3"
             >
-              <span className="flex items-center gap-1.5 text-slate-600">
+              <span className="flex items-center gap-1.5 text-mute">
                 <span
                   className="inline-block h-2 w-2 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
                 {item.name}:
               </span>
-              <span className="font-bold text-slate-900">{displayVal}</span>
+              <span className="font-bold text-ink">{displayVal}</span>
             </div>
           );
         })}
@@ -88,17 +88,15 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
       />
 
       {/* Gráfico de Correlação: Despesa Liquidada na Educação vs. Desempenho no IDEB */}
-      <div className="rounded-xl border border-borderLine bg-white p-5 shadow-xs">
+      <div className="border-line border-t pt-5">
         <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-bold font-serif text-lg text-slate-900">
-              Evolução da Despesa na Educação vs. Desempenho no IDEB
-            </h3>
-            <p className="text-slate-500 text-xs">
+            <h3>Evolução da Despesa na Educação vs. Desempenho no IDEB</h3>
+            <p className="text-mute text-xs">
               Cruzamento entre o total liquidado na Educação e os resultados
               bienais de proficiência escolar.
               {fiscal.totalMatriculas !== null && (
-                <span className="mt-0.5 block text-slate-600">
+                <span className="mt-0.5 block text-mute">
                   Rede municipal com{" "}
                   {fiscal.totalMatriculas.toLocaleString("pt-BR")} matrículas
                   ativas apuradas no Censo Escolar/INEP.
@@ -106,13 +104,13 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-4 font-medium text-slate-600 text-xs">
+          <div className="flex items-center gap-4 font-medium text-mute text-xs">
             <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-sm border border-sky-400 bg-sky-200" />
+              <span className="h-3 w-3 rounded-sm border border-brand-fill bg-line2" />
               Despesa Liquidada (R$)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#1d64d8]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
               Nota IDEB (Iniciais)
             </span>
           </div>
@@ -127,19 +125,19 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#e2e8f0"
+                stroke={corDoGrafico("line")}
               />
               <XAxis
                 dataKey="ano"
-                stroke="#64748b"
+                stroke={corDoGrafico("mute")}
                 fontSize={12}
                 tickLine={false}
-                axisLine={{ stroke: "#cbd5e1" }}
+                axisLine={{ stroke: corDoGrafico("line") }}
               />
               {/* Eixo Y Esquerdo: Despesa Liquidada em Reais */}
               <YAxis
                 yAxisId="left"
-                stroke="#64748b"
+                stroke={corDoGrafico("mute")}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -150,7 +148,7 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
                 yAxisId="right"
                 orientation="right"
                 domain={[3.0, 7.5]}
-                stroke="#64748b"
+                stroke={corDoGrafico("mute")}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -161,8 +159,8 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
                 yAxisId="left"
                 dataKey="despesaLiquidada"
                 name="Despesa Liquidada"
-                fill="#bae6fd"
-                stroke="#38bdf8"
+                fill={corDoGrafico("line2")}
+                stroke={corDoGrafico("brand")}
                 radius={[4, 4, 0, 0]}
                 maxBarSize={50}
               />
@@ -171,13 +169,13 @@ export function EducacaoFiscalSection({ fiscal }: EducacaoFiscalSectionProps) {
                 type="monotone"
                 dataKey="notaIdebIniciais"
                 name="Nota IDEB (Iniciais)"
-                stroke="#1d64d8"
+                stroke={corDoGrafico("brand")}
                 strokeWidth={3}
                 dot={{
                   r: 5,
-                  fill: "#1d64d8",
+                  fill: corDoGrafico("brand"),
                   strokeWidth: 2,
-                  stroke: "#ffffff",
+                  stroke: corDoGrafico("page"),
                 }}
               />
             </ComposedChart>

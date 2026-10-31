@@ -1,5 +1,6 @@
 "use client";
 
+import { corDoGrafico } from "@transparencia/ui";
 import {
   Bar,
   BarChart,
@@ -52,7 +53,7 @@ const renderCustomBarLabel = (props: CustomBarLabelProps) => {
     <text
       x={numX + numWidth / 2}
       y={numY - 8}
-      fill="#334155"
+      fill={corDoGrafico("ink")}
       textAnchor="middle"
       fontSize={12}
       fontWeight={600}
@@ -74,15 +75,11 @@ export function SaudeTrendChart({
   const activeYear = selectedYear ?? maxYear;
 
   return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
-    >
+    <div className={`border-line border-t pt-6 ${className}`}>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h4 className="font-bold text-base text-slate-900">
-            Evolução Orçamentária
-          </h4>
-          <p className="font-medium text-slate-500 text-xs">
+          <h4>Evolução Orçamentária</h4>
+          <p className="font-medium text-mute text-xs">
             Total empenhado na Saúde por ano (R$ milhões)
           </p>
         </div>
@@ -96,8 +93,8 @@ export function SaudeTrendChart({
           >
             <XAxis
               dataKey="ano"
-              tick={{ fill: "#64748b", fontSize: 12 }}
-              axisLine={{ stroke: "#e2e8f0" }}
+              tick={{ fill: corDoGrafico("mute"), fontSize: 12 }}
+              axisLine={{ stroke: corDoGrafico("line") }}
               tickLine={false}
             />
             <YAxis hide />
@@ -110,11 +107,10 @@ export function SaudeTrendChart({
                 "Empenhado",
               ]}
               contentStyle={{
-                backgroundColor: "#ffffff",
-                borderColor: "#e2e8f0",
-                borderRadius: "8px",
+                backgroundColor: corDoGrafico("page"),
+                borderColor: corDoGrafico("line"),
+                borderRadius: 0,
                 fontSize: "12px",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
               }}
             />
             <Bar dataKey="empenhado" radius={[6, 6, 0, 0]}>
@@ -123,7 +119,7 @@ export function SaudeTrendChart({
                 return (
                   <Cell
                     key={`bar-${entry.ano}`}
-                    fill={isSelected ? "#1565c0" : "#2070b4"}
+                    fill={corDoGrafico("brand")}
                     opacity={isSelected ? 1 : 0.75}
                   />
                 );
