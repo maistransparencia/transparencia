@@ -16,7 +16,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - Story 20.6: `DenseTable`, Formato Mobile e Tela de Licitações
 - Story 20.7: Pessoal, Receitas e Orçamento
 - Story 20.8: Saúde e Educação
-- Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Remoção dos Aliases
+- Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Mapa no Tema Escuro
 - Story 20.10: Acabamento do Shell: Notificações, Instalação do App e Rodapé
 - Story 20.11: Despesas no Padrão Divisórias
 - Story 20.12: Cores Semânticas no Tema Claro: Preenchimento e Texto Separados
@@ -26,6 +26,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - Story 20.16: Storybook, Fase 1
 - Story 20.17: Guardas de Teste dos Padrões Base
 - Story 20.18: Varredura Final dos Padrões Base
+- Story 20.19: Remoção dos Aliases e Zeramento das Exceções do Tema
 
 ## Requirements & Constraints
 
@@ -80,7 +81,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - 20.4 depende de 20.1, 20.2 e 20.3 e inclui os ajustes herdados da revisão da 20.3 (ModalDialog, SectionHeader, ExternalLinkPill, KPICard, chart-colors, SegmentedButton).
 - 20.5 depende da 20.3. 20.6 depende da 20.3 e define o formato de tabela mobile.
 - 20.7 e 20.8 dependem de 20.3 e 20.6. 20.9 depende de 20.4 a 20.8.
-- 20.14 (depende de 20.1 e 20.12) e 20.17 (depende de 20.14) devem rodar antes da 20.7; 20.7 a 20.10 usam elementos base e papéis e removem suas entradas dos isentos. 20.15 depende da 20.2 e pode rodar em paralelo à 20.14; 20.16 depende de 20.14 e 20.15. 20.18 depende de 20.7 a 20.10 e 20.17.
+- 20.14 (depende de 20.1 e 20.12) e 20.17 (depende de 20.14) devem rodar antes da 20.7; 20.7 a 20.10 usam elementos base e papéis e removem suas entradas dos isentos. 20.15 depende da 20.2 e pode rodar em paralelo à 20.14; 20.16 depende de 20.14 e 20.15. 20.19 depende de 20.4 a 20.9; 20.18 depende de 20.7 a 20.10, 20.17 e 20.19.
 - 20.10 depende só da 20.2 e usa o teste de contraste da 20.1.
 - 20.11 (despesas) depende da 20.3, não usa `DenseTable` e deve rodar logo após a 20.4.
 - Ajustar a Story 23.x (tema escuro e auditoria WCAG), parcialmente absorvida por esta epic. As epics 21 a 23 devem seguir o padrão divisórias desde o início.

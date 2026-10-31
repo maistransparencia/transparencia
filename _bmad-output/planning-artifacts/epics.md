@@ -2559,7 +2559,7 @@ So that I can understand what was bought, for how much and in what status.
 
 ---
 
-### Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Remoção dos Aliases
+### Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Mapa no Tema Escuro
 
 **Acceptance Criteria:**
 - **Given** as páginas restantes (obras, previdência, radar cívico)
@@ -2567,10 +2567,26 @@ So that I can understand what was bought, for how much and in what status.
 - **Then** seguem o padrão divisórias nos dois temas.
 - **And** todos os gráficos `recharts` restantes usam cores por variável.
 - **And** o mini mapa estático de `obras-resumo-card.tsx` (hoje base ArcGIS Light Gray) acompanha o tema escuro, achado nas capturas da Story 20.12.
-- **And** os aliases (`accent`, `borderLine`, `canvas`, `subtleText`, `mutedText`, `cardBg`, `text-attention`) são removidos, a variante antiga de `KPICard` é descontinuada e a lista de exceções do teste de arquitetura da Story 20.1 chega a zero.
+- **And** as entradas de obras, previdência e radar saem da lista de exceções do teste de arquitetura da Story 20.1 (a remoção dos aliases e o zeramento da lista ficam na Story 20.19).
+- **And** cada página migrada (obras, previdência, radar) declara, antes de qualquer alteração visual, a **pergunta do cidadão** que responde (Regra 27), com a régua que a responde junto do número; bloco sem pergunta sai da página ou vai para o fim, atrás de "Ver detalhes". Valor derivado ou estimado diz que é derivado e como foi calculado.
+- **And** cada página passa por três revisões, registradas no arquivo da story:
+  - **Creuza** (`editor-cidadao`): linguagem cidadã, sem jargão, "indício" em vez de acusação, contexto junto dos números.
+  - **Atanagildo** (`contador-publico`): métricas contabilmente corretas (estágios da despesa, RCL, regime próprio de previdência, obras).
+  - **Jurídico** (`jurista-fiscal`): base legal verificada e citada com link; sem base verificada, registrar "NÃO VERIFICADO".
+- **And** os achados das três revisões são corrigidos nesta story ou registrados em `deferred-work.md` com motivo.
+- **And** a migração repete os padrões consolidados na 20.8 (abaixo).
 - **And** `pnpm typecheck`, `pnpm test`, `biome` e a suíte de testes visuais passam.
 
-**Dependências:** 20.4 a 20.8.
+**Padrões herdados da 20.8 (valem para obras, previdência e radar):**
+- `KPIGrid` + `KPICard variant="divisoria"`, `SectionHeader`, `AlertBox`/`Badge`, filetes no lugar de cartões; elementos base nus (`h1`–`h4` sem classe de tamanho) e papéis (`eyebrow`, `caption`, `lead`).
+- Só tokens semânticos (`*-fill` em barras e bordas, `*-text` em texto); sem `dark:`, hex, paleta fixa, sombra nem `rounded-*` em cartões; `font-mono` só em `table` e `numeric`.
+- Barras com `*-fill` pleno e tons distintos por categoria (nunca `/15`); série de barra e linha em cores diferentes; legendas iguais às séries.
+- Gráficos `recharts` com `corDoGrafico`; tooltips com `bg-page`; escala das barras pelo maior valor entre as séries (pago pode superar empenhado).
+- Todo componente com guarda de "sem dados" (exercício zerado não vira "R$ 0"); sem ternário morto nem hover igual ao estado base.
+- Regra 9 (sem `qtd`, `pct`; usar `quantidade_*`, `percentual_*`), Regra 23 (sem município, UF ou ano fixo; intervalo vindo dos pontos reais), links externos com `rel="noopener noreferrer"`, specs de componente para o que for criado (lição do DW-12).
+- Aprendizado: na 20.8 o escopo cresceu além do spec. Mudança de dados ou de `@transparencia/db` fica explícita nesta story ou vira outra.
+
+**Dependências:** 20.4 a 20.8. A remoção dos aliases foi separada na Story 20.19 (decisão do Julio, para limitar o tamanho desta story).
 
 ---
 
@@ -2810,10 +2826,31 @@ So that the portal reads as one product.
 - **And** cada página migrada usa elementos base e papéis, sem classes de tamanho em títulos e sem cores fora dos tokens, com capturas de tela antes e depois (claro e escuro, desktop e mobile).
 - **And** nenhum dado, query ou texto é alterado; `pnpm typecheck`, `pnpm test` e `biome` passam.
 
-**Dependências:** 20.7 a 20.10 e 20.17.
+**Dependências:** 20.7 a 20.10, 20.17 e 20.19.
 
 **Itens de ação para a retrospectiva da Epic 20:**
 - **Decidir a Story TD.1 (Idioma dos Identificadores).** Ao rodar `bmad-retrospective` para a Epic 20, depois da 20.18: (1) refazer a medição descrita na TD.1 (declarações, parâmetros, props, tipos e nomes de arquivo com identificador de infraestrutura em português, regra 26); (2) se o resultado for zero ou quase zero, descartar a TD.1; (3) se ainda houver ocorrências relevantes, registrar a linha da TD.1 no `sprint-status.yaml` (ação do operador, o arquivo é do orquestrador) e executá-la em branch própria a partir de `dev`. Registrar a decisão na retrospectiva.
+
+### Story 20.19: Remoção dos Aliases e Zeramento das Exceções do Tema
+
+As a developer maintaining the portal,  
+I want the legacy color aliases and the old KPI card gone and the theme exceptions list empty,  
+So that every screen uses only the semantic tokens and the architecture test guards the whole codebase.
+
+**Origem:** separada da Story 20.9 por decisão do Julio. Etapa mecânica, feita depois que as páginas foram migradas.
+
+**Escopo:** `packages/ui` (`kpi-card.tsx` e seu spec), `apps/web` (usos dos aliases) e `apps/web/architecture/tema-excecoes.json`. Medição de 2026-10-31: `accent` em 25 arquivos, `borderLine` e `subtleText` em 16, `mutedText` em 14, `cardBg` em 6, `canvas` em 3, `text-attention` em 0; exceções: 36 de paleta fixa, 23 de raio antigo, 21 de hex literal.
+
+**Acceptance Criteria:**
+- **Given** as Stories 20.4 a 20.9 concluídas
+- **When** a story termina
+- **Then** os aliases (`accent`, `borderLine`, `canvas`, `subtleText`, `mutedText`, `cardBg`, `text-attention`) não existem mais no código nem nos tokens.
+- **And** a variante antiga de `KPICard` é removida e nenhum chamador a usa.
+- **And** a lista de exceções do teste de arquitetura da Story 20.1 chega a zero; o que for exceção legítima (e-mail, imagem OG, cor de série de gráfico) migra para a lista permanente com motivo.
+- **And** nenhum dado, query ou texto é alterado; capturas de tela antes e depois das páginas mais afetadas (claro e escuro) não mostram regressão.
+- **And** `pnpm typecheck`, `pnpm test`, `biome` e a suíte de testes visuais passam.
+
+**Dependências:** 20.4 a 20.9.
 
 ---
 
