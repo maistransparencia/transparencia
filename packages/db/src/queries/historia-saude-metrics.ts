@@ -77,12 +77,21 @@ export interface FontesReceitaSaudeDTO {
   emendasParlamentares: number;
 }
 
+export interface CaminhoContratacaoSaudeDTO {
+  /** Código em snake_case: licitacao_propria, adesao_ata_interna, adesao_ata_externa, gap_licitacao. */
+  tipoContratacao: string;
+  quantidade: number;
+  valorEmpenhado: number;
+}
+
 export interface LicitacoesSaudeResultDTO {
   adesaoCaronaCount: number;
   adesaoCaronaValor: number;
   empenhosAtaExternaCount: number;
   pagoAtaExternaValor: number;
   modalidades: Array<{ nome: string; valor: number; pct: number }>;
+  /** Caminhos de contratação do fundo, com o valor empenhado ligado a cada um. */
+  caminhos: CaminhoContratacaoSaudeDTO[];
 }
 
 export async function getHistoriaSaudeMetrics(
@@ -330,6 +339,7 @@ export async function getSaudeLicitacoesMetrics(
     empenhosAtaExternaCount: 0,
     pagoAtaExternaValor: 0,
     modalidades: [],
+    caminhos: [],
   };
 
   if (empresaIds.length === 0) return empty;
@@ -346,6 +356,25 @@ export async function getSaudeLicitacoesMetrics(
       ano,
       empresaIds,
     );
+
+    const caminhosRows = await db
+      .selectFrom("fct_licitacoes_metricas")
+      .select([
+        "tipo_contratacao",
+        db.fn.countAll<string>().as("quantidade"),
+        db.fn.sum<string>("empenhado_contrato").as("valor_empenhado"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", ano)
+      .where("empresa_id", "in", empresaIds)
+      .groupBy("tipo_contratacao")
+      .execute();
+
+    const caminhos = caminhosRows.map((row) => ({
+      tipoContratacao: String(row.tipo_contratacao ?? ""),
+      quantidade: Number(row.quantidade ?? 0),
+      valorEmpenhado: Number(row.valor_empenhado ?? 0),
+    }));
 
     const modalityTotals: Record<string, number> = {
       "Pregão eletrônico": 0,
@@ -385,6 +414,7 @@ export async function getSaudeLicitacoesMetrics(
       empenhosAtaExternaCount: adesaoExterna.quantidade,
       pagoAtaExternaValor: adesaoExterna.totalPago,
       modalidades,
+      caminhos,
     };
   } catch {
     return empty;

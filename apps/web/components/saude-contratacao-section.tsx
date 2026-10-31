@@ -1,4 +1,7 @@
-import type { LicitacaoEmAndamentoDTO } from "@transparencia/db";
+import type {
+  CaminhoContratacaoSaudeDTO,
+  LicitacaoEmAndamentoDTO,
+} from "@transparencia/db";
 import {
   Badge,
   fmtCompact,
@@ -7,12 +10,11 @@ import {
   fmtLicitacaoModalidade,
   fmtLicitacaoSituacao,
   fmtPercent,
-  KPICard,
+  SectionHeader,
   TruncatedCellWithModal,
 } from "@transparencia/ui";
 import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
 import Link from "next/link";
-import { KPIGrid } from "@/components/kpi-grid";
 
 export interface SaudeContratacaoModalidadeItem {
   nome: string;
@@ -26,6 +28,7 @@ export interface SaudeContratacaoLicitacoesProps {
   empenhosAtaExternaCount: number;
   pagoAtaExternaValor: number;
   modalidades: SaudeContratacaoModalidadeItem[];
+  caminhos: CaminhoContratacaoSaudeDTO[];
 }
 
 export interface SaudeContratacaoOrcamentoProps {
@@ -42,6 +45,37 @@ export interface SaudeContratacaoSectionProps {
   licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
 }
 
+const CAMINHOS_CONTRATACAO = [
+  {
+    tipoContratacao: "licitacao_propria",
+    nome: "Licitação própria",
+    unidade: "licitações",
+    semEmpenho:
+      "O portal não liga essas licitações às notas de empenho, por isso não há valor empenhado para mostrar.",
+  },
+  {
+    tipoContratacao: "adesao_ata_interna",
+    nome: "Adesão a ata (carona)",
+    unidade: "contratos",
+    nota: "Contratos cadastrados como adesão a uma ata de registro de preços.",
+  },
+  {
+    tipoContratacao: "adesao_ata_externa",
+    nome: "Empenhos que citam ata de registro de preços",
+    unidade: "empenhos",
+    nota: "Identificados pelo texto da descrição do empenho.",
+  },
+  {
+    tipoContratacao: "gap_licitacao",
+    nome: "Contratos sem licitação identificada",
+    unidade: "contratos",
+    nota: "O cadastro não mostra a licitação desses contratos; vale consultar o processo.",
+  },
+] as const;
+
+const percentualEntre0e100 = (valor: number, total: number) =>
+  total > 0 ? Math.min(100, Math.max(0, (valor / total) * 100)) : 0;
+
 export function SaudeContratacaoSection({
   portalSlug,
   ano,
@@ -49,141 +83,79 @@ export function SaudeContratacaoSection({
   licitacoesSaude,
   licitacoesEmAndamento = [],
 }: SaudeContratacaoSectionProps) {
-  const caronaValor = licitacoesSaude.adesaoCaronaValor;
-  const caronaPct =
-    orcamento.empenhado > 0 ? (caronaValor / orcamento.empenhado) * 100 : 0;
-
-  const barColors: Record<string, string> = {
-    "Pregão eletrônico": "bg-brand-fill",
-    "Adesão a ata (carona)": "bg-warn-fill",
-    "Dispensa de licitação": "bg-ok-fill",
-    Inexigibilidade: "bg-mute2",
-    "Tomada de preços / outros": "bg-mute3",
-  };
+  const caminhos = CAMINHOS_CONTRATACAO.map((definicao) => {
+    const encontrado = licitacoesSaude.caminhos.find(
+      (caminho) => caminho.tipoContratacao === definicao.tipoContratacao,
+    );
+    return {
+      ...definicao,
+      quantidade: encontrado?.quantidade ?? 0,
+      valorEmpenhado: encontrado?.valorEmpenhado ?? 0,
+    };
+  });
 
   return (
-    <section className="space-y-6 border-line border-t-2 pt-8">
-      {/* Header com Link */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2>Como o Fundo contrata</h2>
-          <p className="mt-1 max-w-3xl text-mute text-sm leading-relaxed">
-            O que a prefeitura faz com o dinheiro que chega ao Fundo — quantos
-            contratos assinou, com quantos fornecedores, e por qual caminho.
-            Parte da saúde é comprada{" "}
-            <strong className="font-bold text-ink">
-              na carona de atas de outras prefeituras
-            </strong>
-            , sem licitação própria do município.
-          </p>
-        </div>
-        <Link
-          href={`/${portalSlug}/licitacoes`}
-          className="inline-flex shrink-0 items-center font-semibold text-brand-text text-sm hover:underline"
-        >
-          Ver todas as licitações &rarr;
-        </Link>
-      </div>
+    <section className="space-y-6">
+      <SectionHeader
+        title="Como o Fundo contrata"
+        description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
+        action={
+          <Link
+            href={`/${portalSlug}/licitacoes`}
+            className="font-semibold text-brand-text hover:underline"
+          >
+            Ver todas as licitações &rarr;
+          </Link>
+        }
+      />
 
-      {/* Banner de Alerta Âmbar */}
-      <div className="flex items-start gap-3 border-warn-fill border-l-4 bg-line2 p-4 text-ink text-xs sm:text-sm">
-        <div>
-          {caronaValor > 0 ? (
-            <>
-              <strong className="font-bold">
-                {fmtCompact(caronaValor)} — {fmtPercent(caronaPct)} do empenho
-                do Fundo —
-              </strong>{" "}
-              foram contratados por adesão a atas (carona). Modalidade legal,
-              mas que dispensa licitação própria: exige acompanhamento para
-              garantir preço e entrega.
-            </>
-          ) : licitacoesSaude.empenhosAtaExternaCount > 0 ? (
-            <>
-              <strong className="font-bold">
-                {licitacoesSaude.empenhosAtaExternaCount} empenhos via ata
-                externa ({fmtCompact(licitacoesSaude.pagoAtaExternaValor)}{" "}
-                pagos)
-              </strong>{" "}
-              foram registrados no exercício. Modalidades por adesão a ata
-              dispensam licitação própria do município.
-            </>
-          ) : (
-            <>
-              O Fundo registrou seus contratos e compras no exercício sob as
-              modalidades legais cabíveis.
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* 4 KPI Cards */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Contratos vinculados"
-          value={orcamento.contratosVinculadosCount}
-          subtext={`com ${orcamento.fornecedoresAtivosCount} fornecedores`}
-        />
-        <KPICard
-          title="Adesões de ata (carona)"
-          value={
-            <span className="font-bold text-warn-text">
-              {licitacoesSaude.adesaoCaronaCount}
-            </span>
-          }
-          subtext={`${fmtCompact(caronaValor)} contratados`}
-        />
-        <KPICard
-          title="Empenhos via ata externa"
-          value={licitacoesSaude.empenhosAtaExternaCount}
-          subtext="notas de empenho"
-        />
-        <KPICard
-          title="Pago via ata externa"
-          value={
-            <span className="font-bold text-brand-text">
-              {fmtCompact(licitacoesSaude.pagoAtaExternaValor)}
-            </span>
-          }
-          subtext="já liquidado e pago"
-        />
-      </KPIGrid>
-
-      {/* Card Visual de Distribuição de Modalidades */}
-      <div className="border-line border-t pt-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3>Por qual caminho o Fundo contratou</h3>
-          <span className="text-mute text-xs">
-            % do valor empenhado · {fmtCompact(orcamento.empenhado)}
-          </span>
-        </div>
-
-        <div className="space-y-4">
-          {licitacoesSaude.modalidades.map(
-            (mod: SaudeContratacaoModalidadeItem) => {
-              const colorClass = barColors[mod.nome] || "bg-mute3";
-              return (
-                <div key={mod.nome} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-ink">{mod.nome}</span>
-                    <span className="font-bold text-ink">
-                      {fmtCompact(mod.valor)}
-                    </span>
-                  </div>
-                  <div className="h-3 w-full overflow-hidden rounded-md bg-line2">
+      <ul className="space-y-6">
+        {caminhos.map((caminho) => {
+          const temEmpenho = caminho.valorEmpenhado > 0;
+          return (
+            <li key={caminho.tipoContratacao} className="space-y-2">
+              <div className="flex items-baseline justify-between gap-4">
+                <h3>{caminho.nome}</h3>
+                <span className="caption shrink-0">
+                  {caminho.quantidade} {caminho.unidade}
+                </span>
+              </div>
+              {temEmpenho ? (
+                <>
+                  <div className="h-3 w-full bg-track">
                     <div
-                      className={`h-full rounded-md transition-all duration-500 ${colorClass}`}
+                      className="h-full bg-brand-fill"
                       style={{
-                        width: `${Math.min(100, Math.max(0, mod.pct))}%`,
+                        width: `${percentualEntre0e100(caminho.valorEmpenhado, orcamento.empenhado)}%`,
                       }}
                     />
                   </div>
-                </div>
-              );
-            },
-          )}
-        </div>
-      </div>
+                  <p className="caption">
+                    <strong className="text-ink">
+                      {fmtCompact(caminho.valorEmpenhado)}
+                    </strong>{" "}
+                    empenhados (
+                    {fmtPercent(
+                      percentualEntre0e100(
+                        caminho.valorEmpenhado,
+                        orcamento.empenhado,
+                      ),
+                    )}{" "}
+                    do total reservado pelo Fundo).{" "}
+                    {"nota" in caminho ? caminho.nota : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="caption">
+                  {"semEmpenho" in caminho
+                    ? caminho.semEmpenho
+                    : "Nenhum valor empenhado ligado a este caminho."}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
 
       {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
       <div className="space-y-4 border-line border-t pt-6">

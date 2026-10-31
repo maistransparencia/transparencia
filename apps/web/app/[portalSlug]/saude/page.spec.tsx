@@ -59,6 +59,7 @@ function makeRaw(
       executionTrend: [],
       licitacoesSaude: {
         adesaoCaronaCount: 0,
+        caminhos: [],
         adesaoCaronaValor: 0,
         empenhosAtaExternaCount: 0,
         pagoAtaExternaValor: 0,
