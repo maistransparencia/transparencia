@@ -9,23 +9,15 @@ import {
   SectionHeader,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
-import nextDynamic from "next/dynamic";
 import { KPIGrid } from "@/components/kpi-grid";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
+import { SaudeEvolucaoAnual } from "@/components/saude-evolucao-anual";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
-
-const SaudeTrendChart = nextDynamic(
-  () =>
-    import("@/components/saude-trend-chart").then((mod) => mod.SaudeTrendChart),
-  {
-    loading: () => <div className="h-[320px] w-full animate-pulse bg-line2" />,
-  },
-);
 
 export const dynamic = "force-dynamic";
 
@@ -147,10 +139,12 @@ export default async function SaudePage({
 
       {/* Seção 3: Empenhado no ano (Existente) */}
       <section className="space-y-6">
-        <SectionHeader title="Empenhado no ano" />
-        <SaudeTrendChart
+        <SectionHeader title="Como mudou ao longo dos anos" />
+        <SaudeEvolucaoAnual
           data={saude.executionTrend}
           selectedYear={selectedYear}
+          partialYear={isCurrentYear ? selectedYear : undefined}
+          partialPeriod={partialPeriod}
         />
       </section>
 

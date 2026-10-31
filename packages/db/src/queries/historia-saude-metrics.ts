@@ -125,11 +125,11 @@ export async function getHistoriaSaudeMetrics(
 
 export async function getSaudeExecutionTrendMetrics(
   portalSlug: string,
-): Promise<Array<{ ano: number; empenhado: number }>> {
+): Promise<Array<{ ano: number; empenhado: number; pago: number }>> {
   try {
     const results = await db
       .selectFrom("fct_historia_saude_metricas")
-      .select(["ano", "total_empenhado as empenhado"])
+      .select(["ano", "total_empenhado as empenhado", "total_pago as pago"])
       .where("portal_slug", "=", portalSlug)
       .orderBy("ano", "asc")
       .execute();
@@ -137,6 +137,7 @@ export async function getSaudeExecutionTrendMetrics(
     return results.map((r) => ({
       ano: Number(r.ano),
       empenhado: Number(r.empenhado ?? 0),
+      pago: Number(r.pago ?? 0),
     }));
   } catch {
     return [];

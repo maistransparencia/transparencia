@@ -9,7 +9,7 @@ const CAMINHOS = [
   "components/saude-contratacao-section.tsx",
   "components/saude-emendas-section.tsx",
   "components/saude-origem-recursos.tsx",
-  "components/saude-trend-chart.tsx",
+  "components/saude-evolucao-anual.tsx",
   "components/educacao-resumo-card.tsx",
   "components/educacao/categoria-contrato-card.tsx",
   "components/educacao/composicao-recursos-bar.tsx",
@@ -80,7 +80,7 @@ describe("Saúde e Educação no padrão Divisórias", () => {
 
   it("gráficos usam corDoGrafico", () => {
     const graficos = ARQUIVOS.filter(({ nome }) =>
-      /fontes-donut|trend-chart|fiscal-section|historico-section/.test(nome),
+      /fiscal-section|historico-section/.test(nome),
     );
     for (const { fonte } of graficos) {
       expect(fonte).toContain("corDoGrafico(");
