@@ -47,7 +47,6 @@
     "apps/web/components/push-notification-prompt.tsx",
     "apps/web/components/show-your-work-button.tsx",
     "apps/web/components/static-tile-map.tsx",
-    "apps/web/components/tabela-totais-row.tsx",
     "packages/ui/src/components/kpi-card.tsx"
   ],
   "paleta-fixa-do-tailwind": [
@@ -86,7 +85,6 @@
     "apps/web/components/show-your-work-button.tsx",
     "apps/web/components/social-links.tsx",
     "apps/web/components/static-tile-map.tsx",
-    "apps/web/components/tabela-totais-row.tsx",
     "packages/ui/src/components/kpi-card.tsx",
     "packages/ui/src/components/tooltip.tsx",
     "packages/ui/src/components/truncated-cell-with-modal.tsx"
