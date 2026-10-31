@@ -94,4 +94,41 @@ deferred: []
 
 ## Registro das revisões
 
-(preencher durante a execução: pergunta do cidadão por página, achados de Creuza, Atanagildo e jurídico)
+### Pergunta do cidadão por página (definidas em 2026-10-31; Creuza revisa o texto na execução)
+
+Régua = o que acompanha o número para o cidadão saber se está bem ou mal. Base legal fica **NÃO VERIFICADO** até o `jurista-fiscal` conferir; nenhuma lei é citada na tela sem essa conferência.
+
+**`/obras` — "As obras da cidade estão andando e o que já foi pago por elas?"**
+- Blocos que respondem:
+  - quantas obras há e em que situação (andando, paralisadas, concluídas) — hero;
+  - onde ficam — mapa;
+  - quanto foi feito versus quanto foi pago — gráfico de avanço duplo (avanço físico × avanço financeiro);
+  - quais estão paradas e há quanto tempo — paralisadas;
+  - de onde vem o dinheiro — empenhos federais e contratos vinculados.
+- Régua: avanço físico contra avanço financeiro da mesma obra; tempo parada; valor pago contra valor contratado.
+- Dado derivado: avanço físico estimado ou informado pela fonte deve dizer de quem é a informação. Obra parada é indício de atenção, não de culpa.
+- Vai para "Ver detalhes": detalhe da obra (modal), contratos vinculados, empenhos federais.
+- Disclaimer cívico (`obras-civic-disclaimer`) permanece perto do topo.
+
+**`/previdencia` — "O dinheiro da aposentadoria dos servidores está sendo guardado e repassado em dia?"**
+- Blocos que respondem:
+  - o município tem fundo próprio de previdência? — estado sem RPPS (hoje com texto técnico "RPPS / RGPS / INSS", Creuza reescreve);
+  - quanto era devido e quanto foi repassado — hero e adimplência;
+  - quanto o fundo tem guardado e como evoluiu — patrimônio histórico e saldo de caixa;
+  - o fundo tem rombo previsto? — risco atuarial;
+  - de onde vem o dinheiro por entidade — donut.
+- Régua: repassado contra devido no mesmo período; patrimônio ano a ano; déficit atuarial contra patrimônio.
+- Dado derivado: déficit atuarial é cálculo de projeção (não é fato medido); a tela diz que é estimativa e de quem é o cálculo.
+- Vai para "Ver detalhes": composição contábil dos repasses e tabelas do risco atuarial.
+
+**`/radar` — "Há algum gasto ou situação que merece um olhar mais atento?"**
+- Blocos que respondem:
+  - avisos atuais do portal (feed cívico e cartões de anomalia);
+  - gastos em áreas sensíveis (radar de gastos sensíveis).
+- Régua: comparação com o próprio histórico do município e com a média estadual calculada pela camada de dados (nunca constante no código, Regra 23).
+- Dado derivado: todo alerta é **indício** para conferir, não acusação; a tela diz como o alerta foi calculado e o que o cidadão pode fazer (ex.: ver o detalhe da despesa).
+- Vai para "Ver detalhes": critérios e fórmulas de cada alerta.
+
+### Achados das revisões
+
+(preencher durante a execução: Creuza, Atanagildo e jurídico, por página)
