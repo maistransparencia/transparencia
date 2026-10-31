@@ -83,9 +83,6 @@ export interface EducacaoMetricDTO {
   crescimentoPontosIdeb: number | null;
   variacaoSaebMatematica: number | null;
   variacaoSaebPortugues: number | null;
-  despesaLiquidadaEducacao: number | null;
-  totalMatriculasRedeMunicipal: number | null;
-  custoAnualPorAluno: number | null;
 }
 
 export interface ResumoEducacaoDTO {
@@ -99,8 +96,6 @@ export interface ResumoEducacaoDTO {
   saebLinguaPortuguesa: number | null;
   indicadorFluxoAprovacao: number | null;
   despesaLiquidadaEducacao: number | null;
-  totalMatriculasRedeMunicipal: number | null;
-  custoAnualPorAluno: number | null;
   posicaoRanking?: number | null;
   totalMunicipios?: number | null;
   variacaoPosicoes?: number | null;
@@ -145,11 +140,6 @@ function mapRowToEducacaoMetricDTO(
     crescimentoPontosIdeb: toNumberOrNull(row.crescimento_pontos_ideb),
     variacaoSaebMatematica: toNumberOrNull(row.variacao_saeb_matematica),
     variacaoSaebPortugues: toNumberOrNull(row.variacao_saeb_portugues),
-    despesaLiquidadaEducacao: toNumberOrNull(row.despesa_liquidada_educacao),
-    totalMatriculasRedeMunicipal: toIntegerOrNull(
-      row.total_matriculas_rede_municipal,
-    ),
-    custoAnualPorAluno: toNumberOrNull(row.custo_anual_por_aluno),
   };
 }
 
@@ -256,16 +246,6 @@ export async function getResumoEducacao(
   const anosFinais =
     metrics.find((m) => m.etapaEnsino === "anosFinais") ?? null;
 
-  // Despesa e matrículas independem da etapa; indicadores do IDEB usam só anos iniciais.
-  const contexto = [anosIniciais, anosFinais, metrics[0]];
-  const primeiroContexto = <T>(
-    selecionar: (linha: (typeof metrics)[number]) => T | null | undefined,
-  ): T | null =>
-    contexto.reduce<T | null>(
-      (acc, linha) => acc ?? (linha ? (selecionar(linha) ?? null) : null),
-      null,
-    );
-
   const ranking = await getEducacaoRankingEstadual(cleanSlug, {
     ano: targetAno,
     etapaEnsino: "anosIniciais",
@@ -309,16 +289,7 @@ export async function getResumoEducacao(
     saebMatematica: anosIniciais?.saebMatematica ?? null,
     saebLinguaPortuguesa: anosIniciais?.saebLinguaPortuguesa ?? null,
     indicadorFluxoAprovacao: anosIniciais?.indicadorFluxoAprovacao ?? null,
-    // Fallback das métricas só vale quando o ciclo é o próprio exercício solicitado.
-    despesaLiquidadaEducacao:
-      despesaLiquidadaReal ??
-      (targetAno === requestedAno
-        ? primeiroContexto((linha) => linha.despesaLiquidadaEducacao)
-        : null),
-    totalMatriculasRedeMunicipal: primeiroContexto(
-      (linha) => linha.totalMatriculasRedeMunicipal,
-    ),
-    custoAnualPorAluno: primeiroContexto((linha) => linha.custoAnualPorAluno),
+    despesaLiquidadaEducacao: despesaLiquidadaReal,
     posicaoRanking: ranking?.posicaoRanking ?? null,
     totalMunicipios: ranking?.totalMunicipios ?? null,
     variacaoPosicoes: ranking?.variacaoPosicoes ?? null,
@@ -815,7 +786,32 @@ function mapRowToEducacaoContratoDTO(
 }
 
 /**
- * Retorna os contratos e compras vinculados à Educação (merenda PNAE, transporte PNATE, manutenção escolar).
+ * Empresas (`empresa_id`) do Fundo Municipal de Educação do portal.
+ */
+export async function getEducacaoFundoEmpresaIds(
+  portalSlug: string,
+): Promise<string[]> {
+  const cleanSlug = (portalSlug ?? "").trim();
+  if (!cleanSlug) {
+    return [];
+  }
+  try {
+    const orgaos = await db
+      .selectFrom("dim_orgao")
+      .select("empresa_id")
+      .where("portal_slug", "=", cleanSlug)
+      .where("orgao_nome", "ilike", "%fundo%")
+      .where("orgao_nome", "ilike", "%educa%")
+      .execute();
+    return orgaos.map((orgao) => orgao.empresa_id);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Retorna os contratos e compras do Fundo Municipal de Educação (merenda PNAE, transporte PNATE, manutenção escolar),
+ * identificados pelo `empresa_id` do Fundo.
  */
 export async function getEducacaoContratos(
   portalSlug: string,
@@ -830,137 +826,58 @@ export async function getEducacaoContratos(
   }
 
   const cleanSlug = portalSlug.trim();
+  const fundoEmpresaIds = await getEducacaoFundoEmpresaIds(cleanSlug);
+  if (fundoEmpresaIds.length === 0) {
+    return [];
+  }
 
-  // 1. Identifica os órgãos associados à Educação via dim_orgao
-  const educOrgaos = await (async () => {
-    try {
-      return await db
-        .selectFrom("dim_orgao")
-        .select(["empresa_id", "orgao_nome"])
-        .where("portal_slug", "=", cleanSlug)
-        .where((eb) =>
-          eb.or([
-            eb("orgao_nome", "ilike", "%educa%"),
-            eb("orgao_nome", "ilike", "%ensino%"),
-          ]),
-        )
-        .execute();
-    } catch {
-      return [];
-    }
-  })();
-
-  const educEmpresaIds = educOrgaos.map((o) => o.empresa_id);
-
-  // 2. Tenta carregar primeiro a partir de fct_contratos_servicos_vigentes (mesma fonte e critérios canônicos da página de Contratos)
+  // Fonte canônica da página de Contratos (vigentes no ano).
   if (ano !== undefined && ano !== null && !Number.isNaN(ano)) {
     try {
-      const vigentes = await getContratosServicosVigentes(cleanSlug, ano);
+      const vigentes = (
+        await getContratosServicosVigentes(cleanSlug, ano)
+      ).filter(
+        (c) =>
+          c.empresaId !== undefined && fundoEmpresaIds.includes(c.empresaId),
+      );
       if (vigentes.length > 0) {
-        const educVigentes = vigentes.filter((c) => {
-          // Se pertence a um órgão de educação identificado em dim_orgao
-          if (
-            educEmpresaIds.length > 0 &&
-            educEmpresaIds.includes(c.empresaId)
-          ) {
-            return true;
-          }
-
-          // Se o órgão ou função é explicitamente de educação (mesmo sob a prefeitura ou secretaria unificada)
-          const isEducaDireto =
-            (c.orgaoNome &&
-              (c.orgaoNome.toLowerCase().includes("educa") ||
-                c.orgaoNome.toLowerCase().includes("ensino"))) ||
-            (c.funcaoNome &&
-              (c.funcaoNome.toLowerCase().includes("educa") ||
-                c.funcaoNome.toLowerCase().includes("ensino")));
-
-          if (isEducaDireto) {
-            return true;
-          }
-
-          // Exclui explicitamente órgãos ou funções de outros setores não educacionais
-          const isOutroSetor =
-            (c.orgaoNome &&
-              (c.orgaoNome.toLowerCase().includes("saúde") ||
-                c.orgaoNome.toLowerCase().includes("saude") ||
-                c.orgaoNome.toLowerCase().includes("assistência social") ||
-                c.orgaoNome.toLowerCase().includes("assistencia social") ||
-                c.orgaoNome.toLowerCase().includes("meio ambiente") ||
-                c.orgaoNome.toLowerCase().includes("previdência") ||
-                c.orgaoNome.toLowerCase().includes("previdencia"))) ||
-            (c.funcaoNome &&
-              (c.funcaoNome.toLowerCase().includes("saúde") ||
-                c.funcaoNome.toLowerCase().includes("saude") ||
-                c.funcaoNome.toLowerCase().includes("assistência") ||
-                c.funcaoNome.toLowerCase().includes("assistencia") ||
-                c.funcaoNome.toLowerCase().includes("previdência") ||
-                c.funcaoNome.toLowerCase().includes("previdencia") ||
-                c.funcaoNome.toLowerCase().includes("meio ambiente")));
-
-          if (isOutroSetor) return false;
-
-          const text =
-            `${c.objetoDescricao} ${c.orgaoNome ?? ""} ${c.funcaoNome ?? ""} ${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""}`.toLowerCase();
-          return (
-            text.includes("educa") ||
-            text.includes("escola") ||
-            text.includes("merenda") ||
-            text.includes("pnae") ||
-            text.includes("pnate") ||
-            text.includes("ensino") ||
-            text.includes("creche") ||
-            text.includes("fundeb") ||
-            text.includes("pedag") ||
-            text.includes("didatico")
-          );
-        });
-
-        if (educVigentes.length > 0) {
-          return educVigentes.map((c) => {
-            const objeto = c.objetoDescricao;
-            const fontesOuFuncao = `${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""} ${c.funcaoNome ?? ""}`;
-            const categoria = categorizarContratoEducacao(
-              objeto,
-              fontesOuFuncao,
-            );
-
-            return {
-              contratoId: c.contratoServicoId ?? c.contratoNumero ?? "",
-              portalSlug: c.portalSlug,
-              ano: c.ano ?? ano,
-              empresaId: c.empresaId ?? "",
-              contratoNumero: c.contratoNumero ?? "",
-              licitacaoNumero: c.licitacaoNumero ?? null,
-              modalidade: null,
-              fornecedorNome: c.fornecedorNome,
-              fornecedorCpfCnpj: c.fornecedorCnpj || null,
-              objeto,
-              categoria,
-              valorContrato: c.valorContrato ?? 0,
-              valorAditado: c.valorAditado ?? 0,
-              totalEmpenhado: c.totalEmpenhado,
-              totalLiquidado: c.totalLiquidado,
-              totalPago: c.totalPago,
-              saldoAPagar: c.saldoPendente,
-              fontePrincipal: c.fontePrincipal ?? null,
-              fontesRecursos: c.fontesRecursos ?? null,
-              orgaoNome: c.orgaoNome ?? null,
-              principalFuncao: c.funcaoNome ?? null,
-              principalPrograma: c.programaNome ?? null,
-              principalAcao: c.projetoAtividadeNome ?? null,
-              dataInicio: c.dataInicio,
-              vencimentoAtual: c.vencimentoAtual,
-            };
-          });
-        }
+        return vigentes.map((c) => ({
+          contratoId: c.contratoServicoId ?? c.contratoNumero ?? "",
+          portalSlug: c.portalSlug,
+          ano: c.ano ?? ano,
+          empresaId: c.empresaId ?? "",
+          contratoNumero: c.contratoNumero ?? "",
+          licitacaoNumero: c.licitacaoNumero ?? null,
+          modalidade: null,
+          fornecedorNome: c.fornecedorNome,
+          fornecedorCpfCnpj: c.fornecedorCnpj || null,
+          objeto: c.objetoDescricao,
+          categoria: categorizarContratoEducacao(
+            c.objetoDescricao,
+            `${c.fontePrincipal ?? ""} ${c.fontesRecursos ?? ""} ${c.funcaoNome ?? ""}`,
+          ),
+          valorContrato: c.valorContrato ?? 0,
+          valorAditado: c.valorAditado ?? 0,
+          totalEmpenhado: c.totalEmpenhado,
+          totalLiquidado: c.totalLiquidado,
+          totalPago: c.totalPago,
+          saldoAPagar: c.saldoPendente,
+          fontePrincipal: c.fontePrincipal ?? null,
+          fontesRecursos: c.fontesRecursos ?? null,
+          orgaoNome: c.orgaoNome ?? null,
+          principalFuncao: c.funcaoNome ?? null,
+          principalPrograma: c.programaNome ?? null,
+          principalAcao: c.projetoAtividadeNome ?? null,
+          dataInicio: c.dataInicio,
+          vencimentoAtual: c.vencimentoAtual,
+        }));
       }
     } catch {
       // Fallback gracioso para a consulta direta em fct_contratos
     }
   }
 
-  // 3. Fallback direto para fct_contratos (usado quando fct_contratos_servicos_vigentes não existir ou em fixtures de teste)
+  // Fallback direto para fct_contratos (sem fct_contratos_servicos_vigentes ou em fixtures de teste)
   let query = db
     .selectFrom("fct_contratos as c")
     .leftJoin("fct_contratos_recursos as cr", (join) =>
@@ -1002,77 +919,8 @@ export async function getEducacaoContratos(
       "cr.principal_programa",
       "cr.principal_acao",
     ])
-    .where("c.portal_slug", "=", cleanSlug);
-
-  query = query
-    .where((eb) => {
-      const orClauses = [
-        eb("cr.principal_funcao", "ilike", "%educa%"),
-        eb("cr.orgao_nome", "ilike", "%educa%"),
-        eb("cr.orgao_nome", "ilike", "%ensino%"),
-        eb("o.orgao_nome", "ilike", "%educa%"),
-        eb("o.orgao_nome", "ilike", "%ensino%"),
-        eb("c.objeto", "ilike", "%pnae%"),
-        eb("c.objeto", "ilike", "%pnate%"),
-        eb("c.objeto", "ilike", "%merenda%"),
-        eb("c.objeto", "ilike", "%transporte escolar%"),
-        eb("c.objeto", "ilike", "%material escolar%"),
-        eb("c.objeto", "ilike", "%livro didatico%"),
-        eb("c.objeto", "ilike", "%material didatico%"),
-        eb("c.objeto", "ilike", "%escola%"),
-        eb("c.objeto", "ilike", "%creche%"),
-        eb("c.objeto", "ilike", "%ensino%"),
-        eb("c.objeto", "ilike", "%pedag%"),
-        eb("cr.fonte_principal", "ilike", "%fundeb%"),
-        eb("cr.fonte_principal", "ilike", "%mde%"),
-        eb("cr.fontes_recursos", "ilike", "%fundeb%"),
-        eb("cr.fontes_recursos", "ilike", "%mde%"),
-      ];
-      if (educEmpresaIds.length > 0) {
-        orClauses.push(eb("c.empresa_id", "in", educEmpresaIds));
-      }
-      return eb.or(orClauses);
-    })
-    .where((eb) =>
-      eb.and([
-        eb.or([
-          eb("o.orgao_nome", "is", null),
-          eb.and([
-            eb("o.orgao_nome", "not ilike", "%saude%"),
-            eb("o.orgao_nome", "not ilike", "%saúde%"),
-            eb("o.orgao_nome", "not ilike", "%assistencia social%"),
-            eb("o.orgao_nome", "not ilike", "%assistência social%"),
-            eb("o.orgao_nome", "not ilike", "%meio ambiente%"),
-            eb("o.orgao_nome", "not ilike", "%previdencia%"),
-            eb("o.orgao_nome", "not ilike", "%previdência%"),
-          ]),
-        ]),
-        eb.or([
-          eb("cr.orgao_nome", "is", null),
-          eb.and([
-            eb("cr.orgao_nome", "not ilike", "%saude%"),
-            eb("cr.orgao_nome", "not ilike", "%saúde%"),
-            eb("cr.orgao_nome", "not ilike", "%assistencia social%"),
-            eb("cr.orgao_nome", "not ilike", "%assistência social%"),
-            eb("cr.orgao_nome", "not ilike", "%meio ambiente%"),
-            eb("cr.orgao_nome", "not ilike", "%previdencia%"),
-            eb("cr.orgao_nome", "not ilike", "%previdência%"),
-          ]),
-        ]),
-        eb.or([
-          eb("cr.principal_funcao", "is", null),
-          eb.and([
-            eb("cr.principal_funcao", "not ilike", "%saude%"),
-            eb("cr.principal_funcao", "not ilike", "%saúde%"),
-            eb("cr.principal_funcao", "not ilike", "%assistencia%"),
-            eb("cr.principal_funcao", "not ilike", "%assistência%"),
-            eb("cr.principal_funcao", "not ilike", "%previdencia%"),
-            eb("cr.principal_funcao", "not ilike", "%previdência%"),
-            eb("cr.principal_funcao", "not ilike", "%meio ambiente%"),
-          ]),
-        ]),
-      ]),
-    );
+    .where("c.portal_slug", "=", cleanSlug)
+    .where("c.empresa_id", "in", fundoEmpresaIds);
 
   if (ano !== undefined && ano !== null && !Number.isNaN(ano)) {
     query = query.where((eb) =>
@@ -1083,9 +931,10 @@ export async function getEducacaoContratos(
     );
   }
 
-  query = query.orderBy("c.ano", "desc").orderBy("c.contrato_numero", "asc");
-
-  const rows = await query.execute();
+  const rows = await query
+    .orderBy("c.ano", "desc")
+    .orderBy("c.contrato_numero", "asc")
+    .execute();
 
   return rows.map(mapRowToEducacaoContratoDTO);
 }

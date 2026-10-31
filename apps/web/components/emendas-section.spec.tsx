@@ -1,14 +1,13 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { fmtCurrency } from "@transparencia/ui";
 import { describe, expect, it } from "vitest";
-import {
-  SaudeEmendasSection,
-  type SaudeEmendasStatsProps,
-} from "./saude-emendas-section";
+import { EmendasSection, type SaudeEmendasStatsProps } from "./emendas-section";
 
 const mockStats: SaudeEmendasStatsProps = {
   totalAutorizado: 2031183,
   totalEmpenhado: 1015591,
+  totalRecebidoFundo: 0,
+  totalReceitaPossivel: 0,
   taxaEmpenho: 0.5,
   maiorEmenda: 2031183,
   lista: [
@@ -24,7 +23,11 @@ const mockStats: SaudeEmendasStatsProps = {
       esferaOrigem: "FEDERAL",
       atoNormativo: "Portaria GM/MS 11.813/2026",
       destinacao: "Atenção Primária",
-      qtdEmpenhos: 2,
+      valorRecebidoFundo: 0,
+      recebimentoFundo: "nao_identificado",
+      receitaCodigo: null,
+      receitaDescricao: null,
+      quantidadeEmpenhos: 2,
       empenhos: [
         {
           empenhoId: "24339",
@@ -65,16 +68,20 @@ const mockStats: SaudeEmendasStatsProps = {
       esferaOrigem: "FEDERAL",
       atoNormativo: "",
       destinacao: "Média e Alta Complexidade",
-      qtdEmpenhos: 0,
+      valorRecebidoFundo: 0,
+      recebimentoFundo: "nao_identificado",
+      receitaCodigo: null,
+      receitaDescricao: null,
+      quantidadeEmpenhos: 0,
       empenhos: [],
     },
   ],
 };
 
-describe("SaudeEmendasSection", () => {
+describe("EmendasSection", () => {
   it("renderiza cabeçalho, KPIs e lista de emendas", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -87,19 +94,21 @@ describe("SaudeEmendasSection", () => {
     expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Daniel Soranz").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/2 empenhos/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Bloco Orçamentário").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Empenho sem notas ligadas").length,
+    ).toBeGreaterThan(0);
   });
 
   it("abre modal com rastreabilidade ao clicar no botão de empenhos", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
       />,
     );
 
-    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    const button = screen.getAllByRole("button", { name: /^2 empenhos$/i })[0];
     if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
@@ -121,7 +130,7 @@ describe("SaudeEmendasSection", () => {
 
   it("abre modal com rastreabilidade ao clicar no nome do autor da emenda", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
@@ -164,14 +173,14 @@ describe("SaudeEmendasSection", () => {
     };
 
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={customStats}
         portalSlug="porciuncula_prefeitura"
       />,
     );
 
-    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    const button = screen.getAllByRole("button", { name: /^2 empenhos$/i })[0];
     if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
@@ -197,29 +206,46 @@ describe("SaudeEmendasSection", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("renderiza cartões mobile com dados de emendas e badges", () => {
+  it("renderiza linhas mobile compactas com autor, valor e rastreabilidade", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         portalSlug="porciuncula_prefeitura"
       />,
     );
 
-    // No card mobile, exibe Proposta nº e botão de auditar
+    expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(1);
     expect(
-      screen.getByText("Proposta nº 63000759632202600"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Proposta nº 202643380001")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /auditar 2 empenhos vinculados/i }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("button", { name: /^2 empenhos$/i }).length,
+    ).toBeGreaterThan(1);
+  });
+
+  it("mostra a proposta e a destinação ao expandir a linha no mobile", () => {
+    const { container } = render(
+      <EmendasSection
+        ano={2026}
+        emendasStats={mockStats}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    const gatilhos = container.querySelectorAll<HTMLElement>(
+      "div[role='button'][aria-expanded]",
+    );
+    expect(gatilhos.length).toBeGreaterThan(0);
+    const primeiro = gatilhos[0];
+    if (primeiro) fireEvent.click(primeiro);
+    expect(container.textContent).toMatch(/Proposta/);
+    expect(container.textContent).toMatch(/Empenhado no cadastro/);
   });
 
   it("ordena a tabela dando precedência a emendas que possuem empenho", () => {
     const unorderedStats: SaudeEmendasStatsProps = {
       totalAutorizado: 1500000,
       totalEmpenhado: 200000,
+      totalRecebidoFundo: 0,
+      totalReceitaPossivel: 0,
       taxaEmpenho: 200000 / 1500000,
       maiorEmenda: 1000000,
       lista: [
@@ -234,7 +260,11 @@ describe("SaudeEmendasSection", () => {
           esferaOrigem: "FEDERAL",
           atoNormativo: "",
           destinacao: "Atenção Primária",
-          qtdEmpenhos: 0,
+          valorRecebidoFundo: 0,
+          recebimentoFundo: "nao_identificado",
+          receitaCodigo: null,
+          receitaDescricao: null,
+          quantidadeEmpenhos: 0,
           empenhos: [],
         },
         {
@@ -248,7 +278,11 @@ describe("SaudeEmendasSection", () => {
           esferaOrigem: "FEDERAL",
           atoNormativo: "",
           destinacao: "Média Complexidade",
-          qtdEmpenhos: 1,
+          valorRecebidoFundo: 0,
+          recebimentoFundo: "nao_identificado",
+          receitaCodigo: null,
+          receitaDescricao: null,
+          quantidadeEmpenhos: 1,
           empenhos: [
             {
               empenhoId: "999",
@@ -268,7 +302,7 @@ describe("SaudeEmendasSection", () => {
     };
 
     const { container } = render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={unorderedStats}
         portalSlug="porciuncula_prefeitura"
@@ -284,7 +318,7 @@ describe("SaudeEmendasSection", () => {
 
   it("usa título e descrição customizados e rodapé com os totais na tabela", () => {
     render(
-      <SaudeEmendasSection
+      <EmendasSection
         ano={2026}
         emendasStats={mockStats}
         titulo="Emendas parlamentares destinadas à Educação"
@@ -308,7 +342,7 @@ describe("SaudeEmendasSection", () => {
   });
 
   it("recalcula o rodapé ao buscar na tabela", () => {
-    render(<SaudeEmendasSection ano={2026} emendasStats={mockStats} />);
+    render(<EmendasSection ano={2026} emendasStats={mockStats} />);
     fireEvent.change(screen.getByPlaceholderText(/Buscar/), {
       target: { value: "Soranz" },
     });

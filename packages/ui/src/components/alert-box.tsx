@@ -16,10 +16,10 @@ export function AlertBox({
   className,
 }: AlertBoxProps) {
   const icons = {
-    warning: <AlertTriangle className="h-5 w-5 shrink-0 text-warn-text" />,
-    danger: <AlertCircle className="h-5 w-5 shrink-0 text-danger-text" />,
-    info: <Info className="h-5 w-5 shrink-0 text-brand-text" />,
-    success: <CheckCircle className="h-5 w-5 shrink-0 text-ok-text" />,
+    warning: <AlertTriangle className="h-4 w-4 shrink-0 text-warn-text" />,
+    danger: <AlertCircle className="h-4 w-4 shrink-0 text-danger-text" />,
+    info: <Info className="h-4 w-4 shrink-0 text-brand-text" />,
+    success: <CheckCircle className="h-4 w-4 shrink-0 text-ok-text" />,
   };
 
   const styles = {
@@ -32,14 +32,14 @@ export function AlertBox({
   return (
     <div
       className={cn(
-        "flex gap-3 border-l-2 py-3 pr-3 pl-3 text-ink text-sm leading-relaxed",
+        "flex gap-3 border-l-[3px] px-4 py-3 text-ink text-sm leading-relaxed",
         styles[type],
         className,
       )}
     >
       {icons[type]}
       <div>
-        {title && <h4 className="mb-1 font-semibold">{title}</h4>}
+        {title && <p className="mb-1 font-semibold">{title}</p>}
         <div>{children}</div>
       </div>
     </div>

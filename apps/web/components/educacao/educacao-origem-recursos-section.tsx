@@ -4,15 +4,19 @@ import type {
   EducacaoOrigemRecursosDTO,
   GrupoFonteRecursoEducacao,
 } from "@transparencia/db";
-import { cn } from "@transparencia/ui";
+import {
+  fmtCompact,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+} from "@transparencia/ui";
 import { useState } from "react";
-import { SectionHeader } from "@/components/section-header";
-import { ComposicaoRecursosBar } from "./composicao-recursos-bar";
-import { FonteRecursoCard } from "./fonte-recurso-card";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
   formatMesPorExtenso,
+  formatPercentualInteiro,
   ORDEM_FONTES_RECURSO,
+  ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
 
 export interface EducacaoOrigemRecursosSectionProps {
@@ -22,58 +26,92 @@ export interface EducacaoOrigemRecursosSectionProps {
 export function EducacaoOrigemRecursosSection({
   origemRecursos,
 }: EducacaoOrigemRecursosSectionProps) {
-  const { fontes, nomeOrgao, ano, anoParcial, mesReferencia } = origemRecursos;
+  const { fontes, ano, anoParcial, mesReferencia, totalArrecadado } =
+    origemRecursos;
   const parcial = anoParcial !== null && ano === anoParcial;
   const [fonteAberta, setFonteAberta] =
     useState<GrupoFonteRecursoEducacao | null>(null);
   const fonteSelecionada =
     fontes.find((fonte) => fonte.grupoFonte === fonteAberta) ?? null;
   const semReceitas = fontes.length === 0;
-  const ultimoImpar = ORDEM_FONTES_RECURSO.length % 2 === 1;
+
+  const fontePrincipal = fontes.reduce<(typeof fontes)[number] | null>(
+    (maior, fonte) =>
+      maior === null || fonte.totalArrecadado > maior.totalArrecadado
+        ? fonte
+        : maior,
+    null,
+  );
+
+  const description = (() => {
+    if (semReceitas) {
+      return undefined;
+    }
+    const partes = [
+      `Em ${ano}, entraram ${fmtCompact(totalArrecadado)} no Fundo Municipal de Educação.`,
+      fontePrincipal
+        ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm da fonte "${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}". Veja de onde veio cada parte.`
+        : "",
+      "Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo.",
+      parcial && mesReferencia !== null
+        ? `Ano em andamento: valores acumulados até ${formatMesPorExtenso(mesReferencia)}.`
+        : "",
+    ];
+    return partes.filter(Boolean).join(" ");
+  })();
 
   return (
     <section
       id="origem-recursos-educacao"
-      aria-label="De onde vem o dinheiro da Educação"
-      className="space-y-4"
+      aria-label="O que entrou no Fundo Municipal de Educação"
+      className="space-y-6"
     >
-      <SectionHeader
-        title="De onde vem o dinheiro"
-        description={`Receitas do ${nomeOrgao ?? "fundo de Educação"} em ${ano} – Não inclui o aporte da Prefeitura ao fundo.`}
-      />
-
-      {parcial && mesReferencia !== null && (
-        <p className="-mt-2 text-slate-500 text-xs">
-          Ano em andamento: valores acumulados até{" "}
-          {formatMesPorExtenso(mesReferencia)}.
-        </p>
-      )}
-
-      <ComposicaoRecursosBar fontes={fontes} />
+      <SectionHeader title="O que entrou" description={description} />
 
       {semReceitas ? (
-        <p className="text-slate-500 text-sm">
+        <p className="border-line border-y py-4 text-mute">
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {ORDEM_FONTES_RECURSO.map((grupoFonte, indice) => (
-            <FonteRecursoCard
-              key={grupoFonte}
-              grupoFonte={grupoFonte}
-              fonte={
-                fontes.find((fonte) => fonte.grupoFonte === grupoFonte) ?? null
-              }
-              onOpen={setFonteAberta}
-              parcial={parcial}
-              className={cn(
-                ultimoImpar &&
-                  indice === ORDEM_FONTES_RECURSO.length - 1 &&
-                  "col-span-2 md:col-span-1",
-              )}
-            />
-          ))}
-        </div>
+        <IndicatorPanel columns={4} size="sm">
+          {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
+            const fonte = fontes.find((item) => item.grupoFonte === grupoFonte);
+            const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
+            if (!fonte) {
+              return (
+                <Indicator
+                  key={grupoFonte}
+                  label={rotulo}
+                  value="—"
+                  note="sem receita no exercício"
+                />
+              );
+            }
+            return (
+              <Indicator
+                key={grupoFonte}
+                label={rotulo}
+                value={fmtCompact(fonte.totalArrecadado)}
+                note={
+                  <>
+                    {formatPercentualInteiro(fonte.percentualTotal)} do que
+                    entrou{parcial ? " · parcial" : ""}
+                    {" · "}
+                    <button
+                      type="button"
+                      data-testid={`fonte-card-${grupoFonte}`}
+                      aria-label={`Ver detalhes: ${rotulo}`}
+                      onClick={() => setFonteAberta(grupoFonte)}
+                      className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
+                    >
+                      Ver detalhes
+                    </button>
+                  </>
+                }
+              />
+            );
+          })}
+        </IndicatorPanel>
       )}
 
       <FonteRecursoModal

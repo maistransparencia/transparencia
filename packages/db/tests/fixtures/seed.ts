@@ -466,6 +466,9 @@ export interface DespesaRow {
   fornecedorNome?: string;
   fornecedorCpfCnpj?: string;
   grupoNatureza?: string;
+  funcao?: string;
+  subfuncao?: string;
+  subfuncaoNome?: string;
   descricao?: string;
   empenhado?: number;
   liquidado?: number;
@@ -486,6 +489,9 @@ export async function seedDespesa(row: DespesaRow): Promise<void> {
       fornecedor_nome: row.fornecedorNome ?? null,
       fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
       grupo_natureza: row.grupoNatureza ?? null,
+      funcao: row.funcao ?? null,
+      subfuncao: row.subfuncao ?? null,
+      subfuncao_nome: row.subfuncaoNome ?? null,
       descricao: row.descricao ?? null,
       empenhado: row.empenhado ?? 0,
       liquidado: row.liquidado ?? 0,
@@ -1250,9 +1256,6 @@ export interface EducacaoMetricaRow {
   crescimentoPontosIdeb?: number | null;
   variacaoSaebMatematica?: number | null;
   variacaoSaebPortugues?: number | null;
-  despesaLiquidadaEducacao?: number | null;
-  totalMatriculasRedeMunicipal?: number | null;
-  custoAnualPorAluno?: number | null;
 }
 
 export async function seedEducacaoMetricas(
@@ -1287,12 +1290,38 @@ export async function seedEducacaoMetricas(
           crescimento_pontos_ideb: r.crescimentoPontosIdeb ?? null,
           variacao_saeb_matematica: r.variacaoSaebMatematica ?? null,
           variacao_saeb_portugues: r.variacaoSaebPortugues ?? null,
-          despesa_liquidada_educacao: r.despesaLiquidadaEducacao ?? null,
-          total_matriculas_rede_municipal:
-            r.totalMatriculasRedeMunicipal ?? null,
-          custo_anual_por_aluno: r.custoAnualPorAluno ?? null,
         };
       }),
+    )
+    .execute();
+}
+
+export interface EducacaoExecucaoRow {
+  portalSlug: string;
+  ano: number;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+  pagoSemPessoal?: number;
+}
+
+export async function seedEducacaoExecucao(
+  row: EducacaoExecucaoRow | EducacaoExecucaoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_execucao_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empenhado_educacao: r.empenhado ?? 0,
+        liquidado_educacao: r.liquidado ?? 0,
+        pago_educacao: r.pago ?? 0,
+        pago_sem_pessoal_educacao: r.pagoSemPessoal ?? r.pago ?? 0,
+      })),
     )
     .execute();
 }
@@ -1342,8 +1371,87 @@ export async function seedDimMetadata(row: {
     .execute();
 }
 
+export interface LicitacaoMetricaRow {
+  portalSlug: string;
+  ano: number;
+  empresaId: string;
+  tipoContratacao: string | null;
+  empenhadoContrato: number;
+}
+
+export async function seedLicitacaoMetrica(
+  row: LicitacaoMetricaRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_licitacoes_metricas")
+    .values({
+      licitacao_metricas_id: nextId("licm"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empresa_id: row.empresaId,
+      tipo_contratacao: row.tipoContratacao,
+      empenhado_contrato: row.empenhadoContrato,
+    })
+    .execute();
+}
+
+export interface HistoriaSaudeMetricaRow {
+  portalSlug: string;
+  ano: number;
+  totalPago?: number;
+  receitaUniao?: number;
+  receitaEstado?: number;
+  repassesPrefeitura?: number;
+  receitaOutras?: number;
+  totalEntrada?: number;
+  percentualUniaoSus?: number;
+  percentualEstado?: number;
+  percentualPropria?: number;
+  percentualOutrasReceitas?: number;
+}
+
+export async function seedHistoriaSaudeMetrica(
+  row: HistoriaSaudeMetricaRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_historia_saude_metricas")
+    .values({
+      historia_saude_id: nextId("hsm"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      dotacao_total: 0,
+      total_empenhado: 0,
+      total_liquidado: 0,
+      total_pago: row.totalPago ?? 0,
+      medicamentos_insumos_empenhado: 0,
+      medicamentos_insumos_pago: 0,
+      judicializacao_empenhado: 0,
+      judicializacao_pago: 0,
+      emendas_saude_arrecadado: 0,
+      hhi_concentracao_fornecedores: 0,
+      receita_uniao_saude: row.receitaUniao ?? 0,
+      receita_estado_saude: row.receitaEstado ?? 0,
+      repasses_prefeitura_saude: row.repassesPrefeitura ?? 0,
+      receita_outras_saude: row.receitaOutras ?? 0,
+      total_entrada_saude: row.totalEntrada ?? 0,
+      percentual_uniao_sus: row.percentualUniaoSus ?? 0,
+      percentual_estado: row.percentualEstado ?? 0,
+      percentual_propria: row.percentualPropria ?? 0,
+      percentual_outras_receitas: row.percentualOutrasReceitas ?? 0,
+    })
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_licitacoes_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_historia_saude_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("dim_metadata")
     .where("portal_slug", "=", portalSlug)
@@ -1354,6 +1462,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_execucao_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

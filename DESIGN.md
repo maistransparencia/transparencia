@@ -2,7 +2,7 @@
 name: Portal Transparência — Padrões Visuais Base
 description: Estilos base dos elementos HTML (títulos, parágrafo, dl, tabela, listas, links), papéis visuais nomeados e o painel. Estende os tokens existentes de apps/web/app/globals.css; não cria cor nova.
 status: final
-updated: 2026-10-29
+updated: 2026-10-31
 colors:
   # Convenções deste arquivo:
   #  - Nomes são os tokens de globals.css. Tema claro em :root, escuro em .dark.
@@ -165,6 +165,9 @@ components:
     padding: '0.25rem 0 0.25rem 1rem'
     shadow: 'none'
     border-color: '{colors.line}'
+  panel-interactive:
+    hover-border-color: '{colors.brand-fill}'
+    transition: 150ms
   panel-brand:
     border-color: '{colors.brand-fill}'
   panel-ok:
@@ -204,6 +207,24 @@ components:
     marker: none
     text-flow-marker: disc
     item-gap: 4px
+  alert-box:
+    border-width: '0 0 0 3px'
+    radius: '{rounded.none}'
+    padding: '12px 16px'
+    background: '{colors.brand-fill}, {colors.warn-fill}, {colors.danger-fill} ou {colors.ok-fill} a 15%, conforme o tipo'
+    title: '{typography.body}, semibold, {colors.ink}'
+    body: '{typography.body}'
+    body-color: '{colors.ink}'
+    icon-size: 16px
+  section-header:
+    top-rule: '2px {colors.ink}'
+    padding-top: 16px
+    padding-bottom: 20px
+    eyebrow: '{typography.eyebrow}'
+    title: '{typography.h2}'
+    description: '{typography.body}'
+    description-color: '{colors.mute}'
+    description-gap: 6px
   section:
     block-gap: '{spacing.section-gap}'
     heading-gap: '{spacing.section-heading-gap}'
@@ -303,6 +324,8 @@ Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading
 
 O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. Botões e campos de controle seguem o que já existe em `packages/ui`.
 
+**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
+
 ## Components
 
 Nomes iguais ao `EXPERIENCE.md > Component Patterns` e ao código.
@@ -322,6 +345,8 @@ Bloco destacado (indicador, alerta, hero). O formato **não é fixo**: é lido d
 - Trocar uma instância (o hero, por exemplo) é sobrescrever por classe do Tailwind (`panel rounded-md border`).
 - **Tom da borda** por classe: `panel-brand`, `panel-ok`, `panel-warn`, `panel-danger` (tokens `-fill`). O padrão é `{colors.line}`.
 - Formatos validados no mock: borda lateral (padrão), borda total com leve arredondado e borda no topo.
+- **Borda no topo:** classe `panel-top` (`3px` só em cima, recuo vertical em vez de lateral). Usar em grades de blocos lado a lado, como os cards de categoria de uma seção.
+- **`panel` clicável (`panel-interactive`):** o bloco inteiro é um `button` ou `a`. Regra única: `cursor-pointer`; no hover e no foco por teclado a borda passa de `{colors.line}` para `{colors.brand-fill}` (transição de 150ms) e o foco mostra o anel de `{colors.focus-ring}`; bloco desabilitado (`aria-disabled="true"`) mantém a borda neutra e `cursor-default`. O estado nunca depende só da cor: o bloco traz um texto de ação ("16 contratos ›"). Sem sombra e sem mudança de fundo. Combina com `panel-top` e com os tons.
 
 ### `indicator`
 
@@ -351,6 +376,22 @@ Vale para o `table` nu e para o `DenseTable`, que só acrescenta comportamento (
 - `list` (`ul`/`ol`): sem marcador por padrão. Texto corrido com marcador: papel `list-text` (`disc`, recuo, `{components.list.item-gap}` entre itens).
 - Foco visível global em todo elemento interativo: anel de `{colors.focus-ring}`.
 
+### `alert-box`
+
+Aviso dentro de uma página, em `packages/ui` (`AlertBox`). Usa a mesma linguagem do `panel`: borda lateral de 3px, sem raio e sem sombra.
+- **Tipo e cor:** `info` (`{colors.brand-fill}`), `warning` (`{colors.warn-fill}`), `danger` (`{colors.danger-fill}`) e `success` (`{colors.ok-fill}`). A borda usa `-fill`, o fundo é o mesmo `-fill` a 15% e o ícone usa `-text`. O tipo `warning` só entra quando o cidadão precisa agir ou desconfiar de algo comprovado; dado que pode estar desatualizado na fonte é `info`.
+- **Texto:** tudo em `{typography.body}` de 14px, `{colors.ink}`, também a partir de `md`. O título **não é um título da escala**: é um parágrafo em semibold (sem `h4`, para não herdar 16–18px serif). Ícone de 16px.
+- **Conteúdo curto:** título de poucas palavras e corpo de até duas frases. O que passar disso vira texto da seção, não do aviso.
+- **Não repetir:** o aviso não reescreve o que os indicadores logo abaixo já mostram.
+
+### `section-header`
+
+Cabeçalho de seção, em `packages/ui` (`SectionHeader`): filete de 2px `{colors.ink}` no topo, `eyebrow` opcional, título no nível `h2` (aceita `h1` e `h3`), ação à direita e descrição.
+- **Descrição:** `{typography.body}` de 14px em `{colors.mute}`, **a 6px do título e na largura inteira do contêiner**, dentro do próprio cabeçalho. É o único lugar do subtítulo de seção: nunca um parágrafo solto (`p` ou `lead`) abaixo do cabeçalho, que o afasta do título.
+- **Eyebrow:** escopo ou contagem da seção ("18 emendas · exercício 2026"), nunca um selo.
+- **Ação:** link curto à direita do título, sem botão. Com `eyebrow`, a ação é compacta e fica na linha do título.
+- O espaço do cabeçalho até o primeiro bloco é do contêiner (`section`).
+
 ### `ModalDialog`
 
 O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este spec não altera o `ModalDialog`; só exige que o conteúdo use os elementos base e papéis.
@@ -367,6 +408,8 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 | `numeric` | número alinhado em mono | `th`/`td` numéricos |
 | `panel` (+ tons) | bloco destacado | indicador, alerta, hero |
 | `section` | ritmo vertical, sem moldura | blocos de página |
+| `alert-box` | aviso com borda lateral e tom | dentro de uma seção, antes dos indicadores |
+| `section-header` | filete, título, descrição e ação | abertura de toda seção |
 | `list-text` | lista com marcador em texto corrido | termos, privacidade |
 
 ## Do's and Don'ts
@@ -380,4 +423,7 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 - **Don't** aplicar tamanho de fonte por classe em `h1`–`h4`.
 - **Don't** dar margem aos elementos base. Espaço é do contêiner.
 - **Don't** usar sombra, zebra em tabela ou `@tailwindcss/typography`.
+- **Don't** arredondar barras de progresso ou de comparação.
+- **Don't** escrever o subtítulo da seção como parágrafo solto: use a descrição do `section-header`.
+- **Don't** usar `h4` como título de `alert-box` nem passar de duas frases no corpo.
 - **Don't** crescer o `h1` para acomodar um valor grande: usar `stat-value-lg`.

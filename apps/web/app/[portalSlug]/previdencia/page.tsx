@@ -4,6 +4,7 @@ import {
   fmtCurrency,
   fmtPercent,
   KPICard,
+  SectionHeader,
 } from "@transparencia/ui";
 import { Landmark } from "lucide-react";
 import type { Metadata } from "next";
@@ -14,7 +15,6 @@ import { PrevidenciaActuarialRiskSection } from "@/components/previdencia-actuar
 import { PrevidenciaHeroSection } from "@/components/previdencia-hero-section";
 import { PrevidenciaPatrimonioHistoricoSection } from "@/components/previdencia-patrimonio-historico-section";
 import { PrevidenciaSaldoCaixaCard } from "@/components/previdencia-saldo-caixa-card";
-import { SectionHeader } from "@/components/section-header";
 import { createPortalMetadata, getCachedPortalConfig } from "@/lib/metadata";
 import { loadPrevidenciaData } from "./loader";
 import { buildPrevidenciaViewModel } from "./view-model";

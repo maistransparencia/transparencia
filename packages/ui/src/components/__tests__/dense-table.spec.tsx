@@ -436,7 +436,7 @@ describe("DenseTable - formato Divisórias, renderMobileRow e hideSearch", () =>
     expect(raiz).not.toHaveClass("rounded-xl");
     expect(raiz).not.toHaveClass("border");
     expect(raiz).not.toHaveClass("shadow-xs");
-    expect(container.querySelector("thead tr")).toHaveClass("border-ink");
+    expect(container.querySelector("thead tr")).toHaveClass("border-line");
     expect(container.querySelector("tbody")).toHaveClass("divide-line");
   });
 

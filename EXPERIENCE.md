@@ -63,6 +63,8 @@ Nomes iguais aos de `DESIGN.md > Components`.
 
 **`panel` / `indicator`.** Estrutura obrigatória `dl > div > dt + dd`. Um tamanho de valor por `panel`. Um `stat-value-lg` por página, no hero.
 
+**`panel` clicável.** `panel-interactive` (botão ou link no bloco todo): `cursor-pointer`, borda `line` → `brand-fill` no hover e no foco, anel de foco visível, ação escrita no bloco ("16 contratos ›"), 44px de altura mínima. Desabilitado: `aria-disabled`, borda neutra, sem hover. Detalhes visuais em `DESIGN.md > panel`.
+
 **Troca de formato do `panel`.** Mudar o formato é editar `--panel-*` em `globals.css`. Se uma página precisa fugir do padrão, sobrescreve por classe do Tailwind no próprio elemento, e a exceção é revisada no code review. Padrão inicial: borda lateral.
 
 **`table`.** `table` nu e `DenseTable` compartilham os estilos de elemento. `DenseTable` mantém seu comportamento mobile e seus controles; a tabela nua só rola na horizontal.

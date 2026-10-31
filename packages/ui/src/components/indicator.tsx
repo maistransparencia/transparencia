@@ -19,6 +19,12 @@ const PANEL_TONE_CLASS: Record<IndicatorPanelTone, string> = {
   danger: "panel-danger",
 };
 
+const COLUMNS_CLASS: Record<2 | 3 | 4, string> = {
+  2: "grid-cols-1 sm:grid-cols-2",
+  3: "grid-cols-1 sm:grid-cols-3",
+  4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+};
+
 const VALUE_TONE_CLASS: Record<IndicatorTone, string> = {
   default: "",
   ok: "text-ok-text",
@@ -39,6 +45,8 @@ export interface IndicatorPanelProps {
   tone?: IndicatorPanelTone;
   /** Só a grade, sem `panel`: para uso dentro de outro `panel` já emoldurado. */
   bare?: boolean;
+  /** Número fixo de colunas; sem ele a grade se ajusta sozinha (`auto-fit`). */
+  columns?: 2 | 3 | 4;
   className?: string;
 }
 
@@ -48,6 +56,7 @@ export function IndicatorPanel({
   size = "md",
   tone = "default",
   bare = false,
+  columns,
   className,
 }: IndicatorPanelProps) {
   return (
@@ -58,7 +67,14 @@ export function IndicatorPanel({
         className,
       )}
     >
-      <dl className="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-6">
+      <dl
+        className={cn(
+          "grid gap-6",
+          columns
+            ? COLUMNS_CLASS[columns]
+            : "grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]",
+        )}
+      >
         {Children.map(children, (child) =>
           isValidElement<IndicatorProps>(child)
             ? cloneElement(child, { size })

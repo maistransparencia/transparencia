@@ -32,6 +32,10 @@ function emenda(dados: {
     esfera_origem: "federal",
     ato_normativo: "ato",
     destinacao: "destinacao",
+    valor_recebido_fundo: 0,
+    recebimento_fundo: "nao_identificado",
+    receita_codigo: null,
+    receita_descricao: null,
   };
 }
 
@@ -130,6 +134,51 @@ describe("montarEmendasStats", () => {
     expect(resultado.lista.map((e) => e.numero)).toEqual(["B", "A"]);
     expect(resultado.lista[1]?.empenhado).toBeNull();
     expect(resultado.taxaEmpenho).toBeCloseTo(50 / 1200);
+  });
+
+  it("separa o recebimento confirmado do possível e mapeia a linha de receita", () => {
+    const resultado = montarEmendasStats([
+      {
+        numero_emenda: "A",
+        valor_total: 500,
+        empenhado: 0,
+        autor: "Ana",
+        valor_recebido_fundo: 500,
+        recebimento_fundo: "confirmado_por_proposta",
+        receita_codigo: "1713.50.1.1.00.00",
+        receita_descricao: "Transferência da proposta 123",
+      },
+      {
+        numero_emenda: "B",
+        valor_total: 300,
+        empenhado: 0,
+        autor: "Zeca",
+        valor_recebido_fundo: 0,
+        recebimento_fundo: "valor_igual",
+        receita_codigo: "",
+        receita_descricao: "",
+      },
+      {
+        numero_emenda: "C",
+        valor_total: 200,
+        empenhado: 0,
+        autor: "Beto",
+        valor_recebido_fundo: 0,
+        recebimento_fundo: "nao_identificado",
+      },
+    ]);
+
+    expect(resultado.totalRecebidoFundo).toBe(500);
+    expect(resultado.totalReceitaPossivel).toBe(300);
+
+    const porNumero = Object.fromEntries(
+      resultado.lista.map((e) => [e.numero, e]),
+    );
+    expect(porNumero.A?.recebimentoFundo).toBe("confirmado_por_proposta");
+    expect(porNumero.A?.receitaCodigo).toBe("1713.50.1.1.00.00");
+    expect(porNumero.B?.receitaCodigo).toBeNull();
+    expect(porNumero.B?.receitaDescricao).toBeNull();
+    expect(porNumero.C?.recebimentoFundo).toBe("nao_identificado");
   });
 
   it("taxa de empenho é zero quando nada foi autorizado", () => {

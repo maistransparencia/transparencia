@@ -7,12 +7,15 @@ export interface DespesasFornecedoresSectionProps {
   fornecedores: FornecedorLinha[];
   portalSlug: string;
   ano: number;
+  /** Nota ao pé da lista; o padrão serve à página de despesas. */
+  nota?: React.ReactNode;
 }
 
 export function DespesasFornecedoresSection({
   fornecedores,
   portalSlug,
   ano,
+  nota,
 }: DespesasFornecedoresSectionProps) {
   if (fornecedores.length === 0) return null;
 
@@ -28,7 +31,7 @@ export function DespesasFornecedoresSection({
               <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
                 <span className="font-medium text-ink text-sm">
                   {fornecedor.nome}
-                  <span className="ml-2 font-mono text-mute2 text-xs">
+                  <span className="caption ml-2 tabular-nums">
                     {fmtPercent(fornecedor.percentualTotalPago)}
                   </span>
                 </span>
@@ -56,9 +59,8 @@ export function DespesasFornecedoresSection({
         })}
       </div>
       <p className="text-mute2 text-sm">
-        Contratos grandes, como coleta de lixo ou merenda, naturalmente
-        concentram valores. O valor mostra o que foi pago, não se o preço foi
-        justo.
+        {nota ??
+          "Contratos grandes, como coleta de lixo ou merenda, naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."}
       </p>
     </div>
   );

@@ -1,17 +1,23 @@
 import {
   type EducacaoContratoDTO,
+  type EducacaoExecucaoAnualDTO,
   type EducacaoMediasEstaduais,
   type EducacaoMetricDTO,
   type EducacaoOrigemRecursosDTO,
+  type EducacaoRankingEstadualDTO,
   type EmendasEducacaoStatsDTO,
   type EtapaEnsino,
+  type FornecedorExecucaoItemDTO,
   getEducacaoContratos,
   getEducacaoEmendasMetrics,
+  getEducacaoExecucaoAnual,
   getEducacaoMediasEstaduais,
   getEducacaoMetrics,
   getEducacaoOrigemRecursos,
+  getEducacaoRankingEstadual,
   getPortalConfig,
   getResumoEducacao,
+  getTopFornecedoresEducacaoMetrics,
   type ResumoEducacaoDTO,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
@@ -70,6 +76,10 @@ export interface RawEducacaoData {
   mediasEstaduais: EducacaoMediasEstaduais;
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
+  execucaoAnual: EducacaoExecucaoAnualDTO[];
+  topFornecedores: FornecedorExecucaoItemDTO[];
+  rankingAnosIniciais: EducacaoRankingEstadualDTO | null;
+  rankingAnosFinais: EducacaoRankingEstadualDTO | null;
 }
 
 export async function fetchRawEducacaoCoreData(
@@ -86,6 +96,8 @@ export async function fetchRawEducacaoCoreData(
     mediasEstaduais,
     emendas,
     origemRecursos,
+    execucaoAnual,
+    topFornecedores,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getEducacaoMetrics(tenantSlug),
@@ -100,7 +112,22 @@ export async function fetchRawEducacaoCoreData(
       portalSlug: tenantSlug,
       ano: targetAno ?? new Date().getFullYear(),
     }),
+    getEducacaoExecucaoAnual(tenantSlug),
+    getTopFornecedoresEducacaoMetrics({
+      portalSlug: tenantSlug,
+      year: targetAno ?? new Date().getFullYear(),
+      limit: 5,
+    }),
   ]);
+
+  const [rankingAnosIniciais, rankingAnosFinais] = await Promise.all(
+    (["anosIniciais", "anosFinais"] as const).map((etapaEnsino) =>
+      getEducacaoRankingEstadual(tenantSlug, {
+        ano: resumo?.[etapaEnsino]?.ano,
+        etapaEnsino,
+      }),
+    ),
+  );
 
   return {
     portalSlug: tenantSlug,
@@ -111,6 +138,10 @@ export async function fetchRawEducacaoCoreData(
     mediasEstaduais,
     emendas,
     origemRecursos,
+    execucaoAnual,
+    topFornecedores,
+    rankingAnosIniciais,
+    rankingAnosFinais,
   };
 }
 

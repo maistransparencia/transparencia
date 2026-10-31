@@ -55,9 +55,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: null,
         variacaoSaebMatematica: null,
         variacaoSaebPortugues: null,
-        despesaLiquidadaEducacao: 25000000,
-        totalMatriculasRedeMunicipal: 2300,
-        custoAnualPorAluno: 10869.56,
       },
       {
         educacaoMetricaId: "2",
@@ -75,9 +72,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: -0.7,
         variacaoSaebMatematica: -8.69,
         variacaoSaebPortugues: -3.78,
-        despesaLiquidadaEducacao: 29000000,
-        totalMatriculasRedeMunicipal: 2280,
-        custoAnualPorAluno: 12719.3,
       },
       {
         educacaoMetricaId: "3",
@@ -95,9 +89,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: 1.4,
         variacaoSaebMatematica: 16.29,
         variacaoSaebPortugues: 16.41,
-        despesaLiquidadaEducacao: 34291936.64,
-        totalMatriculasRedeMunicipal: 2290,
-        custoAnualPorAluno: 14553.0,
       },
       {
         educacaoMetricaId: "4",
@@ -115,9 +106,6 @@ function makeRawEducacaoData(
         crescimentoPontosIdeb: 0.4,
         variacaoSaebMatematica: 5.0,
         variacaoSaebPortugues: 6.0,
-        despesaLiquidadaEducacao: 34291936.64,
-        totalMatriculasRedeMunicipal: 2290,
-        custoAnualPorAluno: 14553.0,
       },
     ],
     resumo: {
@@ -126,8 +114,6 @@ function makeRawEducacaoData(
       notaIdeb: 5.9,
       crescimentoPontosIdeb: 1.4,
       despesaLiquidadaEducacao: 34291936.64,
-      totalMatriculasRedeMunicipal: 2290,
-      custoAnualPorAluno: 14553.0,
       posicaoRanking: 46,
       totalMunicipios: 92,
       variacaoPosicoes: 32,
@@ -260,6 +246,8 @@ function makeRawEducacaoData(
     emendas: {
       totalAutorizado: 0,
       totalEmpenhado: 0,
+      totalRecebidoFundo: 0,
+      totalReceitaPossivel: 0,
       taxaEmpenho: 0,
       maiorEmenda: 0,
       lista: [],
@@ -269,6 +257,37 @@ function makeRawEducacaoData(
       anosFinais: {},
     },
     origemRecursos: null,
+    execucaoAnual: [
+      {
+        ano: 2024,
+        empenhado: 30_000_000,
+        liquidado: 29_000_000,
+        pago: 28_000_000,
+        pagoSemPessoal: 28_000_000,
+      },
+      {
+        ano: 2025,
+        empenhado: 36_000_000,
+        liquidado: 34_291_936.64,
+        pago: 32_000_000,
+        pagoSemPessoal: 32_000_000,
+      },
+    ],
+    topFornecedores: [
+      {
+        fornecedorNome: "FORNECEDORA GERAL DA EDUCACAO LTDA",
+        fornecedorCpfCnpj: "98.765.432/0001-10",
+        totalPago: 800_000,
+        totalEmpenhado: 900_000,
+        percentualPago: 100,
+      },
+    ],
+    rankingAnosIniciais: {
+      posicaoRanking: 46,
+      totalMunicipios: 92,
+      variacaoPosicoes: 43,
+    },
+    rankingAnosFinais: null,
     searchParams: {},
     ...overrides,
   };
@@ -279,7 +298,7 @@ describe("EducacaoPage (Server Component)", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza os 4 blocos de alto impacto cívico desenhados por Sally", async () => {
+  it("renderiza as seções na ordem da pergunta do cidadão", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -289,52 +308,46 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    // Bloco 1: Hero & Troféu Cívico
-    expect(
-      screen.getByText(/acompanhe a evolução do IDEB/i),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("trofeu-civico-card")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Evolução de \+1,4 ponto no IDEB da Rede Municipal/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText("5,9")).toBeInTheDocument();
-    expect(screen.getByText("+1,4 ponto")).toBeInTheDocument();
-    expect(screen.getByText("46º lugar")).toBeInTheDocument();
-    expect(screen.getByText("Despesa na Educação")).toBeInTheDocument();
-    expect(screen.getByText(/2.290 alunos matriculados/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
+      /A Prefeitura reservou R\$ 36,0 mi em educação em 2025 e pagou R\$ 32,0 mi\./,
+    );
 
-    // Bloco 2: Linha do tempo e série histórica
-    expect(
-      screen.getByText(/Série Histórica do IDEB e Avaliações Oficiais/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Anos Iniciais (1º ao 5º ano)"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Anos Finais (6º ao 9º ano)")).toBeInTheDocument();
-    expect(screen.getByText(/SAEB — Língua Portuguesa/i)).toBeInTheDocument();
-    expect(screen.getByText(/SAEB — Matemática/i)).toBeInTheDocument();
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((titulo) => titulo.textContent);
+    expect(titulos).toEqual([
+      "Como mudou ao longo dos anos",
+      "Como o Fundo contrata",
+      "Quem recebe o dinheiro da educação",
+      "Aprendizado dos alunos",
+    ]);
 
-    // Bloco 3: Painel de Responsabilidade Fiscal da Educação
+    expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();
     expect(
-      screen.getByText("Painel de Responsabilidade Fiscal da Educação"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Evolução da Despesa na Educação vs. Desempenho no IDEB",
-      ),
-    ).toBeInTheDocument();
-    expect(screen.queryByTestId("termometro-mde")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("termometro-fundeb")).not.toBeInTheDocument();
-
-    // Bloco 4: Contratos e compras da educação no formato canônico de contratos
-    expect(
-      screen.getByText(/Contratos e Compras da Educação/),
-    ).toBeInTheDocument();
+      screen.queryByText("Painel de Responsabilidade Fiscal da Educação"),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
+  });
+
+  it("mostra a nota do IDEB, a meta e a classificação por etapa em Aprendizado dos alunos", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(within(secao).getAllByText("Nota do IDEB")).toHaveLength(2);
+    expect(within(secao).getByText("5,9")).toBeInTheDocument();
+    expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
-      screen.getAllByText("DISTRIBUIDORA ALIMENTAR LTDA").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Detalhes").length).toBeGreaterThanOrEqual(1);
+      within(secao).getByText("entre 92 redes municipais"),
+    ).toBeInTheDocument();
   });
 
   it("abre automaticamente o modal padronizado via deep link (?contratoNumero=0443/25)", async () => {
@@ -364,7 +377,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByText("Fechar")).toBeInTheDocument();
   });
 
-  it("permite abrir e fechar o modal ao clicar em 'Detalhes' e 'Fechar'", async () => {
+  it("permite abrir e fechar o modal ao clicar em 'Ver detalhes' e 'Fechar'", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -378,8 +391,10 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByTestId("contrato-detalhes-modal"),
     ).not.toBeInTheDocument();
 
-    const detalhesBtn = screen.getAllByText("Detalhes")[0];
-    fireEvent.click(detalhesBtn);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 
@@ -416,10 +431,10 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     const btnIniciais = screen.getByRole("button", {
-      name: "Anos Iniciais (1º ao 5º ano)",
+      name: "Anos Iniciais",
     });
     const btnFinais = screen.getByRole("button", {
-      name: "Anos Finais (6º ao 9º ano)",
+      name: "Anos Finais",
     });
 
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
@@ -434,6 +449,37 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("abre Detalhes do IDEB com SAEB e aprovação em indicadores dentro de um panel", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    fireEvent.click(
+      within(secao).getByRole("button", { name: "Ver detalhes" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("SAEB — Língua Portuguesa"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("SAEB — Matemática")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Taxa de aprovação escolar"),
+    ).toBeInTheDocument();
+    expect(dialog.querySelector(".panel dl")).not.toBeNull();
+    expect(
+      within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
+    ).toBeInTheDocument();
+  });
+
   it("exibe cards por categoria e abre a lista da categoria no modal", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
@@ -446,7 +492,9 @@ describe("EducacaoPage (Server Component)", () => {
 
     fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
     const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText("VIACAO ESCOLAR LTDA")).toBeTruthy();
+    expect(
+      within(dialog).getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThan(0);
     expect(
       within(dialog).queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
     ).toBeNull();
@@ -498,7 +546,11 @@ describe("EducacaoPage (Server Component)", () => {
       esferaOrigem: "federal",
       atoNormativo: "",
       destinacao: "",
-      qtdEmpenhos: 0,
+      valorRecebidoFundo: 0,
+      recebimentoFundo: "nao_identificado",
+      receitaCodigo: null,
+      receitaDescricao: null,
+      quantidadeEmpenhos: 0,
       empenhos: [],
     };
     loadEducacaoDataMock.mockResolvedValue(
@@ -506,6 +558,8 @@ describe("EducacaoPage (Server Component)", () => {
         emendas: {
           totalAutorizado: 300000,
           totalEmpenhado: 100000,
+          totalRecebidoFundo: 0,
+          totalReceitaPossivel: 0,
           taxaEmpenho: 1 / 3,
           maiorEmenda: 300000,
           lista: [emendaItem],
@@ -519,7 +573,7 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(
-      screen.getByText("Emendas parlamentares destinadas à Educação"),
+      screen.getByRole("heading", { level: 2, name: "Emendas na educação" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Saúde"),
@@ -535,10 +589,10 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(
-      screen.queryByText("Emendas parlamentares destinadas à Educação"),
+      screen.queryByRole("heading", { level: 2, name: "Emendas na educação" }),
     ).not.toBeInTheDocument();
   });
-  it("exibe o bloco de origem dos recursos entre o painel fiscal e os contratos quando há fundo de Educação", async () => {
+  it("exibe O que entrou antes de Como mudou ao longo dos anos", async () => {
     loadEducacaoDataMock.mockResolvedValue(
       makeRawEducacaoData({
         origemRecursos: {
@@ -575,21 +629,19 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     const origem = screen.getByRole("region", {
-      name: "De onde vem o dinheiro da Educação",
+      name: "O que entrou no Fundo Municipal de Educação",
     });
-    const fiscal = screen.getByRole("region", {
-      name: "Painel de Responsabilidade Fiscal da Educação",
-    });
-    const contratos = screen.getByRole("region", {
-      name: "Contratos e Compras da Educação",
+    const evolucao = screen.getByRole("heading", {
+      level: 2,
+      name: "Como mudou ao longo dos anos",
     });
     expect(
-      fiscal.compareDocumentPosition(origem) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(
-      origem.compareDocumentPosition(contratos) &
+      origem.compareDocumentPosition(evolucao) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(
+      within(origem).getByRole("heading", { level: 2, name: "O que entrou" }),
+    ).toBeInTheDocument();
   });
 
   it("omite o bloco de origem dos recursos quando o portal não tem fundo de Educação", async () => {

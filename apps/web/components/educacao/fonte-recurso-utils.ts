@@ -97,21 +97,6 @@ export const BASE_LEGAL_FONTE_RECURSO: Partial<
   ],
 };
 
-/** Cor fixa por fonte (não por posição), para não mudar de um ano para outro. */
-export const COR_FONTE_RECURSO: Record<GrupoFonteRecursoEducacao, string> = {
-  fundeb: "bg-sky-700",
-  fundeb_complementacao_uniao: "bg-amber-500",
-  salario_educacao: "bg-emerald-600",
-  pnae: "bg-rose-500",
-  pnate: "bg-violet-600",
-  outros_fnde: "bg-cyan-600",
-  royalties: "bg-orange-500",
-  outras_receitas: "bg-slate-400",
-  nao_detalhado: "bg-slate-300",
-};
-
-export const ID_PAINEL_FISCAL_EDUCACAO = "painel-fiscal-educacao";
-
 export function formatMesPorExtenso(mes: number): string {
   return new Intl.DateTimeFormat("pt-BR", {
     month: "long",

@@ -641,7 +641,7 @@ export function DenseTable<T extends Record<string, any>>({
       >
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-ink border-b font-semibold text-mute2 uppercase tracking-wider">
+            <tr className="border-line border-b font-semibold text-mute2 uppercase tracking-wider">
               {visibleColumns.map((col, _idx) => {
                 const isSortable =
                   (col.sortable ?? sortable) && col.accessorKey !== undefined;
@@ -801,7 +801,7 @@ export function DenseTable<T extends Record<string, any>>({
           </tbody>
           {visibleColumns.some((col) => col.footer !== undefined) && (
             <tfoot>
-              <tr className="border-ink border-t-2 font-bold text-ink">
+              <tr className="border-line border-t font-bold text-ink">
                 {visibleColumns.map((col, idx) => (
                   <td
                     key={String(col.accessorKey || col.header)}

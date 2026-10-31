@@ -2,6 +2,7 @@
 
 import type { EmendaEmpenhoItemDTO } from "@transparencia/db";
 import {
+  AlertBox,
   Badge,
   cn,
   DenseTable,
@@ -10,14 +11,15 @@ import {
   fmtCurrency,
   fmtDate,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
   ModalDialog,
+  SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { KPIGrid } from "@/components/kpi-grid";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface SaudeEmendaItem {
@@ -32,19 +34,25 @@ export interface SaudeEmendaItem {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
-  qtdEmpenhos?: number;
+  quantidadeEmpenhos?: number;
   empenhos?: EmendaEmpenhoItemDTO[];
+  valorRecebidoFundo?: number;
+  recebimentoFundo?: string;
+  receitaCodigo?: string | null;
+  receitaDescricao?: string | null;
 }
 
 export interface SaudeEmendasStatsProps {
   totalAutorizado: number;
   totalEmpenhado: number;
+  totalRecebidoFundo?: number;
+  totalReceitaPossivel?: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: SaudeEmendaItem[];
 }
 
-export interface SaudeEmendasSectionProps {
+export interface EmendasSectionProps {
   ano: number;
   emendasStats: SaudeEmendasStatsProps;
   portalSlug?: string;
@@ -60,13 +68,13 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!descricao || descricao.trim() === "") {
-    return <span className="text-slate-400 text-xs italic">—</span>;
+    return <span className="text-mute2 text-xs italic">—</span>;
   }
 
   const isLong = descricao.length > 110;
 
   return (
-    <div className="space-y-1 py-0.5 text-slate-700 text-xs">
+    <div className="space-y-1 py-0.5 text-ink text-xs">
       <p
         className={cn(
           "break-words leading-relaxed",
@@ -83,7 +91,7 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
             ev.stopPropagation();
             setIsExpanded((prev) => !prev);
           }}
-          className="inline-flex cursor-pointer items-center gap-1 font-medium text-[11px] text-blue-600 transition-colors hover:text-blue-800 hover:underline focus:outline-none"
+          className="inline-flex cursor-pointer items-center gap-1 font-medium text-brand-text text-xs transition-colors hover:underline hover:underline focus:outline-none"
         >
           <span>
             {isExpanded ? "Recolher texto" : "Ler histórico completo"}
@@ -100,19 +108,24 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
   );
 }
 
-export function SaudeEmendasSection({
+export function EmendasSection({
   ano,
   emendasStats,
   portalSlug,
   titulo = TITULO_PADRAO,
   descricao = DESCRICAO_PADRAO,
-}: SaudeEmendasSectionProps) {
+}: EmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
   );
 
   const countEmendas = emendasStats.lista.length;
-  const isZeroEmpenhado = emendasStats.totalEmpenhado === 0;
+  const totalRecebidoFundo = emendasStats.totalRecebidoFundo ?? 0;
+  const totalReceitaPossivel = emendasStats.totalReceitaPossivel ?? 0;
+  const percentualRecebido =
+    emendasStats.totalAutorizado > 0
+      ? (totalRecebidoFundo / emendasStats.totalAutorizado) * 100
+      : 0;
 
   const tableData = useMemo(
     () =>
@@ -121,8 +134,8 @@ export function SaudeEmendasSection({
         .sort((a, b) => {
           const aEmp = a.empenhado ?? 0;
           const bEmp = b.empenhado ?? 0;
-          const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
-          const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
+          const aHas = aEmp > 0 || (a.quantidadeEmpenhos ?? 0) > 0;
+          const bHas = bEmp > 0 || (b.quantidadeEmpenhos ?? 0) > 0;
 
           if (aHas && !bHas) return -1;
           if (!aHas && bHas) return 1;
@@ -180,7 +193,6 @@ export function SaudeEmendasSection({
     emendasStats.totalAutorizado,
     emendasStats.totalEmpenhado,
   ]);
-  const isZeroEmpenhadoVisivel = totaisVisiveis.empenhado === 0;
 
   const emendasCols = [
     {
@@ -188,13 +200,13 @@ export function SaudeEmendasSection({
       accessorKey: "autor" as const,
       className: "font-bold whitespace-nowrap sm:whitespace-normal",
       renderCell: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) {
           return (
             <button
               type="button"
               onClick={() => setSelectedEmenda(row)}
-              className="cursor-pointer text-left font-bold text-slate-900 transition-colors hover:text-blue-700 hover:underline"
+              className="cursor-pointer text-left font-bold text-ink transition-colors hover:text-brand-text hover:underline"
               title="Clique para auditar notas de empenho vinculadas"
             >
               {toTitleCase(row.autor)}
@@ -206,24 +218,24 @@ export function SaudeEmendasSection({
     },
     {
       header: "Rastreabilidade",
-      accessorKey: "qtdEmpenhos" as const,
+      accessorKey: "quantidadeEmpenhos" as const,
       align: "center" as const,
       className: "whitespace-nowrap",
       defaultSortDir: "desc" as const,
       sortValue: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) return 1000 + qtd;
         if (row.empenhado && row.empenhado > 0) return 500;
         return 0;
       },
       renderCell: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) {
           return (
             <button
               type="button"
               onClick={() => setSelectedEmenda(row)}
-              className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 text-xs shadow-2xs transition-all hover:bg-blue-100 hover:text-blue-900"
+              className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border border-brand-fill bg-brand-fill/15 px-2.5 py-1 font-semibold text-brand-text text-xs transition-all hover:bg-brand-fill/25 hover:underline"
               title="Auditar notas de empenho e compras vinculadas"
             >
               <FileText className="h-3.5 w-3.5 shrink-0" />
@@ -236,15 +248,40 @@ export function SaudeEmendasSection({
         if (row.empenhado && row.empenhado > 0) {
           return (
             <span
-              className="inline-flex items-center whitespace-nowrap rounded-md bg-slate-100 px-2 py-0.5 font-medium text-[11px] text-slate-600"
-              title="Empenho executado em bloco orçamentário / folha de saúde"
+              className="inline-flex items-center whitespace-nowrap rounded-md bg-line2 px-2 py-0.5 font-medium text-mute text-xs"
+              title="O cadastro informa valor empenhado, mas o portal não liga essa emenda a notas de empenho específicas"
             >
-              Bloco Orçamentário
+              Empenho sem notas ligadas
+            </span>
+          );
+        }
+        if (
+          row.recebimentoFundo === "confirmado_por_proposta" ||
+          row.recebimentoFundo === "valor_igual"
+        ) {
+          const confirmada = row.recebimentoFundo === "confirmado_por_proposta";
+          return (
+            <span
+              className="block text-xs"
+              title={
+                row.receitaDescricao
+                  ? `Receita: ${row.receitaDescricao}${row.receitaCodigo ? ` (código ${row.receitaCodigo})` : ""}`
+                  : undefined
+              }
+            >
+              <span
+                className={cn(
+                  "whitespace-nowrap font-medium",
+                  confirmada ? "text-ok-text" : "text-mute",
+                )}
+              >
+                {confirmada ? "Aparece na receita" : "Receita de mesmo valor"}
+              </span>
             </span>
           );
         }
         return (
-          <span className="whitespace-nowrap text-slate-400 text-xs">
+          <span className="whitespace-nowrap text-mute2 text-xs">
             Sem empenho
           </span>
         );
@@ -253,7 +290,7 @@ export function SaudeEmendasSection({
     {
       header: "Origem",
       accessorKey: "origem" as const,
-      className: "font-medium text-slate-700 whitespace-nowrap",
+      className: "font-medium text-ink whitespace-nowrap",
     },
     {
       header: "Objeto",
@@ -270,11 +307,7 @@ export function SaudeEmendasSection({
     },
     {
       header: "Empenhado",
-      footer: (
-        <span className={isZeroEmpenhadoVisivel ? "text-amber-700" : undefined}>
-          {fmtCurrency(totaisVisiveis.empenhado)}
-        </span>
-      ),
+      footer: <span>{fmtCurrency(totaisVisiveis.empenhado)}</span>,
       accessorKey: "empenhado" as const,
       align: "right" as const,
       format: "currency" as const,
@@ -322,94 +355,63 @@ export function SaudeEmendasSection({
   }, [selectedEmenda]);
 
   return (
-    <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-      {/* Header */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-bold font-serif text-2xl text-slate-900">
-            {titulo}
-          </h2>
-          <p className="mt-1 max-w-3xl text-slate-600 text-sm leading-relaxed">
-            {descricao} O que importa não é só quanto foi{" "}
-            <strong className="font-bold text-slate-900">autorizado</strong>,
-            mas se esse dinheiro foi de fato{" "}
-            <strong className="font-bold text-slate-900">empenhado</strong> — o
-            passo que transforma a promessa em contrato e serviço.
-          </p>
-        </div>
-        <span className="shrink-0 text-slate-500 text-xs">
-          {countEmendas} {countEmendas === 1 ? "emenda" : "emendas"} · exercício{" "}
-          {ano}
-        </span>
-      </div>
+    <section className="space-y-6">
+      <SectionHeader
+        eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
+        title={titulo}
+        description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
+      />
 
-      {/* Banner de Alerta Âmbar */}
       {emendasStats.totalAutorizado > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border-amber-500 border-l-4 bg-amber-50/80 p-4 text-amber-950 text-xs shadow-2xs sm:text-sm">
-          <div>
-            <strong className="font-bold">
-              {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
-              emendas.
-            </strong>{" "}
-            {isZeroEmpenhado ? (
-              <>
-                Até agora, <strong className="font-bold">R$ 0</strong> haviam
-                sido empenhados. O recurso está disponível, mas ainda não virou
-                contrato — sinal de atenção para acompanhar de perto.
-              </>
-            ) : (
-              <>
-                Até agora,{" "}
-                <strong className="font-bold">
-                  {fmtCompact(emendasStats.totalEmpenhado)}
-                </strong>{" "}
-                foram empenhados ({fmtPercent(emendasStats.taxaEmpenho * 100)}{" "}
-                do total).
-              </>
-            )}
-          </div>
-        </div>
+        <AlertBox type="info" title="O dinheiro das emendas chegou?">
+          {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
+          emendas.{" "}
+          {totalRecebidoFundo > 0 ? (
+            <>
+              {fmtCompact(totalRecebidoFundo)} ({fmtPercent(percentualRecebido)}
+              ) aparecem na receita com o número da proposta
+              {totalReceitaPossivel > 0
+                ? `, e ${fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem confirmação`
+                : ""}
+              .{" "}
+            </>
+          ) : totalReceitaPossivel > 0 ? (
+            <>
+              Nenhuma foi confirmada na receita pelo número da proposta;{" "}
+              {fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem
+              confirmação.{" "}
+            </>
+          ) : (
+            <>Não foi possível identificar emendas na receita. </>
+          )}
+          O empenho vem do cadastro de emendas do portal e pode estar
+          desatualizado: zero ali não significa que o dinheiro não foi usado.
+          Para conferir uma emenda, procure no portal oficial do município a
+          receita indicada na tabela.
+        </AlertBox>
       )}
 
-      {/* 4 KPI Cards */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Total autorizado"
+      <IndicatorPanel columns={4}>
+        <Indicator
+          label="Autorizado"
           value={fmtCompact(emendasStats.totalAutorizado)}
+          note="valor das emendas"
         />
-        <KPICard
-          title="Total empenhado"
-          value={
-            <span
-              className={
-                isZeroEmpenhado
-                  ? "font-bold text-amber-700"
-                  : "font-bold text-slate-900"
-              }
-            >
-              {fmtCompact(emendasStats.totalEmpenhado)}
-            </span>
-          }
+        <Indicator
+          label="Confirmada na receita"
+          value={fmtCompact(totalRecebidoFundo)}
+          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
         />
-        <KPICard
-          title="Taxa de empenho"
-          value={
-            <span
-              className={
-                isZeroEmpenhado
-                  ? "font-bold text-amber-700"
-                  : "font-bold text-slate-900"
-              }
-            >
-              {fmtPercent(emendasStats.taxaEmpenho * 100)}
-            </span>
-          }
+        <Indicator
+          label="Empenhado no cadastro"
+          value={fmtCompact(emendasStats.totalEmpenhado)}
+          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
         />
-        <KPICard
-          title="Maior emenda"
+        <Indicator
+          label="Maior emenda"
           value={fmtCompact(emendasStats.maiorEmenda)}
         />
-      </KPIGrid>
+      </IndicatorPanel>
 
       {/* Tabela Densa com Linha de Totalizador */}
       <div className="space-y-2">
@@ -420,116 +422,120 @@ export function SaudeEmendasSection({
           columns={emendasCols}
           searchableKeys={["autor", "objeto", "origem"]}
           rowKey="id"
-          renderMobileCard={(row) => {
-            const qtd = row.qtdEmpenhos ?? 0;
-            const temEmpenho = (row.empenhado ?? 0) > 0;
-
+          renderExpandedRow={(row) => {
+            const confirmada =
+              row.recebimentoFundo === "confirmado_por_proposta";
+            const qtd = row.quantidadeEmpenhos ?? 0;
             return (
-              <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-                {/* Top: Autor + Origem */}
-                <div className="flex items-start justify-between gap-2 border-slate-100 border-b pb-2.5">
-                  <div className="min-w-0">
-                    <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
-                      Autor da Emenda
-                    </span>
-                    {qtd > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEmenda(row)}
-                        className="block cursor-pointer text-left font-bold text-slate-900 text-sm hover:text-blue-700 hover:underline"
-                        title="Clique para auditar notas de empenho"
-                      >
-                        {row.autor}
-                      </button>
-                    ) : (
-                      <p className="font-bold text-slate-900 text-sm">
-                        {row.autor}
-                      </p>
-                    )}
-                    {row.numero && (
-                      <p className="mt-0.5 text-[11px] text-slate-500">
-                        Proposta nº {row.numero}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant="accent">{row.origem || "Federal"}</Badge>
-                </div>
-
-                {/* Objeto / Destinação */}
-                <div>
-                  <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
-                    Objeto / Destinação
-                  </span>
-                  <p className="mt-0.5 text-slate-700 text-xs leading-relaxed">
-                    {row.objeto}
-                  </p>
-                  {row.destinacao && (
-                    <p className="mt-1 font-medium text-[11px] text-slate-500">
-                      Destinação:{" "}
-                      <span className="text-slate-800">
-                        {toTitleCase(row.destinacao)}
-                      </span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Grid Financeiro: Autorizado vs Empenhado */}
-                <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-2.5">
+              <div className="space-y-4">
+                <dl className="grid grid-cols-2 gap-4 sm:hidden">
                   <div>
-                    <span className="block text-[10px] text-slate-500">
-                      Valor Autorizado
-                    </span>
-                    <span className="font-bold font-serif text-slate-900 text-xs sm:text-sm">
-                      {fmtCurrency(row.valorAutorizado)}
-                    </span>
+                    <dt className="eyebrow">Proposta</dt>
+                    <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
                   </div>
-                  <div className="text-right">
-                    <span className="block text-[10px] text-slate-500">
-                      Valor Empenhado
-                    </span>
-                    <span
-                      className={cn(
-                        "font-bold font-serif text-xs sm:text-sm",
-                        temEmpenho ? "text-slate-900" : "text-amber-700",
-                      )}
-                    >
-                      {temEmpenho ? fmtCurrency(row.empenhado ?? 0) : "R$ 0,00"}
-                    </span>
+                  <div>
+                    <dt className="eyebrow">Destinação</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.destinacao ? toTitleCase(row.destinacao) : "—"}
+                    </dd>
                   </div>
-                </div>
-
-                {/* Rastreabilidade / Ação */}
+                  <div className="col-span-2">
+                    <dt className="eyebrow">Empenhado no cadastro</dt>
+                    <dd className="mt-1 text-ink">
+                      {fmtCurrency(row.empenhado ?? 0)}
+                    </dd>
+                  </div>
+                </dl>
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="eyebrow">Receita correspondente</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.receitaDescricao
+                        ? toTitleCase(row.receitaDescricao)
+                        : "Nenhuma receita identificada para esta emenda."}
+                    </dd>
+                    {row.receitaCodigo ? (
+                      <dd className="caption">
+                        Código contábil {row.receitaCodigo}
+                      </dd>
+                    ) : null}
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Como foi identificada</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.receitaDescricao
+                        ? confirmada
+                          ? "Pelo valor e pelo número da proposta."
+                          : "Só pelo valor, sem o número da proposta. Pode ser coincidência."
+                        : "Não há receita com o mesmo valor ou o mesmo número de proposta."}
+                    </dd>
+                  </div>
+                </dl>
+                {row.receitaDescricao ? (
+                  <p className="caption">
+                    Para conferir, procure essa descrição no portal oficial do
+                    município.
+                  </p>
+                ) : null}
                 {qtd > 0 ? (
                   <button
                     type="button"
                     onClick={() => setSelectedEmenda(row)}
-                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 py-2 font-semibold text-blue-700 text-xs shadow-2xs transition-all hover:bg-blue-100 hover:text-blue-900"
-                    title="Auditar notas de empenho e compras vinculadas"
+                    className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
                   >
-                    <FileText className="h-4 w-4 shrink-0" />
-                    <span>
-                      Auditar {qtd}{" "}
-                      {qtd === 1 ? "empenho vinculado" : "empenhos vinculados"}
-                    </span>
+                    Ver notas de empenho
                   </button>
-                ) : temEmpenho ? (
-                  <div className="flex items-center justify-between pt-1 text-slate-500 text-xs">
-                    <span>Execução empenhada:</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-[11px] text-slate-600">
-                      Bloco Orçamentário
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between pt-1 text-slate-400 text-xs">
-                    <span>Status:</span>
-                    <span className="font-medium text-amber-700 text-xs">
-                      Aguardando empenho
-                    </span>
-                  </div>
-                )}
+                ) : null}
               </div>
             );
           }}
+          renderMobileRow={(row) => {
+            const qtd = row.quantidadeEmpenhos ?? 0;
+            const rastreio = (() => {
+              if (qtd > 0)
+                return `${qtd} ${qtd === 1 ? "empenho" : "empenhos"}`;
+              if (row.recebimentoFundo === "confirmado_por_proposta")
+                return "Aparece na receita";
+              if (row.recebimentoFundo === "valor_igual")
+                return "Receita de mesmo valor";
+              if ((row.empenhado ?? 0) > 0) return "Empenho sem notas ligadas";
+              return "Sem empenho";
+            })();
+            return {
+              resumo: (
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-bold text-ink text-sm">
+                      {toTitleCase(row.autor)}
+                    </span>
+                    <span className="shrink-0 font-bold text-ink text-sm tabular-nums">
+                      {fmtCurrency(row.valorAutorizado)}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-ink text-xs leading-snug">
+                    {row.objeto}
+                  </p>
+                  <div className="flex items-center justify-between gap-3 text-mute text-xs">
+                    <Badge variant="accent">{row.origem || "Federal"}</Badge>
+                    {qtd > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEmenda(row)}
+                        className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                        title="Auditar notas de empenho e compras vinculadas"
+                      >
+                        {rastreio}
+                      </button>
+                    ) : (
+                      <span>{rastreio}</span>
+                    )}
+                  </div>
+                </div>
+              ),
+              detalhes: null,
+            };
+          }}
+          hideCsvOnMobile
         />
 
         {/* Total Summary Footer Row */}
@@ -540,7 +546,7 @@ export function SaudeEmendasSection({
             {
               rotulo: "Empenhado",
               valor: totaisVisiveis.empenhado,
-              isAlerta: isZeroEmpenhadoVisivel,
+              isAlerta: false,
             },
           ]}
         />
@@ -567,7 +573,7 @@ export function SaudeEmendasSection({
           }
           footer={
             <div className="flex w-full items-center justify-between text-xs">
-              <span className="text-slate-500">
+              <span className="text-mute">
                 {modalMetrics.empenhosList.length}{" "}
                 {modalMetrics.empenhosList.length === 1
                   ? "nota de empenho vinculada"
@@ -576,7 +582,7 @@ export function SaudeEmendasSection({
               {portalSlug && (
                 <Link
                   href={`/${portalSlug}/licitacoes?ano=${ano}#licitacoes-em-andamento`}
-                  className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  className="inline-flex items-center gap-1 font-medium text-brand-text hover:underline hover:underline"
                 >
                   <span>Ver painel de compras e licitações</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -587,26 +593,24 @@ export function SaudeEmendasSection({
         >
           <div className="space-y-6 py-2">
             {/* Bloco 1: Autor, Proposta, Esfera, Destinação e Ato Normativo */}
-            <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-2 sm:gap-6">
+            <div className="grid grid-cols-1 gap-4 border-line border-y bg-line2 p-4 sm:grid-cols-2 sm:gap-6">
               <div>
-                <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                <span className="font-semibold text-mute text-xs uppercase tracking-wider">
                   Autor da Emenda
                 </span>
-                <p className="mt-0.5 font-semibold text-slate-900 text-sm">
+                <p className="mt-0.5 font-semibold text-ink text-sm">
                   {toTitleCase(selectedEmenda.autor)}
                 </p>
                 {selectedEmenda.numero && (
-                  <p className="mt-0.5 text-slate-600 text-xs">
+                  <p className="mt-0.5 text-mute text-xs">
                     Proposta / Registro:{" "}
-                    <span className="text-slate-800">
-                      {selectedEmenda.numero}
-                    </span>
+                    <span className="text-ink">{selectedEmenda.numero}</span>
                   </p>
                 )}
                 {selectedEmenda.tipoEmenda && (
-                  <p className="mt-1 text-slate-600 text-xs">
+                  <p className="mt-1 text-mute text-xs">
                     Tipo de Emenda:{" "}
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-semibold text-ink">
                       {toTitleCase(selectedEmenda.tipoEmenda)}
                     </span>
                   </p>
@@ -614,26 +618,26 @@ export function SaudeEmendasSection({
               </div>
 
               <div>
-                <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+                <span className="font-semibold text-mute text-xs uppercase tracking-wider">
                   Esfera e Destinação
                 </span>
-                <p className="mt-0.5 font-medium text-slate-900 text-sm">
+                <p className="mt-0.5 font-medium text-ink text-sm">
                   {selectedEmenda.esferaOrigem
                     ? toTitleCase(selectedEmenda.esferaOrigem)
                     : "Federal"}
                 </p>
                 {selectedEmenda.destinacao && (
-                  <p className="mt-0.5 text-slate-600 text-xs">
+                  <p className="mt-0.5 text-mute text-xs">
                     Destinação:{" "}
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-semibold text-ink">
                       {toTitleCase(selectedEmenda.destinacao)}
                     </span>
                   </p>
                 )}
                 {selectedEmenda.atoNormativo && (
-                  <p className="mt-1 text-slate-600 text-xs">
+                  <p className="mt-1 text-mute text-xs">
                     Ato Normativo:{" "}
-                    <span className="text-slate-800">
+                    <span className="text-ink">
                       {selectedEmenda.atoNormativo}
                     </span>
                   </p>
@@ -643,10 +647,10 @@ export function SaudeEmendasSection({
 
             {/* Bloco 2: Objeto Integral da Emenda */}
             <div className="min-w-0">
-              <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+              <span className="font-semibold text-mute text-xs uppercase tracking-wider">
                 Objeto Integral da Emenda
               </span>
-              <div className="mt-1.5 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3.5 text-slate-800 text-sm leading-relaxed shadow-2xs [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
+              <div className="mt-1.5 whitespace-pre-wrap break-words border-line border-t pt-3.5 text-ink text-sm leading-relaxed [overflow-wrap:anywhere] [word-break:break-word] sm:pt-4">
                 {selectedEmenda.objeto || "Objeto não informado."}
               </div>
             </div>
@@ -654,15 +658,13 @@ export function SaudeEmendasSection({
             {/* Bloco 3: Grid de Métricas Orçamentárias e Execução Financeira */}
             <div>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-semibold text-slate-900 text-sm">
-                  Execução Orçamentária e Financeira
-                </h3>
+                <h3>Execução Orçamentária e Financeira</h3>
                 {selectedEmenda.valorAutorizado > 0 && (
-                  <div className="flex items-baseline gap-1.5 rounded-lg border border-blue-200/80 bg-blue-50/60 px-3 py-1 text-right">
-                    <span className="font-semibold text-[11px] text-blue-900 uppercase tracking-wider">
+                  <div className="flex items-baseline gap-1.5 border border-brand-fill bg-brand-fill/15 px-3 py-1 text-right">
+                    <span className="font-semibold text-brand-text text-xs uppercase tracking-wider">
                       Valor Autorizado:
                     </span>
-                    <span className="font-bold font-serif text-base text-blue-950 sm:text-lg">
+                    <span className="font-bold font-serif text-base text-brand-text sm:text-lg">
                       {fmtCurrency(selectedEmenda.valorAutorizado)}
                     </span>
                   </div>
@@ -670,56 +672,54 @@ export function SaudeEmendasSection({
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                  <span className="font-medium text-slate-500 text-xs">
+                <div className="border-line border-t pt-3.5">
+                  <span className="font-medium text-mute text-xs">
                     Empenhado
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+                  <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
                     {fmtCurrency(modalMetrics.totalEmpenhadoModal)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                  <span className="font-medium text-slate-500 text-xs">
+                <div className="border-line border-t pt-3.5">
+                  <span className="font-medium text-mute text-xs">
                     Liquidado
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+                  <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
                     {fmtCurrency(modalMetrics.totalLiquidadoModal)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                  <span className="font-medium text-slate-500 text-xs">
-                    Pago
-                  </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-emerald-700 sm:text-lg">
+                <div className="border-line border-t pt-3.5">
+                  <span className="font-medium text-mute text-xs">Pago</span>
+                  <p className="mt-1 font-semibold font-serif text-base text-ok-text sm:text-lg">
                     {fmtCurrency(modalMetrics.totalPagoModal)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                  <span className="font-medium text-slate-500 text-xs">
+                <div className="border-line border-t pt-3.5">
+                  <span className="font-medium text-mute text-xs">
                     Saldo a Executar
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-amber-700 text-base sm:text-lg">
+                  <p className="mt-1 font-semibold font-serif text-base text-warn-text sm:text-lg">
                     {fmtCurrency(modalMetrics.saldoDisponivel)}
                   </p>
                 </div>
               </div>
 
               {/* Barra de Progresso e Percentual de Execução */}
-              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="mt-4 border-line border-y bg-line2 p-4">
                 <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-semibold text-ink">
                     Percentual Executado da Emenda
                   </span>
-                  <span className="font-semibold font-serif text-slate-900 text-sm">
+                  <span className="font-semibold font-serif text-ink text-sm">
                     {fmtPercent(modalMetrics.percentualExecutado)}
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div className="h-3 w-full overflow-hidden bg-track">
                   <div
-                    className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                    className="h-full bg-ok-fill transition-all duration-300"
                     style={{
                       width: `${Math.min(100, Math.max(0, modalMetrics.percentualExecutado || 0))}%`,
                     }}
@@ -732,11 +732,11 @@ export function SaudeEmendasSection({
             <div className="space-y-3">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                  <h3>
                     Notas de Empenho Vinculadas (
                     {modalMetrics.empenhosList.length})
                   </h3>
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-mute text-xs">
                     Despesas municipais identificadas pela menção formal à
                     emenda/proposta orçamentária.
                   </p>
@@ -752,14 +752,14 @@ export function SaudeEmendasSection({
                   {
                     header: "Data",
                     accessorKey: "dataEmpenho" as const,
-                    className: "whitespace-nowrap text-xs text-slate-600",
+                    className: "whitespace-nowrap text-xs text-mute",
                     renderCell: (e) =>
                       e.dataEmpenho ? fmtDate(e.dataEmpenho) : "—",
                   },
                   {
                     header: "Nº Empenho",
                     accessorKey: "empenhoId" as const,
-                    className: "font-semibold text-xs text-slate-900",
+                    className: "font-semibold text-xs text-ink",
                   },
                   {
                     header: "Credor / Fornecedor",
@@ -768,13 +768,13 @@ export function SaudeEmendasSection({
                     renderCell: (e) => (
                       <div>
                         <p
-                          className="line-clamp-1 font-semibold text-slate-900 text-xs"
+                          className="line-clamp-1 font-semibold text-ink text-xs"
                           title={e.fornecedorNome}
                         >
                           {toTitleCase(e.fornecedorNome)}
                         </p>
                         {e.fornecedorCpfCnpj ? (
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-mute text-xs">
                             {fmtCpfCnpj(e.fornecedorCpfCnpj)}
                           </p>
                         ) : null}
@@ -787,28 +787,26 @@ export function SaudeEmendasSection({
                     className: "whitespace-nowrap text-xs",
                     renderCell: (e) => {
                       if (!e.licitacaoNumero) {
-                        return (
-                          <span className="text-slate-400 text-xs">—</span>
-                        );
+                        return <span className="text-mute2 text-xs">—</span>;
                       }
                       return (
                         <div className="flex flex-col">
                           {portalSlug ? (
                             <Link
                               href={`/${portalSlug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(e.licitacaoNumero)}#licitacoes-em-andamento`}
-                              className="inline-flex items-center gap-1 font-medium text-blue-700 underline decoration-blue-300 hover:text-blue-900"
+                              className="inline-flex items-center gap-1 font-medium text-brand-text underline decoration-brand-fill hover:underline"
                               title="Ver detalhes da licitação"
                             >
                               <span>{e.licitacaoNumero}</span>
                               <ExternalLink className="h-3 w-3 shrink-0" />
                             </Link>
                           ) : (
-                            <span className="font-medium text-slate-800">
+                            <span className="font-medium text-ink">
                               {e.licitacaoNumero}
                             </span>
                           )}
                           {e.licitacaoModalidade && (
-                            <span className="text-[10px] text-slate-500">
+                            <span className="text-mute text-xs">
                               {toTitleCase(e.licitacaoModalidade)}
                             </span>
                           )}
@@ -840,7 +838,7 @@ export function SaudeEmendasSection({
                   {
                     header: "Histórico da Despesa",
                     accessorKey: "descricao" as const,
-                    className: "min-w-[320px] max-w-xl text-slate-700 text-xs",
+                    className: "min-w-[320px] max-w-xl text-ink text-xs",
                     renderCell: (e) => (
                       <EmpenhoDescricaoCell descricao={e.descricao} />
                     ),
@@ -855,14 +853,14 @@ export function SaudeEmendasSection({
                 ]}
                 rowKey="empenhoId"
                 renderMobileCard={(e) => (
-                  <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                    <div className="flex items-center justify-between gap-2 border-slate-100 border-b pb-2">
+                  <div className="space-y-3 border-line border-t pt-3.5">
+                    <div className="flex items-center justify-between gap-2 border-line border-b pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-900 text-xs">
+                        <span className="font-semibold text-ink text-xs">
                           Empenho #{e.empenhoId}
                         </span>
                         {e.dataEmpenho && (
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-mute text-xs">
                             · {fmtDate(e.dataEmpenho)}
                           </span>
                         )}
@@ -871,55 +869,53 @@ export function SaudeEmendasSection({
                         (portalSlug ? (
                           <Link
                             href={`/${portalSlug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(e.licitacaoNumero)}#licitacoes-em-andamento`}
-                            className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[11px] text-blue-700 underline decoration-blue-300 hover:text-blue-900"
+                            className="inline-flex items-center gap-1 rounded bg-line2 px-1.5 py-0.5 font-medium text-brand-text text-xs underline decoration-brand-fill hover:underline"
                             title="Ver detalhes da licitação"
                           >
                             <span>{e.licitacaoNumero}</span>
                             <ExternalLink className="h-2.5 w-2.5 shrink-0" />
                           </Link>
                         ) : (
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-[11px] text-slate-700">
+                          <span className="rounded bg-line2 px-1.5 py-0.5 font-medium text-ink text-xs">
                             {e.licitacaoNumero}
                           </span>
                         ))}
                     </div>
 
                     <div>
-                      <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
+                      <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
                         Credor / Fornecedor
                       </span>
-                      <p className="font-semibold text-slate-900 text-xs">
+                      <p className="font-semibold text-ink text-xs">
                         {toTitleCase(e.fornecedorNome)}
                       </p>
                       {e.fornecedorCpfCnpj && (
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-mute text-xs">
                           {fmtCpfCnpj(e.fornecedorCpfCnpj)}
                         </p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 rounded-lg bg-slate-50 p-2 text-center">
+                    <div className="grid grid-cols-3 gap-2 bg-line2 p-2 text-center">
                       <div>
-                        <span className="block text-[10px] text-slate-500">
+                        <span className="block text-mute text-xs">
                           Empenhado
                         </span>
-                        <span className="font-semibold font-serif text-slate-900 text-xs">
+                        <span className="font-semibold font-serif text-ink text-xs">
                           {fmtCurrency(e.valorEmpenhado)}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-slate-500">
+                        <span className="block text-mute text-xs">
                           Liquidado
                         </span>
-                        <span className="font-semibold font-serif text-slate-700 text-xs">
+                        <span className="font-semibold font-serif text-ink text-xs">
                           {fmtCurrency(e.valorLiquidado)}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-slate-500">
-                          Pago
-                        </span>
-                        <span className="font-semibold font-serif text-emerald-700 text-xs">
+                        <span className="block text-mute text-xs">Pago</span>
+                        <span className="font-semibold font-serif text-ok-text text-xs">
                           {fmtCurrency(e.valorPago)}
                         </span>
                       </div>
@@ -927,7 +923,7 @@ export function SaudeEmendasSection({
 
                     {e.descricao && (
                       <div>
-                        <span className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">
+                        <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
                           Histórico da Despesa
                         </span>
                         <EmpenhoDescricaoCell descricao={e.descricao} />

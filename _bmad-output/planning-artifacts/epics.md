@@ -95,6 +95,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 21: Assistência Social, Programas de Transferência de Renda (CGU) e Impacto Econômico Municipal](#epic-21-assistência-social-programas-de-transferência-de-renda-cgu-e-impacto-econômico-municipal)
 - [Epic 22: Busca Global por Categorias](#epic-22-busca-global-por-categorias)
 - [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
+- [Epic 24: Educação com Dados do SIOPE (Valor por Aluno e Mínimos Constitucionais)](#epic-24-educação-com-dados-do-siope-valor-por-aluno-e-mínimos-constitucionais)
 
 ---
 
@@ -3045,6 +3046,127 @@ So that I understand it is money withheld and passed on to others, not municipal
 **Fora do escopo:** incluir as entradas fora do orçamento no total arrecadado (decisão de contabilidade, não de apresentação); listar lançamentos individuais ou nomes de beneficiários; mudar a carga ou a extração do relatório de origem.
 
 **Dependências:** nenhuma de código; usa o tema Divisórias já entregue pela Epic 20. Mudanças em dbt rodam só no banco local do Docker; qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+
+---
+
+## Epic 24: Educação com Dados do SIOPE (Valor por Aluno e Mínimos Constitucionais)
+
+Responder ao cidadão duas perguntas da página de educação que hoje ficam sem resposta: "quanto a Prefeitura investe por aluno?" e "a Prefeitura aplica o mínimo exigido em educação?". A fonte é o SIOPE (FNDE), o sistema que o município declara e que o contador da educação de Porciúncula indicou e conferiu. Origem: spike `planning-artifacts/spike-siope-valor-por-aluno.md` (2026-10-31). A estimativa anterior de "pago por aluno" foi retirada da Epic 20 (Story 20.8) porque o seed de matrículas não tinha fonte rastreável e divergia do SIOPE em 3% a 42%.
+
+**Fonte e acesso:** a consulta de planilhas do SIOPE exige reCAPTCHA e não será automatizada nem contornada. O caminho é a API JSON do Relatório Gerencial do FNDE (`/siope/relatorioGerencialIndicador.do`), aberta e sem captcha, mas interna e não documentada: precisa de teste de contrato e de falha graciosa. Indicadores de interesse: 4.9 (investimento por aluno), 4.8 (educação básica), 4.1 (infantil), 4.2 (fundamental), 1.1 (aplicação em MDE, mínimo de 25%) e 1.2 (magistério).
+
+**Restrições:** Regra 23 (sem literais de tenant, UF ou ano; o código SIOPE de 6 dígitos vem de `cod_ibge`), Regra 14 (conta no dbt, não no TypeScript), Regra 15 (execução só no banco local do Docker), Regra 20 (toda lei citada com link oficial), Regra 27 (pergunta do cidadão antes do dado; dado declarado diz que é declarado), `contador-publico` para conferir cada indicador e `jurista-fiscal` para as leis; `editor-cidadao` para os textos.
+
+**Fora do escopo:** automatizar o formulário com captcha; reproduzir no portal as planilhas de receita e despesa do SIOPE; comparação entre municípios ou ranking de valor por aluno.
+
+**Riscos:** a API pode mudar sem aviso; o SIOPE é declaratório e homologado pelo FNDE, não é auditoria independente; o rótulo do indicador 1.2 do SIOPE cita "mínimo de 60%" para o magistério, mas o art. 26 da Lei 14.113/2020 (verificado no texto do Planalto em 2026-10-31) fixa **70%** para a remuneração dos profissionais da educação em efetivo exercício, e a lei não menciona 60%. O indicador do SIOPE pode estar com o rótulo da regra antiga (Lei 11.494/2007): só exibir depois de o `contador-publico` conferir a fórmula.
+
+---
+
+### Story 24.1: Ingestão do Relatório Gerencial do SIOPE
+
+As a maintainer,  
+I want the SIOPE indicators loaded from the FNDE Relatório Gerencial API into the raw layer,  
+So that the education page can use the same numbers the municipal accountant reports.
+
+**Acceptance Criteria:**
+- **Given** os portais com `cod_ibge` cadastrado e a lista de indicadores de interesse (4.1, 4.2, 4.8, 4.9, 1.1, 1.2)
+- **When** a carga roda para um portal e uma faixa de anos
+- **Then** grava em tabela raw um registro por `portal_slug`, `ano`, `periodo` e `codigo_indicador` com o valor, o código SIOPE do município derivado do IBGE e `coletado_em`, sem literais de tenant
+- **And** a carga pede os municípios em lote de dois ou mais (com um só, a API devolve `codEnte` zerado) e valida o formato da resposta antes de gravar
+- **And** resposta em HTML (erro 99), formato inesperado ou indicador ausente não grava nada e termina com aviso claro, nunca com dado parcial presumido correto
+- **And** o `User-Agent` e o `Referer` seguem o padrão da API, há limite de taxa e nenhuma tentativa de contornar o captcha.
+
+**Fora do escopo:** execução em produção sem autorização explícita; planilhas de receita e despesa do SIOPE.
+
+**Dependências:** nenhuma. Pode registrar a coleta conforme a Story 23.1 quando ela existir.
+
+---
+
+### Story 24.2: Staging e Mart de Indicadores do SIOPE no dbt
+
+As a data analyst,  
+I want the SIOPE indicators modeled by portal and year,  
+So that every figure on the page comes from one tested model.
+
+**Acceptance Criteria:**
+- **Given** a tabela raw da Story 24.1
+- **When** o dbt roda
+- **Then** existe `fct_educacao_siope_metricas` com grão `portal_slug` e `ano`, colunas explícitas (`investimento_por_aluno_basica`, `investimento_por_aluno`, `percentual_aplicado_mde` etc., Regra 9) e contrato imposto
+- **And** valor ausente fica nulo e nunca zero, e o ano em andamento é identificável como parcial
+- **And** há testes de unicidade, de isolamento entre portais e de intervalo plausível, mais teste de integração em `make test`
+- **And** os valores de Porciúncula para 2024 (R$ 16.789,15) e 2025 (R$ 16.767,14), conferidos pelo contador, entram como caso de referência.
+
+**Dependências:** Story 24.1.
+
+---
+
+### Story 24.3: Contratos de Dados do SIOPE em `@transparencia/db`
+
+As a frontend developer,  
+I want typed `camelCase` queries for the SIOPE indicators,  
+So that the pages only render what the data layer delivers.
+
+**Acceptance Criteria:**
+- **Given** o mart da Story 24.2
+- **When** a página pede o SIOPE de um `portalSlug` e um ano
+- **Then** a query devolve DTOs `camelCase` com o valor, o ano, o período e a situação (`encerrado`, `parcial`), e uma série anual para histórico
+- **And** não há cálculo contábil no TypeScript, e há teste de paridade e de isolamento entre portais.
+
+**Dependências:** Story 24.2.
+
+---
+
+### Story 24.4: Valor por Aluno na Página de Educação
+
+As a citizen,  
+I want to know how much the Prefeitura invests per student,  
+So that I can compare it with last year and with what the school needs.
+
+**Acceptance Criteria:**
+- **Given** a Story 24.3 e a pergunta "Quanto a Prefeitura investe por aluno da rede municipal?"
+- **When** o ano selecionado está encerrado e há valor no SIOPE
+- **Then** o painel de indicadores mostra o investimento por aluno, com a nota de que o valor é declarado pela Prefeitura ao FNDE, e "Ver detalhes" abre o histórico anual em valores da época, sem correção pela inflação
+- **And** no ano em andamento ou sem valor, mostra "—" com a causa
+- **And** sem média estadual, ranking ou comparação entre municípios
+- **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico`, e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
+
+**Dependências:** Story 24.3.
+
+---
+
+### Story 24.5: Mínimos Constitucionais de Educação (MDE e FUNDEB)
+
+As a citizen,  
+I want to know whether the Prefeitura applies the legal minimum in education,  
+So that I can tell if the rule is being met.
+
+**Acceptance Criteria:**
+- **Given** os indicadores 1.1 (aplicação em MDE) e 1.2 (magistério) do SIOPE e a pergunta "A Prefeitura aplica o mínimo exigido em educação?"
+- **When** o ano selecionado está encerrado
+- **Then** a página mostra o percentual aplicado ao lado do mínimo legal, com o texto "cumpriu" ou "ficou abaixo" junto do ícone (nunca só a cor) e a lei citada com link oficial (Regra 20)
+- **And** o limite legal vem de `seed_constantes_fiscais.csv`, não de literal no código, e o `jurista-fiscal` confirma o dispositivo aplicável (Art. 212 e Art. 212-A da CF/88) e confirma que o piso do FUNDEB é de 70% (art. 26 da Lei 14.113/2020, https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14113.htm) e não os 60% do rótulo antigo do SIOPE, antes de publicar
+- **And** abaixo do mínimo, o tom é factual e não acusatório ("indício", nunca "irregularidade")
+- **And** o `contador-publico` valida a base de cálculo, o ano em andamento é marcado como parcial e `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
+
+**Dependências:** Story 24.3. Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
+
+---
+
+### Story 24.6: Total de Alunos com Fonte Verificada (INEP)
+
+As a citizen,  
+I want to see how many students the municipal network serves, from an official source,  
+So that the per-student value has a visible denominator.
+
+**Acceptance Criteria:**
+- **Given** a Sinopse Estatística da Educação Básica do INEP como fonte candidata
+- **When** o spike da story confirma um arquivo oficial por município e ano, com URL estável e leiaute conhecido
+- **Then** um extrator versionado grava as matrículas da rede municipal por `cod_ibge` e ano, o mart expõe o total e o ano do Censo, e a página mostra "Alunos na rede municipal" com o ano real do Censo
+- **And** se o spike não confirmar fonte automatizável, a story termina registrando a decisão e o indicador continua fora da página, sem seed manual
+- **And** nenhum valor é digitado à mão no repositório, e os números de uma amostra são conferidos contra o INEP.
+
+**Dependências:** nenhuma de código; pode rodar em paralelo à Story 24.1. Condicionada ao resultado do spike.
 
 ---
 

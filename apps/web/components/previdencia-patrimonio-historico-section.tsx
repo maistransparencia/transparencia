@@ -7,6 +7,7 @@ import {
   fmtCurrency,
   fmtPercent,
   KPICard,
+  SectionHeader,
 } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, Info, Scale, Users } from "lucide-react";
 import { useId } from "react";
@@ -24,7 +25,6 @@ import type {
   PrevidenciaPatrimonioHistoricoResumo,
 } from "@/app/[portalSlug]/previdencia/view-model";
 import { KPIGrid } from "@/components/kpi-grid";
-import { SectionHeader } from "@/components/section-header";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 

@@ -52,8 +52,7 @@ const ICONE_VARIACAO_POR_TOM: Record<EducacaoResumoTom, string> = {
   neutro: "",
 };
 
-const CLASSE_ROTULO =
-  "font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest";
+const CLASSE_ROTULO = "eyebrow";
 const CLASSE_VALOR_LINHA =
   "mt-1 flex min-h-8 flex-wrap items-center gap-x-2 gap-y-1";
 const CLASSE_APOIO = "mt-1 min-h-5 text-mute2 text-xs";
@@ -83,13 +82,11 @@ export function EducacaoResumoCard({
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
-            Educação Básica e Desempenho Escolar
-          </h3>
+          <h3>Educação Básica e Desempenho Escolar</h3>
           <ExternalLinkPill
             href={IDEB_INEP_URL}
             title="Página oficial do IDEB no INEP"
-            className="px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+            className="eyebrow px-2.5 py-0.5"
           >
             INEP / IDEB
           </ExternalLinkPill>

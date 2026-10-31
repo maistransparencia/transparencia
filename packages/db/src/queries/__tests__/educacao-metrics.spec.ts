@@ -5,6 +5,7 @@ import {
   seedContrato,
   seedContratoRecurso,
   seedContratosServicosVigentes,
+  seedDespesa,
   seedDimOrgao,
   seedEducacaoMetricas,
 } from "../../../tests/fixtures/seed";
@@ -90,9 +91,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: 0.5,
           variacaoSaebMatematica: 12.5,
           variacaoSaebPortugues: 14.2,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14974.64,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -109,9 +107,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: null,
           variacaoSaebMatematica: null,
           variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: null,
-          totalMatriculasRedeMunicipal: null,
-          custoAnualPorAluno: null,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -128,9 +123,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: -0.7,
           variacaoSaebMatematica: -20.61,
           variacaoSaebPortugues: -22.68,
-          despesaLiquidadaEducacao: null,
-          totalMatriculasRedeMunicipal: null,
-          custoAnualPorAluno: null,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -147,9 +139,6 @@ describe("educacao-metrics", () => {
           crescimentoPontosIdeb: 1.4,
           variacaoSaebMatematica: 28.21,
           variacaoSaebPortugues: 35.31,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14974.64,
         },
       ]);
 
@@ -180,9 +169,6 @@ describe("educacao-metrics", () => {
       expect(metrics[2].saebMatematica).toBe(218.39);
       expect(metrics[2].saebLinguaPortuguesa).toBe(210.91);
       expect(metrics[2].indicadorFluxoAprovacao).toBe(0.984589);
-      expect(metrics[2].despesaLiquidadaEducacao).toBe(34291936.64);
-      expect(metrics[2].totalMatriculasRedeMunicipal).toBe(2290);
-      expect(metrics[2].custoAnualPorAluno).toBe(14974.64);
 
       expect(metrics[3].ano).toBe(2025);
       expect(metrics[3].etapaEnsino).toBe("anosFinais");
@@ -314,9 +300,6 @@ describe("educacao-metrics", () => {
           saebMatematica: 218.39,
           saebLinguaPortuguesa: 210.91,
           indicadorFluxoAprovacao: 0.984589,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14974.64,
         },
         {
           portalSlug: PORTAL_PORCIUNCULA,
@@ -327,9 +310,6 @@ describe("educacao-metrics", () => {
           saebMatematica: 245.1,
           saebLinguaPortuguesa: 250.3,
           indicadorFluxoAprovacao: 0.9512,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14974.64,
         },
       ]);
 
@@ -340,9 +320,6 @@ describe("educacao-metrics", () => {
       expect(resumo?.ano).toBe(2025);
       expect(resumo?.notaIdeb).toBe(5.9);
       expect(resumo?.crescimentoPontosIdeb).toBe(1.4);
-      expect(resumo?.despesaLiquidadaEducacao).toBe(34291936.64);
-      expect(resumo?.totalMatriculasRedeMunicipal).toBe(2290);
-      expect(resumo?.custoAnualPorAluno).toBe(14974.64);
 
       expect(resumo?.anosIniciais?.etapaEnsino).toBe("anosIniciais");
       expect(resumo?.anosIniciais?.notaIdeb).toBe(5.9);
@@ -427,9 +404,6 @@ describe("educacao-metrics", () => {
         saebMatematica: 200.0,
         saebLinguaPortuguesa: 200.0,
         indicadorFluxoAprovacao: 0.95,
-        despesaLiquidadaEducacao: 10000000.0,
-        totalMatriculasRedeMunicipal: 0,
-        custoAnualPorAluno: null,
       });
 
       const resumo = await getResumoEducacao(PORTAL_NATIVIDADE, 2021);
@@ -440,9 +414,6 @@ describe("educacao-metrics", () => {
       expect(resumo?.notaIdeb).toBe(5.5);
       expect(resumo?.metaIdeb).toBe(5.3);
       expect(resumo?.atingiuMeta).toBe(true);
-      expect(resumo?.despesaLiquidadaEducacao).toBe(10000000.0);
-      expect(resumo?.totalMatriculasRedeMunicipal).toBe(0);
-      expect(resumo?.custoAnualPorAluno).toBeNull();
     });
 
     it("não preenche indicadores do IDEB com anosFinais quando anosIniciais não existe", async () => {
@@ -453,9 +424,6 @@ describe("educacao-metrics", () => {
         etapaEnsino: "anosFinais",
         notaIdeb: 4.9,
         crescimentoPontosIdeb: 0.6,
-        despesaLiquidadaEducacao: 20000000.0,
-        totalMatriculasRedeMunicipal: 1500,
-        custoAnualPorAluno: 13333.33,
       });
 
       const resumoFinais = await getResumoEducacao(PORTAL_FALLBACK);
@@ -466,7 +434,6 @@ describe("educacao-metrics", () => {
       expect(resumoFinais?.atingiuMeta).toBeNull();
       expect(resumoFinais?.crescimentoPontosIdeb).toBeNull();
       expect(resumoFinais?.posicaoRanking).toBeNull();
-      expect(resumoFinais?.despesaLiquidadaEducacao).toBe(20000000.0);
       expect(resumoFinais?.anosIniciais).toBeNull();
       expect(resumoFinais?.anosFinais?.notaIdeb).toBe(4.9);
 
@@ -489,9 +456,6 @@ describe("educacao-metrics", () => {
           etapaEnsino: "anosFinais",
           notaIdeb: 5.1,
           crescimentoPontosIdeb: 0.8,
-          despesaLiquidadaEducacao: 15000000.0,
-          totalMatriculasRedeMunicipal: 1000,
-          custoAnualPorAluno: 15000.0,
         },
       ]);
 
@@ -503,7 +467,6 @@ describe("educacao-metrics", () => {
       expect(resumo?.crescimentoPontosIdeb).toBeNull();
       expect(resumo?.posicaoRanking).toBeNull();
       expect(resumo?.anosFinais?.notaIdeb).toBe(5.1);
-      expect(resumo?.despesaLiquidadaEducacao).toBe(15000000.0);
 
       await cleanupFixtures(PORTAL_PARTIAL);
     });
@@ -515,9 +478,16 @@ describe("educacao-metrics", () => {
           ano: 2025,
           etapaEnsino: "anosIniciais",
           notaIdeb: 5.9,
-          despesaLiquidadaEducacao: 34291936.64,
         },
       ]);
+      await seedDespesa({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "1",
+        ano: 2025,
+        fonte: "exercicio",
+        funcao: "12",
+        liquidado: 34291936.64,
+      });
 
       const resumo = await getResumoEducacao(PORTAL_PORCIUNCULA, 2026);
 
@@ -684,6 +654,11 @@ describe("educacao-metrics", () => {
 
   describe("getEducacaoContratos", () => {
     it("retorna contratos vinculados à Educação com categorias e dados em camelCase", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_1",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
       await seedContrato({
         contratoId: "ctr_edu_1",
         portalSlug: PORTAL_PORCIUNCULA,
@@ -728,7 +703,7 @@ describe("educacao-metrics", () => {
         contratoId: "ctr_obras_1",
         portalSlug: PORTAL_PORCIUNCULA,
         ano: 2025,
-        empresaId: "emp_1",
+        empresaId: "emp_obras",
         contratoNumero: "0888/25",
         fornecedorNome: "PAVIMENTADORA LTDA",
         objeto: "Pavimentação asfáltica de vias urbanas",
@@ -755,6 +730,11 @@ describe("educacao-metrics", () => {
     });
 
     it("filtra por ano quando especificado", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_1",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
       await seedContrato({
         contratoId: "ctr_pnae_2024",
         portalSlug: PORTAL_PORCIUNCULA,
@@ -781,6 +761,55 @@ describe("educacao-metrics", () => {
       expect(contratos2025).toHaveLength(1);
       expect(contratos2025[0].ano).toBe(2025);
       expect(contratos2025[0].contratoNumero).toBe("0200/25");
+    });
+
+    it("só traz contratos do Fundo, mesmo quando outro órgão cita merenda ou escola no objeto", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_fundo",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_obras",
+        orgaoNome: "Secretaria de Obras",
+      });
+      await seedContrato({
+        contratoId: "ctr_fundo",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_fundo",
+        contratoNumero: "0001/25",
+        fornecedorNome: "FORNECEDOR FUNDO",
+        objeto: "Transporte escolar PNATE",
+      });
+      await seedContrato({
+        contratoId: "ctr_obras_escola",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_obras",
+        contratoNumero: "0002/25",
+        fornecedorNome: "CONSTRUTORA",
+        objeto: "Reforma de escola municipal",
+      });
+
+      const contratos = await getEducacaoContratos(PORTAL_PORCIUNCULA, 2025);
+
+      expect(contratos.map((c) => c.contratoNumero)).toEqual(["0001/25"]);
+    });
+
+    it("retorna vazio quando o portal não tem Fundo de Educação identificado", async () => {
+      await seedContrato({
+        contratoId: "ctr_sem_fundo",
+        portalSlug: PORTAL_PORCIUNCULA,
+        ano: 2025,
+        empresaId: "emp_1",
+        contratoNumero: "0003/25",
+        fornecedorNome: "MERENDA LTDA",
+        objeto: "Merenda escolar PNAE",
+      });
+
+      expect(await getEducacaoContratos(PORTAL_PORCIUNCULA, 2025)).toEqual([]);
     });
 
     it("exclui contratos de outros setores (como Saúde) mesmo que o objeto cite fundos de educação", async () => {
@@ -811,6 +840,16 @@ describe("educacao-metrics", () => {
     });
 
     it("garante isolamento multi-tenant estrito (Regra 23)", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_ISOLAMENTO_A,
+        empresaId: "emp_1",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
+      await seedDimOrgao({
+        portalSlug: PORTAL_ISOLAMENTO_B,
+        empresaId: "emp_1",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
       await seedContrato({
         contratoId: "ctr_iso_a",
         portalSlug: PORTAL_ISOLAMENTO_A,
@@ -840,6 +879,11 @@ describe("educacao-metrics", () => {
     });
 
     it("mapeia empenhado_contrato quando total_empenhado de recursos não estiver presente", async () => {
+      await seedDimOrgao({
+        portalSlug: PORTAL_PORCIUNCULA,
+        empresaId: "emp_1",
+        orgaoNome: "FUNDO MUNICIPAL DE EDUCAÇÃO",
+      });
       await seedContrato({
         contratoId: "ctr_empenhado_test",
         portalSlug: PORTAL_PORCIUNCULA,

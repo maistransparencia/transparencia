@@ -1,41 +1,22 @@
 import {
   AlertBox,
-  cn,
   fmtCompact,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
-import nextDynamic from "next/dynamic";
-import { KPIGrid } from "@/components/kpi-grid";
+import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
+import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { EmendasSection } from "@/components/emendas-section";
+import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
-import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
+import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
-
-const SaudeFontesDonut = nextDynamic(
-  () =>
-    import("@/components/saude-fontes-donut").then(
-      (mod) => mod.SaudeFontesDonut,
-    ),
-  {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
-  },
-);
-
-const SaudeTrendChart = nextDynamic(
-  () =>
-    import("@/components/saude-trend-chart").then((mod) => mod.SaudeTrendChart),
-  {
-    loading: () => (
-      <div className="h-[320px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
-  },
-);
 
 export const dynamic = "force-dynamic";
 
@@ -85,32 +66,23 @@ export default async function SaudePage({
       return "Nenhuma emenda destinada no exercício";
     }
     if (totalEmpenhado === 0) {
-      return (
-        <span className="font-semibold text-amber-700">
-          Nenhum valor empenhado
-        </span>
-      );
+      return "Empenho ainda não informado no cadastro de emendas";
     }
-    return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
+    return `${fmtCompact(totalEmpenhado)} empenhados no cadastro (${fmtPercent(taxaEmpenho * 100)})`;
   })();
 
-  const concentracao = saude.farmaceutica?.concentracao ?? {
-    hhi: 0,
-    nivel: "baixa" as const,
-    label: "Não aplicável",
-    descricao:
-      "Sem registros de aquisições de insumos ou contratos no exercício",
-  };
-
-  const badgeColorClasses = (() => {
-    if (concentracao.nivel === "alta") {
-      return "text-rose-700 bg-rose-50 border-rose-200";
-    }
-    if (concentracao.nivel === "moderada") {
-      return "text-amber-700 bg-amber-50 border-amber-200";
-    }
-    return "text-emerald-700 bg-emerald-50 border-emerald-200";
-  })();
+  const fornecedoresLinhas = buildFornecedoresLinhas(
+    saude.topFornecedores,
+    saude.orcamento.pago,
+  );
+  const valorPagoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.valorPago,
+    0,
+  );
+  const concentracaoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.percentualTotalPago,
+    0,
+  );
 
   return (
     <div className="space-y-12 pb-12">
@@ -121,30 +93,28 @@ export default async function SaudePage({
           isCurrentYear={isCurrentYear}
           partialPeriod={partialPeriod}
           orcamento={saude.orcamento}
-          fontesReceita={saude.fontesReceita}
         />
 
-        {/* Hero KPIs com KPIGrid e KPICard */}
-        <KPIGrid columns={4}>
-          <KPICard
-            title="Emendas na Saúde"
-            value={fmtCompact(totalEmendas)}
-            subtext={emendasSubtext}
-            accent={hasEmendas && taxaEmpenho >= 0.7}
+        <IndicatorPanel columns={4}>
+          <Indicator
+            label="Medicamentos e insumos"
+            value={fmtCompact(saude.orcamento.medicamentosInsumos)}
+            note="reservados (empenhados) em medicamentos e outros materiais distribuídos gratuitamente ao cidadão"
           />
-          <KPICard
-            title="Contratos vinculados"
+          <Indicator
+            label="Emendas na saúde"
+            value={fmtCompact(totalEmendas)}
+            note={emendasSubtext}
+          />
+          <Indicator
+            label="Contratos vinculados"
             value={saude.orcamento.contratosVinculadosCount}
           />
-          <KPICard
-            title="Fornecedores ativos"
+          <Indicator
+            label="Fornecedores ativos"
             value={saude.orcamento.fornecedoresAtivosCount}
           />
-          <KPICard
-            title="Medicamentos e Insumos"
-            value={fmtCompact(saude.orcamento.medicamentosInsumos)}
-          />
-        </KPIGrid>
+        </IndicatorPanel>
       </div>
 
       {/* Alerta de Subexecução se aplicável (apenas exercícios encerrados) */}
@@ -156,35 +126,33 @@ export default async function SaudePage({
       )}
 
       {/* Seção 2: O que entrou no Fundo (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          O que entrou
-        </h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <SaudeFontesDonut data={saude.fontesReceita} ano={selectedYear} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <KPICard
-              title="Repasses da Prefeitura ao Fundo"
-              value={fmtCompact(saude.fontesReceita.repassesPrefeitura)}
-            />
-            <KPICard
-              title="Emendas parlamentares"
-              value={fmtCompact(saude.fontesReceita.emendasParlamentares)}
-            />
-          </div>
-        </div>
+      <section className="space-y-6">
+        <SectionHeader
+          title="O que entrou"
+          description={
+            saude.fontesReceita.totalEntrada > 0
+              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal, pelo SUS (Sistema Único de Saúde). Veja de onde veio cada parte.`
+              : undefined
+          }
+        />
+        <SaudeOrigemRecursos fontes={saude.fontesReceita} ano={selectedYear} />
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Empenhado no ano
-        </h2>
-        <SaudeTrendChart
+      <section className="space-y-6">
+        <SectionHeader
+          title="Como mudou ao longo dos anos"
+          description={`Quanto o Fundo reservou (empenhado) e quanto já pagou em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
+            isCurrentYear
+              ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
+              : ""
+          }`}
+        />
+        <EvolucaoAnual
           data={saude.executionTrend}
           selectedYear={selectedYear}
+          partialYear={isCurrentYear ? selectedYear : undefined}
+          mensagemVazia="Sem execução da saúde registrada para comparar os anos."
         />
       </section>
 
@@ -195,55 +163,43 @@ export default async function SaudePage({
         orcamento={saude.orcamento}
         licitacoesSaude={saude.licitacoesSaude}
         licitacoesEmAndamento={saude.licitacoesEmAndamento}
+        itensByLicitacao={saude.itensByLicitacao}
       />
 
-      {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Insumos e assistência farmacêutica
-        </h2>
-        <KPIGrid columns={3}>
-          <KPICard
-            title="Medicamentos e insumos"
-            value={fmtCompact(saude.farmaceutica.medicamentosInsumos)}
-            subtext={`${fmtCompact(saude.farmaceutica.medicamentosInsumosPago)} pagos (Subfunção 10.303)`}
-          />
-          <KPICard
-            title="Judicialização da saúde"
-            value={
-              <span className="font-bold text-amber-700">
-                {fmtCompact(saude.farmaceutica.judicializacao)}
-              </span>
-            }
-            subtext={`${fmtCompact(saude.farmaceutica.judicializacaoPago)} pagos (sentenças judiciais)`}
-          />
-          <KPICard
-            title="Concentração de Fornecedores"
-            value={
-              <span className="flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-sm",
-                    badgeColorClasses,
-                  )}
-                >
-                  {concentracao.label}
-                </span>
-                <span
-                  className="font-medium text-[11px] text-slate-500"
-                  title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
-                >
-                  Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
-                </span>
-              </span>
-            }
-            subtext={concentracao.descricao}
-          />
-        </KPIGrid>
+      {/* Seção 5: Quem recebe o dinheiro da saúde */}
+      <section className="space-y-6">
+        <SectionHeader title="Quem recebe o dinheiro da saúde" />
+        {fornecedoresLinhas.length > 0 ? (
+          <>
+            <IndicatorPanel columns={2}>
+              <Indicator
+                label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtPercent(concentracaoTopFornecedores)}
+                note={`do que o Fundo pagou em ${selectedYear}`}
+              />
+              <Indicator
+                label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtCompact(valorPagoTopFornecedores)}
+                note={`de ${fmtCompact(saude.orcamento.pago)} pagos pelo Fundo`}
+              />
+            </IndicatorPanel>
+            <DespesasFornecedoresSection
+              fornecedores={fornecedoresLinhas}
+              portalSlug={portalSlug}
+              ano={selectedYear}
+              nota="Consórcios de saúde e contratos grandes naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."
+            />
+          </>
+        ) : (
+          <p className="border-line border-y py-4 text-mute">
+            Sem pagamentos a fornecedores registrados para a saúde em{" "}
+            {selectedYear}.
+          </p>
+        )}
       </section>
 
       {/* Seção 6: Emendas parlamentares destinadas à Saúde (Existente, com mais detalhes) */}
-      <SaudeEmendasSection
+      <EmendasSection
         ano={selectedYear}
         emendasStats={saude.emendasStats}
         portalSlug={portalSlug}

@@ -22,6 +22,7 @@ Garante que o que o portal mostra é **compreensível, correto e justo**.
 7. **Toda lei ou artigo citado na tela tem link oficial** (`.claude/rules/web.md` §20). Texto que cita "Art. X da Lei Y" sem link para o texto legal é problema.
 8. Quando o valor depende de proxy ou estimativa, o texto diz isso; não afirmar descumprimento ("superando o teto legal") como fato se a base de cálculo é aproximada.
 9. Não repetir a mesma informação em duas formas (ex.: "superando o teto em +2,2 p.p." depois de já informar o percentual e o teto). Explicar "pontos percentuais" ao usar a unidade.
+10. **Cada bloco responde a uma pergunta do cidadão** (`CLAUDE.md` §27). Se não é possível escrever a pergunta em linguagem comum, o bloco não deveria estar na página. Dado calculado por diferença ou estimado diz que é estimativa.
 
 ## Formato de resposta
 Para cada texto: `Original` → `Problema` (jargão | ambiguidade | tom acusatório | falta de contexto) → `Sugestão`. Termos novos sem entrada no glossário: propor a entrada.

@@ -38,31 +38,13 @@ function makeRaw(
         fornecedoresAtivosCount: 10,
         ...(orcamentoOverride as Record<string, unknown> | undefined),
       },
-      farmaceutica: {
-        medicamentosInsumos: 100,
-        medicamentosInsumosPago: 90,
-        judicializacao: 20,
-        judicializacaoPago: 15,
-        hhi: 900,
-        hhiClassificacao: "baixa",
-        concentracao: {
-          hhi: 900,
-          nivel: "baixa",
-          label: "Baixa",
-          descricao: "Compras bem distribuídas entre múltiplos fornecedores",
-        },
-      },
       fontesReceita: {
         repassesPrefeitura: 500,
         emendasParlamentares: 50,
       },
       executionTrend: [],
       licitacoesSaude: {
-        adesaoCaronaCount: 0,
-        adesaoCaronaValor: 0,
-        empenhosAtaExternaCount: 0,
-        pagoAtaExternaValor: 0,
-        modalidades: [],
+        caminhos: [],
       },
       emendasStats: {
         lista: [
@@ -81,6 +63,8 @@ function makeRaw(
         ],
         totalAutorizado: 50,
         totalEmpenhado: 40,
+        totalRecebidoFundo: 0,
+        totalReceitaPossivel: 0,
         taxaEmpenho: 0.8,
         maiorEmenda: 50,
       },
@@ -104,12 +88,8 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Emendas na Saúde")).toBeInTheDocument();
-    expect(
-      screen.getByText("Concentração de Fornecedores"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Baixa")).toBeInTheDocument();
-    expect(screen.getByText("Origem")).toBeInTheDocument();
+    expect(screen.getByText("Emendas na saúde")).toBeInTheDocument();
+    expect(screen.getAllByText("Origem").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
   });
 
@@ -147,6 +127,8 @@ describe("SaudePage", () => {
             lista: [],
             totalAutorizado: 0,
             totalEmpenhado: 0,
+            totalRecebidoFundo: 0,
+            totalReceitaPossivel: 0,
             taxaEmpenho: 0,
           },
           fontesReceita: { emendasParlamentares: 0 },
@@ -170,6 +152,8 @@ describe("SaudePage", () => {
             lista: [],
             totalAutorizado: 100000,
             totalEmpenhado: 0,
+            totalRecebidoFundo: 0,
+            totalReceitaPossivel: 0,
             taxaEmpenho: 0,
           },
         },
@@ -179,90 +163,30 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Nenhum valor empenhado")).toBeInTheDocument();
-  });
-
-  it("renderiza badge e descrição de concentração moderada", async () => {
-    loadSaudeDataMock.mockResolvedValue(
-      makeRaw({
-        saude: {
-          farmaceutica: {
-            medicamentosInsumos: 100,
-            medicamentosInsumosPago: 90,
-            judicializacao: 20,
-            judicializacaoPago: 15,
-            hhi: 1850,
-            hhiClassificacao: "moderada",
-            concentracao: {
-              hhi: 1850,
-              nivel: "moderada",
-              label: "Moderada",
-              descricao: "Mercado moderadamente concentrado em poucas empresas",
-            },
-          },
-        },
-      }),
-    );
-
-    const element = await SaudePage(props);
-    render(element);
-
-    expect(screen.getByText("Moderada")).toBeInTheDocument();
     expect(
-      screen.getByText("Mercado moderadamente concentrado em poucas empresas"),
+      screen.getByText("Empenho ainda não informado no cadastro de emendas"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Índice HHI: 1.850")).toBeInTheDocument();
   });
 
-  it("renderiza badge e descrição de alta concentração", async () => {
+  it("mostra quem recebe o dinheiro da saúde com a parte dos maiores fornecedores", async () => {
     loadSaudeDataMock.mockResolvedValue(
       makeRaw({
         saude: {
-          farmaceutica: {
-            medicamentosInsumos: 100,
-            medicamentosInsumosPago: 90,
-            judicializacao: 20,
-            judicializacaoPago: 15,
-            hhi: 3200,
-            hhiClassificacao: "alta",
-            concentracao: {
-              hhi: 3200,
-              nivel: "alta",
-              label: "Alta",
-              descricao:
-                "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
-            },
-          },
-        },
-      }),
-    );
-
-    const element = await SaudePage(props);
-    render(element);
-
-    expect(screen.getByText("Alta")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Índice HHI: 3.200")).toBeInTheDocument();
-  });
-
-  it("exibe bloco de Compras e Licitações da Saúde em Andamento dentro de Como o Fundo contrata", async () => {
-    loadSaudeDataMock.mockResolvedValue(
-      makeRaw({
-        saude: {
-          licitacoesEmAndamento: [
+          orcamento: { pago: 1_000_000 },
+          topFornecedores: [
             {
-              licitacaoId: "lic-saude-1",
-              licitacaoNumero: "005/2024",
-              objeto: "Aquisição de medicamentos essenciais e antibióticos",
-              modalidade: "pregao_eletronico",
-              valor: 85000,
-              valorEstimado: 85000,
-              entidadeNome: "Fundo Municipal de Saúde",
-              dataAbertura: "2024-11-20",
+              fornecedorNome: "FORNECEDOR A",
+              fornecedorCpfCnpj: null,
+              totalPago: 300_000,
+              totalEmpenhado: 400_000,
+              percentualPago: 30,
+            },
+            {
+              fornecedorNome: "FORNECEDOR B",
+              fornecedorCpfCnpj: null,
+              totalPago: 100_000,
+              totalEmpenhado: 150_000,
+              percentualPago: 10,
             },
           ],
         },
@@ -273,19 +197,41 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByText("Compras e Licitações da Saúde em Andamento"),
+      screen.getByText("Quem recebe o dinheiro da saúde"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Processo 005/2024")).toBeInTheDocument();
+    expect(screen.getByText("FORNECEDOR A")).toBeInTheDocument();
     expect(
-      screen.getByText("Aquisição de medicamentos essenciais e antibióticos"),
+      screen.getByText("Pago aos 2 maiores fornecedores"),
     ).toBeInTheDocument();
+    expect(screen.getByText("40,00%")).toBeInTheDocument();
+  });
 
-    const linkRadarGeral = screen.getByRole("link", {
-      name: /Ver radar geral/i,
-    });
-    expect(linkRadarGeral).toHaveAttribute(
-      "href",
-      "/porciuncula_prefeitura/licitacoes?ano=2024#licitacoes-em-andamento",
+  it("mostra estado neutro quando não há pagamentos a fornecedores", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({ saude: { topFornecedores: [] } }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    expect(
+      screen.getByText(/Sem pagamentos a fornecedores registrados/),
+    ).toBeInTheDocument();
+  });
+
+  it("avisa na evolução anual que o ano em andamento não deve ser comparado", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2026, isCurrentYear: true },
+        saude: { executionTrend: [{ ano: 2026, empenhado: 10, pago: 5 }] },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    const { container } = render(element);
+
+    expect(container.textContent).toMatch(
+      /O ano de 2026 está em andamento.*não deve ser comparado com anos completos/,
     );
   });
 });
