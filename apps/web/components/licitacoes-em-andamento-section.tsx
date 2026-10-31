@@ -38,6 +38,8 @@ export interface LicitacoesEmAndamentoSectionProps {
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
   portalSlug?: string;
   ano?: number;
+  /** Oculta o cabeçalho próprio quando a página já apresenta a seção. */
+  hideHeader?: boolean;
   className?: string;
 }
 
@@ -138,6 +140,7 @@ export function LicitacoesEmAndamentoSection({
   itensByLicitacao,
   portalSlug,
   ano,
+  hideHeader = false,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
@@ -734,52 +737,55 @@ export function LicitacoesEmAndamentoSection({
       aria-labelledby="licitacoes-em-andamento-heading"
       className={cn("scroll-mt-6 space-y-6", className)}
     >
-      {/* Cabeçalho da Seção */}
-      <div className="flex flex-col justify-between gap-2 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2
-              id="licitacoes-em-andamento-heading"
-              className="font-bold font-serif text-ink text-xl"
-            >
-              Licitações Abertas e em Andamento
-            </h2>
+      {hideHeader ? null : (
+        <div className="flex flex-col justify-between gap-2 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2
+                id="licitacoes-em-andamento-heading"
+                className="font-bold font-serif text-ink text-xl"
+              >
+                Licitações Abertas e em Andamento
+              </h2>
+            </div>
+            <p className="mt-1 max-w-3xl text-mute2 text-xs leading-relaxed sm:text-sm">
+              Audite preventivamente as compras públicas em andamento antes da
+              adjudicação e homologação de contratos pelo município. Descrições
+              e itens são enriquecidos e integrados diretamente com o{" "}
+              <a
+                href={FONTES_OFICIAIS.pncp.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+              >
+                PNCP (Portal Nacional de Contratações Públicas)
+                <ExternalLink className="inline h-3 w-3" />
+              </a>
+              , com fundamento no{" "}
+              <a
+                href={urlLegislacao("lei14133", "art174")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
+              >
+                Art. 174 da Lei 14.133/2021
+                <ExternalLink className="inline h-3 w-3" />
+              </a>
+              , e cruzados com os contratos locais para eliminação de
+              truncamentos.
+            </p>
           </div>
-          <p className="mt-1 max-w-3xl text-mute2 text-xs leading-relaxed sm:text-sm">
-            Audite preventivamente as compras públicas em andamento antes da
-            adjudicação e homologação de contratos pelo município. Descrições e
-            itens são enriquecidos e integrados diretamente com o{" "}
-            <a
-              href={FONTES_OFICIAIS.pncp.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
-            >
-              PNCP (Portal Nacional de Contratações Públicas)
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            , com fundamento no{" "}
-            <a
-              href={urlLegislacao("lei14133", "art174")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-accent hover:underline"
-            >
-              Art. 174 da Lei 14.133/2021
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            , e cruzados com os contratos locais para eliminação de
-            truncamentos.
-          </p>
+          <span
+            className="shrink-0 font-medium text-mute2 text-xs"
+            aria-live="polite"
+          >
+            {totalProcessos}{" "}
+            {totalProcessos === 1
+              ? "processo em aberto"
+              : "processos em aberto"}
+          </span>
         </div>
-        <span
-          className="shrink-0 font-medium text-mute2 text-xs"
-          aria-live="polite"
-        >
-          {totalProcessos}{" "}
-          {totalProcessos === 1 ? "processo em aberto" : "processos em aberto"}
-        </span>
-      </div>
+      )}
 
       {totalProcessos === 0 ? (
         <div className="rounded-md border border-line bg-page p-8 text-center">
@@ -796,11 +802,13 @@ export function LicitacoesEmAndamentoSection({
         <div className="space-y-6">
           {/* Tabela Completa via DenseTable */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-ink text-xs tracking-wider">
-                Relação Completa de Licitações em Aberto
-              </h3>
-            </div>
+            {hideHeader ? null : (
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-ink text-xs tracking-wider">
+                  Relação Completa de Licitações em Aberto
+                </h3>
+              </div>
+            )}
             <DenseTable
               data={tableData}
               columns={columns}

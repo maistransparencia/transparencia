@@ -1,20 +1,11 @@
 import type {
   CaminhoContratacaoSaudeDTO,
   LicitacaoEmAndamentoDTO,
+  LicitacaoItemDTO,
 } from "@transparencia/db";
-import {
-  Badge,
-  fmtCompact,
-  fmtCurrency,
-  fmtDate,
-  fmtLicitacaoModalidade,
-  fmtLicitacaoSituacao,
-  fmtPercent,
-  SectionHeader,
-  TruncatedCellWithModal,
-} from "@transparencia/ui";
-import { Calendar, Coins, ExternalLink, Package } from "lucide-react";
+import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import Link from "next/link";
+import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 
 export interface SaudeContratacaoModalidadeItem {
   nome: string;
@@ -43,6 +34,7 @@ export interface SaudeContratacaoSectionProps {
   orcamento: SaudeContratacaoOrcamentoProps;
   licitacoesSaude: SaudeContratacaoLicitacoesProps;
   licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
+  itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
 }
 
 const CAMINHOS_CONTRATACAO = [
@@ -82,6 +74,7 @@ export function SaudeContratacaoSection({
   orcamento,
   licitacoesSaude,
   licitacoesEmAndamento = [],
+  itensByLicitacao,
 }: SaudeContratacaoSectionProps) {
   const caminhos = CAMINHOS_CONTRATACAO.map((definicao) => {
     const encontrado = licitacoesSaude.caminhos.find(
@@ -180,179 +173,14 @@ export function SaudeContratacaoSection({
           </Link>
         </div>
 
-        {Array.isArray(licitacoesEmAndamento) &&
-        licitacoesEmAndamento.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {licitacoesEmAndamento.slice(0, 6).map((lic) => {
-              const valorEst = lic.valorEstimado ?? lic.valor;
-              const valorHom = lic.valorHomologado;
-              const economia = (() => {
-                if (valorEst && valorHom && valorHom < valorEst) {
-                  return ((valorEst - valorHom) / valorEst) * 100;
-                }
-                return null;
-              })();
-
-              return (
-                <article
-                  key={lic.licitacaoId}
-                  className="panel flex flex-col justify-between border-0! border-t-[3px]! px-0! py-4! sm:px-4!"
-                >
-                  <div className="space-y-3">
-                    {/* Linha 1: Badges horizontais com wrap */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge variant="accent">
-                        {fmtLicitacaoModalidade(lic.modalidade)}
-                      </Badge>
-                      <Badge variant="warning">
-                        {fmtLicitacaoSituacao(lic.situacao)}
-                      </Badge>
-                      {lic.fonteObjeto === "pncp" && (
-                        <span
-                          className="inline-block rounded border border-ok-fill bg-ok-fill/15 px-2 py-0.5 font-semibold text-ok-text text-xs"
-                          title="Objeto des-truncado via PNCP"
-                        >
-                          PNCP
-                        </span>
-                      )}
-                      {lic.fonteObjeto === "contrato_local" && (
-                        <span
-                          className="inline-block rounded border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-semibold text-brand-text text-xs"
-                          title="Objeto des-truncado via contrato local"
-                        >
-                          Contrato Local
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Linha 2: Processo e Órgão empilhados verticalmente */}
-                    <div>
-                      <span className="font-bold text-ink text-sm">
-                        Processo {lic.licitacaoNumero || "S/N"}
-                      </span>
-                      {lic.entidadeNome && (
-                        <p className="mt-0.5 truncate text-mute text-xs">
-                          {lic.entidadeNome}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Linha 3: Objeto com modal */}
-                    <div>
-                      <TruncatedCellWithModal
-                        text={lic.objeto}
-                        modalTitle={`Processo ${lic.licitacaoNumero || "S/N"} — Objeto da Licitação (Saúde)`}
-                        characterThreshold={120}
-                        maxLines={3}
-                        badge={(() => {
-                          if (lic.fonteObjeto === "pncp") return "PNCP";
-                          if (lic.fonteObjeto === "contrato_local")
-                            return "Contrato Local";
-                          return undefined;
-                        })()}
-                        secondaryText={
-                          lic.discriminacao && lic.discriminacao !== lic.objeto
-                            ? lic.discriminacao
-                            : undefined
-                        }
-                        externalUrl={lic.linkSistemaOrigem}
-                        externalLabel="Sala de Disputa"
-                      />
-                    </div>
-
-                    {/* Linha 4: Data de abertura */}
-                    <div className="flex items-center gap-1.5 text-mute text-xs">
-                      <Calendar
-                        className="h-3.5 w-3.5 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>
-                        Abertura:{" "}
-                        {lic.dataAbertura
-                          ? fmtDate(lic.dataAbertura)
-                          : "Não informada"}
-                      </span>
-                    </div>
-
-                    {/* Linha 5: Grade financeira 2 colunas */}
-                    <div className="grid grid-cols-2 gap-2 border-line border-t pt-2.5 text-xs">
-                      <div>
-                        <span className="block text-mute2 text-xs">
-                          Valor Estimado
-                        </span>
-                        <div className="mt-0.5 flex items-center gap-1 font-bold font-serif text-ink">
-                          <Coins
-                            className="h-3.5 w-3.5 text-mute2"
-                            aria-hidden="true"
-                          />
-                          <span className="truncate">
-                            {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="block text-mute2 text-xs">
-                          Homologado
-                        </span>
-                        {valorHom ? (
-                          <div className="mt-0.5 flex items-center justify-end gap-1">
-                            <span className="font-bold font-serif text-ok-text">
-                              {fmtCurrency(valorHom)}
-                            </span>
-                            {economia !== null && (
-                              <span className="inline-block rounded bg-ok-fill/15 px-1 py-0.5 font-semibold text-ok-text text-xs">
-                                -{Math.round(economia)}%
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="mt-0.5 flex justify-end">
-                            <span
-                              className="inline-block rounded bg-warn-fill/15 px-1.5 py-0.5 font-medium text-warn-text text-xs"
-                              title="Em disputa pública ou aguardando adjudicação/homologação"
-                            >
-                              Em disputa
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Linha 6: Ações no rodapé */}
-                  <div className="mt-3 flex items-center justify-between border-line border-t pt-2.5 text-xs">
-                    <Link
-                      href={
-                        lic.licitacaoNumero
-                          ? `/${portalSlug}/licitacoes?numero=${encodeURIComponent(lic.licitacaoNumero)}#itens`
-                          : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
-                      }
-                      className="inline-flex items-center gap-1 font-medium text-mute transition-colors hover:text-ink"
-                    >
-                      <Package
-                        className="h-3.5 w-3.5 text-mute2"
-                        aria-hidden="true"
-                      />
-                      <span>Ver Itens Licitados</span>
-                    </Link>
-
-                    {lic.linkSistemaOrigem && (
-                      <a
-                        href={lic.linkSistemaOrigem}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded bg-brand-fill/15 px-2.5 py-1 font-medium text-brand-text transition-colors hover:bg-brand-fill/25"
-                        title="Acessar sala de disputa pública externa"
-                      >
-                        <span>Sala de Disputa</span>
-                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                      </a>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+        {licitacoesEmAndamento.length > 0 ? (
+          <LicitacoesEmAndamentoSection
+            licitacoes={licitacoesEmAndamento}
+            itensByLicitacao={itensByLicitacao}
+            portalSlug={portalSlug}
+            ano={ano}
+            hideHeader
+          />
         ) : (
           <div className="border-line border-y bg-line2 p-4 text-center text-mute text-xs">
             Nenhuma licitação da Saúde em andamento ou aberta no momento para

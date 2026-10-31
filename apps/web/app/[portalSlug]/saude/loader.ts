@@ -1,6 +1,7 @@
 import {
   getEntidades,
   getHistoriaSaudeMetrics,
+  getLicitacaoItensBatch,
   getLicitacoesEmAndamentoMetrics,
   getPortalConfig,
   getSaudeContratosCountMetrics,
@@ -129,6 +130,13 @@ async function fetchRawSaudeData(
     getPortalConfig(tenantSlug),
   ]);
 
+  const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
+    ano: context.selectedYear,
+    licitacoesNumeros: licitacoesEmAndamento
+      .map((licitacao) => licitacao.licitacaoNumero)
+      .filter((numero): numero is string => Boolean(numero?.trim())),
+  });
+
   const dotacao = saudeMetrics?.dotacaoTotal ?? 0;
   const empenhado = saudeMetrics?.totalEmpenhado ?? 0;
   const liquidado = saudeMetrics?.totalLiquidado ?? 0;
@@ -181,6 +189,7 @@ async function fetchRawSaudeData(
     executionTrend,
     licitacoesSaude,
     licitacoesEmAndamento,
+    itensByLicitacao,
     emendasStats,
     emendas: emendasStats.lista,
     emendasTotal: emendasStats.totalAutorizado || emendasArrecadado,

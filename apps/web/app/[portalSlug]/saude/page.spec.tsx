@@ -276,10 +276,11 @@ describe("SaudePage", () => {
     expect(
       screen.getByText("Compras e Licitações da Saúde em Andamento"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Processo 005/2024")).toBeInTheDocument();
+    expect(screen.getAllByText("005/2024").length).toBeGreaterThan(0);
     expect(
-      screen.getByText("Aquisição de medicamentos essenciais e antibióticos"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Aquisição de medicamentos essenciais e antibióticos")
+        .length,
+    ).toBeGreaterThan(0);
 
     const linkRadarGeral = screen.getByRole("link", {
       name: /Ver radar geral/i,

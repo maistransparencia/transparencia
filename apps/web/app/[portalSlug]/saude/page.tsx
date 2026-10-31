@@ -155,6 +155,7 @@ export default async function SaudePage({
         orcamento={saude.orcamento}
         licitacoesSaude={saude.licitacoesSaude}
         licitacoesEmAndamento={saude.licitacoesEmAndamento}
+        itensByLicitacao={saude.itensByLicitacao}
       />
 
       {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}
