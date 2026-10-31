@@ -45,7 +45,7 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
     expect(screen.getByText("Confirmada na receita")).toBeTruthy();
     expect(container.textContent).toMatch(/pode estar desatualizado/);
     expect(container.textContent).toMatch(/com o número da proposta/);
-    expect(screen.getByText("Aparece na receita")).toBeTruthy();
+    expect(screen.getAllByText("Aparece na receita").length).toBeGreaterThan(0);
     expect(container.textContent).not.toMatch(/1713\.50/);
   });
 

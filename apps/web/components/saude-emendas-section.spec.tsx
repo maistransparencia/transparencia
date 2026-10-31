@@ -111,7 +111,7 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    const button = screen.getAllByRole("button", { name: /^2 empenhos$/i })[0];
     if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
@@ -183,7 +183,7 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    const button = screen.getAllByRole("button", { name: /2 empenhos/i })[0];
+    const button = screen.getAllByRole("button", { name: /^2 empenhos$/i })[0];
     if (!button) throw new Error("Botão de empenhos não encontrado");
     fireEvent.click(button);
 
@@ -209,7 +209,7 @@ describe("SaudeEmendasSection", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("renderiza cartões mobile com dados de emendas e badges", () => {
+  it("renderiza linhas mobile compactas com autor, valor e rastreabilidade", () => {
     render(
       <SaudeEmendasSection
         ano={2026}
@@ -218,14 +218,29 @@ describe("SaudeEmendasSection", () => {
       />,
     );
 
-    // No card mobile, exibe Proposta nº e botão de auditar
+    expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(1);
     expect(
-      screen.getByText("Proposta nº 63000759632202600"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Proposta nº 202643380001")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /auditar 2 empenhos vinculados/i }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("button", { name: /^2 empenhos$/i }).length,
+    ).toBeGreaterThan(1);
+  });
+
+  it("mostra a proposta e a destinação ao expandir a linha no mobile", () => {
+    const { container } = render(
+      <SaudeEmendasSection
+        ano={2026}
+        emendasStats={mockStats}
+        portalSlug="porciuncula_prefeitura"
+      />,
+    );
+
+    const gatilhos = container.querySelectorAll<HTMLElement>(
+      "div[role='button'][aria-expanded]",
+    );
+    expect(gatilhos.length).toBeGreaterThan(0);
+    const primeiro = gatilhos[0];
+    if (primeiro) fireEvent.click(primeiro);
+    expect(container.textContent).toMatch(/Proposta/);
+    expect(container.textContent).toMatch(/Empenhado no cadastro/);
   });
 
   it("ordena a tabela dando precedência a emendas que possuem empenho", () => {

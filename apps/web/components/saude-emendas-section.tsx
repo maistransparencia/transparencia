@@ -428,6 +428,24 @@ export function SaudeEmendasSection({
             const qtd = row.qtdEmpenhos ?? 0;
             return (
               <div className="space-y-4">
+                <dl className="grid grid-cols-2 gap-4 sm:hidden">
+                  <div>
+                    <dt className="eyebrow">Proposta</dt>
+                    <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Destinação</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.destinacao ? toTitleCase(row.destinacao) : "—"}
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="eyebrow">Empenhado no cadastro</dt>
+                    <dd className="mt-1 text-ink">
+                      {fmtCurrency(row.empenhado ?? 0)}
+                    </dd>
+                  </div>
+                </dl>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <dt className="eyebrow">Receita correspondente</dt>
@@ -471,114 +489,53 @@ export function SaudeEmendasSection({
               </div>
             );
           }}
-          renderMobileCard={(row) => {
+          renderMobileRow={(row) => {
             const qtd = row.qtdEmpenhos ?? 0;
-            const temEmpenho = (row.empenhado ?? 0) > 0;
-
-            return (
-              <div className="space-y-3 border-line border-t pt-4">
-                {/* Top: Autor + Origem */}
-                <div className="flex items-start justify-between gap-2 border-line border-b pb-2.5">
-                  <div className="min-w-0">
-                    <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
-                      Autor da Emenda
+            const rastreio = (() => {
+              if (qtd > 0)
+                return `${qtd} ${qtd === 1 ? "empenho" : "empenhos"}`;
+              if (row.recebimentoFundo === "confirmado_por_proposta")
+                return "Aparece na receita";
+              if (row.recebimentoFundo === "valor_igual")
+                return "Receita de mesmo valor";
+              if ((row.empenhado ?? 0) > 0) return "Empenho sem notas ligadas";
+              return "Sem empenho";
+            })();
+            return {
+              resumo: (
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-bold text-ink text-sm">
+                      {toTitleCase(row.autor)}
                     </span>
+                    <span className="shrink-0 font-bold text-ink text-sm tabular-nums">
+                      {fmtCurrency(row.valorAutorizado)}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-ink text-xs leading-snug">
+                    {row.objeto}
+                  </p>
+                  <div className="flex items-center justify-between gap-3 text-mute text-xs">
+                    <Badge variant="accent">{row.origem || "Federal"}</Badge>
                     {qtd > 0 ? (
                       <button
                         type="button"
                         onClick={() => setSelectedEmenda(row)}
-                        className="block cursor-pointer text-left font-bold text-ink text-sm hover:text-brand-text hover:underline"
-                        title="Clique para auditar notas de empenho"
+                        className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                        title="Auditar notas de empenho e compras vinculadas"
                       >
-                        {row.autor}
+                        {rastreio}
                       </button>
                     ) : (
-                      <p className="font-bold text-ink text-sm">{row.autor}</p>
-                    )}
-                    {row.numero && (
-                      <p className="mt-0.5 text-mute text-xs">
-                        Proposta nº {row.numero}
-                      </p>
+                      <span>{rastreio}</span>
                     )}
                   </div>
-                  <Badge variant="accent">{row.origem || "Federal"}</Badge>
                 </div>
-
-                {/* Objeto / Destinação */}
-                <div>
-                  <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
-                    Objeto / Destinação
-                  </span>
-                  <p className="mt-0.5 text-ink text-xs leading-relaxed">
-                    {row.objeto}
-                  </p>
-                  {row.destinacao && (
-                    <p className="mt-1 font-medium text-mute text-xs">
-                      Destinação:{" "}
-                      <span className="text-ink">
-                        {toTitleCase(row.destinacao)}
-                      </span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Grid Financeiro: Autorizado vs Empenhado */}
-                <div className="grid grid-cols-2 gap-2 bg-line2 p-2.5">
-                  <div>
-                    <span className="block text-mute text-xs">
-                      Valor Autorizado
-                    </span>
-                    <span className="font-bold font-serif text-ink text-xs sm:text-sm">
-                      {fmtCurrency(row.valorAutorizado)}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-mute text-xs">
-                      Valor Empenhado
-                    </span>
-                    <span
-                      className={cn(
-                        "font-bold font-serif text-xs sm:text-sm",
-                        temEmpenho ? "text-ink" : "text-warn-text",
-                      )}
-                    >
-                      {temEmpenho ? fmtCurrency(row.empenhado ?? 0) : "R$ 0,00"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Rastreabilidade / Ação */}
-                {qtd > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEmenda(row)}
-                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 border border-brand-fill bg-brand-fill/15 py-2 font-semibold text-brand-text text-xs transition-all hover:bg-brand-fill/25 hover:underline"
-                    title="Auditar notas de empenho e compras vinculadas"
-                  >
-                    <FileText className="h-4 w-4 shrink-0" />
-                    <span>
-                      Auditar {qtd}{" "}
-                      {qtd === 1 ? "empenho vinculado" : "empenhos vinculados"}
-                    </span>
-                  </button>
-                ) : temEmpenho ? (
-                  <div className="flex items-center justify-between pt-1 text-mute text-xs">
-                    <span>Empenho informado:</span>
-                    <span className="rounded-md bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
-                      Sem notas ligadas
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between pt-1 text-mute2 text-xs">
-                    <span>Status:</span>
-                    <span className="font-medium text-warn-text text-xs">
-                      Aguardando empenho
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
+              ),
+              detalhes: null,
+            };
           }}
+          hideCsvOnMobile
         />
 
         {/* Total Summary Footer Row */}

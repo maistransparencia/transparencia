@@ -108,7 +108,7 @@ describe("SaudePage", () => {
     render(element);
 
     expect(screen.getByText("Emendas na saúde")).toBeInTheDocument();
-    expect(screen.getByText("Origem")).toBeInTheDocument();
+    expect(screen.getAllByText("Origem").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
   });
 
