@@ -277,11 +277,6 @@ export function SaudeEmendasSection({
               >
                 {confirmada ? "Aparece na receita" : "Receita de mesmo valor"}
               </span>
-              {row.receitaDescricao ? (
-                <span className="caption line-clamp-2 block max-w-[220px]">
-                  {toTitleCase(row.receitaDescricao)}
-                </span>
-              ) : null}
             </span>
           );
         }
@@ -427,6 +422,55 @@ export function SaudeEmendasSection({
           columns={emendasCols}
           searchableKeys={["autor", "objeto", "origem"]}
           rowKey="id"
+          renderExpandedRow={(row) => {
+            const confirmada =
+              row.recebimentoFundo === "confirmado_por_proposta";
+            const qtd = row.qtdEmpenhos ?? 0;
+            return (
+              <div className="space-y-4">
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="eyebrow">Receita correspondente</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.receitaDescricao
+                        ? toTitleCase(row.receitaDescricao)
+                        : "Nenhuma receita identificada para esta emenda."}
+                    </dd>
+                    {row.receitaCodigo ? (
+                      <dd className="caption">
+                        Código contábil {row.receitaCodigo}
+                      </dd>
+                    ) : null}
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Como foi identificada</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.receitaDescricao
+                        ? confirmada
+                          ? "Pelo valor e pelo número da proposta."
+                          : "Só pelo valor, sem o número da proposta. Pode ser coincidência."
+                        : "Não há receita com o mesmo valor ou o mesmo número de proposta."}
+                    </dd>
+                  </div>
+                </dl>
+                {row.receitaDescricao ? (
+                  <p className="caption">
+                    Para conferir, procure essa descrição no portal oficial do
+                    município.
+                  </p>
+                ) : null}
+                {qtd > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmenda(row)}
+                    className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                  >
+                    Ver notas de empenho
+                  </button>
+                ) : null}
+              </div>
+            );
+          }}
           renderMobileCard={(row) => {
             const qtd = row.qtdEmpenhos ?? 0;
             const temEmpenho = (row.empenhado ?? 0) > 0;

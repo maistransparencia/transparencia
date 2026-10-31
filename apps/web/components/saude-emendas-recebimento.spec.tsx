@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { SaudeEmendasSection } from "./saude-emendas-section";
 
@@ -46,8 +46,23 @@ describe("SaudeEmendasSection: chegada do dinheiro", () => {
     expect(container.textContent).toMatch(/pode estar desatualizado/);
     expect(container.textContent).toMatch(/com o número da proposta/);
     expect(screen.getByText("Aparece na receita")).toBeTruthy();
-    expect(container.textContent).toMatch(/trans\.sus portaria/i);
     expect(container.textContent).not.toMatch(/1713\.50/);
+  });
+
+  it("mostra a receita correspondente ao expandir a linha", () => {
+    const { container } = render(
+      <SaudeEmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
+    );
+    const gatilho = container.querySelector<HTMLButtonElement>(
+      "button[aria-expanded]",
+    );
+    expect(gatilho).not.toBeNull();
+    if (gatilho) fireEvent.click(gatilho);
+    expect(container.textContent).toMatch(/Receita correspondente/);
+    expect(container.textContent).toMatch(/trans\.sus portaria/i);
+    expect(container.textContent).toMatch(
+      /Pelo valor e pelo número da proposta/,
+    );
   });
 
   it("diz que não foi possível identificar quando nada aparece como receita", () => {
