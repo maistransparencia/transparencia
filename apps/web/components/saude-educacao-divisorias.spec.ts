@@ -70,12 +70,12 @@ describe("Saúde e Educação no padrão Divisórias", () => {
     },
   );
 
-  it("a página de saúde usa SectionHeader e KPICard em divisórias", () => {
+  it("a página de saúde usa SectionHeader e IndicatorPanel", () => {
     const [saude] = ARQUIVOS.map((a) => a.fonte);
     expect(saude).toMatch(
       /import \{[^}]*\bSectionHeader\b[^}]*\} from "@transparencia\/ui"/,
     );
-    expect(saude).toContain('variant="divisoria"');
+    expect(saude).toContain("<IndicatorPanel");
   });
 
   it("gráficos usam corDoGrafico", () => {

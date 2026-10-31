@@ -10,6 +10,7 @@ import {
   getSaudeFontesReceitaMetrics,
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
+  getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
@@ -111,6 +112,7 @@ async function fetchRawSaudeData(
     fornecedoresCount,
     licitacoesSaude,
     licitacoesEmAndamento,
+    topFornecedores,
     portalConfig,
   ] = await Promise.all([
     getHistoriaSaudeMetrics(tenantSlug, context.selectedYear),
@@ -126,6 +128,12 @@ async function fetchRawSaudeData(
     getLicitacoesEmAndamentoMetrics(tenantSlug, {
       ano: context.selectedYear,
       empresaIds,
+    }),
+    getTopFornecedoresExecucaoMetrics({
+      portalSlug: tenantSlug,
+      year: context.selectedYear,
+      empresaIds,
+      limit: 5,
     }),
     getPortalConfig(tenantSlug),
   ]);
@@ -190,6 +198,7 @@ async function fetchRawSaudeData(
     licitacoesSaude,
     licitacoesEmAndamento,
     itensByLicitacao,
+    topFornecedores,
     emendasStats,
     emendas: emendasStats.lista,
     emendasTotal: emendasStats.totalAutorizado || emendasArrecadado,

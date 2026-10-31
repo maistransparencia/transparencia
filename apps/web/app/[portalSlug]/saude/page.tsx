@@ -1,15 +1,14 @@
 import {
   AlertBox,
-  Badge,
   fmtCompact,
   fmtPercent,
   Indicator,
   IndicatorPanel,
-  KPICard,
   SectionHeader,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
-import { KPIGrid } from "@/components/kpi-grid";
+import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
+import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { SaudeEvolucaoAnual } from "@/components/saude-evolucao-anual";
@@ -76,19 +75,18 @@ export default async function SaudePage({
     return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
   })();
 
-  const concentracao = saude.farmaceutica?.concentracao ?? {
-    hhi: 0,
-    nivel: "baixa" as const,
-    label: "Não aplicável",
-    descricao:
-      "Sem registros de aquisições de insumos ou contratos no exercício",
-  };
-
-  const varianteConcentracao = (() => {
-    if (concentracao.nivel === "alta") return "danger" as const;
-    if (concentracao.nivel === "moderada") return "warning" as const;
-    return "success" as const;
-  })();
+  const fornecedoresLinhas = buildFornecedoresLinhas(
+    saude.topFornecedores,
+    saude.orcamento.pago,
+  );
+  const valorPagoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.valorPago,
+    0,
+  );
+  const concentracaoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.percentualTotalPago,
+    0,
+  );
 
   return (
     <div className="space-y-12 pb-12">
@@ -158,45 +156,36 @@ export default async function SaudePage({
         itensByLicitacao={saude.itensByLicitacao}
       />
 
-      {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}
+      {/* Seção 5: Quem recebe o dinheiro da saúde */}
       <section className="space-y-6">
-        <SectionHeader title="Insumos e assistência farmacêutica" />
-        <KPIGrid columns={3} variant="divisoria">
-          <KPICard
-            variant="divisoria"
-            title="Medicamentos e insumos"
-            value={fmtCompact(saude.farmaceutica.medicamentosInsumos)}
-            subtext={`${fmtCompact(saude.farmaceutica.medicamentosInsumosPago)} pagos (Subfunção 10.303)`}
-          />
-          <KPICard
-            variant="divisoria"
-            title="Judicialização da saúde"
-            value={
-              <span className="font-bold text-warn-text">
-                {fmtCompact(saude.farmaceutica.judicializacao)}
-              </span>
-            }
-            subtext={`${fmtCompact(saude.farmaceutica.judicializacaoPago)} pagos (sentenças judiciais)`}
-          />
-          <KPICard
-            variant="divisoria"
-            title="Concentração de Fornecedores"
-            value={
-              <span className="flex flex-wrap items-center gap-2">
-                <Badge variant={varianteConcentracao}>
-                  {concentracao.label}
-                </Badge>
-                <span
-                  className="caption"
-                  title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
-                >
-                  Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
-                </span>
-              </span>
-            }
-            subtext={concentracao.descricao}
-          />
-        </KPIGrid>
+        <SectionHeader title="Quem recebe o dinheiro da saúde" />
+        {fornecedoresLinhas.length > 0 ? (
+          <>
+            <IndicatorPanel columns={2}>
+              <Indicator
+                label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtPercent(concentracaoTopFornecedores)}
+                note={`do que o Fundo pagou em ${selectedYear}`}
+              />
+              <Indicator
+                label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
+                value={fmtCompact(valorPagoTopFornecedores)}
+                note={`de ${fmtCompact(saude.orcamento.pago)} pagos pelo Fundo`}
+              />
+            </IndicatorPanel>
+            <DespesasFornecedoresSection
+              fornecedores={fornecedoresLinhas}
+              portalSlug={portalSlug}
+              ano={selectedYear}
+              nota="Consórcios de saúde e contratos grandes naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."
+            />
+          </>
+        ) : (
+          <p className="border-line border-y py-4 text-mute">
+            Sem pagamentos a fornecedores registrados para a saúde em{" "}
+            {selectedYear}.
+          </p>
+        )}
       </section>
 
       {/* Seção 6: Emendas parlamentares destinadas à Saúde (Existente, com mais detalhes) */}
