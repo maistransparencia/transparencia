@@ -102,7 +102,7 @@ export function EducacaoOrigemRecursosSection({
                       data-testid={`fonte-card-${grupoFonte}`}
                       aria-label={`Ver detalhes: ${rotulo}`}
                       onClick={() => setFonteAberta(grupoFonte)}
-                      className="min-h-11 font-medium text-brand-text underline"
+                      className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
                     >
                       Ver detalhes
                     </button>

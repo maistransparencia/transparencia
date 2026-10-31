@@ -61,7 +61,7 @@ export function FonteRecursoModal({
       showShareButton={false}
       footer={
         basesLegais.length > 0 ? (
-          <p className="text-mute text-xs">
+          <p className="caption">
             Base legal:{" "}
             {basesLegais.map((baseLegal, indice) => (
               <span key={baseLegal.url}>
@@ -70,7 +70,7 @@ export function FonteRecursoModal({
                   href={baseLegal.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:underline"
+                  className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
                   aria-label={`Texto oficial da ${baseLegal.rotulo} no Planalto`}
                 >
                   {baseLegal.rotulo}
@@ -84,13 +84,13 @@ export function FonteRecursoModal({
     >
       {fonte && (
         <div className="space-y-6">
-          <p className="text-mute text-sm">
+          <p className="text-mute">
             {DESCRICAO_FONTE_RECURSO[fonte.grupoFonte]}
           </p>
 
-          <section aria-label="Ano a ano" className="space-y-2">
+          <section aria-label="Ano a ano" className="space-y-3">
             <h3>Ano a ano{periodo}</h3>
-            <ul className="space-y-2">
+            <ul>
               {fonte.historicoAnual.map((ponto) => {
                 const selecionado = ponto.ano === ano;
                 return (
@@ -98,30 +98,24 @@ export function FonteRecursoModal({
                     key={ponto.ano}
                     aria-current={selecionado ? "true" : undefined}
                     className={cn(
-                      "-mx-2 grid grid-cols-[3rem_1fr_auto] items-center gap-3 rounded-md px-2 py-1 text-xs",
-                      selecionado &&
-                        "bg-brand-fill/15 ring-1 ring-brand-fill/30",
+                      "grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 border-line2 border-b px-3 py-2 last:border-b-0",
+                      selecionado && "bg-line2",
                     )}
                   >
                     <span
                       className={cn(
-                        "text-mute",
+                        "text-mute text-sm",
                         selecionado && "font-semibold text-ink",
                       )}
                     >
                       {ponto.ano}
                       {ponto.ano === anoParcial && (
-                        <span className="block font-normal text-mute2 text-xs">
-                          parcial
-                        </span>
+                        <span className="caption block">parcial</span>
                       )}
                     </span>
-                    <span className="block h-1.5 overflow-hidden rounded-full bg-line2">
+                    <span className="block h-3 bg-track">
                       <span
-                        className={cn(
-                          "block h-full rounded-full",
-                          selecionado ? "bg-brand-fill" : "bg-brand-fill/40",
-                        )}
+                        className="block h-full bg-brand-fill"
                         style={{
                           width: `${maiorValorHistorico > 0 ? Math.max(0, (ponto.totalArrecadado / maiorValorHistorico) * 100) : 0}%`,
                         }}
@@ -129,7 +123,7 @@ export function FonteRecursoModal({
                     </span>
                     <span
                       className={cn(
-                        "font-serif text-ink",
+                        "numeric text-sm",
                         selecionado && "font-semibold",
                       )}
                     >
@@ -140,7 +134,7 @@ export function FonteRecursoModal({
               })}
             </ul>
             {historicoTemParcial && mesReferencia !== null && (
-              <p className="text-mute text-xs">
+              <p className="caption">
                 {anoParcial}: valores acumulados até{" "}
                 {formatMesPorExtenso(mesReferencia)}; o ano ainda não terminou.
               </p>
@@ -148,21 +142,30 @@ export function FonteRecursoModal({
           </section>
 
           {fonte.composicao.length > 0 && (
-            <section aria-label="De que são compostos" className="space-y-2">
+            <section aria-label="De que são compostos" className="space-y-3">
               <h3>De que são compostos em {ano}</h3>
-              <ul className="divide-y divide-line">
-                {fonte.composicao.map((item) => (
-                  <li
-                    key={item.codigoNatureza}
-                    className="flex items-start justify-between gap-3 py-2 text-xs"
-                  >
-                    <span className="text-ink">{item.descricaoNatureza}</span>
-                    <span className="shrink-0 font-serif text-ink">
-                      {fmtCurrency(item.totalArrecadado)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="overflow-x-auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Natureza da receita</th>
+                      <th scope="col" className="numeric">
+                        Valor
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fonte.composicao.map((item) => (
+                      <tr key={item.codigoNatureza}>
+                        <td>{item.descricaoNatureza}</td>
+                        <td className="numeric">
+                          {fmtCurrency(item.totalArrecadado)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
           )}
         </div>

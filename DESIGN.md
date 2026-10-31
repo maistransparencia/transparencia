@@ -165,6 +165,9 @@ components:
     padding: '0.25rem 0 0.25rem 1rem'
     shadow: 'none'
     border-color: '{colors.line}'
+  panel-interactive:
+    hover-border-color: '{colors.brand-fill}'
+    transition: 150ms
   panel-brand:
     border-color: '{colors.brand-fill}'
   panel-ok:
@@ -342,6 +345,8 @@ Bloco destacado (indicador, alerta, hero). O formato **não é fixo**: é lido d
 - Trocar uma instância (o hero, por exemplo) é sobrescrever por classe do Tailwind (`panel rounded-md border`).
 - **Tom da borda** por classe: `panel-brand`, `panel-ok`, `panel-warn`, `panel-danger` (tokens `-fill`). O padrão é `{colors.line}`.
 - Formatos validados no mock: borda lateral (padrão), borda total com leve arredondado e borda no topo.
+- **Borda no topo:** classe `panel-top` (`3px` só em cima, recuo vertical em vez de lateral). Usar em grades de blocos lado a lado, como os cards de categoria de uma seção.
+- **`panel` clicável (`panel-interactive`):** o bloco inteiro é um `button` ou `a`. Regra única: `cursor-pointer`; no hover e no foco por teclado a borda passa de `{colors.line}` para `{colors.brand-fill}` (transição de 150ms) e o foco mostra o anel de `{colors.focus-ring}`; bloco desabilitado (`aria-disabled="true"`) mantém a borda neutra e `cursor-default`. O estado nunca depende só da cor: o bloco traz um texto de ação ("16 contratos ›"). Sem sombra e sem mudança de fundo. Combina com `panel-top` e com os tons.
 
 ### `indicator`
 

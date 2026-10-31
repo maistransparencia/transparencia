@@ -4,15 +4,7 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
 } from "@transparencia/db";
-import {
-  Badge,
-  type Column,
-  cn,
-  DenseTable,
-  fmtCurrency,
-  fmtDate,
-  SectionHeader,
-} from "@transparencia/ui";
+import { Badge, cn, SectionHeader } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
@@ -20,10 +12,10 @@ import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
+import { ContratosTabela } from "./contratos-tabela";
 import {
   educacaoDtoToContratoServicoVigente,
   formatCategoriaLabel,
-  formatStatusExecucaoLabel,
 } from "./educacao-contratos-utils";
 
 export interface EducacaoContratosSectionProps {
@@ -47,22 +39,37 @@ const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
 
 const BASES_LEGAIS = [
   {
-    rotulo: "Lei 11.947/2009 (PNAE)",
+    rotulo: "Lei 11.947/2009",
     url: urlLegislacao("lei11947"),
     ariaLabel: "Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto",
   },
   {
-    rotulo: "Lei 10.880/2004 (PNATE)",
+    rotulo: "Lei 10.880/2004",
     url: urlLegislacao("lei10880"),
     ariaLabel: "Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto",
   },
   {
-    rotulo: "Lei 14.133/2021, art. 74, V (locação de imóveis)",
+    rotulo: "Lei 14.133/2021, art. 74, V",
     url: urlLegislacao("lei14133", "art74v"),
     ariaLabel:
       "Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto",
   },
 ];
+
+function renderBaseLegal(base: (typeof BASES_LEGAIS)[number]) {
+  return (
+    <a
+      href={base.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
+      aria-label={base.ariaLabel}
+    >
+      {base.rotulo}
+      <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
+    </a>
+  );
+}
 
 export function EducacaoContratosSection({
   contratos,
@@ -144,161 +151,6 @@ export function EducacaoContratosSection({
     }
   }, []);
 
-  // Contratos após filtro de categoria e busca (independe da paginação)
-  const [contratosVisiveis, setContratosVisiveis] = useState<
-    EducacaoContratoDTO[] | null
-  >(null);
-  const handleFilteredDataChange = useCallback(
-    (rows: { rawDto: EducacaoContratoDTO }[]) => {
-      setContratosVisiveis(rows.map((row) => row.rawDto));
-    },
-    [],
-  );
-
-  const totaisContratos = useMemo(() => {
-    const base = contratosVisiveis ?? contratos;
-    return {
-      empenhado: base.reduce((acc, c) => acc + (c.totalEmpenhado || 0), 0),
-      liquidado: base.reduce((acc, c) => acc + (c.totalLiquidado || 0), 0),
-      pago: base.reduce((acc, c) => acc + (c.totalPago || 0), 0),
-      saldoPendente: base.reduce((acc, c) => acc + (c.saldoAPagar || 0), 0),
-    };
-  }, [contratosVisiveis, contratos]);
-
-  // Estrutura de dados enriquecida para a tabela idêntica à de Contratos de Serviços Vigentes
-  const tableData = useMemo(() => {
-    return contratos.map((c) => {
-      const contratoVigente = educacaoDtoToContratoServicoVigente(c);
-      const statusLabel = formatStatusExecucaoLabel(
-        contratoVigente.statusExecucao,
-      );
-
-      const vigenciaFormatada = (() => {
-        if (c.dataInicio && c.vencimentoAtual) {
-          return `${fmtDate(c.dataInicio)} – ${fmtDate(c.vencimentoAtual)}`;
-        }
-        if (c.vencimentoAtual) {
-          return `Até ${fmtDate(c.vencimentoAtual)}`;
-        }
-        if (c.dataInicio) {
-          return `A partir de ${fmtDate(c.dataInicio)}`;
-        }
-        return "—";
-      })();
-
-      return {
-        ...contratoVigente,
-        rawDto: c,
-        statusLabel,
-        vigenciaFormatada,
-      };
-    });
-  }, [contratos]);
-
-  // Colunas rigorosamente no mesmo formato e ordem da página canônica de Contratos
-  const columns: Column<(typeof tableData)[number]>[] = [
-    {
-      header: "Fornecedor",
-      accessorKey: "fornecedorNome",
-      sortable: true,
-      className: "min-w-[180px] max-w-[220px]",
-      renderCell: (row) => (
-        <div data-testid={`contrato-row-${row.contratoNumero}`}>
-          <button
-            type="button"
-            onClick={() => handleOpenContrato(row.rawDto)}
-            className="cursor-pointer text-left font-medium text-ink hover:text-brand-text hover:underline"
-            title="Ver detalhes"
-          >
-            {row.fornecedorNome}
-          </button>
-        </div>
-      ),
-    },
-    {
-      header: "Objeto",
-      accessorKey: "objetoDescricao",
-      sortable: true,
-      className: "min-w-[220px] max-w-[320px]",
-      renderCell: (row) => (
-        <div className="space-y-1">
-          <p
-            className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
-            title={row.objetoDescricao}
-          >
-            {row.objetoDescricao || "—"}
-          </p>
-          <button
-            type="button"
-            onClick={() => handleOpenContrato(row.rawDto)}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-brand-text text-xs hover:underline hover:underline"
-            title="Ver detalhes"
-          >
-            <span>Detalhes</span>
-          </button>
-        </div>
-      ),
-    },
-    {
-      header: "Status",
-      accessorKey: "statusLabel",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-ink text-xs",
-    },
-    {
-      header: "Vigência",
-      accessorKey: "vigenciaFormatada",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-mute",
-    },
-    {
-      header: "Empenhado",
-      footer: fmtCurrency(totaisContratos.empenhado),
-      accessorKey: "totalEmpenhado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Liquidado",
-      footer: fmtCurrency(totaisContratos.liquidado),
-      accessorKey: "totalLiquidado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Pago",
-      footer: fmtCurrency(totaisContratos.pago),
-      accessorKey: "totalPago",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Saldo Pendente",
-      footer: fmtCurrency(totaisContratos.saldoPendente),
-      accessorKey: "saldoPendente",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "% Pago",
-      accessorKey: "percentualPago",
-      format: "percent",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-  ];
-
   const contratosDaCategoria = useMemo(
     () =>
       categoriaAberta
@@ -320,31 +172,18 @@ export function EducacaoContratosSection({
     >
       <SectionHeader
         title="Como o Fundo contrata"
-        description={`Contratos do Fundo vigentes em ${ano}: merenda, transporte escolar e manutenção.`}
+        description={
+          <>
+            Contratos do Fundo vigentes em {ano}: merenda escolar (
+            {renderBaseLegal(BASES_LEGAIS[0])}), transporte escolar (
+            {renderBaseLegal(BASES_LEGAIS[1])}), locação de imóveis (
+            {renderBaseLegal(BASES_LEGAIS[2])}) e manutenção das escolas.
+          </>
+        }
       />
 
-      <p className="text-mute text-sm">
-        Base legal:{" "}
-        {BASES_LEGAIS.map((base, indice) => (
-          <span key={base.rotulo}>
-            {indice > 0 ? ", " : ""}
-            <a
-              href={base.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
-              aria-label={base.ariaLabel}
-            >
-              {base.rotulo}
-              <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
-            </a>
-          </span>
-        ))}
-        .
-      </p>
-
       {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
         {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
           <CategoriaContratoCard
             key={categoria}
@@ -364,26 +203,14 @@ export function EducacaoContratosSection({
         </p>
       )}
 
-      {/* Tabela completa: apenas em md+ */}
+      {/* Tabela completa: linha compacta com detalhe expansível (padrão das licitações em aberto) */}
       {contratos.length > 0 && (
-        <div className="hidden space-y-3 md:block">
+        <div className="space-y-3">
           <h3>Ver todos os contratos</h3>
-          <DenseTable
-            data={tableData}
-            columns={columns}
-            searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."
-            searchableKeys={[
-              "contratoNumero",
-              "fornecedorNome",
-              "fornecedorCnpj",
-              "objetoDescricao",
-            ]}
-            pageSize={10}
-            sortable={true}
-            enableExportCsv={true}
+          <ContratosTabela
+            contratos={contratos}
+            onOpenContrato={handleOpenContrato}
             exportFilename="contratos_educacao.csv"
-            rowKey="contratoServicoId"
-            onFilteredDataChange={handleFilteredDataChange}
           />
         </div>
       )}
@@ -405,7 +232,6 @@ export function EducacaoContratosSection({
             : 0
         }
         onSelectContrato={handleOpenContrato}
-        detalheAberto={selectedContratoDto !== null}
       />
 
       {/* Modal Canônico de Detalhes 360° do Contrato Reutilizado */}

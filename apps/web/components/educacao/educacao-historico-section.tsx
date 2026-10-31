@@ -1,8 +1,13 @@
 "use client";
 
 import type { EtapaEnsino } from "@transparencia/db";
-import { corDoGrafico, ModalDialog, SegmentedButton } from "@transparencia/ui";
-import { CheckCircle, ExternalLink, Info } from "lucide-react";
+import {
+  AlertBox,
+  corDoGrafico,
+  ModalDialog,
+  SegmentedButton,
+} from "@transparencia/ui";
+import { CheckCircle, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import {
   CartesianGrid,
@@ -25,7 +30,6 @@ export interface EducacaoHistoricoSectionProps {
     anosFinais: IdebEtapaHistorico;
   };
   initialEtapa?: EtapaEnsino;
-  municipioUf?: string;
 }
 
 interface CustomTooltipProps {
@@ -120,7 +124,6 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
 export function EducacaoHistoricoSection({
   historico,
   initialEtapa = "anosIniciais",
-  municipioUf,
 }: EducacaoHistoricoSectionProps) {
   const [activeEtapa, setActiveEtapa] = useState<EtapaEnsino>(initialEtapa);
   const [detalhesAberto, setDetalhesAberto] = useState(false);
@@ -135,44 +138,44 @@ export function EducacaoHistoricoSection({
 
   return (
     <div className="space-y-4">
-      {/* Tabs / Toggle de Etapa */}
-      <div className="flex items-center gap-2 border-line border-b pb-2">
-        <SegmentedButton
-          onClick={() => setActiveEtapa("anosIniciais")}
-          active={activeEtapa === "anosIniciais"}
-          size="md"
-        >
-          Anos Iniciais (1º ao 5º ano)
-        </SegmentedButton>
-        <SegmentedButton
-          onClick={() => setActiveEtapa("anosFinais")}
-          active={activeEtapa === "anosFinais"}
-          size="md"
-        >
-          Anos Finais (6º ao 9º ano)
-        </SegmentedButton>
-      </div>
-
-      {/* Container do Gráfico Recharts */}
-      <div className="border-line border-t pt-5">
-        <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+      {/* Container do Gráfico Recharts: o seletor de etapa pertence ao gráfico, ao lado do título */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h3>Evolução da nota do IDEB</h3>
-          <div className="flex items-center gap-4 font-medium text-mute text-xs">
+          <fieldset className="flex min-w-0 flex-wrap items-center gap-2">
+            <legend className="sr-only">Etapa de ensino do gráfico</legend>
+            <SegmentedButton
+              onClick={() => setActiveEtapa("anosIniciais")}
+              active={activeEtapa === "anosIniciais"}
+              size="md"
+            >
+              Anos Iniciais
+            </SegmentedButton>
+            <SegmentedButton
+              onClick={() => setActiveEtapa("anosFinais")}
+              active={activeEtapa === "anosFinais"}
+              size="md"
+            >
+              Anos Finais
+            </SegmentedButton>
+          </fieldset>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-medium text-mute text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
+            Rede municipal
+          </span>
+          {currentHistorico.possuiMeta && (
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
-              Rede municipal
+              <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
+              Meta do MEC
             </span>
-            {currentHistorico.possuiMeta && (
-              <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
-                Meta do MEC
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-3 border-warn-fill border-t-2 border-dotted" />
-              {currentHistorico.mediaEstadualLabel}
-            </span>
-          </div>
+          )}
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-3 border-warn-fill border-t-2 border-dotted" />
+            {currentHistorico.mediaEstadualLabel}
+          </span>
         </div>
 
         <div className="h-72 w-full">
@@ -267,34 +270,28 @@ export function EducacaoHistoricoSection({
           </ResponsiveContainer>
         </div>
 
-        {/* Linha explicativa institucional e fonte oficial */}
-        <div className="mt-4 flex flex-col gap-2 border-line border-y bg-line2 p-3 text-mute text-xs sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-2">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-mute" />
-            <p>
-              O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo
-              SAEB a cada dois anos. A evolução é resultado do trabalho conjunto
-              de alunos, professores, gestores escolares e comunidade escolar.
-            </p>
-          </div>
+        <AlertBox type="info" className="text-xs">
+          O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo SAEB
+          a cada dois anos. A evolução é resultado do trabalho conjunto de
+          alunos, professores, gestores escolares e comunidade escolar.{" "}
           <a
             href={FONTES_OFICIAIS.ideb.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-text hover:underline hover:underline"
+            className="inline-flex items-center gap-1 font-semibold text-brand-text underline underline-offset-2"
           >
-            <span>Fonte: Painel Oficial INEP</span>
+            Fonte: Painel Oficial INEP
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
             <span className="sr-only">(abre em nova aba)</span>
           </a>
-        </div>
+        </AlertBox>
       </div>
 
       <div>
         <button
           type="button"
           onClick={() => setDetalhesAberto(true)}
-          className="min-h-11 font-medium text-brand-text underline"
+          className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
         >
           Ver detalhes
         </button>

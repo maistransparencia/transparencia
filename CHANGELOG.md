@@ -17,6 +17,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.
 
 ### 🔧 Melhorias & Otimizações (Changed / Perf)
+* **`panel` clicável:** Novas classes `panel-top` (borda no topo) e `panel-interactive` (cursor, borda `line` → `brand-fill` no hover e no foco, anel de foco, estado desabilitado), documentadas em `DESIGN.md` e `EXPERIENCE.md` e usadas nos cards de categoria de contratos.
+* **Contratos da educação:** A tabela completa passa ao formato compacto com linha expansível (padrão das licitações em aberto da saúde), com cartão de resumo no celular; o modal de cada categoria usa a mesma tabela. A base legal fica no subtítulo da seção.
+* **Aprendizado dos alunos:** O seletor de etapa do gráfico fica ao lado do título do gráfico, e a nota sobre o IDEB usa o `AlertBox`.
+* **"O que entrou":** O detalhe de cada fonte mostra o ano a ano em barras quadradas e a composição em tabela, no padrão do `DESIGN.md`.
 * **`getEducacaoContratos`:** Passa a filtrar só pelo `empresa_id` do Fundo, sem busca de texto no objeto nem na fonte de recursos.
 * **`EvolucaoAnual` e `EmendasSection`:** Renomeados de `SaudeEvolucaoAnual` e `SaudeEmendasSection` e compartilhados entre saúde e educação.
 * **`SectionHeader`:** A cópia local de `apps/web/components` saiu; saúde, educação e previdência usam a versão de `@transparencia/ui`.

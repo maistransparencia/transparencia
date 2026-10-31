@@ -74,6 +74,17 @@ function renderSecao(
   );
 }
 
+function abrirDetalheDaPrimeiraLinha(contexto: HTMLElement) {
+  const [expandir] = within(contexto).getAllByRole("button", {
+    name: "Expandir detalhes da linha",
+  });
+  fireEvent.click(expandir);
+  const [verDetalhes] = within(contexto).getAllByRole("button", {
+    name: "Ver detalhes",
+  });
+  fireEvent.click(verDetalhes);
+}
+
 const contratos = [
   makeContrato({
     contratoId: "a",
@@ -102,6 +113,26 @@ afterEach(() => {
 });
 
 describe("EducacaoContratosSection - cards por categoria", () => {
+  it("o card usa panel com borda no topo e a regra de panel clicável", () => {
+    renderSecao(contratos);
+    const card = screen.getByTestId("categoria-card-merenda_pnae");
+    expect(card.className).toContain("panel");
+    expect(card.className).toContain("panel-top");
+    expect(card.className).toContain("panel-interactive");
+    expect(card.className).not.toMatch(/rounded/);
+  });
+
+  it("a base legal fica dentro do subtítulo da seção, com link oficial", () => {
+    renderSecao(contratos);
+    const secao = screen.getByRole("region", { name: "Como o Fundo contrata" });
+    const lei = within(secao).getByRole("link", {
+      name: /Lei nº 11.947\/2009/,
+    });
+    expect(lei).toHaveAttribute("target", "_blank");
+    expect(lei).toHaveAttribute("rel", "noopener noreferrer");
+    expect(lei.closest("header")).not.toBeNull();
+  });
+
   it("exibe 5 cards com valor compacto e contagem", () => {
     renderSecao(contratos);
     expect(
@@ -150,12 +181,12 @@ describe("EducacaoContratosSection - cards por categoria", () => {
     renderSecao(contratos);
     fireEvent.click(screen.getByTestId("categoria-card-merenda_pnae"));
     const dialog = screen.getByRole("dialog");
-    const linhas = within(dialog).getAllByTestId(/contrato-lista-/);
-    expect(linhas[0].getAttribute("data-testid")).toBe("contrato-lista-003/25");
+    const linhas = within(dialog).getAllByTestId(/contrato-row-/);
+    expect(linhas[0].getAttribute("data-testid")).toBe("contrato-row-003/25");
     expect(
-      within(dialog).queryByPlaceholderText(/Buscar por fornecedor, objeto/),
+      within(dialog).queryByPlaceholderText(/Buscar por fornecedor/),
     ).toBeNull();
-    fireEvent.click(linhas[0]);
+    abrirDetalheDaPrimeiraLinha(dialog);
     expect(window.location.search).toContain("contratoNumero=003");
     expect(screen.getAllByRole("dialog")).toHaveLength(2);
   });
@@ -169,7 +200,7 @@ describe("EducacaoContratosSection - cards por categoria", () => {
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
 
-  it("busca aparece so com mais de 8 contratos e trata sem resultado", () => {
+  it("busca aparece so com mais de 8 contratos na lista da categoria", () => {
     const muitos = Array.from({ length: 9 }, (_, i) =>
       makeContrato({
         contratoId: `m${i}`,
@@ -179,14 +210,10 @@ describe("EducacaoContratosSection - cards por categoria", () => {
     );
     renderSecao(muitos);
     fireEvent.click(screen.getByTestId("categoria-card-merenda_pnae"));
-    fireEvent.change(screen.getByLabelText("Buscar contratos da categoria"), {
-      target: { value: "zzz" },
-    });
+    const dialog = screen.getByRole("dialog");
     expect(
-      screen.getByText(/Nenhum contrato encontrado para “zzz”\./),
+      within(dialog).getByPlaceholderText(/Buscar por fornecedor/),
     ).toBeTruthy();
-    fireEvent.click(screen.getByText("Limpar busca"));
-    expect(screen.getAllByTestId(/contrato-lista-/)).toHaveLength(9);
   });
 });
 
@@ -219,19 +246,19 @@ describe("EducacaoContratosSection - tabela completa e camadas", () => {
   it("voltar do detalhe mantem a lista aberta e remove o parametro da URL", () => {
     renderSecao(contratos);
     fireEvent.click(screen.getByTestId("categoria-card-merenda_pnae"));
-    fireEvent.click(screen.getAllByTestId(/contrato-lista-/)[0]);
+    abrirDetalheDaPrimeiraLinha(screen.getByRole("dialog"));
     fireEvent.click(screen.getByText(/Voltar à lista/));
     expect(window.location.search).not.toContain("contratoNumero");
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
 
-  it("setas e enter da lista nao agem com o detalhe aberto", () => {
+  it("a tabela completa abre o detalhe pela linha expandida", () => {
     renderSecao(contratos);
-    fireEvent.click(screen.getByTestId("categoria-card-merenda_pnae"));
-    fireEvent.click(screen.getAllByTestId(/contrato-lista-/)[0]);
-    const urlAntes = window.location.search;
-    fireEvent.keyDown(window, { key: "ArrowDown" });
-    fireEvent.keyDown(window, { key: "Enter" });
-    expect(window.location.search).toBe(urlAntes);
+    const tabela = screen.getByRole("heading", {
+      name: "Ver todos os contratos",
+    }).parentElement as HTMLElement;
+    abrirDetalheDaPrimeiraLinha(tabela);
+    expect(window.location.search).toContain("contratoNumero=");
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
 });

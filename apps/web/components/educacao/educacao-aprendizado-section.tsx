@@ -11,7 +11,6 @@ export interface EducacaoAprendizadoSectionProps {
   aprendizado: EducacaoViewModel["aprendizado"];
   historico: EducacaoViewModel["historico"];
   initialEtapa: EtapaEnsino;
-  municipioUf: string;
 }
 
 const formatarNota = (nota: number) =>
@@ -103,7 +102,6 @@ export function EducacaoAprendizadoSection({
   aprendizado,
   historico,
   initialEtapa,
-  municipioUf,
 }: EducacaoAprendizadoSectionProps) {
   return (
     <section aria-label="Aprendizado dos alunos" className="space-y-6">
@@ -115,11 +113,12 @@ export function EducacaoAprendizadoSection({
         <EtapaPainel etapa={aprendizado.anosIniciais} />
         <EtapaPainel etapa={aprendizado.anosFinais} />
       </div>
-      <EducacaoHistoricoSection
-        historico={historico}
-        initialEtapa={initialEtapa}
-        municipioUf={municipioUf}
-      />
+      <div className="border-line border-t pt-6">
+        <EducacaoHistoricoSection
+          historico={historico}
+          initialEtapa={initialEtapa}
+        />
+      </div>
     </section>
   );
 }

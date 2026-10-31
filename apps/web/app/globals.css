@@ -348,6 +348,33 @@ h3,
   padding: var(--panel-padding);
 }
 
+/* Formato alternativo do panel: borda só no topo (DESIGN.md > panel). */
+@utility panel-top {
+  --panel-border-width: 3px 0 0 0;
+  --panel-padding: 1rem 0 0.25rem;
+}
+
+/* panel inteiro clicável: a borda escurece no hover e no foco (DESIGN.md > panel). */
+@utility panel-interactive {
+  cursor: pointer;
+  transition: border-color 150ms ease;
+  &:hover,
+  &:focus-visible {
+    --panel-border-color: var(--brand-fill);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  &[aria-disabled="true"] {
+    cursor: default;
+    &:hover,
+    &:focus-visible {
+      --panel-border-color: var(--line);
+    }
+  }
+}
+
 @utility panel-brand {
   --panel-border-color: var(--brand-fill);
 }

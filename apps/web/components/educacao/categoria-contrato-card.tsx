@@ -34,22 +34,13 @@ export function CategoriaContratoCard({
       onClick={vazia ? undefined : () => onOpen(categoria)}
       data-testid={`categoria-card-${categoria}`}
       className={cn(
-        "flex min-h-11 w-full flex-col gap-2 border-line border-t p-4 text-left transition-colors",
-        vazia
-          ? "cursor-default opacity-60"
-          : "cursor-pointer hover:border-brand-fill/40 focus-visible:border-brand-fill/40 focus-visible:outline-2 focus-visible:outline-brand-fill",
+        "panel panel-top panel-interactive flex min-h-11 w-full flex-col gap-2 text-left",
+        vazia && "opacity-60",
         className,
       )}
     >
-      <span className="font-semibold text-mute text-xs uppercase tracking-wider">
-        {rotuloCategoria}
-      </span>
-      <span
-        className={cn(
-          "font-serif text-xl sm:text-2xl",
-          vazia ? "text-mute2" : "text-ink",
-        )}
-      >
+      <span className="eyebrow">{rotuloCategoria}</span>
+      <span className={cn("stat-value", vazia && "text-mute")}>
         {valorExibido}
       </span>
       {percentualPago !== null && !vazia && (
@@ -60,24 +51,19 @@ export function CategoriaContratoCard({
             aria-valuenow={percentualPago}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="block h-1.5 w-full overflow-hidden rounded-full bg-line2"
+            className="block h-3 w-full overflow-hidden bg-track"
           >
             <span
-              className="block h-full rounded-full bg-brand-fill"
+              className="block h-full bg-brand-fill"
               style={{ width: `${percentualPago}%` }}
             />
           </span>
-          <span className="block text-mute text-xs">
+          <span className="caption block">
             {percentualPago}% pago do empenhado
           </span>
         </span>
       )}
-      <span
-        className={cn(
-          "font-medium text-xs",
-          vazia ? "text-mute2" : "text-brand-text",
-        )}
-      >
+      <span className="font-medium text-brand-text text-sm">
         {vazia ? rotuloContratos : `${rotuloContratos} ›`}
       </span>
     </button>

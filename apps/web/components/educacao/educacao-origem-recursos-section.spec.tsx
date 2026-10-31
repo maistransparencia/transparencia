@@ -101,6 +101,23 @@ describe("EducacaoOrigemRecursosSection", () => {
     expect(lei).toHaveAttribute("target", "_blank");
   });
 
+  it("mostra o ano a ano com barras quadradas e a composição em tabela", () => {
+    render(
+      <EducacaoOrigemRecursosSection origemRecursos={makeOrigem([FUNDEB])} />,
+    );
+    fireEvent.click(screen.getByTestId("fonte-card-fundeb"));
+    const dialog = screen.getByRole("dialog");
+    const anoAno = within(dialog).getByRole("region", { name: "Ano a ano" });
+    expect(anoAno.innerHTML).not.toMatch(/rounded/);
+    const tabela = within(dialog).getByRole("table");
+    expect(
+      within(tabela).getByRole("columnheader", { name: "Natureza da receita" }),
+    ).toBeInTheDocument();
+    expect(
+      within(tabela).getByText("Transferências de recursos do FUNDEB"),
+    ).toBeInTheDocument();
+  });
+
   it("destaca o ano selecionado no histórico e na composição do modal", () => {
     render(
       <EducacaoOrigemRecursosSection origemRecursos={makeOrigem([FUNDEB])} />,

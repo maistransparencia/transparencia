@@ -184,7 +184,6 @@ export default async function EducacaoPage({
         aprendizado={viewModel.aprendizado}
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
-        municipioUf={viewModel.municipioUf}
       />
 
       {emendas.lista.length > 0 && (

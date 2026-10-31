@@ -375,7 +375,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(screen.getByText("Fechar")).toBeInTheDocument();
   });
 
-  it("permite abrir e fechar o modal ao clicar em 'Detalhes' e 'Fechar'", async () => {
+  it("permite abrir e fechar o modal ao clicar em 'Ver detalhes' e 'Fechar'", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     const PageComponent = await EducacaoPage({
@@ -389,8 +389,10 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByTestId("contrato-detalhes-modal"),
     ).not.toBeInTheDocument();
 
-    const detalhesBtn = screen.getAllByText("Detalhes")[0];
-    fireEvent.click(detalhesBtn);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 
@@ -427,10 +429,10 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     const btnIniciais = screen.getByRole("button", {
-      name: "Anos Iniciais (1º ao 5º ano)",
+      name: "Anos Iniciais",
     });
     const btnFinais = screen.getByRole("button", {
-      name: "Anos Finais (6º ao 9º ano)",
+      name: "Anos Finais",
     });
 
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
@@ -457,7 +459,9 @@ describe("EducacaoPage (Server Component)", () => {
 
     fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
     const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText("VIACAO ESCOLAR LTDA")).toBeTruthy();
+    expect(
+      within(dialog).getAllByText("VIACAO ESCOLAR LTDA").length,
+    ).toBeGreaterThan(0);
     expect(
       within(dialog).queryByText("DISTRIBUIDORA ALIMENTAR LTDA"),
     ).toBeNull();
