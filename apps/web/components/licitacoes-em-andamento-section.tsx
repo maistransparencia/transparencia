@@ -39,6 +39,8 @@ export interface LicitacoesEmAndamentoSectionProps {
   ano?: number;
   /** Oculta o cabeçalho próprio quando a página já apresenta a seção. */
   hideHeader?: boolean;
+  /** Oculta a busca da tabela; a página de licitações já filtra por fora. */
+  hideSearch?: boolean;
   className?: string;
 }
 
@@ -140,6 +142,7 @@ export function LicitacoesEmAndamentoSection({
   portalSlug,
   ano,
   hideHeader = false,
+  hideSearch = true,
   className,
 }: LicitacoesEmAndamentoSectionProps) {
   const [selectedLicitacaoForItens, setSelectedLicitacaoForItens] =
@@ -824,7 +827,7 @@ export function LicitacoesEmAndamentoSection({
               renderExpandedRow={renderLicitacaoExpandedRow}
               hideCsvOnMobile
               revealRowId={revealRowId}
-              hideSearch
+              hideSearch={hideSearch}
               searchPlaceholder="Buscar por objeto, edital, órgão, modalidade ou situação..."
               searchableKeys={[
                 "objeto",

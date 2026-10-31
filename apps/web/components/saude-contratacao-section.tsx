@@ -169,6 +169,7 @@ export function SaudeContratacaoSection({
             portalSlug={portalSlug}
             ano={ano}
             hideHeader
+            hideSearch={false}
           />
         ) : (
           <div className="border-line border-y bg-line2 p-4 text-center text-mute text-xs">
