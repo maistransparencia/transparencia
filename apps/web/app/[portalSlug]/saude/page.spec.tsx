@@ -38,32 +38,13 @@ function makeRaw(
         fornecedoresAtivosCount: 10,
         ...(orcamentoOverride as Record<string, unknown> | undefined),
       },
-      farmaceutica: {
-        medicamentosInsumos: 100,
-        medicamentosInsumosPago: 90,
-        judicializacao: 20,
-        judicializacaoPago: 15,
-        hhi: 900,
-        hhiClassificacao: "baixa",
-        concentracao: {
-          hhi: 900,
-          nivel: "baixa",
-          label: "Baixa",
-          descricao: "Compras bem distribuídas entre múltiplos fornecedores",
-        },
-      },
       fontesReceita: {
         repassesPrefeitura: 500,
         emendasParlamentares: 50,
       },
       executionTrend: [],
       licitacoesSaude: {
-        adesaoCaronaCount: 0,
         caminhos: [],
-        adesaoCaronaValor: 0,
-        empenhosAtaExternaCount: 0,
-        pagoAtaExternaValor: 0,
-        modalidades: [],
       },
       emendasStats: {
         lista: [

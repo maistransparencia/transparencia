@@ -1,11 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../client";
 import { montarEmendasStats } from "./emendas-parlamentares";
-import {
-  getAdesaoDeAtaMetrics,
-  getAdesaoExternaMetrics,
-  getDistribucaoModalidadesMetrics,
-} from "./licitacoes-metrics";
 
 export interface HistoriaSaudeMetricsDTO {
   historiaSaudeId: string;
@@ -96,11 +91,6 @@ export interface CaminhoContratacaoSaudeDTO {
 }
 
 export interface LicitacoesSaudeResultDTO {
-  adesaoCaronaCount: number;
-  adesaoCaronaValor: number;
-  empenhosAtaExternaCount: number;
-  pagoAtaExternaValor: number;
-  modalidades: Array<{ nome: string; valor: number; pct: number }>;
   /** Caminhos de contratação do fundo, com o valor empenhado ligado a cada um. */
   caminhos: CaminhoContratacaoSaudeDTO[];
 }
@@ -318,59 +308,17 @@ export async function getSaudeFontesReceitaMetrics(params: {
   }
 }
 
-function normalizeModalidadeName(
-  rawName: string,
-  carona: string | null,
-): string {
-  const norm = rawName
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (carona === "S" || norm.includes("carona") || norm.includes("adesao")) {
-    return "Adesão a ata (carona)";
-  }
-  if (norm.includes("pregao eletronico")) {
-    return "Pregão eletrônico";
-  }
-  if (norm.includes("dispensa")) {
-    return "Dispensa de licitação";
-  }
-  if (norm.includes("inexig")) {
-    return "Inexigibilidade";
-  }
-  return "Tomada de preços / outros";
-}
-
 export async function getSaudeLicitacoesMetrics(
   portalSlug: string,
   ano: number,
   empresaIds: string[],
 ): Promise<LicitacoesSaudeResultDTO> {
-  const empty: LicitacoesSaudeResultDTO = {
-    adesaoCaronaCount: 0,
-    adesaoCaronaValor: 0,
-    empenhosAtaExternaCount: 0,
-    pagoAtaExternaValor: 0,
-    modalidades: [],
-    caminhos: [],
-  };
+  const empty: LicitacoesSaudeResultDTO = { caminhos: [] };
 
   if (empresaIds.length === 0) return empty;
 
   try {
-    const adesao = await getAdesaoDeAtaMetrics(portalSlug, ano, empresaIds);
-    const adesaoExterna = await getAdesaoExternaMetrics(
-      portalSlug,
-      ano,
-      empresaIds,
-    );
-    const distModalidades = await getDistribucaoModalidadesMetrics(
-      portalSlug,
-      ano,
-      empresaIds,
-    );
-
-    const caminhosRows = await db
+    const rows = await db
       .selectFrom("fct_licitacoes_metricas")
       .select([
         "tipo_contratacao",
@@ -383,51 +331,12 @@ export async function getSaudeLicitacoesMetrics(
       .groupBy("tipo_contratacao")
       .execute();
 
-    const caminhos = caminhosRows.map((row) => ({
-      tipoContratacao: String(row.tipo_contratacao ?? ""),
-      quantidade: Number(row.quantidade ?? 0),
-      valorEmpenhado: Number(row.valor_empenhado ?? 0),
-    }));
-
-    const modalityTotals: Record<string, number> = {
-      "Pregão eletrônico": 0,
-      "Adesão a ata (carona)": 0,
-      "Dispensa de licitação": 0,
-      Inexigibilidade: 0,
-      "Tomada de preços / outros": 0,
-    };
-
-    for (const item of distModalidades) {
-      const modGroup = normalizeModalidadeName(item.modalidade, "N");
-      modalityTotals[modGroup] =
-        (modalityTotals[modGroup] || 0) + item.valorTotal;
-    }
-
-    if (adesao.valor > 0) {
-      modalityTotals["Adesão a ata (carona)"] = Math.max(
-        modalityTotals["Adesão a ata (carona)"],
-        adesao.valor,
-      );
-    }
-
-    const totalModalityValue = Object.values(modalityTotals).reduce(
-      (a, b) => a + b,
-      0,
-    );
-
-    const modalidades = Object.entries(modalityTotals).map(([nome, valor]) => ({
-      nome,
-      valor,
-      pct: totalModalityValue > 0 ? (valor / totalModalityValue) * 100 : 0,
-    }));
-
     return {
-      adesaoCaronaCount: adesao.quantidade,
-      adesaoCaronaValor: adesao.valor,
-      empenhosAtaExternaCount: adesaoExterna.quantidade,
-      pagoAtaExternaValor: adesaoExterna.totalPago,
-      modalidades,
-      caminhos,
+      caminhos: rows.map((row) => ({
+        tipoContratacao: String(row.tipo_contratacao ?? ""),
+        quantidade: Number(row.quantidade ?? 0),
+        valorEmpenhado: Number(row.valor_empenhado ?? 0),
+      })),
     };
   } catch {
     return empty;

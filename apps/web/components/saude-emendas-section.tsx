@@ -717,9 +717,9 @@ export function SaudeEmendasSection({
                     {fmtPercent(modalMetrics.percentualExecutado)}
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-track">
+                <div className="h-3 w-full overflow-hidden bg-track">
                   <div
-                    className="h-full rounded-full bg-ok-fill transition-all duration-300"
+                    className="h-full bg-ok-fill transition-all duration-300"
                     style={{
                       width: `${Math.min(100, Math.max(0, modalMetrics.percentualExecutado || 0))}%`,
                     }}

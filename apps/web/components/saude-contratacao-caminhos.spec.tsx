@@ -8,13 +8,7 @@ const orcamento = {
   fornecedoresAtivosCount: 5,
 };
 
-const base = {
-  adesaoCaronaCount: 0,
-  adesaoCaronaValor: 0,
-  empenhosAtaExternaCount: 0,
-  pagoAtaExternaValor: 0,
-  modalidades: [],
-};
+const base = {};
 
 describe("SaudeContratacaoSection: caminhos de contratação", () => {
   it("mostra o valor empenhado e a participação de cada caminho", () => {

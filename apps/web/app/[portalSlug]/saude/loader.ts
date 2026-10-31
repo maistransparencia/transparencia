@@ -46,48 +46,6 @@ function requirePortalSlug(portalSlug: string): string {
   return normalized;
 }
 
-export interface FarmaceuticaConcentracao {
-  hhi: number;
-  nivel: "baixa" | "moderada" | "alta";
-  label: string;
-  descricao: string;
-}
-
-export function classifyHhi(hhi: number): FarmaceuticaConcentracao {
-  if (hhi <= 0 || Number.isNaN(hhi)) {
-    return {
-      hhi: 0,
-      nivel: "baixa",
-      label: "Não aplicável",
-      descricao:
-        "Sem registros de aquisições de insumos ou contratos no exercício",
-    };
-  }
-  if (hhi >= 2500) {
-    return {
-      hhi,
-      nivel: "alta",
-      label: "Alta",
-      descricao:
-        "Alto risco de dependência: poucos fornecedores dominam os fornecimentos",
-    };
-  }
-  if (hhi >= 1500) {
-    return {
-      hhi,
-      nivel: "moderada",
-      label: "Moderada",
-      descricao: "Mercado moderadamente concentrado em poucas empresas",
-    };
-  }
-  return {
-    hhi,
-    nivel: "baixa",
-    label: "Baixa",
-    descricao: "Compras bem distribuídas entre múltiplos fornecedores",
-  };
-}
-
 async function fetchRawSaudeData(
   portalSlug: string,
   searchParams: SaudeSearchParams,
@@ -155,8 +113,6 @@ async function fetchRawSaudeData(
   const judicializacaoEmpenhado = saudeMetrics?.judicializacaoEmpenhado ?? 0;
   const judicializacaoPago = saudeMetrics?.judicializacaoPago ?? 0;
   const emendasArrecadado = saudeMetrics?.emendasSaudeArrecadado ?? 0;
-  const hhiVal = Math.round(saudeMetrics?.hhiConcentracaoFornecedores ?? 0);
-  const concentracao = classifyHhi(hhiVal);
 
   const fontesReceitaMetrics = await getSaudeFontesReceitaMetrics({
     portalSlug: tenantSlug,
@@ -180,15 +136,6 @@ async function fetchRawSaudeData(
       judicializacaoPago: judicializacaoPago,
       contratosVinculadosCount: contratosCount,
       fornecedoresAtivosCount: fornecedoresCount,
-    },
-    farmaceutica: {
-      medicamentosInsumos: medicamentosInsumosEmpenhado,
-      medicamentosInsumosPago: medicamentosInsumosPago,
-      judicializacao: judicializacaoEmpenhado,
-      judicializacaoPago: judicializacaoPago,
-      hhi: hhiVal,
-      hhiClassificacao: concentracao.nivel,
-      concentracao,
     },
     fontesReceita: {
       ...fontesReceitaMetrics,

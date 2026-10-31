@@ -7,18 +7,7 @@ import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import Link from "next/link";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 
-export interface SaudeContratacaoModalidadeItem {
-  nome: string;
-  valor: number;
-  pct: number;
-}
-
 export interface SaudeContratacaoLicitacoesProps {
-  adesaoCaronaCount: number;
-  adesaoCaronaValor: number;
-  empenhosAtaExternaCount: number;
-  pagoAtaExternaValor: number;
-  modalidades: SaudeContratacaoModalidadeItem[];
   caminhos: CaminhoContratacaoSaudeDTO[];
 }
 
