@@ -103,6 +103,18 @@ Rodada 1 (2026-10-31) — `8a2be965..HEAD` restrito a `packages/db` e `elt/` (4 
 - [x] [Review][Defer] `getEducacaoContratos` devolve vazio se o portal não tiver órgão com "fundo" e "educa" no nome — deferred: restrição ao fundo é intencional (7d9e92bb); conferir ao integrar novo portal
 - [x] [Review][Defer] Texto de "indício" para `valor_igual`/`totalReceitaPossivel` na tela de emendas — deferred: está em `apps/web`, entra na rodada 2
 
+Rodada 2 (2026-10-31) — `8a2be965..HEAD` em `apps/web` (passe único, 4 revisores). Rodada de `packages/ui` ainda pendente.
+
+- [x] [Review][Patch] `SaudeHeroSection` sem guarda de "sem dados": exercício com empenhado e pago zerados dizia "reservou R$ 0 e pagou R$ 0" [apps/web/components/saude-hero-section.tsx]
+- [x] [Review][Patch] `EvolucaoAnual` escalava as barras só pelo maior empenhado; pago maior que empenhado era cortado em 100% [apps/web/components/evolucao-anual.tsx]
+- [x] [Review][Patch] Regra 9: `qtd`/`qtdEmpenhos` renomeados para `quantidadeEmpenhos` (web, `emendas-parlamentares.ts`, `historia-saude-metrics.ts` e specs)
+- [x] [Review][Defer] Specs de componente ausentes (hero/histórico/aprendizado da educação, `contratos-tabela`, `saude-hero-section`, `fonte-recurso-modal`) — DW-12
+- [x] [Review][Defer] `saude-educacao-divisorias.spec.ts` testa regex no código-fonte, com ramo morto (`fiscal-section`); mocks dos `page.spec` com `as never` — DW-13
+- [x] [Review][Defer] Acessibilidade menor: barras sem texto alternativo, dois botões por emenda (tabela e cartão) — DW-14
+- [x] [Review][Defer] `EducacaoHeroSection` com empenhado 0 e pago > 0 mostra barras em 0% — DW-15
+- DW-11 resolvido sem mudança: o texto de "indício" está correto na tabela e não entra em "Confirmada na receita".
+- Rejeitados após verificação: `hideSearch` padrão `true` (único chamador direto passa `false`); percentual cru na origem de recursos (dbt já entrega inteiro); "Nota Informativa do Ideb 2025" (nome oficial, allowlist deliberada); denominador de fornecedores da saúde (risco sem caso real); texto de `percentualRecebido` acima de 100% (coerente).
+
 **Rejected:**
 - `false` Escopo do spec ("Never: alterar `@transparencia/db`", "só migração visual") violado — o escopo da story cresceu nos commits manuais posteriores (`feat(db)`, `fix(db)`); o remédio seria editar o spec.
 - `false` `fct_emendas` filtra `tipo_receita = 'orcamentaria'` e nunca confirma — `fct_emendas` tem 8 confirmadas em Porciúncula (R$ 6,14 mi) e há linhas `1713.5%` com tipo `orcamentaria` nos dois portais.

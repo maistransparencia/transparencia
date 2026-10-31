@@ -550,7 +550,7 @@ describe("EducacaoPage (Server Component)", () => {
       recebimentoFundo: "nao_identificado",
       receitaCodigo: null,
       receitaDescricao: null,
-      qtdEmpenhos: 0,
+      quantidadeEmpenhos: 0,
       empenhos: [],
     };
     loadEducacaoDataMock.mockResolvedValue(

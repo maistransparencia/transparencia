@@ -40,7 +40,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
       esferaOrigem: String(r.esfera_origem ?? ""),
       atoNormativo: String(r.ato_normativo ?? ""),
       destinacao: String(r.destinacao ?? ""),
-      qtdEmpenhos: 0,
+      quantidadeEmpenhos: 0,
       empenhos: [],
       valorRecebidoFundo: Number(r.valor_recebido_fundo ?? 0),
       recebimentoFundo: String(r.recebimento_fundo ?? "nao_identificado"),

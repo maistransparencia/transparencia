@@ -303,5 +303,33 @@ status: open
 origin: code-review 2026-10-31
 location: apps/web/components/emendas-section.tsx
 source_spec: `20-8-saude-e-educacao.md`
-reason: Regra 27 (dado derivado diz que é derivado). Fora do diff da rodada 1; verificar na rodada de `apps/web`.
+reason: Regra 27 (dado derivado diz que é derivado). Verificado na rodada 2: texto correto, sem mudança.
+status: resolved
+
+### DW-12: Specs de componente ausentes em educação e saúde
+origin: code-review 2026-10-31 (rodada 2)
+location: apps/web/components/educacao/{educacao-hero-section,educacao-historico-section,educacao-aprendizado-section,contratos-tabela,fonte-recurso-modal}.tsx, apps/web/components/saude-hero-section.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: Só há cobertura indireta pelo `page.spec` com recharts mockado. Casos úteis: sem dados, intervalo `anoMin–anoMax` dinâmico, etapa sem Ideb, totais da tabela, `empenhado` 0 com pago > 0.
+status: open
+
+### DW-13: Spec de divisórias por regex e mocks sem contrato com o DTO
+origin: code-review 2026-10-31 (rodada 2)
+location: apps/web/components/saude-educacao-divisorias.spec.ts, apps/web/app/[portalSlug]/{saude,educacao}/page.spec.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: O spec lê o código-fonte e tem ramo morto (`fiscal-section`); os `page.spec` usam `as never`/`as unknown`, o que desliga a checagem de tipo contra `@transparencia/db`.
+status: open
+
+### DW-14: Acessibilidade menor em evolução anual, modal de fonte e emendas
+origin: code-review 2026-10-31 (rodada 2)
+location: apps/web/components/{evolucao-anual,emendas-section}.tsx, apps/web/components/educacao/fonte-recurso-modal.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: Barras sem texto alternativo por ponto; possíveis dois gatilhos por emenda (tabela e cartão) no DOM; foco/Escape dos modais não verificados.
+status: open
+
+### DW-15: Hero da educação com empenhado zero e pago positivo
+origin: code-review 2026-10-31 (rodada 2)
+location: apps/web/components/educacao/educacao-hero-section.tsx
+source_spec: `20-8-saude-e-educacao.md`
+reason: `percentualDoReservado` devolve 0 quando empenhado é 0 e há pago (restos a pagar); o título diz "reservou R$ 0 e pagou R$ X". Decidir o texto.
 status: open

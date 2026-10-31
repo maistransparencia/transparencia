@@ -42,7 +42,7 @@ export interface EmendaSaudeDTO {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
-  qtdEmpenhos: number;
+  quantidadeEmpenhos: number;
   empenhos: EmendaEmpenhoItemDTO[];
   /** Valor da emenda quando aparece como receita arrecadada pelo fundo (indício por valor). */
   valorRecebidoFundo: number;

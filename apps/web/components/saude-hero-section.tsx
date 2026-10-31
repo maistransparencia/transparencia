@@ -25,6 +25,7 @@ export function SaudeHeroSection({
   orcamento,
 }: SaudeHeroSectionProps) {
   const naoPago = Math.max(0, orcamento.empenhado - orcamento.pago);
+  const temDados = orcamento.empenhado > 0 || orcamento.pago > 0;
 
   const empenhadoRatio =
     orcamento.dotacao > 0
@@ -56,13 +57,17 @@ export function SaudeHeroSection({
         </p>
 
         <h1>
-          {isCurrentYear
-            ? `O Fundo Municipal de Saúde já pagou ${fmtCompact(orcamento.pago)} dos ${fmtCompact(orcamento.empenhado)} que reservou em ${ano}.`
-            : `O Fundo Municipal de Saúde reservou ${fmtCompact(orcamento.empenhado)} em ${ano} e pagou ${fmtCompact(orcamento.pago)}.`}
+          {!temDados
+            ? `O portal não tem despesas de saúde registradas para ${ano}.`
+            : isCurrentYear
+              ? `O Fundo Municipal de Saúde já pagou ${fmtCompact(orcamento.pago)} dos ${fmtCompact(orcamento.empenhado)} que reservou em ${ano}.`
+              : `O Fundo Municipal de Saúde reservou ${fmtCompact(orcamento.empenhado)} em ${ano} e pagou ${fmtCompact(orcamento.pago)}.`}
         </h1>
 
         <p className="lead">
-          {isCurrentYear ? (
+          {!temDados ? (
+            "Quando houver empenhos do Fundo Municipal de Saúde neste ano, o valor reservado e o valor pago aparecem aqui."
+          ) : isCurrentYear ? (
             <>
               Até agora, o Fundo reservou{" "}
               <strong className="text-ink">

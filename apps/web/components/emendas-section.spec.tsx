@@ -27,7 +27,7 @@ const mockStats: SaudeEmendasStatsProps = {
       recebimentoFundo: "nao_identificado",
       receitaCodigo: null,
       receitaDescricao: null,
-      qtdEmpenhos: 2,
+      quantidadeEmpenhos: 2,
       empenhos: [
         {
           empenhoId: "24339",
@@ -72,7 +72,7 @@ const mockStats: SaudeEmendasStatsProps = {
       recebimentoFundo: "nao_identificado",
       receitaCodigo: null,
       receitaDescricao: null,
-      qtdEmpenhos: 0,
+      quantidadeEmpenhos: 0,
       empenhos: [],
     },
   ],
@@ -264,7 +264,7 @@ describe("EmendasSection", () => {
           recebimentoFundo: "nao_identificado",
           receitaCodigo: null,
           receitaDescricao: null,
-          qtdEmpenhos: 0,
+          quantidadeEmpenhos: 0,
           empenhos: [],
         },
         {
@@ -282,7 +282,7 @@ describe("EmendasSection", () => {
           recebimentoFundo: "nao_identificado",
           receitaCodigo: null,
           receitaDescricao: null,
-          qtdEmpenhos: 1,
+          quantidadeEmpenhos: 1,
           empenhos: [
             {
               empenhoId: "999",

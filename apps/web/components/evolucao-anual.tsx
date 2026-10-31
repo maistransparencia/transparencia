@@ -56,7 +56,10 @@ export function EvolucaoAnual({
     );
   }
 
-  const maior = Math.max(...data.map((linha) => linha.empenhado), 0);
+  const maior = Math.max(
+    ...data.flatMap((linha) => [linha.empenhado, linha.pago]),
+    0,
+  );
 
   return (
     <div className={cn("space-y-6", className)}>

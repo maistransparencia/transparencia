@@ -69,9 +69,9 @@ describe("getSaudeEmendasMetrics", () => {
     for (const emenda of res.lista) {
       expect(typeof emenda.numero).toBe("string");
       expect(typeof emenda.valorAutorizado).toBe("number");
-      expect(typeof emenda.qtdEmpenhos).toBe("number");
+      expect(typeof emenda.quantidadeEmpenhos).toBe("number");
       expect(Array.isArray(emenda.empenhos)).toBe(true);
-      expect(emenda.qtdEmpenhos).toBe(emenda.empenhos.length);
+      expect(emenda.quantidadeEmpenhos).toBe(emenda.empenhos.length);
 
       for (const emp of emenda.empenhos) {
         expect(emp.empenhoId).toBeTruthy();
@@ -84,7 +84,8 @@ describe("getSaudeEmendasMetrics", () => {
     // Deve dar precedência a emendas que têm empenho
     let foundWithoutEmpenho = false;
     for (const emenda of res.lista) {
-      const hasEmpenho = (emenda.empenhado ?? 0) > 0 || emenda.qtdEmpenhos > 0;
+      const hasEmpenho =
+        (emenda.empenhado ?? 0) > 0 || emenda.quantidadeEmpenhos > 0;
       if (!hasEmpenho) {
         foundWithoutEmpenho = true;
       }

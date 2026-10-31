@@ -34,7 +34,7 @@ export interface SaudeEmendaItem {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
-  qtdEmpenhos?: number;
+  quantidadeEmpenhos?: number;
   empenhos?: EmendaEmpenhoItemDTO[];
   valorRecebidoFundo?: number;
   recebimentoFundo?: string;
@@ -134,8 +134,8 @@ export function EmendasSection({
         .sort((a, b) => {
           const aEmp = a.empenhado ?? 0;
           const bEmp = b.empenhado ?? 0;
-          const aHas = aEmp > 0 || (a.qtdEmpenhos ?? 0) > 0;
-          const bHas = bEmp > 0 || (b.qtdEmpenhos ?? 0) > 0;
+          const aHas = aEmp > 0 || (a.quantidadeEmpenhos ?? 0) > 0;
+          const bHas = bEmp > 0 || (b.quantidadeEmpenhos ?? 0) > 0;
 
           if (aHas && !bHas) return -1;
           if (!aHas && bHas) return 1;
@@ -200,7 +200,7 @@ export function EmendasSection({
       accessorKey: "autor" as const,
       className: "font-bold whitespace-nowrap sm:whitespace-normal",
       renderCell: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) {
           return (
             <button
@@ -218,18 +218,18 @@ export function EmendasSection({
     },
     {
       header: "Rastreabilidade",
-      accessorKey: "qtdEmpenhos" as const,
+      accessorKey: "quantidadeEmpenhos" as const,
       align: "center" as const,
       className: "whitespace-nowrap",
       defaultSortDir: "desc" as const,
       sortValue: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) return 1000 + qtd;
         if (row.empenhado && row.empenhado > 0) return 500;
         return 0;
       },
       renderCell: (row: SaudeEmendaItem) => {
-        const qtd = row.qtdEmpenhos ?? 0;
+        const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) {
           return (
             <button
@@ -425,7 +425,7 @@ export function EmendasSection({
           renderExpandedRow={(row) => {
             const confirmada =
               row.recebimentoFundo === "confirmado_por_proposta";
-            const qtd = row.qtdEmpenhos ?? 0;
+            const qtd = row.quantidadeEmpenhos ?? 0;
             return (
               <div className="space-y-4">
                 <dl className="grid grid-cols-2 gap-4 sm:hidden">
@@ -490,7 +490,7 @@ export function EmendasSection({
             );
           }}
           renderMobileRow={(row) => {
-            const qtd = row.qtdEmpenhos ?? 0;
+            const qtd = row.quantidadeEmpenhos ?? 0;
             const rastreio = (() => {
               if (qtd > 0)
                 return `${qtd} ${qtd === 1 ? "empenho" : "empenhos"}`;
