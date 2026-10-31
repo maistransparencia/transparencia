@@ -548,7 +548,7 @@ export function LicitacoesEmAndamentoSection({
       header: "Objeto",
       accessorKey: "objeto",
       sortable: true,
-      className: "min-w-[220px] max-w-[420px] text-ink",
+      className: "min-w-[160px] max-w-[240px] text-ink",
       renderCell: (row) => (
         <p
           className="line-clamp-2 text-ink text-xs leading-relaxed"
@@ -562,7 +562,7 @@ export function LicitacoesEmAndamentoSection({
       header: "Modalidade",
       accessorKey: "modalidadeFormatada",
       sortable: true,
-      className: "whitespace-nowrap text-mute2",
+      className: "min-w-[7rem] max-w-[9rem] text-mute2",
     },
     {
       header: "Abertura",
