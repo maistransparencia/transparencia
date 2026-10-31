@@ -46,7 +46,7 @@ export function SectionHeader({
         )}
       </div>
       {temConteudo(description) && (
-        <p className="mt-1.5 text-mute2 text-sm leading-relaxed">
+        <p className="mt-1.5 text-mute text-sm leading-relaxed">
           {description}
         </p>
       )}
