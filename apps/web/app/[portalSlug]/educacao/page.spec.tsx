@@ -447,6 +447,37 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("abre Detalhes do IDEB com SAEB e aprovação em indicadores dentro de um panel", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    fireEvent.click(
+      within(secao).getByRole("button", { name: "Ver detalhes" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("SAEB — Língua Portuguesa"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText("SAEB — Matemática")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Taxa de aprovação escolar"),
+    ).toBeInTheDocument();
+    expect(dialog.querySelector(".panel dl")).not.toBeNull();
+    expect(
+      within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
+    ).toBeInTheDocument();
+  });
+
   it("exibe cards por categoria e abre a lista da categoria no modal", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
