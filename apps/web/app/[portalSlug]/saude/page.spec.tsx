@@ -104,7 +104,7 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Emendas na Saúde")).toBeInTheDocument();
+    expect(screen.getByText("Emendas na saúde")).toBeInTheDocument();
     expect(
       screen.getByText("Concentração de Fornecedores"),
     ).toBeInTheDocument();

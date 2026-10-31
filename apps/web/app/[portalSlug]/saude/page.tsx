@@ -3,6 +3,8 @@ import {
   Badge,
   fmtCompact,
   fmtPercent,
+  Indicator,
+  IndicatorPanel,
   KPICard,
   SectionHeader,
 } from "@transparencia/ui";
@@ -117,31 +119,25 @@ export default async function SaudePage({
           fontesReceita={saude.fontesReceita}
         />
 
-        {/* Hero KPIs com KPIGrid e KPICard */}
-        <KPIGrid columns={4} variant="divisoria">
-          <KPICard
-            variant="divisoria"
-            title="Emendas na Saúde"
+        <IndicatorPanel columns={4}>
+          <Indicator
+            label="Emendas na saúde"
             value={fmtCompact(totalEmendas)}
-            subtext={emendasSubtext}
-            accent={hasEmendas && taxaEmpenho >= 0.7}
+            note={emendasSubtext}
           />
-          <KPICard
-            variant="divisoria"
-            title="Contratos vinculados"
+          <Indicator
+            label="Contratos vinculados"
             value={saude.orcamento.contratosVinculadosCount}
           />
-          <KPICard
-            variant="divisoria"
-            title="Fornecedores ativos"
+          <Indicator
+            label="Fornecedores ativos"
             value={saude.orcamento.fornecedoresAtivosCount}
           />
-          <KPICard
-            variant="divisoria"
-            title="Medicamentos e Insumos"
+          <Indicator
+            label="Medicamentos e insumos"
             value={fmtCompact(saude.orcamento.medicamentosInsumos)}
           />
-        </KPIGrid>
+        </IndicatorPanel>
       </div>
 
       {/* Alerta de Subexecução se aplicável (apenas exercícios encerrados) */}

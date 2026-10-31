@@ -2,7 +2,7 @@
 name: Portal Transparência — Padrões Visuais Base
 description: Estilos base dos elementos HTML (títulos, parágrafo, dl, tabela, listas, links), papéis visuais nomeados e o painel. Estende os tokens existentes de apps/web/app/globals.css; não cria cor nova.
 status: final
-updated: 2026-10-29
+updated: 2026-10-30
 colors:
   # Convenções deste arquivo:
   #  - Nomes são os tokens de globals.css. Tema claro em :root, escuro em .dark.
@@ -303,6 +303,8 @@ Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading
 
 O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. Botões e campos de controle seguem o que já existe em `packages/ui`.
 
+**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
+
 ## Components
 
 Nomes iguais ao `EXPERIENCE.md > Component Patterns` e ao código.
@@ -380,4 +382,5 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 - **Don't** aplicar tamanho de fonte por classe em `h1`–`h4`.
 - **Don't** dar margem aos elementos base. Espaço é do contêiner.
 - **Don't** usar sombra, zebra em tabela ou `@tailwindcss/typography`.
+- **Don't** arredondar barras de progresso ou de comparação.
 - **Don't** crescer o `h1` para acomodar um valor grande: usar `stat-value-lg`.
