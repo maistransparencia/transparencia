@@ -236,7 +236,9 @@ describe("educacao/view-model", () => {
     });
 
     expect(vm.municipioUf).toBe("MG");
-    expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe("Média MG");
+    expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe(
+      "Média da rede pública (MG)",
+    );
     expect(vm.historico.anosIniciais.periodoLabel).toBe("2021–2023");
     expect(vm.historico.anosIniciais.pontos[1].mediaEstadual).toBe(6.0);
   });

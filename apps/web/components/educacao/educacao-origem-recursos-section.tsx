@@ -50,9 +50,9 @@ export function EducacaoOrigemRecursosSection({
     const partes = [
       `Em ${ano}, entraram ${fmtCompact(totalArrecadado)} no Fundo Municipal de Educação.`,
       fontePrincipal
-        ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm de ${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}. Veja de onde veio cada parte.`
+        ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm da fonte "${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}". Veja de onde veio cada parte.`
         : "",
-      "Não inclui o aporte da Prefeitura ao Fundo.",
+      "Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo.",
       parcial && mesReferencia !== null
         ? `Ano em andamento: valores acumulados até ${formatMesPorExtenso(mesReferencia)}.`
         : "",

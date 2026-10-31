@@ -59,7 +59,7 @@ describe("EducacaoOrigemRecursosSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Em 2025, entraram R\$ 18,8 mi no Fundo Municipal de Educação\. 61 de cada R\$ 100 vêm de FUNDEB\..*Não inclui o aporte da Prefeitura ao Fundo\./,
+        /Em 2025, entraram R\$ 18,8 mi no Fundo Municipal de Educação\. 61 de cada R\$ 100 vêm da fonte "FUNDEB"\..*Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo\./,
       ),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("composicao-recursos-bar")).toBeNull();

@@ -186,8 +186,8 @@ function buildEtapaHistorico({
 
   const mediaEstadualLabel =
     municipioUf && municipioUf.trim() !== ""
-      ? `Média ${municipioUf.trim()}`
-      : "Média Estadual";
+      ? `Média da rede pública (${municipioUf.trim()})`
+      : "Média da rede pública do estado";
 
   const pontos: IdebHistoricoPonto[] = etapaMetrics.map((m) => {
     const mediaEstadual = mediasEstaduais?.[m.ano] ?? null;

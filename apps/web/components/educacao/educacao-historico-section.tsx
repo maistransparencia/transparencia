@@ -64,7 +64,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   return (
     <div className="min-w-[200px] space-y-1.5 border border-line bg-page p-3 text-xs">
       <div className="flex justify-between border-line border-b pb-1 font-bold font-serif text-ink text-sm">
-        <span>Ciclo {label}</span>
+        <span>IDEB {label}</span>
         {ponto?.atingiuMeta && (
           <span className="rounded border border-ok-fill bg-ok-fill/15 px-1.5 py-0.2 font-semibold text-ok-text text-xs">
             Meta Atingida
@@ -279,9 +279,7 @@ export function EducacaoHistoricoSection({
         </div>
 
         <AlertBox type="info" className="text-xs">
-          O IDEB sintetiza a aprovação escolar e o aprendizado apurado pelo SAEB
-          a cada dois anos. A evolução é resultado do trabalho conjunto de
-          alunos, professores, gestores escolares e comunidade escolar.{" "}
+          O IDEB junta a nota dos alunos na prova do Saeb e a taxa de aprovação.{" "}
           <a
             href={FONTES_OFICIAIS.ideb.url}
             target="_blank"
@@ -319,12 +317,12 @@ export function EducacaoHistoricoSection({
               <Indicator
                 label="SAEB — Língua Portuguesa"
                 value={formatarSaeb(pontoMaisRecente.saebLinguaPortuguesa)}
-                note={`escala SAEB · ciclo ${pontoMaisRecente.ano}`}
+                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
               />
               <Indicator
                 label="SAEB — Matemática"
                 value={formatarSaeb(pontoMaisRecente.saebMatematica)}
-                note={`escala SAEB · ciclo ${pontoMaisRecente.ano}`}
+                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
               />
               <Indicator
                 label="Taxa de aprovação escolar"
@@ -333,7 +331,7 @@ export function EducacaoHistoricoSection({
                     ? "—"
                     : `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`
                 }
-                note="indicador de fluxo regular dos alunos"
+                note="alunos aprovados no ano"
               />
             </IndicatorPanel>
           )}

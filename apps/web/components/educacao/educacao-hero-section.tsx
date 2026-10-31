@@ -25,7 +25,7 @@ export function EducacaoHeroSection({
 
   const titulo = (() => {
     if (!temDados) {
-      return `A Prefeitura não tem despesas de educação registradas em ${ano}.`;
+      return `O portal não tem despesas de educação registradas para ${ano}.`;
     }
     if (isCurrentYear) {
       return `A Prefeitura já pagou ${fmtCompact(pago)} dos ${fmtCompact(empenhado)} que reservou em educação em ${ano}.`;

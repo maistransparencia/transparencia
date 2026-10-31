@@ -37,6 +37,12 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Lote (de remédio) | Remessa de um mesmo remédio com a mesma data de validade | "Lote irregular", "lote vencido" sem dizer que consta com saldo na lista |
 | Remédio só com lote vencido | "Na lista de estoque, todos os lotes dele estão com a validade vencida" | "Remédio vencido", "sem estoque", "irregular" |
 | IDEB | Nota de 0 a 10 que o governo federal dá às escolas, combinando o que os alunos aprendem nas provas e quantos são aprovados. É medida de dois em dois anos | "Ciclo oficial", "troféu cívico" |
+| Saeb | Prova nacional que mede o que os alunos aprendem em português e matemática. Entra no cálculo do IDEB | |
+| FUNDEB | Fundo federal que ajuda a pagar a educação básica: reúne impostos e devolve aos municípios conforme o número de alunos | "Verba da educação" sem dizer a origem |
+| PNAE | Programa federal que manda dinheiro para a merenda escolar | |
+| PNATE | Programa federal que manda dinheiro para o transporte escolar | |
+| Fundo Municipal de Educação | Caixa específico da educação no município, que recebe os repasses federais e estaduais e parte da Prefeitura | "Fundo de Educação" |
+| Empenho líquido | Valor reservado depois de descontar os cancelamentos feitos no ano | "Empenhado bruto" |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.

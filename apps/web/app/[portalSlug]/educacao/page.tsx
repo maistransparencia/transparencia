@@ -72,9 +72,9 @@ export default async function EducacaoPage({
       return "Nenhuma emenda destinada no exercício";
     }
     if (emendas.totalEmpenhado === 0) {
-      return "Empenho ainda não informado no cadastro de emendas";
+      return "Ainda sem valor reservado informado no cadastro de emendas";
     }
-    return `${fmtCompact(emendas.totalEmpenhado)} empenhados no cadastro (${fmtPercent(emendas.taxaEmpenho * 100)})`;
+    return `${fmtCompact(emendas.totalEmpenhado)} já reservados (${fmtPercent(emendas.taxaEmpenho * 100)})`;
   })();
 
   const fornecedoresLinhas = buildFornecedoresLinhas(
@@ -111,9 +111,9 @@ export default async function EducacaoPage({
             note={emendasSubtext}
           />
           <Indicator
-            label="Contratos vinculados"
+            label="Contratos do Fundo"
             value={contratos.length}
-            note={`contratos do Fundo vigentes em ${selectedYear}`}
+            note={`contratos em vigor em ${selectedYear}`}
           />
         </IndicatorPanel>
       </div>
