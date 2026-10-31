@@ -7,3 +7,7 @@ allowBuilds:
   sharp: true
 minimumReleaseAgeExclude:
   - postcss@8.5.23
+  - '@posthog/core@1.62.0'
+  - '@posthog/types@1.419.0'
+  - posthog-js@1.444.0
+  - posthog-node@5.61.1
