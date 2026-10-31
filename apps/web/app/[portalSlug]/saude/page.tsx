@@ -117,7 +117,7 @@ export default async function SaudePage({
           <Indicator
             label="Medicamentos e insumos"
             value={fmtCompact(saude.orcamento.medicamentosInsumos)}
-            note="reservados (empenhados) em material farmacológico e suporte terapêutico"
+            note="reservados (empenhados) em medicamentos. Compras lançadas como “outros materiais para distribuição gratuita” não entram e podem incluir remédios."
           />
         </IndicatorPanel>
       </div>

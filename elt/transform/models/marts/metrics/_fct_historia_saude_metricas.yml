@@ -72,14 +72,14 @@ models:
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Despesas com medicamentos e insumos farmacêuticos empenhadas: subfunção 10.303 ou subitem 3.3.90.30.09 (material farmacológico), contando cada empenho uma vez; a prática de classificação muda de um ano para outro, por isso os dois critérios"
+        description: "Despesas com medicamentos e insumos farmacêuticos empenhadas: subfunção 10.303, subitem 3.3.90.30.09 (material farmacológico) ou 3.3.90.32.02 (medicamentos para distribuição gratuita), contando cada empenho uma vez; a prática de classificação muda de um ano para outro, por isso os critérios combinados; o subitem genérico 3.3.90.32.99 fica de fora por misturar medicamentos com outros materiais"
         tests:
           - not_null
       - name: medicamentos_insumos_pago
         data_type: numeric(15, 2)
         constraints:
           - type: not_null
-        description: "Despesas com medicamentos e insumos farmacêuticos pagas: mesma regra da coluna empenhada (subfunção 10.303 ou subitem 3.3.90.30.09)"
+        description: "Despesas com medicamentos e insumos farmacêuticos pagas: mesma regra da coluna empenhada"
         tests:
           - not_null
       - name: judicializacao_empenhado
@@ -187,6 +187,7 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "303", elemento: "30", empresa_id: "2", fornecedor_nome: "FARMACEUTICA A", dotacao_atualizada: 200000.00, empenhado_liquido: 100000.00, liquidado: 80000.00, pago: 60000.00, subfuncao_nome: "ASSISTENCIA FARMACEUTICA", fonte: "exercicio" }
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "91", empresa_id: "2", fornecedor_nome: "FORNECEDOR B", dotacao_atualizada: 100000.00, empenhado_liquido: 50000.00, liquidado: 40000.00, pago: 30000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "30", natureza_despesa_codigo: "3.3.90.30.09", empresa_id: "2", fornecedor_nome: "FORNECEDOR C", dotacao_atualizada: 0, empenhado_liquido: 20000.00, liquidado: 15000.00, pago: 10000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2025, funcao: "10", subfuncao: "301", elemento: "32", natureza_despesa_codigo: "3.3.90.32.02", empresa_id: "2", fornecedor_nome: "FORNECEDOR D", dotacao_atualizada: 0, empenhado_liquido: 10000.00, liquidado: 8000.00, pago: 5000.00, subfuncao_nome: "ATENCAO BASICA", fonte: "exercicio" }
       - input: ref('fct_despesas_por_orgao')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "2", dotacao_atualizada: 300000.00, empenhado: 150000.00, liquidado: 120000.00, pago: 90000.00 }
@@ -205,4 +206,4 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "2", entidade_pagadora: "PREFEITURA", entidade_recebedora: "FMS - Fundo Mun. de Saúde", repasse: 0, devolucao: 100000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, dotacao_total: 300000.00, total_empenhado: 170000.00, total_liquidado: 135000.00, total_pago: 100000.00, medicamentos_insumos_empenhado: 120000.00, medicamentos_insumos_pago: 70000.00, judicializacao_empenhado: 50000.00, judicializacao_pago: 30000.00, emendas_saude_arrecadado: 50000.00, hhi_concentracao_fornecedores: 4464, receita_uniao_saude: 60000.00, receita_estado_saude: 30000.00, repasses_prefeitura_saude: 100000.00, receita_outras_saude: 10000.00, total_entrada_saude: 200000.00, uniao_sus_pct: 30, estado_pct: 15, propria_pct: 50, outras_receitas_pct: 5 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, dotacao_total: 300000.00, total_empenhado: 180000.00, total_liquidado: 143000.00, total_pago: 105000.00, medicamentos_insumos_empenhado: 130000.00, medicamentos_insumos_pago: 75000.00, judicializacao_empenhado: 50000.00, judicializacao_pago: 30000.00, emendas_saude_arrecadado: 50000.00, hhi_concentracao_fornecedores: 4012, receita_uniao_saude: 60000.00, receita_estado_saude: 30000.00, repasses_prefeitura_saude: 100000.00, receita_outras_saude: 10000.00, total_entrada_saude: 200000.00, uniao_sus_pct: 30, estado_pct: 15, propria_pct: 50, outras_receitas_pct: 5 }
