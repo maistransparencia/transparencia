@@ -101,5 +101,26 @@ describe("educacao-execucao-metrics", () => {
       ]);
       expect(fornecedores[0].totalPago).toBe(600);
     });
+
+    it("calcula o percentual pago sobre o total da função, não sobre o top", async () => {
+      const base = {
+        empresaId: "1",
+        ano: 2025,
+        fonte: "exercicio",
+        funcao: "12",
+        portalSlug: PORTAL_A,
+      };
+      await seedDespesa({ ...base, fornecedorNome: "ALFA", pago: 600 });
+      await seedDespesa({ ...base, fornecedorNome: "BETA", pago: 400 });
+      await seedDespesa({ ...base, fornecedorNome: "GAMA", pago: 1000 });
+
+      const fornecedores = await getTopFornecedoresEducacaoMetrics({
+        portalSlug: PORTAL_A,
+        year: 2025,
+        limit: 2,
+      });
+
+      expect(fornecedores.map((f) => f.percentualPago)).toEqual([50, 30]);
+    });
   });
 });

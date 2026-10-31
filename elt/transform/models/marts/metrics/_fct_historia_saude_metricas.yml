@@ -131,21 +131,21 @@ models:
         description: "Repasse financeiro medido da entidade pagadora ao fundo de saúde (lado de quem paga em fct_transferencias); nunca calculado por diferença"
         tests:
           - not_null
-      - name: uniao_sus_pct
+      - name: percentual_uniao_sus
         data_type: integer
         constraints:
           - type: not_null
         description: "Participação percentual das transferências da União (SUS) no total que entrou no fundo (0-100)"
         tests:
           - not_null
-      - name: estado_pct
+      - name: percentual_estado
         data_type: integer
         constraints:
           - type: not_null
         description: "Participação percentual das transferências do Estado no total que entrou no fundo (0-100)"
         tests:
           - not_null
-      - name: propria_pct
+      - name: percentual_propria
         data_type: integer
         constraints:
           - type: not_null
@@ -166,7 +166,7 @@ models:
         description: "Total que entrou no fundo: União + Estado + outras receitas + repasse da entidade pagadora"
         tests:
           - not_null
-      - name: outras_receitas_pct
+      - name: percentual_outras_receitas
         data_type: integer
         constraints:
           - type: not_null
@@ -206,4 +206,4 @@ unit_tests:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa_id: "2", entidade_pagadora: "PREFEITURA", entidade_recebedora: "FMS - Fundo Mun. de Saúde", repasse: 0, devolucao: 100000.00 }
     expect:
       rows:
-        - { portal_slug: "porciuncula_prefeitura", ano: 2025, dotacao_total: 300000.00, total_empenhado: 180000.00, total_liquidado: 143000.00, total_pago: 105000.00, medicamentos_insumos_empenhado: 130000.00, medicamentos_insumos_pago: 75000.00, judicializacao_empenhado: 50000.00, judicializacao_pago: 30000.00, emendas_saude_arrecadado: 50000.00, hhi_concentracao_fornecedores: 4012, receita_uniao_saude: 60000.00, receita_estado_saude: 30000.00, repasses_prefeitura_saude: 100000.00, receita_outras_saude: 10000.00, total_entrada_saude: 200000.00, uniao_sus_pct: 30, estado_pct: 15, propria_pct: 50, outras_receitas_pct: 5 }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2025, dotacao_total: 300000.00, total_empenhado: 180000.00, total_liquidado: 143000.00, total_pago: 105000.00, medicamentos_insumos_empenhado: 130000.00, medicamentos_insumos_pago: 75000.00, judicializacao_empenhado: 50000.00, judicializacao_pago: 30000.00, emendas_saude_arrecadado: 50000.00, hhi_concentracao_fornecedores: 4012, receita_uniao_saude: 60000.00, receita_estado_saude: 30000.00, repasses_prefeitura_saude: 100000.00, receita_outras_saude: 10000.00, total_entrada_saude: 200000.00, percentual_uniao_sus: 30, percentual_estado: 15, percentual_propria: 50, percentual_outras_receitas: 5 }

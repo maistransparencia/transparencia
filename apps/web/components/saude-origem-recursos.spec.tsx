@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import { SaudeOrigemRecursos } from "./saude-origem-recursos";
 
 const fontes: FontesReceitaSaudeDTO = {
-  uniaoSusPct: 40,
-  estadoPct: 10,
-  propriaPct: 45,
-  outrasReceitasPct: 5,
+  percentualUniaoSus: 40,
+  percentualEstado: 10,
+  percentualPropria: 45,
+  percentualOutrasReceitas: 5,
   receitaUniao: 16_000_000,
   receitaEstado: 4_000_000,
   repassesPrefeitura: 18_000_000,
@@ -30,7 +30,7 @@ describe("SaudeOrigemRecursos", () => {
   it("limita a largura dos segmentos entre 0% e 100%", () => {
     const { container } = render(
       <SaudeOrigemRecursos
-        fontes={{ ...fontes, uniaoSusPct: 130, estadoPct: -5 }}
+        fontes={{ ...fontes, percentualUniaoSus: 130, percentualEstado: -5 }}
         ano={2026}
       />,
     );

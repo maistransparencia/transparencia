@@ -246,16 +246,6 @@ export async function getResumoEducacao(
   const anosFinais =
     metrics.find((m) => m.etapaEnsino === "anosFinais") ?? null;
 
-  // Despesa e matrículas independem da etapa; indicadores do IDEB usam só anos iniciais.
-  const contexto = [anosIniciais, anosFinais, metrics[0]];
-  const _primeiroContexto = <T>(
-    selecionar: (linha: (typeof metrics)[number]) => T | null | undefined,
-  ): T | null =>
-    contexto.reduce<T | null>(
-      (acc, linha) => acc ?? (linha ? (selecionar(linha) ?? null) : null),
-      null,
-    );
-
   const ranking = await getEducacaoRankingEstadual(cleanSlug, {
     ano: targetAno,
     etapaEnsino: "anosIniciais",

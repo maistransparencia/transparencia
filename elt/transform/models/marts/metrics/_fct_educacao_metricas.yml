@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: fct_educacao_metricas
-    description: "Mart analítico unificado de métricas educacionais (IDEB, Saeb, fluxo escolar), fluxo escolar"
+    description: "Mart analítico unificado de métricas educacionais (IDEB, Saeb, fluxo escolar)"
     config:
       contract:
         enforced: true

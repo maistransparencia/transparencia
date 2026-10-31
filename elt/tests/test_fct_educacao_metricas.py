@@ -23,7 +23,7 @@ def test_fct_educacao_metricas_materialization_and_grain(conn):
     assert total_count > 0, "A tabela fct_educacao_metricas não deve estar vazia."
 
 
-def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
+def test_fct_educacao_metricas_porciuncula_growth(conn):
     """Valida o salto histórico de +1,4 ponto no IDEB 2025 de Porciúncula."""
     rows = conn.execute(
         text(
@@ -70,7 +70,7 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2023[8])) == Decimal("175.60")
     assert Decimal(str(r2023[9])) == Decimal("-22.68")
 
-    # Ciclo 2025 (Recuperação histórica de +1,4 ponto )
+    # Ciclo 2025 (Recuperação histórica de +1,4 ponto)
     r2025 = rows[2]
     assert r2025[0] == 2025
     assert Decimal(str(r2025[2])) == Decimal("5.9")

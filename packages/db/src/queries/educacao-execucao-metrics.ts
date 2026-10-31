@@ -54,33 +54,38 @@ export async function getTopFornecedoresEducacaoMetrics(options: {
     return [];
   }
   try {
-    const rows = await db
-      .selectFrom("fct_despesas")
-      .select((eb) => [
-        "fornecedor_nome",
-        "fornecedor_cpf_cnpj",
-        eb.fn.sum<string>("pago").as("total_pago"),
-        eb.fn.sum<string>("empenhado").as("total_empenhado"),
-      ])
-      .where("portal_slug", "=", cleanSlug)
-      .where("ano", "=", year)
-      .where("fonte", "=", "exercicio")
-      .where("funcao", "=", "12")
-      .where((eb) =>
-        eb.or([
-          eb("grupo_natureza", "is", null),
-          eb("grupo_natureza", "!=", "1"),
-        ]),
-      )
-      .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj"])
-      .orderBy("total_pago", "desc")
-      .limit(limit)
-      .execute();
+    const despesasFuncaoEducacao = () =>
+      db
+        .selectFrom("fct_despesas")
+        .where("portal_slug", "=", cleanSlug)
+        .where("ano", "=", year)
+        .where("fonte", "=", "exercicio")
+        .where("funcao", "=", "12")
+        .where((eb) =>
+          eb.or([
+            eb("grupo_natureza", "is", null),
+            eb("grupo_natureza", "!=", "1"),
+          ]),
+        );
 
-    const totalPagoTop = rows.reduce(
-      (total, row) => total + Number(row.total_pago ?? 0),
-      0,
-    );
+    const [rows, totalFuncao] = await Promise.all([
+      despesasFuncaoEducacao()
+        .select((eb) => [
+          "fornecedor_nome",
+          "fornecedor_cpf_cnpj",
+          eb.fn.sum<string>("pago").as("total_pago"),
+          eb.fn.sum<string>("empenhado").as("total_empenhado"),
+        ])
+        .groupBy(["fornecedor_nome", "fornecedor_cpf_cnpj"])
+        .orderBy("total_pago", "desc")
+        .limit(limit)
+        .execute(),
+      despesasFuncaoEducacao()
+        .select((eb) => eb.fn.sum<string>("pago").as("total_pago"))
+        .executeTakeFirst(),
+    ]);
+
+    const totalPagoFuncao = Number(totalFuncao?.total_pago ?? 0);
 
     return rows.map((row) => {
       const totalPago = Number(row.total_pago ?? 0);
@@ -94,7 +99,10 @@ export async function getTopFornecedoresEducacaoMetrics(options: {
         totalPago,
         totalEmpenhado: Number(row.total_empenhado ?? 0),
         percentualPago: Number(
-          (totalPagoTop > 0 ? (totalPago / totalPagoTop) * 100 : 0).toFixed(1),
+          (totalPagoFuncao > 0
+            ? (totalPago / totalPagoFuncao) * 100
+            : 0
+          ).toFixed(1),
         ),
       };
     });

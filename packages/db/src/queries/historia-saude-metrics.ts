@@ -66,10 +66,10 @@ export interface EmendasStatsSaudeDTO {
 }
 
 export interface FontesReceitaSaudeDTO {
-  uniaoSusPct: number;
-  estadoPct: number;
-  propriaPct: number;
-  outrasReceitasPct: number;
+  percentualUniaoSus: number;
+  percentualEstado: number;
+  percentualPropria: number;
+  percentualOutrasReceitas: number;
   /** Transferências da União (SUS) recebidas pelo fundo, em reais. */
   receitaUniao: number;
   /** Transferências do Estado recebidas pelo fundo, em reais. */
@@ -258,10 +258,10 @@ export async function getSaudeFontesReceitaMetrics(params: {
   empenhadoTotal?: number;
 }): Promise<FontesReceitaSaudeDTO> {
   const empty: FontesReceitaSaudeDTO = {
-    uniaoSusPct: 0,
-    estadoPct: 0,
-    propriaPct: 0,
-    outrasReceitasPct: 0,
+    percentualUniaoSus: 0,
+    percentualEstado: 0,
+    percentualPropria: 0,
+    percentualOutrasReceitas: 0,
     receitaUniao: 0,
     receitaEstado: 0,
     repassesPrefeitura: 0,
@@ -274,10 +274,10 @@ export async function getSaudeFontesReceitaMetrics(params: {
     const row = await db
       .selectFrom("fct_historia_saude_metricas")
       .select([
-        "uniao_sus_pct",
-        "estado_pct",
-        "propria_pct",
-        "outras_receitas_pct",
+        "percentual_uniao_sus",
+        "percentual_estado",
+        "percentual_propria",
+        "percentual_outras_receitas",
         "receita_uniao_saude",
         "receita_estado_saude",
         "repasses_prefeitura_saude",
@@ -292,10 +292,10 @@ export async function getSaudeFontesReceitaMetrics(params: {
     if (!row) return empty;
 
     return {
-      uniaoSusPct: Number(row.uniao_sus_pct ?? 0),
-      estadoPct: Number(row.estado_pct ?? 0),
-      propriaPct: Number(row.propria_pct ?? 0),
-      outrasReceitasPct: Number(row.outras_receitas_pct ?? 0),
+      percentualUniaoSus: Number(row.percentual_uniao_sus ?? 0),
+      percentualEstado: Number(row.percentual_estado ?? 0),
+      percentualPropria: Number(row.percentual_propria ?? 0),
+      percentualOutrasReceitas: Number(row.percentual_outras_receitas ?? 0),
       receitaUniao: Number(row.receita_uniao_saude ?? 0),
       receitaEstado: Number(row.receita_estado_saude ?? 0),
       repassesPrefeitura: Number(row.repasses_prefeitura_saude ?? 0),
@@ -329,11 +329,12 @@ export async function getSaudeLicitacoesMetrics(
       .where("ano", "=", ano)
       .where("empresa_id", "in", empresaIds)
       .groupBy("tipo_contratacao")
+      .orderBy("tipo_contratacao")
       .execute();
 
     return {
       caminhos: rows.map((row) => ({
-        tipoContratacao: String(row.tipo_contratacao ?? ""),
+        tipoContratacao: String(row.tipo_contratacao ?? "nao_informado"),
         quantidade: Number(row.quantidade ?? 0),
         valorEmpenhado: Number(row.valor_empenhado ?? 0),
       })),

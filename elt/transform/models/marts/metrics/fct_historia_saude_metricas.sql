@@ -196,9 +196,9 @@ select
     coalesce(rp.repasse_recebido, 0)::numeric(15, 2) as repasses_prefeitura_saude,
     greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0))::numeric(15, 2) as receita_outras_saude,
     entrada.total_entrada::numeric(15, 2) as total_entrada_saude,
-    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer else 0 end as uniao_sus_pct,
-    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer else 0 end as estado_pct,
-    case when entrada.total_entrada > 0 then round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer else 0 end as propria_pct,
+    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_uniao_sus,
+    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_estado,
+    case when entrada.total_entrada > 0 then round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_propria,
     case
         when entrada.total_entrada > 0
         then greatest(
@@ -209,7 +209,7 @@ select
             - round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer
         )::integer
         else 0
-    end as outras_receitas_pct
+    end as percentual_outras_receitas
 from chaves_base cb
 left join dotacao_saude_orgao dso
     on cb.portal_slug = dso.portal_slug

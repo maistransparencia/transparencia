@@ -37,7 +37,7 @@ linhas_receita as (
         and arrecadado > 0
 ),
 
-confirmadas as (
+confirmadas_candidatas as (
     select distinct on (e.portal_slug, e.ano, e.empresa_id, e.numero_emenda, e.resumo)
         e.portal_slug,
         e.ano,
@@ -55,6 +55,28 @@ confirmadas as (
         and length(e.numero_digitos) >= 10
         and l.descricao like '%' || left(e.numero_digitos, 10) || '%'
     order by e.portal_slug, e.ano, e.empresa_id, e.numero_emenda, e.resumo, l.codigo
+),
+
+-- uma linha de receita confirma uma emenda só; as demais disputam as linhas livres
+confirmadas as (
+    select
+        portal_slug,
+        ano,
+        empresa_id,
+        numero_emenda,
+        resumo,
+        receita_codigo,
+        receita_descricao
+    from (
+        select
+            *,
+            row_number() over (
+                partition by portal_slug, ano, empresa_id, receita_codigo
+                order by numero_emenda, resumo
+            ) as posicao_na_linha
+        from confirmadas_candidatas
+    ) ranqueadas
+    where posicao_na_linha = 1
 ),
 
 linhas_usadas as (

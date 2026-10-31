@@ -107,3 +107,19 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "11", valor_recebido_fundo: 0, recebimento_fundo: "valor_igual", receita_codigo: "1713.50.1.1.20.00" }
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "12", valor_recebido_fundo: 0, recebimento_fundo: "nao_identificado", receita_codigo: null }
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "13", valor_recebido_fundo: 0, recebimento_fundo: "nao_identificado", receita_codigo: null }
+
+  - name: test_emendas_uma_linha_de_receita_confirma_uma_emenda
+    description: "Duas emendas de mesmo valor e mesma proposta não confirmam a mesma linha de receita"
+    model: fct_emendas
+    given:
+      - input: ref('int_emendas_consolidadas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759632202600", resumo: "EMENDA A", valor_total: 100000.00, empenhado: 0 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759639999999", resumo: "EMENDA B", valor_total: 100000.00, empenhado: 0 }
+      - input: ref('fct_receitas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", tipo_receita: "orcamentaria", codigo: "1713.50.1.1.29.00", descricao: "TRANS.SUS PORTARIA PROP 63000759631202600", arrecadado: 100000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759632202600", valor_recebido_fundo: 100000.00, recebimento_fundo: "confirmado_por_proposta", receita_codigo: "1713.50.1.1.29.00" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759639999999", valor_recebido_fundo: 0, recebimento_fundo: "nao_identificado", receita_codigo: null }

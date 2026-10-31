@@ -131,7 +131,7 @@ export default async function SaudePage({
           title="O que entrou"
           description={
             saude.fontesReceita.totalEntrada > 0
-              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.uniaoSusPct} de cada R$ 100 vêm do Governo Federal, pelo SUS (Sistema Único de Saúde). Veja de onde veio cada parte.`
+              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal, pelo SUS (Sistema Único de Saúde). Veja de onde veio cada parte.`
               : undefined
           }
         />
