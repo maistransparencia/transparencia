@@ -97,7 +97,7 @@ export function SaudeEvolucaoAnual({
             >
               {linha.ano}
               {linha.ano === partialYear ? (
-                <span className="caption font-normal"> · em andamento</span>
+                <span className="caption block font-normal">em andamento</span>
               ) : null}
             </span>
             <div className="space-y-1.5">
