@@ -11,7 +11,6 @@ import {
   type Column,
   cn,
   DenseTable,
-  ExternalLinkPill,
   fmtCurrency,
   fmtDate,
   fmtLicitacaoModalidade,
@@ -660,9 +659,18 @@ export function LicitacoesEmAndamentoSection({
             Ver detalhes
           </button>
           {row.linkSistemaOrigem && (
-            <ExternalLinkPill href={row.linkSistemaOrigem} className="min-h-11">
+            <a
+              href={row.linkSistemaOrigem}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-1 text-brand-text underline underline-offset-2"
+            >
               Sala de Disputa
-            </ExternalLinkPill>
+              <ExternalLink
+                className="h-3.5 w-3.5 shrink-0"
+                aria-hidden="true"
+              />
+            </a>
           )}
         </div>
       </div>
