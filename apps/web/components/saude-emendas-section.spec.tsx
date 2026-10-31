@@ -9,6 +9,7 @@ import {
 const mockStats: SaudeEmendasStatsProps = {
   totalAutorizado: 2031183,
   totalEmpenhado: 1015591,
+  totalRecebidoFundo: 0,
   taxaEmpenho: 0.5,
   maiorEmenda: 2031183,
   lista: [
@@ -24,6 +25,7 @@ const mockStats: SaudeEmendasStatsProps = {
       esferaOrigem: "FEDERAL",
       atoNormativo: "Portaria GM/MS 11.813/2026",
       destinacao: "Atenção Primária",
+      valorRecebidoFundo: 0,
       qtdEmpenhos: 2,
       empenhos: [
         {
@@ -65,6 +67,7 @@ const mockStats: SaudeEmendasStatsProps = {
       esferaOrigem: "FEDERAL",
       atoNormativo: "",
       destinacao: "Média e Alta Complexidade",
+      valorRecebidoFundo: 0,
       qtdEmpenhos: 0,
       empenhos: [],
     },
@@ -220,6 +223,7 @@ describe("SaudeEmendasSection", () => {
     const unorderedStats: SaudeEmendasStatsProps = {
       totalAutorizado: 1500000,
       totalEmpenhado: 200000,
+      totalRecebidoFundo: 0,
       taxaEmpenho: 200000 / 1500000,
       maiorEmenda: 1000000,
       lista: [
@@ -234,6 +238,7 @@ describe("SaudeEmendasSection", () => {
           esferaOrigem: "FEDERAL",
           atoNormativo: "",
           destinacao: "Atenção Primária",
+          valorRecebidoFundo: 0,
           qtdEmpenhos: 0,
           empenhos: [],
         },
@@ -248,6 +253,7 @@ describe("SaudeEmendasSection", () => {
           esferaOrigem: "FEDERAL",
           atoNormativo: "",
           destinacao: "Média Complexidade",
+          valorRecebidoFundo: 0,
           qtdEmpenhos: 1,
           empenhos: [
             {

@@ -32,6 +32,8 @@ function emenda(dados: {
     esfera_origem: "federal",
     ato_normativo: "ato",
     destinacao: "destinacao",
+    valor_recebido_fundo: 0,
+    recebimento_fundo: "nao_identificado",
   };
 }
 

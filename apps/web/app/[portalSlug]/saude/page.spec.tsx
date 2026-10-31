@@ -82,6 +82,7 @@ function makeRaw(
         ],
         totalAutorizado: 50,
         totalEmpenhado: 40,
+        totalRecebidoFundo: 0,
         taxaEmpenho: 0.8,
         maiorEmenda: 50,
       },
@@ -144,6 +145,7 @@ describe("SaudePage", () => {
             lista: [],
             totalAutorizado: 0,
             totalEmpenhado: 0,
+            totalRecebidoFundo: 0,
             taxaEmpenho: 0,
           },
           fontesReceita: { emendasParlamentares: 0 },
@@ -167,6 +169,7 @@ describe("SaudePage", () => {
             lista: [],
             totalAutorizado: 100000,
             totalEmpenhado: 0,
+            totalRecebidoFundo: 0,
             taxaEmpenho: 0,
           },
         },
@@ -176,7 +179,9 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Nenhum valor empenhado")).toBeInTheDocument();
+    expect(
+      screen.getByText("Empenho ainda não informado no cadastro de emendas"),
+    ).toBeInTheDocument();
   });
 
   it("mostra quem recebe o dinheiro da saúde com a parte dos maiores fornecedores", async () => {

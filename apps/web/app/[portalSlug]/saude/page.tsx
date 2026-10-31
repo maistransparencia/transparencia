@@ -66,13 +66,9 @@ export default async function SaudePage({
       return "Nenhuma emenda destinada no exercício";
     }
     if (totalEmpenhado === 0) {
-      return (
-        <span className="font-semibold text-warn-text">
-          Nenhum valor empenhado
-        </span>
-      );
+      return "Empenho ainda não informado no cadastro de emendas";
     }
-    return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
+    return `${fmtCompact(totalEmpenhado)} empenhados no cadastro (${fmtPercent(taxaEmpenho * 100)})`;
   })();
 
   const fornecedoresLinhas = buildFornecedoresLinhas(

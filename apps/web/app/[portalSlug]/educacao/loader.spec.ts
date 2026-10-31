@@ -150,6 +150,7 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoEmendasMetrics).mockResolvedValue({
         totalAutorizado: 800,
         totalEmpenhado: 100,
+        totalRecebidoFundo: 0,
         taxaEmpenho: 0.125,
         maiorEmenda: 500,
         lista: [],
@@ -223,6 +224,7 @@ describe("educacao/loader", () => {
       vi.mocked(dbModule.getEducacaoEmendasMetrics).mockResolvedValue({
         totalAutorizado: 800,
         totalEmpenhado: 100,
+        totalRecebidoFundo: 0,
         taxaEmpenho: 0.125,
         maiorEmenda: 500,
         lista: [],

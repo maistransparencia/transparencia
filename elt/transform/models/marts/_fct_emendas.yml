@@ -61,3 +61,40 @@ models:
         data_type: text
       - name: destinacao
         data_type: text
+      - name: valor_recebido_fundo
+        data_type: numeric(15, 2)
+        constraints:
+          - type: not_null
+        description: "Valor da emenda quando há linha de receita de mesmo valor na mesma entidade e ano (indício por valor); zero quando não identificado"
+        tests:
+          - not_null
+      - name: recebimento_fundo
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "identificado_por_valor ou nao_identificado: se a emenda aparece como receita arrecadada pelo fundo"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["identificado_por_valor", "nao_identificado"]
+
+unit_tests:
+  - name: test_emendas_recebimento_fundo
+    description: "Identifica o recebimento por valor igual na receita e trata emendas de mesmo valor com linhas de receita limitadas"
+    model: fct_emendas
+    given:
+      - input: ref('int_emendas_consolidadas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "A", resumo: "EMENDA A", valor_total: 500000.00, empenhado: 0 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "B", resumo: "EMENDA B", valor_total: 500000.00, empenhado: 0 }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "C", resumo: "EMENDA C", valor_total: 300000.00, empenhado: 0 }
+      - input: ref('fct_receitas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", tipo_receita: "orcamentaria", codigo: "1713.50.1.1.20.00", arrecadado: 500000.00 }
+          - { portal_slug: "outro_portal", ano: 2026, empresa_id: "2", tipo_receita: "orcamentaria", codigo: "1713.50.1.1.20.00", arrecadado: 300000.00 }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "A", valor_recebido_fundo: 500000.00, recebimento_fundo: "identificado_por_valor" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "B", valor_recebido_fundo: 0, recebimento_fundo: "nao_identificado" }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "C", valor_recebido_fundo: 0, recebimento_fundo: "nao_identificado" }

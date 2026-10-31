@@ -260,6 +260,7 @@ function makeRawEducacaoData(
     emendas: {
       totalAutorizado: 0,
       totalEmpenhado: 0,
+      totalRecebidoFundo: 0,
       taxaEmpenho: 0,
       maiorEmenda: 0,
       lista: [],
@@ -498,6 +499,7 @@ describe("EducacaoPage (Server Component)", () => {
       esferaOrigem: "federal",
       atoNormativo: "",
       destinacao: "",
+      valorRecebidoFundo: 0,
       qtdEmpenhos: 0,
       empenhos: [],
     };
@@ -506,6 +508,7 @@ describe("EducacaoPage (Server Component)", () => {
         emendas: {
           totalAutorizado: 300000,
           totalEmpenhado: 100000,
+          totalRecebidoFundo: 0,
           taxaEmpenho: 1 / 3,
           maiorEmenda: 300000,
           lista: [emendaItem],

@@ -14,6 +14,7 @@ type EmendaRow = Record<string, unknown>;
 export const emendasStatsVazio: EmendasStatsDTO = {
   totalAutorizado: 0,
   totalEmpenhado: 0,
+  totalRecebidoFundo: 0,
   taxaEmpenho: 0,
   maiorEmenda: 0,
   lista: [],
@@ -40,6 +41,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
       destinacao: String(r.destinacao ?? ""),
       qtdEmpenhos: 0,
       empenhos: [],
+      valorRecebidoFundo: Number(r.valor_recebido_fundo ?? 0),
     };
   });
 
@@ -68,6 +70,10 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     (sum, item) => sum + (item.empenhado ?? 0),
     0,
   );
+  const totalRecebidoFundo = sortedLista.reduce(
+    (sum, item) => sum + item.valorRecebidoFundo,
+    0,
+  );
   const maiorEmenda = sortedLista.reduce(
     (max, item) => Math.max(max, item.valorAutorizado),
     0,
@@ -76,6 +82,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
   return {
     totalAutorizado,
     totalEmpenhado,
+    totalRecebidoFundo,
     taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
     maiorEmenda,
     lista: sortedLista,

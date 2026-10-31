@@ -2,6 +2,7 @@
 
 import type { EmendaEmpenhoItemDTO } from "@transparencia/db";
 import {
+  AlertBox,
   Badge,
   cn,
   DenseTable,
@@ -10,14 +11,15 @@ import {
   fmtCurrency,
   fmtDate,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
   ModalDialog,
+  SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { KPIGrid } from "@/components/kpi-grid";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface SaudeEmendaItem {
@@ -34,11 +36,13 @@ export interface SaudeEmendaItem {
   destinacao: string;
   qtdEmpenhos?: number;
   empenhos?: EmendaEmpenhoItemDTO[];
+  valorRecebidoFundo?: number;
 }
 
 export interface SaudeEmendasStatsProps {
   totalAutorizado: number;
   totalEmpenhado: number;
+  totalRecebidoFundo?: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: SaudeEmendaItem[];
@@ -112,7 +116,11 @@ export function SaudeEmendasSection({
   );
 
   const countEmendas = emendasStats.lista.length;
-  const isZeroEmpenhado = emendasStats.totalEmpenhado === 0;
+  const totalRecebidoFundo = emendasStats.totalRecebidoFundo ?? 0;
+  const percentualRecebido =
+    emendasStats.totalAutorizado > 0
+      ? (totalRecebidoFundo / emendasStats.totalAutorizado) * 100
+      : 0;
 
   const tableData = useMemo(
     () =>
@@ -180,7 +188,6 @@ export function SaudeEmendasSection({
     emendasStats.totalAutorizado,
     emendasStats.totalEmpenhado,
   ]);
-  const isZeroEmpenhadoVisivel = totaisVisiveis.empenhado === 0;
 
   const emendasCols = [
     {
@@ -243,6 +250,16 @@ export function SaudeEmendasSection({
             </span>
           );
         }
+        if ((row.valorRecebidoFundo ?? 0) > 0) {
+          return (
+            <span
+              className="whitespace-nowrap font-medium text-ok-text text-xs"
+              title="Aparece como receita arrecadada pela entidade, com o mesmo valor da emenda"
+            >
+              Recebida como receita
+            </span>
+          );
+        }
         return (
           <span className="whitespace-nowrap text-mute2 text-xs">
             Sem empenho
@@ -270,11 +287,7 @@ export function SaudeEmendasSection({
     },
     {
       header: "Empenhado",
-      footer: (
-        <span className={isZeroEmpenhadoVisivel ? "text-warn-text" : undefined}>
-          {fmtCurrency(totaisVisiveis.empenhado)}
-        </span>
-      ),
+      footer: <span>{fmtCurrency(totaisVisiveis.empenhado)}</span>,
       accessorKey: "empenhado" as const,
       align: "right" as const,
       format: "currency" as const,
@@ -322,92 +335,59 @@ export function SaudeEmendasSection({
   }, [selectedEmenda]);
 
   return (
-    <section className="space-y-6 border-line border-t-2 pt-8">
-      {/* Header */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2>{titulo}</h2>
-          <p className="mt-1 max-w-3xl text-mute text-sm leading-relaxed">
-            {descricao} O que importa não é só quanto foi{" "}
-            <strong className="font-bold text-ink">autorizado</strong>, mas se
-            esse dinheiro foi de fato{" "}
-            <strong className="font-bold text-ink">empenhado</strong> — o passo
-            que transforma a promessa em contrato e serviço.
-          </p>
-        </div>
-        <span className="shrink-0 text-mute text-xs">
-          {countEmendas} {countEmendas === 1 ? "emenda" : "emendas"} · exercício{" "}
-          {ano}
-        </span>
-      </div>
+    <section className="space-y-6">
+      <SectionHeader
+        eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
+        title={titulo}
+      />
+      <p className="text-mute">
+        {descricao} O que importa não é só quanto foi autorizado, mas se esse
+        dinheiro chegou e foi usado.
+      </p>
 
-      {/* Banner de Alerta Âmbar */}
       {emendasStats.totalAutorizado > 0 && (
-        <div className="flex items-start gap-3 border-warn-fill border-l-4 bg-warn-fill/15 p-4 text-warn-text text-xs sm:text-sm">
-          <div>
-            <strong className="font-bold">
-              {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
-              emendas.
-            </strong>{" "}
-            {isZeroEmpenhado ? (
-              <>
-                Até agora, <strong className="font-bold">R$ 0</strong> haviam
-                sido empenhados. O recurso está disponível, mas ainda não virou
-                contrato — sinal de atenção para acompanhar de perto.
-              </>
-            ) : (
-              <>
-                Até agora,{" "}
-                <strong className="font-bold">
-                  {fmtCompact(emendasStats.totalEmpenhado)}
-                </strong>{" "}
-                foram empenhados ({fmtPercent(emendasStats.taxaEmpenho * 100)}{" "}
-                do total).
-              </>
-            )}
-          </div>
-        </div>
+        <AlertBox type="info" title="O dinheiro das emendas chegou?">
+          {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
+          emendas.{" "}
+          {totalRecebidoFundo > 0 ? (
+            <>
+              {fmtCompact(totalRecebidoFundo)} ({fmtPercent(percentualRecebido)}
+              ) aparecem como receita arrecadada pela entidade, identificados
+              pelo valor.{" "}
+            </>
+          ) : (
+            <>
+              Não foi possível identificar, pelos valores, emendas que aparecem
+              como receita arrecadada.{" "}
+            </>
+          )}
+          O valor empenhado vem do cadastro de emendas do portal e pode estar
+          desatualizado: empenho zerado ali não significa que o dinheiro não foi
+          usado. Para conferir, consulte as notas de empenho da emenda.
+        </AlertBox>
       )}
 
-      {/* 4 KPI Cards */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Total autorizado"
+      <IndicatorPanel columns={4}>
+        <Indicator
+          label="Autorizado"
           value={fmtCompact(emendasStats.totalAutorizado)}
+          note="valor das emendas"
         />
-        <KPICard
-          title="Total empenhado"
-          value={
-            <span
-              className={
-                isZeroEmpenhado
-                  ? "font-bold text-warn-text"
-                  : "font-bold text-ink"
-              }
-            >
-              {fmtCompact(emendasStats.totalEmpenhado)}
-            </span>
-          }
+        <Indicator
+          label="Chegou à entidade"
+          value={fmtCompact(totalRecebidoFundo)}
+          note={`${fmtPercent(percentualRecebido)} do autorizado, identificado pelo valor`}
         />
-        <KPICard
-          title="Taxa de empenho"
-          value={
-            <span
-              className={
-                isZeroEmpenhado
-                  ? "font-bold text-warn-text"
-                  : "font-bold text-ink"
-              }
-            >
-              {fmtPercent(emendasStats.taxaEmpenho * 100)}
-            </span>
-          }
+        <Indicator
+          label="Empenhado no cadastro"
+          value={fmtCompact(emendasStats.totalEmpenhado)}
+          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
         />
-        <KPICard
-          title="Maior emenda"
+        <Indicator
+          label="Maior emenda"
           value={fmtCompact(emendasStats.maiorEmenda)}
         />
-      </KPIGrid>
+      </IndicatorPanel>
 
       {/* Tabela Densa com Linha de Totalizador */}
       <div className="space-y-2">
@@ -536,7 +516,7 @@ export function SaudeEmendasSection({
             {
               rotulo: "Empenhado",
               valor: totaisVisiveis.empenhado,
-              isAlerta: isZeroEmpenhadoVisivel,
+              isAlerta: false,
             },
           ]}
         />

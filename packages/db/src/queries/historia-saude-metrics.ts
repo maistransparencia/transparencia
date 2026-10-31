@@ -49,11 +49,15 @@ export interface EmendaSaudeDTO {
   destinacao: string;
   qtdEmpenhos: number;
   empenhos: EmendaEmpenhoItemDTO[];
+  /** Valor da emenda quando aparece como receita arrecadada pelo fundo (indício por valor). */
+  valorRecebidoFundo: number;
 }
 
 export interface EmendasStatsSaudeDTO {
   totalAutorizado: number;
   totalEmpenhado: number;
+  /** Soma das emendas que aparecem como receita arrecadada pelo fundo. */
+  totalRecebidoFundo: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: EmendaSaudeDTO[];
@@ -161,6 +165,7 @@ export async function getSaudeEmendasMetrics(
   const empty: EmendasStatsSaudeDTO = {
     totalAutorizado: 0,
     totalEmpenhado: 0,
+    totalRecebidoFundo: 0,
     taxaEmpenho: 0,
     maiorEmenda: 0,
     lista: [],
