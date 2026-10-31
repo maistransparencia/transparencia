@@ -25,9 +25,7 @@ const PrevidenciaEntidadesDonut = nextDynamic(
       (mod) => mod.PrevidenciaEntidadesDonut,
     ),
   {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
+    loading: () => <div className="h-[280px] w-full animate-pulse bg-line2" />,
   },
 );
 
@@ -100,18 +98,19 @@ export default async function PrevidenciaPage({
           title={`Previdência Municipal (${previdenciaSigla})`}
           description="Informações sobre o regime previdenciário municipal."
         />
-        <div className="rounded-xl border border-borderLine bg-white p-8 text-center">
+        <div className="border-line border-y py-8 text-center">
           <Landmark
-            className="mx-auto h-10 w-10 text-mutedText"
+            className="mx-auto h-10 w-10 text-mute"
             strokeWidth={1.5}
+            aria-hidden="true"
           />
-          <h3 className="mt-4 font-semibold text-lg text-slate-800">
-            Município sem Regime Próprio de Previdência Social (RPPS) ativo
+          <h3 className="mt-4">
+            Este município não tem fundo próprio de aposentadoria dos servidores
           </h3>
-          <p className="mx-auto mt-2 max-w-lg text-slate-600 text-sm">
-            Os servidores públicos deste município estão vinculados ao Regime
-            Geral de Previdência Social (RGPS / INSS) ou não possuem autarquia
-            previdenciária própria habilitada.
+          <p className="mx-auto mt-2 max-w-lg text-mute">
+            Os servidores contribuem para o INSS (Regime Geral de Previdência
+            Social), que é federal. Por isso não há um fundo municipal para
+            acompanhar nesta página.
           </p>
         </div>
       </div>
@@ -141,32 +140,35 @@ export default async function PrevidenciaPage({
       />
 
       {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
-      <KPIGrid columns={4}>
+      <KPIGrid columns={4} variant="divisoria">
         <KPICard
-          title="Total Empenhado"
+          variant="divisoria"
+          title="Valor reservado (empenhado)"
           value={fmtCompact(previdencia.totalEmpenhado)}
-          subtext="Compromissos previdenciários"
-          accent
+          subtext="Compromissos com a previdência no ano"
         />
         <KPICard
-          title="Total Repassado / Pago"
+          variant="divisoria"
+          title="Repassado ao fundo (pago)"
           value={fmtCompact(previdencia.totalPago)}
-          subtext="Efetivamente transferido"
+          subtext="Dinheiro que já saiu"
         />
         <KPICard
-          title="Aporte Déficit Atuarial"
+          variant="divisoria"
+          title="Repasse extra para equilibrar o fundo"
           value={fmtCompact(previdencia.totalAporteAtuarial)}
-          subtext="Elemento 97 (Equilíbrio RPPS)"
+          subtext="Aporte para cobrir o rombo previsto (elemento 97)"
         />
         <KPICard
-          title="Índice de Adimplência"
-          value={fmtPercent(previdencia.taxaExecucao * 100)}
-          subtext="% Quitado do Empenhado"
+          variant="divisoria"
+          title="Quanto do reservado já foi pago"
+          value={fmtPercent(Math.min(100, previdencia.taxaExecucao * 100))}
+          subtext="Pago dividido pelo reservado no ano"
         />
       </KPIGrid>
 
       {previdencia.entidades.length > 0 && (
-        <section className="">
+        <section>
           <PrevidenciaEntidadesDonut
             data={previdencia.entidades}
             ano={selectedYear}
@@ -209,12 +211,12 @@ export default async function PrevidenciaPage({
           />
 
           {naturezaChartData.length > 0 && (
-            <div className="space-y-4 rounded-xl border border-borderLine bg-white p-5">
-              <div className="flex items-center justify-between border-gray-100 border-b pb-3">
-                <h4 className="font-semibold font-serif text-slate-800 text-sm">
+            <div className="space-y-4 border-line border-y py-5">
+              <div className="flex items-center justify-between border-line border-b pb-3">
+                <h4>
                   Distribuição por Destino Contábil e Regime ({selectedYear})
                 </h4>
-                <span className="font-medium text-slate-500 text-xs">
+                <span className="font-medium text-mute2 text-xs">
                   Total Repassado: {fmtCurrency(previdencia.totalPago)}
                 </span>
               </div>
@@ -223,9 +225,7 @@ export default async function PrevidenciaPage({
           )}
 
           <div className="space-y-3">
-            <h4 className="font-semibold font-serif text-slate-800 text-sm">
-              Detalhamento de Lançamentos Contábeis (Paginado)
-            </h4>
+            <h4>Detalhamento de Lançamentos Contábeis (Paginado)</h4>
             <DenseTable
               data={previdencia.natureza.map((item) => ({
                 ...item,

@@ -281,7 +281,7 @@ export function RadarAnomaliaCard({
           rel="noopener noreferrer"
           data-testid="radar-whatsapp-button"
           aria-label="Compartilhar no WhatsApp"
-          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md border border-ok-text/40 bg-ok-fill/10 px-2.5 py-1.5 font-semibold text-[11px] text-ok-text transition-colors hover:bg-ok-fill/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md border border-ok-text/40 bg-ok-fill/10 px-2.5 py-1.5 font-semibold text-ok-text text-xs transition-colors hover:bg-ok-fill/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <WhatsAppIcon />
           <span>WhatsApp</span>

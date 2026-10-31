@@ -135,11 +135,11 @@ describe("ObrasPage Component", () => {
 
     // Hero Header de Tema
     expect(
-      screen.getByText(/TEMAS · OBRAS PÚBLICAS · 2026/i),
+      screen.getByText(/OBRAS PÚBLICAS · EXERCÍCIO 2026/i),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /Do planejamento ao canteiro/i,
+        name: /As obras da cidade estão andando/i,
       }),
     ).toBeInTheDocument();
 

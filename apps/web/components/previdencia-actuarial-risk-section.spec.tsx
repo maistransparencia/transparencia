@@ -189,7 +189,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2026)",
+      name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2024)",
     });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe("H3");
@@ -212,7 +212,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.queryByRole("heading", {
-        name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2026)",
+        name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2024)",
       }),
     ).not.toBeInTheDocument();
 

@@ -162,7 +162,7 @@ function DecomposicaoDivida({
         <p className="font-semibold text-ink text-xs">
           Decomposição da dívida real
         </p>
-        <span className="text-right font-bold font-mono text-ink text-sm tabular-nums">
+        <span className="text-right font-bold text-ink text-sm tabular-nums">
           {fmtCurrency(linha.dividaReal)}
         </span>
       </div>
@@ -174,7 +174,7 @@ function DecomposicaoDivida({
           >
             <span className="font-medium text-ink text-sm">
               {entidade.entidadeNome}
-              <span className="ml-2 font-mono text-mute2 text-xs">
+              <span className="ml-2 text-mute2 text-xs">
                 {formatarPercentual(entidade.percentual)}
               </span>
             </span>
@@ -209,7 +209,7 @@ function VariacaoBadge({
   const { variacaoPercentual, tendencia } = linha;
   if (variacaoPercentual === null) {
     return (
-      <span className="shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
+      <span className="shrink-0 whitespace-nowrap rounded-sm bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
         Sem histórico
       </span>
     );
@@ -232,7 +232,7 @@ function VariacaoBadge({
   }
   const sinal = variacaoPercentual > 0 ? "+" : "";
   return (
-    <span className="shrink-0 whitespace-nowrap rounded-md bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
+    <span className="shrink-0 whitespace-nowrap rounded-sm bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
       {sinal}
       {variacaoPercentual}% vs {anoAnterior}
     </span>
@@ -244,7 +244,7 @@ function ValorDivida({ valor }: { valor: number }) {
     return <span className="text-mute2 text-xs">Nada pendente</span>;
   }
   return (
-    <span className="font-bold font-mono text-warn-text tabular-nums">
+    <span className="font-bold text-warn-text tabular-nums">
       {fmtCompact(valor)}
     </span>
   );
@@ -337,7 +337,7 @@ export function RadarGastosSensiveis({
             percentual={linha.larguraBarra}
             className="bg-brand-fill"
           />
-          <span className="min-w-10 text-right font-mono text-ink tabular-nums">
+          <span className="min-w-10 text-right text-ink tabular-nums">
             {formatarPercentual(linha.percentualPago)}
           </span>
         </div>
@@ -358,7 +358,7 @@ export function RadarGastosSensiveis({
       align: "right",
       className: "whitespace-nowrap",
       renderCell: (linha) => (
-        <span className="font-medium font-mono text-ink tabular-nums">
+        <span className="font-medium text-ink tabular-nums">
           {linha.valorPago > 0 ? fmtCompact(linha.valorPago) : "R$ 0"}
         </span>
       ),
@@ -420,7 +420,7 @@ export function RadarGastosSensiveis({
               </div>
               <div className="flex items-baseline justify-between gap-3 pl-11 text-xs">
                 <span className="text-mute2">Pago no ano</span>
-                <span className="font-medium font-mono text-ink tabular-nums">
+                <span className="font-medium text-ink tabular-nums">
                   {linha.valorPago > 0 ? fmtCompact(linha.valorPago) : "R$ 0"}
                 </span>
               </div>

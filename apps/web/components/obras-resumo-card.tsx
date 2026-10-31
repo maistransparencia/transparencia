@@ -46,7 +46,7 @@ export function ObrasResumoCard({
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="font-bold text-base text-ink tracking-tight">
+            <h3 className="font-bold">
               Obras Públicas e Investimentos Urbanos
             </h3>
             <p className="text-mute2 text-xs">
@@ -201,13 +201,13 @@ export function ObrasResumoCard({
   const getMarkerBgClass = (situacao: string) => {
     switch (situacao) {
       case "em_execucao":
-        return "bg-brand-fill ring-brand-fill/40";
+        return "bg-brand-fill ring-page";
       case "concluida":
-        return "bg-ok-fill ring-ok-fill/40";
+        return "bg-ok-fill ring-page";
       case "paralisada":
-        return "bg-danger-fill ring-danger-fill/40";
+        return "bg-danger-fill ring-page";
       default:
-        return "bg-mute3 ring-line";
+        return "bg-mute3 ring-page";
     }
   };
 
@@ -218,13 +218,11 @@ export function ObrasResumoCard({
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
-            Obras Públicas
-          </h3>
+          <h3 className="font-semibold">Obras Públicas</h3>
           <ExternalLinkPill
             href={OBRASGOV_PANEL_URL}
             title="Painel de Obras Públicas do Governo Federal"
-            className="px-2.5 py-0.5 font-mono text-[10px] tracking-wider"
+            className="px-2.5 py-0.5 text-xs tracking-wider"
           >
             ObrasGov.br
           </ExternalLinkPill>
@@ -261,7 +259,7 @@ export function ObrasResumoCard({
         {/* Bloco de Métricas Consolidadas */}
         <div className="flex-1 space-y-4">
           <div>
-            <span className="font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest">
+            <span className="font-medium text-mute2 text-xs uppercase tracking-widest">
               Total de Investimento Previsto
             </span>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -410,7 +408,7 @@ export function ObrasResumoCard({
               alt="Visão geral cartográfica das obras públicas"
               fill
               sizes="(max-width: 1024px) 100vw, 224px"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="mapa-tema-imagem object-cover transition-transform duration-500 group-hover:scale-105"
               unoptimized
             />
 
@@ -429,7 +427,7 @@ export function ObrasResumoCard({
             </div>
 
             {/* Affordance Badge Flutuante */}
-            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 bg-page/95 px-2 py-1 font-medium font-mono text-[9px] text-ink uppercase tracking-wider backdrop-blur-xs transition-colors group-hover:bg-ink group-hover:text-onink">
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 bg-page/95 px-2 py-1 font-medium text-ink text-xs uppercase tracking-wider backdrop-blur-xs transition-colors group-hover:bg-ink group-hover:text-onink">
               <MapPin className="h-3 w-3" />
               <span>Mapa · Ver no mapa</span>
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

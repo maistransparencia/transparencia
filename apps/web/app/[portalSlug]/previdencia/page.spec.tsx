@@ -142,8 +142,10 @@ describe("PrevidenciaPage", () => {
     const element = await PrevidenciaPage(props);
     render(element);
 
-    expect(screen.getByText("Total Empenhado")).toBeInTheDocument();
-    expect(screen.getByText("Índice de Adimplência")).toBeInTheDocument();
+    expect(screen.getByText("Valor reservado (empenhado)")).toBeInTheDocument();
+    expect(
+      screen.getByText("Quanto do reservado já foi pago"),
+    ).toBeInTheDocument();
   });
 
   it("renderiza sigla institucional dinâmica da autarquia (ex: NATPREVI)", async () => {
@@ -168,10 +170,10 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText(/Total Empenhado para o NATPREVI/i),
+      screen.getByText(/Valor reservado \(empenhado\) para o NATPREVI/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/TEMAS · PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
+      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\) · EXERCÍCIO/i),
     ).toBeInTheDocument();
   });
 
@@ -340,11 +342,11 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByText(
-        "Município sem Regime Próprio de Previdência Social (RPPS) ativo",
+        "Este município não tem fundo próprio de aposentadoria dos servidores",
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Regime Geral de Previdência Social \(RGPS \/ INSS\)/i),
+      screen.getByText(/INSS \(Regime Geral de Previdência Social\)/i),
     ).toBeInTheDocument();
   });
 

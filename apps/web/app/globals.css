@@ -443,3 +443,46 @@ h3,
 .dark .farmacia-mapa .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
 }
+
+/*
+ * Mapas de obras: mesma decisão do mapa da Farmácia SUS (filtro CSS sobre os tiles claros no
+ * tema escuro). Controles e balão do Leaflet usam os tokens do tema.
+ */
+.mapa-tema .leaflet-bar {
+  border: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+.mapa-tema .leaflet-bar a {
+  background-color: var(--page);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+  border-radius: 0;
+}
+.mapa-tema .leaflet-bar a:hover {
+  background-color: var(--line2);
+}
+.mapa-tema .leaflet-control-attribution {
+  background: var(--page);
+  color: var(--mute2);
+}
+.mapa-tema .leaflet-control-attribution a {
+  color: var(--mute);
+}
+.mapa-tema .leaflet-popup-content-wrapper,
+.mapa-tema .leaflet-popup-tip {
+  background: var(--page);
+  color: var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+.dark .mapa-tema.leaflet-container,
+.dark .mapa-tema .leaflet-container {
+  background: var(--line2);
+}
+.dark .mapa-tema .leaflet-tile-pane,
+.dark .mapa-tema-imagem {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}

@@ -127,19 +127,19 @@ export function ObrasDetalheModal({
         <div className="flex flex-wrap items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs",
+              "inline-flex items-center rounded-sm border px-2.5 py-0.5 font-semibold text-xs",
               viewModel.situacaoVisual.badgeClass,
             )}
           >
             {viewModel.situacaoVisual.label}
           </span>
           {viewModel.naturezaIntervencao && (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 font-medium text-slate-700 text-xs">
+            <span className="inline-flex items-center rounded-full border border-line bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
               {viewModel.naturezaIntervencao}
             </span>
           )}
           {viewModel.especieIntervencao && (
-            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-blue-700 text-xs">
+            <span className="inline-flex items-center rounded-full border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs">
               {viewModel.especieIntervencao}
             </span>
           )}
@@ -151,16 +151,16 @@ export function ObrasDetalheModal({
       shareTitle={`Detalhes da Obra: ${viewModel.nomeObra} - Transparência Municipal`}
       footer={
         <div className="flex w-full flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-500">
+          <div className="flex items-center gap-1.5 text-mute2">
             <span>Fonte de dados:</span>
-            <strong className="text-slate-700">ObrasGov.br / CIPI</strong>
+            <strong className="text-mute">ObrasGov.br / CIPI</strong>
           </div>
           <div className="flex items-center gap-3">
             <a
               href={viewModel.linkObrasGov}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+              className="inline-flex items-center gap-1 font-semibold text-brand-text hover:underline"
             >
               <span>Ver no Cadastro Oficial (CIPI)</span>
               <ExternalLink className="h-3.5 w-3.5" />
@@ -168,7 +168,7 @@ export function ObrasDetalheModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 font-medium text-slate-700 hover:bg-slate-50"
+              className="border border-line bg-page px-3.5 py-1.5 font-medium text-mute hover:bg-line2"
             >
               Fechar
             </button>
@@ -181,32 +181,32 @@ export function ObrasDetalheModal({
         {viewModel.isParalisada && (
           <div
             data-testid="modal-alerta-paralisada"
-            className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-rose-950"
+            className="border-danger-fill border-l-[3px] bg-danger-fill/15 px-4 py-3 text-danger-text"
           >
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-text" />
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-rose-900 text-sm">
+                  <span className="font-bold text-danger-text text-sm">
                     Atenção Cívica: Obra Paralisada
                   </span>
-                  <span className="rounded-full border border-rose-200 bg-white px-2 py-0.5 font-medium text-[11px] text-rose-800">
+                  <span className="rounded-full border border-danger-fill bg-page px-2 py-0.5 font-medium text-danger-text text-xs">
                     Registro oficial em: {viewModel.dataParalisacaoFormatada}
                   </span>
                 </div>
-                <p className="text-rose-900/90 text-xs leading-relaxed">
-                  <strong className="font-semibold text-rose-950">
+                <p className="text-danger-text text-xs leading-relaxed">
+                  <strong className="font-semibold text-danger-text">
                     Justificativa oficial registrada:
                   </strong>{" "}
                   {viewModel.motivoParalisacao}
                 </p>
-                <div className="pt-1 text-[11px] text-rose-800">
+                <div className="pt-1 text-danger-text text-xs">
                   <span>Fundamentação jurídica: </span>
                   <a
                     href={viewModel.linkLegislacao}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold text-rose-950 underline decoration-rose-400 underline-offset-2 hover:text-rose-900"
+                    className="inline-flex items-center gap-1 font-semibold text-danger-text underline decoration-danger-fill underline-offset-2"
                   >
                     Art. 115, § 6º da Lei nº 14.133/2021
                     <ExternalLink className="h-3 w-3" />
@@ -222,23 +222,23 @@ export function ObrasDetalheModal({
           <div className="space-y-3">
             {viewModel.descricaoIntervencao && (
               <div>
-                <span className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+                <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
                   Objeto da Intervenção
                 </span>
-                <p className="mt-0.5 font-semibold text-slate-900 text-sm leading-snug">
+                <p className="mt-0.5 font-semibold text-ink text-sm leading-snug">
                   {viewModel.descricaoIntervencao}
                 </p>
               </div>
             )}
             {viewModel.funcaoSocial && (
-              <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-3 text-slate-800">
-                <div className="flex items-center gap-1.5 text-blue-900">
-                  <HeartHandshake className="h-4 w-4 shrink-0 text-blue-600" />
-                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+              <div className="border-brand-fill border-l-[3px] bg-brand-fill/15 px-3 py-2 text-ink">
+                <div className="flex items-center gap-1.5 text-brand-text">
+                  <HeartHandshake className="h-4 w-4 shrink-0 text-brand-text" />
+                  <span className="font-semibold text-xs uppercase tracking-wider">
                     Função Social e Impacto Comunitário
                   </span>
                 </div>
-                <p className="mt-1 text-slate-700 text-xs leading-relaxed">
+                <p className="mt-1 text-mute text-xs leading-relaxed">
                   {viewModel.funcaoSocial}
                 </p>
               </div>
@@ -250,18 +250,18 @@ export function ObrasDetalheModal({
         {(viewModel.executorNome || viewModel.repassadorNome) && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {viewModel.executorNome && (
-              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                <div className="flex items-center gap-1.5 text-slate-500">
-                  <Building2 className="h-4 w-4 text-slate-400" />
-                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+              <div className="border-line border-t pt-3">
+                <div className="flex items-center gap-1.5 text-mute2">
+                  <Building2 className="h-4 w-4 text-mute2" />
+                  <span className="font-semibold text-xs uppercase tracking-wider">
                     Órgão / Ente Executor
                   </span>
                 </div>
-                <p className="mt-1 font-semibold text-slate-900 text-sm">
+                <p className="mt-1 font-semibold text-ink text-sm">
                   {viewModel.executorNome}
                 </p>
                 {viewModel.executorCnpjMascarado && (
-                  <p className="mt-0.5 font-mono text-slate-500 text-xs">
+                  <p className="mt-0.5 text-mute2 text-xs">
                     CNPJ: {viewModel.executorCnpjMascarado}
                   </p>
                 )}
@@ -269,18 +269,18 @@ export function ObrasDetalheModal({
             )}
 
             {viewModel.repassadorNome && (
-              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-                <div className="flex items-center gap-1.5 text-slate-500">
-                  <Landmark className="h-4 w-4 text-slate-400" />
-                  <span className="font-semibold text-[11px] uppercase tracking-wider">
+              <div className="border-line border-t pt-3">
+                <div className="flex items-center gap-1.5 text-mute2">
+                  <Landmark className="h-4 w-4 text-mute2" />
+                  <span className="font-semibold text-xs uppercase tracking-wider">
                     Repassador de Recursos
                   </span>
                 </div>
-                <p className="mt-1 font-semibold text-slate-900 text-sm">
+                <p className="mt-1 font-semibold text-ink text-sm">
                   {viewModel.repassadorNome}
                 </p>
                 {viewModel.repassadorCnpjMascarado && (
-                  <p className="mt-0.5 font-mono text-slate-500 text-xs">
+                  <p className="mt-0.5 text-mute2 text-xs">
                     CNPJ: {viewModel.repassadorCnpjMascarado}
                   </p>
                 )}
@@ -303,29 +303,29 @@ export function ObrasDetalheModal({
 
         {/* Grid de Prazos e Investimento Previsto (3 colunas concisas) */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
-            <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="border-line border-t pt-3">
+            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
               Investimento Previsto
             </span>
-            <p className="mt-1 font-bold text-base text-slate-900">
+            <p className="mt-1 font-bold text-ink">
               {viewModel.valorInvestimentoFormatado}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
-            <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="border-line border-t pt-3">
+            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
               Início Previsto
             </span>
-            <p className="mt-1 font-semibold text-slate-800 text-sm">
+            <p className="mt-1 font-semibold text-ink text-sm">
               {viewModel.dataInicioPrevistaFormatada}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
-            <span className="flex items-center gap-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="border-line border-t pt-3">
+            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
               Término Previsto
             </span>
-            <p className="mt-1 font-semibold text-slate-800 text-sm">
+            <p className="mt-1 font-semibold text-ink text-sm">
               {viewModel.dataFimPrevistaFormatada}
             </p>
           </div>

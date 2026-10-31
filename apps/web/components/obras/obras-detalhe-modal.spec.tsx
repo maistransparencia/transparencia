@@ -9,7 +9,7 @@ const mockObraExecucao: ObraItemViewModel = {
   nomeObra: "Construção de UBS Central",
   situacao: "em_execucao",
   situacaoLabel: "Em Execução",
-  situacaoColorHex: "#2563eb",
+  situacaoCorPreenchimento: "#2563eb",
   situacaoBadgeClasses: "bg-blue-50 text-blue-700 border-blue-200",
   orgaoResponsavel: "Secretaria de Obras",
   valorInvestimentoPrevisto: 1200000,
@@ -36,7 +36,7 @@ const mockObraParalisada: ObraItemViewModel = {
   nomeObra: "Reforma de Creche",
   situacao: "paralisada",
   situacaoLabel: "Paralisada",
-  situacaoColorHex: "#dc2626",
+  situacaoCorPreenchimento: "#dc2626",
   situacaoBadgeClasses: "bg-rose-50 text-rose-700 border-rose-200",
   motivoParalisacao: "Rescisão unilateral de contrato por abandono da empresa",
 };

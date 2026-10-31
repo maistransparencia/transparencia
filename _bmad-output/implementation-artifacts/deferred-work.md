@@ -333,3 +333,64 @@ location: apps/web/components/educacao/educacao-hero-section.tsx
 source_spec: `20-8-saude-e-educacao.md`
 reason: `percentualDoReservado` devolve 0 quando empenhado é 0 e há pago (restos a pagar); o título diz "reservou R$ 0 e pagou R$ X". Decidir o texto.
 status: open
+
+### DW-16: Falta spec de renderização que capture o `divIcon` do mapa de obras (cor do marcador e popup por token) e o tooltip do donut; `resolveDestinoColor` não tem teste.
+origin: spec-deferred 32ce8ae8b925
+location: apps/web/components/obras/obras-mapa-interativo.tsx; apps/web/app/[portalSlug]/previdencia/view-model.ts
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: medium
+reason: Verification-gap: Leaflet é mockado em `obras-mapa-interativo.spec.tsx` e nenhum teste observa `barColor` nem `TooltipEntidade`; trocar tokens não quebra nada.
+status: open
+
+### DW-17: `cancelada` e `cadastrada` passaram a usar o mesmo token (`--mute3`); antes tinham cores distintas.
+origin: spec-deferred fd888aab3ca4
+location: apps/web/app/[portalSlug]/obras/view-model.ts:55
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: Em `obras/view-model.ts` os dois casos têm `corPreenchimento: var(--mute3)`; `--mute2` e `--mute3` são quase idênticos, então a correção exige decisão de design (ex.: forma do marcador).
+status: open
+
+### DW-18: Hero de previdência esconde o painel quando `totalEmpenhado` é 0 mesmo com `totalPago` ou aporte atuarial maiores que zero.
+origin: spec-deferred c794a7426e6b
+location: apps/web/components/previdencia-hero-section.tsx:46
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+reason: `temDados = totalEmpenhado > 0`; falta confirmar se a camada de dados pode devolver pago sem empenhado (maybe-false).
+status: open
+
+### DW-19: "Repassado ao fundo (pago)" usa `totalPago`, que pode incluir INSS/RGPS e plano de saúde; texto de estado sem fundo próprio afirma contribuição ao INSS sem confirmar que o RPPS não foi ingerido.
+origin: spec-deferred 9237300af2f1
+location: apps/web/components/previdencia-hero-section.tsx
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+reason: Exige conferência do `contador-publico` sobre a composição de `totalPago` e do estado sem RPPS (maybe-false).
+status: open
+
+### DW-20: Painel do hero de obras pode mostrar "R$ 0" de investimento quando há obras sem valor; subtexto "Retração acumulada frente ao pico" é fixo mesmo se o patrimônio cresceu (já existia).
+origin: spec-deferred cc3c8e815495
+location: apps/web/components/obras/obras-hero-section.tsx:107; apps/web/components/previdencia-patrimonio-historico-section.tsx:269
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: `obras-hero-section.tsx` só guarda `totalObras > 0`; o subtexto do patrimônio já estava assim em HEAD.
+status: open
+
+### DW-21: Guarda de código-fonte é mais fraca que a regra: regex de `rounded-*` não pega `rounded`, `rounded-md` e `rounded-full`, e `expect(obras).toBeDefined()` não afirma nada.
+origin: spec-deferred 9ea15b9ea93b
+location: apps/web/components/obras-previdencia-radar-divisorias.spec.ts
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: Pills e badges arredondados continuam em radar, saldo de caixa e modal de obras.
+status: open
+
+### DW-22: Coluna de severidade do radar tem largura fixa `sm:w-16` com fonte proporcional; rótulos como "Moderada" podem estourar. Também faltam capturas de tela e suíte visual (AC 6) e a revisão independente
+origin: spec-deferred dd7cd166b5a8
+location: apps/web/components/radar-civico-feed.tsx:64
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+reason: Sem render visual não foi possível confirmar; a story registra que capturas e revisões independentes não foram feitas.
+status: open
+
+### DW-23: Citação "Art. 115, §6º da Lei 14.133/2021" segue na tela sem conferência do `jurista-fiscal` (já existia em HEAD, via `urlLegislacao`).
+origin: spec-deferred 58bbdaf291e8
+location: apps/web/components/obras/obras-paralisadas-section.tsx:123
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: Spec exige conferência jurídica; o texto é anterior a esta story.
+status: open

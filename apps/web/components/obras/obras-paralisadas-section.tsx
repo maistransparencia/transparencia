@@ -1,6 +1,6 @@
 "use client";
 
-import { fmtCompact } from "@transparencia/ui";
+import { Badge, fmtCompact, SectionHeader } from "@transparencia/ui";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import type { ObraItemViewModel } from "@/app/[portalSlug]/obras/view-model";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -41,33 +41,27 @@ export function ObrasParalisadasSection({
   };
 
   return (
-    <section
-      aria-labelledby="titulo-obras-paralisadas"
-      className="space-y-4 border-ink border-t-2 pt-8"
-    >
-      <div>
-        <h2
-          id="titulo-obras-paralisadas"
-          className="font-bold font-serif text-2xl text-slate-900"
-        >
-          Obras paralisadas
-        </h2>
-        <p className="mt-1 text-slate-600 text-sm">
-          A{" "}
-          <a
-            href={urlLegislacao("lei14133", "art115p6")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-0.5 font-medium text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Lei nº 14.133/2021
-            <ExternalLink className="h-3 w-3" />
-          </a>{" "}
-          exige que o motivo da paralisação seja divulgado em sítio oficial.
-        </p>
-      </div>
+    <section aria-label="Obras paralisadas" className="space-y-6">
+      <SectionHeader
+        title="Obras paralisadas"
+        description={
+          <>
+            A{" "}
+            <a
+              href={urlLegislacao("lei14133", "art115p6")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5"
+            >
+              Lei nº 14.133/2021
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            </a>{" "}
+            exige que o motivo da paralisação seja divulgado em sítio oficial.
+            Obra parada é motivo para perguntar, não prova de erro.
+          </>
+        }
+      />
 
-      {/* Grid de 2 Colunas no estilo dos alertas do Radar Cívico */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {obras.map((obra) => {
           const getTempoParalisada = (meses: number | null | undefined) => {
@@ -81,93 +75,72 @@ export function ObrasParalisadasSection({
             <div
               key={obra.idProjeto}
               data-testid="obra-paralisada-card"
-              className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-sm"
+              className="panel panel-top panel-danger flex flex-col justify-between"
             >
-              <div>
-                {/* Badges Superiores */}
+              <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-rose-200 bg-rose-50 px-3 py-0.5 font-medium text-rose-800 text-xs">
-                    Atenção especial
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-0.5 font-medium text-slate-700 text-xs">
-                    {tempoParalisada}
-                  </span>
+                  <Badge variant="danger">Atenção especial</Badge>
+                  <Badge>{tempoParalisada}</Badge>
                 </div>
 
-                {/* Título da Obra */}
-                <h3 className="mt-3 font-bold font-serif text-base text-ink leading-snug tracking-tight sm:text-lg">
-                  {obra.nomeObra}
-                </h3>
+                <h3>{obra.nomeObra}</h3>
 
-                {/* Motivo Registrado */}
-                <p className="mt-2 text-slate-600 text-sm leading-relaxed">
-                  <strong className="text-slate-800">Motivo registrado:</strong>{" "}
+                <p>
+                  <strong>Motivo registrado:</strong>{" "}
                   {obra.motivoParalisacao ||
                     "Não informado pelo órgão responsável no cadastro oficial."}
                 </p>
 
-                {/* Box de Indicadores no Padrão do Radar Cívico */}
-                <div className="mt-4 rounded-xl border border-slate-200/80 bg-[#f8f9fb] p-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-                        Execução Física
-                      </span>
-                      <span className="mt-1 block font-bold text-slate-900 text-sm">
-                        {obra.percentualExecucaoFormatado}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-                        Última Medição
-                      </span>
-                      <span className="mt-1 block font-bold text-slate-900 text-sm">
-                        {obra.dataUltimaMedicaoFormatada || "N/D"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
-                        Previsto
-                      </span>
-                      <span className="mt-1 block font-bold text-slate-900 text-sm">
-                        {fmtCompact(obra.valorInvestimentoPrevisto)}
-                      </span>
-                    </div>
+                <dl className="grid grid-cols-3 gap-2 border-line border-y py-3">
+                  <div>
+                    <dt className="eyebrow">Execução Física</dt>
+                    <dd className="font-semibold text-ink text-sm">
+                      {obra.percentualExecucaoFormatado}
+                    </dd>
                   </div>
-                </div>
+                  <div>
+                    <dt className="eyebrow">Última Medição</dt>
+                    <dd className="font-semibold text-ink text-sm">
+                      {obra.dataUltimaMedicaoFormatada || "N/D"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Previsto</dt>
+                    <dd className="font-semibold text-ink text-sm">
+                      {fmtCompact(obra.valorInvestimentoPrevisto)}
+                    </dd>
+                  </div>
+                </dl>
 
-                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-xs">
-                  <span className="mr-0.5">Base legal:</span>
+                <p className="caption flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>Base legal:</span>
                   <a
                     href={urlLegislacao("lei14133", "art115p6")}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    className="inline-flex items-center gap-1"
                   >
                     Art. 115, §6º da Lei nº 14.133/2021
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
                   </a>
-                </div>
+                </p>
               </div>
 
-              {/* Rodapé com Ações */}
-              <div className="mt-5 flex items-center justify-between gap-3 border-[#f4f5f7] border-t pt-3.5">
+              <div className="mt-5 flex items-center justify-between gap-3 border-line2 border-t pt-3.5">
                 <button
                   type="button"
                   onClick={() => handleVerDetalhes(obra.idProjeto)}
-                  className="inline-flex min-w-0 items-center gap-1 font-semibold text-accent text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm"
+                  className="inline-flex min-h-11 min-w-0 items-center gap-1 font-semibold text-brand-text text-sm underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 >
                   <span>Ver detalhes</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
 
                 {obra.hasCoordinates && (
                   <button
                     type="button"
                     onClick={() => handleVerNoMapa(obra.idProjeto)}
-                    className="inline-flex items-center gap-1 font-normal text-slate-600 text-sm hover:text-slate-900 hover:underline"
+                    className="inline-flex min-h-11 items-center gap-1 text-mute text-sm underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <span>Ver no mapa</span>
                   </button>

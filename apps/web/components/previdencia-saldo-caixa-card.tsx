@@ -34,12 +34,12 @@ function getMesNome(mes: number): string {
 
 function getVariacaoBadgeClass(variacao: number): string {
   if (variacao > 0) {
-    return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border border-ok-fill bg-ok-fill/15 text-ok-text";
   }
   if (variacao < 0) {
-    return "border border-rose-200 bg-rose-50 text-rose-700";
+    return "border border-danger-fill bg-danger-fill/15 text-danger-text";
   }
-  return "bg-slate-100 text-slate-600";
+  return "bg-line2 text-mute";
 }
 
 export function PrevidenciaSaldoCaixaCard({
@@ -56,14 +56,14 @@ export function PrevidenciaSaldoCaixaCard({
     return (
       <section
         aria-label="Disponibilidade Financeira do RPPS"
-        className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
+        className={`border-line border-t pt-5 ${className}`}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="font-bold text-base text-ink tracking-tight">
+            <h3 className="font-bold">
               Disponibilidade em Caixa e Aplicações do RPPS
             </h3>
-            <p className="text-subtleText text-xs">
+            <p className="text-mute text-xs">
               Recursos em contas e aplicações titularizadas pela previdência
               própria
             </p>
@@ -73,7 +73,7 @@ export function PrevidenciaSaldoCaixaCard({
             href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 self-start rounded border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-[11px] text-blue-700 transition-colors hover:bg-blue-100 sm:self-auto"
+            className="inline-flex items-center gap-1 self-start rounded border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs transition-colors sm:self-auto"
             title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
           >
             <span>SICONFI</span>
@@ -81,8 +81,8 @@ export function PrevidenciaSaldoCaixaCard({
           </a>
         </div>
 
-        <div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-[#e7e9ee] border-dashed bg-slate-50/50 p-6 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-subtleText/60" />
+        <div className="mt-4 flex flex-col items-center justify-center border-line border-y py-4 text-center">
+          <AlertCircle className="mb-2 h-6 w-6 text-mute/60" />
           <p className="font-medium text-ink text-sm">
             Aguardando homologação da remessa MSC pelo Tesouro Nacional para o
             fundo previdenciário no exercício {ano}.
@@ -105,12 +105,12 @@ export function PrevidenciaSaldoCaixaCard({
   const variacaoAnualPercentual = prevItem?.variacaoAnualPercentual;
   const saldoDescobertoFlag = prevItem?.saldoDescobertoFlag ?? false;
 
-  const pctLivres = (() => {
+  const percentualLivres = (() => {
     if (saldoTotal <= 0) return 0;
     return Math.min(Math.max((saldoLivre / saldoTotal) * 100, 0), 100);
   })();
 
-  const pctVinculados = (() => {
+  const percentualVinculados = (() => {
     if (saldoTotal <= 0) return 0;
     return Math.min(Math.max((saldoVinculado / saldoTotal) * 100, 0), 100);
   })();
@@ -118,29 +118,29 @@ export function PrevidenciaSaldoCaixaCard({
   return (
     <section
       aria-label="Disponibilidade Financeira do RPPS"
-      className={`rounded-2xl border border-[#e7e9ee] bg-white p-5 shadow-sm sm:p-6 ${className}`}
+      className={`border-line border-t pt-5 ${className}`}
     >
       {/* Cabeçalho */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="font-bold text-base text-ink tracking-tight">
+          <h3 className="font-bold">
             Disponibilidade em Caixa e Aplicações do RPPS
           </h3>
-          <p className="text-subtleText text-xs">
+          <p className="text-mute text-xs">
             Recursos em contas e aplicações titularizadas pela previdência
             própria
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 text-xs">
+          <span className="inline-flex items-center rounded-md border border-ok-fill bg-ok-fill/15 px-2.5 py-1 font-medium text-ok-text text-xs">
             Posição: {mesExtenso}/{ano}
           </span>
           <a
             href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9ee] bg-slate-50 px-3 py-1 font-medium text-subtleText text-xs transition-colors hover:bg-slate-100 hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-line2 px-3 py-1 font-medium text-mute text-xs transition-colors hover:text-ink"
           >
             <span>SICONFI</span>
             <ExternalLink className="h-3 w-3" />
@@ -159,10 +159,10 @@ export function PrevidenciaSaldoCaixaCard({
 
       {/* Alerta de Saldo a Descoberto se houver */}
       {saldoDescobertoFlag && (
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-4 text-rose-950 text-xs">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-700" />
+        <div className="mt-4 flex items-start gap-3 border-danger-fill border-l-[3px] bg-danger-fill/15 px-4 py-3 text-ink text-xs">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
           <div className="leading-relaxed">
-            <span className="font-semibold text-rose-900">
+            <span className="font-semibold text-danger-text">
               Aviso de Insuficiência Financeira no RPPS:
             </span>{" "}
             Identificou-se saldo a descoberto em contas bancárias da previdência
@@ -176,17 +176,15 @@ export function PrevidenciaSaldoCaixaCard({
       {/* Métricas Principais Consolidadas (Layout Horizontal Estilo Visão Geral) */}
       <div className="mt-5 grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
         <div>
-          <span className="font-medium text-subtleText text-xs uppercase tracking-wider">
+          <span className="font-medium text-mute text-xs uppercase tracking-wider">
             Total em Caixa e Aplicações
           </span>
           <div className="mt-1 flex items-center gap-2">
-            <p className="font-bold font-serif text-3xl text-ink tracking-tight">
-              {fmtCompact(saldoTotal)}
-            </p>
+            <p className="stat-value">{fmtCompact(saldoTotal)}</p>
             {variacaoAnualPercentual !== undefined &&
               variacaoAnualPercentual !== null && (
                 <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[11px] ${getVariacaoBadgeClass(
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-xs ${getVariacaoBadgeClass(
                     variacaoAnualPercentual,
                   )}`}
                 >
@@ -202,42 +200,39 @@ export function PrevidenciaSaldoCaixaCard({
         <div className="space-y-2">
           {/* Mini-Barra Proporcional */}
           <div
-            className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
+            className="flex h-2.5 w-full overflow-hidden bg-line2"
             role="progressbar"
-            aria-valuenow={Math.round(pctLivres)}
+            aria-valuenow={Math.round(percentualLivres)}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Composição do saldo: ${Math.round(pctLivres)}% livres, ${Math.round(pctVinculados)}% vinculados`}
+            aria-label={`Composição do saldo: ${Math.round(percentualLivres)}% livres, ${Math.round(percentualVinculados)}% vinculados`}
           >
             <div
-              className="bg-emerald-500 transition-all duration-300"
-              style={{ width: `${pctLivres}%` }}
+              className="bg-ok-fill transition-all duration-300"
+              style={{ width: `${percentualLivres}%` }}
             />
             <div
-              className="bg-blue-600 transition-all duration-300"
-              style={{ width: `${pctVinculados}%` }}
+              className="bg-brand-fill transition-all duration-300"
+              style={{ width: `${percentualVinculados}%` }}
             />
           </div>
 
           {/* Legenda de Recursos Livres e Vinculados */}
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-              <span className="text-subtleText">
-                Recursos Vinculados (RPPS):
-              </span>
+              <span className="h-2.5 w-2.5 bg-brand-fill" aria-hidden="true" />
+              <span className="text-mute">Recursos Vinculados (RPPS):</span>
               <span className="font-semibold text-ink">
-                {fmtCompact(saldoVinculado)} ({fmtPercent(pctVinculados)})
+                {fmtCompact(saldoVinculado)} ({fmtPercent(percentualVinculados)}
+                )
               </span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              <span className="text-subtleText">
-                Recursos Ordinários / Livres:
-              </span>
+              <span className="h-2.5 w-2.5 bg-ok-fill" aria-hidden="true" />
+              <span className="text-mute">Recursos Ordinários / Livres:</span>
               <span className="font-semibold text-ink">
-                {fmtCompact(saldoLivre)} ({fmtPercent(pctLivres)})
+                {fmtCompact(saldoLivre)} ({fmtPercent(percentualLivres)})
               </span>
             </div>
           </div>
@@ -245,9 +240,9 @@ export function PrevidenciaSaldoCaixaCard({
       </div>
 
       {/* Rodapé com Nota Constitucional e Botão Show Your Work */}
-      <div className="mt-5 flex flex-col gap-3 border-[#e7e9ee] border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1.5 text-subtleText text-xs">
-          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+      <div className="mt-5 flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-1.5 text-mute text-xs">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand-text" />
           <span>
             Patrimônio financeiro exclusivo da previdência própria, segregado do
             caixa geral do município (
@@ -255,7 +250,7 @@ export function PrevidenciaSaldoCaixaCard({
               href={urlLegislacao("constituicao", "art167")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium underline underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-0.5"
             >
               <span>CF art. 167, XI</span>
               <ExternalLink className="inline h-3 w-3" />

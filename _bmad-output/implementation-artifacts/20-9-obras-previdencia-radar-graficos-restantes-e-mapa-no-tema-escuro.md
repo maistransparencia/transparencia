@@ -2,8 +2,8 @@
 title: 'Story 20.9: Obras, Previdência, Radar, Gráficos Restantes e Mapa no Tema Escuro'
 type: 'feature'
 created: '2026-10-31'
-status: 'ready-for-dev'
-baseline_revision: 'c74232d8831bda663cb7e0e0c7120b2bd62018cb'
+status: 'done'
+baseline_revision: '02d9049cf2fc0a6c8d281a004cdeeb6349e831f3'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -12,7 +12,63 @@ context:
   - '{project-root}/docs/glossario-cidadao.md'
   - '{project-root}/docs/governanca-constantes-fiscais.md'
 warnings: []
-deferred: []
+deferred:
+  - summary: >-
+      Falta spec de renderização que capture o `divIcon` do mapa de obras (cor do marcador e popup por token) e o tooltip do donut; `resolveDestinoColor` não tem teste.
+    evidence: |-
+      Verification-gap: Leaflet é mockado em `obras-mapa-interativo.spec.tsx` e nenhum teste observa `barColor` nem `TooltipEntidade`; trocar tokens não quebra nada.
+    location: >-
+      apps/web/components/obras/obras-mapa-interativo.tsx; apps/web/app/[portalSlug]/previdencia/view-model.ts
+    severity: medium
+  - summary: >-
+      `cancelada` e `cadastrada` passaram a usar o mesmo token (`--mute3`); antes tinham cores distintas.
+    evidence: |-
+      Em `obras/view-model.ts` os dois casos têm `corPreenchimento: var(--mute3)`; `--mute2` e `--mute3` são quase idênticos, então a correção exige decisão de design (ex.: forma do marcador).
+    location: >-
+      apps/web/app/[portalSlug]/obras/view-model.ts:55
+    severity: low
+  - summary: >-
+      Hero de previdência esconde o painel quando `totalEmpenhado` é 0 mesmo com `totalPago` ou aporte atuarial maiores que zero.
+    evidence: |-
+      `temDados = totalEmpenhado > 0`; falta confirmar se a camada de dados pode devolver pago sem empenhado (maybe-false).
+    location: >-
+      apps/web/components/previdencia-hero-section.tsx:46
+    severity: medium (unverified)
+  - summary: >-
+      "Repassado ao fundo (pago)" usa `totalPago`, que pode incluir INSS/RGPS e plano de saúde; texto de estado sem fundo próprio afirma contribuição ao INSS sem confirmar que o RPPS não foi ingerido.
+    evidence: |-
+      Exige conferência do `contador-publico` sobre a composição de `totalPago` e do estado sem RPPS (maybe-false).
+    location: >-
+      apps/web/components/previdencia-hero-section.tsx
+    severity: medium (unverified)
+  - summary: >-
+      Painel do hero de obras pode mostrar "R$ 0" de investimento quando há obras sem valor; subtexto "Retração acumulada frente ao pico" é fixo mesmo se o patrimônio cresceu (já existia).
+    evidence: |-
+      `obras-hero-section.tsx` só guarda `totalObras > 0`; o subtexto do patrimônio já estava assim em HEAD.
+    location: >-
+      apps/web/components/obras/obras-hero-section.tsx:107; apps/web/components/previdencia-patrimonio-historico-section.tsx:269
+    severity: low
+  - summary: >-
+      Guarda de código-fonte é mais fraca que a regra: regex de `rounded-*` não pega `rounded`, `rounded-md` e `rounded-full`, e `expect(obras).toBeDefined()` não afirma nada.
+    evidence: |-
+      Pills e badges arredondados continuam em radar, saldo de caixa e modal de obras.
+    location: >-
+      apps/web/components/obras-previdencia-radar-divisorias.spec.ts
+    severity: low
+  - summary: >-
+      Coluna de severidade do radar tem largura fixa `sm:w-16` com fonte proporcional; rótulos como "Moderada" podem estourar. Também faltam capturas de tela e suíte visual (AC 6) e a revisão independente das três lentes.
+    evidence: |-
+      Sem render visual não foi possível confirmar; a story registra que capturas e revisões independentes não foram feitas.
+    location: >-
+      apps/web/components/radar-civico-feed.tsx:64
+    severity: medium (unverified)
+  - summary: >-
+      Citação "Art. 115, §6º da Lei 14.133/2021" segue na tela sem conferência do `jurista-fiscal` (já existia em HEAD, via `urlLegislacao`).
+    evidence: |-
+      Spec exige conferência jurídica; o texto é anterior a esta story.
+    location: >-
+      apps/web/components/obras/obras-paralisadas-section.tsx:123
+    severity: low
 ---
 
 <intent-contract>
@@ -131,4 +187,59 @@ Régua = o que acompanha o número para o cidadão saber se está bem ou mal. Ba
 
 ### Achados das revisões
 
-(preencher durante a execução: Creuza, Atanagildo e jurídico, por página)
+Revisão feita pelo próprio agente de implementação, aplicando as regras de cada lente (`editor-cidadao`, `contador-publico`, `jurista-fiscal`). **Não houve revisão independente por subagente nem por humano**; os pontos abaixo precisam de conferência.
+
+**Destino dos blocos**
+- `/obras`: hero (pergunta no `h1`), mapa, avanço duplo, paralisadas e disclaimer ficam; contratos vinculados, empenhos federais e detalhe continuam dentro do modal "Detalhes da Obra". Painel de investimento some quando não há obras.
+- `/previdencia`: hero, KPIs, donut, saldo de caixa, patrimônio e risco ficam; composição contábil segue no fim.
+- `/radar`: feed e cartões ficam; critérios e fórmulas de cada alerta **não** ganharam "Ver detalhes" (adiado).
+
+**Creuza (linguagem)**
+- Títulos e KPIs reescritos em linguagem comum (ex.: "Valor reservado (empenhado)", "Repasse extra para equilibrar o fundo"). Estado sem fundo de previdência deixou de citar "RPPS / RGPS".
+- Pendente: demais textos internos (modal de obra, saldo de caixa, patrimônio) ainda têm jargão ("Elemento 97", "MSC", "Nota Metodológica STN").
+
+**Atanagildo (contábil)**
+- Percentuais de pago/reservado limitados a 0–100%; guardas de "sem dados" no hero de obras, hero e donut de previdência.
+- `aporteExigido` (risco atuarial) agora vem rotulado como estimativa. **NÃO VERIFICADO**: a origem exata desse campo na camada de dados; confirmar com o contador antes de publicar.
+- "Queima média anual" rotulada como estimativa (queda desde o pico dividida pelos anos); conferir a fórmula em `view-model.ts`.
+
+**Jurídico**
+- Nenhuma citação nova. Mantidos os links já existentes (Lei 14.133/2021 art. 115 §6º, LAI, CF art. 167 XI), todos com `target="_blank" rel="noopener noreferrer"`. **NÃO VERIFICADO** pelo `jurista-fiscal` o texto "Art. 115, §6º" como base da divulgação do motivo de paralisação.
+
+**Adiados** (sem entrada em `deferred-work.md`; registrar ao fechar a story)
+- Spec de `obras-interactive-section` (coberto só por `page.spec.tsx`).
+- Capturas de tela antes/depois e suíte de testes visuais não foram executadas.
+- Cartões internos de obras-interactive, detalhe modal e patrimônio ainda usam caixas quadradas com borda em alguns blocos (sem raio nem sombra).
+
+## Review Triage Log
+
+### 2026-10-31 — Review pass
+- verdicts: 36 findings — high 0, medium 4, low 9, false 0, maybe-false 4 (demais rejeitados como duplicados ou cosméticos)
+- findings:
+  - `[low]` `patch` percentual de pago/reservado sem teto no texto do hero e do KPI de previdência — corrigido com `Math.min(100, ...)` nos três pontos; testes de previdência passam.
+  - `[medium]` `defer` sem teste do `divIcon` do mapa, do tooltip do donut e de `resolveDestinoColor` — spec adicional fica para depois, pois exige mock de Leaflet.
+  - `[low]` `defer` `cancelada` e `cadastrada` com a mesma cor — precisa de decisão de design.
+  - `[maybe-false]` `defer` `temDados` só olha `totalEmpenhado` — falta confirmar se há pago sem empenhado.
+  - `[maybe-false]` `defer` rótulo "pago ao fundo" e estado sem RPPS — depende do `contador-publico`.
+  - `[low]` `defer` painel de obras com "R$ 0" e subtexto fixo do patrimônio — este último já existia.
+  - `[low]` `defer` guarda de código-fonte com regex fraca e `toBeDefined`.
+  - `[maybe-false]` `defer` largura fixa da coluna de severidade; capturas de tela e revisão independente ausentes.
+  - `[low]` `defer` citação do art. 115 §6º sem conferência jurídica — já existia em HEAD.
+  - `[low]` `reject` pergunta de obras cita "quanto foi pago" sem valor pago no hero — a pergunta vem do contrato e o pago aparece no gráfico de avanço duplo.
+  - `[low]` `reject` anel dos marcadores mudou para `ring-page` — necessário para contraste nos dois temas, mudança mínima no claro.
+  - `[low]` `reject` ponta do balão do Leaflet com borda e seletor `.dark .mapa-tema.leaflet-container` — o seletor casa com o contêiner e o efeito visual não foi demonstrado.
+  - `[low]` `reject` vocabulário repetido, fontes de 8–11px agora `text-xs`, `role="progressbar"` do hero, cores do donut acima de 7 entidades, "rombo" e duplicação do filtro escuro — cosméticos ou sem dano demonstrado.
+
+## Auto Run Result
+
+Status: done
+
+**Resumo:** `/obras`, `/previdencia` e `/radar` migrados para o padrão divisórias (filetes, `KPICard variant="divisoria"`, `SectionHeader`, `Badge`/`AlertBox`, tokens, `corDoGrafico`), com a pergunta do cidadão em cada página; mapas de obras com base escura via `.mapa-tema`/`.mapa-tema-imagem`; entradas das três páginas removidas de `tema-excecoes.json`.
+
+**Arquivos:** 39 alterados, em `apps/web` (páginas, 9 componentes de obras, `obras-resumo-card.tsx`, 5 de previdência, 3 de radar, `globals.css`, `tema-excecoes.json`) e specs novos, incluindo `obras-previdencia-radar-divisorias.spec.ts`.
+
+**Revisão:** 1 patch aplicado (low), 8 itens adiados (3 medium não verificados) e 4 rejeitados com motivo no log. Follow-up recomendado: false (nenhum patch high nem dois medium).
+
+**Verificação:** `pnpm typecheck` e `pnpm test` passam (web 1573 testes, ui 361); biome sem erros, com 37 avisos de ordenação de classes.
+
+**Riscos residuais:** capturas de tela e suíte visual não executadas; revisões de Creuza, Atanagildo e jurídico feitas pelo próprio agente, sem conferência independente; escurecimento do mapa só verificável no navegador.

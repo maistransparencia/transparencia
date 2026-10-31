@@ -87,6 +87,12 @@ export function PrevidenciaActuarialRiskSection({
     },
   ];
 
+  const anosDaSerie = trend.map((ponto) => ponto.ano);
+  const anoMin = Math.min(...anosDaSerie);
+  const anoMax = Math.max(...anosDaSerie);
+  const intervaloDaSerie =
+    anoMin === anoMax ? `${anoMin}` : `${anoMin}–${anoMax}`;
+
   return (
     <section id="cadprev" className={`space-y-6 ${className || ""}`}>
       <SectionHeader
@@ -97,7 +103,7 @@ export function PrevidenciaActuarialRiskSection({
       {/* Tabela de Acordos de Confissão e Parcelamento no CADPREV */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold font-serif text-slate-800 text-sm">
+          <h3>
             Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV /
             Ministério da Previdência)
           </h3>
@@ -111,12 +117,12 @@ export function PrevidenciaActuarialRiskSection({
             exportFilename={`cadprev-parcelamentos-${ano}.csv`}
           />
         ) : (
-          <div className="rounded-xl border border-slate-200 border-dashed bg-slate-50/50 p-6 text-center text-mutedText text-xs">
+          <div className="border-line border-y py-4 text-center text-mute text-xs">
             Nenhum termo de parcelamento ou confissão de dívida registrado no
             CADPREV para o exercício de {ano}.
           </div>
         )}
-        <p className="text-mutedText text-xs">
+        <p className="text-mute text-xs">
           Não inclui multas ou penalidades tributárias pagas a outros credores
           (ex: Receita Federal), mesmo quando relacionadas à contribuição
           previdenciária — apenas acordos formais junto ao {previdenciaSigla}.
@@ -126,10 +132,14 @@ export function PrevidenciaActuarialRiskSection({
       {/* Tabela Histórica da Adimplência do Aporte Atuarial */}
       {trend.length > 0 && (
         <div className="space-y-3">
-          <h3 className="font-semibold font-serif text-slate-800 text-sm">
-            Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas
-            (2021–2026)
+          <h3>
+            {`Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (${intervaloDaSerie})`}
           </h3>
+          <p className="text-mute text-xs">
+            O aporte exigido é uma estimativa: segue o cálculo atuarial do
+            fundo, não é um valor medido. O aporte efetuado é o que foi
+            realmente pago.
+          </p>
           <DenseTable
             data={trend}
             columns={trendCols}

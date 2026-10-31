@@ -44,7 +44,7 @@ export default async function ObrasPage({
 
   return (
     <div className="space-y-10 pb-16">
-      {/* Hero Narrative & KPIs no padrão de temas */}
+      {/* Pergunta do cidadão e situação das obras */}
       <ObrasHeroSection
         ano={viewModel.selectedYear}
         isCurrentYear={viewModel.isCurrentYear}
@@ -57,8 +57,6 @@ export default async function ObrasPage({
 
       {/* Seção Dedicada de Obras Paralisadas (se houver) */}
       <ObrasParalisadasSection obras={viewModel.paralisadasObras} />
-
-      <div className="space-y-4 border-ink border-t-2"></div>
 
       {/* Disclaimer cívico: ObrasGov.br e cobrança parlamentar */}
       <ObrasCivicDisclaimer

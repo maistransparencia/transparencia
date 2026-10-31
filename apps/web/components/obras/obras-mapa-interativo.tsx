@@ -65,16 +65,17 @@ export function ObrasMapaInterativo({
       markers.forEach((m) => {
         const isSelected = selectedObraId === m.idProjeto;
         const size = isSelected ? 20 : 14;
-        const border = isSelected ? "3px solid #ffffff" : "2px solid #ffffff";
-        const shadow = isSelected
-          ? "0 0 0 3px rgba(37,99,235,0.45), 0 2px 6px rgba(0,0,0,0.35)"
-          : "0 1px 4px rgba(0,0,0,0.35)";
+        // Borda na cor da página mantém o contraste do marcador nos dois temas.
+        const border = isSelected
+          ? "3px solid var(--page)"
+          : "2px solid var(--page)";
+        const shadow = isSelected ? "0 0 0 2px var(--ink)" : "none";
 
         const html = `
         <div style="
           width: ${size}px;
           height: ${size}px;
-          background-color: ${m.situacaoColorHex};
+          background-color: ${m.situacaoCorPreenchimento};
           border-radius: 50%;
           border: ${border};
           box-shadow: ${shadow};
@@ -103,17 +104,17 @@ export function ObrasMapaInterativo({
 
         const popupHtml = `
         <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 220px;">
-          <div style="font-weight: 700; margin-bottom: 3px; color: #0f172a;">${nomeObraEscaped}</div>
-          <div style="color: #64748b; font-size: 11px; margin-bottom: 6px;">${orgaoEscaped}</div>
+          <div style="font-weight: 700; margin-bottom: 3px; color: var(--ink);">${nomeObraEscaped}</div>
+          <div style="color: var(--mute); font-size: 11px; margin-bottom: 6px;">${orgaoEscaped}</div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-            <span style="color: #64748b;">Investimento:</span>
-            <span style="font-weight: 600; color: #0f172a;">${investimentoEscaped}</span>
+            <span style="color: var(--mute);">Investimento:</span>
+            <span style="font-weight: 600; color: var(--ink);">${investimentoEscaped}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-            <span style="color: #64748b;">Avanço:</span>
-            <span style="font-weight: 600; color: #2563eb;">${percentualEscaped}</span>
+            <span style="color: var(--mute);">Avanço:</span>
+            <span style="font-weight: 600; color: var(--brand-text);">${percentualEscaped}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: #64748b;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: var(--mute);">
             <span>Previsão:</span>
             <span>${dataFimEscaped}</span>
           </div>
@@ -151,7 +152,7 @@ export function ObrasMapaInterativo({
         scrollWheelZoom: false,
       });
 
-      // Tiles Esri World Light Gray Base (exatamente como no mockup Tiles © Esri)
+      // Tiles Esri World Light Gray Base; no tema escuro o filtro de `.mapa-tema` escurece a base
       L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         {
@@ -271,7 +272,7 @@ export function ObrasMapaInterativo({
     <div
       data-testid="obras-mapa-container"
       className={cn(
-        "relative z-9 h-full w-full overflow-hidden bg-[#e5e5e5]",
+        "mapa-tema relative z-9 h-full w-full overflow-hidden bg-line",
         className,
       )}
     >
@@ -284,8 +285,8 @@ export function ObrasMapaInterativo({
         />
       )}
       {markers.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/75 backdrop-blur-xs">
-          <p className="font-medium text-slate-500 text-sm">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-page/75 backdrop-blur-xs">
+          <p className="font-medium text-mute2 text-sm">
             Nenhuma obra com localização cadastrada para os filtros
             selecionados.
           </p>

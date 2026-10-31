@@ -20,7 +20,7 @@ import type { RawObrasData } from "./loader";
 
 export interface SituacaoVisual {
   label: string;
-  colorHex: string;
+  corPreenchimento: string;
   badgeClass: string;
   bgClass: string;
   textClass: string;
@@ -31,50 +31,50 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
     case "em_execucao":
       return {
         label: "Em Execução",
-        colorHex: "#2563eb",
-        badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
-        bgClass: "bg-blue-600",
-        textClass: "text-blue-700",
+        corPreenchimento: "var(--brand-fill)",
+        badgeClass: "border-brand-fill bg-brand-fill/15 text-brand-text",
+        bgClass: "bg-brand-fill",
+        textClass: "text-brand-text",
       };
     case "paralisada":
       return {
         label: "Paralisada",
-        colorHex: "#dc2626",
-        badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-        bgClass: "bg-rose-500",
-        textClass: "text-rose-700",
+        corPreenchimento: "var(--danger-fill)",
+        badgeClass: "border-danger-fill bg-danger-fill/15 text-danger-text",
+        bgClass: "bg-danger-fill",
+        textClass: "text-danger-text",
       };
     case "concluida":
       return {
         label: "Concluída",
-        colorHex: "#16a34a",
-        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        bgClass: "bg-emerald-600",
-        textClass: "text-emerald-700",
+        corPreenchimento: "var(--ok-fill)",
+        badgeClass: "border-ok-fill bg-ok-fill/15 text-ok-text",
+        bgClass: "bg-ok-fill",
+        textClass: "text-ok-text",
       };
     case "cadastrada":
       return {
         label: "Não iniciada",
-        colorHex: "#64748b",
-        badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
-        bgClass: "bg-slate-400",
-        textClass: "text-slate-700",
+        corPreenchimento: "var(--mute3)",
+        badgeClass: "border-line bg-line2 text-mute",
+        bgClass: "bg-mute3",
+        textClass: "text-mute",
       };
     case "cancelada":
       return {
         label: "Cancelada",
-        colorHex: "#475569",
-        badgeClass: "bg-zinc-50 text-zinc-700 border-zinc-200",
-        bgClass: "bg-zinc-400",
-        textClass: "text-zinc-700",
+        corPreenchimento: "var(--mute3)",
+        badgeClass: "border-line bg-line2 text-mute",
+        bgClass: "bg-mute3",
+        textClass: "text-mute",
       };
     default:
       return {
         label: "Não iniciada",
-        colorHex: "#64748b",
-        badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
-        bgClass: "bg-slate-400",
-        textClass: "text-slate-700",
+        corPreenchimento: "var(--mute3)",
+        badgeClass: "border-line bg-line2 text-mute",
+        bgClass: "bg-mute3",
+        textClass: "text-mute",
       };
   }
 }
@@ -121,14 +121,13 @@ export function mapContratoToViewModel(
   })();
 
   const statusBadgeClasses = (() => {
-    if (isVigente) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    if (rawStatus === "encerrado")
-      return "bg-slate-50 text-slate-700 border-slate-200";
+    if (isVigente) return "border-ok-fill bg-ok-fill/15 text-ok-text";
+    if (rawStatus === "encerrado") return "border-line bg-line2 text-mute";
     if (rawStatus === "suspenso")
-      return "bg-amber-50 text-amber-700 border-amber-200";
+      return "border-warn-fill bg-warn-fill/15 text-warn-text";
     if (rawStatus === "cancelado" || rawStatus === "rescindido")
-      return "bg-rose-50 text-rose-700 border-rose-200";
-    return "bg-slate-50 text-slate-700 border-slate-200";
+      return "border-danger-fill bg-danger-fill/15 text-danger-text";
+    return "border-line bg-line2 text-mute";
   })();
 
   const fornecedorCpfCnpjMascarado = (() => {
@@ -223,7 +222,7 @@ export interface ObraItemViewModel {
   nomeObra: string;
   situacao: SituacaoObra;
   situacaoLabel: string;
-  situacaoColorHex: string;
+  situacaoCorPreenchimento: string;
   situacaoBadgeClasses: string;
   orgaoResponsavel: string;
   valorInvestimentoPrevisto: number;
@@ -266,7 +265,7 @@ export interface ObraMarkerItem {
   nomeObra: string;
   situacao: SituacaoObra;
   situacaoLabel: string;
-  situacaoColorHex: string;
+  situacaoCorPreenchimento: string;
   latitude: number;
   longitude: number;
   isUrbana: boolean;
@@ -428,7 +427,7 @@ function mapObraToViewModel(
     nomeObra: obra.nomeObra,
     situacao: obra.situacao,
     situacaoLabel: visual.label,
-    situacaoColorHex: visual.colorHex,
+    situacaoCorPreenchimento: visual.corPreenchimento,
     situacaoBadgeClasses: visual.badgeClass,
     orgaoResponsavel: obra.orgaoResponsavel ?? "Órgão não informado",
     valorInvestimentoPrevisto: obra.valorInvestimentoPrevisto,
@@ -512,7 +511,7 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
       nomeObra: o.nomeObra,
       situacao: o.situacao,
       situacaoLabel: o.situacaoLabel,
-      situacaoColorHex: o.situacaoColorHex,
+      situacaoCorPreenchimento: o.situacaoCorPreenchimento,
       latitude: o.latitude as number,
       longitude: o.longitude as number,
       isUrbana: o.isUrbana,
