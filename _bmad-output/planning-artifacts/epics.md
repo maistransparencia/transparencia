@@ -96,6 +96,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 22: Busca Global por Categorias](#epic-22-busca-global-por-categorias)
 - [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
 - [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
+- [Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?](#epic-25-saúde-a-prefeitura-aplica-o-mínimo-exigido)
 
 ---
 
@@ -3283,6 +3284,104 @@ So that the money figures that follow are read against the result they should pr
 - Decisão de produto (2026-11-01): sem hero novo; a própria seção "Aprendizado dos alunos" sobe para o topo e recebe os dois ajustes. O custo por aluno (24.4) e os mínimos legais (24.5) entram logo abaixo dela quando prontos. O mínimo legal é de **aplicação** (25% em MDE, 70% do FUNDEB em magistério), não de repasse.
 
 **Dependências:** nenhuma. Deve ser entregue antes da Story 24.4. Substitui o ajuste pedido para `/educacao` na Story 20.8, que permanece `done`.
+
+---
+
+### Story 24.8: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
+
+As a citizen,  
+I want to see how much parliamentary-amendment money for education reached my city and in which stage it is, according to both the municipal portal and the federal source,  
+So that a delay in the municipal records is not read as money that stopped.
+
+**Origem:** story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
+
+**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
+
+**Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
+
+**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado).
+
+---
+
+## Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?
+
+A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo exigido em saúde?" (mínimo constitucional em ações e serviços públicos de saúde), com a origem do dinheiro, as emendas e, só quando houver fonte e régua, a produção da rede e a fila de espera logo abaixo. Origem: conversa de produto de 2026-11-01 a partir da planilha da audiência pública de prestação de contas da saúde (2º quadrimestre de 2026), usada **somente** para decidir o que a Secretaria destaca ao público. **Nenhum número da planilha é fonte de dado do portal:** ela é a transcrição de um vídeo e tem erros de soma (por exemplo, Saúde da Mulher soma 3.028 e informa 3.228; o total do convênio hospitalar não bate com os meses; o total de receitas para apuração não fecha com os subtotais).
+
+**Fonte e acesso:** todo número vem de fonte oficial recorrente do governo. A API de Dados Abertos do Ministério da Saúde (`apidadosabertos.saude.gov.br`, a mesma da farmácia SUS, Story 19.1) é o ponto de partida. Em 2026-11-01 a especificação em `/static/swagger.json` listava 113 endpoints. **Encontrados:** produção ambulatorial (SIA) e hospitalar (SIH), indicadores do Previne Brasil, doses aplicadas do PNI (2026), CNES (estabelecimentos, leitos, profissionais, equipamentos, serviços), unidades básicas de saúde e população residente (denominador para régua por habitante). **Não encontrados nessa API:** mínimo constitucional (SIOPS), fila de espera ou regulação, repasses fundo a fundo e emendas. Esses precisam de outra fonte oficial (candidatas **NÃO VERIFICADAS**: Siconfi, SIOPS, Fundo Nacional de Saúde, Transferegov, Portal da Transparência federal). Nota operacional: em 2026-11-01 a API da Saúde deu timeout em uma tentativa e respondeu 200 em outra, então a carga precisa de repetição e falha graciosa.
+
+**Critério de entrada de um indicador (decidido em 2026-11-01):** só entra se (a) responde a uma pergunta que o cidadão faria, (b) tem fonte oficial que se atualiza sem trabalho manual e (c) tem régua (limite legal, meta, período anterior ou população). Indicador sem os três vai para o backlog.
+
+**Restrições:** Regra 14 (conta no dbt), Regra 15 (execução só no banco local do Docker), Regra 20 (lei citada com link oficial), Regra 23 (sem literais de tenant, UF ou ano), Regra 27 (pergunta do cidadão antes do dado; dado declarado diz que é declarado), `jurista-fiscal` para a base legal do mínimo, `contador-publico` para a base de cálculo e `editor-cidadao` para os textos.
+
+**Fora do escopo:** usar a planilha da audiência como fonte; fila de WhatsApp; comparação ou ranking entre municípios.
+
+---
+
+### Story 25.1: Spike de Fontes Oficiais dos Indicadores de Saúde
+
+As a product manager,  
+I want each candidate health indicator mapped to an official, recurring and testable source,  
+So that the next stories only build what has a real source, a ruler and a citizen question.
+
+**Entregável:** `planning-artifacts/spike-saude-fontes-indicadores.md`, no modelo de `spike-siope-valor-por-aluno.md`. Sem código de produção.
+
+**Acceptance Criteria:**
+- **Given** a lista de indicadores candidatos (mínimo constitucional em ASPS, origem do dinheiro por esfera, emendas, exames e procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais, transporte e hemodiálise, fila de espera e regulação)
+- **When** a spike termina
+- **Then** o documento traz uma tabela com, para cada indicador: pergunta do cidadão, fonte oficial, endpoint ou arquivo, periodicidade, defasagem típica, régua disponível, teste de contrato (resposta real de pelo menos um município integrado, sem literal de tenant no código) e decisão de entrar, adiar ou descartar pelo critério de entrada da epic.
+- **And** para o **mínimo constitucional**, compara Siconfi e SIOPS (e o cálculo próprio pelo dbt) e recomenda uma fonte, com `jurista-fiscal` fixando a base legal (com link oficial, Regra 20) e `contador-publico` validando base de cálculo, exclusões e a diferença entre repasse ao fundo e despesa aplicada com recursos próprios.
+- **And** para **emendas**, cruza o que o portal municipal já traz com as fontes federais, mede onde divergem (por exemplo, empenhos ausentes no portal municipal) e define como mostrar as duas posições sem sugerir omissão; o método vale também para a Story 24.8.
+- **And** para **fila de espera**, informa se existe fonte aberta; se não existir, registra a alternativa (pedido de informação pela LAI) e deixa o indicador fora do primeiro corte.
+- **And** testa a API da Saúde a partir do ambiente da carga diária (CI), registrando timeouts, limites de taxa e a necessidade de repetição.
+- **And** termina com a divisão recomendada das Stories 25.2 a 25.6 (o que entra, o que adia) e as perguntas abertas para o Julio.
+
+**Fora do escopo:** ingestão em produção; qualquer execução fora do banco local (Regra 15); usar números da planilha da audiência.
+
+**Dependências:** nenhuma.
+
+---
+
+### Story 25.2: Mínimo Constitucional de Saúde no dbt (esboço)
+
+As a data analyst,  
+I want the constitutional health minimum computed per portal and year from the official source chosen in the spike,  
+So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" with the legal limit next to the number.
+
+**Status:** esboço. Detalhar depois da 25.1. Esperado: ingestão, staging e mart `fct_saude_minimo_constitucional` com grão `portal_slug` e `ano`, colunas explícitas (Regra 9), valor ausente nulo e nunca zero, ano em andamento identificável como parcial, limite legal vindo do seed de constantes fiscais (nunca de texto fixo) e conferência do `contador-publico`.
+
+**Dependências:** Story 25.1.
+
+---
+
+### Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude` (esboço)
+
+**Status:** esboço. Detalhar depois da 25.2. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
+
+**Dependências:** Story 25.2.
+
+---
+
+### Story 25.4: De Onde Vem o Dinheiro da Saúde (esboço)
+
+**Status:** esboço. Pergunta: "Quanto do dinheiro da saúde vem da Prefeitura, do Estado e da União?". Fonte e método definidos pela 25.1 (candidata, **NÃO VERIFICADA**: repasses fundo a fundo do Fundo Nacional de Saúde). Cuidado: recurso federal e estadual não entra na base do mínimo constitucional.
+
+**Dependências:** Story 25.1.
+
+---
+
+### Story 25.5: Emendas da Saúde: Conferência entre o Portal Municipal e a Fonte Federal (esboço)
+
+**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 24.8.
+
+**Dependências:** Story 25.1.
+
+---
+
+### Story 25.6: Produção da Rede e Fila de Espera (esboço)
+
+**Status:** esboço. Só entram os indicadores que a 25.1 provar que têm fonte oficial recorrente, série e régua (candidatos: procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais por habitante). Fila de espera só se houver fonte aberta. O que não passar vai para o backlog com o motivo registrado.
+
+**Dependências:** Story 25.1.
 
 ---
 
