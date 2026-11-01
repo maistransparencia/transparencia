@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { env } from "@/env";
 import {
   __resetPushStoreForTesting,
   usePushNotifications,
@@ -240,6 +241,88 @@ describe("usePushNotifications", () => {
       "push_notification_unsubscribed",
       { portal_slug: "porciuncula_prefeitura" },
     );
+  });
+
+  it.each([
+    ["resolve false", () => vi.fn().mockResolvedValue(false)],
+    ["rejeita", () => vi.fn().mockRejectedValue(new Error("falha tecnica"))],
+  ])(
+    "unsubscribe retorna false com texto cidadão quando sub.unsubscribe %s",
+    async (_caso, criarMock) => {
+      mockGetSubscription.mockResolvedValue({
+        endpoint: "https://push.example.com/sub/active",
+        unsubscribe: criarMock(),
+      });
+
+      const { result } = renderHook(() =>
+        usePushNotifications({ portalSlug: "porciuncula_prefeitura" }),
+      );
+      await waitFor(() => {
+        expect(result.current.isSubscribed).toBe(true);
+      });
+
+      let success = true;
+      await act(async () => {
+        success = await result.current.unsubscribe();
+      });
+
+      expect(success).toBe(false);
+      expect(result.current.error).toBe(
+        "Não foi possível desativar. Tente novamente.",
+      );
+      expect(result.current.isSubscribed).toBe(true);
+    },
+  );
+
+  it("subscribe com falha da API mostra texto cidadão, não o técnico", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Erro interno no servidor" }),
+    } as unknown as Response);
+
+    const { result } = renderHook(() =>
+      usePushNotifications({ portalSlug: "porciuncula_prefeitura" }),
+    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    await act(async () => {
+      await result.current.subscribe();
+    });
+
+    expect(result.current.error).toBe(
+      "Não foi possível ativar as notificações. Tente novamente.",
+    );
+    expect(result.current.error).not.toMatch(/HTTP|500|servidor/);
+  });
+
+  it("subscribe sem chave VAPID mostra texto cidadão, sem citar VAPID", async () => {
+    const original = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    (
+      env as { NEXT_PUBLIC_VAPID_PUBLIC_KEY?: string }
+    ).NEXT_PUBLIC_VAPID_PUBLIC_KEY = undefined;
+    try {
+      const { result } = renderHook(() =>
+        usePushNotifications({ portalSlug: "porciuncula_prefeitura" }),
+      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      let success = true;
+      await act(async () => {
+        success = await result.current.subscribe();
+      });
+      expect(success).toBe(false);
+      expect(result.current.error).toBe(
+        "Não foi possível ativar as notificações. Tente novamente.",
+      );
+      expect(result.current.error).not.toMatch(/VAPID/i);
+    } finally {
+      (
+        env as { NEXT_PUBLIC_VAPID_PUBLIC_KEY?: string }
+      ).NEXT_PUBLIC_VAPID_PUBLIC_KEY = original;
+    }
   });
 
   it("sincroniza em tempo real o estado de subscrição entre múltiplas instâncias do hook", async () => {

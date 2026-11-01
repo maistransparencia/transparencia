@@ -14,8 +14,16 @@ vi.mock("./push-notification-settings", () => ({
   ),
 }));
 
+let mockCanInstall = true;
+let mockPushSupported = true;
+
 vi.mock("./pwa-installer", () => ({
   PwaInstallButton: () => <div data-testid="pwa-stub" />,
+  usePwaInstallAvailability: () => mockCanInstall,
+}));
+
+vi.mock("@/hooks/use-push-notifications", () => ({
+  usePushNotifications: () => ({ isSupported: mockPushSupported }),
 }));
 
 vi.mock("posthog-js", () => ({
@@ -27,6 +35,8 @@ vi.mock("posthog-js", () => ({
 describe("GlobalFooter", () => {
   beforeEach(() => {
     mockPathname = "/porciuncula_prefeitura";
+    mockCanInstall = true;
+    mockPushSupported = true;
   });
 
   it("renderiza link 'Termos de Uso' apontando para /termos", () => {
@@ -53,12 +63,17 @@ describe("GlobalFooter", () => {
     expect(privacidadeLink).not.toHaveAttribute("target", "_blank");
   });
 
-  it("usa filete de 2px com tokens, colunas e botão primário de alertas", () => {
+  it("usa fundo invertido por tokens footer, logo com nome e botão primário de alertas", () => {
     render(<GlobalFooter portalName="Porciúncula" />);
     expect(screen.getByRole("contentinfo")).toHaveClass(
+      "footer-surface",
       "border-t-2",
-      "border-ink",
+      "border-footer-line",
     );
+    expect(screen.getByRole("contentinfo")).not.toHaveClass("bg-page");
+    expect(
+      screen.getByRole("contentinfo").querySelector('img[src="/favicon.svg"]'),
+    ).toHaveAttribute("alt", "");
     expect(screen.getByText("Neste dispositivo")).toBeInTheDocument();
     expect(screen.getByText("Alertas")).toBeInTheDocument();
     expect(
@@ -160,5 +175,43 @@ describe("GlobalFooter", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/Dados extraídos em/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Lei de Acesso à Informação/i)).toBeInTheDocument();
+  });
+
+  it("sem push e sem instalação não renderiza a coluna Neste dispositivo e usa duas colunas", () => {
+    mockCanInstall = false;
+    mockPushSupported = false;
+    const { container } = render(<GlobalFooter portalName="Porciúncula" />);
+    expect(screen.queryByText("Neste dispositivo")).not.toBeInTheDocument();
+    const grid = container.querySelector("footer .grid");
+    expect(grid).toHaveClass("sm:grid-cols-2");
+    expect(grid).not.toHaveClass("sm:grid-cols-3");
+  });
+
+  it("com instalação disponível mantém três colunas", () => {
+    mockPushSupported = false;
+    const { container } = render(<GlobalFooter portalName="Porciúncula" />);
+    expect(screen.getByText("Neste dispositivo")).toBeInTheDocument();
+    expect(container.querySelector("footer .grid")).toHaveClass(
+      "sm:grid-cols-3",
+    );
+  });
+
+  it("push suportado sem slug de portal (rota raiz) e sem instalação omite a coluna", () => {
+    mockPathname = "/";
+    mockCanInstall = false;
+    mockPushSupported = true;
+    render(<GlobalFooter />);
+    expect(screen.queryByText("Neste dispositivo")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("push-stub")).not.toBeInTheDocument();
+  });
+
+  it("push suportado sem slug mas com instalação disponível mostra só a instalação", () => {
+    mockPathname = "/";
+    mockCanInstall = true;
+    mockPushSupported = true;
+    render(<GlobalFooter />);
+    expect(screen.getByText("Neste dispositivo")).toBeInTheDocument();
+    expect(screen.queryByTestId("push-stub")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pwa-stub")).toBeInTheDocument();
   });
 });
