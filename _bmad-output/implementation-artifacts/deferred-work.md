@@ -447,3 +447,19 @@ location: apps/web/app/[portalSlug]/licitacoes/page.tsx
 source_spec: `20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal.md`
 reason: Depende de dados reais de contratos vigentes sem valor empenhado.
 status: open
+
+### DW-31: Teste da query de origem não exercita dados reais no banco de testes (vazio).
+origin: spec-deferred db26efc5a861
+location: packages/db/src/queries/__tests__/receitas-extra-metrics.spec.ts
+source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
+severity: low
+reason: postgres_test é construído só com tabelas raw vazias (regra 21); a query foi validada contra o banco local 5544.
+status: open
+
+### DW-32: Não há spec de página para /receitas cobrindo o bloco.
+origin: spec-deferred f0a573b07673
+location: apps/web/app/[portalSlug]/receitas/page.spec.tsx
+source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
+severity: low
+reason: Cobertura em view-model.spec.ts e no spec do componente; página não renderizada de ponta a ponta.
+status: open

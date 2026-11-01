@@ -44,6 +44,19 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
 }
 
 describe("buildReceitasViewModel", () => {
+  it("repassa a origem das entradas fora do orçamento à linha correspondente", () => {
+    const origem = [
+      {
+        categoria: "imposto_renda_retido",
+        valorArrecadado: 10,
+        percentualDoTotal: 100,
+      },
+    ];
+    const vm = buildReceitasViewModel(makeRaw({ origemExtra: origem }));
+    const linha = vm.origensData.find((item) => item.semPrevisao);
+    expect(linha?.origem).toEqual(origem);
+  });
+
   it("usa valores zerados quando não há fonte de receita disponível", () => {
     const vm = buildReceitasViewModel(makeRaw({ fonte: undefined }));
     expect(vm.totalArr).toBe(0);

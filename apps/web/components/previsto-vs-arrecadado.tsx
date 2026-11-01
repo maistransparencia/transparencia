@@ -1,11 +1,30 @@
 import { cn, fmtCompact } from "@transparencia/ui";
 
+export interface PrevistoVsArrecadadoOrigemItem {
+  categoria: string;
+  valorArrecadado: number;
+  percentualDoTotal: number;
+}
+
+const ROTULOS_ORIGEM: Record<string, string> = {
+  previdencia_servidores: "Contribuição à previdência dos servidores",
+  previdencia_geral_inss: "Contribuição ao INSS",
+  imposto_renda_retido: "Imposto de renda retido",
+  plano_saude_servidores: "Planos de saúde dos servidores",
+  emprestimo_consignado: "Parcelas de empréstimos consignados",
+  iss_retido: "ISS retido de prestadores de serviço",
+  pensao_alimenticia: "Pensão alimentícia",
+  regularizacao_conciliacao: "Acertos contábeis entre contas (regularizações)",
+  outros_descontos: "Outros descontos e retenções",
+};
+
 export interface PrevistoVsArrecadadoItem {
   fonte: string;
   previsto: number;
   arrecadado: number;
   pctRealizado: number;
   semPrevisao?: boolean;
+  origem?: PrevistoVsArrecadadoOrigemItem[];
   previstoFormatted?: string;
   arrecadadoFormatted?: string;
 }
@@ -78,9 +97,48 @@ export function PrevistoVsArrecadadoOrigem({
 
             <div className="caption mt-1 font-medium">
               {item.semPrevisao
-                ? "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas não é dinheiro da prefeitura."
+                ? "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas em regra não é dinheiro da prefeitura."
                 : `${Math.round(item.pctRealizado)}% do previsto já arrecadado${faltaText}`}
             </div>
+
+            {item.origem && item.origem.length > 0 ? (
+              <details className="mt-2">
+                <summary className="cursor-pointer font-semibold text-brand-text text-sm">
+                  De onde vem este valor
+                </summary>
+                <p className="caption mt-2">
+                  Classificação aproximada, feita a partir da descrição de cada
+                  lançamento no portal da prefeitura.
+                </p>
+                <ul className="mt-2 space-y-3">
+                  {item.origem.map((origem) => (
+                    <li key={`origem-${origem.categoria}`}>
+                      <div className="flex items-center justify-between text-sm">
+                        <span>
+                          {ROTULOS_ORIGEM[origem.categoria] ??
+                            ROTULOS_ORIGEM.outros_descontos}
+                        </span>
+                        <span className="numeric">
+                          {fmtCompact(origem.valorArrecadado)} ·{" "}
+                          {origem.percentualDoTotal
+                            .toFixed(1)
+                            .replace(".", ",")}
+                          %
+                        </span>
+                      </div>
+                      <div className="mt-1 h-2 w-full bg-track">
+                        <div
+                          className="h-full bg-brand-fill"
+                          style={{
+                            width: `${Math.max(0, Math.min(100, origem.percentualDoTotal))}%`,
+                          }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
           </div>
         );
       })}

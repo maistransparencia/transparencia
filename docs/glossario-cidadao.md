@@ -15,7 +15,8 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | LOA (Lei Orçamentária Anual) | Lei que diz quanto a prefeitura pode gastar e quanto espera arrecadar no ano | "Orçamento fixo" |
 | FPM | Repasse do governo federal aos municípios | |
 | ICMS (cota-parte) | Parte do imposto estadual sobre vendas que o estado repassa ao município | |
-| Receita extra-orçamentária | Dinheiro que passa pelo caixa da prefeitura, mas não faz parte do orçamento (retenções e caixas) | "Receita própria" |
+| Receita extra-orçamentária | Dinheiro que passa pelo caixa da prefeitura, mas não faz parte do orçamento (retenções e caixas). Em /receitas, o bloco "De onde vem este valor" mostra a origem aproximada (previdência, imposto de renda, empréstimos etc.) | "Receita própria" |
+| Regularização (entradas fora do orçamento) | Acerto contábil entre contas da prefeitura, registrado como entrada; não indica por si só dinheiro novo | "Dinheiro desviado", "Receita própria" |
 | Emenda Pix | Transferência especial de deputado ou senador direto ao município, sem destino fixado | |
 | Empenho | Valor reservado para um gasto | "Gasto" sem qualificação |
 | Receita Corrente Líquida (RCL) | Receita do município nos últimos 12 meses, usada como base para limites da lei | |

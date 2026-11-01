@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: fct_receita_extra_orcamentaria_categoria
+    description: "Receitas extra-orçamentárias classificadas por categoria de origem (retenções e repasses) por portal, empresa e ano"
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: receita_extra_categoria_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Chave surrogate MD5 (portal_slug | empresa_id | ano | categoria)"
+        tests:
+          - not_null
+          - unique
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Dimensão de tenant do portal"
+        tests:
+          - not_null
+      - name: empresa_id
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Dimensão de entidade / empresa municipal"
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Ano do exercício fiscal"
+        tests:
+          - not_null
+      - name: categoria
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Categoria de origem da entrada (lowercase snake_case)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - previdencia_servidores
+                  - previdencia_geral_inss
+                  - imposto_renda_retido
+                  - plano_saude_servidores
+                  - emprestimo_consignado
+                  - iss_retido
+                  - pensao_alimenticia
+                  - regularizacao_conciliacao
+                  - outros_descontos
+      - name: valor_arrecadado
+        data_type: numeric(15, 2)
+        constraints:
+          - type: not_null
+        description: "Valor total arrecadado na categoria no ano"
+        tests:
+          - not_null
