@@ -1,8 +1,8 @@
 -- Staging: indicadores do SIOPE (Relatório Gerencial do FNDE), declarados pelo município.
--- Valor ausente permanece nulo (nunca zero).
+-- Fonte única de todos os portais (raw_siope, portal_slug na chave). Valor ausente permanece nulo (nunca zero).
 
 with source as (
-    select * from {{ source('porciuncula_prefeitura', 'siope_indicadores') }}
+    select * from {{ source('raw_siope', 'siope_indicadores') }}
 )
 
 select

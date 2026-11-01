@@ -254,7 +254,7 @@ development_status:
   24-6-total-de-alunos-com-fonte-verificada-inep: backlog
   24-7-aprendizado-no-topo-da-pagina-de-educacao: done
   24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
-  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: backlog
+  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
   epic-24-retrospective: optional
 
   epic-25: backlog

@@ -21,7 +21,7 @@ import requests
 
 from elt.core.config import PortalConfig
 from elt.core.db import Connectable, get_engine
-from elt.load.siope import ensure_siope_table, load_siope_indicadores
+from elt.load.siope import SCHEMA, ensure_siope_table, load_siope_indicadores
 
 logger = logging.getLogger(__name__)
 
@@ -266,8 +266,8 @@ def extract_and_load_siope(
     linhas = (extractor or SiopeExtractor()).extrair_portal(portal, anos)
     if db is None:
         return len(linhas)
-    ensure_siope_table(db, portal.raw_schema)
-    return load_siope_indicadores(db, linhas, schema=portal.raw_schema)
+    ensure_siope_table(db, SCHEMA)
+    return load_siope_indicadores(db, linhas, schema=SCHEMA)
 
 
 def main() -> None:

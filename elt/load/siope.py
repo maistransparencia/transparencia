@@ -1,4 +1,4 @@
-"""Carregador dos indicadores do Relatório Gerencial do SIOPE (FNDE) no schema raw do portal."""
+"""Carregador dos indicadores do Relatório Gerencial do SIOPE (FNDE) no schema raw único da fonte."""
 
 import logging
 from typing import Any
@@ -10,13 +10,16 @@ from elt.core.db import Connectable, upsert
 
 logger = logging.getLogger(__name__)
 
+SCHEMA = "raw_siope"
 TABLE_NAME = "siope_indicadores"
 
 KEY_COLS = ["portal_slug", "ano", "periodo", "codigo_indicador"]
 
 
-def ensure_siope_table(engine: Connectable, schema: str) -> None:
-    """Garante a existência da tabela raw de indicadores do SIOPE no schema especificado.
+def ensure_siope_table(engine: Connectable, schema: str = SCHEMA) -> None:
+    """Garante a existência da tabela raw de indicadores do SIOPE, compartilhada por todos os portais.
+
+    `portal_slug` faz parte da chave primária: cada portal grava e recarrega só as suas linhas.
 
     `tipo_periodo` é `anual` (código "A" da API) e `periodo` 6 é o 6º bimestre, o fechamento do ano.
     `unidade` é `percentual` ou `monetario`; `nomes_oficiais_indicador` guarda os `nomIndi` da API.
@@ -45,8 +48,8 @@ def ensure_siope_table(engine: Connectable, schema: str) -> None:
         engine.execute(text(ddl))
 
 
-def load_siope_indicadores(db: Connectable, rows: list[dict[str, Any]], schema: str) -> int:
-    """Insere ou atualiza os indicadores na tabela raw_<portal>.siope_indicadores."""
+def load_siope_indicadores(db: Connectable, rows: list[dict[str, Any]], schema: str = SCHEMA) -> int:
+    """Insere ou atualiza os indicadores em raw_siope.siope_indicadores, sem tocar nas linhas de outros portais."""
     if not rows:
         return 0
     return upsert(db, TABLE_NAME, rows, KEY_COLS, schema=schema)

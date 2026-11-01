@@ -1,8 +1,8 @@
 version: 2
 
 models:
-  - name: stg_porciuncula_prefeitura__siope_indicadores
-    description: "Indicadores do SIOPE de porciuncula_prefeitura — casts e limpeza de texto"
+  - name: stg_siope__indicadores
+    description: "Indicadores do SIOPE de todos os portais, no grão portal + ano + período + indicador — casts e limpeza de texto"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -12,9 +12,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - accepted_values:
-              arguments:
-                values: ['porciuncula_prefeitura']
       - name: ano
         data_type: integer
         tests:
