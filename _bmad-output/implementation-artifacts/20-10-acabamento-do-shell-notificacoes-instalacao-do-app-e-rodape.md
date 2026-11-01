@@ -113,3 +113,8 @@ Status: done
 **Verificação:** `pnpm typecheck` e `biome` passam. `pnpm test`: tudo passa, exceto `styles/tokens-uso.spec.ts` ("não usa classes legadas sem sufixo -fill ou -text"), que já falhava antes (confirmado com stash) e pertence à Story 20.12.
 
 **Riscos residuais:** sem verificação visual em navegador (inversão coberta por contraste e classes); `usePwaInstallAvailability` tem estado próprio, então o título da coluna pode permanecer até recarregar se o aviso nativo for dispensado.
+
+**Ajustes pós-revisão (decisão do Julio, 2026-11-01):**
+- O drawer móvel desliza sempre, inclusive com `prefers-reduced-motion` (substitui o critério de "sem animação de deslize"); com movimento reduzido ativo no macOS o drawer só aparecia, sem deslizar. Sem animação apenas em `md`.
+- "Ativar" e "Desativar" notificações são links discretos na mesma linha do estado (não mais botões de largura total).
+- No tema claro o rodapé usa azul-marinho da marca; o logo é o componente `brand-logo.tsx` (variante clara via variáveis `--footer-logo-*`).

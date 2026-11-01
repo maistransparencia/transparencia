@@ -448,7 +448,7 @@ export function Sidebar({
         role="presentation"
         aria-hidden="true"
         className={cn(
-          "fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-300 ease-in-out motion-reduce:transition-none md:hidden",
+          "fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-300 ease-in-out md:hidden",
           isMobileOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0",
@@ -460,7 +460,7 @@ export function Sidebar({
       <aside
         className={cn(
           "select-none border-line border-r bg-page md:bg-transparent",
-          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[transform,visibility] duration-300 ease-in-out motion-reduce:transition-none",
+          "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[transform,visibility] duration-300 ease-in-out",
           "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
           isMobileOpen
             ? "pointer-events-auto visible translate-x-0 shadow-2xl"

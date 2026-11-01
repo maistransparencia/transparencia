@@ -421,16 +421,15 @@ describe("Sidebar Component", () => {
     expect(visaoGeral).not.toHaveClass("border-ink");
   });
 
-  it("drawer e backdrop móveis não animam com prefers-reduced-motion e não animam em md", () => {
+  it("drawer móvel desliza (transform) sempre e não anima em md", () => {
     const { container } = render(
       <Sidebar portalName="Portal" portalSlug="portal_teste" />,
     );
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass(
-      "motion-reduce:transition-none",
+      "transition-[transform,visibility]",
       "md:transition-none",
     );
-    const backdrop = container.querySelector('[role="presentation"]');
-    expect(backdrop).toHaveClass("motion-reduce:transition-none");
+    expect(aside).not.toHaveClass("motion-reduce:transition-none");
   });
 });
