@@ -144,6 +144,9 @@ export function ObrasInteractiveSection({
   const [selectedStatus, setSelectedStatus] = useState<SituacaoObraFiltro>(
     viewModel.filtros.status,
   );
+  useEffect(() => {
+    setSelectedStatus(viewModel.filtros.status);
+  }, [viewModel.filtros.status]);
   const [buscaText, setBuscaText] = useState<string>(
     viewModel.filtros.busca ?? "",
   );

@@ -39,7 +39,7 @@ const kpisSemObras: ObrasKpisViewModel = {
 };
 
 describe("ObrasHeroSection", () => {
-  it("faz a pergunta do cidadão e mostra a barra por situação em tokens", () => {
+  it("faz a pergunta do cidadão e mostra os 4 indicadores", () => {
     render(
       <ObrasHeroSection
         ano={2031}
@@ -49,18 +49,53 @@ describe("ObrasHeroSection", () => {
       />,
     );
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /obras da cidade estão andando/,
+      /obras da cidade estão andando\?/,
     );
     expect(screen.getByText(/EXERCÍCIO 2031/)).toBeInTheDocument();
-    const barra = screen.getByRole("progressbar", {
-      name: /Distribuição do investimento/,
-    });
-    expect(barra.innerHTML).toContain("bg-danger-fill");
-    expect(barra.innerHTML).not.toMatch(/rounded|slate|rose|blue/);
-    expect(screen.getByText("Investimento previsto")).toBeInTheDocument();
+    expect(screen.getByText("Em execução")).toBeInTheDocument();
+    expect(screen.getByText("Avanço físico médio")).toBeInTheDocument();
   });
 
-  it("sem obras não mostra valor em R$ nem o painel de investimento", () => {
+  it("só menciona obra parada no subtítulo quando há obra paralisada", () => {
+    const { rerender } = render(
+      <ObrasHeroSection
+        ano={2031}
+        isCurrentYear={false}
+        partialPeriod=""
+        kpis={kpis}
+      />,
+    );
+    expect(
+      screen.getByText(/Obra parada é motivo para perguntar/),
+    ).toBeInTheDocument();
+    rerender(
+      <ObrasHeroSection
+        ano={2031}
+        isCurrentYear={false}
+        partialPeriod=""
+        kpis={{ ...kpis, paralisadas: 0 }}
+      />,
+    );
+    expect(
+      screen.queryByText(/Obra parada é motivo para perguntar/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("oferece link para ver as obras paralisadas no mapa", () => {
+    render(
+      <ObrasHeroSection
+        ano={2031}
+        isCurrentYear={false}
+        partialPeriod=""
+        kpis={kpis}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Ver no mapa" }).getAttribute("href"),
+    ).toBe("?ano=2031&status=paralisada#secao-mapa-obras");
+  });
+
+  it("sem obras não mostra os indicadores", () => {
     render(
       <ObrasHeroSection
         ano={2017}
@@ -69,7 +104,7 @@ describe("ObrasHeroSection", () => {
         kpis={kpisSemObras}
       />,
     );
-    expect(screen.queryByText("Investimento previsto")).not.toBeInTheDocument();
+    expect(screen.queryByText("Em execução")).not.toBeInTheDocument();
     expect(
       screen.getByText(
         /Nenhuma obra pública com movimentação registrada em 2017/,

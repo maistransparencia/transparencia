@@ -123,7 +123,7 @@ describe("ObrasPage Component", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza o Hero no padrão visual de temas com narrativa, investimento e 4 KPIs", async () => {
+  it("renderiza o Hero no padrão visual de temas com narrativa, situação das obras e 4 KPIs", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -144,7 +144,7 @@ describe("ObrasPage Component", () => {
     ).toBeInTheDocument();
 
     // Card de Investimento Previsto
-    expect(screen.getByText("Investimento previsto")).toBeInTheDocument();
+    expect(screen.getByText("Avanço físico médio")).toBeInTheDocument();
 
     // 4 KPIs
     expect(screen.getAllByText("Em execução").length).toBeGreaterThan(0);
