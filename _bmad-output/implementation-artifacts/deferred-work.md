@@ -407,5 +407,5 @@ origin: spec-deferred 7d297fef4509
 location: apps/web/architecture/varredura-tema.ts:9
 source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
 severity: low
-reason: A regra só casa bg-white e slate/gray; páginas com bg-emerald-50 etc. podem destoar no tema escuro. Preexistente ao escopo da story.
-status: open
+reason: A regra só casa bg-white e slate/gray; páginas com bg-emerald-50 etc. podem destoar no tema escuro. Preexistente ao escopo da story. Resolvido: a regra passou a cobrir todas as famílias de cor do Tailwind e os arquivos encontrados foram migrados para tokens.
+status: resolved

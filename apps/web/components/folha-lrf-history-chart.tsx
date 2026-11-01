@@ -35,15 +35,15 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
           </div>
 
           {/* Prudencial 51.3% */}
-          <div className="relative w-full border-orange-400 border-t border-dashed">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-orange-600">
+          <div className="relative w-full border-warn-fill border-t border-dashed">
+            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-warn-text">
               prudencial 51,3%
             </span>
           </div>
 
           {/* Alerta 48.6% */}
-          <div className="relative w-full border-yellow-500 border-t border-dotted">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-yellow-700">
+          <div className="relative w-full border-warn-fill border-t border-dotted">
+            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-warn-text">
               alerta 48,6%
             </span>
           </div>
@@ -73,8 +73,8 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
                       item.percentualFolha > 54
                         ? "bg-danger-fill"
                         : item.percentualFolha > 51.3
-                          ? "bg-orange-500"
-                          : "bg-sky-600"
+                          ? "bg-warn-fill"
+                          : "bg-brand-fill"
                     }`}
                     style={{ height: `${heightPct}%` }}
                   />

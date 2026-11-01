@@ -8,7 +8,7 @@ export const regrasTema = {
   "token-decorativo-como-texto":
     /(?<![\w-])(?:text|fill|stroke|placeholder)-(?:faint|pill|line2|line|track)(?![\w-])/,
   "paleta-fixa-do-tailwind":
-    /(?<![\w-])(?:bg-white|(?:bg|border|text)-(?:gray|slate)-\d+)(?![\w-])/,
+    /(?<![\w-])(?:bg-white|(?:bg|border|text|ring|outline|fill|stroke|from|to|via|decoration|divide|placeholder|caret|accent)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d+)(?![\w-])/,
   "alias-legado-removido":
     /(?<![\w-])(?:text|bg|border|ring|outline|fill|stroke|divide|placeholder|from|to|via|decoration|shadow)-(?:accent|canvas|cardBg|borderLine|subtleText|mutedText|attention|warning|inactive|success)(?![\w-])/,
   "raio-antigo":
