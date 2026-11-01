@@ -381,30 +381,6 @@ sources:
           - name: data_referencia
           - name: data_extracao
 
-      - name: siope_indicadores
-        description: Indicadores do Relatório Gerencial do SIOPE (FNDE), declarados pelo município. Um registro por ano, período e indicador
-        meta:
-          primary_key:
-          - portal_slug
-          - ano
-          - periodo
-          - codigo_indicador
-        columns:
-        - name: portal_slug
-        - name: ano
-        - name: periodo
-          data_type: integer
-        - name: tipo_periodo
-        - name: codigo_indicador
-        - name: codigo_interno_indicador
-          data_type: integer
-        - name: unidade
-        - name: nomes_oficiais_indicador
-        - name: codigo_siope
-        - name: valor
-          data_type: numeric
-        - name: coletado_em
-          data_type: timestamptz
   - name: raw_pncp
     schema: raw_pncp
     description: "Dados brutos extraídos da API do Portal Nacional de Contratações Públicas (PNCP)"

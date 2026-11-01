@@ -20,7 +20,7 @@ with base as (
         valor,
         coletado_em,
         max(periodo) over (partition by portal_slug, ano) as periodo_mais_recente
-    from {{ ref('int_siope_indicadores_consolidados') }}
+    from {{ ref('stg_siope__indicadores') }}
 )
 
 select
