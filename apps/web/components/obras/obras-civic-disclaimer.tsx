@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@transparencia/ui";
+import { Button, SectionHeader } from "@transparencia/ui";
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
@@ -57,21 +57,16 @@ export function ObrasCivicDisclaimer({
 
   return (
     <section
-      aria-labelledby="titulo-disclaimer-obrasgov"
-      className="border-line border-y py-6"
+      aria-label="Notou obras sem contrato ou licitação vinculados?"
+      className="space-y-4"
     >
+      <SectionHeader
+        eyebrow="Controle Social & Transparência Pública"
+        title="Notou obras sem contrato ou licitação vinculados?"
+        className="pb-0"
+      />
       <div className="gap-6 space-y-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="eyebrow">
-              Controle Social & Transparência Pública
-            </span>
-          </div>
-
-          <h2 id="titulo-disclaimer-obrasgov">
-            Notou obras sem contrato ou licitação vinculados?
-          </h2>
-
           <p className="text-mute">
             As intervenções desta página são obtidas diretamente do cadastro
             oficial no{" "}
@@ -79,7 +74,7 @@ export function ObrasCivicDisclaimer({
               href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>ObrasGov.br</span>
               <ExternalLink className="inline h-3.5 w-3.5" aria-hidden="true" />
@@ -98,7 +93,7 @@ export function ObrasCivicDisclaimer({
               href={urlLegislacao("lai")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>Lei nº 12.527/2011 (LAI)</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
@@ -108,7 +103,7 @@ export function ObrasCivicDisclaimer({
               href={urlLegislacao("lei14133")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>Lei nº 14.133/2021</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />

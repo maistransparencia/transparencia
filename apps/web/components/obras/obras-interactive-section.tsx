@@ -379,12 +379,13 @@ export function ObrasInteractiveSection({
       <SectionHeader
         title="Onde estão as obras"
         description={subtextoTerritorio}
+        className="pb-1"
       />
-      <div className="flex justify-end lg:hidden">
+      <div className="lg:hidden">
         {/* Controles à Direita: Mobile Toggle [Mapa | Lista] ou Desktop Selector [Área urbana | Todo o território] */}
-        <div className="flex items-center gap-2">
+        <div>
           {/* Mobile Toggle: [Mapa | Lista] (apenas em telas < lg) */}
-          <div className="flex items-center rounded-md border border-line bg-line2 p-1 lg:hidden">
+          <div className="grid grid-cols-2 gap-1 rounded-md border border-line bg-line2 p-1 lg:hidden">
             <button
               type="button"
               onClick={() => {
@@ -424,7 +425,7 @@ export function ObrasInteractiveSection({
           <div
             role="tablist"
             aria-label="Filtro por situação da obra"
-            className="flex flex-wrap items-center gap-1.5"
+            className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center"
           >
             {STATUS_FILTROS.map((f) => {
               const isSelected = selectedStatus === f.id;
@@ -442,7 +443,7 @@ export function ObrasInteractiveSection({
                   aria-selected={isSelected}
                   type="button"
                   onClick={() => handleStatusChange(f.id)}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-colors ${
+                  className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-colors sm:justify-start ${
                     isSelected
                       ? "border border-ink bg-ink text-onink"
                       : "border border-line bg-page text-mute hover:bg-line2"
@@ -488,7 +489,7 @@ export function ObrasInteractiveSection({
         </div>
 
         {/* Área Principal Integrada: Lista na Esquerda | Mapa na Direita */}
-        <div className="grid min-h-[580px] grid-cols-1 overflow-hidden border border-line bg-page lg:grid-cols-12">
+        <div className="grid min-h-[580px] grid-cols-1 overflow-hidden rounded-md border border-line bg-page lg:grid-cols-12">
           {/* Coluna de Lista:
               - No desktop (lg+): sempre visível ocupando 5 colunas com borda à direita
               - No mobile (< lg): visível apenas se mobileTab === "lista", ocupando largura total (100%)
