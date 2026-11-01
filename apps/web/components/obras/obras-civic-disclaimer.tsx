@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@transparencia/ui";
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
@@ -117,32 +118,29 @@ export function ObrasCivicDisclaimer({
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-          <button
-            type="button"
+          <Button
+            variant={copied ? "secondary" : "primary"}
             onClick={handleCopy}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 font-medium text-sm focus:outline-hidden focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 ${
-              copied ? "bg-ok-text text-onink" : "bg-ink text-onink"
-            }`}
             aria-label="Copiar mensagem para cobrar vereador ou autoridade"
           >
             {copied ? (
               <>
-                <Check className="h-4 w-4" aria-hidden="true" />
+                <Check className="h-4 w-4 text-ok-text" aria-hidden="true" />
                 <span>Mensagem copiada!</span>
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" aria-hidden="true" />
-                <span>Copiar texto para vereador</span>
+                <span>Copiar texto</span>
               </>
             )}
-          </button>
+          </Button>
 
           <a
             href={FONTES_OFICIAIS.obrasgov.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-1.5 border border-line bg-page px-4 py-2 text-mute text-sm no-underline hover:bg-line2 hover:text-ink focus:outline-hidden focus:ring-2 focus:ring-focus-ring"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-page px-4 py-2 font-medium text-ink text-sm no-underline transition-colors hover:bg-line2 focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
           >
             <MessageSquare className="h-4 w-4 text-mute2" aria-hidden="true" />
             <span>Conhecer o ObrasGov.br</span>

@@ -18,7 +18,7 @@ import type {
   ObraMarkerItem,
   ObrasViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
-import { FONTES_OFICIAIS, urlObraCipi } from "@/lib/constants/fontes-oficiais";
+import { urlObraCipi } from "@/lib/constants/fontes-oficiais";
 import { ObrasDetalheModal } from "./obras-detalhe-modal";
 
 function normalizeText(text: string): string {
@@ -360,39 +360,6 @@ export function ObrasInteractiveSection({
     };
   }, [viewModel.obras, handleSelectObra]);
 
-  // Escuta evento para abrir modal a partir de outros componentes (ex: ObrasParalisadasSection)
-  useEffect(() => {
-    const handleCustomDetalhes = (e: Event) => {
-      const customEvent = e as CustomEvent<{ idProjeto: string }>;
-      if (customEvent.detail?.idProjeto) {
-        const found = viewModel.obras.find(
-          (o) => o.idProjeto === customEvent.detail.idProjeto,
-        );
-        if (found) {
-          handleOpenDetalheModal(found);
-        }
-      }
-    };
-    window.addEventListener("obra:abrir-detalhes", handleCustomDetalhes);
-    return () => {
-      window.removeEventListener("obra:abrir-detalhes", handleCustomDetalhes);
-    };
-  }, [viewModel.obras, handleOpenDetalheModal]);
-
-  // Permite que seções externas (como ObrasParalisadasSection) acionem a seleção de obra no mapa
-  useEffect(() => {
-    const handleCustomSelect = (e: Event) => {
-      const customEvent = e as CustomEvent<{ idProjeto: string }>;
-      if (customEvent.detail?.idProjeto) {
-        handleSelectObra(customEvent.detail.idProjeto);
-      }
-    };
-    window.addEventListener("obra-selecionada", handleCustomSelect);
-    return () => {
-      window.removeEventListener("obra-selecionada", handleCustomSelect);
-    };
-  }, [handleSelectObra]);
-
   const subtextoTerritorio = (() => {
     if (viewMode === "territorio") {
       return "Exibe todas as intervenções mapeadas no território municipal e em rodovias.";
@@ -412,23 +379,12 @@ export function ObrasInteractiveSection({
       <SectionHeader
         title="Onde estão as obras"
         description={subtextoTerritorio}
-        action={
-          <a
-            href={FONTES_OFICIAIS.obrasgov.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1"
-          >
-            <span>Fonte: ObrasGov.br</span>
-            <ExternalLink className="h-3 w-3" aria-hidden="true" />
-          </a>
-        }
       />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-end">
+      <div className="flex justify-end lg:hidden">
         {/* Controles à Direita: Mobile Toggle [Mapa | Lista] ou Desktop Selector [Área urbana | Todo o território] */}
         <div className="flex items-center gap-2">
           {/* Mobile Toggle: [Mapa | Lista] (apenas em telas < lg) */}
-          <div className="flex items-center border border-line bg-line2 p-1 lg:hidden">
+          <div className="flex items-center rounded-md border border-line bg-line2 p-1 lg:hidden">
             <button
               type="button"
               onClick={() => {
@@ -437,7 +393,7 @@ export function ObrasInteractiveSection({
                   window.dispatchEvent(new Event("resize"));
                 }, 50);
               }}
-              className={`rounded-sm px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
                 mobileTab === "mapa"
                   ? "border border-line bg-page text-ink"
                   : "text-mute hover:bg-track hover:text-ink"
@@ -448,7 +404,7 @@ export function ObrasInteractiveSection({
             <button
               type="button"
               onClick={() => setMobileTab("lista")}
-              className={`rounded-sm px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
                 mobileTab === "lista"
                   ? "border border-line bg-page text-ink"
                   : "text-mute hover:bg-track hover:text-ink"
@@ -457,39 +413,13 @@ export function ObrasInteractiveSection({
               Lista
             </button>
           </div>
-
-          {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
-          <div className="hidden shrink-0 items-center space-x-1 border border-line bg-line2 p-1 lg:flex">
-            <button
-              type="button"
-              onClick={() => setViewMode("urbana")}
-              className={`rounded-sm px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-                viewMode === "urbana"
-                  ? "border border-line bg-page text-ink"
-                  : "text-mute hover:bg-track hover:text-ink"
-              }`}
-            >
-              Área urbana
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("territorio")}
-              className={`rounded-sm px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-                viewMode === "territorio"
-                  ? "border border-line bg-page text-ink"
-                  : "text-mute hover:bg-track hover:text-ink"
-              }`}
-            >
-              Todo o território
-            </button>
-          </div>
         </div>
       </div>
 
       {/* CARD INTEGRADO ÚNICO: Filtros no Topo, Lista à Esquerda e Mapa à Direita */}
-      <div className="overflow-hidden border border-line bg-page">
-        {/* Barra Superior de Filtros e Busca (Integrada ao Card) */}
-        <div className="flex flex-col gap-4 border-line border-b p-4 md:flex-row md:items-center md:justify-between">
+      <div className="space-y-4">
+        {/* Barra de filtros, sem moldura */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Pílulas de Status */}
           <div
             role="tablist"
@@ -512,9 +442,9 @@ export function ObrasInteractiveSection({
                   aria-selected={isSelected}
                   type="button"
                   onClick={() => handleStatusChange(f.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 font-medium text-xs transition-colors ${
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-colors ${
                     isSelected
-                      ? "bg-mute3 text-onink"
+                      ? "border border-ink bg-ink text-onink"
                       : "border border-line bg-page text-mute hover:bg-line2"
                   }`}
                 >
@@ -530,31 +460,35 @@ export function ObrasInteractiveSection({
             })}
           </div>
 
-          {/* Campo de Busca */}
-          <div className="relative w-full md:w-64">
-            <input
-              type="text"
-              value={buscaText}
-              onChange={handleBuscaChange}
-              placeholder="Buscar obra ou órgão"
-              aria-label="Buscar obras públicas"
-              className="w-full border border-line bg-page py-1.5 pr-8 pl-3 text-ink text-xs placeholder:text-mute2 focus:border-brand-fill focus:outline-none"
-            />
-            {buscaText.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClearBusca}
-                aria-label="Limpar busca"
-                className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-mute2 hover:text-mute"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+          {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
+          <div className="hidden shrink-0 items-center space-x-1 rounded-md border border-line bg-line2 p-1 lg:flex">
+            <button
+              type="button"
+              onClick={() => setViewMode("urbana")}
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                viewMode === "urbana"
+                  ? "border border-line bg-page text-ink"
+                  : "text-mute hover:bg-track hover:text-ink"
+              }`}
+            >
+              Área urbana
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("territorio")}
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+                viewMode === "territorio"
+                  ? "border border-line bg-page text-ink"
+                  : "text-mute hover:bg-track hover:text-ink"
+              }`}
+            >
+              Todo o território
+            </button>
           </div>
         </div>
 
         {/* Área Principal Integrada: Lista na Esquerda | Mapa na Direita */}
-        <div className="grid min-h-[580px] grid-cols-1 lg:grid-cols-12">
+        <div className="grid min-h-[580px] grid-cols-1 overflow-hidden border border-line bg-page lg:grid-cols-12">
           {/* Coluna de Lista:
               - No desktop (lg+): sempre visível ocupando 5 colunas com borda à direita
               - No mobile (< lg): visível apenas se mobileTab === "lista", ocupando largura total (100%)
@@ -564,6 +498,28 @@ export function ObrasInteractiveSection({
               mobileTab === "lista" ? "flex w-full" : "hidden"
             }`}
           >
+            {/* Campo de Busca */}
+            <div className="relative w-full border-line border-b">
+              <input
+                type="text"
+                value={buscaText}
+                onChange={handleBuscaChange}
+                placeholder="Buscar obra ou órgão"
+                aria-label="Buscar obras públicas"
+                className="w-full bg-page py-3 pr-10 pl-4 text-ink text-xs placeholder:text-mute2 focus-visible:outline-2 focus-visible:outline-brand-fill focus-visible:-outline-offset-2"
+              />
+              {buscaText.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearBusca}
+                  aria-label="Limpar busca"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5 text-mute2 hover:text-mute"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
             {/* Sub-cabeçalho da Lista */}
             <div className="flex items-center justify-between border-line border-b px-4 py-2.5 text-mute2 text-xs">
               <span className="font-medium tabular-nums">
@@ -603,7 +559,7 @@ export function ObrasInteractiveSection({
                       <button
                         type="button"
                         onClick={() => handleSelectObra(obra.idProjeto)}
-                        className="w-full text-left"
+                        className="w-full cursor-pointer text-left"
                       >
                         {/* Linha 1: Dot de Status + Título à Esquerda | Valor Compacto à Direita */}
                         <div className="flex items-start justify-between gap-3">
@@ -661,7 +617,7 @@ export function ObrasInteractiveSection({
                               handleSelectObra(obra.idProjeto);
                             }}
                             aria-label="Fechar detalhes da obra"
-                            className="absolute top-2.5 right-2.5 rounded p-1 text-mute2 hover:bg-line2 hover:text-mute"
+                            className="absolute top-2.5 right-2.5 cursor-pointer rounded p-1 text-mute2 hover:bg-line2 hover:text-mute"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -702,7 +658,7 @@ export function ObrasInteractiveSection({
                             <button
                               type="button"
                               onClick={() => handleOpenDetalheModal(obra)}
-                              className="inline-flex items-center gap-1 font-semibold text-brand-text text-xs hover:underline"
+                              className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand-text text-xs hover:underline"
                             >
                               <span>Ver detalhes</span>
                               <span aria-hidden="true">&rarr;</span>
@@ -747,7 +703,7 @@ export function ObrasInteractiveSection({
                       prev === "urbana" ? "territorio" : "urbana",
                     )
                   }
-                  className="border border-line bg-page/95 px-3 py-1.5 font-semibold text-ink text-xs backdrop-blur-xs"
+                  className="cursor-pointer rounded-md border border-line bg-page/95 px-3 py-1.5 font-semibold text-ink text-xs backdrop-blur-xs"
                 >
                   {viewMode === "urbana"
                     ? "Ver todo o território"
@@ -796,7 +752,7 @@ export function ObrasInteractiveSection({
                         <button
                           type="button"
                           onClick={() => handleSelectObra(obra.idProjeto)}
-                          className="w-full text-left"
+                          className="w-full cursor-pointer text-left"
                         >
                           {/* Topo do Card: Dot + Status | Contador X/Total */}
                           <div className="flex items-center justify-between text-xs">
@@ -858,7 +814,7 @@ export function ObrasInteractiveSection({
                               e.stopPropagation();
                               handleOpenDetalheModal(obra);
                             }}
-                            className="inline-flex items-center gap-1 font-semibold text-brand-text text-xs"
+                            className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand-text text-xs"
                           >
                             <span>Ver detalhes</span>
                             <span aria-hidden="true">&rarr;</span>

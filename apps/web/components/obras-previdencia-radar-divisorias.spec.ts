@@ -15,7 +15,6 @@ const CAMINHOS = [
   "components/obras/obras-hero-section.tsx",
   "components/obras/obras-interactive-section.tsx",
   "components/obras/obras-mapa-interativo.tsx",
-  "components/obras/obras-paralisadas-section.tsx",
   "components/previdencia-actuarial-risk-section.tsx",
   "components/previdencia-entidades-donut.tsx",
   "components/previdencia-hero-section.tsx",

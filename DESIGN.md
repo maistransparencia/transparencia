@@ -156,6 +156,7 @@ spacing:
 rounded:
   # O painel hoje não tem raio. O formato é trocável por variável (ver Components > panel).
   none: 0px
+  md: 6px
 components:
   # Nomes em inglês. Valores de panel espelham as variáveis CSS --panel-border-width, --panel-radius,
   # --panel-padding e --panel-shadow.
@@ -198,6 +199,17 @@ components:
     trigger-min-height: '{spacing.touch-target}'
     chevron-size: 16px
     chevron-open-rotation: 90deg
+  button:
+    min-height: '{spacing.touch-target}'
+    radius: '{rounded.md}'
+    padding: '8px 16px'
+    typography: '{typography.body}, medium'
+    primary-background: '{colors.ink}'
+    primary-color: '{colors.page}'
+    secondary-border: '{colors.line}'
+    secondary-background: '{colors.page}'
+    secondary-color: '{colors.ink}'
+    hover-background: '{colors.line2}'
   link:
     color: '{colors.brand-text}'
     decoration: underline
@@ -322,7 +334,7 @@ Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading
 
 ## Shapes
 
-O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. Botões e campos de controle seguem o que já existe em `packages/ui`.
+O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. **Controles têm leve arredondamento** (`rounded-md`, `{rounded.md}`): botões (ver `button`), campos e seletores. Blocos de conteúdo (`panel`, `alert-box`, `table`) e dados (barras) continuam quadrados.
 
 **Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
 
@@ -370,6 +382,16 @@ Vale para o `table` nu e para o `DenseTable`, que só acrescenta comportamento (
 - O conteúdo aberto reutiliza `panel` e `indicator`: sem estilo novo.
 - **Ação "Ver detalhes"** no fim do detalhe: estilo de `link` (`{colors.brand-text}`, sublinhado), altura mínima `{spacing.touch-target}`, alinhada à esquerda sob o `indicator`. Abre o `ModalDialog`.
 
+### `button`
+
+Ação do cidadão (copiar, compartilhar, ativar, filtrar). Em `packages/ui` (`Button`); nenhuma tela escreve `<button>` com classes próprias.
+- **Forma:** altura mínima `{spacing.touch-target}`, `{rounded.md}`, recuo `8px 16px`, `{typography.body}` em medium, ícone de 16px com `gap-2`. Sem sombra.
+- **Variantes:** `primary` (fundo `{colors.ink}`, texto invertido) para a ação principal da área, **uma por bloco**; `secondary` (borda `{colors.line}`, fundo `{colors.page}`, texto `{colors.ink}`, hover `{colors.line2}`) para as demais.
+- **Estados:** `cursor-pointer` sempre; desabilitado com `cursor-default` e opacidade 50%; foco visível com contorno de `{colors.focus-ring}` e recuo de 2px. Confirmação ("Copiado") troca o rótulo e o ícone, nunca só a cor.
+- **Rótulo:** verbo curto no infinitivo ("Copiar texto", "Compartilhar"), sem repetir o assunto da seção. O contexto longo vai no `aria-label`.
+- **Controle segmentado** (filtro por situação, tema claro/escuro): mesma forma e raio; o item ativo usa o fundo da variante `primary`.
+- **Não é link:** navegação e ação dentro de texto continuam `link`.
+
 ### `link` e `list`
 
 - `link` no texto: `{colors.brand-text}`, sublinhado, `underline-offset-2`. **Link para lei ou norma** (regra 20): o mesmo estilo mais o ícone `ExternalLink` ao lado do texto. Links de navegação e de ação (botões, itens de menu) **não** usam o estilo base: são componentes.
@@ -410,6 +432,7 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 | `section` | ritmo vertical, sem moldura | blocos de página |
 | `alert-box` | aviso com borda lateral e tom | dentro de uma seção, antes dos indicadores |
 | `section-header` | filete, título, descrição e ação | abertura de toda seção |
+| `button` | ação do cidadão | copiar, compartilhar, ativar |
 | `list-text` | lista com marcador em texto corrido | termos, privacidade |
 
 ## Do's and Don'ts
@@ -424,6 +447,7 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 - **Don't** dar margem aos elementos base. Espaço é do contêiner.
 - **Don't** usar sombra, zebra em tabela ou `@tailwindcss/typography`.
 - **Don't** arredondar barras de progresso ou de comparação.
+- **Don't** escrever `<button>` com classes soltas: usar `Button` (`rounded-md`, `min-h-11`, `cursor-pointer`).
 - **Don't** escrever o subtítulo da seção como parágrafo solto: use a descrição do `section-header`.
 - **Don't** usar `h4` como título de `alert-box` nem passar de duas frases no corpo.
 - **Don't** crescer o `h1` para acomodar um valor grande: usar `stat-value-lg`.

@@ -1,6 +1,8 @@
 import { Indicator, IndicatorPanel } from "@transparencia/ui";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { ObrasKpisViewModel } from "@/app/[portalSlug]/obras/view-model";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface ObrasHeroSectionProps {
   ano: number;
@@ -17,19 +19,38 @@ export function ObrasHeroSection({
 }: ObrasHeroSectionProps) {
   const hrefParalisadasNoMapa = `?ano=${ano}&status=paralisada#secao-mapa-obras`;
 
+  const fonteObrasGov = (
+    <a
+      href={FONTES_OFICIAIS.obrasgov.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 text-brand-text underline underline-offset-2"
+    >
+      ObrasGov.br
+      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+    </a>
+  );
+
   const leadText = (() => {
     if (kpis.totalObras === 0) {
-      return `Nenhuma obra pública com movimentação registrada em ${ano}. Veja os outros anos ou consulte a base do ObrasGov.br.`;
+      return (
+        <>
+          Nenhuma obra pública com movimentação registrada em {ano}. Veja os
+          outros anos ou consulte a base do {fonteObrasGov}.
+        </>
+      );
     }
     const obrasTexto =
       kpis.totalObras === 1
         ? "1 obra mapeada"
         : `${kpis.totalObras} obras mapeadas`;
-    const avisoParalisadas =
-      kpis.paralisadas > 0
-        ? " Obra parada é motivo para perguntar, não prova de erro."
-        : "";
-    return `São ${obrasTexto} na cidade.${avisoParalisadas}`;
+    return (
+      <>
+        São {obrasTexto} na cidade, segundo o {fonteObrasGov}.
+        {kpis.paralisadas > 0 &&
+          " Obra parada é motivo para perguntar, não prova de erro."}
+      </>
+    );
   })();
 
   return (
@@ -61,7 +82,12 @@ export function ObrasHeroSection({
                 {kpis.paralisadas > 0 && (
                   <>
                     {" · "}
-                    <Link href={hrefParalisadasNoMapa}>Ver no mapa</Link>
+                    <Link
+                      href={hrefParalisadasNoMapa}
+                      className="text-brand-text underline underline-offset-2"
+                    >
+                      Ver no mapa
+                    </Link>
                   </>
                 )}
               </>

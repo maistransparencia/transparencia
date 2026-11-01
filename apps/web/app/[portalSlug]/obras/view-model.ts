@@ -312,7 +312,6 @@ export interface ObrasViewModel {
     busca?: string;
   };
   obras: ObraItemViewModel[];
-  paralisadasObras: ObraItemViewModel[];
   markers: ObraMarkerItem[];
   urbanCenter: [number, number];
   urbanBounds: [[number, number], [number, number]] | null;
@@ -539,10 +538,6 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
   const territorioBounds = computeBounds(allCoords);
   const obrasForaUrbanaCount = markers.filter((m) => !m.isUrbana).length;
 
-  const paralisadasObras = obrasViewModels.filter(
-    (o) => o.situacao === "paralisada",
-  );
-
   const kpis: ObrasKpisViewModel = {
     totalObras: resumo.totalObras,
     emExecucao: resumo.emExecucao,
@@ -586,7 +581,6 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
     kpis,
     filtros,
     obras: obrasViewModels,
-    paralisadasObras,
     markers,
     urbanCenter: [centerLat, centerLng],
     urbanBounds,
