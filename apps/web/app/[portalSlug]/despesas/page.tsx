@@ -75,7 +75,7 @@ export default async function DespesasPage({
         <h1 className="font-bold font-serif text-3xl text-ink">
           Despesas & Controle de Gastos
         </h1>
-        <p className="mt-1 max-w-3xl text-mute2 text-sm leading-relaxed">
+        <p className="mt-1 text-mute2 text-sm leading-relaxed">
           Para onde foi o dinheiro da prefeitura em {selectedYear}, quanto já
           saiu de verdade do caixa e quem recebeu.
         </p>
@@ -84,13 +84,11 @@ export default async function DespesasPage({
       {/* 1. Resumo: reservado, entregue, pago */}
       <section className="space-y-6" data-testid="despesas-resumo">
         <div className="space-y-2" data-testid="despesas-resumo-destaque">
-          <p className="font-mono text-mute2 text-xs uppercase tracking-wider">
-            Dinheiro que saiu (pago) em {selectedYear}
-          </p>
-          <p className="font-bold text-5xl text-brand tabular-nums leading-none sm:text-6xl">
+          <p className="eyebrow">Dinheiro que saiu (pago) em {selectedYear}</p>
+          <p className="stat-value-lg text-brand-text">
             {fmtCompact(metricasGerais.pago)}
           </p>
-          <p className="max-w-xl text-mute text-sm leading-relaxed">
+          <p className="caption">
             Valor que já saiu do caixa e foi pago a quem prestou o serviço ou
             vendeu o produto.
             {metricasGerais.empenhado > 0 && (

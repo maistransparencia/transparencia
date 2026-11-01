@@ -408,3 +408,13 @@ export async function getContratoByNumero(
     return null;
   }
 }
+
+/** Soma o valor reservado (empenhado) dos contratos vigentes informados. */
+export function somarEmpenhadoContratosVigentes(
+  contratos: ReadonlyArray<Pick<ContratoServicoVigente, "totalEmpenhado">>,
+): number {
+  return contratos.reduce(
+    (acumulado, contrato) => acumulado + (contrato.totalEmpenhado || 0),
+    0,
+  );
+}

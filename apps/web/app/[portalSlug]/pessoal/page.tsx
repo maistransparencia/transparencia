@@ -104,7 +104,11 @@ export default async function PessoalPage({
           {fmtCompact(currentYearRow.totalFolha)}
         </p>
         <p className="caption flex flex-wrap gap-x-3">
-          <span>proventos brutos, {selectedYear}</span>
+          <span>
+            {isCurrentYear
+              ? `proventos brutos no período (${partialPeriod || "até agora"})`
+              : `proventos brutos, ${selectedYear}`}
+          </span>
           {!isCurrentYear && totalFolhaTrend && (
             <span>{totalFolhaTrend.value}</span>
           )}

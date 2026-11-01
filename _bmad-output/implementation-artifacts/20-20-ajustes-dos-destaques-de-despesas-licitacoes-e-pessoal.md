@@ -2,8 +2,8 @@
 title: 'Story 20.20: Ajustes dos Destaques de Despesas, Licitações e Pessoal'
 type: 'feature'
 created: '2026-11-01'
-status: 'ready-for-dev'
-baseline_revision: 'f767fd842c6883a207d6ce16b721f944208c8a17'
+status: 'done'
+baseline_revision: '362f86e4b5c5ce59aa1ed250ff185ad91bf1af5b'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -12,7 +12,21 @@ context:
   - '{project-root}/docs/glossario-cidadao.md'
   - '{project-root}/docs/governanca-constantes-fiscais.md'
 warnings: []
-deferred: []
+deferred:
+  - summary: >-
+      Contagem de licitações ativas usa texto de situacao além do código.
+    evidence: |-
+      classificada com texto "Em aberto" conta como ativa (unverified); confirmar definição de aberta.
+    location: >-
+      packages/db/src/queries/licitacoes-metrics.ts
+    severity: medium (unverified)
+  - summary: >-
+      Total empenhado pode mostrar R$ 0 com contratos sem totalEmpenhado.
+    evidence: |-
+      Depende de dados reais de contratos vigentes sem valor empenhado.
+    location: >-
+      apps/web/app/[portalSlug]/licitacoes/page.tsx
+    severity: medium (unverified)
 ---
 
 <intent-contract>
@@ -88,3 +102,31 @@ deferred: []
 - `pnpm typecheck`, `pnpm test` e `biome` em `apps/web`, `packages/db` e `packages/ui`.
 - Capturas de tela antes e depois das três páginas (claro e escuro, desktop e mobile), com ano fechado e ano parcial.
 - Checklist da Regra 23: a tela continua correta para outro estado (ex.: MG) e com histórico de 2017 a 2027?
+
+## Review Triage Log
+
+### 2026-11-01 — Review pass
+- verdicts: 24 findings — high 0, medium 2, low 6, false 3, maybe-false 13
+- findings:
+  - `[medium]` `[defer]` Contagem de "ativas" usa texto de `situacao` ("aberta"/"em aberto") além do código; `classificada` com "Em aberto" conta como ativa (blind, edge, verification-gap, intent) — heurística real mas sem dado que a refute; severidade média não verificada; confirmar com o Julio a definição de "aberta" e, se preciso, normalizar o código no dbt.
+  - `[medium]` `[defer]` Total empenhado pode aparecer como "R$ 0" quando há contratos vigentes sem `totalEmpenhado` (blind, edge) — depende de dados reais; não verificado.
+  - `[low]` `[patch]` Chevron do "Ver detalhes" sem `aria-hidden` — aplicado.
+  - `[low]` `[patch]` Rótulos "agora"/"já" valiam também para anos passados (pedido do Julio durante a revisão) — pergunta e legendas agora variam com `isCurrentYear`, com testes.
+  - `[low]` `[reject]` Legenda de "ativas" sem ano/filtro (edge, blind) — é retrato do momento; o filtro por entidade já vale na lista; correção adicionaria ramificações sem dano nomeado.
+  - `[low]` `[reject]` Falta teste de `valorObservado`/`valorEsperado`, ramo filtrado e "até agora" (blind, verification-gap) — cobertura incremental; texto já exercido pelo teste do alerta.
+  - `[low]` `[reject]` `/despesas` sem spec, remoção de `max-w-*` (blind, intent) — mudança pedida pela AC 1, apenas classes.
+  - `[low]` `[reject]` `<details>` sem `focus-visible` e `info` em vez de `warn` (blind) — `info` é decisão da spec; foco nativo do `summary` preservado.
+  - `[false]` `[reject]` `cn` removido pode quebrar outro uso (blind) — typecheck passa.
+  - `[false]` `[reject]` Ano 2024 fixo nos testes viola Regra 23 (blind) — é fixture de teste, não texto de página.
+  - `[false]` `[reject]` Totais deveriam ser agregados em query (edge) — spec pede funções em `@transparencia/db`, atendido.
+  - `[maybe-false]` `[reject]` Demais observações de redação, pontuação do parágrafo e "boa parte" sem percentual (blind, edge, intent) — texto pedido pela spec (sem repetir percentual); sem dano comprovado.
+
+## Auto Run Result
+
+Status: done
+
+- Resumo: destaques de `/despesas`, `/licitacoes` e `/pessoal` alinhados ao padrão de `/receitas`; dois totais novos em `@transparencia/db`; alerta de contratação direta em `AlertBox` `info` com "Ver detalhes"; legenda de período parcial em `/pessoal`; textos "agora"/"já" só no ano atual.
+- Arquivos: `despesas/page.tsx` (classes do destaque), `licitacoes/{page.tsx,view-model.ts}` (hero, `IndicatorPanel`, alerta), `pessoal/page.tsx` (legenda), `packages/db/src/queries/{licitacoes-metrics,contratos-servicos-vigentes}.ts` (`contarLicitacoesAtivas`, `somarEmpenhadoContratosVigentes`), specs de página e `licitacoes-destaques.spec.ts`.
+- Revisão: 2 médios adiados, 2 patches (aria-hidden; texto por ano atual), demais rejeitados (ver log). Follow-up recomendado: false.
+- Verificação: `pnpm typecheck`, `pnpm test` e `biome` passam.
+- Riscos residuais: texto do alerta e citações ainda sem `editor-cidadao`/`jurista-fiscal`; total empenhado sem `contador-publico`; sem capturas de tela; definição de "ativa" por texto a confirmar.

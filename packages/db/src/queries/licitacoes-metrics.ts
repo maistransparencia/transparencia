@@ -1261,3 +1261,23 @@ export async function getLicitacaoItensBatch(
 
   return initialResult;
 }
+
+function normalizarSituacaoTexto(situacao: string): string {
+  return situacao.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
+/**
+ * Licitações ativas: situação aberta ou em andamento. Funciona sobre a lista
+ * já filtrada por entidade, então reflete o filtro da página.
+ */
+export function contarLicitacoesAtivas(
+  licitacoes: ReadonlyArray<
+    Pick<LicitacaoEmAndamentoDTO, "situacao" | "situacaoCodigo">
+  >,
+): number {
+  return licitacoes.filter((licitacao) => {
+    if (licitacao.situacaoCodigo === "em_andamento") return true;
+    const situacao = normalizarSituacaoTexto(licitacao.situacao ?? "");
+    return situacao === "aberta" || situacao === "em aberto";
+  }).length;
+}

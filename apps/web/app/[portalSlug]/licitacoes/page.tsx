@@ -1,10 +1,13 @@
 import {
-  cn,
+  AlertBox,
+  fmtCompact,
   fmtCurrency,
+  fmtNumber,
   fmtPercent,
-  IndicadoresLinha,
+  Indicator,
+  IndicatorPanel,
 } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { ContratosServicosVigentesSection } from "@/components/contratos-servicos-vigentes-section";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
@@ -78,6 +81,9 @@ export default async function LicitacoesPage({
     taxaContratacaoDireta,
     hasAnomaliaDispensa,
     isFilteredByEntidade,
+    quantidadeLicitacoesAtivas,
+    quantidadeContratosVigentes,
+    totalEmpenhadoContratosVigentes,
   } = viewModel;
 
   return (
@@ -112,137 +118,151 @@ export default async function LicitacoesPage({
         </div>
       </div>
 
-      <IndicadoresLinha
-        indicadores={[
-          {
-            codigo: "taxa_contratacao_direta",
-            rotulo: "Taxa de Contratação Direta",
-            valor: fmtPercent(taxaContratacaoDireta),
-            destaque: true,
-          },
-          {
-            codigo: "acima_limite_sem_licitacao",
-            rotulo: "Acima do limite s/ licitação",
-            valor: (
-              <span
-                className={cn(acimaLimiteGaps.length > 0 && "text-warn-text")}
-              >
-                {acimaLimiteGaps.length}
-              </span>
-            ),
-          },
-          {
-            codigo: "sem_processo_licitatorio",
-            rotulo: "Sem processo licitatório",
-            valor: gaps.length,
-          },
-          {
-            codigo: "adesoes_ata",
-            rotulo: "Adesões de ata (carona)",
-            valor: adesao.quantidade,
-          },
-          {
-            codigo: "empenhos_ata_externa",
-            rotulo: "Empenhos via ata externa",
-            valor: adesaoExterna.quantidade,
-          },
-        ]}
-      />
-
-      {/* Warning Alert Banner - Concentração de Dispensas */}
-      {hasAnomaliaDispensa && (
-        <div className="flex items-start gap-3 rounded-md bg-warn-fill/10 p-4 text-ink text-xs sm:text-sm">
-          <div>
-            <span className="font-bold text-warn-text">
-              Concentração de contratações diretas.
-            </span>{" "}
-            {(() => {
-              if (isFilteredByEntidade) {
-                return (
-                  <>
-                    Nas entidades selecionadas em {selectedYear},{" "}
-                    {fmtPercent(taxaContratacaoDireta)} do volume apurado de
-                    compras públicas foi contratado diretamente por dispensa,
-                    inexigibilidade ou adesão a ata
-                    {alertaDispensa?.valorEsperado != null
-                      ? ` (referência histórica municipal: ${fmtPercent(alertaDispensa.valorEsperado)})`
-                      : ""}
-                    .
-                  </>
-                );
-              }
-              return (
-                <>
-                  No consolidado municipal de {selectedYear}, embora as
-                  contratações diretas representem{" "}
-                  <strong className="font-bold">
-                    {fmtPercent(taxaContratacaoDireta)}
-                  </strong>{" "}
-                  do volume financeiro apurado,{" "}
-                  {alertaDispensa?.valorObservado != null ? (
-                    <>
-                      <strong className="font-bold">
-                        {fmtPercent(alertaDispensa.valorObservado)}
-                      </strong>{" "}
-                      dos processos de compras públicas foram realizados
-                      diretamente
-                    </>
-                  ) : (
-                    "foram realizadas diretamente"
-                  )}{" "}
-                  por dispensa, inexigibilidade ou adesão a ata
-                  {alertaDispensa?.valorEsperado != null
-                    ? ` (média histórica de referência: ${fmtPercent(alertaDispensa.valorEsperado)} dos processos)`
-                    : ""}
-                  .
-                </>
-              );
-            })()} Embora legais em hipóteses específicas, compras sem
-            concorrência aberta exigem justificativa formal e estrita
-            conformidade com a Lei Federal nº 14.133/2021:{" "}
-            <a
-              href={urlLegislacao("lei14133", "art74")}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
-            >
-              Art. 74 (Inexigibilidade)
-              <ExternalLink
-                className="ml-0.5 inline h-3 w-3"
-                aria-hidden="true"
-              />
-            </a>
-            {", "}
-            <a
-              href={urlLegislacao("lei14133", "art75")}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
-            >
-              Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)
-              <ExternalLink
-                className="ml-0.5 inline h-3 w-3"
-                aria-hidden="true"
-              />
-            </a>
-            {" e "}
-            <a
-              href={urlLegislacao("lei14133", "art86")}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
-              className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
-            >
-              Art. 86 (Adesão a Ata)
-              <ExternalLink
-                className="ml-0.5 inline h-3 w-3"
-                aria-hidden="true"
-              />
-            </a>
-            .
+      <section className="space-y-6" data-testid="licitacoes-destaque">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="space-y-2" data-testid="licitacoes-destaque-ativas">
+            <p className="eyebrow">
+              {isCurrentYear
+                ? "Quantas licitações estão ativas agora?"
+                : `Quantas licitações estiveram ativas em ${selectedYear}?`}
+            </p>
+            <p className="stat-value-lg text-brand-text">
+              {fmtNumber(quantidadeLicitacoesAtivas)}
+            </p>
+            <p className="caption">
+              {quantidadeLicitacoesAtivas > 0
+                ? "licitações ativas, abertas ou em andamento"
+                : isCurrentYear
+                  ? "nenhuma licitação ativa no momento"
+                  : `nenhuma licitação ativa em ${selectedYear}`}
+            </p>
           </div>
+          <div
+            className="space-y-2"
+            data-testid="licitacoes-destaque-empenhado"
+          >
+            <p className="eyebrow">
+              {isCurrentYear
+                ? "Quanto já foi reservado"
+                : "Quanto foi reservado"}{" "}
+              para pagar contratos vigentes em {selectedYear}?
+            </p>
+            {quantidadeContratosVigentes > 0 ? (
+              <>
+                <p className="stat-value-lg text-brand-text">
+                  {fmtCompact(totalEmpenhadoContratosVigentes)}
+                </p>
+                <p className="caption">
+                  reservado (empenhado) em contratos vigentes em {selectedYear}
+                </p>
+              </>
+            ) : (
+              <p className="caption">
+                sem contratos vigentes em {selectedYear}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <IndicatorPanel>
+          <Indicator
+            label="Taxa de Contratação Direta"
+            value={fmtPercent(taxaContratacaoDireta)}
+          />
+          <Indicator
+            label="Acima do limite s/ licitação"
+            value={acimaLimiteGaps.length}
+            tone={acimaLimiteGaps.length > 0 ? "warn" : "default"}
+          />
+          <Indicator label="Sem processo licitatório" value={gaps.length} />
+          <Indicator
+            label="Adesões de ata (carona)"
+            value={adesao.quantidade}
+          />
+          <Indicator
+            label="Empenhos via ata externa"
+            value={adesaoExterna.quantidade}
+          />
+        </IndicatorPanel>
+      </section>
+
+      {hasAnomaliaDispensa && (
+        <div className="space-y-3">
+          <AlertBox type="info" title="Muitas compras sem concorrência">
+            {isFilteredByEntidade
+              ? `Nas entidades selecionadas em ${selectedYear}, boa parte do valor das compras foi contratada diretamente, sem licitação aberta.`
+              : `Em ${selectedYear}, uma parte grande das compras da prefeitura foi feita diretamente, sem licitação aberta. Isso é permitido em alguns casos, mas pede conferência.`}
+          </AlertBox>
+          <details className="group">
+            <summary className="flex cursor-pointer select-none items-center gap-2 font-semibold text-ink text-sm">
+              <ChevronDown
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180"
+              />
+              <span>Ver detalhes</span>
+            </summary>
+            <div className="mt-3 space-y-2 text-ink text-sm leading-relaxed">
+              <p>
+                {isFilteredByEntidade
+                  ? `Nas entidades selecionadas, ${fmtPercent(taxaContratacaoDireta)} do valor apurado foi contratado por dispensa, inexigibilidade ou adesão a ata`
+                  : `Contratações diretas somam ${fmtPercent(taxaContratacaoDireta)} do valor apurado em ${selectedYear}${
+                      alertaDispensa?.valorObservado != null
+                        ? ` e ${fmtPercent(alertaDispensa.valorObservado)} dos processos`
+                        : ""
+                    }, por dispensa, inexigibilidade ou adesão a ata`}
+                {alertaDispensa?.valorEsperado != null
+                  ? ` (média histórica de referência: ${fmtPercent(alertaDispensa.valorEsperado)})`
+                  : ""}
+                .
+              </p>
+              <p>
+                Compras sem concorrência aberta exigem justificativa formal,
+                conforme a Lei Federal nº 14.133/2021:{" "}
+                <a
+                  href={urlLegislacao("lei14133", "art74")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Art. 74 da Lei Federal nº 14.133/2021 (Inexigibilidade)"
+                  className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
+                >
+                  Art. 74 (Inexigibilidade)
+                  <ExternalLink
+                    className="ml-0.5 inline h-3 w-3"
+                    aria-hidden="true"
+                  />
+                </a>
+                {", "}
+                <a
+                  href={urlLegislacao("lei14133", "art75")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Art. 75 da Lei Federal nº 14.133/2021 (Dispensa)"
+                  className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
+                >
+                  Art. 75 (Dispensa)
+                  <ExternalLink
+                    className="ml-0.5 inline h-3 w-3"
+                    aria-hidden="true"
+                  />
+                </a>
+                {" e "}
+                <a
+                  href={urlLegislacao("lei14133", "art86")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Art. 86 da Lei Federal nº 14.133/2021 (Adesão a Ata)"
+                  className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2 hover:text-ink"
+                >
+                  Art. 86 (Adesão a Ata)
+                  <ExternalLink
+                    className="ml-0.5 inline h-3 w-3"
+                    aria-hidden="true"
+                  />
+                </a>
+                .
+              </p>
+            </div>
+          </details>
         </div>
       )}
 

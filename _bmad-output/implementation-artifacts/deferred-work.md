@@ -433,3 +433,17 @@ source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-esc
 severity: medium
 reason: A 20-9 foi fechada sem capturas de tela nem revisão visual independente. O acabamento do /radar (commits 580241f6 e 8c3adfcf) também não foi conferido no navegador (claro/escuro, mobile/desktop), inclusive a barra "Exercícios" fixa no mobile. A 20-18 já exige capturas antes e depois nos dois temas e tamanhos; cobrir estas três páginas nela.
 status: open
+
+### DW-29: Contagem de licitações ativas usa texto de situacao além do código.
+origin: spec-deferred 42491095b626
+location: packages/db/src/queries/licitacoes-metrics.ts
+source_spec: `20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal.md`
+reason: classificada com texto "Em aberto" conta como ativa (unverified); confirmar definição de aberta.
+status: open
+
+### DW-30: Total empenhado pode mostrar R$ 0 com contratos sem totalEmpenhado.
+origin: spec-deferred 4d0380beaa80
+location: apps/web/app/[portalSlug]/licitacoes/page.tsx
+source_spec: `20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal.md`
+reason: Depende de dados reais de contratos vigentes sem valor empenhado.
+status: open
