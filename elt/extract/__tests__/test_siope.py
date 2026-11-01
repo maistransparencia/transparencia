@@ -21,8 +21,8 @@ def _resp(content, status=200, ok=True):
     return resp
 
 
-def _linha(exib, ano=2024, valor=1.5, ente=0):
-    return {"codEnte": ente, "numAno": ano, "numPeri": 6, "codIndi": IDS[exib], "codExib": exib, "valIndi": valor}
+def _linha(exib, ano=2024, valor=1.5, ente=0, periodo=6):
+    return {"codEnte": ente, "numAno": ano, "numPeri": periodo, "codIndi": IDS[exib], "codExib": exib, "valIndi": valor}
 
 
 def _lista(grupo):
@@ -37,14 +37,17 @@ def _portal():
     return PortalConfig.load("porciuncula_prefeitura")
 
 
-def _fake_request(linhas_por_grupo):
+def _fake_request(linhas_por_grupo, bimestrais_por_grupo=None):
     def fake(self, method, params, body=None):
         if method == "GET":
             return _lista(params["codGrupIndi"])
+        bimestral = body["tpPeriodo"] == "B"
+        fonte = (bimestrais_por_grupo or {}) if bimestral else linhas_por_grupo
         return self.validar_linhas(
-            linhas_por_grupo[body["codGrupIndi"]],
+            fonte.get(body["codGrupIndi"], []),
             {c: IDS[c] for c in INDICADORES_POR_GRUPO[body["codGrupIndi"]]},
             body["numAno"],
+            tuple(body["numPeri"]),
         )
 
     return fake
@@ -177,3 +180,76 @@ def test_extract_and_load_sem_db_nao_grava():
     dados = {g: [_linha(c) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
     with patch.object(SiopeExtractor, "_request", _fake_request(dados)):
         assert extract_and_load_siope(_portal(), [2024], db=None, extractor=SiopeExtractor(min_interval_seconds=0)) == 6
+
+
+def _bimestres(ano, periodos, omitir=()):
+    return {
+        g: [_linha(c, ano=ano, periodo=p) for p in periodos for c in cs if (c, p) not in omitir]
+        for g, cs in INDICADORES_POR_GRUPO.items()
+    }
+
+
+def test_ano_sem_fechamento_grava_bimestre_mais_avancado_completo():
+    anuais = {g: [_linha(c, ano=2024) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
+    # 4.9 ausente no 1º bimestre e todo o 5º ainda sem linhas, como na API real
+    bimestrais = _bimestres(2026, [1, 2, 3, 4], omitir={("4.9", 1)})
+    with patch.object(SiopeExtractor, "_request", _fake_request(anuais, bimestrais)):
+        rows = SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2024, 2026])
+    anual = [r for r in rows if r["ano"] == 2024]
+    parcial = [r for r in rows if r["ano"] == 2026]
+    assert {(r["periodo"], r["tipo_periodo"]) for r in anual} == {(6, "anual")}
+    assert {(r["periodo"], r["tipo_periodo"]) for r in parcial} == {(4, "bimestral")}
+    assert len(parcial) == len(IDS)
+
+
+def test_bimestre_incompleto_cai_para_o_anterior_completo():
+    bimestrais = _bimestres(2026, [2, 3], omitir=set())
+    bimestrais[4] = bimestrais[4] + [_linha("4.9", ano=2026, periodo=4)]
+    with patch.object(SiopeExtractor, "_request", _fake_request({1: [], 4: []}, bimestrais)):
+        rows = SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2026])
+    assert {r["periodo"] for r in rows} == {3}
+
+
+def test_ano_com_fechamento_ignora_bimestres():
+    anuais = {g: [_linha(c, ano=2024) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
+    bimestrais = _bimestres(2024, [1, 2, 3])
+    with patch.object(SiopeExtractor, "_request", _fake_request(anuais, bimestrais)):
+        rows = SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2024])
+    assert {(r["periodo"], r["tipo_periodo"]) for r in rows} == {(6, "anual")}
+
+
+def test_ano_sem_fechamento_nem_bimestre_completo_e_ignorado():
+    anuais = {g: [_linha(c, ano=2024) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
+    with patch.object(SiopeExtractor, "_request", _fake_request(anuais, {1: [_linha("1.1", 2026, periodo=1)], 4: []})):
+        rows = SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2024, 2026])
+    assert {r["ano"] for r in rows} == {2024}
+
+
+# Resposta real da API (Porciúncula, consulta bimestral de 2026, coletada em 2026-11-01): bimestres 1 a 4 com
+# valor acumulado no ano; 4.9 sem o 1º bimestre; 5º e 6º sem linhas (defasagem de um bimestre ou mais).
+RESPOSTA_REAL_PORCIUNCULA_2026 = {
+    "4.9": {2: 4836.8, 3: 7804.75, 4: 11325.75},
+    "1.1": {1: 23.4, 2: 26.9, 3: 27.58, 4: 26.43},
+}
+
+
+def test_resposta_real_bimestral_grava_o_bimestre_mais_avancado_com_valores_acumulados():
+    outros = [c for c in IDS if c not in RESPOSTA_REAL_PORCIUNCULA_2026]
+    por_indicador = {
+        **RESPOSTA_REAL_PORCIUNCULA_2026,
+        **{c: {p: 1.0 for p in range(1, 5)} for c in outros},
+    }
+    bimestrais = {
+        grupo: [
+            _linha(c, ano=2026, valor=valor, periodo=periodo)
+            for c in codigos
+            for periodo, valor in por_indicador[c].items()
+        ]
+        for grupo, codigos in INDICADORES_POR_GRUPO.items()
+    }
+    with patch.object(SiopeExtractor, "_request", _fake_request({1: [], 4: []}, bimestrais)):
+        rows = SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2026])
+    assert {(r["periodo"], r["tipo_periodo"]) for r in rows} == {(4, "bimestral")}
+    valores = {r["codigo_indicador"]: r["valor"] for r in rows}
+    assert valores["4.9"] == 11325.75
+    assert valores["1.1"] == 26.43

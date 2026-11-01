@@ -14,6 +14,7 @@ viram 18.126,44 em lote), então o lote não serve para ler cada município.
 import argparse
 import logging
 import time
+from collections import Counter
 from datetime import date, datetime, timezone
 from typing import Any
 
@@ -34,9 +35,15 @@ SIOPE_USER_AGENT = (
 ESFERA_MUNICIPAL = 2
 TIPO_PERIODO_ANUAL = "A"  # código da API: "A" = Anual, "B" = Bimestral (tela do Relatório Gerencial)
 TIPO_PERIODO_ANUAL_CODIGO = "anual"
+TIPO_PERIODO_BIMESTRAL = "B"
+TIPO_PERIODO_BIMESTRAL_CODIGO = "bimestral"
 # Na consulta anual a API devolve o valor do 6º bimestre (fechamento do ano, acumulado), qualquer que seja
 # o `numPeri` pedido. Ano em andamento volta sem linhas (verificado em 2026-11-01).
 PERIODO_ANUAL = 6
+# Na consulta bimestral a API devolve o valor ACUMULADO no ano até o bimestre (verificado em 2026-11-01 em
+# Porciúncula: 4.9 de 2026 = 4.836,80 / 7.804,75 / 11.325,75 nos bimestres 2 a 4; 5º e 6º ainda sem linhas) e
+# pode omitir um indicador em bimestres iniciais. Só o ano sem fechamento usa bimestres parciais (1 a 5).
+PERIODOS_PARCIAIS = (1, 2, 3, 4, 5)
 UNIDADE_POR_TIPO_VALOR = {"P": "percentual", "M": "monetario"}
 PRIMEIRO_ANO_SIOPE = 2005
 TAMANHO_CODIGO_SIOPE = 6
@@ -173,25 +180,36 @@ class SiopeExtractor:
         return {c: metadados(c) for c in codigos_exibicao}
 
     def buscar_grupo(
-        self, cod_ibge: int, grupo: int, indicadores: dict[str, int], anos: list[int]
+        self,
+        cod_ibge: int,
+        grupo: int,
+        indicadores: dict[str, int],
+        anos: list[int],
+        tipo_periodo: str = TIPO_PERIODO_ANUAL,
+        periodos: tuple[int, ...] = (PERIODO_ANUAL,),
     ) -> list[dict[str, Any]]:
-        """Busca um grupo de indicadores de um município para os anos e valida o formato."""
+        """Busca um grupo de indicadores de um município para os anos e períodos e valida o formato."""
         body = {
             "coEsferaAdm": ESFERA_MUNICIPAL,
             "codUF": [codigo_uf(cod_ibge)],
             "codMuni": [int(codigo_siope(cod_ibge))],
             "codFaixaPopulacao": 0,
-            "tpPeriodo": TIPO_PERIODO_ANUAL,
+            "tpPeriodo": tipo_periodo,
             "numAno": anos,
-            "numPeri": [PERIODO_ANUAL],
+            "numPeri": list(periodos),
             "codGrupIndi": grupo,
             "indicadores": list(indicadores.values()),
         }
         content = self._request("POST", {"metodo": "relatorio"}, body)
-        return self.validar_linhas(content, indicadores, anos)
+        return self.validar_linhas(content, indicadores, anos, periodos)
 
     @staticmethod
-    def validar_linhas(content: list[Any], indicadores: dict[str, int], anos: list[int]) -> list[dict[str, Any]]:
+    def validar_linhas(
+        content: list[Any],
+        indicadores: dict[str, int],
+        anos: list[int],
+        periodos: tuple[int, ...] = (PERIODO_ANUAL,),
+    ) -> list[dict[str, Any]]:
         """Confere campos, domínio e duplicidade; falha em qualquer divergência."""
         codigo_por_interno = {interno: exib for exib, interno in indicadores.items()}
         vistos: set[tuple[int, int, int]] = set()
@@ -202,7 +220,7 @@ class SiopeExtractor:
                 raise SiopeError(f"Linha do SIOPE fora do pedido: {linha}")
             if codigo_por_interno[linha["codIndi"]] != str(linha["codExib"]):
                 raise SiopeError(f"Código de exibição divergente no SIOPE: {linha}")
-            if linha["numPeri"] != PERIODO_ANUAL:
+            if linha["numPeri"] not in periodos:
                 raise SiopeError(f"Período inesperado no SIOPE: {linha}")
             if linha["valIndi"] is not None and not isinstance(linha["valIndi"], (int, float)):
                 raise SiopeError(f"Valor não numérico no SIOPE: {linha}")
@@ -213,27 +231,45 @@ class SiopeExtractor:
         return content
 
     def extrair_portal(self, portal: PortalConfig, anos: list[int]) -> list[dict[str, Any]]:
-        """Extrai todos os indicadores de interesse de um portal. Tudo ou nada: qualquer lacuna levanta `SiopeError`."""
+        """Extrai todos os indicadores de interesse de um portal. Tudo ou nada: qualquer lacuna levanta `SiopeError`.
+
+        O fechamento anual (6º bimestre) vale sempre. Ano sem fechamento usa o bimestre mais avançado
+        em que todos os indicadores existem (parcial); sem nenhum, o ano é ignorado com aviso.
+        """
         codigo = codigo_siope(portal.cod_ibge)
-        linhas: list[dict[str, Any]] = []
         metadados_por_codigo: dict[str, dict[str, Any]] = {}
+        internos_por_grupo: dict[int, dict[str, int]] = {}
         for grupo, codigos in INDICADORES_POR_GRUPO.items():
             metadados = self.resolver_indicadores(grupo, codigos)
             metadados_por_codigo.update(metadados)
-            internos = {c: m["codigo_interno"] for c, m in metadados.items()}
-            linhas.extend(self.buscar_grupo(portal.cod_ibge, grupo, internos, anos))
+            internos_por_grupo[grupo] = {c: m["codigo_interno"] for c, m in metadados.items()}
+
+        def buscar(anos_busca: list[int], tipo: str, periodos: tuple[int, ...]) -> list[dict[str, Any]]:
+            return [
+                linha
+                for grupo, internos in internos_por_grupo.items()
+                for linha in self.buscar_grupo(portal.cod_ibge, grupo, internos, anos_busca, tipo, periodos)
+            ]
 
         esperados = len(INDICADORES_POR_GRUPO_TOTAL)
-        por_ano: dict[int, int] = {}
-        for linha in linhas:
-            por_ano[linha["numAno"]] = por_ano.get(linha["numAno"], 0) + 1
-        parciais = {ano: n for ano, n in por_ano.items() if n != esperados}
-        if parciais:
-            raise SiopeError(f"Indicadores ausentes em {portal.slug} (anos com lacuna: {sorted(parciais)})")
-        sem_dado = [ano for ano in anos if ano not in por_ano]
+        anuais = buscar(anos, TIPO_PERIODO_ANUAL, (PERIODO_ANUAL,))
+        por_ano = Counter(linha["numAno"] for linha in anuais)
+        lacunas = sorted(ano for ano, n in por_ano.items() if n != esperados)
+        if lacunas:
+            raise SiopeError(f"Indicadores ausentes em {portal.slug} (anos com lacuna: {lacunas})")
+
+        sem_fechamento = [ano for ano in anos if ano not in por_ano]
+        bimestrais = buscar(sem_fechamento, TIPO_PERIODO_BIMESTRAL, PERIODOS_PARCIAIS) if sem_fechamento else []
+        por_bimestre = Counter((linha["numAno"], linha["numPeri"]) for linha in bimestrais)
+        completos = {chave for chave, n in por_bimestre.items() if n == esperados}
+        periodo_parcial_por_ano = {
+            ano: max(periodo for a, periodo in completos if a == ano) for ano in {a for a, _ in completos}
+        }
+        parciais = [linha for linha in bimestrais if periodo_parcial_por_ano.get(linha["numAno"]) == linha["numPeri"]]
+        sem_dado = [ano for ano in sem_fechamento if ano not in periodo_parcial_por_ano]
         if sem_dado:
             logger.warning("SIOPE sem dados para %s nos anos %s; nada gravado para eles", portal.slug, sem_dado)
-        if not por_ano:
+        if not anuais and not parciais:
             raise SiopeError(f"SIOPE sem nenhum dado para {portal.slug} nos anos {anos}")
 
         coletado_em = datetime.now(timezone.utc).isoformat()
@@ -242,7 +278,7 @@ class SiopeExtractor:
                 "portal_slug": portal.slug,
                 "ano": linha["numAno"],
                 "periodo": linha["numPeri"],
-                "tipo_periodo": TIPO_PERIODO_ANUAL_CODIGO,
+                "tipo_periodo": tipo_periodo_codigo,
                 "codigo_indicador": str(linha["codExib"]),
                 "codigo_interno_indicador": linha["codIndi"],
                 "unidade": metadados_por_codigo[str(linha["codExib"])]["unidade"],
@@ -251,6 +287,10 @@ class SiopeExtractor:
                 "valor": linha["valIndi"],
                 "coletado_em": coletado_em,
             }
+            for linhas, tipo_periodo_codigo in (
+                (anuais, TIPO_PERIODO_ANUAL_CODIGO),
+                (parciais, TIPO_PERIODO_BIMESTRAL_CODIGO),
+            )
             for linha in linhas
         ]
 

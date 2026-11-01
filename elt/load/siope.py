@@ -21,7 +21,8 @@ def ensure_siope_table(engine: Connectable, schema: str = SCHEMA) -> None:
 
     `portal_slug` faz parte da chave primária: cada portal grava e recarrega só as suas linhas.
 
-    `tipo_periodo` é `anual` (código "A" da API) e `periodo` 6 é o 6º bimestre, o fechamento do ano.
+    `tipo_periodo` é `anual` (código "A" da API, `periodo` 6 = 6º bimestre, fechamento do ano) ou `bimestral`
+    (código "B", `periodo` 1 a 5, valor acumulado no ano até o bimestre, só de ano ainda em andamento).
     `unidade` é `percentual` ou `monetario`; `nomes_oficiais_indicador` guarda os `nomIndi` da API.
     """
     ddl = f"""
