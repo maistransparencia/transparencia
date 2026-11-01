@@ -377,7 +377,7 @@ export function LicitacoesSpotlightModal({
 
           {loading && (
             <Loader2
-              className="h-4 w-4 shrink-0 animate-spin text-accent"
+              className="h-4 w-4 shrink-0 animate-spin text-brand-text"
               aria-label="Carregando resultados"
             />
           )}
@@ -485,7 +485,7 @@ export function LicitacoesSpotlightModal({
                       setSearchTerm(sug);
                       inputRef.current?.focus();
                     }}
-                    className="rounded-md border border-line bg-line2 px-2.5 py-1 text-mute2 text-xs hover:border-accent hover:bg-accent/5 hover:text-accent"
+                    className="rounded-md border border-line bg-line2 px-2.5 py-1 text-mute2 text-xs hover:border-brand hover:bg-brand/5 hover:text-brand-text"
                   >
                     {sug}
                   </button>
@@ -537,9 +537,9 @@ export function LicitacoesSpotlightModal({
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-md p-3 text-left transition-colors",
                         isLoadingItem
-                          ? "cursor-wait bg-accent/15 text-ink ring-1 ring-accent/30"
+                          ? "cursor-wait bg-brand/15 text-ink ring-1 ring-brand/30"
                           : isSelected
-                            ? "bg-accent/10 text-ink"
+                            ? "bg-brand/10 text-ink"
                             : "text-ink hover:bg-line2",
                         loadingItemId !== null &&
                           !isLoadingItem &&
@@ -549,14 +549,14 @@ export function LicitacoesSpotlightModal({
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         {isLoadingItem ? (
                           <Loader2
-                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent"
+                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-text"
                             aria-hidden="true"
                           />
                         ) : (
                           <FileText
                             className={cn(
                               "mt-0.5 h-4 w-4 shrink-0",
-                              isSelected ? "text-accent" : "text-mute3",
+                              isSelected ? "text-brand-text" : "text-mute3",
                             )}
                             aria-hidden="true"
                           />
@@ -617,12 +617,12 @@ export function LicitacoesSpotlightModal({
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (
-                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-accent">
+                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-brand-text">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span>Abrindo...</span>
                           </div>
                         ) : isSelected ? (
-                          <div className="mt-1 flex items-center justify-end text-[10px] text-accent">
+                          <div className="mt-1 flex items-center justify-end text-[10px] text-brand-text">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
                         ) : null}
@@ -667,9 +667,9 @@ export function LicitacoesSpotlightModal({
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-md p-3 text-left transition-colors",
                         isLoadingItem
-                          ? "cursor-wait bg-accent/15 text-ink ring-1 ring-accent/30"
+                          ? "cursor-wait bg-brand/15 text-ink ring-1 ring-brand/30"
                           : isSelected
-                            ? "bg-accent/10 text-ink"
+                            ? "bg-brand/10 text-ink"
                             : "text-ink hover:bg-line2",
                         loadingItemId !== null &&
                           !isLoadingItem &&
@@ -679,14 +679,14 @@ export function LicitacoesSpotlightModal({
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         {isLoadingItem ? (
                           <Loader2
-                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent"
+                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-text"
                             aria-hidden="true"
                           />
                         ) : (
                           <FileCheck
                             className={cn(
                               "mt-0.5 h-4 w-4 shrink-0",
-                              isSelected ? "text-accent" : "text-mute3",
+                              isSelected ? "text-brand-text" : "text-mute3",
                             )}
                             aria-hidden="true"
                           />
@@ -778,12 +778,12 @@ export function LicitacoesSpotlightModal({
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (
-                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-accent">
+                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-brand-text">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span>Abrindo...</span>
                           </div>
                         ) : isSelected ? (
-                          <div className="mt-1 flex items-center justify-end text-[10px] text-accent">
+                          <div className="mt-1 flex items-center justify-end text-[10px] text-brand-text">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
                         ) : null}

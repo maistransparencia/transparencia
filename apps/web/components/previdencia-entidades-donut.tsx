@@ -5,6 +5,7 @@ import {
   fmtCompact,
   fmtCurrency,
   fmtPercent,
+  SectionHeader,
   type TokenCorGrafico,
   toTitleCase,
 } from "@transparencia/ui";
@@ -79,21 +80,12 @@ export function PrevidenciaEntidadesDonut({
   if (pieData.length === 0) return null;
 
   return (
-    <div className={`border-line border-t pt-6 ${className}`}>
-      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3>
-            De quais órgãos veio o dinheiro repassado ao {previdenciaSigla}?
-          </h3>
-          <p className="caption">
-            Valor pago ao fundo por cada órgão municipal · {ano}
-          </p>
-        </div>
-        <div className="sm:text-right">
-          <span className="eyebrow block">Total repassado</span>
-          <span className="stat-value-sm">{fmtCurrency(totalPago)}</span>
-        </div>
-      </div>
+    <div className={className}>
+      <SectionHeader
+        eyebrow={`Total repassado: ${fmtCurrency(totalPago)}`}
+        title={`De quais órgãos veio o dinheiro repassado ao ${previdenciaSigla}?`}
+        description={`Valor pago ao fundo por cada órgão municipal · ${ano}`}
+      />
 
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
         <div className="h-[200px] w-full min-w-[200px] sm:w-1/2">

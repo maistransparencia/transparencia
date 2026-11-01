@@ -1,20 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lerCoresDoTema, lerTokensPorTema } from "./tokens-css";
 
-const aliasesLegados = [
-  "accent",
-  "attention",
-  "borderLine",
-  "canvas",
-  "cardBg",
-  "danger",
-  "inactive",
-  "ink",
-  "mutedText",
-  "subtleText",
-  "success",
-  "warning",
-];
 const coresDoTema = lerCoresDoTema();
 const tokensPorTema = lerTokensPorTema();
 const nomesDeCor = (tema: "claro" | "escuro"): string[] =>
@@ -23,9 +9,9 @@ const nomesDeCor = (tema: "claro" | "escuro"): string[] =>
     .sort();
 
 describe("@theme inline de globals.css", () => {
-  it("tem uma utility de cor para cada um dos 17 tokens e cada alias legado", () => {
+  it("tem uma utility de cor para cada token e nenhum alias legado", () => {
     expect(Object.keys(coresDoTema)).toEqual(
-      expect.arrayContaining([...nomesDeCor("claro"), ...aliasesLegados]),
+      expect.arrayContaining(nomesDeCor("claro")),
     );
   });
 
@@ -36,6 +22,26 @@ describe("@theme inline de globals.css", () => {
       expect(nomesDeCor("escuro")).toContain(token);
     },
   );
+
+  it("não define utilities de cor para aliases legados", () => {
+    const aliasesRemovidos = [
+      "accent",
+      "attention",
+      "borderLine",
+      "canvas",
+      "cardBg",
+      "inactive",
+      "mutedText",
+      "subtleText",
+      "success",
+      "warning",
+    ];
+    expect(
+      Object.keys(coresDoTema).filter((nome) =>
+        aliasesRemovidos.includes(nome),
+      ),
+    ).toEqual([]);
+  });
 
   it("o tema escuro declara exatamente os mesmos tokens do claro", () => {
     expect(nomesDeCor("escuro")).toEqual(nomesDeCor("claro"));

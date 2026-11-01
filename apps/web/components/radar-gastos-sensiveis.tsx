@@ -216,7 +216,7 @@ function VariacaoBadge({
   }
   if (tendencia === "aumento") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-warn-text px-2.5 py-0.5 font-semibold text-warn-text text-xs">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm border border-warn-text px-2.5 py-0.5 font-semibold text-warn-text text-xs">
         <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />+
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -224,7 +224,7 @@ function VariacaoBadge({
   }
   if (tendencia === "economia") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-ok-text px-2.5 py-0.5 font-semibold text-ok-text text-xs">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm border border-ok-text px-2.5 py-0.5 font-semibold text-ok-text text-xs">
         <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -308,7 +308,7 @@ export function RadarGastosSensiveis({
     const Icone = ICONES[linha.icone] ?? Fuel;
     return (
       <div className="flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-line">
           <Icone className="h-4 w-4 text-brand" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1 whitespace-normal font-bold text-ink text-sm">

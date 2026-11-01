@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ObrasCivicDisclaimer } from "@/components/obras/obras-civic-disclaimer";
 import { ObrasHeroSection } from "@/components/obras/obras-hero-section";
 import { ObrasInteractiveSection } from "@/components/obras/obras-interactive-section";
-import { ObrasParalisadasSection } from "@/components/obras/obras-paralisadas-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadObrasData } from "./loader";
 import { buildObrasViewModel } from "./view-model";
@@ -54,9 +53,6 @@ export default async function ObrasPage({
 
       {/* Seção Interativa: Onde estão as obras (Filtros, Lista e Mapa Leaflet Lado a Lado) */}
       <ObrasInteractiveSection viewModel={viewModel} />
-
-      {/* Seção Dedicada de Obras Paralisadas (se houver) */}
-      <ObrasParalisadasSection obras={viewModel.paralisadasObras} />
 
       {/* Disclaimer cívico: ObrasGov.br e cobrança parlamentar */}
       <ObrasCivicDisclaimer

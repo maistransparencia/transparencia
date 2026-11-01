@@ -392,5 +392,44 @@ origin: spec-deferred 58bbdaf291e8
 location: apps/web/components/obras/obras-paralisadas-section.tsx:123
 source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
 severity: low
-reason: Spec exige conferência jurídica; o texto é anterior a esta story.
+reason: Dispositivo verificado no Planalto (o §6º trata do aviso público de obra paralisada por mais de 1 mês). Pendentes: âncora `#art115p6` do link não confirmada (NÃO VERIFICADO) e texto literal do §6º não transcrito para conferir a frase "o motivo da paralisação seja divulgado". Além disso, o "Critério de Auditoria Cívica" perdeu a citação à Lei 14.133/2021 porque o Art. 115 não trata de pagamento versus medição; o jurista-fiscal deve indicar o artigo correto antes de o link voltar.
+status: open
+
+### DW-24: Capturas antes/depois (claro e escuro) e suíte de testes visuais não foram executadas (AC 4 e 5 parciais).
+origin: spec-deferred 8ac9cf51ee58
+location: apps/web/e2e/visual
+source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
+reason: O Registro admite que não foram feitas; a troca de paleta e de raios foi mecânica por regra. Verificar tooltip, feedback-modal, push-notification-prompt, modais de newsletter e de interesse na cidade, KPICard sem variant e bg-accent -> brand-fill no tema escuro.
+status: open
+
+### DW-25: Paleta fixa emerald/blue/red/amber/rose não é coberta pela regra paleta-fixa-do-tailwind (privacidade, termos, modais).
+origin: spec-deferred 7d297fef4509
+location: apps/web/architecture/varredura-tema.ts:9
+source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
+severity: low
+reason: A regra só casa bg-white e slate/gray; páginas com bg-emerald-50 etc. podem destoar no tema escuro. Preexistente ao escopo da story. Resolvido: a regra passou a cobrir todas as famílias de cor do Tailwind e os arquivos encontrados foram migrados para tokens.
+status: resolved
+
+### DW-26: `Button` só tem `primary` e `secondary` (altura 44px); faltam variantes para controles compactos, então os `<button>` de obras seguem com classes soltas.
+origin: code review de d4b058ba..HEAD (story 20-9, refinamentos de /obras)
+location: apps/web/components/obras/obras-interactive-section.tsx (filtros de situação, seletores Mapa/Lista e Área urbana/Todo o território, botão flutuante do mapa, Limpar busca, Fechar detalhes) e obras-detalhe-modal.tsx:168 (Fechar)
+source_spec: `packages/ui/src/components/button.tsx`, seção `button` do DESIGN.md
+severity: medium
+reason: Migrar para o `Button` atual mudou o visual dos filtros (altura de 44px, mais alto no mobile) e foi revertido a pedido. O DESIGN.md proíbe `<button>` com classes soltas. Criar variantes no `Button` (por exemplo compacto/pill para filtros e controle segmentado com item ativo `primary`, e `icon` para fechar/limpar), documentá-las no DESIGN.md e então migrar os botões de obras. Junto: trocar `role="tablist"`/`tab` sem painel por `aria-pressed` (sem painel, ARIA incorreta) e alinhar a bolinha de "Cancelada" (`bg-mute3` no filtro contra `var(--mute)` na lista e no mapa).
+status: open
+
+### DW-27: Coluna "Nível" do feed do radar na home tem largura diferente do cabeçalho; a coluna "Ocorrência" fica desalinhada.
+origin: revisão do fechamento da story 20-9 (acabamento de /radar)
+location: apps/web/components/radar-civico-feed.tsx:146 (cabeçalho `w-16`) e :64 (linha `sm:w-24`)
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: A linha de severidade foi alargada para `sm:w-24`, o que resolveu o estouro de rótulos como "Moderada", mas o cabeçalho continua em `w-16`, então o título "Ocorrência" não alinha com o texto das linhas. Alinhar as duas larguras e conferir no navegador. Entra na varredura da 20-18.
+status: open
+
+### DW-28: Faltam capturas de tela e suíte visual de /obras, /previdencia e /radar (AC 6 da story 20-9).
+origin: revisão do fechamento da story 20-9 (acabamento de /radar)
+location: apps/web/app/[portalSlug]/{obras,previdencia,radar}/page.tsx
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`, `20-18` no `epics.md`
+severity: medium
+reason: A 20-9 foi fechada sem capturas de tela nem revisão visual independente. O acabamento do /radar (commits 580241f6 e 8c3adfcf) também não foi conferido no navegador (claro/escuro, mobile/desktop), inclusive a barra "Exercícios" fixa no mobile. A 20-18 já exige capturas antes e depois nos dois temas e tamanhos; cobrir estas três páginas nela.
 status: open

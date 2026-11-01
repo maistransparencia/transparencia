@@ -1,4 +1,4 @@
-import { Badge } from "@transparencia/ui";
+import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
@@ -45,25 +45,13 @@ export default async function RadarPage({
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Cabeçalho da Página */}
-      <div className="flex flex-col gap-2 border-line border-b pb-5">
+      <div className="flex flex-col gap-2">
         <p className="eyebrow text-brand-text!">
           Controle Social e Auditoria Fiscal
         </p>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-          <h1>Radar Cívico Municipal</h1>
-          {hasAlertas && (
-            <span className="font-medium text-mute text-xs sm:text-sm">
-              <strong className="font-bold text-ink">
-                {totalAlertasGeral}
-              </strong>{" "}
-              {totalAlertasGeral === 1
-                ? "alerta apurado em todo o histórico"
-                : "alertas apurados em todo o histórico"}
-            </span>
-          )}
-        </div>
-        <p className="lead">
+        <h1>Radar Cívico Municipal</h1>
+        <p className="lead max-w-none">
           Há algum gasto ou situação em {portalName} que merece um olhar mais
           atento? Cada aviso abaixo é um indício para você conferir, não uma
           acusação: ele aparece quando um valor foge do padrão do próprio
@@ -71,11 +59,23 @@ export default async function RadarPage({
         </p>
       </div>
 
+      {hasAlertas && (
+        <IndicatorPanel tone="brand">
+          <Indicator
+            label={
+              totalAlertasGeral === 1 ? "Alerta apurado" : "Alertas apurados"
+            }
+            value={totalAlertasGeral}
+            note="em todo o histórico"
+          />
+        </IndicatorPanel>
+      )}
+
       {/* Navegação Rápida / Barra de Âncoras por Exercício */}
       {hasAlertas && secoes.length > 1 && (
         <nav
           aria-label="Navegação por exercício"
-          className="no-scrollbar sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto border-line border-b bg-page/95 px-4 py-3 backdrop-blur-xs sm:mx-0"
+          className="no-scrollbar sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto bg-page/95 px-4 py-3 backdrop-blur-xs sm:mx-0"
         >
           <span className="eyebrow shrink-0">Exercícios:</span>
           <div className="flex items-center gap-2">
@@ -110,38 +110,28 @@ export default async function RadarPage({
           </div>
         </div>
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-6">
           {secoes.map((sec) => (
             <section
               key={sec.ano}
               id={`ano-${sec.ano}`}
               data-testid={`radar-secao-ano-${sec.ano}`}
-              aria-labelledby={`heading-ano-${sec.ano}`}
-              className="scroll-mt-16 space-y-4"
+              aria-label={`Exercício ${sec.ano}`}
+              className="section scroll-mt-16"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-line border-b pb-2.5">
-                <div className="flex items-center gap-3">
-                  <h2 id={`heading-ano-${sec.ano}`}>Exercício {sec.ano}</h2>
-                  {sec.isCurrentYear && (
-                    <Badge variant="accent">Em Andamento</Badge>
-                  )}
-                </div>
-                <div className="font-medium text-mute text-xs">
-                  <span className="font-bold text-ink">{sec.totalAlertas}</span>{" "}
-                  {sec.totalAlertas === 1
-                    ? "alerta apurado"
-                    : "alertas apurados"}
-                  {sec.resumoSeveridadeLabel &&
-                    sec.resumoSeveridadeLabel !== "Normal" && (
-                      <span className="text-mute2">
-                        {" "}
-                        ({sec.resumoSeveridadeLabel})
-                      </span>
-                    )}
-                </div>
-              </div>
+              <SectionHeader
+                eyebrow={`${sec.totalAlertas} ${
+                  sec.totalAlertas === 1 ? "alerta apurado" : "alertas apurados"
+                }${
+                  sec.resumoSeveridadeLabel &&
+                  sec.resumoSeveridadeLabel !== "Normal"
+                    ? ` · ${sec.resumoSeveridadeLabel}`
+                    : ""
+                }${sec.isCurrentYear ? " · em andamento" : ""}`}
+                title={`Exercício ${sec.ano}`}
+              />
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {sec.cards.map((card) => (
                   <RadarAnomaliaCard
                     key={card.id || card.anomaliaId}

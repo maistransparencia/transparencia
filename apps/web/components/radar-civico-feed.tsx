@@ -61,7 +61,7 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
       >
         <span
           data-testid="radar-severidade-badge"
-          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium text-xs uppercase tracking-wider sm:w-16 ${severidade.classe}`}
+          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium text-xs uppercase tracking-wider sm:w-24 ${severidade.classe}`}
         >
           <span aria-hidden="true" className="text-xs">
             ■

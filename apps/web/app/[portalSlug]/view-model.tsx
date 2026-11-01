@@ -398,8 +398,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const heroHeadline = (
     <>
       De cada R$ 100 que entram no caixa,{" "}
-      <span className="text-[oklch(0.55_0.11_250)]">R$ {propriaPct}</span> a
-      cidade arrecada sozinha.
+      <span className="text-brand-text">R$ {propriaPct}</span> a cidade arrecada
+      sozinha.
     </>
   );
 

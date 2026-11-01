@@ -1,8 +1,8 @@
 "use client";
 
 import { BProgress } from "@bprogress/core";
-import { cn } from "@transparencia/ui";
-import { ArrowRight, Calendar, FileText, Info } from "lucide-react";
+import { AlertBox, cn } from "@transparencia/ui";
+import { ArrowRight, Calendar, FileText } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
 import type { ObraContratoViewModel } from "@/app/[portalSlug]/obras/view-model";
@@ -40,21 +40,15 @@ export function ObrasContratosVinculados({
       </div>
 
       {contratos.length === 0 ? (
-        <div
-          data-testid="obras-contratos-empty-state"
-          className="flex items-start gap-3 border-line border-y py-4 text-mute text-xs leading-relaxed"
-        >
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-mute2" />
-          <div className="space-y-1">
-            <p className="font-semibold text-ink">
-              Nenhum contrato municipal diretamente correlacionado
-            </p>
-            <p className="text-mute2">
-              Esta obra pode ser proveniente de execução direta, convênio
-              estadual/federal sem contrato municipal específico cadastrado ou o
-              instrumento contratual ainda não foi publicado no portal.
-            </p>
-          </div>
+        <div data-testid="obras-contratos-empty-state">
+          <AlertBox
+            type="info"
+            title="Nenhum contrato municipal diretamente correlacionado"
+          >
+            Esta obra pode ser proveniente de execução direta, convênio
+            estadual/federal sem contrato municipal específico cadastrado ou o
+            instrumento contratual ainda não foi publicado no portal.
+          </AlertBox>
         </div>
       ) : (
         <div className="space-y-3" data-testid="obras-contratos-list">

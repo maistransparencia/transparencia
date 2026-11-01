@@ -145,15 +145,15 @@ export function buildPrevidenciaViewModel(raw: PrevidenciaRawData) {
 
   const naturezaCols = [
     {
-      header: "Data do Lançamento",
+      header: "Data",
       accessorKey: "dataEmpenho" as const,
       format: "date" as const,
     },
-    { header: "Regime / Destino", accessorKey: "destino" as const },
+    { header: "Destino", accessorKey: "destino" as const },
     {
-      header: "Elemento / Descrição da Natureza",
+      header: "Elemento / Descrição",
       accessorKey: "descricao" as const,
-      className: "max-w-sm",
+      className: "max-w-xs truncate",
     },
     {
       header: "Empenhado",

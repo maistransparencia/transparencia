@@ -1,6 +1,7 @@
 "use client";
 
-import { Calendar, FileCheck2, Info, Landmark } from "lucide-react";
+import { AlertBox } from "@transparencia/ui";
+import { Calendar, FileCheck2, Landmark } from "lucide-react";
 import type { ObraEmpenhoFederalViewModel } from "@/app/[portalSlug]/obras/view-model";
 
 export interface ObrasEmpenhosFederaisProps {
@@ -28,7 +29,7 @@ export function ObrasEmpenhosFederais({
               {list.length === 1 ? "empenho federal" : "empenhos federais"}
             </span>
             {valorTotalFormatado && (
-              <span className="rounded-full border border-ok-fill bg-ok-fill/15 px-2.5 py-0.5 font-bold text-ok-text text-xs tabular-nums">
+              <span className="rounded-sm border border-ok-fill bg-ok-fill/15 px-2.5 py-0.5 font-bold text-ok-text text-xs tabular-nums">
                 Total: {valorTotalFormatado}
               </span>
             )}
@@ -37,32 +38,23 @@ export function ObrasEmpenhosFederais({
       </div>
 
       {list.length === 0 ? (
-        <div
-          data-testid="obras-empenhos-federais-empty-state"
-          className="flex items-start gap-3 border-line border-y py-4 text-mute text-xs leading-relaxed"
-        >
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-mute2" />
-          <div className="space-y-1">
-            <p className="font-semibold text-ink">
-              Nenhum empenho federal vinculado no ObrasGov.br
-            </p>
-            <p className="text-mute2">
-              Esta intervenção pode ser financiada exclusivamente com recursos
-              próprios municipais, via financiamentos bancários ou os empenhos
-              da União ainda estão em fase de descentralização orçamentária.
-            </p>
-          </div>
+        <div data-testid="obras-empenhos-federais-empty-state">
+          <AlertBox
+            type="info"
+            title="Nenhum empenho federal vinculado no ObrasGov.br"
+          >
+            Esta intervenção pode ser financiada exclusivamente com recursos
+            próprios municipais, via financiamentos bancários ou os empenhos da
+            União ainda estão em fase de descentralização orçamentária.
+          </AlertBox>
         </div>
       ) : (
         <div className="space-y-3" data-testid="obras-empenhos-federais-list">
-          <div className="flex items-start gap-2.5 border border-brand-fill bg-brand-fill/15 p-3 text-mute text-xs">
-            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-text" />
-            <p className="leading-relaxed">
-              Recursos orçamentários transferidos pela União através do SIAFI /
-              Transferegov.br especificamente destinados ao investimento nesta
-              obra pública municipal.
-            </p>
-          </div>
+          <AlertBox type="info">
+            Recursos orçamentários transferidos pela União através do SIAFI /
+            Transferegov.br especificamente destinados ao investimento nesta
+            obra pública municipal.
+          </AlertBox>
 
           <div className="space-y-2.5">
             {list.map((empenho, idx) => (
@@ -78,11 +70,11 @@ export function ObrasEmpenhosFederais({
                         {empenho.nrEmpenho}
                       </span>
                       {Boolean(empenho.anoEmpenho) && (
-                        <span className="rounded-md border border-line bg-line2 px-1.5 py-0.5 font-medium text-mute text-xs">
+                        <span className="rounded-sm border border-line bg-line2 px-1.5 py-0.5 font-medium text-mute text-xs">
                           Ano {empenho.anoEmpenho}
                         </span>
                       )}
-                      <span className="rounded-md border border-brand-fill bg-brand-fill/15 px-1.5 py-0.5 font-semibold text-brand-text text-xs uppercase">
+                      <span className="rounded-sm border border-brand-fill bg-brand-fill/15 px-1.5 py-0.5 font-semibold text-brand-text text-xs uppercase">
                         {empenho.sistemaOrigem}
                       </span>
                     </div>

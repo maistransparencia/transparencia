@@ -25,17 +25,8 @@ export const TOKENS = {
     warn: "var(--warn)",
     warnFill: "var(--warn-fill)",
     warnText: "var(--warn-text)",
-    // Aliases legados, removidos na story 20.9.
-    accent: "var(--brand)",
-    warning: "var(--warn)",
-    attention: "var(--warn)",
-    inactive: "var(--mute3)",
-    success: "var(--ok)",
-    subtleText: "var(--mute)",
-    mutedText: "var(--mute2)",
     border: "var(--line)",
     background: "var(--page)",
-    cardBg: "var(--page)",
   },
   fonts: {
     serif: "'Source Serif 4', Georgia, serif",

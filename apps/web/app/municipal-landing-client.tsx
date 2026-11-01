@@ -117,7 +117,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-6">
         <div className="text-center">
-          <p className="animate-pulse font-medium text-sm text-subtleText">
+          <p className="animate-pulse font-medium text-mute text-sm">
             Redirecionando para o seu município de preferência...
           </p>
         </div>
@@ -132,7 +132,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
       {/* Brand Header */}
       <header className="mb-8 text-center">
         <div className="mb-5 flex items-center justify-center gap-3.5">
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-xs">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg shadow-xs">
             {/* biome-ignore lint/performance/noImgElement: favicon svg brand */}
             <img
               src="/favicon.svg"
@@ -144,7 +144,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
             <span className="block font-bold text-ink text-xl leading-none sm:text-2xl">
               MaisTransparencia
             </span>
-            <span className="mt-1 block font-semibold text-[10px] text-subtleText uppercase tracking-widest sm:text-xs">
+            <span className="mt-1 block font-semibold text-[10px] text-mute uppercase tracking-widest sm:text-xs">
               MONITORAMENTO CÍVICO INDEPENDENTE
             </span>
           </div>
@@ -159,16 +159,16 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
       {showSearch && (
         <div className="relative mx-auto mb-8 w-full max-w-xl">
           <div className="relative flex items-center">
-            <Search className="pointer-events-none absolute left-4 h-4 w-4 text-subtleText" />
+            <Search className="pointer-events-none absolute left-4 h-4 w-4 text-mute" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar município"
               aria-label="Buscar município"
-              className="w-full rounded-2xl border border-borderLine bg-white py-3 pr-20 pl-11 text-ink text-sm shadow-xs transition-colors placeholder:text-subtleText focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="w-full rounded-lg border border-line bg-page py-3 pr-20 pl-11 text-ink text-sm shadow-xs transition-colors placeholder:text-mute focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
-            <span className="pointer-events-none absolute right-4 font-medium text-subtleText text-xs">
+            <span className="pointer-events-none absolute right-4 font-medium text-mute text-xs">
               {filteredPortais.length} de {portais.length}
             </span>
           </div>
@@ -176,7 +176,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
       )}
 
       {portais.length > 0 && (
-        <h2 className="mx-auto mb-3 w-full max-w-4xl font-semibold text-subtleText text-xs uppercase tracking-widest">
+        <h2 className="mx-auto mb-3 w-full max-w-4xl font-semibold text-mute text-xs uppercase tracking-widest">
           Já disponíveis
         </h2>
       )}
@@ -211,11 +211,11 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
               key={portal.portalSlug}
               href={`/${portal.portalSlug}`}
               onClick={() => handleSelectPortal(portal.portalSlug)}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-borderLine bg-cardBg text-left shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-accent hover:shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-line bg-page text-left shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               <div className="flex flex-1 flex-col p-6 sm:p-7">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-canvas p-2.5 shadow-2xs">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line2 bg-page p-2.5 shadow-2xs">
                     {brasaoSrc ? (
                       <Image
                         src={brasaoSrc}
@@ -228,15 +228,15 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                       <Landmark
                         aria-hidden="true"
                         strokeWidth={1.6}
-                        className="h-8 w-8 text-subtleText"
+                        className="h-8 w-8 text-mute"
                       />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="truncate font-bold font-serif text-2xl text-ink tracking-tight transition-colors group-hover:text-accent">
+                    <h2 className="truncate font-bold font-serif text-2xl text-ink tracking-tight transition-colors group-hover:text-brand-text">
                       {cityName}
                     </h2>
-                    <p className="mt-0.5 text-subtleText text-xs">
+                    <p className="mt-0.5 text-mute text-xs">
                       {portal.uf} • Prefeitura Municipal
                     </p>
                   </div>
@@ -246,7 +246,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-lg bg-slate-100/90 px-3 py-1 font-medium text-slate-600 text-xs"
+                      className="rounded-lg bg-line2/90 px-3 py-1 font-medium text-mute text-xs"
                     >
                       {tag}
                     </span>
@@ -254,11 +254,11 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-slate-100 border-t bg-cardBg px-6 py-4 sm:px-7">
-                <span className="font-semibold text-accent text-sm">
+              <div className="flex items-center justify-between border-line2 border-t bg-page px-6 py-4 sm:px-7">
+                <span className="font-semibold text-brand-text text-sm">
                   Acessar portal
                 </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-white shadow-2xs transition-transform group-hover:scale-105">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-fill text-white shadow-2xs transition-transform group-hover:scale-105">
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </div>
@@ -269,8 +269,8 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
 
       {/* Estado vazio quando busca não tem resultados */}
       {showSearch && filteredPortais.length === 0 && (
-        <div className="mx-auto w-full max-w-xl rounded-2xl border border-borderLine border-dashed p-8 text-center">
-          <p className="text-sm text-subtleText">
+        <div className="mx-auto w-full max-w-xl rounded-lg border border-line border-dashed p-8 text-center">
+          <p className="text-mute text-sm">
             Nenhum município encontrado para &ldquo;{searchQuery}&rdquo;.
           </p>
         </div>

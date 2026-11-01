@@ -41,6 +41,12 @@ function getSeverityBadgeData(grau: string) {
   };
 }
 
+function tomPanel(grau: string) {
+  if (grau === "critico") return "panel-danger";
+  if (grau === "alto") return "panel-warn";
+  return "";
+}
+
 function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "critico") {
     return (
@@ -83,7 +89,7 @@ function MethodologyIcon({ tipo }: { tipo: string }) {
 function WhatsAppIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5 shrink-0 fill-current text-ok-text"
+      className="h-3 w-3 shrink-0 fill-current text-ok-text"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
@@ -161,7 +167,8 @@ export function RadarAnomaliaCard({
       data-testid="radar-anomalia-card"
       data-card-id={card.anomaliaId}
       className={cn(
-        "relative flex h-full flex-col justify-between border-line border-y py-5",
+        "panel panel-top relative flex h-full flex-col justify-between",
+        tomPanel(card.grauSeveridade),
         className,
       )}
     >
@@ -197,7 +204,7 @@ export function RadarAnomaliaCard({
         </p>
 
         {/* Tabela de métricas comparativas harmoniosa */}
-        <div className="mt-4 border-line border-y py-3 text-xs">
+        <div className="panel mt-4 rounded-md border p-3 text-xs [--panel-border-color:var(--line)] [--panel-border-width:1px] [--panel-padding:0.75rem]">
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-3">
             <div>
               <span className="eyebrow block">Observado</span>
@@ -268,10 +275,10 @@ export function RadarAnomaliaCard({
           href={card.ctaUrl}
           onClick={handleCtaClick}
           data-testid="radar-cta-link"
-          className="inline-flex min-w-0 items-center gap-1 font-semibold text-brand-text text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:text-sm"
+          className="inline-flex min-w-0 items-center gap-1 font-medium text-brand-text text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <span>{card.ctaLabel}</span>
-          <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+          <ArrowRight className="h-3 w-3 shrink-0" aria-hidden="true" />
         </Link>
 
         <a
@@ -281,7 +288,7 @@ export function RadarAnomaliaCard({
           rel="noopener noreferrer"
           data-testid="radar-whatsapp-button"
           aria-label="Compartilhar no WhatsApp"
-          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md border border-ok-text/40 bg-ok-fill/10 px-2.5 py-1.5 font-semibold text-ok-text text-xs transition-colors hover:bg-ok-fill/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 font-medium text-ok-text text-xs transition-colors hover:bg-ok-fill/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <WhatsAppIcon />
           <span>WhatsApp</span>

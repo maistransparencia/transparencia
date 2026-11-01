@@ -21,9 +21,7 @@ describe("PrevidenciaHeroSection", () => {
       /guardado e repassado em dia/,
     );
     expect(screen.getByText(/FUNPREV\) · EXERCÍCIO 2031/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Valor reservado \(empenhado\) para o FUNPREV/),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Valor reservado (empenhado)")).toBeInTheDocument();
   });
 
   it("sem repasses não mostra o painel nem valores em R$", () => {
@@ -36,7 +34,7 @@ describe("PrevidenciaHeroSection", () => {
         taxaExecucao={0}
       />,
     );
-    expect(screen.queryByText(/Valor reservado/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Etapas do repasse/)).not.toBeInTheDocument();
     expect(
       screen.getByText(/não tem repasses para o FUNPREV registrados em 2031/),
     ).toBeInTheDocument();

@@ -2,15 +2,16 @@
 
 import {
   Badge,
+  type Column,
   cn,
   corDoGrafico,
+  DenseTable,
   fmtCompact,
   fmtCurrency,
   fmtPercent,
-  KPICard,
   SectionHeader,
 } from "@transparencia/ui";
-import { AlertCircle, ExternalLink, Info, Scale, Users } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 import { useId } from "react";
 import {
   Area,
@@ -25,7 +26,6 @@ import type {
   PrevidenciaPatrimonioHistoricoPonto,
   PrevidenciaPatrimonioHistoricoResumo,
 } from "@/app/[portalSlug]/previdencia/view-model";
-import { KPIGrid } from "@/components/kpi-grid";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 
@@ -203,6 +203,43 @@ export function PrevidenciaPatrimonioHistoricoSection({
     return "Evolução do Patrimônio Financeiro da Previdência";
   })();
 
+  const colunasSerie: Column<PrevidenciaPatrimonioHistoricoPonto>[] = [
+    {
+      header: "Exercício",
+      accessorKey: "ano",
+      renderCell: (ponto) => (
+        <span className="flex items-center gap-1.5 font-semibold">
+          {ponto.ano}
+          {ponto.ano === resumo.anoPico && (
+            <Badge variant="accent" className="px-1.5 py-0">
+              Pico Histórico
+            </Badge>
+          )}
+        </span>
+      ),
+    },
+    {
+      header: "Patrimônio declarado",
+      accessorKey: "patrimonioFinanceiroTotal",
+      align: "right",
+      isSerifNumeric: true,
+      renderCell: (ponto) =>
+        ponto.patrimonioFinanceiroTotal !== null
+          ? fmtCurrency(ponto.patrimonioFinanceiroTotal)
+          : "--",
+    },
+    {
+      header: "Variação interanual",
+      align: "right",
+      renderCell: renderVariacaoTabela,
+    },
+    {
+      header: "Nota metodológica STN",
+      renderCell: renderNotaMetodologica,
+      className: "whitespace-normal",
+    },
+  ];
+
   const chartData = serie.map((p) => ({
     ...p,
     patrimonio: p.patrimonioFinanceiroTotal ?? 0,
@@ -250,47 +287,53 @@ export function PrevidenciaPatrimonioHistoricoSection({
         description="Trajetória da reserva financeira e investimentos da previdência própria (SICONFI/STN), confrontando a queima de poupança com as causas estruturais do déficit atuarial."
       />
 
-      {/* 3 KPI Cards Analíticos de Topo */}
-      <KPIGrid columns={3} variant="divisoria">
-        <KPICard
-          variant="divisoria"
-          title="Pico Histórico"
-          value={fmtCompact(resumo.patrimonioPico)}
-          subtext={
-            resumo.anoPico > 0
+      <dl className="panel panel-brand grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="space-y-1">
+          <dt className="eyebrow">Pico histórico</dt>
+          <dd className="stat-value">{fmtCompact(resumo.patrimonioPico)}</dd>
+          <dd className="caption">
+            {resumo.anoPico > 0
               ? `Em ${resumo.anoPico} • Reserva máxima observada`
-              : "Reserva máxima observada"
-          }
-        />
-        <KPICard
-          variant="divisoria"
-          title="Patrimônio Atual"
-          value={fmtCompact(resumo.patrimonioAtual)}
-          subtext="Retração acumulada frente ao pico"
-          trend={
-            resumo.variacaoPicoPct !== null
-              ? {
-                  value: fmtPercent(resumo.variacaoPicoPct),
-                  isPositive: resumo.variacaoPicoPct >= 0,
-                }
-              : undefined
-          }
-        />
-        <KPICard
-          variant="divisoria"
-          title="Queima Média Anual"
-          value={`${fmtCompact(resumo.queimaMediaAnual)}/ano`}
-          subtext={
-            resumo.anoPico > 0
+              : "Reserva máxima observada"}
+          </dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="eyebrow">Patrimônio atual</dt>
+          <dd className="stat-value">{fmtCompact(resumo.patrimonioAtual)}</dd>
+          <dd className="caption">
+            Retração acumulada frente ao pico
+            {resumo.variacaoPicoPct !== null && (
+              <>
+                {": "}
+                <span
+                  className={
+                    resumo.variacaoPicoPct >= 0
+                      ? "font-semibold text-ok-text"
+                      : "font-semibold text-danger-text"
+                  }
+                >
+                  {fmtPercent(resumo.variacaoPicoPct)}
+                </span>
+              </>
+            )}
+          </dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="eyebrow">Queima média anual</dt>
+          <dd className="stat-value">
+            {`${fmtCompact(resumo.queimaMediaAnual)}/ano`}
+          </dd>
+          <dd className="caption">
+            {resumo.anoPico > 0
               ? `Estimativa: queda da reserva desde ${resumo.anoPico}, dividida pelos anos`
-              : "Estimativa da queda anual da reserva"
-          }
-        />
-      </KPIGrid>
+              : "Estimativa da queda anual da reserva"}
+          </dd>
+        </div>
+      </dl>
 
       {/* Gráfico de Área Interativo (Recharts) */}
       <div className="space-y-4 border-line border-t pt-4 sm:space-y-5">
-        <div className="flex flex-col gap-1 border-line border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h4 className="font-bold">
               Evolução da Reserva Financeira e Aplicações do RPPS
@@ -376,168 +419,43 @@ export function PrevidenciaPatrimonioHistoricoSection({
           </div>
         )}
 
-        {/* Visualização de Metodologia e Quebra de Série: Tabela Desktop + Cards Mobile */}
-        <div className="space-y-3">
-          {/* Versão Desktop: Tabela estruturada com larguras explícitas */}
-          <div className="hidden overflow-x-auto border border-line bg-page sm:block">
-            <table
-              className="w-full table-fixed text-left text-xs"
-              aria-label="Tabela de evolução e metodologia do patrimônio da previdência"
-            >
-              <thead>
-                <tr className="border-line border-b bg-line2 font-semibold text-mute2">
-                  <th scope="col" className="w-[18%] px-3 py-2.5">
-                    Exercício
-                  </th>
-                  <th scope="col" className="w-[22%] px-3 py-2.5 text-right">
-                    Patrimônio Declarado
-                  </th>
-                  <th scope="col" className="w-[15%] px-3 py-2.5 text-right">
-                    Variação Interanual
-                  </th>
-                  <th scope="col" className="w-[45%] px-3 py-2.5">
-                    Nota Metodológica STN
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {serie.map((p) => {
-                  const isSelected = p.ano === selectedYear;
-                  const isPico = p.ano === resumo.anoPico;
-
-                  return (
-                    <tr
-                      key={`desktop-ponto-${p.ano}`}
-                      className={cn(
-                        "transition-colors hover:bg-line2",
-                        isSelected && "bg-brand-fill/15 font-medium",
-                      )}
-                    >
-                      <td className="px-3 py-2.5 align-middle">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-semibold text-ink">
-                            {p.ano}
-                          </span>
-                          {isPico && (
-                            <Badge
-                              variant="accent"
-                              className="shrink-0 whitespace-nowrap px-1.5 py-0 text-xs"
-                            >
-                              Pico Histórico
-                            </Badge>
-                          )}
-                          {isSelected && (
-                            <span className="shrink-0 font-medium text-brand-text text-xs">
-                              (selecionado)
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 text-right align-middle font-medium text-ink tabular-nums">
-                        {p.patrimonioFinanceiroTotal !== null
-                          ? fmtCurrency(p.patrimonioFinanceiroTotal)
-                          : "--"}
-                      </td>
-                      <td className="px-3 py-2.5 text-right align-middle font-medium tabular-nums">
-                        {renderVariacaoTabela(p)}
-                      </td>
-                      <td className="px-3 py-2.5 align-middle">
-                        {renderNotaMetodologica(p)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Versão Mobile: Cards dedicados e legíveis sem scroll horizontal ou quebras */}
-          <div className="space-y-2 sm:hidden">
-            {serie.map((p) => {
-              const isSelected = p.ano === selectedYear;
-              const isPico = p.ano === resumo.anoPico;
-
-              return (
-                <div
-                  key={`mobile-ponto-${p.ano}`}
-                  className={cn(
-                    "space-y-2 border p-3 text-xs transition-colors",
-                    isSelected
-                      ? "border-brand-fill bg-brand-fill/15"
-                      : "border-line bg-page",
+        <DenseTable
+          data={serie}
+          columns={colunasSerie}
+          rowKey="ano"
+          hideSearch
+          enableExportCsv={false}
+          rowClassName={(ponto) =>
+            ponto.ano === selectedYear ? "bg-brand-fill/15" : undefined
+          }
+          renderMobileRow={(ponto) => ({
+            resumo: (
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 font-semibold text-ink">
+                  {ponto.ano}
+                  {ponto.ano === resumo.anoPico && (
+                    <Badge variant="accent" className="px-1.5 py-0">
+                      Pico Histórico
+                    </Badge>
                   )}
-                >
-                  <div className="flex items-center justify-between border-line border-b pb-2">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-bold text-ink text-sm">
-                        {p.ano}
-                      </span>
-                      {isPico && (
-                        <Badge
-                          variant="accent"
-                          className="shrink-0 whitespace-nowrap px-1.5 py-0 text-xs"
-                        >
-                          Pico Histórico
-                        </Badge>
-                      )}
-                      {isSelected && (
-                        <span className="font-medium text-brand-text text-xs">
-                          (selecionado)
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-right tabular-nums">
-                      {renderVariacaoTabela(p)}
-                    </div>
-                  </div>
-
-                  <div className="flex items-baseline justify-between text-mute">
-                    <span className="text-mute2">Patrimônio Declarado:</span>
-                    <span className="font-semibold text-ink tabular-nums">
-                      {p.patrimonioFinanceiroTotal !== null
-                        ? fmtCurrency(p.patrimonioFinanceiroTotal)
-                        : "--"}
-                    </span>
-                  </div>
-
-                  {(p.inconsistenciaDeclaracaoFlag || p.quebraSerieFlag) && (
-                    <div className="space-y-1.5 border-warn-fill border-l-[3px] bg-warn-fill/15 px-2.5 py-2 text-ink text-xs">
-                      {p.inconsistenciaDeclaracaoFlag && (
-                        <div className="flex flex-col items-start gap-1">
-                          <Badge
-                            variant="warning"
-                            className="shrink-0 whitespace-nowrap px-2 py-0.5 text-xs"
-                          >
-                            Inconsistência de Declaração na MSC
-                          </Badge>
-                          <span className="text-mute leading-snug">
-                            Aplicações financeiras omitidas na remessa ao
-                            SICONFI.
-                          </span>
-                        </div>
-                      )}
-                      {p.quebraSerieFlag && (
-                        <div className="flex flex-col items-start gap-1">
-                          <Badge
-                            variant="warning"
-                            className="shrink-0 whitespace-nowrap px-2 py-0.5 text-xs"
-                          >
-                            Quebra de Série Metodológica
-                          </Badge>
-                          <span className="text-mute leading-snug">
-                            {p.anoInconsistenciaAnterior
-                              ? `Série normalizada após omissão contábil de ${p.anoInconsistenciaAnterior}.`
-                              : "Série normalizada após omissão contábil anterior."}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                </span>
+                <span className="numeric text-xs">
+                  {ponto.patrimonioFinanceiroTotal !== null
+                    ? fmtCurrency(ponto.patrimonioFinanceiroTotal)
+                    : "--"}
+                </span>
+              </div>
+            ),
+            detalhes: (
+              <div className="space-y-1 pr-6">
+                <p className="caption">
+                  Variação interanual: {renderVariacaoTabela(ponto)}
+                </p>
+                {renderNotaMetodologica(ponto)}
+              </div>
+            ),
+          })}
+        />
 
         {/* Mini-Banner Informativo de Transparência Metodológica */}
         {temInconsistenciaNaSerie && (
@@ -601,20 +519,15 @@ export function PrevidenciaPatrimonioHistoricoSection({
             className="panel panel-top flex flex-col justify-between"
           >
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="bg-brand-fill/15 p-2 text-brand-text">
-                    <Scale className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                  <h4 className="font-semibold">
-                    1. Déficit Atuarial e Aportes
-                  </h4>
-                </div>
-                {diagnostico.hasDeficitAporte ? (
-                  <Badge variant="danger">Déficit</Badge>
-                ) : (
-                  <Badge variant="success">Adimplente</Badge>
-                )}
+              <div className="space-y-1.5">
+                <p className="eyebrow">
+                  {diagnostico.hasDeficitAporte ? (
+                    <Badge variant="danger">Déficit</Badge>
+                  ) : (
+                    <Badge variant="success">Adimplente</Badge>
+                  )}
+                </p>
+                <h4>1. Déficit Atuarial e Aportes</h4>
               </div>
 
               <p className="text-mute text-xs leading-relaxed">
@@ -674,18 +587,15 @@ export function PrevidenciaPatrimonioHistoricoSection({
             className="panel panel-top flex flex-col justify-between"
           >
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="bg-warn-fill/15 p-2 text-warn-text">
-                    <AlertCircle className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                  <h4 className="font-semibold">2. Cota Patronal em Atraso</h4>
-                </div>
-                {diagnostico.hasRetencaoPatronal ? (
-                  <Badge variant="warning">Retenção</Badge>
-                ) : (
-                  <Badge variant="success">Adimplente</Badge>
-                )}
+              <div className="space-y-1.5">
+                <p className="eyebrow">
+                  {diagnostico.hasRetencaoPatronal ? (
+                    <Badge variant="warning">Retenção</Badge>
+                  ) : (
+                    <Badge variant="success">Adimplente</Badge>
+                  )}
+                </p>
+                <h4>2. Cota Patronal em Atraso</h4>
               </div>
 
               <p className="text-mute text-xs leading-relaxed">
@@ -749,16 +659,11 @@ export function PrevidenciaPatrimonioHistoricoSection({
           {/* Card 3: Diluição da Base Contributiva */}
           <div className="panel panel-top flex flex-col justify-between">
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="bg-brand-fill/15 p-2 text-brand-text">
-                    <Users className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                  <h4 className="font-semibold">
-                    3. Diluição da Base de Efetivos
-                  </h4>
-                </div>
-                <Badge variant="accent">Vínculos RGPS</Badge>
+              <div className="space-y-1.5">
+                <p className="eyebrow">
+                  <Badge variant="accent">Vínculos RGPS</Badge>
+                </p>
+                <h4>3. Diluição da Base de Efetivos</h4>
               </div>
 
               <p className="text-mute text-xs leading-relaxed">

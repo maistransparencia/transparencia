@@ -35,27 +35,27 @@ export function PrevidenciaActuarialRiskSection({
   previdenciaSigla = "RPPS",
 }: PrevidenciaActuarialRiskSectionProps) {
   const trendCols = [
-    { header: "Exercício / Ano", accessorKey: "ano" as const },
+    { header: "Exercício", accessorKey: "ano" as const },
     {
-      header: "Aporte Atuarial Exigido",
+      header: "Aporte exigido",
       accessorKey: "aporteExigido" as const,
       align: "right" as const,
       format: "currency" as const,
     },
     {
-      header: "Aporte Efetuado / Quitado",
+      header: "Aporte pago",
       accessorKey: "aporteQuitado" as const,
       align: "right" as const,
       format: "currency" as const,
     },
     {
-      header: "Índice de Adimplência",
+      header: "Adimplência",
       accessorKey: "taxaAdimplencia" as const,
       align: "right" as const,
       format: "percent" as const,
     },
     {
-      header: "Amortização de Dívida / Parcelamento",
+      header: "Dívida amortizada",
       accessorKey: "amortizacaoDivida" as const,
       align: "right" as const,
       format: "currency" as const,
@@ -64,12 +64,11 @@ export function PrevidenciaActuarialRiskSection({
 
   const cadprevCols = [
     {
-      header: "Registro CADPREV / Ministério da Previdência",
+      header: "Registro CADPREV",
       accessorKey: "numeroCadprev" as const,
-      className: "max-w-[200px]",
     },
     {
-      header: "Objeto do Termo de Parcelamento",
+      header: "Objeto do parcelamento",
       accessorKey: "descricao" as const,
       className: "max-w-sm",
     },
@@ -102,13 +101,6 @@ export function PrevidenciaActuarialRiskSection({
 
       {/* Tabela de Acordos de Confissão e Parcelamento no CADPREV */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <h3>
-            Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV /
-            Ministério da Previdência)
-          </h3>
-        </div>
-
         {cadprev.length > 0 ? (
           <DenseTable
             data={cadprev}
@@ -143,8 +135,7 @@ export function PrevidenciaActuarialRiskSection({
           <DenseTable
             data={trend}
             columns={trendCols}
-            searchableKeys={["ano"]}
-            exportFilename="cobertura-atuarial-historica.csv"
+            enableExportCsv={false}
           />
         </div>
       )}

@@ -1,16 +1,8 @@
-import {
-  DenseTable,
-  fmtCompact,
-  fmtCurrency,
-  fmtPercent,
-  KPICard,
-  SectionHeader,
-} from "@transparencia/ui";
+import { DenseTable, fmtCurrency, SectionHeader } from "@transparencia/ui";
 import { Landmark } from "lucide-react";
 import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { BarChartH } from "@/components/bar-chart-h";
-import { KPIGrid } from "@/components/kpi-grid";
 import { PrevidenciaActuarialRiskSection } from "@/components/previdencia-actuarial-risk-section";
 import { PrevidenciaHeroSection } from "@/components/previdencia-hero-section";
 import { PrevidenciaPatrimonioHistoricoSection } from "@/components/previdencia-patrimonio-historico-section";
@@ -139,34 +131,6 @@ export default async function PrevidenciaPage({
         }
       />
 
-      {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
-      <KPIGrid columns={4} variant="divisoria">
-        <KPICard
-          variant="divisoria"
-          title="Valor reservado (empenhado)"
-          value={fmtCompact(previdencia.totalEmpenhado)}
-          subtext="Compromissos com a previdência no ano"
-        />
-        <KPICard
-          variant="divisoria"
-          title="Repassado ao fundo (pago)"
-          value={fmtCompact(previdencia.totalPago)}
-          subtext="Dinheiro que já saiu"
-        />
-        <KPICard
-          variant="divisoria"
-          title="Repasse extra para equilibrar o fundo"
-          value={fmtCompact(previdencia.totalAporteAtuarial)}
-          subtext="Aporte para cobrir o rombo previsto (elemento 97)"
-        />
-        <KPICard
-          variant="divisoria"
-          title="Quanto do reservado já foi pago"
-          value={fmtPercent(Math.min(100, previdencia.taxaExecucao * 100))}
-          subtext="Pago dividido pelo reservado no ano"
-        />
-      </KPIGrid>
-
       {previdencia.entidades.length > 0 && (
         <section>
           <PrevidenciaEntidadesDonut
@@ -211,13 +175,13 @@ export default async function PrevidenciaPage({
           />
 
           {naturezaChartData.length > 0 && (
-            <div className="space-y-4 border-line border-y py-5">
-              <div className="flex items-center justify-between border-line border-b pb-3">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h4>
                   Distribuição por Destino Contábil e Regime ({selectedYear})
                 </h4>
-                <span className="font-medium text-mute2 text-xs">
-                  Total Repassado: {fmtCurrency(previdencia.totalPago)}
+                <span className="caption">
+                  Total repassado: {fmtCurrency(previdencia.totalPago)}
                 </span>
               </div>
               <BarChartH data={naturezaChartData} />

@@ -18,7 +18,7 @@ describe.each(["claro", "escuro"])(
       const { container } = render(
         <>
           <SectionHeader title="Secao" description="d" />
-          <KPICard variant="divisoria" title="k" value="1" subtext="s" />
+          <KPICard title="k" value="1" subtext="s" />
           <SegmentedButton active>Ano</SegmentedButton>
           <Badge variant="success">Ok</Badge>
           <ExternalLinkPill href="https://x.gov.br">Lei</ExternalLinkPill>

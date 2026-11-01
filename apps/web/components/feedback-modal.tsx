@@ -163,13 +163,13 @@ export function FeedbackModal({
     >
       {status === "success" ? (
         <div className="py-4 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok/10 text-ok-text">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h3 className="font-semibold text-gray-900 text-lg">
+          <h3 className="font-semibold text-ink text-lg">
             Relato enviado com sucesso!
           </h3>
-          <p className="mt-2 text-gray-600 text-sm leading-relaxed">
+          <p className="mt-2 text-mute text-sm leading-relaxed">
             Agradecemos sua colaboração cidadã. Seu relato foi registrado junto
             aos dados técnicos da página e será analisado pela nossa equipe.
           </p>
@@ -177,7 +177,7 @@ export function FeedbackModal({
             <button
               type="button"
               onClick={handleClose}
-              className="w-full rounded-lg bg-slate-800 px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              className="w-full rounded-lg bg-ink px-4 py-2.5 font-medium text-onink text-sm transition-colors hover:bg-ink/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mute3"
             >
               Fechar
             </button>
@@ -201,7 +201,7 @@ export function FeedbackModal({
           <div>
             <span
               id="feedback-type-label"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="block font-medium text-ink text-xs uppercase tracking-wide"
             >
               Tipo de relato
             </span>
@@ -215,10 +215,10 @@ export function FeedbackModal({
                 return (
                   <label
                     key={option.id}
-                    className={`flex cursor-pointer flex-col rounded-lg border p-2.5 text-left transition-all focus-within:ring-2 focus-within:ring-blue-500/40 ${
+                    className={`flex cursor-pointer flex-col rounded-lg border p-2.5 text-left transition-all focus-within:ring-2 focus-within:ring-focus-ring/40 ${
                       isSelected
-                        ? "border-blue-600 bg-blue-50/50 text-blue-900 shadow-xs"
-                        : "border-borderLine bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-brand bg-brand/10 text-ink shadow-xs"
+                        : "border-line bg-page text-mute hover:border-line hover:bg-line2"
                     }`}
                   >
                     <input
@@ -232,7 +232,7 @@ export function FeedbackModal({
                     <span className="font-medium text-xs leading-snug">
                       {option.label}
                     </span>
-                    <span className="mt-0.5 text-[11px] text-mutedText leading-tight">
+                    <span className="mt-0.5 text-[11px] text-mute2 leading-tight">
                       {option.description}
                     </span>
                   </label>
@@ -245,10 +245,10 @@ export function FeedbackModal({
           <div>
             <label
               htmlFor="feedback-message"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="block font-medium text-ink text-xs uppercase tracking-wide"
             >
               Descrição do problema ou sugestão{" "}
-              <span className="text-red-500">*</span>
+              <span className="text-danger-text">*</span>
             </label>
             <textarea
               id="feedback-message"
@@ -259,9 +259,9 @@ export function FeedbackModal({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Descreva o que você estava fazendo, o que observou ou qual dado parece incorreto..."
-              className="mt-1.5 w-full rounded-lg border border-borderLine bg-white px-3 py-2 text-ink text-sm transition-colors placeholder:text-mutedText focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="mt-1.5 w-full rounded-lg border border-line bg-page px-3 py-2 text-ink text-sm transition-colors placeholder:text-mute2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus-ring/20"
             />
-            <div className="mt-1 flex items-center justify-between text-[11px] text-mutedText">
+            <div className="mt-1 flex items-center justify-between text-[11px] text-mute2">
               <span>Mínimo de 10 caracteres</span>
               <span>{message.length}/2000</span>
             </div>
@@ -271,10 +271,10 @@ export function FeedbackModal({
           <div>
             <label
               htmlFor="feedback-email"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="block font-medium text-ink text-xs uppercase tracking-wide"
             >
               Seu e-mail{" "}
-              <span className="font-normal text-mutedText lowercase">
+              <span className="font-normal text-mute2 lowercase">
                 (opcional, caso queira retorno)
               </span>
             </label>
@@ -284,7 +284,7 @@ export function FeedbackModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="exemplo@email.com"
-              className="mt-1.5 w-full rounded-lg border border-borderLine bg-white px-3 py-2 text-ink text-sm transition-colors placeholder:text-mutedText focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="mt-1.5 w-full rounded-lg border border-line bg-page px-3 py-2 text-ink text-sm transition-colors placeholder:text-mute2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus-ring/20"
             />
           </div>
 
@@ -292,15 +292,15 @@ export function FeedbackModal({
           {errorMessage && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 text-xs leading-relaxed"
+              className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 p-3 text-danger-text text-xs leading-relaxed"
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {/* Nota de Contexto e Privacidade */}
-          <p className="text-[11px] text-mutedText leading-relaxed">
+          <p className="text-[11px] text-mute2 leading-relaxed">
             Para facilitar a investigação técnica, informações sobre a página
             atual e a sessão de navegação são enviadas com segurança ao PostHog.
           </p>
@@ -311,14 +311,14 @@ export function FeedbackModal({
               type="button"
               onClick={handleClose}
               disabled={status === "loading"}
-              className="rounded-lg border border-borderLine px-4 py-2 font-medium text-slate-700 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+              className="rounded-lg border border-line px-4 py-2 font-medium text-mute text-sm transition-colors hover:bg-line2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mute3 disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={status === "loading"}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-4 py-2 font-medium text-onink text-sm transition-colors hover:bg-ink/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mute3 disabled:opacity-50"
             >
               {status === "loading" ? (
                 <>

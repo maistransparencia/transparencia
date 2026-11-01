@@ -15,7 +15,6 @@ const CAMINHOS = [
   "components/obras/obras-hero-section.tsx",
   "components/obras/obras-interactive-section.tsx",
   "components/obras/obras-mapa-interativo.tsx",
-  "components/obras/obras-paralisadas-section.tsx",
   "components/previdencia-actuarial-risk-section.tsx",
   "components/previdencia-entidades-donut.tsx",
   "components/previdencia-hero-section.tsx",
@@ -35,6 +34,20 @@ const ARQUIVOS = CAMINHOS.map((caminho) => ({
 }));
 
 describe("Obras, Previdência e Radar no padrão Divisórias", () => {
+  const SEM_PILULA = [
+    "components/radar-gastos-sensiveis.tsx",
+    "components/previdencia-saldo-caixa-card.tsx",
+    "components/obras/obras-empenhos-federais.tsx",
+    "components/obras/obras-detalhe-modal.tsx",
+  ];
+
+  it.each(ARQUIVOS.filter(({ nome }) => SEM_PILULA.includes(nome)))(
+    "$nome usa o raio do Badge (rounded-sm) nos selos, sem pílula nem rounded-md",
+    ({ fonte }) => {
+      expect(fonte).not.toMatch(/\brounded-(md|full)\b|\brounded(?![-\w])/);
+    },
+  );
+
   it.each(ARQUIVOS)(
     "$nome não usa cartões, hex, paleta fixa nem aliases legados",
     ({ fonte }) => {
@@ -73,9 +86,8 @@ describe("Obras, Previdência e Radar no padrão Divisórias", () => {
     },
   );
 
-  it("as páginas usam SectionHeader ou KPICard em divisória", () => {
+  it("as páginas usam SectionHeader", () => {
     const [obras, previdencia] = ARQUIVOS.map((a) => a.fonte);
-    expect(previdencia).toContain('variant="divisoria"');
     expect(previdencia).toMatch(/\bSectionHeader\b/);
     expect(obras).toBeDefined();
   });

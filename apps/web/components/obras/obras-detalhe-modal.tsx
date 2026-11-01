@@ -134,12 +134,12 @@ export function ObrasDetalheModal({
             {viewModel.situacaoVisual.label}
           </span>
           {viewModel.naturezaIntervencao && (
-            <span className="inline-flex items-center rounded-full border border-line bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
+            <span className="inline-flex items-center rounded-sm border border-line bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
               {viewModel.naturezaIntervencao}
             </span>
           )}
           {viewModel.especieIntervencao && (
-            <span className="inline-flex items-center rounded-full border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs">
+            <span className="inline-flex items-center rounded-sm border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs">
               {viewModel.especieIntervencao}
             </span>
           )}
@@ -190,7 +190,7 @@ export function ObrasDetalheModal({
                   <span className="font-bold text-danger-text text-sm">
                     Atenção Cívica: Obra Paralisada
                   </span>
-                  <span className="rounded-full border border-danger-fill bg-page px-2 py-0.5 font-medium text-danger-text text-xs">
+                  <span className="rounded-sm border border-danger-fill bg-page px-2 py-0.5 font-medium text-danger-text text-xs">
                     Registro oficial em: {viewModel.dataParalisacaoFormatada}
                   </span>
                 </div>
@@ -302,34 +302,26 @@ export function ObrasDetalheModal({
         />
 
         {/* Grid de Prazos e Investimento Previsto (3 colunas concisas) */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="border-line border-t pt-3">
-            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
-              Investimento Previsto
-            </span>
-            <p className="mt-1 font-bold text-ink">
+        <dl className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="panel panel-top">
+            <dt className="eyebrow">Investimento Previsto</dt>
+            <dd className="stat-value-sm">
               {viewModel.valorInvestimentoFormatado}
-            </p>
+            </dd>
           </div>
-
-          <div className="border-line border-t pt-3">
-            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
-              Início Previsto
-            </span>
-            <p className="mt-1 font-semibold text-ink text-sm">
+          <div className="panel panel-top">
+            <dt className="eyebrow">Início Previsto</dt>
+            <dd className="stat-value-sm">
               {viewModel.dataInicioPrevistaFormatada}
-            </p>
+            </dd>
           </div>
-
-          <div className="border-line border-t pt-3">
-            <span className="flex items-center gap-1.5 font-semibold text-mute2 text-xs uppercase tracking-wider">
-              Término Previsto
-            </span>
-            <p className="mt-1 font-semibold text-ink text-sm">
+          <div className="panel panel-top">
+            <dt className="eyebrow">Término Previsto</dt>
+            <dd className="stat-value-sm">
               {viewModel.dataFimPrevistaFormatada}
-            </p>
+            </dd>
           </div>
-        </div>
+        </dl>
 
         {/* Seção Dedicada de Empenhos Federais (Transferegov.br / SIAFI) */}
         <ObrasEmpenhosFederais

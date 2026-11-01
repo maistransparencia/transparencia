@@ -125,7 +125,7 @@ export function EntidadeSelectCompact({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-fit max-w-[200px] border-borderLine border-b transition-colors focus-within:border-[#1d64d8] hover:border-gray-400 sm:max-w-[260px]",
+        "relative w-fit max-w-[200px] border-line border-b transition-colors focus-within:border-brand hover:border-mute3 sm:max-w-[260px]",
         className,
       )}
     >
@@ -144,7 +144,7 @@ export function EntidadeSelectCompact({
         <span className="flex min-w-0 items-center gap-1.5 truncate">
           {isFiltered && (
             <span
-              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#1d64d8]"
+              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-fill"
               aria-hidden="true"
             />
           )}
@@ -153,7 +153,7 @@ export function EntidadeSelectCompact({
         <ChevronDown
           strokeWidth={1.6}
           className={cn(
-            "h-3 w-3 shrink-0 text-mutedText transition-transform duration-200",
+            "h-3 w-3 shrink-0 text-mute2 transition-transform duration-200",
             isOpen && "rotate-180",
           )}
         />
@@ -164,15 +164,15 @@ export function EntidadeSelectCompact({
           role="dialog"
           aria-modal="true"
           aria-label="Perímetro Institucional"
-          className="absolute top-full -left-16 z-50 mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-borderLine bg-white p-2 shadow-lg sm:-left-20 sm:w-80"
+          className="absolute top-full -left-16 z-50 mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-page p-2 shadow-lg sm:-left-20 sm:w-80"
         >
           {/* Cabeçalho do Popover com Resumo do Escopo Atual */}
-          <div className="mb-1.5 flex items-center justify-between gap-2 border-borderLine border-b pb-1.5">
+          <div className="mb-1.5 flex items-center justify-between gap-2 border-line border-b pb-1.5">
             <div>
-              <span className="block font-semibold text-[10px] text-mutedText uppercase tracking-wider">
+              <span className="block font-semibold text-[10px] text-mute2 uppercase tracking-wider">
                 Perímetro Institucional
               </span>
-              <span className="text-[11px] text-subtleText">
+              <span className="text-[11px] text-mute">
                 {isAllSelected
                   ? "Consolidado"
                   : `${validSelected.length} de ${entidades.length} selecionadas`}
@@ -182,10 +182,10 @@ export function EntidadeSelectCompact({
               type="button"
               onClick={handleToggleAll}
               className={cn(
-                "cursor-pointer rounded px-1.5 py-0.5 font-medium text-[11px] transition-colors hover:bg-gray-100",
+                "cursor-pointer rounded px-1.5 py-0.5 font-medium text-[11px] transition-colors hover:bg-line2",
                 isAllSelected
-                  ? "bg-blue-50 font-semibold text-[#1d64d8]"
-                  : "text-mutedText hover:text-ink",
+                  ? "bg-brand/10 font-semibold text-brand-text"
+                  : "text-mute2 hover:text-ink",
               )}
             >
               Todas (Consolidado)
@@ -202,7 +202,7 @@ export function EntidadeSelectCompact({
                   key={opt.id}
                   role="group"
                   aria-label={toTitleCase(opt.nome)}
-                  className="group/row flex w-full items-center justify-between rounded-md px-1 py-0.5 text-ink text-xs transition-colors hover:bg-gray-100/80"
+                  className="group/row flex w-full items-center justify-between rounded-md px-1 py-0.5 text-ink text-xs transition-colors hover:bg-line2/80"
                 >
                   {/* biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button inside popover list */}
                   <button
@@ -211,14 +211,14 @@ export function EntidadeSelectCompact({
                     aria-checked={isChecked}
                     aria-label={`Alternar seleção de ${toTitleCase(opt.nome)}`}
                     onClick={() => handleToggleOption(opt.id)}
-                    className="flex min-h-[32px] shrink-0 cursor-pointer items-center justify-center rounded-sm p-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8] sm:min-h-0 sm:p-1"
+                    className="flex min-h-[32px] shrink-0 cursor-pointer items-center justify-center rounded-sm p-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-brand sm:min-h-0 sm:p-1"
                   >
                     <div
                       className={cn(
-                        "flex h-3.5 w-3.5 items-center justify-center rounded border border-borderLine transition-colors",
+                        "flex h-3.5 w-3.5 items-center justify-center rounded border border-line transition-colors",
                         isChecked
-                          ? "border-[#1d64d8] bg-[#1d64d8] text-white"
-                          : "bg-white",
+                          ? "border-brand bg-brand-fill text-white"
+                          : "bg-page",
                       )}
                     >
                       {isChecked && (
@@ -232,14 +232,14 @@ export function EntidadeSelectCompact({
                     onClick={() => handleSelectOnly(opt.id)}
                     aria-label={`Selecionar apenas ${toTitleCase(opt.nome)}`}
                     title={`Selecionar apenas ${toTitleCase(opt.nome)}`}
-                    className="group/label relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[#1d64d8]"
+                    className="group/label relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-brand"
                   >
                     <span className="truncate">{toTitleCase(opt.nome)}</span>
                     <span
-                      className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-gray-100 via-gray-100/95 to-transparent pr-1 pl-6 group-hover/label:sm:flex"
+                      className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-line2 via-line2/95 to-transparent pr-1 pl-6 group-hover/label:sm:flex"
                       aria-hidden="true"
                     >
-                      <span className="rounded border border-blue-200/60 bg-blue-50/90 px-1.5 py-0.5 font-medium text-[#1d64d8] text-[10px] shadow-xs">
+                      <span className="rounded border border-brand/30 bg-brand/10 px-1.5 py-0.5 font-medium text-[10px] text-brand-text shadow-xs">
                         apenas
                       </span>
                     </span>

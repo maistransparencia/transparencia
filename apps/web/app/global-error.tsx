@@ -20,17 +20,17 @@ export default function GlobalError({
 
   return (
     <html lang="pt-BR">
-      <body className="flex min-h-screen items-center justify-center bg-canvas font-sans text-ink antialiased">
+      <body className="flex min-h-screen items-center justify-center bg-page font-sans text-ink antialiased">
         <div className="flex max-w-[600px] flex-col items-start gap-4 px-6">
           <h1 className="font-bold font-serif text-2xl text-ink">
             Portal temporariamente indisponível
           </h1>
-          <p className="text-subtleText">
+          <p className="text-mute">
             Não conseguimos carregar as informações agora. Tente novamente em
             instantes.
           </p>
           {error.digest && (
-            <p className="text-mutedText text-xs">
+            <p className="text-mute2 text-xs">
               Código de referência: <span>{error.digest}</span>
             </p>
           )}

@@ -43,7 +43,8 @@ describe("obras/view-model", () => {
 
       const canc = getSituacaoVisual("cancelada");
       expect(canc.label).toBe("Cancelada");
-      expect(canc.corPreenchimento).toBe("var(--mute3)");
+      expect(canc.corPreenchimento).toBe("var(--mute)");
+      expect(canc.corPreenchimento).not.toBe(cad.corPreenchimento);
     });
 
     it("usa fallback para status não mapeado", () => {
@@ -198,13 +199,12 @@ describe("obras/view-model", () => {
       expect(obraSemGeo?.percentualExecucaoFormatado).toBe("Não informado");
 
       // Obra paralisada
-      expect(vm.paralisadasObras).toHaveLength(1);
-      const obraParalisada = vm.paralisadasObras[0];
-      expect(obraParalisada.idProjeto).toBe("OBR-02");
-      expect(obraParalisada.motivoParalisacao).toBe(
+      const obraParalisada = vm.obras.find((o) => o.situacao === "paralisada");
+      expect(obraParalisada?.idProjeto).toBe("OBR-02");
+      expect(obraParalisada?.motivoParalisacao).toBe(
         "Recisão contratual com a empreiteira",
       );
-      expect(obraParalisada.mesesParalisada).toBeGreaterThan(0);
+      expect(obraParalisada?.mesesParalisada).toBeGreaterThan(0);
     });
   });
 

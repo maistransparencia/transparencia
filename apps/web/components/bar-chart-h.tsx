@@ -17,7 +17,7 @@ export interface BarChartHProps {
 export function BarChartH({
   data,
   maxVal,
-  barColor = "oklch(0.55 0.11 250)",
+  barColor = "var(--brand-fill)",
 }: BarChartHProps) {
   const max = maxVal || Math.max(...data.map((d) => d.value), 1);
 
@@ -35,10 +35,10 @@ export function BarChartH({
                 {fmtCurrency(item.value)}
               </span>
             </div>
-            <div className="h-3 w-full overflow-hidden rounded-md">
+            <div className="h-3 w-full bg-track">
               <div
                 className={cn(
-                  "h-full rounded-md transition-all duration-500",
+                  "h-full transition-all duration-500",
                   item.colorClass,
                 )}
                 style={{

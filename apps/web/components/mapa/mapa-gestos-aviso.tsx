@@ -18,14 +18,17 @@ export function MapaGestosAviso({ tipo, isMac, testId }: MapaGestosAvisoProps) {
         {tipo === "desktop" ? (
           <>
             Use{" "}
-            <span className="font-semibold text-amber-400">
+            <span className="font-bold underline underline-offset-2">
               {isMac ? "⌘ (Command)" : "Ctrl"}
             </span>{" "}
             + scroll para aplicar zoom no mapa
           </>
         ) : (
           <>
-            Use <span className="font-semibold text-amber-400">dois dedos</span>{" "}
+            Use{" "}
+            <span className="font-bold underline underline-offset-2">
+              dois dedos
+            </span>{" "}
             para mover o mapa
           </>
         )}
