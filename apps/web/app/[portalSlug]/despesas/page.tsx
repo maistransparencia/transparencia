@@ -72,9 +72,7 @@ export default async function DespesasPage({
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
-        <h1 className="font-bold font-serif text-3xl text-ink">
-          Despesas & Controle de Gastos
-        </h1>
+        <h1>Despesas & Controle de Gastos</h1>
         <p className="mt-1 text-mute2 text-sm leading-relaxed">
           Para onde foi o dinheiro da prefeitura em {selectedYear}, quanto já
           saiu de verdade do caixa e quem recebeu.

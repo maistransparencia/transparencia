@@ -247,9 +247,7 @@ function PushNotificationPromptContent({
 
         <div className="flex-1 space-y-1.5">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-ink text-sm">
-              Notificações de Contas Públicas
-            </h3>
+            <h3>Notificações de Contas Públicas</h3>
             <button
               type="button"
               onClick={handleDismiss}
@@ -279,7 +277,7 @@ function PushNotificationPromptContent({
               type="button"
               onClick={handleAccept}
               disabled={isSubscribing || isLoading}
-              className="cursor-pointer rounded-lg bg-brand-fill px-3.5 py-1.5 font-semibold text-white text-xs shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer rounded-lg bg-brand-fill px-3.5 py-1.5 font-semibold text-onink text-xs shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubscribing ? "Ativando..." : "Ativar Notificações"}
             </button>

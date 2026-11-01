@@ -411,14 +411,14 @@ export function ContratosServicosVigentesSection({
       header: "Vigência",
       accessorKey: "vigenciaFormatada",
       sortable: true,
-      className: "min-w-[120px] font-mono text-mute2 tabular-nums",
+      className: "min-w-[120px] numeric text-left text-mute2 tabular-nums",
     },
     {
       header: "Empenhado",
       accessorKey: "totalEmpenhado",
       align: "right",
       sortable: true,
-      className: "whitespace-nowrap font-bold font-mono tabular-nums",
+      className: "whitespace-nowrap font-bold numeric tabular-nums",
       renderCell: (row) => fmtCurrency(row.totalEmpenhado),
     },
     {
@@ -467,13 +467,13 @@ export function ContratosServicosVigentesSection({
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <dt className="eyebrow">Contrato</dt>
-            <dd className="mt-1 font-mono text-ink tabular-nums">
+            <dd className="numeric mt-1 text-left text-ink tabular-nums">
               {row.contratoNumero || "S/N"}
             </dd>
           </div>
           <div>
             <dt className="eyebrow">Vigência</dt>
-            <dd className="mt-1 font-mono text-ink tabular-nums">
+            <dd className="numeric mt-1 text-left text-ink tabular-nums">
               {row.vigenciaFormatada || "—"}
             </dd>
           </div>
@@ -533,9 +533,7 @@ export function ContratosServicosVigentesSection({
       {/* Header */}
       <div className="flex flex-col justify-between gap-1 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
         <div>
-          <h2 className="font-bold font-serif text-ink text-xl tracking-tight">
-            Contratos de Serviços Vigentes
-          </h2>
+          <h2>Contratos de Serviços Vigentes</h2>
           <p className="text-mute2 text-xs leading-relaxed sm:text-sm">
             Principais contratos de serviços de terceiros em execução, ordenados
             pelo menor valor pago e maior saldo pendente para evidenciar
@@ -617,10 +615,8 @@ export function ContratosServicosVigentesSection({
                     {row.fornecedorNome}
                   </button>
                   <span className="shrink-0 text-right">
-                    <span className="block font-mono text-[10px] text-mute2 uppercase tracking-wider">
-                      Empenhado
-                    </span>
-                    <span className="font-bold font-mono text-ink text-sm tabular-nums">
+                    <span className="eyebrow block">Empenhado</span>
+                    <span className="numeric text-left font-bold text-ink text-sm tabular-nums">
                       {fmtCurrency(row.totalEmpenhado)}
                     </span>
                   </span>
@@ -632,7 +628,9 @@ export function ContratosServicosVigentesSection({
                   <Badge variant={statusBadgeVariant(row.statusExecucao)}>
                     {row.statusLabel}
                   </Badge>
-                  <span className="font-mono">{row.vigenciaFormatada}</span>
+                  <span className="numeric text-left">
+                    {row.vigenciaFormatada}
+                  </span>
                 </div>
               </div>
             ),

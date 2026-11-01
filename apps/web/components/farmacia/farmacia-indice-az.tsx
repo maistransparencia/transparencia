@@ -133,9 +133,7 @@ function GrupoLetra({
       className="flex min-w-0 flex-col"
     >
       <div className="flex items-baseline justify-between gap-2 border-ink border-b-2 pt-3 pb-2">
-        <h3 className="font-bold text-2xl text-ink leading-none">
-          {grupo.rotuloLetra}
-        </h3>
+        <h3 className="stat-value">{grupo.rotuloLetra}</h3>
         <span className="text-mute2 text-xs">{grupo.rotuloTotal}</span>
       </div>
       <ul>
@@ -183,9 +181,7 @@ function Corpo({ indice }: { indice: FarmaciaIndiceViewModel }) {
       {indice.modo === "letra" && letra ? (
         <>
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-semibold text-ink text-sm">
-              Remédios com {letra.rotuloLetra}
-            </h3>
+            <h3>Remédios com {letra.rotuloLetra}</h3>
             <span className="text-mute2 text-xs">
               {indice.rotuloTotalLetra}
             </span>
@@ -244,12 +240,7 @@ export function FarmaciaIndiceAz({ indice, idSecao }: FarmaciaIndiceAzProps) {
       className="flex scroll-mt-4 flex-col gap-4"
     >
       <div className="space-y-1">
-        <h2
-          id={`${idSecao}-titulo`}
-          className="font-bold font-serif text-2xl text-ink"
-        >
-          Procurar por letra
-        </h2>
+        <h2 id={`${idSecao}-titulo`}>Procurar por letra</h2>
         <p className="text-[13px] text-mute2">
           Escolha a inicial do remédio. Os quadradinhos mostram em quantas
           unidades ele consta na lista de estoque.

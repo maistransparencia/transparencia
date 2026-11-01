@@ -89,13 +89,11 @@ export function FarmaciaResumoCard({
     >
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
-            Farmácia SUS
-          </h3>
+          <h3>Farmácia SUS</h3>
           <ExternalLinkPill
             href={FONTES_OFICIAIS.bnafar.url}
             title="Dados de estoque no portal de dados abertos do Ministério da Saúde"
-            className="px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+            className="eyebrow px-2.5 py-0.5"
           >
             {FONTES_OFICIAIS.bnafar.nome}
           </ExternalLinkPill>

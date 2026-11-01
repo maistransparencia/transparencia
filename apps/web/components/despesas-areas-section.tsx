@@ -60,7 +60,7 @@ export function DespesasAreasSection({
             <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
               <span className="font-medium text-ink text-sm">
                 {area.nome}
-                <span className="ml-2 font-mono text-mute2 text-xs">
+                <span className="numeric ml-2 text-left text-mute2 text-xs">
                   {fmtPercent(area.percentualEtapa)}
                 </span>
               </span>

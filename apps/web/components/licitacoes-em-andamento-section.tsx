@@ -102,7 +102,7 @@ function ValorHomologadoCelula({
   }
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      <span className="font-bold font-mono text-ok-text tabular-nums">
+      <span className="numeric text-left font-bold text-ok-text tabular-nums">
         {fmtCurrency(valorHomologado)}
       </span>
       {economia !== null && (
@@ -534,12 +534,13 @@ export function LicitacoesEmAndamentoSection({
       header: "Processo",
       accessorKey: "licitacaoNumero",
       sortable: true,
-      className: "whitespace-nowrap font-bold font-mono text-ink tabular-nums",
+      className:
+        "whitespace-nowrap font-bold numeric text-left text-ink tabular-nums",
       renderCell: (row) => (
         <button
           type="button"
           onClick={() => handleOpenRowDetails(row)}
-          className="cursor-pointer text-left font-bold font-mono text-ink hover:text-brand hover:underline"
+          className="numeric cursor-pointer text-left font-bold text-ink hover:text-brand hover:underline"
           title="Ver detalhes da licitação"
         >
           {row.licitacaoNumero || "S/N"}
@@ -570,7 +571,7 @@ export function LicitacoesEmAndamentoSection({
       header: "Abertura",
       accessorKey: "dataAbertura",
       sortable: true,
-      className: "whitespace-nowrap font-mono text-mute2 tabular-nums",
+      className: "whitespace-nowrap numeric text-left text-mute2 tabular-nums",
       renderCell: (row) =>
         row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada",
     },
@@ -583,7 +584,7 @@ export function LicitacoesEmAndamentoSection({
       renderCell: (row) => {
         if (typeof row.valorFinal === "number" && row.valorFinal > 0) {
           return (
-            <span className="font-bold font-mono text-ink tabular-nums">
+            <span className="numeric text-left font-bold text-ink tabular-nums">
               {fmtCurrency(row.valorFinal)}
             </span>
           );
@@ -624,7 +625,7 @@ export function LicitacoesEmAndamentoSection({
           </div>
           <div>
             <dt className="eyebrow">Abertura</dt>
-            <dd className="mt-1 font-mono text-ink tabular-nums">
+            <dd className="numeric mt-1 text-left text-ink tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </dd>
           </div>
@@ -700,12 +701,12 @@ export function LicitacoesEmAndamentoSection({
             <button
               type="button"
               onClick={() => handleOpenRowDetails(row)}
-              className="cursor-pointer text-left font-bold font-mono text-ink text-sm hover:text-brand hover:underline"
+              className="numeric cursor-pointer text-left font-bold text-ink text-sm hover:text-brand hover:underline"
               title="Ver detalhes da licitação"
             >
               {row.licitacaoNumero || "S/N"}
             </button>
-            <span className="shrink-0 font-bold font-mono text-ink text-sm tabular-nums">
+            <span className="numeric shrink-0 text-left font-bold text-ink text-sm tabular-nums">
               {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
             </span>
           </div>
@@ -719,7 +720,7 @@ export function LicitacoesEmAndamentoSection({
               </Badge>
               <span>{row.modalidadeFormatada}</span>
             </span>
-            <span className="font-mono tabular-nums">
+            <span className="numeric text-left tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </span>
           </div>
@@ -752,10 +753,7 @@ export function LicitacoesEmAndamentoSection({
         <div className="flex flex-col justify-between gap-2 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
           <div>
             <div className="flex items-center gap-2">
-              <h2
-                id="licitacoes-em-andamento-heading"
-                className="font-bold font-serif text-ink text-xl"
-              >
+              <h2 id="licitacoes-em-andamento-heading">
                 Licitações Abertas e em Andamento
               </h2>
             </div>
@@ -815,7 +813,7 @@ export function LicitacoesEmAndamentoSection({
           <div className="space-y-3">
             {hideHeader ? null : (
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-ink text-xs tracking-wider">
+                <h3 className="eyebrow">
                   Relação Completa de Licitações em Aberto
                 </h3>
               </div>
@@ -1049,7 +1047,7 @@ export function LicitacoesEmAndamentoSection({
                     <span className="font-medium text-mute2 text-xs">
                       Valor Estimado
                     </span>
-                    <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
+                    <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorFinal
                         ? fmtCurrency(selectedLicitacaoForItens.valorFinal)
                         : selectedLicitacaoForItens.valorEstimado
@@ -1064,7 +1062,7 @@ export function LicitacoesEmAndamentoSection({
                     <span className="font-medium text-mute2 text-xs">
                       Valor Homologado
                     </span>
-                    <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
+                    <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorHomologado
                         ? fmtCurrency(selectedLicitacaoForItens.valorHomologado)
                         : textoSemValorHomologado(
@@ -1087,7 +1085,7 @@ export function LicitacoesEmAndamentoSection({
                         const diff = est - hom;
                         const pct = (diff / est) * 100;
                         return (
-                          <p className="mt-1 font-mono font-semibold text-base text-ok-text tabular-nums sm:text-lg">
+                          <p className="numeric mt-1 text-left font-semibold text-base text-ok-text tabular-nums sm:text-lg">
                             {fmtCurrency(diff)}{" "}
                             <span className="font-sans text-xs">
                               (-{pct.toFixed(1)}%)
@@ -1106,9 +1104,7 @@ export function LicitacoesEmAndamentoSection({
 
                 {/* Bloco 4: Itens Licitados */}
                 <div className="space-y-2.5">
-                  <h3 className="font-semibold text-ink text-sm">
-                    Itens Licitados
-                  </h3>
+                  <h3>Itens Licitados</h3>
                   {(() => {
                     if (itens.length === 0) {
                       return (

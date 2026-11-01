@@ -22,9 +22,7 @@ export default function GlobalError({
     <html lang="pt-BR">
       <body className="flex min-h-screen items-center justify-center bg-page font-sans text-ink antialiased">
         <div className="flex max-w-[600px] flex-col items-start gap-4 px-6">
-          <h1 className="font-bold font-serif text-2xl text-ink">
-            Portal temporariamente indisponível
-          </h1>
+          <h1>Portal temporariamente indisponível</h1>
           <p className="text-mute">
             Não conseguimos carregar as informações agora. Tente novamente em
             instantes.
@@ -37,7 +35,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={reset}
-            className="rounded bg-ink px-4 py-2 font-medium text-sm text-white transition-opacity hover:opacity-90"
+            className="rounded bg-ink px-4 py-2 font-medium text-onink text-sm transition-opacity hover:opacity-90"
           >
             Tentar novamente
           </button>

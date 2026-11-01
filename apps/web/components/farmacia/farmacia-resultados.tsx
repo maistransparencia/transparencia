@@ -149,12 +149,7 @@ export function FarmaciaResultados({
         aria-labelledby="farmacia-resultados-titulo"
         className="flex scroll-mt-20 flex-col gap-5 border-ink border-t-2 pt-7 lg:scroll-mt-4"
       >
-        <h2
-          id="farmacia-resultados-titulo"
-          className="font-bold font-serif text-2xl text-ink"
-        >
-          Onde encontrar “{busca}”
-        </h2>
+        <h2 id="farmacia-resultados-titulo">Onde encontrar “{busca}”</h2>
         <RemediosSemLoteValido remedios={semLoteValido} />
         {semLoteValido.length === 0 && (
           <div className="flex flex-col gap-1.5 border-line border-y px-4 py-8">
@@ -190,12 +185,7 @@ export function FarmaciaResultados({
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h2
-            id="farmacia-resultados-titulo"
-            className="font-bold font-serif text-2xl text-ink"
-          >
-            Onde encontrar “{busca}”
-          </h2>
+          <h2 id="farmacia-resultados-titulo">Onde encontrar “{busca}”</h2>
           <p className="text-[13px] text-mute2">{resumo}</p>
         </div>
         <fieldset
@@ -238,9 +228,7 @@ export function FarmaciaResultados({
                       numero={unidade.numero}
                       tamanho="h-6 w-6 text-xs"
                     />
-                    <h3 className="min-w-0 flex-1 font-sans font-semibold text-base text-ink">
-                      {unidade.nomeUnidade}
-                    </h3>
+                    <h3 className="min-w-0 flex-1">{unidade.nomeUnidade}</h3>
                     <span className="shrink-0 text-mute text-xs tabular-nums">
                       {fmtNumber(unidade.totalQuantidadeEstoque)} em estoque
                     </span>
@@ -290,9 +278,7 @@ export function FarmaciaResultados({
                 className="flex flex-col gap-2 px-2 py-[18px]"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <h3 className="font-sans font-semibold text-base text-ink">
-                    {remedio.nomeMedicamento}
-                  </h3>
+                  <h3>{remedio.nomeMedicamento}</h3>
                   <span className="text-mute text-xs tabular-nums">
                     {fmtNumber(remedio.totalQuantidadeEstoque)} em estoque ·{" "}
                     {fmtNumber(remedio.totalUnidadesComEstoque)}{" "}

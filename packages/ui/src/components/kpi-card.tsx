@@ -78,9 +78,7 @@ export function KPICard({
   return (
     <div className={cn("flex flex-col justify-between py-1 pr-5", className)}>
       <div>
-        <p className="mb-1.5 font-mono text-[11px] text-mute2 uppercase tracking-wider">
-          {title}
-        </p>
+        <p className="eyebrow mb-1.5">{title}</p>
         <p
           className={cn(
             "font-semibold text-[26px] leading-tight",

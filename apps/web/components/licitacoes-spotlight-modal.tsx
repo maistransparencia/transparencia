@@ -613,7 +613,7 @@ export function LicitacoesSpotlightModal({
                       </div>
 
                       <div className="ml-2 shrink-0 text-right">
-                        <span className="whitespace-nowrap font-medium font-mono text-ink text-xs tabular-nums sm:text-sm">
+                        <span className="numeric whitespace-nowrap text-left font-medium text-ink text-xs tabular-nums sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (
@@ -774,7 +774,7 @@ export function LicitacoesSpotlightModal({
                       </div>
 
                       <div className="ml-2 shrink-0 text-right">
-                        <span className="whitespace-nowrap font-medium font-mono text-ink text-xs tabular-nums sm:text-sm">
+                        <span className="numeric whitespace-nowrap text-left font-medium text-ink text-xs tabular-nums sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (

@@ -66,9 +66,7 @@ export function DestaqueLinha({
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="font-bold text-ink text-sm tracking-tight sm:text-base">
-              {titulo}
-            </h3>
+            <h3>{titulo}</h3>
             <span
               data-testid="destaque-badge"
               className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[tom]}`}

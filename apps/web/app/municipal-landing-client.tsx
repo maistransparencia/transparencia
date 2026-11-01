@@ -150,9 +150,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
           </div>
         </div>
 
-        <h1 className="mt-4 font-bold font-serif text-4xl text-ink tracking-tight sm:text-5xl">
-          Selecione o Município
-        </h1>
+        <h1 className="mt-4">Selecione o Município</h1>
       </header>
 
       {/* Campo de Busca (apenas a partir de 5 cidades) */}
@@ -176,7 +174,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
       )}
 
       {portais.length > 0 && (
-        <h2 className="mx-auto mb-3 w-full max-w-4xl font-semibold text-mute text-xs uppercase tracking-widest">
+        <h2 className="eyebrow mx-auto mb-3 w-full max-w-4xl">
           Já disponíveis
         </h2>
       )}
@@ -233,7 +231,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="truncate font-bold font-serif text-2xl text-ink tracking-tight transition-colors group-hover:text-brand-text">
+                    <h2 className="truncate transition-colors group-hover:text-brand-text">
                       {cityName}
                     </h2>
                     <p className="mt-0.5 text-mute text-xs">
@@ -258,7 +256,7 @@ function MunicipalLandingContent({ portais }: MunicipalLandingClientProps) {
                 <span className="font-semibold text-brand-text text-sm">
                   Acessar portal
                 </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-fill text-white shadow-2xs transition-transform group-hover:scale-105">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-fill text-onink shadow-2xs transition-transform group-hover:scale-105">
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </div>

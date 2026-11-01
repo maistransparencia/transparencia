@@ -15,9 +15,7 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
     <div className="rounded-lg border border-line bg-page p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-ink text-lg">
-            Folha como % da receita, ano a ano
-          </h3>
+          <h3>Folha como % da receita, ano a ano</h3>
         </div>
         <span className="font-medium text-mute2 text-xs">
           com os limites da LRF

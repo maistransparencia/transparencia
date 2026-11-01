@@ -217,7 +217,7 @@ export function EntidadeSelectCompact({
                       className={cn(
                         "flex h-3.5 w-3.5 items-center justify-center rounded border border-line transition-colors",
                         isChecked
-                          ? "border-brand bg-brand-fill text-white"
+                          ? "border-brand bg-brand-fill text-onink"
                           : "bg-page",
                       )}
                     >

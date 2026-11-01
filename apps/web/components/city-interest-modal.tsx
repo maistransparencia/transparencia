@@ -190,9 +190,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h3 className="font-semibold text-ink text-lg">
-            Pronto, avisaremos você
-          </h3>
+          <h3>Pronto, avisaremos você</h3>
           <p className="mt-2 text-mute text-sm leading-relaxed">
             Anotamos {savedCity.cidade} ({savedCity.uf}). Quando ela entrar no
             portal, você recebe um e-mail.
@@ -200,7 +198,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <button
             type="button"
             onClick={handleClose}
-            className="mt-6 min-h-11 w-full rounded-lg bg-brand-fill px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            className="mt-6 min-h-11 w-full rounded-lg bg-brand-fill px-4 font-semibold text-onink text-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Voltar para a lista de cidades
           </button>
@@ -346,7 +344,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 font-semibold text-onink text-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {status === "loading" ? (
               <>

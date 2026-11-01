@@ -318,16 +318,14 @@ export function ContratoDetalhesModal({
         {/* Bloco 3: Grid de Métricas Fiscais e Execução Financeira */}
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold text-ink text-sm">
-              Execução Financeira e Orçamentária
-            </h3>
+            <h3>Execução Financeira e Orçamentária</h3>
             {contrato.valorContrato !== undefined &&
               contrato.valorContrato > 0 && (
                 <div className="flex items-baseline gap-1.5 rounded-md border border-brand/30 bg-brand/10 px-3 py-1 text-right">
                   <span className="font-semibold text-[11px] text-brand uppercase tracking-wider">
                     Valor Contratado:
                   </span>
-                  <span className="font-bold font-mono text-base text-brand tabular-nums sm:text-lg">
+                  <span className="numeric text-left font-bold text-base text-brand tabular-nums sm:text-lg">
                     {fmtCurrency(contrato.valorContrato)}
                   </span>
                 </div>
@@ -336,21 +334,21 @@ export function ContratoDetalhesModal({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <div className="rounded-md border border-line bg-page p-3.5">
               <span className="font-medium text-mute2 text-xs">Empenhado</span>
-              <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
+              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalEmpenhado)}
               </p>
             </div>
 
             <div className="rounded-md border border-line bg-page p-3.5">
               <span className="font-medium text-mute2 text-xs">Liquidado</span>
-              <p className="mt-1 font-mono font-semibold text-base text-ink tabular-nums sm:text-lg">
+              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalLiquidado)}
               </p>
             </div>
 
             <div className="rounded-md border border-line bg-page p-3.5">
               <span className="font-medium text-mute2 text-xs">Pago</span>
-              <p className="mt-1 font-mono font-semibold text-base text-ok-text tabular-nums sm:text-lg">
+              <p className="numeric mt-1 text-left font-semibold text-base text-ok-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalPago)}
               </p>
             </div>
@@ -359,7 +357,7 @@ export function ContratoDetalhesModal({
               <span className="font-medium text-mute2 text-xs">
                 Saldo Pendente
               </span>
-              <p className="mt-1 font-mono font-semibold text-base text-warn-text tabular-nums sm:text-lg">
+              <p className="numeric mt-1 text-left font-semibold text-base text-warn-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.saldoPendente)}
               </p>
             </div>
@@ -371,7 +369,7 @@ export function ContratoDetalhesModal({
               <span className="font-semibold text-ink">
                 Percentual Pago da Despesa
               </span>
-              <span className="font-mono font-semibold text-ink text-sm tabular-nums">
+              <span className="numeric text-left font-semibold text-ink text-sm tabular-nums">
                 {fmtPercent(contrato.percentualPago)}
               </span>
             </div>
