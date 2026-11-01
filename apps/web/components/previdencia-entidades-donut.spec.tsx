@@ -36,7 +36,7 @@ describe("PrevidenciaEntidadesDonut", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("heading", { level: 3 }).textContent).toContain(
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toContain(
       "FUNPREV",
     );
     expect(screen.getAllByText(/Prefeitura|Camara/i).length).toBeGreaterThan(0);

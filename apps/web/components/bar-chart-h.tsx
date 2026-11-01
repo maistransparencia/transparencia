@@ -35,10 +35,10 @@ export function BarChartH({
                 {fmtCurrency(item.value)}
               </span>
             </div>
-            <div className="h-3 w-full overflow-hidden rounded-md">
+            <div className="h-3 w-full bg-track">
               <div
                 className={cn(
-                  "h-full rounded-md transition-all duration-500",
+                  "h-full transition-all duration-500",
                   item.colorClass,
                 )}
                 style={{
