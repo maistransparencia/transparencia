@@ -110,3 +110,61 @@ def test_mesmo_codigo_de_indicador_em_dois_portais_nao_se_mistura(conn):
     (natividade,) = _linha(conn, "natividade_prefeitura", _ANO)
     assert porciuncula.investimento_por_aluno == Decimal("16789.15")
     assert natividade.investimento_por_aluno == Decimal("19463.73")
+
+
+# Resposta real da API do SIOPE (Porciúncula, 2026, bimestral acumulado, coletada em 2026-11-01)
+_ANO_REAL = 2026
+_REAL_BIMESTRE_4 = {"4.9": Decimal("11325.75"), "1.1": Decimal("26.43")}
+
+
+@pytest.fixture
+def seed_bimestral_real(conn):
+    def limpar():
+        conn.execute(text(f"DELETE FROM {_TABELA} WHERE ano = :a"), {"a": _ANO_REAL})
+        conn.commit()
+
+    limpar()
+    linhas = [(3, "4.9", "7804.75"), (3, "1.1", "27.58"), (4, "4.9", "11325.75"), (4, "1.1", "26.43")]
+    for periodo, indicador, valor in linhas:
+        conn.execute(
+            text(
+                f"""
+                INSERT INTO {_TABELA}
+                    (portal_slug, ano, periodo, tipo_periodo, codigo_indicador, codigo_interno_indicador,
+                     unidade, nomes_oficiais_indicador, codigo_siope, valor, coletado_em)
+                VALUES ('porciuncula_prefeitura', :ano, :periodo, 'bimestral', :indicador, 1, 'monetario', 'x',
+                        '330410', :valor, now())
+                """
+            ),
+            {"ano": _ANO_REAL, "periodo": periodo, "indicador": indicador, "valor": valor},
+        )
+    conn.commit()
+    yield
+    limpar()
+
+
+@pytest.mark.usefixtures("seed_bimestral_real")
+def test_ano_corrente_com_dado_real_bimestral_e_parcial(conn):
+    (linha,) = _linha(conn, "porciuncula_prefeitura", _ANO_REAL)
+    assert (linha.situacao, linha.periodo) == ("parcial", 4)
+    assert linha.investimento_por_aluno == _REAL_BIMESTRE_4["4.9"]
+    assert linha.percentual_aplicado_mde == _REAL_BIMESTRE_4["1.1"]
+
+
+@pytest.mark.usefixtures("seed_bimestral_real")
+def test_fechamento_substitui_linhas_parciais_antigas(conn):
+    conn.execute(
+        text(
+            f"""
+            INSERT INTO {_TABELA}
+                (portal_slug, ano, periodo, tipo_periodo, codigo_indicador, codigo_interno_indicador,
+                 unidade, nomes_oficiais_indicador, codigo_siope, valor, coletado_em)
+            VALUES ('porciuncula_prefeitura', :ano, 6, 'anual', '4.9', 1, 'monetario', 'x', '330410', 16000.00, now())
+            """
+        ),
+        {"ano": _ANO_REAL},
+    )
+    conn.commit()
+    (linha,) = _linha(conn, "porciuncula_prefeitura", _ANO_REAL)
+    assert (linha.situacao, linha.periodo, linha.investimento_por_aluno) == ("encerrado", 6, Decimal("16000.00"))
+    assert linha.percentual_aplicado_mde is None
