@@ -163,7 +163,7 @@ export function FeedbackModal({
     >
       {status === "success" ? (
         <div className="py-4 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok/10 text-ok-text">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
           <h3 className="font-semibold text-ink text-lg">
@@ -292,7 +292,7 @@ export function FeedbackModal({
           {errorMessage && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 p-3 text-danger-text text-xs leading-relaxed"
+              className="flex items-start gap-2 rounded-lg border border-danger-fill/30 bg-danger-fill/10 p-3 text-danger-text text-xs leading-relaxed"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
               <span>{errorMessage}</span>

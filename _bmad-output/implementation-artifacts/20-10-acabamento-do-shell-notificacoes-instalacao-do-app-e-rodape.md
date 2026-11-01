@@ -118,3 +118,4 @@ Status: done
 - O drawer móvel desliza sempre, inclusive com `prefers-reduced-motion` (substitui o critério de "sem animação de deslize"); com movimento reduzido ativo no macOS o drawer só aparecia, sem deslizar. Sem animação apenas em `md`.
 - "Ativar" e "Desativar" notificações são links discretos na mesma linha do estado (não mais botões de largura total).
 - No tema claro o rodapé usa azul-marinho da marca; o logo é o componente `brand-logo.tsx` (variante clara via variáveis `--footer-logo-*`).
+- Pendência herdada da 20.12 resolvida antes do fechamento da epic 20: 16 usos de `bg-`/`border-` `ok`/`danger` sem sufixo (7 componentes) migrados para `-fill`; `styles/tokens-uso.spec.ts` volta a passar (web: 160 arquivos, 1595 testes).

@@ -305,7 +305,7 @@ export function ShowYourWorkButton({
             </button>
 
             {errorMessage && (
-              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-danger/30 bg-danger/10 p-2 text-danger-text text-xs">
+              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-danger-fill/30 bg-danger-fill/10 p-2 text-danger-text text-xs">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>{errorMessage}</span>
               </div>

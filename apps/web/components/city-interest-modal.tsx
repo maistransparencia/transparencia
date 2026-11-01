@@ -27,7 +27,7 @@ const FIELD_MESSAGES: Record<FieldName, string> = {
 };
 
 const INPUT_CLASS =
-  "min-h-11 w-full rounded-lg border border-line bg-page px-3 text-base text-ink placeholder:text-mute focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 aria-[invalid=true]:border-danger sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-line bg-page px-3 text-base text-ink placeholder:text-mute focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 aria-[invalid=true]:border-danger-fill sm:text-sm";
 
 function validate(values: {
   cidade: string;
@@ -187,7 +187,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
     >
       {status === "success" ? (
         <div role="status" className="py-2 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok/10 text-ok-text">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
           <h3 className="font-semibold text-ink text-lg">
@@ -337,7 +337,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           {formError && (
             <p
               role="alert"
-              className="rounded-lg bg-danger/10 p-3 text-danger-text text-sm"
+              className="rounded-lg bg-danger-fill/10 p-3 text-danger-text text-sm"
             >
               {formError}
             </p>
