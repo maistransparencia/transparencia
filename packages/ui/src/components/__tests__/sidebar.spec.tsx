@@ -427,7 +427,7 @@ describe("Sidebar Component", () => {
     );
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass(
-      "transition-[transform,visibility]",
+      "transition-[translate,visibility]",
       "md:transition-none",
     );
     expect(aside).not.toHaveClass("motion-reduce:transition-none");
