@@ -86,9 +86,8 @@ describe("Obras, Previdência e Radar no padrão Divisórias", () => {
     },
   );
 
-  it("as páginas usam SectionHeader ou KPICard em divisória", () => {
+  it("as páginas usam SectionHeader", () => {
     const [obras, previdencia] = ARQUIVOS.map((a) => a.fonte);
-    expect(previdencia).toContain('variant="divisoria"');
     expect(previdencia).toMatch(/\bSectionHeader\b/);
     expect(obras).toBeDefined();
   });

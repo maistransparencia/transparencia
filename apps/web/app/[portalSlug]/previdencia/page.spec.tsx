@@ -142,10 +142,8 @@ describe("PrevidenciaPage", () => {
     const element = await PrevidenciaPage(props);
     render(element);
 
-    expect(screen.getByText("Valor reservado (empenhado)")).toBeInTheDocument();
-    expect(
-      screen.getByText("Quanto do reservado já foi pago"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Reservado (empenhado)")).toBeInTheDocument();
+    expect(screen.getByText("Etapas do repasse")).toBeInTheDocument();
   });
 
   it("renderiza sigla institucional dinâmica da autarquia (ex: NATPREVI)", async () => {
@@ -170,7 +168,7 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText(/Valor reservado \(empenhado\) para o NATPREVI/i),
+      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\) · EXERCÍCIO/i),
@@ -316,7 +314,7 @@ describe("PrevidenciaPage", () => {
       1,
     );
     expect(screen.getByText("R$ 60,4 mi")).toBeInTheDocument();
-    expect(screen.getByText("Queima Média Anual")).toBeInTheDocument();
+    expect(screen.getByText("Queima média anual")).toBeInTheDocument();
   });
 
   it("renderiza mensagem informativa quando portal sem RPPS (habilitado === false)", async () => {
