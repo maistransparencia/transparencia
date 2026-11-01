@@ -43,7 +43,8 @@ describe("obras/view-model", () => {
 
       const canc = getSituacaoVisual("cancelada");
       expect(canc.label).toBe("Cancelada");
-      expect(canc.corPreenchimento).toBe("var(--mute3)");
+      expect(canc.corPreenchimento).toBe("var(--mute)");
+      expect(canc.corPreenchimento).not.toBe(cad.corPreenchimento);
     });
 
     it("usa fallback para status não mapeado", () => {

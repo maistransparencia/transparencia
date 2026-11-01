@@ -43,7 +43,8 @@ export function PrevidenciaHeroSection({
 
   const partialPeriod = getPartialYearPeriod(dataExtracao);
 
-  const temDados = totalEmpenhado > 0;
+  const temEmpenho = totalEmpenhado > 0;
+  const temDados = temEmpenho || totalPago > 0;
 
   return (
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
@@ -68,6 +69,8 @@ export function PrevidenciaHeroSection({
         <p className="lead">
           {!temDados ? (
             `O portal não tem repasses para o ${previdenciaSigla} registrados em ${ano}.`
+          ) : !temEmpenho ? (
+            `O portal não tem empenho para o ${previdenciaSigla} em ${ano}, mas registra ${fmtCompact(totalPago)} pagos.`
           ) : isCurrentYear ? (
             <>
               A Prefeitura e os Fundos Municipais já reservaram{" "}

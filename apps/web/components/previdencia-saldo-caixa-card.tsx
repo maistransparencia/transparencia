@@ -73,7 +73,7 @@ export function PrevidenciaSaldoCaixaCard({
             href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 self-start rounded border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs transition-colors sm:self-auto"
+            className="inline-flex items-center gap-1 self-start rounded-sm border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs transition-colors sm:self-auto"
             title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
           >
             <span>SICONFI</span>
@@ -133,14 +133,14 @@ export function PrevidenciaSaldoCaixaCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center rounded-md border border-ok-fill bg-ok-fill/15 px-2.5 py-1 font-medium text-ok-text text-xs">
+          <span className="inline-flex items-center rounded-sm border border-ok-fill bg-ok-fill/15 px-2.5 py-1 font-medium text-ok-text text-xs">
             Posição: {mesExtenso}/{ano}
           </span>
           <a
             href={FONTES_OFICIAIS.siconfi.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-line2 px-3 py-1 font-medium text-mute text-xs transition-colors hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-line bg-line2 px-3 py-1 font-medium text-mute text-xs transition-colors hover:text-ink"
           >
             <span>SICONFI</span>
             <ExternalLink className="h-3 w-3" />
@@ -184,7 +184,7 @@ export function PrevidenciaSaldoCaixaCard({
             {variacaoAnualPercentual !== undefined &&
               variacaoAnualPercentual !== null && (
                 <span
-                  className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium text-xs ${getVariacaoBadgeClass(
+                  className={`inline-flex items-center rounded-sm px-1.5 py-0.5 font-medium text-xs ${getVariacaoBadgeClass(
                     variacaoAnualPercentual,
                   )}`}
                 >

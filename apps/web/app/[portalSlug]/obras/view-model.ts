@@ -63,9 +63,9 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
     case "cancelada":
       return {
         label: "Cancelada",
-        corPreenchimento: "var(--mute3)",
+        corPreenchimento: "var(--mute)",
         badgeClass: "border-line bg-line2 text-mute",
-        bgClass: "bg-mute3",
+        bgClass: "bg-mute",
         textClass: "text-mute",
       };
     default:

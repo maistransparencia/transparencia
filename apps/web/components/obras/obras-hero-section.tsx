@@ -99,12 +99,16 @@ export function ObrasHeroSection({
                 kpis.paralisadas > 0
                   ? `, com ${kpis.paralisadas} parada${kpis.paralisadas === 1 ? "" : "s"}`
                   : "";
-              return `São ${obrasTexto}, somando ${kpis.valorTotalInvestimentoCompacto} previstos em investimento (${execucaoTexto}${paralisadasTexto}). Obra parada é motivo para perguntar, não prova de erro.`;
+              const investimentoTexto =
+                totalValor > 0
+                  ? `, somando ${kpis.valorTotalInvestimentoCompacto} previstos em investimento`
+                  : "";
+              return `São ${obrasTexto}${investimentoTexto} (${execucaoTexto}${paralisadasTexto}). Obra parada é motivo para perguntar, não prova de erro.`;
             })()}
           </p>
         </div>
 
-        {kpis.totalObras > 0 && (
+        {kpis.totalObras > 0 && totalValor > 0 && (
           <div className="panel panel-brand lg:col-span-5">
             <p className="eyebrow">Investimento previsto</p>
             <p className="stat-value-lg">

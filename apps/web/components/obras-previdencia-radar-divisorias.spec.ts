@@ -35,6 +35,20 @@ const ARQUIVOS = CAMINHOS.map((caminho) => ({
 }));
 
 describe("Obras, Previdência e Radar no padrão Divisórias", () => {
+  const SEM_PILULA = [
+    "components/radar-gastos-sensiveis.tsx",
+    "components/previdencia-saldo-caixa-card.tsx",
+    "components/obras/obras-empenhos-federais.tsx",
+    "components/obras/obras-detalhe-modal.tsx",
+  ];
+
+  it.each(ARQUIVOS.filter(({ nome }) => SEM_PILULA.includes(nome)))(
+    "$nome usa o raio do Badge (rounded-sm) nos selos, sem pílula nem rounded-md",
+    ({ fonte }) => {
+      expect(fonte).not.toMatch(/\brounded-(md|full)\b|\brounded(?![-\w])/);
+    },
+  );
+
   it.each(ARQUIVOS)(
     "$nome não usa cartões, hex, paleta fixa nem aliases legados",
     ({ fonte }) => {
