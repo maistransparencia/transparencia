@@ -3,6 +3,7 @@ import {
   getFontesReceitaMetrics,
   getPortalConfig,
   getRadarCivicoAlertas,
+  getReceitaExtraOrcamentariaOrigem,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
 
@@ -130,12 +131,17 @@ async function fetchRawReceitasData(
     await resolveEmpresaIds(tenantSlug, entidadesIds),
   );
 
-  const [fonteAtual, fonteAnterior, portalConfig, radarAlertas] =
+  const [fonteAtual, fonteAnterior, portalConfig, radarAlertas, origemExtra] =
     await Promise.all([
       getFontesReceitaMetrics(tenantSlug, selectedYear, empresaIds),
       getFontesReceitaMetrics(tenantSlug, selectedYear - 1, empresaIds),
       getPortalConfig(tenantSlug),
       getRadarCivicoAlertas(tenantSlug, { ano: selectedYear }),
+      getReceitaExtraOrcamentariaOrigem(
+        tenantSlug,
+        selectedYear,
+        empresaIds,
+      ).catch(() => []),
     ]);
 
   const totalPctChange =
@@ -153,6 +159,7 @@ async function fetchRawReceitasData(
       ? mapFontesMetricToLegacy(fonteAtual, totalPctChange)
       : undefined,
     radarAlertas,
+    origemExtra,
   };
 }
 

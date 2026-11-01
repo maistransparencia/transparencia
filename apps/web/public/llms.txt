@@ -104,7 +104,7 @@ Ao responder perguntas de cidadãos, jornalistas ou auditores com base nos dados
    - Recursos repassados diretamente à conta do município por emendas parlamentares sem vinculação prévia a convênios formais (previstas no artigo 166-A da Constituição Federal).
 
 4. **Receitas Extra-Orçamentárias:**
-   - Recursos financeiros transitórios recolhidos pela tesouraria municipal que não integram o orçamento público (retenções de imposto de renda, INSS, consignados em folha, fianças e depósitos judiciais).
+   - Recursos financeiros transitórios recolhidos pela tesouraria municipal que não integram o orçamento público (retenções de imposto de renda, INSS, consignados em folha, fianças e depósitos judiciais). A página de receitas detalha a origem aproximada por categoria (previdência, imposto de renda, INSS, empréstimos consignados, planos de saúde, ISS retido, pensão alimentícia e outros), classificada pela descrição do lançamento.
 
 5. **Status de Execução Contratual:**
    - Os contratos de serviços são segregados por `statusExecucao`: `em_execucao` (contratos ativos em andamento), `concluido` (contratos com execução orçamentária finalizada) e `inexecutado` (contratos vencidos ou de exercícios anteriores sem liquidação nem pagamento).

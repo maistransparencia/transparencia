@@ -12,6 +12,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **Contratos só do Fundo:** A lista deixa de misturar contratos de outros órgãos que citavam escola ou merenda no objeto.
 
 ### ✨ Novas Funcionalidades (Added)
+* **Origem das "Entradas fora do orçamento" em `/receitas`:** Bloco recolhido "De onde vem este valor" mostra, por categoria (previdência, imposto de renda, empréstimos, planos de saúde etc.), de onde vem o valor retido e repassado. A classificação é aproximada e feita pela descrição do lançamento.
+* **`fct_receita_extra_orcamentaria_categoria` e `getReceitaExtraOrcamentariaOrigem`:** Novo mart dbt por portal, entidade e ano, e a query correspondente em `@transparencia/db`, com `categoria`, `valorArrecadado` e `percentualDoTotal`.
 * **`fct_educacao_execucao_metricas`:** Novo mart dbt por portal e ano com empenhado, liquidado e pago da função 12.
 * **`getEducacaoExecucaoAnual` e `getTopFornecedoresEducacaoMetrics`:** Série anual e maiores fornecedores da função 12 em `@transparencia/db`.
 * **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.

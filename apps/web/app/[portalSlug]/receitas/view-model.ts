@@ -77,6 +77,7 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
       previsto: rec.receitaExtraOrcamentariaArrecadado,
       arrecadado: rec.receitaExtraOrcamentariaArrecadado,
       pctRealizado: 100,
+      origem: raw.origemExtra,
     },
   ];
 
