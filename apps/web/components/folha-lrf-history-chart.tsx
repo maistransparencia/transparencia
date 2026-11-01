@@ -28,8 +28,8 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
         {/* Horizontal Threshold Lines */}
         <div className="pointer-events-none absolute inset-x-0 top-8 bottom-12 flex flex-col justify-between">
           {/* Legal 54% */}
-          <div className="relative w-full border-red-400 border-t border-solid">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-red-600">
+          <div className="relative w-full border-danger border-t border-solid">
+            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-danger-text">
               legal 54%
             </span>
           </div>
@@ -71,7 +71,7 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
                   <div
                     className={`w-full rounded-t-md transition-all duration-500 ${
                       item.percentualFolha > 54
-                        ? "bg-red-500"
+                        ? "bg-danger-fill"
                         : item.percentualFolha > 51.3
                           ? "bg-orange-500"
                           : "bg-sky-600"

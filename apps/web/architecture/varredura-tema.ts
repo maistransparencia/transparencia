@@ -38,8 +38,6 @@ export const excecoesPermanentesPorRegra: Partial<
       "imagem OG: renderizada fora do navegador (satori), sempre em tema claro",
     "apps/web/components/og/og-home-card-template.tsx":
       "imagem OG: renderizada fora do navegador (satori), sempre em tema claro",
-    "apps/web/components/distribuicao-modalidades-chart.tsx":
-      "cor de série de gráfico: uma cor categórica por modalidade, sem token semântico equivalente",
   },
 };
 

@@ -1,3 +1,4 @@
+import { AlertBox } from "@transparencia/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { env } from "@/env";
@@ -56,16 +57,13 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
       aria-labelledby={`${id}-title`}
       className="scroll-mt-24 border-line border-t pt-10 first:border-t-0 first:pt-0"
     >
-      <h2
-        id={`${id}-title`}
-        className="!mt-0 flex items-baseline gap-3 font-semibold text-2xl text-ink tracking-tight"
-      >
-        <span className="font-medium text-base text-emerald-700 tabular-nums">
+      <h2 id={`${id}-title`} className="flex items-baseline gap-3">
+        <span className="font-medium text-base text-brand-text tabular-nums">
           {index + 1}.
         </span>
         {title}
       </h2>
-      {children}
+      <div className="space-y-4 pt-3">{children}</div>
     </section>
   );
 }
@@ -76,7 +74,7 @@ function CheckIcon() {
       aria-hidden="true"
       viewBox="0 0 20 20"
       fill="currentColor"
-      className="mt-0.5 h-5 w-5 flex-none text-emerald-700"
+      className="mt-0.5 h-5 w-5 flex-none text-brand-text"
     >
       <path
         fillRule="evenodd"
@@ -108,7 +106,7 @@ export default function PrivacidadePage() {
             href={LGPD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:decoration-emerald-700"
+            className="font-medium text-brand-text underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
           >
             Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018)
           </a>
@@ -119,20 +117,14 @@ export default function PrivacidadePage() {
       {/* Resumo */}
       <aside
         aria-labelledby="resumo-title"
-        className="mt-10 max-w-3xl rounded-lg border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8"
+        className="panel panel-brand mt-10 max-w-3xl"
       >
-        <h2
-          id="resumo-title"
-          className="font-semibold text-emerald-950 text-lg"
-        >
+        <h2 id="resumo-title" className="font-semibold text-ink text-lg">
           Em resumo
         </h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
-            <li
-              key={item}
-              className="flex gap-3 text-emerald-950 text-sm leading-6"
-            >
+            <li key={item} className="flex gap-3 text-ink text-sm leading-6">
               <CheckIcon />
               {item}
             </li>
@@ -150,7 +142,7 @@ export default function PrivacidadePage() {
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-emerald-700 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-brand hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <span className="text-mute3 tabular-nums">{i + 1}.</span>
                     {s.title}
@@ -162,14 +154,14 @@ export default function PrivacidadePage() {
         </nav>
 
         {/* Conteúdo */}
-        <article className="prose prose-slate prose-li:my-1.5 max-w-3xl space-y-10 prose-a:font-medium prose-a:text-emerald-800 prose-strong:text-ink prose-p:leading-7 prose-a:decoration-emerald-300 prose-a:underline-offset-4 prose-li:marker:text-emerald-700 hover:prose-a:decoration-emerald-700">
+        <article className="max-w-3xl space-y-10">
           <Section index={0}>
             <p>
               O MaisTransparencia adota o princípio da{" "}
               <strong>coleta mínima</strong>: apenas os dados estritamente
               necessários para as funcionalidades oferecidas são solicitados.
             </p>
-            <ul>
+            <ul className="list-text">
               <li>
                 <strong>Endereço de e-mail (voluntário):</strong> coletado
                 exclusivamente quando o cidadão opta por se inscrever no boletim
@@ -185,13 +177,10 @@ export default function PrivacidadePage() {
                 pessoal identificável é retido neste processo.
               </li>
             </ul>
-            <div className="not-prose mt-6 rounded-lg border border-line bg-line2 px-5 py-4 text-mute text-sm leading-6">
-              <strong className="font-semibold text-ink">
-                Não são coletados:
-              </strong>{" "}
+            <AlertBox type="info" title="Não são coletados">
               nome completo, CPF, endereço físico, telefone, dados bancários ou
               qualquer outra informação pessoal sensível.
-            </div>
+            </AlertBox>
           </Section>
 
           <Section index={1}>
@@ -199,7 +188,7 @@ export default function PrivacidadePage() {
               O tratamento dos dados pessoais coletados (endereço de e-mail) tem
               finalidade exclusiva e declarada:
             </p>
-            <dl className="not-prose mt-6 divide-y divide-line rounded-lg border border-line">
+            <dl className="mt-6 divide-y divide-line border-line border-y">
               <div className="grid gap-1 px-5 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
                 <dt className="font-semibold text-ink text-sm">Finalidade</dt>
                 <dd className="text-mute text-sm leading-6">
@@ -230,7 +219,7 @@ export default function PrivacidadePage() {
               <ExternalLink href="https://posthog.com">PostHog</ExternalLink>,
               configurado com as seguintes salvaguardas de privacidade:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>
                 <strong>Sem identificação pessoal:</strong> nenhum dado
                 nominativo é coletado.
@@ -254,7 +243,7 @@ export default function PrivacidadePage() {
             <p>
               O MaisTransparencia <strong>jamais</strong>:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>vende, aluga ou cede endereços de e-mail a terceiros;</li>
               <li>
                 utiliza dados de contato para fins político-partidários,
@@ -276,7 +265,7 @@ export default function PrivacidadePage() {
               </ExternalLink>
               , o titular dos dados tem garantidos os seguintes direitos:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>
                 <strong>Cancelamento com 1 clique:</strong> o descadastramento
                 do boletim pode ser feito a qualquer momento, pelo link presente
@@ -307,13 +296,13 @@ export default function PrivacidadePage() {
               solicitar a exclusão de dados pessoais, escreva para o e-mail
               oficial de privacidade.
             </p>
-            <div className="not-prose mt-6">
+            <div className="mt-6">
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Enviar email para ${CONTACT_EMAIL}`}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-sm text-white shadow-sm transition-colors hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 focus-visible:outline-offset-2"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-fill px-5 py-3 font-semibold text-sm text-white shadow-sm transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
               >
                 <svg
                   aria-hidden="true"

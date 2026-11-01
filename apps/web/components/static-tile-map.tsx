@@ -21,7 +21,7 @@ export interface StaticTileMapProps {
   className?: string;
 }
 
-const DEFAULT_MARKER_CLASS = "bg-blue-500 ring-blue-300";
+const DEFAULT_MARKER_CLASS = "bg-brand-fill ring-brand";
 const MARKER_INSET_MIN_PERCENT = 3;
 const MARKER_INSET_MAX_PERCENT = 97;
 

@@ -1,3 +1,4 @@
+import { AlertBox } from "@transparencia/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { env } from "@/env";
@@ -89,16 +90,13 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
       aria-labelledby={`${id}-title`}
       className="scroll-mt-24 border-line border-t pt-10 first:border-t-0 first:pt-0"
     >
-      <h2
-        id={`${id}-title`}
-        className="!mt-0 flex items-baseline gap-3 font-semibold text-2xl text-ink tracking-tight"
-      >
-        <span className="font-medium text-base text-emerald-700 tabular-nums">
+      <h2 id={`${id}-title`} className="flex items-baseline gap-3">
+        <span className="font-medium text-base text-brand-text tabular-nums">
           {index + 1}.
         </span>
         {title}
       </h2>
-      {children}
+      <div className="space-y-4 pt-3">{children}</div>
     </section>
   );
 }
@@ -109,7 +107,7 @@ function CheckIcon() {
       aria-hidden="true"
       viewBox="0 0 20 20"
       fill="currentColor"
-      className="mt-0.5 h-5 w-5 flex-none text-emerald-700"
+      className="mt-0.5 h-5 w-5 flex-none text-brand-text"
     >
       <path
         fillRule="evenodd"
@@ -142,20 +140,14 @@ export default function TermosPage() {
       {/* Resumo */}
       <aside
         aria-labelledby="resumo-title"
-        className="mt-10 max-w-3xl rounded-lg border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8"
+        className="panel panel-brand mt-10 max-w-3xl"
       >
-        <h2
-          id="resumo-title"
-          className="font-semibold text-emerald-950 text-lg"
-        >
+        <h2 id="resumo-title" className="font-semibold text-ink text-lg">
           Em resumo
         </h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
-            <li
-              key={item}
-              className="flex gap-3 text-emerald-950 text-sm leading-6"
-            >
+            <li key={item} className="flex gap-3 text-ink text-sm leading-6">
               <CheckIcon />
               {item}
             </li>
@@ -173,7 +165,7 @@ export default function TermosPage() {
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-emerald-700 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-brand hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <span className="text-mute3 tabular-nums">{i + 1}.</span>
                     {s.title}
@@ -185,7 +177,7 @@ export default function TermosPage() {
         </nav>
 
         {/* Conteúdo */}
-        <article className="prose prose-slate prose-li:my-1.5 max-w-3xl space-y-10 prose-a:font-medium prose-a:text-emerald-800 prose-strong:text-ink prose-p:leading-7 prose-a:decoration-emerald-300 prose-a:underline-offset-4 prose-li:marker:text-emerald-700 hover:prose-a:decoration-emerald-700">
+        <article className="max-w-3xl space-y-10">
           <Section index={0}>
             <p>
               O MaisTransparencia é uma plataforma cívica independente de
@@ -212,7 +204,7 @@ export default function TermosPage() {
               fundamental de acesso à informação garantido pela Constituição
               Federal de 1988 (Art. 5.º, XXXIII) e pelas seguintes normas:
             </p>
-            <dl className="not-prose mt-6 divide-y divide-line rounded-lg border border-line">
+            <dl className="mt-6 divide-y divide-line border-line border-y">
               {legalBases.map((law) => (
                 <div
                   key={law.name}
@@ -224,7 +216,7 @@ export default function TermosPage() {
                         href={law.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:decoration-emerald-700"
+                        className="text-brand-text underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
                       >
                         {law.name}
                         <span className="sr-only"> (abre em nova aba)</span>
@@ -258,13 +250,10 @@ export default function TermosPage() {
               </ExternalLink>
               .
             </p>
-            <div className="not-prose mt-6 rounded-lg border border-line bg-line2 px-5 py-4 text-mute text-sm leading-6">
-              <strong className="font-semibold text-ink">
-                Não são exibidos:
-              </strong>{" "}
+            <AlertBox type="info" title="Não são exibidos">
               dados individualizados nominais de servidores públicos de
               carreira.
-            </div>
+            </AlertBox>
           </Section>
 
           <Section index={3}>
@@ -273,7 +262,7 @@ export default function TermosPage() {
               administrativos e intervenções de infraestrutura urbana (obras
               públicas) são reproduzidos a partir de fontes oficiais:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>Portal Nacional de Contratações Públicas (PNCP);</li>
               <li>
                 Portal ObrasGov.br (obrasgov.br — painel de obras e Cadastro
@@ -300,7 +289,7 @@ export default function TermosPage() {
               como plataforma derivada de fontes públicas de terceiros, não pode
               ser responsabilizado por:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>
                 erros, inconsistências ou omissões originários das bases de
                 dados oficiais dos órgãos públicos;
@@ -314,13 +303,13 @@ export default function TermosPage() {
                 exibidos sem a devida consulta a profissionais habilitados.
               </li>
             </ul>
-            <div className="not-prose mt-6 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 text-sm leading-6">
+            <AlertBox type="info" title="Uso dos dados">
               Os dados são fornecidos{" "}
               <em className="font-medium">“como estão”</em> para fins de
               controle social e auditoria cidadã. Para fins jurídicos ou de
               prestação de contas formal, confronte-os com as fontes primárias
               oficiais.
-            </div>
+            </AlertBox>
           </Section>
         </article>
       </div>

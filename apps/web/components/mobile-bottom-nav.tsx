@@ -254,8 +254,8 @@ export function MobileBottomNav({
                 className="absolute -top-0.5 -right-0.5 flex h-2 w-2"
                 aria-label={`${activeAlertCount} alertas críticos no Radar`}
               >
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600 motion-safe:animate-pulse motion-reduce:animate-none" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-danger opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-danger-fill motion-safe:animate-pulse motion-reduce:animate-none" />
               </span>
             )}
           </div>

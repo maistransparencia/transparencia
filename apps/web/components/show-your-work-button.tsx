@@ -229,7 +229,7 @@ export function ShowYourWorkButton({
           <p className="text-mute text-sm leading-relaxed">{legenda}</p>
         )}
         {errorMessage && (
-          <p role="alert" className="text-rose-700 text-sm">
+          <p role="alert" className="text-danger-text text-sm">
             {errorMessage}
           </p>
         )}
@@ -290,7 +290,7 @@ export function ShowYourWorkButton({
               {isDownloading ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-brand-text" />
               ) : (
-                <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
+                <FileSpreadsheet className="h-4 w-4 shrink-0 text-ok-text" />
               )}
               <div className="flex flex-col">
                 <span className="font-medium text-ink text-xs">
@@ -305,7 +305,7 @@ export function ShowYourWorkButton({
             </button>
 
             {errorMessage && (
-              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-rose-100 bg-rose-50 p-2 text-rose-700 text-xs">
+              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-danger/30 bg-danger/10 p-2 text-danger-text text-xs">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
