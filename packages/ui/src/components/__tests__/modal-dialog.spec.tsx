@@ -212,7 +212,8 @@ describe("ModalDialog tokens", () => {
       "bg-page",
     );
     expect(screen.getByRole("dialog")).not.toHaveClass("shadow-2xl");
-    expect(screen.getByText("Detalhes")).toHaveClass("font-serif");
+    expect(screen.getByText("Detalhes").tagName).toBe("H2");
+    expect(screen.getByText("Detalhes").className).not.toMatch(/font-|text-/);
   });
 
   describe("ModalDialog acabamento", () => {

@@ -90,9 +90,7 @@ export default function PrivacidadePage() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-20">
       {/* Cabeçalho */}
       <header className="max-w-3xl">
-        <h1 className="font-bold text-4xl text-ink tracking-tight sm:text-5xl">
-          Política de Privacidade
-        </h1>
+        <h1>Política de Privacidade</h1>
         <p className="mt-4 text-mute2 text-sm">
           Última atualização: <time dateTime="2026-09">setembro de 2026</time>
         </p>
@@ -119,9 +117,7 @@ export default function PrivacidadePage() {
         aria-labelledby="resumo-title"
         className="panel panel-brand mt-10 max-w-3xl"
       >
-        <h2 id="resumo-title" className="font-semibold text-ink text-lg">
-          Em resumo
-        </h2>
+        <h2 id="resumo-title">Em resumo</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
             <li key={item} className="flex gap-3 text-ink text-sm leading-6">
@@ -302,7 +298,7 @@ export default function PrivacidadePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Enviar email para ${CONTACT_EMAIL}`}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand-fill px-5 py-3 font-semibold text-sm text-white shadow-sm transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-fill px-5 py-3 font-semibold text-onink text-sm shadow-sm transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
               >
                 <svg
                   aria-hidden="true"

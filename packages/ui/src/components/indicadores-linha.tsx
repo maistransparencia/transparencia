@@ -24,9 +24,7 @@ export function IndicadoresLinha({
           key={indicador.codigo}
           className="flex flex-1 flex-col gap-1.5 py-4 sm:px-4 sm:first:pl-0"
         >
-          <dt className="font-medium font-mono text-[11px] text-mute2 uppercase tracking-wider">
-            {indicador.rotulo}
-          </dt>
+          <dt className="eyebrow">{indicador.rotulo}</dt>
           <dd
             className={`font-bold font-sans text-[32px] ${indicador.destaque ? "text-brand" : "text-ink"}`}
           >

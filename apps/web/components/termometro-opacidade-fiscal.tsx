@@ -76,11 +76,11 @@ function ElementoResidualRow({
   return (
     <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3">
       <span className="font-medium text-ink text-sm">
-        <span className="mr-2 font-mono text-mute2 text-xs">
+        <span className="numeric mr-2 text-left text-mute2 text-xs">
           {elem.elementoCodigo}.99
         </span>
         {elem.elementoDescricao}
-        <span className="ml-2 font-mono text-mute2 text-xs">
+        <span className="numeric ml-2 text-left text-mute2 text-xs">
           {fmtPercent(elem.percentualDoResidual99)}
         </span>
       </span>
@@ -150,9 +150,7 @@ export function TermometroOpacidadeFiscal({
       {/* Cabeçalho do Card */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
-          <h2 className="font-bold text-ink text-lg">
-            Gastos registrados como &ldquo;Outros&rdquo;
-          </h2>
+          <h2>Gastos registrados como &ldquo;Outros&rdquo;</h2>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -533,7 +531,7 @@ export function TermometroOpacidadeFiscal({
                 >
                   <span className="font-medium text-ink text-sm">
                     {credor.credorNome}
-                    <span className="ml-2 font-mono text-mute2 text-xs">
+                    <span className="numeric ml-2 text-left text-mute2 text-xs">
                       {credor.credorCodigo}
                     </span>
                   </span>

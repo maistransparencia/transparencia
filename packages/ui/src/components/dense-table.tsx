@@ -495,10 +495,7 @@ export function DenseTable<T extends Record<string, any>>({
         mobileSortableColumns.length > 0 &&
         displayedData.length > 0 && (
           <div className="flex items-center gap-2 border-line border-b py-2 sm:hidden">
-            <label
-              htmlFor={`${sortSelectId}-mobile-sort`}
-              className="font-medium font-mono text-[11px] text-mute2 uppercase tracking-wider"
-            >
+            <label htmlFor={`${sortSelectId}-mobile-sort`} className="eyebrow">
               Ordenar por
             </label>
             <select

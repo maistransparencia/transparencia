@@ -69,9 +69,7 @@ function CabecalhoColuna({
 }) {
   return (
     <header className="flex items-baseline justify-between gap-3 pb-4">
-      <h3 className="font-medium font-mono text-[11px] text-ink uppercase tracking-widest">
-        {title}
-      </h3>
+      <h3 className="eyebrow">{title}</h3>
       {linkHref && (
         <Link
           href={linkHref}
@@ -194,7 +192,7 @@ export function CardsSecundariosVisaoGeral({
                           backgroundColor: fallbackColor,
                         }}
                       />
-                      <span className="mt-1 font-mono text-[9px] text-mute2">
+                      <span className="numeric mt-1 text-left text-[9px] text-mute2">
                         {bar.year}
                       </span>
                     </div>
@@ -245,7 +243,7 @@ export function CardsSecundariosVisaoGeral({
                         />
                       )}
                     </div>
-                    <span className="mt-1 font-mono text-[9px] text-mute2">
+                    <span className="numeric mt-1 text-left text-[9px] text-mute2">
                       {bar.year}
                     </span>
                   </div>
@@ -348,7 +346,7 @@ export function CardsSecundariosVisaoGeral({
                   title={`Limite LRF: ${lrfLimitFormatted}`}
                 />
               </div>
-              <div className="flex items-center justify-between font-mono text-[10.5px] text-mute2">
+              <div className="numeric flex items-center justify-between text-left text-[10.5px] text-mute2">
                 <span>{pessoalPercentVal}% atual</span>
                 <span className="text-danger-text">
                   limite LRF: {lrfLimitFormatted}

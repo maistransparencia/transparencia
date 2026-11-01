@@ -19,12 +19,7 @@ export function FarmaciaFonteDados({
       className="flex flex-col gap-3 border-ink border-t-2 pt-7"
       aria-labelledby="farmacia-fonte-titulo"
     >
-      <h2
-        id="farmacia-fonte-titulo"
-        className="font-bold font-serif text-2xl text-ink"
-      >
-        Fonte dos dados
-      </h2>
+      <h2 id="farmacia-fonte-titulo">Fonte dos dados</h2>
       <p className="text-mute text-sm leading-relaxed">
         Os dados vêm da lista de estoque que cada unidade de saúde envia ao
         Ministério da Saúde e que fica no portal de dados abertos

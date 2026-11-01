@@ -54,9 +54,7 @@ function CabecalhoDisponibilidade({
   return (
     <header className="pb-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <h3 className="font-semibold font-serif text-base text-ink sm:text-lg">
-          Disponibilidade em Caixa e Bancos
-        </h3>
+        <h3>Disponibilidade em Caixa e Bancos</h3>
         {action}
       </div>
       {description && <p className="mt-1 text-mute2 text-xs">{description}</p>}
@@ -173,7 +171,7 @@ export function SaldoCaixaResumoCard({
         action={
           <ExternalLinkPill
             href={FONTES_OFICIAIS.siconfi.url}
-            className="font-medium font-mono text-[11px] uppercase tracking-wider"
+            className="eyebrow"
           >
             SICONFI
           </ExternalLinkPill>

@@ -66,11 +66,7 @@ export function HeroFiscalCard({
           </span>
         )}
 
-        {headline && (
-          <h1 className="font-bold font-serif text-2xl text-ink leading-tight tracking-tight sm:text-3xl lg:text-[32px]">
-            {headline}
-          </h1>
-        )}
+        {headline && <h1>{headline}</h1>}
 
         {summary && (
           <div className="space-y-3 text-mute2 text-sm leading-relaxed sm:text-base">
@@ -82,7 +78,7 @@ export function HeroFiscalCard({
       {/* Coluna Direita: Card Visual */}
       <div className="border-line lg:col-span-5 lg:border-l lg:pl-8">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <span className="font-medium font-mono text-[10px] text-mute2 uppercase tracking-widest">
+          <span className="eyebrow">
             {arrecadadoTitle ||
               `Arrecadado no ano até agora ${portalName ? `· ${portalName}` : ""}`}
           </span>
@@ -121,9 +117,7 @@ export function HeroFiscalCard({
 
         {originBreakdown && originBreakdown.length > 0 && (
           <div className="mt-4 border-line border-t pt-4">
-            <h2 className="mb-3 font-bold font-sans text-ink text-sm">
-              De onde vem cada R$ 1,00
-            </h2>
+            <h2 className="mb-3">De onde vem cada R$ 1,00</h2>
             <div className="space-y-3">
               {originBreakdown.map((item) => {
                 return (

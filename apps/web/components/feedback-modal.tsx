@@ -166,9 +166,7 @@ export function FeedbackModal({
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h3 className="font-semibold text-ink text-lg">
-            Relato enviado com sucesso!
-          </h3>
+          <h3>Relato enviado com sucesso!</h3>
           <p className="mt-2 text-mute text-sm leading-relaxed">
             Agradecemos sua colaboração cidadã. Seu relato foi registrado junto
             aos dados técnicos da página e será analisado pela nossa equipe.

@@ -185,7 +185,7 @@ export function ExtractionNotificationBanner({
             <button
               type="button"
               onClick={handleDismiss}
-              className="rounded bg-brand-fill px-3 py-1 font-semibold text-white text-xs shadow-xs transition-colors hover:opacity-90 focus:outline-hidden focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
+              className="rounded bg-brand-fill px-3 py-1 font-semibold text-onink text-xs shadow-xs transition-colors hover:opacity-90 focus:outline-hidden focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
             >
               Entendido
             </button>

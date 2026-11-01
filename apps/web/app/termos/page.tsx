@@ -123,9 +123,7 @@ export default function TermosPage() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-20">
       {/* Cabeçalho */}
       <header className="max-w-3xl">
-        <h1 className="font-bold text-4xl text-ink tracking-tight sm:text-5xl">
-          Termos de Uso
-        </h1>
+        <h1>Termos de Uso</h1>
         <p className="mt-4 text-mute2 text-sm">
           Última atualização: <time dateTime="2026-09">setembro de 2026</time>
         </p>
@@ -142,9 +140,7 @@ export default function TermosPage() {
         aria-labelledby="resumo-title"
         className="panel panel-brand mt-10 max-w-3xl"
       >
-        <h2 id="resumo-title" className="font-semibold text-ink text-lg">
-          Em resumo
-        </h2>
+        <h2 id="resumo-title">Em resumo</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
             <li key={item} className="flex gap-3 text-ink text-sm leading-6">

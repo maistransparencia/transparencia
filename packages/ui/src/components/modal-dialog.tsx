@@ -211,10 +211,7 @@ export function ModalDialog({
               </div>
             )}
             <div className="flex flex-wrap items-center gap-2">
-              <h2
-                id={titleId}
-                className="break-words font-bold font-serif text-base text-ink [overflow-wrap:anywhere] sm:text-lg"
-              >
+              <h2 id={titleId} className="break-words [overflow-wrap:anywhere]">
                 {title}
               </h2>
               {badge && <div className="max-w-full shrink-0">{badge}</div>}

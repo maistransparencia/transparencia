@@ -34,7 +34,7 @@ export function RestosAPagarVendorsChart({
   return (
     <div className={`space-y-4 ${className}`} data-testid="restos-fornecedores">
       <div className="space-y-2">
-        {title && <h4 className="font-bold text-base text-ink">{title}</h4>}
+        {title && <h4>{title}</h4>}
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-mute2 text-xs">
           <span className="flex items-center gap-1.5">

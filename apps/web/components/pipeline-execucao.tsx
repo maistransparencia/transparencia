@@ -56,9 +56,7 @@ export function PipelineExecucao({
                 key={stage.name}
                 className="flex min-w-0 flex-1 flex-col py-5 sm:px-5 sm:last:pr-0 sm:first:pl-0"
               >
-                <div className="mb-2 font-medium font-mono text-[10px] text-ink uppercase tracking-widest">
-                  {stage.name}
-                </div>
+                <div className="eyebrow mb-2">{stage.name}</div>
                 <div className="mb-4 h-1.5 w-full overflow-hidden bg-track">
                   <div
                     className="h-full transition-all duration-500"

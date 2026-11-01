@@ -122,7 +122,7 @@ function PedidoEsclarecimentoConteudo({
           <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
             Texto do pedido
           </label>
-          <span className="font-mono text-mute3 text-xs tabular-nums">
+          <span className="numeric text-left text-mute3 text-xs tabular-nums">
             {fmtNumber(texto.length)} caracteres
           </span>
         </div>
@@ -280,12 +280,7 @@ export function FarmaciaSentinelas({
       aria-labelledby="farmacia-sentinelas-titulo"
     >
       <div className="space-y-1">
-        <h2
-          id="farmacia-sentinelas-titulo"
-          className="font-bold font-serif text-2xl text-ink"
-        >
-          Remédios essenciais
-        </h2>
+        <h2 id="farmacia-sentinelas-titulo">Remédios essenciais</h2>
         <p className="text-[13px] text-mute2">
           Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada remédio
           da lista nacional aparece no estoque. Clique para buscar.

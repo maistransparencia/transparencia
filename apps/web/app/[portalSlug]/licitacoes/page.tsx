@@ -95,9 +95,7 @@ export default async function LicitacoesPage({
           ADMINISTRATIVO · EXERCÍCIO {selectedYear}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </span>
-        <h1 className="font-bold font-serif text-3xl text-ink">
-          Licitações e Contratos
-        </h1>
+        <h1>Licitações e Contratos</h1>
         <p className="mt-2 max-w-4xl text-mute2 text-xs leading-relaxed sm:text-sm">
           Contratos sem licitação são comuns e frequentemente legais — dispensas
           de baixo valor e inexigibilidades são permitidas por lei. O ponto de
@@ -299,9 +297,7 @@ export default async function LicitacoesPage({
       <section className="space-y-4">
         <div className="border-ink border-t-2 pt-8">
           <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-            <h2 className="font-bold font-serif text-ink text-xl">
-              Contratos acima do limite, sem licitação
-            </h2>
+            <h2>Contratos acima do limite, sem licitação</h2>
             <span className="font-medium text-mute3 text-xs">
               {acimaLimiteGaps.length} contratos · exige justificativa formal
             </span>

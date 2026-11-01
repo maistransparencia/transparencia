@@ -21,9 +21,7 @@ export default function RouteError({
 
   return (
     <div className="mx-auto flex max-w-[600px] flex-col items-start gap-4 py-16">
-      <h1 className="font-bold font-serif text-2xl text-ink">
-        Não foi possível carregar esta página
-      </h1>
+      <h1>Não foi possível carregar esta página</h1>
       <p className="text-mute">
         Tivemos um problema ao consultar os dados fiscais deste portal. Isso
         costuma ser temporário — tente novamente em instantes.
@@ -36,7 +34,7 @@ export default function RouteError({
       <button
         type="button"
         onClick={reset}
-        className="rounded bg-ink px-4 py-2 font-medium text-sm text-white transition-opacity hover:opacity-90"
+        className="rounded bg-ink px-4 py-2 font-medium text-onink text-sm transition-opacity hover:opacity-90"
       >
         Tentar novamente
       </button>

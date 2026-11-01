@@ -175,9 +175,7 @@ export function NewsletterModal({
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
               <CheckCircle2 className="h-6 w-6" />
             </div>
-            <h3 className="font-semibold text-ink text-lg">
-              Confirme sua inscrição!
-            </h3>
+            <h3>Confirme sua inscrição!</h3>
             <p className="mt-2 text-mute text-sm leading-relaxed">
               Enviamos um link de confirmação para <strong>{email}</strong>.
               Acesse seu e-mail e clique no botão para começar a receber resumos
@@ -187,7 +185,7 @@ export function NewsletterModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-sm text-white shadow-xs transition-colors hover:bg-brand-fill/90"
+                className="w-full rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-onink text-sm shadow-xs transition-colors hover:bg-brand-fill/90"
               >
                 Entendido
               </button>
@@ -210,12 +208,7 @@ export function NewsletterModal({
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand-text">
                 <Mail className="h-4 w-4" />
               </div>
-              <h2
-                id="newsletter-modal-title"
-                className="font-bold text-base text-ink"
-              >
-                Boletim Cívico Municipal
-              </h2>
+              <h2 id="newsletter-modal-title">Boletim Cívico Municipal</h2>
             </div>
 
             <p className="mt-2.5 text-mute text-xs leading-relaxed">
@@ -269,7 +262,7 @@ export function NewsletterModal({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-white text-xs shadow-xs transition-colors hover:bg-brand-fill/90 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-onink text-xs shadow-xs transition-colors hover:bg-brand-fill/90 disabled:opacity-60"
               >
                 {status === "loading" ? (
                   <>

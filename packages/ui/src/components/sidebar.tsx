@@ -502,9 +502,7 @@ export function Sidebar({
                     </div>
                   ) : (
                     <>
-                      <h1 className="font-bold font-serif text-base text-ink leading-tight">
-                        {displayTitle}
-                      </h1>
+                      <h1>{displayTitle}</h1>
                       <p className="text-[11px] text-mute2">
                         Orçamento municipal · {stateUF}
                       </p>

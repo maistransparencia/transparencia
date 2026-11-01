@@ -7,11 +7,7 @@ describe("KPICard", () => {
     const { container } = render(<KPICard title="Receita" value="R$ 10" />);
     const raiz = container.firstElementChild as HTMLElement;
     expect(raiz.className).not.toMatch(/border|rounded|shadow/);
-    expect(screen.getByText("Receita")).toHaveClass(
-      "font-mono",
-      "uppercase",
-      "text-mute2",
-    );
+    expect(screen.getByText("Receita")).toHaveClass("eyebrow");
     expect(screen.getByText("R$ 10")).toHaveClass(
       "text-[26px]",
       "font-semibold",

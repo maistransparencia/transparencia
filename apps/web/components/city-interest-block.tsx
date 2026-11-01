@@ -19,10 +19,7 @@ export function CityInterestBlock({
       aria-labelledby="em-breve-titulo"
       className="mx-auto mt-10 w-full max-w-4xl"
     >
-      <h2
-        id="em-breve-titulo"
-        className="mb-3 font-semibold text-mute text-xs uppercase tracking-widest"
-      >
+      <h2 id="em-breve-titulo" className="eyebrow mb-3">
         Em breve
       </h2>
       <div className="flex flex-col items-start gap-5 rounded-3xl border-2 border-line border-dashed bg-page p-6 sm:flex-row sm:items-center sm:p-7">
@@ -30,9 +27,7 @@ export function CityInterestBlock({
           <MapPin className="h-6 w-6" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-bold font-serif text-ink text-xl">
-            Sua cidade ainda não está aqui
-          </h3>
+          <h3>Sua cidade ainda não está aqui</h3>
           <p className="mt-1 text-mute text-sm leading-relaxed">
             Estamos chegando a novos municípios. Diga qual é a sua e avisamos
             por e-mail quando ela entrar.
@@ -46,7 +41,7 @@ export function CityInterestBlock({
             } catch {}
             setIsOpen(true);
           }}
-          className="min-h-11 w-full shrink-0 rounded-lg bg-brand-fill px-5 font-semibold text-sm text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:w-auto"
+          className="min-h-11 w-full shrink-0 rounded-lg bg-brand-fill px-5 font-semibold text-onink text-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:w-auto"
         >
           Quero ser avisado
         </button>
