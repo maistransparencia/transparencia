@@ -97,6 +97,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
 - [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
 - [Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?](#epic-25-saúde-a-prefeitura-aplica-o-mínimo-exigido)
+- [Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)](#epic-26-camada-raw-por-fonte-fim-do-schema-por-município-esboço)
 
 ---
 
@@ -3331,6 +3332,29 @@ So that a delay in the municipal records is not read as money that stopped.
 
 ---
 
+### Story 24.9: SIOPE em Schema por Fonte com `portal_slug` na Chave
+
+As a maintainer,  
+I want the SIOPE raw data in one source schema shared by all portals,  
+So that adding municipalities does not add schemas, and the contracts of Story 24.3 are built on the final model.
+
+**Origem:** decisão do Julio em 2026-11-01, por escalabilidade (ver Epic 26). Fica na Epic 24, e não na 26, para que a branch da Epic 24 não dependa de trabalho de outra epic. **Executar antes da Story 24.3**, que cria os contratos em cima do mart. Corrige o desenho das Stories 24.1 e 24.2, já concluídas.
+
+**Acceptance Criteria:**
+- **Given** a tabela `siope_indicadores` hoje gravada em `raw_<portal_slug>` (`elt/load/siope.py`)
+- **When** a story termina
+- **Then** a tabela fica em um schema único da fonte (`raw_siope`) com `portal_slug` na chave primária, e a carga de um portal grava e recarrega só as linhas daquele `portal_slug`, sem tocar as dos outros.
+- **And** o staging por portal (`stg_<portal>__siope_indicadores`) é substituído por um modelo único da fonte, sem literal de tenant (Regra 23), e o mart `fct_educacao_siope_metricas` continua com o mesmo grão e os mesmos contratos.
+- **And** os valores de referência da Story 24.2 (Porciúncula 2024: R$ 16.789,15; 2025: R$ 16.767,14) passam sem mudança, e há teste de isolamento entre dois portais com os mesmos códigos de indicador.
+- **And** a fixture `packages/db/tests/fixtures/schema.sql.gz` é regerada (`make db/fixture/dump`) e `make test`, `make check`, `pnpm test` e `pnpm typecheck` passam (Regra 21).
+- **And** os dados já carregados são migrados no banco local do Docker, com paridade conferida antes e depois (mesmos totais por portal). Nenhuma execução em produção sem autorização explícita (Regra 15); a migração em produção, se necessária, fica descrita para o Julio decidir.
+
+**Fora do escopo:** Siconfi e demais fontes (Epic 26); qualquer mudança no que o cidadão vê.
+
+**Dependências:** Stories 24.1 e 24.2 (concluídas). Bloqueia a Story 24.3.
+
+---
+
 ## Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?
 
 A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo exigido em saúde?" (mínimo constitucional em ações e serviços públicos de saúde), com a origem do dinheiro, as emendas e, só quando houver fonte e régua, a produção da rede e a fila de espera logo abaixo. Origem: conversa de produto de 2026-11-01 a partir da planilha da audiência pública de prestação de contas da saúde (2º quadrimestre de 2026), usada **somente** para decidir o que a Secretaria destaca ao público. **Nenhum número da planilha é fonte de dado do portal:** ela é a transcrição de um vídeo e tem erros de soma (por exemplo, Saúde da Mulher soma 3.028 e informa 3.228; o total do convênio hospitalar não bate com os meses; o total de receitas para apuração não fecha com os subtotais).
@@ -3410,6 +3434,29 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 **Status:** esboço. Só entram os indicadores que a 25.1 provar que têm fonte oficial recorrente, série e régua (candidatos: procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais por habitante). Fila de espera só se houver fonte aberta. O que não passar vai para o backlog com o motivo registrado.
 
 **Dependências:** Story 25.1.
+
+---
+
+## Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)
+
+Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um schema por fonte" (por exemplo `raw_siope`, `raw_siconfi`, `raw_fiorilli`), com `portal_slug` como coluna e parte da chave primária de cada tabela. Origem: decisão do Julio em 2026-11-01, por escalabilidade: com os municípios do Brasil, um schema raw por município (dezenas de tabelas cada) pesa no catálogo do Postgres, no `pg_dump`, nas migrações e nos `source` do dbt.
+
+**Estado de partida (verificado no banco local em 2026-11-01):** já seguem o padrão por fonte `raw_farmacia_sus`, `raw_pncp` e `raw_obrasgov`. Seguem o padrão por município `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` (22 tabelas cada), onde `elt/load/siope.py` e `elt/load/siconfi.py` também gravam, e o staging do SIOPE (Story 24.2) é por portal (`stg_<portal>__siope_indicadores`).
+
+**Regra para as demais epics:** toda fonte nova (inclusive a Epic 25) nasce no padrão por fonte, com `portal_slug` na chave. A migração do legado fica nesta epic.
+
+**Princípio de desenho:** o schema é da **fonte** (por exemplo o fornecedor do portal municipal), não do município, porque municípios com fornecedores diferentes têm estruturas diferentes.
+
+**Riscos e cuidados:** mudança de chave primária e `full-refresh` (mesma natureza da pendência de migração da Epic 19); paridade de dados antes e depois (mesmos totais por portal); recarga isolada por portal (apagar só `where portal_slug = ...`); ajuste dos modelos dbt, das fontes e da fixture `schema.sql.gz` (Regra 21); plano de reversão; qualquer carga ou migração em produção só com autorização explícita (Regra 15). Os modelos `int_*_consolidadas.sql`, que hoje unem schemas por município, deixam de ser necessários (Regra 23).
+
+**Stories (esboço, detalhar antes de executar):**
+- **(feito na Epic 24, Story 24.9)** O SIOPE já migra para `raw_siope` lá, para a branch da Epic 24 não depender desta epic. Serve de modelo para as demais.
+- **26.1 Siconfi (MSC Patrimonial) em schema por fonte.** Mover `siconfi_msc_patrimonial` para `raw_siconfi` com `portal_slug` na chave e trocar o staging por um modelo único da fonte, repetindo o método da 24.9 com teste de paridade.
+- **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
+- **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
+- **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+
+**Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
 
 ---
 

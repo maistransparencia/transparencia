@@ -254,6 +254,7 @@ development_status:
   24-6-total-de-alunos-com-fonte-verificada-inep: backlog
   24-7-aprendizado-no-topo-da-pagina-de-educacao: done
   24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
+  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: backlog
   epic-24-retrospective: optional
 
   epic-25: backlog
@@ -264,3 +265,8 @@ development_status:
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-6-producao-da-rede-e-fila-de-espera: backlog
   epic-25-retrospective: optional
+
+  epic-26: backlog
+  26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
+  26-2-inventario-e-plano-de-migracao-do-legado: backlog
+  epic-26-retrospective: optional
