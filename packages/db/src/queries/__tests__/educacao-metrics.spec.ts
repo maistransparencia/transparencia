@@ -1002,6 +1002,13 @@ describe("educacao-metrics", () => {
         rede: "municipal",
         etapa_ensino: "anos_iniciais",
       }));
+      const limparFaixaFicticia = () =>
+        db
+          .deleteFrom("seed_inep_ideb")
+          .where("cod_ibge", ">=", 9900000)
+          .where("cod_ibge", "<", 9900100)
+          .execute();
+      await limparFaixaFicticia();
       await db.insertInto("seed_inep_ideb").values(linhas).execute();
       try {
         await seedEducacaoMetricas({
@@ -1027,11 +1034,7 @@ describe("educacao-metrics", () => {
           totalMunicipiosCicloAnterior: 3,
         });
       } finally {
-        await db
-          .deleteFrom("seed_inep_ideb")
-          .where("cod_ibge", ">=", 9900000)
-          .where("cod_ibge", "<", 9900100)
-          .execute();
+        await limparFaixaFicticia();
       }
     });
   });

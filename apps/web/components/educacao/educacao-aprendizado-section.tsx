@@ -42,13 +42,22 @@ function descreverCicloAnterior(etapa: AprendizadoEtapa): string {
 
 function descreverClassificacao(
   classificacao: NonNullable<AprendizadoEtapa["classificacao"]>,
+  temCicloAnterior: boolean,
 ): string {
-  const { variacaoPosicoes, redesComparadas, total } = classificacao;
-  if (variacaoPosicoes === null) return "sem ciclo anterior para comparar";
-  const base =
-    redesComparadas !== null && redesComparadas !== total
-      ? ` (entre as ${redesComparadas} redes avaliadas nos dois ciclos)`
-      : "";
+  const { variacaoPosicoes, redesComparadas, totalCicloAnterior, total } =
+    classificacao;
+  if (variacaoPosicoes === null) {
+    return temCicloAnterior
+      ? "posição não comparável com o ciclo anterior"
+      : "sem ciclo anterior para comparar";
+  }
+  const redesMudaram =
+    redesComparadas !== null &&
+    (redesComparadas !== total ||
+      (totalCicloAnterior !== null && redesComparadas !== totalCicloAnterior));
+  const base = redesMudaram
+    ? ` (entre as ${redesComparadas} redes avaliadas nos dois ciclos)`
+    : "";
   if (variacaoPosicoes === 0) return `mesma posição do ciclo anterior${base}`;
   const unidade = pluralizar(variacaoPosicoes, "posição", "posições");
   const verbo = variacaoPosicoes > 0 ? "subiu" : "caiu";
@@ -143,7 +152,10 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
                   entre {etapa.classificacao.total} redes municipais
                 </span>
                 <span className="block">
-                  {descreverClassificacao(etapa.classificacao)}
+                  {descreverClassificacao(
+                    etapa.classificacao,
+                    etapa.anoAnterior !== null,
+                  )}
                 </span>
               </>
             )

@@ -109,3 +109,28 @@ Status: done
 - Revisão: 1 patch (h2 antes do h1, resolvido pela posição final), 2 itens adiados, demais rejeitados com motivo acima. Follow-up recomendado: false.
 - Verificação: `pnpm typecheck` e `pnpm test` verdes. `make test`/`make check` não rodados (sem mudança em dbt/Python).
 - Riscos: texto não passou pelo `editor-cidadao`; query de ranking sem teste de banco; não vista no navegador.
+
+### Review Findings
+
+Revisão do commit `f129dc51` (4 lentes: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor).
+
+- [x] [Review][Patch] Sem teste de que a variação some quando `anoCicloAnterior` difere do ano da nota anterior (ou é nulo) [apps/web/app/[portalSlug]/educacao/view-model.spec.ts]
+- [x] [Review][Patch] Teste das setas não distingue nota de posição, aceita o "meta atingida" como seta verde e não cobre variação 0 [apps/web/app/[portalSlug]/educacao/page.spec.tsx]
+- [x] [Review][Patch] "sem ciclo anterior para comparar" aparece mesmo havendo ciclo anterior não comparável (rede sem nota no ciclo ou anos que não conferem) [apps/web/components/educacao/educacao-aprendizado-section.tsx]
+- [x] [Review][Patch] A base da comparação fica escondida quando só saíram redes do ciclo anterior (`redesComparadas` igual ao total atual, mas o anterior era maior); o view-model deixou de levar o total do ciclo anterior [apps/web/app/[portalSlug]/educacao/view-model.ts]
+- [x] [Review][Patch] Teste de banco sem limpeza prévia da faixa 9900000–9900099 em `seed_inep_ideb`: sobra de execução interrompida quebra o insert [packages/db/src/queries/__tests__/educacao-metrics.spec.ts]
+- [x] [Review][Defer] Ranking pode usar ano anterior ao da nota atual (fallback de `targetAno`); só o ano do ciclo anterior é conferido — deferred: maybe-false (se fosse real, medium). Confirmar se o loader passa o ano selecionado e se há município com nota atual em ano posterior ao do ranking.
+
+#### Rejected
+
+- `false` — linhas duplicadas de `cod_ibge` no mesmo ciclo: `seed_inep_ideb` é uma linha por município, ano, rede e etapa; sem caminho que gere duplicata.
+- `low` — "0,0" com seta por arredondamento: notas do IDEB têm uma casa decimal, variação nunca fica abaixo de 0,1.
+- `low` — setas com `aria-hidden` sem texto: sinal e palavra ("subiu"/"caiu") estão nas notas dos indicadores, como a spec exige.
+- `low` — seta de posição ambígua (seta para cima com número menor): é a regra pedida pelo usuário (verde ao subir); explicada pelo subtítulo.
+- `low` — `redesComparadas` opcional no DTO: cosmético, o view-model trata `undefined`; tornar obrigatório mexeria em fixtures da home.
+- `low` — `text-base`/`ml-2` no span da variação e `h-4 w-4` no ícone: borderline, sem dano; o padrão já aparece no "meta atingida".
+- `low` — sem mínimo de redes comparadas: caso não alcançável com ranking estadual de dezenas de redes.
+- `low` — teste de banco usa `db` direto em vez de helper de fixture: não há helper para `seed_inep_ideb`; criar um é mais que correção direta.
+- `false` — metrica de `fct_educacao_metricas` vazando do teste: `cleanupFixtures` apaga `fct_educacao_metricas` por `portal_slug`.
+- Pedidos de editar a spec (texto desatualizado do contrato, Spec Change Log) e dúvidas de CHANGELOG/llms: rejeitados, a correção seria editar a spec; CHANGELOG e llms já foram atualizados no commit.
+- `low` — nomes `r`/`rows` em lambdas: Regra 9 trata de métricas, não de parâmetros de lambda.

@@ -93,6 +93,8 @@ export interface AprendizadoEtapa {
     variacaoPosicoes: number | null;
     /** Redes avaliadas nos dois ciclos, base da variação (nulo quando não comparável). */
     redesComparadas: number | null;
+    /** Total de redes do ciclo anterior, para dizer a base quando redes saíram. */
+    totalCicloAnterior: number | null;
   } | null;
 }
 
@@ -287,6 +289,9 @@ function buildAprendizadoEtapa({
               : null,
             redesComparadas: cicloAnteriorConfere
               ? (ranking.redesComparadas ?? null)
+              : null,
+            totalCicloAnterior: cicloAnteriorConfere
+              ? ranking.totalMunicipiosCicloAnterior
               : null,
           }
         : null,
