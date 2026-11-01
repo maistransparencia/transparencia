@@ -21,7 +21,11 @@ const CAMINHOS = [
   "components/educacao/fonte-recurso-modal.tsx",
 ];
 
-/** Nomes oficiais de documentos e normas que carregam ano no próprio título. */
+/**
+ * Nomes oficiais de documentos e normas que carregam ano no próprio título.
+ * "Nota Informativa do Ideb 2025" é o título oficial do documento do INEP
+ * (o ano é do documento, não do período exibido); "/2021" é o ano da lei.
+ */
 const CITACOES_OFICIAIS = /Nota Informativa do Ideb 2025|\/2021/g;
 
 const ARQUIVOS = CAMINHOS.map((caminho) => ({

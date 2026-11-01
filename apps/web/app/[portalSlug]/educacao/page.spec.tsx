@@ -286,6 +286,8 @@ function makeRawEducacaoData(
       posicaoRanking: 46,
       totalMunicipios: 92,
       variacaoPosicoes: 43,
+      anoCicloAnterior: 2023,
+      totalMunicipiosCicloAnterior: 92,
     },
     rankingAnosFinais: null,
     searchParams: {},
@@ -316,10 +318,10 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
+      "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
       "Quem recebe o dinheiro da educação",
-      "Aprendizado dos alunos",
     ]);
 
     expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();
@@ -348,6 +350,65 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       within(secao).getByText("entre 92 redes municipais"),
     ).toBeInTheDocument();
+    expect(
+      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 ponto/),
+    ).toBeInTheDocument();
+    expect(
+      within(secao).getByText("subiu 43 posições desde o ciclo anterior"),
+    ).toBeInTheDocument();
+    expect(secao.textContent).not.toMatch(/ano anterior/i);
+  });
+
+  it("avisa que o número de redes mudou em vez de comparar a posição", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: null,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 90,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(
+      within(secao).getByText(/o número de redes mudou de 90 para 92/),
+    ).toBeInTheDocument();
+    expect(within(secao).queryByText(/posições desde/)).not.toBeInTheDocument();
+  });
+
+  it("mantém o hero no topo e põe o aprendizado logo depois, antes das seções financeiras", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    const hero = screen.getByRole("heading", { level: 1 });
+    const financeira = screen.getByRole("heading", {
+      level: 2,
+      name: "Como mudou ao longo dos anos",
+    });
+    expect(
+      hero.compareDocumentPosition(secao) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      secao.compareDocumentPosition(financeira) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("abre automaticamente o modal padronizado via deep link (?contratoNumero=0443/25)", async () => {
@@ -394,7 +455,11 @@ describe("EducacaoPage (Server Component)", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
     );
-    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
+    const botoesDetalhes = screen.getAllByRole("button", {
+      name: "Ver detalhes",
+    });
+    // O primeiro "Ver detalhes" da página é o do histórico do IDEB (aprendizado).
+    fireEvent.click(botoesDetalhes[botoesDetalhes.length - 1]);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 

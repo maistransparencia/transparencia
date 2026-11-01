@@ -86,7 +86,14 @@ export interface AprendizadoEtapa {
   notaAnterior: number | null;
   anoAnterior: number | null;
   variacaoPontos: number | null;
-  classificacao: { posicao: number; total: number } | null;
+  classificacao: {
+    posicao: number;
+    total: number;
+    /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
+    variacaoPosicoes: number | null;
+    /** Total de redes no ciclo anterior (nulo sem ciclo anterior). */
+    totalCicloAnterior: number | null;
+  } | null;
 }
 
 export interface EducacaoViewModel {
@@ -268,7 +275,12 @@ function buildAprendizadoEtapa({
     variacaoPontos: atual?.crescimentoPontos ?? null,
     classificacao:
       ranking?.posicaoRanking != null && ranking.totalMunicipios != null
-        ? { posicao: ranking.posicaoRanking, total: ranking.totalMunicipios }
+        ? {
+            posicao: ranking.posicaoRanking,
+            total: ranking.totalMunicipios,
+            variacaoPosicoes: ranking.variacaoPosicoes,
+            totalCicloAnterior: ranking.totalMunicipiosCicloAnterior,
+          }
         : null,
   };
 }

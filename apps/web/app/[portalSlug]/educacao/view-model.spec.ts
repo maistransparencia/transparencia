@@ -154,6 +154,8 @@ describe("educacao/view-model", () => {
         posicaoRanking: 46,
         totalMunicipios: 92,
         variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        totalMunicipiosCicloAnterior: 92,
       },
       rankingAnosFinais: null,
       context: { ...CONTEXTO_2025, selectedYear: 2026, isCurrentYear: true },
@@ -167,7 +169,12 @@ describe("educacao/view-model", () => {
       notaAnterior: 4.5,
       anoAnterior: 2023,
       variacaoPontos: 1.4,
-      classificacao: { posicao: 46, total: 92 },
+      classificacao: {
+        posicao: 46,
+        total: 92,
+        variacaoPosicoes: 3,
+        totalCicloAnterior: 92,
+      },
     });
     expect(vm.aprendizado.anosFinais).toMatchObject({
       notaIdeb: 4.8,

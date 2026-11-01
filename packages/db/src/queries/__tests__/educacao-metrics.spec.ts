@@ -10,6 +10,7 @@ import {
   seedEducacaoMetricas,
 } from "../../../tests/fixtures/seed";
 import {
+  calcularVariacaoPosicoes,
   categorizarContratoEducacao,
   getEducacaoContratos,
   getEducacaoMediasEstaduais,
@@ -1004,7 +1005,51 @@ describe("educacao-metrics", () => {
         expect(ranking).toHaveProperty("totalMunicipios");
         expect(ranking).toHaveProperty("posicaoRanking");
         expect(ranking).toHaveProperty("variacaoPosicoes");
+        expect(ranking).toHaveProperty("anoCicloAnterior");
+        expect(ranking).toHaveProperty("totalMunicipiosCicloAnterior");
       }
+    });
+  });
+
+  describe("calcularVariacaoPosicoes", () => {
+    const base = {
+      posicaoAtual: 30,
+      totalAtual: 92,
+      posicaoAnterior: 40,
+      totalAnterior: 92,
+    };
+
+    it("positivo quando o município subiu no ranking", () => {
+      expect(calcularVariacaoPosicoes(base)).toBe(10);
+    });
+
+    it("negativo quando o município caiu no ranking", () => {
+      expect(
+        calcularVariacaoPosicoes({
+          ...base,
+          posicaoAtual: 45,
+          posicaoAnterior: 40,
+        }),
+      ).toBe(-5);
+    });
+
+    it("nulo quando o total de redes mudou entre os ciclos", () => {
+      expect(
+        calcularVariacaoPosicoes({ ...base, totalAnterior: 90 }),
+      ).toBeNull();
+    });
+
+    it("nulo sem ciclo anterior ou sem posição", () => {
+      expect(
+        calcularVariacaoPosicoes({
+          ...base,
+          posicaoAnterior: null,
+          totalAnterior: null,
+        }),
+      ).toBeNull();
+      expect(
+        calcularVariacaoPosicoes({ ...base, posicaoAtual: null }),
+      ).toBeNull();
     });
   });
 

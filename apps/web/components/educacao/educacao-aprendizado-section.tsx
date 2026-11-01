@@ -19,10 +19,45 @@ const formatarNota = (nota: number) =>
     maximumFractionDigits: 1,
   });
 
-function formatarVariacao(pontos: number): string {
-  const sinal = pontos > 0 ? "+" : "";
-  const texto = `${sinal}${formatarNota(pontos)}`;
-  return `${texto} ${Math.abs(pontos) === 1 ? "ponto" : "pontos"}`;
+const pluralizar = (quantidade: number, singular: string, plural: string) =>
+  Math.abs(quantidade) === 1 ? singular : plural;
+
+/** Texto com palavra e sinal ("subiu 1,4 ponto"), nunca só cor. */
+function descreverVariacaoPontos(pontos: number): string {
+  const magnitude = formatarNota(Math.abs(pontos));
+  const unidade = pluralizar(pontos, "ponto", "pontos");
+  if (pontos > 0) return `subiu ${magnitude} ${unidade}`;
+  if (pontos < 0) return `caiu ${magnitude} ${unidade}`;
+  return "ficou igual";
+}
+
+function descreverCicloAnterior(etapa: AprendizadoEtapa): string {
+  if (etapa.notaAnterior === null || etapa.anoAnterior === null) {
+    return "sem ciclo anterior para comparar";
+  }
+  const base = `ciclo anterior ${formatarNota(etapa.notaAnterior)} em ${etapa.anoAnterior}`;
+  if (etapa.variacaoPontos === null) return base;
+  return `${base}, ${descreverVariacaoPontos(etapa.variacaoPontos)}`;
+}
+
+function descreverClassificacao(
+  classificacao: NonNullable<AprendizadoEtapa["classificacao"]>,
+): string {
+  const { variacaoPosicoes, totalCicloAnterior, total } = classificacao;
+  if (variacaoPosicoes !== null) {
+    const unidade = pluralizar(variacaoPosicoes, "posição", "posições");
+    if (variacaoPosicoes > 0) {
+      return `subiu ${variacaoPosicoes} ${unidade} desde o ciclo anterior`;
+    }
+    if (variacaoPosicoes < 0) {
+      return `caiu ${Math.abs(variacaoPosicoes)} ${unidade} desde o ciclo anterior`;
+    }
+    return "mesma posição do ciclo anterior";
+  }
+  if (totalCicloAnterior !== null && totalCicloAnterior !== total) {
+    return `o número de redes mudou de ${totalCicloAnterior} para ${total}, por isso não comparamos a posição`;
+  }
+  return "sem ciclo anterior para comparar";
 }
 
 function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
@@ -41,9 +76,14 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
           label="Nota do IDEB"
           value={etapa.notaIdeb === null ? "—" : formatarNota(etapa.notaIdeb)}
           note={
-            etapa.anoApuracao === null
-              ? "sem nota apurada"
-              : `apurada em ${etapa.anoApuracao}`
+            etapa.anoApuracao === null ? (
+              "sem nota apurada"
+            ) : (
+              <>
+                <span className="block">apurada em {etapa.anoApuracao}</span>
+                <span className="block">{descreverCicloAnterior(etapa)}</span>
+              </>
+            )
           }
         />
         <Indicator
@@ -62,25 +102,6 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
           }
         />
         <Indicator
-          label="Ciclo anterior"
-          value={
-            etapa.notaAnterior === null ? "—" : formatarNota(etapa.notaAnterior)
-          }
-          note={
-            etapa.anoAnterior === null
-              ? "sem ciclo anterior"
-              : String(etapa.anoAnterior)
-          }
-          trend={
-            etapa.variacaoPontos === null
-              ? undefined
-              : {
-                  value: formatarVariacao(etapa.variacaoPontos),
-                  isPositive: etapa.variacaoPontos > 0,
-                }
-          }
-        />
-        <Indicator
           label="Classificação entre as redes municipais do estado"
           value={
             etapa.classificacao === null
@@ -88,9 +109,18 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
               : `${etapa.classificacao.posicao}º`
           }
           note={
-            etapa.classificacao === null
-              ? "classificação ainda não disponível"
-              : `entre ${etapa.classificacao.total} redes municipais`
+            etapa.classificacao === null ? (
+              "classificação ainda não disponível"
+            ) : (
+              <>
+                <span className="block">
+                  entre {etapa.classificacao.total} redes municipais
+                </span>
+                <span className="block">
+                  {descreverClassificacao(etapa.classificacao)}
+                </span>
+              </>
+            )
           }
         />
       </IndicatorPanel>
@@ -107,7 +137,7 @@ export function EducacaoAprendizadoSection({
     <section aria-label="Aprendizado dos alunos" className="space-y-6">
       <SectionHeader
         title="Aprendizado dos alunos"
-        description="Os alunos estão aprendendo? O IDEB é a nota oficial das escolas, de 0 a 10, e combina o que os alunos aprendem nas provas com quantos são aprovados. É medido de dois em dois anos, por isso mostramos o ano de cada nota."
+        description="As crianças da rede municipal estão aprendendo? O IDEB é a nota oficial das escolas, de 0 a 10, e combina o que os alunos aprendem nas provas com quantos são aprovados. É medido de dois em dois anos, por isso mostramos o ano de cada nota."
       />
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <EtapaPainel etapa={aprendizado.anosIniciais} />

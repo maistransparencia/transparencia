@@ -108,7 +108,11 @@ export interface ResumoEducacaoDTO {
 export interface EducacaoRankingEstadualDTO {
   posicaoRanking: number | null;
   totalMunicipios: number | null;
+  /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
   variacaoPosicoes: number | null;
+  /** Ano do ciclo anterior com notas da etapa na UF; nulo se não houver. */
+  anoCicloAnterior: number | null;
+  totalMunicipiosCicloAnterior: number | null;
 }
 
 export type EducacaoMediasEstaduais = Record<
@@ -301,6 +305,34 @@ export async function getResumoEducacao(
 }
 
 /**
+ * Posições ganhas (positivo) ou perdidas (negativo) entre dois ciclos do IDEB.
+ * Só compara quando o total de redes é o mesmo nos dois ciclos; caso contrário
+ * a posição não é comparável e o resultado é nulo.
+ */
+export function calcularVariacaoPosicoes({
+  posicaoAtual,
+  totalAtual,
+  posicaoAnterior,
+  totalAnterior,
+}: {
+  posicaoAtual: number | null;
+  totalAtual: number | null;
+  posicaoAnterior: number | null;
+  totalAnterior: number | null;
+}): number | null {
+  if (
+    posicaoAtual === null ||
+    posicaoAnterior === null ||
+    totalAtual === null ||
+    totalAnterior === null ||
+    totalAtual !== totalAnterior
+  ) {
+    return null;
+  }
+  return posicaoAnterior - posicaoAtual;
+}
+
+/**
  * Calcula a classificação do município no ranking estadual do IDEB para a etapa solicitada
  * com base nos microdados de seed_inep_ideb, computando posição e evolução frente ao ciclo anterior.
  */
@@ -424,36 +456,55 @@ export async function getEducacaoRankingEstadual(
     const totalMunicipios = currentRows.length;
     const posicaoRanking = currentIdx !== -1 ? currentIdx + 1 : null;
 
-    let variacaoPosicoes: number | null = null;
-    if (posicaoRanking !== null) {
-      const prevRows = await db
-        .selectFrom("seed_inep_ideb")
-        .select(["cod_ibge", "nota_ideb"])
-        .where("ano", "=", targetAno - 2)
-        .where("rede", "=", "municipal")
-        .where("etapa_ensino", "=", dbEtapa)
-        .where("cod_ibge", ">=", ufMin)
-        .where("cod_ibge", "<", ufMax)
-        .where("nota_ideb", "is not", null)
-        .orderBy("nota_ideb", "desc")
-        .orderBy("cod_ibge", "asc")
-        .execute();
+    const anoAnteriorRow = await db
+      .selectFrom("seed_inep_ideb")
+      .select("ano")
+      .where("rede", "=", "municipal")
+      .where("etapa_ensino", "=", dbEtapa)
+      .where("cod_ibge", ">=", ufMin)
+      .where("cod_ibge", "<", ufMax)
+      .where("nota_ideb", "is not", null)
+      .where("ano", "<", targetAno)
+      .orderBy("ano", "desc")
+      .limit(1)
+      .executeTakeFirst();
 
-      if (prevRows.length > 0) {
-        const prevIdx = prevRows.findIndex(
-          (r) => Number(r.cod_ibge) === codIbge,
-        );
-        if (prevIdx !== -1) {
-          const posicaoAnterior = prevIdx + 1;
-          variacaoPosicoes = posicaoAnterior - posicaoRanking;
-        }
-      }
-    }
+    const anoCicloAnterior =
+      anoAnteriorRow?.ano != null ? Number(anoAnteriorRow.ano) : null;
+
+    const prevRows =
+      anoCicloAnterior === null
+        ? []
+        : await db
+            .selectFrom("seed_inep_ideb")
+            .select(["cod_ibge", "nota_ideb"])
+            .where("ano", "=", anoCicloAnterior)
+            .where("rede", "=", "municipal")
+            .where("etapa_ensino", "=", dbEtapa)
+            .where("cod_ibge", ">=", ufMin)
+            .where("cod_ibge", "<", ufMax)
+            .where("nota_ideb", "is not", null)
+            .orderBy("nota_ideb", "desc")
+            .orderBy("cod_ibge", "asc")
+            .execute();
+
+    const posicaoAnterior = (() => {
+      const prevIdx = prevRows.findIndex((r) => Number(r.cod_ibge) === codIbge);
+      return prevIdx === -1 ? null : prevIdx + 1;
+    })();
 
     return {
       posicaoRanking,
       totalMunicipios,
-      variacaoPosicoes,
+      variacaoPosicoes: calcularVariacaoPosicoes({
+        posicaoAtual: posicaoRanking,
+        totalAtual: totalMunicipios,
+        posicaoAnterior,
+        totalAnterior: prevRows.length > 0 ? prevRows.length : null,
+      }),
+      anoCicloAnterior: prevRows.length > 0 ? anoCicloAnterior : null,
+      totalMunicipiosCicloAnterior:
+        prevRows.length > 0 ? prevRows.length : null,
     };
   } catch {
     return null;
