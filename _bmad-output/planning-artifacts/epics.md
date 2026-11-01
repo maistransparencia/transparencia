@@ -3135,6 +3135,34 @@ So that I understand it is money withheld and passed on to others, not municipal
 
 ---
 
+### Story 23.8: Cadência de Ingestão por Fonte
+
+As a maintainer,  
+I want each source to be ingested at the pace its data actually changes,  
+So that we stop re-fetching unchanged data every business day and the SIOPE and other sources get a schedule of their own.
+
+**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal).
+
+**Acceptance Criteria:**
+- **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
+- **When** a story é concluída
+- **Then** o SIOPE grava JSON em `data/raw_runs/<portal>/siope_indicadores/` e é registrado em `elt/extract/run.py` (chave `siope`) e em `elt/load/run.py`, como o SICONFI, mantendo o tudo-ou-nada da 24.1
+- **And** `--only` em `elt.extract.run` aceita mais de uma chave, para um workflow chamar um grupo de fontes.
+- **Given** os três grupos de cadência (diária, semanal, mensal)
+- **When** cada workflow roda
+- **Then** executa só as fontes do seu grupo, com cron próprio e `workflow_dispatch` com `portal`, `years` e `dry_run` como hoje, sem literais de tenant e com a lista de portais descoberta dinamicamente
+- **And** após cada carga o dbt roda completo (`run` e `test`), como no pipeline atual
+- **And** nenhuma fonte fica fora de todos os grupos nem em mais de um, e um teste confere isso.
+- **Given** o registro de coletas da Story 23.1
+- **When** a cadência é definida
+- **Then** o valor de `frequencia_esperada` de cada fonte (`diaria`, `semanal`, `mensal`) vem da mesma definição que gera os workflows ou é conferido por teste contra ela, sem duas listas divergentes.
+
+**Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
+
+**Dependências:** Story 24.1 (extrator do SIOPE); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+
+---
+
 ## Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)
 
 A página de educação passa a abrir pelo aprendizado ("as crianças estão aprendendo?", Story 24.7), com o financiamento logo abaixo. Responder ao cidadão duas perguntas que hoje ficam sem resposta: "quanto a Prefeitura investe por aluno?" e "a Prefeitura aplica o mínimo exigido em educação?". A fonte é o SIOPE (FNDE), o sistema que o município declara e que o contador da educação de Porciúncula indicou e conferiu. Origem: spike `planning-artifacts/spike-siope-valor-por-aluno.md` (2026-10-31). A estimativa anterior de "pago por aluno" foi retirada da Epic 20 (Story 20.8) porque o seed de matrículas não tinha fonte rastreável e divergia do SIOPE em 3% a 42%.
@@ -3159,7 +3187,7 @@ So that the education page can use the same numbers the municipal accountant rep
 - **Given** os portais com `cod_ibge` cadastrado e a lista de indicadores de interesse (4.1, 4.2, 4.8, 4.9, 1.1, 1.2)
 - **When** a carga roda para um portal e uma faixa de anos
 - **Then** grava em tabela raw um registro por `portal_slug`, `ano`, `periodo` e `codigo_indicador` com o valor, o código SIOPE do município derivado do IBGE e `coletado_em`, sem literais de tenant
-- **And** a carga pede os municípios em lote de dois ou mais (com um só, a API devolve `codEnte` zerado) e valida o formato da resposta antes de gravar
+- **And** a carga pede um município por requisição (em lote, a API devolve a média dos municípios com `codEnte` zerado, verificado em 2026-11-01) e valida o formato da resposta antes de gravar
 - **And** resposta em HTML (erro 99), formato inesperado ou indicador ausente não grava nada e termina com aviso claro, nunca com dado parcial presumido correto
 - **And** o `User-Agent` e o `Referer` seguem o padrão da API, há limite de taxa e nenhuma tentativa de contornar o captcha.
 

@@ -13,6 +13,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **Contratos só do Fundo:** A lista deixa de misturar contratos de outros órgãos que citavam escola ou merenda no objeto.
 
 ### ✨ Novas Funcionalidades (Added)
+* **Carga dos indicadores do SIOPE (FNDE):** novo `make elt/siope PORTAL=...` grava no raw os indicadores 4.1, 4.2, 4.8, 4.9, 1.1 e 1.2 do Relatório Gerencial, por portal, ano e período. Resposta inesperada ou com lacuna não grava nada.
 * **`fct_educacao_execucao_metricas`:** Novo mart dbt por portal e ano com empenhado, liquidado e pago da função 12.
 * **`getEducacaoExecucaoAnual` e `getTopFornecedoresEducacaoMetrics`:** Série anual e maiores fornecedores da função 12 em `@transparencia/db`.
 * **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.
