@@ -1,5 +1,5 @@
 import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
-import { fmtCompact, fmtPercent } from "@transparencia/ui";
+import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, ShieldCheck } from "lucide-react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -42,6 +42,25 @@ function getVariacaoBadgeClass(variacao: number): string {
   return "bg-line2 text-mute";
 }
 
+const descricaoSiconfi = (
+  <>
+    Recursos em contas e aplicações titularizadas pela previdência própria,
+    segundo a Matriz de Saldos Contábeis homologada no{" "}
+    <a
+      href={FONTES_OFICIAIS.siconfi.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span className="inline-flex items-center gap-1">
+        SICONFI
+        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+        <span className="sr-only">(abre em nova aba)</span>
+      </span>
+    </a>
+    .
+  </>
+);
+
 export function PrevidenciaSaldoCaixaCard({
   posicaoFinanceira,
   ano,
@@ -56,32 +75,14 @@ export function PrevidenciaSaldoCaixaCard({
     return (
       <section
         aria-label="Disponibilidade Financeira do RPPS"
-        className={`border-line border-t pt-5 ${className}`}
+        className={className}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="font-bold">
-              Disponibilidade em Caixa e Aplicações do RPPS
-            </h3>
-            <p className="text-mute text-xs">
-              Recursos em contas e aplicações titularizadas pela previdência
-              própria
-            </p>
-          </div>
+        <SectionHeader
+          title="Disponibilidade em Caixa e Aplicações do RPPS"
+          description={descricaoSiconfi}
+        />
 
-          <a
-            href={FONTES_OFICIAIS.siconfi.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 self-start rounded-sm border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs transition-colors sm:self-auto"
-            title="Matriz de Saldos Contábeis (MSC) homologada pela Secretaria do Tesouro Nacional"
-          >
-            <span>SICONFI</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
-
-        <div className="mt-4 flex flex-col items-center justify-center border-line border-y py-4 text-center">
+        <div className="flex flex-col items-center justify-center border-line border-y py-4 text-center">
           <AlertCircle className="mb-2 h-6 w-6 text-mute/60" />
           <p className="font-medium text-ink text-sm">
             Aguardando homologação da remessa MSC pelo Tesouro Nacional para o
@@ -118,34 +119,14 @@ export function PrevidenciaSaldoCaixaCard({
   return (
     <section
       aria-label="Disponibilidade Financeira do RPPS"
-      className={`border-line border-t pt-5 ${className}`}
+      className={`space-y-5 ${className}`}
     >
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-bold">
-            Disponibilidade em Caixa e Aplicações do RPPS
-          </h3>
-          <p className="text-mute text-xs">
-            Recursos em contas e aplicações titularizadas pela previdência
-            própria
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center rounded-sm border border-ok-fill bg-ok-fill/15 px-2.5 py-1 font-medium text-ok-text text-xs">
-            Posição: {mesExtenso}/{ano}
-          </span>
-          <a
-            href={FONTES_OFICIAIS.siconfi.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-line bg-line2 px-3 py-1 font-medium text-mute text-xs transition-colors hover:text-ink"
-          >
-            <span>SICONFI</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
-          {portalSlug && (
+      <SectionHeader
+        eyebrow={`Posição: ${mesExtenso}/${ano}`}
+        title="Disponibilidade em Caixa e Aplicações do RPPS"
+        description={descricaoSiconfi}
+        action={
+          portalSlug ? (
             <ShowYourWorkButton
               portalSlug={portalSlug}
               ano={ano}
@@ -153,13 +134,13 @@ export function PrevidenciaSaldoCaixaCard({
               entidades="previdencia"
               tituloContexto={`Previdência Municipal (${previdenciaSigla})`}
             />
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Alerta de Saldo a Descoberto se houver */}
       {saldoDescobertoFlag && (
-        <div className="mt-4 flex items-start gap-3 border-danger-fill border-l-[3px] bg-danger-fill/15 px-4 py-3 text-ink text-xs">
+        <div className="flex items-start gap-3 border-danger-fill border-l-[3px] bg-danger-fill/15 px-4 py-3 text-ink text-xs">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
           <div className="leading-relaxed">
             <span className="font-semibold text-danger-text">
@@ -174,7 +155,7 @@ export function PrevidenciaSaldoCaixaCard({
       )}
 
       {/* Métricas Principais Consolidadas (Layout Horizontal Estilo Visão Geral) */}
-      <div className="mt-5 grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
+      <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
         <div>
           <span className="font-medium text-mute text-xs uppercase tracking-wider">
             Total em Caixa e Aplicações
@@ -240,7 +221,7 @@ export function PrevidenciaSaldoCaixaCard({
       </div>
 
       {/* Rodapé com Nota Constitucional e Botão Show Your Work */}
-      <div className="mt-5 flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1.5 text-mute text-xs">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand-text" />
           <span>
