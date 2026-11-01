@@ -118,6 +118,12 @@ export default async function EducacaoPage({
         </IndicatorPanel>
       </div>
 
+      <EducacaoAprendizadoSection
+        aprendizado={viewModel.aprendizado}
+        historico={viewModel.historico}
+        initialEtapa={viewModel.selectedEtapa}
+      />
+
       {viewModel.origemRecursos && (
         <EducacaoOrigemRecursosSection
           origemRecursos={viewModel.origemRecursos}
@@ -179,12 +185,6 @@ export default async function EducacaoPage({
           </p>
         )}
       </section>
-
-      <EducacaoAprendizadoSection
-        aprendizado={viewModel.aprendizado}
-        historico={viewModel.historico}
-        initialEtapa={viewModel.selectedEtapa}
-      />
 
       {emendas.lista.length > 0 && (
         <EmendasSection

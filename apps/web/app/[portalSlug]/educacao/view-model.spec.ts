@@ -154,6 +154,9 @@ describe("educacao/view-model", () => {
         posicaoRanking: 46,
         totalMunicipios: 92,
         variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        redesComparadas: 92,
+        totalMunicipiosCicloAnterior: 92,
       },
       rankingAnosFinais: null,
       context: { ...CONTEXTO_2025, selectedYear: 2026, isCurrentYear: true },
@@ -167,7 +170,13 @@ describe("educacao/view-model", () => {
       notaAnterior: 4.5,
       anoAnterior: 2023,
       variacaoPontos: 1.4,
-      classificacao: { posicao: 46, total: 92 },
+      classificacao: {
+        posicao: 46,
+        total: 92,
+        variacaoPosicoes: 3,
+        redesComparadas: 92,
+        totalCicloAnterior: 92,
+      },
     });
     expect(vm.aprendizado.anosFinais).toMatchObject({
       notaIdeb: 4.8,
@@ -177,6 +186,41 @@ describe("educacao/view-model", () => {
       classificacao: null,
     });
   });
+
+  it.each([
+    ["ano do ciclo anterior diferente do da nota anterior", 2021],
+    ["ranking sem ano de ciclo anterior", null],
+  ])(
+    "descarta a variação de posição com %s",
+    (_descricao, anoCicloAnterior) => {
+      const vm = buildEducacaoViewModel({
+        portalSlug: "portal_teste",
+        allMetrics: [
+          metrica({ ano: 2023, etapaEnsino: "anosIniciais", notaIdeb: 4.5 }),
+          metrica({ ano: 2025, etapaEnsino: "anosIniciais", notaIdeb: 5.9 }),
+        ],
+        contratos: [],
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: 3,
+          redesComparadas: 92,
+          anoCicloAnterior,
+          totalMunicipiosCicloAnterior: 92,
+        },
+        context: CONTEXTO_2025,
+      });
+
+      expect(vm.aprendizado.anosIniciais.anoAnterior).toBe(2023);
+      expect(vm.aprendizado.anosIniciais.classificacao).toEqual({
+        posicao: 46,
+        total: 92,
+        variacaoPosicoes: null,
+        redesComparadas: null,
+        totalCicloAnterior: null,
+      });
+    },
+  );
 
   it("não usa notas de ciclos posteriores ao exercício selecionado", () => {
     const vm = buildEducacaoViewModel({

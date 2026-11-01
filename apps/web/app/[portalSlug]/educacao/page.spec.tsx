@@ -286,6 +286,8 @@ function makeRawEducacaoData(
       posicaoRanking: 46,
       totalMunicipios: 92,
       variacaoPosicoes: 43,
+      anoCicloAnterior: 2023,
+      totalMunicipiosCicloAnterior: 92,
     },
     rankingAnosFinais: null,
     searchParams: {},
@@ -316,10 +318,10 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
+      "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
       "Quem recebe o dinheiro da educação",
-      "Aprendizado dos alunos",
     ]);
 
     expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();
@@ -348,6 +350,174 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       within(secao).getByText("entre 92 redes municipais"),
     ).toBeInTheDocument();
+    expect(
+      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 ponto/),
+    ).toBeInTheDocument();
+    expect(
+      within(secao).getByText("subiu 43 posições desde o ciclo anterior"),
+    ).toBeInTheDocument();
+    expect(secao.textContent).not.toMatch(/ano anterior/i);
+  });
+
+  it("compara só as redes avaliadas nos dois ciclos e diz qual é a base", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: 5,
+          redesComparadas: 90,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 90,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(
+      within(secao).getByText(
+        /subiu 5 posições desde o ciclo anterior \(entre as 90 redes avaliadas nos dois ciclos\)/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      "diz que a posição não é comparável quando há ciclo anterior",
+      { variacaoPosicoes: null, redesComparadas: null },
+      /posição não comparável com o ciclo anterior/,
+    ],
+    [
+      "diz a base quando só saíram redes do ciclo anterior",
+      {
+        variacaoPosicoes: 2,
+        redesComparadas: 92,
+        totalMunicipiosCicloAnterior: 95,
+      },
+      /subiu 2 posições desde o ciclo anterior \(entre as 92 redes avaliadas nos dois ciclos\)/,
+    ],
+  ])("%s", async (_descricao, ranking, texto) => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 92,
+          ...ranking,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(within(secao).getByText(texto)).toBeInTheDocument();
+  });
+
+  describe("variação ao lado do valor", () => {
+    const renderizar = async (variacaoPosicoes: number) => {
+      loadEducacaoDataMock.mockResolvedValue(
+        makeRawEducacaoData({
+          rankingAnosIniciais: {
+            posicaoRanking: 46,
+            totalMunicipios: 92,
+            variacaoPosicoes,
+            redesComparadas: 92,
+            anoCicloAnterior: 2023,
+            totalMunicipiosCicloAnterior: 92,
+          },
+        }),
+      );
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
+      const secao = container.querySelector(
+        'section[aria-label="Aprendizado dos alunos"]',
+      ) as HTMLElement;
+      // Primeiro painel (anos iniciais): o <dd> do valor vem logo depois do <dt>.
+      const valorDe = (rotulo: string) =>
+        Array.from(secao.querySelectorAll("dt")).find(
+          (dt) => dt.textContent === rotulo,
+        )?.nextElementSibling as HTMLElement;
+      return {
+        secao,
+        nota: valorDe("Nota do IDEB"),
+        posicao: valorDe("Classificação entre as redes municipais do estado"),
+      };
+    };
+
+    it("nota que subiu fica verde e posição que caiu fica vermelha", async () => {
+      const { nota, posicao } = await renderizar(-3);
+      expect(nota.querySelector(".text-ok-text")?.textContent).toBe("1,4");
+      expect(nota.querySelector(".text-danger-text")).toBeNull();
+      expect(posicao.querySelector(".text-danger-text")?.textContent).toBe("3");
+      expect(posicao.querySelector(".text-ok-text")).toBeNull();
+    });
+
+    it("posição que subiu fica verde", async () => {
+      const { posicao } = await renderizar(4);
+      expect(posicao.querySelector(".text-ok-text")?.textContent).toBe("4");
+      expect(posicao.querySelector(".text-danger-text")).toBeNull();
+    });
+
+    it("não mostra nada ao lado da posição quando ela não mudou", async () => {
+      const { posicao } = await renderizar(0);
+      expect(posicao.querySelector(".text-ok-text")).toBeNull();
+      expect(posicao.querySelector(".text-danger-text")).toBeNull();
+    });
+
+    it("põe Meta depois da classificação", async () => {
+      const { secao } = await renderizar(1);
+      const rotulos = Array.from(secao.querySelectorAll("dt")).map(
+        (dt) => dt.textContent,
+      );
+      expect(rotulos.slice(0, 3)).toEqual([
+        "Nota do IDEB",
+        "Classificação entre as redes municipais do estado",
+        "Meta",
+      ]);
+    });
+  });
+
+  it("mantém o hero no topo e põe o aprendizado logo depois, antes das seções financeiras", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    const hero = screen.getByRole("heading", { level: 1 });
+    const financeira = screen.getByRole("heading", {
+      level: 2,
+      name: "Como mudou ao longo dos anos",
+    });
+    expect(
+      hero.compareDocumentPosition(secao) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      secao.compareDocumentPosition(financeira) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("abre automaticamente o modal padronizado via deep link (?contratoNumero=0443/25)", async () => {
@@ -394,7 +564,11 @@ describe("EducacaoPage (Server Component)", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
     );
-    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
+    const botoesDetalhes = screen.getAllByRole("button", {
+      name: "Ver detalhes",
+    });
+    // O primeiro "Ver detalhes" da página é o do histórico do IDEB (aprendizado).
+    fireEvent.click(botoesDetalhes[botoesDetalhes.length - 1]);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 

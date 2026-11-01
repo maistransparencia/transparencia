@@ -186,6 +186,8 @@ describe("educacao/loader", () => {
         posicaoRanking: 46,
         totalMunicipios: 92,
         variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        totalMunicipiosCicloAnterior: 92,
       });
 
       const data = await loadEducacaoData("porciuncula_prefeitura", {

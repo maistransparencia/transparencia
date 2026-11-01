@@ -447,3 +447,18 @@ location: apps/web/app/[portalSlug]/licitacoes/page.tsx
 source_spec: `20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal.md`
 reason: Depende de dados reais de contratos vigentes sem valor empenhado.
 status: open
+
+### DW-31: Empates de nota_ideb no ranking estadual são desempatados só por cod_ibge, podendo gerar "subiu/caiu N posições" espúrio.
+origin: spec-deferred 54f356346323
+location: packages/db/src/queries/educacao-metrics.ts
+source_spec: `24-7-aprendizado-no-topo-da-pagina-de-educacao.md`
+severity: medium
+reason: Regra de ordenação pré-existente (nota_ideb desc, cod_ibge asc), mantida de propósito pela spec; notas têm uma casa decimal, então empates são comuns.
+status: open
+
+### DW-32: Totais iguais mas conjuntos de municípios diferentes entre ciclos, ou ano do ranking diferente do ano anterior da nota do município, comparam populações distintas.
+origin: spec-deferred ef0f28603525
+location: packages/db/src/queries/educacao-metrics.ts, apps/web/app/[portalSlug]/educacao/view-model.ts
+source_spec: `24-7-aprendizado-no-topo-da-pagina-de-educacao.md`
+reason: Não verificado com dados reais de seed_inep_ideb; checar se há ciclos com mesmo total e municípios trocados.
+status: open

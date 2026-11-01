@@ -9,8 +9,11 @@ import {
   seedDimOrgao,
   seedEducacaoMetricas,
 } from "../../../tests/fixtures/seed";
+import { db } from "../../client";
 import {
+  calcularVariacaoPosicoes,
   categorizarContratoEducacao,
+  classificarRedes,
   getEducacaoContratos,
   getEducacaoMediasEstaduais,
   getEducacaoMetrics,
@@ -984,27 +987,131 @@ describe("educacao-metrics", () => {
       expect(await getEducacaoRankingEstadual("portal_sem_ibge")).toBeNull();
     });
 
-    it("calcula ranking dinâmico com base nos dados de seed_inep_ideb", async () => {
-      await seedEducacaoMetricas({
-        portalSlug: PORTAL_PORCIUNCULA,
-        codIbge: 3304102,
-        ano: 2025,
+    it("calcula posição, ciclo anterior e variação a partir de seed_inep_ideb", async () => {
+      // UF fictícia (99) para não misturar com dados reais do seed.
+      const codIbge = 9900002;
+      const linhas = [
+        { cod_ibge: 9900001, ano: 2023, nota_ideb: 6 },
+        { cod_ibge: 9900002, ano: 2023, nota_ideb: 5 },
+        { cod_ibge: 9900003, ano: 2023, nota_ideb: 4 },
+        { cod_ibge: 9900001, ano: 2025, nota_ideb: 5 },
+        { cod_ibge: 9900002, ano: 2025, nota_ideb: 6 },
+        { cod_ibge: 9900003, ano: 2025, nota_ideb: 4 },
+      ].map((linha) => ({
+        ...linha,
         rede: "municipal",
-        etapaEnsino: "anos_iniciais",
-        notaIdeb: 5.9,
-      });
+        etapa_ensino: "anos_iniciais",
+      }));
+      const limparFaixaFicticia = () =>
+        db
+          .deleteFrom("seed_inep_ideb")
+          .where("cod_ibge", ">=", 9900000)
+          .where("cod_ibge", "<", 9900100)
+          .execute();
+      await limparFaixaFicticia();
+      await db.insertInto("seed_inep_ideb").values(linhas).execute();
+      try {
+        await seedEducacaoMetricas({
+          portalSlug: PORTAL_PORCIUNCULA,
+          codIbge,
+          ano: 2025,
+          rede: "municipal",
+          etapaEnsino: "anos_iniciais",
+          notaIdeb: 6,
+        });
 
-      const ranking = await getEducacaoRankingEstadual(PORTAL_PORCIUNCULA, {
-        ano: 2025,
-        etapaEnsino: "anosIniciais",
-      });
+        const ranking = await getEducacaoRankingEstadual(PORTAL_PORCIUNCULA, {
+          ano: 2025,
+          etapaEnsino: "anosIniciais",
+        });
 
-      // Se seed_inep_ideb estiver populado no ambiente de teste, valida a estrutura
-      if (ranking !== null) {
-        expect(ranking).toHaveProperty("totalMunicipios");
-        expect(ranking).toHaveProperty("posicaoRanking");
-        expect(ranking).toHaveProperty("variacaoPosicoes");
+        expect(ranking).toEqual({
+          posicaoRanking: 1,
+          totalMunicipios: 3,
+          variacaoPosicoes: 1,
+          redesComparadas: 3,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 3,
+        });
+      } finally {
+        await limparFaixaFicticia();
       }
+    });
+  });
+
+  describe("classificarRedes e calcularVariacaoPosicoes", () => {
+    const redes = (notas: number[], primeiro = 1000) =>
+      notas.map((nota, indice) => ({
+        cod_ibge: primeiro + indice,
+        nota_ideb: nota,
+      }));
+
+    it("dá a mesma posição a redes empatadas", () => {
+      const classificacao = classificarRedes(redes([6, 5.5, 5.5, 5]), 1002);
+      expect(classificacao.posicao).toBe(2);
+      expect(classificarRedes(redes([6, 5.5, 5.5, 5]), 1001).posicao).toBe(2);
+      expect(classificacao.total).toBe(4);
+    });
+
+    it("posição nula quando a rede não está no ciclo", () => {
+      expect(classificarRedes(redes([6, 5]), 9999).posicao).toBeNull();
+    });
+
+    it("positivo quando subiu e negativo quando caiu", () => {
+      const antes = redes([6, 5, 4]);
+      const depois = redes([4, 5, 6]);
+      expect(
+        calcularVariacaoPosicoes({
+          codIbge: 1002,
+          atual: depois,
+          anterior: antes,
+        }),
+      ).toEqual({ variacaoPosicoes: 2, redesComparadas: 3 });
+      expect(
+        calcularVariacaoPosicoes({
+          codIbge: 1002,
+          atual: antes,
+          anterior: depois,
+        })?.variacaoPosicoes,
+      ).toBe(-2);
+    });
+
+    it("empate com a mesma nota não vira subida nem queda", () => {
+      const rows = redes([5, 5, 4]);
+      expect(
+        calcularVariacaoPosicoes({ codIbge: 1001, atual: rows, anterior: rows })
+          ?.variacaoPosicoes,
+      ).toBe(0);
+    });
+
+    it("compara só as redes presentes nos dois ciclos", () => {
+      // Rede 5555 só existe no ciclo atual e tem nota maior: não pode empurrar o município.
+      const anterior = redes([6, 5, 4]);
+      const atual = [...redes([6, 5, 4]), { cod_ibge: 5555, nota_ideb: 9 }];
+      expect(
+        calcularVariacaoPosicoes({ codIbge: 1001, atual, anterior }),
+      ).toEqual({ variacaoPosicoes: 0, redesComparadas: 3 });
+    });
+
+    it("nulo quando o município não está nos dois ciclos", () => {
+      const atual = redes([6, 5]);
+      expect(
+        calcularVariacaoPosicoes({
+          codIbge: 1001,
+          atual,
+          anterior: [{ cod_ibge: 7777, nota_ideb: 5 }],
+        }),
+      ).toBeNull();
+    });
+
+    it("nulo sem ciclo anterior", () => {
+      expect(
+        calcularVariacaoPosicoes({
+          codIbge: 1000,
+          atual: redes([6, 5]),
+          anterior: null,
+        }),
+      ).toBeNull();
     });
   });
 
