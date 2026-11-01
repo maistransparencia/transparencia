@@ -409,3 +409,11 @@ source_spec: `20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema.md`
 severity: low
 reason: A regra só casa bg-white e slate/gray; páginas com bg-emerald-50 etc. podem destoar no tema escuro. Preexistente ao escopo da story. Resolvido: a regra passou a cobrir todas as famílias de cor do Tailwind e os arquivos encontrados foram migrados para tokens.
 status: resolved
+
+### DW-26: `Button` só tem `primary` e `secondary` (altura 44px); faltam variantes para controles compactos, então os `<button>` de obras seguem com classes soltas.
+origin: code review de d4b058ba..HEAD (story 20-9, refinamentos de /obras)
+location: apps/web/components/obras/obras-interactive-section.tsx (filtros de situação, seletores Mapa/Lista e Área urbana/Todo o território, botão flutuante do mapa, Limpar busca, Fechar detalhes) e obras-detalhe-modal.tsx:168 (Fechar)
+source_spec: `packages/ui/src/components/button.tsx`, seção `button` do DESIGN.md
+severity: medium
+reason: Migrar para o `Button` atual mudou o visual dos filtros (altura de 44px, mais alto no mobile) e foi revertido a pedido. O DESIGN.md proíbe `<button>` com classes soltas. Criar variantes no `Button` (por exemplo compacto/pill para filtros e controle segmentado com item ativo `primary`, e `icon` para fechar/limpar), documentá-las no DESIGN.md e então migrar os botões de obras. Junto: trocar `role="tablist"`/`tab` sem painel por `aria-pressed` (sem painel, ARIA incorreta) e alinhar a bolinha de "Cancelada" (`bg-mute3` no filtro contra `var(--mute)` na lista e no mapa).
+status: open

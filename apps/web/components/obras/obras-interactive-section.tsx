@@ -144,12 +144,28 @@ export function ObrasInteractiveSection({
   const [selectedStatus, setSelectedStatus] = useState<SituacaoObraFiltro>(
     viewModel.filtros.status,
   );
-  useEffect(() => {
-    setSelectedStatus(viewModel.filtros.status);
-  }, [viewModel.filtros.status]);
   const [buscaText, setBuscaText] = useState<string>(
     viewModel.filtros.busca ?? "",
   );
+  // Filtros que este componente já enviou à URL e cujo eco do servidor ainda não chegou
+  const pendingFiltrosRef = useRef<{ status: string; busca: string }[]>([]);
+  useEffect(() => {
+    const status = viewModel.filtros.status;
+    const busca = viewModel.filtros.busca ?? "";
+    const pending = pendingFiltrosRef.current;
+    const echoIndex = pending.findIndex(
+      (f) => f.status === status && f.busca === busca,
+    );
+    if (echoIndex >= 0) {
+      // Eco de uma mudança feita aqui: descarta até ela e não sobrescreve o estado local
+      pendingFiltrosRef.current = pending.slice(echoIndex + 1);
+      return;
+    }
+    // Navegação externa (ex.: link "Ver no mapa" do hero): alinha status e busca com a URL
+    pendingFiltrosRef.current = [];
+    setSelectedStatus(status);
+    setBuscaText(busca);
+  }, [viewModel.filtros.status, viewModel.filtros.busca]);
   const [internalSelectedObraId, setInternalSelectedObraId] = useState<
     string | null
   >(null);
@@ -229,6 +245,13 @@ export function ObrasInteractiveSection({
       params.delete("busca");
     }
 
+    pendingFiltrosRef.current = [
+      ...pendingFiltrosRef.current,
+      {
+        status: novoStatus,
+        busca: novoTexto.trim().length >= 2 ? novoTexto.trim() : "",
+      },
+    ];
     startTransition(() => {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
