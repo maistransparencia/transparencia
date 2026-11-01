@@ -392,7 +392,7 @@ origin: spec-deferred 58bbdaf291e8
 location: apps/web/components/obras/obras-paralisadas-section.tsx:123
 source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
 severity: low
-reason: Spec exige conferência jurídica; o texto é anterior a esta story.
+reason: Dispositivo verificado no Planalto (o §6º trata do aviso público de obra paralisada por mais de 1 mês). Pendentes: âncora `#art115p6` do link não confirmada (NÃO VERIFICADO) e texto literal do §6º não transcrito para conferir a frase "o motivo da paralisação seja divulgado". Além disso, o "Critério de Auditoria Cívica" perdeu a citação à Lei 14.133/2021 porque o Art. 115 não trata de pagamento versus medição; o jurista-fiscal deve indicar o artigo correto antes de o link voltar.
 status: open
 
 ### DW-24: Capturas antes/depois (claro e escuro) e suíte de testes visuais não foram executadas (AC 4 e 5 parciais).

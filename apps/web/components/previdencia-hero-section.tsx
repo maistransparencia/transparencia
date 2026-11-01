@@ -76,7 +76,7 @@ export function PrevidenciaHeroSection({
               A Prefeitura e os Fundos Municipais já reservaram{" "}
               <strong className="text-ink">{fmtCompact(totalEmpenhado)}</strong>{" "}
               para o {previdenciaSigla} em {ano} (empenho). Desse valor,{" "}
-              {fmtCompact(totalPago)} já foi pago ao fundo.
+              {fmtCompact(totalPago)} já foi pago.
             </>
           ) : (
             <>

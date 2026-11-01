@@ -1,8 +1,7 @@
 "use client";
 
 import { AlertBox } from "@transparencia/ui";
-import { AlertTriangle, ExternalLink } from "lucide-react";
-import { urlLegislacao } from "@/lib/constants/legislacao";
+import { AlertTriangle } from "lucide-react";
 
 export interface ObrasGraficoAvancoDuploProps {
   percentualExecucaoFisica: number | null;
@@ -156,19 +155,10 @@ export function ObrasGraficoAvancoDuplo({
 
       {/* Nota Explicativa Cívica */}
       <AlertBox type="info" title="Critério de Auditoria Cívica">
-        De acordo com as boas práticas de controle dos Tribunais de Contas e da{" "}
-        <a
-          href={urlLegislacao("lei14133")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-0.5"
-        >
-          <span>Lei nº 14.133/2021</span>
-          <ExternalLink className="h-3 w-3" />
-        </a>
-        , o pagamento financeiro deve acompanhar rigorosamente o ateste
-        presencial das medições físicas, resguardando o erário público contra
-        pagamentos antecipados sem contraprestação da obra em campo.
+        De acordo com as boas práticas de controle dos Tribunais de Contas, o
+        pagamento financeiro deve acompanhar rigorosamente o ateste presencial
+        das medições físicas, resguardando o erário público contra pagamentos
+        antecipados sem contraprestação da obra em campo.
       </AlertBox>
     </div>
   );

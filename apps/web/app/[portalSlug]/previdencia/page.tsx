@@ -147,9 +147,9 @@ export default async function PrevidenciaPage({
           subtext="Compromissos com a previdência no ano"
         />
         <KPICard
-          title="Repassado ao fundo (pago)"
+          title="Pago com previdência"
           value={fmtCompact(previdencia.totalPago)}
-          subtext="Dinheiro que já saiu"
+          subtext="Inclui aporte extra, parcelamentos e plano de saúde, quando houver"
         />
         <KPICard
           title="Repasse extra para equilibrar o fundo"
