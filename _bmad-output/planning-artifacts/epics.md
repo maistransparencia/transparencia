@@ -3355,6 +3355,30 @@ So that adding municipalities does not add schemas, and the contracts of Story 2
 
 ---
 
+### Story 24.10: Ingestão Bimestral do SIOPE para o Ano em Andamento
+
+As a citizen,  
+I want to see the SIOPE indicators of the current year, marked as partial,  
+So that I do not have to wait for the year to close to know how much is being invested per student.
+
+**Origem:** conversa de 2026-11-01. Hoje o extrator (`elt/extract/siope.py`) pede só a consulta anual (`tpPeriodo: "A"`, bimestre 6, o fechamento). O ano em andamento não tem dado de 6º bimestre, a API não devolve nada e o extrator o ignora com aviso. Por isso o ano corrente não aparece. A lógica `parcial` do mart `fct_educacao_siope_metricas` existe, mas só é exercitada por dados sintéticos de teste.
+
+**Acceptance Criteria:**
+- **Given** a API do SIOPE, que oferece o tipo de período bimestral (`tpPeriodo: "B"`)
+- **When** a story começa
+- **Then** um teste contra a resposta real de pelo menos um município integrado registra se a API devolve os bimestres do ano em andamento, com que defasagem, e se o valor é acumulado no ano ou isolado no bimestre. Se a API não devolver, a story para aqui e o resultado fica documentado. Nenhum número é inferido sem essa verificação.
+- **And** o extrator grava, para o ano em andamento, o bimestre mais avançado disponível em `raw_siope.siope_indicadores` (`periodo` 1 a 5, `tipo_periodo` coerente com a coluna), sem literal de tenant ou de ano (Regra 23), e o fechamento anual continua gravado como hoje.
+- **And** quando o ano fecha, a linha do bimestre 6 passa a valer e o mart mostra `encerrado`, sem linhas parciais antigas que mudem o resultado.
+- **And** o mart `fct_educacao_siope_metricas` mostra o ano corrente como `parcial`, com o `periodo` correspondente, e teste de paridade com dado real (não sintético) para pelo menos um portal.
+- **And** o valor parcial nunca é apresentado ao cidadão como fechamento (Regra 27); a decisão de texto fica com a Story 24.3 e o `editor-cidadao`.
+- **And** `make test`, `make check`, `pnpm test` e `pnpm typecheck` passam; toda execução no banco local do Docker (Regra 15).
+
+**Fora do escopo:** mudança no que o cidadão vê (Story 24.3); valores de 6º bimestre de anos anteriores; comparação entre bimestres.
+
+**Dependências:** Story 24.9 (concluída). Pode rodar antes ou depois da 24.3, mas a 24.3 precisa saber se o parcial existe.
+
+---
+
 ## Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?
 
 A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo exigido em saúde?" (mínimo constitucional em ações e serviços públicos de saúde), com a origem do dinheiro, as emendas e, só quando houver fonte e régua, a produção da rede e a fila de espera logo abaixo. Origem: conversa de produto de 2026-11-01 a partir da planilha da audiência pública de prestação de contas da saúde (2º quadrimestre de 2026), usada **somente** para decidir o que a Secretaria destaca ao público. **Nenhum número da planilha é fonte de dado do portal:** ela é a transcrição de um vídeo e tem erros de soma (por exemplo, Saúde da Mulher soma 3.028 e informa 3.228; o total do convênio hospitalar não bate com os meses; o total de receitas para apuração não fecha com os subtotais).
