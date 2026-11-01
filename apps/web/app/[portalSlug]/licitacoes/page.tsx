@@ -107,15 +107,6 @@ export default async function LicitacoesPage({
           </strong>
           , que exigem justificativa formal.
         </p>
-
-        {/* Global Spotlight Search Bar */}
-        <div className="mt-5 w-full">
-          <LicitacoesSearchBar
-            portalSlug={portalSlug}
-            ano={selectedYear}
-            termoInicial={termoInicial}
-          />
-        </div>
       </div>
 
       <section className="space-y-6" data-testid="licitacoes-destaque">
@@ -185,6 +176,12 @@ export default async function LicitacoesPage({
           />
         </IndicatorPanel>
       </section>
+
+      <LicitacoesSearchBar
+        portalSlug={portalSlug}
+        ano={selectedYear}
+        termoInicial={termoInicial}
+      />
 
       {hasAnomaliaDispensa && (
         <div className="space-y-3">
