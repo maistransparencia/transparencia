@@ -60,9 +60,11 @@ export default async function RadarPage({
       </div>
 
       {hasAlertas && (
-        <IndicatorPanel tone="brand" columns={2}>
+        <IndicatorPanel tone="brand">
           <Indicator
-            label="Alertas apurados"
+            label={
+              totalAlertasGeral === 1 ? "Alerta apurado" : "Alertas apurados"
+            }
             value={totalAlertasGeral}
             note="em todo o histórico"
           />

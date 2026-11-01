@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { loadRadarData } from "./loader";
 
@@ -31,6 +31,7 @@ function makeRaw(overrides: Partial<RawData> = {}): RawData {
 describe("RadarPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("renderiza empty-state global de conformidade quando não houver alertas em nenhum exercício", async () => {
@@ -51,6 +52,8 @@ describe("RadarPage", () => {
   });
 
   it("renderiza seções anuais cronológicas, barra de âncoras e cards de alerta", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-31T12:00:00"));
     loadRadarDataMock.mockResolvedValue(
       makeRaw({
         alertas: [
@@ -97,11 +100,22 @@ describe("RadarPage", () => {
 
     // Título e resumo geral
     expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
+    expect(screen.getByText("Alertas apurados")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
 
     // Seções por ano
     expect(screen.getByTestId("radar-secao-ano-2026")).toBeInTheDocument();
     expect(screen.getByTestId("radar-secao-ano-2024")).toBeInTheDocument();
+
+    // Eyebrow da seção: contagem no singular e marcador só no ano corrente
+    const secao2024 = within(screen.getByTestId("radar-secao-ano-2024"));
+    expect(secao2024.getByText(/^1 alerta apurado/)).toBeInTheDocument();
+    expect(secao2024.queryByText(/em andamento/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Exercício 2024" }),
+    ).toBeInTheDocument();
+    const secaoAnoCorrente = within(screen.getByTestId("radar-secao-ano-2026"));
+    expect(secaoAnoCorrente.getByText(/em andamento/)).toBeInTheDocument();
 
     // Cards renderizados
     expect(

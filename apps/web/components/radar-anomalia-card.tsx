@@ -204,7 +204,7 @@ export function RadarAnomaliaCard({
         </p>
 
         {/* Tabela de métricas comparativas harmoniosa */}
-        <div className="panel mt-4 rounded-md border p-3 text-xs">
+        <div className="panel mt-4 rounded-md border p-3 text-xs [--panel-border-color:var(--line)] [--panel-border-width:1px] [--panel-padding:0.75rem]">
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-3">
             <div>
               <span className="eyebrow block">Observado</span>

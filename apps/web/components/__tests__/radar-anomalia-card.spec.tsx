@@ -103,6 +103,21 @@ describe("RadarAnomaliaCard", () => {
     expect(whatsappButton).toHaveAttribute("rel", "noopener noreferrer");
   });
 
+  it("aplica o tom da borda do panel conforme a severidade", () => {
+    const tomDoCard = (item: RadarCivicoCardItem) => {
+      const { unmount } = render(<RadarAnomaliaCard item={item} />);
+      const classe = screen.getByTestId("radar-anomalia-card").className;
+      unmount();
+      return classe;
+    };
+
+    expect(tomDoCard(mockItemCritico)).toContain("panel-danger");
+    expect(tomDoCard(mockItemAlto)).toContain("panel-warn");
+    expect(tomDoCard(mockItemModerado)).not.toMatch(
+      /panel-(danger|warn|ok|brand)/,
+    );
+  });
+
   it("renderiza card com severidade alto e aporte em saúde", () => {
     render(<RadarAnomaliaCard item={mockItemAlto} />);
 
