@@ -417,3 +417,19 @@ source_spec: `packages/ui/src/components/button.tsx`, seção `button` do DESIGN
 severity: medium
 reason: Migrar para o `Button` atual mudou o visual dos filtros (altura de 44px, mais alto no mobile) e foi revertido a pedido. O DESIGN.md proíbe `<button>` com classes soltas. Criar variantes no `Button` (por exemplo compacto/pill para filtros e controle segmentado com item ativo `primary`, e `icon` para fechar/limpar), documentá-las no DESIGN.md e então migrar os botões de obras. Junto: trocar `role="tablist"`/`tab` sem painel por `aria-pressed` (sem painel, ARIA incorreta) e alinhar a bolinha de "Cancelada" (`bg-mute3` no filtro contra `var(--mute)` na lista e no mapa).
 status: open
+
+### DW-27: Coluna "Nível" do feed do radar na home tem largura diferente do cabeçalho; a coluna "Ocorrência" fica desalinhada.
+origin: revisão do fechamento da story 20-9 (acabamento de /radar)
+location: apps/web/components/radar-civico-feed.tsx:146 (cabeçalho `w-16`) e :64 (linha `sm:w-24`)
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`
+severity: low
+reason: A linha de severidade foi alargada para `sm:w-24`, o que resolveu o estouro de rótulos como "Moderada", mas o cabeçalho continua em `w-16`, então o título "Ocorrência" não alinha com o texto das linhas. Alinhar as duas larguras e conferir no navegador. Entra na varredura da 20-18.
+status: open
+
+### DW-28: Faltam capturas de tela e suíte visual de /obras, /previdencia e /radar (AC 6 da story 20-9).
+origin: revisão do fechamento da story 20-9 (acabamento de /radar)
+location: apps/web/app/[portalSlug]/{obras,previdencia,radar}/page.tsx
+source_spec: `20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro.md`, `20-18` no `epics.md`
+severity: medium
+reason: A 20-9 foi fechada sem capturas de tela nem revisão visual independente. O acabamento do /radar (commits 580241f6 e 8c3adfcf) também não foi conferido no navegador (claro/escuro, mobile/desktop), inclusive a barra "Exercícios" fixa no mobile. A 20-18 já exige capturas antes e depois nos dois temas e tamanhos; cobrir estas três páginas nela.
+status: open

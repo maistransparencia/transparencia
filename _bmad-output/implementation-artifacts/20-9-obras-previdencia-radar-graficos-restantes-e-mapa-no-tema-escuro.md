@@ -243,3 +243,7 @@ Status: done
 **Verificação:** `pnpm typecheck` e `pnpm test` passam (web 1573 testes, ui 361); biome sem erros, com 37 avisos de ordenação de classes.
 
 **Riscos residuais:** capturas de tela e suíte visual não executadas; revisões de Creuza, Atanagildo e jurídico feitas pelo próprio agente, sem conferência independente; escurecimento do mapa só verificável no navegador.
+
+## Acabamento pós-done (2026-10-31)
+
+O acabamento do `/radar` saiu depois do fechamento, em sessão de refinamento de UI: seção por exercício com `SectionHeader`, card em `panel panel-top` com tom por severidade (`panel-danger` e `panel-warn`), bloco de métricas arredondado, total em `IndicatorPanel` de marca, WhatsApp e CTA compactos, barra "Exercícios" sem linhas. Commits `580241f6` e `8c3adfcf` (22 testes do radar passam, `tsc` ok). Pendências registradas em `deferred-work.md`: DW-27 (alinhamento da coluna "Nível") e DW-28 (capturas de tela e suíte visual), ambas para a 20-18.
