@@ -95,7 +95,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 21: Assistência Social, Programas de Transferência de Renda (CGU) e Impacto Econômico Municipal](#epic-21-assistência-social-programas-de-transferência-de-renda-cgu-e-impacto-econômico-municipal)
 - [Epic 22: Busca Global por Categorias](#epic-22-busca-global-por-categorias)
 - [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
-- [Epic 24: Educação com Dados do SIOPE (Valor por Aluno e Mínimos Constitucionais)](#epic-24-educação-com-dados-do-siope-valor-por-aluno-e-mínimos-constitucionais)
+- [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
 
 ---
 
@@ -3086,15 +3086,15 @@ So that I understand it is money withheld and passed on to others, not municipal
 
 ---
 
-## Epic 24: Educação com Dados do SIOPE (Valor por Aluno e Mínimos Constitucionais)
+## Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)
 
-Responder ao cidadão duas perguntas da página de educação que hoje ficam sem resposta: "quanto a Prefeitura investe por aluno?" e "a Prefeitura aplica o mínimo exigido em educação?". A fonte é o SIOPE (FNDE), o sistema que o município declara e que o contador da educação de Porciúncula indicou e conferiu. Origem: spike `planning-artifacts/spike-siope-valor-por-aluno.md` (2026-10-31). A estimativa anterior de "pago por aluno" foi retirada da Epic 20 (Story 20.8) porque o seed de matrículas não tinha fonte rastreável e divergia do SIOPE em 3% a 42%.
+A página de educação passa a abrir pelo aprendizado ("as crianças estão aprendendo?", Story 24.7), com o financiamento logo abaixo. Responder ao cidadão duas perguntas que hoje ficam sem resposta: "quanto a Prefeitura investe por aluno?" e "a Prefeitura aplica o mínimo exigido em educação?". A fonte é o SIOPE (FNDE), o sistema que o município declara e que o contador da educação de Porciúncula indicou e conferiu. Origem: spike `planning-artifacts/spike-siope-valor-por-aluno.md` (2026-10-31). A estimativa anterior de "pago por aluno" foi retirada da Epic 20 (Story 20.8) porque o seed de matrículas não tinha fonte rastreável e divergia do SIOPE em 3% a 42%.
 
 **Fonte e acesso:** a consulta de planilhas do SIOPE exige reCAPTCHA e não será automatizada nem contornada. O caminho é a API JSON do Relatório Gerencial do FNDE (`/siope/relatorioGerencialIndicador.do`), aberta e sem captcha, mas interna e não documentada: precisa de teste de contrato e de falha graciosa. Indicadores de interesse: 4.9 (investimento por aluno), 4.8 (educação básica), 4.1 (infantil), 4.2 (fundamental), 1.1 (aplicação em MDE, mínimo de 25%) e 1.2 (magistério).
 
 **Restrições:** Regra 23 (sem literais de tenant, UF ou ano; o código SIOPE de 6 dígitos vem de `cod_ibge`), Regra 14 (conta no dbt, não no TypeScript), Regra 15 (execução só no banco local do Docker), Regra 20 (toda lei citada com link oficial), Regra 27 (pergunta do cidadão antes do dado; dado declarado diz que é declarado), `contador-publico` para conferir cada indicador e `jurista-fiscal` para as leis; `editor-cidadao` para os textos.
 
-**Fora do escopo:** automatizar o formulário com captcha; reproduzir no portal as planilhas de receita e despesa do SIOPE; comparação entre municípios ou ranking de valor por aluno.
+**Fora do escopo:** automatizar o formulário com captcha; reproduzir no portal as planilhas de receita e despesa do SIOPE; comparação entre municípios ou ranking de valor por aluno (o ranking estadual do IDEB, já existente, não entra nessa exclusão).
 
 **Riscos:** a API pode mudar sem aviso; o SIOPE é declaratório e homologado pelo FNDE, não é auditoria independente; o rótulo do indicador 1.2 do SIOPE cita "mínimo de 60%" para o magistério, mas o art. 26 da Lei 14.113/2020 (verificado no texto do Planalto em 2026-10-31) fixa **70%** para a remuneração dos profissionais da educação em efetivo exercício, e a lei não menciona 60%. O indicador do SIOPE pode estar com o rótulo da regra antiga (Lei 11.494/2007): só exibir depois de o `contador-publico` conferir a fórmula.
 
@@ -3168,7 +3168,7 @@ So that I can compare it with last year and with what the school needs.
 - **And** sem média estadual, ranking ou comparação entre municípios
 - **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico`, e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
 
-**Dependências:** Story 24.3.
+**Dependências:** Story 24.3. Posição: o painel entra logo abaixo da seção "Aprendizado dos alunos" (Story 24.7).
 
 ---
 
@@ -3186,7 +3186,7 @@ So that I can tell if the rule is being met.
 - **And** abaixo do mínimo, o tom é factual e não acusatório ("indício", nunca "irregularidade")
 - **And** o `contador-publico` valida a base de cálculo, o ano em andamento é marcado como parcial e `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
 
-**Dependências:** Story 24.3. Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
+**Dependências:** Story 24.3. Posição: logo abaixo da seção "Aprendizado dos alunos" e do valor por aluno (24.4). Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
 
 ---
 
@@ -3204,6 +3204,37 @@ So that the per-student value has a visible denominator.
 - **And** nenhum valor é digitado à mão no repositório, e os números de uma amostra são conferidos contra o INEP.
 
 **Dependências:** nenhuma de código; pode rodar em paralelo à Story 24.1. Condicionada ao resultado do spike.
+
+---
+
+### Story 24.7: Aprendizado no Topo da Página de Educação
+
+As a citizen,  
+I want to see first whether the municipal students are learning, and whether that is improving,  
+So that the money figures that follow are read against the result they should produce.
+
+**Acceptance Criteria:**
+- **Given** a pergunta "As crianças da rede municipal estão aprendendo?" e a seção "Aprendizado dos alunos" (`EducacaoAprendizadoSection`) já existente
+- **When** o cidadão abre `/[portalSlug]/educacao`
+- **Then** a seção "Aprendizado dos alunos" é o primeiro bloco da página, antes de qualquer seção financeira, e o hero financeiro atual (com "Emendas na educação") e as demais seções descem sem perder conteúdo; seções para especialistas continuam no fim (Regra 27)
+- **And** em cada etapa (anos iniciais e anos finais) "Nota do IDEB" e "Ciclo anterior" viram um indicador só: a nota atual com o ano de apuração, e junto a nota do ciclo anterior com o ano e a variação em pontos (ex.: "ciclo anterior 4,5 em 2023, +1,4 ponto"), com sinal e palavra ("subiu" ou "caiu") além da cor
+- **And** em "Classificação entre as redes municipais do estado" aparece, junto da posição e do total de redes, quantas posições subiu ou caiu em relação ao ciclo anterior, calculado pela camada de dados com a mesma regra de ordenação do ciclo atual; se o total de redes do ciclo anterior for diferente, o texto diz isso em vez de comparar posições como se fossem equivalentes
+- **And** o IDEB é bienal: o texto fala em "ciclo anterior" e nunca em "ano anterior"
+- **And** a variação de posição vem de `@transparencia/db` (Regra 14) a partir do `cod_ibge`, sem UF, "Média RJ" nem ano fixo em títulos (Regra 23); sem dado do ciclo anterior o indicador mostra "—" com a causa, sem esconder a etapa
+- **And** "Meta" continua visível, com a causa quando o MEC não definiu meta
+- **And** a citação "Nota Informativa do Ideb 2025" em `educacao-historico-section.tsx` deixa de depender de ano fixo no texto, ou o `editor-cidadao` e o `jurista-fiscal` registram por que ela fica
+- **And** o texto passa pelo `editor-cidadao`, o padrão visual segue `DESIGN.md` e `EXPERIENCE.md` nos temas claro e escuro, e specs de query, view-model, página e componente, `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
+
+**Fora do escopo:** matrículas (Story 24.6), valor por aluno (24.4) e mínimos legais (24.5). Os dois últimos entram logo abaixo desta seção quando ficarem prontos; até lá a página não reserva espaço vazio.
+
+**Contexto levantado em 2026-11-01 (leitura sem edição):**
+- Ordem atual de `apps/web/app/[portalSlug]/educacao/page.tsx`: `EducacaoHeroSection`, `EducacaoOrigemRecursosSection`, `EvolucaoAnual`, `EducacaoContratosSection`, fornecedores (`DespesasFornecedoresSection`), `EducacaoAprendizadoSection` (6ª), `EmendasSection`.
+- `educacao-aprendizado-section.tsx` (124 linhas) já mostra por etapa (`EtapaPainel`): nota com ano, meta, ciclo anterior com variação e classificação "Nº entre N redes"; embute `EducacaoHistoricoSection` (série histórica, média estadual, aprovação).
+- Ranking: `getEducacaoRankingEstadual` (`packages/db/src/queries/educacao-metrics.ts`, ~linha 307) deriva a UF de `cod_ibge` e usa `seed_inep_ideb`; médias em `getEducacaoMediasEstaduais` (~467), label dinâmico em `view-model.ts` (~187-190). Sem violação da Regra 23 nos arquivos lidos; `view-model.ts` não foi varrido por inteiro. Falta confirmar se o ranking aceita o ciclo como parâmetro (necessário para a variação de posição).
+- Matrículas e `custo_anual_por_aluno` foram removidos de propósito (Story 20.8): não há dado hoje, e a Story 24.6 é a dona do indicador. A spec 18-2 está desatualizada nesse ponto.
+- Decisão de produto (2026-11-01): sem hero novo; a própria seção "Aprendizado dos alunos" sobe para o topo e recebe os dois ajustes. O custo por aluno (24.4) e os mínimos legais (24.5) entram logo abaixo dela quando prontos. O mínimo legal é de **aplicação** (25% em MDE, 70% do FUNDEB em magistério), não de repasse.
+
+**Dependências:** nenhuma. Deve ser entregue antes da Story 24.4. Substitui o ajuste pedido para `/educacao` na Story 20.8, que permanece `done`.
 
 ---
 
