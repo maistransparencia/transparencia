@@ -32,7 +32,7 @@ A página de educação passa a abrir pelo aprendizado ("as crianças estão apr
 ## Technical Decisions
 
 - Raw: um registro por `portal_slug`, `ano`, `periodo`, `codigo_indicador`, com valor, código SIOPE de 6 dígitos derivado de `cod_ibge` e `coletado_em`.
-- A API deve ser consultada com lote de 2+ municípios (com um só, `codEnte` vem zerado); validar o formato antes de gravar; resposta HTML (erro 99), formato inesperado ou indicador ausente não grava nada e termina com aviso. `User-Agent`/`Referer` no padrão da API e limite de taxa.
+- A API deve ser consultada com um município por requisição (em lote ela devolve a média com `codEnte` zerado, verificado em 2026-11-01); validar o formato antes de gravar; resposta HTML (erro 99), formato inesperado ou indicador ausente não grava nada e termina com aviso. `User-Agent`/`Referer` no padrão da API e limite de taxa.
 - Mart dbt `fct_educacao_siope_metricas`, grão `portal_slug` + `ano`, colunas explícitas (`investimento_por_aluno_basica`, `investimento_por_aluno`, `percentual_aplicado_mde`), contrato imposto, testes de unicidade, isolamento entre portais e intervalo plausível. Caso de referência de Porciúncula: 2024 = R$ 16.789,15; 2025 = R$ 16.767,14.
 - DTOs `camelCase` em `@transparencia/db` com valor, ano, período, situação (`encerrado`/`parcial`) e série anual; nenhum cálculo contábil no TypeScript (Regra 14).
 - Variação de posição no ranking do IDEB calculada em `@transparencia/db` a partir do `cod_ibge`, com a mesma regra de ordenação do ciclo atual; se o total de redes do ciclo anterior for diferente, o texto diz isso. IDEB é bienal: falar "ciclo anterior", nunca "ano anterior". Ranking em `getEducacaoRankingEstadual` pode precisar aceitar o ciclo como parâmetro.
