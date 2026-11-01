@@ -3,7 +3,6 @@
 import { AlertCircle, Bell, BellRing } from "lucide-react";
 import { useId, useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
-import { botaoSecundario } from "./botoes-acao";
 
 export interface PushNotificationSettingsProps {
   portalSlug: string;
@@ -139,18 +138,20 @@ export function PushNotificationSettings({
   // Não inscrito / disponível
   return (
     <div className="space-y-2">
-      <p role="status" className={`${linhaStatusClass} font-medium text-ink`}>
-        <Bell className="h-4 w-4 shrink-0 text-mute2" aria-hidden="true" />
-        Notificações desativadas
-      </p>
-      <button
-        type="button"
-        onClick={() => runAction(subscribe, onSubscribeSuccess)}
-        disabled={isBusy}
-        className={`${botaoSecundario} w-full`}
-      >
-        {isActionLoading ? "Ativando..." : "Ativar"}
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <p role="status" className={`${linhaStatusClass} font-medium text-ink`}>
+          <Bell className="h-4 w-4 shrink-0 text-mute2" aria-hidden="true" />
+          Notificações desativadas
+        </p>
+        <button
+          type="button"
+          onClick={() => runAction(subscribe, onSubscribeSuccess)}
+          disabled={isBusy}
+          className="cursor-pointer text-mute2 text-xs underline hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isActionLoading ? "Ativando..." : "Ativar"}
+        </button>
+      </div>
       {errorMessage}
     </div>
   );
