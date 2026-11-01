@@ -32,8 +32,12 @@ SIOPE_USER_AGENT = (
 )
 
 ESFERA_MUNICIPAL = 2
-TIPO_PERIODO_ANUAL = "A"
+TIPO_PERIODO_ANUAL = "A"  # código da API: "A" = Anual, "B" = Bimestral (tela do Relatório Gerencial)
+TIPO_PERIODO_ANUAL_CODIGO = "anual"
+# Na consulta anual a API devolve o valor do 6º bimestre (fechamento do ano, acumulado), qualquer que seja
+# o `numPeri` pedido. Ano em andamento volta sem linhas (verificado em 2026-11-01).
 PERIODO_ANUAL = 6
+UNIDADE_POR_TIPO_VALOR = {"P": "percentual", "M": "monetario"}
 PRIMEIRO_ANO_SIOPE = 2005
 TAMANHO_CODIGO_SIOPE = 6
 
@@ -136,20 +140,37 @@ class SiopeExtractor:
             raise SiopeError("Resposta do SIOPE sem lista `content`")
         return content
 
-    def resolver_indicadores(self, grupo: int, codigos_exibicao: tuple[str, ...]) -> dict[str, int]:
-        """Mapeia código de exibição (ex.: '4.9') para o código interno do indicador no grupo."""
+    def resolver_indicadores(self, grupo: int, codigos_exibicao: tuple[str, ...]) -> dict[str, dict[str, Any]]:
+        """Metadados oficiais de cada código de exibição (ex.: '4.9') no grupo.
+
+        Devolve `codigo_interno`, `unidade` (percentual ou monetario, de `idnTipoValr`) e
+        `nomes_oficiais` (todos os `nomIndi` do código, pois a lista traz um nome por norma vigente ao longo do tempo).
+        """
         content = self._request(
             "GET", {"metodo": "listarIndicador", "coEsferaAdm": ESFERA_MUNICIPAL, "codGrupIndi": grupo}
         )
-        mapa = {
-            str(item["codExib"]): int(item["codIndi"])
+        itens = [
+            item
             for item in content
-            if isinstance(item, dict) and "codExib" in item and "codIndi" in item
-        }
-        ausentes = [c for c in codigos_exibicao if c not in mapa]
+            if isinstance(item, dict) and all(c in item for c in ("codExib", "codIndi", "idnTipoValr", "nomIndi"))
+        ]
+        ausentes = [c for c in codigos_exibicao if not any(str(i["codExib"]) == c for i in itens)]
         if ausentes:
             raise SiopeError(f"Indicadores ausentes no grupo {grupo} do SIOPE: {', '.join(ausentes)}")
-        return {c: mapa[c] for c in codigos_exibicao}
+
+        def metadados(codigo: str) -> dict[str, Any]:
+            do_codigo = [i for i in itens if str(i["codExib"]) == codigo]
+            internos = {int(i["codIndi"]) for i in do_codigo}
+            tipos = {i["idnTipoValr"] for i in do_codigo}
+            if len(internos) != 1 or len(tipos) != 1 or next(iter(tipos)) not in UNIDADE_POR_TIPO_VALOR:
+                raise SiopeError(f"Metadados inconsistentes para o indicador {codigo} do SIOPE")
+            return {
+                "codigo_interno": next(iter(internos)),
+                "unidade": UNIDADE_POR_TIPO_VALOR[next(iter(tipos))],
+                "nomes_oficiais": " | ".join(sorted({str(i["nomIndi"]).strip() for i in do_codigo})),
+            }
+
+        return {c: metadados(c) for c in codigos_exibicao}
 
     def buscar_grupo(
         self, cod_ibge: int, grupo: int, indicadores: dict[str, int], anos: list[int]
@@ -195,9 +216,12 @@ class SiopeExtractor:
         """Extrai todos os indicadores de interesse de um portal. Tudo ou nada: qualquer lacuna levanta `SiopeError`."""
         codigo = codigo_siope(portal.cod_ibge)
         linhas: list[dict[str, Any]] = []
+        metadados_por_codigo: dict[str, dict[str, Any]] = {}
         for grupo, codigos in INDICADORES_POR_GRUPO.items():
-            indicadores = self.resolver_indicadores(grupo, codigos)
-            linhas.extend(self.buscar_grupo(portal.cod_ibge, grupo, indicadores, anos))
+            metadados = self.resolver_indicadores(grupo, codigos)
+            metadados_por_codigo.update(metadados)
+            internos = {c: m["codigo_interno"] for c, m in metadados.items()}
+            linhas.extend(self.buscar_grupo(portal.cod_ibge, grupo, internos, anos))
 
         esperados = len(INDICADORES_POR_GRUPO_TOTAL)
         por_ano: dict[int, int] = {}
@@ -218,9 +242,11 @@ class SiopeExtractor:
                 "portal_slug": portal.slug,
                 "ano": linha["numAno"],
                 "periodo": linha["numPeri"],
-                "tipo_periodo": TIPO_PERIODO_ANUAL,
+                "tipo_periodo": TIPO_PERIODO_ANUAL_CODIGO,
                 "codigo_indicador": str(linha["codExib"]),
                 "codigo_interno_indicador": linha["codIndi"],
+                "unidade": metadados_por_codigo[str(linha["codExib"])]["unidade"],
+                "nomes_oficiais_indicador": metadados_por_codigo[str(linha["codExib"])]["nomes_oficiais"],
                 "codigo_siope": codigo,
                 "valor": linha["valIndi"],
                 "coletado_em": coletado_em,

@@ -26,8 +26,10 @@ def _linha(exib, ano=2024, valor=1.5, ente=0):
 
 
 def _lista(grupo):
+    tipo_valor = "P" if grupo == 1 else "M"
     return [
-        {"codGrupIndi": grupo, "codIndi": IDS[c], "codExib": c, "nomIndi": "x"} for c in INDICADORES_POR_GRUPO[grupo]
+        {"codGrupIndi": grupo, "codIndi": IDS[c], "codExib": c, "idnTipoValr": tipo_valor, "nomIndi": f"nome {c}"}
+        for c in INDICADORES_POR_GRUPO[grupo]
     ]
 
 
@@ -67,6 +69,37 @@ def test_extrai_um_registro_por_indicador_com_portal_e_codigo():
     assert {r["portal_slug"] for r in rows} == {portal.slug}
     assert {r["codigo_siope"] for r in rows} == {codigo_siope(portal.cod_ibge)}
     assert {r["codigo_indicador"] for r in rows} == set(IDS)
+
+
+def test_registro_traz_procedencia_do_indicador():
+    dados = {g: [_linha(c) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
+    with patch.object(SiopeExtractor, "_request", _fake_request(dados)):
+        rows = {
+            r["codigo_indicador"]: r for r in SiopeExtractor(min_interval_seconds=0).extrair_portal(_portal(), [2024])
+        }
+    assert rows["1.1"]["unidade"] == "percentual"
+    assert rows["4.9"]["unidade"] == "monetario"
+    assert rows["4.9"]["nomes_oficiais_indicador"] == "nome 4.9"
+    assert {r["tipo_periodo"] for r in rows.values()} == {"anual"}
+    assert {r["periodo"] for r in rows.values()} == {6}
+
+
+def test_resolver_junta_nomes_oficiais_distintos_do_mesmo_codigo():
+    itens = _lista(1) + [
+        {"codGrupIndi": 1, "codIndi": 24, "codExib": "1.1", "idnTipoValr": "P", "nomIndi": "outro nome"},
+        {"codGrupIndi": 1, "codIndi": 24, "codExib": "1.1", "idnTipoValr": "P", "nomIndi": "outro nome"},
+    ]
+    with patch.object(SiopeExtractor, "_request", return_value=itens):
+        meta = SiopeExtractor(min_interval_seconds=0).resolver_indicadores(1, ("1.1", "1.2"))
+    assert meta["1.1"]["nomes_oficiais"] == "nome 1.1 | outro nome"
+    assert meta["1.1"]["codigo_interno"] == 24
+
+
+def test_resolver_rejeita_tipo_de_valor_desconhecido():
+    itens = [{"codGrupIndi": 1, "codIndi": 24, "codExib": "1.1", "idnTipoValr": "X", "nomIndi": "n"}]
+    with patch.object(SiopeExtractor, "_request", return_value=itens):
+        with pytest.raises(SiopeError, match="inconsistentes"):
+            SiopeExtractor(min_interval_seconds=0).resolver_indicadores(1, ("1.1",))
 
 
 def test_indicador_ausente_aborta():

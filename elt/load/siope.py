@@ -16,7 +16,11 @@ KEY_COLS = ["portal_slug", "ano", "periodo", "codigo_indicador"]
 
 
 def ensure_siope_table(engine: Connectable, schema: str) -> None:
-    """Garante a existência da tabela raw de indicadores do SIOPE no schema especificado."""
+    """Garante a existência da tabela raw de indicadores do SIOPE no schema especificado.
+
+    `tipo_periodo` é `anual` (código "A" da API) e `periodo` 6 é o 6º bimestre, o fechamento do ano.
+    `unidade` é `percentual` ou `monetario`; `nomes_oficiais_indicador` guarda os `nomIndi` da API.
+    """
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
     CREATE TABLE IF NOT EXISTS "{schema}"."{TABLE_NAME}" (
@@ -26,6 +30,8 @@ def ensure_siope_table(engine: Connectable, schema: str) -> None:
         tipo_periodo TEXT NOT NULL,
         codigo_indicador TEXT NOT NULL,
         codigo_interno_indicador INTEGER NOT NULL,
+        unidade TEXT NOT NULL,
+        nomes_oficiais_indicador TEXT NOT NULL,
         codigo_siope TEXT NOT NULL,
         valor NUMERIC,
         coletado_em TIMESTAMPTZ NOT NULL,
