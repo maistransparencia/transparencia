@@ -26,6 +26,8 @@ export const TOKENS = {
     warnFill: "var(--warn-fill)",
     warnText: "var(--warn-text)",
     footerBg: "var(--footer-bg)",
+    footerLogoTile: "var(--footer-logo-tile)",
+    footerLogoGlyph: "var(--footer-logo-glyph)",
     footerInk: "var(--footer-ink)",
     footerMute: "var(--footer-mute)",
     footerLine: "var(--footer-line)",

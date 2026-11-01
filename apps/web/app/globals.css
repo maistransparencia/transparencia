@@ -53,11 +53,13 @@
   --warn-text: oklch(0.53 0.14 55);
   /* Rodapé invertido: fundo escuro no tema claro (20.10). Textos semânticos
      usam o tom claro porque o fundo é escuro. */
-  --footer-bg: #1a1d21;
-  --footer-ink: #e8eaed;
-  --footer-mute: #a8b0bb;
-  --footer-line: #3a4049;
-  --footer-brand-text: oklch(0.75 0.11 250);
+  --footer-bg: oklch(0.27 0.07 250);
+  --footer-ink: oklch(0.97 0.01 250);
+  --footer-mute: oklch(0.84 0.03 250);
+  --footer-line: oklch(0.42 0.06 250);
+  --footer-logo-tile: oklch(1 0 0 / 0.16);
+  --footer-logo-glyph: oklch(1 0 0);
+  --footer-brand-text: oklch(0.82 0.09 250);
   --footer-ok-text: oklch(0.75 0.12 155);
   --footer-warn-text: oklch(0.83 0.15 80);
   --footer-danger-text: oklch(0.7 0.16 25);
@@ -96,6 +98,8 @@
   --footer-ink: #1a1d21;
   --footer-mute: #4b5563;
   --footer-line: #c3c8d0;
+  --footer-logo-tile: #5a72a8;
+  --footer-logo-glyph: #ffffff;
   --footer-brand-text: oklch(0.5 0.11 250);
   --footer-ok-text: oklch(0.45 0.1 155);
   --footer-warn-text: oklch(0.48 0.14 55);
@@ -137,6 +141,8 @@
   --color-footer-ink: var(--footer-ink);
   --color-footer-mute: var(--footer-mute);
   --color-footer-line: var(--footer-line);
+  --color-footer-logo-tile: var(--footer-logo-tile);
+  --color-footer-logo-glyph: var(--footer-logo-glyph);
   --color-footer-brand-text: var(--footer-brand-text);
   --color-footer-ok-text: var(--footer-ok-text);
   --color-footer-warn-text: var(--footer-warn-text);

@@ -72,8 +72,8 @@ describe("GlobalFooter", () => {
     );
     expect(screen.getByRole("contentinfo")).not.toHaveClass("bg-page");
     expect(
-      screen.getByRole("contentinfo").querySelector('img[src="/favicon.svg"]'),
-    ).toHaveAttribute("alt", "");
+      screen.getByRole("contentinfo").querySelector("svg[aria-hidden='true']"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Neste dispositivo")).toBeInTheDocument();
     expect(screen.getByText("Alertas")).toBeInTheDocument();
     expect(

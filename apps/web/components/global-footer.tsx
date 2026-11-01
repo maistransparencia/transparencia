@@ -14,6 +14,7 @@ import { env } from "@/env";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { botaoPrimario } from "./botoes-acao";
+import { BrandLogo } from "./brand-logo";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";
@@ -122,14 +123,7 @@ export function GlobalFooter({
           >
             <div className="min-w-0 space-y-2">
               <p className="flex items-center gap-2 font-bold font-serif text-base text-ink leading-tight">
-                {/* biome-ignore lint/performance/noImgElement: marca estática de 24px */}
-                <img
-                  src="/favicon.svg"
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="h-6 w-6 shrink-0 rounded-sm"
-                />
+                <BrandLogo className="h-6 w-6 shrink-0" />
                 {env.NEXT_PUBLIC_PROJECT_NAME}
               </p>
               {!isRootPage && effectivePortalName && (
