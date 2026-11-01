@@ -47,6 +47,58 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
   });
 
+  it("destaque: licitações ativas e total empenhado em contratos vigentes", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        licitacoesEmAndamento: [
+          { situacao: "Em andamento", situacaoCodigo: "em_andamento" },
+          { situacao: "Aberta", situacaoCodigo: "nao_informada" },
+          { situacao: "Homologada", situacaoCodigo: "homologada" },
+        ],
+        contratosServicosVigentes: [
+          { totalEmpenhado: 1000 },
+          { totalEmpenhado: 500 },
+        ],
+      }),
+    );
+    render(await LicitacoesPage(props));
+    expect(screen.getByTestId("licitacoes-destaque-ativas")).toHaveTextContent(
+      "2",
+    );
+    expect(
+      screen.getByTestId("licitacoes-destaque-empenhado"),
+    ).toHaveTextContent(/contratos vigentes em 2024/);
+  });
+
+  it("destaque: ano atual usa 'agora' e 'já'", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2024, isCurrentYear: true },
+      }),
+    );
+    render(await LicitacoesPage(props));
+    expect(screen.getByText(/ativas agora\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Quanto já foi reservado/)).toBeInTheDocument();
+  });
+
+  it("destaque: ano passado evita 'agora' e 'já'", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+    render(await LicitacoesPage(props));
+    expect(screen.getByText(/estiveram ativas em 2024\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Quanto foi reservado/)).toBeInTheDocument();
+  });
+
+  it("destaque: sem contratos vigentes mostra estado neutro", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+    render(await LicitacoesPage(props));
+    expect(
+      screen.getByTestId("licitacoes-destaque-empenhado"),
+    ).toHaveTextContent("sem contratos vigentes em 2024");
+    expect(screen.getByTestId("licitacoes-destaque-ativas")).toHaveTextContent(
+      "nenhuma licitação ativa em 2024",
+    );
+  });
+
   it("não exibe alerta de fracionamento quando não há casos", async () => {
     loadLicitacoesDataMock.mockResolvedValue(makeRaw());
 
@@ -109,7 +161,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/20[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Concentração de contratações diretas/),
+      screen.queryByText("Muitas compras sem concorrência"),
     ).not.toBeInTheDocument();
   });
 
@@ -136,7 +188,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/75[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(/Concentração de contratações diretas\./),
+      screen.getByText("Muitas compras sem concorrência"),
     ).toBeInTheDocument();
 
     const linkArt74 = screen.getByRole("link", {
@@ -166,11 +218,7 @@ describe("LicitacoesPage", () => {
       "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art86",
     );
 
-    expect(
-      screen.getByText(
-        /No consolidado municipal de 2024, embora as contratações diretas representem/,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Contratações diretas somam/)).toBeInTheDocument();
     expect(screen.queryByText(/card acima/)).not.toBeInTheDocument();
   });
 
@@ -207,7 +255,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/10[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Concentração de contratações diretas\./),
+      screen.queryByText("Muitas compras sem concorrência"),
     ).not.toBeInTheDocument();
   });
 
@@ -244,9 +292,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/60[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(
-        /Nas entidades selecionadas em 2024, 60,00% do volume apurado/,
-      ),
+      screen.getByText(/Nas entidades selecionadas, 60,00% do valor apurado/),
     ).toBeInTheDocument();
   });
 

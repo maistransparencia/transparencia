@@ -50,6 +50,30 @@ describe("PessoalPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("ano fechado: legenda 'proventos brutos, {ano}'", async () => {
+    loadPessoalDataMock.mockResolvedValue(makeRaw());
+    render(await PessoalPage(props));
+    expect(screen.getByTestId("pessoal-destaque")).toHaveTextContent(
+      "proventos brutos, 2024",
+    );
+  });
+
+  it("ano parcial: legenda inclui o período", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+      }),
+    );
+    render(await PessoalPage(props));
+    expect(screen.getByTestId("pessoal-destaque")).toHaveTextContent(
+      /proventos brutos no período \(.+\)/,
+    );
+  });
+
   it("exibe o card de 13º salário quando decimo13 está disponível", async () => {
     loadPessoalDataMock.mockResolvedValue(makeRaw());
 
