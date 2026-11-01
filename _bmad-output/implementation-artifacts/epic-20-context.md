@@ -27,6 +27,7 @@ Substituir o padrão de painéis com borda arredondada e sombra por uma linguage
 - Story 20.17: Guardas de Teste dos Padrões Base
 - Story 20.18: Varredura Final dos Padrões Base
 - Story 20.19: Remoção dos Aliases e Zeramento das Exceções do Tema
+- Story 20.20: Ajustes dos Destaques de Despesas, Licitações e Pessoal (antes da 20.17)
 
 ## Requirements & Constraints
 

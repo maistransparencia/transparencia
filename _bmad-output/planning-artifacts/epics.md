@@ -2805,7 +2805,7 @@ So that consistency does not decay with the next story.
 - **And** a lista temporária nasce com todas as páginas que hoje violam as regras, e cada story de migração remove as suas entradas.
 - **And** `pnpm typecheck`, `pnpm test` e `biome` passam.
 
-**Dependências:** 20.14. Deve rodar antes da 20.7.
+**Dependências:** 20.14. Deve rodar antes da 20.7. Passa a rodar depois da 20.20 (ajustes dos destaques), para congelar o padrão já corrigido.
 
 ---
 
@@ -2851,6 +2851,54 @@ So that every screen uses only the semantic tokens and the architecture test gua
 - **And** `pnpm typecheck`, `pnpm test`, `biome` e a suíte de testes visuais passam.
 
 **Dependências:** 20.4 a 20.9.
+
+---
+
+### Story 20.20: Ajustes dos Destaques de Despesas, Licitações e Pessoal
+
+As a citizen reading the portal,  
+I want the headline number of each page to look and read the same way, and to see the period it covers,  
+So that I compare pages without relearning the layout and never mistake a partial year for a full one.
+
+**Origem:** decisão do Julio (2026-11-01), a partir de capturas de tela das três páginas. **Deve entrar antes da 20.17** e antes do fechamento da Epic 20 (a 20.17 congela o padrão em testes; a tela precisa estar certa antes).
+
+**Escopo:** `apps/web/app/[portalSlug]/{despesas,licitacoes,pessoal}/page.tsx`, a camada `@transparencia/db` para os dois totais novos de `/licitacoes` e os specs das páginas. Nenhuma query existente muda de resultado.
+
+**Acceptance Criteria:**
+
+*`/despesas`*
+- **Given** o destaque "Dinheiro que saiu (pago)"
+- **When** a página renderiza
+- **Then** usa o mesmo padrão de `/receitas`: `eyebrow` (sem `font-mono`), `stat-value-lg text-brand-text` e `caption`, sem classes de tamanho soltas (`text-5xl`, `font-bold`).
+- **And** a frase de apoio ("Valor que já saiu do caixa… Isso é X% do que estava reservado…") ocupa a largura inteira do contêiner (remove `max-w-xl`/`max-w-3xl` do subtítulo e do bloco de apoio). O texto é mantido.
+
+*`/licitacoes`*
+- **Given** os cinco indicadores de contratação direta
+- **When** a página renderiza
+- **Then** ficam dentro de um `IndicatorPanel` (`panel`), e não mais numa linha solta.
+- **And** os valores em destaque (`stat-value-lg`, no padrão de `/receitas`) são: **(1) quantidade de licitações em aberto** e **(2) total empenhado em contratos**. Cada um responde a uma pergunta do cidadão ("Quantas licitações estão abertas agora?" e "Quanto a prefeitura já reservou para pagar contratos em {ano}?") e diz o recorte na legenda (ex.: "contratos vigentes em {ano}").
+- **And** os dois totais são calculados em `@transparencia/db` (regra 2), a partir dos dados que a página já carrega (`licitacoesEmAndamento` e `contratosServicosVigentes`); a página só formata. Se algum total vier de estimativa ou de recorte parcial, a legenda diz.
+- **And** "Taxa de contratação direta" e os demais indicadores deixam de competir por destaque: viram `Indicator` comum dentro do painel.
+- **Given** o alerta "Concentração de contratações diretas"
+- **When** a página renderiza com anomalia
+- **Then** o texto é reescrito em linguagem cidadã (skill `editor-cidadao`, validado por `jurista-fiscal`), em até duas frases, sem repetir o percentual que o indicador já mostra, no tom de **indício** e não de irregularidade. Proposta: *"Muitas compras sem disputa aberta. Em {ano}, a maior parte dos processos foi feita por dispensa, inexigibilidade ou adesão a ata de outro órgão. A lei permite em alguns casos, mas exige justificativa; é um ponto para acompanhar."*
+- **And** o alerta usa `AlertBox` do tipo `info` (o tipo `warning` só entra quando há algo comprovado, conforme `DESIGN.md`), e não mais um `div` com `bg-warn-fill/10`.
+- **And** as citações legais (Art. 74, 75 e 86 da Lei 14.133/2021) saem do alerta e vão para um "Ver detalhes" logo abaixo, mantendo os links atuais; a referência histórica (média de processos) vai para o mesmo "Ver detalhes". Versão filtrada por entidade segue a mesma regra.
+
+*`/pessoal`*
+- **Given** o destaque "Total pago em folha" com ano em andamento
+- **When** `isCurrentYear` e há período parcial
+- **Then** a legenda inclui o período, no mesmo padrão de `/receitas` (ex.: "proventos brutos no período (Jan–Out)"); sem período disponível, "até agora".
+- **And** em ano fechado a legenda segue "proventos brutos, {ano}". O período vem do mesmo `partialPeriod` já usado nas outras páginas, nunca de texto fixo (regra 23).
+
+*Geral*
+- **And** nenhum dado de outra seção, query ou texto fora dos blocos acima é alterado; specs de `page.spec.tsx` das três páginas atualizados (os de `/licitacoes` que procuram "Concentração de contratações diretas." e "Taxa de Contratação Direta" acompanham o novo texto).
+- **And** capturas de tela antes e depois das três páginas (claro e escuro, desktop e mobile), com ano fechado e ano parcial.
+- **And** `pnpm typecheck`, `pnpm test` e `biome` passam.
+
+**Decisões (Julio, 2026-11-01):** (1) "licitações em aberto" = licitações **ativas**: situação `aberta` ou `em_andamento`; o rótulo diz "ativas" para não induzir a erro; (2) "total empenhado em contratos" = só contratos **vigentes** do ano (`totalEmpenhado` de `contratosServicosVigentes`); (3) com filtro por entidade, os dois destaques refletem o filtro.
+
+**Dependências:** 20.14 e 20.16. Precede a 20.17.
 
 ---
 
