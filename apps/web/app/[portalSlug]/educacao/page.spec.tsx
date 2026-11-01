@@ -359,13 +359,14 @@ describe("EducacaoPage (Server Component)", () => {
     expect(secao.textContent).not.toMatch(/ano anterior/i);
   });
 
-  it("avisa que o número de redes mudou em vez de comparar a posição", async () => {
+  it("compara só as redes avaliadas nos dois ciclos e diz qual é a base", async () => {
     loadEducacaoDataMock.mockResolvedValue(
       makeRawEducacaoData({
         rankingAnosIniciais: {
           posicaoRanking: 46,
           totalMunicipios: 92,
-          variacaoPosicoes: null,
+          variacaoPosicoes: 5,
+          redesComparadas: 90,
           anoCicloAnterior: 2023,
           totalMunicipiosCicloAnterior: 90,
         },
@@ -381,9 +382,44 @@ describe("EducacaoPage (Server Component)", () => {
       name: "Aprendizado dos alunos",
     });
     expect(
-      within(secao).getByText(/o número de redes mudou de 90 para 92/),
+      within(secao).getByText(
+        /subiu 5 posições desde o ciclo anterior \(entre as 90 redes avaliadas nos dois ciclos\)/,
+      ),
     ).toBeInTheDocument();
-    expect(within(secao).queryByText(/posições desde/)).not.toBeInTheDocument();
+  });
+
+  it("mostra a variação ao lado do valor: verde sobe, vermelho desce, nada se não mudou", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: -3,
+          redesComparadas: 92,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 92,
+        },
+      }),
+    );
+    const { container } = render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = container.querySelector(
+      'section[aria-label="Aprendizado dos alunos"]',
+    ) as HTMLElement;
+    expect(secao.querySelector(".text-danger-text")?.textContent).toBe("3");
+    expect(secao.querySelector(".text-ok-text")).not.toBeNull();
+    const rotulos = Array.from(secao.querySelectorAll("dt")).map(
+      (dt) => dt.textContent,
+    );
+    expect(rotulos.slice(0, 3)).toEqual([
+      "Nota do IDEB",
+      "Classificação entre as redes municipais do estado",
+      "Meta",
+    ]);
   });
 
   it("mantém o hero no topo e põe o aprendizado logo depois, antes das seções financeiras", async () => {

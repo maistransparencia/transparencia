@@ -155,6 +155,7 @@ describe("educacao/view-model", () => {
         totalMunicipios: 92,
         variacaoPosicoes: 3,
         anoCicloAnterior: 2023,
+        redesComparadas: 92,
         totalMunicipiosCicloAnterior: 92,
       },
       rankingAnosFinais: null,
@@ -173,7 +174,7 @@ describe("educacao/view-model", () => {
         posicao: 46,
         total: 92,
         variacaoPosicoes: 3,
-        totalCicloAnterior: 92,
+        redesComparadas: 92,
       },
     });
     expect(vm.aprendizado.anosFinais).toMatchObject({

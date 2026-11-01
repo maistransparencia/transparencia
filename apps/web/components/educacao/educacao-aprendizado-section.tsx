@@ -1,6 +1,6 @@
 import type { EtapaEnsino } from "@transparencia/db";
 import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
-import { CheckCircle } from "lucide-react";
+import { ArrowDown, ArrowUp, CheckCircle } from "lucide-react";
 import type {
   AprendizadoEtapa,
   EducacaoViewModel,
@@ -43,21 +43,40 @@ function descreverCicloAnterior(etapa: AprendizadoEtapa): string {
 function descreverClassificacao(
   classificacao: NonNullable<AprendizadoEtapa["classificacao"]>,
 ): string {
-  const { variacaoPosicoes, totalCicloAnterior, total } = classificacao;
-  if (variacaoPosicoes !== null) {
-    const unidade = pluralizar(variacaoPosicoes, "posição", "posições");
-    if (variacaoPosicoes > 0) {
-      return `subiu ${variacaoPosicoes} ${unidade} desde o ciclo anterior`;
-    }
-    if (variacaoPosicoes < 0) {
-      return `caiu ${Math.abs(variacaoPosicoes)} ${unidade} desde o ciclo anterior`;
-    }
-    return "mesma posição do ciclo anterior";
-  }
-  if (totalCicloAnterior !== null && totalCicloAnterior !== total) {
-    return `o número de redes mudou de ${totalCicloAnterior} para ${total}, por isso não comparamos a posição`;
-  }
-  return "sem ciclo anterior para comparar";
+  const { variacaoPosicoes, redesComparadas, total } = classificacao;
+  if (variacaoPosicoes === null) return "sem ciclo anterior para comparar";
+  const base =
+    redesComparadas !== null && redesComparadas !== total
+      ? ` (entre as ${redesComparadas} redes avaliadas nos dois ciclos)`
+      : "";
+  if (variacaoPosicoes === 0) return `mesma posição do ciclo anterior${base}`;
+  const unidade = pluralizar(variacaoPosicoes, "posição", "posições");
+  const verbo = variacaoPosicoes > 0 ? "subiu" : "caiu";
+  return `${verbo} ${Math.abs(variacaoPosicoes)} ${unidade} desde o ciclo anterior${base}`;
+}
+
+/** Seta e quantidade ao lado do valor: verde sobe, vermelho desce, nada se não mudou. */
+function VariacaoAoLado({
+  variacao,
+  texto,
+}: {
+  variacao: number | null;
+  texto: string;
+}) {
+  if (variacao === null || variacao === 0) return null;
+  const subiu = variacao > 0;
+  const Seta = subiu ? ArrowUp : ArrowDown;
+  return (
+    <span
+      aria-hidden="true"
+      className={`ml-2 inline-flex items-center gap-1 font-semibold text-base ${
+        subiu ? "text-ok-text" : "text-danger-text"
+      }`}
+    >
+      <Seta className="h-4 w-4" />
+      {texto}
+    </span>
+  );
 }
 
 function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
@@ -74,7 +93,19 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
       <IndicatorPanel size="sm">
         <Indicator
           label="Nota do IDEB"
-          value={etapa.notaIdeb === null ? "—" : formatarNota(etapa.notaIdeb)}
+          value={
+            etapa.notaIdeb === null ? (
+              "—"
+            ) : (
+              <>
+                {formatarNota(etapa.notaIdeb)}
+                <VariacaoAoLado
+                  variacao={etapa.variacaoPontos}
+                  texto={formatarNota(Math.abs(etapa.variacaoPontos ?? 0))}
+                />
+              </>
+            )
+          }
           note={
             etapa.anoApuracao === null ? (
               "sem nota apurada"
@@ -82,6 +113,38 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
               <>
                 <span className="block">apurada em {etapa.anoApuracao}</span>
                 <span className="block">{descreverCicloAnterior(etapa)}</span>
+              </>
+            )
+          }
+        />
+        <Indicator
+          label="Classificação entre as redes municipais do estado"
+          value={
+            etapa.classificacao === null ? (
+              "—"
+            ) : (
+              <>
+                {`${etapa.classificacao.posicao}º`}
+                <VariacaoAoLado
+                  variacao={etapa.classificacao.variacaoPosicoes}
+                  texto={String(
+                    Math.abs(etapa.classificacao.variacaoPosicoes ?? 0),
+                  )}
+                />
+              </>
+            )
+          }
+          note={
+            etapa.classificacao === null ? (
+              "classificação ainda não disponível"
+            ) : (
+              <>
+                <span className="block">
+                  entre {etapa.classificacao.total} redes municipais
+                </span>
+                <span className="block">
+                  {descreverClassificacao(etapa.classificacao)}
+                </span>
               </>
             )
           }
@@ -99,28 +162,6 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
                 </span>
               ) : null}
             </>
-          }
-        />
-        <Indicator
-          label="Classificação entre as redes municipais do estado"
-          value={
-            etapa.classificacao === null
-              ? "—"
-              : `${etapa.classificacao.posicao}º`
-          }
-          note={
-            etapa.classificacao === null ? (
-              "classificação ainda não disponível"
-            ) : (
-              <>
-                <span className="block">
-                  entre {etapa.classificacao.total} redes municipais
-                </span>
-                <span className="block">
-                  {descreverClassificacao(etapa.classificacao)}
-                </span>
-              </>
-            )
           }
         />
       </IndicatorPanel>

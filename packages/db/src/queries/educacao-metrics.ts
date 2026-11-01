@@ -106,6 +106,8 @@ export interface ResumoEducacaoDTO {
 }
 
 export interface EducacaoRankingEstadualDTO {
+  /** Redes avaliadas nos dois ciclos (base da variação); nulo quando não comparável. */
+  redesComparadas?: number | null;
   posicaoRanking: number | null;
   totalMunicipios: number | null;
   /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
@@ -304,32 +306,81 @@ export async function getResumoEducacao(
   };
 }
 
+export interface ClassificacaoRedes {
+  posicao: number | null;
+  total: number;
+  codigosIbge: number[];
+}
+
 /**
- * Posições ganhas (positivo) ou perdidas (negativo) entre dois ciclos do IDEB.
- * Só compara quando o total de redes é o mesmo nos dois ciclos; caso contrário
- * a posição não é comparável e o resultado é nulo.
+ * Classificação por competição: redes com a mesma nota dividem a posição
+ * (1 + quantas redes têm nota estritamente maior), então um empate nunca
+ * vira subida ou queda por desempate arbitrário.
+ */
+export function classificarRedes(
+  rows: ReadonlyArray<{
+    cod_ibge: number | string;
+    nota_ideb: number | string;
+  }>,
+  codIbge: number,
+): ClassificacaoRedes {
+  const notas = rows.map((row) => ({
+    codIbge: Number(row.cod_ibge),
+    nota: Number(row.nota_ideb),
+  }));
+  const propria = notas.find((rede) => rede.codIbge === codIbge);
+  return {
+    posicao:
+      propria === undefined
+        ? null
+        : 1 + notas.filter((rede) => rede.nota > propria.nota).length,
+    total: notas.length,
+    codigosIbge: notas.map((rede) => rede.codIbge),
+  };
+}
+
+export interface VariacaoPosicoes {
+  /** Posições ganhas (positivo) ou perdidas (negativo). */
+  variacaoPosicoes: number;
+  /** Redes avaliadas nos dois ciclos, base única da comparação. */
+  redesComparadas: number;
+}
+
+type NotaRede = { cod_ibge: number | string; nota_ideb: number | string };
+
+/**
+ * Compara a posição do município entre dois ciclos do IDEB usando só as redes
+ * presentes nos dois, para que entrada ou saída de redes não vire subida ou
+ * queda. Nulo quando o município não está nos dois ciclos.
  */
 export function calcularVariacaoPosicoes({
-  posicaoAtual,
-  totalAtual,
-  posicaoAnterior,
-  totalAnterior,
+  codIbge,
+  atual,
+  anterior,
 }: {
-  posicaoAtual: number | null;
-  totalAtual: number | null;
-  posicaoAnterior: number | null;
-  totalAnterior: number | null;
-}): number | null {
-  if (
-    posicaoAtual === null ||
-    posicaoAnterior === null ||
-    totalAtual === null ||
-    totalAnterior === null ||
-    totalAtual !== totalAnterior
-  ) {
-    return null;
-  }
-  return posicaoAnterior - posicaoAtual;
+  codIbge: number;
+  atual: ReadonlyArray<NotaRede>;
+  anterior: ReadonlyArray<NotaRede> | null;
+}): VariacaoPosicoes | null {
+  if (anterior === null) return null;
+  const codigosAnteriores = new Set(anterior.map((r) => Number(r.cod_ibge)));
+  const comuns = new Set(
+    atual
+      .map((r) => Number(r.cod_ibge))
+      .filter((codigo) => codigosAnteriores.has(codigo)),
+  );
+  const restringir = (rows: ReadonlyArray<NotaRede>) =>
+    classificarRedes(
+      rows.filter((r) => comuns.has(Number(r.cod_ibge))),
+      codIbge,
+    );
+  const posicaoAtual = restringir(atual).posicao;
+  const posicaoAnterior = restringir(anterior).posicao;
+  if (posicaoAtual === null || posicaoAnterior === null) return null;
+  return {
+    variacaoPosicoes: posicaoAnterior - posicaoAtual,
+    redesComparadas: comuns.size,
+  };
 }
 
 /**
@@ -449,12 +500,7 @@ export async function getEducacaoRankingEstadual(
       }
     }
 
-    const currentIdx = currentRows.findIndex(
-      (r) => Number(r.cod_ibge) === codIbge,
-    );
-
-    const totalMunicipios = currentRows.length;
-    const posicaoRanking = currentIdx !== -1 ? currentIdx + 1 : null;
+    const atual = classificarRedes(currentRows, codIbge);
 
     const anoAnteriorRow = await db
       .selectFrom("seed_inep_ideb")
@@ -488,23 +534,21 @@ export async function getEducacaoRankingEstadual(
             .orderBy("cod_ibge", "asc")
             .execute();
 
-    const posicaoAnterior = (() => {
-      const prevIdx = prevRows.findIndex((r) => Number(r.cod_ibge) === codIbge);
-      return prevIdx === -1 ? null : prevIdx + 1;
-    })();
+    const anterior =
+      prevRows.length > 0 ? classificarRedes(prevRows, codIbge) : null;
+    const comparacao = calcularVariacaoPosicoes({
+      codIbge,
+      atual: currentRows,
+      anterior: prevRows.length > 0 ? prevRows : null,
+    });
 
     return {
-      posicaoRanking,
-      totalMunicipios,
-      variacaoPosicoes: calcularVariacaoPosicoes({
-        posicaoAtual: posicaoRanking,
-        totalAtual: totalMunicipios,
-        posicaoAnterior,
-        totalAnterior: prevRows.length > 0 ? prevRows.length : null,
-      }),
-      anoCicloAnterior: prevRows.length > 0 ? anoCicloAnterior : null,
-      totalMunicipiosCicloAnterior:
-        prevRows.length > 0 ? prevRows.length : null,
+      posicaoRanking: atual.posicao,
+      totalMunicipios: atual.total,
+      variacaoPosicoes: comparacao?.variacaoPosicoes ?? null,
+      redesComparadas: comparacao?.redesComparadas ?? null,
+      anoCicloAnterior: anterior === null ? null : anoCicloAnterior,
+      totalMunicipiosCicloAnterior: anterior?.total ?? null,
     };
   } catch {
     return null;

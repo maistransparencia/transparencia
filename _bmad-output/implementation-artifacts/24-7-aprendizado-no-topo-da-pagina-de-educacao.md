@@ -11,21 +11,7 @@ context:
   - '{project-root}/EXPERIENCE.md'
   - '{project-root}/_bmad-output/implementation-artifacts/epic-24-context.md'
 warnings: []
-deferred:
-  - summary: >-
-      Empates de nota_ideb no ranking estadual são desempatados só por cod_ibge, podendo gerar "subiu/caiu N posições" espúrio.
-    evidence: |-
-      Regra de ordenação pré-existente (nota_ideb desc, cod_ibge asc), mantida de propósito pela spec; notas têm uma casa decimal, então empates são comuns.
-    location: >-
-      packages/db/src/queries/educacao-metrics.ts
-    severity: medium
-  - summary: >-
-      Totais iguais mas conjuntos de municípios diferentes entre ciclos, ou ano do ranking diferente do ano anterior da nota do município, comparam populações distintas.
-    evidence: |-
-      Não verificado com dados reais de seed_inep_ideb; checar se há ciclos com mesmo total e municípios trocados.
-    location: >-
-      packages/db/src/queries/educacao-metrics.ts, apps/web/app/[portalSlug]/educacao/view-model.ts
-    severity: medium (unverified)
+deferred: []
 ---
 
 <intent-contract>
@@ -86,6 +72,12 @@ deferred:
 - 2026-11-01 — instrução do usuário durante a execução: o hero de `/educacao` deve continuar existindo e o aprendizado não é simplesmente a primeira seção da página. Posição final: hero e painel de indicadores primeiro, aprendizado logo depois, financeiro em seguida. Substitui "primeiro bloco" do `<intent-contract>` (somente leitura) e do AC original do `epics.md`.
 
 ## Review Triage Log
+
+### 2026-11-01 — Pendências resolvidas (pedido do usuário)
+- empates: `classificarRedes` dá a mesma posição a notas iguais; resolvido
+- conjuntos de redes diferentes e ano do ranking ≠ ano da nota anterior: comparação só entre as redes presentes nos dois ciclos (decisão do usuário, substitui "não comparar quando o total difere") e variação descartada quando `anoCicloAnterior` não confere com o da nota; resolvido
+- teste real no banco para `getEducacaoRankingEstadual` com UF fictícia; resolvido
+- ajustes visuais: variação ao lado da nota e da posição (verde/vermelho, nada se igual), "Meta" depois da classificação
 
 ### 2026-11-01 — Review pass
 - verdicts: 11 findings — high 0, medium 3, low 5, false 1, maybe-false 2

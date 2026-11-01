@@ -91,8 +91,8 @@ export interface AprendizadoEtapa {
     total: number;
     /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
     variacaoPosicoes: number | null;
-    /** Total de redes no ciclo anterior (nulo sem ciclo anterior). */
-    totalCicloAnterior: number | null;
+    /** Redes avaliadas nos dois ciclos, base da variação (nulo quando não comparável). */
+    redesComparadas: number | null;
   } | null;
 }
 
@@ -262,6 +262,10 @@ function buildAprendizadoEtapa({
   );
   const atual = apurados[apurados.length - 1] ?? null;
   const anterior = apurados[apurados.length - 2] ?? null;
+  // Nota e posição só se comparam quando falam do mesmo ciclo anterior.
+  const cicloAnteriorConfere =
+    ranking?.anoCicloAnterior != null &&
+    ranking.anoCicloAnterior === anterior?.ano;
 
   return {
     etapaEnsino: historico.etapaEnsino,
@@ -278,8 +282,12 @@ function buildAprendizadoEtapa({
         ? {
             posicao: ranking.posicaoRanking,
             total: ranking.totalMunicipios,
-            variacaoPosicoes: ranking.variacaoPosicoes,
-            totalCicloAnterior: ranking.totalMunicipiosCicloAnterior,
+            variacaoPosicoes: cicloAnteriorConfere
+              ? ranking.variacaoPosicoes
+              : null,
+            redesComparadas: cicloAnteriorConfere
+              ? (ranking.redesComparadas ?? null)
+              : null,
           }
         : null,
   };
