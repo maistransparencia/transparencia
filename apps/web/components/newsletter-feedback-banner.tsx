@@ -20,8 +20,8 @@ function getBannerConfig(status: string): BannerConfig | null {
       title: "Inscrição confirmada com sucesso!",
       description:
         "Você agora receberá resumos periódicos e alertas cívicos sobre as contas públicas.",
-      bgColor: "bg-ok/10",
-      borderColor: "border-ok/30",
+      bgColor: "bg-ok-fill/10",
+      borderColor: "border-ok-fill/30",
       textColor: "text-ink",
     };
   }
@@ -47,8 +47,8 @@ function getBannerConfig(status: string): BannerConfig | null {
       title: "Não foi possível validar a solicitação.",
       description:
         "O link pode ter expirado ou ser inválido. Por favor, tente se inscrever novamente.",
-      bgColor: "bg-danger/10",
-      borderColor: "border-danger/30",
+      bgColor: "bg-danger-fill/10",
+      borderColor: "border-danger-fill/30",
       textColor: "text-ink",
     };
   }

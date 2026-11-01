@@ -140,6 +140,42 @@ describe.each(temas)(
   },
 );
 
+describe.each(temas)(
+  "contraste do rodapé invertido no tema %s",
+  (_t, seletor) => {
+    const bloco = blocoDoTema(seletor);
+    const cor = (nome: string) => resolver(bloco, nome);
+
+    it.each([
+      "footer-ink",
+      "footer-mute",
+      "footer-brand-text",
+      "footer-ok-text",
+      "footer-warn-text",
+      "footer-danger-text",
+    ])("%s sobre footer-bg tem no mínimo 4,5:1", (texto) => {
+      expect(contraste(cor(texto), cor("footer-bg"))).toBeGreaterThanOrEqual(
+        4.5,
+      );
+    });
+
+    it("footer-bg é o oposto de page (contraste mínimo 10:1 entre os dois)", () => {
+      expect(contraste(cor("footer-bg"), cor("page"))).toBeGreaterThanOrEqual(
+        10,
+      );
+    });
+  },
+);
+
+describe.each(temas)("contraste de mute2 no tema %s", (_t, seletor) => {
+  it("mute2 sobre page tem no mínimo 4,5:1", () => {
+    const bloco = blocoDoTema(seletor);
+    expect(
+      contraste(resolver(bloco, "mute2"), resolver(bloco, "page")),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 describe("alias dos tokens antigos", () => {
   it.each(temas)(
     "warn, ok e danger seguem o tom de texto no tema %s",

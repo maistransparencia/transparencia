@@ -172,7 +172,7 @@ export function NewsletterModal({
         {/* Estado de Sucesso */}
         {status === "success" ? (
           <div className="py-4 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok/10 text-ok-text">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <h3 className="font-semibold text-ink text-lg">
@@ -260,7 +260,7 @@ export function NewsletterModal({
 
               {/* Mensagem de Erro */}
               {status === "error" && (
-                <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-2.5 text-danger-text text-xs">
+                <div className="flex items-start gap-2 rounded-lg bg-danger-fill/10 p-2.5 text-danger-text text-xs">
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger-text" />
                   <span>{errorMessage}</span>
                 </div>

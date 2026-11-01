@@ -51,6 +51,18 @@
   --warn: var(--warn-text);
   --warn-fill: oklch(0.77 0.16 70);
   --warn-text: oklch(0.53 0.14 55);
+  /* Rodapé invertido: fundo escuro no tema claro (20.10). Textos semânticos
+     usam o tom claro porque o fundo é escuro. */
+  --footer-bg: oklch(0.27 0.07 250);
+  --footer-ink: oklch(0.97 0.01 250);
+  --footer-mute: oklch(0.84 0.03 250);
+  --footer-line: oklch(0.42 0.06 250);
+  --footer-logo-tile: oklch(1 0 0 / 0.16);
+  --footer-logo-glyph: oklch(1 0 0);
+  --footer-brand-text: oklch(0.82 0.09 250);
+  --footer-ok-text: oklch(0.75 0.12 155);
+  --footer-warn-text: oklch(0.83 0.15 80);
+  --footer-danger-text: oklch(0.7 0.16 25);
 }
 
 .dark {
@@ -81,6 +93,36 @@
   --warn: var(--warn-text);
   --warn-fill: oklch(0.77 0.16 70);
   --warn-text: oklch(0.83 0.15 80);
+  /* Rodapé invertido: fundo claro no tema escuro. */
+  --footer-bg: #e8eaed;
+  --footer-ink: #1a1d21;
+  --footer-mute: #4b5563;
+  --footer-line: #c3c8d0;
+  --footer-logo-tile: #5a72a8;
+  --footer-logo-glyph: #ffffff;
+  --footer-brand-text: oklch(0.5 0.11 250);
+  --footer-ok-text: oklch(0.45 0.1 155);
+  --footer-warn-text: oklch(0.48 0.14 55);
+  --footer-danger-text: oklch(0.5 0.17 25);
+}
+
+/* Superfície do rodapé: reatribui os tokens base para que botões e
+   controles filhos herdem o contraste invertido sem variantes dark:. */
+.footer-surface {
+  --page: var(--footer-bg);
+  --ink: var(--footer-ink);
+  --onink: var(--footer-bg);
+  --line: var(--footer-line);
+  --line2: var(--footer-line);
+  --mute: var(--footer-mute);
+  --mute2: var(--footer-mute);
+  --brand: var(--footer-brand-text);
+  --brand-text: var(--footer-brand-text);
+  --ok-text: var(--footer-ok-text);
+  --warn-text: var(--footer-warn-text);
+  --danger-text: var(--footer-danger-text);
+  background-color: var(--footer-bg);
+  color: var(--footer-ink);
 }
 
 @theme inline {
@@ -95,6 +137,16 @@
   --color-mute3: var(--mute3);
   --color-faint: var(--faint);
   --color-pill: var(--pill);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-ink: var(--footer-ink);
+  --color-footer-mute: var(--footer-mute);
+  --color-footer-line: var(--footer-line);
+  --color-footer-logo-tile: var(--footer-logo-tile);
+  --color-footer-logo-glyph: var(--footer-logo-glyph);
+  --color-footer-brand-text: var(--footer-brand-text);
+  --color-footer-ok-text: var(--footer-ok-text);
+  --color-footer-warn-text: var(--footer-warn-text);
+  --color-footer-danger-text: var(--footer-danger-text);
   --color-banbg: var(--banbg);
   --color-banfg: var(--banfg);
   --color-brand: var(--brand);

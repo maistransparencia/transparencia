@@ -420,4 +420,16 @@ describe("Sidebar Component", () => {
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });
     expect(visaoGeral).not.toHaveClass("border-ink");
   });
+
+  it("drawer móvel desliza (transform) sempre e não anima em md", () => {
+    const { container } = render(
+      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
+    );
+    const aside = container.querySelector("aside");
+    expect(aside).toHaveClass(
+      "transition-[translate,visibility]",
+      "md:transition-none",
+    );
+    expect(aside).not.toHaveClass("motion-reduce:transition-none");
+  });
 });

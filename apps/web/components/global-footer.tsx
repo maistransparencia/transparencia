@@ -11,12 +11,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { env } from "@/env";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { botaoPrimario } from "./botoes-acao";
+import { BrandLogo } from "./brand-logo";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";
-import { PwaInstallButton } from "./pwa-installer";
+import { PwaInstallButton, usePwaInstallAvailability } from "./pwa-installer";
 import { SocialLinks } from "./social-links";
 
 export interface GlobalFooterProps {
@@ -42,6 +44,7 @@ export function GlobalFooter({
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const pathname = usePathname();
+  const canInstallApp = usePwaInstallAvailability();
 
   const segments = (pathname || "").split("/").filter(Boolean);
   const isRootPage = !pathname || pathname === "/";
@@ -71,6 +74,12 @@ export function GlobalFooter({
   const effectiveExtractionDate =
     activePortal?.dataExtracao || (isRootPage ? undefined : lastExtractionDate);
 
+  const { isSupported: isPushSupported } = usePushNotifications({
+    portalSlug: effectivePortalSlug ?? "",
+  });
+  const hasPushControls = Boolean(effectivePortalSlug) && isPushSupported;
+  const hasDeviceColumn = hasPushControls || canInstallApp;
+
   const normalizedUrl = effectivePortalUrl
     ? /^https?:\/\//.test(effectivePortalUrl)
       ? effectivePortalUrl
@@ -86,7 +95,7 @@ export function GlobalFooter({
       href={normalizedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 rounded-sm font-medium text-brand underline underline-offset-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2"
+      className="inline-flex items-center gap-0.5 rounded-sm font-medium text-brand-text underline underline-offset-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2"
     >
       portal oficial
       <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -98,17 +107,23 @@ export function GlobalFooter({
     <>
       <footer
         className={cn(
-          "mt-auto border-ink border-t-2 bg-page",
+          "footer-surface mt-auto border-footer-line border-t-2",
           activePortal
             ? "pb-[calc(env(safe-area-inset-bottom,0px)+9rem)] md:pb-0"
             : "pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:pb-0",
         )}
       >
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
-          {/* Três colunas: marca e fonte, neste dispositivo, alertas */}
-          <div className="grid grid-cols-1 gap-8 py-8 sm:grid-cols-3 sm:gap-6">
+          {/* Marca e fonte, neste dispositivo (só com conteúdo) e alertas */}
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-8 py-8 sm:gap-6",
+              hasDeviceColumn ? "sm:grid-cols-3" : "sm:grid-cols-2",
+            )}
+          >
             <div className="min-w-0 space-y-2">
-              <p className="font-bold font-serif text-base text-ink leading-tight">
+              <p className="flex items-center gap-2 font-bold font-serif text-base text-ink leading-tight">
+                <BrandLogo className="h-6 w-6 shrink-0" />
                 {env.NEXT_PUBLIC_PROJECT_NAME}
               </p>
               {!isRootPage && effectivePortalName && (
@@ -125,15 +140,17 @@ export function GlobalFooter({
               </p>
             </div>
 
-            <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
-              <p className="font-semibold text-ink text-xs">
-                Neste dispositivo
-              </p>
-              {effectivePortalSlug && (
-                <PushNotificationSettings portalSlug={effectivePortalSlug} />
-              )}
-              <PwaInstallButton variant="footer" />
-            </div>
+            {hasDeviceColumn && (
+              <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
+                <p className="font-semibold text-ink text-xs">
+                  Neste dispositivo
+                </p>
+                {effectivePortalSlug && (
+                  <PushNotificationSettings portalSlug={effectivePortalSlug} />
+                )}
+                <PwaInstallButton variant="footer" />
+              </div>
+            )}
 
             <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
               <p className="font-semibold text-ink text-xs">Alertas</p>

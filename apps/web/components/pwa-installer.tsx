@@ -1,6 +1,6 @@
 "use client";
 
-import { Smartphone, X } from "lucide-react";
+import { Rocket, Smartphone, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
@@ -347,9 +347,9 @@ export function PwaInstaller({
   return (
     <>
       {waitingWorker && (
-        <div className="fixed bottom-5 left-5 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl ring-1 ring-line">
+        <div className="fixed bottom-5 left-5 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-line2 font-bold text-base text-brand">
-            🚀
+            <Rocket className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="flex-1 font-medium text-ink text-sm">
             Nova versão da aplicação disponível!
@@ -366,12 +366,12 @@ export function PwaInstaller({
 
       {/* Prompt flutuante clássico (ativo apenas se explicitamente requisitado via prop) */}
       {!isStandalone && !isDismissed && installPrompt && showFloatingPrompt && (
-        <div className="fixed right-5 bottom-20 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl ring-1 ring-line md:bottom-5">
+        <div className="fixed right-5 bottom-20 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl md:bottom-5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-line2 font-bold text-base text-brand">
-            📲
+            <Smartphone className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="flex-1 font-medium text-ink text-sm">
-            Instale o App MaisTransparencia no seu dispositivo
+            Instale o App {env.NEXT_PUBLIC_PROJECT_NAME} no seu dispositivo
           </div>
           <button
             type="button"
@@ -387,7 +387,7 @@ export function PwaInstaller({
             title="Fechar"
             aria-label="Fechar"
           >
-            ✕
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -401,15 +401,19 @@ export function PwaInstaller({
         canShowMobilePrompt && (
           <aside
             aria-label="Instalação do aplicativo"
-            className="fixed right-3 bottom-20 left-3 z-50 flex items-center justify-between gap-3 rounded-md border border-line bg-page p-3.5 text-ink shadow-xl ring-1 ring-line backdrop-blur-md transition-all duration-300 md:hidden"
+            className="fixed right-3 bottom-20 left-3 z-50 flex items-center justify-between gap-3 rounded-md border border-line bg-page p-3.5 text-ink shadow-xl md:hidden"
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-line2 text-brand shadow-xs">
-                <Smartphone className="h-5 w-5" strokeWidth={1.8} />
+                <Smartphone
+                  className="h-4 w-4"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
               </div>
               <div className="min-w-0">
                 <p className="truncate font-semibold text-ink text-xs">
-                  Instale o MaisTransparência
+                  Instale o {env.NEXT_PUBLIC_PROJECT_NAME}
                 </p>
                 <p className="truncate text-mute2 text-xs">
                   Acesso rápido e direto da tela de início
@@ -430,13 +434,44 @@ export function PwaInstaller({
                 className="p-1.5 text-mute2 transition-colors hover:text-ink"
                 aria-label="Dispensar aviso de instalação"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </aside>
         )}
     </>
   );
+}
+
+/** Disponibilidade de instalação do app neste dispositivo (prompt nativo ou iOS). */
+export function usePwaInstallAvailability(): boolean {
+  const [hasInstallPrompt, setHasInstallPrompt] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isIos, setIsIos] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setIsStandalone(checkIsStandaloneOrInstalled());
+    setIsIos(isIosDevice());
+
+    const handleBeforeInstallPrompt = () => setHasInstallPrompt(true);
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setHasInstallPrompt(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  return !isStandalone && (hasInstallPrompt || isIos);
 }
 
 export interface PwaInstallButtonProps {
@@ -545,7 +580,7 @@ export function PwaInstallButton({
                 className="text-mute2 transition-colors hover:text-ink"
                 aria-label="Fechar instruções"
               >
-                ✕
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
             <p className="mt-1 text-mute text-xs leading-relaxed">
@@ -584,7 +619,7 @@ export function PwaInstallButton({
               className="text-mute2 transition-colors hover:text-ink"
               aria-label="Fechar instruções"
             >
-              ✕
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
           <p className="mt-1 text-mute text-xs leading-relaxed">

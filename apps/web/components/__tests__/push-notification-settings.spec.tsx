@@ -87,18 +87,13 @@ describe("PushNotificationSettings", () => {
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("usa o botão secundário padronizado (sem hex nem paleta fixa)", () => {
+  it("usa ação em formato de link discreto (sem hex nem paleta fixa)", () => {
     mockHookState.isSubscribed = false;
     mockHookState.permission = "default";
     render(<PushNotificationSettings portalSlug="slug_teste" />);
 
     const botao = screen.getByRole("button", { name: /Ativar/i });
-    expect(botao).toHaveClass(
-      "rounded-md",
-      "border-line",
-      "bg-page",
-      "text-xs",
-    );
+    expect(botao).toHaveClass("text-mute2", "text-xs", "underline");
     expect(botao.className).not.toMatch(/#|blue-|slate-|emerald-/);
   });
 });
