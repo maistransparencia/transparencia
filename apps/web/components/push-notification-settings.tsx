@@ -111,21 +111,26 @@ export function PushNotificationSettings({
   if (isSubscribed) {
     return (
       <div className="space-y-2">
-        <p role="status" className={`${linhaStatusClass} font-medium text-ink`}>
-          <BellRing
-            className="h-4 w-4 shrink-0 text-ok-text"
-            aria-hidden="true"
-          />
-          Notificações ativas
-        </p>
-        <button
-          type="button"
-          onClick={() => runAction(unsubscribe)}
-          disabled={isBusy}
-          className={`${botaoSecundario} w-full`}
-        >
-          {isActionLoading ? "Aguarde..." : "Desativar"}
-        </button>
+        <div className="flex items-center justify-between gap-3">
+          <p
+            role="status"
+            className={`${linhaStatusClass} font-medium text-ink`}
+          >
+            <BellRing
+              className="h-4 w-4 shrink-0 text-mute2"
+              aria-hidden="true"
+            />
+            Notificações ativas
+          </p>
+          <button
+            type="button"
+            onClick={() => runAction(unsubscribe)}
+            disabled={isBusy}
+            className="cursor-pointer text-mute2 text-xs underline hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isActionLoading ? "Aguarde..." : "Desativar"}
+          </button>
+        </div>
         {errorMessage}
       </div>
     );
