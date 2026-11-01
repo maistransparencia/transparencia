@@ -121,17 +121,14 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+      name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
     });
     expect(heading).toBeInTheDocument();
-    expect(heading.tagName).toBe("H3");
+    expect(heading.tagName).toBe("H2");
+    expect(screen.getAllByRole("heading", { name: /CADPREV/ })).toHaveLength(1);
 
-    expect(
-      screen.getByText("Registro CADPREV / Ministério da Previdência"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Objeto do Termo de Parcelamento"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Registro CADPREV")).toBeInTheDocument();
+    expect(screen.getByText("Objeto do parcelamento")).toBeInTheDocument();
     expect(screen.getByText("00123/2023")).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -158,7 +155,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
       }),
     ).toBeInTheDocument();
 
@@ -168,9 +165,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
       ),
     ).toBeInTheDocument();
 
-    expect(
-      screen.queryByText("Registro CADPREV / Ministério da Previdência"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Registro CADPREV")).not.toBeInTheDocument();
 
     expect(
       screen.getByText(
@@ -194,13 +189,11 @@ describe("PrevidenciaActuarialRiskSection", () => {
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe("H3");
 
-    expect(screen.getByText("Exercício / Ano")).toBeInTheDocument();
-    expect(screen.getByText("Aporte Atuarial Exigido")).toBeInTheDocument();
-    expect(screen.getByText("Aporte Efetuado / Quitado")).toBeInTheDocument();
-    expect(screen.getByText("Índice de Adimplência")).toBeInTheDocument();
-    expect(
-      screen.getByText("Amortização de Dívida / Parcelamento"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Exercício")).toBeInTheDocument();
+    expect(screen.getByText("Aporte exigido")).toBeInTheDocument();
+    expect(screen.getByText("Aporte pago")).toBeInTheDocument();
+    expect(screen.getByText("Adimplência")).toBeInTheDocument();
+    expect(screen.getByText("Dívida amortizada")).toBeInTheDocument();
     expect(screen.getByText("2021")).toBeInTheDocument();
     expect(screen.getByText("2024")).toBeInTheDocument();
   });
@@ -218,7 +211,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
       }),
     ).toBeInTheDocument();
   });
