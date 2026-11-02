@@ -9,6 +9,7 @@ export * from "./queries/despesas-metrics";
 export * from "./queries/educacao-execucao-metrics";
 export * from "./queries/educacao-metrics";
 export * from "./queries/educacao-origem-recursos";
+export * from "./queries/educacao-siope-metrics";
 export * from "./queries/emendas-parlamentares";
 export * from "./queries/execucao-orcamentaria-metrics";
 export * from "./queries/export-raw-data";
