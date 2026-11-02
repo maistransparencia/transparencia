@@ -39,7 +39,11 @@ describe("EducacaoMinimosLegaisSection", () => {
       screen.getByText("A Prefeitura aplica o mínimo exigido em educação?"),
     ).toBeTruthy();
     expect(screen.getByText(/Cumpriu o mínimo/)).toBeTruthy();
-    expect(screen.getByText(/mínimo exigido: 25,0%/)).toBeTruthy();
+    expect(
+      screen.getByText(
+        /mínimo exigido: 25,00% da receita de impostos e transferências/,
+      ),
+    ).toBeTruthy();
     expect(
       screen
         .getByRole("link", { name: /CF\/88 Art. 212/ })
@@ -47,18 +51,26 @@ describe("EducacaoMinimosLegaisSection", () => {
     ).toBe("https://www.planalto.gov.br/constituicao");
   });
 
-  it("não exibe o Fundeb enquanto a base de cálculo não é conferida", () => {
+  it("exibe o Fundeb com o mínimo, o veredito e a lei", () => {
     render(<EducacaoMinimosLegaisSection minimosLegais={base} />);
-    expect(screen.queryByText(/Fundeb/)).toBeNull();
+    expect(
+      screen.getByText("Fundeb pago aos profissionais da educação"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/mínimo exigido: 70,00% dos recursos do Fundeb/),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /Lei 14.113\/2020 Art. 26/ }),
+    ).toBeTruthy();
   });
 
   it("abaixo do mínimo fala em indício, nunca em irregularidade", () => {
     const { container } = render(
-      <EducacaoMinimosLegaisSection
-        minimosLegais={{ ...base, mde: { ...base.mde, resultado: "abaixo" } }}
-      />,
+      <EducacaoMinimosLegaisSection minimosLegais={base} />,
     );
-    expect(screen.getByText(/Ficou abaixo do mínimo: indício/)).toBeTruthy();
+    expect(screen.getAllByText(/Ficou abaixo do mínimo: indício/)).toHaveLength(
+      1,
+    );
     expect(container.textContent?.toLowerCase()).not.toContain("irregular");
   });
 
@@ -76,8 +88,8 @@ describe("EducacaoMinimosLegaisSection", () => {
     render(<EducacaoMinimosLegaisSection minimosLegais={parcial} />);
     expect(
       screen.getAllByText(/Ano em andamento: ainda sem veredito/),
-    ).toHaveLength(1);
-    expect(screen.getAllByText(/acumulado até o 3º bimestre/)).toHaveLength(1);
+    ).toHaveLength(2);
+    expect(screen.getAllByText(/acumulado até o 3º bimestre/)).toHaveLength(2);
     expect(screen.queryByText(/Cumpriu o mínimo/)).toBeNull();
   });
 
@@ -92,7 +104,22 @@ describe("EducacaoMinimosLegaisSection", () => {
         }}
       />,
     );
-    expect(screen.getAllByText("—")).toHaveLength(1);
-    expect(screen.getAllByText(/sem dado do SIOPE para 2024/)).toHaveLength(1);
+    expect(screen.getAllByText("—")).toHaveLength(2);
+    expect(screen.getAllByText(/sem dado do SIOPE para 2024/)).toHaveLength(2);
+  });
+
+  it("percentual em branco no SIOPE diz que a Prefeitura não informou", () => {
+    render(
+      <EducacaoMinimosLegaisSection
+        minimosLegais={{
+          ...base,
+          mde: semMinimo,
+          fundebProfissionais: semMinimo,
+        }}
+      />,
+    );
+    expect(
+      screen.getAllByText(/não informou o percentual ao FNDE para 2024/),
+    ).toHaveLength(2);
   });
 });

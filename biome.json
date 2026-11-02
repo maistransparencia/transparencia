@@ -14,7 +14,8 @@
       "!!public/build",
       "!!.next",
       "!!prisma",
-      "!!**/public"
+      "!!**/public",
+      "!!.bmad-loop"
     ]
   },
   "formatter": {
