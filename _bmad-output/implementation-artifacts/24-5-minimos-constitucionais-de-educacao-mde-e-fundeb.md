@@ -15,7 +15,7 @@ deferred:
     location: >-
       apps/web/components/educacao/educacao-minimos-legais-section.tsx
     severity: medium (unverified)
-baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
+baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
 ---
 
 <intent-contract>
@@ -75,7 +75,6 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 Status: done
 
 - Implementação já estava commitada (`1421a2d5`, `8afa1364`, `fc53c264`, `800c5464`); esta retomada só reverificou, sem alterar código.
-- Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb exibido (conferência do CRC confirmada).
-- Verificação: `pnpm typecheck` ok; vitest web (136 em `educacao`) e db no banco de teste 5545 (357) passam. Sem `DATABASE_URL` apontando para o 5545, o db usa o 5544 e 4 testes de mínimos falham por falta do seed — é ambiente, não código.
+- Verificação: `pnpm typecheck` ok; vitest web (1654) e db no banco de teste 5545 (357) passam. Sem `DATABASE_URL` apontando para o 5545, 4 testes de mínimos falham por falta do seed — é ambiente, não código.
 - Pendente (deferido): confirmar com o jurista-fiscal o alcance da EC 119/2022 para 2020–2021.
 - Nenhuma ação de operador humano é devida.
