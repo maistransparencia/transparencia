@@ -24,7 +24,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
 
 **Problem:** a página `/[portalSlug]/educacao` não responde "A Prefeitura aplica o mínimo exigido em educação?"; o SIOPE 1.1 e 1.2 existem em `getEducacaoSiope`, sem mínimo legal nem tela.
 
-**Approach:** `getEducacaoSiope` compara os percentuais com o mínimo vigente do seed (`minimos`); view-model repassa; `EducacaoMinimosLegaisSection` mostra o MDE abaixo do valor por aluno.
+**Approach:** `getEducacaoSiope` compara os percentuais com o mínimo vigente do seed (`minimos`); view-model repassa; `EducacaoMinimosLegaisSection` mostra o MDE (abaixo do valor por aluno) e o Fundeb dos profissionais da educação, cada um com o mínimo legal vigente.
 
 ## Boundaries & Constraints
 
@@ -39,7 +39,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
 - `elt/transform/seeds/seed_constantes_fiscais.csv` -- domínio `educacao`: MDE 25%; Fundeb 60% (2007-2020) e 70% (2021+).
 - `packages/db/src/queries/educacao-siope-metrics.ts` -- `minimos` (`classificarMinimos`).
 - `apps/web/app/[portalSlug]/educacao/view-model.ts` -- `buildMinimosLegais`.
-- `apps/web/components/educacao/educacao-minimos-legais-section.tsx` -- seção (só MDE).
+- `apps/web/components/educacao/educacao-minimos-legais-section.tsx` -- seção (MDE e Fundeb dos profissionais).
 - `page.tsx`, `llms.txt`, `llms-full.txt`, `CHANGELOG.md`.
 
 ## Tasks & Acceptance
@@ -63,7 +63,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
   - `[medium]` `patch` faltavam testes do limite exato (25 → cumpriu) e da causa "não informou ao FNDE" — adicionados
   - `[maybe-false]` `defer` EC 119/2022 em 2020–2021 — registrado em `deferred`
   - `[low]` `reject` mínimo sem linha no seed, parcial sem período, seed sobreposto sem orderBy, lei sem URL — hipotéticos (seed cobre 2000–2099; período sempre numérico)
-  - `[low]` `reject` Fundeb calculado mas oculto, DTO vazio duplicado, nome `fmtPercentual`, linguagem técnica, comparação com ano anterior, mínimo municipal próprio, CHANGELOG/llms — intenção prevê Fundeb oculto; resto fora do escopo
+  - `[low]` `reject` Fundeb calculado mas oculto, DTO vazio duplicado, nome `fmtPercentual`, linguagem técnica, comparação com ano anterior, mínimo municipal próprio, CHANGELOG/llms — resto fora do escopo (a premissa "Fundeb oculto" foi superada: conferência do CRC confirmada em 2026-11-01, Fundeb exibido, commit `800c5464`)
 
 ## Verification
 
