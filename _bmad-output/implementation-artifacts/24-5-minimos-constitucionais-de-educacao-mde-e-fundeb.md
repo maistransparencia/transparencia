@@ -10,7 +10,6 @@ warnings: []
 deferred: []
 operator_actions:
   - "Pedir a um contador responsável (CRC) que confira a base de cálculo do indicador 1.2 do SIOPE contra o art. 26 da Lei 14.113/2020 e, estando correta, reexibir o Fundeb em educacao-minimos-legais-section.tsx."
-  - "Pedir a revisão jurídica do dispositivo (CF/88 Art. 212 e 212-A XI; Lei 11.494/2007 Art. 22 até 2020) nas linhas novas de seed_constantes_fiscais.csv antes de publicar."
 ---
 
 <intent-contract>
