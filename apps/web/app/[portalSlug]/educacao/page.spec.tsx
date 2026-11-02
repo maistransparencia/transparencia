@@ -426,9 +426,9 @@ describe("EducacaoPage (Server Component)", () => {
 
   it.each([
     [
-      "diz que a posição não é comparável quando há ciclo anterior",
+      "diz que a posição do ciclo anterior não está disponível quando há nota anterior",
       { variacaoPosicoes: null, redesComparadas: null },
-      /posição não comparável com o ciclo anterior/,
+      /a posição do ciclo anterior não está disponível para comparar/,
     ],
     [
       "diz a base quando só saíram redes do ciclo anterior",

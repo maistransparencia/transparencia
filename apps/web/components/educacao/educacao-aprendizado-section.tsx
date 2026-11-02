@@ -48,7 +48,7 @@ function descreverClassificacao(
     classificacao;
   if (variacaoPosicoes === null) {
     return temCicloAnterior
-      ? "posição não comparável com o ciclo anterior"
+      ? "a posição do ciclo anterior não está disponível para comparar"
       : "sem ciclo anterior para comparar";
   }
   const redesMudaram =
