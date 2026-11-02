@@ -187,7 +187,11 @@ export function EducacaoAprendizadoSection({
   initialEtapa,
 }: EducacaoAprendizadoSectionProps) {
   return (
-    <section aria-label="Aprendizado dos alunos" className="space-y-6">
+    <section
+      id="aprendizado"
+      aria-label="Aprendizado dos alunos"
+      className="space-y-6"
+    >
       <SectionHeader
         title="Aprendizado dos alunos"
         description="As crianças da rede municipal estão aprendendo? O IDEB é a nota oficial das escolas, de 0 a 10, e combina o que os alunos aprendem nas provas com quantos são aprovados. É medido de dois em dois anos, por isso mostramos o ano de cada nota."

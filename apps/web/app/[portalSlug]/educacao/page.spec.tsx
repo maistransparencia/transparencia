@@ -333,16 +333,28 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /A Prefeitura reservou R\$ 36,0 mi em educação em 2025 e pagou R\$ 32,0 mi\./,
+      /Educação em 2025: o mínimo exigido, o valor por aluno e se as crianças estão aprendendo\./,
     );
+
+    const faixa = screen.getByRole("region", {
+      name: "Três respostas sobre a educação",
+    });
+    const perguntas = within(faixa)
+      .getAllByRole("term")
+      .map((pergunta) => pergunta.textContent);
+    expect(perguntas).toEqual([
+      "A Prefeitura aplica o mínimo exigido em educação?",
+      "Quanto a Prefeitura investe por aluno?",
+      "As crianças estão aprendendo?",
+    ]);
 
     const titulos = screen
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
-      "Aprendizado dos alunos",
-      "Quanto a Prefeitura investe por aluno da rede municipal?",
       "A Prefeitura aplica o mínimo exigido em educação?",
+      "Quanto a Prefeitura investe por aluno da rede municipal?",
+      "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
       "Quem recebe o dinheiro da educação",
