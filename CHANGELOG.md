@@ -8,6 +8,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 ### 🌟 Destaques da Versão (Página de Educação em torno do reservado e do pago)
 * **Educação abre pelo aprendizado:** "Aprendizado dos alunos" sobe para logo abaixo do hero, antes das seções financeiras, respondendo se as crianças da rede municipal estão aprendendo. Cada etapa junta a nota do IDEB com o ciclo anterior (ano e variação em pontos, "subiu"/"caiu") e mostra quantas posições o município subiu ou caiu no ranking estadual. A variação de posição e a de nota aparecem ao lado do valor (verde sobe, vermelho desce, nada se não mudou), "Meta" vem depois da classificação, e quando as redes avaliadas mudaram a tela diz em quantas redes a comparação foi feita.
 * **Valor por aluno na educação:** a página mostra quanto a Prefeitura investe por aluno da rede municipal (SIOPE, declarado ao FNDE, em R$ da época), com a variação sobre o ano fechado anterior e o histórico em "Ver detalhes". Ano em andamento é parcial e não é comparado; sem valor, a tela diz a causa.
+* **Mínimo de educação:** a página mostra quanto a Prefeitura aplicou em ensino (MDE, SIOPE) ao lado do mínimo de 25% da Constituição, com "cumpriu" ou "ficou abaixo" (indício, não acusação) e a lei com link. Ano em andamento é parcial, sem veredito. O piso do Fundeb para profissionais (70%) fica oculto até a conferência da base de cálculo.
 * **Educação começa pelo dinheiro:** O topo diz quanto a Prefeitura reservou (empenhado) e quanto pagou em educação no ano (função 12, Prefeitura inteira), com o liquidado ao lado. Reservar não é pagar, e o texto avisa quanto ficou sem pagar dentro do ano.
 * **Seções na ordem da pergunta do cidadão:** O que entrou, Como mudou ao longo dos anos, Como o Fundo contrata, Quem recebe o dinheiro da educação, Aprendizado dos alunos e Emendas na educação. O IDEB passa a ser lido por etapa (Anos Iniciais e Anos Finais), com ano de apuração, meta, ciclo anterior e classificação entre as redes municipais do estado.
 * **Contratos só do Fundo:** A lista deixa de misturar contratos de outros órgãos que citavam escola ou merenda no objeto.
@@ -16,6 +17,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **Carga dos indicadores do SIOPE (FNDE):** novo `make elt/siope PORTAL=...` grava no raw os indicadores 4.1, 4.2, 4.8, 4.9, 1.1 e 1.2 do Relatório Gerencial, por portal, ano e período. Resposta inesperada ou com lacuna não grava nada.
 * **`fct_educacao_execucao_metricas`:** Novo mart dbt por portal e ano com empenhado, liquidado e pago da função 12.
 * **`getEducacaoExecucaoAnual` e `getTopFornecedoresEducacaoMetrics`:** Série anual e maiores fornecedores da função 12 em `@transparencia/db`.
+* **Mínimos legais no SIOPE:** `getEducacaoSiope` devolve `minimos` (MDE e Fundeb) comparados ao mínimo vigente de `seed_constantes_fiscais` (novas chaves `minimo_aplicacao_mde_percentual` e `minimo_fundeb_profissionais_percentual`, 60% até 2020 e 70% desde 2021).
 * **`getEducacaoFundoEmpresaIds`:** Identifica a empresa do Fundo Municipal de Educação pelo órgão.
 
 ### 🔧 Melhorias & Otimizações (Changed / Perf)

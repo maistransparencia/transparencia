@@ -113,7 +113,95 @@ describe("getEducacaoSiope", () => {
       portalSlug: "",
       ano: 2025,
       atual: null,
+      minimos: {
+        mde: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+        fundebProfissionais: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+      },
       serie: [],
+    });
+  });
+
+  describe("minimos legais", () => {
+    it("compara MDE e Fundeb com o mínimo do seed no ano encerrado", async () => {
+      await seedEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+        percentualAplicadoMde: 27.5,
+        percentualAplicadoFundebProfissionais: 65,
+      });
+
+      const { minimos } = await getEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+      });
+
+      expect(minimos.mde).toMatchObject({
+        limite: 25,
+        percentualAplicado: 27.5,
+        resultado: "cumpriu",
+      });
+      expect(minimos.mde.urlBaseLegal).toContain("planalto.gov.br");
+      expect(minimos.fundebProfissionais).toMatchObject({
+        limite: 70,
+        percentualAplicado: 65,
+        resultado: "abaixo",
+      });
+    });
+
+    it("usa o piso de 60% do Fundeb antes de 2021", async () => {
+      await seedEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2020,
+        percentualAplicadoFundebProfissionais: 65,
+      });
+
+      const { minimos } = await getEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2020,
+      });
+
+      expect(minimos.fundebProfissionais).toMatchObject({
+        limite: 60,
+        resultado: "cumpriu",
+      });
+    });
+
+    it("não dá veredito no ano parcial nem sem percentual", async () => {
+      await seedEducacaoSiope([
+        {
+          portalSlug: PORTAL_A,
+          ano: 2026,
+          periodo: 3,
+          situacao: "parcial",
+          percentualAplicadoMde: 10,
+        },
+        { portalSlug: PORTAL_A, ano: 2025 },
+      ]);
+
+      const parcial = await getEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2026,
+      });
+      const semPercentual = await getEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+      });
+
+      expect(parcial.minimos.mde.resultado).toBe("parcial");
+      expect(semPercentual.minimos.mde.resultado).toBe("sem_dado");
+      expect(semPercentual.minimos.mde.limite).toBe(25);
     });
   });
 });
