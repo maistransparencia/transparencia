@@ -260,6 +260,22 @@ function makeRawEducacaoData(
       portalSlug: "porciuncula_prefeitura",
       ano: 2025,
       atual: null,
+      minimos: {
+        mde: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+        fundebProfissionais: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+      },
       serie: [],
     },
     origemRecursos: null,
@@ -326,6 +342,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(titulos).toEqual([
       "Aprendizado dos alunos",
       "Quanto a Prefeitura investe por aluno da rede municipal?",
+      "A Prefeitura aplica o mínimo exigido em educação?",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
       "Quem recebe o dinheiro da educação",

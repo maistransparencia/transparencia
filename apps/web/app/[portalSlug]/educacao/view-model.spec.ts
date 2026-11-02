@@ -4,7 +4,11 @@ import type {
   EducacaoMetricDTO,
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
-import { buildEducacaoViewModel, buildValorPorAluno } from "./view-model";
+import {
+  buildEducacaoViewModel,
+  buildMinimosLegais,
+  buildValorPorAluno,
+} from "./view-model";
 
 function metrica(
   parcial: Partial<EducacaoMetricDTO> &
@@ -288,6 +292,62 @@ describe("educacao/view-model", () => {
   });
 });
 
+const semMinimo = {
+  limite: null,
+  percentualAplicado: null,
+  resultado: "sem_dado" as const,
+  baseLegal: null,
+  urlBaseLegal: null,
+};
+
+describe("buildMinimosLegais", () => {
+  const minimoMde = {
+    limite: 25,
+    percentualAplicado: 27.5,
+    resultado: "cumpriu" as const,
+    baseLegal: "CF/88 Art. 212",
+    urlBaseLegal: "https://www.planalto.gov.br/x",
+  };
+  const siope = (situacao: "encerrado" | "parcial") => ({
+    portalSlug: "portal_teste",
+    ano: 2024,
+    atual: {
+      ano: 2024,
+      periodo: situacao === "parcial" ? 3 : 6,
+      situacao,
+      investimentoPorAluno: null,
+      investimentoPorAlunoBasica: null,
+      investimentoPorAlunoInfantil: null,
+      investimentoPorAlunoFundamental: null,
+      percentualAplicadoMde: 27.5,
+      percentualAplicadoFundebProfissionais: null,
+      coletadoEm: null,
+    },
+    minimos: { mde: minimoMde, fundebProfissionais: semMinimo },
+    serie: [],
+  });
+
+  it("repassa os mínimos do ano encerrado sem recalcular", () => {
+    const view = buildMinimosLegais(siope("encerrado"), 2024);
+    expect(view.parcial).toBe(false);
+    expect(view.semDadoSiope).toBe(false);
+    expect(view.mde).toEqual(minimoMde);
+  });
+
+  it("marca o ano em andamento como parcial com o período", () => {
+    const view = buildMinimosLegais(siope("parcial"), 2024);
+    expect(view.parcial).toBe(true);
+    expect(view.periodo).toBe(3);
+  });
+
+  it("sem SIOPE devolve sem dado, sem quebrar", () => {
+    const view = buildMinimosLegais(null, 2024);
+    expect(view.semDadoSiope).toBe(true);
+    expect(view.mde.resultado).toBe("sem_dado");
+    expect(view.fundebProfissionais.resultado).toBe("sem_dado");
+  });
+});
+
 describe("buildValorPorAluno", () => {
   const ano = (
     anoRef: number,
@@ -309,6 +369,10 @@ describe("buildValorPorAluno", () => {
     portalSlug: "portal_teste",
     ano: anoPedido,
     atual: serie.find((item) => item.ano === anoPedido) ?? null,
+    minimos: {
+      mde: semMinimo,
+      fundebProfissionais: semMinimo,
+    },
     serie,
   });
 

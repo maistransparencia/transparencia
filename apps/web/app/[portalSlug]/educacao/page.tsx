@@ -11,6 +11,7 @@ import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-
 import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-aprendizado-section";
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
+import { EducacaoMinimosLegaisSection } from "@/components/educacao/educacao-minimos-legais-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
 import { EducacaoValorPorAlunoSection } from "@/components/educacao/educacao-valor-por-aluno-section";
 import { EmendasSection } from "@/components/emendas-section";
@@ -126,6 +127,8 @@ export default async function EducacaoPage({
       />
 
       <EducacaoValorPorAlunoSection valorPorAluno={viewModel.valorPorAluno} />
+
+      <EducacaoMinimosLegaisSection minimosLegais={viewModel.minimosLegais} />
 
       {viewModel.origemRecursos && (
         <EducacaoOrigemRecursosSection

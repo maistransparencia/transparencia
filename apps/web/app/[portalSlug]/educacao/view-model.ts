@@ -10,6 +10,7 @@ import type {
   EmendasEducacaoStatsDTO,
   EtapaEnsino,
   FornecedorExecucaoItemDTO,
+  MinimoLegalDTO,
 } from "@transparencia/db";
 import { emendasStatsVazio } from "@transparencia/db";
 import { getPartialYearPeriod } from "@transparencia/ui";
@@ -125,6 +126,17 @@ export interface ValorPorAlunoView {
   serie: ValorPorAlunoPonto[];
 }
 
+export interface MinimosLegaisView {
+  ano: number;
+  /** Ano em andamento: percentual acumulado, sem veredito. */
+  parcial: boolean;
+  periodo: number | null;
+  /** O SIOPE não tem linha para o ano selecionado. */
+  semDadoSiope: boolean;
+  mde: MinimoLegalDTO;
+  fundebProfissionais: MinimoLegalDTO;
+}
+
 export interface EducacaoViewModel {
   portalSlug: string;
   municipioNome: string;
@@ -148,6 +160,7 @@ export interface EducacaoViewModel {
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
   valorPorAluno: ValorPorAlunoView;
+  minimosLegais: MinimosLegaisView;
   contratosResumo: {
     totalContratos: number;
     valorTotalContratos: number;
@@ -407,6 +420,27 @@ export function buildValorPorAluno(
   };
 }
 
+export function buildMinimosLegais(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+): MinimosLegaisView {
+  const semMinimo: MinimoLegalDTO = {
+    limite: null,
+    percentualAplicado: null,
+    resultado: "sem_dado",
+    baseLegal: null,
+    urlBaseLegal: null,
+  };
+  return {
+    ano,
+    parcial: siope?.atual?.situacao === "parcial",
+    periodo: siope?.atual?.periodo ?? null,
+    semDadoSiope: !siope?.atual,
+    mde: siope?.minimos.mde ?? semMinimo,
+    fundebProfissionais: siope?.minimos.fundebProfissionais ?? semMinimo,
+  };
+}
+
 export function buildEducacaoViewModel(raw: {
   portalSlug: string;
   portalConfig?: {
@@ -514,6 +548,7 @@ export function buildEducacaoViewModel(raw: {
     emendas: raw.emendas ?? emendasStatsVazio,
     origemRecursos: raw.origemRecursos ?? null,
     valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
+    minimosLegais: buildMinimosLegais(raw.siope, raw.context.selectedYear),
     contratosResumo: {
       totalContratos: contratos.length,
       valorTotalContratos: contratos.reduce(
