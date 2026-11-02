@@ -15,7 +15,7 @@ export interface EducacaoMinimosLegaisSectionProps {
 type MinimoLegal = MinimosLegaisView["mde"];
 
 const NOTA_DECLARACAO =
-  "Percentuais declarados pela Prefeitura ao FNDE (SIOPE), não conferidos por este portal. O mínimo é de aplicação do dinheiro, não de repasse.";
+  "Percentuais que a Prefeitura enviou ao FNDE pelo SIOPE, o sistema oficial do governo federal para a educação, e que o FNDE publica. O portal mostra o número como foi publicado. O mínimo é de aplicação do dinheiro, não de repasse.";
 
 /** Texto + ícone, nunca só cor; abaixo do mínimo fala em "indício", sem acusar. */
 function Veredito({ minimo }: { minimo: MinimoLegal }) {
@@ -93,7 +93,7 @@ export function EducacaoMinimosLegaisSection({
   const { mde, fundebProfissionais } = minimosLegais;
 
   return (
-    <section className="space-y-6">
+    <section id="minimo-exigido" className="space-y-6">
       <SectionHeader
         title="A Prefeitura aplica o mínimo exigido em educação?"
         description={NOTA_DECLARACAO}

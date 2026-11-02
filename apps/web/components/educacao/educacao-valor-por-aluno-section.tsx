@@ -18,7 +18,7 @@ export interface EducacaoValorPorAlunoSectionProps {
 }
 
 const NOTA_DECLARACAO =
-  "Valor declarado pela Prefeitura ao FNDE (SIOPE), não conferido por este portal.";
+  "Valor que a Prefeitura enviou ao FNDE pelo SIOPE, o sistema oficial do governo federal para a educação, e que o FNDE publica. O portal mostra o número como foi publicado.";
 const NOTA_INFLACAO =
   "Valores da época, sem correção pela inflação: anos diferentes não são comparáveis em poder de compra.";
 
@@ -79,7 +79,7 @@ export function EducacaoValorPorAlunoSection({
   })();
 
   return (
-    <section className="space-y-6">
+    <section id="valor-por-aluno" className="space-y-6">
       <SectionHeader
         title="Quanto a Prefeitura investe por aluno da rede municipal?"
         description={`${NOTA_DECLARACAO} ${NOTA_INFLACAO}`}
