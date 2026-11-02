@@ -1360,6 +1360,34 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export interface EducacaoMatriculasRow {
+  portalSlug: string;
+  ano: number;
+  matriculasEducacaoInfantil: number;
+  matriculasEnsinoFundamental: number;
+}
+
+export async function seedEducacaoMatriculas(
+  row: EducacaoMatriculasRow | EducacaoMatriculasRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_matriculas_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        matriculas_educacao_infantil: r.matriculasEducacaoInfantil,
+        matriculas_ensino_fundamental: r.matriculasEnsinoFundamental,
+        matriculas_educacao_basica:
+          r.matriculasEducacaoInfantil + r.matriculasEnsinoFundamental,
+      })),
+    )
+    .execute();
+}
+
 export interface EducacaoSiopeRow {
   portalSlug: string;
   ano: number;
@@ -1498,6 +1526,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_matriculas_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

@@ -119,7 +119,10 @@ export default async function EducacaoPage({
         />
       </div>
 
-      <EducacaoValorPorAlunoSection valorPorAluno={viewModel.valorPorAluno} />
+      <EducacaoValorPorAlunoSection
+        valorPorAluno={viewModel.valorPorAluno}
+        alunosRede={viewModel.alunosRede}
+      />
 
       <EducacaoAprendizadoSection
         aprendizado={viewModel.aprendizado}

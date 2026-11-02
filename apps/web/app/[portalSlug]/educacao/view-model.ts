@@ -2,6 +2,7 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
   EducacaoExecucaoAnualDTO,
+  EducacaoMatriculasDTO,
   EducacaoMediasEstaduais,
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
@@ -126,6 +127,16 @@ export interface ValorPorAlunoView {
   serie: ValorPorAlunoPonto[];
 }
 
+/** Total de alunos da rede municipal no Censo Escolar (INEP). */
+export interface AlunosRedeView {
+  /** Educação infantil mais ensino fundamental na rede municipal. */
+  total: number;
+  educacaoInfantil: number;
+  ensinoFundamental: number;
+  /** Ano real do Censo, que pode ser anterior ao ano selecionado. */
+  anoCenso: number;
+}
+
 export interface MinimosLegaisView {
   ano: number;
   /** Ano em andamento: percentual acumulado, sem veredito. */
@@ -160,6 +171,8 @@ export interface EducacaoViewModel {
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
   valorPorAluno: ValorPorAlunoView;
+  /** `null` sem Censo disponível: o indicador não aparece. */
+  alunosRede: AlunosRedeView | null;
   minimosLegais: MinimosLegaisView;
   contratosResumo: {
     totalContratos: number;
@@ -441,6 +454,18 @@ export function buildMinimosLegais(
   };
 }
 
+export function buildAlunosRede(
+  matriculas: EducacaoMatriculasDTO | null | undefined,
+): AlunosRedeView | null {
+  if (!matriculas) return null;
+  return {
+    total: matriculas.matriculasEducacaoBasica,
+    educacaoInfantil: matriculas.matriculasEducacaoInfantil,
+    ensinoFundamental: matriculas.matriculasEnsinoFundamental,
+    anoCenso: matriculas.anoCenso,
+  };
+}
+
 export function buildEducacaoViewModel(raw: {
   portalSlug: string;
   portalConfig?: {
@@ -455,6 +480,7 @@ export function buildEducacaoViewModel(raw: {
   emendas?: EmendasEducacaoStatsDTO;
   origemRecursos?: EducacaoOrigemRecursosDTO | null;
   siope?: EducacaoSiopeDTO | null;
+  matriculas?: EducacaoMatriculasDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
   execucaoAnual?: EducacaoExecucaoAnualDTO[];
   topFornecedores?: FornecedorExecucaoItemDTO[];
@@ -548,6 +574,7 @@ export function buildEducacaoViewModel(raw: {
     emendas: raw.emendas ?? emendasStatsVazio,
     origemRecursos: raw.origemRecursos ?? null,
     valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
+    alunosRede: buildAlunosRede(raw.matriculas),
     minimosLegais: buildMinimosLegais(raw.siope, raw.context.selectedYear),
     contratosResumo: {
       totalContratos: contratos.length,

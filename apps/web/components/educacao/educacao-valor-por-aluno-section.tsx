@@ -2,6 +2,7 @@
 
 import {
   fmtCurrency,
+  fmtNumber,
   Indicator,
   IndicatorPanel,
   ModalDialog,
@@ -9,12 +10,14 @@ import {
 } from "@transparencia/ui";
 import { useState } from "react";
 import type {
+  AlunosRedeView,
   ValorPorAlunoSemValorCausa,
   ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
 
 export interface EducacaoValorPorAlunoSectionProps {
   valorPorAluno: ValorPorAlunoView;
+  alunosRede?: AlunosRedeView | null;
 }
 
 const NOTA_DECLARACAO =
@@ -58,6 +61,7 @@ function descreverVariacao(view: ValorPorAlunoView): string {
 
 export function EducacaoValorPorAlunoSection({
   valorPorAluno,
+  alunosRede = null,
 }: EducacaoValorPorAlunoSectionProps) {
   const [detalhesAberto, setDetalhesAberto] = useState(false);
   const { valor, ano, parcial, periodo, semValorCausa, serie } = valorPorAluno;
@@ -94,6 +98,13 @@ export function EducacaoValorPorAlunoSection({
           value={valor === null ? "—" : fmtCurrency(valor)}
           note={nota}
         />
+        {alunosRede && (
+          <Indicator
+            label="Alunos na rede municipal"
+            value={fmtNumber(alunosRede.total)}
+            note={`${fmtNumber(alunosRede.educacaoInfantil)} na educação infantil (creche e pré-escola) e ${fmtNumber(alunosRede.ensinoFundamental)} no ensino fundamental (1º ao 9º ano). Censo Escolar ${alunosRede.anoCenso}, INEP: alunos matriculados em maio daquele ano, não o número de hoje`}
+          />
+        )}
       </IndicatorPanel>
       {serie.length > 0 && (
         <div>

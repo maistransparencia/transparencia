@@ -58,4 +58,28 @@ describe("EducacaoValorPorAlunoSection", () => {
     expect(screen.getByText(/sem dado publicado para 2024/)).toBeTruthy();
     expect(screen.queryByText("Ver detalhes")).toBeNull();
   });
+
+  it("mostra alunos na rede com o ano real do Censo", () => {
+    render(
+      <EducacaoValorPorAlunoSection
+        valorPorAluno={base}
+        alunosRede={{
+          total: 1971,
+          educacaoInfantil: 668,
+          ensinoFundamental: 1303,
+          anoCenso: 2023,
+        }}
+      />,
+    );
+    expect(screen.getByText("Alunos na rede municipal")).toBeTruthy();
+    expect(screen.getByText(/1\.971/)).toBeTruthy();
+    expect(screen.getByText(/Censo Escolar 2023, INEP/)).toBeTruthy();
+  });
+
+  it("sem matrícula o indicador não aparece", () => {
+    render(
+      <EducacaoValorPorAlunoSection valorPorAluno={base} alunosRede={null} />,
+    );
+    expect(screen.queryByText("Alunos na rede municipal")).toBeNull();
+  });
 });
