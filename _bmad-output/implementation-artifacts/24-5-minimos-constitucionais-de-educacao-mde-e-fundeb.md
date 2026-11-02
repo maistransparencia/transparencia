@@ -69,12 +69,13 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 
 - `pnpm typecheck`, vitest do web e do db (banco de teste 5545) -- passam.
 
+
 ## Auto Run Result
 
 Status: done
 
+- Implementação já estava commitada (`1421a2d5`, `8afa1364`, `fc53c264`, `800c5464`); esta retomada só reverificou, sem alterar código.
 - Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb exibido (conferência do CRC confirmada).
-- Arquivos: `educacao-siope-metrics.ts` (minimos), `view-model.ts`, `educacao-minimos-legais-section.tsx`, `page.tsx`, seed, specs, docs.
-- Revisão: 3 patches (medium) aplicados, 1 deferido, demais rejeitados (ver Review Triage Log). Follow-up recomendado: false (2 ou mais medium, mas nenhum risco não verificado nomeável além do deferido).
-- Verificação: `pnpm typecheck` ok; vitest web (43) e db no banco de teste 5545 (357) passam.
-- Conferência do CRC do indicador 1.2 confirmada pelo usuário; Fundeb reexibido em `educacao-minimos-legais-section.tsx` (testes, CHANGELOG e llms.txt atualizados).
+- Verificação: `pnpm typecheck` ok; vitest web (136 em `educacao`) e db no banco de teste 5545 (357) passam. Sem `DATABASE_URL` apontando para o 5545, o db usa o 5544 e 4 testes de mínimos falham por falta do seed — é ambiente, não código.
+- Pendente (deferido): confirmar com o jurista-fiscal o alcance da EC 119/2022 para 2020–2021.
+- Nenhuma ação de operador humano é devida.
