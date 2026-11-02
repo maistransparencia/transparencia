@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: fct_educacao_matriculas_metricas
-    description: "Matrículas da educação básica nas escolas municipais (Censo Escolar do INEP) por portal e ano. Sem registro quando não há matrícula, nunca zero"
+    description: "Matrículas do ensino fundamental (1º ao 9º ano) na rede municipal (Censo Escolar do INEP, via API do IBGE) por portal e ano. Sem registro quando não há matrícula, nunca zero"
     config:
       contract:
         enforced: true
@@ -29,20 +29,17 @@ models:
         description: "Ano do Censo Escolar (referência de maio)"
         tests:
           - not_null
-      - name: matriculas_educacao_basica
+      - name: matriculas_ensino_fundamental
         data_type: integer
         constraints:
           - type: not_null
-        description: "Soma de QT_MAT_BAS (infantil, fundamental, médio, EJA, profissional e especial) das escolas municipais em atividade"
+        description: "Soma das matrículas do 1º ao 9º ano do ensino fundamental na rede municipal (API do IBGE, Censo Escolar do INEP)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 1
                 max_value: 5000000
-      - name: quantidade_escolas
-        data_type: integer
-        description: "Escolas municipais em atividade que entraram na soma"
       - name: coletado_em
         data_type: timestamp with time zone
-        description: "Momento da coleta no INEP"
+        description: "Momento da coleta na API do IBGE"

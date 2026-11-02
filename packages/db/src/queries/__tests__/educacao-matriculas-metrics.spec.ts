@@ -16,8 +16,8 @@ afterEach(async () => {
 describe("getEducacaoMatriculas", () => {
   it("usa o Censo mais recente até o ano pedido", async () => {
     await seedEducacaoMatriculas([
-      { portalSlug: PORTAL_A, ano: 2023, matriculasEducacaoBasica: 1900 },
-      { portalSlug: PORTAL_A, ano: 2024, matriculasEducacaoBasica: 2001 },
+      { portalSlug: PORTAL_A, ano: 2023, matriculasEnsinoFundamental: 1900 },
+      { portalSlug: PORTAL_A, ano: 2024, matriculasEnsinoFundamental: 2001 },
     ]);
 
     const exato = await getEducacaoMatriculas({
@@ -26,7 +26,7 @@ describe("getEducacaoMatriculas", () => {
     });
     expect(exato).toMatchObject({
       anoCenso: 2024,
-      matriculasEducacaoBasica: 2001,
+      matriculasEnsinoFundamental: 2001,
     });
 
     const posterior = await getEducacaoMatriculas({
@@ -39,13 +39,13 @@ describe("getEducacaoMatriculas", () => {
       portalSlug: PORTAL_A,
       ano: 2023,
     });
-    expect(anterior?.matriculasEducacaoBasica).toBe(1900);
+    expect(anterior?.matriculasEnsinoFundamental).toBe(1900);
   });
 
   it("devolve null sem registro até o ano e não mistura portais", async () => {
     await seedEducacaoMatriculas([
-      { portalSlug: PORTAL_B, ano: 2024, matriculasEducacaoBasica: 500 },
-      { portalSlug: PORTAL_A, ano: 2024, matriculasEducacaoBasica: 2001 },
+      { portalSlug: PORTAL_B, ano: 2024, matriculasEnsinoFundamental: 500 },
+      { portalSlug: PORTAL_A, ano: 2024, matriculasEnsinoFundamental: 2001 },
     ]);
 
     expect(
@@ -53,7 +53,7 @@ describe("getEducacaoMatriculas", () => {
     ).toBeNull();
     expect(
       await getEducacaoMatriculas({ portalSlug: PORTAL_B, ano: 2024 }),
-    ).toMatchObject({ matriculasEducacaoBasica: 500 });
+    ).toMatchObject({ matriculasEnsinoFundamental: 500 });
     expect(
       await getEducacaoMatriculas({ portalSlug: "", ano: 2024 }),
     ).toBeNull();

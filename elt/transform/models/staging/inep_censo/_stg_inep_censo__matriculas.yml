@@ -16,11 +16,9 @@ models:
         data_type: integer
         tests:
           - not_null
-      - name: matriculas_educacao_basica
+      - name: matriculas_ensino_fundamental
         data_type: integer
         tests:
           - not_null
-      - name: quantidade_escolas
-        data_type: integer
       - name: coletado_em
         data_type: timestamp with time zone

@@ -100,3 +100,7 @@ Status: done
 - Verificação: `make check`, `make test` (248), `pnpm typecheck`, `make lint/ts`, vitest de `educacao` (148) e da query nova verdes; extrator rodado no zip real: Porciúncula 2024 = 2.001 e Natividade 2024 = 1.424.
 - Riscos: dados ainda não carregados no banco (rodar `make elt/inep-censo PORTAL=...` e `dbt run`); CSVs anteriores a ~2013 podem não ter `QT_MAT_BAS` (usar `--years`); intermediário TLS expira em 2030.
 - followup_review_recommended: false
+
+## Revisão de fonte (2026-11-02)
+
+Decisão do usuário: trocar a fonte pela API de dados do IBGE (pesquisa 13, "Censo escolar - sinopse"), que republica a Sinopse do INEP, e contar só a rede municipal do ensino fundamental, do 1º ao 9º ano (o que a página exibe). O extrator soma os 9 indicadores "Municipal" por ano de escolaridade; a coluna do mart passou a `matriculas_ensino_fundamental` e a contagem de escolas saiu (anos iniciais e finais se sobrepõem). O certificado intermediário do INEP e o `certifi` foram removidos. Valores conferidos na API: Porciúncula 1.310 (2023), 1.303 (2024), 1.278 (2025); Natividade 857 (2024). Estes valores substituem o "2.001" do AC original, que era a educação básica inteira por microdados.

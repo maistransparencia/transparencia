@@ -5,9 +5,8 @@ export interface EducacaoMatriculasDTO {
   portalSlug: string;
   /** Ano real do Censo Escolar usado (pode ser anterior ao ano pedido). */
   anoCenso: number;
-  /** Soma de QT_MAT_BAS das escolas municipais em atividade. */
-  matriculasEducacaoBasica: number;
-  quantidadeEscolas: number | null;
+  /** Soma do 1º ao 9º ano do ensino fundamental na rede municipal. */
+  matriculasEnsinoFundamental: number;
 }
 
 export interface GetEducacaoMatriculasParams {
@@ -28,7 +27,7 @@ export async function getEducacaoMatriculas({
 
   const row = await db
     .selectFrom("fct_educacao_matriculas_metricas")
-    .select(["ano", "matriculas_educacao_basica", "quantidade_escolas"])
+    .select(["ano", "matriculas_ensino_fundamental"])
     .where("portal_slug", "=", cleanSlug)
     .where("ano", "<=", ano)
     .orderBy("ano", "desc")
@@ -39,8 +38,6 @@ export async function getEducacaoMatriculas({
   return {
     portalSlug: cleanSlug,
     anoCenso: Number(row.ano),
-    matriculasEducacaoBasica: Number(row.matriculas_educacao_basica),
-    quantidadeEscolas:
-      row.quantidade_escolas === null ? null : Number(row.quantidade_escolas),
+    matriculasEnsinoFundamental: Number(row.matriculas_ensino_fundamental),
   };
 }

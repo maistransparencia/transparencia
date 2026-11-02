@@ -2538,7 +2538,6 @@ name = "transparencia"
 version = "0.14.1"
 source = { virtual = "." }
 dependencies = [
-    { name = "certifi" },
     { name = "dbt-core" },
     { name = "dbt-postgres" },
     { name = "fpdf2" },
@@ -2568,7 +2567,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "certifi", specifier = "==2026.7.22" },
     { name = "dbt-core", specifier = "==1.12.6" },
     { name = "dbt-postgres", specifier = "==1.11.0" },
     { name = "fpdf2", specifier = "==2.8.9" },

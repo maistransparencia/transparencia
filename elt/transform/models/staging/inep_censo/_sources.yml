@@ -16,9 +16,7 @@ sources:
         - name: ano
         - name: codigo_municipio_ibge
           data_type: integer
-        - name: matriculas_educacao_basica
-          data_type: integer
-        - name: quantidade_escolas
+        - name: matriculas_ensino_fundamental
           data_type: integer
         - name: coletado_em
           data_type: timestamptz

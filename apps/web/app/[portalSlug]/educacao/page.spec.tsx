@@ -797,8 +797,7 @@ describe("EducacaoPage (Server Component)", () => {
         matriculas: {
           portalSlug: "porciuncula_prefeitura",
           anoCenso: 2024,
-          matriculasEducacaoBasica: 2001,
-          quantidadeEscolas: 12,
+          matriculasEnsinoFundamental: 2001,
         },
       }),
     );

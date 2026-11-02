@@ -6,11 +6,11 @@ from sqlalchemy import text
 _TABELA = "raw_inep_censo.matriculas_rede_municipal"
 _ANO = 2031
 
-# (portal, ano, matriculas, escolas)
+# (portal, ano, matriculas)
 _LINHAS = [
-    ("porciuncula_prefeitura", _ANO, 2001, 5),
-    ("porciuncula_prefeitura", _ANO + 1, 1950, 5),
-    ("natividade_prefeitura", _ANO, 1234, 4),
+    ("porciuncula_prefeitura", _ANO, 2001),
+    ("porciuncula_prefeitura", _ANO + 1, 1950),
+    ("natividade_prefeitura", _ANO, 1234),
 ]
 
 
@@ -21,17 +21,17 @@ def seed_matriculas(conn):
         conn.commit()
 
     limpar()
-    for portal, ano, matriculas, escolas in _LINHAS:
+    for portal, ano, matriculas in _LINHAS:
         conn.execute(
             text(
                 f"""
                 INSERT INTO {_TABELA}
-                    (portal_slug, ano, codigo_municipio_ibge, matriculas_educacao_basica, quantidade_escolas,
+                    (portal_slug, ano, codigo_municipio_ibge, matriculas_ensino_fundamental,
                      coletado_em)
-                VALUES (:portal, :ano, 1, :matriculas, :escolas, now())
+                VALUES (:portal, :ano, 1, :matriculas, now())
                 """
             ),
-            {"portal": portal, "ano": ano, "matriculas": matriculas, "escolas": escolas},
+            {"portal": portal, "ano": ano, "matriculas": matriculas},
         )
     conn.commit()
     yield
@@ -48,16 +48,15 @@ def _linhas(conn, portal: str, ano: int):
 @pytest.mark.usefixtures("seed_matriculas")
 def test_expoe_matriculas_por_portal_e_ano(conn):
     (linha,) = _linhas(conn, "porciuncula_prefeitura", _ANO)
-    assert linha.matriculas_educacao_basica == 2001
-    assert linha.quantidade_escolas == 5
+    assert linha.matriculas_ensino_fundamental == 2001
 
 
 @pytest.mark.usefixtures("seed_matriculas")
 def test_isolamento_entre_portais_com_o_mesmo_ano(conn):
     (porciuncula,) = _linhas(conn, "porciuncula_prefeitura", _ANO)
     (natividade,) = _linhas(conn, "natividade_prefeitura", _ANO)
-    assert porciuncula.matriculas_educacao_basica == 2001
-    assert natividade.matriculas_educacao_basica == 1234
+    assert porciuncula.matriculas_ensino_fundamental == 2001
+    assert natividade.matriculas_ensino_fundamental == 1234
 
 
 @pytest.mark.usefixtures("seed_matriculas")

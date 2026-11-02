@@ -1,126 +1,134 @@
-import io
-import zipfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 from elt.core.config import PortalConfig
 from elt.extract.inep_censo import (
+    INDICADORES_FUNDAMENTAL_MUNICIPAL,
     InepCensoError,
     InepCensoExtractor,
-    MatriculasMunicipio,
-    agregar_matriculas,
+    codigo_localidade,
     extract_and_load_inep_censo,
-    ler_matriculas_do_zip,
+    serie_do_indicador,
+    somar_series,
 )
 
-CABECALHO = "NU_ANO_CENSO;CO_MUNICIPIO;NO_ENTIDADE;TP_DEPENDENCIA;TP_SITUACAO_FUNCIONAMENTO;QT_MAT_BAS"
+LOCALIDADE = "330410"
 
 
-def _csv(*linhas: str) -> str:
-    return "\n".join([CABECALHO, *linhas]) + "\n"
-
-
-def _portal():
-    return PortalConfig.load("porciuncula_prefeitura")
-
-
-def test_soma_so_escolas_municipais_em_atividade_do_municipio():
-    cod = _portal().cod_ibge
-    texto = _csv(
-        f"2024;{cod};ESCOLA A;3;1;1000",
-        f"2024;{cod};ESCOLA B;3;1;1001",
-        f"2024;{cod};ESCOLA PARALISADA;3;2;500",
-        f"2024;{cod};ESCOLA ESTADUAL;2;1;700",
-        f"2024;{cod};ESCOLA PRIVADA;4;1;300",
-        f"2024;{cod + 1};OUTRO MUNICIPIO;3;1;900",
+def _portal(cod_ibge: int = 3304102) -> PortalConfig:
+    return PortalConfig(
+        slug="portal_teste",
+        display_name="Portal",
+        uf="XX",
+        portal_url="https://exemplo.test",
+        base_host="exemplo.test",
+        cidade_clean="EXEMPLO",
+        ano_inicial=2023,
+        empresa_padrao="1",
+        assets={},
+        cod_ibge=cod_ibge,
     )
-    assert agregar_matriculas(io.StringIO(texto), cod) == MatriculasMunicipio(2001, 2)
 
 
-def test_matricula_vazia_conta_zero_mas_a_escola_conta():
-    cod = _portal().cod_ibge
-    resultado = agregar_matriculas(io.StringIO(_csv(f"2024;{cod};A;3;1;", f"2024;{cod};B;3;1;10")), cod)
-    assert resultado == MatriculasMunicipio(10, 2)
+def _resposta(indicador: int, serie: dict[str, str | None], localidade: str = LOCALIDADE) -> list[dict]:
+    return [{"id": indicador, "res": [{"localidade": localidade, "res": serie, "notas": {}}]}]
 
 
-def test_municipio_sem_escola_municipal_nao_gera_registro():
-    cod = _portal().cod_ibge
-    assert agregar_matriculas(io.StringIO(_csv(f"2024;{cod};A;2;1;50")), cod) is None
-
-
-def test_csv_sem_coluna_obrigatoria_falha():
-    with pytest.raises(InepCensoError, match="QT_MAT_BAS"):
-        agregar_matriculas(io.StringIO("CO_MUNICIPIO;TP_DEPENDENCIA;TP_SITUACAO_FUNCIONAMENTO\n1;3;1\n"), 1)
-
-
-def test_le_csv_latin1_dentro_do_zip(tmp_path: Path):
-    cod = _portal().cod_ibge
-    caminho = tmp_path / "censo.zip"
-    conteudo = _csv(f"2024;{cod};ESCOLA JOÃO D'ÁVILA;3;1;42").encode("latin1")
-    with zipfile.ZipFile(caminho, "w") as arquivo:
-        arquivo.writestr("microdados_censo_escolar_2024/dados/microdados_ed_basica_2024.csv", conteudo)
-    assert ler_matriculas_do_zip(caminho, 2024, cod) == MatriculasMunicipio(42, 1)
-
-
-def test_zip_sem_csv_esperado_falha(tmp_path: Path):
-    caminho = tmp_path / "censo.zip"
-    with zipfile.ZipFile(caminho, "w") as arquivo:
-        arquivo.writestr("outro.csv", "x")
-    with pytest.raises(InepCensoError, match="não encontrado"):
-        ler_matriculas_do_zip(caminho, 2024, 1)
-
-
-def _resposta(status: int):
-    resp = MagicMock()
-    resp.status_code = status
-    resp.iter_content.return_value = [b"x"]
-    resp.__enter__.return_value = resp
-    return resp
-
-
-def test_404_ignora_o_ano_e_demais_anos_seguem():
+def _extrator_com(serie_por_indicador) -> InepCensoExtractor:
+    """Extrator cujo HTTP devolve a série (`{ano: valor}`) calculada para cada indicador."""
     extrator = InepCensoExtractor()
-    with patch("elt.extract.inep_censo.requests.get", return_value=_resposta(404)):
-        assert extrator.matriculas_do_ano(2099, 1) is None
+
+    def falso_get(url, timeout):
+        indicador = int(url.split("/indicadores/")[1].split("/")[0])
+        resp = MagicMock(status_code=200)
+        resp.json.return_value = _resposta(indicador, serie_por_indicador(indicador))
+        return resp
+
+    patcher = patch("elt.extract.inep_censo.requests.get", side_effect=falso_get)
+    patcher.start()
+    extrator._patcher = patcher  # type: ignore[attr-defined]
+    return extrator
+
+
+@pytest.fixture(autouse=True)
+def _parar_patches():
+    yield
+    patch.stopall()
+
+
+def test_codigo_localidade_remove_digito_verificador():
+    assert codigo_localidade(3304102) == "330410"
+
+
+def test_soma_os_nove_anos_de_escolaridade_por_ano():
+    series = [{"2024": 100, "2025": 90} for _ in range(9)]
+    assert somar_series(series)[2024].matriculas_ensino_fundamental == 900
+    assert somar_series(series)[2025].matriculas_ensino_fundamental == 810
+
+
+def test_ano_ausente_em_algum_ano_de_escolaridade_nao_entra():
+    series = [{"2024": 100, "2025": 90}] * 8 + [{"2024": 100}]
+    assert set(somar_series(series)) == {2024}
+
+
+def test_serie_ignora_valor_nao_numerico():
+    resposta = _resposta(77941, {"2023": "10", "2024": "-", "2025": None})
+    assert serie_do_indicador(resposta, 77941, LOCALIDADE) == {"2023": 10}
+
+
+@pytest.mark.parametrize("resposta", [[], {"erro": 1}, [{"id": 1, "res": []}], _resposta(77941, {}, "999999")])
+def test_resposta_fora_do_formato_falha(resposta):
+    with pytest.raises(InepCensoError):
+        serie_do_indicador(resposta, 77941, LOCALIDADE)
+
+
+def test_extrai_soma_do_fundamental_municipal_por_ano():
+    extrator = _extrator_com(lambda _: {"2023": "200", "2024": "222"})
+    linhas = extrator.extrair_portal(_portal(), [2023, 2024])
+    assert [(linha["ano"], linha["matriculas_ensino_fundamental"]) for linha in linhas] == [(2023, 1800), (2024, 1998)]
+    assert {linha["portal_slug"] for linha in linhas} == {"portal_teste"}
+    assert len(INDICADORES_FUNDAMENTAL_MUNICIPAL) == 9
+
+
+def test_ano_pedido_sem_dado_e_ignorado():
+    extrator = _extrator_com(lambda _: {"2023": "10"})
+    linhas = extrator.extrair_portal(_portal(), [2023, 2026])
+    assert [linha["ano"] for linha in linhas] == [2023]
+
+
+def test_nenhum_ano_com_dado_levanta_erro():
+    extrator = _extrator_com(lambda _: {"2023": "10"})
+    with pytest.raises(InepCensoError):
+        extrator.extrair_portal(_portal(), [2030])
 
 
 def test_http_inesperado_falha():
-    with patch("elt.extract.inep_censo.requests.get", return_value=_resposta(500)):
-        with pytest.raises(InepCensoError, match="HTTP 500"):
-            InepCensoExtractor().matriculas_do_ano(2024, 1)
+    with patch("elt.extract.inep_censo.requests.get", return_value=MagicMock(status_code=500)):
+        with pytest.raises(InepCensoError, match="500"):
+            InepCensoExtractor().extrair_portal(_portal(), [2024])
 
 
-def test_nenhum_ano_com_dado_levanta_erro_e_nao_grava():
+def test_api_indisponivel_falha_com_a_causa():
+    with patch("elt.extract.inep_censo.requests.get", side_effect=requests.ConnectionError("sem rede")):
+        with pytest.raises(InepCensoError, match="sem rede"):
+            InepCensoExtractor().extrair_portal(_portal(), [2024])
+
+
+def test_erro_nao_grava_nada():
     db = MagicMock()
-    with patch.object(InepCensoExtractor, "matriculas_do_ano", return_value=None):
-        with pytest.raises(InepCensoError, match="sem nenhum dado"):
-            extract_and_load_inep_censo(_portal(), [2024, 2025], db=db)
-    db.assert_not_called()
+    with patch("elt.extract.inep_censo.requests.get", side_effect=requests.ConnectionError("x")):
+        with pytest.raises(InepCensoError):
+            extract_and_load_inep_censo(_portal(), [2024], db=db, extractor=InepCensoExtractor())
+    db.begin.assert_not_called()
 
 
 def test_grava_apenas_anos_com_dado():
-    portal = _portal()
-    por_ano = {2024: MatriculasMunicipio(2001, 5), 2025: None}
-    extrator = InepCensoExtractor()
-    with patch.object(InepCensoExtractor, "matriculas_do_ano", side_effect=lambda ano, _: por_ano[ano]):
-        linhas = extrator.extrair_portal(portal, [2024, 2025])
-    assert [(item["portal_slug"], item["ano"], item["matriculas_educacao_basica"]) for item in linhas] == [
-        (portal.slug, 2024, 2001)
-    ]
-
-
-def test_bundle_tls_inclui_o_intermediario_do_inep_e_mantem_verificacao():
-    from elt.extract.inep_censo import CERTIFICADO_INTERMEDIARIO, InepCensoExtractor
-
-    bundle = Path(InepCensoExtractor()._bundle_tls).read_text(encoding="ascii")
-    assert CERTIFICADO_INTERMEDIARIO.read_text(encoding="ascii").strip() in bundle
-    assert bundle.count("BEGIN CERTIFICATE") > 100
-
-
-def test_qt_mat_bas_nao_numerico_vira_erro_controlado():
-    from elt.extract.inep_censo import InepCensoError, agregar_matriculas
-
-    csv_texto = "CO_MUNICIPIO;TP_DEPENDENCIA;TP_SITUACAO_FUNCIONAMENTO;QT_MAT_BAS\n3304102;3;1;NA\n"
-    with pytest.raises(InepCensoError):
-        agregar_matriculas(io.StringIO(csv_texto), 3304102)
+    extrator = _extrator_com(lambda _: {"2024": "10"})
+    with (
+        patch("elt.extract.inep_censo.ensure_inep_censo_table"),
+        patch("elt.extract.inep_censo.load_inep_censo_matriculas", return_value=1) as carga,
+    ):
+        total = extract_and_load_inep_censo(_portal(), [2024], db=MagicMock(), extractor=extrator)
+    assert total == 1
+    assert [linha["ano"] for linha in carga.call_args.args[1]] == [2024]

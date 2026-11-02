@@ -19,7 +19,6 @@ dependencies = [
     "dbt-core==1.12.6",
     "dbt-postgres==1.11.0",
     "openpyxl==3.1.5",
-    "certifi==2026.7.22",
 ]
 
 [dependency-groups]

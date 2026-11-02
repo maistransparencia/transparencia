@@ -102,7 +102,7 @@ export function EducacaoValorPorAlunoSection({
           <Indicator
             label="Alunos na rede municipal"
             value={fmtNumber(alunosRede.total)}
-            note={`Censo Escolar ${alunosRede.anoCenso}, INEP: alunos matriculados em maio daquele ano, não o número de hoje`}
+            note={`Ensino fundamental, do 1º ao 9º ano. Censo Escolar ${alunosRede.anoCenso}, INEP: alunos matriculados em maio daquele ano, não o número de hoje`}
           />
         )}
       </IndicatorPanel>

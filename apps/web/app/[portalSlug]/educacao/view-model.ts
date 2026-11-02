@@ -456,7 +456,7 @@ export function buildAlunosRede(
 ): AlunosRedeView | null {
   if (!matriculas) return null;
   return {
-    total: matriculas.matriculasEducacaoBasica,
+    total: matriculas.matriculasEnsinoFundamental,
     anoCenso: matriculas.anoCenso,
   };
 }

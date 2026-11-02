@@ -123,8 +123,7 @@ describe("educacao/view-model", () => {
       matriculas: {
         portalSlug: "portal_teste",
         anoCenso: 2024,
-        matriculasEducacaoBasica: 2001,
-        quantidadeEscolas: 12,
+        matriculasEnsinoFundamental: 2001,
       },
       context: CONTEXTO_2025,
     });
@@ -371,8 +370,7 @@ describe("buildAlunosRede", () => {
       buildAlunosRede({
         portalSlug: "portal_teste",
         anoCenso: 2024,
-        matriculasEducacaoBasica: 2001,
-        quantidadeEscolas: 5,
+        matriculasEnsinoFundamental: 2001,
       }),
     ).toEqual({ total: 2001, anoCenso: 2024 });
   });

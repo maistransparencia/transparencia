@@ -20,7 +20,7 @@ def ensure_inep_censo_table(engine: Connectable, schema: str = SCHEMA) -> None:
     """Garante a existência da tabela raw de matrículas, compartilhada por todos os portais.
 
     `portal_slug` faz parte da chave primária: cada portal grava e recarrega só as suas linhas.
-    `matriculas_educacao_basica` é a soma de `QT_MAT_BAS` das escolas municipais em atividade.
+    `matriculas_ensino_fundamental` é a soma de `QT_MAT_BAS` das escolas municipais em atividade.
     """
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
@@ -28,8 +28,7 @@ def ensure_inep_censo_table(engine: Connectable, schema: str = SCHEMA) -> None:
         portal_slug TEXT NOT NULL,
         ano INTEGER NOT NULL,
         codigo_municipio_ibge INTEGER NOT NULL,
-        matriculas_educacao_basica INTEGER NOT NULL,
-        quantidade_escolas INTEGER NOT NULL,
+        matriculas_ensino_fundamental INTEGER NOT NULL,
         coletado_em TIMESTAMPTZ NOT NULL,
         PRIMARY KEY (portal_slug, ano)
     );
