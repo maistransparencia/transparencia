@@ -256,6 +256,7 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    matriculas: null,
     siope: {
       portalSlug: "porciuncula_prefeitura",
       ano: 2025,
@@ -788,6 +789,27 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Saúde"),
     ).not.toBeInTheDocument();
+  });
+
+  it("mostra Alunos na rede municipal com o ano real do Censo quando há matrículas", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        matriculas: {
+          portalSlug: "porciuncula_prefeitura",
+          anoCenso: 2024,
+          matriculasEducacaoBasica: 2001,
+          quantidadeEscolas: 12,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(screen.getByText("Alunos na rede municipal")).toBeInTheDocument();
+    expect(screen.getByText(/Censo Escolar 2024, INEP/)).toBeInTheDocument();
   });
 
   it("omite a seção de emendas quando não há emendas da Educação", async () => {

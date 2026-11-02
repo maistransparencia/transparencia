@@ -14,6 +14,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 * **Contratos só do Fundo:** A lista deixa de misturar contratos de outros órgãos que citavam escola ou merenda no objeto.
 
 ### ✨ Novas Funcionalidades (Added)
+* **Alunos na rede municipal (Censo Escolar/INEP):** novo `make elt/inep-censo PORTAL=...` baixa os microdados do Censo Escolar (`download.inep.gov.br/dados_abertos/microdados_censo_escolar_<ano>.zip`) e grava em `raw_inep_censo.matriculas_rede_municipal` a soma de `QT_MAT_BAS` das escolas municipais em atividade; o mart `fct_educacao_matriculas_metricas` e `getEducacaoMatriculas` (Censo mais recente até o ano pedido) alimentam o indicador "Alunos na rede municipal", com o ano real do Censo, ao lado do valor por aluno. Sem dado, o indicador não aparece. Decisão do spike: a Sinopse Estatística em xlsx não tem URL estável (404), então a fonte são os microdados, da mesma base do Censo.
 * **Carga dos indicadores do SIOPE (FNDE):** novo `make elt/siope PORTAL=...` grava no raw os indicadores 4.1, 4.2, 4.8, 4.9, 1.1 e 1.2 do Relatório Gerencial, por portal, ano e período. Resposta inesperada ou com lacuna não grava nada.
 * **`fct_educacao_execucao_metricas`:** Novo mart dbt por portal e ano com empenhado, liquidado e pago da função 12.
 * **`getEducacaoExecucaoAnual` e `getTopFornecedoresEducacaoMetrics`:** Série anual e maiores fornecedores da função 12 em `@transparencia/db`.

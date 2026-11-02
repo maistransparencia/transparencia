@@ -5,6 +5,7 @@ import type {
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import {
+  buildAlunosRede,
   buildEducacaoViewModel,
   buildMinimosLegais,
   buildValorPorAluno,
@@ -112,6 +113,22 @@ describe("educacao/view-model", () => {
       { ano: 2024, empenhado: 900, pago: 800 },
       { ano: 2025, empenhado: 1500, pago: 1200 },
     ]);
+  });
+
+  it("expõe alunosRede a partir das matrículas do Censo", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
+      allMetrics: [],
+      contratos: [],
+      matriculas: {
+        portalSlug: "portal_teste",
+        anoCenso: 2024,
+        matriculasEducacaoBasica: 2001,
+        quantidadeEscolas: 12,
+      },
+      context: CONTEXTO_2025,
+    });
+    expect(vm.alunosRede).toEqual({ total: 2001, anoCenso: 2024 });
   });
 
   it("marca ausência de dados quando o exercício não tem despesa da função 12", () => {
@@ -345,6 +362,24 @@ describe("buildMinimosLegais", () => {
     expect(view.semDadoSiope).toBe(true);
     expect(view.mde.resultado).toBe("sem_dado");
     expect(view.fundebProfissionais.resultado).toBe("sem_dado");
+  });
+});
+
+describe("buildAlunosRede", () => {
+  it("expõe total e ano real do Censo", () => {
+    expect(
+      buildAlunosRede({
+        portalSlug: "portal_teste",
+        anoCenso: 2024,
+        matriculasEducacaoBasica: 2001,
+        quantidadeEscolas: 5,
+      }),
+    ).toEqual({ total: 2001, anoCenso: 2024 });
+  });
+
+  it("devolve null sem matrícula, nunca zero", () => {
+    expect(buildAlunosRede(null)).toBeNull();
+    expect(buildAlunosRede(undefined)).toBeNull();
   });
 });
 

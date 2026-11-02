@@ -16,6 +16,7 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoOrigemRecursos: vi.fn(),
   getEducacaoExecucaoAnual: vi.fn(),
   getEducacaoSiope: vi.fn(),
+  getEducacaoMatriculas: vi.fn(),
   getTopFornecedoresEducacaoMetrics: vi.fn(),
   getEducacaoRankingEstadual: vi.fn(),
 }));
@@ -222,6 +223,10 @@ describe("educacao/loader", () => {
         "Fundo Municipal de Educação",
       );
       expect(dbModule.getEducacaoSiope).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
+      expect(dbModule.getEducacaoMatriculas).toHaveBeenCalledWith({
         portalSlug: "porciuncula_prefeitura",
         ano: 2025,
       });
