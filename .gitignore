@@ -67,6 +67,7 @@ _bmad-output/planning-artifacts/*
 !_bmad-output/planning-artifacts/architecture/
 !_bmad-output/planning-artifacts/prds/
 _bmad-output/story-*.md
+.bmad-loop/policy.toml
 .bmad-loop/profiles/claude-personal.toml
 _bmad-output/specs/
 _bmad-output/scratch/
