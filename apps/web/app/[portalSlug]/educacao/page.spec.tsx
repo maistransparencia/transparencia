@@ -256,6 +256,12 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    siope: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2025,
+      atual: null,
+      serie: [],
+    },
     origemRecursos: null,
     execucaoAnual: [
       {
@@ -319,6 +325,7 @@ describe("EducacaoPage (Server Component)", () => {
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
       "Aprendizado dos alunos",
+      "Quanto a Prefeitura investe por aluno da rede municipal?",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
       "Quem recebe o dinheiro da educação",

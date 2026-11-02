@@ -4,7 +4,7 @@ import type {
   EducacaoMetricDTO,
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
-import { buildEducacaoViewModel } from "./view-model";
+import { buildEducacaoViewModel, buildValorPorAluno } from "./view-model";
 
 function metrica(
   parcial: Partial<EducacaoMetricDTO> &
@@ -285,5 +285,60 @@ describe("educacao/view-model", () => {
     );
     expect(vm.historico.anosIniciais.periodoLabel).toBe("2021–2023");
     expect(vm.historico.anosIniciais.pontos[1].mediaEstadual).toBe(6.0);
+  });
+});
+
+describe("buildValorPorAluno", () => {
+  const ano = (
+    anoRef: number,
+    investimentoPorAluno: number | null,
+    situacao: "encerrado" | "parcial" = "encerrado",
+  ) => ({
+    ano: anoRef,
+    periodo: situacao === "parcial" ? 4 : 6,
+    situacao,
+    investimentoPorAluno,
+    investimentoPorAlunoBasica: null,
+    investimentoPorAlunoInfantil: null,
+    investimentoPorAlunoFundamental: null,
+    percentualAplicadoMde: null,
+    percentualAplicadoFundebProfissionais: null,
+    coletadoEm: null,
+  });
+  const dto = (serie: ReturnType<typeof ano>[], anoPedido: number) => ({
+    portalSlug: "portal_teste",
+    ano: anoPedido,
+    atual: serie.find((item) => item.ano === anoPedido) ?? null,
+    serie,
+  });
+
+  it("compara ano fechado com o ano fechado anterior", () => {
+    const view = buildValorPorAluno(
+      dto([ano(2023, 10000), ano(2024, 11000)], 2024),
+      2024,
+    );
+    expect(view.anoAnterior).toBe(2023);
+    expect(view.variacaoValor).toBe(1000);
+    expect(view.variacaoPercentual).toBeCloseTo(10);
+  });
+
+  it("não compara ano parcial", () => {
+    const view = buildValorPorAluno(
+      dto([ano(2024, 11000), ano(2025, 5000, "parcial")], 2025),
+      2025,
+    );
+    expect(view.parcial).toBe(true);
+    expect(view.variacaoValor).toBeNull();
+    expect(view.serie).toHaveLength(2);
+  });
+
+  it("explica a causa quando não há valor", () => {
+    expect(
+      buildValorPorAluno(dto([ano(2024, null)], 2024), 2024).semValorCausa,
+    ).toBe("nao_informado_ao_fnde");
+    expect(buildValorPorAluno(dto([], 2024), 2024).semValorCausa).toBe(
+      "sem_dado_siope",
+    );
+    expect(buildValorPorAluno(null, 2024).valor).toBeNull();
   });
 });

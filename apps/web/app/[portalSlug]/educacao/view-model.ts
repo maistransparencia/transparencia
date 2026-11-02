@@ -6,6 +6,7 @@ import type {
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
   EducacaoRankingEstadualDTO,
+  EducacaoSiopeDTO,
   EmendasEducacaoStatsDTO,
   EtapaEnsino,
   FornecedorExecucaoItemDTO,
@@ -98,6 +99,32 @@ export interface AprendizadoEtapa {
   } | null;
 }
 
+export interface ValorPorAlunoPonto {
+  ano: number;
+  valor: number;
+  parcial: boolean;
+  periodo: number;
+}
+
+export type ValorPorAlunoSemValorCausa =
+  | "sem_dado_siope"
+  | "nao_informado_ao_fnde";
+
+export interface ValorPorAlunoView {
+  ano: number;
+  /** Indicador 4.9 do ano selecionado, em R$ da época; nulo quando não há valor. */
+  valor: number | null;
+  parcial: boolean;
+  periodo: number | null;
+  semValorCausa: ValorPorAlunoSemValorCausa | null;
+  /** Ano fechado imediatamente anterior com valor, só quando o atual também é fechado. */
+  anoAnterior: number | null;
+  variacaoValor: number | null;
+  variacaoPercentual: number | null;
+  /** Série anual do próprio município, do mais antigo ao mais recente. */
+  serie: ValorPorAlunoPonto[];
+}
+
 export interface EducacaoViewModel {
   portalSlug: string;
   municipioNome: string;
@@ -120,6 +147,7 @@ export interface EducacaoViewModel {
   contratos: EducacaoContratoDTO[];
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
+  valorPorAluno: ValorPorAlunoView;
   contratosResumo: {
     totalContratos: number;
     valorTotalContratos: number;
@@ -325,6 +353,60 @@ function buildExecucaoAno(
   };
 }
 
+export function buildValorPorAluno(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+): ValorPorAlunoView {
+  const serie: ValorPorAlunoPonto[] = (siope?.serie ?? []).flatMap((item) =>
+    item.investimentoPorAluno === null
+      ? []
+      : [
+          {
+            ano: item.ano,
+            valor: item.investimentoPorAluno,
+            parcial: item.situacao === "parcial",
+            periodo: item.periodo,
+          },
+        ],
+  );
+  const atual = siope?.atual ?? null;
+  const valor = atual?.investimentoPorAluno ?? null;
+  const parcial = atual?.situacao === "parcial";
+  const anterior =
+    valor !== null && !parcial
+      ? serie
+          .filter((ponto) => !ponto.parcial && ponto.ano < ano)
+          .reduce<ValorPorAlunoPonto | null>(
+            (maisRecente, ponto) =>
+              maisRecente === null || ponto.ano > maisRecente.ano
+                ? ponto
+                : maisRecente,
+            null,
+          )
+      : null;
+  const variacaoValor =
+    valor !== null && anterior !== null ? valor - anterior.valor : null;
+  const semValorCausa: ValorPorAlunoSemValorCausa | null = (() => {
+    if (valor !== null) return null;
+    return atual === null ? "sem_dado_siope" : "nao_informado_ao_fnde";
+  })();
+
+  return {
+    ano,
+    valor,
+    parcial,
+    periodo: atual?.periodo ?? null,
+    semValorCausa,
+    anoAnterior: anterior?.ano ?? null,
+    variacaoValor,
+    variacaoPercentual:
+      variacaoValor !== null && anterior !== null && anterior.valor !== 0
+        ? (variacaoValor / anterior.valor) * 100
+        : null,
+    serie,
+  };
+}
+
 export function buildEducacaoViewModel(raw: {
   portalSlug: string;
   portalConfig?: {
@@ -338,6 +420,7 @@ export function buildEducacaoViewModel(raw: {
   contratos: EducacaoContratoDTO[];
   emendas?: EmendasEducacaoStatsDTO;
   origemRecursos?: EducacaoOrigemRecursosDTO | null;
+  siope?: EducacaoSiopeDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
   execucaoAnual?: EducacaoExecucaoAnualDTO[];
   topFornecedores?: FornecedorExecucaoItemDTO[];
@@ -430,6 +513,7 @@ export function buildEducacaoViewModel(raw: {
     contratos,
     emendas: raw.emendas ?? emendasStatsVazio,
     origemRecursos: raw.origemRecursos ?? null,
+    valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
     contratosResumo: {
       totalContratos: contratos.length,
       valorTotalContratos: contratos.reduce(

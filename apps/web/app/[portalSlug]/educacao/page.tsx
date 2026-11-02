@@ -12,6 +12,7 @@ import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-apren
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
+import { EducacaoValorPorAlunoSection } from "@/components/educacao/educacao-valor-por-aluno-section";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -123,6 +124,8 @@ export default async function EducacaoPage({
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
       />
+
+      <EducacaoValorPorAlunoSection valorPorAluno={viewModel.valorPorAluno} />
 
       {viewModel.origemRecursos && (
         <EducacaoOrigemRecursosSection
