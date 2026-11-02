@@ -15,7 +15,7 @@ export interface EducacaoMinimosLegaisSectionProps {
 type MinimoLegal = MinimosLegaisView["mde"];
 
 const NOTA_DECLARACAO =
-  "Percentuais que a Prefeitura enviou ao FNDE pelo SIOPE, o sistema oficial do governo federal para a educação, e que o FNDE publica. O portal mostra o número como foi publicado. O mínimo é de aplicação do dinheiro, não de repasse.";
+  "A Prefeitura informa estes percentuais ao governo federal pelo SIOPE, o sistema oficial de dados da educação. O portal mostra o número como o governo federal o publicou, sem recalcular. O mínimo vale para o que a Prefeitura gasta em educação, não para o que ela recebe.";
 
 /** Texto + ícone, nunca só cor; abaixo do mínimo fala em "indício", sem acusar. */
 function Veredito({ minimo }: { minimo: MinimoLegal }) {
@@ -39,7 +39,7 @@ function Veredito({ minimo }: { minimo: MinimoLegal }) {
     return (
       <span className="inline-flex items-center gap-1">
         <Clock className="h-4 w-4" aria-hidden="true" />
-        Ano em andamento: ainda sem veredito
+        Ano em andamento: o resultado só fica claro quando o ano fechar
       </span>
     );
   }
@@ -53,8 +53,8 @@ function notaDoMinimo(
 ): ReactNode {
   if (minimo.percentualAplicado === null) {
     return view.semDadoSiope
-      ? `sem dado do SIOPE para ${view.ano}`
-      : `a Prefeitura não informou o percentual ao FNDE para ${view.ano}`;
+      ? `sem dado publicado para ${view.ano}`
+      : `a Prefeitura não informou o percentual de ${view.ano} ao governo federal`;
   }
   return (
     <>

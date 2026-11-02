@@ -18,7 +18,7 @@ export interface EducacaoValorPorAlunoSectionProps {
 }
 
 const NOTA_DECLARACAO =
-  "Valor que a Prefeitura enviou ao FNDE pelo SIOPE, o sistema oficial do governo federal para a educação, e que o FNDE publica. O portal mostra o número como foi publicado.";
+  "A Prefeitura informa este valor ao governo federal pelo SIOPE, o sistema oficial de dados da educação. O portal mostra o número como o governo federal o publicou, sem recalcular.";
 const NOTA_INFLACAO =
   "Valores da época, sem correção pela inflação: anos diferentes não são comparáveis em poder de compra.";
 
@@ -26,9 +26,9 @@ const CAUSA_SEM_VALOR: Record<
   ValorPorAlunoSemValorCausa,
   (ano: number) => string
 > = {
-  sem_dado_siope: (ano) => `sem dado do SIOPE para ${ano}`,
+  sem_dado_siope: (ano) => `sem dado publicado para ${ano}`,
   nao_informado_ao_fnde: (ano) =>
-    `a Prefeitura não informou o valor ao FNDE para ${ano}`,
+    `a Prefeitura não informou o valor de ${ano} ao governo federal`,
 };
 
 const fmtPercentual = (valor: number) =>

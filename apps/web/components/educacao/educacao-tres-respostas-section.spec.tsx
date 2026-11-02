@@ -84,7 +84,9 @@ describe("EducacaoTresRespostasSection", () => {
 
   it("não dá veredito no ano em andamento", () => {
     renderizar({ minimosLegais: { ...minimosLegais, parcial: true } });
-    expect(screen.getByText(/ainda sem veredito/)).toBeTruthy();
+    expect(
+      screen.getByText(/o resultado só fica claro quando o ano fechar/),
+    ).toBeTruthy();
     expect(screen.queryByText(/cumpriu o mínimo/)).toBeNull();
   });
 
@@ -103,8 +105,10 @@ describe("EducacaoTresRespostasSection", () => {
       aprendizado: { ...aprendizado, notaIdeb: null },
     });
     expect(screen.getAllByText("—")).toHaveLength(3);
-    expect(screen.getByText(/sem dado do SIOPE para 2024/)).toBeTruthy();
-    expect(screen.getByText(/não informou o valor ao FNDE/)).toBeTruthy();
+    expect(screen.getByText(/sem dado publicado para 2024/)).toBeTruthy();
+    expect(
+      screen.getByText(/não informou o valor de 2024 ao governo federal/),
+    ).toBeTruthy();
     expect(screen.getByText(/sem nota do IDEB apurada/)).toBeTruthy();
   });
 });

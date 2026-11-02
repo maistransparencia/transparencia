@@ -55,7 +55,7 @@ describe("EducacaoValorPorAlunoSection", () => {
       />,
     );
     expect(screen.getByText("—")).toBeTruthy();
-    expect(screen.getByText(/sem dado do SIOPE para 2024/)).toBeTruthy();
+    expect(screen.getByText(/sem dado publicado para 2024/)).toBeTruthy();
     expect(screen.queryByText("Ver detalhes")).toBeNull();
   });
 });

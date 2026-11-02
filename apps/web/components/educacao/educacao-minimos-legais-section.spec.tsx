@@ -87,7 +87,9 @@ describe("EducacaoMinimosLegaisSection", () => {
     };
     render(<EducacaoMinimosLegaisSection minimosLegais={parcial} />);
     expect(
-      screen.getAllByText(/Ano em andamento: ainda sem veredito/),
+      screen.getAllByText(
+        /Ano em andamento: o resultado só fica claro quando o ano fechar/,
+      ),
     ).toHaveLength(2);
     expect(screen.getAllByText(/acumulado até o 3º bimestre/)).toHaveLength(2);
     expect(screen.queryByText(/Cumpriu o mínimo/)).toBeNull();
@@ -105,7 +107,7 @@ describe("EducacaoMinimosLegaisSection", () => {
       />,
     );
     expect(screen.getAllByText("—")).toHaveLength(2);
-    expect(screen.getAllByText(/sem dado do SIOPE para 2024/)).toHaveLength(2);
+    expect(screen.getAllByText(/sem dado publicado para 2024/)).toHaveLength(2);
   });
 
   it("percentual em branco no SIOPE diz que a Prefeitura não informou", () => {
@@ -119,7 +121,9 @@ describe("EducacaoMinimosLegaisSection", () => {
       />,
     );
     expect(
-      screen.getAllByText(/não informou o percentual ao FNDE para 2024/),
+      screen.getAllByText(
+        /não informou o percentual de 2024 ao governo federal/,
+      ),
     ).toHaveLength(2);
   });
 });

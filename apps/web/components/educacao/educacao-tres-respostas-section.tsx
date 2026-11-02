@@ -38,11 +38,12 @@ function notaDoMinimo(view: MinimosLegaisView): ReactNode {
   const { mde } = view;
   if (mde.percentualAplicado === null) {
     return view.semDadoSiope
-      ? `sem dado do SIOPE para ${view.ano}`
-      : `a Prefeitura não informou o percentual ao FNDE para ${view.ano}`;
+      ? `sem dado publicado para ${view.ano}`
+      : `a Prefeitura não informou o percentual de ${view.ano} ao governo federal`;
   }
   const veredito = (() => {
-    if (view.parcial) return "ano em andamento: ainda sem veredito";
+    if (view.parcial)
+      return "ano em andamento: o resultado só fica claro quando o ano fechar";
     if (mde.resultado === "cumpriu") return "cumpriu o mínimo";
     if (mde.resultado === "abaixo") return "abaixo do mínimo";
     return null;
@@ -67,8 +68,8 @@ function notaDoMinimo(view: MinimosLegaisView): ReactNode {
 function notaDoValorPorAluno(view: ValorPorAlunoView): ReactNode {
   if (view.valor === null) {
     return view.semValorCausa === "nao_informado_ao_fnde"
-      ? `a Prefeitura não informou o valor ao FNDE para ${view.ano}`
-      : `sem dado do SIOPE para ${view.ano}`;
+      ? `a Prefeitura não informou o valor de ${view.ano} ao governo federal`
+      : `sem dado publicado para ${view.ano}`;
   }
   const comparacao = (() => {
     if (view.parcial)
