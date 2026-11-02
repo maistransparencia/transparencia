@@ -129,7 +129,10 @@ export interface ValorPorAlunoView {
 
 /** Total de alunos da rede municipal no Censo Escolar (INEP). */
 export interface AlunosRedeView {
+  /** Educação infantil mais ensino fundamental na rede municipal. */
   total: number;
+  educacaoInfantil: number;
+  ensinoFundamental: number;
   /** Ano real do Censo, que pode ser anterior ao ano selecionado. */
   anoCenso: number;
 }
@@ -456,7 +459,9 @@ export function buildAlunosRede(
 ): AlunosRedeView | null {
   if (!matriculas) return null;
   return {
-    total: matriculas.matriculasEnsinoFundamental,
+    total: matriculas.matriculasEducacaoBasica,
+    educacaoInfantil: matriculas.matriculasEducacaoInfantil,
+    ensinoFundamental: matriculas.matriculasEnsinoFundamental,
     anoCenso: matriculas.anoCenso,
   };
 }

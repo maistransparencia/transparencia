@@ -63,11 +63,16 @@ describe("EducacaoValorPorAlunoSection", () => {
     render(
       <EducacaoValorPorAlunoSection
         valorPorAluno={base}
-        alunosRede={{ total: 2001, anoCenso: 2023 }}
+        alunosRede={{
+          total: 1971,
+          educacaoInfantil: 668,
+          ensinoFundamental: 1303,
+          anoCenso: 2023,
+        }}
       />,
     );
     expect(screen.getByText("Alunos na rede municipal")).toBeTruthy();
-    expect(screen.getByText(/2\.001/)).toBeTruthy();
+    expect(screen.getByText(/1\.971/)).toBeTruthy();
     expect(screen.getByText(/Censo Escolar 2023, INEP/)).toBeTruthy();
   });
 

@@ -16,8 +16,18 @@ afterEach(async () => {
 describe("getEducacaoMatriculas", () => {
   it("usa o Censo mais recente até o ano pedido", async () => {
     await seedEducacaoMatriculas([
-      { portalSlug: PORTAL_A, ano: 2023, matriculasEnsinoFundamental: 1900 },
-      { portalSlug: PORTAL_A, ano: 2024, matriculasEnsinoFundamental: 2001 },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2023,
+        matriculasEducacaoInfantil: 100,
+        matriculasEnsinoFundamental: 1900,
+      },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        matriculasEducacaoInfantil: 100,
+        matriculasEnsinoFundamental: 2001,
+      },
     ]);
 
     const exato = await getEducacaoMatriculas({
@@ -27,6 +37,7 @@ describe("getEducacaoMatriculas", () => {
     expect(exato).toMatchObject({
       anoCenso: 2024,
       matriculasEnsinoFundamental: 2001,
+      matriculasEducacaoBasica: 2101,
     });
 
     const posterior = await getEducacaoMatriculas({
@@ -44,8 +55,18 @@ describe("getEducacaoMatriculas", () => {
 
   it("devolve null sem registro até o ano e não mistura portais", async () => {
     await seedEducacaoMatriculas([
-      { portalSlug: PORTAL_B, ano: 2024, matriculasEnsinoFundamental: 500 },
-      { portalSlug: PORTAL_A, ano: 2024, matriculasEnsinoFundamental: 2001 },
+      {
+        portalSlug: PORTAL_B,
+        ano: 2024,
+        matriculasEducacaoInfantil: 100,
+        matriculasEnsinoFundamental: 500,
+      },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        matriculasEducacaoInfantil: 100,
+        matriculasEnsinoFundamental: 2001,
+      },
     ]);
 
     expect(

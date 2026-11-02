@@ -104,3 +104,7 @@ Status: done
 ## Revisão de fonte (2026-11-02)
 
 Decisão do usuário: trocar a fonte pela API de dados do IBGE (pesquisa 13, "Censo escolar - sinopse"), que republica a Sinopse do INEP, e contar só a rede municipal do ensino fundamental, do 1º ao 9º ano (o que a página exibe). O extrator soma os 9 indicadores "Municipal" por ano de escolaridade; a coluna do mart passou a `matriculas_ensino_fundamental` e a contagem de escolas saiu (anos iniciais e finais se sobrepõem). O certificado intermediário do INEP e o `certifi` foram removidos. Valores conferidos na API: Porciúncula 1.310 (2023), 1.303 (2024), 1.278 (2025); Natividade 857 (2024). Estes valores substituem o "2.001" do AC original, que era a educação básica inteira por microdados.
+
+## Revisão de escopo (2026-11-02, 2)
+
+Decisão do usuário com a análise da Mary: o denominador casa com o "por aluno da educação básica" do SIOPE 4.9, então entra a educação infantil (indicadores 77883 creche e 5904 pré-escola). O mart expõe `matriculas_educacao_infantil`, `matriculas_ensino_fundamental` e `matriculas_educacao_basica` (soma calculada no dbt); a tela mostra o total e a divisão entre as etapas. Ensino médio, EJA e educação especial ficam de fora e a nota diz isso. Conferência: Porciúncula 2024 = 668 + 1.303 = 1.971; Natividade 2024 = 567 + 857 = 1.424, os mesmos totais da soma de QT_MAT_BAS dos microdados do INEP. Pendente: confirmar a regra de cálculo do SIOPE 4.9 no FNDE.

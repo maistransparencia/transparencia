@@ -1,15 +1,15 @@
-"""Extrator das matrículas do ensino fundamental municipal (Censo Escolar, INEP) pela API de dados do IBGE.
+"""Extrator das matrículas da educação infantil e do ensino fundamental municipais (Censo Escolar, INEP) pela API do IBGE.
 
 Fonte: pesquisa 13 ("Censo escolar - sinopse") da API `servicodados.ibge.gov.br`, a mesma que alimenta o Cidades@IBGE.
 O IBGE republica a Sinopse Estatística da Educação Básica do INEP. A API é pública e devolve a série de todos os anos
 de um município numa só chamada.
 
-Total do município = soma das matrículas da rede **municipal** do 1º ao 9º ano do ensino fundamental (um indicador por
-ano de escolaridade). Não inclui educação infantil, ensino médio, EJA nem educação especial. O Censo Escolar é a
-fotografia de maio do ano: não é o número de matrículas de hoje.
+Total do município = matrículas da rede **municipal** na educação infantil (creche e pré-escola) mais o ensino
+fundamental do 1º ao 9º ano (um indicador por ano de escolaridade). Não inclui ensino médio, EJA nem educação especial.
+O Censo Escolar é a fotografia de maio do ano: não é o número de matrículas de hoje.
 
 Ano sem valor é ignorado (nunca zero). Sem nenhum ano com dado, ou com resposta fora do formato, a carga termina com
-erro e nada é gravado. O ano deve ter os 9 anos de escolaridade preenchidos; ano incompleto não gera registro.
+erro e nada é gravado. O ano deve ter todas as séries preenchidas (creche, pré-escola e os 9 anos); ano incompleto não gera registro.
 """
 
 import argparse
@@ -30,7 +30,9 @@ IBGE_URL_INDICADOR = (
     "https://servicodados.ibge.gov.br/api/v1/pesquisas/13/indicadores/{indicador}/resultados/{localidade}"
 )
 
-# Indicadores "Matrículas > Ensino fundamental > <n>º ano > Municipal" da pesquisa 13, do 1º ao 9º ano.
+# Indicadores "Matrículas > <etapa> > Municipal" da pesquisa 13: creche (77883) e pré-escola (5904) na educação infantil;
+# 1º ao 9º ano no ensino fundamental.
+INDICADORES_INFANTIL_MUNICIPAL = (77883, 5904)
 INDICADORES_FUNDAMENTAL_MUNICIPAL = (77941, 77945, 77949, 77953, 77957, 77961, 77965, 77969, 77973)
 
 
@@ -40,6 +42,7 @@ class InepCensoError(RuntimeError):
 
 @dataclass(frozen=True)
 class MatriculasMunicipio:
+    matriculas_educacao_infantil: int
     matriculas_ensino_fundamental: int
 
 
@@ -59,11 +62,17 @@ def serie_do_indicador(resposta: Any, indicador: int, localidade: str) -> dict[s
         raise InepCensoError(f"Resposta do IBGE fora do formato esperado para o indicador {indicador}") from err
 
 
-def somar_series(series: list[dict[str, int]]) -> dict[int, MatriculasMunicipio]:
-    """Soma os 9 anos de escolaridade por ano do Censo; ano que falta em algum deles não entra."""
-    anos_completos = set.intersection(*(set(serie) for serie in series)) if series else set()
+def somar_series(
+    series_infantil: list[dict[str, int]], series_fundamental: list[dict[str, int]]
+) -> dict[int, MatriculasMunicipio]:
+    """Soma as séries de cada etapa por ano do Censo; ano que falta em alguma série não entra."""
+    todas = [*series_infantil, *series_fundamental]
+    anos_completos = set.intersection(*(set(serie) for serie in todas)) if todas else set()
     return {
-        int(ano): MatriculasMunicipio(matriculas_ensino_fundamental=sum(serie[ano] for serie in series))
+        int(ano): MatriculasMunicipio(
+            matriculas_educacao_infantil=sum(serie[ano] for serie in series_infantil),
+            matriculas_ensino_fundamental=sum(serie[ano] for serie in series_fundamental),
+        )
         for ano in sorted(anos_completos)
     }
 
@@ -91,23 +100,30 @@ class InepCensoExtractor:
     def extrair_portal(self, portal: PortalConfig, anos: list[int]) -> list[dict[str, Any]]:
         """Matrículas do portal nos anos pedidos. Erro se nenhum ano tiver dado."""
         localidade = codigo_localidade(portal.cod_ibge)
-        series = [self.serie_indicador(i, localidade) for i in INDICADORES_FUNDAMENTAL_MUNICIPAL]
-        por_ano = somar_series(series)
+        series_infantil = [self.serie_indicador(i, localidade) for i in INDICADORES_INFANTIL_MUNICIPAL]
+        series_fundamental = [self.serie_indicador(i, localidade) for i in INDICADORES_FUNDAMENTAL_MUNICIPAL]
+        por_ano = somar_series(series_infantil, series_fundamental)
         coletado_em = datetime.now(timezone.utc).isoformat()
         linhas = [
             {
                 "portal_slug": portal.slug,
                 "ano": ano,
                 "codigo_municipio_ibge": portal.cod_ibge,
+                "matriculas_educacao_infantil": por_ano[ano].matriculas_educacao_infantil,
                 "matriculas_ensino_fundamental": por_ano[ano].matriculas_ensino_fundamental,
                 "coletado_em": coletado_em,
             }
             for ano in anos
-            if ano in por_ano and por_ano[ano].matriculas_ensino_fundamental > 0
+            if ano in por_ano
+            and por_ano[ano].matriculas_educacao_infantil + por_ano[ano].matriculas_ensino_fundamental > 0
         ]
         sem_dado = [ano for ano in anos if ano not in {linha["ano"] for linha in linhas}]
         if sem_dado:
-            logger.warning("Censo Escolar sem matrículas do fundamental municipal de %s em %s", portal.slug, sem_dado)
+            logger.warning(
+                "Censo Escolar sem matrículas da educação infantil e do fundamental municipais de %s em %s",
+                portal.slug,
+                sem_dado,
+            )
         if not linhas:
             raise InepCensoError(f"Censo Escolar sem nenhum dado para {portal.slug} nos anos {anos}")
         return linhas
@@ -130,7 +146,9 @@ def extract_and_load_inep_censo(
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    parser = argparse.ArgumentParser(description="Extrai e carrega matrículas do fundamental municipal (Censo Escolar)")
+    parser = argparse.ArgumentParser(
+        description="Extrai e carrega matrículas da educação infantil e do fundamental municipais (Censo Escolar)"
+    )
     parser.add_argument("--portal", required=True, help="Slug do portal (ex: porciuncula_prefeitura)")
     parser.add_argument("--years", nargs="+", type=int, help="Anos (default: ano_inicial até o ano corrente)")
     parser.add_argument("--dry-run", action="store_true", help="Só extrai e valida, sem gravar no banco")

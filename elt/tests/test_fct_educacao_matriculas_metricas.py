@@ -6,11 +6,11 @@ from sqlalchemy import text
 _TABELA = "raw_inep_censo.matriculas_rede_municipal"
 _ANO = 2031
 
-# (portal, ano, matriculas)
+# (portal, ano, infantil, fundamental)
 _LINHAS = [
-    ("porciuncula_prefeitura", _ANO, 2001),
-    ("porciuncula_prefeitura", _ANO + 1, 1950),
-    ("natividade_prefeitura", _ANO, 1234),
+    ("porciuncula_prefeitura", _ANO, 668, 1303),
+    ("porciuncula_prefeitura", _ANO + 1, 650, 1300),
+    ("natividade_prefeitura", _ANO, 400, 834),
 ]
 
 
@@ -21,17 +21,17 @@ def seed_matriculas(conn):
         conn.commit()
 
     limpar()
-    for portal, ano, matriculas in _LINHAS:
+    for portal, ano, infantil, fundamental in _LINHAS:
         conn.execute(
             text(
                 f"""
                 INSERT INTO {_TABELA}
-                    (portal_slug, ano, codigo_municipio_ibge, matriculas_ensino_fundamental,
+                    (portal_slug, ano, codigo_municipio_ibge, matriculas_educacao_infantil, matriculas_ensino_fundamental,
                      coletado_em)
-                VALUES (:portal, :ano, 1, :matriculas, now())
+                VALUES (:portal, :ano, 1, :infantil, :fundamental, now())
                 """
             ),
-            {"portal": portal, "ano": ano, "matriculas": matriculas},
+            {"portal": portal, "ano": ano, "infantil": infantil, "fundamental": fundamental},
         )
     conn.commit()
     yield
@@ -48,15 +48,17 @@ def _linhas(conn, portal: str, ano: int):
 @pytest.mark.usefixtures("seed_matriculas")
 def test_expoe_matriculas_por_portal_e_ano(conn):
     (linha,) = _linhas(conn, "porciuncula_prefeitura", _ANO)
-    assert linha.matriculas_ensino_fundamental == 2001
+    assert linha.matriculas_educacao_infantil == 668
+    assert linha.matriculas_ensino_fundamental == 1303
+    assert linha.matriculas_educacao_basica == 1971
 
 
 @pytest.mark.usefixtures("seed_matriculas")
 def test_isolamento_entre_portais_com_o_mesmo_ano(conn):
     (porciuncula,) = _linhas(conn, "porciuncula_prefeitura", _ANO)
     (natividade,) = _linhas(conn, "natividade_prefeitura", _ANO)
-    assert porciuncula.matriculas_ensino_fundamental == 2001
-    assert natividade.matriculas_ensino_fundamental == 1234
+    assert porciuncula.matriculas_educacao_basica == 1971
+    assert natividade.matriculas_educacao_basica == 1234
 
 
 @pytest.mark.usefixtures("seed_matriculas")

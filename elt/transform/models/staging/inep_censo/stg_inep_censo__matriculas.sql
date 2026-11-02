@@ -8,6 +8,7 @@ with source as (
 select
     portal_slug,
     ano::int as ano,
+    matriculas_educacao_infantil::int as matriculas_educacao_infantil,
     matriculas_ensino_fundamental::int as matriculas_ensino_fundamental,
     coletado_em
 from source

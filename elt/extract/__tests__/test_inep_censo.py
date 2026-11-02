@@ -5,6 +5,7 @@ import requests
 from elt.core.config import PortalConfig
 from elt.extract.inep_censo import (
     INDICADORES_FUNDAMENTAL_MUNICIPAL,
+    INDICADORES_INFANTIL_MUNICIPAL,
     InepCensoError,
     InepCensoExtractor,
     codigo_localidade,
@@ -61,15 +62,19 @@ def test_codigo_localidade_remove_digito_verificador():
     assert codigo_localidade(3304102) == "330410"
 
 
-def test_soma_os_nove_anos_de_escolaridade_por_ano():
-    series = [{"2024": 100, "2025": 90} for _ in range(9)]
-    assert somar_series(series)[2024].matriculas_ensino_fundamental == 900
-    assert somar_series(series)[2025].matriculas_ensino_fundamental == 810
+def test_soma_cada_etapa_por_ano_do_censo():
+    infantil = [{"2024": 300, "2025": 280}, {"2024": 370, "2025": 360}]
+    fundamental = [{"2024": 100, "2025": 90} for _ in range(9)]
+    por_ano = somar_series(infantil, fundamental)
+    assert por_ano[2024].matriculas_educacao_infantil == 670
+    assert por_ano[2024].matriculas_ensino_fundamental == 900
+    assert por_ano[2025].matriculas_ensino_fundamental == 810
 
 
-def test_ano_ausente_em_algum_ano_de_escolaridade_nao_entra():
-    series = [{"2024": 100, "2025": 90}] * 8 + [{"2024": 100}]
-    assert set(somar_series(series)) == {2024}
+def test_ano_ausente_em_alguma_serie_nao_entra():
+    infantil = [{"2024": 1, "2025": 1}, {"2024": 1}]
+    fundamental = [{"2024": 100, "2025": 90}] * 9
+    assert set(somar_series(infantil, fundamental)) == {2024}
 
 
 def test_serie_ignora_valor_nao_numerico():
@@ -86,9 +91,16 @@ def test_resposta_fora_do_formato_falha(resposta):
 def test_extrai_soma_do_fundamental_municipal_por_ano():
     extrator = _extrator_com(lambda _: {"2023": "200", "2024": "222"})
     linhas = extrator.extrair_portal(_portal(), [2023, 2024])
-    assert [(linha["ano"], linha["matriculas_ensino_fundamental"]) for linha in linhas] == [(2023, 1800), (2024, 1998)]
+    assert [
+        (linha["ano"], linha["matriculas_educacao_infantil"], linha["matriculas_ensino_fundamental"])
+        for linha in linhas
+    ] == [
+        (2023, 400, 1800),
+        (2024, 444, 1998),
+    ]
     assert {linha["portal_slug"] for linha in linhas} == {"portal_teste"}
     assert len(INDICADORES_FUNDAMENTAL_MUNICIPAL) == 9
+    assert len(INDICADORES_INFANTIL_MUNICIPAL) == 2
 
 
 def test_ano_pedido_sem_dado_e_ignorado():

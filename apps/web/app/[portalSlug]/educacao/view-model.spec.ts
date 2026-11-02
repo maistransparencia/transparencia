@@ -123,11 +123,18 @@ describe("educacao/view-model", () => {
       matriculas: {
         portalSlug: "portal_teste",
         anoCenso: 2024,
-        matriculasEnsinoFundamental: 2001,
+        matriculasEducacaoInfantil: 668,
+        matriculasEnsinoFundamental: 1303,
+        matriculasEducacaoBasica: 1971,
       },
       context: CONTEXTO_2025,
     });
-    expect(vm.alunosRede).toEqual({ total: 2001, anoCenso: 2024 });
+    expect(vm.alunosRede).toEqual({
+      total: 1971,
+      educacaoInfantil: 668,
+      ensinoFundamental: 1303,
+      anoCenso: 2024,
+    });
   });
 
   it("marca ausência de dados quando o exercício não tem despesa da função 12", () => {
@@ -370,9 +377,16 @@ describe("buildAlunosRede", () => {
       buildAlunosRede({
         portalSlug: "portal_teste",
         anoCenso: 2024,
-        matriculasEnsinoFundamental: 2001,
+        matriculasEducacaoInfantil: 668,
+        matriculasEnsinoFundamental: 1303,
+        matriculasEducacaoBasica: 1971,
       }),
-    ).toEqual({ total: 2001, anoCenso: 2024 });
+    ).toEqual({
+      total: 1971,
+      educacaoInfantil: 668,
+      ensinoFundamental: 1303,
+      anoCenso: 2024,
+    });
   });
 
   it("devolve null sem matrícula, nunca zero", () => {

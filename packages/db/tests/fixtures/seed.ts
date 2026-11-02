@@ -1363,6 +1363,7 @@ export async function seedEducacaoOrigemRecursos(
 export interface EducacaoMatriculasRow {
   portalSlug: string;
   ano: number;
+  matriculasEducacaoInfantil: number;
   matriculasEnsinoFundamental: number;
 }
 
@@ -1378,7 +1379,10 @@ export async function seedEducacaoMatriculas(
       rows.map((r) => ({
         portal_slug: r.portalSlug,
         ano: r.ano,
+        matriculas_educacao_infantil: r.matriculasEducacaoInfantil,
         matriculas_ensino_fundamental: r.matriculasEnsinoFundamental,
+        matriculas_educacao_basica:
+          r.matriculasEducacaoInfantil + r.matriculasEnsinoFundamental,
       })),
     )
     .execute();
