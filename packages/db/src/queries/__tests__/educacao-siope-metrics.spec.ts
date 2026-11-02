@@ -160,6 +160,21 @@ describe("getEducacaoSiope", () => {
       });
     });
 
+    it("exatamente no mínimo conta como cumprido", async () => {
+      await seedEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+        percentualAplicadoMde: 25,
+      });
+
+      const { minimos } = await getEducacaoSiope({
+        portalSlug: PORTAL_A,
+        ano: 2025,
+      });
+
+      expect(minimos.mde).toMatchObject({ limite: 25, resultado: "cumpriu" });
+    });
+
     it("usa o piso de 60% do Fundeb antes de 2021", async () => {
       await seedEducacaoSiope({
         portalSlug: PORTAL_A,

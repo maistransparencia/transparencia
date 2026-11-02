@@ -1,4 +1,9 @@
-import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
+import {
+  fmtPercent,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+} from "@transparencia/ui";
 import { CheckCircle, Clock, ExternalLink, TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import type { MinimosLegaisView } from "@/app/[portalSlug]/educacao/view-model";
@@ -11,12 +16,6 @@ type MinimoLegal = MinimosLegaisView["mde"];
 
 const NOTA_DECLARACAO =
   "Percentuais declarados pela Prefeitura ao FNDE (SIOPE), não conferidos por este portal. O mínimo é de aplicação do dinheiro, não de repasse.";
-
-const fmtPercentual = (valor: number) =>
-  `${valor.toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })}%`;
 
 /** Texto + ícone, nunca só cor; abaixo do mínimo fala em "indício", sem acusar. */
 function Veredito({ minimo }: { minimo: MinimoLegal }) {
@@ -57,7 +56,8 @@ function notaDoMinimo(minimo: MinimoLegal, view: MinimosLegaisView): ReactNode {
     <>
       {minimo.limite !== null && (
         <span className="block">
-          mínimo exigido: {fmtPercentual(minimo.limite)}
+          mínimo exigido: {fmtPercent(minimo.limite)} da receita de impostos e
+          transferências
         </span>
       )}
       <span className="block">
@@ -102,7 +102,7 @@ export function EducacaoMinimosLegaisSection({
           value={
             mde.percentualAplicado === null
               ? "—"
-              : fmtPercentual(mde.percentualAplicado)
+              : fmtPercent(mde.percentualAplicado)
           }
           note={notaDoMinimo(mde, minimosLegais)}
         />

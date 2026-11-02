@@ -2,14 +2,22 @@
 title: 'Mínimos constitucionais de educação (MDE e Fundeb)'
 type: 'feature'
 created: '2026-11-01'
-status: 'awaiting-operator'
+status: awaiting-operator
 review_loop_iteration: 0
 followup_review_recommended: false
 context: ['{project-root}/DESIGN.md', '{project-root}/EXPERIENCE.md']
 warnings: []
-deferred: []
+deferred:
+  - summary: >-
+      Anos de 2020 e 2021 podem ter regra de transição (EC 119/2022) para o mínimo de MDE; a tela mostra "abaixo" sem ressalva.
+    evidence: |-
+      Apontado pelo Blind Hunter; não verificado. Basta o jurista-fiscal confirmar o alcance da EC 119/2022 (art. 119 do ADCT).
+    location: >-
+      apps/web/components/educacao/educacao-minimos-legais-section.tsx
+    severity: medium (unverified)
 operator_actions:
   - "Pedir a um contador responsável (CRC) que confira a base de cálculo do indicador 1.2 do SIOPE contra o art. 26 da Lei 14.113/2020 e, estando correta, reexibir o Fundeb em educacao-minimos-legais-section.tsx."
+baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 ---
 
 <intent-contract>
@@ -49,6 +57,16 @@ operator_actions:
 
 ## Review Triage Log
 
+### 2026-11-01 — Review pass
+- verdicts: 24 findings — high 0, medium 3, low 5, false 0, maybe-false 1 (demais rejeitados por hipotéticos ou fora da intenção)
+- findings:
+  - `[medium]` `patch` arredondamento exibia 25,0% com "abaixo" — corrigido usando `fmtPercent` (2 casas) do design system
+  - `[medium]` `patch` limite 25% sem base de cálculo na tela — texto agora diz "da receita de impostos e transferências"
+  - `[medium]` `patch` faltavam testes do limite exato (25 → cumpriu) e da causa "não informou ao FNDE" — adicionados
+  - `[maybe-false]` `defer` EC 119/2022 em 2020–2021 — registrado em `deferred`
+  - `[low]` `reject` mínimo sem linha no seed, parcial sem período, seed sobreposto sem orderBy, lei sem URL — hipotéticos (seed cobre 2000–2099; período sempre numérico)
+  - `[low]` `reject` Fundeb calculado mas oculto, DTO vazio duplicado, nome `fmtPercentual`, linguagem técnica, comparação com ano anterior, mínimo municipal próprio, CHANGELOG/llms — intenção prevê Fundeb oculto; resto fora do escopo
+
 ## Verification
 
 - `pnpm typecheck`, vitest do web e do db (banco de teste 5545) -- passam.
@@ -57,5 +75,8 @@ operator_actions:
 
 Status: awaiting-operator
 
-- Parecer do `contador-publico`: MDE OK; Fundeb 1.2 NÃO VERIFICÁVEL (denominador do SIOPE vs. art. 26), por isso oculto.
-- Pendências humanas em `operator_actions`. `editor-cidadao` e revisão multi-lente não executados.
+- Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb oculto até conferência do contador.
+- Arquivos: `educacao-siope-metrics.ts` (minimos), `view-model.ts`, `educacao-minimos-legais-section.tsx`, `page.tsx`, seed, specs, docs.
+- Revisão: 3 patches (medium) aplicados, 1 deferido, demais rejeitados (ver Review Triage Log). Follow-up recomendado: false (2 ou mais medium, mas nenhum risco não verificado nomeável além do deferido).
+- Verificação: `pnpm typecheck` ok; vitest web (43) e db no banco de teste 5545 (357) passam.
+- Pendências humanas em `operator_actions` (conferência CRC do indicador 1.2).

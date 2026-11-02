@@ -39,7 +39,11 @@ describe("EducacaoMinimosLegaisSection", () => {
       screen.getByText("A Prefeitura aplica o mínimo exigido em educação?"),
     ).toBeTruthy();
     expect(screen.getByText(/Cumpriu o mínimo/)).toBeTruthy();
-    expect(screen.getByText(/mínimo exigido: 25,0%/)).toBeTruthy();
+    expect(
+      screen.getByText(
+        /mínimo exigido: 25,00% da receita de impostos e transferências/,
+      ),
+    ).toBeTruthy();
     expect(
       screen
         .getByRole("link", { name: /CF\/88 Art. 212/ })
@@ -94,5 +98,20 @@ describe("EducacaoMinimosLegaisSection", () => {
     );
     expect(screen.getAllByText("—")).toHaveLength(1);
     expect(screen.getAllByText(/sem dado do SIOPE para 2024/)).toHaveLength(1);
+  });
+
+  it("percentual em branco no SIOPE diz que a Prefeitura não informou", () => {
+    render(
+      <EducacaoMinimosLegaisSection
+        minimosLegais={{
+          ...base,
+          mde: semMinimo,
+          fundebProfissionais: semMinimo,
+        }}
+      />,
+    );
+    expect(
+      screen.getByText(/não informou o percentual ao FNDE para 2024/),
+    ).toBeTruthy();
   });
 });
