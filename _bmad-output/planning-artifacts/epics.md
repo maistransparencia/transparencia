@@ -3241,12 +3241,12 @@ So that I can compare it with last year and with what the school needs.
 **Acceptance Criteria:**
 - **Given** a Story 24.3 e a pergunta "Quanto a Prefeitura investe por aluno da rede municipal?"
 - **When** o ano selecionado está encerrado e há valor no SIOPE
-- **Then** o painel de indicadores mostra o investimento por aluno, com a nota de que o valor é declarado pela Prefeitura ao FNDE, e "Ver detalhes" abre o histórico anual em valores da época, sem correção pela inflação
-- **And** no ano em andamento ou sem valor, mostra "—" com a causa
-- **And** sem média estadual, ranking ou comparação entre municípios
-- **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico`, e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
+- **Then** o painel de indicadores mostra o investimento por aluno, com a nota de que o valor é declarado pela Prefeitura ao FNDE, e junto do número a série anual do próprio município como régua (valores da época, sem correção pela inflação, com a nota de que anos diferentes não são comparáveis em poder de compra); "Ver detalhes" abre o histórico completo
+- **And** no ano em andamento mostra o valor acumulado até o último bimestre (Story 24.10) com a palavra "parcial", e nunca o compara com um ano fechado; sem valor, mostra "—" com a causa
+- **And** sem média estadual, ranking, comparação entre municípios nem referência nacional como "acima ou abaixo do mínimo" (decisão de 2026-11-01, parecer do `contador-publico` e do `jurista-fiscal`: o VAAF-MIN da Lei 14.113/2020, arts. 12 e 13, não é meta nem piso de gasto do município e não é comparável ao indicador 4.9, que cobre a rede toda)
+- **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico` (o que o indicador 4.9 inclui e exclui ainda é NÃO VERIFICADO e deve ser confirmado na metodologia do SIOPE), e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
 
-**Dependências:** Story 24.3. Posição: o painel entra logo abaixo da seção "Aprendizado dos alunos" (Story 24.7).
+**Dependências:** Story 24.3. Posição (decisão de 2026-11-01): o painel compõe a faixa de três respostas no topo da página, montada na Story 24.11; esta story entrega o painel e o dado.
 
 ---
 
@@ -3264,7 +3264,7 @@ So that I can tell if the rule is being met.
 - **And** abaixo do mínimo, o tom é factual e não acusatório ("indício", nunca "irregularidade")
 - **And** o `contador-publico` valida a base de cálculo, o ano em andamento é marcado como parcial e `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
 
-**Dependências:** Story 24.3. Posição: logo abaixo da seção "Aprendizado dos alunos" e do valor por aluno (24.4). Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
+**Dependências:** Story 24.3. Posição (decisão de 2026-11-01): o bloco compõe a faixa de três respostas no topo da página, montada na Story 24.11; esta story entrega o bloco e o dado. O indicador 1.2 só é exibido depois de o `contador-publico` conferir a fórmula; o piso usado é sempre o 70% do seed, nunca o rótulo do SIOPE. Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
 
 ---
 
@@ -3376,6 +3376,30 @@ So that I do not have to wait for the year to close to know how much is being in
 **Fora do escopo:** mudança no que o cidadão vê (Story 24.3); valores de 6º bimestre de anos anteriores; comparação entre bimestres.
 
 **Dependências:** Story 24.9 (concluída). Pode rodar antes ou depois da 24.3, mas a 24.3 precisa saber se o parcial existe.
+
+---
+
+### Story 24.11: Três Respostas no Topo da Página de Educação
+
+As a citizen,  
+I want the top of the education page to answer whether the minimum is met, how much is invested per student and whether students are learning,  
+So that the page leads with what matters to me and not with budget execution.
+
+**Origem:** reanálise da página em 2026-11-01 (Mary e Julio). Hipótese do Julio: indicadores financeiros puros (reservado, liquidado, pago) devem ser despriorizados em favor de mínimo constitucional, valor por aluno e aprendizado. A hipótese vem de lógica de produto, sem dado de uso; uma validação barata com cidadãos ou com os dados de acesso da página reduz o risco.
+
+**Acceptance Criteria:**
+- **Given** as Stories 24.4 (valor por aluno) e 24.5 (mínimos MDE e FUNDEB) concluídas e a seção "Aprendizado dos alunos" (24.7)
+- **When** o cidadão abre `/[portalSlug]/educacao`
+- **Then** o topo traz uma faixa com três respostas lado a lado, nesta ordem: "A Prefeitura aplica o mínimo exigido em educação?", "Quanto a Prefeitura investe por aluno?" e "As crianças estão aprendendo?", cada uma com um número e a sua régua (limite legal, série do próprio município e meta ou ciclo anterior do IDEB)
+- **And** abaixo da faixa vêm os detalhes de cada resposta na mesma ordem, e a seção "Aprendizado dos alunos" da 24.7 permanece como o detalhe da terceira resposta
+- **And** o hero financeiro atual (reservado, liquidado e pago) deixa de ser a manchete: seus números passam a ser a memória de cálculo do mínimo, atrás de "Ver detalhes", e as seções de origem do dinheiro, evolução anual, contratos e fornecedores descem para a parte de especialista, no fim (Regra 27)
+- **And** "Emendas na educação" fica na parte intermediária; a conferência com a fonte federal é da Story 24.8
+- **And** nenhuma seção perde conteúdo, ano em andamento é sempre marcado como parcial, e blocos sem dado mostram "—" com a causa, sem reservar espaço vazio
+- **And** o texto passa pelo `editor-cidadao`, o padrão visual segue `DESIGN.md` e `EXPERIENCE.md` nos temas claro e escuro (Regra 25), sem literais de tenant, UF ou ano (Regra 23), e specs de página, `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
+
+**Fora do escopo:** novos indicadores; qualquer mudança nos cálculos das Stories 24.4 e 24.5; média estadual ou ranking de valor por aluno.
+
+**Dependências:** Stories 24.4 e 24.5. Substitui a posição "logo abaixo do aprendizado" que essas stories tinham. A 24.7 permanece `done`.
 
 ---
 

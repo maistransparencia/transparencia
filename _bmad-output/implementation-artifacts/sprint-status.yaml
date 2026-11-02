@@ -256,6 +256,7 @@ development_status:
   24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
   24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
+  24-11-tres-respostas-no-topo-da-pagina-de-educacao: backlog
   epic-24-retrospective: optional
 
   epic-25: backlog
