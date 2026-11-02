@@ -30,7 +30,7 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 
 **Always:** mínimo vindo de `seed_constantes_fiscais` (nunca literal); veredito com texto e ícone; "indício", nunca "irregularidade"; lei com link oficial; ano em andamento "parcial" sem veredito; mínimo é de aplicação, não de repasse; dado declarado pela Prefeitura.
 
-**Never:** exibir o Fundeb (1.2) antes da conferência do contador; usar os 60% do rótulo do SIOPE como piso atual; cálculo na tela; reposicionar na faixa da Story 24.11.
+**Never:** exibir o Fundeb (1.2) sem o mínimo legal vigente (a conferência do CRC do indicador 1.2 foi confirmada em 2026-11-01, então o Fundeb é exibido); usar os 60% do rótulo do SIOPE como piso atual; cálculo na tela; reposicionar na faixa da Story 24.11.
 
 </intent-contract>
 
@@ -49,7 +49,7 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 **Acceptance Criteria:**
 - Given ano encerrado com 1.1, when abre a página, then percentual ao lado de 25%, "Cumpriu"/"Ficou abaixo" com ícone e lei com link.
 - Given ano em andamento, then "parcial" sem veredito. Given sem dado, then "—" com a causa.
-- Given Fundeb, then não aparece até a conferência.
+- Given Fundeb (conferência do CRC já confirmada), then aparece com o mínimo legal vigente.
 
 ## Spec Change Log
 
@@ -73,7 +73,7 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 
 Status: done
 
-- Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb oculto até conferência do contador.
+- Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb exibido (conferência do CRC confirmada).
 - Arquivos: `educacao-siope-metrics.ts` (minimos), `view-model.ts`, `educacao-minimos-legais-section.tsx`, `page.tsx`, seed, specs, docs.
 - Revisão: 3 patches (medium) aplicados, 1 deferido, demais rejeitados (ver Review Triage Log). Follow-up recomendado: false (2 ou mais medium, mas nenhum risco não verificado nomeável além do deferido).
 - Verificação: `pnpm typecheck` ok; vitest web (43) e db no banco de teste 5545 (357) passam.

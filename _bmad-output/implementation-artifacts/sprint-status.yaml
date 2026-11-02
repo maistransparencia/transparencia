@@ -250,7 +250,7 @@ development_status:
   24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
   24-3-contratos-de-dados-do-siope-em-transparencia-db: done
   24-4-valor-por-aluno-na-pagina-de-educacao: done
-  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: backlog
+  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: done
   24-6-total-de-alunos-com-fonte-verificada-inep: backlog
   24-7-aprendizado-no-topo-da-pagina-de-educacao: done
   24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
