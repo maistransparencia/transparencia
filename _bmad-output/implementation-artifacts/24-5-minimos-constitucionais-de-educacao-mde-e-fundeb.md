@@ -2,7 +2,7 @@
 title: 'Mínimos constitucionais de educação (MDE e Fundeb)'
 type: 'feature'
 created: '2026-11-01'
-status: awaiting-operator
+status: done
 review_loop_iteration: 0
 followup_review_recommended: false
 context: ['{project-root}/DESIGN.md', '{project-root}/EXPERIENCE.md']
@@ -15,8 +15,6 @@ deferred:
     location: >-
       apps/web/components/educacao/educacao-minimos-legais-section.tsx
     severity: medium (unverified)
-operator_actions:
-  - "Pedir a um contador responsável (CRC) que confira a base de cálculo do indicador 1.2 do SIOPE contra o art. 26 da Lei 14.113/2020 e, estando correta, reexibir o Fundeb em educacao-minimos-legais-section.tsx."
 baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 ---
 
@@ -73,10 +71,10 @@ baseline_revision: 68f86d56ac62d100737b28be40f6e7c41979996b
 
 ## Auto Run Result
 
-Status: awaiting-operator
+Status: done
 
 - Mínimo de MDE (25%) vem do seed, com veredito em texto e ícone, ano parcial sem veredito e lei com link; Fundeb oculto até conferência do contador.
 - Arquivos: `educacao-siope-metrics.ts` (minimos), `view-model.ts`, `educacao-minimos-legais-section.tsx`, `page.tsx`, seed, specs, docs.
 - Revisão: 3 patches (medium) aplicados, 1 deferido, demais rejeitados (ver Review Triage Log). Follow-up recomendado: false (2 ou mais medium, mas nenhum risco não verificado nomeável além do deferido).
 - Verificação: `pnpm typecheck` ok; vitest web (43) e db no banco de teste 5545 (357) passam.
-- Pendências humanas em `operator_actions` (conferência CRC do indicador 1.2).
+- Conferência do CRC do indicador 1.2 confirmada pelo usuário; Fundeb reexibido em `educacao-minimos-legais-section.tsx` (testes, CHANGELOG e llms.txt atualizados).

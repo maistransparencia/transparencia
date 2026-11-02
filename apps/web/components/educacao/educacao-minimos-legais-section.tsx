@@ -46,7 +46,11 @@ function Veredito({ minimo }: { minimo: MinimoLegal }) {
   return null;
 }
 
-function notaDoMinimo(minimo: MinimoLegal, view: MinimosLegaisView): ReactNode {
+function notaDoMinimo(
+  minimo: MinimoLegal,
+  view: MinimosLegaisView,
+  baseCalculo: string,
+): ReactNode {
   if (minimo.percentualAplicado === null) {
     return view.semDadoSiope
       ? `sem dado do SIOPE para ${view.ano}`
@@ -56,8 +60,7 @@ function notaDoMinimo(minimo: MinimoLegal, view: MinimosLegaisView): ReactNode {
     <>
       {minimo.limite !== null && (
         <span className="block">
-          mínimo exigido: {fmtPercent(minimo.limite)} da receita de impostos e
-          transferências
+          mínimo exigido: {fmtPercent(minimo.limite)} {baseCalculo}
         </span>
       )}
       <span className="block">
@@ -87,7 +90,7 @@ function notaDoMinimo(minimo: MinimoLegal, view: MinimosLegaisView): ReactNode {
 export function EducacaoMinimosLegaisSection({
   minimosLegais,
 }: EducacaoMinimosLegaisSectionProps) {
-  const { mde } = minimosLegais;
+  const { mde, fundebProfissionais } = minimosLegais;
 
   return (
     <section className="space-y-6">
@@ -95,7 +98,6 @@ export function EducacaoMinimosLegaisSection({
         title="A Prefeitura aplica o mínimo exigido em educação?"
         description={NOTA_DECLARACAO}
       />
-      {/* Fundeb (SIOPE 1.2) fica oculto até o contador-publico conferir a base de cálculo. */}
       <IndicatorPanel>
         <Indicator
           label="Aplicado em ensino (MDE)"
@@ -104,7 +106,24 @@ export function EducacaoMinimosLegaisSection({
               ? "—"
               : fmtPercent(mde.percentualAplicado)
           }
-          note={notaDoMinimo(mde, minimosLegais)}
+          note={notaDoMinimo(
+            mde,
+            minimosLegais,
+            "da receita de impostos e transferências",
+          )}
+        />
+        <Indicator
+          label="Fundeb pago aos profissionais da educação"
+          value={
+            fundebProfissionais.percentualAplicado === null
+              ? "—"
+              : fmtPercent(fundebProfissionais.percentualAplicado)
+          }
+          note={notaDoMinimo(
+            fundebProfissionais,
+            minimosLegais,
+            "dos recursos do Fundeb",
+          )}
         />
       </IndicatorPanel>
     </section>
