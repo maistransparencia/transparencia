@@ -152,6 +152,7 @@ export interface EducacaoViewModel {
   portalSlug: string;
   municipioNome: string;
   municipioUf: string;
+  portalUrl: string | null;
   selectedYear: number;
   isCurrentYear: boolean;
   partialPeriod: string;
@@ -472,6 +473,7 @@ export function buildEducacaoViewModel(raw: {
     cidadeClean?: string;
     uf?: string;
     displayName?: string;
+    portalUrl?: string;
     dataExtracao?: string | Date | null;
     dataExtracaoDate?: string | Date | null;
   } | null;
@@ -539,6 +541,7 @@ export function buildEducacaoViewModel(raw: {
     portalSlug: raw.portalSlug,
     municipioNome,
     municipioUf,
+    portalUrl: raw.portalConfig?.portalUrl || null,
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
     partialPeriod: getPartialYearPeriod(

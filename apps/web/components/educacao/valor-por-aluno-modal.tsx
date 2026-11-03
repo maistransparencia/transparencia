@@ -2,8 +2,10 @@
 
 import { fmtCurrency, ModalDialog } from "@transparencia/ui";
 import type { ValorPorAlunoView } from "@/app/[portalSlug]/educacao/view-model";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import {
   FONTE_SIOPE,
+  LeiLink,
   LinhaLeiEFonte,
   NOTA_DECLARACAO,
   NOTA_INFLACAO,
@@ -28,7 +30,16 @@ export function ValorPorAlunoModal({
       subtitle="Série do próprio município, em R$ da época"
       maxWidth="3xl"
       showShareButton={false}
-      footer={<LinhaLeiEFonte source={`${FONTE_SIOPE}, indicador 4.9`} />}
+      footer={
+        <LinhaLeiEFonte
+          source={
+            <>
+              <LeiLink label={FONTE_SIOPE} url={FONTES_OFICIAIS.siope.url} />,
+              indicador 4.9
+            </>
+          }
+        />
+      }
     >
       <div className="space-y-6">
         <p className="text-mute text-sm">{NOTA_INFLACAO}</p>

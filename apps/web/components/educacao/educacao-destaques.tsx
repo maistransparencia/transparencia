@@ -48,7 +48,7 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               da receita de impostos e transferências foi aplicada em ensino{" "}
               {periodoTexto}.
               {mde.limite !== null &&
-                ` A lei exige pelo menos ${fmtPercent(mde.limite)}.`}
+                ` A lei exige pelo menos ${formatarLimite(mde.limite)}.`}
             </span>
             <Veredito minimo={mde} ocultarCumpriu />
           </p>

@@ -91,6 +91,7 @@ const elemento = (props: Props = {}) => (
     partialPeriod=""
     minimosLegais={minimosBase}
     execucao={execucao}
+    portalUrl="https://transparencia.exemplo.gov.br/"
     valorPorAluno={valorPorAlunoBase}
     alunosRede={alunosBase}
     aprendizado={aprendizadoBase}
@@ -112,9 +113,7 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
       ),
     ).toBeTruthy();
     expect(bloco.querySelector(".stat-value-lg")?.textContent).toBe("27,50%");
-    expect(
-      within(bloco).getByText(/A lei exige pelo menos 25,00%/),
-    ).toBeTruthy();
+    expect(within(bloco).getByText(/A lei exige pelo menos 25%/)).toBeTruthy();
     expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
     expect(
       within(bloco).getByRole("meter").getAttribute("aria-valuetext"),
@@ -424,10 +423,17 @@ describe("EducacaoHeroSection: lei, fonte e gasto", () => {
         .getAttribute("href"),
     ).toBe("https://www.planalto.gov.br/l14113");
     expect(
-      screen.getByText(/SIOPE, sistema do governo federal/, {
-        selector: "span",
-      }),
-    ).toBeTruthy();
+      screen
+        .getByRole("link", { name: /SIOPE, sistema do governo federal/ })
+        .getAttribute("href"),
+    ).toBe("https://www.fnde.gov.br/siope/");
+    expect(
+      screen
+        .getByRole("link", { name: /execução orçamentária da Prefeitura/ })
+        .getAttribute("href"),
+    ).toBe("https://transparencia.exemplo.gov.br/");
+    expect(screen.getAllByText("Leis:")).toHaveLength(1);
+    expect(screen.getByRole("link", { name: /Lei 4.320\/1964/ })).toBeTruthy();
   });
 
   it("o gasto fica à vista, sem Ver detalhes, com reservado, liquidado e pago", () => {

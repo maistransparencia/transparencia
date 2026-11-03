@@ -89,6 +89,7 @@ export default async function EducacaoPage({
           partialPeriod={partialPeriod}
           minimosLegais={viewModel.minimosLegais}
           execucao={execucao}
+          portalUrl={viewModel.portalUrl}
           valorPorAluno={viewModel.valorPorAluno}
           alunosRede={viewModel.alunosRede ?? null}
           aprendizado={viewModel.aprendizado.anosIniciais}

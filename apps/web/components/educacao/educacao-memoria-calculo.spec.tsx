@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
 import { EducacaoMemoriaCalculo } from "./educacao-memoria-calculo";
@@ -58,23 +58,5 @@ describe("EducacaoMemoriaCalculo", () => {
     expect(screen.getAllByText("sem despesas registradas em 2024").length).toBe(
       3,
     );
-  });
-
-  it("lei e fonte ficam abaixo, com a lei em nova aba", () => {
-    render(
-      <EducacaoMemoriaCalculo
-        ano={2024}
-        isCurrentYear={false}
-        partialPeriod=""
-        execucao={execucao}
-      />,
-    );
-    const modal = screen.getByTestId("gasto-educacao");
-    const lei = within(modal).getByRole("link", { name: /Lei 4.320\/1964/ });
-    expect(lei.getAttribute("target")).toBe("_blank");
-    expect(lei.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(
-      within(modal).getByText(/execução orçamentária da Prefeitura/),
-    ).toBeTruthy();
   });
 });

@@ -5,8 +5,7 @@ import {
   IndicatorPanel,
 } from "@transparencia/ui";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
-import { urlLegislacao } from "@/lib/constants/legislacao";
-import { LinhaLeiEFonte, NOTA_MINIMO_GASTO } from "./educacao-textos";
+import { NOTA_MINIMO_GASTO } from "./educacao-textos";
 
 export interface EducacaoMemoriaCalculoProps {
   ano: number;
@@ -69,10 +68,6 @@ export function EducacaoMemoriaCalculo({
           ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
           : ""}
       </p>
-      <LinhaLeiEFonte
-        source="execução orçamentária da Prefeitura, função Educação"
-        laws={[{ label: "Lei 4.320/1964", url: urlLegislacao("lei4320") }]}
-      />
     </div>
   );
 }
