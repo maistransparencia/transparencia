@@ -4,7 +4,12 @@ import type {
   EducacaoOrigemRecursosDTO,
   GrupoFonteRecursoEducacao,
 } from "@transparencia/db";
-import { fmtCompact, SectionHeader } from "@transparencia/ui";
+import {
+  fmtCompact,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+} from "@transparencia/ui";
 import { useState } from "react";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
@@ -30,10 +35,6 @@ export function EducacaoOrigemRecursosSection({
   const fonteSelecionada =
     fontes.find((fonte) => fonte.grupoFonte === fonteAberta) ?? null;
   const semReceitas = fontes.length === 0;
-
-  const fontesComValor = ORDEM_FONTES_RECURSO.flatMap((grupoFonte) =>
-    fontes.filter((fonte) => fonte.grupoFonte === grupoFonte),
-  ).map((fonte) => ({ fonte }));
 
   const fontePrincipal = fontes.reduce<(typeof fontes)[number] | null>(
     (maior, fonte) =>
@@ -73,47 +74,41 @@ export function EducacaoOrigemRecursosSection({
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
-        <div className="space-y-6">
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
-              const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
-              const item = fontesComValor.find(
-                ({ fonte }) => fonte.grupoFonte === grupoFonte,
-              );
-              if (!item) {
-                return (
-                  <li key={grupoFonte} className="space-y-0.5">
-                    <p className="font-semibold">{rotulo}</p>
-                    <p className="caption">
-                      <span>—</span> · <span>sem receita no exercício</span>
-                    </p>
-                  </li>
-                );
-              }
-              const { fonte } = item;
+        <IndicatorPanel columns={4} size="sm">
+          {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
+            const fonte = fontes.find((item) => item.grupoFonte === grupoFonte);
+            const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
+            if (!fonte) {
               return (
-                <li key={grupoFonte} className="space-y-0.5">
-                  <p className="font-semibold">{rotulo}</p>
-                  <p className="caption">
-                    <span className="font-semibold text-ink">
-                      {fmtCompact(fonte.totalArrecadado)}
-                    </span>
-                    {" · "}
-                    <span>
-                      {formatPercentualInteiro(fonte.percentualTotal)} do que
-                      entrou{parcial ? " · parcial" : ""}
-                    </span>
-                  </p>
-                  <VerDetalhesLink
-                    context={rotulo}
-                    testId={`fonte-card-${grupoFonte}`}
-                    onClick={() => setFonteAberta(grupoFonte)}
-                  />
-                </li>
+                <Indicator
+                  key={grupoFonte}
+                  label={rotulo}
+                  value="—"
+                  note="sem receita no exercício"
+                />
               );
-            })}
-          </ul>
-        </div>
+            }
+            return (
+              <Indicator
+                key={grupoFonte}
+                label={rotulo}
+                value={fmtCompact(fonte.totalArrecadado)}
+                note={
+                  <>
+                    {formatPercentualInteiro(fonte.percentualTotal)} do que
+                    entrou{parcial ? " · parcial" : ""}
+                    <VerDetalhesLink
+                      context={rotulo}
+                      testId={`fonte-card-${grupoFonte}`}
+                      onClick={() => setFonteAberta(grupoFonte)}
+                      className="mt-2"
+                    />
+                  </>
+                }
+              />
+            );
+          })}
+        </IndicatorPanel>
       )}
 
       <FonteRecursoModal
