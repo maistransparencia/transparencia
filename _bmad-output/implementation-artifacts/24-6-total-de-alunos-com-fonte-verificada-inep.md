@@ -112,3 +112,12 @@ Decisão do usuário com a análise da Mary: o denominador casa com o "por aluno
 ## Decisão sobre o denominador (2026-11-03)
 
 Mantido o total de educação infantil mais ensino fundamental da rede municipal. EJA, educação especial e ensino médio ficam de fora e a nota da tela diz isso. A regra exata do SIOPE 4.9 não foi confirmada em fonte oficial publicada: o relatório do TCE-BA (2020) diz que o denominador usa matrículas do Censo Escolar por nível e modalidade; uma afirmação de que o SIOPE usa 2.001 em Porciúncula 2024 (com EJA e especial) veio de texto sem fonte e com valor de Natividade divergente da API, então não foi adotada. A diferença estimada, se for verdadeira, é de cerca de 30 alunos (1,5%) em Porciúncula.
+
+## Regra oficial do SIOPE 4.9 (2026-11-03)
+
+Fonte oficial: páginas de descrição de indicador do SIOPE (`https://www.fnde.gov.br/siope/descricaoIndicadorMunicipal.do?anos=<ano>&cod_exib=4.9`, idem 4.8 e 4.2). Método de aferição publicado:
+- 4.9 "Investimento educacional por aluno": (Despesa com MDE / Número total de alunos matriculados).
+- 4.8 "…da educação básica": (Despesa com MDE / Número total de alunos matriculados na educação básica).
+- 4.2 "…do ensino fundamental": (Despesa com MDE no âmbito do ensino fundamental / Número total de alunos matriculados no ensino fundamental).
+
+O que fica confirmado: o numerador é a despesa com MDE (não a função 12), e o denominador é o total de alunos matriculados, sem restrição de nível no 4.9. O que a página não diz: a fonte das matrículas (Censo Escolar) e quais modalidades entram. Como a educação básica da LDB inclui EJA e educação especial, o denominador do SIOPE pode ser maior que o nosso (infantil + fundamental). Por isso a nota da tela passou a dizer que ensino médio, EJA e educação especial não entram (a nota anterior não dizia, ao contrário do registrado antes). Não foi possível confirmar o número exato usado pelo SIOPE em Porciúncula.

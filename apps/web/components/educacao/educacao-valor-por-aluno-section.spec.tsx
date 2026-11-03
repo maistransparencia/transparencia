@@ -74,6 +74,9 @@ describe("EducacaoValorPorAlunoSection", () => {
     expect(screen.getByText("Alunos na rede municipal")).toBeTruthy();
     expect(screen.getByText(/1\.971/)).toBeTruthy();
     expect(screen.getByText(/Censo Escolar 2023, INEP/)).toBeTruthy();
+    expect(
+      screen.getByText(/não inclui ensino médio, EJA nem educação especial/),
+    ).toBeTruthy();
   });
 
   it("sem matrícula o indicador não aparece", () => {
