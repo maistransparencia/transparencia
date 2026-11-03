@@ -108,3 +108,7 @@ Decisão do usuário: trocar a fonte pela API de dados do IBGE (pesquisa 13, "Ce
 ## Revisão de escopo (2026-11-02, 2)
 
 Decisão do usuário com a análise da Mary: o denominador casa com o "por aluno da educação básica" do SIOPE 4.9, então entra a educação infantil (indicadores 77883 creche e 5904 pré-escola). O mart expõe `matriculas_educacao_infantil`, `matriculas_ensino_fundamental` e `matriculas_educacao_basica` (soma calculada no dbt); a tela mostra o total e a divisão entre as etapas. Ensino médio, EJA e educação especial ficam de fora e a nota diz isso. Conferência: Porciúncula 2024 = 668 + 1.303 = 1.971; Natividade 2024 = 567 + 857 = 1.424, os mesmos totais da soma de QT_MAT_BAS dos microdados do INEP. Pendente: confirmar a regra de cálculo do SIOPE 4.9 no FNDE.
+
+## Decisão sobre o denominador (2026-11-03)
+
+Mantido o total de educação infantil mais ensino fundamental da rede municipal. EJA, educação especial e ensino médio ficam de fora e a nota da tela diz isso. A regra exata do SIOPE 4.9 não foi confirmada em fonte oficial publicada: o relatório do TCE-BA (2020) diz que o denominador usa matrículas do Censo Escolar por nível e modalidade; uma afirmação de que o SIOPE usa 2.001 em Porciúncula 2024 (com EJA e especial) veio de texto sem fonte e com valor de Natividade divergente da API, então não foi adotada. A diferença estimada, se for verdadeira, é de cerca de 30 alunos (1,5%) em Porciúncula.
