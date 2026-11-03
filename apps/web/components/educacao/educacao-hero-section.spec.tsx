@@ -75,6 +75,8 @@ const aprendizadoBase: AprendizadoEtapa = {
   notaIdeb: 6.2,
   anoApuracao: 2023,
   metaIdeb: 6,
+  mediaEstadual: 5.2,
+  mediaEstadualLabel: "Média da rede pública (UF)",
   atingiuMeta: true,
   notaAnterior: 5.8,
   anoAnterior: 2021,
@@ -142,7 +144,6 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     const barra = within(destaqueMinimo()).getByRole("meter");
     expect(barra.getAttribute("aria-valuenow")).toBe("27.5");
     expect(barra.getAttribute("aria-valuetext")).toMatch(/mínimo de 30,00%/);
-    expect(within(destaqueMinimo()).getByText("mínimo 30%")).toBeTruthy();
   });
 
   it("abaixo do mínimo fala em indício, nunca em irregularidade", () => {
@@ -232,7 +233,9 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
     ).toBeTruthy();
     const barra = within(bloco).getByRole("meter");
     expect(barra.getAttribute("aria-valuemax")).toBe("10");
-    expect(within(bloco).getByText("meta 6,0")).toBeTruthy();
+    expect(
+      within(bloco).getByText(/Média da rede pública \(UF\): 5,2/),
+    ).toBeTruthy();
   });
 
   it("variação sobe em ok-text, cai em danger-text e some quando não mudou", () => {
@@ -265,7 +268,7 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
 
   it("sem meta a barra do IDEB aparece sem marcador e sem nota mostra traço e a causa", () => {
     const { rerender } = renderizar({
-      aprendizado: { ...aprendizadoBase, metaIdeb: null, atingiuMeta: null },
+      aprendizado: { ...aprendizadoBase, mediaEstadual: null },
     });
     expect(within(destaqueIdeb()).getByRole("meter")).toBeTruthy();
     expect(

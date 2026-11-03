@@ -6,7 +6,6 @@ const propsBase = {
   label: "Aplicado em ensino",
   valueText: "27,4% aplicado; mínimo de 25%",
   threshold: 25,
-  thresholdLabel: "mínimo 25%",
 };
 
 describe("ThresholdMeter", () => {
@@ -17,13 +16,12 @@ describe("ThresholdMeter", () => {
     expect(medidor.getAttribute("aria-valuetext")).toBe(
       "27,4% aplicado; mínimo de 25%",
     );
-    expect(screen.getByText("mínimo 25%")).toBeTruthy();
   });
 
-  it("é quadrada: trilho bg-track h-3, sem rounded, e posiciona fill e marcador", () => {
+  it("é quadrada: trilho bg-track h-4, sem rounded, e posiciona fill e marcador", () => {
     const { container } = render(<ThresholdMeter value={40} {...propsBase} />);
     const trilho = container.querySelector(".bg-track");
-    expect(trilho?.className).toContain("h-3");
+    expect(trilho?.className).toContain("h-4");
     expect(container.innerHTML).not.toMatch(/rounded/);
     const preenchimento = container.querySelector<HTMLElement>(
       "[data-testid='threshold-meter-fill']",
@@ -54,7 +52,6 @@ describe("ThresholdMeter", () => {
         label="Nota do IDEB"
         valueText="6,1 de 10; meta 6,0"
         threshold={6}
-        thresholdLabel="meta 6,0"
       />,
     );
     expect(

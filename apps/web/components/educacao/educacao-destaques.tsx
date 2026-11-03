@@ -38,7 +38,6 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
             <ThresholdMeter
               value={mde.percentualAplicado}
               threshold={mde.limite}
-              thresholdLabel={`mínimo ${formatarLimite(mde.limite)}`}
               label="Aplicado em ensino (MDE)"
               valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${fmtPercent(mde.limite)}${mde.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
             />
@@ -60,7 +59,8 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
 
 /** Destaque 2: o IDEB dos anos iniciais com a faixa, a variação e a barra com a meta. */
 export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
-  const { notaIdeb, anoApuracao, metaIdeb, notaAnterior, anoAnterior } = etapa;
+  const { notaIdeb, anoApuracao, mediaEstadual, notaAnterior, anoAnterior } =
+    etapa;
   const temNota = notaIdeb !== null && anoApuracao !== null;
 
   const cicloAnterior = (() => {
@@ -95,18 +95,20 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
           <ThresholdMeter
             value={notaIdeb}
             max={10}
-            threshold={metaIdeb ?? undefined}
-            thresholdLabel={
-              metaIdeb === null ? undefined : `meta ${formatarNota(metaIdeb)}`
-            }
+            threshold={mediaEstadual ?? undefined}
             label={`Nota do IDEB, ${etapa.titulo}`}
-            valueText={`${formatarNota(notaIdeb)} de 10${metaIdeb === null ? "" : `; meta do MEC ${formatarNota(metaIdeb)}`}`}
+            valueText={`${formatarNota(notaIdeb)} de 10${mediaEstadual === null ? "" : `; ${etapa.mediaEstadualLabel} ${formatarNota(mediaEstadual)}`}`}
           />
           <p className="caption space-y-0.5">
             <span className="block">
               IDEB · {etapa.titulo}, {anoApuracao}
             </span>
             <span className="block">{cicloAnterior}</span>
+            {mediaEstadual !== null && (
+              <span className="block">
+                {etapa.mediaEstadualLabel}: {formatarNota(mediaEstadual)}
+              </span>
+            )}
           </p>
         </>
       ) : (

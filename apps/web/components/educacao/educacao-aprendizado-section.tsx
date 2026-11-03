@@ -161,7 +161,6 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
           value={notaIdeb}
           max={10}
           threshold={metaIdeb}
-          thresholdLabel={`meta ${formatarNota(metaIdeb)}`}
           label={`Nota do IDEB, ${etapa.titulo}`}
           valueText={`${formatarNota(notaIdeb)} de 10; meta do MEC ${formatarNota(metaIdeb)}`}
         />

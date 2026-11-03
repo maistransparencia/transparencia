@@ -85,6 +85,9 @@ export interface AprendizadoEtapa {
   notaIdeb: number | null;
   anoApuracao: number | null;
   metaIdeb: number | null;
+  /** Média da rede pública do estado no mesmo ano da nota, com o rótulo dinâmico. */
+  mediaEstadual: number | null;
+  mediaEstadualLabel: string;
   atingiuMeta: boolean | null;
   notaAnterior: number | null;
   anoAnterior: number | null;
@@ -330,6 +333,8 @@ function buildAprendizadoEtapa({
     notaIdeb: atual?.notaIdeb ?? null,
     anoApuracao: atual?.ano ?? null,
     metaIdeb: atual?.metaMec ?? null,
+    mediaEstadual: atual?.mediaEstadual ?? null,
+    mediaEstadualLabel: historico.mediaEstadualLabel,
     atingiuMeta: atual?.atingiuMeta ?? null,
     notaAnterior: anterior?.notaIdeb ?? null,
     anoAnterior: anterior?.ano ?? null,

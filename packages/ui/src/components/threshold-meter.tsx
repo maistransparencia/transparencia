@@ -16,8 +16,6 @@ export interface ThresholdMeterProps {
   max?: number;
   /** Posição do marcador na mesma escala: o mínimo legal ou a meta. */
   threshold?: number;
-  /** Texto curto acima do marcador (ex.: "mínimo 25%"). */
-  thresholdLabel?: string;
   /** Nome acessível da barra. */
   label: string;
   /** Leitura do valor por texto (ex.: "27,4% aplicado; mínimo de 25%"). */
@@ -34,7 +32,6 @@ export function ThresholdMeter({
   value,
   max = 100,
   threshold,
-  thresholdLabel,
   label,
   valueText,
   tone = "brand",
@@ -43,12 +40,6 @@ export function ThresholdMeter({
   if (value === null) return null;
   const temMarcador = threshold !== undefined;
   const posicaoMarcador = temMarcador ? emPercentual(threshold, max) : 0;
-  const alinhamentoRotulo = (() => {
-    if (posicaoMarcador > 85) return "-translate-x-full";
-    if (posicaoMarcador < 15) return "translate-x-0";
-    return "-translate-x-1/2";
-  })();
-
   return (
     // biome-ignore lint/a11y/useSemanticElements: <meter> não aceita o marcador nem o estilo quadrado de barra
     <span
@@ -58,9 +49,9 @@ export function ThresholdMeter({
       aria-valuemax={max}
       aria-valuenow={value}
       aria-valuetext={valueText}
-      className={cn("relative block", temMarcador ? "pt-6" : "pt-2", className)}
+      className={cn("relative block", className)}
     >
-      <span className="block h-3 w-full bg-track">
+      <span className="block h-4 w-full bg-track">
         <span
           data-testid="threshold-meter-fill"
           className={cn("block h-full", FILL_CLASS[tone])}
@@ -71,18 +62,9 @@ export function ThresholdMeter({
         <span
           data-testid="threshold-meter-marker"
           aria-hidden="true"
-          className="absolute top-4 bottom-[-0.25rem] block w-0.5 bg-ink"
+          className="absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5 bg-ink"
           style={{ left: `${posicaoMarcador}%` }}
-        >
-          <span
-            className={cn(
-              "caption absolute bottom-full left-0 mb-0.5 whitespace-nowrap",
-              alinhamentoRotulo,
-            )}
-          >
-            {thresholdLabel}
-          </span>
-        </span>
+        />
       )}
     </span>
   );

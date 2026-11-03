@@ -16,6 +16,8 @@ const etapa = (parcial: Partial<AprendizadoEtapa>): AprendizadoEtapa => ({
   notaIdeb: 6.1,
   anoApuracao: 2023,
   metaIdeb: 6,
+  mediaEstadual: 5.2,
+  mediaEstadualLabel: "Média da rede pública (UF)",
   atingiuMeta: true,
   notaAnterior: 5.7,
   anoAnterior: 2021,
@@ -58,7 +60,6 @@ describe("EducacaoAprendizadoSection", () => {
     const barras = screen.getAllByRole("meter");
     expect(barras).toHaveLength(2);
     expect(barras[0].getAttribute("aria-valuetext")).toMatch(/meta do MEC 6,0/);
-    expect(screen.getByText("meta 5,5")).toBeTruthy();
     expect(screen.getByTestId("historico")).toBeTruthy();
   });
 
