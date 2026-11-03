@@ -362,6 +362,28 @@ export function EmendasSection({
         description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
       />
 
+      <IndicatorPanel columns={4}>
+        <Indicator
+          label="Autorizado"
+          value={fmtCompact(emendasStats.totalAutorizado)}
+          note="valor das emendas"
+        />
+        <Indicator
+          label="Confirmada na receita"
+          value={fmtCompact(totalRecebidoFundo)}
+          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
+        />
+        <Indicator
+          label="Empenhado no cadastro"
+          value={fmtCompact(emendasStats.totalEmpenhado)}
+          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
+        />
+        <Indicator
+          label="Maior emenda"
+          value={fmtCompact(emendasStats.maiorEmenda)}
+        />
+      </IndicatorPanel>
+
       {emendasStats.totalAutorizado > 0 && (
         <AlertBox type="info" title="O dinheiro das emendas chegou?">
           {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
@@ -390,28 +412,6 @@ export function EmendasSection({
           receita indicada na tabela.
         </AlertBox>
       )}
-
-      <IndicatorPanel columns={4}>
-        <Indicator
-          label="Autorizado"
-          value={fmtCompact(emendasStats.totalAutorizado)}
-          note="valor das emendas"
-        />
-        <Indicator
-          label="Confirmada na receita"
-          value={fmtCompact(totalRecebidoFundo)}
-          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
-        />
-        <Indicator
-          label="Empenhado no cadastro"
-          value={fmtCompact(emendasStats.totalEmpenhado)}
-          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
-        />
-        <Indicator
-          label="Maior emenda"
-          value={fmtCompact(emendasStats.maiorEmenda)}
-        />
-      </IndicatorPanel>
 
       {/* Tabela Densa com Linha de Totalizador */}
       <div className="space-y-2">
