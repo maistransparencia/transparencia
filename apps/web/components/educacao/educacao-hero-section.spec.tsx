@@ -113,7 +113,7 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     ).toBeTruthy();
     expect(bloco.querySelector(".stat-value-lg")?.textContent).toBe("27,50%");
     expect(
-      within(bloco).getByText(/A lei exige aplicar pelo menos 25,00%/),
+      within(bloco).getByText(/A lei exige pelo menos 25,00%/),
     ).toBeTruthy();
     expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
     expect(
@@ -264,11 +264,14 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
     expect(container.textContent).not.toMatch(/em relação a 2021/);
   });
 
-  it("sem meta não desenha a barra e sem nota mostra traço e a causa", () => {
+  it("sem meta a barra do IDEB aparece sem marcador e sem nota mostra traço e a causa", () => {
     const { rerender } = renderizar({
       aprendizado: { ...aprendizadoBase, metaIdeb: null, atingiuMeta: null },
     });
-    expect(within(destaqueIdeb()).queryByRole("meter")).toBeNull();
+    expect(within(destaqueIdeb()).getByRole("meter")).toBeTruthy();
+    expect(
+      within(destaqueIdeb()).queryByTestId("threshold-meter-marker"),
+    ).toBeNull();
     rerender(
       elemento({
         aprendizado: {
@@ -286,7 +289,7 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
 });
 
 describe("EducacaoHeroSection: indicadores de apoio", () => {
-  it("põe o Fundeb dos profissionais num indicador com tom pela posição, mínimo e barra", () => {
+  it("põe o Fundeb dos profissionais num indicador com tom pela posição e mínimo, sem barra", () => {
     const { container, rerender } = renderizar();
     const indicador = screen.getByTestId("indicador-fundeb");
     expect(
@@ -303,7 +306,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     expect(
       within(indicador).getByText(/indício a ser esclarecido/),
     ).toBeTruthy();
-    expect(within(indicador).getByText("mínimo 70%")).toBeTruthy();
+    expect(within(indicador).queryByRole("meter")).toBeNull();
     rerender(
       elemento({
         minimosLegais: {
@@ -427,18 +430,16 @@ describe("EducacaoHeroSection: lei, fonte e gasto", () => {
     ).toBeTruthy();
   });
 
-  it("Ver detalhes do gasto fica em linha separada da legenda e abre reservado, liquidado e pago", () => {
+  it("o gasto fica à vista, sem Ver detalhes, com reservado, liquidado e pago", () => {
     renderizar();
-    const botao = screen.getByRole("button", {
-      name: "Ver detalhes: gasto em educação",
-    });
-    expect(botao.closest("p")).toBeNull();
-    fireEvent.click(botao);
-    const modal = screen.getByRole("dialog");
+    const gasto = screen.getByTestId("gasto-educacao");
     expect(
-      within(modal).getByText("Quanto a Prefeitura gastou em educação"),
+      within(gasto).getByText("Quanto a Prefeitura gastou em educação?"),
     ).toBeTruthy();
-    expect(within(modal).getByText(/Reservado \(empenhado\)/)).toBeTruthy();
-    expect(within(modal).getByText(/não para o que ela recebe/)).toBeTruthy();
+    expect(within(gasto).getByText(/Reservado \(empenhado\)/)).toBeTruthy();
+    expect(within(gasto).getByText(/não para o que ela recebe/)).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Ver detalhes: gasto em educação" }),
+    ).toBeNull();
   });
 });

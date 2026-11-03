@@ -15,9 +15,9 @@ export interface ThresholdMeterProps {
   /** Fim da escala (100 para percentuais, 10 para nota). */
   max?: number;
   /** Posição do marcador na mesma escala: o mínimo legal ou a meta. */
-  threshold: number;
+  threshold?: number;
   /** Texto curto acima do marcador (ex.: "mínimo 25%"). */
-  thresholdLabel: string;
+  thresholdLabel?: string;
   /** Nome acessível da barra. */
   label: string;
   /** Leitura do valor por texto (ex.: "27,4% aplicado; mínimo de 25%"). */
@@ -41,7 +41,8 @@ export function ThresholdMeter({
   className,
 }: ThresholdMeterProps) {
   if (value === null) return null;
-  const posicaoMarcador = emPercentual(threshold, max);
+  const temMarcador = threshold !== undefined;
+  const posicaoMarcador = temMarcador ? emPercentual(threshold, max) : 0;
   const alinhamentoRotulo = (() => {
     if (posicaoMarcador > 85) return "-translate-x-full";
     if (posicaoMarcador < 15) return "translate-x-0";
@@ -57,7 +58,7 @@ export function ThresholdMeter({
       aria-valuemax={max}
       aria-valuenow={value}
       aria-valuetext={valueText}
-      className={cn("relative block pt-6", className)}
+      className={cn("relative block", temMarcador ? "pt-6" : "pt-2", className)}
     >
       <span className="block h-3 w-full bg-track">
         <span
@@ -66,21 +67,23 @@ export function ThresholdMeter({
           style={{ width: `${emPercentual(value, max)}%` }}
         />
       </span>
-      <span
-        data-testid="threshold-meter-marker"
-        aria-hidden="true"
-        className="absolute top-4 bottom-[-0.25rem] block w-0.5 bg-ink"
-        style={{ left: `${posicaoMarcador}%` }}
-      >
+      {temMarcador && (
         <span
-          className={cn(
-            "caption absolute bottom-full left-0 mb-0.5 whitespace-nowrap",
-            alinhamentoRotulo,
-          )}
+          data-testid="threshold-meter-marker"
+          aria-hidden="true"
+          className="absolute top-4 bottom-[-0.25rem] block w-0.5 bg-ink"
+          style={{ left: `${posicaoMarcador}%` }}
         >
-          {thresholdLabel}
+          <span
+            className={cn(
+              "caption absolute bottom-full left-0 mb-0.5 whitespace-nowrap",
+              alinhamentoRotulo,
+            )}
+          >
+            {thresholdLabel}
+          </span>
         </span>
-      </span>
+      )}
     </span>
   );
 }

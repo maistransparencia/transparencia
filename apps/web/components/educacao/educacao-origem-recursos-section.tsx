@@ -15,13 +15,14 @@ import {
 } from "./fonte-recurso-utils";
 import { VerDetalhesLink } from "./ver-detalhes-link";
 
-/** As três maiores fontes ganham cor própria; as demais dividem o cinza (cor repetida só dentro de um grupo). */
-const PREENCHIMENTOS_MAIORES_FONTES = [
+/** Preenchimentos dos segmentos, em ordem; o texto ao lado de cada fonte nunca depende da cor. */
+const PREENCHIMENTOS_FONTE = [
   "bg-brand-fill",
   "bg-ok-fill",
   "bg-warn-fill",
+  "bg-mute3",
+  "bg-faint",
 ];
-const PREENCHIMENTO_DEMAIS_FONTES = "bg-mute3";
 
 export interface EducacaoOrigemRecursosSectionProps {
   origemRecursos: EducacaoOrigemRecursosDTO;
@@ -39,21 +40,12 @@ export function EducacaoOrigemRecursosSection({
     fontes.find((fonte) => fonte.grupoFonte === fonteAberta) ?? null;
   const semReceitas = fontes.length === 0;
 
-  const posicaoPorValor = [...fontes]
-    .sort((a, b) => b.totalArrecadado - a.totalArrecadado)
-    .map((fonte) => fonte.grupoFonte);
   const fontesComValor = ORDEM_FONTES_RECURSO.flatMap((grupoFonte) =>
     fontes.filter((fonte) => fonte.grupoFonte === grupoFonte),
-  ).map((fonte) => ({
+  ).map((fonte, indice) => ({
     fonte,
-    preenchimento:
-      PREENCHIMENTOS_MAIORES_FONTES[
-        posicaoPorValor.indexOf(fonte.grupoFonte)
-      ] ?? PREENCHIMENTO_DEMAIS_FONTES,
+    preenchimento: PREENCHIMENTOS_FONTE[indice % PREENCHIMENTOS_FONTE.length],
   }));
-  const temDemaisFontes = fontesComValor.some(
-    ({ preenchimento }) => preenchimento === PREENCHIMENTO_DEMAIS_FONTES,
-  );
 
   const fontePrincipal = fontes.reduce<(typeof fontes)[number] | null>(
     (maior, fonte) =>
@@ -111,9 +103,6 @@ export function EducacaoOrigemRecursosSection({
               />
             ))}
           </div>
-          {temDemaisFontes && (
-            <p className="caption">Cinza: as demais fontes.</p>
-          )}
           <ul className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
             {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
               const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];

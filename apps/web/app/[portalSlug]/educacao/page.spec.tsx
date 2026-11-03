@@ -354,6 +354,9 @@ describe("EducacaoPage (Server Component)", () => {
     expect(indicadores).toEqual([
       "Parte do Fundeb paga aos profissionais da educação",
       "Quanto a Prefeitura investe por aluno?",
+      "Reservado (empenhado) no ano",
+      "Serviço ou produto entregue (liquidado)",
+      "Dinheiro que saiu (pago)",
     ]);
 
     const titulos = screen
@@ -666,7 +669,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("abre Detalhes do IDEB com SAEB e aprovação em indicadores dentro de um panel", async () => {
+  it("mostra SAEB e aprovação abaixo do aviso e deixa só o texto em Detalhes do IDEB", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     render(
@@ -679,19 +682,15 @@ describe("EducacaoPage (Server Component)", () => {
     const secao = screen.getByRole("region", {
       name: "Aprendizado dos alunos",
     });
+    expect(within(secao).getByText("SAEB — Língua Portuguesa")).toBeTruthy();
+    expect(within(secao).getByText("SAEB — Matemática")).toBeTruthy();
+    expect(within(secao).getByText("Taxa de aprovação escolar")).toBeTruthy();
     fireEvent.click(
       within(secao).getByRole("button", { name: "Ver detalhes: IDEB" }),
     );
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("SAEB — Língua Portuguesa"),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("SAEB — Matemática")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("Taxa de aprovação escolar"),
-    ).toBeInTheDocument();
-    expect(dialog.querySelector(".panel dl")).not.toBeNull();
+    expect(within(dialog).queryByText("SAEB — Matemática")).toBeNull();
     expect(
       within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
     ).toBeInTheDocument();

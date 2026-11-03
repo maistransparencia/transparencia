@@ -293,6 +293,30 @@ export function EducacaoHistoricoSection({
             <span className="sr-only">(abre em nova aba)</span>
           </a>
         </AlertBox>
+
+        {pontoMaisRecente && (
+          <IndicatorPanel columns={3} size="sm">
+            <Indicator
+              label="SAEB — Língua Portuguesa"
+              value={formatarSaeb(pontoMaisRecente.saebLinguaPortuguesa)}
+              note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
+            />
+            <Indicator
+              label="SAEB — Matemática"
+              value={formatarSaeb(pontoMaisRecente.saebMatematica)}
+              note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
+            />
+            <Indicator
+              label="Taxa de aprovação escolar"
+              value={
+                pontoMaisRecente.taxaAprovacao === null
+                  ? "—"
+                  : `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`
+              }
+              note="alunos aprovados no ano"
+            />
+          </IndicatorPanel>
+        )}
       </div>
 
       <div>
@@ -321,30 +345,6 @@ export function EducacaoHistoricoSection({
         }
       >
         <div className="space-y-6">
-          {pontoMaisRecente && (
-            <IndicatorPanel columns={3} size="sm">
-              <Indicator
-                label="SAEB — Língua Portuguesa"
-                value={formatarSaeb(pontoMaisRecente.saebLinguaPortuguesa)}
-                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
-              />
-              <Indicator
-                label="SAEB — Matemática"
-                value={formatarSaeb(pontoMaisRecente.saebMatematica)}
-                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
-              />
-              <Indicator
-                label="Taxa de aprovação escolar"
-                value={
-                  pontoMaisRecente.taxaAprovacao === null
-                    ? "—"
-                    : `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`
-                }
-                note="alunos aprovados no ano"
-              />
-            </IndicatorPanel>
-          )}
-
           <section aria-label="Como ler a meta do IDEB" className="space-y-3">
             <h3>Como ler a meta do IDEB</h3>
             <p className="text-mute text-sm">

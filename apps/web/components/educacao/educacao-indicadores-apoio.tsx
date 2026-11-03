@@ -7,7 +7,6 @@ import {
   Indicator,
   IndicatorPanel,
   type IndicatorTone,
-  ThresholdMeter,
 } from "@transparencia/ui";
 import { useState } from "react";
 import type {
@@ -20,7 +19,6 @@ import { AlunosRedeModal } from "./alunos-rede-modal";
 import {
   descreverPeriodo,
   descreverVariacaoValorPorAluno,
-  formatarLimite,
   motivoSemPercentual,
   Veredito,
 } from "./educacao-textos";
@@ -69,15 +67,6 @@ function IndicadorFundeb({ view }: { view: MinimosLegaisView }) {
               </span>
             )}
             <Veredito minimo={fundeb} ocultarCumpriu />
-            {limite !== null && (
-              <ThresholdMeter
-                value={percentualAplicado}
-                threshold={limite}
-                thresholdLabel={`mínimo ${formatarLimite(limite)}`}
-                label="Parte do Fundeb paga aos profissionais da educação"
-                valueText={`${fmtPercent(percentualAplicado)} dos recursos do Fundeb pagos aos profissionais; mínimo de ${fmtPercent(limite)}${fundeb.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
-              />
-            )}
           </>
         );
       })()}

@@ -34,18 +34,6 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
         <p className="caption">{motivoSemPercentual(view)}</p>
       ) : (
         <>
-          <p className="caption space-y-0.5">
-            <span className="block">
-              da receita de impostos e transferências foi aplicada em ensino{" "}
-              {periodoTexto}.
-            </span>
-            {mde.limite !== null && (
-              <span className="block">
-                A lei exige aplicar pelo menos {fmtPercent(mde.limite)}.
-              </span>
-            )}
-            <Veredito minimo={mde} ocultarCumpriu />
-          </p>
           {mde.limite !== null && (
             <ThresholdMeter
               value={mde.percentualAplicado}
@@ -55,6 +43,15 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${fmtPercent(mde.limite)}${mde.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
             />
           )}
+          <p className="caption space-y-0.5">
+            <span className="block">
+              da receita de impostos e transferências foi aplicada em ensino{" "}
+              {periodoTexto}.
+              {mde.limite !== null &&
+                ` A lei exige pelo menos ${fmtPercent(mde.limite)}.`}
+            </span>
+            <Veredito minimo={mde} ocultarCumpriu />
+          </p>
         </>
       )}
     </div>
@@ -95,22 +92,22 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
       </p>
       {temNota ? (
         <>
+          <ThresholdMeter
+            value={notaIdeb}
+            max={10}
+            threshold={metaIdeb ?? undefined}
+            thresholdLabel={
+              metaIdeb === null ? undefined : `meta ${formatarNota(metaIdeb)}`
+            }
+            label={`Nota do IDEB, ${etapa.titulo}`}
+            valueText={`${formatarNota(notaIdeb)} de 10${metaIdeb === null ? "" : `; meta do MEC ${formatarNota(metaIdeb)}`}`}
+          />
           <p className="caption space-y-0.5">
             <span className="block">
               IDEB · {etapa.titulo}, {anoApuracao}
             </span>
             <span className="block">{cicloAnterior}</span>
           </p>
-          {metaIdeb !== null && (
-            <ThresholdMeter
-              value={notaIdeb}
-              max={10}
-              threshold={metaIdeb}
-              thresholdLabel={`meta ${formatarNota(metaIdeb)}`}
-              label={`Nota do IDEB, ${etapa.titulo}`}
-              valueText={`${formatarNota(notaIdeb)} de 10; meta do MEC ${formatarNota(metaIdeb)}`}
-            />
-          )}
         </>
       ) : (
         <p className="caption">sem nota do IDEB apurada</p>

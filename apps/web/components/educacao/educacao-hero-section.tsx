@@ -73,18 +73,17 @@ export function EducacaoHeroSection({
           alunosRede={alunosRede}
         />
 
-        <div className="space-y-2">
-          <LinhaLeiEFonte
-            laws={[...leiDoMinimo(mde), ...leiDoMinimo(fundebProfissionais)]}
-            source={FONTE_SIOPE}
-          />
-          <EducacaoMemoriaCalculo
-            ano={ano}
-            isCurrentYear={isCurrentYear}
-            partialPeriod={partialPeriod}
-            execucao={execucao}
-          />
-        </div>
+        <EducacaoMemoriaCalculo
+          ano={ano}
+          isCurrentYear={isCurrentYear}
+          partialPeriod={partialPeriod}
+          execucao={execucao}
+        />
+
+        <LinhaLeiEFonte
+          laws={[...leiDoMinimo(mde), ...leiDoMinimo(fundebProfissionais)]}
+          source={FONTE_SIOPE}
+        />
       </section>
     </div>
   );

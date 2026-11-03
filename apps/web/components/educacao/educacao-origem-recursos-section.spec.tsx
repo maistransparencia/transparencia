@@ -227,36 +227,4 @@ describe("EducacaoOrigemRecursosSection", () => {
       ),
     ).toBeInTheDocument();
   });
-
-  it("as três maiores fontes têm cor própria e as demais dividem o cinza, sem cor repetida entre fontes de destaque", () => {
-    const fonte = (
-      grupoFonte: EducacaoOrigemRecursoDTO["grupoFonte"],
-      totalArrecadado: number,
-    ): EducacaoOrigemRecursoDTO => ({
-      ...PNAE,
-      grupoFonte,
-      totalArrecadado,
-    });
-    render(
-      <EducacaoOrigemRecursosSection
-        origemRecursos={makeOrigem([
-          fonte("fundeb", 900),
-          fonte("salario_educacao", 80),
-          fonte("pnae", 50),
-          fonte("pnate", 20),
-          fonte("royalties", 10),
-        ])}
-      />,
-    );
-    const segmentos = Array.from(
-      screen.getByTestId("composicao-recursos-bar").children,
-    ).map((segmento) => segmento.className);
-    const destaques = segmentos.filter((c) => !c.includes("bg-mute3"));
-    expect(destaques).toHaveLength(3);
-    expect(new Set(destaques.map((c) => c.match(/bg-[\w-]+/)?.[0])).size).toBe(
-      3,
-    );
-    expect(segmentos.filter((c) => c.includes("bg-mute3"))).toHaveLength(2);
-    expect(screen.getByText("Cinza: as demais fontes.")).toBeTruthy();
-  });
 });
