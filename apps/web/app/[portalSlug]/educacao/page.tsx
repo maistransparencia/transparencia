@@ -67,16 +67,6 @@ export default async function EducacaoPage({
     contratos,
   } = viewModel;
 
-  const emendasSubtext = (() => {
-    if (emendas.totalAutorizado <= 0) {
-      return "Nenhuma emenda destinada no exercício";
-    }
-    if (emendas.totalEmpenhado === 0) {
-      return "Ainda sem valor reservado informado no cadastro de emendas";
-    }
-    return `${fmtCompact(emendas.totalEmpenhado)} já reservados (${fmtPercent(emendas.taxaEmpenho * 100)})`;
-  })();
-
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
     execucao.pagoSemPessoal,
@@ -110,23 +100,6 @@ export default async function EducacaoPage({
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
       />
-
-      <IndicatorPanel columns={2}>
-        <Indicator
-          label="Emendas na educação"
-          value={
-            emendas.totalAutorizado > 0
-              ? fmtCompact(emendas.totalAutorizado)
-              : "—"
-          }
-          note={emendasSubtext}
-        />
-        <Indicator
-          label="Contratos do Fundo"
-          value={contratos.length}
-          note={`contratos em vigor em ${selectedYear}`}
-        />
-      </IndicatorPanel>
 
       {emendas.lista.length > 0 && (
         <EmendasSection

@@ -347,7 +347,7 @@ export function EducacaoHistoricoSection({
 
           <section aria-label="Como ler a meta do IDEB" className="space-y-3">
             <h3>Como ler a meta do IDEB</h3>
-            <p className="text-mute">
+            <p className="text-mute text-sm">
               O MEC/INEP define a meta do IDEB separadamente para cada rede de
               ensino de cada município, a partir do ponto de partida da rede.
               Por isso municípios diferentes, e redes diferentes dentro do mesmo
@@ -355,7 +355,7 @@ export function EducacaoHistoricoSection({
               metas diferentes. Compare a nota sempre com a meta da mesma rede.
             </p>
             {currentHistorico.anosSemMeta.length > 0 && (
-              <p className="text-mute">
+              <p className="text-mute text-sm">
                 {currentHistorico.ultimoAnoComMeta !== null &&
                   `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
                 Os resultados de {formatarAnos(currentHistorico.anosSemMeta)}{" "}

@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
 import { urlLegislacao } from "@/lib/constants/legislacao";
-import { LinhaLeiEFonte } from "./educacao-textos";
+import { LinhaLeiEFonte, NOTA_MINIMO_GASTO } from "./educacao-textos";
 import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface EducacaoMemoriaCalculoProps {
@@ -60,7 +60,7 @@ export function EducacaoMemoriaCalculo({
         }
       >
         <div className="space-y-6">
-          <p className="text-mute">
+          <p className="text-mute text-sm">
             Reservado é o empenho, o compromisso de gastar; reservar não é
             pagar.
           </p>
@@ -97,8 +97,9 @@ export function EducacaoMemoriaCalculo({
             />
           </dl>
           <p className="caption">
-            O total soma todas as despesas da Prefeitura classificadas como
-            Educação, não só as do Fundo Municipal de Educação.
+            {NOTA_MINIMO_GASTO} O total soma todas as despesas da Prefeitura
+            classificadas como Educação, não só as do Fundo Municipal de
+            Educação.
             {temDados && !isCurrentYear && naoPago > 0
               ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
               : ""}

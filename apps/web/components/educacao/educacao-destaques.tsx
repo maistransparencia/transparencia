@@ -8,7 +8,6 @@ import {
   formatarLimite,
   formatarNota,
   motivoSemPercentual,
-  NOTA_MINIMO_GASTO,
   VariacaoAoLado,
   Veredito,
 } from "./educacao-textos";
@@ -45,8 +44,7 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
                 A lei exige aplicar pelo menos {fmtPercent(mde.limite)}.
               </span>
             )}
-            <Veredito minimo={mde} />
-            <span className="block">{NOTA_MINIMO_GASTO}</span>
+            <Veredito minimo={mde} ocultarCumpriu />
           </p>
           {mde.limite !== null && (
             <ThresholdMeter
@@ -54,7 +52,7 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               threshold={mde.limite}
               thresholdLabel={`mínimo ${formatarLimite(mde.limite)}`}
               label="Aplicado em ensino (MDE)"
-              valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${fmtPercent(mde.limite)}`}
+              valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${fmtPercent(mde.limite)}${mde.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
             />
           )}
         </>
@@ -76,12 +74,8 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
     if (pontos === null || pontos === 0) {
       return `ciclo anterior: ${formatarNota(notaAnterior)} em ${anoAnterior}`;
     }
-    return `${descreverVariacaoPontos(pontos)} em relação a ${anoAnterior} (${formatarNota(notaAnterior)})`;
+    return `${descreverVariacaoPontos(pontos)} em relação a ${anoAnterior}`;
   })();
-  const meta =
-    metaIdeb === null
-      ? "sem meta definida pelo MEC"
-      : `meta do MEC: ${formatarNota(metaIdeb)}`;
 
   return (
     <div className="space-y-2" data-testid="destaque-ideb">
@@ -103,10 +97,9 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
         <>
           <p className="caption space-y-0.5">
             <span className="block">
-              IDEB · {etapa.titulo}, apurado em {anoApuracao}
+              IDEB · {etapa.titulo}, {anoApuracao}
             </span>
             <span className="block">{cicloAnterior}</span>
-            <span className="block">{meta}</span>
           </p>
           {metaIdeb !== null && (
             <ThresholdMeter

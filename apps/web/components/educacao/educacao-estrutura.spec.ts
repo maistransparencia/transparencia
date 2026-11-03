@@ -42,4 +42,12 @@ describe("estrutura dos componentes de educação", () => {
       .map(({ nome }) => nome);
     expect(ofensores).toEqual([]);
   });
+
+  it("texto corrido dos modais usa text-sm, não o tamanho base", () => {
+    const ofensores = arquivos
+      .filter(({ nome }) => /modal|historico|memoria/.test(nome))
+      .filter(({ texto }) => /<p className="text-mute">/.test(texto))
+      .map(({ nome }) => nome);
+    expect(ofensores).toEqual([]);
+  });
 });

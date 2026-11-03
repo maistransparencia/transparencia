@@ -103,7 +103,7 @@ const destaqueMinimo = () => screen.getByTestId("destaque-minimo");
 const destaqueIdeb = () => screen.getByTestId("destaque-ideb");
 
 describe("EducacaoHeroSection: mínimo constitucional", () => {
-  it("destaca a pergunta, o percentual grande e o veredito em texto", () => {
+  it("destaca a pergunta e o percentual grande; o cumpriu fica só na barra", () => {
     renderizar();
     const bloco = destaqueMinimo();
     expect(
@@ -112,8 +112,13 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
       ),
     ).toBeTruthy();
     expect(bloco.querySelector(".stat-value-lg")?.textContent).toBe("27,50%");
-    expect(within(bloco).getByText(/Cumpriu o mínimo/)).toBeTruthy();
-    expect(within(bloco).getByText(/não para o que ela recebe/)).toBeTruthy();
+    expect(
+      within(bloco).getByText(/A lei exige aplicar pelo menos 25,00%/),
+    ).toBeTruthy();
+    expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
+    expect(
+      within(bloco).getByRole("meter").getAttribute("aria-valuetext"),
+    ).toMatch(/cumpriu o mínimo/);
   });
 
   it("não usa panel em volta nem faixa cinza nos destaques", () => {
@@ -264,9 +269,6 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
       aprendizado: { ...aprendizadoBase, metaIdeb: null, atingiuMeta: null },
     });
     expect(within(destaqueIdeb()).queryByRole("meter")).toBeNull();
-    expect(
-      within(destaqueIdeb()).getByText(/sem meta definida pelo MEC/),
-    ).toBeTruthy();
     rerender(
       elemento({
         aprendizado: {
@@ -296,7 +298,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
       "text-warn-text",
     );
     expect(
-      within(indicador).getByText(/mínimo de 70,00% dos recursos do Fundeb/),
+      within(indicador).getByText(/a lei exige pelo menos 70,00%/),
     ).toBeTruthy();
     expect(
       within(indicador).getByText(/indício a ser esclarecido/),
@@ -329,9 +331,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     renderizar();
     const indicador = screen.getByTestId("indicador-valor-por-aluno");
     expect(within(indicador).getByText(/subiu R\$ 1\.000/)).toBeTruthy();
-    expect(
-      within(indicador).getByText(/sem correção pela inflação/),
-    ).toBeTruthy();
+    expect(within(indicador).getByText(/R\$ da época/)).toBeTruthy();
     const link = within(indicador).getByRole("button", {
       name: "Ver detalhes: valor por aluno",
     });
@@ -374,7 +374,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     ).toBeTruthy();
   });
 
-  it("alunos na rede: divisão, exclusões e Censo com o ano real; some sem matrícula", () => {
+  it("alunos na rede: divisão e exclusões curtas; o Censo e o detalhe ficam no modal", () => {
     const { rerender } = renderizar();
     const indicador = screen.getByTestId("indicador-alunos-rede");
     expect(within(indicador).getByText("1.971")).toBeTruthy();
@@ -383,12 +383,24 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     ).toBeTruthy();
     expect(
       within(indicador).getByText(
-        /não inclui ensino médio, EJA nem educação especial/,
+        /Não inclui ensino médio, EJA nem educação especial/,
       ),
     ).toBeTruthy();
+    expect(within(indicador).queryByText(/Censo Escolar/)).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver detalhes: alunos na rede municipal",
+      }),
+    );
+    const modal = screen.getByRole("dialog");
     expect(
-      within(indicador).getByText(/Censo Escolar 2023, INEP/),
+      within(modal).getByText(/Censo Escolar 2023, INEP/, { selector: "span" }),
     ).toBeTruthy();
+    expect(within(modal).getByText(/matriculados em maio/)).toBeTruthy();
+    expect(within(modal).getByText(/creche e pré-escola/)).toBeTruthy();
+    fireEvent.click(
+      within(modal).getByRole("button", { name: "Fechar modal" }),
+    );
     rerender(elemento({ alunosRede: null }));
     expect(screen.queryByTestId("indicador-alunos-rede")).toBeNull();
   });
@@ -427,5 +439,6 @@ describe("EducacaoHeroSection: lei, fonte e gasto", () => {
       within(modal).getByText("Quanto a Prefeitura gastou em educação"),
     ).toBeTruthy();
     expect(within(modal).getByText(/Reservado \(empenhado\)/)).toBeTruthy();
+    expect(within(modal).getByText(/não para o que ela recebe/)).toBeTruthy();
   });
 });

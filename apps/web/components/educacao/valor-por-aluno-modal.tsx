@@ -31,29 +31,33 @@ export function ValorPorAlunoModal({
       footer={<LinhaLeiEFonte source={`${FONTE_SIOPE}, indicador 4.9`} />}
     >
       <div className="space-y-6">
-        <p className="text-mute">{NOTA_INFLACAO}</p>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Ano</th>
-              <th scope="col">Investimento por aluno</th>
-              <th scope="col">Situação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...serie].reverse().map((ponto) => (
-              <tr key={ponto.ano}>
-                <th scope="row">{ponto.ano}</th>
-                <td className="numeric">{fmtCurrency(ponto.valor)}</td>
-                <td>
-                  {ponto.parcial
-                    ? `parcial (até o ${ponto.periodo}º bimestre)`
-                    : "ano fechado"}
-                </td>
+        <p className="text-mute text-sm">{NOTA_INFLACAO}</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th scope="col">Ano</th>
+                <th scope="col" className="numeric">
+                  Investimento por aluno
+                </th>
+                <th scope="col">Situação</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {[...serie].reverse().map((ponto) => (
+                <tr key={ponto.ano}>
+                  <td>{ponto.ano}</td>
+                  <td className="numeric">{fmtCurrency(ponto.valor)}</td>
+                  <td>
+                    {ponto.parcial
+                      ? `parcial (até o ${ponto.periodo}º bimestre)`
+                      : "ano fechado"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="caption">
           {NOTA_DECLARACAO} Anos em andamento são parciais e não devem ser
           comparados com anos fechados.

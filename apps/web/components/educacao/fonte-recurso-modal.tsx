@@ -74,7 +74,7 @@ export function FonteRecursoModal({
     >
       {fonte && (
         <div className="space-y-6">
-          <p className="text-mute">
+          <p className="text-mute text-sm">
             {DESCRICAO_FONTE_RECURSO[fonte.grupoFonte]}
           </p>
 

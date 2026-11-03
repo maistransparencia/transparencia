@@ -68,7 +68,15 @@ export function descreverVariacaoValorPorAluno(
 }
 
 /** Texto + ícone, nunca só cor, em linha própria; abaixo do mínimo fala em "indício", sem acusar. */
-export function Veredito({ minimo }: { minimo: MinimoLegal }) {
+export function Veredito({
+  minimo,
+  ocultarCumpriu = false,
+}: {
+  minimo: MinimoLegal;
+  /** O marcador na barra já mostra que cumpriu; só o que pede atenção vira texto. */
+  ocultarCumpriu?: boolean;
+}) {
+  if (minimo.resultado === "cumpriu" && ocultarCumpriu) return null;
   if (minimo.resultado === "cumpriu") {
     return (
       <span className="flex items-center gap-1">

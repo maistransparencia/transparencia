@@ -371,6 +371,7 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByText("Painel de Responsabilidade Fiscal da Educação"),
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
+    expect(screen.queryByText("Contratos do Fundo")).not.toBeInTheDocument();
   });
 
   it("mostra a nota do IDEB, a meta e a classificação por etapa em Aprendizado dos alunos", async () => {
@@ -819,7 +820,16 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(screen.getByText("Alunos na rede municipal")).toBeInTheDocument();
-    expect(screen.getByText(/Censo Escolar 2024, INEP/)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver detalhes: alunos na rede municipal",
+      }),
+    );
+    expect(
+      within(screen.getByRole("dialog")).getByText(/Censo Escolar 2024, INEP/, {
+        selector: "span",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("omite a seção de emendas quando não há emendas da Educação", async () => {

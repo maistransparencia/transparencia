@@ -165,8 +165,6 @@ export function EducacaoContratosSection({
         title="Como o Fundo contrata"
         description={`Contratos do Fundo vigentes em ${ano}: merenda escolar, transporte escolar, locação de imóveis (sem licitação, quando só aquele imóvel atende) e manutenção das escolas.`}
       />
-      <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
-
       {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
       <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
         {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
@@ -199,6 +197,8 @@ export function EducacaoContratosSection({
           />
         </div>
       )}
+
+      <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
 
       {/* Modal de lista da categoria (z-50); detalhes por cima (z-[60]) */}
       <ContratosCategoriaModal

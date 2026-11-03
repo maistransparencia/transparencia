@@ -140,7 +140,12 @@ describe("EducacaoContratosSection - cards por categoria", () => {
     expect(lei).toHaveAttribute("target", "_blank");
     expect(lei).toHaveAttribute("rel", "noopener noreferrer");
     expect(lei.closest("header")).toBeNull();
-    expect(lei.closest("p")?.textContent).toMatch(/^Leis:/);
+    const linha = lei.closest("p") as HTMLElement;
+    expect(linha.textContent).toMatch(/^Leis:/);
+    const tabela = screen.getByRole("table");
+    expect(
+      tabela.compareDocumentPosition(linha) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("exibe 5 cards com valor compacto e contagem", () => {
