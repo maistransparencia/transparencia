@@ -4,12 +4,7 @@ import type {
   EducacaoOrigemRecursosDTO,
   GrupoFonteRecursoEducacao,
 } from "@transparencia/db";
-import {
-  fmtCompact,
-  Indicator,
-  IndicatorPanel,
-  SectionHeader,
-} from "@transparencia/ui";
+import { cn, fmtCompact, SectionHeader } from "@transparencia/ui";
 import { useState } from "react";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
@@ -18,6 +13,16 @@ import {
   ORDEM_FONTES_RECURSO,
   ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
+import { VerDetalhesLink } from "./ver-detalhes-link";
+
+/** Preenchimentos dos segmentos, em ordem; o texto ao lado de cada fonte nunca depende da cor. */
+const PREENCHIMENTOS_FONTE = [
+  "bg-brand-fill",
+  "bg-ok-fill",
+  "bg-warn-fill",
+  "bg-mute3",
+  "bg-faint",
+];
 
 export interface EducacaoOrigemRecursosSectionProps {
   origemRecursos: EducacaoOrigemRecursosDTO;
@@ -34,6 +39,13 @@ export function EducacaoOrigemRecursosSection({
   const fonteSelecionada =
     fontes.find((fonte) => fonte.grupoFonte === fonteAberta) ?? null;
   const semReceitas = fontes.length === 0;
+
+  const fontesComValor = ORDEM_FONTES_RECURSO.flatMap((grupoFonte) =>
+    fontes.filter((fonte) => fonte.grupoFonte === grupoFonte),
+  ).map((fonte, indice) => ({
+    fonte,
+    preenchimento: PREENCHIMENTOS_FONTE[indice % PREENCHIMENTOS_FONTE.length],
+  }));
 
   const fontePrincipal = fontes.reduce<(typeof fontes)[number] | null>(
     (maior, fonte) =>
@@ -73,45 +85,71 @@ export function EducacaoOrigemRecursosSection({
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
-        <IndicatorPanel columns={4} size="sm">
-          {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
-            const fonte = fontes.find((item) => item.grupoFonte === grupoFonte);
-            const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
-            if (!fonte) {
-              return (
-                <Indicator
-                  key={grupoFonte}
-                  label={rotulo}
-                  value="—"
-                  note="sem receita no exercício"
-                />
-              );
-            }
-            return (
-              <Indicator
-                key={grupoFonte}
-                label={rotulo}
-                value={fmtCompact(fonte.totalArrecadado)}
-                note={
-                  <>
-                    {formatPercentualInteiro(fonte.percentualTotal)} do que
-                    entrou{parcial ? " · parcial" : ""}
-                    {" · "}
-                    <button
-                      type="button"
-                      data-testid={`fonte-card-${grupoFonte}`}
-                      aria-label={`Ver detalhes: ${rotulo}`}
-                      onClick={() => setFonteAberta(grupoFonte)}
-                      className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
-                    >
-                      Ver detalhes
-                    </button>
-                  </>
-                }
+        <div className="space-y-6">
+          <div
+            role="img"
+            data-testid="composicao-recursos-bar"
+            aria-label={`Composição do que entrou: ${fontesComValor.map(({ fonte }) => `${ROTULO_FONTE_RECURSO[fonte.grupoFonte]} ${formatPercentualInteiro(fonte.percentualTotal)}`).join(", ")}`}
+            className="flex h-3 w-full bg-track"
+          >
+            {fontesComValor.map(({ fonte, preenchimento }) => (
+              <span
+                key={fonte.grupoFonte}
+                className={cn(
+                  "block h-full border-page border-r-2",
+                  preenchimento,
+                )}
+                style={{ width: `${Math.max(0, fonte.percentualTotal)}%` }}
               />
-            );
-          })}
-        </IndicatorPanel>
+            ))}
+          </div>
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
+              const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
+              const item = fontesComValor.find(
+                ({ fonte }) => fonte.grupoFonte === grupoFonte,
+              );
+              if (!item) {
+                return (
+                  <li key={grupoFonte} className="space-y-0.5">
+                    <p className="font-semibold">{rotulo}</p>
+                    <p className="caption">
+                      <span>—</span> · <span>sem receita no exercício</span>
+                    </p>
+                  </li>
+                );
+              }
+              const { fonte, preenchimento } = item;
+              return (
+                <li key={grupoFonte} className="space-y-0.5">
+                  <p className="flex items-center gap-2 font-semibold">
+                    <span
+                      aria-hidden="true"
+                      className={cn("h-2.5 w-2.5 shrink-0", preenchimento)}
+                    />
+                    {rotulo}
+                  </p>
+                  <p className="caption">
+                    <span className="font-semibold text-ink">
+                      {fmtCompact(fonte.totalArrecadado)}
+                    </span>
+                    {" · "}
+                    <span>
+                      {formatPercentualInteiro(fonte.percentualTotal)} do que
+                      entrou{parcial ? " · parcial" : ""}
+                    </span>
+                    {" · "}
+                    <VerDetalhesLink
+                      context={rotulo}
+                      testId={`fonte-card-${grupoFonte}`}
+                      onClick={() => setFonteAberta(grupoFonte)}
+                    />
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
 
       <FonteRecursoModal

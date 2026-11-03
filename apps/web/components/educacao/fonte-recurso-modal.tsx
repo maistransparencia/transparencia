@@ -2,7 +2,7 @@
 
 import type { EducacaoOrigemRecursoDTO } from "@transparencia/db";
 import { cn, fmtCurrency, ModalDialog } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { LinhaLeiEFonte } from "./educacao-textos";
 import {
   BASE_LEGAL_FONTE_RECURSO,
   DESCRICAO_FONTE_RECURSO,
@@ -60,25 +60,15 @@ export function FonteRecursoModal({
       zIndex="z-50"
       showShareButton={false}
       footer={
-        basesLegais.length > 0 ? (
-          <p className="caption">
-            Base legal:{" "}
-            {basesLegais.map((baseLegal, indice) => (
-              <span key={baseLegal.url}>
-                {indice > 0 && " · "}
-                <a
-                  href={baseLegal.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
-                  aria-label={`Texto oficial da ${baseLegal.rotulo} no Planalto`}
-                >
-                  {baseLegal.rotulo}
-                  <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
-                </a>
-              </span>
-            ))}
-          </p>
+        fonte ? (
+          <LinhaLeiEFonte
+            source="receitas do Fundo Municipal de Educação, registradas pela Prefeitura"
+            laws={basesLegais.map((baseLegal) => ({
+              label: baseLegal.rotulo,
+              url: baseLegal.url,
+              ariaLabel: `Texto oficial da ${baseLegal.rotulo} no Planalto`,
+            }))}
+          />
         ) : undefined
       }
     >

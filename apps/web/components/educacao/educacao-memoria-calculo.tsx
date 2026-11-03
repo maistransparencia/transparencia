@@ -8,6 +8,9 @@ import {
 } from "@transparencia/ui";
 import { useState } from "react";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
+import { urlLegislacao } from "@/lib/constants/legislacao";
+import { LinhaLeiEFonte } from "./educacao-textos";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface EducacaoMemoriaCalculoProps {
   ano: number;
@@ -32,16 +35,11 @@ export function EducacaoMemoriaCalculo({
   const notaSemDados = `sem despesas registradas em ${ano}`;
 
   return (
-    <div>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-label="Ver detalhes do gasto em educação"
+    <>
+      <VerDetalhesLink
+        context="gasto em educação"
         onClick={() => setAberto(true)}
-        className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
-      >
-        Ver detalhes
-      </button>
+      />
       <ModalDialog
         isOpen={aberto}
         onClose={() => setAberto(false)}
@@ -49,15 +47,22 @@ export function EducacaoMemoriaCalculo({
         subtitle={`Exercício ${ano}${isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}`}
         maxWidth="3xl"
         showShareButton={false}
+        footer={
+          <LinhaLeiEFonte
+            source="execução orçamentária da Prefeitura, função Educação"
+            laws={[
+              {
+                label: "Lei 4.320/1964",
+                url: urlLegislacao("lei4320"),
+              },
+            ]}
+          />
+        }
       >
         <div className="space-y-6">
           <p className="text-mute">
-            Reservado é o empenho: o compromisso de gastar. Reservar não é
-            pagar. O total soma todas as despesas da Prefeitura classificadas
-            como Educação, não só as do Fundo Municipal de Educação.
-            {temDados && !isCurrentYear && naoPago > 0
-              ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
-              : ""}
+            Reservado é o empenho, o compromisso de gastar; reservar não é
+            pagar.
           </p>
           <dl className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <Indicator
@@ -91,8 +96,15 @@ export function EducacaoMemoriaCalculo({
               }
             />
           </dl>
+          <p className="caption">
+            O total soma todas as despesas da Prefeitura classificadas como
+            Educação, não só as do Fundo Municipal de Educação.
+            {temDados && !isCurrentYear && naoPago > 0
+              ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
+              : ""}
+          </p>
         </div>
       </ModalDialog>
-    </div>
+    </>
   );
 }

@@ -9,13 +9,10 @@ import type { Metadata } from "next";
 import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
 import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-aprendizado-section";
+import { EducacaoCardsResumo } from "@/components/educacao/educacao-cards-resumo";
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
-import { EducacaoMemoriaCalculo } from "@/components/educacao/educacao-memoria-calculo";
-import { EducacaoMinimosLegaisSection } from "@/components/educacao/educacao-minimos-legais-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
-import { EducacaoTresRespostasSection } from "@/components/educacao/educacao-tres-respostas-section";
-import { EducacaoValorPorAlunoSection } from "@/components/educacao/educacao-valor-por-aluno-section";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -101,28 +98,15 @@ export default async function EducacaoPage({
           ano={selectedYear}
           isCurrentYear={isCurrentYear}
           partialPeriod={partialPeriod}
-        />
-        <EducacaoTresRespostasSection
           minimosLegais={viewModel.minimosLegais}
+          execucao={execucao}
+        />
+        <EducacaoCardsResumo
           valorPorAluno={viewModel.valorPorAluno}
+          alunosRede={viewModel.alunosRede ?? null}
           aprendizado={viewModel.aprendizado.anosIniciais}
         />
       </div>
-
-      <div className="space-y-4">
-        <EducacaoMinimosLegaisSection minimosLegais={viewModel.minimosLegais} />
-        <EducacaoMemoriaCalculo
-          ano={selectedYear}
-          isCurrentYear={isCurrentYear}
-          partialPeriod={partialPeriod}
-          execucao={execucao}
-        />
-      </div>
-
-      <EducacaoValorPorAlunoSection
-        valorPorAluno={viewModel.valorPorAluno}
-        alunosRede={viewModel.alunosRede}
-      />
 
       <EducacaoAprendizadoSection
         aprendizado={viewModel.aprendizado}

@@ -336,7 +336,7 @@ Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading
 
 O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. **Controles têm leve arredondamento** (`rounded-md`, `{rounded.md}`): botões (ver `button`), campos e seletores. Blocos de conteúdo (`panel`, `alert-box`, `table`) e dados (barras) continuam quadrados.
 
-**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
+**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Com marcador de mínimo ou meta, use `ThresholdMeter` (`packages/ui`). Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
 
 ## Components
 

@@ -333,18 +333,26 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /Educação em 2025: o mínimo exigido, o valor por aluno e se as crianças estão aprendendo\./,
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Educação em 2025",
     );
 
-    const faixa = screen.getByRole("region", {
-      name: "Três respostas sobre a educação",
+    const destaque = screen.getByRole("region", {
+      name: "Mínimo exigido em educação",
     });
-    const perguntas = within(faixa)
+    expect(
+      within(destaque).getByText(
+        "A Prefeitura aplica o mínimo exigido em educação?",
+      ),
+    ).toBeInTheDocument();
+
+    const cards = screen.getByRole("region", {
+      name: "Valor por aluno, alunos na rede e aprendizado",
+    });
+    const perguntas = within(cards)
       .getAllByRole("term")
       .map((pergunta) => pergunta.textContent);
     expect(perguntas).toEqual([
-      "A Prefeitura aplica o mínimo exigido em educação?",
       "Quanto a Prefeitura investe por aluno?",
       "As crianças estão aprendendo?",
     ]);
@@ -353,8 +361,6 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
-      "A Prefeitura aplica o mínimo exigido em educação?",
-      "Quanto a Prefeitura investe por aluno da rede municipal?",
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
@@ -385,13 +391,13 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(secao).getByText("5,9")).toBeInTheDocument();
     expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
-      within(secao).getByText("entre 92 redes municipais"),
+      within(secao).getByText(/Entre 92 redes municipais/),
     ).toBeInTheDocument();
     expect(
-      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 ponto/),
+      within(secao).getByText(/4,5 em 2023, subiu 1,4 pontos/),
     ).toBeInTheDocument();
     expect(
-      within(secao).getByText("subiu 43 posições desde o ciclo anterior"),
+      within(secao).getByText(/subiu 43 posições desde o ciclo anterior/),
     ).toBeInTheDocument();
     expect(secao.textContent).not.toMatch(/ano anterior/i);
   });
@@ -524,10 +530,11 @@ describe("EducacaoPage (Server Component)", () => {
       const rotulos = Array.from(secao.querySelectorAll("dt")).map(
         (dt) => dt.textContent,
       );
-      expect(rotulos.slice(0, 3)).toEqual([
+      expect(rotulos.slice(0, 4)).toEqual([
         "Nota do IDEB",
+        "Ciclo anterior",
         "Classificação entre as redes municipais do estado",
-        "Meta",
+        "Meta do MEC para 2025",
       ]);
     });
   });
@@ -674,7 +681,7 @@ describe("EducacaoPage (Server Component)", () => {
       name: "Aprendizado dos alunos",
     });
     fireEvent.click(
-      within(secao).getByRole("button", { name: "Ver detalhes" }),
+      within(secao).getByRole("button", { name: "Ver detalhes: IDEB" }),
     );
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
@@ -701,7 +708,11 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
+    fireEvent.click(
+      within(screen.getByTestId("categoria-card-transporte_pnate")).getByRole(
+        "button",
+      ),
+    );
     const dialog = screen.getByRole("dialog");
     expect(
       within(dialog).getAllByText("VIACAO ESCOLAR LTDA").length,

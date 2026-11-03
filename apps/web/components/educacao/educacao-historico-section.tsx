@@ -25,6 +25,8 @@ import type {
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { LeiLink, LinhaLeiEFonte } from "./educacao-textos";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface EducacaoHistoricoSectionProps {
   historico: {
@@ -294,13 +296,10 @@ export function EducacaoHistoricoSection({
       </div>
 
       <div>
-        <button
-          type="button"
+        <VerDetalhesLink
+          context="IDEB"
           onClick={() => setDetalhesAberto(true)}
-          className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
-        >
-          Ver detalhes
-        </button>
+        />
       </div>
 
       <ModalDialog
@@ -310,6 +309,16 @@ export function EducacaoHistoricoSection({
         subtitle={currentHistorico.label}
         maxWidth="3xl"
         showShareButton={false}
+        footer={
+          <LinhaLeiEFonte
+            source={
+              <LeiLink
+                label="INEP: Nota Informativa do Ideb 2025"
+                url={NOTA_INFORMATIVA_IDEB_URL}
+              />
+            }
+          />
+        }
       >
         <div className="space-y-6">
           {pontoMaisRecente && (
@@ -351,17 +360,7 @@ export function EducacaoHistoricoSection({
                   `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
                 Os resultados de {formatarAnos(currentHistorico.anosSemMeta)}{" "}
                 não têm metas definidas pelo INEP e podem ser comparados com os
-                anos anteriores.{" "}
-                <a
-                  href={NOTA_INFORMATIVA_IDEB_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-brand-text underline underline-offset-2"
-                >
-                  Fonte: Nota Informativa do Ideb 2025
-                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                  <span className="sr-only">(abre em nova aba)</span>
-                </a>
+                anos anteriores.
               </p>
             )}
           </section>
