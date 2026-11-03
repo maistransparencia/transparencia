@@ -62,7 +62,7 @@ describe("EducacaoAprendizadoSection", () => {
     expect(screen.getByTestId("historico")).toBeTruthy();
   });
 
-  it("mantém nota, ciclo anterior, classificação e meta, nessa ordem", () => {
+  it("mantém nota (com ciclo anterior), classificação e meta, nessa ordem", () => {
     renderizar();
     const secao = screen.getByRole("region", {
       name: "Aprendizado dos alunos",
@@ -70,12 +70,12 @@ describe("EducacaoAprendizadoSection", () => {
     const rotulos = Array.from(secao.querySelectorAll("dt")).map(
       (dt) => dt.textContent,
     );
-    expect(rotulos.slice(0, 4)).toEqual([
+    expect(rotulos.slice(0, 3)).toEqual([
       "Nota do IDEB",
-      "Ciclo anterior",
       "Classificação entre as redes municipais do estado",
       "Meta do MEC para 2023",
     ]);
+    expect(secao.textContent).toMatch(/ciclo anterior 5,7 em 2021/);
   });
 
   it("não usa fonte mono nos valores", () => {

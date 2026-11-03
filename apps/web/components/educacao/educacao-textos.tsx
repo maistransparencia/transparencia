@@ -3,7 +3,6 @@ import {
   ArrowDown,
   ArrowUp,
   CheckCircle,
-  Clock,
   ExternalLink,
   TriangleAlert,
 } from "lucide-react";
@@ -22,7 +21,7 @@ export const NOTA_MINIMO_GASTO =
   "O mínimo vale para o que a Prefeitura gasta em educação, não para o que ela recebe.";
 export const NOTA_INFLACAO =
   "Valores da época, sem correção pela inflação: anos diferentes não são comparáveis em poder de compra.";
-export const FONTE_SIOPE = "SIOPE (FNDE)";
+export const FONTE_SIOPE = "SIOPE, sistema do governo federal";
 
 export const formatarNota = (nota: number) =>
   nota.toLocaleString("pt-BR", {
@@ -68,28 +67,27 @@ export function descreverVariacaoValorPorAluno(
   return `${palavra} ${fmtCurrency(Math.abs(view.variacaoValor))}${percentual} em relação a ${view.anoAnterior}`;
 }
 
-/** Texto + ícone, nunca só cor; abaixo do mínimo fala em "indício", sem acusar. */
+/** Texto + ícone, nunca só cor, em linha própria; abaixo do mínimo fala em "indício", sem acusar. */
 export function Veredito({ minimo }: { minimo: MinimoLegal }) {
   if (minimo.resultado === "cumpriu") {
     return (
-      <span className="inline-flex items-center gap-1">
-        <CheckCircle className="h-4 w-4" aria-hidden="true" />
+      <span className="flex items-center gap-1">
+        <CheckCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
         Cumpriu o mínimo
       </span>
     );
   }
   if (minimo.resultado === "abaixo") {
     return (
-      <span className="inline-flex items-center gap-1">
-        <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+      <span className="flex items-center gap-1">
+        <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
         Ficou abaixo do mínimo: indício a ser esclarecido pela Prefeitura
       </span>
     );
   }
   if (minimo.resultado === "parcial") {
     return (
-      <span className="inline-flex items-center gap-1">
-        <Clock className="h-4 w-4" aria-hidden="true" />
+      <span className="block">
         Ano em andamento: o resultado só fica claro quando o ano fechar
       </span>
     );
@@ -166,6 +164,14 @@ export function LinhaLeiEFonte({
   if (partes.length === 0) return null;
   return <p className="caption">{juntarComSeparador(partes)}</p>;
 }
+
+export const formatarLimite = (limite: number) =>
+  `${limite.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+
+export const motivoSemPercentual = (view: MinimosLegaisView) =>
+  view.semDadoSiope
+    ? `sem dado publicado para ${view.ano}`
+    : `a Prefeitura não informou o percentual de ${view.ano} ao governo federal`;
 
 export const pluralizar = (
   quantidade: number,

@@ -60,18 +60,13 @@ export function CategoriaContratoCard({
           </span>
         </span>
       )}
-      <span className="caption block">
-        {rotuloContratos}
-        {!vazia && (
-          <>
-            {" · "}
-            <VerDetalhesLink
-              context={rotuloCategoria}
-              onClick={() => onOpen(categoria)}
-            />
-          </>
-        )}
-      </span>
+      <span className="caption block">{rotuloContratos}</span>
+      {!vazia && (
+        <VerDetalhesLink
+          context={rotuloCategoria}
+          onClick={() => onOpen(categoria)}
+        />
+      )}
     </div>
   );
 }

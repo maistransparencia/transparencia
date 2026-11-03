@@ -1,5 +1,10 @@
 import type { EtapaEnsino } from "@transparencia/db";
-import { SectionHeader, ThresholdMeter } from "@transparencia/ui";
+import {
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+  ThresholdMeter,
+} from "@transparencia/ui";
 import { CheckCircle, TriangleAlert } from "lucide-react";
 import type {
   AprendizadoEtapa,
@@ -9,7 +14,6 @@ import { EducacaoHistoricoSection } from "./educacao-historico-section";
 import {
   descreverVariacaoPontos,
   formatarNota,
-  LinhaDl,
   pluralizar,
   VariacaoAoLado,
 } from "./educacao-textos";
@@ -24,7 +28,7 @@ function descreverCicloAnterior(etapa: AprendizadoEtapa): string {
   if (etapa.notaAnterior === null || etapa.anoAnterior === null) {
     return "sem ciclo anterior para comparar";
   }
-  const base = `${formatarNota(etapa.notaAnterior)} em ${etapa.anoAnterior}`;
+  const base = `ciclo anterior ${formatarNota(etapa.notaAnterior)} em ${etapa.anoAnterior}`;
   if (etapa.variacaoPontos === null) return base;
   return `${base}, ${descreverVariacaoPontos(etapa.variacaoPontos)}`;
 }
@@ -58,14 +62,14 @@ function SituacaoDaMeta({ atingiuMeta }: { atingiuMeta: boolean | null }) {
   if (atingiuMeta === null) return null;
   if (atingiuMeta) {
     return (
-      <span className="ml-2 inline-flex items-center gap-1 font-semibold text-ok-text text-sm">
+      <span className="inline-flex items-center gap-1 font-semibold text-ok-text">
         <CheckCircle className="h-4 w-4" aria-hidden="true" />
         meta atingida
       </span>
     );
   }
   return (
-    <span className="ml-2 inline-flex items-center gap-1 font-semibold text-danger-text text-sm">
+    <span className="inline-flex items-center gap-1 font-semibold text-danger-text">
       <TriangleAlert className="h-4 w-4" aria-hidden="true" />
       abaixo da meta
     </span>
@@ -78,8 +82,80 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
     anoApuracao === null ? "Meta do MEC" : `Meta do MEC para ${anoApuracao}`;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <h3>{etapa.titulo}</h3>
+      <IndicatorPanel size="sm">
+        <Indicator
+          label="Nota do IDEB"
+          value={
+            notaIdeb === null ? (
+              "—"
+            ) : (
+              <>
+                {formatarNota(notaIdeb)}
+                <VariacaoAoLado
+                  variacao={etapa.variacaoPontos}
+                  texto={formatarNota(Math.abs(etapa.variacaoPontos ?? 0))}
+                />
+              </>
+            )
+          }
+          note={
+            anoApuracao === null ? (
+              "sem nota apurada"
+            ) : (
+              <>
+                <span className="block">apurada em {anoApuracao}</span>
+                <span className="block">{descreverCicloAnterior(etapa)}</span>
+              </>
+            )
+          }
+        />
+        <Indicator
+          label="Classificação entre as redes municipais do estado"
+          value={
+            classificacao === null ? (
+              "—"
+            ) : (
+              <>
+                {`${classificacao.posicao}º`}
+                <VariacaoAoLado
+                  variacao={classificacao.variacaoPosicoes}
+                  texto={String(Math.abs(classificacao.variacaoPosicoes ?? 0))}
+                />
+              </>
+            )
+          }
+          note={
+            classificacao === null ? (
+              "classificação ainda não disponível"
+            ) : (
+              <>
+                <span className="block">
+                  entre {classificacao.total} redes municipais
+                </span>
+                <span className="block">
+                  {descreverClassificacao(
+                    classificacao,
+                    etapa.anoAnterior !== null,
+                  )}
+                </span>
+              </>
+            )
+          }
+        />
+        <Indicator
+          label={rotuloMeta}
+          value={metaIdeb === null ? "—" : formatarNota(metaIdeb)}
+          note={
+            metaIdeb === null ? (
+              "o MEC não definiu meta para este ciclo"
+            ) : (
+              <SituacaoDaMeta atingiuMeta={etapa.atingiuMeta} />
+            )
+          }
+        />
+      </IndicatorPanel>
       {notaIdeb !== null && metaIdeb !== null && (
         <ThresholdMeter
           value={notaIdeb}
@@ -89,58 +165,6 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
           label={`Nota do IDEB, ${etapa.titulo}`}
           valueText={`${formatarNota(notaIdeb)} de 10; meta do MEC ${formatarNota(metaIdeb)}`}
         />
-      )}
-      <dl>
-        <LinhaDl label="Nota do IDEB">
-          {notaIdeb === null ? (
-            "sem nota apurada"
-          ) : (
-            <>
-              {formatarNota(notaIdeb)}
-              <VariacaoAoLado
-                variacao={etapa.variacaoPontos}
-                texto={formatarNota(Math.abs(etapa.variacaoPontos ?? 0))}
-              />
-              {anoApuracao !== null && (
-                <span className="caption ml-2 font-normal">
-                  apurada em {anoApuracao}
-                </span>
-              )}
-            </>
-          )}
-        </LinhaDl>
-        <LinhaDl label="Ciclo anterior">
-          {descreverCicloAnterior(etapa)}
-        </LinhaDl>
-        <LinhaDl label="Classificação entre as redes municipais do estado">
-          {classificacao === null ? (
-            "classificação ainda não disponível"
-          ) : (
-            <>
-              {`${classificacao.posicao}º`}
-              <VariacaoAoLado
-                variacao={classificacao.variacaoPosicoes}
-                texto={String(Math.abs(classificacao.variacaoPosicoes ?? 0))}
-              />
-            </>
-          )}
-        </LinhaDl>
-        <LinhaDl label={rotuloMeta}>
-          {metaIdeb === null ? (
-            "o MEC não definiu meta para este ciclo"
-          ) : (
-            <>
-              {formatarNota(metaIdeb)}
-              <SituacaoDaMeta atingiuMeta={etapa.atingiuMeta} />
-            </>
-          )}
-        </LinhaDl>
-      </dl>
-      {classificacao !== null && (
-        <p className="caption">
-          Entre {classificacao.total} redes municipais:{" "}
-          {descreverClassificacao(classificacao, etapa.anoAnterior !== null)}.
-        </p>
       )}
     </div>
   );

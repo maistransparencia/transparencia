@@ -9,7 +9,6 @@ import type { Metadata } from "next";
 import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
 import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-aprendizado-section";
-import { EducacaoCardsResumo } from "@/components/educacao/educacao-cards-resumo";
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
@@ -100,8 +99,6 @@ export default async function EducacaoPage({
           partialPeriod={partialPeriod}
           minimosLegais={viewModel.minimosLegais}
           execucao={execucao}
-        />
-        <EducacaoCardsResumo
           valorPorAluno={viewModel.valorPorAluno}
           alunosRede={viewModel.alunosRede ?? null}
           aprendizado={viewModel.aprendizado.anosIniciais}

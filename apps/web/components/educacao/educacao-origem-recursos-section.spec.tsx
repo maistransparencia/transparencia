@@ -69,6 +69,7 @@ describe("EducacaoOrigemRecursosSection", () => {
     expect(barra.outerHTML).not.toMatch(/rounded/);
     const botao = screen.getByTestId("fonte-card-fundeb");
     expect(botao).toHaveAccessibleName("Ver detalhes: FUNDEB");
+    expect(botao.closest("p")).toBeNull();
     expect(screen.getByText("R$ 18,5 mi")).toBeInTheDocument();
     expect(screen.getByText(/61% do que entrou/)).toBeInTheDocument();
   });

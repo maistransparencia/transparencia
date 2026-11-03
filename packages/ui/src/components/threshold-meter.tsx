@@ -50,26 +50,26 @@ export function ThresholdMeter({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: <meter> não aceita o marcador nem o estilo quadrado de barra
-    <div
+    <span
       role="meter"
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={max}
       aria-valuenow={value}
       aria-valuetext={valueText}
-      className={cn("relative pt-6", className)}
+      className={cn("relative block pt-6", className)}
     >
-      <div className="h-3 w-full bg-track">
-        <div
+      <span className="block h-3 w-full bg-track">
+        <span
           data-testid="threshold-meter-fill"
-          className={cn("h-full", FILL_CLASS[tone])}
+          className={cn("block h-full", FILL_CLASS[tone])}
           style={{ width: `${emPercentual(value, max)}%` }}
         />
-      </div>
-      <div
+      </span>
+      <span
         data-testid="threshold-meter-marker"
         aria-hidden="true"
-        className="absolute top-4 bottom-[-0.25rem] w-0.5 bg-ink"
+        className="absolute top-4 bottom-[-0.25rem] block w-0.5 bg-ink"
         style={{ left: `${posicaoMarcador}%` }}
       >
         <span
@@ -80,7 +80,7 @@ export function ThresholdMeter({
         >
           {thresholdLabel}
         </span>
-      </div>
-    </div>
+      </span>
+    </span>
   );
 }

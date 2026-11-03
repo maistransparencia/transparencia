@@ -338,23 +338,22 @@ describe("EducacaoPage (Server Component)", () => {
     );
 
     const destaque = screen.getByRole("region", {
-      name: "Mínimo exigido em educação",
+      name: "Destaques da educação",
     });
     expect(
       within(destaque).getByText(
         "A Prefeitura aplica o mínimo exigido em educação?",
       ),
     ).toBeInTheDocument();
-
-    const cards = screen.getByRole("region", {
-      name: "Valor por aluno, alunos na rede e aprendizado",
-    });
-    const perguntas = within(cards)
+    expect(
+      within(destaque).getByText("As crianças estão aprendendo?"),
+    ).toBeInTheDocument();
+    const indicadores = within(destaque)
       .getAllByRole("term")
-      .map((pergunta) => pergunta.textContent);
-    expect(perguntas).toEqual([
+      .map((termo) => termo.textContent);
+    expect(indicadores).toEqual([
+      "Parte do Fundeb paga aos profissionais da educação",
       "Quanto a Prefeitura investe por aluno?",
-      "As crianças estão aprendendo?",
     ]);
 
     const titulos = screen
@@ -391,10 +390,10 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(secao).getByText("5,9")).toBeInTheDocument();
     expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
-      within(secao).getByText(/Entre 92 redes municipais/),
+      within(secao).getByText(/entre 92 redes municipais/),
     ).toBeInTheDocument();
     expect(
-      within(secao).getByText(/4,5 em 2023, subiu 1,4 pontos/),
+      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 pontos/),
     ).toBeInTheDocument();
     expect(
       within(secao).getByText(/subiu 43 posições desde o ciclo anterior/),
@@ -530,9 +529,8 @@ describe("EducacaoPage (Server Component)", () => {
       const rotulos = Array.from(secao.querySelectorAll("dt")).map(
         (dt) => dt.textContent,
       );
-      expect(rotulos.slice(0, 4)).toEqual([
+      expect(rotulos.slice(0, 3)).toEqual([
         "Nota do IDEB",
-        "Ciclo anterior",
         "Classificação entre as redes municipais do estado",
         "Meta do MEC para 2025",
       ]);

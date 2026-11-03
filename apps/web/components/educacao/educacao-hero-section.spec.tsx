@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type {
+  AlunosRedeView,
+  AprendizadoEtapa,
   EducacaoExecucaoAnoView,
   MinimosLegaisView,
+  ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { EducacaoHeroSection } from "./educacao-hero-section";
 
@@ -44,77 +47,354 @@ const execucao: EducacaoExecucaoAnoView = {
   temDados: true,
 };
 
-const renderizar = (minimosLegais: MinimosLegaisView = minimosBase) =>
-  render(
-    <EducacaoHeroSection
-      ano={2024}
-      isCurrentYear={false}
-      partialPeriod=""
-      minimosLegais={minimosLegais}
-      execucao={execucao}
-    />,
-  );
+const valorPorAlunoBase: ValorPorAlunoView = {
+  ano: 2024,
+  valor: 11000,
+  parcial: false,
+  periodo: 6,
+  semValorCausa: null,
+  anoAnterior: 2023,
+  variacaoValor: 1000,
+  variacaoPercentual: 10,
+  serie: [
+    { ano: 2023, valor: 10000, parcial: false, periodo: 6 },
+    { ano: 2024, valor: 11000, parcial: false, periodo: 6 },
+  ],
+};
 
-describe("EducacaoHeroSection", () => {
-  it("abre com a pergunta, um único número grande e o veredito em texto", () => {
-    const { container } = renderizar();
+const alunosBase: AlunosRedeView = {
+  total: 1971,
+  educacaoInfantil: 668,
+  ensinoFundamental: 1303,
+  anoCenso: 2023,
+};
+
+const aprendizadoBase: AprendizadoEtapa = {
+  etapaEnsino: "anosIniciais",
+  titulo: "Anos Iniciais (1º ao 5º ano)",
+  notaIdeb: 6.2,
+  anoApuracao: 2023,
+  metaIdeb: 6,
+  atingiuMeta: true,
+  notaAnterior: 5.8,
+  anoAnterior: 2021,
+  variacaoPontos: 0.4,
+  classificacao: null,
+};
+
+type Props = Partial<Parameters<typeof EducacaoHeroSection>[0]>;
+
+const elemento = (props: Props = {}) => (
+  <EducacaoHeroSection
+    ano={2024}
+    isCurrentYear={false}
+    partialPeriod=""
+    minimosLegais={minimosBase}
+    execucao={execucao}
+    valorPorAluno={valorPorAlunoBase}
+    alunosRede={alunosBase}
+    aprendizado={aprendizadoBase}
+    {...props}
+  />
+);
+const renderizar = (props: Props = {}) => render(elemento(props));
+
+const destaqueMinimo = () => screen.getByTestId("destaque-minimo");
+const destaqueIdeb = () => screen.getByTestId("destaque-ideb");
+
+describe("EducacaoHeroSection: mínimo constitucional", () => {
+  it("destaca a pergunta, o percentual grande e o veredito em texto", () => {
+    renderizar();
+    const bloco = destaqueMinimo();
     expect(
-      screen.getByText("A Prefeitura aplica o mínimo exigido em educação?"),
+      within(bloco).getByText(
+        "A Prefeitura aplica o mínimo exigido em educação?",
+      ),
     ).toBeTruthy();
-    expect(container.querySelectorAll(".stat-value-lg")).toHaveLength(1);
-    expect(container.querySelector(".stat-value-lg")?.textContent).toBe(
-      "27,50%",
-    );
-    const destaque = screen.getByTestId("educacao-resumo-destaque");
-    expect(within(destaque).getByText(/Cumpriu o mínimo/)).toBeTruthy();
-    expect(
-      within(destaque).getByText(/não para o que ela recebe/),
-    ).toBeTruthy();
+    expect(bloco.querySelector(".stat-value-lg")?.textContent).toBe("27,50%");
+    expect(within(bloco).getByText(/Cumpriu o mínimo/)).toBeTruthy();
+    expect(within(bloco).getByText(/não para o que ela recebe/)).toBeTruthy();
   });
 
-  it("não usa panel nem faixa cinza em volta do destaque", () => {
-    const { container } = renderizar();
-    expect(container.querySelector(".panel")).toBeNull();
-    expect(container.innerHTML).not.toMatch(/bg-line|bg-page|rounded/);
+  it("não usa panel em volta nem faixa cinza nos destaques", () => {
+    renderizar();
+    const area = screen.getByTestId("educacao-resumo-destaque");
+    expect(
+      within(destaqueMinimo()).queryByText("Fundeb", { exact: false }),
+    ).toBeNull();
+    expect(
+      area.querySelector("[data-testid='destaque-minimo'] .panel"),
+    ).toBeNull();
+    expect(area.innerHTML).not.toMatch(/bg-line|bg-page|rounded/);
   });
 
-  it("mostra a barra do mínimo com marcador vindo do limite, nunca literal", () => {
+  it("mostra a barra com o marcador vindo do limite, nunca literal", () => {
     renderizar({
-      ...minimosBase,
-      mde: { ...minimosBase.mde, limite: 30 },
+      minimosLegais: {
+        ...minimosBase,
+        mde: { ...minimosBase.mde, limite: 30 },
+      },
     });
-    const barra = screen.getByRole("meter", {
-      name: /Aplicado em ensino/,
-    });
+    const barra = within(destaqueMinimo()).getByRole("meter");
     expect(barra.getAttribute("aria-valuenow")).toBe("27.5");
     expect(barra.getAttribute("aria-valuetext")).toMatch(/mínimo de 30,00%/);
-    expect(screen.getByText("mínimo 30%")).toBeTruthy();
+    expect(within(destaqueMinimo()).getByText("mínimo 30%")).toBeTruthy();
   });
 
-  it("lista o mínimo do ensino e o Fundeb em duas linhas, o Fundeb com barra e marcador", () => {
-    renderizar();
-    expect(screen.getByText("Mínimo exigido em ensino (MDE)")).toBeTruthy();
-    expect(
-      screen.getByText("Fundeb pago aos profissionais da educação"),
-    ).toBeTruthy();
-    expect(screen.getByText(/65,00%/)).toBeTruthy();
-    const barraFundeb = screen.getByRole("meter", {
-      name: /Fundeb pago aos profissionais/,
+  it("abaixo do mínimo fala em indício, nunca em irregularidade", () => {
+    const { container } = renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        mde: {
+          ...minimosBase.mde,
+          resultado: "abaixo",
+          percentualAplicado: 20,
+        },
+      },
     });
-    expect(barraFundeb.getAttribute("aria-valuetext")).toMatch(
-      /mínimo de 70,00%/,
-    );
-    expect(screen.getByText("mínimo 70%")).toBeTruthy();
-  });
-
-  it("abaixo do mínimo fala em indício a ser esclarecido, nunca em irregularidade", () => {
-    const { container } = renderizar();
     expect(
-      screen.getByText(/indício a ser esclarecido pela Prefeitura/),
+      within(destaqueMinimo()).getByText(
+        /indício a ser esclarecido pela Prefeitura/,
+      ),
     ).toBeTruthy();
     expect(container.textContent).not.toMatch(/irregular|fraude|descumpr/i);
   });
 
+  it("ano em andamento fica parcial, sem veredito e sem ícone de relógio", () => {
+    const { container } = renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        parcial: true,
+        periodo: 3,
+        mde: { ...minimosBase.mde, resultado: "parcial" },
+        fundebProfissionais: {
+          ...minimosBase.fundebProfissionais,
+          resultado: "parcial",
+        },
+      },
+    });
+    const bloco = destaqueMinimo();
+    expect(within(bloco).getByText(/até o 3º bimestre de 2024/)).toBeTruthy();
+    expect(within(bloco).getByText(/Ano em andamento/)).toBeTruthy();
+    expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
+    expect(container.querySelector("svg.lucide-clock")).toBeNull();
+  });
+
+  it("sem dado do SIOPE mostra traço, a causa e nenhuma barra do mínimo", () => {
+    renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        semDadoSiope: true,
+        mde: semMinimo,
+        fundebProfissionais: semMinimo,
+      },
+    });
+    const bloco = destaqueMinimo();
+    expect(bloco.querySelector(".stat-value-lg")?.textContent).toBe("—");
+    expect(
+      within(bloco).getByText(/sem dado publicado para 2024/),
+    ).toBeTruthy();
+    expect(within(bloco).queryByRole("meter")).toBeNull();
+  });
+
+  it("percentual em branco no SIOPE diz que a Prefeitura não informou", () => {
+    renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        mde: semMinimo,
+        fundebProfissionais: semMinimo,
+      },
+    });
+    expect(
+      screen.getAllByText(/a Prefeitura não informou o percentual de 2024/)
+        .length,
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
+  it("destaca a pergunta, a nota grande, a faixa, a variação e a barra com a meta", () => {
+    renderizar();
+    const bloco = destaqueIdeb();
+    expect(
+      within(bloco).getByText("As crianças estão aprendendo?"),
+    ).toBeTruthy();
+    expect(bloco.querySelector(".stat-value-lg")?.textContent).toContain("6,2");
+    expect(
+      within(bloco).getByText(/IDEB · Anos Iniciais \(1º ao 5º ano\)/),
+    ).toBeTruthy();
+    expect(
+      within(bloco).getByText(/subiu 0,4 pontos em relação a 2021/),
+    ).toBeTruthy();
+    const barra = within(bloco).getByRole("meter");
+    expect(barra.getAttribute("aria-valuemax")).toBe("10");
+    expect(within(bloco).getByText("meta 6,0")).toBeTruthy();
+  });
+
+  it("variação sobe em ok-text, cai em danger-text e some quando não mudou", () => {
+    const { container, rerender } = renderizar();
+    expect(destaqueIdeb().querySelector(".text-ok-text")).not.toBeNull();
+    rerender(
+      elemento({
+        aprendizado: {
+          ...aprendizadoBase,
+          variacaoPontos: -0.3,
+          notaAnterior: 6.5,
+        },
+      }),
+    );
+    expect(destaqueIdeb().querySelector(".text-danger-text")).not.toBeNull();
+    expect(screen.getByText(/caiu 0,3 pontos em relação a 2021/)).toBeTruthy();
+    rerender(
+      elemento({
+        aprendizado: {
+          ...aprendizadoBase,
+          variacaoPontos: 0,
+          notaAnterior: 6.2,
+        },
+      }),
+    );
+    expect(destaqueIdeb().querySelector(".text-ok-text")).toBeNull();
+    expect(destaqueIdeb().querySelector(".text-danger-text")).toBeNull();
+    expect(container.textContent).not.toMatch(/em relação a 2021/);
+  });
+
+  it("sem meta não desenha a barra e sem nota mostra traço e a causa", () => {
+    const { rerender } = renderizar({
+      aprendizado: { ...aprendizadoBase, metaIdeb: null, atingiuMeta: null },
+    });
+    expect(within(destaqueIdeb()).queryByRole("meter")).toBeNull();
+    expect(
+      within(destaqueIdeb()).getByText(/sem meta definida pelo MEC/),
+    ).toBeTruthy();
+    rerender(
+      elemento({
+        aprendizado: {
+          ...aprendizadoBase,
+          notaIdeb: null,
+          anoApuracao: null,
+          variacaoPontos: null,
+        },
+      }),
+    );
+    expect(
+      within(destaqueIdeb()).getByText(/sem nota do IDEB apurada/),
+    ).toBeTruthy();
+  });
+});
+
+describe("EducacaoHeroSection: indicadores de apoio", () => {
+  it("põe o Fundeb dos profissionais num indicador com tom pela posição, mínimo e barra", () => {
+    const { container, rerender } = renderizar();
+    const indicador = screen.getByTestId("indicador-fundeb");
+    expect(
+      within(indicador).getByText(
+        "Parte do Fundeb paga aos profissionais da educação",
+      ),
+    ).toBeTruthy();
+    expect(within(indicador).getByText("65,00%").className).toContain(
+      "text-warn-text",
+    );
+    expect(
+      within(indicador).getByText(/mínimo de 70,00% dos recursos do Fundeb/),
+    ).toBeTruthy();
+    expect(
+      within(indicador).getByText(/indício a ser esclarecido/),
+    ).toBeTruthy();
+    expect(within(indicador).getByText("mínimo 70%")).toBeTruthy();
+    rerender(
+      elemento({
+        minimosLegais: {
+          ...minimosBase,
+          fundebProfissionais: {
+            ...minimosBase.fundebProfissionais,
+            percentualAplicado: 80,
+            resultado: "cumpriu",
+          },
+        },
+      }),
+    );
+    expect(
+      within(screen.getByTestId("indicador-fundeb")).getByText("80,00%")
+        .className,
+    ).toContain("text-ok-text");
+    expect(
+      container.querySelector(
+        "[data-testid='educacao-resumo-destaque'] .panel",
+      ),
+    ).not.toBeNull();
+  });
+
+  it("valor por aluno: variação com palavra, nota da inflação e Ver detalhes em linha própria", () => {
+    renderizar();
+    const indicador = screen.getByTestId("indicador-valor-por-aluno");
+    expect(within(indicador).getByText(/subiu R\$ 1\.000/)).toBeTruthy();
+    expect(
+      within(indicador).getByText(/sem correção pela inflação/),
+    ).toBeTruthy();
+    const link = within(indicador).getByRole("button", {
+      name: "Ver detalhes: valor por aluno",
+    });
+    expect(link.className).toContain("block");
+  });
+
+  it("valor por aluno: ano parcial não compara e sem valor mostra a causa", () => {
+    const { rerender } = renderizar({
+      valorPorAluno: { ...valorPorAlunoBase, parcial: true, periodo: 4 },
+    });
+    expect(
+      screen.getByText(/não se compara com anos já fechados/),
+    ).toBeTruthy();
+    rerender(
+      elemento({
+        valorPorAluno: {
+          ...valorPorAlunoBase,
+          valor: null,
+          semValorCausa: "nao_informado_ao_fnde",
+          serie: [],
+        },
+      }),
+    );
+    expect(
+      screen.getByText(/a Prefeitura não informou o valor de 2024/),
+    ).toBeTruthy();
+  });
+
+  it("Ver detalhes do valor por aluno abre a série com a fonte no rodapé", () => {
+    renderizar();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ver detalhes: valor por aluno" }),
+    );
+    const modal = screen.getByRole("dialog");
+    expect(
+      within(modal).getByText("Investimento por aluno ano a ano"),
+    ).toBeTruthy();
+    expect(
+      within(modal).getByText(/SIOPE, sistema do governo federal/),
+    ).toBeTruthy();
+  });
+
+  it("alunos na rede: divisão, exclusões e Censo com o ano real; some sem matrícula", () => {
+    const { rerender } = renderizar();
+    const indicador = screen.getByTestId("indicador-alunos-rede");
+    expect(within(indicador).getByText("1.971")).toBeTruthy();
+    expect(
+      within(indicador).getByText(/668 na educação infantil/),
+    ).toBeTruthy();
+    expect(
+      within(indicador).getByText(
+        /não inclui ensino médio, EJA nem educação especial/,
+      ),
+    ).toBeTruthy();
+    expect(
+      within(indicador).getByText(/Censo Escolar 2023, INEP/),
+    ).toBeTruthy();
+    rerender(elemento({ alunosRede: null }));
+    expect(screen.queryByTestId("indicador-alunos-rede")).toBeNull();
+  });
+});
+
+describe("EducacaoHeroSection: lei, fonte e gasto", () => {
   it("põe Lei e Fonte numa linha de legenda, com as leis em nova aba (Regra 20)", () => {
     renderizar();
     const lei = screen.getByRole("link", { name: /CF\/88 Art. 212/ });
@@ -128,59 +408,20 @@ describe("EducacaoHeroSection", () => {
         .getByRole("link", { name: /Lei 14.113\/2020 Art. 26/ })
         .getAttribute("href"),
     ).toBe("https://www.planalto.gov.br/l14113");
-    expect(screen.getByText(/SIOPE \(FNDE\)/)).toBeTruthy();
-  });
-
-  it("ano em andamento fica marcado como parcial e sem veredito", () => {
-    renderizar({
-      ...minimosBase,
-      parcial: true,
-      periodo: 3,
-      mde: { ...minimosBase.mde, resultado: "parcial" },
-      fundebProfissionais: {
-        ...minimosBase.fundebProfissionais,
-        resultado: "parcial",
-      },
-    });
-    const destaque = screen.getByTestId("educacao-resumo-destaque");
     expect(
-      within(destaque).getAllByText(/Ano em andamento/).length,
-    ).toBeGreaterThan(0);
-    expect(
-      within(destaque).getByText(/até o 3º bimestre de 2024/),
-    ).toBeTruthy();
-    expect(within(destaque).queryByText(/Cumpriu o mínimo/)).toBeNull();
-    expect(within(destaque).queryByText(/Ficou abaixo/)).toBeNull();
-  });
-
-  it("sem dado do SIOPE mostra traço, a causa e nenhuma barra", () => {
-    const { container } = renderizar({
-      ...minimosBase,
-      semDadoSiope: true,
-      mde: semMinimo,
-      fundebProfissionais: semMinimo,
-    });
-    expect(container.querySelector(".stat-value-lg")?.textContent).toBe("—");
-    expect(screen.getByText(/sem dado publicado para 2024/)).toBeTruthy();
-    expect(screen.queryByRole("meter")).toBeNull();
-  });
-
-  it("percentual em branco no SIOPE diz que a Prefeitura não informou", () => {
-    renderizar({
-      ...minimosBase,
-      mde: semMinimo,
-      fundebProfissionais: semMinimo,
-    });
-    expect(
-      screen.getByText(/a Prefeitura não informou o percentual de 2024/),
+      screen.getByText(/SIOPE, sistema do governo federal/, {
+        selector: "span",
+      }),
     ).toBeTruthy();
   });
 
-  it("Ver detalhes do gasto, na linha de legenda, abre reservado, liquidado e pago", () => {
+  it("Ver detalhes do gasto fica em linha separada da legenda e abre reservado, liquidado e pago", () => {
     renderizar();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Ver detalhes: gasto em educação" }),
-    );
+    const botao = screen.getByRole("button", {
+      name: "Ver detalhes: gasto em educação",
+    });
+    expect(botao.closest("p")).toBeNull();
+    fireEvent.click(botao);
     const modal = screen.getByRole("dialog");
     expect(
       within(modal).getByText("Quanto a Prefeitura gastou em educação"),

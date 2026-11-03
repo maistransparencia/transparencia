@@ -138,13 +138,12 @@ export function EducacaoOrigemRecursosSection({
                       {formatPercentualInteiro(fonte.percentualTotal)} do que
                       entrou{parcial ? " · parcial" : ""}
                     </span>
-                    {" · "}
-                    <VerDetalhesLink
-                      context={rotulo}
-                      testId={`fonte-card-${grupoFonte}`}
-                      onClick={() => setFonteAberta(grupoFonte)}
-                    />
                   </p>
+                  <VerDetalhesLink
+                    context={rotulo}
+                    testId={`fonte-card-${grupoFonte}`}
+                    onClick={() => setFonteAberta(grupoFonte)}
+                  />
                 </li>
               );
             })}

@@ -9,8 +9,8 @@ export interface VerDetalhesLinkProps {
 }
 
 /**
- * "Ver detalhes" das seções de educação: link pequeno (14px), inline quando
- * couber. O alvo de toque vem da área invisível, não da altura do texto.
+ * "Ver detalhes" das seções de educação: link pequeno (14px), sempre em
+ * linha própria. O alvo de toque vem da área invisível, não da altura do texto.
  */
 export function VerDetalhesLink({
   onClick,
@@ -26,7 +26,7 @@ export function VerDetalhesLink({
       data-testid={testId}
       onClick={onClick}
       className={cn(
-        "relative inline cursor-pointer text-left font-medium text-brand-text text-sm underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']",
+        "relative block w-fit cursor-pointer text-left font-medium text-brand-text text-sm underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']",
         className,
       )}
     >
