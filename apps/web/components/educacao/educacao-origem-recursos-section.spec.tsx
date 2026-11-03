@@ -62,11 +62,7 @@ describe("EducacaoOrigemRecursosSection", () => {
         /Em 2025, entraram R\$ 18,8 mi no Fundo Municipal de Educação\. 61 de cada R\$ 100 vêm da fonte "FUNDEB"\..*Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo\./,
       ),
     ).toBeInTheDocument();
-    const barra = screen.getByTestId("composicao-recursos-bar");
-    expect(barra).toHaveAttribute("role", "img");
-    expect(barra.getAttribute("aria-label")).toMatch(/FUNDEB 61%/);
-    expect(barra.className).toContain("bg-track");
-    expect(barra.outerHTML).not.toMatch(/rounded/);
+    expect(screen.queryByTestId("composicao-recursos-bar")).toBeNull();
     const botao = screen.getByTestId("fonte-card-fundeb");
     expect(botao).toHaveAccessibleName("Ver detalhes: FUNDEB");
     expect(botao.closest("p")).toBeNull();
