@@ -44,6 +44,19 @@ describe("ThresholdMeter", () => {
     ).toBe("100%");
   });
 
+  it("limita o valor lido pelo leitor de tela à escala", () => {
+    const { container, rerender } = render(
+      <ThresholdMeter value={140} max={100} {...propsBase} />,
+    );
+    expect(
+      container.querySelector("[role='meter']")?.getAttribute("aria-valuenow"),
+    ).toBe("100");
+    rerender(<ThresholdMeter value={-5} max={100} {...propsBase} />);
+    expect(
+      container.querySelector("[role='meter']")?.getAttribute("aria-valuenow"),
+    ).toBe("0");
+  });
+
   it("usa a escala informada (nota de 0 a 10 com meta)", () => {
     const { container } = render(
       <ThresholdMeter

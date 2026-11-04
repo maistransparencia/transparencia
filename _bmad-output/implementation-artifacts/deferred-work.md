@@ -462,3 +462,14 @@ location: packages/db/src/queries/educacao-metrics.ts, apps/web/app/[portalSlug]
 source_spec: `24-7-aprendizado-no-topo-da-pagina-de-educacao.md`
 reason: Não verificado com dados reais de seed_inep_ideb; checar se há ciclos com mesmo total e municípios trocados.
 status: open
+
+## Deferred from: code review of story-24-12 (2026-11-03)
+
+- `NOTA_DECLARACAO` só é usada no modal de valor por aluno; confirmar se o percentual do mínimo/Fundeb no topo mantém a explicação de que o número vem do SIOPE sem recálculo (educacao-textos.tsx). Severidade não verificada: média.
+- Alinhamento das duas barras dos destaques (educacao-destaques.tsx) quando a pergunta quebra em duas linhas em largura md. Conferir no navegador.
+- `IndicatorPanel` clona filhos com `size`, mas em educacao-indicadores-apoio.tsx os filhos são `<div>` wrapper; conferir `size` e a estrutura `dl`/`dt`/`dd`.
+- Estados do antigo `emendasSubtext` (sem emenda; emenda ainda não reservada): conferir se `EmendasSection` os cobre.
+- Linha "Leis:" depende da seed (`baseLegal`/`urlBaseLegal`); conferir se a seed cobre CF/88 art. 212 e 212-A e Lei 14.113 art. 26.
+- Link "Ver detalhes" do valor por aluno só aparece com `valor !== null` (educacao-indicadores-apoio.tsx:117); a regra antiga exigia só `serie.length > 0`.
+- Rótulo com ano fixo "INEP: Nota Informativa do Ideb 2025" no modal do IDEB (Regra 23); anterior a esta story.
+- `twoColumnsOnMobile` no `IndicatorPanel`: confirmar que `cn` faz merge de classes Tailwind (`grid-cols-2` vs `COLUMNS_CLASS`).

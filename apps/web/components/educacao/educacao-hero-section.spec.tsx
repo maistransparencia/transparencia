@@ -143,7 +143,7 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     });
     const barra = within(destaqueMinimo()).getByRole("meter");
     expect(barra.getAttribute("aria-valuenow")).toBe("27.5");
-    expect(barra.getAttribute("aria-valuetext")).toMatch(/mínimo de 30,00%/);
+    expect(barra.getAttribute("aria-valuetext")).toMatch(/mínimo de 30%/);
   });
 
   it("abaixo do mínimo fala em indício, nunca em irregularidade", () => {
@@ -242,6 +242,12 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
     expect(
       within(bloco).getByText(/Média da rede pública \(UF\): 5,2/),
     ).toBeTruthy();
+    expect(barra.getAttribute("aria-valuetext")).toMatch(
+      /Média da rede pública \(UF\) 5,2/,
+    );
+    expect(within(bloco).getByTestId("threshold-meter-marker").style.left).toBe(
+      "52%",
+    );
   });
 
   it("variação sobe em ok-text, cai em danger-text e some quando não mudou", () => {

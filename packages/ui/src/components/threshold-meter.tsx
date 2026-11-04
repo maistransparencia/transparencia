@@ -47,7 +47,7 @@ export function ThresholdMeter({
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={max}
-      aria-valuenow={value}
+      aria-valuenow={Math.min(max, Math.max(0, value))}
       aria-valuetext={valueText}
       className={cn("relative block", className)}
     >

@@ -39,7 +39,7 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               value={mde.percentualAplicado}
               threshold={mde.limite}
               label="Aplicado em ensino (MDE)"
-              valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${fmtPercent(mde.limite)}${mde.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
+              valueText={`${fmtPercent(mde.percentualAplicado)} aplicado em ensino; mínimo de ${formatarLimite(mde.limite)}${mde.resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
             />
           )}
           <p className="caption space-y-0.5">

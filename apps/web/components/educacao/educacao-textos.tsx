@@ -149,13 +149,17 @@ export function LinhaLeiEFonte({
   laws = [],
   extra,
 }: LinhaLeiEFonteProps) {
+  const leisUnicas = laws.filter(
+    (lei, indice) =>
+      laws.findIndex((outra) => outra.url === lei.url) === indice,
+  );
   const partes: ReactNode[] = [
-    ...(laws.length > 0
+    ...(leisUnicas.length > 0
       ? [
           <span key="leis">
-            <strong>{laws.length > 1 ? "Leis" : "Lei"}:</strong>{" "}
+            <strong>{leisUnicas.length > 1 ? "Leis" : "Lei"}:</strong>{" "}
             {juntarComSeparador(
-              laws.map((law) => <LeiLink key={law.url} {...law} />),
+              leisUnicas.map((law) => <LeiLink key={law.url} {...law} />),
             )}
           </span>,
         ]
