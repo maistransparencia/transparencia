@@ -245,7 +245,7 @@ development_status:
   epic-23: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
 
-  epic-24: backlog
+  epic-24: in-progress
   24-1-ingestao-do-relatorio-gerencial-do-siope: done
   24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
   24-3-contratos-de-dados-do-siope-em-transparencia-db: done
@@ -258,7 +258,7 @@ development_status:
   24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
   24-11-tres-respostas-no-topo-da-pagina-de-educacao: done
   24-12-refino-visual-da-pagina-de-educacao-hero-com-barra-do-minimo-e-leis-e-fontes-em-destaque: done
-  24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: ready-for-dev
+  24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: in-review
   epic-24-retrospective: optional
 
   epic-25: backlog

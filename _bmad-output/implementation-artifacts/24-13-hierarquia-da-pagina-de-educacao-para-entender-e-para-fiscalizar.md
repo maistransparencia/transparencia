@@ -2,7 +2,8 @@
 title: 'Hierarquia da página de educação: "para entender" e "para fiscalizar"'
 type: 'feature'
 created: '2026-11-04'
-status: 'ready-for-dev'
+status: 'in-review'
+baseline_commit: '2cd14c7f92d276051d9179af3137a676ee32c749'
 epic: 24
 story: '24.13'
 source: '_bmad-output/planning-artifacts/epics.md (### Story 24.13)'
@@ -34,16 +35,16 @@ source: '_bmad-output/planning-artifacts/epics.md (### Story 24.13)'
 
 ## Tasks & Acceptance
 
-- [ ] Ler `DESIGN.md` e `EXPERIENCE.md`; definir e documentar o padrão de seção recolhida e da linha de âncoras.
-- [ ] Componente de seção recolhida em `packages/ui`: `details`/`summary`, teclado e leitor de tela, abre na âncora (hash e `contratoNumero`), abre tudo na impressão.
-- [ ] Resumos numéricos por seção calculados em `@transparencia/db` (com teste), exibidos mesmo recolhida.
-- [ ] Reordenar `page.tsx` e criar o bloco "Para fiscalizar" (`h2` + frase de para quem serve); âncoras só das seções existentes.
-- [ ] Ressalva de ano em andamento dita uma vez perto do `eyebrow`; rótulo curto "parcial" nos demais; manter a frase onde muda o sentido (veredito suspenso do mínimo, IDEB do ano em curso).
-- [ ] Encurtar o aviso de `EmendasSection` sem perder autorizado/contemplado/empenhado e onde conferir; teste de regressão nas outras páginas.
-- [ ] Siglas: nome comum primeiro ("merenda escolar (PNAE)", "transporte escolar (PNATE)"); sigla e lei ficam em "Ver detalhes" e em "Leis:".
-- [ ] Teste de que nenhum bloco da 24.12 sumiu (mesmos títulos e números; muda só posição e estado inicial).
-- [ ] Atualizar specs de página, `llms.txt`, `llms-full.txt` e `CHANGELOG.md`.
-- [ ] Revisão de texto pelo `editor-cidadao`; conferência de dados (Mary) e do `contador-publico` nos números dos resumos.
+- [x] Ler `DESIGN.md` e `EXPERIENCE.md`; definir e documentar o padrão de seção recolhida e da linha de âncoras.
+- [x] Componente de seção recolhida em `packages/ui`: `details`/`summary`, teclado e leitor de tela, abre na âncora (hash e `contratoNumero`), abre tudo na impressão.
+- [x] Resumos numéricos por seção calculados em `@transparencia/db` (com teste), exibidos mesmo recolhida.
+- [x] Reordenar `page.tsx` e criar o bloco "Para fiscalizar" (`h2` + frase de para quem serve); âncoras só das seções existentes.
+- [x] Ressalva de ano em andamento dita uma vez perto do `eyebrow`; rótulo curto "parcial" nos demais; manter a frase onde muda o sentido (veredito suspenso do mínimo, IDEB do ano em curso).
+- [x] Encurtar o aviso de `EmendasSection` sem perder autorizado/contemplado/empenhado e onde conferir; teste de regressão nas outras páginas.
+- [x] Siglas: nome comum primeiro ("merenda escolar (PNAE)", "transporte escolar (PNATE)"); sigla e lei ficam em "Ver detalhes" e em "Leis:".
+- [x] Teste de que nenhum bloco da 24.12 sumiu (mesmos títulos e números; muda só posição e estado inicial).
+- [x] Atualizar specs de página, `llms.txt`, `llms-full.txt` e `CHANGELOG.md`.
+- [ ] Revisão de texto pelo `editor-cidadao`; conferência de dados (Mary) e do `contador-publico` nos números dos resumos. *(pendente: fora desta sessão)*
 
 ## Guardrails
 
@@ -52,3 +53,5 @@ Regras 9, 13, 23 (sem tenant, UF ou ano fixos; anos a partir dos dados), 25 (tok
 ## Fora do escopo
 
 Renomear estágios da despesa; novos dados ou indicadores; mudar cálculos das 24.4 a 24.10; estender o padrão a `/saude`; teste de usabilidade com cidadãos.
+
+> Nota: a linha de âncoras do topo foi removida a pedido do Julio (2026-11-04); os ids das seções continuam servindo de âncora por URL.
