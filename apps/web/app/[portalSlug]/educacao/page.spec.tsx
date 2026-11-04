@@ -348,12 +348,18 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       within(destaque).getByText("As crianças estão aprendendo?"),
     ).toBeInTheDocument();
-    const indicadores = within(destaque)
+    expect(
+      screen.getByText(
+        "Quanto do Fundeb vai para os profissionais da educação?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Quanto a Prefeitura investe por aluno?"),
+    ).toBeInTheDocument();
+    const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
       .getAllByRole("term")
       .map((termo) => termo.textContent);
-    expect(indicadores).toEqual([
-      "Parte do Fundeb paga aos profissionais da educação",
-      "Quanto a Prefeitura investe por aluno?",
+    expect(etapasDoGasto).toEqual([
       "Reservado (empenhado) no ano",
       "Serviço ou produto entregue (liquidado)",
       "Dinheiro que saiu (pago)",
@@ -363,6 +369,9 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
+      "Quanto do Fundeb vai para os profissionais da educação?",
+      "Quantos alunos a rede tem e quanto se investe em cada um?",
+      "Quanto do que a Prefeitura reservou para a educação já foi pago?",
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Para fiscalizar",

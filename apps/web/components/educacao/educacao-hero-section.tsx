@@ -6,8 +6,11 @@ import type {
   ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
-import { urlLegislacao } from "@/lib/constants/legislacao";
 import { DestaqueIdeb, DestaqueMinimo } from "./educacao-destaques";
+import {
+  EducacaoEmendasResumo,
+  type EducacaoEmendasResumoProps,
+} from "./educacao-emendas-resumo";
 import { EducacaoIndicadoresApoio } from "./educacao-indicadores-apoio";
 import { EducacaoMemoriaCalculo } from "./educacao-memoria-calculo";
 import {
@@ -28,9 +31,9 @@ export interface EducacaoHeroSectionProps {
   valorPorAluno: ValorPorAlunoView;
   alunosRede: AlunosRedeView | null;
   aprendizado: AprendizadoEtapa;
+  /** Resumo das emendas no topo; `null` quando o município não tem emendas na educação. */
+  emendasResumo?: EducacaoEmendasResumoProps["emendas"] | null;
 }
-
-const FONTE_EXECUCAO = "execução orçamentária da Prefeitura, função Educação";
 
 const leiDoMinimo = (minimo: MinimosLegaisView["mde"]): LeiLinkProps[] =>
   minimo.baseLegal && minimo.urlBaseLegal
@@ -48,6 +51,7 @@ export function EducacaoHeroSection({
   valorPorAluno,
   alunosRede,
   aprendizado,
+  emendasResumo = null,
 }: EducacaoHeroSectionProps) {
   const { mde, fundebProfissionais } = minimosLegais;
 
@@ -80,45 +84,38 @@ export function EducacaoHeroSection({
       <section
         aria-label="Destaques da educação"
         data-testid="educacao-resumo-destaque"
-        className="space-y-8"
+        className="grid grid-cols-1 gap-8 md:grid-cols-2"
       >
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <DestaqueMinimo view={minimosLegais} />
-          <DestaqueIdeb etapa={aprendizado} />
-        </div>
-
-        <EducacaoIndicadoresApoio
-          minimosLegais={minimosLegais}
-          valorPorAluno={valorPorAluno}
-          alunosRede={alunosRede}
-        />
-
-        <EducacaoMemoriaCalculo
-          ano={ano}
-          isCurrentYear={isCurrentYear}
-          partialPeriod={partialPeriod}
-          execucao={execucao}
-        />
-
-        <LinhaLeiEFonte
-          laws={[
-            ...leiDoMinimo(mde),
-            ...leiDoMinimo(fundebProfissionais),
-            { label: "Lei 4.320/1964", url: urlLegislacao("lei4320") },
-          ]}
-          source={
-            <>
-              <LeiLink label={FONTE_SIOPE} url={FONTES_OFICIAIS.siope.url} />
-              {" e "}
-              {portalUrl ? (
-                <LeiLink label={FONTE_EXECUCAO} url={portalUrl} />
-              ) : (
-                FONTE_EXECUCAO
-              )}
-            </>
-          }
-        />
+        <DestaqueMinimo view={minimosLegais} />
+        <DestaqueIdeb etapa={aprendizado} />
       </section>
+
+      <EducacaoIndicadoresApoio
+        minimosLegais={minimosLegais}
+        valorPorAluno={valorPorAluno}
+        alunosRede={alunosRede}
+      />
+
+      <LinhaLeiEFonte
+        laws={[...leiDoMinimo(mde), ...leiDoMinimo(fundebProfissionais)]}
+        source={<LeiLink label={FONTE_SIOPE} url={FONTES_OFICIAIS.siope.url} />}
+      />
+
+      <EducacaoMemoriaCalculo
+        ano={ano}
+        isCurrentYear={isCurrentYear}
+        partialPeriod={partialPeriod}
+        execucao={execucao}
+        portalUrl={portalUrl}
+      />
+
+      {emendasResumo && (
+        <EducacaoEmendasResumo
+          emendas={emendasResumo}
+          hrefSecaoCompleta="#emendas-educacao"
+          portalUrl={portalUrl}
+        />
+      )}
     </div>
   );
 }

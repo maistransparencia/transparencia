@@ -1,13 +1,16 @@
 "use client";
 
 import {
+  cn,
   fmtCurrency,
   fmtNumber,
   fmtPercent,
   Indicator,
   IndicatorPanel,
-  type IndicatorSize,
   type IndicatorTone,
+  SectionHeader,
+  ThresholdMeter,
+  type ThresholdMeterTone,
 } from "@transparencia/ui";
 import { useState } from "react";
 import type {
@@ -51,41 +54,67 @@ const tomDoResultado = (
   return "default";
 };
 
-function IndicadorFundeb({
-  view,
-  size,
-}: {
-  view: MinimosLegaisView;
-  size?: IndicatorSize;
-}) {
+const TOM_DA_BARRA: Record<IndicatorTone, ThresholdMeterTone> = {
+  default: "brand",
+  ok: "ok",
+  warn: "warn",
+  danger: "danger",
+};
+
+const COR_DO_VALOR: Record<IndicatorTone, string> = {
+  default: "text-brand-text",
+  ok: "text-ok-text",
+  warn: "text-warn-text",
+  danger: "text-danger-text",
+};
+
+/** Bloco do Fundeb: a pergunta, o percentual e a barra com o marcador do mínimo. */
+function BlocoFundeb({ view }: { view: MinimosLegaisView }) {
   const { fundebProfissionais: fundeb } = view;
   const { percentualAplicado, limite } = fundeb;
   return (
-    <Indicator
+    <section
+      className="space-y-4"
       data-testid="indicador-fundeb"
-      size={size}
-      label="Parte do Fundeb paga aos profissionais da educação"
-      value={percentualAplicado === null ? "—" : fmtPercent(percentualAplicado)}
-      tone={tomDoResultado(fundeb.resultado)}
-      note={(() => {
-        if (percentualAplicado === null) return motivoSemPercentual(view);
-        return (
+      aria-label="Fundeb dos profissionais da educação"
+    >
+      <SectionHeader title="Quanto do Fundeb vai para os profissionais da educação?" />
+      <p
+        className={cn(
+          "stat-value",
+          COR_DO_VALOR[tomDoResultado(fundeb.resultado)],
+        )}
+      >
+        {percentualAplicado === null ? "—" : fmtPercent(percentualAplicado)}
+      </p>
+      {percentualAplicado !== null && limite !== null && (
+        <ThresholdMeter
+          value={percentualAplicado}
+          threshold={limite}
+          tone={TOM_DA_BARRA[tomDoResultado(fundeb.resultado)]}
+          label="Parte do Fundeb paga aos profissionais da educação"
+          valueText={`${fmtPercent(percentualAplicado)} do Fundeb pagos aos profissionais; mínimo de ${formatarLimite(limite)}`}
+        />
+      )}
+      <p className="caption space-y-0.5">
+        {percentualAplicado === null ? (
+          motivoSemPercentual(view)
+        ) : (
           <>
-            {limite !== null && (
-              <span className="block">
-                a lei exige pelo menos {formatarLimite(limite)} dos recursos do
-                Fundeb
-              </span>
-            )}
+            <span className="block">
+              Parte do Fundeb paga aos profissionais da educação.
+              {limite !== null &&
+                ` A lei exige pelo menos ${formatarLimite(limite)} dos recursos do Fundeb.`}
+            </span>
             <Veredito minimo={fundeb} ocultarCumpriu />
           </>
-        );
-      })()}
-    />
+        )}
+      </p>
+    </section>
   );
 }
 
-/** Indicadores logo abaixo dos dois destaques: Fundeb, valor por aluno e alunos na rede. */
+/** Blocos logo abaixo dos dois destaques: Fundeb, e alunos com valor por aluno. */
 export function EducacaoIndicadoresApoio({
   minimosLegais,
   valorPorAluno,
@@ -113,44 +142,72 @@ export function EducacaoIndicadoresApoio({
 
   return (
     <>
-      <IndicatorPanel>
-        <IndicadorFundeb view={minimosLegais} />
-        <Indicator
-          data-testid="indicador-valor-por-aluno"
-          label="Quanto a Prefeitura investe por aluno?"
-          value={valor === null ? "—" : fmtCurrency(valor)}
-          note={notaValor}
-          action={
-            valor !== null && serie.length > 0 ? (
-              <VerDetalhesLink
-                context="valor por aluno"
-                onClick={() => setDetalhesAberto(true)}
-                className="mt-2"
-              />
-            ) : null
-          }
-        />
-        {alunosRede && (
+      <BlocoFundeb view={minimosLegais} />
+      <section className="space-y-4" aria-label="Alunos e valor por aluno">
+        <SectionHeader title="Quantos alunos a rede tem e quanto se investe em cada um?" />
+        <IndicatorPanel>
           <Indicator
-            data-testid="indicador-alunos-rede"
-            label="Alunos na rede municipal"
-            value={fmtNumber(alunosRede.total)}
-            note={
-              <span className="block">
-                {fmtNumber(alunosRede.educacaoInfantil)} na educação infantil e{" "}
-                {fmtNumber(alunosRede.ensinoFundamental)} no ensino fundamental
-              </span>
-            }
+            data-testid="indicador-valor-por-aluno"
+            label="Quanto a Prefeitura investe por aluno?"
+            value={valor === null ? "—" : fmtCurrency(valor)}
+            note={notaValor}
             action={
-              <VerDetalhesLink
-                context="alunos na rede municipal"
-                onClick={() => setAlunosAberto(true)}
-                className="mt-2"
-              />
+              valor !== null && serie.length > 0 ? (
+                <VerDetalhesLink
+                  context="valor por aluno"
+                  onClick={() => setDetalhesAberto(true)}
+                  className="mt-2"
+                />
+              ) : null
             }
           />
-        )}
-      </IndicatorPanel>
+          {alunosRede && (
+            <Indicator
+              data-testid="indicador-alunos-rede"
+              label="Alunos na rede municipal"
+              value={fmtNumber(alunosRede.total)}
+              note={
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="mb-2 flex h-4 w-full gap-0.5"
+                  >
+                    <span
+                      className="bg-brand-fill"
+                      style={{ flex: alunosRede.educacaoInfantil }}
+                    />
+                    <span
+                      className="bg-ok-fill"
+                      style={{ flex: alunosRede.ensinoFundamental }}
+                    />
+                  </span>
+                  <span className="block">
+                    <span
+                      aria-hidden="true"
+                      className="mr-1.5 inline-block size-2.5 bg-brand-fill"
+                    />
+                    {fmtNumber(alunosRede.educacaoInfantil)} na educação
+                    infantil e{" "}
+                    <span
+                      aria-hidden="true"
+                      className="mr-1.5 inline-block size-2.5 bg-ok-fill"
+                    />
+                    {fmtNumber(alunosRede.ensinoFundamental)} no ensino
+                    fundamental
+                  </span>
+                </>
+              }
+              action={
+                <VerDetalhesLink
+                  context="alunos na rede municipal"
+                  onClick={() => setAlunosAberto(true)}
+                  className="mt-2"
+                />
+              }
+            />
+          )}
+        </IndicatorPanel>
+      </section>
       {alunosRede && (
         <AlunosRedeModal
           isOpen={alunosAberto}

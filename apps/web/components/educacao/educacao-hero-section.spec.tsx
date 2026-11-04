@@ -308,12 +308,17 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
 });
 
 describe("EducacaoHeroSection: indicadores de apoio", () => {
-  it("põe o Fundeb dos profissionais num indicador com tom pela posição e mínimo, sem barra", () => {
-    const { container, rerender } = renderizar();
+  it("põe o Fundeb dos profissionais num bloco com a pergunta, tom pela posição e barra com o mínimo", () => {
+    const { rerender } = renderizar();
     const indicador = screen.getByTestId("indicador-fundeb");
     expect(
       within(indicador).getByText(
-        "Parte do Fundeb paga aos profissionais da educação",
+        "Quanto do Fundeb vai para os profissionais da educação?",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(indicador).getByText(
+        /Parte do Fundeb paga aos profissionais da educação\./,
       ),
     ).toBeTruthy();
     expect(within(indicador).getByText("65,00%").className).toContain(
@@ -321,13 +326,13 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     );
     expect(
       within(indicador).getByText(
-        /a lei exige pelo menos 70% dos recursos do Fundeb/,
+        /A lei exige pelo menos 70% dos recursos do Fundeb/,
       ),
     ).toBeTruthy();
     expect(
       within(indicador).getByText(/indício a ser esclarecido/),
     ).toBeTruthy();
-    expect(within(indicador).queryByRole("meter")).toBeNull();
+    expect(within(indicador).getByRole("meter")).toBeTruthy();
     rerender(
       elemento({
         minimosLegais: {
@@ -344,11 +349,6 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
       within(screen.getByTestId("indicador-fundeb")).getByText("80,00%")
         .className,
     ).toContain("text-ok-text");
-    expect(
-      container.querySelector(
-        "[data-testid='educacao-resumo-destaque'] .panel",
-      ),
-    ).not.toBeNull();
   });
 
   it("valor por aluno: variação com palavra, nota da inflação e Ver detalhes em linha própria", () => {
@@ -461,12 +461,53 @@ describe("EducacaoHeroSection: lei, fonte e gasto", () => {
     renderizar();
     const gasto = screen.getByTestId("gasto-educacao");
     expect(
-      within(gasto).getByText("Quanto a Prefeitura gastou em educação?"),
+      within(gasto).getByText(
+        "Quanto do que a Prefeitura reservou para a educação já foi pago?",
+      ),
     ).toBeTruthy();
     expect(within(gasto).getByText(/Reservado \(empenhado\)/)).toBeTruthy();
     expect(within(gasto).getByText(/não para o que ela recebe/)).toBeTruthy();
     expect(
       screen.queryByRole("button", { name: "Ver detalhes: gasto em educação" }),
     ).toBeNull();
+  });
+
+  it("mostra o resumo das emendas no topo só com os números que o portal tem", () => {
+    renderizar({
+      emendasResumo: {
+        quantidade: 3,
+        totalAutorizado: 4_000_000,
+        totalConfirmadaNaReceita: 2_000_000,
+        totalEmpenhado: 1_000_000,
+        percentualConfirmadaNaReceita: 50,
+        percentualEmpenhado: 25,
+      },
+    });
+    const resumo = screen.getByTestId("emendas-resumo-educacao");
+    expect(
+      within(resumo).getByText(
+        "Quanto os deputados e senadores destinaram à educação?",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(resumo)
+        .getAllByRole("term")
+        .map((termo) => termo.textContent),
+    ).toEqual([
+      "Autorizado em emendas",
+      "Confirmada na receita",
+      "Empenhado no cadastro",
+    ]);
+    expect(within(resumo).getByText(/50,00% do autorizado/)).toBeTruthy();
+    expect(within(resumo).getByText(/25,00% do autorizado/)).toBeTruthy();
+    expect(within(resumo).queryByText(/sem destino/i)).toBeNull();
+    expect(
+      within(resumo).getByRole("link", { name: "Ver emendas" }),
+    ).toHaveAttribute("href", "#emendas-educacao");
+  });
+
+  it("sem emendas na educação não mostra o resumo", () => {
+    renderizar({ emendasResumo: null });
+    expect(screen.queryByTestId("emendas-resumo-educacao")).toBeNull();
   });
 });
