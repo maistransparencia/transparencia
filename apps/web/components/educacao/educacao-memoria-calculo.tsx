@@ -63,7 +63,8 @@ export function EducacaoMemoriaCalculo({
       <p className="caption">
         Reservado é o empenho, o compromisso de gastar; reservar não é pagar.{" "}
         {NOTA_MINIMO_GASTO} O total soma todas as despesas da Prefeitura
-        classificadas como Educação, não só as do Fundo Municipal de Educação.
+        classificadas como Educação, não só as do Fundo Municipal de Educação. O
+        percentual do mínimo usa o cálculo do SIOPE, que não é essa soma.
         {temDados && !isCurrentYear && naoPago > 0
           ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
           : ""}

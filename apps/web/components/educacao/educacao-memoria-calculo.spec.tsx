@@ -59,4 +59,16 @@ describe("EducacaoMemoriaCalculo", () => {
       3,
     );
   });
+
+  it("diz que o percentual do mínimo usa o cálculo do SIOPE, não a soma da função Educação", () => {
+    render(
+      <EducacaoMemoriaCalculo
+        ano={2024}
+        isCurrentYear={false}
+        partialPeriod=""
+        execucao={execucao}
+      />,
+    );
+    expect(screen.getByText(/usa o cálculo do SIOPE/)).toBeTruthy();
+  });
 });
