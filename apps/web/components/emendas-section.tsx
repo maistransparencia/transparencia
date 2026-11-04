@@ -412,9 +412,9 @@ export function EmendasSection({
           ) : (
             <>Não foi possível identificar emendas na receita. </>
           )}
-          O empenho vem do cadastro do portal e pode estar desatualizado: zero
-          não significa que o dinheiro não foi usado. Para conferir, procure no
-          portal do município a receita indicada na tabela.
+          O empenho depende do que a Prefeitura registrou no cadastro: sem
+          registro, aparece zero mesmo que o dinheiro tenha sido usado. Para
+          conferir, procure no portal do município a receita indicada na tabela.
         </AlertBox>
       )}
 

@@ -38,12 +38,12 @@ const stats = (totalRecebidoFundo: number, totalReceitaPossivel = 0) => ({
 });
 
 describe("EmendasSection: chegada do dinheiro", () => {
-  it("mostra quanto chegou como receita e avisa que o empenho do cadastro pode estar desatualizado", () => {
+  it("mostra quanto chegou como receita e avisa que o empenho depende do registro no cadastro", () => {
     const { container } = render(
       <EmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
     );
     expect(screen.getByText("Confirmada na receita")).toBeTruthy();
-    expect(container.textContent).toMatch(/pode estar desatualizado/);
+    expect(container.textContent).toMatch(/sem registro, aparece zero/);
     expect(container.textContent).toMatch(/com o número da proposta/);
     expect(screen.getAllByText("Aparece na receita").length).toBeGreaterThan(0);
     expect(container.textContent).not.toMatch(/1713\.50/);
@@ -82,7 +82,9 @@ describe("EmendasSection: chegada do dinheiro", () => {
     const aviso = container.textContent ?? "";
     expect(aviso).toMatch(/foram destinados por emendas/);
     expect(aviso).toMatch(/aparecem na receita com o número da proposta/);
-    expect(aviso).toMatch(/O empenho vem do cadastro do portal/);
+    expect(aviso).toMatch(
+      /O empenho depende do que a Prefeitura registrou no cadastro/,
+    );
     expect(aviso).toMatch(/procure no portal do município a receita indicada/);
   });
 
