@@ -44,11 +44,11 @@ export function ValorPorAlunoModal({
       <div className="space-y-6">
         <p className="text-mute text-sm">{NOTA_INFLACAO}</p>
         <p className="text-mute text-sm">
-          O valor vem do cálculo do governo federal no SIOPE ("Investimento
-          educacional por aluno"). O número de alunos usado nessa conta pode ser
-          diferente do total do Censo Escolar mostrado em &quot;Alunos na rede
-          municipal&quot;. Por isso dividir o gasto da função Educação pelo
-          número de alunos pode não dar o mesmo resultado.
+          Pelo método do SIOPE, o valor é a despesa com ensino (MDE) dividida
+          pelo número total de alunos matriculados. Esse total de alunos pode
+          ser diferente do mostrado em &quot;Alunos na rede municipal&quot;, e a
+          despesa com ensino não é a mesma soma da função Educação. Por isso
+          dividir um pelo outro pode não dar o mesmo resultado.
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
