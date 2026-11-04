@@ -3458,6 +3458,54 @@ So that I understand at a glance whether the minimum is met and can check where 
 
 ---
 
+### Story 24.13: Hierarquia da Página de Educação: "Para Entender" e "Para Fiscalizar"
+
+As a citizen,  
+I want the education page to tell the story "o que as crianças aprendem, de onde vem o dinheiro e para onde vai" first, with the audit material (emendas, contratos, fornecedores) grouped at the end and collapsed,  
+So that I can follow the main answer without scrolling through tables made for journalists, councilors and auditors, and still reach every detail when I want it.
+
+**Origem:** pedido do Julio em 2026-11-04, a partir de uma segunda opinião sobre a página renderizada (uma LLM sem contexto do projeto) conferida por Mary contra a página real depois da 24.12. Concordância: a LLM acertou na hierarquia (seções de fiscalização misturadas e abertas) e na repetição da ressalva "ano em andamento". **Decisão do Julio:** os termos "reservado", "liquidado" e "pago" **não mudam**; "entregue" não substitui "liquidado" (liquidar é reconhecer que o serviço foi prestado, não que chegou ao cidadão).
+
+**Princípio:** nenhuma informação existente sai da página; muda só a posição e o peso, como na 24.12 (Regra 25 e Regra 27: seções para especialistas ficam no fim).
+
+**Acceptance Criteria:**
+
+*Ordem*
+- **Given** a página `/[portalSlug]/educacao`
+- **When** o cidadão rola do topo ao fim
+- **Then** a ordem é: topo (24.12) → "Aprendizado dos alunos" → "O que entrou" → "Como mudou ao longo dos anos" → bloco **"Para fiscalizar"**
+- **And** o bloco "Para fiscalizar" agrupa, nesta ordem, as emendas, "Como o Fundo contrata", "Ver todos os contratos" e "Quem recebe o dinheiro da educação", com um `h2` e uma frase em linguagem comum dizendo para quem serve (por exemplo, quem quer conferir contrato por contrato)
+- **And** o conteúdo interno de cada seção fica idêntico ao da 24.12 (mesmos números, textos, tabelas, "Ver detalhes" e links de lei e fonte)
+
+*Recolhido por padrão*
+- **And** cada seção do bloco "Para fiscalizar" fica recolhida por padrão (padrão `<details>`/`summary`, acessível por teclado e leitor de tela), com o título e **um resumo com número visível mesmo recolhida** (por exemplo, a contagem de contratos e o total autorizado em emendas), calculado na camada `@transparencia/db`, nunca fixo no componente (Regra 23)
+- **And** com o bloco recolhido, nenhum dado some da leitura para quem usa leitor de tela ou impressão: o estado é anunciado e a impressão abre tudo
+- **And** o link de âncora para uma seção recolhida (por exemplo, vindo de um alerta ou de `llms.txt`) a abre ao chegar
+
+*Âncoras*
+- **And** uma linha de âncoras logo abaixo do topo ("Aprendizado · De onde vem · Para onde vai · Para fiscalizar") leva a cada seção; só aparecem as seções que existem para o portal; os rótulos vêm do contrato visual (`EXPERIENCE.md`) e não criam uma segunda navegação concorrente com o menu do portal
+
+*Ressalva de ano em andamento*
+- **And** a ressalva do ano em andamento é dita **uma vez**, em destaque, perto do `eyebrow` do topo (o que o portal já marca como parcial, com o período dinâmico, sem ano ou mês fixo)
+- **And** nos cards e seções restantes, o estado fica só como rótulo curto "parcial", sem repetir o parágrafo; onde a ressalva muda o sentido da leitura (veredito suspenso do mínimo, IDEB do ano em curso), o texto mantém a frase necessária para não induzir o cidadão a ler valor parcial como ano fechado
+
+*Emendas*
+- **And** o aviso "O dinheiro das emendas chegou?" fica mais curto, sem perder a resposta honesta à pergunta (autorizado, contemplado e empenhado, e onde conferir); `EmendasSection` é compartilhado e a mudança vale para as outras páginas que o usam, com teste de regressão
+
+*Siglas*
+- **And** na primeira ocorrência de cada sigla no corpo da página, o nome comum vem junto (por exemplo, "merenda escolar (PNAE)", "transporte escolar (PNATE)"); a sigla oficial e a lei seguem em "Ver detalhes" e na linha "Leis:"
+
+*Qualidade*
+- **And** os textos passam pelo `editor-cidadao` (Creuza); a ordem e o resumo recolhido passam por conferência de dados (Mary) e do `contador-publico` quanto aos números do resumo
+- **And** sem literais de tenant, UF ou ano (Regra 23), nomes de métricas explícitos (Regra 9), sem ternários aninhados (Regra 13), tokens de cor nos temas claro e escuro, mono só em `table` e `numeric`
+- **And** specs de página, `llms.txt`, `llms-full.txt` e CHANGELOG atualizados; teste de que nenhum bloco existente da 24.12 desapareceu (mesmos títulos e mesmos números, só posição e estado inicial)
+
+**Fora do escopo:** trocar "liquidado" por "entregue" ou renomear os estágios da despesa (decisão do Julio em 2026-11-04); novos dados ou indicadores; mudar os cálculos das stories 24.4 a 24.10; estender o padrão a outras páginas (`/saude` pode reaproveitar depois); teste de usabilidade com cidadãos (recomendado fora da story: duas ou três pessoas de fora da área).
+
+**Dependências:** Story 24.12 (precisa estar `done` e com merge, porque a 24.13 muda a ordem das seções que ela entrega).
+
+---
+
 ## Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?
 
 A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo exigido em saúde?" (mínimo constitucional em ações e serviços públicos de saúde), com a origem do dinheiro, as emendas e, só quando houver fonte e régua, a produção da rede e a fila de espera logo abaixo. Origem: conversa de produto de 2026-11-01 a partir da planilha da audiência pública de prestação de contas da saúde (2º quadrimestre de 2026), usada **somente** para decidir o que a Secretaria destaca ao público. **Nenhum número da planilha é fonte de dado do portal:** ela é a transcrição de um vídeo e tem erros de soma (por exemplo, Saúde da Mulher soma 3.028 e informa 3.228; o total do convênio hospitalar não bate com os meses; o total de receitas para apuração não fecha com os subtotais).
