@@ -74,7 +74,7 @@ export function EducacaoOrigemRecursosSection({
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
-        <IndicatorPanel columns={4} size="sm">
+        <IndicatorPanel columns={4} twoColumnsOnMobile size="sm">
           {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
             const fonte = fontes.find((item) => item.grupoFonte === grupoFonte);
             const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];

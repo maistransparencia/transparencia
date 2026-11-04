@@ -47,6 +47,8 @@ export interface IndicatorPanelProps {
   bare?: boolean;
   /** Número fixo de colunas; sem ele a grade se ajusta sozinha (`auto-fit`). */
   columns?: 2 | 3 | 4;
+  /** Com `columns` fixo, já começa em 2 colunas no celular (listas longas). */
+  twoColumnsOnMobile?: boolean;
   className?: string;
 }
 
@@ -57,6 +59,7 @@ export function IndicatorPanel({
   tone = "default",
   bare = false,
   columns,
+  twoColumnsOnMobile = false,
   className,
 }: IndicatorPanelProps) {
   return (
@@ -73,6 +76,7 @@ export function IndicatorPanel({
           columns
             ? COLUMNS_CLASS[columns]
             : "grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]",
+          columns && twoColumnsOnMobile && "grid-cols-2",
         )}
       >
         {Children.map(children, (child) =>

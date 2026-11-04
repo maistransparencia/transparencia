@@ -75,4 +75,15 @@ describe("IndicatorPanel e Indicator", () => {
     );
     expect(screen.getByText("5% a mais")).toHaveClass("text-ok-text");
   });
+
+  it("twoColumnsOnMobile começa em 2 colunas e mantém 4 no desktop", () => {
+    const { container } = render(
+      <IndicatorPanel columns={4} twoColumnsOnMobile>
+        <Indicator label="A" value="1" />
+      </IndicatorPanel>,
+    );
+    const grade = container.querySelector("dl");
+    expect(grade).toHaveClass("grid-cols-2", "lg:grid-cols-4");
+    expect(grade).not.toHaveClass("grid-cols-1");
+  });
 });
