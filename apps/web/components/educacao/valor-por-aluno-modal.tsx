@@ -43,6 +43,12 @@ export function ValorPorAlunoModal({
     >
       <div className="space-y-6">
         <p className="text-mute text-sm">{NOTA_INFLACAO}</p>
+        <p className="text-mute text-sm">
+          O valor é calculado pelo governo federal com os alunos informados ao
+          SIOPE, não com o total do Censo Escolar mostrado em &quot;Alunos na
+          rede municipal&quot;. Por isso dividir o gasto da função Educação pelo
+          número de alunos não dá o mesmo resultado.
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

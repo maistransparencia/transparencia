@@ -180,7 +180,11 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     });
     const bloco = destaqueMinimo();
     expect(within(bloco).getByText(/até o 3º bimestre de 2024/)).toBeTruthy();
-    expect(within(bloco).getByText(/Ano em andamento/)).toBeTruthy();
+    const aviso = within(bloco).getByText(/Ano em andamento/);
+    const barra = within(bloco).getByRole("meter");
+    expect(
+      aviso.compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
     expect(container.querySelector("svg.lucide-clock")).toBeNull();
   });
@@ -229,7 +233,9 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
       within(bloco).getByText(/IDEB · Anos Iniciais \(1º ao 5º ano\)/),
     ).toBeTruthy();
     expect(
-      within(bloco).getByText(/subiu 0,4 pontos em relação a 2021/),
+      within(bloco).getByText(
+        /subiu 0,4 pontos em relação ao ciclo anterior \(2021\)/,
+      ),
     ).toBeTruthy();
     const barra = within(bloco).getByRole("meter");
     expect(barra.getAttribute("aria-valuemax")).toBe("10");
@@ -251,7 +257,9 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
       }),
     );
     expect(destaqueIdeb().querySelector(".text-danger-text")).not.toBeNull();
-    expect(screen.getByText(/caiu 0,3 pontos em relação a 2021/)).toBeTruthy();
+    expect(
+      screen.getByText(/caiu 0,3 pontos em relação ao ciclo anterior \(2021\)/),
+    ).toBeTruthy();
     rerender(
       elemento({
         aprendizado: {
@@ -263,14 +271,17 @@ describe("EducacaoHeroSection: IDEB dos anos iniciais", () => {
     );
     expect(destaqueIdeb().querySelector(".text-ok-text")).toBeNull();
     expect(destaqueIdeb().querySelector(".text-danger-text")).toBeNull();
-    expect(container.textContent).not.toMatch(/em relação a 2021/);
+    expect(container.textContent).not.toMatch(/em relação ao ciclo anterior/);
   });
 
   it("sem meta a barra do IDEB aparece sem marcador e sem nota mostra traço e a causa", () => {
     const { rerender } = renderizar({
-      aprendizado: { ...aprendizadoBase, mediaEstadual: null },
+      aprendizado: { ...aprendizadoBase, mediaEstadual: null, metaIdeb: null },
     });
     expect(within(destaqueIdeb()).getByRole("meter")).toBeTruthy();
+    expect(
+      within(destaqueIdeb()).getByText(/sem meta definida pelo MEC/),
+    ).toBeTruthy();
     expect(
       within(destaqueIdeb()).queryByTestId("threshold-meter-marker"),
     ).toBeNull();
@@ -303,7 +314,9 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
       "text-warn-text",
     );
     expect(
-      within(indicador).getByText(/a lei exige pelo menos 70,00%/),
+      within(indicador).getByText(
+        /a lei exige pelo menos 70% dos recursos do Fundeb/,
+      ),
     ).toBeTruthy();
     expect(
       within(indicador).getByText(/indício a ser esclarecido/),

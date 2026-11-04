@@ -19,6 +19,7 @@ import { AlunosRedeModal } from "./alunos-rede-modal";
 import {
   descreverPeriodo,
   descreverVariacaoValorPorAluno,
+  formatarLimite,
   motivoSemPercentual,
   Veredito,
 } from "./educacao-textos";
@@ -63,7 +64,8 @@ function IndicadorFundeb({ view }: { view: MinimosLegaisView }) {
           <>
             {limite !== null && (
               <span className="block">
-                a lei exige pelo menos {fmtPercent(limite)}
+                a lei exige pelo menos {formatarLimite(limite)} dos recursos do
+                Fundeb
               </span>
             )}
             <Veredito minimo={fundeb} ocultarCumpriu />
@@ -133,7 +135,8 @@ export function EducacaoIndicadoresApoio({
                     ensino fundamental
                   </span>
                   <span className="block">
-                    Não inclui ensino médio, EJA nem educação especial.
+                    Não inclui ensino médio, EJA nem educação especial; o total
+                    pode ser maior.
                   </span>
                 </>
               }

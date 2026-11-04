@@ -34,6 +34,11 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
         <p className="caption">{motivoSemPercentual(view)}</p>
       ) : (
         <>
+          {mde.resultado === "parcial" && (
+            <p className="caption">
+              <Veredito minimo={mde} />
+            </p>
+          )}
           {mde.limite !== null && (
             <ThresholdMeter
               value={mde.percentualAplicado}
@@ -49,7 +54,9 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               {mde.limite !== null &&
                 ` A lei exige pelo menos ${formatarLimite(mde.limite)}.`}
             </span>
-            <Veredito minimo={mde} ocultarCumpriu />
+            {mde.resultado !== "parcial" && (
+              <Veredito minimo={mde} ocultarCumpriu />
+            )}
           </p>
         </>
       )}
@@ -59,8 +66,14 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
 
 /** Destaque 2: o IDEB dos anos iniciais com a faixa, a variação e a barra com a meta. */
 export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
-  const { notaIdeb, anoApuracao, mediaEstadual, notaAnterior, anoAnterior } =
-    etapa;
+  const {
+    notaIdeb,
+    anoApuracao,
+    metaIdeb,
+    mediaEstadual,
+    notaAnterior,
+    anoAnterior,
+  } = etapa;
   const temNota = notaIdeb !== null && anoApuracao !== null;
 
   const cicloAnterior = (() => {
@@ -71,7 +84,7 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
     if (pontos === null || pontos === 0) {
       return `ciclo anterior: ${formatarNota(notaAnterior)} em ${anoAnterior}`;
     }
-    return `${descreverVariacaoPontos(pontos)} em relação a ${anoAnterior}`;
+    return `${descreverVariacaoPontos(pontos)} em relação ao ciclo anterior (${anoAnterior})`;
   })();
 
   return (
@@ -104,6 +117,11 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
               IDEB · {etapa.titulo}, {anoApuracao}
             </span>
             <span className="block">{cicloAnterior}</span>
+            <span className="block">
+              {metaIdeb === null
+                ? "sem meta definida pelo MEC para este ciclo"
+                : `meta do MEC para ${anoApuracao}: ${formatarNota(metaIdeb)}`}
+            </span>
             {mediaEstadual !== null && (
               <span className="block">
                 {etapa.mediaEstadualLabel}: {formatarNota(mediaEstadual)}
