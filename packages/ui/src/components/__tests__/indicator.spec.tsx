@@ -86,4 +86,20 @@ describe("IndicatorPanel e Indicator", () => {
     expect(grade).toHaveClass("grid-cols-2", "lg:grid-cols-4");
     expect(grade).not.toHaveClass("grid-cols-1");
   });
+
+  it("action fica dentro de um dd, sem wrapper fora da dl", () => {
+    const { container } = render(
+      <IndicatorPanel>
+        <Indicator
+          label="A"
+          value="1"
+          action={<a href="#detalhes">Ver detalhes</a>}
+          data-testid="indicador-a"
+        />
+      </IndicatorPanel>,
+    );
+    const indicador = screen.getByTestId("indicador-a");
+    expect(indicador.parentElement).toBe(container.querySelector("dl"));
+    expect(screen.getByText("Ver detalhes").closest("dd")).not.toBeNull();
+  });
 });

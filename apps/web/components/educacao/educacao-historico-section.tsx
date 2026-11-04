@@ -337,7 +337,7 @@ export function EducacaoHistoricoSection({
           <LinhaLeiEFonte
             source={
               <LeiLink
-                label="INEP: Nota Informativa do Ideb 2025"
+                label="INEP: Nota Informativa do Ideb"
                 url={NOTA_INFORMATIVA_IDEB_URL}
               />
             }

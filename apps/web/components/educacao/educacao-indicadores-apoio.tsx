@@ -6,6 +6,7 @@ import {
   fmtPercent,
   Indicator,
   IndicatorPanel,
+  type IndicatorSize,
   type IndicatorTone,
 } from "@transparencia/ui";
 import { useState } from "react";
@@ -50,11 +51,19 @@ const tomDoResultado = (
   return "default";
 };
 
-function IndicadorFundeb({ view }: { view: MinimosLegaisView }) {
+function IndicadorFundeb({
+  view,
+  size,
+}: {
+  view: MinimosLegaisView;
+  size?: IndicatorSize;
+}) {
   const { fundebProfissionais: fundeb } = view;
   const { percentualAplicado, limite } = fundeb;
   return (
     <Indicator
+      data-testid="indicador-fundeb"
+      size={size}
       label="Parte do Fundeb paga aos profissionais da educação"
       value={percentualAplicado === null ? "—" : fmtPercent(percentualAplicado)}
       tone={tomDoResultado(fundeb.resultado)}
@@ -105,42 +114,41 @@ export function EducacaoIndicadoresApoio({
   return (
     <>
       <IndicatorPanel>
-        <div data-testid="indicador-fundeb">
-          <IndicadorFundeb view={minimosLegais} />
-        </div>
-        <div data-testid="indicador-valor-por-aluno">
-          <Indicator
-            label="Quanto a Prefeitura investe por aluno?"
-            value={valor === null ? "—" : fmtCurrency(valor)}
-            note={notaValor}
-          />
-          {valor !== null && serie.length > 0 && (
-            <VerDetalhesLink
-              context="valor por aluno"
-              onClick={() => setDetalhesAberto(true)}
-              className="mt-2"
-            />
-          )}
-        </div>
+        <IndicadorFundeb view={minimosLegais} />
+        <Indicator
+          data-testid="indicador-valor-por-aluno"
+          label="Quanto a Prefeitura investe por aluno?"
+          value={valor === null ? "—" : fmtCurrency(valor)}
+          note={notaValor}
+          action={
+            valor !== null && serie.length > 0 ? (
+              <VerDetalhesLink
+                context="valor por aluno"
+                onClick={() => setDetalhesAberto(true)}
+                className="mt-2"
+              />
+            ) : null
+          }
+        />
         {alunosRede && (
-          <div data-testid="indicador-alunos-rede">
-            <Indicator
-              label="Alunos na rede municipal"
-              value={fmtNumber(alunosRede.total)}
-              note={
-                <span className="block">
-                  {fmtNumber(alunosRede.educacaoInfantil)} na educação infantil
-                  e {fmtNumber(alunosRede.ensinoFundamental)} no ensino
-                  fundamental
-                </span>
-              }
-            />
-            <VerDetalhesLink
-              context="alunos na rede municipal"
-              onClick={() => setAlunosAberto(true)}
-              className="mt-2"
-            />
-          </div>
+          <Indicator
+            data-testid="indicador-alunos-rede"
+            label="Alunos na rede municipal"
+            value={fmtNumber(alunosRede.total)}
+            note={
+              <span className="block">
+                {fmtNumber(alunosRede.educacaoInfantil)} na educação infantil e{" "}
+                {fmtNumber(alunosRede.ensinoFundamental)} no ensino fundamental
+              </span>
+            }
+            action={
+              <VerDetalhesLink
+                context="alunos na rede municipal"
+                onClick={() => setAlunosAberto(true)}
+                className="mt-2"
+              />
+            }
+          />
         )}
       </IndicatorPanel>
       {alunosRede && (
