@@ -4,10 +4,12 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
 } from "@transparencia/db";
-import { Badge, cn, SectionHeader } from "@transparencia/ui";
+import { Badge, cn } from "@transparencia/ui";
+import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
+import { SectionWithHeader } from "@/components/section-with-header";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
@@ -25,6 +27,9 @@ export interface EducacaoContratosSectionProps {
     EducacaoContratosCategoriaTotais
   >;
   initialContratoNumero?: string;
+  /** Resumos das seções recolhidas (calculados em `@transparencia/db`). */
+  resumoCategorias?: React.ReactNode;
+  resumoContratos?: React.ReactNode;
   portalSlug: string;
   ano?: number;
 }
@@ -66,6 +71,8 @@ export function EducacaoContratosSection({
   contratos,
   totaisPorCategoria,
   initialContratoNumero,
+  resumoCategorias,
+  resumoContratos,
   portalSlug,
   ano,
 }: EducacaoContratosSectionProps) {
@@ -155,50 +162,59 @@ export function EducacaoContratosSection({
     return educacaoDtoToContratoServicoVigente(selectedContratoDto);
   }, [selectedContratoDto]);
 
+  /** Da maior para a menor categoria em valor de contrato. */
+  const categoriasPorValor = [...CATEGORIAS_ORDENADAS].sort(
+    (a, b) =>
+      totaisPorCategoria[b].valorContrato - totaisPorCategoria[a].valorContrato,
+  );
+
   return (
-    <section
-      id="contratos-educacao"
-      aria-label="Como o Fundo contrata"
-      className="space-y-6"
-    >
-      <SectionHeader
+    <>
+      <SectionWithHeader
+        id="contratos-educacao"
+        ariaLabel="Como o Fundo contrata"
         title="Como o Fundo contrata"
+        summary={resumoCategorias}
         description={`Contratos do Fundo vigentes em ${ano}: merenda escolar, transporte escolar, locação de imóveis (licitação inexigível quando as características e a localização do imóvel tornam necessária sua escolha) e manutenção das escolas.`}
-      />
-      {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
-        {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
-          <CategoriaContratoCard
-            key={categoria}
-            categoria={categoria}
-            totais={totaisPorCategoria[categoria]}
-            onOpen={setCategoriaAberta}
-            className={cn(
-              "md:col-span-2",
-              indice === CATEGORIAS_ORDENADAS.length - 1 && "col-span-2",
-            )}
-          />
-        ))}
-      </div>
-      {contratos.length === 0 && (
-        <p className="text-mute text-sm">
-          Nenhum contrato registrado no exercício.
-        </p>
-      )}
+      >
+        {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
+          {categoriasPorValor.map((categoria, indice) => (
+            <CategoriaContratoCard
+              key={categoria}
+              categoria={categoria}
+              totais={totaisPorCategoria[categoria]}
+              onOpen={setCategoriaAberta}
+              className={cn(
+                "md:col-span-2",
+                indice === categoriasPorValor.length - 1 && "col-span-2",
+              )}
+            />
+          ))}
+        </div>
+        {contratos.length === 0 && (
+          <p className="text-mute text-sm">
+            Nenhum contrato registrado no exercício.
+          </p>
+        )}
+        <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
+      </SectionWithHeader>
 
       {/* Tabela completa: linha compacta com detalhe expansível (padrão das licitações em aberto) */}
       {contratos.length > 0 && (
-        <div className="space-y-3">
-          <h3>Ver todos os contratos</h3>
+        <SectionWithHeader
+          id="todos-contratos-educacao"
+          title="Ver todos os contratos"
+          summary={resumoContratos}
+          defaultOpen={Boolean(initialContratoNumero)}
+        >
           <ContratosTabela
             contratos={contratos}
             onOpenContrato={handleOpenContrato}
             exportFilename="contratos_educacao.csv"
           />
-        </div>
+        </SectionWithHeader>
       )}
-
-      <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
 
       {/* Modal de lista da categoria (z-50); detalhes por cima (z-[60]) */}
       <ContratosCategoriaModal
@@ -211,11 +227,6 @@ export function EducacaoContratosSection({
           categoriaAberta ? formatCategoriaLabel(categoriaAberta) : ""
         }
         contratos={contratosDaCategoria}
-        valorTotal={
-          categoriaAberta
-            ? totaisPorCategoria[categoriaAberta].valorContrato
-            : 0
-        }
         laws={categoriaAberta ? LEIS_DA_CATEGORIA[categoriaAberta] : undefined}
         onSelectContrato={handleOpenContrato}
       />
@@ -237,6 +248,6 @@ export function EducacaoContratosSection({
           ) : undefined
         }
       />
-    </section>
+    </>
   );
 }

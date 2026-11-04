@@ -365,7 +365,9 @@ describe("EducacaoPage (Server Component)", () => {
     expect(titulos).toEqual([
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
+      "Para fiscalizar",
       "Como o Fundo contrata",
+      "Ver todos os contratos",
       "Quem recebe o dinheiro da educação",
     ]);
 
@@ -908,5 +910,71 @@ describe("EducacaoPage (Server Component)", () => {
         name: "De onde vem o dinheiro da Educação",
       }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("hierarquia: para entender e para fiscalizar", () => {
+    const renderizar = async (
+      searchParams: Record<string, string> = {},
+    ): Promise<HTMLElement> => {
+      loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve(searchParams),
+        }),
+      );
+      return container;
+    };
+
+    it("as seções de fiscalização nascem recolhidas, com resumo visível", async () => {
+      const container = await renderizar();
+      const secoes = [
+        "contratos-educacao",
+        "todos-contratos-educacao",
+        "fornecedores-educacao",
+      ];
+      secoes.forEach((id) => {
+        const details = container.querySelector(`section#${id} details`);
+        expect(details).not.toBeNull();
+        expect(details).not.toHaveAttribute("open");
+      });
+      expect(
+        screen.getByText("Contratos vigentes, separados por tipo de gasto"),
+      ).toBeVisible();
+    });
+
+    it("sem emendas, a seção de emendas não aparece", async () => {
+      const container = await renderizar();
+      expect(container.querySelector("#emendas-educacao")).toBeNull();
+    });
+
+    it("o deep link ?contratoNumero= abre a lista de contratos recolhida", async () => {
+      const container = await renderizar({ contratoNumero: "0443/25" });
+      expect(
+        container.querySelector("section#todos-contratos-educacao details"),
+      ).toHaveAttribute("open");
+    });
+
+    it("o bloco Para fiscalizar vem depois de Como mudou e traz a frase de para quem serve", async () => {
+      const container = await renderizar();
+      const evolucao = container.querySelector("#evolucao-educacao");
+      const fiscalizar = container.querySelector("#para-fiscalizar");
+      expect(evolucao).not.toBeNull();
+      expect(
+        (evolucao as Element).compareDocumentPosition(fiscalizar as Element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(
+        within(fiscalizar as HTMLElement).getByText(/Para quem quer conferir/),
+      ).toBeInTheDocument();
+    });
+
+    it("a ressalva de comparação com anos fechados aparece no máximo uma vez", async () => {
+      const container = await renderizar();
+      const ocorrencias =
+        container.textContent?.match(/não devem ser comparados com anos/g) ??
+        [];
+      expect(ocorrencias.length).toBeLessThanOrEqual(1);
+    });
   });
 });

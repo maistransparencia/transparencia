@@ -142,10 +142,10 @@ describe("EducacaoContratosSection - cards por categoria", () => {
     expect(lei.closest("header")).toBeNull();
     const linha = lei.closest("p") as HTMLElement;
     expect(linha.textContent).toMatch(/^Leis:/);
-    const tabela = screen.getByRole("table");
-    expect(
-      tabela.compareDocumentPosition(linha) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(linha.closest("section")).toHaveAttribute(
+      "id",
+      "contratos-educacao",
+    );
   });
 
   it("exibe 5 cards com valor compacto e contagem", () => {
@@ -282,11 +282,29 @@ describe("EducacaoContratosSection - tabela completa e camadas", () => {
 
   it("a tabela completa abre o detalhe pela linha expandida", () => {
     renderSecao(contratos);
-    const tabela = screen.getByRole("heading", {
-      name: "Ver todos os contratos",
-    }).parentElement as HTMLElement;
+    const tabela = screen
+      .getByRole("heading", {
+        name: "Ver todos os contratos",
+      })
+      .closest("section") as HTMLElement;
     abrirDetalheDaPrimeiraLinha(tabela);
     expect(window.location.search).toContain("contratoNumero=");
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  });
+
+  it("ordena os cards de categoria do maior para o menor valor de contrato", () => {
+    renderSecao(contratos);
+    const valores = screen
+      .getAllByTestId(/^categoria-card-/)
+      .map((card) =>
+        card.getAttribute("data-testid")?.replace("categoria-card-", ""),
+      )
+      .map((categoria) => categoria as (typeof CATEGORIAS)[number])
+      .map((categoria) =>
+        contratos
+          .filter((c) => c.categoria === categoria)
+          .reduce((soma, c) => soma + c.valorContrato, 0),
+      );
+    expect(valores).toEqual([...valores].sort((a, b) => b - a));
   });
 });

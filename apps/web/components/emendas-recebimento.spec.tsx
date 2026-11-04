@@ -74,4 +74,39 @@ describe("EmendasSection: chegada do dinheiro", () => {
     );
     expect(screen.queryByText("Aparece na receita")).toBeNull();
   });
+
+  it("o aviso curto mantém autorizado, confirmada na receita, empenho e onde conferir", () => {
+    const { container } = render(
+      <EmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
+    );
+    const aviso = container.textContent ?? "";
+    expect(aviso).toMatch(/foram destinados por emendas/);
+    expect(aviso).toMatch(/aparecem na receita com o número da proposta/);
+    expect(aviso).toMatch(/O empenho vem do cadastro do portal/);
+    expect(aviso).toMatch(/procure no portal do município a receita indicada/);
+  });
+
+  it("sem resumo continua aberta, como nas outras páginas", () => {
+    const { container } = render(
+      <EmendasSection ano={2026} emendasStats={stats(1_000_000)} />,
+    );
+    expect(container.querySelector("details")).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /Emendas parlamentares/ }),
+    ).toBeTruthy();
+  });
+
+  it("com resumo e id nasce recolhida e mantém o resumo visível", () => {
+    const { container } = render(
+      <EmendasSection
+        ano={2026}
+        emendasStats={stats(1_000_000)}
+        id="emendas-teste"
+        resumo="1 emenda · R$ 1 mi autorizados"
+      />,
+    );
+    expect(container.querySelector("details")).not.toHaveAttribute("open");
+    expect(container.querySelector("section#emendas-teste")).not.toBeNull();
+    expect(screen.getByText("1 emenda · R$ 1 mi autorizados")).toBeTruthy();
+  });
 });

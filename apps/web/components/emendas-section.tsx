@@ -14,12 +14,13 @@ import {
   Indicator,
   IndicatorPanel,
   ModalDialog,
-  SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 import { useCallback, useMemo, useState } from "react";
+import { SectionWithHeader } from "@/components/section-with-header";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface SaudeEmendaItem {
@@ -58,6 +59,9 @@ export interface EmendasSectionProps {
   portalSlug?: string;
   titulo?: string;
   descricao?: string;
+  /** Âncora e resumo: com `resumo`, a seção nasce recolhida. */
+  id?: string;
+  resumo?: React.ReactNode;
 }
 
 const TITULO_PADRAO = "Emendas parlamentares destinadas à Saúde";
@@ -114,6 +118,8 @@ export function EmendasSection({
   portalSlug,
   titulo = TITULO_PADRAO,
   descricao = DESCRICAO_PADRAO,
+  id,
+  resumo,
 }: EmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
@@ -355,13 +361,13 @@ export function EmendasSection({
   }, [selectedEmenda]);
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
-        title={titulo}
-        description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
-      />
-
+    <SectionWithHeader
+      id={id}
+      summary={resumo}
+      eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
+      title={titulo}
+      description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
+    >
       <IndicatorPanel columns={4}>
         <Indicator
           label="Autorizado"
@@ -406,10 +412,9 @@ export function EmendasSection({
           ) : (
             <>Não foi possível identificar emendas na receita. </>
           )}
-          O empenho vem do cadastro de emendas do portal e pode estar
-          desatualizado: zero ali não significa que o dinheiro não foi usado.
-          Para conferir uma emenda, procure no portal oficial do município a
-          receita indicada na tabela.
+          O empenho vem do cadastro do portal e pode estar desatualizado: zero
+          não significa que o dinheiro não foi usado. Para conferir, procure no
+          portal do município a receita indicada na tabela.
         </AlertBox>
       )}
 
@@ -936,6 +941,6 @@ export function EmendasSection({
           </div>
         </ModalDialog>
       )}
-    </section>
+    </SectionWithHeader>
   );
 }

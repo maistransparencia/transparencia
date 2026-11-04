@@ -1,7 +1,7 @@
 "use client";
 
 import type { EducacaoContratoDTO } from "@transparencia/db";
-import { fmtCurrency, ModalDialog } from "@transparencia/ui";
+import { ModalDialog } from "@transparencia/ui";
 import { useMemo } from "react";
 import { ContratosTabela } from "./contratos-tabela";
 import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
@@ -13,7 +13,6 @@ export interface ContratosCategoriaModalProps {
   onClose: () => void;
   categoriaLabel: string;
   contratos: EducacaoContratoDTO[];
-  valorTotal: number;
   /** Leis que fundamentam a categoria, no rodapé. */
   laws?: LeiLinkProps[];
   onSelectContrato: (contrato: EducacaoContratoDTO) => void;
@@ -24,7 +23,6 @@ export function ContratosCategoriaModal({
   onClose,
   categoriaLabel,
   contratos,
-  valorTotal,
   laws = [],
   onSelectContrato,
 }: ContratosCategoriaModalProps) {
@@ -39,7 +37,6 @@ export function ContratosCategoriaModal({
       isOpen={isOpen}
       onClose={onClose}
       title={categoriaLabel}
-      subtitle={fmtCurrency(valorTotal)}
       maxWidth="4xl"
       zIndex="z-50"
       showShareButton={false}

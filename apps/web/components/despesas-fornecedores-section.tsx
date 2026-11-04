@@ -8,6 +8,7 @@ export interface DespesasFornecedoresSectionProps {
   portalSlug: string;
   ano: number;
   /** Nota ao pé da lista; o padrão serve à página de despesas. */
+  /** Texto sob a lista; `null` omite a nota, `undefined` usa o padrão. */
   nota?: React.ReactNode;
 }
 
@@ -58,10 +59,12 @@ export function DespesasFornecedoresSection({
           );
         })}
       </div>
-      <p className="text-mute2 text-sm">
-        {nota ??
-          "Contratos grandes, como coleta de lixo ou merenda, naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."}
-      </p>
+      {nota !== null && (
+        <p className="text-mute2 text-sm">
+          {nota ??
+            "Contratos grandes, como coleta de lixo ou merenda, naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."}
+        </p>
+      )}
     </div>
   );
 }
