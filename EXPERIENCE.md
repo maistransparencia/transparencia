@@ -2,7 +2,7 @@
 name: Portal Transparência — Comportamento dos Padrões Base
 description: Como os elementos base, os papéis e o painel se comportam, como são aplicados e como são verificados nas páginas do portal. A aparência está em DESIGN.md.
 status: final
-updated: 2026-10-29
+updated: 2026-11-04
 design: ./DESIGN.md
 sources:
   - apps/web/app/globals.css
@@ -77,6 +77,12 @@ Nomes iguais aos de `DESIGN.md > Components`.
 - O detalhe inline mostra um **resumo** de 3 a 4 campos e termina com a ação **"Ver detalhes"** (um `<button>` com estilo de `link`), que abre o `ModalDialog` com deep link (regra 24). O foco vai para o modal e volta ao botão ao fechar. Abrir o modal não fecha a linha.
 
 **`section`.** Agrupa um bloco da página com seu `h2` (ou `h3`) e dá o ritmo vertical. Não tem moldura nem comportamento. Cada `section` tem título; blocos sem título usam `div`.
+
+**`collapsible-section`.** Seção recolhida por padrão, em `packages/ui` (`CollapsibleSection`), para material de especialista (emendas, contratos, fornecedores) agrupado no fim da página.
+- Estrutura `section#id > details > summary`: o `summary` traz o título (`h2`) e o **resumo com número**, sempre visível (calculado em `@transparencia/db`, nunca no componente); o corpo traz o conteúdo da seção sem alteração.
+- Teclado e leitor de tela vêm do `details` nativo: `Enter`/`Espaço` abre e fecha, e o estado é anunciado. Chevron gira ao abrir (respeita `prefers-reduced-motion`). Vários podem ficar abertos.
+- **Abre sozinha** quando a URL aponta para ela (`#id`, inclusive ao mudar o hash) ou quando a página recebe um deep link para um item dentro dela (`?contratoNumero=`, via `defaultOpen`). **A impressão abre tudo** (`beforeprint`).
+- Nenhuma informação sai: só mudam posição e estado inicial. Sem sigla nem número no título.
 
 **`ModalDialog`.** Componente existente do design system (regra 24), usado para o detalhamento completo. Este spec não o altera: o conteúdo interno segue os elementos base e papéis, e o título do modal é um `h2`.
 
