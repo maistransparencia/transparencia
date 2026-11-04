@@ -76,10 +76,7 @@ export function ValorPorAlunoModal({
           despesa com ensino não é a mesma soma da função Educação. Por isso
           dividir um pelo outro pode não dar o mesmo resultado.
         </p>
-        <p className="caption">
-          {NOTA_DECLARACAO} Anos em andamento são parciais e não devem ser
-          comparados com anos fechados.
-        </p>
+        <p className="caption">{NOTA_DECLARACAO}</p>
       </div>
     </ModalDialog>
   );

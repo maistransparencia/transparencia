@@ -367,7 +367,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
       valorPorAluno: { ...valorPorAlunoBase, parcial: true, periodo: 4 },
     });
     expect(
-      screen.getByText(/não se compara com anos já fechados/),
+      screen.getByText(/parcial: sem comparação com anos fechados/),
     ).toBeTruthy();
     rerender(
       elemento({

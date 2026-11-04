@@ -63,6 +63,18 @@ export function EducacaoHeroSection({
           Quanto a Prefeitura aplicou em ensino, quanto investe por aluno e se
           as crianças estão aprendendo.
         </p>
+        {isCurrentYear && (
+          <p
+            role="note"
+            className="caption border-brand-fill border-l-[3px] pl-3"
+          >
+            <strong className="font-semibold text-ink">
+              Ano em andamento:
+            </strong>{" "}
+            os números são parciais e não dá para compará-los com anos já
+            fechados.
+          </p>
+        )}
       </div>
 
       <section
