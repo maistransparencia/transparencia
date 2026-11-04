@@ -2,7 +2,7 @@
 title: 'Hierarquia da página de educação: "para entender" e "para fiscalizar"'
 type: 'feature'
 created: '2026-11-04'
-status: 'in-review'
+status: 'in-progress'
 baseline_commit: '2cd14c7f92d276051d9179af3137a676ee32c749'
 epic: 24
 story: '24.13'
@@ -55,3 +55,5 @@ Regras 9, 13, 23 (sem tenant, UF ou ano fixos; anos a partir dos dados), 25 (tok
 Renomear estágios da despesa; novos dados ou indicadores; mudar cálculos das 24.4 a 24.10; estender o padrão a `/saude`; teste de usabilidade com cidadãos.
 
 > Nota: a linha de âncoras do topo foi removida a pedido do Julio (2026-11-04); os ids das seções continuam servindo de âncora por URL.
+
+> Reaberta em 2026-11-04 a pedido do Julio: o topo da página passa a ser uma sequência de blocos-pergunta (Fundeb, alunos e valor por aluno, para onde foi o dinheiro em três barras) e ganha um resumo de emendas (autorizado, confirmada na receita, empenhado no cadastro; sem "sem destino definido"). Supera a decisão anterior de manter o Fundeb só em texto, sem barra.
