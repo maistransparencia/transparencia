@@ -34,11 +34,6 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
         <p className="caption">{motivoSemPercentual(view)}</p>
       ) : (
         <>
-          {mde.resultado === "parcial" && (
-            <p className="caption">
-              <Veredito minimo={mde} />
-            </p>
-          )}
           {mde.limite !== null && (
             <ThresholdMeter
               value={mde.percentualAplicado}
@@ -54,9 +49,7 @@ export function DestaqueMinimo({ view }: { view: MinimosLegaisView }) {
               {mde.limite !== null &&
                 ` A lei exige pelo menos ${formatarLimite(mde.limite)}.`}
             </span>
-            {mde.resultado !== "parcial" && (
-              <Veredito minimo={mde} ocultarCumpriu />
-            )}
+            <Veredito minimo={mde} ocultarCumpriu />
           </p>
         </>
       )}

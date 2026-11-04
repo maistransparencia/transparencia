@@ -183,7 +183,7 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     const aviso = within(bloco).getByText(/Ano em andamento/);
     const barra = within(bloco).getByRole("meter");
     expect(
-      aviso.compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_FOLLOWING,
+      barra.compareDocumentPosition(aviso) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(within(bloco).queryByText(/Cumpriu o mínimo/)).toBeNull();
     expect(container.querySelector("svg.lucide-clock")).toBeNull();
@@ -392,18 +392,14 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     ).toBeTruthy();
   });
 
-  it("alunos na rede: divisão e exclusões curtas; o Censo e o detalhe ficam no modal", () => {
+  it("alunos na rede: só a divisão; a exclusão de etapas, o Censo e o detalhe ficam no modal", () => {
     const { rerender } = renderizar();
     const indicador = screen.getByTestId("indicador-alunos-rede");
     expect(within(indicador).getByText("1.971")).toBeTruthy();
     expect(
       within(indicador).getByText(/668 na educação infantil/),
     ).toBeTruthy();
-    expect(
-      within(indicador).getByText(
-        /Não inclui ensino médio, EJA nem educação especial/,
-      ),
-    ).toBeTruthy();
+    expect(within(indicador).queryByText(/Não inclui ensino médio/)).toBeNull();
     expect(within(indicador).queryByText(/Censo Escolar/)).toBeNull();
     fireEvent.click(
       screen.getByRole("button", {
@@ -416,6 +412,9 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     ).toBeTruthy();
     expect(within(modal).getByText(/matriculados em maio/)).toBeTruthy();
     expect(within(modal).getByText(/creche e pré-escola/)).toBeTruthy();
+    expect(
+      within(modal).getByText(/não inclui ensino médio, EJA nem educação/i),
+    ).toBeTruthy();
     fireEvent.click(
       within(modal).getByRole("button", { name: "Fechar modal" }),
     );

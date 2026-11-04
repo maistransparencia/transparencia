@@ -128,17 +128,11 @@ export function EducacaoIndicadoresApoio({
               label="Alunos na rede municipal"
               value={fmtNumber(alunosRede.total)}
               note={
-                <>
-                  <span className="block">
-                    {fmtNumber(alunosRede.educacaoInfantil)} na educação
-                    infantil e {fmtNumber(alunosRede.ensinoFundamental)} no
-                    ensino fundamental
-                  </span>
-                  <span className="block">
-                    Não inclui ensino médio, EJA nem educação especial; o total
-                    pode ser maior.
-                  </span>
-                </>
+                <span className="block">
+                  {fmtNumber(alunosRede.educacaoInfantil)} na educação infantil
+                  e {fmtNumber(alunosRede.ensinoFundamental)} no ensino
+                  fundamental
+                </span>
               }
             />
             <VerDetalhesLink
