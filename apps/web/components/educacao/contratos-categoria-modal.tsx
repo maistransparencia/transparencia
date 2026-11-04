@@ -4,6 +4,7 @@ import type { EducacaoContratoDTO } from "@transparencia/db";
 import { fmtCurrency, ModalDialog } from "@transparencia/ui";
 import { useMemo } from "react";
 import { ContratosTabela } from "./contratos-tabela";
+import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
 
 export const LIMITE_CONTRATOS_PARA_BUSCA = 8;
 
@@ -13,6 +14,8 @@ export interface ContratosCategoriaModalProps {
   categoriaLabel: string;
   contratos: EducacaoContratoDTO[];
   valorTotal: number;
+  /** Leis que fundamentam a categoria, no rodapé. */
+  laws?: LeiLinkProps[];
   onSelectContrato: (contrato: EducacaoContratoDTO) => void;
 }
 
@@ -22,6 +25,7 @@ export function ContratosCategoriaModal({
   categoriaLabel,
   contratos,
   valorTotal,
+  laws = [],
   onSelectContrato,
 }: ContratosCategoriaModalProps) {
   const contratosOrdenados = useMemo(
@@ -39,7 +43,15 @@ export function ContratosCategoriaModal({
       maxWidth="4xl"
       zIndex="z-50"
       showShareButton={false}
-      footer={<p className="caption">{rotuloQuantidade}</p>}
+      footer={
+        <div className="space-y-1">
+          <p className="caption">{rotuloQuantidade}</p>
+          <LinhaLeiEFonte
+            source="contratos do Fundo Municipal de Educação"
+            laws={laws}
+          />
+        </div>
+      }
     >
       <ContratosTabela
         contratos={contratosOrdenados}

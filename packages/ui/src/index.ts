@@ -15,6 +15,7 @@ export * from "./components/share-button";
 export * from "./components/sidebar";
 export * from "./components/stat-row";
 export * from "./components/theme-toggle";
+export * from "./components/threshold-meter";
 export * from "./components/tooltip";
 export * from "./components/truncated-cell-with-modal";
 export * from "./tokens";

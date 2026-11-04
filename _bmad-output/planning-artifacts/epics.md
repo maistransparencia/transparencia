@@ -3403,6 +3403,61 @@ So that the page leads with what matters to me and not with budget execution.
 
 ---
 
+### Story 24.12: Refino Visual da Página de Educação: Hero com Barra do Mínimo e Leis e Fontes em Destaque
+
+As a citizen,  
+I want the education page to open with one impactful number and its legal minimum on a bar, with the law and the data source always visible,  
+So that I understand at a glance whether the minimum is met and can check where the data comes from, without reading blocks of text or following links to sections that repeat the same numbers.
+
+**Origem:** pedido do Julio em 2026-11-03, com análise de Sally, Amelia, Mary, Creuza, Atanagildo e Jurandir. Mockup aprovado (v3): https://claude.ai/artifact/RFAMapEvBMn8VgNiAGv9wJ. Referência de padrão: hero de `/despesas`. Esta story refina a 24.11 depois das inclusões de dados da 24.4 a 24.10.
+
+**Princípio:** nenhuma informação existente sai da página; muda só o peso de cada uma.
+
+**Acceptance Criteria:**
+
+*Topo (hero)*
+- **Given** a página `/[portalSlug]/educacao` com dados do SIOPE
+- **When** o cidadão a abre
+- **Then** o topo segue o padrão de `/despesas`: `eyebrow`, `h1` e lead, e a região "Destaques da educação" com **dois destaques lado a lado, sem `panel`**: (1) "A Prefeitura aplica o mínimo exigido em educação?" e (2) "As crianças estão aprendendo?"
+- **And** cada destaque tem um `stat-value-lg`, a barra quadrada **logo abaixo do valor** (componente `ThresholdMeter`, `bg-track`, `h-4`, sem `rounded-*`, sem rótulo sobre o marcador) e o subtexto abaixo da barra, de modo que as duas barras ficam alinhadas
+- **And** no mínimo, o marcador é o `limite` vindo da seed (nunca literal), mostrado no texto como "A lei exige pelo menos 25%" (sem casas decimais desnecessárias); "cumpriu o mínimo" **não aparece em texto** (fica na leitura acessível da barra); abaixo do mínimo o texto diz "indício a ser esclarecido pela Prefeitura", sem acusar; ano em andamento fica marcado como parcial e sem veredito, com o aviso abaixo da barra
+- **And** no IDEB dos anos iniciais, a barra é de 0 a 10 com o marcador da **média da rede pública do estado** (valor e rótulo dinâmicos, vindos da camada de dados, sem UF fixa); o subtexto traz a faixa, a variação em pontos "em relação ao ciclo anterior (ano)" e a meta do MEC do ciclo, ou "sem meta definida pelo MEC para este ciclo"
+- **And** logo abaixo dos destaques, um painel de indicadores (`IndicatorPanel`) com: a parte do Fundeb paga aos profissionais da educação (**só texto**, sem barra, com tom pela posição frente ao mínimo e "a lei exige pelo menos 70% dos recursos do Fundeb"), "Quanto a Prefeitura investe por aluno?" (variação com palavra, "em R$ da época", "Ver detalhes" para a série ano a ano) e "Alunos na rede municipal" (divisão infantil e fundamental, "Ver detalhes" para o modal com Censo Escolar do INEP, o mês de maio e a exclusão de médio, EJA e educação especial)
+- **And** "Quanto a Prefeitura gastou em educação?" fica **à vista** no topo, sem modal: reservado, liquidado e pago, com a legenda de que reservar não é pagar, de que o mínimo vale para o que a Prefeitura gasta e não para o que recebe, de que o total soma toda a função Educação e de que o percentual do mínimo usa o cálculo do SIOPE
+- **And** uma **única** linha "Leis: … · Fonte: …" fecha o topo, com CF/88 art. 212 e 212-A, Lei 14.113/2020 art. 26 e Lei 4.320/1964 (links de `urlBaseLegal` e de `urlLegislacao`, com `ExternalLink`, `target="_blank"` e `rel="noopener noreferrer"`, Regra 20) e as fontes **com link**: SIOPE (`FONTES_OFICIAIS.siope`) e a execução orçamentária da Prefeitura (portal de transparência oficial do portal, vindo do banco); sem o endereço do portal, a fonte aparece sem link
+- **And** os links "Ver o detalhe" para âncoras são removidos e as seções separadas de mínimo, valor por aluno e três respostas deixam de existir, porque o topo as substitui sem perder dado
+
+*Aprendizado dos alunos*
+- **And** cada etapa mostra o painel com nota, ciclo anterior, classificação entre as redes municipais do estado e meta, mais a barra com a meta, tudo sem `font-mono` (mono só em `table` e `numeric`)
+- **And** a variação usa texto e cor: sobe em `ok-text`, cai em `danger-text`, e **sem indicador quando não houve mudança**; "meta atingida" e "abaixo da meta" seguem a mesma regra; o estado nunca depende só da cor
+- **And** o gráfico "Evolução da nota do IDEB" e o seletor de etapa permanecem; o SAEB de Português e de Matemática e a taxa de aprovação aparecem **logo abaixo do aviso** do IDEB, e o modal "Detalhes do IDEB" fica só com o texto de como ler a meta
+
+*Demais seções*
+- **And** "O que entrou" usa uma barra empilhada: as três maiores fontes têm cor própria e as demais somam um segmento cinza "Demais fontes", sem cor repetida, com legenda em texto e percentual; abaixo, o painel de indicadores por fonte (valor, percentual e "Ver detalhes"), em **2 colunas no celular** (opção `twoColumnsOnMobile` do `IndicatorPanel`) e 4 no desktop
+- **And** "Como o Fundo contrata" mantém os cards por categoria **com "Ver detalhes"** (cada categoria vazia sem o link), e as leis (merenda, transporte, locação) saem da descrição e vão para a linha "Leis:" **no fim da seção**, com link; a locação diz "licitação inexigível quando as características e a localização do imóvel tornam necessária sua escolha"
+- **And** o painel "Emendas / Contratos do Fundo" sai da página (a seção de emendas e a de contratos mantêm o conteúdo); nas emendas, o aviso "O dinheiro das emendas chegou?" fica **abaixo** dos indicadores (`EmendasSection` é compartilhado e vale para as páginas que o usam)
+- **And** evolução anual, contratos e fornecedores mantêm todo o conteúdo atual, na ordem da 24.11
+
+*Textos e links*
+- **And** "Ver detalhes" é um link pequeno (14px, `underline`, **sempre em linha própria**, alvo de toque garantido por área e não por altura visual), em todas as seções de educação, num componente único (`VerDetalhesLink`) em vez de `<button>` com classes soltas
+- **And** `NOTA_DECLARACAO`, `NOTA_MINIMO_GASTO` e `NOTA_INFLACAO` existem uma só vez; `Veredito`, `notaDoMinimo` e a descrição de variação do valor por aluno não são duplicados; o valor por aluno diz, no modal, o método oficial do SIOPE (despesa com MDE dividida pelo número total de alunos matriculados) e que esse total pode ser diferente do mostrado em "Alunos na rede municipal"
+- **And** os textos passam pelo `editor-cidadao` (Creuza) e pela conferência de dados (Mary); mantidos obrigatoriamente (no topo ou em "Ver detalhes"): inflação, mínimo vale para o gasto, exclusão de médio, EJA e educação especial no total de alunos e a fonte do SIOPE publicada sem recalcular
+
+*Modais*
+- **And** os modais de detalhes de educação (valor por aluno, alunos na rede, fonte de recurso, categoria de contrato, IDEB) usam o mesmo cabeçalho e rodapé do `ModalDialog`, título em `h2`, no máximo uma frase antes do primeiro bloco, corpo em `text-sm`, tabelas no padrão do projeto e **lei e fonte sempre no rodapé** no mesmo formato
+
+*Componentes e qualidade*
+- **And** a barra com marcador é o componente `ThresholdMeter` em `packages/ui` (quadrada, `h-4`, marcador opcional, sem rótulo sobre o marcador, valor acessível por texto), reaproveitável em `/saude`, com teste de arquitetura e de tokens; `IndicatorPanel` ganha `twoColumnsOnMobile`
+- **And** sem literais de tenant, UF ou ano (Regra 23), nomes de métricas explícitos (Regra 9), sem ternários aninhados (Regra 13), cores só por tokens `-fill` e `-text` nos temas claro e escuro, specs de página atualizados, `llms.txt`, `llms-full.txt` e CHANGELOG atualizados
+
+**Fora do escopo:** novos dados ou indicadores; valor em R$ do mínimo (quanto precisaria ser gasto), que fica como melhoria futura; mudança nos cálculos de 24.4, 24.5 e 24.6; reorganizar a ordem das seções de especialista.
+
+**Pendências antes de implementar (resolvidas na implementação):** (1) Atanagildo: o SIOPE 4.9 é "Investimento educacional por aluno", método "Despesa com MDE / Número total de alunos matriculados" (página de descrição do indicador no FNDE); a fonte do total de alunos segue sem confirmação e o texto diz só que pode ser diferente do Censo; (2) Jurandir: as URLs do Planalto de Lei 11.947/2009, Lei 10.880/2004 e Lei 14.133/2021 respondem e a âncora `#art74v` existe; o texto da locação foi ajustado à redação do art. 74, V, e a fonte "Royalties" (Lei 7.990/1989) cobre compensação por recursos hídricos e minerais, com a ligação dos royalties de petróleo à educação na Lei 12.858/2013, art. 2º; (3) Mary revisou os textos de dados; (4) Julio confirmou o endereço do SIOPE.
+
+**Dependências:** Stories 24.4, 24.5, 24.6, 24.7, 24.10 e 24.11 (todas `done`).
+
+---
+
 ## Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?
 
 A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo exigido em saúde?" (mínimo constitucional em ações e serviços públicos de saúde), com a origem do dinheiro, as emendas e, só quando houver fonte e régua, a produção da rede e a fila de espera logo abaixo. Origem: conversa de produto de 2026-11-01 a partir da planilha da audiência pública de prestação de contas da saúde (2º quadrimestre de 2026), usada **somente** para decidir o que a Secretaria destaca ao público. **Nenhum número da planilha é fonte de dado do portal:** ela é a transcrição de um vídeo e tem erros de soma (por exemplo, Saúde da Mulher soma 3.028 e informa 3.228; o total do convênio hospitalar não bate com os meses; o total de receitas para apuração não fecha com os subtotais).

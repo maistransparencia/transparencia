@@ -11,11 +11,7 @@ import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-
 import { EducacaoAprendizadoSection } from "@/components/educacao/educacao-aprendizado-section";
 import { EducacaoContratosSection } from "@/components/educacao/educacao-contratos-section";
 import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section";
-import { EducacaoMemoriaCalculo } from "@/components/educacao/educacao-memoria-calculo";
-import { EducacaoMinimosLegaisSection } from "@/components/educacao/educacao-minimos-legais-section";
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
-import { EducacaoTresRespostasSection } from "@/components/educacao/educacao-tres-respostas-section";
-import { EducacaoValorPorAlunoSection } from "@/components/educacao/educacao-valor-por-aluno-section";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -71,16 +67,6 @@ export default async function EducacaoPage({
     contratos,
   } = viewModel;
 
-  const emendasSubtext = (() => {
-    if (emendas.totalAutorizado <= 0) {
-      return "Nenhuma emenda destinada no exercício";
-    }
-    if (emendas.totalEmpenhado === 0) {
-      return "Ainda sem valor reservado informado no cadastro de emendas";
-    }
-    return `${fmtCompact(emendas.totalEmpenhado)} já reservados (${fmtPercent(emendas.taxaEmpenho * 100)})`;
-  })();
-
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
     execucao.pagoSemPessoal,
@@ -101,51 +87,20 @@ export default async function EducacaoPage({
           ano={selectedYear}
           isCurrentYear={isCurrentYear}
           partialPeriod={partialPeriod}
-        />
-        <EducacaoTresRespostasSection
           minimosLegais={viewModel.minimosLegais}
+          execucao={execucao}
+          portalUrl={viewModel.portalUrl}
           valorPorAluno={viewModel.valorPorAluno}
+          alunosRede={viewModel.alunosRede ?? null}
           aprendizado={viewModel.aprendizado.anosIniciais}
         />
       </div>
-
-      <div className="space-y-4">
-        <EducacaoMinimosLegaisSection minimosLegais={viewModel.minimosLegais} />
-        <EducacaoMemoriaCalculo
-          ano={selectedYear}
-          isCurrentYear={isCurrentYear}
-          partialPeriod={partialPeriod}
-          execucao={execucao}
-        />
-      </div>
-
-      <EducacaoValorPorAlunoSection
-        valorPorAluno={viewModel.valorPorAluno}
-        alunosRede={viewModel.alunosRede}
-      />
 
       <EducacaoAprendizadoSection
         aprendizado={viewModel.aprendizado}
         historico={viewModel.historico}
         initialEtapa={viewModel.selectedEtapa}
       />
-
-      <IndicatorPanel columns={2}>
-        <Indicator
-          label="Emendas na educação"
-          value={
-            emendas.totalAutorizado > 0
-              ? fmtCompact(emendas.totalAutorizado)
-              : "—"
-          }
-          note={emendasSubtext}
-        />
-        <Indicator
-          label="Contratos do Fundo"
-          value={contratos.length}
-          note={`contratos em vigor em ${selectedYear}`}
-        />
-      </IndicatorPanel>
 
       {emendas.lista.length > 0 && (
         <EmendasSection

@@ -62,7 +62,9 @@ describe("EducacaoOrigemRecursosSection", () => {
         /Em 2025, entraram R\$ 18,8 mi no Fundo Municipal de Educação\. 61 de cada R\$ 100 vêm da fonte "FUNDEB"\..*Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByTestId("composicao-recursos-bar")).toBeNull();
+    expect(
+      screen.getByTestId("composicao-recursos-bar").getAttribute("aria-label"),
+    ).toMatch(/FUNDEB 61%/);
     const botao = screen.getByTestId("fonte-card-fundeb");
     expect(botao).toHaveAccessibleName("Ver detalhes: FUNDEB");
     expect(screen.getByText("R$ 18,5 mi")).toBeInTheDocument();
@@ -221,5 +223,40 @@ describe("EducacaoOrigemRecursosSection", () => {
         "2025: valores acumulados até julho; o ano ainda não terminou.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("barra empilhada: três maiores com cor própria e as demais somadas num segmento cinza, sem cor repetida", () => {
+    const fonte = (
+      grupoFonte: EducacaoOrigemRecursoDTO["grupoFonte"],
+      totalArrecadado: number,
+      percentualTotal: number,
+    ): EducacaoOrigemRecursoDTO => ({
+      ...PNAE,
+      grupoFonte,
+      totalArrecadado,
+      percentualTotal,
+    });
+    render(
+      <EducacaoOrigemRecursosSection
+        origemRecursos={makeOrigem([
+          fonte("fundeb", 900, 86),
+          fonte("salario_educacao", 80, 8),
+          fonte("pnae", 50, 3),
+          fonte("pnate", 20, 2),
+          fonte("royalties", 10, 1),
+        ])}
+      />,
+    );
+    const barra = screen.getByTestId("composicao-recursos-bar");
+    expect(barra).toHaveAttribute("role", "img");
+    expect(barra.className).toContain("bg-track");
+    expect(barra.outerHTML).not.toMatch(/rounded/);
+    const segmentos = Array.from(barra.children).map((c) => c.className);
+    expect(segmentos).toHaveLength(4);
+    const cores = segmentos.map((c) => c.match(/bg-[\w-]+/)?.[0]);
+    expect(new Set(cores).size).toBe(4);
+    expect(cores[3]).toBe("bg-mute3");
+    expect(barra.getAttribute("aria-label")).toMatch(/Demais fontes 3%/);
+    expect(screen.getByText(/Demais fontes · 3%/)).toBeTruthy();
   });
 });

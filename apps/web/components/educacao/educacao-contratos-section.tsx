@@ -5,7 +5,6 @@ import type {
   EducacaoContratoDTO,
 } from "@transparencia/db";
 import { Badge, cn, SectionHeader } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
@@ -17,6 +16,7 @@ import {
   educacaoDtoToContratoServicoVigente,
   formatCategoriaLabel,
 } from "./educacao-contratos-utils";
+import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoContratosSectionProps {
   contratos: EducacaoContratoDTO[];
@@ -37,39 +37,30 @@ const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
   "outros",
 ];
 
-const BASES_LEGAIS = [
-  {
-    rotulo: "Lei 11.947/2009",
-    url: urlLegislacao("lei11947"),
-    ariaLabel: "Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto",
-  },
-  {
-    rotulo: "Lei 10.880/2004",
-    url: urlLegislacao("lei10880"),
-    ariaLabel: "Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto",
-  },
-  {
-    rotulo: "Lei 14.133/2021, art. 74, V",
-    url: urlLegislacao("lei14133", "art74v"),
-    ariaLabel:
-      "Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto",
-  },
-];
+const LEI_MERENDA: LeiLinkProps = {
+  label: "Lei 11.947/2009 (merenda)",
+  url: urlLegislacao("lei11947"),
+  ariaLabel: "Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto",
+};
+const LEI_TRANSPORTE: LeiLinkProps = {
+  label: "Lei 10.880/2004 (transporte)",
+  url: urlLegislacao("lei10880"),
+  ariaLabel: "Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto",
+};
+const LEI_LOCACAO: LeiLinkProps = {
+  label: "Lei 14.133/2021, art. 74, V (locação)",
+  url: urlLegislacao("lei14133", "art74v"),
+  ariaLabel:
+    "Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto",
+};
 
-function renderBaseLegal(base: (typeof BASES_LEGAIS)[number]) {
-  return (
-    <a
-      href={base.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
-      aria-label={base.ariaLabel}
-    >
-      {base.rotulo}
-      <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
-    </a>
-  );
-}
+const LEIS_DA_CATEGORIA: Partial<
+  Record<EducacaoCategoriaContrato, LeiLinkProps[]>
+> = {
+  merenda_pnae: [LEI_MERENDA],
+  transporte_pnate: [LEI_TRANSPORTE],
+  locacao_imoveis: [LEI_LOCACAO],
+};
 
 export function EducacaoContratosSection({
   contratos,
@@ -172,17 +163,8 @@ export function EducacaoContratosSection({
     >
       <SectionHeader
         title="Como o Fundo contrata"
-        description={
-          <>
-            Contratos do Fundo vigentes em {ano}: merenda escolar (
-            {renderBaseLegal(BASES_LEGAIS[0])}), transporte escolar (
-            {renderBaseLegal(BASES_LEGAIS[1])}), locação de imóveis (sem
-            licitação, quando só aquele imóvel atende:{" "}
-            {renderBaseLegal(BASES_LEGAIS[2])}) e manutenção das escolas.
-          </>
-        }
+        description={`Contratos do Fundo vigentes em ${ano}: merenda escolar, transporte escolar, locação de imóveis (licitação inexigível quando as características e a localização do imóvel tornam necessária sua escolha) e manutenção das escolas.`}
       />
-
       {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
       <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
         {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
@@ -216,6 +198,8 @@ export function EducacaoContratosSection({
         </div>
       )}
 
+      <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
+
       {/* Modal de lista da categoria (z-50); detalhes por cima (z-[60]) */}
       <ContratosCategoriaModal
         isOpen={categoriaAberta !== null}
@@ -232,6 +216,7 @@ export function EducacaoContratosSection({
             ? totaisPorCategoria[categoriaAberta].valorContrato
             : 0
         }
+        laws={categoriaAberta ? LEIS_DA_CATEGORIA[categoriaAberta] : undefined}
         onSelectContrato={handleOpenContrato}
       />
 

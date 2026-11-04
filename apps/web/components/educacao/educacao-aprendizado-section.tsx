@@ -1,34 +1,27 @@
 import type { EtapaEnsino } from "@transparencia/db";
-import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
-import { ArrowDown, ArrowUp, CheckCircle } from "lucide-react";
+import {
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+  ThresholdMeter,
+} from "@transparencia/ui";
+import { CheckCircle, TriangleAlert } from "lucide-react";
 import type {
   AprendizadoEtapa,
   EducacaoViewModel,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { EducacaoHistoricoSection } from "./educacao-historico-section";
+import {
+  descreverVariacaoPontos,
+  formatarNota,
+  pluralizar,
+  VariacaoAoLado,
+} from "./educacao-textos";
 
 export interface EducacaoAprendizadoSectionProps {
   aprendizado: EducacaoViewModel["aprendizado"];
   historico: EducacaoViewModel["historico"];
   initialEtapa: EtapaEnsino;
-}
-
-const formatarNota = (nota: number) =>
-  nota.toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
-
-const pluralizar = (quantidade: number, singular: string, plural: string) =>
-  Math.abs(quantidade) === 1 ? singular : plural;
-
-/** Texto com palavra e sinal ("subiu 1,4 ponto"), nunca só cor. */
-function descreverVariacaoPontos(pontos: number): string {
-  const magnitude = formatarNota(Math.abs(pontos));
-  const unidade = pluralizar(pontos, "ponto", "pontos");
-  if (pontos > 0) return `subiu ${magnitude} ${unidade}`;
-  if (pontos < 0) return `caiu ${magnitude} ${unidade}`;
-  return "ficou igual";
 }
 
 function descreverCicloAnterior(etapa: AprendizadoEtapa): string {
@@ -64,50 +57,42 @@ function descreverClassificacao(
   return `${verbo} ${Math.abs(variacaoPosicoes)} ${unidade} desde o ciclo anterior${base}`;
 }
 
-/** Seta e quantidade ao lado do valor: verde sobe, vermelho desce, nada se não mudou. */
-function VariacaoAoLado({
-  variacao,
-  texto,
-}: {
-  variacao: number | null;
-  texto: string;
-}) {
-  if (variacao === null || variacao === 0) return null;
-  const subiu = variacao > 0;
-  const Seta = subiu ? ArrowUp : ArrowDown;
+/** Texto e ícone, nunca só cor: "meta atingida" ou "abaixo da meta". */
+function SituacaoDaMeta({ atingiuMeta }: { atingiuMeta: boolean | null }) {
+  if (atingiuMeta === null) return null;
+  if (atingiuMeta) {
+    return (
+      <span className="inline-flex items-center gap-1 font-semibold text-ok-text">
+        <CheckCircle className="h-4 w-4" aria-hidden="true" />
+        meta atingida
+      </span>
+    );
+  }
   return (
-    <span
-      aria-hidden="true"
-      className={`ml-2 inline-flex items-center gap-1 font-semibold text-base ${
-        subiu ? "text-ok-text" : "text-danger-text"
-      }`}
-    >
-      <Seta className="h-4 w-4" />
-      {texto}
+    <span className="inline-flex items-center gap-1 font-semibold text-danger-text">
+      <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+      abaixo da meta
     </span>
   );
 }
 
 function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
-  const metaNota = (() => {
-    if (etapa.metaIdeb === null) {
-      return "o MEC não definiu meta para este ciclo";
-    }
-    return `meta definida pelo MEC para ${etapa.anoApuracao}`;
-  })();
+  const { notaIdeb, metaIdeb, classificacao, anoApuracao } = etapa;
+  const rotuloMeta =
+    anoApuracao === null ? "Meta do MEC" : `Meta do MEC para ${anoApuracao}`;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <h3>{etapa.titulo}</h3>
       <IndicatorPanel size="sm">
         <Indicator
           label="Nota do IDEB"
           value={
-            etapa.notaIdeb === null ? (
+            notaIdeb === null ? (
               "—"
             ) : (
               <>
-                {formatarNota(etapa.notaIdeb)}
+                {formatarNota(notaIdeb)}
                 <VariacaoAoLado
                   variacao={etapa.variacaoPontos}
                   texto={formatarNota(Math.abs(etapa.variacaoPontos ?? 0))}
@@ -116,11 +101,11 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
             )
           }
           note={
-            etapa.anoApuracao === null ? (
+            anoApuracao === null ? (
               "sem nota apurada"
             ) : (
               <>
-                <span className="block">apurada em {etapa.anoApuracao}</span>
+                <span className="block">apurada em {anoApuracao}</span>
                 <span className="block">{descreverCicloAnterior(etapa)}</span>
               </>
             )
@@ -129,31 +114,29 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
         <Indicator
           label="Classificação entre as redes municipais do estado"
           value={
-            etapa.classificacao === null ? (
+            classificacao === null ? (
               "—"
             ) : (
               <>
-                {`${etapa.classificacao.posicao}º`}
+                {`${classificacao.posicao}º`}
                 <VariacaoAoLado
-                  variacao={etapa.classificacao.variacaoPosicoes}
-                  texto={String(
-                    Math.abs(etapa.classificacao.variacaoPosicoes ?? 0),
-                  )}
+                  variacao={classificacao.variacaoPosicoes}
+                  texto={String(Math.abs(classificacao.variacaoPosicoes ?? 0))}
                 />
               </>
             )
           }
           note={
-            etapa.classificacao === null ? (
+            classificacao === null ? (
               "classificação ainda não disponível"
             ) : (
               <>
                 <span className="block">
-                  entre {etapa.classificacao.total} redes municipais
+                  entre {classificacao.total} redes municipais
                 </span>
                 <span className="block">
                   {descreverClassificacao(
-                    etapa.classificacao,
+                    classificacao,
                     etapa.anoAnterior !== null,
                   )}
                 </span>
@@ -162,21 +145,26 @@ function EtapaPainel({ etapa }: { etapa: AprendizadoEtapa }) {
           }
         />
         <Indicator
-          label="Meta"
-          value={etapa.metaIdeb === null ? "—" : formatarNota(etapa.metaIdeb)}
+          label={rotuloMeta}
+          value={metaIdeb === null ? "—" : formatarNota(metaIdeb)}
           note={
-            <>
-              {metaNota}
-              {etapa.atingiuMeta ? (
-                <span className="ml-2 inline-flex items-center gap-1 font-semibold text-ok-text">
-                  <CheckCircle className="h-4 w-4" aria-hidden="true" />
-                  meta atingida
-                </span>
-              ) : null}
-            </>
+            metaIdeb === null ? (
+              "o MEC não definiu meta para este ciclo"
+            ) : (
+              <SituacaoDaMeta atingiuMeta={etapa.atingiuMeta} />
+            )
           }
         />
       </IndicatorPanel>
+      {notaIdeb !== null && metaIdeb !== null && (
+        <ThresholdMeter
+          value={notaIdeb}
+          max={10}
+          threshold={metaIdeb}
+          label={`Nota do IDEB, ${etapa.titulo}`}
+          valueText={`${formatarNota(notaIdeb)} de 10; meta do MEC ${formatarNota(metaIdeb)}`}
+        />
+      )}
     </div>
   );
 }

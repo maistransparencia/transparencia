@@ -333,28 +333,36 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /Educação em 2025: o mínimo exigido, o valor por aluno e se as crianças estão aprendendo\./,
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Educação em 2025",
     );
 
-    const faixa = screen.getByRole("region", {
-      name: "Três respostas sobre a educação",
+    const destaque = screen.getByRole("region", {
+      name: "Destaques da educação",
     });
-    const perguntas = within(faixa)
+    expect(
+      within(destaque).getByText(
+        "A Prefeitura aplica o mínimo exigido em educação?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(destaque).getByText("As crianças estão aprendendo?"),
+    ).toBeInTheDocument();
+    const indicadores = within(destaque)
       .getAllByRole("term")
-      .map((pergunta) => pergunta.textContent);
-    expect(perguntas).toEqual([
-      "A Prefeitura aplica o mínimo exigido em educação?",
+      .map((termo) => termo.textContent);
+    expect(indicadores).toEqual([
+      "Parte do Fundeb paga aos profissionais da educação",
       "Quanto a Prefeitura investe por aluno?",
-      "As crianças estão aprendendo?",
+      "Reservado (empenhado) no ano",
+      "Serviço ou produto entregue (liquidado)",
+      "Dinheiro que saiu (pago)",
     ]);
 
     const titulos = screen
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
-      "A Prefeitura aplica o mínimo exigido em educação?",
-      "Quanto a Prefeitura investe por aluno da rede municipal?",
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
       "Como o Fundo contrata",
@@ -366,6 +374,7 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByText("Painel de Responsabilidade Fiscal da Educação"),
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
+    expect(screen.queryByText("Contratos do Fundo")).not.toBeInTheDocument();
   });
 
   it("mostra a nota do IDEB, a meta e a classificação por etapa em Aprendizado dos alunos", async () => {
@@ -385,13 +394,13 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(secao).getByText("5,9")).toBeInTheDocument();
     expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
-      within(secao).getByText("entre 92 redes municipais"),
+      within(secao).getByText(/entre 92 redes municipais/),
     ).toBeInTheDocument();
     expect(
-      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 ponto/),
+      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 pontos/),
     ).toBeInTheDocument();
     expect(
-      within(secao).getByText("subiu 43 posições desde o ciclo anterior"),
+      within(secao).getByText(/subiu 43 posições desde o ciclo anterior/),
     ).toBeInTheDocument();
     expect(secao.textContent).not.toMatch(/ano anterior/i);
   });
@@ -527,7 +536,7 @@ describe("EducacaoPage (Server Component)", () => {
       expect(rotulos.slice(0, 3)).toEqual([
         "Nota do IDEB",
         "Classificação entre as redes municipais do estado",
-        "Meta",
+        "Meta do MEC para 2025",
       ]);
     });
   });
@@ -660,7 +669,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("abre Detalhes do IDEB com SAEB e aprovação em indicadores dentro de um panel", async () => {
+  it("mostra SAEB e aprovação abaixo do aviso e deixa só o texto em Detalhes do IDEB", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     render(
@@ -673,19 +682,15 @@ describe("EducacaoPage (Server Component)", () => {
     const secao = screen.getByRole("region", {
       name: "Aprendizado dos alunos",
     });
+    expect(within(secao).getByText("SAEB — Língua Portuguesa")).toBeTruthy();
+    expect(within(secao).getByText("SAEB — Matemática")).toBeTruthy();
+    expect(within(secao).getByText("Taxa de aprovação escolar")).toBeTruthy();
     fireEvent.click(
-      within(secao).getByRole("button", { name: "Ver detalhes" }),
+      within(secao).getByRole("button", { name: "Ver detalhes: IDEB" }),
     );
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("SAEB — Língua Portuguesa"),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("SAEB — Matemática")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("Taxa de aprovação escolar"),
-    ).toBeInTheDocument();
-    expect(dialog.querySelector(".panel dl")).not.toBeNull();
+    expect(within(dialog).queryByText("SAEB — Matemática")).toBeNull();
     expect(
       within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
     ).toBeInTheDocument();
@@ -701,7 +706,11 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
+    fireEvent.click(
+      within(screen.getByTestId("categoria-card-transporte_pnate")).getByRole(
+        "button",
+      ),
+    );
     const dialog = screen.getByRole("dialog");
     expect(
       within(dialog).getAllByText("VIACAO ESCOLAR LTDA").length,
@@ -810,7 +819,16 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(screen.getByText("Alunos na rede municipal")).toBeInTheDocument();
-    expect(screen.getByText(/Censo Escolar 2024, INEP/)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver detalhes: alunos na rede municipal",
+      }),
+    );
+    expect(
+      within(screen.getByRole("dialog")).getByText(/Censo Escolar 2024, INEP/, {
+        selector: "span",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("omite a seção de emendas quando não há emendas da Educação", async () => {

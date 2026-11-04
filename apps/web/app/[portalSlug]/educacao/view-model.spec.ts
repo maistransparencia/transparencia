@@ -290,10 +290,30 @@ describe("educacao/view-model", () => {
     ).toBe(0);
   });
 
+  it("portalUrl vazio ou ausente vira null", () => {
+    const base = {
+      portalSlug: "portal_teste",
+      allMetrics: [],
+      contratos: [],
+      context: { ...CONTEXTO_2025, selectedYear: 2025 },
+    };
+    expect(buildEducacaoViewModel(base).portalUrl).toBeNull();
+    expect(
+      buildEducacaoViewModel({
+        ...base,
+        portalConfig: { cidadeClean: "Barbacena", uf: "MG", portalUrl: "" },
+      }).portalUrl,
+    ).toBeNull();
+  });
+
   it("usa UF e médias dinâmicas de outro estado, sem literais de tenant", () => {
     const vm = buildEducacaoViewModel({
       portalSlug: "municipio_mg",
-      portalConfig: { cidadeClean: "Barbacena", uf: "MG" },
+      portalConfig: {
+        cidadeClean: "Barbacena",
+        uf: "MG",
+        portalUrl: "https://transparencia.exemplo.gov.br",
+      },
       allMetrics: [
         metrica({ ano: 2021, etapaEnsino: "anosIniciais", notaIdeb: 6.1 }),
         metrica({ ano: 2023, etapaEnsino: "anosIniciais", notaIdeb: 6.4 }),
@@ -307,6 +327,11 @@ describe("educacao/view-model", () => {
     });
 
     expect(vm.municipioUf).toBe("MG");
+    expect(vm.portalUrl).toBe("https://transparencia.exemplo.gov.br");
+    expect(vm.aprendizado.anosIniciais.mediaEstadual).toBe(6.0);
+    expect(vm.aprendizado.anosIniciais.mediaEstadualLabel).toBe(
+      "Média da rede pública (MG)",
+    );
     expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe(
       "Média da rede pública (MG)",
     );
