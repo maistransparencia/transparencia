@@ -200,7 +200,7 @@ describe("EducacaoOrigemRecursosSection", () => {
     );
   });
 
-  it("marca o ano em andamento como parcial na descrição, nos indicadores e no modal", () => {
+  it("marca o ano em andamento só com o rótulo parcial nos indicadores e no modal", () => {
     render(
       <EducacaoOrigemRecursosSection
         origemRecursos={{
@@ -211,8 +211,8 @@ describe("EducacaoOrigemRecursosSection", () => {
       />,
     );
     expect(
-      screen.getByText(/Ano em andamento: valores acumulados até julho\./),
-    ).toBeInTheDocument();
+      screen.queryByText(/Ano em andamento: valores acumulados/),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/61% do que entrou · parcial/)).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("fonte-card-fundeb"));
     const dialog = screen.getByRole("dialog");
@@ -258,5 +258,70 @@ describe("EducacaoOrigemRecursosSection", () => {
     expect(cores[3]).toBe("bg-mute3");
     expect(barra.getAttribute("aria-label")).toMatch(/Demais fontes 3%/);
     expect(screen.getByText(/Demais fontes · 3%/)).toBeTruthy();
+  });
+
+  it("cada categoria com valor leva o quadrado da mesma cor da barra", () => {
+    const fonte = (
+      grupoFonte: EducacaoOrigemRecursoDTO["grupoFonte"],
+      totalArrecadado: number,
+      percentualTotal: number,
+    ): EducacaoOrigemRecursoDTO => ({
+      ...PNAE,
+      grupoFonte,
+      totalArrecadado,
+      percentualTotal,
+    });
+    render(
+      <EducacaoOrigemRecursosSection
+        origemRecursos={makeOrigem([
+          fonte("fundeb", 900, 86),
+          fonte("salario_educacao", 80, 8),
+          fonte("pnae", 50, 3),
+          fonte("pnate", 20, 2),
+          fonte("royalties", 10, 1),
+        ])}
+      />,
+    );
+    const corDoRotulo = (rotulo: string) =>
+      screen
+        .getAllByText(rotulo)
+        .map(
+          (no) => no.previousElementSibling?.className.match(/bg-[\w-]+/)?.[0],
+        )
+        .find(Boolean);
+    expect(corDoRotulo("FUNDEB")).toBe("bg-brand-fill");
+    expect(corDoRotulo("Salário-Educação")).toBe("bg-ok-fill");
+    expect(corDoRotulo("Merenda (PNAE)")).toBe("bg-warn-fill");
+    expect(corDoRotulo("Transporte Escolar (PNATE)")).toBe("bg-mute3");
+  });
+
+  it("ordena as categorias do painel da maior para a menor, com as sem receita no fim", () => {
+    const fonte = (
+      grupoFonte: EducacaoOrigemRecursoDTO["grupoFonte"],
+      totalArrecadado: number,
+    ): EducacaoOrigemRecursoDTO => ({
+      ...PNAE,
+      grupoFonte,
+      totalArrecadado,
+      percentualTotal: 1,
+    });
+    render(
+      <EducacaoOrigemRecursosSection
+        origemRecursos={makeOrigem([
+          fonte("pnate", 20),
+          fonte("fundeb", 900),
+          fonte("royalties", 500),
+        ])}
+      />,
+    );
+    const rotulos = screen
+      .getAllByRole("term")
+      .map((termo) => termo.textContent);
+    expect(rotulos.slice(0, 3)).toEqual([
+      "FUNDEB",
+      "Royalties",
+      "Transporte Escolar (PNATE)",
+    ]);
+    expect(rotulos.at(-1)).not.toBe("FUNDEB");
   });
 });
