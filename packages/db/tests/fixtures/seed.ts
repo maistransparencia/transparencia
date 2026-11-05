@@ -1360,6 +1360,74 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export interface EducacaoMatriculasRow {
+  portalSlug: string;
+  ano: number;
+  matriculasEducacaoInfantil: number;
+  matriculasEnsinoFundamental: number;
+}
+
+export async function seedEducacaoMatriculas(
+  row: EducacaoMatriculasRow | EducacaoMatriculasRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_matriculas_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        matriculas_educacao_infantil: r.matriculasEducacaoInfantil,
+        matriculas_ensino_fundamental: r.matriculasEnsinoFundamental,
+        matriculas_educacao_basica:
+          r.matriculasEducacaoInfantil + r.matriculasEnsinoFundamental,
+      })),
+    )
+    .execute();
+}
+
+export interface EducacaoSiopeRow {
+  portalSlug: string;
+  ano: number;
+  periodo?: number;
+  situacao?: "encerrado" | "parcial";
+  investimentoPorAluno?: number | null;
+  investimentoPorAlunoBasica?: number | null;
+  investimentoPorAlunoInfantil?: number | null;
+  investimentoPorAlunoFundamental?: number | null;
+  percentualAplicadoMde?: number | null;
+  percentualAplicadoFundebProfissionais?: number | null;
+}
+
+export async function seedEducacaoSiope(
+  row: EducacaoSiopeRow | EducacaoSiopeRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_siope_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        periodo: r.periodo ?? 6,
+        situacao: r.situacao ?? "encerrado",
+        investimento_por_aluno: r.investimentoPorAluno ?? null,
+        investimento_por_aluno_basica: r.investimentoPorAlunoBasica ?? null,
+        investimento_por_aluno_infantil: r.investimentoPorAlunoInfantil ?? null,
+        investimento_por_aluno_fundamental:
+          r.investimentoPorAlunoFundamental ?? null,
+        percentual_aplicado_mde: r.percentualAplicadoMde ?? null,
+        percentual_aplicado_fundeb_profissionais:
+          r.percentualAplicadoFundebProfissionais ?? null,
+      })),
+    )
+    .execute();
+}
+
 export async function seedDimMetadata(row: {
   portalSlug: string;
   key: string;
@@ -1458,6 +1526,14 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_matriculas_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_siope_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

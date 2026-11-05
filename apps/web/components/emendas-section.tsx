@@ -14,12 +14,13 @@ import {
   Indicator,
   IndicatorPanel,
   ModalDialog,
-  SectionHeader,
   toTitleCase,
 } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 import { useCallback, useMemo, useState } from "react";
+import { SectionWithHeader } from "@/components/section-with-header";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
 export interface SaudeEmendaItem {
@@ -58,6 +59,9 @@ export interface EmendasSectionProps {
   portalSlug?: string;
   titulo?: string;
   descricao?: string;
+  /** Âncora e resumo: com `resumo`, a seção nasce recolhida. */
+  id?: string;
+  resumo?: React.ReactNode;
 }
 
 const TITULO_PADRAO = "Emendas parlamentares destinadas à Saúde";
@@ -114,6 +118,8 @@ export function EmendasSection({
   portalSlug,
   titulo = TITULO_PADRAO,
   descricao = DESCRICAO_PADRAO,
+  id,
+  resumo,
 }: EmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
@@ -355,12 +361,34 @@ export function EmendasSection({
   }, [selectedEmenda]);
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
-        title={titulo}
-        description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
-      />
+    <SectionWithHeader
+      id={id}
+      summary={resumo}
+      eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
+      title={titulo}
+      description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
+    >
+      <IndicatorPanel columns={4}>
+        <Indicator
+          label="Autorizado"
+          value={fmtCompact(emendasStats.totalAutorizado)}
+          note="valor das emendas"
+        />
+        <Indicator
+          label="Confirmada na receita"
+          value={fmtCompact(totalRecebidoFundo)}
+          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
+        />
+        <Indicator
+          label="Empenhado no cadastro"
+          value={fmtCompact(emendasStats.totalEmpenhado)}
+          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
+        />
+        <Indicator
+          label="Maior emenda"
+          value={fmtCompact(emendasStats.maiorEmenda)}
+        />
+      </IndicatorPanel>
 
       {emendasStats.totalAutorizado > 0 && (
         <AlertBox type="info" title="O dinheiro das emendas chegou?">
@@ -384,34 +412,11 @@ export function EmendasSection({
           ) : (
             <>Não foi possível identificar emendas na receita. </>
           )}
-          O empenho vem do cadastro de emendas do portal e pode estar
-          desatualizado: zero ali não significa que o dinheiro não foi usado.
-          Para conferir uma emenda, procure no portal oficial do município a
-          receita indicada na tabela.
+          O empenho depende do que a Prefeitura registrou no cadastro: sem
+          registro, aparece zero mesmo que o dinheiro tenha sido usado. Para
+          conferir, procure no portal do município a receita indicada na tabela.
         </AlertBox>
       )}
-
-      <IndicatorPanel columns={4}>
-        <Indicator
-          label="Autorizado"
-          value={fmtCompact(emendasStats.totalAutorizado)}
-          note="valor das emendas"
-        />
-        <Indicator
-          label="Confirmada na receita"
-          value={fmtCompact(totalRecebidoFundo)}
-          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
-        />
-        <Indicator
-          label="Empenhado no cadastro"
-          value={fmtCompact(emendasStats.totalEmpenhado)}
-          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
-        />
-        <Indicator
-          label="Maior emenda"
-          value={fmtCompact(emendasStats.maiorEmenda)}
-        />
-      </IndicatorPanel>
 
       {/* Tabela Densa com Linha de Totalizador */}
       <div className="space-y-2">
@@ -936,6 +941,6 @@ export function EmendasSection({
           </div>
         </ModalDialog>
       )}
-    </section>
+    </SectionWithHeader>
   );
 }

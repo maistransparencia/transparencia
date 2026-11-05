@@ -2,6 +2,7 @@ import type { EducacaoCategoriaContrato } from "@transparencia/db";
 import { cn, fmtCompact } from "@transparencia/ui";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { formatCategoriaLabel } from "./educacao-contratos-utils";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface CategoriaContratoCardProps {
   categoria: EducacaoCategoriaContrato;
@@ -27,14 +28,10 @@ export function CategoriaContratoCard({
       : null;
 
   return (
-    <button
-      type="button"
-      aria-disabled={vazia}
-      aria-label={`${rotuloCategoria}, ${valorExibido}, ${rotuloContratos}`}
-      onClick={vazia ? undefined : () => onOpen(categoria)}
+    <div
       data-testid={`categoria-card-${categoria}`}
       className={cn(
-        "panel panel-top panel-interactive flex min-h-11 w-full flex-col gap-2 text-left",
+        "panel panel-top flex w-full flex-col gap-2 text-left",
         vazia && "opacity-60",
         className,
       )}
@@ -63,9 +60,13 @@ export function CategoriaContratoCard({
           </span>
         </span>
       )}
-      <span className="font-medium text-brand-text text-sm">
-        {vazia ? rotuloContratos : `${rotuloContratos} ›`}
-      </span>
-    </button>
+      <span className="caption block">{rotuloContratos}</span>
+      {!vazia && (
+        <VerDetalhesLink
+          context={rotuloCategoria}
+          onClick={() => onOpen(categoria)}
+        />
+      )}
+    </div>
   );
 }

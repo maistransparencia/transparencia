@@ -447,3 +447,37 @@ location: apps/web/app/[portalSlug]/licitacoes/page.tsx
 source_spec: `20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal.md`
 reason: Depende de dados reais de contratos vigentes sem valor empenhado.
 status: open
+
+### DW-31: Empates de nota_ideb no ranking estadual são desempatados só por cod_ibge, podendo gerar "subiu/caiu N posições" espúrio.
+origin: spec-deferred 54f356346323
+location: packages/db/src/queries/educacao-metrics.ts
+source_spec: `24-7-aprendizado-no-topo-da-pagina-de-educacao.md`
+severity: medium
+reason: Regra de ordenação pré-existente (nota_ideb desc, cod_ibge asc), mantida de propósito pela spec; notas têm uma casa decimal, então empates são comuns.
+status: open
+
+### DW-32: Totais iguais mas conjuntos de municípios diferentes entre ciclos, ou ano do ranking diferente do ano anterior da nota do município, comparam populações distintas.
+origin: spec-deferred ef0f28603525
+location: packages/db/src/queries/educacao-metrics.ts, apps/web/app/[portalSlug]/educacao/view-model.ts
+source_spec: `24-7-aprendizado-no-topo-da-pagina-de-educacao.md`
+reason: Não verificado com dados reais de seed_inep_ideb; checar se há ciclos com mesmo total e municípios trocados.
+status: open
+
+## Deferred from: code review of story-24-12 (2026-11-03)
+
+- `NOTA_DECLARACAO` só é usada no modal de valor por aluno; confirmar se o percentual do mínimo/Fundeb no topo mantém a explicação de que o número vem do SIOPE sem recálculo (educacao-textos.tsx). Severidade não verificada: média. Resolvido: conferido por Julio em 2026-11-04; o texto está correto.
+- Alinhamento das duas barras dos destaques (educacao-destaques.tsx) quando a pergunta quebra em duas linhas em largura md. Conferir no navegador. Resolvido: conferido por Julio no navegador em 2026-11-04; alinhamento correto.
+- `IndicatorPanel` clona filhos com `size`, mas em educacao-indicadores-apoio.tsx os filhos são `<div>` wrapper; conferir `size` e a estrutura `dl`/`dt`/`dd`. Resolvido: `Indicator` ganhou `action` (dentro de `dd`) e `data-testid`; os wrappers `<div>` saíram, o `size` chega ao indicador e `IndicadorFundeb` o repassa.
+- Estados do antigo `emendasSubtext` (sem emenda; emenda ainda não reservada): conferir se `EmendasSection` os cobre. Resolvido: mantido como está por decisão do Julio em 2026-11-04 (sem emendas o aviso não aparece; sem confirmação na receita o texto já diz "Nenhuma foi confirmada").
+- Linha "Leis:" depende da seed (`baseLegal`/`urlBaseLegal`); conferir se a seed cobre CF/88 art. 212 e 212-A e Lei 14.113 art. 26. Resolvido: `seed_constantes_fiscais.csv` cobre CF/88 art. 212 e 212-A e Lei 14.113/2020 art. 26, com URL do Planalto.
+- Link "Ver detalhes" do valor por aluno só aparece com `valor !== null` (educacao-indicadores-apoio.tsx:117); a regra antiga exigia só `serie.length > 0`. Resolvido: o link exige `valor !== null && serie.length > 0`, o que é o comportamento desejado (sem valor não há o que detalhar).
+- Rótulo com ano fixo "INEP: Nota Informativa do Ideb 2025" no modal do IDEB (Regra 23); anterior a esta story. Resolvido: o rótulo agora é "INEP: Nota Informativa do Ideb", sem ano.
+- `twoColumnsOnMobile` no `IndicatorPanel`: confirmar que `cn` faz merge de classes Tailwind (`grid-cols-2` vs `COLUMNS_CLASS`). Resolvido: `cn` usa `twMerge`, e `indicator.spec.tsx` confere `grid-cols-2` com `lg:grid-cols-4`.
+
+## Deferred from: code review of story 24-13 (2026-11-04)
+
+- `h2` dentro de `summary` em `CollapsibleSection`: confirmar com leitor de tela (VoiceOver/NVDA) se a navegação por títulos continua funcionando.
+- Aviso das emendas perdeu "pode estar desatualizado": revisar com editor-cidadao e contador-publico.
+- Resumo de fornecedores usa `viewModel.topFornecedores` e o corpo usa `fornecedoresLinhas`: conferir que são o mesmo conjunto.
+- Fundeb em ano parcial mostra barra e marcador do mínimo: conferir `tomDoResultado` no ano em andamento.
+- `apps/storybook/scripts/dev.mjs` e a story do Storybook que copia o markup do `CollapsibleSection`: tratar erro/sinal e importar o componente real.

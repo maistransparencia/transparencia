@@ -97,6 +97,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 23: Confiança e Transparência do Portal (Frescor dos Dados, Reporte de Erro e Metodologia)](#epic-23-confiança-e-transparência-do-portal-frescor-dos-dados-reporte-de-erro-e-metodologia)
 - [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
 - [Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?](#epic-25-saúde-a-prefeitura-aplica-o-mínimo-exigido)
+- [Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)](#epic-26-camada-raw-por-fonte-fim-do-schema-por-município-esboço)
 
 ---
 
@@ -3135,6 +3136,34 @@ So that I understand it is money withheld and passed on to others, not municipal
 
 ---
 
+### Story 23.8: Cadência de Ingestão por Fonte
+
+As a maintainer,  
+I want each source to be ingested at the pace its data actually changes,  
+So that we stop re-fetching unchanged data every business day and the SIOPE and other sources get a schedule of their own.
+
+**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal).
+
+**Acceptance Criteria:**
+- **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
+- **When** a story é concluída
+- **Then** o SIOPE grava JSON em `data/raw_runs/<portal>/siope_indicadores/` e é registrado em `elt/extract/run.py` (chave `siope`) e em `elt/load/run.py`, como o SICONFI, mantendo o tudo-ou-nada da 24.1
+- **And** `--only` em `elt.extract.run` aceita mais de uma chave, para um workflow chamar um grupo de fontes.
+- **Given** os três grupos de cadência (diária, semanal, mensal)
+- **When** cada workflow roda
+- **Then** executa só as fontes do seu grupo, com cron próprio e `workflow_dispatch` com `portal`, `years` e `dry_run` como hoje, sem literais de tenant e com a lista de portais descoberta dinamicamente
+- **And** após cada carga o dbt roda completo (`run` e `test`), como no pipeline atual
+- **And** nenhuma fonte fica fora de todos os grupos nem em mais de um, e um teste confere isso.
+- **Given** o registro de coletas da Story 23.1
+- **When** a cadência é definida
+- **Then** o valor de `frequencia_esperada` de cada fonte (`diaria`, `semanal`, `mensal`) vem da mesma definição que gera os workflows ou é conferido por teste contra ela, sem duas listas divergentes.
+
+**Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
+
+**Dependências:** Story 24.1 (extrator do SIOPE); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+
+---
+
 ## Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)
 
 A página de educação passa a abrir pelo aprendizado ("as crianças estão aprendendo?", Story 24.7), com o financiamento logo abaixo. Responder ao cidadão duas perguntas que hoje ficam sem resposta: "quanto a Prefeitura investe por aluno?" e "a Prefeitura aplica o mínimo exigido em educação?". A fonte é o SIOPE (FNDE), o sistema que o município declara e que o contador da educação de Porciúncula indicou e conferiu. Origem: spike `planning-artifacts/spike-siope-valor-por-aluno.md` (2026-10-31). A estimativa anterior de "pago por aluno" foi retirada da Epic 20 (Story 20.8) porque o seed de matrículas não tinha fonte rastreável e divergia do SIOPE em 3% a 42%.
@@ -3159,7 +3188,7 @@ So that the education page can use the same numbers the municipal accountant rep
 - **Given** os portais com `cod_ibge` cadastrado e a lista de indicadores de interesse (4.1, 4.2, 4.8, 4.9, 1.1, 1.2)
 - **When** a carga roda para um portal e uma faixa de anos
 - **Then** grava em tabela raw um registro por `portal_slug`, `ano`, `periodo` e `codigo_indicador` com o valor, o código SIOPE do município derivado do IBGE e `coletado_em`, sem literais de tenant
-- **And** a carga pede os municípios em lote de dois ou mais (com um só, a API devolve `codEnte` zerado) e valida o formato da resposta antes de gravar
+- **And** a carga pede um município por requisição (em lote, a API devolve a média dos municípios com `codEnte` zerado, verificado em 2026-11-01) e valida o formato da resposta antes de gravar
 - **And** resposta em HTML (erro 99), formato inesperado ou indicador ausente não grava nada e termina com aviso claro, nunca com dado parcial presumido correto
 - **And** o `User-Agent` e o `Referer` seguem o padrão da API, há limite de taxa e nenhuma tentativa de contornar o captcha.
 
@@ -3212,12 +3241,12 @@ So that I can compare it with last year and with what the school needs.
 **Acceptance Criteria:**
 - **Given** a Story 24.3 e a pergunta "Quanto a Prefeitura investe por aluno da rede municipal?"
 - **When** o ano selecionado está encerrado e há valor no SIOPE
-- **Then** o painel de indicadores mostra o investimento por aluno, com a nota de que o valor é declarado pela Prefeitura ao FNDE, e "Ver detalhes" abre o histórico anual em valores da época, sem correção pela inflação
-- **And** no ano em andamento ou sem valor, mostra "—" com a causa
-- **And** sem média estadual, ranking ou comparação entre municípios
-- **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico`, e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
+- **Then** o painel de indicadores mostra o investimento por aluno, com a nota de que o valor é declarado pela Prefeitura ao FNDE, e junto do número a série anual do próprio município como régua (valores da época, sem correção pela inflação, com a nota de que anos diferentes não são comparáveis em poder de compra); "Ver detalhes" abre o histórico completo
+- **And** no ano em andamento mostra o valor acumulado até o último bimestre (Story 24.10) com a palavra "parcial", e nunca o compara com um ano fechado; sem valor, mostra "—" com a causa
+- **And** sem média estadual, ranking, comparação entre municípios nem referência nacional como "acima ou abaixo do mínimo" (decisão de 2026-11-01, parecer do `contador-publico` e do `jurista-fiscal`: o VAAF-MIN da Lei 14.113/2020, arts. 12 e 13, não é meta nem piso de gasto do município e não é comparável ao indicador 4.9, que cobre a rede toda)
+- **And** o texto passa pelo `editor-cidadao`, o cálculo é conferido pelo `contador-publico` (o que o indicador 4.9 inclui e exclui ainda é NÃO VERIFICADO e deve ser confirmado na metodologia do SIOPE), e `llms.txt`, `llms-full.txt`, CHANGELOG e specs de página, view-model e componente são atualizados.
 
-**Dependências:** Story 24.3. Posição: o painel entra logo abaixo da seção "Aprendizado dos alunos" (Story 24.7).
+**Dependências:** Story 24.3. Posição (decisão de 2026-11-01): o painel compõe a faixa de três respostas no topo da página, montada na Story 24.11; esta story entrega o painel e o dado.
 
 ---
 
@@ -3235,7 +3264,7 @@ So that I can tell if the rule is being met.
 - **And** abaixo do mínimo, o tom é factual e não acusatório ("indício", nunca "irregularidade")
 - **And** o `contador-publico` valida a base de cálculo, o ano em andamento é marcado como parcial e `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
 
-**Dependências:** Story 24.3. Posição: logo abaixo da seção "Aprendizado dos alunos" e do valor por aluno (24.4). Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
+**Dependências:** Story 24.3. Posição (decisão de 2026-11-01): o bloco compõe a faixa de três respostas no topo da página, montada na Story 24.11; esta story entrega o bloco e o dado. O indicador 1.2 só é exibido depois de o `contador-publico` conferir a fórmula; o piso usado é sempre o 70% do seed, nunca o rótulo do SIOPE. Substitui as pendências "mínimo de 25%" e "piso do FUNDEB" do inventário de educação.
 
 ---
 
@@ -3287,19 +3316,183 @@ So that the money figures that follow are read against the result they should pr
 
 ---
 
-### Story 24.8: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
+### Story 24.8: Movida para a Story 25.7
+
+Decidido em 2026-11-04: a conferência de emendas da educação depende do método da spike 25.1 e da Story 25.5, então passou para a Epic 25 como **Story 25.7**, e a Epic 24 fecha sem ela. A numeração 24.8 não é reaproveitada.
+
+---
+
+### Story 24.9: SIOPE em Schema por Fonte com `portal_slug` na Chave
+
+As a maintainer,  
+I want the SIOPE raw data in one source schema shared by all portals,  
+So that adding municipalities does not add schemas, and the contracts of Story 24.3 are built on the final model.
+
+**Origem:** decisão do Julio em 2026-11-01, por escalabilidade (ver Epic 26). Fica na Epic 24, e não na 26, para que a branch da Epic 24 não dependa de trabalho de outra epic. **Executar antes da Story 24.3**, que cria os contratos em cima do mart. Corrige o desenho das Stories 24.1 e 24.2, já concluídas.
+
+**Acceptance Criteria:**
+- **Given** a tabela `siope_indicadores` hoje gravada em `raw_<portal_slug>` (`elt/load/siope.py`)
+- **When** a story termina
+- **Then** a tabela fica em um schema único da fonte (`raw_siope`) com `portal_slug` na chave primária, e a carga de um portal grava e recarrega só as linhas daquele `portal_slug`, sem tocar as dos outros.
+- **And** o staging por portal (`stg_<portal>__siope_indicadores`) é substituído por um modelo único da fonte, sem literal de tenant (Regra 23), e o mart `fct_educacao_siope_metricas` continua com o mesmo grão e os mesmos contratos.
+- **And** os valores de referência da Story 24.2 (Porciúncula 2024: R$ 16.789,15; 2025: R$ 16.767,14) passam sem mudança, e há teste de isolamento entre dois portais com os mesmos códigos de indicador.
+- **And** a fixture `packages/db/tests/fixtures/schema.sql.gz` é regerada (`make db/fixture/dump`) e `make test`, `make check`, `pnpm test` e `pnpm typecheck` passam (Regra 21).
+- **And** os dados já carregados são migrados no banco local do Docker, com paridade conferida antes e depois (mesmos totais por portal). Nenhuma execução em produção sem autorização explícita (Regra 15); a migração em produção, se necessária, fica descrita para o Julio decidir.
+
+**Fora do escopo:** Siconfi e demais fontes (Epic 26); qualquer mudança no que o cidadão vê.
+
+**Dependências:** Stories 24.1 e 24.2 (concluídas). Bloqueia a Story 24.3.
+
+---
+
+### Story 24.10: Ingestão Bimestral do SIOPE para o Ano em Andamento
 
 As a citizen,  
-I want to see how much parliamentary-amendment money for education reached my city and in which stage it is, according to both the municipal portal and the federal source,  
-So that a delay in the municipal records is not read as money that stopped.
+I want to see the SIOPE indicators of the current year, marked as partial,  
+So that I do not have to wait for the year to close to know how much is being invested per student.
 
-**Origem:** story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
+**Origem:** conversa de 2026-11-01. Hoje o extrator (`elt/extract/siope.py`) pede só a consulta anual (`tpPeriodo: "A"`, bimestre 6, o fechamento). O ano em andamento não tem dado de 6º bimestre, a API não devolve nada e o extrator o ignora com aviso. Por isso o ano corrente não aparece. A lógica `parcial` do mart `fct_educacao_siope_metricas` existe, mas só é exercitada por dados sintéticos de teste.
 
-**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
+**Acceptance Criteria:**
+- **Given** a API do SIOPE, que oferece o tipo de período bimestral (`tpPeriodo: "B"`)
+- **When** a story começa
+- **Then** um teste contra a resposta real de pelo menos um município integrado registra se a API devolve os bimestres do ano em andamento, com que defasagem, e se o valor é acumulado no ano ou isolado no bimestre. Se a API não devolver, a story para aqui e o resultado fica documentado. Nenhum número é inferido sem essa verificação.
+- **And** o extrator grava, para o ano em andamento, o bimestre mais avançado disponível em `raw_siope.siope_indicadores` (`periodo` 1 a 5, `tipo_periodo` coerente com a coluna), sem literal de tenant ou de ano (Regra 23), e o fechamento anual continua gravado como hoje.
+- **And** quando o ano fecha, a linha do bimestre 6 passa a valer e o mart mostra `encerrado`, sem linhas parciais antigas que mudem o resultado.
+- **And** o mart `fct_educacao_siope_metricas` mostra o ano corrente como `parcial`, com o `periodo` correspondente, e teste de paridade com dado real (não sintético) para pelo menos um portal.
+- **And** o valor parcial nunca é apresentado ao cidadão como fechamento (Regra 27); a decisão de texto fica com a Story 24.3 e o `editor-cidadao`.
+- **And** `make test`, `make check`, `pnpm test` e `pnpm typecheck` passam; toda execução no banco local do Docker (Regra 15).
 
-**Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
+**Fora do escopo:** mudança no que o cidadão vê (Story 24.3); valores de 6º bimestre de anos anteriores; comparação entre bimestres.
 
-**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado).
+**Dependências:** Story 24.9 (concluída). Pode rodar antes ou depois da 24.3, mas a 24.3 precisa saber se o parcial existe.
+
+---
+
+### Story 24.11: Três Respostas no Topo da Página de Educação
+
+As a citizen,  
+I want the top of the education page to answer whether the minimum is met, how much is invested per student and whether students are learning,  
+So that the page leads with what matters to me and not with budget execution.
+
+**Origem:** reanálise da página em 2026-11-01 (Mary e Julio). Hipótese do Julio: indicadores financeiros puros (reservado, liquidado, pago) devem ser despriorizados em favor de mínimo constitucional, valor por aluno e aprendizado. A hipótese vem de lógica de produto, sem dado de uso; uma validação barata com cidadãos ou com os dados de acesso da página reduz o risco.
+
+**Acceptance Criteria:**
+- **Given** as Stories 24.4 (valor por aluno) e 24.5 (mínimos MDE e FUNDEB) concluídas e a seção "Aprendizado dos alunos" (24.7)
+- **When** o cidadão abre `/[portalSlug]/educacao`
+- **Then** o topo traz uma faixa com três respostas lado a lado, nesta ordem: "A Prefeitura aplica o mínimo exigido em educação?", "Quanto a Prefeitura investe por aluno?" e "As crianças estão aprendendo?", cada uma com um número e a sua régua (limite legal, série do próprio município e meta ou ciclo anterior do IDEB)
+- **And** abaixo da faixa vêm os detalhes de cada resposta na mesma ordem, e a seção "Aprendizado dos alunos" da 24.7 permanece como o detalhe da terceira resposta
+- **And** o hero financeiro atual (reservado, liquidado e pago) deixa de ser a manchete: seus números passam a ser a memória de cálculo do mínimo, atrás de "Ver detalhes", e as seções de origem do dinheiro, evolução anual, contratos e fornecedores descem para a parte de especialista, no fim (Regra 27)
+- **And** "Emendas na educação" fica na parte intermediária; a conferência com a fonte federal é da Story 25.7 (ex-24.8)
+- **And** nenhuma seção perde conteúdo, ano em andamento é sempre marcado como parcial, e blocos sem dado mostram "—" com a causa, sem reservar espaço vazio
+- **And** o texto passa pelo `editor-cidadao`, o padrão visual segue `DESIGN.md` e `EXPERIENCE.md` nos temas claro e escuro (Regra 25), sem literais de tenant, UF ou ano (Regra 23), e specs de página, `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
+
+**Fora do escopo:** novos indicadores; qualquer mudança nos cálculos das Stories 24.4 e 24.5; média estadual ou ranking de valor por aluno.
+
+**Dependências:** Stories 24.4 e 24.5. Substitui a posição "logo abaixo do aprendizado" que essas stories tinham. A 24.7 permanece `done`.
+
+---
+
+### Story 24.12: Refino Visual da Página de Educação: Hero com Barra do Mínimo e Leis e Fontes em Destaque
+
+As a citizen,  
+I want the education page to open with one impactful number and its legal minimum on a bar, with the law and the data source always visible,  
+So that I understand at a glance whether the minimum is met and can check where the data comes from, without reading blocks of text or following links to sections that repeat the same numbers.
+
+**Origem:** pedido do Julio em 2026-11-03, com análise de Sally, Amelia, Mary, Creuza, Atanagildo e Jurandir. Mockup aprovado (v3): https://claude.ai/artifact/RFAMapEvBMn8VgNiAGv9wJ. Referência de padrão: hero de `/despesas`. Esta story refina a 24.11 depois das inclusões de dados da 24.4 a 24.10.
+
+**Princípio:** nenhuma informação existente sai da página; muda só o peso de cada uma.
+
+**Acceptance Criteria:**
+
+*Topo (hero)*
+- **Given** a página `/[portalSlug]/educacao` com dados do SIOPE
+- **When** o cidadão a abre
+- **Then** o topo segue o padrão de `/despesas`: `eyebrow`, `h1` e lead, e a região "Destaques da educação" com **dois destaques lado a lado, sem `panel`**: (1) "A Prefeitura aplica o mínimo exigido em educação?" e (2) "As crianças estão aprendendo?"
+- **And** cada destaque tem um `stat-value-lg`, a barra quadrada **logo abaixo do valor** (componente `ThresholdMeter`, `bg-track`, `h-4`, sem `rounded-*`, sem rótulo sobre o marcador) e o subtexto abaixo da barra, de modo que as duas barras ficam alinhadas
+- **And** no mínimo, o marcador é o `limite` vindo da seed (nunca literal), mostrado no texto como "A lei exige pelo menos 25%" (sem casas decimais desnecessárias); "cumpriu o mínimo" **não aparece em texto** (fica na leitura acessível da barra); abaixo do mínimo o texto diz "indício a ser esclarecido pela Prefeitura", sem acusar; ano em andamento fica marcado como parcial e sem veredito, com o aviso abaixo da barra
+- **And** no IDEB dos anos iniciais, a barra é de 0 a 10 com o marcador da **média da rede pública do estado** (valor e rótulo dinâmicos, vindos da camada de dados, sem UF fixa); o subtexto traz a faixa, a variação em pontos "em relação ao ciclo anterior (ano)" e a meta do MEC do ciclo, ou "sem meta definida pelo MEC para este ciclo"
+- **And** logo abaixo dos destaques, um painel de indicadores (`IndicatorPanel`) com: a parte do Fundeb paga aos profissionais da educação (**só texto**, sem barra, com tom pela posição frente ao mínimo e "a lei exige pelo menos 70% dos recursos do Fundeb"), "Quanto a Prefeitura investe por aluno?" (variação com palavra, "em R$ da época", "Ver detalhes" para a série ano a ano) e "Alunos na rede municipal" (divisão infantil e fundamental, "Ver detalhes" para o modal com Censo Escolar do INEP, o mês de maio e a exclusão de médio, EJA e educação especial)
+- **And** "Quanto a Prefeitura gastou em educação?" fica **à vista** no topo, sem modal: reservado, liquidado e pago, com a legenda de que reservar não é pagar, de que o mínimo vale para o que a Prefeitura gasta e não para o que recebe, de que o total soma toda a função Educação e de que o percentual do mínimo usa o cálculo do SIOPE
+- **And** uma **única** linha "Leis: … · Fonte: …" fecha o topo, com CF/88 art. 212 e 212-A, Lei 14.113/2020 art. 26 e Lei 4.320/1964 (links de `urlBaseLegal` e de `urlLegislacao`, com `ExternalLink`, `target="_blank"` e `rel="noopener noreferrer"`, Regra 20) e as fontes **com link**: SIOPE (`FONTES_OFICIAIS.siope`) e a execução orçamentária da Prefeitura (portal de transparência oficial do portal, vindo do banco); sem o endereço do portal, a fonte aparece sem link
+- **And** os links "Ver o detalhe" para âncoras são removidos e as seções separadas de mínimo, valor por aluno e três respostas deixam de existir, porque o topo as substitui sem perder dado
+
+*Aprendizado dos alunos*
+- **And** cada etapa mostra o painel com nota, ciclo anterior, classificação entre as redes municipais do estado e meta, mais a barra com a meta, tudo sem `font-mono` (mono só em `table` e `numeric`)
+- **And** a variação usa texto e cor: sobe em `ok-text`, cai em `danger-text`, e **sem indicador quando não houve mudança**; "meta atingida" e "abaixo da meta" seguem a mesma regra; o estado nunca depende só da cor
+- **And** o gráfico "Evolução da nota do IDEB" e o seletor de etapa permanecem; o SAEB de Português e de Matemática e a taxa de aprovação aparecem **logo abaixo do aviso** do IDEB, e o modal "Detalhes do IDEB" fica só com o texto de como ler a meta
+
+*Demais seções*
+- **And** "O que entrou" usa uma barra empilhada: as três maiores fontes têm cor própria e as demais somam um segmento cinza "Demais fontes", sem cor repetida, com legenda em texto e percentual; abaixo, o painel de indicadores por fonte (valor, percentual e "Ver detalhes"), em **2 colunas no celular** (opção `twoColumnsOnMobile` do `IndicatorPanel`) e 4 no desktop
+- **And** "Como o Fundo contrata" mantém os cards por categoria **com "Ver detalhes"** (cada categoria vazia sem o link), e as leis (merenda, transporte, locação) saem da descrição e vão para a linha "Leis:" **no fim da seção**, com link; a locação diz "licitação inexigível quando as características e a localização do imóvel tornam necessária sua escolha"
+- **And** o painel "Emendas / Contratos do Fundo" sai da página (a seção de emendas e a de contratos mantêm o conteúdo); nas emendas, o aviso "O dinheiro das emendas chegou?" fica **abaixo** dos indicadores (`EmendasSection` é compartilhado e vale para as páginas que o usam)
+- **And** evolução anual, contratos e fornecedores mantêm todo o conteúdo atual, na ordem da 24.11
+
+*Textos e links*
+- **And** "Ver detalhes" é um link pequeno (14px, `underline`, **sempre em linha própria**, alvo de toque garantido por área e não por altura visual), em todas as seções de educação, num componente único (`VerDetalhesLink`) em vez de `<button>` com classes soltas
+- **And** `NOTA_DECLARACAO`, `NOTA_MINIMO_GASTO` e `NOTA_INFLACAO` existem uma só vez; `Veredito`, `notaDoMinimo` e a descrição de variação do valor por aluno não são duplicados; o valor por aluno diz, no modal, o método oficial do SIOPE (despesa com MDE dividida pelo número total de alunos matriculados) e que esse total pode ser diferente do mostrado em "Alunos na rede municipal"
+- **And** os textos passam pelo `editor-cidadao` (Creuza) e pela conferência de dados (Mary); mantidos obrigatoriamente (no topo ou em "Ver detalhes"): inflação, mínimo vale para o gasto, exclusão de médio, EJA e educação especial no total de alunos e a fonte do SIOPE publicada sem recalcular
+
+*Modais*
+- **And** os modais de detalhes de educação (valor por aluno, alunos na rede, fonte de recurso, categoria de contrato, IDEB) usam o mesmo cabeçalho e rodapé do `ModalDialog`, título em `h2`, no máximo uma frase antes do primeiro bloco, corpo em `text-sm`, tabelas no padrão do projeto e **lei e fonte sempre no rodapé** no mesmo formato
+
+*Componentes e qualidade*
+- **And** a barra com marcador é o componente `ThresholdMeter` em `packages/ui` (quadrada, `h-4`, marcador opcional, sem rótulo sobre o marcador, valor acessível por texto), reaproveitável em `/saude`, com teste de arquitetura e de tokens; `IndicatorPanel` ganha `twoColumnsOnMobile`
+- **And** sem literais de tenant, UF ou ano (Regra 23), nomes de métricas explícitos (Regra 9), sem ternários aninhados (Regra 13), cores só por tokens `-fill` e `-text` nos temas claro e escuro, specs de página atualizados, `llms.txt`, `llms-full.txt` e CHANGELOG atualizados
+
+**Fora do escopo:** novos dados ou indicadores; valor em R$ do mínimo (quanto precisaria ser gasto), que fica como melhoria futura; mudança nos cálculos de 24.4, 24.5 e 24.6; reorganizar a ordem das seções de especialista.
+
+**Pendências antes de implementar (resolvidas na implementação):** (1) Atanagildo: o SIOPE 4.9 é "Investimento educacional por aluno", método "Despesa com MDE / Número total de alunos matriculados" (página de descrição do indicador no FNDE); a fonte do total de alunos segue sem confirmação e o texto diz só que pode ser diferente do Censo; (2) Jurandir: as URLs do Planalto de Lei 11.947/2009, Lei 10.880/2004 e Lei 14.133/2021 respondem e a âncora `#art74v` existe; o texto da locação foi ajustado à redação do art. 74, V, e a fonte "Royalties" (Lei 7.990/1989) cobre compensação por recursos hídricos e minerais, com a ligação dos royalties de petróleo à educação na Lei 12.858/2013, art. 2º; (3) Mary revisou os textos de dados; (4) Julio confirmou o endereço do SIOPE.
+
+**Dependências:** Stories 24.4, 24.5, 24.6, 24.7, 24.10 e 24.11 (todas `done`).
+
+---
+
+### Story 24.13: Hierarquia da Página de Educação: "Para Entender" e "Para Fiscalizar"
+
+As a citizen,  
+I want the education page to tell the story "o que as crianças aprendem, de onde vem o dinheiro e para onde vai" first, with the audit material (emendas, contratos, fornecedores) grouped at the end and collapsed,  
+So that I can follow the main answer without scrolling through tables made for journalists, councilors and auditors, and still reach every detail when I want it.
+
+**Origem:** pedido do Julio em 2026-11-04, a partir de uma segunda opinião sobre a página renderizada (uma LLM sem contexto do projeto) conferida por Mary contra a página real depois da 24.12. Concordância: a LLM acertou na hierarquia (seções de fiscalização misturadas e abertas) e na repetição da ressalva "ano em andamento". **Decisão do Julio:** os termos "reservado", "liquidado" e "pago" **não mudam**; "entregue" não substitui "liquidado" (liquidar é reconhecer que o serviço foi prestado, não que chegou ao cidadão).
+
+**Princípio:** nenhuma informação existente sai da página; muda só a posição e o peso, como na 24.12 (Regra 25 e Regra 27: seções para especialistas ficam no fim).
+
+**Acceptance Criteria:**
+
+*Ordem*
+- **Given** a página `/[portalSlug]/educacao`
+- **When** o cidadão rola do topo ao fim
+- **Then** a ordem é: topo (24.12) → "Aprendizado dos alunos" → "O que entrou" → "Como mudou ao longo dos anos" → bloco **"Para fiscalizar"**
+- **And** o bloco "Para fiscalizar" agrupa, nesta ordem, as emendas, "Como o Fundo contrata", "Ver todos os contratos" e "Quem recebe o dinheiro da educação", com um `h2` e uma frase em linguagem comum dizendo para quem serve (por exemplo, quem quer conferir contrato por contrato)
+- **And** o conteúdo interno de cada seção fica idêntico ao da 24.12 (mesmos números, textos, tabelas, "Ver detalhes" e links de lei e fonte)
+
+*Recolhido por padrão*
+- **And** cada seção do bloco "Para fiscalizar" fica recolhida por padrão (padrão `<details>`/`summary`, acessível por teclado e leitor de tela), com o título e **um resumo com número visível mesmo recolhida** (por exemplo, a contagem de contratos e o total autorizado em emendas), calculado na camada `@transparencia/db`, nunca fixo no componente (Regra 23)
+- **And** com o bloco recolhido, nenhum dado some da leitura para quem usa leitor de tela ou impressão: o estado é anunciado e a impressão abre tudo
+- **And** o link de âncora para uma seção recolhida (por exemplo, vindo de um alerta ou de `llms.txt`) a abre ao chegar
+
+*Âncoras*
+- **And** uma linha de âncoras logo abaixo do topo ("Aprendizado · De onde vem · Para onde vai · Para fiscalizar") leva a cada seção; só aparecem as seções que existem para o portal; os rótulos vêm do contrato visual (`EXPERIENCE.md`) e não criam uma segunda navegação concorrente com o menu do portal
+
+*Ressalva de ano em andamento*
+- **And** a ressalva do ano em andamento é dita **uma vez**, em destaque, perto do `eyebrow` do topo (o que o portal já marca como parcial, com o período dinâmico, sem ano ou mês fixo)
+- **And** nos cards e seções restantes, o estado fica só como rótulo curto "parcial", sem repetir o parágrafo; onde a ressalva muda o sentido da leitura (veredito suspenso do mínimo, IDEB do ano em curso), o texto mantém a frase necessária para não induzir o cidadão a ler valor parcial como ano fechado
+
+*Emendas*
+- **And** o aviso "O dinheiro das emendas chegou?" fica mais curto, sem perder a resposta honesta à pergunta (autorizado, contemplado e empenhado, e onde conferir); `EmendasSection` é compartilhado e a mudança vale para as outras páginas que o usam, com teste de regressão
+
+*Siglas*
+- **And** na primeira ocorrência de cada sigla no corpo da página, o nome comum vem junto (por exemplo, "merenda escolar (PNAE)", "transporte escolar (PNATE)"); a sigla oficial e a lei seguem em "Ver detalhes" e na linha "Leis:"
+
+*Qualidade*
+- **And** os textos passam pelo `editor-cidadao` (Creuza); a ordem e o resumo recolhido passam por conferência de dados (Mary) e do `contador-publico` quanto aos números do resumo
+- **And** sem literais de tenant, UF ou ano (Regra 23), nomes de métricas explícitos (Regra 9), sem ternários aninhados (Regra 13), tokens de cor nos temas claro e escuro, mono só em `table` e `numeric`
+- **And** specs de página, `llms.txt`, `llms-full.txt` e CHANGELOG atualizados; teste de que nenhum bloco existente da 24.12 desapareceu (mesmos títulos e mesmos números, só posição e estado inicial)
+
+**Fora do escopo:** trocar "liquidado" por "entregue" ou renomear os estágios da despesa (decisão do Julio em 2026-11-04); novos dados ou indicadores; mudar os cálculos das stories 24.4 a 24.10; estender o padrão a outras páginas (`/saude` pode reaproveitar depois); teste de usabilidade com cidadãos (recomendado fora da story: duas ou três pessoas de fora da área).
+
+**Dependências:** Story 24.12 (precisa estar `done` e com merge, porque a 24.13 muda a ordem das seções que ela entrega).
 
 ---
 
@@ -3371,7 +3564,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.5: Emendas da Saúde: Conferência entre o Portal Municipal e a Fonte Federal (esboço)
 
-**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 24.8.
+**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 25.7.
 
 **Dependências:** Story 25.1.
 
@@ -3382,6 +3575,43 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 **Status:** esboço. Só entram os indicadores que a 25.1 provar que têm fonte oficial recorrente, série e régua (candidatos: procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais por habitante). Fila de espera só se houver fonte aberta. O que não passar vai para o backlog com o motivo registrado.
 
 **Dependências:** Story 25.1.
+
+### Story 25.7: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
+
+As a citizen,  
+I want to see how much parliamentary-amendment money for education reached my city and in which stage it is, according to both the municipal portal and the federal source,  
+So that a delay in the municipal records is not read as money that stopped.
+
+**Origem:** era a Story 24.8, movida para a Epic 25 em 2026-11-04 porque depende do método da 25.1 e da 25.5. Story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
+
+**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
+
+**Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
+
+**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado). Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
+
+---
+
+## Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)
+
+Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um schema por fonte" (por exemplo `raw_siope`, `raw_siconfi`, `raw_fiorilli`), com `portal_slug` como coluna e parte da chave primária de cada tabela. Origem: decisão do Julio em 2026-11-01, por escalabilidade: com os municípios do Brasil, um schema raw por município (dezenas de tabelas cada) pesa no catálogo do Postgres, no `pg_dump`, nas migrações e nos `source` do dbt.
+
+**Estado de partida (verificado no banco local em 2026-11-01):** já seguem o padrão por fonte `raw_farmacia_sus`, `raw_pncp` e `raw_obrasgov`. Seguem o padrão por município `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` (22 tabelas cada), onde `elt/load/siope.py` e `elt/load/siconfi.py` também gravam, e o staging do SIOPE (Story 24.2) é por portal (`stg_<portal>__siope_indicadores`).
+
+**Regra para as demais epics:** toda fonte nova (inclusive a Epic 25) nasce no padrão por fonte, com `portal_slug` na chave. A migração do legado fica nesta epic.
+
+**Princípio de desenho:** o schema é da **fonte** (por exemplo o fornecedor do portal municipal), não do município, porque municípios com fornecedores diferentes têm estruturas diferentes.
+
+**Riscos e cuidados:** mudança de chave primária e `full-refresh` (mesma natureza da pendência de migração da Epic 19); paridade de dados antes e depois (mesmos totais por portal); recarga isolada por portal (apagar só `where portal_slug = ...`); ajuste dos modelos dbt, das fontes e da fixture `schema.sql.gz` (Regra 21); plano de reversão; qualquer carga ou migração em produção só com autorização explícita (Regra 15). Os modelos `int_*_consolidadas.sql`, que hoje unem schemas por município, deixam de ser necessários (Regra 23).
+
+**Stories (esboço, detalhar antes de executar):**
+- **(feito na Epic 24, Story 24.9)** O SIOPE já migra para `raw_siope` lá, para a branch da Epic 24 não depender desta epic. Serve de modelo para as demais.
+- **26.1 Siconfi (MSC Patrimonial) em schema por fonte.** Mover `siconfi_msc_patrimonial` para `raw_siconfi` com `portal_slug` na chave e trocar o staging por um modelo único da fonte, repetindo o método da 24.9 com teste de paridade.
+- **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
+- **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
+- **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+
+**Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
 
 ---
 

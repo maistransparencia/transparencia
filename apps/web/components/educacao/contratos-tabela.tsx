@@ -13,6 +13,7 @@ import {
   educacaoDtoToContratoServicoVigente,
   formatStatusExecucaoLabel,
 } from "./educacao-contratos-utils";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface ContratosTabelaProps {
   contratos: EducacaoContratoDTO[];
@@ -155,13 +156,7 @@ export function ContratosTabela({
       <p className="caption">
         {fmtPercent(row.percentualPago)} do empenhado já foi pago.
       </p>
-      <button
-        type="button"
-        onClick={() => onOpenContrato(row.rawDto)}
-        className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
-      >
-        Ver detalhes
-      </button>
+      <VerDetalhesLink onClick={() => onOpenContrato(row.rawDto)} />
     </div>
   );
 

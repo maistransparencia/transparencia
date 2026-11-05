@@ -336,7 +336,7 @@ Todos: serif, bold, `tabular-nums`, `{colors.ink}`. `stat-value-lg` com `leading
 
 O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio entra pela variável `--panel-radius` se o formato mudar. `table` e linhas sem raio. **Controles têm leve arredondamento** (`rounded-md`, `{rounded.md}`): botões (ver `button`), campos e seletores. Blocos de conteúdo (`panel`, `alert-box`, `table`) e dados (barras) continuam quadrados.
 
-**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
+**Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Com marcador de mínimo ou meta, use `ThresholdMeter` (`packages/ui`). Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
 
 ## Components
 
@@ -413,6 +413,10 @@ Cabeçalho de seção, em `packages/ui` (`SectionHeader`): filete de 2px `{color
 - **Eyebrow:** escopo ou contagem da seção ("18 emendas · exercício 2026"), nunca um selo.
 - **Ação:** link curto à direita do título, sem botão. Com `eyebrow`, a ação é compacta e fica na linha do título.
 - O espaço do cabeçalho até o primeiro bloco é do contêiner (`section`).
+
+### `collapsible-section`
+
+`CollapsibleSection` em `packages/ui`: mesma abertura do `section-header` (filete de 2px `{colors.ink}` no topo e título `h2` serifado), com chevron de 16px à esquerda e o resumo numérico logo abaixo do título em `{typography.body}` de 14px, `{colors.mute}`. A área do `summary` tem 44px de altura mínima e usa o `{colors.focus-ring}` no foco. O corpo aberto mantém o ritmo da `section`.
 
 ### `ModalDialog`
 

@@ -5,6 +5,7 @@ import type {
   GrupoFonteRecursoEducacao,
 } from "@transparencia/db";
 import {
+  cn,
   fmtCompact,
   Indicator,
   IndicatorPanel,
@@ -13,11 +14,26 @@ import {
 import { useState } from "react";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
-  formatMesPorExtenso,
   formatPercentualInteiro,
   ORDEM_FONTES_RECURSO,
   ROTULO_FONTE_RECURSO,
 } from "./fonte-recurso-utils";
+import { VerDetalhesLink } from "./ver-detalhes-link";
+
+/** Só as maiores fontes têm cor própria; o resto soma num segmento cinza, então nenhuma cor se repete. */
+const PREENCHIMENTOS_MAIORES_FONTES = [
+  "bg-brand-fill",
+  "bg-ok-fill",
+  "bg-warn-fill",
+];
+const PREENCHIMENTO_DEMAIS_FONTES = "bg-mute3";
+
+interface SegmentoComposicao {
+  chave: string;
+  rotulo: string;
+  percentual: number;
+  preenchimento: string;
+}
 
 export interface EducacaoOrigemRecursosSectionProps {
   origemRecursos: EducacaoOrigemRecursosDTO;
@@ -43,6 +59,53 @@ export function EducacaoOrigemRecursosSection({
     null,
   );
 
+  const comValor = [...fontes]
+    .filter((fonte) => fonte.totalArrecadado > 0)
+    .sort((a, b) => b.totalArrecadado - a.totalArrecadado);
+  const maioresFontes = comValor.slice(0, PREENCHIMENTOS_MAIORES_FONTES.length);
+  const demaisFontes = comValor.slice(PREENCHIMENTOS_MAIORES_FONTES.length);
+
+  const segmentos: SegmentoComposicao[] = (() => {
+    const maiores = maioresFontes.map((fonte, indice) => ({
+      chave: fonte.grupoFonte,
+      rotulo: ROTULO_FONTE_RECURSO[fonte.grupoFonte],
+      percentual: fonte.percentualTotal,
+      preenchimento: PREENCHIMENTOS_MAIORES_FONTES[indice],
+    }));
+    if (demaisFontes.length === 0) return maiores;
+    return [
+      ...maiores,
+      {
+        chave: "demais",
+        rotulo: "Demais fontes",
+        percentual: demaisFontes.reduce(
+          (soma, fonte) => soma + fonte.percentualTotal,
+          0,
+        ),
+        preenchimento: PREENCHIMENTO_DEMAIS_FONTES,
+      },
+    ];
+  })();
+
+  /** Da maior para a menor; as sem receita ficam no fim, na ordem de sempre. */
+  const gruposPorValor = [...ORDEM_FONTES_RECURSO].sort(
+    (a, b) =>
+      (fontes.find((fonte) => fonte.grupoFonte === b)?.totalArrecadado ?? -1) -
+      (fontes.find((fonte) => fonte.grupoFonte === a)?.totalArrecadado ?? -1),
+  );
+
+  /** Mesma cor da barra: as maiores com cor própria, as demais em cinza. */
+  const preenchimentoPorFonte = new Map<string, string>([
+    ...maioresFontes.map((fonte, indice): [string, string] => [
+      fonte.grupoFonte,
+      PREENCHIMENTOS_MAIORES_FONTES[indice],
+    ]),
+    ...demaisFontes.map((fonte): [string, string] => [
+      fonte.grupoFonte,
+      PREENCHIMENTO_DEMAIS_FONTES,
+    ]),
+  ]);
+
   const description = (() => {
     if (semReceitas) {
       return undefined;
@@ -53,9 +116,6 @@ export function EducacaoOrigemRecursosSection({
         ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm da fonte "${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}". Veja de onde veio cada parte.`
         : "",
       "Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo.",
-      parcial && mesReferencia !== null
-        ? `Ano em andamento: valores acumulados até ${formatMesPorExtenso(mesReferencia)}.`
-        : "",
     ];
     return partes.filter(Boolean).join(" ");
   })();
@@ -73,45 +133,90 @@ export function EducacaoOrigemRecursosSection({
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
-        <IndicatorPanel columns={4} size="sm">
-          {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
-            const fonte = fontes.find((item) => item.grupoFonte === grupoFonte);
-            const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
-            if (!fonte) {
+        <>
+          <div className="space-y-2">
+            <div
+              role="img"
+              data-testid="composicao-recursos-bar"
+              aria-label={`Composição do que entrou: ${segmentos.map((segmento) => `${segmento.rotulo} ${formatPercentualInteiro(segmento.percentual)}`).join(", ")}`}
+              className="flex h-4 w-full bg-track"
+            >
+              {segmentos.map((segmento) => (
+                <span
+                  key={segmento.chave}
+                  className={cn(
+                    "block h-full border-page border-r-2 last:border-r-0",
+                    segmento.preenchimento,
+                  )}
+                  style={{ width: `${Math.max(0, segmento.percentual)}%` }}
+                />
+              ))}
+            </div>
+            <ul className="caption flex flex-wrap gap-x-4 gap-y-1">
+              {segmentos.map((segmento) => (
+                <li key={segmento.chave} className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className={cn("size-2.5 shrink-0", segmento.preenchimento)}
+                  />
+                  <span className="leading-none">
+                    {segmento.rotulo} ·{" "}
+                    {formatPercentualInteiro(segmento.percentual)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <IndicatorPanel columns={4} twoColumnsOnMobile size="sm">
+            {gruposPorValor.map((grupoFonte) => {
+              const fonte = fontes.find(
+                (item) => item.grupoFonte === grupoFonte,
+              );
+              const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
+              const preenchimento = preenchimentoPorFonte.get(grupoFonte);
+              const rotuloComCor = preenchimento ? (
+                <span className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className={cn("size-2.5 shrink-0", preenchimento)}
+                  />
+                  <span>{rotulo}</span>
+                </span>
+              ) : (
+                rotulo
+              );
+              if (!fonte) {
+                return (
+                  <Indicator
+                    key={grupoFonte}
+                    label={rotulo}
+                    value="—"
+                    note="sem receita no exercício"
+                  />
+                );
+              }
               return (
                 <Indicator
                   key={grupoFonte}
-                  label={rotulo}
-                  value="—"
-                  note="sem receita no exercício"
+                  label={rotuloComCor}
+                  value={fmtCompact(fonte.totalArrecadado)}
+                  note={
+                    <>
+                      {formatPercentualInteiro(fonte.percentualTotal)} do que
+                      entrou{parcial ? " · parcial" : ""}
+                      <VerDetalhesLink
+                        context={rotulo}
+                        testId={`fonte-card-${grupoFonte}`}
+                        onClick={() => setFonteAberta(grupoFonte)}
+                        className="mt-2"
+                      />
+                    </>
+                  }
                 />
               );
-            }
-            return (
-              <Indicator
-                key={grupoFonte}
-                label={rotulo}
-                value={fmtCompact(fonte.totalArrecadado)}
-                note={
-                  <>
-                    {formatPercentualInteiro(fonte.percentualTotal)} do que
-                    entrou{parcial ? " · parcial" : ""}
-                    {" · "}
-                    <button
-                      type="button"
-                      data-testid={`fonte-card-${grupoFonte}`}
-                      aria-label={`Ver detalhes: ${rotulo}`}
-                      onClick={() => setFonteAberta(grupoFonte)}
-                      className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
-                    >
-                      Ver detalhes
-                    </button>
-                  </>
-                }
-              />
-            );
-          })}
-        </IndicatorPanel>
+            })}
+          </IndicatorPanel>
+        </>
       )}
 
       <FonteRecursoModal

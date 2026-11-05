@@ -25,6 +25,8 @@ import type {
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { LeiLink, LinhaLeiEFonte } from "./educacao-textos";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface EducacaoHistoricoSectionProps {
   historico: {
@@ -291,16 +293,37 @@ export function EducacaoHistoricoSection({
             <span className="sr-only">(abre em nova aba)</span>
           </a>
         </AlertBox>
+
+        {pontoMaisRecente && (
+          <IndicatorPanel columns={3} size="sm">
+            <Indicator
+              label="SAEB — Língua Portuguesa"
+              value={formatarSaeb(pontoMaisRecente.saebLinguaPortuguesa)}
+              note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
+            />
+            <Indicator
+              label="SAEB — Matemática"
+              value={formatarSaeb(pontoMaisRecente.saebMatematica)}
+              note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
+            />
+            <Indicator
+              label="Taxa de aprovação escolar"
+              value={
+                pontoMaisRecente.taxaAprovacao === null
+                  ? "—"
+                  : `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`
+              }
+              note="alunos aprovados no ano"
+            />
+          </IndicatorPanel>
+        )}
       </div>
 
       <div>
-        <button
-          type="button"
+        <VerDetalhesLink
+          context="IDEB"
           onClick={() => setDetalhesAberto(true)}
-          className="min-h-11 cursor-pointer font-medium text-brand-text underline underline-offset-2"
-        >
-          Ver detalhes
-        </button>
+        />
       </div>
 
       <ModalDialog
@@ -310,35 +333,21 @@ export function EducacaoHistoricoSection({
         subtitle={currentHistorico.label}
         maxWidth="3xl"
         showShareButton={false}
+        footer={
+          <LinhaLeiEFonte
+            source={
+              <LeiLink
+                label="INEP: Nota Informativa do Ideb"
+                url={NOTA_INFORMATIVA_IDEB_URL}
+              />
+            }
+          />
+        }
       >
         <div className="space-y-6">
-          {pontoMaisRecente && (
-            <IndicatorPanel columns={3} size="sm">
-              <Indicator
-                label="SAEB — Língua Portuguesa"
-                value={formatarSaeb(pontoMaisRecente.saebLinguaPortuguesa)}
-                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
-              />
-              <Indicator
-                label="SAEB — Matemática"
-                value={formatarSaeb(pontoMaisRecente.saebMatematica)}
-                note={`nota na prova do Saeb · ${pontoMaisRecente.ano}`}
-              />
-              <Indicator
-                label="Taxa de aprovação escolar"
-                value={
-                  pontoMaisRecente.taxaAprovacao === null
-                    ? "—"
-                    : `${pontoMaisRecente.taxaAprovacao.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`
-                }
-                note="alunos aprovados no ano"
-              />
-            </IndicatorPanel>
-          )}
-
           <section aria-label="Como ler a meta do IDEB" className="space-y-3">
             <h3>Como ler a meta do IDEB</h3>
-            <p className="text-mute">
+            <p className="text-mute text-sm">
               O MEC/INEP define a meta do IDEB separadamente para cada rede de
               ensino de cada município, a partir do ponto de partida da rede.
               Por isso municípios diferentes, e redes diferentes dentro do mesmo
@@ -346,22 +355,12 @@ export function EducacaoHistoricoSection({
               metas diferentes. Compare a nota sempre com a meta da mesma rede.
             </p>
             {currentHistorico.anosSemMeta.length > 0 && (
-              <p className="text-mute">
+              <p className="text-mute text-sm">
                 {currentHistorico.ultimoAnoComMeta !== null &&
                   `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
                 Os resultados de {formatarAnos(currentHistorico.anosSemMeta)}{" "}
                 não têm metas definidas pelo INEP e podem ser comparados com os
-                anos anteriores.{" "}
-                <a
-                  href={NOTA_INFORMATIVA_IDEB_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-brand-text underline underline-offset-2"
-                >
-                  Fonte: Nota Informativa do Ideb 2025
-                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                  <span className="sr-only">(abre em nova aba)</span>
-                </a>
+                anos anteriores.
               </p>
             )}
           </section>

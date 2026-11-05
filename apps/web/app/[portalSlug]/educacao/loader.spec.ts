@@ -15,6 +15,8 @@ vi.mock("@transparencia/db", () => ({
   getEducacaoEmendasMetrics: vi.fn(),
   getEducacaoOrigemRecursos: vi.fn(),
   getEducacaoExecucaoAnual: vi.fn(),
+  getEducacaoSiope: vi.fn(),
+  getEducacaoMatriculas: vi.fn(),
   getTopFornecedoresEducacaoMetrics: vi.fn(),
   getEducacaoRankingEstadual: vi.fn(),
 }));
@@ -186,6 +188,8 @@ describe("educacao/loader", () => {
         posicaoRanking: 46,
         totalMunicipios: 92,
         variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        totalMunicipiosCicloAnterior: 92,
       });
 
       const data = await loadEducacaoData("porciuncula_prefeitura", {
@@ -218,6 +222,14 @@ describe("educacao/loader", () => {
       expect(data.origemRecursos?.nomeOrgao).toBe(
         "Fundo Municipal de Educação",
       );
+      expect(dbModule.getEducacaoSiope).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
+      expect(dbModule.getEducacaoMatriculas).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
       expect(dbModule.getEducacaoOrigemRecursos).toHaveBeenCalledWith({
         portalSlug: "porciuncula_prefeitura",
         ano: 2025,

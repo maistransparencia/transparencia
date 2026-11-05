@@ -256,6 +256,29 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    matriculas: null,
+    siope: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2025,
+      atual: null,
+      minimos: {
+        mde: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+        fundebProfissionais: {
+          limite: null,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+          baseLegal: null,
+          urlBaseLegal: null,
+        },
+      },
+      serie: [],
+    },
     origemRecursos: null,
     execucaoAnual: [
       {
@@ -286,6 +309,8 @@ function makeRawEducacaoData(
       posicaoRanking: 46,
       totalMunicipios: 92,
       variacaoPosicoes: 43,
+      anoCicloAnterior: 2023,
+      totalMunicipiosCicloAnterior: 92,
     },
     rankingAnosFinais: null,
     searchParams: {},
@@ -308,18 +333,51 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
-      /A Prefeitura reservou R\$ 36,0 mi em educação em 2025 e pagou R\$ 32,0 mi\./,
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Educação em 2025",
     );
+
+    const destaque = screen.getByRole("region", {
+      name: "Destaques da educação",
+    });
+    expect(
+      within(destaque).getByText(
+        "A Prefeitura aplica o mínimo exigido em educação?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(destaque).getByText("As crianças estão aprendendo?"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Quanto do Fundeb vai para os profissionais da educação?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Quanto a Prefeitura investe por aluno?"),
+    ).toBeInTheDocument();
+    const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
+      .getAllByRole("term")
+      .map((termo) => termo.textContent);
+    expect(etapasDoGasto).toEqual([
+      "Reservado (empenhado) no ano",
+      "Serviço ou produto entregue (liquidado)",
+      "Dinheiro que saiu (pago)",
+    ]);
 
     const titulos = screen
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
-      "Como mudou ao longo dos anos",
-      "Como o Fundo contrata",
-      "Quem recebe o dinheiro da educação",
+      "Quanto do Fundeb vai para os profissionais da educação?",
+      "Quantos alunos a rede tem e quanto se investe em cada um?",
+      "Quanto do que a Prefeitura reservou para a educação já foi pago?",
       "Aprendizado dos alunos",
+      "Como mudou ao longo dos anos",
+      "Para fiscalizar",
+      "Como o Fundo contrata",
+      "Ver todos os contratos",
+      "Quem recebe o dinheiro da educação",
     ]);
 
     expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();
@@ -327,6 +385,7 @@ describe("EducacaoPage (Server Component)", () => {
       screen.queryByText("Painel de Responsabilidade Fiscal da Educação"),
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("contrato-row-0443/25")).toBeInTheDocument();
+    expect(screen.queryByText("Contratos do Fundo")).not.toBeInTheDocument();
   });
 
   it("mostra a nota do IDEB, a meta e a classificação por etapa em Aprendizado dos alunos", async () => {
@@ -346,8 +405,176 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(secao).getByText("5,9")).toBeInTheDocument();
     expect(within(secao).getByText("46º")).toBeInTheDocument();
     expect(
-      within(secao).getByText("entre 92 redes municipais"),
+      within(secao).getByText(/entre 92 redes municipais/),
     ).toBeInTheDocument();
+    expect(
+      within(secao).getByText(/ciclo anterior 4,5 em 2023, subiu 1,4 pontos/),
+    ).toBeInTheDocument();
+    expect(
+      within(secao).getByText(/subiu 43 posições desde o ciclo anterior/),
+    ).toBeInTheDocument();
+    expect(secao.textContent).not.toMatch(/ano anterior/i);
+  });
+
+  it("compara só as redes avaliadas nos dois ciclos e diz qual é a base", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: 5,
+          redesComparadas: 90,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 90,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(
+      within(secao).getByText(
+        /subiu 5 posições desde o ciclo anterior \(entre as 90 redes avaliadas nos dois ciclos\)/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      "diz que a posição do ciclo anterior não está disponível quando há nota anterior",
+      { variacaoPosicoes: null, redesComparadas: null },
+      /a posição do ciclo anterior não está disponível para comparar/,
+    ],
+    [
+      "diz a base quando só saíram redes do ciclo anterior",
+      {
+        variacaoPosicoes: 2,
+        redesComparadas: 92,
+        totalMunicipiosCicloAnterior: 95,
+      },
+      /subiu 2 posições desde o ciclo anterior \(entre as 92 redes avaliadas nos dois ciclos\)/,
+    ],
+  ])("%s", async (_descricao, ranking, texto) => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          anoCicloAnterior: 2023,
+          totalMunicipiosCicloAnterior: 92,
+          ...ranking,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    expect(within(secao).getByText(texto)).toBeInTheDocument();
+  });
+
+  describe("variação ao lado do valor", () => {
+    const renderizar = async (variacaoPosicoes: number) => {
+      loadEducacaoDataMock.mockResolvedValue(
+        makeRawEducacaoData({
+          rankingAnosIniciais: {
+            posicaoRanking: 46,
+            totalMunicipios: 92,
+            variacaoPosicoes,
+            redesComparadas: 92,
+            anoCicloAnterior: 2023,
+            totalMunicipiosCicloAnterior: 92,
+          },
+        }),
+      );
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
+      const secao = container.querySelector(
+        'section[aria-label="Aprendizado dos alunos"]',
+      ) as HTMLElement;
+      // Primeiro painel (anos iniciais): o <dd> do valor vem logo depois do <dt>.
+      const valorDe = (rotulo: string) =>
+        Array.from(secao.querySelectorAll("dt")).find(
+          (dt) => dt.textContent === rotulo,
+        )?.nextElementSibling as HTMLElement;
+      return {
+        secao,
+        nota: valorDe("Nota do IDEB"),
+        posicao: valorDe("Classificação entre as redes municipais do estado"),
+      };
+    };
+
+    it("nota que subiu fica verde e posição que caiu fica vermelha", async () => {
+      const { nota, posicao } = await renderizar(-3);
+      expect(nota.querySelector(".text-ok-text")?.textContent).toBe("1,4");
+      expect(nota.querySelector(".text-danger-text")).toBeNull();
+      expect(posicao.querySelector(".text-danger-text")?.textContent).toBe("3");
+      expect(posicao.querySelector(".text-ok-text")).toBeNull();
+    });
+
+    it("posição que subiu fica verde", async () => {
+      const { posicao } = await renderizar(4);
+      expect(posicao.querySelector(".text-ok-text")?.textContent).toBe("4");
+      expect(posicao.querySelector(".text-danger-text")).toBeNull();
+    });
+
+    it("não mostra nada ao lado da posição quando ela não mudou", async () => {
+      const { posicao } = await renderizar(0);
+      expect(posicao.querySelector(".text-ok-text")).toBeNull();
+      expect(posicao.querySelector(".text-danger-text")).toBeNull();
+    });
+
+    it("põe Meta depois da classificação", async () => {
+      const { secao } = await renderizar(1);
+      const rotulos = Array.from(secao.querySelectorAll("dt")).map(
+        (dt) => dt.textContent,
+      );
+      expect(rotulos.slice(0, 3)).toEqual([
+        "Nota do IDEB",
+        "Classificação entre as redes municipais do estado",
+        "Meta do MEC para 2025",
+      ]);
+    });
+  });
+
+  it("mantém o hero no topo e põe o aprendizado logo depois, antes das seções financeiras", async () => {
+    loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const secao = screen.getByRole("region", {
+      name: "Aprendizado dos alunos",
+    });
+    const hero = screen.getByRole("heading", { level: 1 });
+    const financeira = screen.getByRole("heading", {
+      level: 2,
+      name: "Como mudou ao longo dos anos",
+    });
+    expect(
+      hero.compareDocumentPosition(secao) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      secao.compareDocumentPosition(financeira) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("abre automaticamente o modal padronizado via deep link (?contratoNumero=0443/25)", async () => {
@@ -394,7 +621,11 @@ describe("EducacaoPage (Server Component)", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
     );
-    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalhes" })[0]);
+    const botoesDetalhes = screen.getAllByRole("button", {
+      name: "Ver detalhes",
+    });
+    // O primeiro "Ver detalhes" da página é o do histórico do IDEB (aprendizado).
+    fireEvent.click(botoesDetalhes[botoesDetalhes.length - 1]);
 
     expect(screen.getByTestId("contrato-detalhes-modal")).toBeInTheDocument();
 
@@ -449,7 +680,7 @@ describe("EducacaoPage (Server Component)", () => {
     expect(btnIniciais).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("abre Detalhes do IDEB com SAEB e aprovação em indicadores dentro de um panel", async () => {
+  it("mostra SAEB e aprovação abaixo do aviso e deixa só o texto em Detalhes do IDEB", async () => {
     loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
 
     render(
@@ -462,19 +693,15 @@ describe("EducacaoPage (Server Component)", () => {
     const secao = screen.getByRole("region", {
       name: "Aprendizado dos alunos",
     });
+    expect(within(secao).getByText("SAEB — Língua Portuguesa")).toBeTruthy();
+    expect(within(secao).getByText("SAEB — Matemática")).toBeTruthy();
+    expect(within(secao).getByText("Taxa de aprovação escolar")).toBeTruthy();
     fireEvent.click(
-      within(secao).getByRole("button", { name: "Ver detalhes" }),
+      within(secao).getByRole("button", { name: "Ver detalhes: IDEB" }),
     );
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("Detalhes do IDEB")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("SAEB — Língua Portuguesa"),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("SAEB — Matemática")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("Taxa de aprovação escolar"),
-    ).toBeInTheDocument();
-    expect(dialog.querySelector(".panel dl")).not.toBeNull();
+    expect(within(dialog).queryByText("SAEB — Matemática")).toBeNull();
     expect(
       within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
     ).toBeInTheDocument();
@@ -490,7 +717,11 @@ describe("EducacaoPage (Server Component)", () => {
 
     render(PageComponent);
 
-    fireEvent.click(screen.getByTestId("categoria-card-transporte_pnate"));
+    fireEvent.click(
+      within(screen.getByTestId("categoria-card-transporte_pnate")).getByRole(
+        "button",
+      ),
+    );
     const dialog = screen.getByRole("dialog");
     expect(
       within(dialog).getAllByText("VIACAO ESCOLAR LTDA").length,
@@ -578,6 +809,45 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Saúde"),
     ).not.toBeInTheDocument();
+    expect(screen.getByTestId("emendas-resumo-educacao")).toBeInTheDocument();
+    const secaoEmendas = document.querySelector("section#emendas-educacao");
+    expect(secaoEmendas?.querySelector("details")).not.toHaveAttribute("open");
+    expect(secaoEmendas).toHaveTextContent(/1 emenda · .* autorizados/);
+    expect(
+      document.querySelector('a[href="#emendas-educacao"]'),
+    ).not.toBeNull();
+    expect(screen.getByText(/emenda por emenda/)).toBeInTheDocument();
+  });
+
+  it("mostra Alunos na rede municipal com o ano real do Censo quando há matrículas", async () => {
+    loadEducacaoDataMock.mockResolvedValue(
+      makeRawEducacaoData({
+        matriculas: {
+          portalSlug: "porciuncula_prefeitura",
+          anoCenso: 2024,
+          matriculasEducacaoInfantil: 668,
+          matriculasEnsinoFundamental: 1303,
+          matriculasEducacaoBasica: 1971,
+        },
+      }),
+    );
+    render(
+      await EducacaoPage({
+        params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(screen.getByText("Alunos na rede municipal")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver detalhes: alunos na rede municipal",
+      }),
+    );
+    expect(
+      within(screen.getByRole("dialog")).getByText(/Censo Escolar 2024, INEP/, {
+        selector: "span",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("omite a seção de emendas quando não há emendas da Educação", async () => {
@@ -657,5 +927,86 @@ describe("EducacaoPage (Server Component)", () => {
         name: "De onde vem o dinheiro da Educação",
       }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("hierarquia: para entender e para fiscalizar", () => {
+    const renderizar = async (
+      searchParams: Record<string, string> = {},
+    ): Promise<HTMLElement> => {
+      loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve(searchParams),
+        }),
+      );
+      return container;
+    };
+
+    it("as seções de fiscalização nascem recolhidas, com resumo visível", async () => {
+      const container = await renderizar();
+      const secoes = [
+        "contratos-educacao",
+        "todos-contratos-educacao",
+        "fornecedores-educacao",
+      ];
+      secoes.forEach((id) => {
+        const details = container.querySelector(`section#${id} details`);
+        expect(details).not.toBeNull();
+        expect(details).not.toHaveAttribute("open");
+      });
+      expect(
+        screen.getByText(
+          /contratos? vigentes? em \d+ tipos? de gasto · .* contratados/,
+        ),
+      ).toBeVisible();
+    });
+
+    it("sem emendas, a seção de emendas não aparece", async () => {
+      const container = await renderizar();
+      expect(container.querySelector("#emendas-educacao")).toBeNull();
+    });
+
+    it("o deep link ?contratoNumero= abre a lista de contratos recolhida", async () => {
+      const container = await renderizar({ contratoNumero: "0443/25" });
+      expect(
+        container.querySelector("section#todos-contratos-educacao details"),
+      ).toHaveAttribute("open");
+    });
+
+    it("o bloco Para fiscalizar vem depois de Como mudou e traz a frase de para quem serve", async () => {
+      const container = await renderizar();
+      const evolucao = container.querySelector("#evolucao-educacao");
+      const fiscalizar = container.querySelector("#para-fiscalizar");
+      expect(evolucao).not.toBeNull();
+      expect(
+        (evolucao as Element).compareDocumentPosition(fiscalizar as Element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(
+        within(fiscalizar as HTMLElement).getByText(/Para quem quer conferir/),
+      ).toBeInTheDocument();
+    });
+
+    it("a ressalva de comparação com anos fechados aparece uma vez", async () => {
+      loadEducacaoDataMock.mockResolvedValue(
+        makeRawEducacaoData({
+          context: {
+            selectedYear: 2025,
+            isCurrentYear: true,
+            selectedEtapa: "anosIniciais",
+          },
+        }),
+      );
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
+      const ocorrencias =
+        container.textContent?.match(/não dá para compará-los com anos/g) ?? [];
+      expect(ocorrencias).toHaveLength(1);
+    });
   });
 });

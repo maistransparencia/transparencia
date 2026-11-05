@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-10-31
+last_updated: 2026-11-04
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -245,15 +245,19 @@ development_status:
   epic-23: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
 
-  epic-24: backlog
-  24-1-ingestao-do-relatorio-gerencial-do-siope: backlog
-  24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: backlog
-  24-3-contratos-de-dados-do-siope-em-transparencia-db: backlog
-  24-4-valor-por-aluno-na-pagina-de-educacao: backlog
-  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: backlog
-  24-6-total-de-alunos-com-fonte-verificada-inep: backlog
-  24-7-aprendizado-no-topo-da-pagina-de-educacao: backlog
-  24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
+  epic-24: done
+  24-1-ingestao-do-relatorio-gerencial-do-siope: done
+  24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
+  24-3-contratos-de-dados-do-siope-em-transparencia-db: done
+  24-4-valor-por-aluno-na-pagina-de-educacao: done
+  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: done
+  24-6-total-de-alunos-com-fonte-verificada-inep: done
+  24-7-aprendizado-no-topo-da-pagina-de-educacao: done
+  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
+  24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
+  24-11-tres-respostas-no-topo-da-pagina-de-educacao: done
+  24-12-refino-visual-da-pagina-de-educacao-hero-com-barra-do-minimo-e-leis-e-fontes-em-destaque: done
+  24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: done
   epic-24-retrospective: optional
 
   epic-25: backlog
@@ -263,4 +267,10 @@ development_status:
   25-4-de-onde-vem-o-dinheiro-da-saude: backlog
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-6-producao-da-rede-e-fila-de-espera: backlog
+  25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   epic-25-retrospective: optional
+
+  epic-26: backlog
+  26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
+  26-2-inventario-e-plano-de-migracao-do-legado: backlog
+  epic-26-retrospective: optional
