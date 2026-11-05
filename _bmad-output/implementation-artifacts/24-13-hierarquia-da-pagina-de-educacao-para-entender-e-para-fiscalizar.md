@@ -2,7 +2,7 @@
 title: 'Hierarquia da página de educação: "para entender" e "para fiscalizar"'
 type: 'feature'
 created: '2026-11-04'
-status: 'in-progress'
+status: 'done'
 baseline_commit: '2cd14c7f92d276051d9179af3137a676ee32c749'
 epic: 24
 story: '24.13'
