@@ -177,7 +177,7 @@ export function EducacaoIndicadoresApoio({
                       style={{ flex: alunosRede.educacaoInfantil }}
                     />
                     <span
-                      className="bg-ok-fill"
+                      className="bg-ink"
                       style={{ flex: alunosRede.ensinoFundamental }}
                     />
                   </span>
@@ -190,7 +190,7 @@ export function EducacaoIndicadoresApoio({
                     infantil e{" "}
                     <span
                       aria-hidden="true"
-                      className="mr-1.5 inline-block size-2.5 bg-ok-fill"
+                      className="mr-1.5 inline-block size-2.5 bg-ink"
                     />
                     {fmtNumber(alunosRede.ensinoFundamental)} no ensino
                     fundamental

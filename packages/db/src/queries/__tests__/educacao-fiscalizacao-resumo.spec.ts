@@ -10,7 +10,10 @@ describe("resumirFiscalizacaoEducacao", () => {
         totalEmpenhado: 500_000,
         totalRecebidoFundo: 1_000_000,
       },
-      contratos: [{ valorContrato: 100 }, { valorContrato: 250.5 }],
+      contratos: [
+        { valorContrato: 100, categoria: "merenda" },
+        { valorContrato: 250.5, categoria: "transporte" },
+      ] as never,
       topFornecedores: [{ totalPago: 40 }, { totalPago: 60 }],
     });
     expect(resumo).toEqual({
@@ -22,7 +25,11 @@ describe("resumirFiscalizacaoEducacao", () => {
         percentualConfirmadaNaReceita: 50,
         percentualEmpenhado: 25,
       },
-      contratos: { quantidade: 2, valorTotalContratos: 350.5 },
+      contratos: {
+        quantidade: 2,
+        quantidadeCategorias: 2,
+        valorTotalContratos: 350.5,
+      },
       fornecedores: { quantidade: 2, totalPago: 100 },
     });
   });
@@ -40,7 +47,11 @@ describe("resumirFiscalizacaoEducacao", () => {
     });
     expect(resumo.emendas.percentualEmpenhado).toBe(0);
     expect(resumo.emendas.percentualConfirmadaNaReceita).toBe(0);
-    expect(resumo.contratos).toEqual({ quantidade: 0, valorTotalContratos: 0 });
+    expect(resumo.contratos).toEqual({
+      quantidade: 0,
+      quantidadeCategorias: 0,
+      valorTotalContratos: 0,
+    });
     expect(resumo.fornecedores).toEqual({ quantidade: 0, totalPago: 0 });
   });
 

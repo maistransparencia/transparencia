@@ -92,7 +92,7 @@ export default async function EducacaoPage({
   const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados`;
   const resumoCategorias =
     resumo.contratos.quantidade > 0
-      ? "Contratos vigentes, separados por tipo de gasto"
+      ? `${pluralizar(resumo.contratos.quantidade, "contrato vigente", "contratos vigentes")} em ${pluralizar(resumo.contratos.quantidadeCategorias, "tipo de gasto", "tipos de gasto")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados`
       : "Nenhum contrato vigente";
   const resumoContratos = `${pluralizar(resumo.contratos.quantidade, "contrato", "contratos")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados, sem contar acréscimos`;
   const resumoFornecedores = `${pluralizar(resumo.fornecedores.quantidade, "fornecedor", "maiores fornecedores")} · ${fmtCompact(resumo.fornecedores.totalPago)} pagos`;

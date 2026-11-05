@@ -809,6 +809,14 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Saúde"),
     ).not.toBeInTheDocument();
+    expect(screen.getByTestId("emendas-resumo-educacao")).toBeInTheDocument();
+    const secaoEmendas = document.querySelector("section#emendas-educacao");
+    expect(secaoEmendas?.querySelector("details")).not.toHaveAttribute("open");
+    expect(secaoEmendas).toHaveTextContent(/1 emenda · .* autorizados/);
+    expect(
+      document.querySelector('a[href="#emendas-educacao"]'),
+    ).not.toBeNull();
+    expect(screen.getByText(/emenda por emenda/)).toBeInTheDocument();
   });
 
   it("mostra Alunos na rede municipal com o ano real do Censo quando há matrículas", async () => {
@@ -948,7 +956,9 @@ describe("EducacaoPage (Server Component)", () => {
         expect(details).not.toHaveAttribute("open");
       });
       expect(
-        screen.getByText("Contratos vigentes, separados por tipo de gasto"),
+        screen.getByText(
+          /contratos? vigentes? em \d+ tipos? de gasto · .* contratados/,
+        ),
       ).toBeVisible();
     });
 
@@ -978,12 +988,25 @@ describe("EducacaoPage (Server Component)", () => {
       ).toBeInTheDocument();
     });
 
-    it("a ressalva de comparação com anos fechados aparece no máximo uma vez", async () => {
-      const container = await renderizar();
+    it("a ressalva de comparação com anos fechados aparece uma vez", async () => {
+      loadEducacaoDataMock.mockResolvedValue(
+        makeRawEducacaoData({
+          context: {
+            selectedYear: 2025,
+            isCurrentYear: true,
+            selectedEtapa: "anosIniciais",
+          },
+        }),
+      );
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
       const ocorrencias =
-        container.textContent?.match(/não devem ser comparados com anos/g) ??
-        [];
-      expect(ocorrencias.length).toBeLessThanOrEqual(1);
+        container.textContent?.match(/não dá para compará-los com anos/g) ?? [];
+      expect(ocorrencias).toHaveLength(1);
     });
   });
 });

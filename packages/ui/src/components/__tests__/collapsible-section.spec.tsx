@@ -39,6 +39,37 @@ describe("CollapsibleSection", () => {
     expect(container.querySelector("details")).toHaveAttribute("open");
   });
 
+  it("abre ao mudar o hash com a página já montada", () => {
+    const { container } = renderSection();
+    act(() => {
+      window.location.hash = "#contratos";
+      window.dispatchEvent(new Event("hashchange"));
+    });
+    expect(container.querySelector("details")).toHaveAttribute("open");
+  });
+
+  it("reabre ao clicar num link para a própria âncora, mesmo com o hash igual", () => {
+    window.location.hash = "#contratos";
+    const { container } = render(
+      <>
+        <a href="#contratos">Ver contratos</a>
+        <CollapsibleSection id="contratos" title="Contratos">
+          <p>Conteúdo</p>
+        </CollapsibleSection>
+      </>,
+    );
+    const details = container.querySelector("details") as HTMLDetailsElement;
+    act(() => {
+      details.open = false;
+      details.dispatchEvent(new Event("toggle"));
+    });
+    expect(details).not.toHaveAttribute("open");
+    act(() => {
+      screen.getByText("Ver contratos").click();
+    });
+    expect(details).toHaveAttribute("open");
+  });
+
   it("abre tudo na impressão", () => {
     const { container } = renderSection();
     act(() => {

@@ -13,7 +13,11 @@ export interface EducacaoFiscalizacaoResumoDTO {
     /** Sobre o autorizado. */
     percentualEmpenhado: number;
   };
-  contratos: { quantidade: number; valorTotalContratos: number };
+  contratos: {
+    quantidade: number;
+    quantidadeCategorias: number;
+    valorTotalContratos: number;
+  };
   fornecedores: { quantidade: number; totalPago: number };
 }
 
@@ -22,7 +26,7 @@ export interface EducacaoFiscalizacaoResumoEntrada {
     EmendasEducacaoStatsDTO,
     "lista" | "totalAutorizado" | "totalEmpenhado" | "totalRecebidoFundo"
   >;
-  contratos: Pick<EducacaoContratoDTO, "valorContrato">[];
+  contratos: Pick<EducacaoContratoDTO, "valorContrato" | "categoria">[];
   topFornecedores: Pick<FornecedorExecucaoItemDTO, "totalPago">[];
 }
 
@@ -53,6 +57,9 @@ export function resumirFiscalizacaoEducacao(
     },
     contratos: {
       quantidade: entrada.contratos.length,
+      quantidadeCategorias: new Set(
+        entrada.contratos.map((contrato) => contrato.categoria),
+      ).size,
       valorTotalContratos: entrada.contratos.reduce(
         (total, contrato) => total + (contrato.valorContrato || 0),
         0,

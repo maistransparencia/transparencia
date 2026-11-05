@@ -42,10 +42,17 @@ export function CollapsibleSection({
       if (window.location.hash === `#${id}`) setOpen(true);
     };
     const openForPrint = () => setOpen(true);
+    // Clicar num link para o `#id` já ativo não dispara `hashchange`.
+    const openIfLinkTargets = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.("a[href]");
+      if (link?.getAttribute("href") === `#${id}`) setOpen(true);
+    };
     openIfTargeted();
+    document.addEventListener("click", openIfLinkTargets);
     window.addEventListener("hashchange", openIfTargeted);
     window.addEventListener("beforeprint", openForPrint);
     return () => {
+      document.removeEventListener("click", openIfLinkTargets);
       window.removeEventListener("hashchange", openIfTargeted);
       window.removeEventListener("beforeprint", openForPrint);
     };
