@@ -57,3 +57,31 @@ Renomear estágios da despesa; novos dados ou indicadores; mudar cálculos das 2
 > Nota: a linha de âncoras do topo foi removida a pedido do Julio (2026-11-04); os ids das seções continuam servindo de âncora por URL.
 
 > Reaberta em 2026-11-04 a pedido do Julio: o topo da página passa a ser uma sequência de blocos-pergunta (Fundeb, alunos e valor por aluno, para onde foi o dinheiro em três barras) e ganha um resumo de emendas (autorizado, confirmada na receita, empenhado no cadastro; sem "sem destino definido"). Supera a decisão anterior de manter o Fundeb só em texto, sem barra.
+
+### Review Findings
+
+Revisão de 2026-11-04 (diff 2cd14c7f..HEAD, 12 commits). Camadas: Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor.
+
+- [x] [Review][Patch] Decidido pelo Julio: aceitar a remoção do subtítulo com o total da categoria (modal de contratos) e da frase de ano parcial (modal de valor por aluno); ajustar o texto do CHANGELOG, que diz "Nenhuma informação saiu da página". [CHANGELOG.md]
+- [x] [Review][Patch] Decidido pelo Julio: criar o número do resumo recolhido de "Como o Fundo contrata" (por exemplo, categorias e total contratado) em `resumirFiscalizacaoEducacao`, e usá-lo em `page.tsx`. [packages/db/src/queries/educacao-fiscalizacao-resumo.ts]
+- [x] [Review][Patch] Link "Ver emendas" não reabre a seção fechada de novo: o hash não muda, então não há `hashchange`. Tratar o clique em links `#id` ou reabrir no clique. [packages/ui/src/components/collapsible-section.tsx:38-47]
+- [x] [Review][Patch] Teste vácuo "a ressalva … aparece no máximo uma vez": busca a frase "não devem ser comparados com anos", que não existe mais; o hero diz "não dá para compará-los com anos já fechados". Contar o texto real. [apps/web/app/[portalSlug]/educacao/page.spec.tsx:981]
+- [x] [Review][Patch] Faltam testes: página com emendas (resumo no topo, `#emendas-educacao` fechado dentro de "Para fiscalizar"); `hashchange` no `CollapsibleSection`; `nota={null}` vs padrão em `DespesasFornecedoresSection`; a tarefa "nenhum bloco da 24.12 sumiu" só confere títulos.
+- [x] [Review][Patch] Textos de `llms.txt`/`llms-full.txt` e do CHANGELOG ficaram contraditórios com a página nova: Fundeb "só texto", pergunta "Quanto a Prefeitura gastou em educação?", "Uma única linha Leis … Fonte" e "Leis e fontes numa linha só". [apps/web/public/llms-full.txt:343, CHANGELOG.md:12]
+- [x] [Review][Patch] Resumos montados em `page.tsx` (`pluralizar`, `resumoEmendas`, `resumoContratos`, `resumoFornecedores`), contra `EXPERIENCE.md` ("calculado em `@transparencia/db`") e a Regra 2. [apps/web/app/[portalSlug]/educacao/page.tsx]
+- [x] [Review][Patch] Barra de alunos usa `ok-fill` (verde, cor de status) para ensino fundamental, categoria neutra. [apps/web/components/educacao/educacao-indicadores-apoio.tsx]
+- [x] [Review][Defer] `h2` dentro de `summary` (papel de botão): leitores de tela podem achatar o cabeçalho e quebrar a navegação por títulos — deferred: confirmar com VoiceOver/NVDA antes de decidir; jsdom não prova.
+- [x] [Review][Defer] Aviso das emendas perdeu "pode estar desatualizado" (agora "sem registro, aparece zero") — deferred: depende da revisão pendente do editor-cidadao e do contador-publico.
+- [x] [Review][Defer] Resumo de fornecedores usa `viewModel.topFornecedores`, enquanto o corpo usa `fornecedoresLinhas` — deferred: conferir se os dois arrays são os mesmos.
+- [x] [Review][Defer] Fundeb em ano parcial mostra barra e marcador do mínimo, o que pode induzir veredito — deferred: conferir o retorno de `tomDoResultado` no ano em andamento.
+- [x] [Review][Defer] `apps/storybook/scripts/dev.mjs` (porta livre) fora do escopo da story; sem tratamento de erro/sinal; story do Storybook copia o markup em vez de importar `CollapsibleSection` — deferred: baixa gravidade, sem relação com os ACs.
+
+#### Rejected
+
+- Mês de referência de "O que entrou" e período parcial: `false` para o hero (a legenda ainda mostra "PARCIAL, {período}"); o mês só no modal foi decisão do Julio.
+- Linha de âncoras removida, nota "preço foi justo" removida, cards e categorias ordenados por valor, "entregue/liquidado": decisões do Julio.
+- Atualizar Tasks e ACs da story/epics: corrigiria a própria spec em revisão.
+- `beforeprint`/`afterprint` (flush e restauração): `low` ou sem efeito demonstrado, correção exigiria complexidade.
+- `summary` sem `id` em `SectionWithHeader`, `ariaLabel` não repassado, `defaultOpen` lido uma vez: `low`, sem caso real hoje.
+- Percentual de emendas acima de 100% e autorizado zero: caso decidido (sem limite) ou improvável.
+- Estilo cru de utilitários e `partialPeriod` sem uso na interface: `low`, sem dano nomeado.

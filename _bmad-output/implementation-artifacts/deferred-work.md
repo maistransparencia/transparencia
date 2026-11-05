@@ -473,3 +473,11 @@ status: open
 - Link "Ver detalhes" do valor por aluno só aparece com `valor !== null` (educacao-indicadores-apoio.tsx:117); a regra antiga exigia só `serie.length > 0`. Resolvido: o link exige `valor !== null && serie.length > 0`, o que é o comportamento desejado (sem valor não há o que detalhar).
 - Rótulo com ano fixo "INEP: Nota Informativa do Ideb 2025" no modal do IDEB (Regra 23); anterior a esta story. Resolvido: o rótulo agora é "INEP: Nota Informativa do Ideb", sem ano.
 - `twoColumnsOnMobile` no `IndicatorPanel`: confirmar que `cn` faz merge de classes Tailwind (`grid-cols-2` vs `COLUMNS_CLASS`). Resolvido: `cn` usa `twMerge`, e `indicator.spec.tsx` confere `grid-cols-2` com `lg:grid-cols-4`.
+
+## Deferred from: code review of story 24-13 (2026-11-04)
+
+- `h2` dentro de `summary` em `CollapsibleSection`: confirmar com leitor de tela (VoiceOver/NVDA) se a navegação por títulos continua funcionando.
+- Aviso das emendas perdeu "pode estar desatualizado": revisar com editor-cidadao e contador-publico.
+- Resumo de fornecedores usa `viewModel.topFornecedores` e o corpo usa `fornecedoresLinhas`: conferir que são o mesmo conjunto.
+- Fundeb em ano parcial mostra barra e marcador do mínimo: conferir `tomDoResultado` no ano em andamento.
+- `apps/storybook/scripts/dev.mjs` e a story do Storybook que copia o markup do `CollapsibleSection`: tratar erro/sinal e importar o componente real.
