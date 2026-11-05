@@ -245,7 +245,7 @@ development_status:
   epic-23: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
 
-  epic-24: in-progress
+  epic-24: done
   24-1-ingestao-do-relatorio-gerencial-do-siope: done
   24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
   24-3-contratos-de-dados-do-siope-em-transparencia-db: done
@@ -253,7 +253,6 @@ development_status:
   24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: done
   24-6-total-de-alunos-com-fonte-verificada-inep: done
   24-7-aprendizado-no-topo-da-pagina-de-educacao: done
-  24-8-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
   24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
   24-11-tres-respostas-no-topo-da-pagina-de-educacao: done
@@ -268,6 +267,7 @@ development_status:
   25-4-de-onde-vem-o-dinheiro-da-saude: backlog
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-6-producao-da-rede-e-fila-de-espera: backlog
+  25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   epic-25-retrospective: optional
 
   epic-26: backlog

@@ -3316,19 +3316,9 @@ So that the money figures that follow are read against the result they should pr
 
 ---
 
-### Story 24.8: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
+### Story 24.8: Movida para a Story 25.7
 
-As a citizen,  
-I want to see how much parliamentary-amendment money for education reached my city and in which stage it is, according to both the municipal portal and the federal source,  
-So that a delay in the municipal records is not read as money that stopped.
-
-**Origem:** story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
-
-**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
-
-**Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
-
-**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado).
+Decidido em 2026-11-04: a conferência de emendas da educação depende do método da spike 25.1 e da Story 25.5, então passou para a Epic 25 como **Story 25.7**, e a Epic 24 fecha sem ela. A numeração 24.8 não é reaproveitada.
 
 ---
 
@@ -3393,7 +3383,7 @@ So that the page leads with what matters to me and not with budget execution.
 - **Then** o topo traz uma faixa com três respostas lado a lado, nesta ordem: "A Prefeitura aplica o mínimo exigido em educação?", "Quanto a Prefeitura investe por aluno?" e "As crianças estão aprendendo?", cada uma com um número e a sua régua (limite legal, série do próprio município e meta ou ciclo anterior do IDEB)
 - **And** abaixo da faixa vêm os detalhes de cada resposta na mesma ordem, e a seção "Aprendizado dos alunos" da 24.7 permanece como o detalhe da terceira resposta
 - **And** o hero financeiro atual (reservado, liquidado e pago) deixa de ser a manchete: seus números passam a ser a memória de cálculo do mínimo, atrás de "Ver detalhes", e as seções de origem do dinheiro, evolução anual, contratos e fornecedores descem para a parte de especialista, no fim (Regra 27)
-- **And** "Emendas na educação" fica na parte intermediária; a conferência com a fonte federal é da Story 24.8
+- **And** "Emendas na educação" fica na parte intermediária; a conferência com a fonte federal é da Story 25.7 (ex-24.8)
 - **And** nenhuma seção perde conteúdo, ano em andamento é sempre marcado como parcial, e blocos sem dado mostram "—" com a causa, sem reservar espaço vazio
 - **And** o texto passa pelo `editor-cidadao`, o padrão visual segue `DESIGN.md` e `EXPERIENCE.md` nos temas claro e escuro (Regra 25), sem literais de tenant, UF ou ano (Regra 23), e specs de página, `llms.txt`, `llms-full.txt` e CHANGELOG são atualizados.
 
@@ -3574,7 +3564,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.5: Emendas da Saúde: Conferência entre o Portal Municipal e a Fonte Federal (esboço)
 
-**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 24.8.
+**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 25.7.
 
 **Dependências:** Story 25.1.
 
@@ -3585,6 +3575,20 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 **Status:** esboço. Só entram os indicadores que a 25.1 provar que têm fonte oficial recorrente, série e régua (candidatos: procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais por habitante). Fila de espera só se houver fonte aberta. O que não passar vai para o backlog com o motivo registrado.
 
 **Dependências:** Story 25.1.
+
+### Story 25.7: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
+
+As a citizen,  
+I want to see how much parliamentary-amendment money for education reached my city and in which stage it is, according to both the municipal portal and the federal source,  
+So that a delay in the municipal records is not read as money that stopped.
+
+**Origem:** era a Story 24.8, movida para a Epic 25 em 2026-11-04 porque depende do método da 25.1 e da 25.5. Story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
+
+**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
+
+**Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
+
+**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado). Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
 
 ---
 

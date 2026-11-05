@@ -15,7 +15,7 @@ A página de educação passa a abrir pelo aprendizado ("as crianças estão apr
 - Story 24.5: Mínimos Constitucionais de Educação (MDE e FUNDEB)
 - Story 24.6: Total de Alunos com Fonte Verificada (INEP)
 - Story 24.7: Aprendizado no Topo da Página de Educação
-- Story 24.8: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal (esboço)
+- Story 24.8: movida para a Epic 25 como Story 25.7 em 2026-11-04
 
 ## Requirements & Constraints
 
@@ -51,4 +51,4 @@ A página de educação passa a abrir pelo aprendizado ("as crianças estão apr
 - 24.7 não tem dependências e deve ser entregue antes de 24.4; 24.4 e 24.5 entram logo abaixo dela.
 - 24.6 é independente (pode rodar em paralelo a 24.1) e condicionada ao resultado do spike do INEP; fornece o denominador visível do valor por aluno.
 - 24.1 pode registrar a coleta conforme a Story 23.1 (frescor dos dados) quando existir.
-- 24.8 depende das Stories 25.1 (spike) e 25.5 (método compartilhado de cruzamento, saúde).
+- 24.8 virou 25.7 (Epic 25): depende das Stories 25.1 (spike) e 25.5 (método compartilhado de cruzamento, saúde).
