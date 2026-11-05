@@ -7,6 +7,7 @@ export * from "./queries/contratos-recursos";
 export * from "./queries/contratos-servicos-vigentes";
 export * from "./queries/despesas-metrics";
 export * from "./queries/educacao-execucao-metrics";
+export * from "./queries/educacao-fiscalizacao-resumo";
 export * from "./queries/educacao-matriculas-metrics";
 export * from "./queries/educacao-metrics";
 export * from "./queries/educacao-origem-recursos";

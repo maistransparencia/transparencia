@@ -51,7 +51,7 @@ export function descreverVariacaoValorPorAluno(
   view: ValorPorAlunoView,
 ): string {
   if (view.parcial) {
-    return "ano em andamento: não se compara com anos já fechados";
+    return "parcial: sem comparação com anos fechados";
   }
   if (view.variacaoValor === null || view.anoAnterior === null) {
     return "sem ano anterior fechado para comparar";

@@ -414,6 +414,10 @@ Cabeçalho de seção, em `packages/ui` (`SectionHeader`): filete de 2px `{color
 - **Ação:** link curto à direita do título, sem botão. Com `eyebrow`, a ação é compacta e fica na linha do título.
 - O espaço do cabeçalho até o primeiro bloco é do contêiner (`section`).
 
+### `collapsible-section`
+
+`CollapsibleSection` em `packages/ui`: mesma abertura do `section-header` (filete de 2px `{colors.ink}` no topo e título `h2` serifado), com chevron de 16px à esquerda e o resumo numérico logo abaixo do título em `{typography.body}` de 14px, `{colors.mute}`. A área do `summary` tem 44px de altura mínima e usa o `{colors.focus-ring}` no foco. O corpo aberto mantém o ritmo da `section`.
+
 ### `ModalDialog`
 
 O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este spec não altera o `ModalDialog`; só exige que o conteúdo use os elementos base e papéis.

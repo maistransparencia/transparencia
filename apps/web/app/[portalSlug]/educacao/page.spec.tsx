@@ -348,12 +348,18 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       within(destaque).getByText("As crianças estão aprendendo?"),
     ).toBeInTheDocument();
-    const indicadores = within(destaque)
+    expect(
+      screen.getByText(
+        "Quanto do Fundeb vai para os profissionais da educação?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Quanto a Prefeitura investe por aluno?"),
+    ).toBeInTheDocument();
+    const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
       .getAllByRole("term")
       .map((termo) => termo.textContent);
-    expect(indicadores).toEqual([
-      "Parte do Fundeb paga aos profissionais da educação",
-      "Quanto a Prefeitura investe por aluno?",
+    expect(etapasDoGasto).toEqual([
       "Reservado (empenhado) no ano",
       "Serviço ou produto entregue (liquidado)",
       "Dinheiro que saiu (pago)",
@@ -363,9 +369,14 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
+      "Quanto do Fundeb vai para os profissionais da educação?",
+      "Quantos alunos a rede tem e quanto se investe em cada um?",
+      "Quanto do que a Prefeitura reservou para a educação já foi pago?",
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
+      "Para fiscalizar",
       "Como o Fundo contrata",
+      "Ver todos os contratos",
       "Quem recebe o dinheiro da educação",
     ]);
 
@@ -798,6 +809,14 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.queryByText("Emendas parlamentares destinadas à Saúde"),
     ).not.toBeInTheDocument();
+    expect(screen.getByTestId("emendas-resumo-educacao")).toBeInTheDocument();
+    const secaoEmendas = document.querySelector("section#emendas-educacao");
+    expect(secaoEmendas?.querySelector("details")).not.toHaveAttribute("open");
+    expect(secaoEmendas).toHaveTextContent(/1 emenda · .* autorizados/);
+    expect(
+      document.querySelector('a[href="#emendas-educacao"]'),
+    ).not.toBeNull();
+    expect(screen.getByText(/emenda por emenda/)).toBeInTheDocument();
   });
 
   it("mostra Alunos na rede municipal com o ano real do Censo quando há matrículas", async () => {
@@ -908,5 +927,86 @@ describe("EducacaoPage (Server Component)", () => {
         name: "De onde vem o dinheiro da Educação",
       }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("hierarquia: para entender e para fiscalizar", () => {
+    const renderizar = async (
+      searchParams: Record<string, string> = {},
+    ): Promise<HTMLElement> => {
+      loadEducacaoDataMock.mockResolvedValue(makeRawEducacaoData());
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve(searchParams),
+        }),
+      );
+      return container;
+    };
+
+    it("as seções de fiscalização nascem recolhidas, com resumo visível", async () => {
+      const container = await renderizar();
+      const secoes = [
+        "contratos-educacao",
+        "todos-contratos-educacao",
+        "fornecedores-educacao",
+      ];
+      secoes.forEach((id) => {
+        const details = container.querySelector(`section#${id} details`);
+        expect(details).not.toBeNull();
+        expect(details).not.toHaveAttribute("open");
+      });
+      expect(
+        screen.getByText(
+          /contratos? vigentes? em \d+ tipos? de gasto · .* contratados/,
+        ),
+      ).toBeVisible();
+    });
+
+    it("sem emendas, a seção de emendas não aparece", async () => {
+      const container = await renderizar();
+      expect(container.querySelector("#emendas-educacao")).toBeNull();
+    });
+
+    it("o deep link ?contratoNumero= abre a lista de contratos recolhida", async () => {
+      const container = await renderizar({ contratoNumero: "0443/25" });
+      expect(
+        container.querySelector("section#todos-contratos-educacao details"),
+      ).toHaveAttribute("open");
+    });
+
+    it("o bloco Para fiscalizar vem depois de Como mudou e traz a frase de para quem serve", async () => {
+      const container = await renderizar();
+      const evolucao = container.querySelector("#evolucao-educacao");
+      const fiscalizar = container.querySelector("#para-fiscalizar");
+      expect(evolucao).not.toBeNull();
+      expect(
+        (evolucao as Element).compareDocumentPosition(fiscalizar as Element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(
+        within(fiscalizar as HTMLElement).getByText(/Para quem quer conferir/),
+      ).toBeInTheDocument();
+    });
+
+    it("a ressalva de comparação com anos fechados aparece uma vez", async () => {
+      loadEducacaoDataMock.mockResolvedValue(
+        makeRawEducacaoData({
+          context: {
+            selectedYear: 2025,
+            isCurrentYear: true,
+            selectedEtapa: "anosIniciais",
+          },
+        }),
+      );
+      const { container } = render(
+        await EducacaoPage({
+          params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+          searchParams: Promise.resolve({}),
+        }),
+      );
+      const ocorrencias =
+        container.textContent?.match(/não dá para compará-los com anos/g) ?? [];
+      expect(ocorrencias).toHaveLength(1);
+    });
   });
 });

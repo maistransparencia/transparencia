@@ -1,3 +1,4 @@
+import { resumirFiscalizacaoEducacao } from "@transparencia/db";
 import {
   fmtCompact,
   fmtPercent,
@@ -14,6 +15,7 @@ import { EducacaoHeroSection } from "@/components/educacao/educacao-hero-section
 import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-origem-recursos-section";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
+import { SectionWithHeader } from "@/components/section-with-header";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -80,6 +82,21 @@ export default async function EducacaoPage({
     0,
   );
 
+  const resumo = resumirFiscalizacaoEducacao({
+    emendas,
+    contratos,
+    topFornecedores: viewModel.topFornecedores,
+  });
+  const pluralizar = (quantidade: number, singular: string, plural: string) =>
+    `${quantidade} ${quantidade === 1 ? singular : plural}`;
+  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados`;
+  const resumoCategorias =
+    resumo.contratos.quantidade > 0
+      ? `${pluralizar(resumo.contratos.quantidade, "contrato vigente", "contratos vigentes")} em ${pluralizar(resumo.contratos.quantidadeCategorias, "tipo de gasto", "tipos de gasto")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados`
+      : "Nenhum contrato vigente";
+  const resumoContratos = `${pluralizar(resumo.contratos.quantidade, "contrato", "contratos")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados, sem contar acréscimos`;
+  const resumoFornecedores = `${pluralizar(resumo.fornecedores.quantidade, "fornecedor", "maiores fornecedores")} · ${fmtCompact(resumo.fornecedores.totalPago)} pagos`;
+
   return (
     <div className="space-y-12 pb-12">
       <div className="space-y-8">
@@ -93,6 +110,7 @@ export default async function EducacaoPage({
           valorPorAluno={viewModel.valorPorAluno}
           alunosRede={viewModel.alunosRede ?? null}
           aprendizado={viewModel.aprendizado.anosIniciais}
+          emendasResumo={emendas.lista.length > 0 ? resumo.emendas : null}
         />
       </div>
 
@@ -102,30 +120,16 @@ export default async function EducacaoPage({
         initialEtapa={viewModel.selectedEtapa}
       />
 
-      {emendas.lista.length > 0 && (
-        <EmendasSection
-          ano={selectedYear}
-          emendasStats={emendas}
-          portalSlug={viewModel.portalSlug}
-          titulo="Emendas na educação"
-          descricao="Recursos que deputados e senadores destinaram à educação do município."
-        />
-      )}
-
       {viewModel.origemRecursos && (
         <EducacaoOrigemRecursosSection
           origemRecursos={viewModel.origemRecursos}
         />
       )}
 
-      <section className="space-y-6">
+      <section id="evolucao-educacao" className="space-y-6">
         <SectionHeader
           title="Como mudou ao longo dos anos"
-          description={`Quanto a Prefeitura reservou (empenhado) e quanto já pagou em educação em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
-            isCurrentYear
-              ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
-              : ""
-          }`}
+          description="Quanto a Prefeitura reservou (empenhado) e quanto já pagou em educação em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa."
         />
         <EvolucaoAnual
           data={viewModel.serieAnual}
@@ -135,44 +139,72 @@ export default async function EducacaoPage({
         />
       </section>
 
-      <EducacaoContratosSection
-        contratos={contratos}
-        totaisPorCategoria={viewModel.contratosResumo.totaisPorCategoria}
-        initialContratoNumero={resolvedSearchParams.contratoNumero}
-        portalSlug={viewModel.portalSlug}
-        ano={selectedYear}
-      />
+      <div id="para-fiscalizar" className="scroll-mt-20 space-y-2">
+        <SectionHeader
+          title="Para fiscalizar"
+          description={`Para quem quer conferir ${emendas.lista.length > 0 ? "emenda por emenda, " : ""}contrato por contrato e fornecedor por fornecedor. Toque ou clique em cada parte para abrir.`}
+        />
 
-      <section className="space-y-6">
-        <SectionHeader title="Quem recebe o dinheiro da educação" />
-        {fornecedoresLinhas.length > 0 ? (
-          <>
-            <IndicatorPanel columns={2}>
-              <Indicator
-                label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
-                value={fmtPercent(concentracaoTopFornecedores)}
-                note={`do que a Prefeitura pagou em educação em ${selectedYear}, sem contar salários`}
-              />
-              <Indicator
-                label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
-                value={fmtCompact(valorPagoTopFornecedores)}
-                note={`de ${fmtCompact(execucao.pagoSemPessoal)} pagos em educação, sem contar salários`}
-              />
-            </IndicatorPanel>
-            <DespesasFornecedoresSection
-              fornecedores={fornecedoresLinhas}
-              portalSlug={portalSlug}
-              ano={selectedYear}
-              nota="O valor mostra o que foi pago, não se o preço foi justo."
-            />
-          </>
-        ) : (
-          <p className="border-line border-y py-4 text-mute">
-            Sem pagamentos a fornecedores registrados para a educação em{" "}
-            {selectedYear}.
-          </p>
+        {emendas.lista.length > 0 && (
+          <EmendasSection
+            id="emendas-educacao"
+            resumo={resumoEmendas}
+            ano={selectedYear}
+            emendasStats={emendas}
+            portalSlug={viewModel.portalSlug}
+            titulo="Emendas na educação"
+            descricao="Recursos que deputados e senadores destinaram à educação do município."
+          />
         )}
-      </section>
+
+        <EducacaoContratosSection
+          contratos={contratos}
+          totaisPorCategoria={viewModel.contratosResumo.totaisPorCategoria}
+          initialContratoNumero={resolvedSearchParams.contratoNumero}
+          resumoCategorias={resumoCategorias}
+          resumoContratos={resumoContratos}
+          portalSlug={viewModel.portalSlug}
+          ano={selectedYear}
+        />
+
+        <SectionWithHeader
+          id="fornecedores-educacao"
+          title="Quem recebe o dinheiro da educação"
+          summary={
+            fornecedoresLinhas.length > 0
+              ? resumoFornecedores
+              : "Sem pagamentos a fornecedores registrados"
+          }
+        >
+          {fornecedoresLinhas.length > 0 ? (
+            <>
+              <IndicatorPanel columns={2}>
+                <Indicator
+                  label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
+                  value={fmtPercent(concentracaoTopFornecedores)}
+                  note={`do que a Prefeitura pagou em educação em ${selectedYear}, sem contar salários`}
+                />
+                <Indicator
+                  label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
+                  value={fmtCompact(valorPagoTopFornecedores)}
+                  note={`de ${fmtCompact(execucao.pagoSemPessoal)} pagos em educação, sem contar salários`}
+                />
+              </IndicatorPanel>
+              <DespesasFornecedoresSection
+                fornecedores={fornecedoresLinhas}
+                portalSlug={portalSlug}
+                ano={selectedYear}
+                nota={null}
+              />
+            </>
+          ) : (
+            <p className="border-line border-y py-4 text-mute">
+              Sem pagamentos a fornecedores registrados para a educação em{" "}
+              {selectedYear}.
+            </p>
+          )}
+        </SectionWithHeader>
+      </div>
     </div>
   );
 }

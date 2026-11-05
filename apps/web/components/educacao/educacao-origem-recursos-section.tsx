@@ -14,7 +14,6 @@ import {
 import { useState } from "react";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
-  formatMesPorExtenso,
   formatPercentualInteiro,
   ORDEM_FONTES_RECURSO,
   ROTULO_FONTE_RECURSO,
@@ -60,30 +59,52 @@ export function EducacaoOrigemRecursosSection({
     null,
   );
 
+  const comValor = [...fontes]
+    .filter((fonte) => fonte.totalArrecadado > 0)
+    .sort((a, b) => b.totalArrecadado - a.totalArrecadado);
+  const maioresFontes = comValor.slice(0, PREENCHIMENTOS_MAIORES_FONTES.length);
+  const demaisFontes = comValor.slice(PREENCHIMENTOS_MAIORES_FONTES.length);
+
   const segmentos: SegmentoComposicao[] = (() => {
-    const comValor = [...fontes]
-      .filter((fonte) => fonte.totalArrecadado > 0)
-      .sort((a, b) => b.totalArrecadado - a.totalArrecadado);
-    const maiores = comValor
-      .slice(0, PREENCHIMENTOS_MAIORES_FONTES.length)
-      .map((fonte, indice) => ({
-        chave: fonte.grupoFonte,
-        rotulo: ROTULO_FONTE_RECURSO[fonte.grupoFonte],
-        percentual: fonte.percentualTotal,
-        preenchimento: PREENCHIMENTOS_MAIORES_FONTES[indice],
-      }));
-    const demais = comValor.slice(PREENCHIMENTOS_MAIORES_FONTES.length);
-    if (demais.length === 0) return maiores;
+    const maiores = maioresFontes.map((fonte, indice) => ({
+      chave: fonte.grupoFonte,
+      rotulo: ROTULO_FONTE_RECURSO[fonte.grupoFonte],
+      percentual: fonte.percentualTotal,
+      preenchimento: PREENCHIMENTOS_MAIORES_FONTES[indice],
+    }));
+    if (demaisFontes.length === 0) return maiores;
     return [
       ...maiores,
       {
         chave: "demais",
         rotulo: "Demais fontes",
-        percentual: demais.reduce((soma, f) => soma + f.percentualTotal, 0),
+        percentual: demaisFontes.reduce(
+          (soma, fonte) => soma + fonte.percentualTotal,
+          0,
+        ),
         preenchimento: PREENCHIMENTO_DEMAIS_FONTES,
       },
     ];
   })();
+
+  /** Da maior para a menor; as sem receita ficam no fim, na ordem de sempre. */
+  const gruposPorValor = [...ORDEM_FONTES_RECURSO].sort(
+    (a, b) =>
+      (fontes.find((fonte) => fonte.grupoFonte === b)?.totalArrecadado ?? -1) -
+      (fontes.find((fonte) => fonte.grupoFonte === a)?.totalArrecadado ?? -1),
+  );
+
+  /** Mesma cor da barra: as maiores com cor própria, as demais em cinza. */
+  const preenchimentoPorFonte = new Map<string, string>([
+    ...maioresFontes.map((fonte, indice): [string, string] => [
+      fonte.grupoFonte,
+      PREENCHIMENTOS_MAIORES_FONTES[indice],
+    ]),
+    ...demaisFontes.map((fonte): [string, string] => [
+      fonte.grupoFonte,
+      PREENCHIMENTO_DEMAIS_FONTES,
+    ]),
+  ]);
 
   const description = (() => {
     if (semReceitas) {
@@ -95,9 +116,6 @@ export function EducacaoOrigemRecursosSection({
         ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm da fonte "${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}". Veja de onde veio cada parte.`
         : "",
       "Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo.",
-      parcial && mesReferencia !== null
-        ? `Ano em andamento: valores acumulados até ${formatMesPorExtenso(mesReferencia)}.`
-        : "",
     ];
     return partes.filter(Boolean).join(" ");
   })();
@@ -139,23 +157,34 @@ export function EducacaoOrigemRecursosSection({
                 <li key={segmento.chave} className="flex items-center gap-1.5">
                   <span
                     aria-hidden="true"
-                    className={cn(
-                      "h-2.5 w-2.5 shrink-0",
-                      segmento.preenchimento,
-                    )}
+                    className={cn("size-2.5 shrink-0", segmento.preenchimento)}
                   />
-                  {segmento.rotulo} ·{" "}
-                  {formatPercentualInteiro(segmento.percentual)}
+                  <span className="leading-none">
+                    {segmento.rotulo} ·{" "}
+                    {formatPercentualInteiro(segmento.percentual)}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
           <IndicatorPanel columns={4} twoColumnsOnMobile size="sm">
-            {ORDEM_FONTES_RECURSO.map((grupoFonte) => {
+            {gruposPorValor.map((grupoFonte) => {
               const fonte = fontes.find(
                 (item) => item.grupoFonte === grupoFonte,
               );
               const rotulo = ROTULO_FONTE_RECURSO[grupoFonte];
+              const preenchimento = preenchimentoPorFonte.get(grupoFonte);
+              const rotuloComCor = preenchimento ? (
+                <span className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className={cn("size-2.5 shrink-0", preenchimento)}
+                  />
+                  <span>{rotulo}</span>
+                </span>
+              ) : (
+                rotulo
+              );
               if (!fonte) {
                 return (
                   <Indicator
@@ -169,7 +198,7 @@ export function EducacaoOrigemRecursosSection({
               return (
                 <Indicator
                   key={grupoFonte}
-                  label={rotulo}
+                  label={rotuloComCor}
                   value={fmtCompact(fonte.totalArrecadado)}
                   note={
                     <>
