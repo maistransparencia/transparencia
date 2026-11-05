@@ -37,6 +37,8 @@ models:
         data_type: text
       - name: resumo
         data_type: text
+      - name: objeto_emenda
+        data_type: text
       - name: valor_total
         data_type: numeric(15, 2)
         tests:

@@ -223,6 +223,33 @@ export function EmendasSection({
       },
     },
     {
+      header: "Objeto",
+      accessorKey: "objeto" as const,
+      className: "min-w-[14rem]",
+    },
+    {
+      header: "Origem",
+      accessorKey: "origem" as const,
+      className: "font-medium text-ink whitespace-nowrap",
+    },
+    {
+      header: "Valor Autorizado",
+      footer: fmtCurrency(totaisVisiveis.autorizado),
+      accessorKey: "valorAutorizado" as const,
+      align: "right" as const,
+      format: "currency" as const,
+      defaultSortDir: "desc" as const,
+    },
+    {
+      header: "Empenhado",
+      footer: <span>{fmtCurrency(totaisVisiveis.empenhado)}</span>,
+      accessorKey: "empenhado" as const,
+      align: "right" as const,
+      format: "currency" as const,
+      defaultSortDir: "desc" as const,
+      sortValue: (row: SaudeEmendaItem) => row.empenhado ?? -1,
+    },
+    {
       header: "Rastreabilidade",
       accessorKey: "quantidadeEmpenhos" as const,
       align: "center" as const,
@@ -292,33 +319,6 @@ export function EmendasSection({
           </span>
         );
       },
-    },
-    {
-      header: "Origem",
-      accessorKey: "origem" as const,
-      className: "font-medium text-ink whitespace-nowrap",
-    },
-    {
-      header: "Objeto",
-      accessorKey: "objeto" as const,
-      className: "max-w-[250px]",
-    },
-    {
-      header: "Valor Autorizado",
-      footer: fmtCurrency(totaisVisiveis.autorizado),
-      accessorKey: "valorAutorizado" as const,
-      align: "right" as const,
-      format: "currency" as const,
-      defaultSortDir: "desc" as const,
-    },
-    {
-      header: "Empenhado",
-      footer: <span>{fmtCurrency(totaisVisiveis.empenhado)}</span>,
-      accessorKey: "empenhado" as const,
-      align: "right" as const,
-      format: "currency" as const,
-      defaultSortDir: "desc" as const,
-      sortValue: (row: SaudeEmendaItem) => row.empenhado ?? -1,
     },
   ];
 
@@ -434,6 +434,12 @@ export function EmendasSection({
             return (
               <div className="space-y-4">
                 <dl className="grid grid-cols-2 gap-4 sm:hidden">
+                  <div className="col-span-2">
+                    <dt className="eyebrow">Objeto</dt>
+                    <dd className="mt-1 text-ink">
+                      {row.objeto || "Objeto não informado."}
+                    </dd>
+                  </div>
                   <div>
                     <dt className="eyebrow">Proposta</dt>
                     <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
@@ -518,7 +524,7 @@ export function EmendasSection({
                     </span>
                   </div>
                   <p className="line-clamp-2 text-ink text-xs leading-snug">
-                    {row.objeto}
+                    {row.objeto || "Objeto não informado."}
                   </p>
                   <div className="flex items-center justify-between gap-3 text-mute text-xs">
                     <Badge variant="accent">{row.origem || "Federal"}</Badge>

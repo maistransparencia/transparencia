@@ -331,6 +331,7 @@ sources:
     - name: numero
     - name: numero_emenda
     - name: resumo
+    - name: objeto
     - name: valor_total
     - name: empenhado
     - name: autor
