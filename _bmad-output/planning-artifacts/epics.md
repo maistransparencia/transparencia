@@ -3753,6 +3753,16 @@ So that I know what was indicated for my city even when the city hall does not l
 - **And** `Execução Direta` e `OSC` aparecem como "o Estado executa" ou "repasse a organização", nunca como dinheiro que chega à Prefeitura; só `transferencia_especial`, `finalidade_definida` e `fundo_a_fundo` entram em "o dinheiro chega à Prefeitura"
 - **And** estados e textos seguem a seção 6 do spike federal (dois blocos, "Governo estadual" e "Prefeitura", a frase fixa de que são registros de sistemas diferentes, sem as palavras proibidas), revisados pelo `editor-cidadao`.
 
+*Fontes visíveis e suporte a outros Estados (decidido pelo Julio em 2026-11-05)*
+- **Given** que hoje a única fonte estadual verificada é a do Estado do Rio de Janeiro, mas o portal vai integrar municípios de outros Estados
+- **When** a carga e a tela são construídas
+- **Then** a fonte de cada Estado é uma **configuração por fonte** (nome oficial do órgão, URL da página, padrão para descobrir os links dos arquivos, mapeamento de colunas para o modelo comum, modalidades do Estado para os códigos snake_case, formato de codificação e decimal), sem `if` por UF no código; adicionar um Estado novo significa adicionar a configuração e o mapeamento, não mexer em modelos ou componentes
+- **And** o modelo comum no dbt (`fct_emendas_estaduais`) é agnóstico de Estado, e a coluna de origem guarda o código da fonte (por exemplo `fonte_emenda_estadual`), nunca o nome do Estado fixo em SQL ou TypeScript (Regra 23)
+- **And** um Estado sem fonte configurada produz estado neutro na tela: "Ainda não temos uma fonte oficial do Estado para conferir", sem erro e sem dados de outro Estado
+- **And** a tela **mostra a fonte usada**: em cada emenda e no cabeçalho da seção, o nome do órgão que publica (por exemplo, a Secretaria de Planejamento do Estado), o nome do arquivo ou página, a data do arquivo e a posição do relatório, com **link para a página oficial**; a fonte da Prefeitura (portal municipal) e a do Governo Federal (Portal da Transparência) também aparecem com nome, data e link
+- **And** nome do órgão, URL e rótulos vêm da camada `@transparencia/db` (configuração por fonte), e a UI só renderiza (camada burra)
+- **And** um teste confere que o cálculo funciona com uma segunda configuração fictícia de Estado (outros nomes de coluna e outras modalidades), para provar que não há acoplamento ao Estado do Rio de Janeiro.
+
 *Qualidade*
 - **And** testes de paridade com casos reais da spike: emenda que cruza com valor igual, emenda só no Estado (saúde fundo a fundo), execução direta em colégio estadual, objeto de educação com função "Administração", número repetido entre autores, execução com posição antiga e portal sem emendas (estado neutro)
 - **And** a revisão do `jurista-fiscal` fixa a base legal estadual (EC 75/2019, EC 97/2023, LC 219/2024, LC 221/2024, LC 232/2026 e o Decreto 49.132/2024, hoje **NÃO VERIFICADOS**), a do `contador-publico` valida os estágios do Estado e a do `editor-cidadao` os rótulos por modalidade
