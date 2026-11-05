@@ -3510,6 +3510,45 @@ A página de saúde passa a abrir pela pergunta "A Prefeitura aplica o mínimo e
 
 ---
 
+### Story 25.1a: Spike de Emendas: Fonte Federal e Conferência com o Portal Municipal
+
+As a product manager,  
+I want the parliamentary amendments in the municipal portal checked against an official recurring source,  
+So that the page shows what each side registers, with its date, and never picks one or hints at omission.
+
+**Origem:** fatiada da 25.1 em 2026-11-05, por pedido do Julio, porque as emendas travam as Stories 25.5 e 25.7. Fonte candidata proposta pelo Julio: download de dados do Portal da Transparência federal, `https://portaldatransparencia.gov.br/download-de-dados/emendas-parlamentares/UNICO` (zip de cerca de 32 MB, Brasil inteiro, atualizado em 2026-10-29, com `EmendasParlamentares.csv`, `EmendasParlamentares_PorFavorecido.csv` e `EmendasParlamentares_Convenios.csv`; latin1, separador `;`, decimal com vírgula). O `curl` precisou de user agent de navegador.
+
+**Entregável:** `planning-artifacts/spike-emendas-fonte-federal.md`, no modelo de `spike-siope-valor-por-aluno.md`. Sem código de produção.
+
+**O que a exploração de 2026-11-05 já mostrou (a spike confirma e amplia):**
+- **O "Valor Empenhado" do arquivo é o empenho da União**, não o da Prefeitura. Os empenhos municipais não estão no arquivo; ele não testa sozinho a hipótese de que a Prefeitura não os atualiza.
+- **Cadeia a conferir:** a União empenha, a União paga ao fundo municipal (`PorFavorecido`, com mês e favorecido), a Prefeitura registra a receita e a Prefeitura empenha e paga a despesa. Cada elo é um registro de um sistema diferente.
+- **Chave de cruzamento:** o `Código da Emenda` federal (12 dígitos: ano, código do autor, sequência) aparece no nome das linhas de receita do portal municipal (por exemplo, `EMENDA PARLAMENTAR 202643380001`). No `emendas_cad` municipal, só 6 de 73 emendas têm esse código; as demais trazem número curto (650, 1979) ou número de proposta (`63000767223202600`).
+- **Emenda de vários municípios:** no arquivo principal a linha `Múltiplo` traz o total da emenda, não a parcela do município. A parcela vem do `PorFavorecido`.
+- **Prova de conceito (Porciúncula, assistência social, banco local):** nas 3 emendas de 2026 com receita registrada (202641520010, 202632680008, 202643380001), o valor pago ao fundo pela União bate ao centavo com a receita da Prefeitura (R$ 300.000, R$ 200.000 e R$ 500.000). Das 6 emendas com código de 12 dígitos em 2025–2026, 3 aparecem no portal municipal com empenho zero ou em branco meses depois do pagamento federal (outubro e novembro de 2025). Isso é **indício**, não prova: o dinheiro pode estar em conta, ainda sem gasto.
+- **Porciúncula 2023 (saúde):** R$ 304.277 pagos pela União batem ao centavo com a receita `TRANSF.SUS- BLOCO MANUTENÇÃO-ATENÇÃO ESPECIALIZADA-POLICLINI`.
+- **Esfera:** o arquivo federal só cobre emenda de origem **federal**. As emendas de educação de Porciúncula em 2026 (R$ 400 mil, 3 projetos, 6 linhas) vêm do portal marcadas como `ESTADUAL` (Transferência Especial do Estado). Por isso não há nenhuma linha de educação do RJ em 2026 no arquivo federal, e também não há favorecido de educação no `PorFavorecido`. **Emenda estadual precisa de outra fonte oficial (NÃO VERIFICADA: Assembleia Legislativa e Secretaria de Fazenda do estado).**
+
+**Acceptance Criteria:**
+- **Given** o arquivo federal baixado e os dados dos municípios integrados (raw e `analytics`, banco local, Regra 15)
+- **When** a spike termina
+- **Then** o documento traz, para cada elo da cadeia (empenho da União, pagamento ao fundo, receita da Prefeitura, empenho e pagamento da Prefeitura): fonte, arquivo ou endpoint, periodicidade, defasagem típica, quem registra e a data de referência de cada posição.
+- **And** mede, por município integrado e por ano, quantas emendas do portal cruzam pelo código de 12 dígitos, quantas só por valor e favorecido, e quantas não cruzam, separando por esfera (federal, estadual) e por função (saúde, educação, assistência social).
+- **And** define a política para: emenda `Múltiplo` (usar o `PorFavorecido`), emenda sem código de 12 dígitos, formato de código de proposta (`630…`, `120…`) que não aparece no arquivo e linhas de receita duplicadas com o mesmo valor (verificar dedupe do `fct_receitas` antes de usá-lo em tela).
+- **And** responde, com números, à hipótese do Julio: em quantas emendas a União pagou, a receita entrou e a despesa municipal está vazia, e em quantas isso é explicável (pagamento recente, dinheiro ainda em conta).
+- **And** define como mostrar as duas posições, rotuladas "Governo federal" e "Prefeitura", com a data de cada uma e a frase de que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão (indício, nunca acusação; Regra 27 para dado derivado). Textos passam pelo `editor-cidadao` e a base legal da obrigação de registro passa pelo `jurista-fiscal` (Regra 20, com link oficial).
+- **And** faz o teste de contrato do download (URL, nomes de colunas, codificação, tamanho) a partir do ambiente de carga, informa se a fonte é recorrente sem trabalho manual e registra a defasagem entre a data do arquivo e a data da consulta.
+- **And** para **emendas estaduais**, informa se existe fonte aberta e recorrente; se não existir, registra a alternativa (pedido pela LAI) e deixa fora do primeiro corte.
+- **And** termina com o método que vale para as Stories 25.5 e 25.7 e as perguntas abertas para o Julio.
+
+**Fora do escopo:** ingestão em produção; qualquer execução fora do banco local (Regra 15); concluir omissão da Prefeitura; usar números da planilha da audiência.
+
+**Decisões do Julio (2026-11-05):** emenda estadual fora do primeiro corte; a tela mostra indício com data e nunca usa "omissão"; a Prefeitura não é consultada. A frequência da carga é definida na Story 23.8; a recomendação da spike é **semanal**, e a fonte de emendas federais precisa entrar num dos grupos de cadência dela.
+
+**Dependências:** nenhuma. Bloqueia as Stories 25.5 e 25.7.
+
+---
+
 ### Story 25.1: Spike de Fontes Oficiais dos Indicadores de Saúde
 
 As a product manager,  
@@ -3523,7 +3562,7 @@ So that the next stories only build what has a real source, a ruler and a citize
 - **When** a spike termina
 - **Then** o documento traz uma tabela com, para cada indicador: pergunta do cidadão, fonte oficial, endpoint ou arquivo, periodicidade, defasagem típica, régua disponível, teste de contrato (resposta real de pelo menos um município integrado, sem literal de tenant no código) e decisão de entrar, adiar ou descartar pelo critério de entrada da epic.
 - **And** para o **mínimo constitucional**, compara Siconfi e SIOPS (e o cálculo próprio pelo dbt) e recomenda uma fonte, com `jurista-fiscal` fixando a base legal (com link oficial, Regra 20) e `contador-publico` validando base de cálculo, exclusões e a diferença entre repasse ao fundo e despesa aplicada com recursos próprios.
-- **And** para **emendas**, cruza o que o portal municipal já traz com as fontes federais, mede onde divergem (por exemplo, empenhos ausentes no portal municipal) e define como mostrar as duas posições sem sugerir omissão; o método vale também para a Story 24.8.
+- **And** as **emendas** saem desta spike e vão para a Story 25.1a, que é feita antes e define o método também para a Story 25.7 (ex-24.8).
 - **And** para **fila de espera**, informa se existe fonte aberta; se não existir, registra a alternativa (pedido de informação pela LAI) e deixa o indicador fora do primeiro corte.
 - **And** testa a API da Saúde a partir do ambiente da carga diária (CI), registrando timeouts, limites de taxa e a necessidade de repetição.
 - **And** termina com a divisão recomendada das Stories 25.2 a 25.6 (o que entra, o que adia) e as perguntas abertas para o Julio.
@@ -3564,9 +3603,9 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.5: Emendas da Saúde: Conferência entre o Portal Municipal e a Fonte Federal (esboço)
 
-**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1 e compartilhado com a Story 25.7.
+**Status:** esboço. Pergunta: "Quanto de emenda para a saúde chegou e em que etapa está?". O portal municipal já fornece as emendas, mas a hipótese do Julio é que os empenhos relacionados a elas não são atualizados ali. Mostrar as duas posições com a data de cada uma, sem escolher uma nem sugerir omissão. Método definido pela 25.1a e compartilhado com a Story 25.7. Só entram emendas de origem federal pelo arquivo do Portal da Transparência; as estaduais dependem da conclusão da 25.1a. A tela mostra o **objeto** da emenda (Story 25.8), nunca o campo de resumo.
 
-**Dependências:** Story 25.1.
+**Dependências:** Story 25.1a e Story 25.8.
 
 ---
 
@@ -3576,6 +3615,26 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 **Dependências:** Story 25.1.
 
+### Story 25.8: Objeto Correto das Emendas na Saúde e na Educação
+
+As a citizen,  
+I want each amendment to show what it was for (its object), not an internal label,  
+So that I can tell what the money is meant to buy.
+
+**Origem:** achado do Julio em 2026-11-05. A página de educação mostra, por exemplo, `TRANSFERENCIA ESPECIAL DOS ESTADOS`, e o objeto verdadeiro é "Implantação da sala de regulação sensorial na Escola Municipal Orlinda Veiga". Causa verificada no banco local: a camada de staging descarta a coluna `objeto` do `emendas_cad` e a query `packages/db/src/queries/emendas-parlamentares.ts` preenche `objeto` com `resumo`. O `resumo` é texto livre de cadastro e muitas vezes repete o tipo de transferência (inclusive com erros de digitação, como `TRANSFERENCIA ESPECILA AOS MUNICIPIOS`). Diferem de `objeto` 26 de 53 linhas em Porciúncula e 20 de 20 em Natividade.
+
+**Acceptance Criteria:**
+- **Given** o `objeto` do `emendas_cad` em Porciúncula e Natividade
+- **When** o dbt e a query forem corrigidos
+- **Then** o staging passa a expor `objeto`, o mart `fct_emendas` o carrega com nome explícito (Regra 9) e `getEmendasParlamentares` devolve o objeto em `objeto` e, se útil, o resumo em campo separado; nenhum componente muda de lógica (camada de apresentação burra).
+- **And** a seção de emendas da **educação** e a da **saúde** mostram o objeto verdadeiro; quando o objeto vier vazio, a tela usa texto neutro e não o resumo.
+- **And** o tipo de transferência (por exemplo, Emenda PIX) e a esfera de origem (federal ou estadual) aparecem como informação própria, em linguagem comum, e não no lugar do objeto.
+- **And** testes de paridade da query (o banco de testes é montado por `make db/test/build` e pelo `seed.ts`, sem fixture a regenerar), `make test`, `make test/ts` e `pnpm typecheck` passam, sem literal de tenant (Regra 23).
+
+**Dependências:** nenhuma. Bloqueia as Stories 25.5 e 25.7.
+
+---
+
 ### Story 25.7: Emendas da Educação: Conferência entre o Portal Municipal e a Fonte Federal
 
 As a citizen,  
@@ -3584,11 +3643,11 @@ So that a delay in the municipal records is not read as money that stopped.
 
 **Origem:** era a Story 24.8, movida para a Epic 25 em 2026-11-04 porque depende do método da 25.1 e da 25.5. Story irmã da 25.5 (saúde), decidida pelo Julio em 2026-11-01. Hipótese do Julio: a Prefeitura não atualiza no portal oficial municipal os empenhos ligados às emendas, e pode registrá-los só no sistema federal por exigência legal.
 
-**Status:** esboço. Detalhar depois da spike 25.1, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
+**Status:** esboço. Detalhar depois da spike 25.1a, que define o método de cruzamento e as fontes federais (Transferegov, Portal da Transparência federal, FNDE). Nenhuma fonte foi verificada ainda.
 
 **Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
 
-**Dependências:** Story 25.1 (spike) e Story 25.5 (método compartilhado). Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
+**Dependências:** Story 25.1a (spike de emendas), Story 25.5 (método compartilhado) e Story 25.8 (objeto correto). Em 2026-11-05 a exploração mostrou que as emendas de educação de Porciúncula em 2026 são de origem **estadual**; a fonte federal não as cobre. Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
 
 ---
 
