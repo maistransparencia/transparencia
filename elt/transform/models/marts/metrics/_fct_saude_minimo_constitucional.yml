@@ -15,6 +15,9 @@ models:
             expression: "situacao = 'encerrado' or cumpre_minimo is null"
       - dbt_utils.expression_is_true:
           arguments:
+            expression: "percentual_aplicado_saude is null or percentual_aplicado_saude between 0 and 100"
+      - dbt_utils.expression_is_true:
+          arguments:
             expression: "not divergencia_entre_vias"
           config:
             severity: warn
@@ -54,6 +57,8 @@ models:
       - name: minimo_aplicacao_saude_percentual
         data_type: numeric
         description: "Mínimo legal em pontos percentuais, vindo de seed_constantes_fiscais (LC 141/2012 art. 7º)"
+        tests:
+          - not_null
       - name: cumpre_minimo
         data_type: boolean
         description: "percentual_aplicado_saude >= mínimo. Só existe com situacao = encerrado e sem divergência do 3.2 entre as vias; nulo nos demais"
@@ -74,7 +79,7 @@ models:
         description: "Despesa total com saúde declarada ao SIOPS, em reais (TABNET, só ano fechado)"
       - name: divergencia_entre_vias
         data_type: boolean
-        description: "As duas vias do SIOPS (TABNET e consulta por ano) trazem valores diferentes para algum indicador de tela"
+        description: "As duas vias do SIOPS (TABNET e consulta por ano) trazem valores diferentes para algum indicador de tela, ou uma traz valor e a outra não. O extrator só avisa nos dois primeiros casos; aborta apenas quando o 3.2 diverge com valor nas duas vias"
       - name: indicadores_divergentes
         data_type: text
         description: "Indicadores com divergência entre as vias, separados por vírgula; nulo quando não há"

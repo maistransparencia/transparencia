@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 baseline_commit: 2f685af639825d4c7376d3e047542c3ab7e974e8
 ---
 
@@ -60,7 +60,7 @@ Tela e contratos TypeScript (25.3); divisão entre União e Estado (25.4); produ
 
 **Receita: conciliada ao centavo.** Dois erros do cálculo próprio inicial, ambos achados comparando com o TABNET:
 1. As **cotas extraordinárias do FPM** (`1711.51.2`: R$ 2.897.965,31 em A e R$ 2.419.855,98 em B, em 2024) estavam na base. O art. 7º da LC 141 cita só a alínea "b" do inciso I do art. 159; as cotas adicionais não estão no texto. Fora a diferença de A cai de R$ 2.776.806,50 para R$ 155.866,39 e a base de B bate com o SIOPS.
-2. Faltava a **compensação do ICMS** (`1729.53`, LC 194/2022 e LC 198/2023: R$ 155.866,39 em A). Entra pelo art. 9º da LC 141 ("qualquer compensação financeira proveniente de impostos e transferências constitucionais"). É exatamente o resíduo de A.
+2. Faltava a **compensação do ICMS** (`1729.53`, art. 3º da LC 194/2022: R$ 155.866,39 em A; a LC 198/2023 trata do FPM de municípios com perda de população, não desta compensação). Entra pelo art. 9º da LC 141 ("qualquer compensação financeira proveniente de impostos e transferências constitucionais"). É exatamente o resíduo de A.
 
 Com a base corrigida (`seed_saude_minimo_base_calculo.csv`) a receita bate com `R.Impostos_e_Transf.Const` do SIOPS **ao centavo** em 5 de 8 combinações testadas: A 2024 (R$ 65.750.268,45) e 2025, B 2023, 2024 e 2025. **Não bate** em 2022 (A: +R$ 911.362,62; B: +R$ 806.727,51) e em A 2023 (+R$ 749.443,31): causa não investigada.
 
@@ -83,3 +83,27 @@ Leitura de textos do Planalto baixados hoje (`lcp141.htm`, `lcp227.htm`, `lcp214
 - **Natureza:** o 15% é limite legal direto; o 3.2 é cálculo do sistema, não é a lei. O cálculo próprio é conferência.
 - **Risco:** o texto da tela da 25.3 não pode dizer que a Prefeitura "cumpriu" ou "descumpriu" a lei; diz o valor calculado pelo SIOPS e a régua de 15%. Licença de reuso dos dados do SIOPS continua **NÃO VERIFICADA**.
 - **Pendências:** IBS municipal em 2027 em diante (LC 214, arts. 344 e seguintes); termos de uso do SIOPS; parecer de advogado antes de publicar texto sobre cumprimento.
+
+### Pendências conhecidas (visíveis na revisão)
+
+Decididas pelo Julio na revisão de código de 2026-11-06. A story fica em `review` porque o número que o cidadão vê (3.2 do SIOPS, pelas duas vias) não depende delas. A 25.3 não pode apresentar o cálculo próprio como fato medido (regra 27).
+
+- **Despesa não conciliada (critério 1):** SIOPS R$ 13.266.548,87 contra R$ 15.611.891,10 do cálculo próprio em A 2024. Falta o demonstrativo declarado ao SIOPS.
+- **Receita não bate em 2022 (A e B) e em A 2023:** causa não investigada.
+- **Medição a partir do CI (critério 2):** adiada para o primeiro run da Story 23.8. Nota para a 23.8: em janeiro e fevereiro o TABNET do ano recém-fechado pode ainda não existir; o extrator aborta com "TABNET de AAAA indisponível ou ainda não publicado" e o alerta deve tratar isso como esperado. Medir em janeiro de 2027 o dia em que `indmun26.dbf` aparece na lista de anos do formulário (a página não informa data de publicação).
+- **Base de receita ainda incompleta:** dívida ativa, multas e juros de mora (só há o prefixo `1110.`, "NÃO VERIFICADO" se o portal os escritura ali), IOF-ouro e IBS a partir de 2027.
+- **Vigência do `1729.53`:** a linha do seed passou a começar em 2022 (ano da LC 194/2022; o ano mínimo padrão do portal é 2021). **Confirmar o ano de início com o `jurista-fiscal`.**
+- **Despesa da conferência por texto livre** (`fonte_recurso_desc`): o raw de despesa não traz o código de fonte STN.
+
+### Decisões da revisão de código (2026-11-06)
+
+- Via nula no 3.2: o mart continua marcando divergência e deixando `cumpre_minimo` nulo; o extrator só avisa ("Só uma das vias do SIOPS tem valor"). O aborto continua só para o 3.2 com valor nas duas vias.
+- TABNET do ano fechado ainda não publicado: mantido o tudo-ou-nada, com mensagem clara.
+- Testes acrescentados: carregador raw (DDL real e upsert idempotente), limite exato de 15,00/14,99, uma via nula nos dois sentidos, faixa 0 a 100 e `not_null` do mínimo no dbt.
+
+### Parecer do `jurista-fiscal` sobre o início da vigência do `1729.53` (2026-11-06)
+
+- **Norma:** a compensação vem do art. 3º da LC 194/2022 (`https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp194.htm`), publicada em 23.6.2022, vigente desde a publicação (art. 15). Ela trata das perdas de arrecadação de ICMS de 2022. Entra na base do mínimo pelo art. 9º da LC 141 ("qualquer compensação financeira proveniente de impostos e transferências constitucionais").
+- **Vigência:** `ano_inicio` 2022 é o limite inferior pela lei (um recebimento não pode anteceder a norma). **Nos dados locais a receita aparece só de 2023 em diante** (A: R$ 1.411.162,91 em 2023, R$ 155.866,39 em 2024, R$ 49.769,90 em 2025; B: R$ 672.006,40 em 2023), porque a compensação das perdas de 2022 foi repassada depois. Manter 2022 é correto e inofensivo.
+- **Erro corrigido na descrição do seed:** a LC 198/2023 não é sobre compensação do ICMS (altera a LC 91 para manter coeficientes do FPM de municípios com redução populacional). A linha do portal com esse nome fica dentro do `1729.53` mas não muda a base legal.
+- **NÃO VERIFICADO:** por que a receita de A em 2023 fica R$ 749.443,31 acima do SIOPS mesmo com a compensação (R$ 1.411.162,91) incluída; possível parcela da compensação que o SIOPS não considera.

@@ -169,6 +169,23 @@ def parse_consulta_ano(corpo: str, codigo: str, ano: int, periodo: int) -> dict[
     return {c: por_codigo[c] for c in INDICADORES_TELA}
 
 
+def vias_incompletas(linhas: list[dict[str, Any]]) -> list[str]:
+    """Descrições dos indicadores de tela com valor em só uma das vias (a outra sem transmissão)."""
+    por_chave: dict[tuple[Any, ...], dict[str, Decimal | None]] = {}
+    for linha in linhas:
+        if linha["codigo_indicador"] in INDICADORES_TELA:
+            chave = (linha["portal_slug"], linha["ano"], linha["periodo"], linha["codigo_indicador"])
+            por_chave.setdefault(chave, {})[linha["via"]] = linha["valor"]
+    return [
+        f"{portal} {ano} bimestre {periodo} indicador {indicador}: tabnet={vias.get(VIA_TABNET)} "
+        f"consulta_ano={vias.get(VIA_CONSULTA_ANO)}"
+        for (portal, ano, periodo, indicador), vias in sorted(por_chave.items())
+        if VIA_TABNET in vias
+        and VIA_CONSULTA_ANO in vias
+        and (vias[VIA_TABNET] is None) != (vias[VIA_CONSULTA_ANO] is None)
+    ]
+
+
 def divergencias_entre_vias(linhas: list[dict[str, Any]]) -> list[tuple[str, str]]:
     """Pares (indicador, descrição) dos indicadores de tela cujo valor difere entre as duas vias (ambas com valor)."""
     por_chave: dict[tuple[Any, ...], dict[str, Decimal | None]] = {}
@@ -266,8 +283,14 @@ class SiopsExtractor:
         anos_fechados = sorted({a for lista in anos_por_portal.values() for a in lista if a < ano_corrente})
         coletado_em = datetime.now(timezone.utc).isoformat()
 
+        def tabnet_do_ano(ano: int, incremento: str) -> dict[str, Decimal | None]:
+            try:
+                return self.baixar_tabnet(ano, incremento)
+            except SiopsError as err:
+                raise SiopsError(f"TABNET de {ano} indisponível ou ainda não publicado: {err}") from err
+
         tabnet = {
-            (ano, codigo): self.baixar_tabnet(ano, meta["incremento"])
+            (ano, codigo): tabnet_do_ano(ano, meta["incremento"])
             for ano in anos_fechados
             for codigo, meta in INDICADORES_TABNET.items()
         }
@@ -333,6 +356,8 @@ class SiopsExtractor:
             raise SiopsError(f"Divergência entre as vias no indicador do mínimo de saúde: {'; '.join(criticas)}")
         for _, descricao in divergentes:
             logger.warning("Divergência entre as vias do SIOPS: %s", descricao)
+        for descricao in vias_incompletas(linhas):
+            logger.warning("Só uma das vias do SIOPS tem valor: %s", descricao)
         return linhas
 
 

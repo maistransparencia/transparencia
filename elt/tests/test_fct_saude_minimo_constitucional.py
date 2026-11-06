@@ -11,7 +11,17 @@ _ANO_SEM_DADO = 2032
 _ANO_PARCIAL = 2033
 _ANO_CONFERENCIA = 2034
 _ANO_DIVERGENTE = 2035
-_ANOS = [_ANO_FECHADO, _ANO_SEM_DADO, _ANO_PARCIAL, _ANO_CONFERENCIA, _ANO_DIVERGENTE]
+_ANO_LIMITE = 2036
+_ANO_UMA_VIA_NULA = 2037
+_ANOS = [
+    _ANO_FECHADO,
+    _ANO_SEM_DADO,
+    _ANO_PARCIAL,
+    _ANO_CONFERENCIA,
+    _ANO_DIVERGENTE,
+    _ANO_LIMITE,
+    _ANO_UMA_VIA_NULA,
+]
 _PORTAL = "porciuncula_prefeitura"
 _OUTRO_PORTAL = "natividade_prefeitura"
 
@@ -47,6 +57,16 @@ _LINHAS = [
     # ano em andamento: o bimestre 2 (121,91) não vale, só o mais avançado
     (_PORTAL, _ANO_PARCIAL, 4, "bimestral", "consulta_ano", "3.2", "percentual", "30.83"),
     (_PORTAL, _ANO_PARCIAL, 2, "bimestral", "consulta_ano", "3.2", "percentual", "99.99"),
+    # exatamente no mínimo cumpre; um centésimo abaixo não cumpre
+    (_PORTAL, _ANO_LIMITE, 6, "anual", "tabnet", "3.2", "percentual", "15.00"),
+    (_PORTAL, _ANO_LIMITE, 6, "anual", "consulta_ano", "3.2", "percentual", "15.00"),
+    (_OUTRO_PORTAL, _ANO_LIMITE, 6, "anual", "tabnet", "3.2", "percentual", "14.99"),
+    (_OUTRO_PORTAL, _ANO_LIMITE, 6, "anual", "consulta_ano", "3.2", "percentual", "14.99"),
+    # uma via com valor e a outra sem transmissão: diverge e não decide o mínimo
+    (_PORTAL, _ANO_UMA_VIA_NULA, 6, "anual", "tabnet", "3.2", "percentual", "20.00"),
+    (_PORTAL, _ANO_UMA_VIA_NULA, 6, "anual", "consulta_ano", "3.2", "percentual", None),
+    (_OUTRO_PORTAL, _ANO_UMA_VIA_NULA, 6, "anual", "tabnet", "3.2", "percentual", None),
+    (_OUTRO_PORTAL, _ANO_UMA_VIA_NULA, 6, "anual", "consulta_ano", "3.2", "percentual", "20.00"),
     # base da conferência
     (_PORTAL, _ANO_CONFERENCIA, 6, "anual", "tabnet", "3.2", "percentual", "15.00"),
     (
@@ -237,3 +257,23 @@ def test_minimo_divergente_entre_vias_nao_decide_cumprimento(conn):
     assert linha.situacao == "encerrado"
     assert linha.divergencia_entre_vias is True
     assert linha.cumpre_minimo is None
+
+
+@pytest.mark.usefixtures("seed_siops")
+def test_minimo_exato_cumpre_e_um_centesimo_abaixo_nao_cumpre(conn):
+    assert _linha(conn, _PORTAL, _ANO_LIMITE).cumpre_minimo is True
+    assert _linha(conn, _OUTRO_PORTAL, _ANO_LIMITE).cumpre_minimo is False
+
+
+@pytest.mark.usefixtures("seed_siops")
+def test_uma_via_sem_valor_diverge_e_nao_decide_o_minimo(conn):
+    tabnet_com_valor = _linha(conn, _PORTAL, _ANO_UMA_VIA_NULA)
+    assert tabnet_com_valor.situacao == "encerrado"
+    assert tabnet_com_valor.divergencia_entre_vias is True
+    assert tabnet_com_valor.indicadores_divergentes == "percentual_aplicado_saude"
+    assert tabnet_com_valor.cumpre_minimo is None
+
+    consulta_com_valor = _linha(conn, _OUTRO_PORTAL, _ANO_UMA_VIA_NULA)
+    assert consulta_com_valor.situacao == "sem_dado"
+    assert consulta_com_valor.divergencia_entre_vias is True
+    assert consulta_com_valor.cumpre_minimo is None

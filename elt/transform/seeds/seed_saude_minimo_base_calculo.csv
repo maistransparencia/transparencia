@@ -5,5 +5,5 @@ receita,prefixo_codigo,1711.52,Cota-parte do Imposto Territorial Rural,2012,2099
 receita,prefixo_codigo,1721.50,Cota-parte do ICMS,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 158 IV,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
 receita,prefixo_codigo,1721.51,Cota-parte do IPVA,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 158 III,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
 receita,prefixo_codigo,1721.52,Cota-parte do IPI sobre exportações,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 159 §3º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
-receita,prefixo_codigo,1729.53,Compensação financeira do ICMS (LC 194/2022 e LC 198/2023),2012,2099,LC 141/2012 art. 9º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1729.53,Cota-parte do ICMS: compensação financeira do art. 3º da LC 194/2022 repassada pelo Estado,2022,2099,LC 141/2012 art. 9º c/c LC 194/2022 art. 3º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
 despesa,palavra_chave_fonte_recurso,impostos e transf,Despesa de saúde paga com recursos de impostos e transferências de impostos,2012,2099,LC 141/2012 art. 2º e art. 4º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm

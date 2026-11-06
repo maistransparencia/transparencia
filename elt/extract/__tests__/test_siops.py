@@ -14,6 +14,7 @@ from elt.extract.siops import (
     parse_consulta_ano,
     parse_tabnet,
     validar_faixa,
+    vias_incompletas,
 )
 
 INCREMENTO = "D.R.Próprios"
@@ -133,6 +134,40 @@ def test_divergencias_entre_vias_so_aponta_valores_diferentes_nas_duas_vias():
     ((indicador, descricao),) = divergencias_entre_vias(linhas)
     assert indicador == "2.1"
     assert "indicador 2.1" in descricao
+
+
+def test_vias_incompletas_aponta_so_valor_em_uma_via_e_nao_diverge():
+    def linha(via, indicador, valor):
+        return {
+            "portal_slug": "p",
+            "ano": 2024,
+            "periodo": 6,
+            "via": via,
+            "codigo_indicador": indicador,
+            "valor": valor,
+        }
+
+    linhas = [
+        linha(VIA_TABNET, "3.2", Decimal("20.00")),
+        linha(VIA_CONSULTA_ANO, "3.2", None),
+        linha(VIA_TABNET, "3.1", None),
+        linha(VIA_CONSULTA_ANO, "3.1", None),
+        linha(VIA_TABNET, "2.1", Decimal("1.00")),
+        linha(VIA_CONSULTA_ANO, "2.1", Decimal("1.00")),
+    ]
+    (descricao,) = vias_incompletas(linhas)
+    assert "indicador 3.2" in descricao
+    assert divergencias_entre_vias(linhas) == []
+
+
+def test_tabnet_ainda_nao_publicado_aborta_com_mensagem_clara():
+    portal = PortalConfig.load("porciuncula_prefeitura")
+    extrator = SiopsExtractor(min_interval_seconds=0)
+    with (
+        patch.object(extrator, "baixar_tabnet", side_effect=SiopsError("sem tabela")),
+        pytest.raises(SiopsError, match="TABNET de 2024 indisponível ou ainda não publicado"),
+    ):
+        extrator.extrair([portal], [2024])
 
 
 def _resp(corpo: str, status: int = 200):
