@@ -481,3 +481,13 @@ status: open
 - Resumo de fornecedores usa `viewModel.topFornecedores` e o corpo usa `fornecedoresLinhas`: conferir que são o mesmo conjunto.
 - Fundeb em ano parcial mostra barra e marcador do mínimo: conferir `tomDoResultado` no ano em andamento.
 - `apps/storybook/scripts/dev.mjs` e a story do Storybook que copia o markup do `CollapsibleSection`: tratar erro/sinal e importar o componente real.
+
+## Deferred from: code review of story 25-9 (2026-11-05)
+
+- Pareceres do `jurista-fiscal` (base legal estadual), do `contador-publico` (alíneas 1729/2429 e modalidades fundo a fundo e finalidade definida) e do `editor-cidadao` (textos do bloco e do cartão da receita) não foram registrados.
+- `FONTE_EMENDAS_FEDERAIS` e a fonte municipal têm `dataArquivo: null`; a spec pede data em todas as fontes. A tela também não tem os dois blocos "Governo estadual" e "Prefeitura".
+- `educacao/page.tsx` só renderiza `EmendasSection` com emendas municipais ou `com_emendas`; Estado sem fonte ou `indisponivel` sem emenda municipal não mostra aviso. Mudar exige ajustar `educacao/page.spec.tsx`.
+- `consta_no_arquivo_mais_recente` vira falso se o arquivo não trouxer ano ou data (a emenda sai da comparação com a receita). Conferir se o extrator aceita arquivo sem ano.
+- Extrator `elt/extract/emendas_estaduais.py`: identificador repetido no mesmo CSV (upsert falha), posições de meses diferentes somadas, `_soma` parcial como total, mês fora de 1..12, `NaN` ou espaço não separável em `parse_valor`, gravações sem transação única, arquivo republicado com emenda removida, `main` que para na primeira fonte com erro.
+- Sem alerta de arquivo desatualizado do Estado; `coletado_em` de `fct_emendas_estaduais_fontes` não aparece na tela.
+- `make test/ts` e `pnpm test` perdem `DATABASE_URL` no turbo e caem na 5544 (onde o mart novo não existe); documentar `--env-mode=loose` ou passar a variável no `turbo.json`.

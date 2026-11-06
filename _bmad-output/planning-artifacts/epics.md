@@ -3726,7 +3726,7 @@ So that a delay in the municipal records is not read as money that stopped.
 
 **Princípios já decididos:** quando as fontes divergirem, o portal mostra as duas posições com a data de cada uma e diz que são registros de sistemas diferentes; nunca escolhe uma sozinho nem sugere omissão da Prefeitura (indício, nunca acusação; Regra 27 para dado derivado). Sem literais de tenant (Regra 23).
 
-**Dependências:** Story 25.1a (spike de emendas), Story 25.5 (método compartilhado) e Story 25.8 (objeto correto). Desejável: Story 25.9 (emendas estaduais), porque as emendas de educação de Porciúncula em 2026 são estaduais; a Entrega 1 dela basta. Em 2026-11-05 a exploração mostrou que as emendas de educação de Porciúncula em 2026 são de origem **estadual**; a fonte federal não as cobre. Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
+**Dependências:** Story 25.1a (spike de emendas), Story 25.5 (método compartilhado) e Story 25.8 (objeto correto). Story 25.9 (emendas estaduais, concluída em 2026-11-05 com pendências), porque as emendas de educação de Porciúncula em 2026 são estaduais; a Entrega 1 dela basta. Em 2026-11-05 a exploração mostrou que as emendas de educação de Porciúncula em 2026 são de origem **estadual**; a fonte federal não as cobre. Ao concluir, atualizar a página de educação (a conferência entra na parte intermediária, junto de "Emendas na educação").
 
 ---
 
@@ -3780,6 +3780,16 @@ So that I know what was indicated for my city even when the city hall does not l
 **Perguntas abertas (da spike):** unicidade de (número, autor) e do identificador; as seis emendas de saúde de Porciúncula com número de proposta que não casam com o detalhamento; se o painel Qlik tem posição mais nova que as planilhas; termos de uso do portal do Estado.
 
 **Dependências:** Story 25.1c (concluída como spike), Story 25.5 (método e textos), Story 25.8 (objeto correto) e Story 23.8 (cadência). A Story 25.7 (educação) usa a Entrega 1 desta história para as emendas de educação de Porciúncula em 2026.
+
+**Status (2026-11-05): concluída, com pendências registradas.** Entregues nos commits `a58528fe` e `0fc1e738`, no banco local (Regra 15, nada em produção): extração e carga por fonte (`elt/fontes/emendas_estaduais.yml`), `fct_emendas_estaduais`, `fct_emendas_estaduais_fontes` e `fct_emendas_estaduais_receita`, as consultas em `@transparencia/db`, o bloco nas páginas de saúde e educação e o cartão da receita só na saúde. A revisão (`bmad-code-review`) corrigiu: execução cruzada com o ano da emenda, comparação com a receita só da `transferencia_especial` (fundo a fundo e finalidade definida ficam fora até haver parecer contábil), erro de consulta como `indisponivel`, valor ausente nulo e não zero, e a fonte (órgão, arquivo, data, fase, link) em cada emenda. Decisões: a área vem da unidade orçamentária e, na falta dela, da função (texto da spec ajustado); a coluna "Rastreabilidade" de `emendas-section.tsx` saiu de propósito.
+
+**Pendências (não bloqueiam o fechamento; seguem em `deferred-work.md`):**
+- Revisões do `jurista-fiscal` (base legal estadual, ainda NÃO VERIFICADA), do `contador-publico` (estágios do Estado e alíneas 1729/2429; só então ampliar a comparação a fundo a fundo e finalidade definida) e do `editor-cidadao` (textos): não registradas nesta sessão.
+- Datas das fontes federal e municipal na lista de fontes (hoje `null`) e os dois blocos "Governo estadual" e "Prefeitura" (hoje uma tabela só): ajustar a tela ou a spec.
+- A página de educação não mostra a mensagem "sem fonte" quando não há emendas municipais (os testes de página esperam a seção oculta): decidir.
+- Extrator Python: casos de borda não verificados (identificador repetido no CSV, posições de meses diferentes somadas, soma parcial tratada como total, mês fora de 1..12, `NaN`, carga sem transação única).
+- Sem alerta de arquivo desatualizado do Estado; `coletado_em` não aparece na tela.
+- `make test/ts` e `pnpm test` perdem o `DATABASE_URL` no turbo e leem a 5544; usar `pnpm exec turbo run test --env-mode=loose` com a 5545 explícita.
 
 ---
 
