@@ -73,7 +73,6 @@ async function fetchRawSaudeData(
     licitacoesEmAndamento,
     topFornecedores,
     portalConfig,
-    minimoSaude,
   ] = await Promise.all([
     getHistoriaSaudeMetrics(tenantSlug, context.selectedYear),
     getSaudeExecutionTrendMetrics(tenantSlug),
@@ -96,11 +95,13 @@ async function fetchRawSaudeData(
       limit: 5,
     }),
     getPortalConfig(tenantSlug),
-    getSaudeMinimoConstitucional({
-      portalSlug: tenantSlug,
-      ano: context.selectedYear,
-    }),
   ]);
+
+  const minimoSaude = await getSaudeMinimoConstitucional({
+    portalSlug: tenantSlug,
+    ano: context.selectedYear,
+    anoInicial: portalConfig?.anoInicial,
+  });
 
   const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
     ano: context.selectedYear,

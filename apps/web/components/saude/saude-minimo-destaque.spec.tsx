@@ -29,6 +29,8 @@ const base: SaudeMinimoConstitucionalDTO = {
     limite: 15,
     percentualAplicado: 21.4,
     resultado: "cumpriu",
+    comparavel: true,
+    mesesCobertos: null,
     baseLegal: "Lei Complementar 141/2012 art. 7º",
     urlBaseLegal: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm",
   },
@@ -48,7 +50,7 @@ describe("SaudeMinimoDestaque", () => {
     expect(
       screen.getByText(/Calculado pelo SIOPS \(Ministério da Saúde\)/),
     ).toBeTruthy();
-    expect(screen.getByText(/Última transmissão/)).toBeTruthy();
+    expect(screen.getByText(/Dados consultados no SIOPS em/)).toBeTruthy();
     expect(screen.getByRole("meter", { hidden: true })).toBeTruthy();
     const lei = screen.getByRole("link", { name: /Lei Complementar 141/ });
     expect(lei.getAttribute("target")).toBe("_blank");
@@ -66,6 +68,8 @@ describe("SaudeMinimoDestaque", () => {
             ...base.minimo,
             percentualAplicado: 121.91,
             resultado: "parcial",
+            comparavel: false,
+            mesesCobertos: 6,
           },
         }}
       />,
@@ -94,7 +98,37 @@ describe("SaudeMinimoDestaque", () => {
       />,
     );
 
+    expect(screen.getByText("Abaixo dos 15% exigidos")).toBeTruthy();
     expect(screen.getByText(/indício a ser esclarecido/)).toBeTruthy();
+  });
+
+  it("valor em conferência cita o SIOPS, não afirma cumprimento e não desenha barra", () => {
+    render(
+      <SaudeMinimoDestaque
+        minimoSaude={{
+          ...base,
+          atual: { ...anoBase, percentualAplicadoSaude: 20 },
+          minimo: {
+            ...base.minimo,
+            percentualAplicado: 20,
+            resultado: "indeterminado",
+            comparavel: false,
+          },
+        }}
+      />,
+    );
+
+    expect(screen.queryByRole("meter", { hidden: true })).toBeNull();
+    expect(screen.getByText(/ainda não confirmou esse valor/)).toBeTruthy();
+    expect(screen.queryByText(/abaixo do mínimo/)).toBeNull();
+    expect(screen.queryByText(/cumpriu/)).toBeNull();
+  });
+
+  it("o medidor descreve valor e régua sem afirmar cumprimento", () => {
+    render(<SaudeMinimoDestaque minimoSaude={base} />);
+
+    const medidor = screen.getByRole("meter", { hidden: true });
+    expect(medidor.getAttribute("aria-valuetext")).not.toMatch(/cumpriu/);
   });
 
   it("sem dado mostra traço e nunca zero", () => {
@@ -108,6 +142,7 @@ describe("SaudeMinimoDestaque", () => {
             ...base.minimo,
             percentualAplicado: null,
             resultado: "sem_dado",
+            comparavel: false,
           },
           serie: [],
           anoInicial: null,
@@ -133,6 +168,9 @@ describe("SaudeMinimoDestaque", () => {
       screen.getByText(/restos a pagar sem dinheiro em caixa/),
     ).toBeTruthy();
     expect(screen.getByText(/Anos fechados, 2017–2024/)).toBeTruthy();
+    expect(screen.getAllByText(/Dados consultados no SIOPS em/)).toHaveLength(
+      2,
+    );
     const art24 = screen.getByRole("link", {
       name: /art\. 24 da Lei Complementar 141/,
     });

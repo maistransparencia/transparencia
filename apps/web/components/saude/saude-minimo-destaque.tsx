@@ -31,9 +31,9 @@ function descreverResultado(minimoSaude: SaudeMinimoConstitucionalDTO): string {
   const aplicado = valorOuTraco(minimo.percentualAplicado, fmtPercent);
   switch (minimo.resultado) {
     case "parcial":
-      return `Valor parcial de ${ano}${atual ? `, até o ${atual.periodo}º bimestre (${atual.periodo * 2} primeiros meses)` : ""}. O mínimo vale para o ano inteiro; só dá para conferir quando o ano fecha.`;
+      return `Valor parcial de ${ano}${atual && minimo.mesesCobertos ? `, até o ${atual.periodo}º bimestre (${minimo.mesesCobertos} primeiros meses)` : ""}. O mínimo vale para o ano inteiro; só dá para conferir quando o ano fecha.`;
     case "abaixo":
-      return `O SIOPS registra ${aplicado} em ${ano}, abaixo dos ${minimo.limite === null ? "" : formatarLimite(minimo.limite)} exigidos. É um indício a ser esclarecido pela Prefeitura.`;
+      return `O SIOPS registra ${aplicado} em ${ano}. É um indício a ser esclarecido pela Prefeitura.`;
     case "indeterminado":
       return `O SIOPS registra ${aplicado} em ${ano}, mas o portal ainda não confirmou esse valor e por isso não o compara com o mínimo.`;
     case "sem_dado":
@@ -51,21 +51,23 @@ const ALERTAS: Partial<
   >
 > = {
   parcial: { tipo: "info", titulo: "Ano em andamento" },
-  abaixo: { tipo: "warning", titulo: "Abaixo do mínimo" },
+  abaixo: { tipo: "warning", titulo: "Abaixo do exigido" },
   indeterminado: { tipo: "info", titulo: "Valor em conferência" },
 };
 
-/** Topo de /saude: o percentual do SIOPS frente ao mínimo, com lei, fonte e data da última transmissão. */
+/** Topo de /saude: o percentual do SIOPS frente ao mínimo, com lei, fonte e data em que o portal consultou o SIOPS. */
 export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
   const [detalhesAbertos, setDetalhesAbertos] = useState(false);
   const { ano, atual, minimo, serie, anoInicial, anoFinal } = minimoSaude;
-  const { limite, percentualAplicado, resultado, baseLegal, urlBaseLegal } =
-    minimo;
+  const {
+    limite,
+    percentualAplicado,
+    resultado,
+    comparavel,
+    baseLegal,
+    urlBaseLegal,
+  } = minimo;
   const temValor = percentualAplicado !== null && resultado !== "sem_dado";
-  const comparavel =
-    temValor &&
-    limite !== null &&
-    (resultado === "cumpriu" || resultado === "abaixo");
   const abaixo = resultado === "abaixo";
   const leis =
     baseLegal && urlBaseLegal ? [{ label: baseLegal, url: urlBaseLegal }] : [];
@@ -93,17 +95,24 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
             </span>
           )}
         </p>
-        {comparavel && (
+        {comparavel && limite !== null && percentualAplicado !== null && (
           <ThresholdMeter
             value={percentualAplicado}
             threshold={limite}
             tone={abaixo ? "warn" : "brand"}
             label="Aplicado em saúde"
-            valueText={`${fmtPercent(percentualAplicado)} aplicado; mínimo de ${formatarLimite(limite)}${resultado === "cumpriu" ? "; cumpriu o mínimo" : ""}`}
+            valueText={`${fmtPercent(percentualAplicado)} aplicado; mínimo de ${formatarLimite(limite)}`}
           />
         )}
         {mensagem && alerta && (
-          <AlertBox type={alerta.tipo} title={alerta.titulo}>
+          <AlertBox
+            type={alerta.tipo}
+            title={
+              resultado === "abaixo" && limite !== null
+                ? `Abaixo dos ${formatarLimite(limite)} exigidos`
+                : alerta.titulo
+            }
+          >
             {mensagem}
           </AlertBox>
         )}
@@ -112,7 +121,7 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
           Calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela
           Prefeitura.
           {atual?.coletadoEm
-            ? ` Última transmissão: ${fmtDate(atual.coletadoEm)}.`
+            ? ` Dados consultados no SIOPS em ${fmtDate(atual.coletadoEm)}.`
             : ""}
         </p>
       </div>
@@ -141,7 +150,15 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
           maxWidth="2xl"
           showShareButton={false}
           footer={
-            <LinhaLeiEFonte laws={leis} source={FONTES_OFICIAIS.siops.nome} />
+            <LinhaLeiEFonte
+              laws={leis}
+              source={
+                <LeiLink
+                  label={FONTES_OFICIAIS.siops.nome}
+                  url={FONTES_OFICIAIS.siops.url}
+                />
+              }
+            />
           }
         >
           <div className="space-y-6">
@@ -169,6 +186,11 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
                 )}
               />
             </dl>
+            {atual.coletadoEm && (
+              <p className="caption">
+                Dados consultados no SIOPS em {fmtDate(atual.coletadoEm)}.
+              </p>
+            )}
             <p className="caption">
               Como o SIOPS conta a despesa: soma o que foi reservado (empenhado)
               e desconta os restos a pagar sem dinheiro em caixa para cobri-los.
