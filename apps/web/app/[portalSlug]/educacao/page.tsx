@@ -1,4 +1,8 @@
-import { resumirFiscalizacaoEducacao } from "@transparencia/db";
+import {
+  getEmendasEstaduais,
+  getFontesEmendas,
+  resumirFiscalizacaoEducacao,
+} from "@transparencia/db";
 import {
   fmtCompact,
   fmtPercent,
@@ -68,6 +72,16 @@ export default async function EducacaoPage({
     emendas,
     contratos,
   } = viewModel;
+  const emendasEstaduais = await getEmendasEstaduais(
+    portalSlug,
+    selectedYear,
+    "educacao",
+  );
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
@@ -89,7 +103,7 @@ export default async function EducacaoPage({
   });
   const pluralizar = (quantidade: number, singular: string, plural: string) =>
     `${quantidade} ${quantidade === 1 ? singular : plural}`;
-  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados`;
+  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados${emendasEstaduais.emendas.length > 0 ? ` · ${emendasEstaduais.emendas.length} do Estado` : ""}`;
   const resumoCategorias =
     resumo.contratos.quantidade > 0
       ? `${pluralizar(resumo.contratos.quantidade, "contrato vigente", "contratos vigentes")} em ${pluralizar(resumo.contratos.quantidadeCategorias, "tipo de gasto", "tipos de gasto")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados`
@@ -145,7 +159,8 @@ export default async function EducacaoPage({
           description={`Para quem quer conferir ${emendas.lista.length > 0 ? "emenda por emenda, " : ""}contrato por contrato e fornecedor por fornecedor. Toque ou clique em cada parte para abrir.`}
         />
 
-        {emendas.lista.length > 0 && (
+        {(emendas.lista.length > 0 ||
+          emendasEstaduais.situacao === "com_emendas") && (
           <EmendasSection
             id="emendas-educacao"
             resumo={resumoEmendas}
@@ -154,6 +169,8 @@ export default async function EducacaoPage({
             portalSlug={viewModel.portalSlug}
             titulo="Emendas na educação"
             descricao="Recursos que deputados e senadores destinaram à educação do município."
+            emendasEstaduais={emendasEstaduais}
+            fontes={fontesEmendas}
           />
         )}
 

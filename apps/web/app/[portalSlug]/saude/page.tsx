@@ -1,4 +1,9 @@
 import {
+  getComparacaoReceitaEstadual,
+  getEmendasEstaduais,
+  getFontesEmendas,
+} from "@transparencia/db";
+import {
   AlertBox,
   fmtCompact,
   fmtPercent,
@@ -52,6 +57,15 @@ export default async function SaudePage({
   const rawData = await loadSaudeData(portalSlug, resolvedSearchParams);
   const viewModel = buildSaudeViewModel(rawData);
   const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
+  const [emendasEstaduais, comparacaoReceitaEstadual] = await Promise.all([
+    getEmendasEstaduais(portalSlug, selectedYear, "saude"),
+    getComparacaoReceitaEstadual(portalSlug, selectedYear),
+  ]);
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
   const totalEmendas =
     saude.emendasStats?.totalAutorizado ??
@@ -203,6 +217,9 @@ export default async function SaudePage({
         ano={selectedYear}
         emendasStats={saude.emendasStats}
         portalSlug={portalSlug}
+        emendasEstaduais={emendasEstaduais}
+        comparacaoReceitaEstadual={comparacaoReceitaEstadual}
+        fontes={fontesEmendas}
       />
     </div>
   );

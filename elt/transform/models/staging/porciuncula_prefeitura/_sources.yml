@@ -278,13 +278,16 @@ sources:
       - name: emendas_impositivas
         description: "Emendas parlamentares impositivas"
         meta:
-          primary_key: [ano, empresa, numero]
+          primary_key: [ano, empresa]
         columns:
           - name: ano
           - name: empresa
-          - name: numero
-          - name: descricao
-          - name: valor
+          - name: empenhado
+          - name: liquidado
+          - name: pago
+          - name: recaplicacaofinan
+          - name: rectransf
+          - name: tipotransf
 
       - name: emendas_cad
         description: "Cadastro detalhado de emendas"

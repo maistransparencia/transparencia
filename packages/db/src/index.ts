@@ -12,6 +12,8 @@ export * from "./queries/educacao-matriculas-metrics";
 export * from "./queries/educacao-metrics";
 export * from "./queries/educacao-origem-recursos";
 export * from "./queries/educacao-siope-metrics";
+export * from "./queries/emendas-estaduais";
+export * from "./queries/emendas-estaduais-receita";
 export * from "./queries/emendas-parlamentares";
 export * from "./queries/execucao-orcamentaria-metrics";
 export * from "./queries/export-raw-data";
