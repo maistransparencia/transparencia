@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   getComparacaoReceitaEstadual,
   montarComparacaoReceita,
@@ -120,10 +120,14 @@ describe("montarComparacaoReceita", () => {
 
 describe("getComparacaoReceitaEstadual", () => {
   it("portal sem dados devolve não identificado, sem erro", async () => {
+    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
     const r = await getComparacaoReceitaEstadual(
       "portal_inexistente_teste",
       2026,
     );
+    // consulta com coluna ou tabela errada registraria erro no catch
+    expect(erro).not.toHaveBeenCalled();
+    erro.mockRestore();
     expect(r.situacao).toBe("nao_identificado");
   });
 });

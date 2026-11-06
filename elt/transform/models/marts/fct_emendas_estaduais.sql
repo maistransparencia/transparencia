@@ -56,7 +56,7 @@ execucao_recente as (
     select
         *,
         row_number() over (
-            partition by codigo_fonte, identificador
+            partition by codigo_fonte, identificador, posicao_ano
             order by posicao_ano desc, posicao_mes desc, nome_arquivo desc
         ) as posicao_relatorio
     from {{ ref('stg_emendas_estaduais__execucao') }}
@@ -113,10 +113,12 @@ left join ultimos_arquivos u
 left join cadastro_municipal c
     on t.portal_slug = c.portal_slug
     and t.ano = c.ano
-    and regexp_replace(t.numero_emenda, '\D', '', 'g') = c.numero_digitos
+    and regexp_replace(coalesce(t.numero_emenda, ''), '\D', '', 'g') = c.numero_digitos
+    and c.numero_digitos <> ''
     and {{ target.schema }}.unaccent(upper(trim(t.autor))) = c.autor_normalizado
 left join execucao_recente x
     on t.codigo_fonte = x.codigo_fonte
     and t.identificador = x.identificador
+    and t.ano = x.posicao_ano
     and x.posicao_relatorio = 1
 where t.posicao_arquivo = 1

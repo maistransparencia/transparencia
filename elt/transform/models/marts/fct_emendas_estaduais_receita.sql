@@ -8,6 +8,9 @@
 -- - Só o estágio pago do Estado (caixa) é comparado, com a arrecadação (caixa). Empenhado e liquidado do Estado não têm
 --   par na receita da Prefeitura e não entram na comparação.
 -- - Pago ausente fica nulo (não identificado), nunca zero: `emendas_sem_pago_informado` conta as ausentes.
+-- - Só a transferência especial entra: ela é registrada em "outras transferências dos Estados". Fundo a fundo e
+--   finalidade definida costumam cair em outras alíneas (saúde, educação, convênios), e compará-las com esta daria
+--   falso "pago acima do registrado". Ampliar só com parecer contábil.
 -- - Competência: a comparação só vale quando a posição do relatório do Estado é do mesmo ano da receita; o relatório
 --   não separa restos a pagar, então fica como limite declarado na tela.
 
@@ -46,7 +49,7 @@ pago_estado as (
         sum(pago_estado) as pago_estado_informado,
         max(posicao_ano_execucao_estado * 100 + posicao_mes_execucao_estado) as posicao_execucao_estado
     from {{ ref('fct_emendas_estaduais') }}
-    where dinheiro_chega_prefeitura
+    where modalidade = 'transferencia_especial'
         and consta_no_arquivo_mais_recente
     group by 1, 2
 )

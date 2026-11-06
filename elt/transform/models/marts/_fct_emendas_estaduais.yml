@@ -28,7 +28,7 @@ models:
                 values: [execucao_direta, transferencia_especial, finalidade_definida, fundo_a_fundo, osc, nao_mapeada]
       - name: area_emenda
         data_type: text
-        description: "Área pelo objeto e beneficiário, nunca pela função da emenda estadual"
+        description: "Área da emenda pela unidade orçamentária do Estado e, na falta dela, pela função (configurado por fonte); nunca pelo texto do objeto"
         tests:
           - accepted_values:
               arguments:

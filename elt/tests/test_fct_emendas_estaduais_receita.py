@@ -57,11 +57,12 @@ def test_total_e_detalhe_da_alinea_nao_dobram_o_arrecadado(conn):
 
 
 @pytest.mark.usefixtures("seed_conferencia", "seed_receitas")
-def test_pago_soma_so_emendas_que_chegam_a_prefeitura_no_arquivo_mais_recente(conn):
+def test_pago_soma_so_transferencia_especial_no_arquivo_mais_recente(conn):
     linha = _linha(conn)
-    # i1 (transferência especial, pago 25000 em 08/2026) e i2 (fundo a fundo, pago 0 em 04/2026);
-    # fora: i3 execução direta, i4 OSC, i7 que saiu do arquivo mais recente, i6 de outra fonte/UF.
-    assert linha.emendas_chegam_prefeitura == 2
+    # só i1 (transferência especial, pago 25000 em 08/2026);
+    # fora: i2 fundo a fundo (outra alínea de receita), i3 execução direta, i4 OSC, i7 que saiu do arquivo mais
+    # recente, i6 de outra fonte/UF.
+    assert linha.emendas_chegam_prefeitura == 1
     assert linha.pago_estado_informado == 25000
     assert linha.emendas_sem_pago_informado == 0
     assert (linha.posicao_ano_execucao_estado, linha.posicao_mes_execucao_estado) == (2026, 8)

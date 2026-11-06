@@ -3749,7 +3749,7 @@ So that I know what was indicated for my city even when the city hall does not l
 - **And** o vínculo com o município usa a coluna de município do arquivo e o código IBGE da dimensão de portais, com nome normalizado e UF vinda do portal; havendo ambiguidade, não cruza e registra o caso; o Estado vem dos dados, nunca de literal (Regra 23)
 - **And** o mart (por exemplo `fct_emendas_estaduais`) tem grão `portal_slug`, número da emenda, autor e `identificador`, com colunas explícitas (por exemplo `valor_emenda_estadual`, `objeto_emenda`, `beneficiario_emenda`, `data_arquivo_estado`) e `portal_slug` em todo `JOIN` e `GROUP BY`
 - **And** a `modalidade` guarda códigos em snake_case (`execucao_direta`, `transferencia_especial`, `finalidade_definida`, `fundo_a_fundo`, `osc`); os rótulos ficam na UI (Regra 10)
-- **And** a classificação em saúde, educação ou outra área usa o objeto e o beneficiário, nunca a função da emenda estadual (a emenda 650, da escola municipal, está em "Administração").
+- **And** a classificação em saúde, educação ou outra área usa a unidade orçamentária do Estado e, na falta dela, o código da função (configurado por fonte), nunca o texto do objeto (a emenda 650, da escola municipal, tem função "Administração" e é classificada pela unidade, a Secretaria de Educação).
 
 *Entrega 2: conferência com o portal municipal e com a execução do Estado*
 - **Given** o cadastro municipal de emendas e a lista oficial do Estado

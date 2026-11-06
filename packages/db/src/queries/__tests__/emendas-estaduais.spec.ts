@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   emendasEstaduaisVazio,
   getEmendasEstaduais,
@@ -216,10 +216,38 @@ describe("conferência e execução do Estado", () => {
   });
 });
 
+describe("valor ausente", () => {
+  it("emenda sem valor fica nula, não zero, e não entra como dado nos totais", () => {
+    const r = montarEmendasEstaduais(
+      [fonte("Governo do Estado", "https://exemplo.gov.br")],
+      [emenda({ valor_emenda_estadual: null })],
+      2026,
+    );
+    expect(r.emendas[0]?.valor).toBeNull();
+    expect(r.totalIndicado).toBe(0);
+  });
+});
+
 describe("getEmendasEstaduais", () => {
   it("portal sem fonte devolve o estado neutro, sem erro", async () => {
+    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
     const r = await getEmendasEstaduais("portal_inexistente_teste", 2026);
+    // consulta com coluna ou tabela errada cairia em "indisponivel" e registraria erro
+    expect(erro).not.toHaveBeenCalled();
+    erro.mockRestore();
     expect(r.situacao).toBe("sem_fonte");
     expect(r.emendas).toEqual([]);
+  });
+
+  it("consulta filtrada por área não falha no banco", async () => {
+    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
+    const r = await getEmendasEstaduais(
+      "portal_inexistente_teste",
+      2026,
+      "saude",
+    );
+    expect(erro).not.toHaveBeenCalled();
+    erro.mockRestore();
+    expect(r.situacao).not.toBe("indisponivel");
   });
 });

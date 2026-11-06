@@ -103,7 +103,8 @@ describe("Emendas do Estado dentro de EmendasSection", () => {
     const gatilho = container.querySelector<HTMLElement>(
       "[data-testid='emendas-estaduais'] [aria-expanded]",
     );
-    if (gatilho) fireEvent.click(gatilho);
+    expect(gatilho).not.toBeNull();
+    fireEvent.click(gatilho as HTMLElement);
     expect(bloco.textContent).toMatch(/envia o dinheiro direto/);
     expect(bloco.textContent).toMatch(
       /não consta no arquivo mais recente do Estado \(15\/04\/2026\)/,
@@ -117,7 +118,8 @@ describe("Emendas do Estado dentro de EmendasSection", () => {
     const gatilho = container.querySelector<HTMLElement>(
       "[data-testid='emendas-estaduais'] [aria-expanded]",
     );
-    if (gatilho) fireEvent.click(gatilho);
+    expect(gatilho).not.toBeNull();
+    fireEvent.click(gatilho as HTMLElement);
     expect(bloco.textContent).not.toMatch(/Arquivo do Estado/);
   });
 
@@ -145,12 +147,20 @@ describe("Emendas do Estado dentro de EmendasSection", () => {
     expect(screen.queryByText(/Quais emendas o Estado/)).toBeNull();
   });
 
+  it("falha na consulta mostra aviso de indisponível, não 'sem fonte'", () => {
+    renderizar({ ...base, situacao: "indisponivel", fontes: [], emendas: [] });
+    const texto = screen.getByTestId("emendas-estaduais").textContent ?? "";
+    expect(texto).toMatch(/Não conseguimos carregar as emendas do Estado/);
+    expect(texto).not.toMatch(/Ainda não temos uma fonte oficial/);
+  });
+
   function abrirDetalhe(dados: EmendasEstaduaisDTO) {
     const { container } = renderizar(dados);
     const gatilho = container.querySelector<HTMLElement>(
       "[data-testid='emendas-estaduais'] [aria-expanded]",
     );
-    if (gatilho) fireEvent.click(gatilho);
+    expect(gatilho).not.toBeNull();
+    fireEvent.click(gatilho as HTMLElement);
     return screen.getByTestId("emendas-estaduais").textContent ?? "";
   }
 

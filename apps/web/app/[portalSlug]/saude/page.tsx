@@ -57,12 +57,15 @@ export default async function SaudePage({
   const rawData = await loadSaudeData(portalSlug, resolvedSearchParams);
   const viewModel = buildSaudeViewModel(rawData);
   const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
-  const [emendasEstaduais, fontesEmendas, comparacaoReceitaEstadual] =
-    await Promise.all([
-      getEmendasEstaduais(portalSlug, selectedYear, "saude"),
-      getFontesEmendas(portalSlug, selectedYear),
-      getComparacaoReceitaEstadual(portalSlug, selectedYear),
-    ]);
+  const [emendasEstaduais, comparacaoReceitaEstadual] = await Promise.all([
+    getEmendasEstaduais(portalSlug, selectedYear, "saude"),
+    getComparacaoReceitaEstadual(portalSlug, selectedYear),
+  ]);
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
   const totalEmendas =
     saude.emendasStats?.totalAutorizado ??

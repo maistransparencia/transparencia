@@ -314,6 +314,27 @@ def test_execucao_usa_o_relatorio_de_posicao_mais_recente_e_guarda_a_posicao(con
     assert por_id["i3"].pago_estado is None
 
 
+@pytest.mark.usefixtures("seed_conferencia")
+def test_execucao_de_outro_ano_nao_e_atribuida_a_emenda(conn):
+    for ident in ("i2", "i3"):
+        conn.execute(
+            text(
+                """
+                INSERT INTO raw_emendas_estaduais.execucao_emendas
+                    (codigo_fonte, nome_arquivo, identificador, posicao_ano, posicao_mes, dotacao_inicial,
+                     empenhado, liquidado, pago)
+                VALUES (:fonte, :nome, :ident, 2025, 12, 100000, 0, 0, 999)
+                """
+            ),
+            {"fonte": _FONTE, "nome": _RELATORIO_AGOSTO, "ident": ident},
+        )
+    conn.commit()
+    por_id = {linha.identificador: linha for linha in _mart(conn)}
+    assert por_id["i3"].posicao_ano_execucao_estado is None  # só há relatório de 2025 e a emenda é de 2026
+    assert por_id["i3"].pago_estado is None
+    assert (por_id["i2"].posicao_ano_execucao_estado, por_id["i2"].posicao_mes_execucao_estado) == (2026, 4)
+
+
 @pytest.mark.usefixtures("seed_emendas")
 def test_sem_relatorio_nem_cadastro_a_conferencia_fica_neutra(conn):
     linhas = _mart(conn)

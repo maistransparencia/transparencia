@@ -60,7 +60,8 @@ export interface EmendaEstadualDTO {
   autor: string;
   objeto: string;
   beneficiario: string;
-  valor: number;
+  /** Nulo quando o Estado não informa o valor: ausente não é zero. */
+  valor: number | null;
   area: string;
   modalidade: string;
   modalidadeRotulo: string;
@@ -104,8 +105,8 @@ export interface FonteEmendaDTO {
 
 export interface EmendasEstaduaisDTO {
   ano: number | null;
-  /** `sem_fonte`: o Estado do portal não tem fonte oficial configurada (estado neutro na tela). */
-  situacao: "sem_fonte" | "sem_emendas" | "com_emendas";
+  /** `sem_fonte`: o Estado do portal não tem fonte oficial configurada (estado neutro na tela). `indisponivel`: a consulta falhou. */
+  situacao: "sem_fonte" | "indisponivel" | "sem_emendas" | "com_emendas";
   fontes: FonteEmendaDTO[];
   emendas: EmendaEstadualDTO[];
   totalChegaPrefeitura: number;
@@ -230,7 +231,7 @@ export function montarEmendasEstaduais(
         autor: String(r.autor),
         objeto: String(r.objeto_emenda ?? ""),
         beneficiario: String(r.beneficiario_emenda ?? ""),
-        valor: Number(r.valor_emenda_estadual ?? 0),
+        valor: numeroOuNulo(r.valor_emenda_estadual),
         area: String(r.area_emenda),
         modalidade,
         modalidadeRotulo: rotulo.rotulo,
@@ -261,12 +262,15 @@ export function montarEmendasEstaduais(
               },
       };
     })
-    .sort((a, b) => b.valor - a.valor || a.numero.localeCompare(b.numero));
+    .sort(
+      (a, b) =>
+        (b.valor ?? 0) - (a.valor ?? 0) || a.numero.localeCompare(b.numero),
+    );
 
   const somar = (destino: DestinoEmendaEstadual) =>
     emendas
       .filter((e) => e.destino === destino)
-      .reduce((total, e) => total + e.valor, 0);
+      .reduce((total, e) => total + (e.valor ?? 0), 0);
 
   return {
     ano,
@@ -277,14 +281,14 @@ export function montarEmendasEstaduais(
     totalEstadoExecuta: somar("estado_executa"),
     totalOrganizacao: somar("organizacao"),
     totalNaoIdentificado: somar("nao_identificado"),
-    totalIndicado: emendas.reduce((total, e) => total + e.valor, 0),
+    totalIndicado: emendas.reduce((total, e) => total + (e.valor ?? 0), 0),
     posicaoExecucao,
   };
 }
 
 /**
  * Lista oficial de emendas do Estado para o município. A fonte é a do Estado do próprio portal
- * (configurada no pipeline); sem fonte, devolve o estado neutro. `area` filtra por objeto e beneficiário.
+ * (configurada no pipeline); sem fonte, devolve o estado neutro. `area` filtra pela área da emenda (unidade orçamentária e, na falta dela, a função do Estado).
  */
 export async function getEmendasEstaduais(
   portalSlug: string,
@@ -310,8 +314,10 @@ export async function getEmendasEstaduais(
         .execute(),
     ]);
     return montarEmendasEstaduais(fontesRows, emendasRows, ano);
-  } catch {
-    return emendasEstaduaisVazio;
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: a falha precisa ficar no stderr da plataforma, senão vira "sem fonte" sem rastro.
+    console.error("getEmendasEstaduais falhou", portalSlug, ano, error);
+    return { ...emendasEstaduaisVazio, situacao: "indisponivel" };
   }
 }
 
@@ -319,8 +325,10 @@ export async function getEmendasEstaduais(
 export async function getFontesEmendas(
   portalSlug: string,
   ano: number,
+  estadualCarregado?: EmendasEstaduaisDTO,
 ): Promise<FonteEmendaDTO[]> {
-  const estadual = await getEmendasEstaduais(portalSlug, ano);
+  const estadual =
+    estadualCarregado ?? (await getEmendasEstaduais(portalSlug, ano));
   const portal = await db
     .selectFrom("dim_portais")
     .select(["display_name", "portal_url"])

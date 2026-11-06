@@ -4,6 +4,7 @@ import type {
   ComparacaoReceitaEstadualDTO,
   EmendaEstadualDTO,
   EmendasEstaduaisDTO,
+  FonteEmendaDTO,
 } from "@transparencia/db";
 import {
   DenseTable,
@@ -49,6 +50,8 @@ function textoCadastro(emenda: EmendaEstadualDTO): string {
     emenda.valorCadastroMunicipal === null
   )
     return "Não encontramos esta emenda no cadastro da Prefeitura. Os dois sistemas são separados e podem ter datas diferentes. Isso não quer dizer que o dinheiro não chegou.";
+  if (emenda.valor === null)
+    return `Consta no cadastro da Prefeitura, com valor de ${fmtCurrency(emenda.valorCadastroMunicipal)}; o Estado não informou o valor.`;
   return emenda.valorCadastroMunicipal === emenda.valor
     ? `Consta no cadastro da Prefeitura, com o mesmo valor (${fmtCurrency(emenda.valorCadastroMunicipal)}).`
     : `Consta no cadastro da Prefeitura, com valor de ${fmtCurrency(emenda.valorCadastroMunicipal)}; o Estado indica ${fmtCurrency(emenda.valor)}. Os dois registros podem ter datas diferentes.`;
@@ -69,9 +72,11 @@ function textoExecucao(
 function Detalhes({
   emenda,
   posicaoExecucao,
+  fonte,
 }: {
   emenda: EmendaEstadualDTO;
   posicaoExecucao: string | null;
+  fonte?: FonteEmendaDTO;
 }) {
   return (
     <div className="space-y-4">
@@ -96,6 +101,19 @@ function Detalhes({
           <div>
             <dt className="eyebrow">Na Prefeitura</dt>
             <dd className="mt-1 text-ink">{textoCadastro(emenda)}</dd>
+          </div>
+        )}
+        {fonte && (
+          <div>
+            <dt className="eyebrow">Fonte no Estado</dt>
+            <dd className="mt-1 text-ink">
+              <a href={fonte.url} target="_blank" rel="noopener noreferrer">
+                {fonte.orgao}
+              </a>
+              {`, arquivo ${emenda.nomeArquivo}`}
+              {emenda.dataArquivo ? ` de ${fmtDate(emenda.dataArquivo)}` : ""}
+              {emenda.faseArquivo ? `, fase ${emenda.faseArquivo}` : ""}.
+            </dd>
           </div>
         )}
         {posicaoExecucao && (
@@ -128,7 +146,7 @@ function textoComparacaoReceita(
 ): string {
   const posicao = comparacao.posicaoExecucao;
   const arrecadado = comparacao.arrecadadoOutrasTransferencias;
-  const base = `Considera todas as emendas do Estado que chegam à Prefeitura, de todas as áreas. O relatório do Estado não separa restos a pagar. ${FRASE_SISTEMAS_DIFERENTES}`;
+  const base = `Considera só as transferências especiais do Estado à Prefeitura, de todas as áreas. O relatório do Estado não separa restos a pagar. ${FRASE_SISTEMAS_DIFERENTES}`;
   if (comparacao.situacao === "pago_acima_do_registrado") {
     return `O Estado informa ter pago ${fmtCurrency(comparacao.pagoEstado ?? 0)} nessas emendas até ${posicao}. A Prefeitura registrou ${fmtCurrency(arrecadado ?? 0)} em "outras transferências dos Estados" em ${comparacao.ano}. A diferença de ${fmtCurrency(comparacao.valorAindaNaoApareceNaReceita ?? 0)} ainda não aparece na receita da Prefeitura (valor calculado pelo portal, não informado por nenhum dos dois). ${base}`;
   }
@@ -166,12 +184,20 @@ export function EmendasEstaduaisBloco({
   comparacaoReceita?: ComparacaoReceitaEstadualDTO;
 }) {
   const [totalVisivel, setTotalVisivel] = useState<number | null>(null);
-  const aoFiltrar = useCallback((rows: { valor: number }[]) => {
-    setTotalVisivel(rows.reduce((soma, row) => soma + row.valor, 0));
+  const aoFiltrar = useCallback((rows: { valor: number | null }[]) => {
+    setTotalVisivel(rows.reduce((soma, row) => soma + (row.valor ?? 0), 0));
   }, []);
   const total =
-    totalVisivel ?? dados.emendas.reduce((soma, e) => soma + e.valor, 0);
+    totalVisivel ?? dados.emendas.reduce((soma, e) => soma + (e.valor ?? 0), 0);
   if (dados.situacao === "sem_emendas") return null;
+  if (dados.situacao === "indisponivel") {
+    return (
+      <p className="caption" data-testid="emendas-estaduais">
+        Não conseguimos carregar as emendas do Estado agora. Tente novamente
+        mais tarde.
+      </p>
+    );
+  }
   if (dados.situacao === "sem_fonte") {
     return (
       <p className="caption" data-testid="emendas-estaduais">
@@ -208,7 +234,15 @@ export function EmendasEstaduaisBloco({
             searchableKeys={["autor", "objeto", "modalidadeRotulo"]}
             rowKey="id"
             renderExpandedRow={(row) => (
-              <Detalhes emenda={row} posicaoExecucao={dados.posicaoExecucao} />
+              <Detalhes
+                emenda={row}
+                posicaoExecucao={dados.posicaoExecucao}
+                fonte={dados.fontes.find(
+                  (fonte) =>
+                    fonte.esfera === "estadual" &&
+                    fonte.nome === row.nomeArquivo,
+                )}
+              />
             )}
             hideCsvOnMobile
             recordLabel="emendas"

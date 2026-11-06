@@ -112,7 +112,14 @@ export async function getComparacaoReceitaEstadual(
       .where("ano", "=", ano)
       .executeTakeFirst();
     return montarComparacaoReceita(row, ano);
-  } catch {
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: a falha precisa ficar no stderr da plataforma, senão vira "sem fonte" sem rastro.
+    console.error(
+      "getComparacaoReceitaEstadual falhou",
+      portalSlug,
+      ano,
+      error,
+    );
     return { ...comparacaoVazia, ano };
   }
 }

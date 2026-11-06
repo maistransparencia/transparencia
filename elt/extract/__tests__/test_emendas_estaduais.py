@@ -163,6 +163,42 @@ def test_extrai_validando_sem_gravar_quando_nao_ha_banco():
     assert extract_and_load_fonte(fonte, None, baixar=baixar) == 4
 
 
+def test_grava_no_banco_e_repetir_a_carga_nao_duplica(engine):
+    from elt.load.emendas_estaduais import ensure_emendas_estaduais_tables
+    from sqlalchemy import text
+
+    fonte = _fonte_real()
+    ensure_emendas_estaduais_tables(engine)
+
+    def baixar(url: str):
+        conteudo = EXECUCAO_REAL if "Execu" in url else CSV_REAL
+        return SimpleNamespace(text=PAGINA_REAL, content=conteudo.encode("utf-8"))
+
+    def contagem():
+        with engine.connect() as conexao:
+            return tuple(
+                conexao.execute(
+                    text(f"SELECT count(*) FROM raw_emendas_estaduais.{tabela} WHERE codigo_fonte = :f"),
+                    {"f": fonte.codigo_fonte},
+                ).scalar()
+                for tabela in ("arquivos_fonte", "emendas_detalhamento", "execucao_emendas")
+            )
+
+    try:
+        assert extract_and_load_fonte(fonte, engine, baixar=baixar) == 4
+        primeira = contagem()
+        assert primeira[1] == 4
+        assert extract_and_load_fonte(fonte, engine, baixar=baixar) == 4
+        assert contagem() == primeira
+    finally:
+        with engine.begin() as conexao:
+            for tabela in ("execucao_emendas", "emendas_detalhamento", "arquivos_fonte"):
+                conexao.execute(
+                    text(f"DELETE FROM raw_emendas_estaduais.{tabela} WHERE codigo_fonte = :f"),
+                    {"f": fonte.codigo_fonte},
+                )
+
+
 def test_remove_caractere_nulo_do_texto():
     csv = " Emenda;Identificador;Valor;Modalidade;Objeto\n1;9;R$ 10,00;4 - Fundo a Fundo;texto\x00 com nulo\n"
     (linha,) = ler_detalhamento(_fonte_real(), csv.encode("utf-8"))

@@ -1,5 +1,4 @@
 import {
-  getComparacaoReceitaEstadual,
   getEmendasEstaduais,
   getFontesEmendas,
   resumirFiscalizacaoEducacao,
@@ -73,12 +72,16 @@ export default async function EducacaoPage({
     emendas,
     contratos,
   } = viewModel;
-  const [emendasEstaduais, fontesEmendas, comparacaoReceitaEstadual] =
-    await Promise.all([
-      getEmendasEstaduais(portalSlug, selectedYear, "educacao"),
-      getFontesEmendas(portalSlug, selectedYear),
-      getComparacaoReceitaEstadual(portalSlug, selectedYear),
-    ]);
+  const emendasEstaduais = await getEmendasEstaduais(
+    portalSlug,
+    selectedYear,
+    "educacao",
+  );
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
@@ -167,7 +170,6 @@ export default async function EducacaoPage({
             titulo="Emendas na educação"
             descricao="Recursos que deputados e senadores destinaram à educação do município."
             emendasEstaduais={emendasEstaduais}
-            comparacaoReceitaEstadual={comparacaoReceitaEstadual}
             fontes={fontesEmendas}
           />
         )}
