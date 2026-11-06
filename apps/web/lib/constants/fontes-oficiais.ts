@@ -25,6 +25,10 @@ export const FONTES_OFICIAIS = {
     nome: "SIOPE",
     url: "https://www.fnde.gov.br/siope/",
   },
+  siops: {
+    nome: "SIOPS",
+    url: "https://siops.saude.gov.br/",
+  },
   pncp: {
     nome: "PNCP",
     url: "https://pncp.gov.br",

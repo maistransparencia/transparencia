@@ -22,6 +22,23 @@ function makeRaw(
   return {
     portalSlug: "porciuncula_prefeitura",
     context: { selectedYear: 2024, isCurrentYear: false },
+    minimoSaude: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2024,
+      atual: null,
+      minimo: {
+        limite: null,
+        percentualAplicado: null,
+        resultado: "sem_dado",
+        comparavel: false,
+        mesesCobertos: null,
+        baseLegal: null,
+        urlBaseLegal: null,
+      },
+      serie: [],
+      anoInicial: null,
+      anoFinal: null,
+    },
     saude: {
       orcamento: {
         dotacao: 1000,
@@ -91,6 +108,49 @@ describe("SaudePage", () => {
     expect(screen.getByText("Emendas na saúde")).toBeInTheDocument();
     expect(screen.getAllByText("Origem").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
+  });
+
+  it("mostra o bloco do mínimo de saúde no topo com o percentual do ano", async () => {
+    const anoEncerrado = {
+      ano: 2024,
+      periodo: 6,
+      situacao: "encerrado" as const,
+      percentualAplicadoSaude: 21.4,
+      despesaSaudePorHabitante: null,
+      percentualTransferenciasSaude: null,
+      receitaImpostosTransferenciasConstitucionais: null,
+      despesaRecursosProprios: null,
+      despesaTotalSaude: null,
+      divergenciaEntreVias: false,
+      indicadoresDivergentes: [],
+      coletadoEm: null,
+    };
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        minimoSaude: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          atual: anoEncerrado,
+          minimo: {
+            limite: 15,
+            percentualAplicado: 21.4,
+            resultado: "cumpriu",
+            comparavel: true,
+            mesesCobertos: null,
+            baseLegal: null,
+            urlBaseLegal: null,
+          },
+          serie: [anoEncerrado],
+          anoInicial: 2024,
+          anoFinal: 2024,
+        },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    expect(screen.getByTestId("saude-minimo-destaque")).toBeInTheDocument();
+    expect(screen.getByText(/A lei exige pelo menos 15%/)).toBeInTheDocument();
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {

@@ -16,6 +16,7 @@ import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model"
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
+import { SaudeMinimoDestaque } from "@/components/saude/saude-minimo-destaque";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
@@ -56,7 +57,8 @@ export default async function SaudePage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadSaudeData(portalSlug, resolvedSearchParams);
   const viewModel = buildSaudeViewModel(rawData);
-  const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
+  const { selectedYear, isCurrentYear, partialPeriod, minimoSaude, saude } =
+    viewModel;
   const [emendasEstaduais, comparacaoReceitaEstadual] = await Promise.all([
     getEmendasEstaduais(portalSlug, selectedYear, "saude"),
     getComparacaoReceitaEstadual(portalSlug, selectedYear),
@@ -108,6 +110,8 @@ export default async function SaudePage({
           partialPeriod={partialPeriod}
           orcamento={saude.orcamento}
         />
+
+        <SaudeMinimoDestaque minimoSaude={minimoSaude} />
 
         <IndicatorPanel columns={4}>
           <Indicator

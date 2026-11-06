@@ -1428,6 +1428,47 @@ export async function seedEducacaoSiope(
     .execute();
 }
 
+export interface SaudeMinimoRow {
+  portalSlug: string;
+  ano: number;
+  periodo?: number;
+  situacao?: "encerrado" | "parcial" | "sem_dado";
+  percentualAplicadoSaude?: number | null;
+  minimoAplicacaoSaudePercentual?: number | null;
+  cumpreMinimo?: boolean | null;
+  despesaSaudePorHabitante?: number | null;
+  divergenciaEntreVias?: boolean;
+  indicadoresDivergentes?: string | null;
+  coletadoEm?: string | null;
+}
+
+export async function seedSaudeMinimo(
+  row: SaudeMinimoRow | SaudeMinimoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_minimo_constitucional")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        periodo: r.periodo ?? 6,
+        situacao: r.situacao ?? "encerrado",
+        percentual_aplicado_saude: r.percentualAplicadoSaude ?? null,
+        minimo_aplicacao_saude_percentual:
+          r.minimoAplicacaoSaudePercentual ?? null,
+        cumpre_minimo: r.cumpreMinimo ?? null,
+        despesa_saude_por_habitante: r.despesaSaudePorHabitante ?? null,
+        divergencia_entre_vias: r.divergenciaEntreVias ?? false,
+        indicadores_divergentes: r.indicadoresDivergentes ?? null,
+        coletado_em: r.coletadoEm ?? null,
+      })),
+    )
+    .execute();
+}
+
 export async function seedDimMetadata(row: {
   portalSlug: string;
   key: string;
@@ -1534,6 +1575,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_siope_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_minimo_constitucional")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
