@@ -115,7 +115,7 @@ export function EducacaoOrigemRecursosSection({
       fontePrincipal
         ? `${Math.round(fontePrincipal.percentualTotal)} de cada R$ 100 vêm da fonte "${ROTULO_FONTE_RECURSO[fontePrincipal.grupoFonte]}". Veja de onde veio cada parte.`
         : "",
-      "Não inclui o dinheiro que a própria Prefeitura repassa ao Fundo.",
+      "Sem os repasses da própria Prefeitura.",
     ];
     return partes.filter(Boolean).join(" ");
   })();

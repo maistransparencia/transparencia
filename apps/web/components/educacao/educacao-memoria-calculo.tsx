@@ -6,7 +6,7 @@ import {
 } from "@transparencia/ui";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
 import { urlLegislacao } from "@/lib/constants/legislacao";
-import { LeiLink, LinhaLeiEFonte, NOTA_MINIMO_GASTO } from "./educacao-textos";
+import { LeiLink, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoMemoriaCalculoProps {
   ano: number;
@@ -67,7 +67,7 @@ export function EducacaoMemoriaCalculo({
     >
       <SectionHeader
         title="Quanto do que a Prefeitura reservou para a educação já foi pago?"
-        description="Todo gasto passa por três etapas. Cada barra mostra quanto já chegou até ela."
+        description="O gasto passa por três etapas. Cada barra mostra quanto já chegou nela."
       />
       <dl className="space-y-5">
         {etapas.map((etapa) => (
@@ -97,12 +97,11 @@ export function EducacaoMemoriaCalculo({
         ))}
       </dl>
       <p className="caption">
-        Reservado é o empenho, o compromisso de gastar; reservar não é pagar.{" "}
-        {NOTA_MINIMO_GASTO} O total soma todas as despesas da Prefeitura
-        classificadas como Educação, não só as do Fundo Municipal de Educação. O
-        percentual do mínimo usa o cálculo do SIOPE, que não é essa soma.
+        Reservar não é pagar. O total soma todas as despesas de educação da
+        Prefeitura. O percentual do mínimo constitucional vem do SIOPE e usa
+        outro cálculo.
         {temDados && !isCurrentYear && naoPago > 0
-          ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
+          ? ` Ficaram ${fmtCompact(naoPago)} sem pagar: podem ser pagos depois ou cancelados.`
           : ""}
       </p>
       <LinhaLeiEFonte

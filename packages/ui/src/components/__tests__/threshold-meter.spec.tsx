@@ -79,6 +79,23 @@ describe("ThresholdMeter", () => {
     ).toBe("60%");
   });
 
+  it("desenha um segundo marcador na própria escala, com outra cor", () => {
+    render(
+      <ThresholdMeter
+        value={6}
+        max={10}
+        threshold={6.4}
+        secondaryThreshold={5.3}
+        label="Nota"
+        valueText="6 de 10"
+      />,
+    );
+    const segundo = screen.getByTestId("threshold-meter-secondary-marker");
+    expect(segundo.style.left).toBe("53%");
+    expect(segundo.className).toContain("bg-warn-fill");
+    expect(screen.getByTestId("threshold-meter-marker").style.left).toBe("64%");
+  });
+
   it("sem valor não desenha a barra", () => {
     const { container } = render(
       <ThresholdMeter value={null} {...propsBase} />,

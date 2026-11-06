@@ -3,6 +3,7 @@ import {
   type EducacaoExecucaoAnualDTO,
   type EducacaoMatriculasDTO,
   type EducacaoMediasEstaduais,
+  type EducacaoMediasNacionais,
   type EducacaoMetricDTO,
   type EducacaoOrigemRecursosDTO,
   type EducacaoRankingEstadualDTO,
@@ -15,6 +16,7 @@ import {
   getEducacaoExecucaoAnual,
   getEducacaoMatriculas,
   getEducacaoMediasEstaduais,
+  getEducacaoMediasNacionais,
   getEducacaoMetrics,
   getEducacaoOrigemRecursos,
   getEducacaoRankingEstadual,
@@ -78,6 +80,7 @@ export interface RawEducacaoData {
   resumo: ResumoEducacaoDTO | null;
   contratos: EducacaoContratoDTO[];
   mediasEstaduais: EducacaoMediasEstaduais;
+  mediasNacionais: EducacaoMediasNacionais;
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
   execucaoAnual: EducacaoExecucaoAnualDTO[];
@@ -100,6 +103,7 @@ export async function fetchRawEducacaoCoreData(
     resumo,
     contratos,
     mediasEstaduais,
+    mediasNacionais,
     emendas,
     origemRecursos,
     execucaoAnual,
@@ -112,6 +116,7 @@ export async function fetchRawEducacaoCoreData(
     getResumoEducacao(tenantSlug, targetAno),
     getEducacaoContratos(tenantSlug, targetAno),
     getEducacaoMediasEstaduais(tenantSlug),
+    getEducacaoMediasNacionais(),
     getEducacaoEmendasMetrics(
       tenantSlug,
       targetAno ?? new Date().getFullYear(),
@@ -152,6 +157,7 @@ export async function fetchRawEducacaoCoreData(
     resumo,
     contratos,
     mediasEstaduais,
+    mediasNacionais,
     emendas,
     origemRecursos,
     execucaoAnual,

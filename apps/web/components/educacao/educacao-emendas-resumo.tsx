@@ -56,7 +56,7 @@ export function EducacaoEmendasResumo({
     >
       <SectionHeader
         title="Quanto os deputados e senadores destinaram à educação?"
-        description="Emendas são recursos que deputados e senadores destinam ao município. O empenho depende do que a Prefeitura registrou no cadastro: sem registro, aparece zero mesmo que o dinheiro tenha sido usado."
+        description="Dinheiro que deputados e senadores destinam ao município. Sem registro da Prefeitura, o empenho aparece como zero."
         action={<a href={hrefSecaoCompleta}>Ver emendas</a>}
       />
       <dl className="space-y-5">

@@ -4,6 +4,7 @@ import type {
   EducacaoExecucaoAnualDTO,
   EducacaoMatriculasDTO,
   EducacaoMediasEstaduais,
+  EducacaoMediasNacionais,
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
   EducacaoRankingEstadualDTO,
@@ -46,13 +47,12 @@ export function isDestaqueEvolucaoIdeb(
 export interface IdebHistoricoPonto {
   ano: number;
   notaIdeb: number | null;
-  metaMec: number | null;
   mediaEstadual: number | null;
+  mediaNacional: number | null;
   saebMatematica: number | null;
   saebLinguaPortuguesa: number | null;
   taxaAprovacao: number | null;
   crescimentoPontos: number | null;
-  atingiuMeta: boolean | null;
 }
 
 export interface IdebEtapaHistorico {
@@ -62,9 +62,7 @@ export interface IdebEtapaHistorico {
   pontoMaisRecente: IdebHistoricoPonto | null;
   periodoLabel: string;
   mediaEstadualLabel: string;
-  anosSemMeta: number[];
-  possuiMeta: boolean;
-  ultimoAnoComMeta: number | null;
+  mediaNacionalLabel: string;
 }
 
 export interface EducacaoExecucaoAnoView {
@@ -84,11 +82,14 @@ export interface AprendizadoEtapa {
   /** Última nota do IDEB até o ano selecionado, com o ano em que foi apurada. */
   notaIdeb: number | null;
   anoApuracao: number | null;
-  metaIdeb: number | null;
   /** Média da rede pública do estado no mesmo ano da nota, com o rótulo dinâmico. */
   mediaEstadual: number | null;
   mediaEstadualLabel: string;
-  atingiuMeta: boolean | null;
+  /** Média nacional da rede pública no mesmo ano da nota. */
+  mediaNacional: number | null;
+  mediaNacionalLabel: string;
+  /** Quanto a média estadual mudou entre o ciclo anterior e o atual, em pontos. */
+  variacaoMediaEstadual: number | null;
   notaAnterior: number | null;
   anoAnterior: number | null;
   variacaoPontos: number | null;
@@ -232,11 +233,14 @@ function buildTotaisPorCategoria(
   ) as Record<EducacaoCategoriaContrato, EducacaoContratosCategoriaTotais>;
 }
 
+const MEDIA_NACIONAL_LABEL = "Média da rede pública do Brasil";
+
 interface BuildEtapaHistoricoParams {
   etapa: EtapaEnsino;
   label: string;
   metrics: EducacaoMetricDTO[];
   mediasEstaduais?: Record<number, number>;
+  mediasNacionais?: Record<number, number>;
   municipioUf?: string;
 }
 
@@ -245,6 +249,7 @@ function buildEtapaHistorico({
   label,
   metrics,
   mediasEstaduais,
+  mediasNacionais,
   municipioUf,
 }: BuildEtapaHistoricoParams): IdebEtapaHistorico {
   const etapaMetrics = metrics
@@ -266,13 +271,12 @@ function buildEtapaHistorico({
     return {
       ano: m.ano,
       notaIdeb: m.notaIdeb,
-      metaMec: m.metaIdeb,
       mediaEstadual,
+      mediaNacional: mediasNacionais?.[m.ano] ?? null,
       saebMatematica: m.saebMatematica,
       saebLinguaPortuguesa: m.saebLinguaPortuguesa,
       taxaAprovacao,
       crescimentoPontos: m.crescimentoPontosIdeb,
-      atingiuMeta: m.atingiuMeta,
     };
   });
 
@@ -284,15 +288,6 @@ function buildEtapaHistorico({
     return `${pontos[0].ano}–${pontos[pontos.length - 1].ano}`;
   })();
 
-  const anosSemMeta = pontos
-    .filter((p) => p.metaMec === null)
-    .map((p) => p.ano);
-  const anosComMeta = pontos
-    .filter((p) => p.metaMec !== null)
-    .map((p) => p.ano);
-  const possuiMeta = anosComMeta.length > 0;
-  const ultimoAnoComMeta = possuiMeta ? Math.max(...anosComMeta) : null;
-
   return {
     etapaEnsino: etapa,
     label,
@@ -300,11 +295,17 @@ function buildEtapaHistorico({
     pontoMaisRecente,
     periodoLabel,
     mediaEstadualLabel,
-    anosSemMeta,
-    possuiMeta,
-    ultimoAnoComMeta,
+    mediaNacionalLabel: MEDIA_NACIONAL_LABEL,
   };
 }
+
+const variacaoEntre = (
+  anterior: number | null | undefined,
+  atual: number | null | undefined,
+): number | null =>
+  anterior == null || atual == null
+    ? null
+    : Math.round((atual - anterior) * 10) / 10;
 
 function buildAprendizadoEtapa({
   historico,
@@ -332,10 +333,14 @@ function buildAprendizadoEtapa({
     titulo,
     notaIdeb: atual?.notaIdeb ?? null,
     anoApuracao: atual?.ano ?? null,
-    metaIdeb: atual?.metaMec ?? null,
     mediaEstadual: atual?.mediaEstadual ?? null,
     mediaEstadualLabel: historico.mediaEstadualLabel,
-    atingiuMeta: atual?.atingiuMeta ?? null,
+    mediaNacional: atual?.mediaNacional ?? null,
+    mediaNacionalLabel: historico.mediaNacionalLabel,
+    variacaoMediaEstadual: variacaoEntre(
+      anterior?.mediaEstadual,
+      atual?.mediaEstadual,
+    ),
     notaAnterior: anterior?.notaIdeb ?? null,
     anoAnterior: anterior?.ano ?? null,
     variacaoPontos: atual?.crescimentoPontos ?? null,
@@ -489,6 +494,7 @@ export function buildEducacaoViewModel(raw: {
   siope?: EducacaoSiopeDTO | null;
   matriculas?: EducacaoMatriculasDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
+  mediasNacionais?: EducacaoMediasNacionais;
   execucaoAnual?: EducacaoExecucaoAnualDTO[];
   topFornecedores?: FornecedorExecucaoItemDTO[];
   rankingAnosIniciais?: EducacaoRankingEstadualDTO | null;
@@ -520,6 +526,7 @@ export function buildEducacaoViewModel(raw: {
     label: "Anos Iniciais (1º ao 5º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosIniciais,
+    mediasNacionais: raw.mediasNacionais?.anosIniciais,
     municipioUf,
   });
   const historicoFinais = buildEtapaHistorico({
@@ -527,6 +534,7 @@ export function buildEducacaoViewModel(raw: {
     label: "Anos Finais (6º ao 9º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosFinais,
+    mediasNacionais: raw.mediasNacionais?.anosFinais,
     municipioUf,
   });
 

@@ -24,7 +24,7 @@ describe("EducacaoMemoriaCalculo", () => {
     );
     expect(screen.getByText("Dinheiro que saiu (pago)")).toBeTruthy();
     expect(screen.getByText(/^80.*% do reservado$/)).toBeTruthy();
-    expect(screen.getByText(/sem pagar dentro do ano/)).toBeTruthy();
+    expect(screen.getByText(/Ficaram .* sem pagar/)).toBeTruthy();
   });
 
   it("no ano em andamento não diz quanto ficou sem pagar", () => {
@@ -36,7 +36,7 @@ describe("EducacaoMemoriaCalculo", () => {
         execucao={{ ...execucao, ano: 2025 }}
       />,
     );
-    expect(screen.queryByText(/sem pagar dentro do ano/)).toBeNull();
+    expect(screen.queryByText(/Ficaram .* sem pagar/)).toBeNull();
   });
 
   it("sem despesas mostra traço e a causa", () => {
@@ -69,6 +69,6 @@ describe("EducacaoMemoriaCalculo", () => {
         execucao={execucao}
       />,
     );
-    expect(screen.getByText(/usa o cálculo do SIOPE/)).toBeTruthy();
+    expect(screen.getByText(/vem do SIOPE e usa outro cálculo/)).toBeTruthy();
   });
 });

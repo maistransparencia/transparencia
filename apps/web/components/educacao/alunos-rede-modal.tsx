@@ -28,9 +28,7 @@ export function AlunosRedeModal({
       }
     >
       <div className="space-y-6">
-        <p className="text-mute text-sm">
-          Alunos matriculados em maio daquele ano, não o número de hoje.
-        </p>
+        <p className="text-mute text-sm">Matrículas de maio do ano do Censo.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -58,7 +56,8 @@ export function AlunosRedeModal({
           </table>
         </div>
         <p className="caption">
-          O total não inclui ensino médio, EJA nem educação especial.
+          Não inclui ensino médio, educação de jovens e adultos (EJA) nem
+          educação especial.
         </p>
       </div>
     </ModalDialog>

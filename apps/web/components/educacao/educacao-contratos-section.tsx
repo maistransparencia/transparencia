@@ -175,7 +175,7 @@ export function EducacaoContratosSection({
         ariaLabel="Como o Fundo contrata"
         title="Como o Fundo contrata"
         summary={resumoCategorias}
-        description={`Contratos do Fundo vigentes em ${ano}: merenda escolar, transporte escolar, locação de imóveis (licitação inexigível quando as características e a localização do imóvel tornam necessária sua escolha) e manutenção das escolas.`}
+        description={`Contratos vigentes em ${ano}: merenda, transporte escolar, locação de imóveis e manutenção das escolas.`}
       >
         {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
