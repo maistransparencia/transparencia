@@ -406,10 +406,14 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     expect(
       within(modal).getByText(/Censo Escolar 2023, INEP/, { selector: "span" }),
     ).toBeTruthy();
-    expect(within(modal).getByText(/matriculados em maio/)).toBeTruthy();
+    expect(
+      within(modal).getByText(/Matrículas de maio do ano do Censo/),
+    ).toBeTruthy();
     expect(within(modal).getByText(/creche e pré-escola/)).toBeTruthy();
     expect(
-      within(modal).getByText(/não inclui ensino médio, EJA nem educação/i),
+      within(modal).getByText(
+        /não inclui ensino médio, educação de jovens e adultos \(EJA\) nem educação/i,
+      ),
     ).toBeTruthy();
     fireEvent.click(
       within(modal).getByRole("button", { name: "Fechar modal" }),
@@ -456,7 +460,7 @@ describe("EducacaoHeroSection: lei, fonte e gasto", () => {
       ),
     ).toBeTruthy();
     expect(within(gasto).getByText(/Reservado \(empenhado\)/)).toBeTruthy();
-    expect(within(gasto).getByText(/não para o que ela recebe/)).toBeTruthy();
+    expect(within(gasto).getByText(/Reservar não é pagar/)).toBeTruthy();
     expect(
       screen.queryByRole("button", { name: "Ver detalhes: gasto em educação" }),
     ).toBeNull();

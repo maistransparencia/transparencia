@@ -129,7 +129,7 @@ export default async function EducacaoPage({
       <section id="evolucao-educacao" className="space-y-6">
         <SectionHeader
           title="Como mudou ao longo dos anos"
-          description="Quanto a Prefeitura reservou (empenhado) e quanto já pagou em educação em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa."
+          description="Reservado e pago em educação, ano a ano. A diferença é o que ainda não saiu do caixa."
         />
         <EvolucaoAnual
           data={viewModel.serieAnual}
@@ -142,7 +142,7 @@ export default async function EducacaoPage({
       <div id="para-fiscalizar" className="scroll-mt-20 space-y-2">
         <SectionHeader
           title="Para fiscalizar"
-          description={`Para quem quer conferir ${emendas.lista.length > 0 ? "emenda por emenda, " : ""}contrato por contrato e fornecedor por fornecedor. Toque ou clique em cada parte para abrir.`}
+          description={`Para conferir ${emendas.lista.length > 0 ? "emenda por emenda, " : ""}contrato por contrato e fornecedor por fornecedor.`}
         />
 
         {emendas.lista.length > 0 && (

@@ -886,7 +886,7 @@ describe("EducacaoPage (Server Component)", () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
       expect(
-        within(fiscalizar as HTMLElement).getByText(/Para quem quer conferir/),
+        within(fiscalizar as HTMLElement).getByText(/Para conferir/),
       ).toBeInTheDocument();
     });
 

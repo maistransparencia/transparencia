@@ -17,9 +17,7 @@ type MinimoLegal = MinimosLegaisView["mde"];
 
 /** Textos e peças compartilhadas entre o topo, as seções e os modais de educação. */
 export const NOTA_DECLARACAO =
-  "A Prefeitura informa estes números ao governo federal pelo SIOPE, o sistema oficial de dados da educação. O portal mostra o número como o governo federal o publicou, sem recalcular.";
-export const NOTA_MINIMO_GASTO =
-  "O mínimo vale para o que a Prefeitura gasta em educação, não para o que ela recebe.";
+  "A Prefeitura informa estes números ao governo federal pelo SIOPE. O portal os mostra como foram publicados, sem recalcular.";
 export const NOTA_INFLACAO =
   "Valores da época, sem correção pela inflação: anos diferentes não são comparáveis em poder de compra.";
 export const FONTE_SIOPE = "SIOPE, sistema do governo federal";
