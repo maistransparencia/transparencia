@@ -18,7 +18,7 @@ Mart `fct_saude_minimo_conferencia` (cálculo próprio) existe, mas **não é fo
 
 ## Regras de exibição já decididas (não reabrir)
 
-- **Rótulo:** "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data da última transmissão (`coletado_em`). Sem afirmar que a Prefeitura "cumpriu" ou "descumpriu" a lei: o texto diz o valor do SIOPS e a régua de 15%. O 3.2 é cálculo do sistema, o 15% é o limite legal (LC 141/2012 art. 7º, nova redação pela LC 227/2026, vigente desde 14/01/2026).
+- **Rótulo:** "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data em que o portal consultou o SIOPS (`coletado_em`; o SIOPS não informa a data de transmissão). Sem afirmar que a Prefeitura "cumpriu" ou "descumpriu" a lei: o texto diz o valor do SIOPS e a régua de 15%. O 3.2 é cálculo do sistema, o 15% é o limite legal (LC 141/2012 art. 7º, nova redação pela LC 227/2026, vigente desde 14/01/2026).
 - **Ano em andamento:** valor `parcial`, **nunca comparado com o mínimo** (sem barra de cumprimento nem selo; só o valor parcial e o aviso). Há caso real de 121,91% em bimestre parcial.
 - **`divergencia_entre_vias` verdadeiro:** citar só a via oficial; o `editor-cidadao` decide o texto. `cumpre_minimo` nulo significa que a tela não afirma nada sobre cumprimento.
 - **Sem linha no mart** (ano corrente sem bimestre transmitido) e **"Não houve transmissão"**: estado "sem dado", nunca zero. A 25.2 não gera linha de `sem_dado`; a tela trata a ausência.
