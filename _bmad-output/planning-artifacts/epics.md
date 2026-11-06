@@ -3814,6 +3814,18 @@ So that I know what was indicated for my city even when the city hall does not l
 - Sem alerta de arquivo desatualizado do Estado; `coletado_em` não aparece na tela.
 - `make test/ts` e `pnpm test` perdem o `DATABASE_URL` no turbo e leem a 5544; usar `pnpm exec turbo run test --env-mode=loose` com a 5545 explícita.
 
+### Story 25.10: Hierarquia da Página de Saúde: "Para Entender" e "Para Fiscalizar" (esboço)
+
+As a citizen,  
+I want the health page to answer first "a Prefeitura aplica o mínimo, de onde vem o dinheiro e o que a rede entrega", with the audit material (emendas, contratos, fornecedores) grouped at the end and collapsed,  
+So that I can follow the main answer without scrolling through tables made for journalists, councilors and auditors, and still reach every detail when I want it.
+
+**Origem:** pedido do Julio em 2026-11-06, depois de aprovar o resultado das Stories 24.12 e 24.13 na página de educação. Nenhuma story anterior da Epic 25 reorganiza a página inteira: a 25.3 cobre só o equivalente da 24.12 (o topo), e as 25.4 a 25.6 acrescentam blocos. Esta story é o equivalente da 24.13 e vem **depois** delas, para reorganizar uma vez só, com a página já completa.
+
+**Status:** esboço. Detalhar quando as Stories 25.3 a 25.6 fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
+
+**Dependências:** Stories 25.3, 25.4, 25.5 e 25.6; referência de padrão: Stories 24.12 e 24.13.
+
 ---
 
 ## Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)
