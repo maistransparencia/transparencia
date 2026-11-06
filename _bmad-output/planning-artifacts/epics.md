@@ -3644,11 +3644,30 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ---
 
-### Story 25.4: De Onde Vem o Dinheiro da Saúde (esboço)
+### Story 25.4: Quanto a União e o Estado Repassam ao Fundo Municipal de Saúde
 
-**Status:** esboço reduzido pela spike 25.1. Pergunta: "De onde vem o dinheiro da saúde?". Entra só a parcela de transferências, pelo SIOPS 3.1 (transferências para a saúde sobre a despesa total com saúde). A divisão entre Estado e União **fica adiada**: o Fundo Nacional de Saúde está **NÃO VERIFICADO** (portal público em manutenção; a consulta tem API interna sem endpoint de valores encontrado). Cuidado: recurso federal e estadual não entra na base do mínimo constitucional.
+**Status:** detalhada em 2026-11-06, a partir do que a spike 25.1 apurou e de consulta ao banco local (Porciúncula, 2023 e 2024).
 
-**Dependências:** Story 25.1.
+**Pergunta do cidadão (Regra 27):** "Quanto a União e o Estado repassam ao Fundo Municipal de Saúde?" A pergunta original ("De onde vem o dinheiro da saúde?") foi trocada porque a receita do fundo **não inclui** o que a Prefeitura aplica com recursos próprios: em 2024 o fundo arrecadou R$ 20,47 milhões contra R$ 49,37 milhões de despesa total no SIOPS. Sem a troca, a tela sugeriria que a saúde é quase toda dinheiro de fora.
+
+**Decisão do Julio (2026-11-06):** a fonte primária é o **portal da cidade**, não o SIOPS. **Sem estimativa** da parcela da Prefeitura. O SIOPS 3.1 não aparece na tela; a diferença para o portal (2023 próxima da União SUS, 2024 não) é pendência sem causa provada.
+
+**Critérios de aceite:**
+
+1. **dbt:** mart `fct_saude_origem_recursos_metricas` no molde de `fct_educacao_origem_recursos_metricas`: receitas orçamentárias do Fundo Municipal de Saúde, somente folhas do plano de contas, grão `portal_slug`, `ano`, `empresa_id`, `grupo_fonte`, `codigo_natureza`. O órgão se identifica por `unaccent(orgao_nome) ilike '%saude%'` (a extensão já existe no banco). Nenhum literal de município (Regra 23).
+2. **Grupos de esfera** em lowercase snake_case (Regra 10), decididos pelo prefixo da natureza da receita (`171x` e `241x` União, `172x` e `242x` Estado), com `outras_receitas` para o restante (rendimento de aplicação, devoluções) e `nao_detalhado` para a diferença contra o total oficial. Valores, prefixos e a tabela de naturezas anterior a 2022 conferidos pelo `contador-publico` antes de codar.
+3. **Teste de coerência:** a soma das folhas bate com o total oficial (natureza `1` e `2`) por portal, ano e entidade, como na educação; a divergência vai para `nao_detalhado`, nunca some.
+4. **`@transparencia/db`:** query `saude-origem-recursos.ts` no molde de `educacao-origem-recursos.ts` (camelCase, nomes explícitos, nulo preservado, ano parcial e mês de referência, `anoMin` e `anoMax` calculados). Teste de paridade. Funcional e imutável, sem ternário aninhado.
+5. **Bloco em `/saude`:** pergunta, valor por esfera com a participação de cada uma, série anual, fonte, data da coleta e aviso fixo: "Mostra o que o fundo recebe de outras esferas. Não inclui o que a Prefeitura aplica com recursos próprios." Posição na página conforme a 25.10; até lá, abaixo do bloco do mínimo. `DESIGN.md` e `EXPERIENCE.md` lidos antes da UI (Regra 25).
+6. **Ano em andamento:** valor parcial com aviso, sem comparação com ano fechado como se fosse completo.
+7. **Textos** revisados pelo `editor-cidadao`; naturezas e base legal pelo `jurista-fiscal` e pelo `contador-publico`.
+8. **Multi-tenant:** funciona para outro estado e para histórico de 2017 a 2027 sem dado trocado; município sem órgão de saúde identificado devolve estado vazio, nunca zero.
+
+**Fora do escopo:** estimativa de recursos próprios da Prefeitura; SIOPS 3.1 na tela; Fundo Nacional de Saúde (não verificado); emendas (25.5).
+
+**Pendências registradas:** (a) diferença entre o portal e o SIOPS 3.1 sem causa provada; (b) identificação do órgão por nome é heurística, risco para municípios com outro nome de órgão.
+
+**Dependências:** Stories 25.1 e 25.3 (feitas).
 
 ---
 
