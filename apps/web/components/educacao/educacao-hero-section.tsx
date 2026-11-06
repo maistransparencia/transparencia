@@ -86,8 +86,8 @@ export function EducacaoHeroSection({
         data-testid="educacao-resumo-destaque"
         className="grid grid-cols-1 gap-8 md:grid-cols-2"
       >
-        <DestaqueMinimo view={minimosLegais} qual="mde" />
-        <DestaqueMinimo view={minimosLegais} qual="fundebProfissionais" />
+        <DestaqueMinimo view={minimosLegais} kind="mde" />
+        <DestaqueMinimo view={minimosLegais} kind="fundebProfissionais" />
       </section>
 
       <EducacaoIndicadoresApoio

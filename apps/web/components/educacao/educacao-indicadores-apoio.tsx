@@ -33,8 +33,11 @@ const CAUSA_SEM_VALOR: Record<
   nao_informado_ao_fnde: (ano) => `Não informado ao governo federal em ${ano}`,
 };
 
-const percentualDoTotal = (parte: number, total: number) =>
-  total > 0 ? Math.round((parte / total) * 100) : 0;
+/** O segundo percentual é o que sobra do primeiro, para a legenda sempre somar 100. */
+const splitShares = (firstPart: number, total: number) => {
+  const first = total > 0 ? Math.round((firstPart / total) * 100) : 0;
+  return { first, second: total > 0 ? 100 - first : 0 };
+};
 
 /** Valor por aluno e total de alunos da rede, lado a lado. */
 export function EducacaoIndicadoresApoio({
@@ -112,10 +115,12 @@ export function EducacaoIndicadoresApoio({
                         className="mr-1.5 inline-block size-2.5 bg-brand-fill"
                       />
                       {fmtNumber(alunosRede.educacaoInfantil)} Infantil (
-                      {percentualDoTotal(
-                        alunosRede.educacaoInfantil,
-                        alunosRede.total,
-                      )}
+                      {
+                        splitShares(
+                          alunosRede.educacaoInfantil,
+                          alunosRede.total,
+                        ).first
+                      }
                       %)
                     </span>
                     <span>
@@ -124,10 +129,12 @@ export function EducacaoIndicadoresApoio({
                         className="mr-1.5 inline-block size-2.5 bg-ink"
                       />
                       {fmtNumber(alunosRede.ensinoFundamental)} Fundamental (
-                      {percentualDoTotal(
-                        alunosRede.ensinoFundamental,
-                        alunosRede.total,
-                      )}
+                      {
+                        splitShares(
+                          alunosRede.educacaoInfantil,
+                          alunosRede.total,
+                        ).second
+                      }
                       %)
                     </span>
                   </span>

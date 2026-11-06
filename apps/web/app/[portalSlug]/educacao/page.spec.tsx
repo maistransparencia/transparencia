@@ -256,6 +256,10 @@ function makeRawEducacaoData(
       anosIniciais: {},
       anosFinais: {},
     },
+    mediasNacionais: {
+      anosIniciais: {},
+      anosFinais: {},
+    },
     matriculas: null,
     siope: {
       portalSlug: "porciuncula_prefeitura",
@@ -349,8 +353,8 @@ describe("EducacaoPage (Server Component)", () => {
     expect(
       screen.getByText("Investimento anual por aluno"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/^IDEB · Anos Iniciais/)).toBeInTheDocument();
-    expect(screen.getByText(/^IDEB · Anos Finais/)).toBeInTheDocument();
+    expect(screen.getByText(/^IDEB \d{4} · Anos Iniciais/)).toBeInTheDocument();
+    expect(screen.getByText(/^IDEB \d{4} · Anos Finais/)).toBeInTheDocument();
     const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
       .getAllByRole("term")
       .map((termo) => termo.textContent);
@@ -426,6 +430,10 @@ describe("EducacaoPage (Server Component)", () => {
       Array.from(frase.querySelectorAll("strong")).map((n) => n.textContent),
     ).toEqual(["46º lugar", "Subiu 43 posições"]);
     expect(within(secao).queryByText("Nota do IDEB")).toBeNull();
+    expect(
+      within(secao).getByText("Média da rede pública do Brasil"),
+    ).toBeInTheDocument();
+    expect(within(secao).queryByText(/Meta do MEC/)).toBeNull();
     expect(within(secao).queryByRole("meter")).toBeNull();
   });
 
@@ -452,6 +460,11 @@ describe("EducacaoPage (Server Component)", () => {
       "sem posição anterior mostra só a posição atual",
       { variacaoPosicoes: null, redesComparadas: null },
       /^46º lugar entre 92 redes municipais do estado\.$/,
+    ],
+    [
+      "posição que caiu",
+      { variacaoPosicoes: -3, redesComparadas: 92 },
+      /Caiu 3 posições desde \d{4}\./,
     ],
     [
       "posição igual",
@@ -605,7 +618,9 @@ describe("EducacaoPage (Server Component)", () => {
     expect(within(dialog).getByText("SAEB — Matemática")).toBeTruthy();
     expect(within(dialog).getByText("Taxa de aprovação escolar")).toBeTruthy();
     expect(
-      within(dialog).getByRole("heading", { name: "Como ler a meta do IDEB" }),
+      within(dialog).getByRole("heading", {
+        name: "Como ler as médias do IDEB",
+      }),
     ).toBeInTheDocument();
   });
 

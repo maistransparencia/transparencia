@@ -16,6 +16,8 @@ export interface ThresholdMeterProps {
   max?: number;
   /** Posição do marcador na mesma escala: o mínimo legal ou a meta. */
   threshold?: number;
+  /** Segundo marcador, de outra cor, para uma referência a mais (ex.: a média do estado). */
+  secondaryThreshold?: number;
   /** Nome acessível da barra. */
   label: string;
   /** Leitura do valor por texto (ex.: "27,4% aplicado; mínimo de 25%"). */
@@ -32,6 +34,7 @@ export function ThresholdMeter({
   value,
   max = 100,
   threshold,
+  secondaryThreshold,
   label,
   valueText,
   tone = "brand",
@@ -58,6 +61,14 @@ export function ThresholdMeter({
           style={{ width: `${emPercentual(value, max)}%` }}
         />
       </span>
+      {secondaryThreshold !== undefined && (
+        <span
+          data-testid="threshold-meter-secondary-marker"
+          aria-hidden="true"
+          className="absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5 bg-warn-fill"
+          style={{ left: `${emPercentual(secondaryThreshold, max)}%` }}
+        />
+      )}
       {temMarcador && (
         <span
           data-testid="threshold-meter-marker"

@@ -58,11 +58,6 @@ const formatarSaeb = (valor: number | null) =>
     ? "—"
     : valor.toLocaleString("pt-BR", { minimumFractionDigits: 1 });
 
-const formatarAnos = (anos: number[]) =>
-  new Intl.ListFormat("pt-BR", { style: "long", type: "conjunction" }).format(
-    anos.map(String),
-  );
-
 function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const ponto = payload[0]?.payload;
@@ -71,11 +66,6 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
     <div className="min-w-[200px] space-y-1.5 border border-line bg-page p-3 text-xs">
       <div className="flex justify-between border-line border-b pb-1 font-bold font-serif text-ink text-sm">
         <span>IDEB {label}</span>
-        {ponto?.atingiuMeta && (
-          <span className="rounded border border-ok-fill bg-ok-fill/15 px-1.5 py-0.2 font-semibold text-ok-text text-xs">
-            Meta Atingida
-          </span>
-        )}
       </div>
       <div className="space-y-1 pt-1">
         {payload.map((item) => {
@@ -183,15 +173,13 @@ export function EducacaoHistoricoSection({
             <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
             Rede municipal
           </span>
-          {currentHistorico.possuiMeta && (
-            <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
-              Meta do MEC
-            </span>
-          )}
           <span className="flex items-center gap-1.5">
             <span className="h-0.5 w-3 border-warn-fill border-t-2 border-dotted" />
             {currentHistorico.mediaEstadualLabel}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
+            {currentHistorico.mediaNacionalLabel}
           </span>
         </div>
 
@@ -256,24 +244,22 @@ export function EducacaoHistoricoSection({
                 }}
                 connectNulls
               />
-              {currentHistorico.possuiMeta && (
-                <Line
-                  type="monotone"
-                  dataKey="metaMec"
-                  name="Meta MEC"
-                  stroke={corDoGrafico("mute")}
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  dot={{ r: 4, fill: corDoGrafico("mute") }}
-                  activeDot={{
-                    r: 6,
-                    fill: corDoGrafico("mute"),
-                    stroke: corDoGrafico("page"),
-                    strokeWidth: 2,
-                  }}
-                  connectNulls={false}
-                />
-              )}
+              <Line
+                type="monotone"
+                dataKey="mediaNacional"
+                name={currentHistorico.mediaNacionalLabel}
+                stroke={corDoGrafico("mute")}
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                dot={{ r: 4, fill: corDoGrafico("mute") }}
+                activeDot={{
+                  r: 6,
+                  fill: corDoGrafico("mute"),
+                  stroke: corDoGrafico("page"),
+                  strokeWidth: 2,
+                }}
+                connectNulls
+              />
               <Line
                 type="monotone"
                 dataKey="mediaEstadual"
@@ -359,24 +345,16 @@ export function EducacaoHistoricoSection({
             </IndicatorPanel>
           )}
 
-          <section aria-label="Como ler a meta do IDEB" className="space-y-3">
-            <h3>Como ler a meta do IDEB</h3>
+          <section
+            aria-label="Como ler as médias do IDEB"
+            className="space-y-3"
+          >
+            <h3>Como ler as médias do IDEB</h3>
             <p className="text-mute text-sm">
-              O MEC/INEP define a meta do IDEB separadamente para cada rede de
-              ensino de cada município, a partir do ponto de partida da rede.
-              Por isso municípios diferentes, e redes diferentes dentro do mesmo
-              município (municipal, estadual e pública, que reúne as duas), têm
-              metas diferentes. Compare a nota sempre com a meta da mesma rede.
+              A média estadual é a nota da rede pública do estado, e a média
+              nacional é a da rede pública do país. Compare a nota do município
+              com as duas.
             </p>
-            {currentHistorico.anosSemMeta.length > 0 && (
-              <p className="text-mute text-sm">
-                {currentHistorico.ultimoAnoComMeta !== null &&
-                  `O ciclo oficial de metas terminou em ${currentHistorico.ultimoAnoComMeta}. `}
-                Os resultados de {formatarAnos(currentHistorico.anosSemMeta)}{" "}
-                não têm metas definidas pelo INEP e podem ser comparados com os
-                anos anteriores.
-              </p>
-            )}
           </section>
         </div>
       </ModalDialog>

@@ -74,10 +74,11 @@ const aprendizadoBase: AprendizadoEtapa = {
   titulo: "Anos Iniciais (1º ao 5º ano)",
   notaIdeb: 6.2,
   anoApuracao: 2023,
-  metaIdeb: 6,
   mediaEstadual: 5.2,
   mediaEstadualLabel: "Média da rede pública (UF)",
-  atingiuMeta: true,
+  mediaNacional: 5.7,
+  mediaNacionalLabel: "Média da rede pública do Brasil",
+  variacaoMediaEstadual: 0.3,
   notaAnterior: 5.8,
   anoAnterior: 2021,
   variacaoPontos: 0.4,
@@ -89,7 +90,6 @@ const aprendizadoFinaisBase: AprendizadoEtapa = {
   etapaEnsino: "anosFinais",
   titulo: "Anos Finais (6º ao 9º ano)",
   notaIdeb: 5.1,
-  metaIdeb: 5.4,
   mediaEstadual: 4.8,
   notaAnterior: 5.1,
   variacaoPontos: 0,
@@ -234,56 +234,80 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
 });
 
 describe("EducacaoHeroSection: IDEB", () => {
-  it("destaca a pergunta, a nota grande, a faixa, a variação e a barra com a meta", () => {
+  it("destaca a nota grande, a variação e a barra com as médias estadual e nacional", () => {
     renderizar();
     const bloco = destaqueIdeb();
     expect(bloco.querySelector(".stat-value-lg")?.textContent).toContain("6,2");
     expect(
-      within(bloco).getByText("IDEB · Anos Iniciais (1º ao 5º ano)"),
+      within(bloco).getByText("IDEB 2023 · Anos Iniciais (1º ao 5º ano)"),
     ).toBeTruthy();
-    expect(within(bloco).getByText(/Subiu 0,4 pontos desde 2021/)).toBeTruthy();
+    expect(
+      within(bloco).getByText(
+        /A nota subiu 0,4 pontos desde 2021; a média estadual subiu 0,3 pontos\./,
+      ),
+    ).toBeTruthy();
     const barra = within(bloco).getByRole("meter");
     expect(barra.getAttribute("aria-valuemax")).toBe("10");
     expect(
       within(bloco).getByText("Média da rede pública (UF): 5,2"),
     ).toBeTruthy();
-    expect(within(bloco).getByText("Nota: 6,2")).toBeTruthy();
+    expect(
+      within(bloco).getByText("Média da rede pública do Brasil: 5,7"),
+    ).toBeTruthy();
+    expect(within(bloco).queryByText(/Meta/)).toBeNull();
     expect(barra.getAttribute("aria-valuetext")).toMatch(
-      /Média da rede pública \(UF\) 5,2/,
+      /Média da rede pública \(UF\) 5,2; Média da rede pública do Brasil 5,7/,
     );
     expect(within(bloco).getByTestId("threshold-meter-marker").style.left).toBe(
       "52%",
     );
+    expect(
+      Number.parseFloat(
+        within(bloco).getByTestId("threshold-meter-secondary-marker").style
+          .left,
+      ),
+    ).toBeCloseTo(57);
   });
 
   it("variação sobe em ok-text, cai em danger-text e some quando não mudou", () => {
     const { container, rerender } = renderizar();
-    expect(destaqueIdeb().querySelector(".text-ok-text")).not.toBeNull();
+    expect(
+      destaqueIdeb().querySelector(".stat-value-lg .text-ok-text"),
+    ).not.toBeNull();
     rerender(
       elemento({
         aprendizado: comIniciais({ variacaoPontos: -0.3, notaAnterior: 6.5 }),
       }),
     );
-    expect(destaqueIdeb().querySelector(".text-danger-text")).not.toBeNull();
-    expect(screen.getByText(/Caiu 0,3 pontos desde 2021/)).toBeTruthy();
+    expect(
+      destaqueIdeb().querySelector(".stat-value-lg .text-danger-text"),
+    ).not.toBeNull();
+    expect(screen.getByText(/A nota caiu 0,3 pontos desde 2021/)).toBeTruthy();
     rerender(
       elemento({
         aprendizado: comIniciais({ variacaoPontos: 0, notaAnterior: 6.2 }),
       }),
     );
-    expect(destaqueIdeb().querySelector(".text-ok-text")).toBeNull();
-    expect(destaqueIdeb().querySelector(".text-danger-text")).toBeNull();
+    expect(
+      destaqueIdeb().querySelector(".stat-value-lg .text-ok-text"),
+    ).toBeNull();
+    expect(
+      destaqueIdeb().querySelector(".stat-value-lg .text-danger-text"),
+    ).toBeNull();
     expect(container.textContent).not.toMatch(/desde 2021/);
   });
 
-  it("sem meta a barra do IDEB aparece sem marcador e sem nota mostra traço e a causa", () => {
+  it("sem médias a barra do IDEB aparece sem marcadores e sem nota mostra traço e a causa", () => {
     const { rerender } = renderizar({
-      aprendizado: comIniciais({ mediaEstadual: null, metaIdeb: null }),
+      aprendizado: comIniciais({ mediaEstadual: null, mediaNacional: null }),
     });
     expect(within(destaqueIdeb()).getByRole("meter")).toBeTruthy();
-    expect(within(destaqueIdeb()).queryByText(/Meta em/)).toBeNull();
+    expect(within(destaqueIdeb()).queryByText(/Média da rede/)).toBeNull();
     expect(
       within(destaqueIdeb()).queryByTestId("threshold-meter-marker"),
+    ).toBeNull();
+    expect(
+      within(destaqueIdeb()).queryByTestId("threshold-meter-secondary-marker"),
     ).toBeNull();
     rerender(
       elemento({
@@ -336,11 +360,52 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     expect(within(cumprido).getByText("Cumprido")).toBeTruthy();
   });
 
+  it("anos finais sem nota mostram traço e a causa", () => {
+    renderizar({
+      aprendizado: {
+        anosIniciais: aprendizadoBase,
+        anosFinais: {
+          ...aprendizadoFinaisBase,
+          notaIdeb: null,
+          anoApuracao: null,
+        },
+      },
+    });
+    const finais = screen.getByTestId("destaque-ideb-anosFinais");
+    expect(finais.querySelector(".stat-value-lg")?.textContent).toBe("—");
+    expect(within(finais).getByText("Sem nota apurada")).toBeTruthy();
+  });
+
+  it("Fundeb também diz o período no ano em andamento", () => {
+    renderizar({
+      minimosLegais: { ...minimosBase, parcial: true, periodo: 3 },
+    });
+    expect(
+      within(screen.getByTestId("indicador-fundeb")).getByText(
+        /até o 3º bimestre de 2024/,
+      ),
+    ).toBeTruthy();
+  });
+
+  it("a legenda dos alunos sempre soma 100%", () => {
+    renderizar({
+      alunosRede: {
+        ...alunosBase,
+        total: 1000,
+        educacaoInfantil: 335,
+        ensinoFundamental: 665,
+      },
+    });
+    const indicador = screen.getByTestId("indicador-alunos-rede");
+    expect(within(indicador).getByText(/335 Infantil \(34%\)/)).toBeTruthy();
+    expect(within(indicador).getByText(/665 Fundamental \(66%\)/)).toBeTruthy();
+  });
+
   it("IDEB dos anos finais aparece ao lado dos iniciais", () => {
     renderizar();
     const finais = screen.getByTestId("destaque-ideb-anosFinais");
     expect(
-      within(finais).getByText("IDEB · Anos Finais (6º ao 9º ano)"),
+      within(finais).getByText("IDEB 2023 · Anos Finais (6º ao 9º ano)"),
     ).toBeTruthy();
     expect(finais.querySelector(".stat-value-lg")?.textContent).toBe("5,1");
   });

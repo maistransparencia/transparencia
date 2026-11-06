@@ -13,9 +13,9 @@ import {
   Veredito,
 } from "./educacao-textos";
 
-type QualMinimo = "mde" | "fundebProfissionais";
+type MinimoKind = "mde" | "fundebProfissionais";
 
-interface TextosDoMinimo {
+interface MinimoTexts {
   testId: string;
   titulo: string;
   rotuloAplicado: string;
@@ -24,7 +24,7 @@ interface TextosDoMinimo {
   descricao: (periodoTexto: string, limite: string | null) => string;
 }
 
-const TEXTOS_DO_MINIMO: Record<QualMinimo, TextosDoMinimo> = {
+const MINIMO_TEXTS: Record<MinimoKind, MinimoTexts> = {
   mde: {
     testId: "destaque-minimo",
     titulo: "Aplicação mínima exigida em ensino",
@@ -42,15 +42,15 @@ const TEXTOS_DO_MINIMO: Record<QualMinimo, TextosDoMinimo> = {
     rotuloAplicado: "Destinado",
     rotuloLimite: "Mínimo legal",
     nomeAcessivel: "Parte do Fundeb paga aos profissionais da educação",
-    descricao: (_periodoTexto, limite) =>
-      `Do Fundeb, vai para salários dos profissionais da educação.${
+    descricao: (periodoTexto, limite) =>
+      `Parte do Fundeb que vai para salários dos profissionais da educação ${periodoTexto}.${
         limite === null ? "" : ` A lei exige no mínimo ${limite}.`
       }`,
   },
 };
 
 /** Rótulos acima da barra: o valor medido à esquerda e a régua à direita. */
-function RotulosDaBarra({
+function BarLabels({
   esquerda,
   direita,
 }: {
@@ -68,14 +68,14 @@ function RotulosDaBarra({
 /** Mínimo constitucional: título, percentual, selo de cumprido, barra com o marcador e uma frase. */
 export function DestaqueMinimo({
   view,
-  qual = "mde",
+  kind = "mde",
 }: {
   view: MinimosLegaisView;
-  qual?: QualMinimo;
+  kind?: MinimoKind;
 }) {
-  const minimo = view[qual];
+  const minimo = view[kind];
   const { ano, parcial, periodo } = view;
-  const textos = TEXTOS_DO_MINIMO[qual];
+  const textos = MINIMO_TEXTS[kind];
   const { percentualAplicado, limite, resultado } = minimo;
   const periodoTexto =
     parcial && periodo !== null
@@ -105,7 +105,7 @@ export function DestaqueMinimo({
         <>
           {limite !== null && (
             <div className="space-y-2">
-              <RotulosDaBarra
+              <BarLabels
                 esquerda={`${textos.rotuloAplicado}: ${fmtPercent(percentualAplicado)}`}
                 direita={`${textos.rotuloLimite}: ${formatarLimite(limite)}`}
               />
@@ -133,13 +133,13 @@ export function DestaqueMinimo({
   );
 }
 
-/** IDEB de uma etapa: nota grande, variação, barra com a média estadual e a meta do MEC. */
+/** IDEB de uma etapa: nota grande, variação e barra com a média estadual e a média nacional. */
 export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
   const {
     notaIdeb,
     anoApuracao,
-    metaIdeb,
     mediaEstadual,
+    mediaNacional,
     notaAnterior,
     anoAnterior,
   } = etapa;
@@ -153,8 +153,10 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
     if (pontos === null || pontos === 0) {
       return `Igual a ${anoAnterior}`;
     }
-    const variacao = descreverVariacaoPontos(pontos);
-    return `${variacao.charAt(0).toUpperCase()}${variacao.slice(1)} desde ${anoAnterior}`;
+    const notaMudou = `A nota ${descreverVariacaoPontos(pontos)} desde ${anoAnterior}`;
+    const mediaMudou = etapa.variacaoMediaEstadual;
+    if (mediaMudou === null) return `${notaMudou}.`;
+    return `${notaMudou}; a média estadual ${descreverVariacaoPontos(mediaMudou)}.`;
   })();
 
   return (
@@ -162,7 +164,9 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
       className="space-y-3"
       data-testid={`destaque-ideb-${etapa.etapaEnsino}`}
     >
-      <p className="eyebrow">IDEB · {etapa.titulo}</p>
+      <p className="eyebrow">
+        IDEB{anoApuracao === null ? "" : ` ${anoApuracao}`} · {etapa.titulo}
+      </p>
       <p className="stat-value-lg text-brand-text">
         {temNota ? (
           <>
@@ -178,27 +182,31 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
       </p>
       {temNota ? (
         <>
-          <div className="space-y-2">
-            <RotulosDaBarra
-              esquerda={`Nota: ${formatarNota(notaIdeb)}`}
-              direita={
-                mediaEstadual === null
-                  ? undefined
-                  : `${etapa.mediaEstadualLabel}: ${formatarNota(mediaEstadual)}`
-              }
-            />
-            <ThresholdMeter
-              value={notaIdeb}
-              max={10}
-              threshold={mediaEstadual ?? undefined}
-              label={`Nota do IDEB, ${etapa.titulo}`}
-              valueText={`${formatarNota(notaIdeb)} de 10${mediaEstadual === null ? "" : `; ${etapa.mediaEstadualLabel} ${formatarNota(mediaEstadual)}`}`}
-            />
-          </div>
+          <ThresholdMeter
+            value={notaIdeb}
+            max={10}
+            threshold={mediaEstadual ?? undefined}
+            secondaryThreshold={mediaNacional ?? undefined}
+            label={`Nota do IDEB, ${etapa.titulo}`}
+            valueText={`${formatarNota(notaIdeb)} de 10${mediaEstadual === null ? "" : `; ${etapa.mediaEstadualLabel} ${formatarNota(mediaEstadual)}`}${mediaNacional === null ? "" : `; ${etapa.mediaNacionalLabel} ${formatarNota(mediaNacional)}`}`}
+          />
           <p className="caption space-y-0.5">
-            {metaIdeb !== null && (
-              <span className="block">
-                Meta em {anoApuracao}: {formatarNota(metaIdeb)}.
+            {mediaEstadual !== null && (
+              <span className="flex items-center gap-x-2">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3 w-0.5 bg-ink"
+                />
+                {etapa.mediaEstadualLabel}: {formatarNota(mediaEstadual)}
+              </span>
+            )}
+            {mediaNacional !== null && (
+              <span className="flex items-center gap-x-2">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3 w-0.5 bg-warn-fill"
+                />
+                {etapa.mediaNacionalLabel}: {formatarNota(mediaNacional)}
               </span>
             )}
             <span className="block">{cicloAnterior}</span>
