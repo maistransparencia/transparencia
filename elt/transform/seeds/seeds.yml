@@ -216,3 +216,25 @@ seeds:
           - not_null
           - accepted_values:
               values: ['true', 'false']
+
+  - name: seed_saude_minimo_base_calculo
+    description: "Base do cálculo próprio do mínimo de saúde (conferência do SIOPS): prefixos de código de receita e palavra-chave da fonte de recurso da despesa, por vigência. A base de receita inclui só linhas que existem nos portais; códigos sem ocorrência verificada (por exemplo IOF-ouro) e a inclusão do IBS pela LC 227/2026 ficam de fora (em 2026 o IBS não é repartido aos Municípios; de 2027 em diante NÃO VERIFICADO). As cotas extraordinárias do FPM ficam fora e a compensação do ICMS (LC 194/2022) entra: com essa base a receita bate ao centavo com a do SIOPS em 5 de 8 combinações de portal e ano testadas (2024 e 2025 nos dois portais, 2023 em Natividade). A fonte de recurso da despesa é texto livre do portal, pois a despesa não traz o código de fonte STN."
+    config:
+      column_types:
+        componente: text
+        tipo_correspondencia: text
+        padrao: text
+        descricao: text
+        ano_inicio: integer
+        ano_fim: integer
+        base_legal: text
+        url_base_legal: text
+    columns:
+      - name: padrao
+        tests:
+          - not_null
+      - name: componente
+        tests:
+          - accepted_values:
+              arguments:
+                values: [receita, despesa]

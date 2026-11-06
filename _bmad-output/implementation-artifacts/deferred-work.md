@@ -491,3 +491,11 @@ status: open
 - Extrator `elt/extract/emendas_estaduais.py`: identificador repetido no mesmo CSV (upsert falha), posições de meses diferentes somadas, `_soma` parcial como total, mês fora de 1..12, `NaN` ou espaço não separável em `parse_valor`, gravações sem transação única, arquivo republicado com emenda removida, `main` que para na primeira fonte com erro.
 - Sem alerta de arquivo desatualizado do Estado; `coletado_em` de `fct_emendas_estaduais_fontes` não aparece na tela.
 - `make test/ts` e `pnpm test` perdem `DATABASE_URL` no turbo e caem na 5544 (onde o mart novo não existe); documentar `--env-mode=loose` ou passar a variável no `turbo.json`.
+
+## Deferred from: code review of story-25-2 (2026-11-06)
+
+- Regex `_RE_LINHA_CONSULTA` (`elt/extract/siops.py`) usa `.*?` com DOTALL: uma linha sem a célula de valor pode herdar o valor da linha seguinte sem erro. Severidade se confirmado: medium (não verificado). Para decidir: obter o HTML real de uma linha sem a célula `tdr caixa`.
+- `fct_saude_minimo_conferencia`: o join com o seed multiplicaria linhas se houver padrões ou vigências sobrepostos para o mesmo componente. Hoje o seed não sobrepõe; falta teste dbt de não sobreposição.
+- `fct_saude_minimo_conferencia` assume códigos de receita terminados em `.00.00` e `funcao = '10'`, documentado só para o município A. Verificar com um portal de outro estado antes da 25.3 usar a conferência.
+- Ano corrente sem nenhum bimestre transmitido não gera linha no mart (nem `sem_dado`); a 25.3 deve tratar a ausência de linha.
+- Despesa com recursos próprios de A em 2024 sem conciliar: SIOPS R$ 13,27 mi contra R$ 15,61 mi do cálculo próprio, que bate com a fonte `01-500` do portal municipal. O SIOPS declara despesa total maior (R$ 49,37 mi contra R$ 47,67 mi empenhados). Diferença de atribuição da fonte de recurso, causa não provada; falta o demonstrativo declarado ao SIOPS. Registrado em `25-2-minimo-constitucional-de-saude-no-dbt.md`.
