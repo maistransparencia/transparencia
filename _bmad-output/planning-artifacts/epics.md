@@ -3612,7 +3612,7 @@ As a data analyst,
 I want the constitutional health minimum computed per portal and year from the official source chosen in the spike,  
 So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" with the legal limit next to the number.
 
-**Status:** esboço. Detalhar depois da 25.1. Esperado: ingestão, staging e mart `fct_saude_minimo_constitucional` com grão `portal_slug` e `ano`, colunas explícitas (Regra 9), valor ausente nulo e nunca zero, ano em andamento identificável como parcial, limite legal vindo do seed de constantes fiscais (nunca de texto fixo) e conferência do `contador-publico`.
+**Status:** esboço ajustado pela spike 25.1 (`planning-artifacts/spike-saude-fontes-indicadores.md`). **Fonte decidida: SIOPS, indicador 3.2** (e 3.1), sem captcha, sem contrato de estabilidade, servido em `http`. **Anos fechados:** `POST` no TABNET (`SerHist/municipio/mIndicadores.def`, parâmetros em latin1, `formato=prn`), baixando todos os municípios e filtrando pelos `cod_ibge` do `seed_portais`; entidades HTML do nome decodificadas antes de separar por `;`. **Ano em andamento:** `POST` em `relindicadoresmun2.php` só para os portais do seed (o TABNET não tem arquivo do ano corrente), valor rotulado `parcial` e nunca comparado com o mínimo. O Siconfi **não** serve: a API do RREO não devolve o Anexo 12. Esperado: extrator em `elt/extract` com tratamento de "Não houve transmissão" como sem dado (nulo, nunca zero), validação estrita de faixa 0 a 100 (houve 121,91% real em bimestre parcial), divergência entre as duas vias como erro explícito, 3.2/3.1/2.1 como indicadores e `D.R.Próprios`, `R.Impostos_e_Transf.Const` e `D.Total_Saúde` como base de conferência (3.2 = `D.R.Próprios` ÷ `R.Impostos_e_Transf.Const`), tabela raw por fonte, staging e mart `fct_saude_minimo_constitucional` com grão `portal_slug` e `ano`, colunas explícitas (Regra 9), ano em andamento identificável como parcial, limite legal vindo do seed (linha `minimo_aplicacao_saude_municipal`, base LC 141/2012 art. 7º, com a vigência da LC 227/2026 ainda **NÃO VERIFICADA**) e cálculo próprio como mart de **conferência** com a diferença exposta. Critério de aceite: conciliar a divergência de 2,6 pontos percentuais do cálculo próprio com o SIOPS em um município e ano. **Via oficial para 2.1 e 3.1: consulta por ano (`relindicadoresmun2.php`); o TABNET serve ao 3.2 e aos valores absolutos, e divergência entre as vias é alerta. O que está na fonte oficial é o que se exibe, sem depender de conferência de contador. Teste a partir do CI: NAO EXECUTADO (critério de aceite).** Parecer da skill `contador-publico` (spike, item 8.2): estágio da despesa e códigos de receita **não bloqueiam a tela**, que exibe o SIOPS com o rótulo "calculado pelo SIOPS" e cita o estágio que ele usa (empenhada menos restos sem disponibilidade; a LC 141 art. 24 manda liquidada e restos até a disponibilidade). Os dois pontos só se aplicam ao cálculo próprio de conferência: usar o mapeamento de fontes STN em vez de texto livre e detalhar os códigos de receita da base por vigência.
 
 **Dependências:** Story 25.1.
 
@@ -3620,7 +3620,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude` (esboço)
 
-**Status:** esboço. Detalhar depois da 25.2. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
+**Status:** esboço. Detalhar depois da 25.2. Rótulo na tela: "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data da última transmissão. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
 
 **Dependências:** Story 25.2.
 
@@ -3628,7 +3628,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.4: De Onde Vem o Dinheiro da Saúde (esboço)
 
-**Status:** esboço. Pergunta: "Quanto do dinheiro da saúde vem da Prefeitura, do Estado e da União?". Fonte e método definidos pela 25.1 (candidata, **NÃO VERIFICADA**: repasses fundo a fundo do Fundo Nacional de Saúde). Cuidado: recurso federal e estadual não entra na base do mínimo constitucional.
+**Status:** esboço reduzido pela spike 25.1. Pergunta: "De onde vem o dinheiro da saúde?". Entra só a parcela de transferências, pelo SIOPS 3.1 (transferências para a saúde sobre a despesa total com saúde). A divisão entre Estado e União **fica adiada**: o Fundo Nacional de Saúde está **NÃO VERIFICADO** (portal público em manutenção; a consulta tem API interna sem endpoint de valores encontrado). Cuidado: recurso federal e estadual não entra na base do mínimo constitucional.
 
 **Dependências:** Story 25.1.
 
@@ -3695,7 +3695,7 @@ So that I can tell whether the money arrived and was used, without a delay in on
 
 ### Story 25.6: Produção da Rede e Fila de Espera (esboço)
 
-**Status:** esboço. Só entram os indicadores que a 25.1 provar que têm fonte oficial recorrente, série e régua (candidatos: procedimentos ambulatoriais e hospitalares, atenção primária, imunização, leitos e profissionais por habitante). Fila de espera só se houver fonte aberta. O que não passar vai para o backlog com o motivo registrado.
+**Status:** esboço ajustado pela spike 25.1. **Entram:** produção ambulatorial (SIA), internações (SIH, com estado "sem dado" porque um município testado não retorna), leitos e profissionais por mil habitantes (CNES, agregado, sem nome de pessoa; população residente com código IBGE de 7 dígitos). **Backlog com motivo:** Previne Brasil (série parou em 2024Q3; sucessor NÃO VERIFICADO), vacinação (sem filtro por município no contrato e sem denominador), transporte sanitário e hemodiálise (não testados). **Fila de espera:** sem fonte aberta; só com resposta de pedido LAI. Critério de aceite: teste de contrato a partir do ambiente da carga diária (timeouts, limite de taxa e repetição), ainda não feito. Armadilha: sem `nu_comp` ou `nu_ano` a API devolve a competência mais antiga.
 
 **Dependências:** Story 25.1.
 
