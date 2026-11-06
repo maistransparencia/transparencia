@@ -3624,9 +3624,21 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ---
 
-### Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude` (esboço)
+### Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude`
 
-**Status:** esboço. Detalhar depois da 25.2. Rótulo na tela: "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data da última transmissão. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
+**Status:** em revisão (critérios detalhados abaixo). Fonte da tela: `analytics.fct_saude_minimo_constitucional` (25.2); o cálculo próprio (`fct_saude_minimo_conferencia`) não é fonte.
+
+**Acceptance Criteria:**
+- **Given** o mart `fct_saude_minimo_constitucional` **When** `getSaudeMinimoConstitucional({ portalSlug, ano })` roda **Then** devolve `atual`, `minimo` (limite em pontos percentuais, `percentualAplicado`, `resultado`, base legal e URL do seed), `serie` de anos encerrados com percentual e `anoInicial`/`anoFinal` calculados dos dados, tudo em camelCase e com nulo preservado
+- **And** `resultado` é `cumpriu`/`abaixo` só para ano `encerrado` com `cumpre_minimo` do mart; `parcial` no ano em andamento (nunca comparado, mesmo acima de 100%); `indeterminado` quando `cumpre_minimo` é nulo (vias divergentes); `sem_dado` sem linha, sem percentual ou sem limite, nunca zero
+- **And** o isolamento por `portal_slug` e o slug vazio são cobertos por teste de paridade
+- **Given** `/[portalSlug]/saude` **When** o cidadão abre **Then** o topo mostra, logo após o hero, a pergunta "A Prefeitura aplica o mínimo exigido em saúde?", o percentual, "A lei exige pelo menos N%" (N do seed), a barra com a régua (só em ano encerrado comparável), o rótulo "Calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura" com a data da última transmissão, a linha "Lei: … · Fonte: …" com links (`target="_blank"`, `rel="noopener noreferrer"`) e "Ver detalhes"
+- **And** abaixo do mínimo o texto diz "indício a ser esclarecido pela Prefeitura"; `indeterminado` não compara e não afirma cumprimento; sem dado mostra "—" e explica; ano em andamento mostra o aviso de parcial sem barra nem selo
+- **And** "Ver detalhes" (modal) traz receita base, despesa com recursos próprios, despesa total, despesa por habitante, o estágio da despesa que o SIOPS usa (empenhada menos restos sem disponibilidade; LC 141 art. 24 fala em liquidada) e a série `${anoMin}–${anoMax}` calculada dos dados; o cálculo próprio não aparece
+- **And** loader e view-model só repassam o dado tipado (Regra 2); `llms.txt` e `llms-full.txt` atualizados (Regra 12)
+- **Pendente:** revisão dos textos pelo `editor-cidadao` e da base legal pelo `jurista-fiscal` (Regra 20/27) antes do fechamento.
+
+**Origem do detalhamento (esboço anterior):** Rótulo na tela: "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura". Rótulo na tela: "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data da última transmissão. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
 
 **Dependências:** Story 25.2.
 
