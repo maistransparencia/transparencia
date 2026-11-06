@@ -157,4 +157,84 @@ describe("getSaudeMinimoConstitucional", () => {
     expect(vazio.atual).toBeNull();
     expect(vazio.minimo.resultado).toBe("sem_dado");
   });
+
+  it("usa a lei do seed quando o mart não traz o mínimo", async () => {
+    await seedSaudeMinimo({
+      portalSlug: PORTAL_A,
+      ano: 2024,
+      percentualAplicadoSaude: 18,
+      cumpreMinimo: true,
+    });
+
+    const { minimo } = await getSaudeMinimoConstitucional({
+      portalSlug: PORTAL_A,
+      ano: 2024,
+    });
+
+    expect(minimo.limite).toBe(15);
+    expect(minimo.resultado).toBe("cumpriu");
+    expect(minimo.comparavel).toBe(true);
+    expect(minimo.baseLegal).toMatch(/Lei Complementar 141\/2012/);
+    expect(minimo.urlBaseLegal).toMatch(/^https:\/\/www\.planalto\.gov\.br\//);
+  });
+
+  it("sem lei cadastrada para o ano, não inventa limite nem base legal", async () => {
+    await seedSaudeMinimo({
+      portalSlug: PORTAL_A,
+      ano: 2005,
+      percentualAplicadoSaude: 18,
+      cumpreMinimo: true,
+    });
+
+    const { minimo } = await getSaudeMinimoConstitucional({
+      portalSlug: PORTAL_A,
+      ano: 2005,
+    });
+
+    expect(minimo.limite).toBeNull();
+    expect(minimo.baseLegal).toBeNull();
+    expect(minimo.urlBaseLegal).toBeNull();
+    expect(minimo.resultado).toBe("sem_dado");
+    expect(minimo.comparavel).toBe(false);
+  });
+
+  it("ano parcial informa os meses cobertos e não é comparável", async () => {
+    await seedSaudeMinimo({
+      portalSlug: PORTAL_A,
+      ano: 2026,
+      periodo: 3,
+      situacao: "parcial",
+      percentualAplicadoSaude: 10,
+      minimoAplicacaoSaudePercentual: 15,
+    });
+
+    const { minimo } = await getSaudeMinimoConstitucional({
+      portalSlug: PORTAL_A,
+      ano: 2026,
+    });
+
+    expect(minimo.comparavel).toBe(false);
+    expect(minimo.mesesCobertos).toBe(6);
+  });
+
+  it("a série vai do ano inicial do portal até o ano pedido", async () => {
+    await seedSaudeMinimo(
+      [2019, 2020, 2021, 2022, 2023].map((ano) => ({
+        portalSlug: PORTAL_A,
+        ano,
+        percentualAplicadoSaude: 18,
+        minimoAplicacaoSaudePercentual: 15,
+        cumpreMinimo: true,
+      })),
+    );
+
+    const resultado = await getSaudeMinimoConstitucional({
+      portalSlug: PORTAL_A,
+      ano: 2022,
+      anoInicial: 2020,
+    });
+
+    expect(resultado.serie.map((item) => item.ano)).toEqual([2020, 2021, 2022]);
+    expect([resultado.anoInicial, resultado.anoFinal]).toEqual([2020, 2022]);
+  });
 });

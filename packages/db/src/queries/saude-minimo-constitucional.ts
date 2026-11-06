@@ -39,7 +39,7 @@ export interface SaudeMinimoAnoDTO {
   despesaTotalSaude: number | null;
   divergenciaEntreVias: boolean;
   indicadoresDivergentes: string[];
-  /** Data da última transmissão coletada (ISO). */
+  /** Quando o portal consultou o SIOPS (ISO); não é a data de transmissão da Prefeitura. */
   coletadoEm: string | null;
 }
 
@@ -48,6 +48,10 @@ export interface SaudeMinimoLegalDTO {
   limite: number | null;
   percentualAplicado: number | null;
   resultado: ResultadoSaudeMinimo;
+  /** `true` só para ano encerrado com percentual e mínimo: é quando a tela pode comparar. */
+  comparavel: boolean;
+  /** Meses do ano cobertos pelo valor parcial; `null` fora do ano em andamento. */
+  mesesCobertos: number | null;
   baseLegal: string | null;
   urlBaseLegal: string | null;
 }
@@ -58,7 +62,7 @@ export interface SaudeMinimoConstitucionalDTO {
   /** Exercício pedido; `null` quando o mart não tem linha para ele (nunca vira zero). */
   atual: SaudeMinimoAnoDTO | null;
   minimo: SaudeMinimoLegalDTO;
-  /** Exercícios encerrados com percentual, do mais antigo ao mais recente. */
+  /** Exercícios encerrados com percentual, do ano inicial do portal até o ano pedido. */
   serie: SaudeMinimoAnoDTO[];
   anoInicial: number | null;
   anoFinal: number | null;
@@ -67,6 +71,8 @@ export interface SaudeMinimoConstitucionalDTO {
 export interface GetSaudeMinimoConstitucionalParams {
   portalSlug: string;
   ano: number;
+  /** Primeiro ano do portal; a série não inclui anos anteriores. */
+  anoInicial?: number | null;
 }
 
 const CHAVE_MINIMO_SAUDE = "minimo_aplicacao_saude_percentual";
@@ -138,6 +144,8 @@ const dtoVazio = (ano: number): SaudeMinimoConstitucionalDTO => ({
     limite: null,
     percentualAplicado: null,
     resultado: "sem_dado",
+    comparavel: false,
+    mesesCobertos: null,
     baseLegal: null,
     urlBaseLegal: null,
   },
@@ -156,6 +164,7 @@ const dtoVazio = (ano: number): SaudeMinimoConstitucionalDTO => ({
 export async function getSaudeMinimoConstitucional({
   portalSlug,
   ano,
+  anoInicial: anoInicialPortal,
 }: GetSaudeMinimoConstitucionalParams): Promise<SaudeMinimoConstitucionalDTO> {
   const cleanSlug = portalSlug?.trim();
   if (!cleanSlug) return dtoVazio(ano);
@@ -189,6 +198,8 @@ export async function getSaudeMinimoConstitucional({
       .where("chave", "=", CHAVE_MINIMO_SAUDE)
       .where("ano_inicio", "<=", ano)
       .where("ano_fim", ">=", ano)
+      .orderBy("ano_inicio", "desc")
+      .limit(1)
       .execute(),
   ]);
 
@@ -201,8 +212,12 @@ export async function getSaudeMinimoConstitucional({
     .map(mapearAno)
     .filter(
       (item) =>
-        item.situacao === "encerrado" && item.percentualAplicadoSaude !== null,
+        item.situacao === "encerrado" &&
+        item.percentualAplicadoSaude !== null &&
+        item.ano <= ano &&
+        item.ano >= (anoInicialPortal ?? item.ano),
     );
+  const resultado = classificarResultado(linhaAtual, limite);
 
   return {
     portalSlug: cleanSlug,
@@ -211,7 +226,12 @@ export async function getSaudeMinimoConstitucional({
     minimo: {
       limite,
       percentualAplicado: numeroOuNulo(linhaAtual?.percentual_aplicado_saude),
-      resultado: classificarResultado(linhaAtual, limite),
+      resultado,
+      comparavel: resultado === "cumpriu" || resultado === "abaixo",
+      mesesCobertos:
+        resultado === "parcial" && linhaAtual
+          ? Number(linhaAtual.periodo) * 2
+          : null,
       baseLegal: limites[0]?.base_legal ?? null,
       urlBaseLegal: limites[0]?.url_base_legal ?? null,
     },
