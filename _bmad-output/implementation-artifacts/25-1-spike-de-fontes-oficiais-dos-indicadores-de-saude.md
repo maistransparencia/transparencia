@@ -1,5 +1,6 @@
 ---
-status: ready-for-dev
+status: done
+baseline_commit: 034622215800403d31b1c06ae521bde0984777f4
 ---
 
 # Story 25.1: Spike de Fontes Oficiais dos Indicadores de Saúde
