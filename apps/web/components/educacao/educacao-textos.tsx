@@ -35,14 +35,14 @@ const formatarPercentualVariacao = (valor: number) =>
     maximumFractionDigits: 1,
   })}%`;
 
-/** "em 2025" ou, no ano em andamento, "parcial: acumulado até o 3º bimestre de 2025". */
+/** "em 2025" ou, no ano em andamento, "acumulado até o 3º bimestre de 2025". */
 export function descreverPeriodo(view: {
   ano: number;
   parcial: boolean;
   periodo: number | null;
 }): string {
   return view.parcial && view.periodo !== null
-    ? `parcial: acumulado até o ${view.periodo}º bimestre de ${view.ano}`
+    ? `acumulado até o ${view.periodo}º bimestre de ${view.ano}`
     : `em ${view.ano}`;
 }
 
@@ -51,20 +51,20 @@ export function descreverVariacaoValorPorAluno(
   view: ValorPorAlunoView,
 ): string {
   if (view.parcial) {
-    return "parcial: sem comparação com anos fechados";
+    return "Ano em andamento, sem comparação";
   }
   if (view.variacaoValor === null || view.anoAnterior === null) {
-    return "sem ano anterior fechado para comparar";
+    return "Sem ano anterior para comparar";
   }
   if (view.variacaoValor === 0) {
-    return `igual a ${view.anoAnterior}`;
+    return `Igual a ${view.anoAnterior}`;
   }
-  const palavra = view.variacaoValor > 0 ? "subiu" : "caiu";
+  const palavra = view.variacaoValor > 0 ? "Subiu" : "Caiu";
   const percentual =
     view.variacaoPercentual === null
       ? ""
       : ` (${formatarPercentualVariacao(view.variacaoPercentual)})`;
-  return `${palavra} ${fmtCurrency(Math.abs(view.variacaoValor))}${percentual} em relação a ${view.anoAnterior}`;
+  return `${palavra} ${fmtCurrency(Math.abs(view.variacaoValor))}${percentual} desde ${view.anoAnterior}`;
 }
 
 /** Texto + ícone, nunca só cor, em linha própria; abaixo do mínimo fala em "indício", sem acusar. */
@@ -90,13 +90,6 @@ export function Veredito({
       <span className="flex items-center gap-1">
         <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
         Ficou abaixo do mínimo: indício a ser esclarecido pela Prefeitura
-      </span>
-    );
-  }
-  if (minimo.resultado === "parcial") {
-    return (
-      <span className="block">
-        Ano em andamento: o resultado só fica claro quando o ano fechar
       </span>
     );
   }
@@ -182,8 +175,8 @@ export const formatarLimite = (limite: number) =>
 
 export const motivoSemPercentual = (view: MinimosLegaisView) =>
   view.semDadoSiope
-    ? `sem dado publicado para ${view.ano}`
-    : `a Prefeitura não informou o percentual de ${view.ano} ao governo federal`;
+    ? `Sem dado publicado para ${view.ano}`
+    : `A Prefeitura não informou o percentual de ${view.ano} ao governo federal`;
 
 export const pluralizar = (
   quantidade: number,

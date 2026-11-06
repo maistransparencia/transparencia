@@ -109,7 +109,7 @@ export default async function EducacaoPage({
           portalUrl={viewModel.portalUrl}
           valorPorAluno={viewModel.valorPorAluno}
           alunosRede={viewModel.alunosRede ?? null}
-          aprendizado={viewModel.aprendizado.anosIniciais}
+          aprendizado={viewModel.aprendizado}
           emendasResumo={emendas.lista.length > 0 ? resumo.emendas : null}
         />
       </div>

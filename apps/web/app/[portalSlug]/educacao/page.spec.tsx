@@ -338,24 +338,19 @@ describe("EducacaoPage (Server Component)", () => {
     );
 
     const destaque = screen.getByRole("region", {
-      name: "Destaques da educação",
+      name: "Mínimos constitucionais da educação",
     });
     expect(
-      within(destaque).getByText(
-        "A Prefeitura aplica o mínimo exigido em educação?",
-      ),
+      within(destaque).getByText("Aplicação mínima exigida em ensino"),
     ).toBeInTheDocument();
     expect(
-      within(destaque).getByText("As crianças estão aprendendo?"),
+      within(destaque).getByText("Fundeb para profissionais da educação"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Quanto do Fundeb vai para os profissionais da educação?",
-      ),
+      screen.getByText("Investimento anual por aluno"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Quanto a Prefeitura investe por aluno?"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/^IDEB · Anos Iniciais/)).toBeInTheDocument();
+    expect(screen.getByText(/^IDEB · Anos Finais/)).toBeInTheDocument();
     const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
       .getAllByRole("term")
       .map((termo) => termo.textContent);
@@ -369,8 +364,6 @@ describe("EducacaoPage (Server Component)", () => {
       .getAllByRole("heading", { level: 2 })
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
-      "Quanto do Fundeb vai para os profissionais da educação?",
-      "Quantos alunos a rede tem e quanto se investe em cada um?",
       "Quanto do que a Prefeitura reservou para a educação já foi pago?",
       "Aprendizado dos alunos",
       "Como mudou ao longo dos anos",
