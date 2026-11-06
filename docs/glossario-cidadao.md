@@ -46,6 +46,17 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | SIOPE | Sistema do governo federal em que a Prefeitura informa o que aplica em educação. O portal mostra o número como o governo federal o publicou, sem recalcular | "Conferido pelo portal", "auditado" |
 | FNDE | Órgão do governo federal que cuida do dinheiro da educação e publica os dados do SIOPE. Na tela, preferir "governo federal" | |
 | MDE (manutenção e desenvolvimento do ensino) | Gastos da Prefeitura com escolas, professores, material e transporte escolar. A lei manda aplicar um mínimo da receita de impostos nisso | "Gasto com educação" sem dizer que é o mínimo exigido |
+| Valor indicado (emenda) | Quanto o deputado indicou para a cidade. Não é o que já foi pago | "Valor recebido", "valor repassado" |
+| Repasse direto à Prefeitura (transferência especial) | O Estado envia o dinheiro direto ao caixa da Prefeitura | "Emenda Pix" sem explicar |
+| Finalidade definida | O Estado repassa à Prefeitura para um uso combinado de antemão | |
+| Fundo a fundo | O dinheiro vai do fundo do Estado para o fundo do município (saúde, assistência) | |
+| Cadastro da Prefeitura | A lista de emendas que a própria Prefeitura registra no seu sistema. É diferente da lista do Estado e pode ter datas diferentes. Não constar nela não significa que o dinheiro não chegou | "Omissão", "não declarou" |
+| Posição do relatório (execução do Estado) | Mês e ano a que o relatório do Estado se refere. O que aconteceu depois dessa data não aparece | "Estado não pagou" a partir de valor zerado |
+| O Estado gasta direto (execução direta) | O próprio Estado faz a obra ou a compra; o dinheiro não passa pela Prefeitura | "Executa" sem explicar |
+| Organização da sociedade civil | Entidade privada sem fins lucrativos que recebe o dinheiro da emenda, não a Prefeitura | "OSC" sem explicar |
+| Outras transferências dos Estados | Linha da receita da Prefeitura que reúne dinheiro enviado pelo Estado fora das cotas fixas. Inclui emendas, mas também outras transferências, então não prova sozinha que uma emenda chegou | "Receita da emenda" |
+| Pago pelo Estado (emenda) | O que o Estado informa já ter pago no relatório de execução, até o mês indicado. É diferente do valor indicado e do que a Prefeitura registrou | "Repassado", "recebido" |
+| Ainda não aparece na receita | O Estado informa ter pago mais do que a Prefeitura registrou em receita. É diferença calculada pelo portal, e os dois sistemas podem ter datas de corte diferentes | "Omissão", "desvio", "irregular" |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.

@@ -3649,6 +3649,12 @@ So that I can tell whether the money arrived and was used, without a delay in on
 - **Then** os arquivos entram no schema `raw_emendas_federais` (padrão por fonte da Epic 26), em latin1 e com decimal em vírgula tratados no staging, com a data do arquivo registrada em cada carga e **sem `portal_slug` na fonte** (a fonte é nacional)
 - **And** o vínculo com o município usa o código IBGE do portal (dimensão de portais) e nunca literais de município, UF ou ano; o `PorFavorecido` só traz nome do município e UF, então o mapeamento usa nome normalizado mais UF contra a dimensão de portais e, havendo ambiguidade, **não cruza** e registra o caso
 - **And** o `PorFavorecido` é a fonte da parcela do município; o total do arquivo principal nunca é usado como valor do município, em especial nas linhas `Múltiplo`.
+- **Given** a coluna `Tipo de Emenda` do `EmendasParlamentares.csv`
+- **When** a carga entra no staging
+- **Then** o texto da fonte é mapeado, por configuração (seed ou YAML, sem `CASE` com texto no SQL), para a coluna `forma_repasse` com códigos em snake_case: `transferencia_especial` (Emenda Individual - Transferências Especiais), `finalidade_definida` (Emenda Individual - Transferências com Finalidade Definida) e `bancada_comissao_relator` (Emenda de Bancada, de Comissão e de Relator)
+- **And** valor de `Tipo de Emenda` fora do mapa vira `nao_identificado` e nunca é adivinhado por palavra parecida; um teste `accepted_values` falha na carga quando a CGU criar um tipo novo
+- **And** o vocabulário é o mesmo da modalidade da Story 25.9, e a UI traduz o código no rótulo do glossário ("Repasse direto à Prefeitura (Emenda Pix)"), sem escrever "Emenda Pix" sem explicação
+- **And** o rótulo "Emenda PIX" do cadastro da Prefeitura nunca classifica a emenda; sem confirmação da fonte oficial, a tela diz "origem não confirmada"
 - **Given** o nome das linhas de receita e despesa do portal municipal
 - **When** o código da emenda é extraído por regra
 - **Then** a regra aceita o código de 12 dígitos e o formato de 8 dígitos (autor e sequência) **com ou sem "Nº"**, recupera o ano pelo lançamento mais próximo do pagamento federal e nunca assume o "mais recente"; códigos de outro formato (número de programa, de proposta) são marcados como não cruzáveis
@@ -3670,12 +3676,13 @@ So that I can tell whether the money arrived and was used, without a delay in on
 
 *Qualidade*
 - **And** testes de paridade da query com casos reais do spike: emenda integralmente reservada e paga (concordância), emenda paga com gasto pequeno, emenda `Múltiplo` (parcela pelo `PorFavorecido`), emenda de 8 dígitos sem "Nº", emenda estadual (sem conferência), campo vazio contra zero e portal sem emendas (estado neutro, sem dados de outro município)
+- **And** testes da classificação: tipo conhecido de cada família, tipo novo (`nao_identificado`), emenda `Múltiplo` de transferência especial (parcela pelo `PorFavorecido`) e emenda do cadastro municipal chamada "PIX" sem confirmação federal
 - **And** a pergunta de revisão multi-tenant ("se o portal for de outro estado e o histórico começar em 2017 ou terminar em 2027, continua funcionando?") é respondida no PR
 - **And** `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam; `llms.txt` e `llms-full.txt` descrevem a conferência (Regra 12).
 
 **Fora do escopo:** emenda estadual; educação (Story 25.7); execução em produção (Regra 15); concluir omissão, irregularidade ou atraso de qualquer ente; exibir pessoa física; a cadência de carga, que é da Story 23.8 (a fonte `emendas_federais` entra no grupo semanal dela).
 
-**Riscos e perguntas abertas (da spike):** o arquivo federal é um instantâneo sem contrato de estabilidade; a regra de ano do código de 8 dígitos precisa de teste; o cruzamento por entidade (fundo de destino) ainda não foi feito; o texto final passa de novo pelo `editor-cidadao`, pelo `jurista-fiscal` (licença de reuso dos dados federais) e pelo `contador-publico` (restos a pagar por exercício).
+**Riscos e perguntas abertas (da spike):** o arquivo federal é um instantâneo sem contrato de estabilidade; a regra de ano do código de 8 dígitos precisa de teste; o cruzamento por entidade (fundo de destino) ainda não foi feito; o texto final passa de novo pelo `editor-cidadao`, pelo `jurista-fiscal` (licença de reuso dos dados federais) e pelo `contador-publico` (restos a pagar por exercício). Se a transferência especial federal tem o mesmo cronograma e a mesma obrigação de publicação das estaduais fica para o `jurista-fiscal` (LC 210/2024, art. 8º).
 
 **Dependências:** Story 25.1a (concluída como spike, falta o teste de contrato em ambiente de carga) e Story 25.8 (concluída). Story 23.8 para a carga recorrente, sem bloquear a entrega local.
 
@@ -3749,7 +3756,7 @@ So that I know what was indicated for my city even when the city hall does not l
 - **When** a emenda aparece nos dois
 - **Then** o cruzamento é por número da emenda mais autor (ou pelo identificador), com teste de unicidade; emendas só no Estado entram como "indicada pelo Estado, não consta no cadastro da Prefeitura" (sem sugerir omissão)
 - **And** o relatório de execução bimestral (empenhado, liquidado e pago do Estado) entra com a **posição do arquivo** (mês e ano) visível; enquanto a posição for anterior à data da consulta, a tela diz "o relatório mais recente do Estado é de [mês/ano]" e nunca afirma que o Estado não pagou
-- **And** a receita da Prefeitura só é comparada por total ou por valor igual, dita como estimativa (Regra 27), porque as linhas de receita estadual não trazem o número da emenda
+- **And** a receita da Prefeitura só é comparada por total ou por valor igual, dita como estimativa (Regra 27), porque as linhas de receita estadual não trazem o número da emenda. **Entregue (2026-11-05):** `fct_emendas_estaduais_receita` compara, por portal e ano, o **pago** do Estado nas emendas que chegam à Prefeitura (todas as áreas, só as do arquivo mais recente) com o arrecadado em "outras transferências dos Estados" (alíneas 1729 e 2429, um só nível: total e subalíneas não se somam). Situações: `nao_identificado`, `exercicios_diferentes`, `pago_acima_do_registrado` (o excedente "ainda não aparece", dito como calculado) e `dentro_do_registrado` (não prova elo). Pago ausente fica nulo, não se somam estágios, e a comparação só vale no mesmo ano. **Limites declarados na tela:** o relatório do Estado não separa restos a pagar, as datas de corte dos dois sistemas diferem e a linha de receita reúne outras transferências além de emendas. **Riscos registrados (contador-publico):** a soma é do portal, sem chave por fundo de destino, e a receita lançada fora das alíneas 1729 e 2429 não é vista
 - **And** `Execução Direta` e `OSC` aparecem como "o Estado executa" ou "repasse a organização", nunca como dinheiro que chega à Prefeitura; só `transferencia_especial`, `finalidade_definida` e `fundo_a_fundo` entram em "o dinheiro chega à Prefeitura"
 - **And** estados e textos seguem a seção 6 do spike federal (dois blocos, "Governo estadual" e "Prefeitura", a frase fixa de que são registros de sistemas diferentes, sem as palavras proibidas), revisados pelo `editor-cidadao`.
 
@@ -3768,7 +3775,7 @@ So that I know what was indicated for my city even when the city hall does not l
 - **And** a revisão do `jurista-fiscal` fixa a base legal estadual (EC 75/2019, EC 97/2023, LC 219/2024, LC 221/2024, LC 232/2026 e o Decreto 49.132/2024, hoje **NÃO VERIFICADOS**), a do `contador-publico` valida os estágios do Estado e a do `editor-cidadao` os rótulos por modalidade
 - **And** `make test`, `make check`, `make test/ts`, `pnpm typecheck` passam; `llms.txt` e `llms-full.txt` descrevem a conferência (Regra 12).
 
-**Fora do escopo:** execução em produção (Regra 15); concluir omissão ou irregularidade de qualquer ente; exibir pessoa física; o painel Qlik do Estado, até haver exportação verificada; as emendas de 2025 e anteriores além do necessário para o histórico (verificar na própria história); a cadência de carga (Story 23.8, grupo semanal).
+**Fora do escopo:** execução em produção (Regra 15); concluir omissão ou irregularidade de qualquer ente; exibir pessoa física; o painel Qlik do Estado, até haver exportação verificada; as emendas de 2025 e anteriores além do necessário para o histórico (verificar na própria história); a cadência de carga (Story 23.8, grupo semanal). A classificação federal por `forma_repasse` é da Story 25.5; a 25.9 mantém `modalidade` e usa os mesmos códigos.
 
 **Perguntas abertas (da spike):** unicidade de (número, autor) e do identificador; as seis emendas de saúde de Porciúncula com número de proposta que não casam com o detalhamento; se o painel Qlik tem posição mais nova que as planilhas; termos de uso do portal do Estado.
 

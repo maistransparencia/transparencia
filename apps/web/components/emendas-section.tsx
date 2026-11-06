@@ -1,6 +1,11 @@
 "use client";
 
-import type { EmendaEmpenhoItemDTO } from "@transparencia/db";
+import type {
+  ComparacaoReceitaEstadualDTO,
+  EmendaEmpenhoItemDTO,
+  EmendasEstaduaisDTO,
+  FonteEmendaDTO,
+} from "@transparencia/db";
 import {
   AlertBox,
   Badge,
@@ -16,10 +21,12 @@ import {
   ModalDialog,
   toTitleCase,
 } from "@transparencia/ui";
-import { ChevronDown, ExternalLink, FileText } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
 import { useCallback, useMemo, useState } from "react";
+import { EmendasEstaduaisBloco } from "@/components/emendas-estaduais-bloco";
+import { FontesEmendas } from "@/components/fontes-emendas";
 import { SectionWithHeader } from "@/components/section-with-header";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
 
@@ -62,6 +69,11 @@ export interface EmendasSectionProps {
   /** Âncora e resumo: com `resumo`, a seção nasce recolhida. */
   id?: string;
   resumo?: React.ReactNode;
+  /** Lista oficial do Estado, como subseção da mesma seção. */
+  emendasEstaduais?: EmendasEstaduaisDTO;
+  comparacaoReceitaEstadual?: ComparacaoReceitaEstadualDTO;
+  /** Fontes do Estado, do Governo federal e da Prefeitura. */
+  fontes?: FonteEmendaDTO[];
 }
 
 const TITULO_PADRAO = "Emendas parlamentares destinadas à Saúde";
@@ -120,6 +132,9 @@ export function EmendasSection({
   descricao = DESCRICAO_PADRAO,
   id,
   resumo,
+  emendasEstaduais,
+  comparacaoReceitaEstadual,
+  fontes,
 }: EmendasSectionProps) {
   const [selectedEmenda, setSelectedEmenda] = useState<SaudeEmendaItem | null>(
     null,
@@ -204,7 +219,7 @@ export function EmendasSection({
     {
       header: "Autor da Emenda",
       accessorKey: "autor" as const,
-      className: "font-bold whitespace-nowrap sm:whitespace-normal",
+      className: "min-w-[11rem] whitespace-nowrap font-bold",
       renderCell: (row: SaudeEmendaItem) => {
         const qtd = row.quantidadeEmpenhos ?? 0;
         if (qtd > 0) {
@@ -248,77 +263,6 @@ export function EmendasSection({
       format: "currency" as const,
       defaultSortDir: "desc" as const,
       sortValue: (row: SaudeEmendaItem) => row.empenhado ?? -1,
-    },
-    {
-      header: "Rastreabilidade",
-      accessorKey: "quantidadeEmpenhos" as const,
-      align: "center" as const,
-      className: "whitespace-nowrap",
-      defaultSortDir: "desc" as const,
-      sortValue: (row: SaudeEmendaItem) => {
-        const qtd = row.quantidadeEmpenhos ?? 0;
-        if (qtd > 0) return 1000 + qtd;
-        if (row.empenhado && row.empenhado > 0) return 500;
-        return 0;
-      },
-      renderCell: (row: SaudeEmendaItem) => {
-        const qtd = row.quantidadeEmpenhos ?? 0;
-        if (qtd > 0) {
-          return (
-            <button
-              type="button"
-              onClick={() => setSelectedEmenda(row)}
-              className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border border-brand-fill bg-brand-fill/15 px-2.5 py-1 font-semibold text-brand-text text-xs transition-all hover:bg-brand-fill/25 hover:underline"
-              title="Auditar notas de empenho e compras vinculadas"
-            >
-              <FileText className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                {qtd} {qtd === 1 ? "empenho" : "empenhos"}
-              </span>
-            </button>
-          );
-        }
-        if (row.empenhado && row.empenhado > 0) {
-          return (
-            <span
-              className="inline-flex items-center whitespace-nowrap rounded-md bg-line2 px-2 py-0.5 font-medium text-mute text-xs"
-              title="O cadastro informa valor empenhado, mas o portal não liga essa emenda a notas de empenho específicas"
-            >
-              Empenho sem notas ligadas
-            </span>
-          );
-        }
-        if (
-          row.recebimentoFundo === "confirmado_por_proposta" ||
-          row.recebimentoFundo === "valor_igual"
-        ) {
-          const confirmada = row.recebimentoFundo === "confirmado_por_proposta";
-          return (
-            <span
-              className="block text-xs"
-              title={
-                row.receitaDescricao
-                  ? `Receita: ${row.receitaDescricao}${row.receitaCodigo ? ` (código ${row.receitaCodigo})` : ""}`
-                  : undefined
-              }
-            >
-              <span
-                className={cn(
-                  "whitespace-nowrap font-medium",
-                  confirmada ? "text-ok-text" : "text-mute",
-                )}
-              >
-                {confirmada ? "Aparece na receita" : "Receita de mesmo valor"}
-              </span>
-            </span>
-          );
-        }
-        return (
-          <span className="whitespace-nowrap text-mute2 text-xs">
-            Sem empenho
-          </span>
-        );
-      },
     },
   ];
 
@@ -368,200 +312,218 @@ export function EmendasSection({
       title={titulo}
       description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
     >
-      <IndicatorPanel columns={4}>
-        <Indicator
-          label="Autorizado"
-          value={fmtCompact(emendasStats.totalAutorizado)}
-          note="valor das emendas"
-        />
-        <Indicator
-          label="Confirmada na receita"
-          value={fmtCompact(totalRecebidoFundo)}
-          note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
-        />
-        <Indicator
-          label="Empenhado no cadastro"
-          value={fmtCompact(emendasStats.totalEmpenhado)}
-          note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
-        />
-        <Indicator
-          label="Maior emenda"
-          value={fmtCompact(emendasStats.maiorEmenda)}
-        />
-      </IndicatorPanel>
+      {countEmendas > 0 && (
+        <>
+          <IndicatorPanel columns={4}>
+            <Indicator
+              label="Autorizado"
+              value={fmtCompact(emendasStats.totalAutorizado)}
+              note="valor das emendas"
+            />
+            <Indicator
+              label="Confirmada na receita"
+              value={fmtCompact(totalRecebidoFundo)}
+              note={`${fmtPercent(percentualRecebido)} do autorizado, pelo número da proposta`}
+            />
+            <Indicator
+              label="Empenhado no cadastro"
+              value={fmtCompact(emendasStats.totalEmpenhado)}
+              note={`${fmtPercent(emendasStats.taxaEmpenho * 100)} do autorizado, como informado pelo portal`}
+            />
+            <Indicator
+              label="Maior emenda"
+              value={fmtCompact(emendasStats.maiorEmenda)}
+            />
+          </IndicatorPanel>
 
-      {emendasStats.totalAutorizado > 0 && (
-        <AlertBox type="info" title="O dinheiro das emendas chegou?">
-          {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
-          emendas.{" "}
-          {totalRecebidoFundo > 0 ? (
-            <>
-              {fmtCompact(totalRecebidoFundo)} ({fmtPercent(percentualRecebido)}
-              ) aparecem na receita com o número da proposta
-              {totalReceitaPossivel > 0
-                ? `, e ${fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem confirmação`
-                : ""}
-              .{" "}
-            </>
-          ) : totalReceitaPossivel > 0 ? (
-            <>
-              Nenhuma foi confirmada na receita pelo número da proposta;{" "}
-              {fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem
-              confirmação.{" "}
-            </>
-          ) : (
-            <>Não foi possível identificar emendas na receita. </>
+          {emendasStats.totalAutorizado > 0 && (
+            <AlertBox type="info" title="O dinheiro das emendas chegou?">
+              {fmtCompact(emendasStats.totalAutorizado)} foram destinados por
+              emendas.{" "}
+              {totalRecebidoFundo > 0 ? (
+                <>
+                  {fmtCompact(totalRecebidoFundo)} (
+                  {fmtPercent(percentualRecebido)}) aparecem na receita com o
+                  número da proposta
+                  {totalReceitaPossivel > 0
+                    ? `, e ${fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor, sem confirmação`
+                    : ""}
+                  .{" "}
+                </>
+              ) : totalReceitaPossivel > 0 ? (
+                <>
+                  Nenhuma foi confirmada na receita pelo número da proposta;{" "}
+                  {fmtCompact(totalReceitaPossivel)} têm receita de mesmo valor,
+                  sem confirmação.{" "}
+                </>
+              ) : (
+                <>Não foi possível identificar emendas na receita. </>
+              )}
+              O empenho depende do que a Prefeitura registrou no cadastro: sem
+              registro, aparece zero mesmo que o dinheiro tenha sido usado. Para
+              conferir, procure no portal do município a receita indicada na
+              tabela.
+            </AlertBox>
           )}
-          O empenho depende do que a Prefeitura registrou no cadastro: sem
-          registro, aparece zero mesmo que o dinheiro tenha sido usado. Para
-          conferir, procure no portal do município a receita indicada na tabela.
-        </AlertBox>
-      )}
 
-      {/* Tabela Densa com Linha de Totalizador */}
-      <div className="space-y-2">
-        <DenseTable
-          sortable
-          data={tableData}
-          onFilteredDataChange={handleFilteredDataChange}
-          columns={emendasCols}
-          searchableKeys={["autor", "objeto", "origem"]}
-          rowKey="id"
-          renderExpandedRow={(row) => {
-            const confirmada =
-              row.recebimentoFundo === "confirmado_por_proposta";
-            const qtd = row.quantidadeEmpenhos ?? 0;
-            return (
-              <div className="space-y-4">
-                <dl className="grid grid-cols-2 gap-4 sm:hidden">
-                  <div className="col-span-2">
-                    <dt className="eyebrow">Objeto</dt>
-                    <dd className="mt-1 text-ink">
-                      {row.objeto || "Objeto não informado."}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="eyebrow">Proposta</dt>
-                    <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="eyebrow">Destinação</dt>
-                    <dd className="mt-1 text-ink">
-                      {row.destinacao ? toTitleCase(row.destinacao) : "—"}
-                    </dd>
-                  </div>
-                  <div className="col-span-2">
-                    <dt className="eyebrow">Empenhado no cadastro</dt>
-                    <dd className="mt-1 text-ink">
-                      {fmtCurrency(row.empenhado ?? 0)}
-                    </dd>
-                  </div>
-                </dl>
-                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <dt className="eyebrow">Receita correspondente</dt>
-                    <dd className="mt-1 text-ink">
-                      {row.receitaDescricao
-                        ? toTitleCase(row.receitaDescricao)
-                        : "Nenhuma receita identificada para esta emenda."}
-                    </dd>
-                    {row.receitaCodigo ? (
-                      <dd className="caption">
-                        Código contábil {row.receitaCodigo}
-                      </dd>
+          {/* Tabela Densa com Linha de Totalizador */}
+          <div className="space-y-2">
+            <DenseTable
+              sortable
+              data={tableData}
+              onFilteredDataChange={handleFilteredDataChange}
+              columns={emendasCols}
+              searchableKeys={["autor", "objeto", "origem"]}
+              rowKey="id"
+              renderExpandedRow={(row) => {
+                const confirmada =
+                  row.recebimentoFundo === "confirmado_por_proposta";
+                const qtd = row.quantidadeEmpenhos ?? 0;
+                return (
+                  <div className="space-y-4">
+                    <dl className="grid grid-cols-2 gap-4 sm:hidden">
+                      <div className="col-span-2">
+                        <dt className="eyebrow">Objeto</dt>
+                        <dd className="mt-1 text-ink">
+                          {row.objeto || "Objeto não informado."}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="eyebrow">Proposta</dt>
+                        <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="eyebrow">Destinação</dt>
+                        <dd className="mt-1 text-ink">
+                          {row.destinacao ? toTitleCase(row.destinacao) : "—"}
+                        </dd>
+                      </div>
+                      <div className="col-span-2">
+                        <dt className="eyebrow">Empenhado no cadastro</dt>
+                        <dd className="mt-1 text-ink">
+                          {fmtCurrency(row.empenhado ?? 0)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div>
+                        <dt className="eyebrow">Receita correspondente</dt>
+                        <dd className="mt-1 text-ink">
+                          {row.receitaDescricao
+                            ? toTitleCase(row.receitaDescricao)
+                            : "Nenhuma receita identificada para esta emenda."}
+                        </dd>
+                        {row.receitaCodigo ? (
+                          <dd className="caption">
+                            Código contábil {row.receitaCodigo}
+                          </dd>
+                        ) : null}
+                      </div>
+                      <div>
+                        <dt className="eyebrow">Como foi identificada</dt>
+                        <dd className="mt-1 text-ink">
+                          {row.receitaDescricao
+                            ? confirmada
+                              ? "Pelo valor e pelo número da proposta."
+                              : "Só pelo valor, sem o número da proposta. Pode ser coincidência."
+                            : "Não há receita com o mesmo valor ou o mesmo número de proposta."}
+                        </dd>
+                      </div>
+                    </dl>
+                    {row.receitaDescricao ? (
+                      <p className="caption">
+                        Para conferir, procure essa descrição no portal oficial
+                        do município.
+                      </p>
                     ) : null}
-                  </div>
-                  <div>
-                    <dt className="eyebrow">Como foi identificada</dt>
-                    <dd className="mt-1 text-ink">
-                      {row.receitaDescricao
-                        ? confirmada
-                          ? "Pelo valor e pelo número da proposta."
-                          : "Só pelo valor, sem o número da proposta. Pode ser coincidência."
-                        : "Não há receita com o mesmo valor ou o mesmo número de proposta."}
-                    </dd>
-                  </div>
-                </dl>
-                {row.receitaDescricao ? (
-                  <p className="caption">
-                    Para conferir, procure essa descrição no portal oficial do
-                    município.
-                  </p>
-                ) : null}
-                {qtd > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEmenda(row)}
-                    className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
-                  >
-                    Ver notas de empenho
-                  </button>
-                ) : null}
-              </div>
-            );
-          }}
-          renderMobileRow={(row) => {
-            const qtd = row.quantidadeEmpenhos ?? 0;
-            const rastreio = (() => {
-              if (qtd > 0)
-                return `${qtd} ${qtd === 1 ? "empenho" : "empenhos"}`;
-              if (row.recebimentoFundo === "confirmado_por_proposta")
-                return "Aparece na receita";
-              if (row.recebimentoFundo === "valor_igual")
-                return "Receita de mesmo valor";
-              if ((row.empenhado ?? 0) > 0) return "Empenho sem notas ligadas";
-              return "Sem empenho";
-            })();
-            return {
-              resumo: (
-                <div className="space-y-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="font-bold text-ink text-sm">
-                      {toTitleCase(row.autor)}
-                    </span>
-                    <span className="shrink-0 font-bold text-ink text-sm tabular-nums">
-                      {fmtCurrency(row.valorAutorizado)}
-                    </span>
-                  </div>
-                  <p className="line-clamp-2 text-ink text-xs leading-snug">
-                    {row.objeto || "Objeto não informado."}
-                  </p>
-                  <div className="flex items-center justify-between gap-3 text-mute text-xs">
-                    <Badge variant="accent">{row.origem || "Federal"}</Badge>
                     {qtd > 0 ? (
                       <button
                         type="button"
                         onClick={() => setSelectedEmenda(row)}
                         className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
-                        title="Auditar notas de empenho e compras vinculadas"
                       >
-                        {rastreio}
+                        Ver notas de empenho
                       </button>
-                    ) : (
-                      <span>{rastreio}</span>
-                    )}
+                    ) : null}
                   </div>
-                </div>
-              ),
-              detalhes: null,
-            };
-          }}
-          hideCsvOnMobile
-        />
+                );
+              }}
+              renderMobileRow={(row) => {
+                const qtd = row.quantidadeEmpenhos ?? 0;
+                const rastreio = (() => {
+                  if (qtd > 0)
+                    return `${qtd} ${qtd === 1 ? "empenho" : "empenhos"}`;
+                  if (row.recebimentoFundo === "confirmado_por_proposta")
+                    return "Aparece na receita";
+                  if (row.recebimentoFundo === "valor_igual")
+                    return "Receita de mesmo valor";
+                  if ((row.empenhado ?? 0) > 0)
+                    return "Empenho sem notas ligadas";
+                  return "Sem empenho";
+                })();
+                return {
+                  resumo: (
+                    <div className="space-y-1">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="font-bold text-ink text-sm">
+                          {toTitleCase(row.autor)}
+                        </span>
+                        <span className="shrink-0 font-bold text-ink text-sm tabular-nums">
+                          {fmtCurrency(row.valorAutorizado)}
+                        </span>
+                      </div>
+                      <p className="line-clamp-2 text-ink text-xs leading-snug">
+                        {row.objeto || "Objeto não informado."}
+                      </p>
+                      <div className="flex items-center justify-between gap-3 text-mute text-xs">
+                        <Badge variant="accent">
+                          {row.origem || "Federal"}
+                        </Badge>
+                        {qtd > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEmenda(row)}
+                            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                            title="Auditar notas de empenho e compras vinculadas"
+                          >
+                            {rastreio}
+                          </button>
+                        ) : (
+                          <span>{rastreio}</span>
+                        )}
+                      </div>
+                    </div>
+                  ),
+                  detalhes: null,
+                };
+              }}
+              hideCsvOnMobile
+            />
 
-        {/* Total Summary Footer Row */}
-        <TabelaTotaisRow
-          className="sm:hidden"
-          itens={[
-            { rotulo: "Autorizado", valor: totaisVisiveis.autorizado },
-            {
-              rotulo: "Empenhado",
-              valor: totaisVisiveis.empenhado,
-              isAlerta: false,
-            },
-          ]}
+            {/* Total Summary Footer Row */}
+            <TabelaTotaisRow
+              className="sm:hidden"
+              itens={[
+                { rotulo: "Autorizado", valor: totaisVisiveis.autorizado },
+                {
+                  rotulo: "Empenhado",
+                  valor: totaisVisiveis.empenhado,
+                  isAlerta: false,
+                },
+              ]}
+            />
+          </div>
+        </>
+      )}
+
+      {emendasEstaduais && (
+        <EmendasEstaduaisBloco
+          dados={emendasEstaduais}
+          comparacaoReceita={comparacaoReceitaEstadual}
         />
-      </div>
+      )}
+
+      {fontes && <FontesEmendas fontes={fontes} />}
 
       {/* Modal de Detalhamento e Rastreabilidade da Emenda */}
       {selectedEmenda && modalMetrics && (

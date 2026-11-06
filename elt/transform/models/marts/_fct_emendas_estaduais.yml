@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: fct_emendas_estaduais
+    description: "Emendas estaduais por município integrado, agnóstico de Estado: grão portal + fonte + ano + número + autor + identificador, linha do arquivo mais recente"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, fonte_emenda_estadual, ano, numero_emenda, autor, identificador]
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, fonte_emenda_estadual, identificador]
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: fonte_emenda_estadual
+        data_type: text
+        description: "Código da fonte oficial configurada (nunca o nome do Estado fixo)"
+        tests:
+          - not_null
+      - name: modalidade
+        data_type: text
+        tests:
+          - accepted_values:
+              arguments:
+                values: [execucao_direta, transferencia_especial, finalidade_definida, fundo_a_fundo, osc, nao_mapeada]
+      - name: area_emenda
+        data_type: text
+        description: "Área pelo objeto e beneficiário, nunca pela função da emenda estadual"
+        tests:
+          - accepted_values:
+              arguments:
+                values: [saude, educacao, outras]
+      - name: consta_no_arquivo_mais_recente
+        data_type: boolean
+        description: "A emenda aparece no arquivo mais recente da sua fase; falso indica retirada ou ainda não incluída, nunca cancelamento"
+        tests:
+          - not_null
+      - name: dinheiro_chega_prefeitura
+        data_type: boolean
+        description: "Só transferência especial, finalidade definida e fundo a fundo; execução direta e OSC não passam pela Prefeitura"
+      - name: consta_no_cadastro_municipal
+        data_type: boolean
+        description: "A emenda tem cadastro na Prefeitura com o mesmo ano, número e autor; falso não indica omissão, são sistemas diferentes"
+        tests:
+          - not_null
+      - name: valor_cadastro_municipal
+        data_type: numeric
+        description: "Valor da emenda no cadastro municipal; nulo quando não consta"
+      - name: posicao_mes_execucao_estado
+        data_type: integer
+        description: "Mês do relatório de execução do Estado de posição mais recente que traz a emenda; nulo se nenhum relatório a traz"
+      - name: pago_estado
+        data_type: numeric
+        description: "Pago segundo o relatório do Estado na posição indicada; zero na posição não prova que o Estado não pagou"
+
+  - name: fct_emendas_estaduais_fontes
+    description: "Arquivos oficiais da lista de emendas estaduais de cada portal, pela UF do portal"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, fonte_emenda_estadual, nome_arquivo_estado]
+
+  - name: fct_emendas_estaduais_receita
+    description: "Pago do Estado em emendas que chegam à Prefeitura contra a arrecadação em outras transferências dos Estados (alínea, um só nível), por portal e ano"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: hierarquia_clara
+        data_type: boolean
+        description: "Falso quando falta a linha da alínea ou ela se repete na mesma entidade; a comparação não é feita"

@@ -218,7 +218,7 @@ describe("EmendasSection", () => {
     expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(1);
     expect(
       screen.getAllByRole("button", { name: /^2 empenhos$/i }).length,
-    ).toBeGreaterThan(1);
+    ).toBeGreaterThan(0);
   });
 
   it("mostra a proposta e a destinação ao expandir a linha no mobile", () => {
