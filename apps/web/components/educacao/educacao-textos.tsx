@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type {
+  AprendizadoEtapa,
   MinimosLegaisView,
   ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
@@ -230,5 +231,56 @@ export function LinhaDl({
       <dt className="eyebrow">{label}</dt>
       <dd className="font-semibold tabular-nums">{children}</dd>
     </div>
+  );
+}
+
+/** Frase da posição entre as redes do estado, com a mudança desde a nota anterior; o que importa vai em negrito. */
+export function FraseClassificacao({
+  classificacao,
+  anoAnterior,
+}: {
+  classificacao: NonNullable<AprendizadoEtapa["classificacao"]>;
+  anoAnterior: number | null;
+}) {
+  const {
+    posicao,
+    total,
+    variacaoPosicoes,
+    redesComparadas,
+    totalCicloAnterior,
+  } = classificacao;
+  const posicaoAtual = (
+    <>
+      <strong className="font-semibold">{posicao}º lugar</strong> entre {total}{" "}
+      redes municipais do estado.
+    </>
+  );
+  if (variacaoPosicoes === null || anoAnterior === null) return posicaoAtual;
+  if (variacaoPosicoes === 0) {
+    return (
+      <>
+        {posicaoAtual} <strong className="font-semibold">Mesma posição</strong>{" "}
+        de {anoAnterior}.
+      </>
+    );
+  }
+  const unidade = pluralizar(variacaoPosicoes, "posição", "posições");
+  const verbo = variacaoPosicoes > 0 ? "Subiu" : "Caiu";
+  const redesMudaram =
+    redesComparadas !== null &&
+    (redesComparadas !== total ||
+      (totalCicloAnterior !== null && redesComparadas !== totalCicloAnterior));
+  return (
+    <>
+      {posicaoAtual}{" "}
+      <strong className="font-semibold">
+        {verbo} {Math.abs(variacaoPosicoes)} {unidade}
+      </strong>{" "}
+      desde {anoAnterior}
+      {redesMudaram
+        ? ` (entre as ${redesComparadas} redes avaliadas nos dois anos)`
+        : ""}
+      .
+    </>
   );
 }
