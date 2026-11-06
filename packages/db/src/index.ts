@@ -37,4 +37,5 @@ export * from "./queries/push";
 export * from "./queries/radar-civico-alertas";
 export * from "./queries/radar-digest";
 export * from "./queries/receitas-extra-metrics";
+export * from "./queries/saude-minimo-constitucional";
 export * from "./queries/siconfi-caixa-metrics";
