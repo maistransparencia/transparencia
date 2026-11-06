@@ -45,6 +45,7 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Empenho líquido | Valor reservado depois de descontar os cancelamentos feitos no ano | "Empenhado bruto" |
 | SIOPE | Sistema do governo federal em que a Prefeitura informa o que aplica em educação. O portal mostra o número como o governo federal o publicou, sem recalcular | "Conferido pelo portal", "auditado" |
 | FNDE | Órgão do governo federal que cuida do dinheiro da educação e publica os dados do SIOPE. Na tela, preferir "governo federal" | |
+| EJA (Educação de Jovens e Adultos) | Escola para quem não estudou na idade certa e quer concluir o ensino fundamental ou médio | |
 | MDE (manutenção e desenvolvimento do ensino) | Gastos da Prefeitura com escolas, professores, material e transporte escolar. A lei manda aplicar um mínimo da receita de impostos nisso | "Gasto com educação" sem dizer que é o mínimo exigido |
 | Valor indicado (emenda) | Quanto o deputado indicou para a cidade. Não é o que já foi pago | "Valor recebido", "valor repassado" |
 | Repasse direto à Prefeitura (transferência especial) | O Estado envia o dinheiro direto ao caixa da Prefeitura | "Emenda Pix" sem explicar |

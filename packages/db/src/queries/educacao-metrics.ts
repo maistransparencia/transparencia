@@ -555,6 +555,31 @@ export async function getEducacaoRankingEstadual(
   }
 }
 
+const agruparNotasPorEtapa = (
+  rows: Array<{ ano: unknown; etapa_ensino: unknown; nota_ideb: unknown }>,
+): EducacaoMediasEstaduais => {
+  const pontos = rows
+    .map((r) => ({
+      etapa: toEtapaEnsino(String(r.etapa_ensino)),
+      ano: Number(r.ano),
+      nota: toNumberOrNull(r.nota_ideb),
+    }))
+    .filter(
+      (ponto): ponto is typeof ponto & { nota: number } =>
+        ponto.nota !== null && !Number.isNaN(ponto.nota),
+    );
+
+  const porEtapa = (etapa: EtapaEnsino): Record<number, number> =>
+    Object.fromEntries(
+      pontos.filter((p) => p.etapa === etapa).map((p) => [p.ano, p.nota]),
+    );
+
+  return {
+    anosIniciais: porEtapa("anosIniciais"),
+    anosFinais: porEtapa("anosFinais"),
+  };
+};
+
 /**
  * Retorna as médias estaduais do IDEB para a UF correspondente ao município informado,
  * particionadas dinamicamente por etapa de ensino e ano com base na rede pública (seed_inep_ideb).
@@ -613,28 +638,28 @@ export async function getEducacaoMediasEstaduais(
       .where("nota_ideb", "is not", null)
       .execute();
 
-    const pontos = rows
-      .map((r) => ({
-        etapa: toEtapaEnsino(String(r.etapa_ensino)),
-        ano: Number(r.ano),
-        nota: toNumberOrNull(r.nota_ideb),
-      }))
-      .filter(
-        (ponto): ponto is typeof ponto & { nota: number } =>
-          ponto.nota !== null && !Number.isNaN(ponto.nota),
-      );
-
-    const porEtapa = (etapa: EtapaEnsino): Record<number, number> =>
-      Object.fromEntries(
-        pontos.filter((p) => p.etapa === etapa).map((p) => [p.ano, p.nota]),
-      );
-
-    return {
-      anosIniciais: porEtapa("anosIniciais"),
-      anosFinais: porEtapa("anosFinais"),
-    };
+    return agruparNotasPorEtapa(rows);
   } catch {
     return empty;
+  }
+}
+
+export type EducacaoMediasNacionais = EducacaoMediasEstaduais;
+
+/**
+ * Retorna a média nacional do IDEB da rede pública por etapa de ensino e ano (seed_inep_ideb_brasil).
+ */
+export async function getEducacaoMediasNacionais(): Promise<EducacaoMediasNacionais> {
+  try {
+    const rows = await db
+      .selectFrom("seed_inep_ideb_brasil")
+      .select(["ano", "etapa_ensino", "nota_ideb"])
+      .where("rede", "=", "publica")
+      .where("nota_ideb", "is not", null)
+      .execute();
+    return agruparNotasPorEtapa(rows);
+  } catch {
+    return { anosIniciais: {}, anosFinais: {} };
   }
 }
 

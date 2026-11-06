@@ -16,6 +16,7 @@ import {
   classificarRedes,
   getEducacaoContratos,
   getEducacaoMediasEstaduais,
+  getEducacaoMediasNacionais,
   getEducacaoMetrics,
   getEducacaoRankingEstadual,
   getResumoEducacao,
@@ -1165,6 +1166,16 @@ describe("educacao-metrics", () => {
       expect(medias.anosIniciais[2025]).toBe(6.1);
       expect(medias.anosFinais[2021]).toBe(4.9);
       expect(medias.anosFinais[2025]).toBe(4.9);
+    });
+  });
+
+  describe("getEducacaoMediasNacionais", () => {
+    it("devolve a média nacional da rede pública por etapa e ano, do seed", async () => {
+      const medias = await getEducacaoMediasNacionais();
+      expect(medias.anosIniciais[2021]).toBe(5.5);
+      expect(medias.anosIniciais[2025]).toBe(6.1);
+      expect(medias.anosFinais[2021]).toBe(4.9);
+      expect(medias.anosFinais[2025]).toBe(5);
     });
   });
 });

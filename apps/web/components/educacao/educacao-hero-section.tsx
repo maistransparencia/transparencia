@@ -30,7 +30,7 @@ export interface EducacaoHeroSectionProps {
   portalUrl: string | null;
   valorPorAluno: ValorPorAlunoView;
   alunosRede: AlunosRedeView | null;
-  aprendizado: AprendizadoEtapa;
+  aprendizado: { anosIniciais: AprendizadoEtapa; anosFinais: AprendizadoEtapa };
   /** Resumo das emendas no topo; `null` quando o município não tem emendas na educação. */
   emendasResumo?: EducacaoEmendasResumoProps["emendas"] | null;
 }
@@ -40,7 +40,7 @@ const leiDoMinimo = (minimo: MinimosLegaisView["mde"]): LeiLinkProps[] =>
     ? [{ label: minimo.baseLegal, url: minimo.urlBaseLegal }]
     : [];
 
-/** Topo: dois destaques (mínimo e IDEB), indicadores de apoio e a lei com a fonte à vista. */
+/** Topo: os dois mínimos constitucionais, valor por aluno e alunos, o IDEB das duas etapas e a lei com a fonte à vista. */
 export function EducacaoHeroSection({
   ano,
   isCurrentYear,
@@ -82,19 +82,26 @@ export function EducacaoHeroSection({
       </div>
 
       <section
-        aria-label="Destaques da educação"
+        aria-label="Mínimos constitucionais da educação"
         data-testid="educacao-resumo-destaque"
         className="grid grid-cols-1 gap-8 md:grid-cols-2"
       >
-        <DestaqueMinimo view={minimosLegais} />
-        <DestaqueIdeb etapa={aprendizado} />
+        <DestaqueMinimo view={minimosLegais} kind="mde" />
+        <DestaqueMinimo view={minimosLegais} kind="fundebProfissionais" />
       </section>
 
       <EducacaoIndicadoresApoio
-        minimosLegais={minimosLegais}
         valorPorAluno={valorPorAluno}
         alunosRede={alunosRede}
       />
+
+      <section
+        aria-label="Nota do IDEB"
+        className="grid grid-cols-1 gap-8 md:grid-cols-2"
+      >
+        <DestaqueIdeb etapa={aprendizado.anosIniciais} />
+        <DestaqueIdeb etapa={aprendizado.anosFinais} />
+      </section>
 
       <LinhaLeiEFonte
         laws={[...leiDoMinimo(mde), ...leiDoMinimo(fundebProfissionais)]}

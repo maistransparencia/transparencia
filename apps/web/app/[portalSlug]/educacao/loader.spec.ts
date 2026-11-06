@@ -12,6 +12,7 @@ vi.mock("@transparencia/db", () => ({
   getResumoEducacao: vi.fn(),
   getEducacaoContratos: vi.fn(),
   getEducacaoMediasEstaduais: vi.fn(),
+  getEducacaoMediasNacionais: vi.fn(),
   getEducacaoEmendasMetrics: vi.fn(),
   getEducacaoOrigemRecursos: vi.fn(),
   getEducacaoExecucaoAnual: vi.fn(),
@@ -160,6 +161,10 @@ describe("educacao/loader", () => {
         anosIniciais: {},
         anosFinais: {},
       });
+      vi.mocked(dbModule.getEducacaoMediasNacionais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
       vi.mocked(dbModule.getEducacaoOrigemRecursos).mockResolvedValue({
         portalSlug: "porciuncula_prefeitura",
         ano: 2025,
@@ -254,6 +259,7 @@ describe("educacao/loader", () => {
       expect(dbModule.getEducacaoMediasEstaduais).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
       );
+      expect(dbModule.getEducacaoMediasNacionais).toHaveBeenCalledTimes(1);
       expect(dbModule.getEducacaoEmendasMetrics).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
         2025,
@@ -276,6 +282,10 @@ describe("educacao/loader", () => {
         lista: [],
       });
       vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
+      vi.mocked(dbModule.getEducacaoMediasNacionais).mockResolvedValue({
         anosIniciais: {},
         anosFinais: {},
       });

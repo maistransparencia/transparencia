@@ -161,6 +161,21 @@ seeds:
         etapa_ensino: text
         nota_ideb: numeric
 
+  - name: seed_inep_ideb_brasil
+    description: "Média nacional do IDEB da rede pública por etapa de ensino (INEP, republicado pela API do IBGE). Atualizada por elt/scripts/sync_ibge_ideb_brasil.py"
+    config:
+      column_types:
+        ano: integer
+        rede: text
+        etapa_ensino: text
+        nota_ideb: numeric
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - ano
+            - rede
+            - etapa_ensino
+
   - name: seed_farmacia_medicamentos_sentinela
     description: "Lista editorial de medicamentos-sentinela da Farmácia SUS (RENAME 2024, Anexo I, e PNAUM). Revisar a cada nova RENAME. Um código pode ter mais de um prefixo de nome."
     config:

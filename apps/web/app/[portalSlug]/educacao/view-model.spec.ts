@@ -177,6 +177,14 @@ describe("educacao/view-model", () => {
         metrica({ ano: 2023, etapaEnsino: "anosFinais", notaIdeb: 4.8 }),
       ],
       contratos: [],
+      mediasEstaduais: {
+        anosIniciais: { 2023: 5.5, 2025: 5.8 },
+        anosFinais: {},
+      },
+      mediasNacionais: {
+        anosIniciais: { 2025: 6.1 },
+        anosFinais: {},
+      },
       rankingAnosIniciais: {
         posicaoRanking: 46,
         totalMunicipios: 92,
@@ -192,8 +200,8 @@ describe("educacao/view-model", () => {
     expect(vm.aprendizado.anosIniciais).toMatchObject({
       notaIdeb: 5.9,
       anoApuracao: 2025,
-      metaIdeb: 5.5,
-      atingiuMeta: true,
+      mediaNacional: 6.1,
+      variacaoMediaEstadual: 0.3,
       notaAnterior: 4.5,
       anoAnterior: 2023,
       variacaoPontos: 1.4,
@@ -205,10 +213,14 @@ describe("educacao/view-model", () => {
         totalCicloAnterior: 92,
       },
     });
+    expect(
+      vm.historico.anosIniciais.pontos.map((ponto) => ponto.mediaNacional),
+    ).toEqual([null, null, 6.1]);
     expect(vm.aprendizado.anosFinais).toMatchObject({
       notaIdeb: 4.8,
       anoApuracao: 2023,
-      metaIdeb: null,
+      mediaNacional: null,
+      variacaoMediaEstadual: null,
       notaAnterior: null,
       classificacao: null,
     });

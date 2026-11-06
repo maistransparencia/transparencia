@@ -3142,7 +3142,7 @@ As a maintainer,
 I want each source to be ingested at the pace its data actually changes,  
 So that we stop re-fetching unchanged data every business day and the SIOPE and other sources get a schedule of their own.
 
-**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal).
+**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). Acrescentado em 2026-11-05 durante o refinamento da página de educação: a média nacional do IDEB virou o seed `seed_inep_ideb_brasil.csv` e precisa seguir a mesma cadência dos outros seeds do IDEB.
 
 **Acceptance Criteria:**
 - **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
@@ -3157,6 +3157,11 @@ So that we stop re-fetching unchanged data every business day and the SIOPE and 
 - **Given** o registro de coletas da Story 23.1
 - **When** a cadência é definida
 - **Then** o valor de `frequencia_esperada` de cada fonte (`diaria`, `semanal`, `mensal`) vem da mesma definição que gera os workflows ou é conferido por teste contra ela, sem duas listas divergentes.
+- **Given** o seed `seed_inep_ideb_brasil.csv` (média nacional do IDEB da rede pública, atualizada por `elt/scripts/sync_ibge_ideb_brasil.py`, API do IBGE, pesquisa 40) e que ele não se atualiza sozinho
+- **When** a cadência é definida
+- **Then** o seed entra na mesma cadência dos demais seeds do IDEB, isto é, no workflow `check-inep-ideb-updates.yml`, que passa a rodar também o `sync_ibge_ideb_brasil.py` junto do `sync_inep_ideb_seed.py`, na mesma verificação de novo ciclo bienal e no mesmo PR de atualização; a story confere se o `seed_inep_ideb_estados` também está coberto, já que hoje o workflow só chama o sync do seed municipal
+- **And** o registro de coletas da Story 23.1 lista os seeds do IDEB (municipal, estados e Brasil) como fontes com `frequencia_esperada` `mensal`, e um teste confere que nenhum seed do IDEB fica fora do workflow
+- **And** o deploy aplica `dbt seed` antes de publicar o código que lê a média nacional, porque `getEducacaoMediasNacionais` devolve vazio em silêncio se a tabela não existir e o marcador some da tela sem erro.
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
