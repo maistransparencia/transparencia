@@ -498,3 +498,4 @@ status: open
 - `fct_saude_minimo_conferencia`: o join com o seed multiplicaria linhas se houver padrões ou vigências sobrepostos para o mesmo componente. Hoje o seed não sobrepõe; falta teste dbt de não sobreposição.
 - `fct_saude_minimo_conferencia` assume códigos de receita terminados em `.00.00` e `funcao = '10'`, documentado só para o município A. Verificar com um portal de outro estado antes da 25.3 usar a conferência.
 - Ano corrente sem nenhum bimestre transmitido não gera linha no mart (nem `sem_dado`); a 25.3 deve tratar a ausência de linha.
+- Despesa com recursos próprios de A em 2024 sem conciliar: SIOPS R$ 13,27 mi contra R$ 15,61 mi do cálculo próprio, que bate com a fonte `01-500` do portal municipal. O SIOPS declara despesa total maior (R$ 49,37 mi contra R$ 47,67 mi empenhados). Diferença de atribuição da fonte de recurso, causa não provada; falta o demonstrativo declarado ao SIOPS. Registrado em `25-2-minimo-constitucional-de-saude-no-dbt.md`.
