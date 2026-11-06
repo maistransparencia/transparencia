@@ -22,6 +22,21 @@ function makeRaw(
   return {
     portalSlug: "porciuncula_prefeitura",
     context: { selectedYear: 2024, isCurrentYear: false },
+    minimoSaude: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2024,
+      atual: null,
+      minimo: {
+        limite: null,
+        percentualAplicado: null,
+        resultado: "sem_dado",
+        baseLegal: null,
+        urlBaseLegal: null,
+      },
+      serie: [],
+      anoInicial: null,
+      anoFinal: null,
+    },
     saude: {
       orcamento: {
         dotacao: 1000,

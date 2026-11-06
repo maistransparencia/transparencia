@@ -10,6 +10,7 @@ export function buildSaudeViewModel(raw: SaudeRawData) {
     partialPeriod: getPartialYearPeriod(
       raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
     ),
+    minimoSaude: raw.minimoSaude,
     saude: raw.saude,
   };
 }
