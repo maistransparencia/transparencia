@@ -1,0 +1,9 @@
+componente,tipo_correspondencia,padrao,descricao,ano_inicio,ano_fim,base_legal,url_base_legal
+receita,prefixo_codigo,1110.,Impostos municipais (IPTU ITBI IRRF e ISS),2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 156 e art. 158 I,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1711.51.1,Cota-parte do Fundo de Participação dos Municípios (cota mensal; as cotas extraordinárias 1711.51.2 ficam fora porque o art. 7º cita só a alínea b),2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 159 I b,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1711.52,Cota-parte do Imposto Territorial Rural,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 158 II,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1721.50,Cota-parte do ICMS,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 158 IV,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1721.51,Cota-parte do IPVA,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 158 III,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1721.52,Cota-parte do IPI sobre exportações,2012,2099,LC 141/2012 art. 7º c/c CF/88 art. 159 §3º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+receita,prefixo_codigo,1729.53,Compensação financeira do ICMS (LC 194/2022 e LC 198/2023),2012,2099,LC 141/2012 art. 9º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm
+despesa,palavra_chave_fonte_recurso,impostos e transf,Despesa de saúde paga com recursos de impostos e transferências de impostos,2012,2099,LC 141/2012 art. 2º e art. 4º,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm

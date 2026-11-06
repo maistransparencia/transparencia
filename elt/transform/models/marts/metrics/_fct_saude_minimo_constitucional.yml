@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: fct_saude_minimo_constitucional
+    description: "Mínimo constitucional de saúde por portal e ano, como calculado pelo SIOPS (Ministério da Saúde) com dados declarados pelo município. Ano em andamento é parcial e nunca é comparado com o mínimo. Sem transmissão é nulo, nunca zero. O cálculo próprio do portal fica em fct_saude_minimo_conferencia"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "situacao = 'encerrado' or cumpre_minimo is null"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "not divergencia_entre_vias"
+          config:
+            severity: warn
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Exercício de referência"
+        tests:
+          - not_null
+      - name: periodo
+        data_type: integer
+        description: "Bimestre mais avançado disponível no ano (6 = 6º bimestre, fechamento)"
+      - name: situacao
+        data_type: text
+        description: "encerrado: ano fechado com valor; parcial: acumulado de ano em andamento; sem_dado: município não transmitiu"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [encerrado, parcial, sem_dado]
+      - name: percentual_aplicado_saude
+        data_type: numeric
+        description: "Indicador 3.2 do SIOPS: percentual da receita própria aplicada em saúde (EC 29/2000). Parcial quando situacao = parcial. Nulo quando sem transmissão"
+      - name: minimo_aplicacao_saude_percentual
+        data_type: numeric
+        description: "Mínimo legal em pontos percentuais, vindo de seed_constantes_fiscais (LC 141/2012 art. 7º)"
+      - name: cumpre_minimo
+        data_type: boolean
+        description: "percentual_aplicado_saude >= mínimo. Só existe com situacao = encerrado e sem divergência do 3.2 entre as vias; nulo nos demais"
+      - name: despesa_saude_por_habitante
+        data_type: numeric
+        description: "Indicador 2.1 do SIOPS: despesa total com saúde por habitante, em reais (consulta por ano do SIOPS)"
+      - name: percentual_transferencias_saude
+        data_type: numeric
+        description: "Indicador 3.1 do SIOPS: percentual de transferências para a saúde na despesa total do município com saúde (consulta por ano do SIOPS)"
+      - name: receita_impostos_transferencias_constitucionais
+        data_type: numeric
+        description: "Base de receita do indicador 3.2 declarada ao SIOPS, em reais (TABNET, só ano fechado)"
+      - name: despesa_recursos_proprios
+        data_type: numeric
+        description: "Despesa com recursos próprios do indicador 3.2 declarada ao SIOPS, em reais (TABNET, só ano fechado)"
+      - name: despesa_total_saude
+        data_type: numeric
+        description: "Despesa total com saúde declarada ao SIOPS, em reais (TABNET, só ano fechado)"
+      - name: divergencia_entre_vias
+        data_type: boolean
+        description: "As duas vias do SIOPS (TABNET e consulta por ano) trazem valores diferentes para algum indicador de tela"
+      - name: indicadores_divergentes
+        data_type: text
+        description: "Indicadores com divergência entre as vias, separados por vírgula; nulo quando não há"
+      - name: coletado_em
+        data_type: timestamp with time zone
+        description: "Quando o extrator leu a fonte. O SIOPS não informa a data da última transmissão"
