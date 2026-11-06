@@ -1,5 +1,5 @@
 ---
-status: review
+status: done
 ---
 
 # Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude`

@@ -3626,7 +3626,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 ### Story 25.3: Contratos em `@transparencia/db` e Bloco do Mínimo no Topo de `/saude`
 
-**Status:** em revisão (critérios detalhados abaixo). Fonte da tela: `analytics.fct_saude_minimo_constitucional` (25.2); o cálculo próprio (`fct_saude_minimo_conferencia`) não é fonte.
+**Status:** concluída em 2026-11-06 (critérios detalhados abaixo). Fonte da tela: `analytics.fct_saude_minimo_constitucional` (25.2); o cálculo próprio (`fct_saude_minimo_conferencia`) não é fonte.
 
 **Acceptance Criteria:**
 - **Given** o mart `fct_saude_minimo_constitucional` **When** `getSaudeMinimoConstitucional({ portalSlug, ano })` roda **Then** devolve `atual`, `minimo` (limite em pontos percentuais, `percentualAplicado`, `resultado`, base legal e URL do seed), `serie` de anos encerrados com percentual e `anoInicial`/`anoFinal` calculados dos dados, tudo em camelCase e com nulo preservado
@@ -3636,7 +3636,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 - **And** abaixo do mínimo o texto diz "indício a ser esclarecido pela Prefeitura"; `indeterminado` não compara e não afirma cumprimento; sem dado mostra "—" e explica; ano em andamento mostra o aviso de parcial sem barra nem selo
 - **And** "Ver detalhes" (modal) traz receita base, despesa com recursos próprios, despesa total, despesa por habitante, o estágio da despesa que o SIOPS usa (empenhada menos restos sem disponibilidade; LC 141 art. 24 fala em liquidada) e a série `${anoMin}–${anoMax}` calculada dos dados; o cálculo próprio não aparece
 - **And** loader e view-model só repassam o dado tipado (Regra 2); `llms.txt` e `llms-full.txt` atualizados (Regra 12)
-- **Revisões feitas:** textos pelo `editor-cidadao` e base legal pelo `jurista-fiscal` (art. 7º e art. 24 da LC 141 conferidos no Planalto). **Pendentes:** reavaliar o título "Abaixo do mínimo" (soa como veredito) e a vigência da LC 227/2026, ainda NÃO VERIFICADA no seed.
+- **Revisões feitas:** textos pelo `editor-cidadao` e base legal pelo `jurista-fiscal` (art. 7º e art. 24 da LC 141 conferidos no Planalto). **Vigência da LC 227/2026 VERIFICADA em 2026-11-06** no texto do Planalto (`lcp227.htm`): o art. 170 altera o art. 7º da LC 141 e, pelo art. 182, III, vale a partir da publicação (13/01/2026, DOU de 14/01/2026). Fica de fora desta story, como NÃO VERIFICADO no seed, o que vale de 2027 em diante para o IBS.
 
 **Origem do detalhamento (esboço anterior):** Rótulo na tela: "calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela Prefeitura", com a data em que o portal consultou o SIOPS. Contratos tipados em `@transparencia/db` e bloco no topo da página com a pergunta do cidadão, o limite legal ao lado do número, texto revisado pelo `editor-cidadao` e "Ver detalhes" para a memória de cálculo. Conferir `DESIGN.md` e `EXPERIENCE.md` (Regra 25) e a regra de dado derivado (Regra 27).
 
