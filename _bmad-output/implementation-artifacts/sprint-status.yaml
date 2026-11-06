@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-04
+last_updated: 2026-11-06
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -260,7 +260,9 @@ development_status:
   24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: done
   epic-24-retrospective: optional
 
-  epic-25: backlog
+  epic-25: in-progress
+  25-1a-spike-de-emendas-fonte-federal-e-conferencia-com-o-portal-municipal: done
+  25-1c-spike-de-emendas-estaduais-fonte-oficial-e-conferencia-com-o-portal-municipal: done
   25-1-spike-de-fontes-oficiais-dos-indicadores-de-saude: backlog
   25-2-minimo-constitucional-de-saude-no-dbt: backlog
   25-3-contratos-em-transparencia-db-e-bloco-do-minimo-no-topo-de-saude: backlog
@@ -268,6 +270,8 @@ development_status:
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-6-producao-da-rede-e-fila-de-espera: backlog
   25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
+  25-8-objeto-correto-das-emendas-na-saude-e-na-educacao: done
+  25-9-emendas-estaduais-lista-oficial-e-conferencia-com-o-portal-municipal: done
   epic-25-retrospective: optional
 
   epic-26: backlog
