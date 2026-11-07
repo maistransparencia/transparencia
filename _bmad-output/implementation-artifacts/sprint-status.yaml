@@ -22,6 +22,7 @@
 #   - in-progress: Developer actively working on implementation
 #   - review: Ready for code review (via Dev's code-review workflow)
 #   - done: Story completed
+#   - not-planned: Story abandoned or postponed with no date; counts as closed, so it does not keep the epic open
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
@@ -267,7 +268,7 @@ development_status:
   25-2-minimo-constitucional-de-saude-no-dbt: done
   25-3-contratos-em-transparencia-db-e-bloco-do-minimo-no-topo-de-saude: done
   25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude: done
-  25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
+  25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
   25-6-producao-da-rede-e-fila-de-espera: backlog
   25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-8-objeto-correto-das-emendas-na-saude-e-na-educacao: done
