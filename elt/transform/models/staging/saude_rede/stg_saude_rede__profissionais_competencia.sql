@@ -7,9 +7,9 @@ renamed as (
         portal_slug,
         competencia::integer as competencia,
         left(competencia, 4)::integer as ano,
-        coalesce(nullif(trim(total_vinculos), '')::integer, 0) as total_vinculos,
-        coalesce(nullif(trim(total_profissionais), '')::integer, 0) as total_profissionais,
-        coalesce(nullif(trim(total_profissionais_sus), '')::integer, 0) as total_profissionais_sus,
+        nullif(trim(total_vinculos), '')::integer as total_vinculos,
+        nullif(trim(total_profissionais), '')::integer as total_profissionais,
+        nullif(trim(total_profissionais_sus), '')::integer as total_profissionais_sus,
         left(nullif(trim(data_coleta), ''), 10)::date as data_coleta
     from source
 )

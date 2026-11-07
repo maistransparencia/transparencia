@@ -32,8 +32,12 @@ describe("getSaudeRedePorMilMoradores", () => {
         totalLeitosExistentes: 40,
         populacaoResidente: 10000,
         leitosExistentesPorMilMoradores: 4,
+        totalLeitosSus: 30,
+        leitosSusPorMilMoradores: 3,
         totalProfissionais: 200,
+        totalProfissionaisSus: 150,
         profissionaisPorMilMoradores: 20,
+        profissionaisSusPorMilMoradores: 15,
       },
       {
         portalSlug: PORTAL_A,
@@ -51,6 +55,10 @@ describe("getSaudeRedePorMilMoradores", () => {
     expect(resultado?.serie.map((a) => a.ano)).toEqual([2022, 2024]);
     expect(resultado?.serie[1].leitosExistentesPorMilMoradores).toBe(4);
     expect(resultado?.serie[1].dataColeta).toBe("2026-11-07");
+    expect(resultado?.serie[1].totalLeitosSus).toBe(30);
+    expect(resultado?.serie[1].leitosSusPorMilMoradores).toBe(3);
+    expect(resultado?.serie[1].totalProfissionaisSus).toBe(150);
+    expect(resultado?.serie[1].profissionaisSusPorMilMoradores).toBe(15);
   });
 
   it("mantém sem dado como null e não como zero", async () => {

@@ -6,11 +6,24 @@
 ) }}
 
 -- Leitos (existentes e do SUS) e profissionais de saúde por mil moradores, uma linha por portal e ano.
--- Leitos e profissionais vêm do CNES (uma competência por ano, a mais recente com resposta); sem resposta
--- fica nulo ("sem dado"), nunca zero. A população é do ano; sem população do ano usa a mais recente
+-- Leitos e profissionais vêm do CNES: só a competência mais recente carregada de cada ano entra (a carga
+-- acumula competências e nunca apaga); sem resposta fica nulo ("sem dado"), nunca zero. A população é do ano; sem população do ano usa a mais recente
 -- anterior e marca populacao_estimada. Sem régua numérica: o portal só compara com anos anteriores.
 
-with leitos as (
+with leitos_competencia_recente as (
+    select
+        portal_slug,
+        ano,
+        competencia,
+        total_leitos_existentes,
+        total_leitos_sus,
+        data_coleta,
+        max(competencia) over (partition by portal_slug, ano) as competencia_mais_recente
+    from {{ ref('stg_saude_rede__leitos_competencia') }}
+    where ano >= 2021
+),
+
+leitos as (
     select
         portal_slug,
         ano,
@@ -18,9 +31,22 @@ with leitos as (
         sum(total_leitos_existentes)::integer as total_leitos_existentes,
         sum(total_leitos_sus)::integer as total_leitos_sus,
         max(data_coleta) as data_coleta_leitos
-    from {{ ref('stg_saude_rede__leitos_competencia') }}
-    where ano >= 2021
+    from leitos_competencia_recente
+    where competencia = competencia_mais_recente
     group by portal_slug, ano
+),
+
+profissionais_competencia_recente as (
+    select
+        portal_slug,
+        ano,
+        competencia,
+        total_profissionais,
+        total_profissionais_sus,
+        data_coleta,
+        max(competencia) over (partition by portal_slug, ano) as competencia_mais_recente
+    from {{ ref('stg_saude_rede__profissionais_competencia') }}
+    where ano >= 2021
 ),
 
 profissionais as (
@@ -31,14 +57,18 @@ profissionais as (
         total_profissionais,
         total_profissionais_sus,
         data_coleta as data_coleta_profissionais
-    from {{ ref('stg_saude_rede__profissionais_competencia') }}
-    where ano >= 2021
+    from profissionais_competencia_recente
+    where competencia = competencia_mais_recente
 ),
 
 anos as (
     select portal_slug, ano from leitos
     union
     select portal_slug, ano from profissionais
+    union
+    select portal_slug, ano
+    from {{ ref('stg_saude_rede__populacao_residente') }}
+    where ano >= 2021 and total_populacao > 0
 ),
 
 populacao_do_ano as (

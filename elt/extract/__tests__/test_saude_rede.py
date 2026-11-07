@@ -114,3 +114,21 @@ def test_extract_ano_sem_resposta_do_cnes_nao_gera_linha():
     assert resultado["leitos_competencia"] == []
     assert resultado["profissionais_competencia"] == []
     assert resultado["populacao_residente"][0]["total_populacao"] == "10"
+
+
+def test_leitos_ilegiveis_ficam_vazios_e_nao_zero():
+    registros = [
+        {"tp_leito": "1 - CIRURGICO", "qt_existente": None, "qt_sus": "x"},
+        {"tp_leito": "2 - CLINICO", "qt_existente": "4", "qt_sus": None},
+        {"tp_leito": "2 - CLINICO", "qt_existente": "oi", "qt_sus": "2"},
+    ]
+    cirurgico, clinico = agregar_leitos("p", 202512, "2026-01-01", registros)
+    assert (cirurgico["total_leitos_existentes"], cirurgico["total_leitos_sus"]) == ("", "")
+    assert (clinico["total_leitos_existentes"], clinico["total_leitos_sus"]) == ("4", "2")
+
+
+def test_vinculos_sem_nome_nao_viram_zero_profissionais():
+    (linha,) = agregar_profissionais("p", 202512, "2026-01-01", [{"no_profissional": ""}, {"no_profissional": None}])
+    assert linha["total_vinculos"] == "2"
+    assert linha["total_profissionais"] == ""
+    assert linha["total_profissionais_sus"] == ""

@@ -1596,7 +1596,9 @@ export interface SaudeRedeAnoRow {
   anoPopulacaoReferencia?: number | null;
   populacaoEstimada?: boolean;
   leitosExistentesPorMilMoradores?: number | null;
+  leitosSusPorMilMoradores?: number | null;
   profissionaisPorMilMoradores?: number | null;
+  profissionaisSusPorMilMoradores?: number | null;
 }
 
 export async function seedSaudeRede(
@@ -1624,9 +1626,10 @@ export async function seedSaudeRede(
         populacao_estimada: r.populacaoEstimada ?? false,
         leitos_existentes_por_mil_moradores:
           r.leitosExistentesPorMilMoradores ?? null,
-        leitos_sus_por_mil_moradores: null,
+        leitos_sus_por_mil_moradores: r.leitosSusPorMilMoradores ?? null,
         profissionais_por_mil_moradores: r.profissionaisPorMilMoradores ?? null,
-        profissionais_sus_por_mil_moradores: null,
+        profissionais_sus_por_mil_moradores:
+          r.profissionaisSusPorMilMoradores ?? null,
         data_coleta: "2026-11-07",
       })),
     )

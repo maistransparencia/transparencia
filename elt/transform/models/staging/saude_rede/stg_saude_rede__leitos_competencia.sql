@@ -11,8 +11,8 @@ renamed as (
             {{ target.schema }}.unaccent(lower(regexp_replace(trim(tipo_leito), '^\d+\s*-\s*', ''))),
             '[^a-z0-9]+', '_', 'g'
         )) as tipo_leito,
-        coalesce(nullif(trim(total_leitos_existentes), '')::integer, 0) as total_leitos_existentes,
-        coalesce(nullif(trim(total_leitos_sus), '')::integer, 0) as total_leitos_sus,
+        nullif(trim(total_leitos_existentes), '')::integer as total_leitos_existentes,
+        nullif(trim(total_leitos_sus), '')::integer as total_leitos_sus,
         left(nullif(trim(data_coleta), ''), 10)::date as data_coleta
     from source
 )

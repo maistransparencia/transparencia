@@ -108,3 +108,50 @@ def test_staging_converte_tipo_de_leito_em_snake_case(conn, portal, raw):
         )
     }
     assert tipos == {"espec_clinico", "outras_especialidades"}
+
+
+def test_so_a_competencia_mais_recente_do_ano_entra_nos_leitos_e_profissionais(conn, portal, raw):
+    raw.leito(portal, 202610, "pediatrico", 10, 10)
+    raw.leito(portal, 202611, "pediatrico", 12, 11)
+    raw.leito(portal, 202611, "clinico", 8, 4)
+    raw.profissionais(portal, 202610, 100, 80)
+    raw.profissionais(portal, 202611, 120, 90)
+    raw.populacao(portal, 2026, 10000)
+    linhas = _linhas(conn, portal)
+    conn.commit()
+    quantidade = conn.execute(
+        text(f"SELECT count(*) FROM {_MART} WHERE portal_slug = :p AND ano = 2026"), {"p": portal}
+    ).scalar()
+    linha = linhas[2026]
+    assert quantidade == 1
+    assert (linha["competencia_leitos"], linha["competencia_profissionais"]) == (202611, 202611)
+    assert linha["total_leitos_existentes"] == 20
+    assert linha["total_leitos_sus"] == 15
+    assert linha["total_profissionais"] == 120
+    assert float(linha["leitos_existentes_por_mil_moradores"]) == 2.0
+
+
+def test_ano_com_populacao_e_sem_cnes_gera_linha_sem_dado(conn, portal, raw):
+    raw.populacao(portal, 2023, 1000)
+    linha = _linhas(conn, portal)[2023]
+    assert linha["total_leitos_existentes"] is None
+    assert linha["leitos_existentes_por_mil_moradores"] is None
+    assert linha["profissionais_por_mil_moradores"] is None
+    assert linha["populacao_residente"] == 1000
+
+
+def test_valor_vazio_no_raw_fica_nulo_e_nao_zero(conn, portal, raw):
+    conn.execute(
+        text(f"INSERT INTO {_SCHEMA}.leitos_competencia VALUES (:p, '202312', 'pediatrico', '', '', '2026-11-07')"),
+        {"p": portal},
+    )
+    conn.execute(
+        text(f"INSERT INTO {_SCHEMA}.profissionais_competencia VALUES (:p, '202312', '5', '', '', '2026-11-07')"),
+        {"p": portal},
+    )
+    raw.populacao(portal, 2023, 1000)
+    linha = _linhas(conn, portal)[2023]
+    assert linha["total_leitos_existentes"] is None
+    assert linha["leitos_existentes_por_mil_moradores"] is None
+    assert linha["total_profissionais"] is None
+    assert linha["profissionais_por_mil_moradores"] is None

@@ -58,7 +58,9 @@ export function SaudeRedePorMilMoradores({
   const leitos = ultimoComDado(serie, "leitosExistentesPorMilMoradores");
   const leitosSus = ultimoComDado(serie, "leitosSusPorMilMoradores");
   const profissionais = ultimoComDado(serie, "profissionaisPorMilMoradores");
-  const referencia = leitos ?? profissionais;
+  const leitosCompetencia = leitos?.competenciaLeitos ?? null;
+  const profissionaisCompetencia =
+    profissionais?.competenciaProfissionais ?? null;
   const dataColeta = serie
     .map((ano) => ano.dataColeta)
     .filter((data): data is string => data !== null)
@@ -67,6 +69,22 @@ export function SaudeRedePorMilMoradores({
   const anoEstimado = serie.find(
     (ano) => ano.populacaoEstimada && ano.anoPopulacaoReferencia !== null,
   );
+  const anoSemPopulacao = serie.find(
+    (ano) =>
+      ano.populacaoResidente === null &&
+      (ano.totalLeitosExistentes !== null || ano.totalProfissionais !== null),
+  );
+  const textoCompetencias = (() => {
+    if (leitosCompetencia && profissionaisCompetencia)
+      return `; os leitos mostrados são de ${formatCompetencia(leitosCompetencia)} e os profissionais, de ${formatCompetencia(profissionaisCompetencia)}`;
+    if (leitosCompetencia)
+      return `; os leitos mostrados são de ${formatCompetencia(leitosCompetencia)}`;
+    if (profissionaisCompetencia)
+      return `; os profissionais mostrados são de ${formatCompetencia(profissionaisCompetencia)}`;
+    return "";
+  })();
+  const notaEstimativa = (ano: SaudeRedeAnoDTO | undefined, nota: string) =>
+    ano?.populacaoEstimada ? `${nota} (população estimada)` : nota;
 
   return (
     <section className="space-y-6">
@@ -81,7 +99,14 @@ export function SaudeRedePorMilMoradores({
           value={porMilOuTraco(leitos?.leitosExistentesPorMilMoradores ?? null)}
           note={
             leitos
-              ? notaComparacao(serie, "leitosExistentesPorMilMoradores", leitos)
+              ? notaEstimativa(
+                  leitos,
+                  notaComparacao(
+                    serie,
+                    "leitosExistentesPorMilMoradores",
+                    leitos,
+                  ),
+                )
               : "sem dado da fonte"
           }
         />
@@ -90,7 +115,10 @@ export function SaudeRedePorMilMoradores({
           value={porMilOuTraco(leitosSus?.leitosSusPorMilMoradores ?? null)}
           note={
             leitosSus
-              ? notaComparacao(serie, "leitosSusPorMilMoradores", leitosSus)
+              ? notaEstimativa(
+                  leitosSus,
+                  notaComparacao(serie, "leitosSusPorMilMoradores", leitosSus),
+                )
               : "sem dado da fonte"
           }
         />
@@ -101,59 +129,69 @@ export function SaudeRedePorMilMoradores({
           )}
           note={
             profissionais
-              ? notaComparacao(
-                  serie,
-                  "profissionaisPorMilMoradores",
+              ? notaEstimativa(
                   profissionais,
+                  notaComparacao(
+                    serie,
+                    "profissionaisPorMilMoradores",
+                    profissionais,
+                  ),
                 )
               : "sem dado da fonte"
           }
         />
       </IndicatorPanel>
-      <table className="w-full text-sm">
-        <thead>
-          <tr>
-            <th scope="col">Ano</th>
-            <th scope="col" className="numeric">
-              Leitos por mil
-            </th>
-            <th scope="col" className="numeric">
-              Leitos do SUS por mil
-            </th>
-            <th scope="col" className="numeric">
-              Profissionais por mil
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...serie].reverse().map((ano) => (
-            <tr key={ano.ano}>
-              <td>{ano.ano}</td>
-              <td className="numeric">
-                {porMilOuTraco(ano.leitosExistentesPorMilMoradores)}
-              </td>
-              <td className="numeric">
-                {porMilOuTraco(ano.leitosSusPorMilMoradores)}
-              </td>
-              <td className="numeric">
-                {porMilOuTraco(ano.profissionaisPorMilMoradores)}
-              </td>
+      <details>
+        <summary>Ver detalhes por ano</summary>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Ano</th>
+              <th scope="col" className="numeric">
+                Leitos por mil
+              </th>
+              <th scope="col" className="numeric">
+                Leitos do SUS por mil
+              </th>
+              <th scope="col" className="numeric">
+                Profissionais por mil
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {[...serie].reverse().map((ano) => (
+              <tr key={ano.ano}>
+                <td>
+                  {ano.ano}
+                  {ano.populacaoEstimada ? " (população estimada)" : ""}
+                </td>
+                <td className="numeric">
+                  {porMilOuTraco(ano.leitosExistentesPorMilMoradores)}
+                </td>
+                <td className="numeric">
+                  {porMilOuTraco(ano.leitosSusPorMilMoradores)}
+                </td>
+                <td className="numeric">
+                  {porMilOuTraco(ano.profissionaisPorMilMoradores)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
       <p className="caption">
         Cálculo do Portal: total de leitos (ou de profissionais) dividido pela
         população do município, vezes mil. Leitos e profissionais vêm do
         Cadastro Nacional de Estabelecimentos de Saúde (CNES)
-        {referencia?.competenciaLeitos
-          ? `; no ano mais recente, os dados são de ${formatCompetencia(referencia.competenciaLeitos)}`
-          : ""}
-        . Quem trabalha em mais de um local conta uma vez só. O número não mede
-        a qualidade do atendimento nem se os leitos estão ocupados. O traço (—)
-        indica que a fonte não trouxe o dado; não quer dizer zero.
+        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só.
+        O número não mede a qualidade do atendimento nem se os leitos estão
+        ocupados. O traço (—) indica que a fonte não trouxe o dado; não quer
+        dizer zero.
         {anoEstimado
           ? ` A população de ${anoEstimado.ano} ainda não foi divulgada: o cálculo usa a de ${anoEstimado.anoPopulacaoReferencia}, por isso o resultado é uma estimativa.`
+          : ""}
+        {anoSemPopulacao
+          ? ` Em ${anoSemPopulacao.ano} não há população divulgada para o município, por isso não foi possível calcular por mil moradores.`
           : ""}
       </p>
       <LinhaLeiEFonte

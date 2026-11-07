@@ -49,6 +49,19 @@ def _inteiro(valor: Any) -> int:
         return 0
 
 
+def _inteiro_ou_none(valor: Any) -> int | None:
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return None
+
+
+def _soma_ou_vazio(valores: list[int | None]) -> str:
+    """Soma os valores legíveis; sem nenhum legível devolve vazio, que o mart lê como "sem dado"."""
+    legiveis = [valor for valor in valores if valor is not None]
+    return str(sum(legiveis)) if legiveis else ""
+
+
 def _tipo_leito(registro: dict[str, Any]) -> str:
     return re.sub(r"\s+", " ", str(registro.get("tp_leito") or "").strip())
 
@@ -57,23 +70,22 @@ def agregar_leitos(
     portal_slug: str, competencia: int, data_coleta: str, registros: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     """Soma leitos existentes e do SUS por tipo de leito."""
-    por_tipo: dict[str, tuple[int, int]] = {}
+    existentes_por_tipo: dict[str, list[int | None]] = {}
+    sus_por_tipo: dict[str, list[int | None]] = {}
     for registro in registros:
-        existentes, sus = por_tipo.get(_tipo_leito(registro), (0, 0))
-        por_tipo[_tipo_leito(registro)] = (
-            existentes + _inteiro(registro.get("qt_existente")),
-            sus + _inteiro(registro.get("qt_sus")),
-        )
+        tipo = _tipo_leito(registro)
+        existentes_por_tipo.setdefault(tipo, []).append(_inteiro_ou_none(registro.get("qt_existente")))
+        sus_por_tipo.setdefault(tipo, []).append(_inteiro_ou_none(registro.get("qt_sus")))
     return [
         {
             "portal_slug": portal_slug,
             "competencia": str(competencia),
             "tipo_leito": tipo,
-            "total_leitos_existentes": str(existentes),
-            "total_leitos_sus": str(sus),
+            "total_leitos_existentes": _soma_ou_vazio(existentes_por_tipo[tipo]),
+            "total_leitos_sus": _soma_ou_vazio(sus_por_tipo[tipo]),
             "data_coleta": data_coleta,
         }
-        for tipo, (existentes, sus) in sorted(por_tipo.items())
+        for tipo in sorted(existentes_por_tipo)
     ]
 
 
@@ -89,6 +101,18 @@ def agregar_profissionais(
     if not registros:
         return []
     pessoas = {p for p in map(_pessoa, registros) if p}
+    if not pessoas:
+        # Vínculos sem nome não permitem contar pessoas: "sem dado", nunca zero.
+        return [
+            {
+                "portal_slug": portal_slug,
+                "competencia": str(competencia),
+                "total_vinculos": str(len(registros)),
+                "total_profissionais": "",
+                "total_profissionais_sus": "",
+                "data_coleta": data_coleta,
+            }
+        ]
     pessoas_sus = {
         p for r in registros if str(r.get("st_atende_sus") or "").strip().upper() == "SIM" and (p := _pessoa(r))
     }
