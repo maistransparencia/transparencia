@@ -15,6 +15,7 @@ from elt.extract.saude_datasus import (
     agregar_internacoes,
     agregar_leitos,
     agregar_profissionais,
+    anos_da_populacao,
     arquivos_da_competencia,
     carregar_fontes,
     carregar_tipos_leito,
@@ -237,3 +238,8 @@ def test_competencia_sem_arquivo_e_sem_dado_e_nao_zero():
             "sih_competencia": [],
         }
     }
+
+
+def test_populacao_inclui_o_ano_anterior_ao_primeiro_como_referencia():
+    assert anos_da_populacao([202602, 202601, 202512]) == [2024, 2025, 2026]
+    assert anos_da_populacao([]) == []

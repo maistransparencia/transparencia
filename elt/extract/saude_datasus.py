@@ -434,6 +434,12 @@ def competencias_do_pedido(
     return [competencia for competencia in escolhidas if competencia // 100 >= corte]
 
 
+def anos_da_populacao(competencias: list[int]) -> list[int]:
+    """Anos das competências mais o anterior ao primeiro (referência quando o ano corrente ainda não tem população)."""
+    anos = {competencia // 100 for competencia in competencias}
+    return sorted({*anos, min(anos) - 1}) if anos else []
+
+
 def main() -> None:
     from elt.core.config import PortalConfig
     from elt.core.db import get_engine
@@ -472,7 +478,8 @@ def main() -> None:
                         logger.info("%s %d %s → %d linhas", slug, competencia, tabela, len(linhas))
                         if engine is not None and linhas:
                             load_saude_rede_tabela(engine, tabela, linhas, slug)
-        anos = sorted({competencia // 100 for competencia in competencias})
+        # O mart usa o último ano anterior com população quando o ano da competência ainda não foi divulgado.
+        anos = anos_da_populacao(competencias)
         for portal in do_estado:
             populacao = extrair_populacao(portal.slug, portal.cod_ibge, anos)
             logger.info("%s população → %d linhas", portal.slug, len(populacao))
