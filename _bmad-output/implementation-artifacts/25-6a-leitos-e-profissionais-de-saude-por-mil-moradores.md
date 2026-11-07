@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: review
 ---
 
 # Story 25.6a: Leitos e Profissionais de Saúde por Mil Moradores
@@ -73,4 +73,17 @@ SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hem
 
 - Roteiro: `elt/scripts/contrato_api_saude.py` (uma passada por endpoint e por portal, `--repeticoes` vezes, sem repetição automática, timeout 30 s, intervalo 0,5 s; mais uma caminhada de 60 páginas do CNES para o limite de taxa). Cobre também CNES estabelecimentos, SIA e SIH para a 25.6b. Workflow manual: `.github/workflows/contrato-api-saude.yml` (ubuntu-latest, mesmo ambiente da carga diária).
 - Baseline local (1 repetição, 2 portais, 5 páginas): todas HTTP 200, 0,14 a 0,39 s, nenhum 429 ou timeout; SIH vazio em 1 dos 2 portais (já conhecido).
-- **PENDENTE:** executar o workflow no GitHub Actions e colar aqui o resultado. Exige commit e push do workflow (aguardando o Julio). A story só fecha depois disso.
+- **Resultado no GitHub Actions (ubuntu-latest, run 42379424892, 2026-11-07, competência 202512, 2 portais, 3 passadas, intervalo 0,5 s, timeout 30 s, job de 1m29s):**
+
+| Endpoint | Chamadas | 200 | 429 | Timeout | Outros erros | Vazias | Mediana (s) | Máximo (s) |
+|---|---|---|---|---|---|---|---|---|
+| cnes_leitos | 6 | 6 | 0 | 0 | 0 | 0 | 0,25 | 1,05 |
+| cnes_profissionais | 6 | 6 | 0 | 0 | 0 | 0 | 0,33 | 0,37 |
+| populacao_residente | 6 | 6 | 0 | 0 | 0 | 0 | 0,51 | 0,58 |
+| cnes_estabelecimentos | 6 | 6 | 0 | 0 | 0 | 0 | 0,27 | 0,28 |
+| sia_procedimentos | 6 | 6 | 0 | 0 | 0 | 0 | 0,29 | 0,30 |
+| sih_procedimentos | 6 | 6 | 0 | 0 | 0 | 3 | 0,26 | 0,26 |
+| caminhada de 60 páginas (cnes_profissionais, 0,5 s entre chamadas) | 60 | 60 | 0 | 0 | 0 | 0 | 0,31 | 0,36 |
+
+- Leitura: sem limite de taxa nem timeout a 0,5 s entre chamadas; cada página custa cerca de 0,3 s mais o intervalo, então uma competência de profissionais (300+ páginas) leva em torno de 4 a 5 minutos por portal. SIH vazio em 1 dos 2 portais nas 3 passadas (mesmo comportamento da spike): "sem dado nesta fonte", não zero. Vale para a 25.6b.
+- O workflow foi disparado por um gatilho temporário de `push` (o `workflow_dispatch` só existe depois que o arquivo está na `dev`); o gatilho foi removido depois da medição.

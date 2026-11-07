@@ -3,9 +3,6 @@ name: Contrato da API da Saúde
 # Mede a API de dados abertos da Saúde a partir do mesmo ambiente da carga diária (ubuntu-latest).
 # Só manual; não toca em banco nem em segredo.
 on:
-  push:
-    branches: [feature/epic25-story-25-6]
-    paths: [.github/workflows/contrato-api-saude.yml]
   workflow_dispatch:
     inputs:
       repeticoes:
