@@ -3730,11 +3730,72 @@ So that I can tell whether the money arrived and was used, without a delay in on
 
 ---
 
-### Story 25.6: Produção da Rede e Fila de Espera (esboço)
+### Story 25.6a: Leitos e Profissionais de Saúde por Mil Moradores
 
-**Status:** esboço ajustado pela spike 25.1. **Entram:** produção ambulatorial (SIA), internações (SIH, com estado "sem dado" porque um município testado não retorna), leitos e profissionais por mil habitantes (CNES, agregado, sem nome de pessoa; população residente com código IBGE de 7 dígitos). **Backlog com motivo:** Previne Brasil (série parou em 2024Q3; sucessor NÃO VERIFICADO), vacinação (sem filtro por município no contrato e sem denominador), transporte sanitário e hemodiálise (não testados). **Fila de espera:** sem fonte aberta; só com resposta de pedido LAI. Critério de aceite: teste de contrato a partir do ambiente da carga diária (timeouts, limite de taxa e repetição), ainda não feito. Armadilha: sem `nu_comp` ou `nu_ano` a API devolve a competência mais antiga.
+As a citizen,  
+I want to see how many hospital beds and health professionals the city has for every thousand residents, compared with previous years,  
+So that I can tell whether the local health network is growing or shrinking.
 
-**Dependências:** Story 25.1.
+**Origem:** a Story 25.6 foi dividida em 25.6a e 25.6b em 2026-11-07 (decisão do Julio). A 25.6a leva a primeira ingestão do CNES e da população residente, e prova o contrato da API a partir do ambiente da carga. A 25.6b reaproveita esse esqueleto para atendimentos e internações.
+
+**Pergunta do cidadão (Regra 27):** "Quantos leitos e profissionais de saúde há para cada mil moradores, comparado a anos anteriores?" (texto aprovado na spike, parecer do `editor-cidadao`).
+
+**Fontes (spike 25.1, seção 5):** `/assistencia-a-saude/cnes-leitos` (existentes e SUS), `/assistencia-a-saude/cnes-profissionais` e `/vigilancia-e-meio-ambiente/svsa-populacao-residente`. Extrator de partida: `elt/extract/farmacia_sus.py` (limite de taxa, repetição, timeout, `codigo_ibge6`).
+
+**Acceptance Criteria:**
+- **Given** o `cod_ibge` do portal
+- **When** a ingestão rodar
+- **Then** leitos e profissionais chegam em schema próprio por fonte, com `portal_slug` na chave (Regra 23), sempre com `nu_comp` (ou `nu_ano`) explícito, nunca a resposta sem filtro, que devolve 2008.
+- **And** o código IBGE de 6 dígitos (CNES) e o de 7 dígitos (população residente) são convertidos a partir do `cod_ibge` do portal, sem literal de município.
+- **And** profissionais são **agregados na ingestão**: o nome da pessoa física não é gravado nem exibido.
+- **And** o mart calcula leitos (existentes e SUS) e profissionais por mil moradores por ano, com nomes explícitos (Regra 9) e códigos em snake_case (Regra 10). Competência sem resposta fica como "sem dado", não zero.
+- **And** `@transparencia/db` devolve a série tipada e o intervalo de anos real da série (sem ano fixo, Regra 23); a tela só renderiza.
+- **And** a tela de saúde traz a pergunta, a comparação com anos anteriores, a fonte e a data da competência. Não há "mínimo" nem "adequado": o parâmetro oficial de leitos por mil habitantes é NÃO VERIFICADO e fica para o `jurista-fiscal`. Texto passa pelo `editor-cidadao`; leitos e profissionais por mil moradores são dado derivado (divisão por população) e a tela diz isso (Regra 27).
+- **And** **teste de contrato** a partir do ambiente da carga diária: uma passada por endpoint com repetição, timeouts e limite de taxa medidos, registrada na story. Esse resultado vale para a 25.6b.
+- **And** `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam, só contra o banco local (Regra 15).
+
+**Decisões jurídicas (`jurista-fiscal`, 2026-11-07):**
+- **Sem régua numérica na tela.** Compara só com anos anteriores e nunca diz "adequado", "insuficiente" ou "abaixo do ideal". Base: Portaria de Consolidação GM/MS 1/2017, arts. 102 a 106 (vigente; revoga por consolidação a Portaria 1.631/2015, art. 560, XIX): parâmetros "indicativos, sem qualquer caráter impositivo ou obrigatório", ajustáveis por estado e município. Os valores ficam em documento externo do Ministério da Saúde e **não foram verificados**. Se a régua entrar um dia, vem como linha do `seed_constantes_fiscais.csv` com `base_legal` e URL, e o texto diz "referência indicativa do Ministério da Saúde, que cada município pode ajustar".
+- **Proibida** a faixa de 2,5 a 3 leitos por mil habitantes (Portaria 1.101/2002, revogada), na tela e no código.
+- **Licença (risco aceito pelo Julio, sem advogado humano):** o portal `dadosabertos.saude.gov.br` declara o conteúdo do site sob CC BY-ND 3.0 (Atribuição-SemDerivações), em frase que parece rodapé padrão e não termo dos conjuntos. Não há termo verificado para a API, CNES, SIA, SIH e população. Mitigação: a tela cita o Ministério da Saúde, a API e a data da competência; reproduz os números como estão; identifica "por mil moradores" como cálculo do portal (dado derivado, Regra 27). Revisão de advogado fica recomendada antes de escala, não bloqueia.
+
+**Fora do escopo:** SIA e SIH (25.6b); estabelecimentos além do necessário; execução em produção; cadência de carga (Story 23.8).
+
+**Dependências:** Story 25.1 (concluída). Referência de padrão: Story 25.4. Bloqueia a 25.6b e a 25.10.
+
+---
+
+### Story 25.6b: Atendimentos e Internações do SUS na Cidade
+
+As a citizen,  
+I want to see how many outpatient visits and hospital admissions the SUS delivered in my city, compared with last year,  
+So that I can tell how much care is actually being produced.
+
+**Pergunta do cidadão (Regra 27):** "Quantos atendimentos e internações o SUS fez na cidade?"
+
+**Fontes (spike 25.1, seção 5):** `/assistencia-a-saude/sia-procedimentos-ambulatoriais` (defasagem de 1 a 2 meses) e `/assistencia-a-saude/sih-procedimentos-hospitalares`.
+
+**Acceptance Criteria:**
+- **Given** o esqueleto de ingestão e a população da 25.6a
+- **When** SIA e SIH forem ingeridos por competência
+- **Then** o mart traz atendimentos e internações por ano, total e por habitante, com `portal_slug` na chave e nomes explícitos.
+- **And** SIH sem retorno para o município vira o estado "sem dado nesta fonte" na tela e na query, nunca zero (a spike achou município de teste sempre vazio); o texto explica sem concluir nada sobre a Prefeitura.
+- **And** a competência mais recente sem resposta não derruba o ano em curso: a tela mostra até onde a fonte tem dados, com a data.
+- **And** a tela traz a comparação com o ano anterior, a fonte e o que ela mede; é produção paga/registrada pelo SUS, não todo o atendimento da cidade, e o texto diz isso (`editor-cidadao`).
+- **And** testes de paridade, `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam, sem literal de tenant, UF ou ano (Regra 23).
+
+**Fora do escopo:** fila de espera, Previne Brasil, vacinação, transporte sanitário, hemodiálise.
+
+**Dependências:** Story 25.6a.
+
+---
+
+### Backlog da Epic 25 (sem story, com motivo)
+
+- **Fila de espera:** removida do escopo da Epic 25 em 2026-11-07 (decisão do Julio). Não há endpoint na API da Saúde (especificação 1.8.32). Só voltaria com resposta de pedido pela Lei de Acesso à Informação (Lei 12.527/2011), que é pontual, não recorrente.
+- **Previne Brasil:** série parou em 2024Q3; sucessor NÃO VERIFICADO.
+- **Vacinação:** o contrato não filtra por município e não há denominador.
+- **Transporte sanitário e hemodiálise:** não testados.
 
 ### Story 25.8: Objeto Correto das Emendas na Saúde e na Educação
 
@@ -3839,11 +3900,11 @@ As a citizen,
 I want the health page to answer first "a Prefeitura aplica o mínimo, de onde vem o dinheiro e o que a rede entrega", with the audit material (emendas, contratos, fornecedores) grouped at the end and collapsed,  
 So that I can follow the main answer without scrolling through tables made for journalists, councilors and auditors, and still reach every detail when I want it.
 
-**Origem:** pedido do Julio em 2026-11-06, depois de aprovar o resultado das Stories 24.12 e 24.13 na página de educação. Nenhuma story anterior da Epic 25 reorganiza a página inteira: a 25.3 cobre só o equivalente da 24.12 (o topo), e as 25.4 a 25.6 acrescentam blocos. Esta story é o equivalente da 24.13 e vem **depois** delas, para reorganizar uma vez só, com a página já completa.
+**Origem:** pedido do Julio em 2026-11-06, depois de aprovar o resultado das Stories 24.12 e 24.13 na página de educação. Nenhuma story anterior da Epic 25 reorganiza a página inteira: a 25.3 cobre só o equivalente da 24.12 (o topo), e as 25.4, 25.6a e 25.6b acrescentam blocos. Esta story é o equivalente da 24.13 e vem **depois** delas, para reorganizar uma vez só, com a página já completa.
 
-**Status:** esboço. Detalhar quando as Stories 25.3 a 25.6 fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
+**Status:** esboço. Detalhar quando as Stories 25.3, 25.4, 25.6a e 25.6b fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6a e 25.6b), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
 
-**Dependências:** Stories 25.3, 25.4, 25.5 e 25.6; referência de padrão: Stories 24.12 e 24.13.
+**Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
 
 ---
 
