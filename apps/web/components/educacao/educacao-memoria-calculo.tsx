@@ -5,8 +5,8 @@ import {
   ThresholdMeter,
 } from "@transparencia/ui";
 import type { EducacaoExecucaoAnoView } from "@/app/[portalSlug]/educacao/view-model";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { urlLegislacao } from "@/lib/constants/legislacao";
-import { LeiLink, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoMemoriaCalculoProps {
   ano: number;

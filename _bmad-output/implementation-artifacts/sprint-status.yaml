@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-06
+last_updated: 2026-11-07
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -266,7 +266,7 @@ development_status:
   25-1-spike-de-fontes-oficiais-dos-indicadores-de-saude: done
   25-2-minimo-constitucional-de-saude-no-dbt: done
   25-3-contratos-em-transparencia-db-e-bloco-do-minimo-no-topo-de-saude: done
-  25-4-de-onde-vem-o-dinheiro-da-saude: backlog
+  25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude: done
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-6-producao-da-rede-e-fila-de-espera: backlog
   25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog

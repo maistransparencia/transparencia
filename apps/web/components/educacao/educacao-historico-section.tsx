@@ -24,8 +24,9 @@ import type {
   IdebEtapaHistorico,
   IdebHistoricoPonto,
 } from "@/app/[portalSlug]/educacao/view-model";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
-import { FraseClassificacao, LeiLink, LinhaLeiEFonte } from "./educacao-textos";
+import { FraseClassificacao } from "./educacao-textos";
 import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface EducacaoHistoricoSectionProps {

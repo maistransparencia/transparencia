@@ -1360,6 +1360,40 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export interface SaudeOrigemRecursoRow {
+  portalSlug: string;
+  empresaId?: string;
+  ano: number;
+  orgaoNome?: string | null;
+  grupoFonte: string;
+  codigoNatureza: string;
+  descricaoNatureza?: string | null;
+  arrecadadoReceita: number;
+}
+
+export async function seedSaudeOrigemRecursos(
+  row: SaudeOrigemRecursoRow | SaudeOrigemRecursoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_origem_recursos_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empresa_id: r.empresaId ?? "1",
+        orgao_nome: r.orgaoNome ?? null,
+        grupo_fonte: r.grupoFonte,
+        codigo_natureza: r.codigoNatureza,
+        descricao_natureza: r.descricaoNatureza ?? null,
+        arrecadado_receita: r.arrecadadoReceita,
+      })),
+    )
+    .execute();
+}
+
 export interface EducacaoMatriculasRow {
   portalSlug: string;
   ano: number;
@@ -1567,6 +1601,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_educacao_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_origem_recursos_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

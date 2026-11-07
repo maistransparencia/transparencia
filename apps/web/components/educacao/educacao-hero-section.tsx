@@ -5,6 +5,11 @@ import type {
   MinimosLegaisView,
   ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
+import {
+  LeiLink,
+  type LeiLinkProps,
+  LinhaLeiEFonte,
+} from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { DestaqueIdeb, DestaqueMinimo } from "./educacao-destaques";
 import {
@@ -13,12 +18,7 @@ import {
 } from "./educacao-emendas-resumo";
 import { EducacaoIndicadoresApoio } from "./educacao-indicadores-apoio";
 import { EducacaoMemoriaCalculo } from "./educacao-memoria-calculo";
-import {
-  FONTE_SIOPE,
-  LeiLink,
-  type LeiLinkProps,
-  LinhaLeiEFonte,
-} from "./educacao-textos";
+import { FONTE_SIOPE } from "./educacao-textos";
 
 export interface EducacaoHeroSectionProps {
   ano: number;

@@ -499,3 +499,7 @@ status: open
 - `fct_saude_minimo_conferencia` assume códigos de receita terminados em `.00.00` e `funcao = '10'`, documentado só para o município A. Verificar com um portal de outro estado antes da 25.3 usar a conferência.
 - Ano corrente sem nenhum bimestre transmitido não gera linha no mart (nem `sem_dado`); a 25.3 deve tratar a ausência de linha.
 - Despesa com recursos próprios de A em 2024 sem conciliar: SIOPS R$ 13,27 mi contra R$ 15,61 mi do cálculo próprio, que bate com a fonte `01-500` do portal municipal. O SIOPS declara despesa total maior (R$ 49,37 mi contra R$ 47,67 mi empenhados). Diferença de atribuição da fonte de recurso, causa não provada; falta o demonstrativo declarado ao SIOPS. Registrado em `25-2-minimo-constitucional-de-saude-no-dbt.md`.
+
+## Deferred from: code review of 25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude (2026-11-06)
+
+- Identificação do órgão de saúde por nome (`unaccent(lower(orgao_nome)) like '%saude%'`) em `fct_saude_origem_recursos_metricas` e `fct_historia_saude_metricas`: uma secretaria com "saúde" no nome entra na soma e um fundo sem "saúde" no nome fica de fora, sem aviso. Precisa de outra forma de definir o órgão (campo explícito por portal ou teste que falhe sem órgão). Revisitar antes de integrar um município novo.

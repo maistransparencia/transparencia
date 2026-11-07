@@ -31,7 +31,7 @@ export function SaudeOrigemRecursos({
   const origens: OrigemRecurso[] = [
     {
       chave: "uniao",
-      nome: "Transferências da União (SUS)",
+      nome: "Transferências da União",
       valor: fontes.receitaUniao,
       percentual: fontes.percentualUniaoSus,
       corClasse: "bg-brand-fill",

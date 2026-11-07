@@ -38,4 +38,5 @@ export * from "./queries/radar-civico-alertas";
 export * from "./queries/radar-digest";
 export * from "./queries/receitas-extra-metrics";
 export * from "./queries/saude-minimo-constitucional";
+export * from "./queries/saude-origem-recursos";
 export * from "./queries/siconfi-caixa-metrics";

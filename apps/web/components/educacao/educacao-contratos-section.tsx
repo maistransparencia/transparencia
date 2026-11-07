@@ -9,6 +9,7 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
+import { type LeiLinkProps, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SectionWithHeader } from "@/components/section-with-header";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
@@ -18,7 +19,6 @@ import {
   educacaoDtoToContratoServicoVigente,
   formatCategoriaLabel,
 } from "./educacao-contratos-utils";
-import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoContratosSectionProps {
   contratos: EducacaoContratoDTO[];

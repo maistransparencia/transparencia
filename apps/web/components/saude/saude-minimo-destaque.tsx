@@ -11,8 +11,8 @@ import {
   ThresholdMeter,
 } from "@transparencia/ui";
 import { useState } from "react";
-import { LeiLink, LinhaLeiEFonte } from "@/components/educacao/educacao-textos";
 import { VerDetalhesLink } from "@/components/educacao/ver-detalhes-link";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface SaudeMinimoDestaqueProps {
@@ -247,7 +247,7 @@ function LinhaDetalhe({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4">
       <dt>{rotulo}</dt>
-      <dd className="font-semibold tabular-nums">{valor}</dd>
+      <dd className="font-semibold text-sm tabular-nums">{valor}</dd>
     </div>
   );
 }
