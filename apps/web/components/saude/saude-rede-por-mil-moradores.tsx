@@ -183,9 +183,9 @@ export function SaudeRedePorMilMoradores({
         Cálculo do Portal: total de leitos (ou de profissionais) dividido pela
         população do município, vezes mil. Leitos e profissionais vêm do
         Cadastro Nacional de Estabelecimentos de Saúde (CNES)
-        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só;
-        a contagem é aproximada, feita pelo nome, e pessoas com o mesmo nome
-        podem ser contadas como uma. O número não mede a qualidade do
+        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só,
+        pelo número do Cartão Nacional de Saúde (CNS). Vínculo sem esse número
+        não entra na contagem de pessoas. O número não mede a qualidade do
         atendimento nem se os leitos estão ocupados. O traço (—) indica que a
         fonte não trouxe o dado; não quer dizer zero.
         {anoEstimado

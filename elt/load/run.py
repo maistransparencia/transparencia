@@ -168,7 +168,6 @@ def main() -> None:
     engine = get_engine()
 
     farmacia_dirs_carregados: set[Path] = set()
-    saude_rede_dirs_carregados: set[Path] = set()
     for json_file in sorted(run_dir.rglob("*.json")):
         table = json_file.parent.name
         config = next((c for c in endpoint_configs if c.table == table), None)
@@ -249,14 +248,6 @@ def main() -> None:
                     farmacia_dirs_carregados.add(json_file.parent)
                     count = load_farmacia_sus_dir(engine, json_file.parent, portal.slug)
                     logger.info("Loaded farmacia_sus (%s) → %d rows into raw_farmacia_sus", json_file.parent, count)
-                continue
-            if table == "saude_rede":
-                if json_file.parent not in saude_rede_dirs_carregados:
-                    from elt.load.saude_rede import load_saude_rede_dir
-
-                    saude_rede_dirs_carregados.add(json_file.parent)
-                    count = load_saude_rede_dir(engine, json_file.parent, portal.slug)
-                    logger.info("Loaded saude_rede (%s) → %d rows into raw_saude_rede", json_file.parent, count)
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue

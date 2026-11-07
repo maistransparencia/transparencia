@@ -7,9 +7,6 @@ atualiza a linha, e competência sem resposta simplesmente não tem linha.
 
 from __future__ import annotations
 
-import json
-import logging
-from pathlib import Path
 from typing import Any
 
 from sqlalchemy import text
@@ -17,8 +14,6 @@ from sqlalchemy.engine import Connection, Engine
 
 from elt.core.db import Connectable
 from elt.load.farmacia_sus import _replace_portal_rows
-
-logger = logging.getLogger(__name__)
 
 SCHEMA_PADRAO = "raw_saude_rede"
 
@@ -100,17 +95,3 @@ def load_saude_rede_tabela(
         replace=False,
         garantir_tabelas=ensure_saude_rede_tables,
     )
-
-
-def load_saude_rede_dir(engine: Connectable, directory: Path, portal_slug: str, schema: str = SCHEMA_PADRAO) -> int:
-    total = 0
-    for tabela in TABELAS:
-        arquivo = directory / f"{tabela}.json"
-        if arquivo.exists():
-            total += load_saude_rede_tabela(
-                engine, tabela, json.loads(arquivo.read_text(encoding="utf-8")), portal_slug, schema
-            )
-    for arquivo in sorted(directory.glob("*.json")):
-        if arquivo.stem not in TABELAS:
-            logger.warning("Arquivo sem loader ignorado em saude_rede: %s", arquivo.name)
-    return total
