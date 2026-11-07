@@ -112,3 +112,8 @@ Revisão 2026-11-07 (`git diff d5078e7a..HEAD`, modo full, 4 camadas). Verificad
 - `contrato_api_saude.py` sem workflow, com constante da 25.6b e `str(p.cod_ibge)`: cosmético, ferramenta de medição já registrada na story.
 - `cod_ibge=None` quebra em `int(cod_ibge)` e falta isolamento por ano na extração: falham alto, e a falha é registrada por `_log_failed`; sem cenário real mostrado.
 - `profissionaisSusPorMilMoradores` calculado e não exibido: não é defeito (escolha de escopo da tela).
+
+### Ajuste pós-carga manual (2026-11-07)
+
+- A primeira carga real (`make elt/saude-rede`, todos os anos) parecia travada: o extrator só gravava os JSON no fim e não logava nada, e cada ano de profissionais leva minutos. Agora ele loga por ano (competência, páginas de profissionais, segundos) e grava os JSON da rodada ao concluir cada ano (`ao_concluir_ano`). Se a execução cair ou for interrompida, os anos concluídos ficam em `data/raw_runs/<portal>/<rodada>/saude_rede/` e podem ser carregados com `PYTHONPATH=. uv run --project elt python elt/load/run.py --portal <slug>`. Pular anos já carregados continua em aberto (Story 23.8).
+
