@@ -1,5 +1,5 @@
 {{ config(
-    materialized='table'
+    materialized='view' if var('test_mode', false) else 'table'
 ) }}
 
 with orgaos_saude as (
@@ -65,28 +65,10 @@ linhas_saude as (
         d.ano
 ),
 
-receitas_saude as (
+receitas_orcamentarias_saude as (
     select
         r.portal_slug,
         r.ano,
-        sum(
-            case
-                when r.tipo_receita = 'uniao' and r.codigo in ('1713.00.0.0.00.00', '2411.00.0.0.00.00')
-                then coalesce(r.arrecadado, 0)
-                else 0
-            end
-        ) as receita_uniao,
-        -- 1723.50 é filho de 1720: só entra quando a raiz 1720 não existe, para não contar duas vezes
-        coalesce(
-            nullif(sum(case when r.tipo_receita = 'estado' and r.codigo = '1720.00.0.0.00.00' then coalesce(r.arrecadado, 0) else 0 end), 0),
-            sum(case when r.tipo_receita = 'estado' and r.codigo = '1723.50.0.1.00.00' then coalesce(r.arrecadado, 0) else 0 end)
-        ) + sum(
-            case
-                when r.tipo_receita = 'estado' and r.codigo = '2420.00.0.0.00.00'
-                then coalesce(r.arrecadado, 0)
-                else 0
-            end
-        ) as receita_estado,
         sum(
             case
                 when r.tipo_receita = 'orcamentaria' and r.codigo in ('1000.00.0.0.00.00', '2000.00.0.0.00.00')
@@ -99,6 +81,31 @@ receitas_saude as (
         on r.portal_slug = o.portal_slug
         and r.empresa_id = o.empresa_id
     group by r.portal_slug, r.ano
+),
+
+-- A esfera (União ou Estado) vem da natureza da receita no mart de origem dos recursos,
+-- que cobre o plano de contas anterior a 2022 e as transferências especiais (1719).
+esferas_saude as (
+    select
+        portal_slug,
+        ano,
+        sum(case when grupo_fonte = 'uniao' then arrecadado_receita else 0 end) as receita_uniao,
+        sum(case when grupo_fonte = 'estado' then arrecadado_receita else 0 end) as receita_estado
+    from {{ ref('fct_saude_origem_recursos_metricas') }}
+    group by portal_slug, ano
+),
+
+receitas_saude as (
+    select
+        o.portal_slug,
+        o.ano,
+        coalesce(e.receita_uniao, 0) as receita_uniao,
+        coalesce(e.receita_estado, 0) as receita_estado,
+        o.receita_orcamentaria_total
+    from receitas_orcamentarias_saude o
+    left join esferas_saude e
+        on e.portal_slug = o.portal_slug
+        and e.ano = o.ano
 ),
 
 -- Repasse financeiro medido: lado de quem paga, para qualquer recebedor de saúde.

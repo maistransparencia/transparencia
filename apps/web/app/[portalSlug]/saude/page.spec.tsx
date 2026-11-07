@@ -110,6 +110,27 @@ describe("SaudePage", () => {
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
   });
 
+  it("cita o portal da Prefeitura como fonte da origem das receitas", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        portalConfig: {
+          portalUrl: "https://transparencia.exemplo.gov.br/",
+          dataExtracao: "2026-11-05",
+        },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    const link = screen.getByRole("link", {
+      name: /Portal da Transparência da Prefeitura/,
+    });
+    expect(link.getAttribute("href")).toBe(
+      "https://transparencia.exemplo.gov.br/",
+    );
+    expect(screen.getByText(/Coletado em 05\/11\/2026/)).toBeInTheDocument();
+  });
+
   it("mostra o bloco do mínimo de saúde no topo com o percentual do ano", async () => {
     const anoEncerrado = {
       ano: 2024,

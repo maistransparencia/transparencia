@@ -6,6 +6,7 @@ import {
 import {
   AlertBox,
   fmtCompact,
+  fmtDate,
   fmtPercent,
   Indicator,
   IndicatorPanel,
@@ -14,6 +15,7 @@ import {
 import type { Metadata } from "next";
 import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { LeiLink, LinhaLeiEFonte } from "@/components/educacao/educacao-textos";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SaudeMinimoDestaque } from "@/components/saude/saude-minimo-destaque";
@@ -57,8 +59,15 @@ export default async function SaudePage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadSaudeData(portalSlug, resolvedSearchParams);
   const viewModel = buildSaudeViewModel(rawData);
-  const { selectedYear, isCurrentYear, partialPeriod, minimoSaude, saude } =
-    viewModel;
+  const {
+    selectedYear,
+    isCurrentYear,
+    partialPeriod,
+    minimoSaude,
+    portalUrl,
+    dataColeta,
+    saude,
+  } = viewModel;
   const [emendasEstaduais, comparacaoReceitaEstadual] = await Promise.all([
     getEmendasEstaduais(portalSlug, selectedYear, "saude"),
     getComparacaoReceitaEstadual(portalSlug, selectedYear),
@@ -149,11 +158,24 @@ export default async function SaudePage({
           title="O que entrou"
           description={
             saude.fontesReceita.totalEntrada > 0
-              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal, pelo SUS (Sistema Único de Saúde). Veja de onde veio cada parte.`
+              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal. Veja de onde veio cada parte.`
               : undefined
           }
         />
         <SaudeOrigemRecursos fontes={saude.fontesReceita} ano={selectedYear} />
+        {portalUrl && (
+          <LinhaLeiEFonte
+            source={
+              <LeiLink
+                label="Portal da Transparência da Prefeitura"
+                url={portalUrl}
+              />
+            }
+            extra={
+              dataColeta ? `Coletado em ${fmtDate(dataColeta)}` : undefined
+            }
+          />
+        )}
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}

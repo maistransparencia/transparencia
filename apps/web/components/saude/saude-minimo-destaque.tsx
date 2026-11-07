@@ -247,7 +247,7 @@ function LinhaDetalhe({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4">
       <dt>{rotulo}</dt>
-      <dd className="font-semibold tabular-nums">{valor}</dd>
+      <dd className="font-semibold text-sm tabular-nums">{valor}</dd>
     </div>
   );
 }
