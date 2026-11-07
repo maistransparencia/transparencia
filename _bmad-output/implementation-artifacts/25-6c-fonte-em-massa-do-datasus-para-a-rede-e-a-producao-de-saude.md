@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: review
 ---
 
 # Story 25.6c: Fonte em Massa do DATASUS para a Rede e a Produção de Saúde
@@ -77,6 +77,27 @@ Vale a decisão da 25.6a (CC BY-ND 3.0 declarada para o portal de dados abertos)
 ### Gates (banco local; `DATABASE_URL` não exportado)
 `make check`, `make test` (394), `pnpm typecheck`, `pnpm lint`, `make db/test/build` e `make test/ts` passaram.
 
+### Teste de contrato no GitHub Actions (ubuntu-latest, run 42413991963, 2026-11-07, RJ 2025-12)
+Roteiro: `elt/scripts/contrato_ftp_datasus.py` (workflow temporário disparado por push na branch e removido em seguida; para repetir, recriar um workflow com `pip install uv`, `uv sync --project elt --no-dev` e `--competencia AAAAMM`). Job de 15 min 44 s, 0 falhas, 0 repetições com espera, conexão de saída ao FTP anônimo funcionou.
+
+| Etapa | Arquivo | Baixado (MB) | `.dbf` (MB) | Segundos |
+|---|---|---|---|---|
+| listar pasta (leitos / profissionais / SIA / SIH) | 6.804 / 6.858 / 54.761 / 23.033 nomes | | | 1,9 / 1,1 / 2,3 / 1,6 |
+| leitos | LTRJ2512 (3.943 linhas) | 0,0 | 0,4 | 1,1 download, 0,1 leitura |
+| profissionais | PFRJ2512 (544.929 linhas) | 28,2 | 125,3 | 25,3 download, 18,8 descompactar, 13,5 leitura |
+| SIA parte a | PARJ2512a (4.555.669 linhas) | 150,8 | 1.908,8 | 127,5 / 105,7 / 226,2 |
+| SIA parte b | PARJ2512b (3.638.073 linhas) | 120,4 | 1.524,4 | 104,6 / 84,1 / 179,5 |
+| SIH | RDRJ2512 (76.232 linhas) | 6,0 | 53,7 | 6,3 / 4,0 / 6,9 |
+| repetição com conexão nova (listar e baixar leitos), 3 vezes | | | | 3,3 / 2,9 / 3,2 |
+
+- Disco: 93 GB livres, o maior arquivo descompactado usou ~1,9 GB (uma parte do SIA por vez; as partes não ficam juntas). Cabe com folga no runner.
+- Tempo: o runner levou ~15 min para o RJ em 2025-12 (download mais lento que no Mac: ~1,2 MB/s no SIA contra ~4 MB/s). Por mês fechado, conte 15 a 20 min por UF no Actions, **independente do número de cidades**. Backfill de 2021 em diante (~60 meses) passa de 15 h: só manual, em partes, no banco local.
+- Estabilidade: nenhuma queda no runner. Na carga local houve 1 timeout de download (`PFRJ2608`) e a retomada com nova tentativa resolveu sozinha.
+- Para a 23.8: grupo mensal; cabe no limite de um job (a 40 min colocado no teste, não o limite do GitHub de 6 h) com a UF do RJ; com várias UF, um job por UF.
+
+### Carga no banco local (5544, `.env`)
+Rodado `make elt/saude-datasus` sem argumentos: as 4 últimas fechadas (2026-07 a 2026-10). Upsert: nada foi apagado; 2026-07 sobrescreveu as linhas da API (mesma saída), 2026-08 e 2026-09 são novas. CNES de 2026-10 e SIA de 2026-09 e 2026-10 ainda não existem no FTP (sem linha, "sem dado"). Os marts foram reconstruídos (dbt 12/12). A população não foi rebuscada (2026 ainda sem dado na API; as linhas anteriores permanecem). Para levar a produção, a intenção do Julio é copiar as tabelas `raw_saude_rede` com todos os dados (execução em produção só com autorização, Regra 15); o backfill de 2021 em diante ainda não foi feito.
+
 ### Pendente
-- **Teste de contrato no GitHub Actions** (FTP a partir do runner: conexão, tempo por arquivo, disco, repetição): exige push e o Julio proibiu push. Aguarda autorização.
-- Entrada de commit: nada commitado.
+- Backfill local de 2021 em diante (decisão do Julio: fazer antes de copiar as tabelas raw para produção?).
+- Revisão de código da 25.6c (nada commitado além dos 2 commits desta sessão; sem push do restante).
