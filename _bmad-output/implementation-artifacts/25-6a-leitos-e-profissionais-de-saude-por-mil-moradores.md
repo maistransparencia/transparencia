@@ -1,5 +1,5 @@
 ---
-status: ready-for-dev
+status: in-progress
 ---
 
 # Story 25.6a: Leitos e Profissionais de Saúde por Mil Moradores
@@ -49,3 +49,28 @@ SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hem
 - Regras 2, 9, 10, 20, 23, 25 e 27. Anos antes de 2021 não importam (mart filtra `ano >= 2021`).
 - Após alterar: `make test` e `make check` (dbt), `make test/ts` e `pnpm typecheck` (TypeScript).
 - Commits convencionais em minúsculas, sem referência a story (Regra 19). Não commitar sem pedir ao Julio.
+
+## Registro da implementação (2026-11-07)
+
+### Comportamento real da API (verificado; vale para a 25.6b)
+
+- **`offset` é o número da página** (começa em 0), não a posição da linha. O `_extrair_paginado` da farmácia usa `offset=len(acumulado)` e para quando a página vem menor que `limit`: **não serve** para o CNES.
+- **Nos endpoints do CNES (leitos, profissionais) `limit` é ignorado: 1 linha por página.** Caminhar até a página vazia. Custo medido em cidade pequena: leitos ~5 páginas; **profissionais passa de 298 páginas (> 250 s por competência)**. Por isso o extrator pega **uma competência por ano** (a mais recente com resposta) e a carga diária não deveria repuxar anos fechados (decisão de cadência fica na 23.8).
+- População residente: filtro é **`ano`** (não `nu_ano`; `nu_ano` é ignorado e devolve 2012). `limit` funciona (162 linhas por ano em cidade pequena, uma página).
+- Competência vazia é rotina: o extrator sonda de dezembro para trás (1 chamada por mês) e usa a primeira com leitos.
+- Resposta: chave da lista = nome do endpoint (`cnes_leitos`, `cnes_profissionais`, `svsa_populacao_residente`). Campos usados: leitos `tp_leito`, `qt_existente`, `qt_sus`; profissionais `no_profissional` (só em memória), `st_atende_sus`; população `pop`.
+
+### Decisões
+
+- Agregação na extração: leitos por tipo de leito; profissionais viram 3 totais por competência (vínculos, pessoas distintas, pessoas em vínculo SUS). Pessoa distinta = nome normalizado (homônimos se fundem; é aproximação, a tela diz "cada pessoa conta uma vez").
+- Raw `raw_saude_rede` (3 tabelas, PK com `portal_slug`), staging `saude_rede`, mart `fct_saude_rede_por_mil_moradores_metricas` (contrato enforced). Ano sem resposta do CNES = linha com nulo, nunca zero.
+- Ano em curso: mostra até onde a fonte tem dado, com a competência na legenda.
+- População sem dado no ano (2026): usa o último ano anterior com dado e marca `populacao_estimada`; a tela avisa.
+- Rótulo "Leitos hospitalares" (leitos existentes somam todos os tipos do CNES, não só internação).
+- Tela: bloco "Quantos leitos e profissionais de saúde há para cada mil moradores?" em `/saude` (posição final é da 25.10). Texto revisado pelo `editor-cidadao`. Sem régua, sem "adequado".
+
+### Teste de contrato (critério de aceite)
+
+- Roteiro: `elt/scripts/contrato_api_saude.py` (uma passada por endpoint e por portal, `--repeticoes` vezes, sem repetição automática, timeout 30 s, intervalo 0,5 s; mais uma caminhada de 60 páginas do CNES para o limite de taxa). Cobre também CNES estabelecimentos, SIA e SIH para a 25.6b. Workflow manual: `.github/workflows/contrato-api-saude.yml` (ubuntu-latest, mesmo ambiente da carga diária).
+- Baseline local (1 repetição, 2 portais, 5 páginas): todas HTTP 200, 0,14 a 0,39 s, nenhum 429 ou timeout; SIH vazio em 1 dos 2 portais (já conhecido).
+- **PENDENTE:** executar o workflow no GitHub Actions e colar aqui o resultado. Exige commit e push do workflow (aguardando o Julio). A story só fecha depois disso.

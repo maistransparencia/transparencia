@@ -3142,7 +3142,7 @@ As a maintainer,
 I want each source to be ingested at the pace its data actually changes,  
 So that we stop re-fetching unchanged data every business day and the SIOPE and other sources get a schedule of their own.
 
-**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). Acrescentado em 2026-11-05 durante o refinamento da página de educação: a média nacional do IDEB virou o seed `seed_inep_ideb_brasil.csv` e precisa seguir a mesma cadência dos outros seeds do IDEB.
+**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). Acrescentado em 2026-11-05 durante o refinamento da página de educação: a média nacional do IDEB virou o seed `seed_inep_ideb_brasil.csv` e precisa seguir a mesma cadência dos outros seeds do IDEB. Acrescentado em 2026-11-07 durante a Story 25.6a: a rede de saúde (`saude_rede`: CNES leitos, CNES profissionais e população residente) é fonte nova, com custo de extração alto (ver critério abaixo).
 
 **Acceptance Criteria:**
 - **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
@@ -3166,10 +3166,15 @@ So that we stop re-fetching unchanged data every business day and the SIOPE and 
 - **Then** o seed entra na mesma cadência dos demais seeds do IDEB, isto é, no workflow `check-inep-ideb-updates.yml`, que passa a rodar também o `sync_ibge_ideb_brasil.py` junto do `sync_inep_ideb_seed.py`, na mesma verificação de novo ciclo bienal e no mesmo PR de atualização; a story confere se o `seed_inep_ideb_estados` também está coberto, já que hoje o workflow só chama o sync do seed municipal
 - **And** o registro de coletas da Story 23.1 lista os seeds do IDEB (municipal, estados e Brasil) como fontes com `frequencia_esperada` `mensal`, e um teste confere que nenhum seed do IDEB fica fora do workflow
 - **And** o deploy aplica `dbt seed` antes de publicar o código que lê a média nacional, porque `getEducacaoMediasNacionais` devolve vazio em silêncio se a tabela não existir e o marcador some da tela sem erro.
+- **Given** a fonte `saude_rede` (Story 25.6a: `elt/extract/saude_rede.py`, chave `saude_rede` em `elt/extract/run.py` e `elt/load/run.py`, schema `raw_saude_rede`, Makefile `elt/saude-rede`), que ainda **não está em nenhum workflow**, e a 25.6b (SIA e SIH), que reaproveita o mesmo esqueleto
+- **When** a cadência é definida
+- **Then** `saude_rede` entra no grupo **mensal** (o CNES publica uma competência por mês e a população residente, uma vez por ano) e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`; SIA e SIH entram no mesmo grupo quando a 25.6b os criar
+- **And** a carga **não rebusca anos fechados a cada execução**: a API do CNES devolve 1 linha por página (o `limit` é ignorado) e só os profissionais de uma cidade pequena passam de 298 páginas (mais de 250 s por competência, medido em 2026-11-07); o extrator hoje pega uma competência por ano e `--years` limita os anos, então o workflow mensal passa só o ano corrente (e o anterior até a competência de dezembro existir)
+- **And** o tempo do job `saude_rede` por portal é medido no primeiro run mensal e registrado, usando o resultado do teste de contrato da 25.6a (`.github/workflows/contrato-api-saude.yml`, manual) como linha de base; se o total por execução não couber no limite do job, divide-se por portal em matriz.
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
-**Dependências:** Story 24.1 (extrator do SIOPE) e Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+**Dependências:** Story 24.1 (extrator do SIOPE), Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta) e Story 25.6a (fonte `saude_rede` e teste de contrato; a 25.6a **não** depende desta); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
 
 ---
 
