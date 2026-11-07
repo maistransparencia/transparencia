@@ -102,7 +102,7 @@ describe("getSaudeOrigemRecursos", () => {
     ).toEqual(["1321.01.b", "1321.01.a"]);
   });
 
-  it("não inclui esfera sem valor no ano e devolve total zero", async () => {
+  it("devolve null, nunca total zero, quando o ano não tem dado", async () => {
     await seedSaudeOrigemRecursos({
       portalSlug: PORTAL_A,
       ano: 2024,
@@ -116,9 +116,7 @@ describe("getSaudeOrigemRecursos", () => {
       ano: 2025,
     });
 
-    expect(resultado?.fontes).toEqual([]);
-    expect(resultado?.totalArrecadado).toBe(0);
-    expect(resultado?.anoMax).toBe(2024);
+    expect(resultado).toBeNull();
   });
 
   it("isola os dados por portal", async () => {

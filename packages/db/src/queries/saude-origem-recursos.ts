@@ -158,17 +158,18 @@ export async function getSaudeOrigemRecursos({
     .where("portal_slug", "=", cleanSlug)
     .execute();
 
-  const linhas: OrigemRecursoRow[] = rows
-    .filter((row) => Number(row.ano) >= (anoInicial ?? Number(row.ano)))
-    .map((row) => ({
-      ano: Number(row.ano),
-      grupoFonte: row.grupo_fonte as GrupoFonteRecursoSaude,
-      codigoNatureza: String(row.codigo_natureza),
-      descricaoNatureza: String(row.descricao_natureza ?? row.codigo_natureza),
-      arrecadadoReceita: Number(row.arrecadado_receita ?? 0),
-    }));
+  const rowsDoPeriodo = rows.filter(
+    (row) => Number(row.ano) >= (anoInicial ?? Number(row.ano)),
+  );
+  const linhas: OrigemRecursoRow[] = rowsDoPeriodo.map((row) => ({
+    ano: Number(row.ano),
+    grupoFonte: row.grupo_fonte as GrupoFonteRecursoSaude,
+    codigoNatureza: String(row.codigo_natureza),
+    descricaoNatureza: String(row.descricao_natureza ?? row.codigo_natureza),
+    arrecadadoReceita: Number(row.arrecadado_receita ?? 0),
+  }));
 
-  if (linhas.length === 0) {
+  if (!linhas.some((linha) => linha.ano === ano)) {
     return null;
   }
 
@@ -207,13 +208,7 @@ export async function getSaudeOrigemRecursos({
   return {
     portalSlug: cleanSlug,
     ano,
-    nomeOrgao: [
-      ...new Set(
-        rows.flatMap((row) => (row.orgao_nome ? [String(row.orgao_nome)] : [])),
-      ),
-    ]
-      .sort()
-      .join(" / "),
+    nomeOrgao: nomeOrgao(rowsDoPeriodo),
     anoMin: anos.length > 0 ? Math.min(...anos) : null,
     anoMax: anos.length > 0 ? Math.max(...anos) : null,
     anoParcial: parcial?.ano ?? null,
@@ -222,4 +217,13 @@ export async function getSaudeOrigemRecursos({
     totalArrecadado,
     fontes,
   };
+}
+
+function nomeOrgao(rows: { orgao_nome: string | null }[]): string | null {
+  const nomes = [
+    ...new Set(
+      rows.flatMap((row) => (row.orgao_nome ? [String(row.orgao_nome)] : [])),
+    ),
+  ].sort();
+  return nomes.length > 0 ? nomes.join(" / ") : null;
 }
