@@ -79,4 +79,108 @@ describe("getSaudeProducaoSus", () => {
     expect(ano.ultimaCompetenciaAmbulatorial).toBe(202606);
     expect(ano.populacaoEstimada).toBe(true);
   });
+
+  it("usa o ano completo mais recente como referência e o anterior completo para comparar", async () => {
+    await seedSaudeProducaoSus([
+      {
+        portalSlug: PORTAL_A,
+        ano: 2022,
+        competenciasAmbulatoriais: 12,
+        anoCompletoAmbulatorial: true,
+        procedimentosAmbulatoriaisPorMilMoradores: 100,
+      },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2023,
+        competenciasAmbulatoriais: 12,
+        anoCompletoAmbulatorial: true,
+        procedimentosAmbulatoriaisPorMilMoradores: 110,
+      },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2024,
+        competenciasAmbulatoriais: 7,
+        anoCompletoAmbulatorial: false,
+        procedimentosAmbulatoriaisPorMilMoradores: 60,
+      },
+    ]);
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.referenciaAmbulatorial).toEqual({
+      ano: 2023,
+      completo: true,
+      ultimaCompetencia: 202312,
+      anoAnterior: 2022,
+    });
+    expect(resultado?.referenciaInternacoes).toBeNull();
+  });
+
+  it("sem ano completo a referência é o mais recente com dado, incompleto e sem anterior", async () => {
+    await seedSaudeProducaoSus({
+      portalSlug: PORTAL_A,
+      ano: 2024,
+      competenciasAmbulatoriais: 5,
+      anoCompletoAmbulatorial: false,
+      procedimentosAmbulatoriaisPorMilMoradores: 40,
+    });
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.referenciaAmbulatorial).toEqual({
+      ano: 2024,
+      completo: false,
+      ultimaCompetencia: 202405,
+      anoAnterior: null,
+    });
+  });
+
+  it("não chama de em andamento o último ano fechado de município sem SIH", async () => {
+    await seedSaudeProducaoSus({
+      portalSlug: PORTAL_A,
+      ano: 2023,
+      competenciasAmbulatoriais: 12,
+      anoCompletoAmbulatorial: true,
+      procedimentosAmbulatoriaisPorMilMoradores: 100,
+    });
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.semInternacoes).toBe(true);
+    expect(resultado?.serie[0].anoIncompleto).toBe(false);
+    expect(resultado?.anoEmAndamento).toBeNull();
+  });
+
+  it("marca ano passado com 11 competências como incompleto, mas não como em andamento", async () => {
+    await seedSaudeProducaoSus({
+      portalSlug: PORTAL_A,
+      ano: 2023,
+      competenciasAmbulatoriais: 11,
+      anoCompletoAmbulatorial: false,
+      procedimentosAmbulatoriaisPorMilMoradores: 90,
+    });
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.serie[0].anoIncompleto).toBe(true);
+    expect(resultado?.anoEmAndamento).toBeNull();
+  });
+
+  it("aponta o ano corrente incompleto como em andamento, com a última competência", async () => {
+    const anoAtual = new Date().getFullYear();
+    await seedSaudeProducaoSus({
+      portalSlug: PORTAL_A,
+      ano: anoAtual,
+      competenciasAmbulatoriais: 3,
+      anoCompletoAmbulatorial: false,
+      procedimentosAmbulatoriaisPorMilMoradores: 30,
+    });
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.anoEmAndamento).toEqual({
+      ano: anoAtual,
+      ateCompetencia: anoAtual * 100 + 3,
+    });
+  });
 });

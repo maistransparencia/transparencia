@@ -90,6 +90,7 @@ def test_sih_sem_retorno_fica_sem_dado_e_nao_zero(conn, portal, raw):
 
 
 def test_valor_ilegivel_nao_vira_zero(conn, portal, raw):
+    raw.sia(portal, 202301, 10)
     raw.sih(portal, 202301, "")
     raw.populacao(portal, 2023, 1000)
     assert _linhas(conn, portal)[2023]["total_internacoes"] is None
@@ -105,3 +106,25 @@ def test_sem_populacao_nao_calcula_taxa(conn, portal, raw):
     linha = _linhas(conn, portal)[2022]
     assert linha["procedimentos_ambulatoriais_por_mil_moradores"] is None
     assert linha["total_procedimentos_ambulatoriais"] == 10
+
+
+def test_competencia_com_total_ilegivel_nao_conta_para_ano_completo(conn, portal, raw):
+    for mes in range(1, 12):
+        raw.sia(portal, 202400 + mes, 100)
+    raw.sia(portal, 202412, "")
+    raw.populacao(portal, 2024, 10000)
+    linha = _linhas(conn, portal)[2024]
+    assert linha["competencias_ambulatoriais"] == 11
+    assert linha["ultima_competencia_ambulatorial"] == 202411
+    assert linha["total_procedimentos_ambulatoriais"] == 1100
+    assert linha["ano_completo_ambulatorial"] is False
+
+
+def test_ano_so_com_competencias_ilegiveis_fica_sem_dado(conn, portal, raw):
+    raw.sih(portal, 202401, "")
+    raw.sia(portal, 202401, 10)
+    raw.populacao(portal, 2024, 1000)
+    linha = _linhas(conn, portal)[2024]
+    assert linha["competencias_internacoes"] is None
+    assert linha["total_internacoes"] is None
+    assert linha["ultima_competencia_internacoes"] is None

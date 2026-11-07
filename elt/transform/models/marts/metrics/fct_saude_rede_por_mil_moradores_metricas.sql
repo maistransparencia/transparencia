@@ -20,7 +20,7 @@ with leitos_competencia_recente as (
         data_coleta,
         max(competencia) over (partition by portal_slug, ano) as competencia_mais_recente
     from {{ ref('stg_saude_rede__leitos_competencia') }}
-    where ano >= 2021
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
 
 leitos as (
@@ -46,7 +46,7 @@ profissionais_competencia_recente as (
         data_coleta,
         max(competencia) over (partition by portal_slug, ano) as competencia_mais_recente
     from {{ ref('stg_saude_rede__profissionais_competencia') }}
-    where ano >= 2021
+    where ano >= {{ var('ano_inicial_historico', 2021) }}
 ),
 
 profissionais as (
@@ -68,7 +68,7 @@ anos as (
     union
     select portal_slug, ano
     from {{ ref('stg_saude_rede__populacao_residente') }}
-    where ano >= 2021 and total_populacao > 0
+    where ano >= {{ var('ano_inicial_historico', 2021) }} and total_populacao > 0
 ),
 
 populacao_do_ano as (

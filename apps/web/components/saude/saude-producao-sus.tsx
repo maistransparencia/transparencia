@@ -1,6 +1,7 @@
 import type {
   SaudeProducaoSusAnoDTO,
   SaudeProducaoSusDTO,
+  SaudeProducaoSusReferenciaDTO,
 } from "@transparencia/db";
 import {
   fmtDate,
@@ -30,66 +31,45 @@ const totalOuTraco = (valor: number | null): string =>
 const formatCompetencia = (competencia: number): string =>
   `${String(competencia % 100).padStart(2, "0")}/${Math.floor(competencia / 100)}`;
 
-interface Medida {
-  porMil: (ano: SaudeProducaoSusAnoDTO) => number | null;
-  completo: (ano: SaudeProducaoSusAnoDTO) => boolean;
-  ultimaCompetencia: (ano: SaudeProducaoSusAnoDTO) => number | null;
-}
-
-const ATENDIMENTOS: Medida = {
-  porMil: (ano) => ano.procedimentosAmbulatoriaisPorMilMoradores,
-  completo: (ano) => ano.anoCompletoAmbulatorial,
-  ultimaCompetencia: (ano) => ano.ultimaCompetenciaAmbulatorial,
-};
-
-const INTERNACOES: Medida = {
-  porMil: (ano) => ano.internacoesPorMilMoradores,
-  completo: (ano) => ano.anoCompletoInternacoes,
-  ultimaCompetencia: (ano) => ano.ultimaCompetenciaInternacoes,
-};
-
 const maisRecentePrimeiro = (serie: SaudeProducaoSusAnoDTO[]) =>
   [...serie].reverse();
 
-/** Ano completo mais recente com dado; sem ano completo, o mais recente com dado (parcial). */
-function anoDeReferencia(
-  serie: SaudeProducaoSusAnoDTO[],
-  medida: Medida,
-): SaudeProducaoSusAnoDTO | undefined {
-  const comDado = maisRecentePrimeiro(serie).filter(
-    (ano) => medida.porMil(ano) !== null,
-  );
-  return comDado.find((ano) => medida.completo(ano)) ?? comDado[0];
-}
-
 function notaDoIndicador(
   serie: SaudeProducaoSusAnoDTO[],
-  medida: Medida,
-  referencia: SaudeProducaoSusAnoDTO | undefined,
+  referencia: SaudeProducaoSusReferenciaDTO | null,
+  porMil: (ano: SaudeProducaoSusAnoDTO) => number | null,
 ): string {
   if (!referencia) return "sem dado nesta fonte";
-  const estimada = referencia.populacaoEstimada ? " (população estimada)" : "";
-  if (!medida.completo(referencia)) {
-    const ate = medida.ultimaCompetencia(referencia);
+  const doAno = serie.find((ano) => ano.ano === referencia.ano);
+  const estimada = doAno?.populacaoEstimada ? " (população estimada)" : "";
+  if (!referencia.completo) {
+    const ate = referencia.ultimaCompetencia;
     return `ano ${referencia.ano} incompleto${ate ? `, com dados até ${formatCompetencia(ate)}` : ""}${estimada}`;
   }
-  const anterior = maisRecentePrimeiro(serie).find(
-    (ano) =>
-      ano.ano < referencia.ano &&
-      medida.completo(ano) &&
-      medida.porMil(ano) !== null,
-  );
+  const anterior = serie.find((ano) => ano.ano === referencia.anoAnterior);
   const base = anterior
-    ? `em ${referencia.ano}. Em ${anterior.ano} eram ${porMilOuTraco(medida.porMil(anterior))}`
+    ? `em ${referencia.ano}. Em ${anterior.ano} eram ${porMilOuTraco(porMil(anterior))}`
     : `em ${referencia.ano}`;
   return `${base}${estimada}`;
 }
 
+function valorDaReferencia(
+  serie: SaudeProducaoSusAnoDTO[],
+  referencia: SaudeProducaoSusReferenciaDTO | null,
+  porMil: (ano: SaudeProducaoSusAnoDTO) => number | null,
+): number | null {
+  const doAno = serie.find((ano) => ano.ano === referencia?.ano);
+  return doAno ? porMil(doAno) : null;
+}
+
+const atendimentosPorMil = (ano: SaudeProducaoSusAnoDTO) =>
+  ano.procedimentosAmbulatoriaisPorMilMoradores;
+
+const internacoesPorMil = (ano: SaudeProducaoSusAnoDTO) =>
+  ano.internacoesPorMilMoradores;
+
 function descricaoAno(ano: SaudeProducaoSusAnoDTO): string {
-  const incompleto =
-    !ano.anoCompletoAmbulatorial && !ano.anoCompletoInternacoes
-      ? " (ano incompleto)"
-      : "";
+  const incompleto = ano.anoIncompleto ? " (ano incompleto)" : "";
   const estimada = ano.populacaoEstimada ? " (população estimada)" : "";
   return `${ano.ano}${incompleto}${estimada}`;
 }
@@ -97,19 +77,13 @@ function descricaoAno(ano: SaudeProducaoSusAnoDTO): string {
 export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
   if (!producao) return null;
 
-  const { serie } = producao;
-  const atendimentos = anoDeReferencia(serie, ATENDIMENTOS);
-  const internacoes = anoDeReferencia(serie, INTERNACOES);
-  const semInternacoes = !serie.some((ano) => ano.totalInternacoes !== null);
-  const emAndamento = maisRecentePrimeiro(serie).find(
-    (ano) => !ano.anoCompletoAmbulatorial || !ano.anoCompletoInternacoes,
-  );
-  const ateCompetencia = emAndamento
-    ? Math.max(
-        emAndamento.ultimaCompetenciaAmbulatorial ?? 0,
-        emAndamento.ultimaCompetenciaInternacoes ?? 0,
-      )
-    : 0;
+  const {
+    serie,
+    referenciaAmbulatorial,
+    referenciaInternacoes,
+    anoEmAndamento,
+    semInternacoes,
+  } = producao;
   const dataColeta = serie
     .map((ano) => ano.dataColeta)
     .filter((data): data is string => data !== null)
@@ -136,16 +110,28 @@ export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
         <Indicator
           label="Atendimentos sem internação por mil moradores"
           value={porMilOuTraco(
-            atendimentos ? ATENDIMENTOS.porMil(atendimentos) : null,
+            valorDaReferencia(
+              serie,
+              referenciaAmbulatorial,
+              atendimentosPorMil,
+            ),
           )}
-          note={notaDoIndicador(serie, ATENDIMENTOS, atendimentos)}
+          note={notaDoIndicador(
+            serie,
+            referenciaAmbulatorial,
+            atendimentosPorMil,
+          )}
         />
         <Indicator
           label="Internações pagas pelo SUS por mil moradores"
           value={porMilOuTraco(
-            internacoes ? INTERNACOES.porMil(internacoes) : null,
+            valorDaReferencia(serie, referenciaInternacoes, internacoesPorMil),
           )}
-          note={notaDoIndicador(serie, INTERNACOES, internacoes)}
+          note={notaDoIndicador(
+            serie,
+            referenciaInternacoes,
+            internacoesPorMil,
+          )}
         />
       </IndicatorPanel>
       {semInternacoes ? (
@@ -155,11 +141,14 @@ export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
           registro nesta base.
         </p>
       ) : null}
-      {emAndamento ? (
+      {anoEmAndamento ? (
         <p className="caption">
-          O ano de {emAndamento.ano} está em andamento: a fonte tem dados só até{" "}
-          {ateCompetencia ? formatCompetencia(ateCompetencia) : "agora"} e por
-          isso ele não é comparado com anos completos.
+          O ano de {anoEmAndamento.ano} está em andamento: a fonte tem dados só
+          até{" "}
+          {anoEmAndamento.ateCompetencia
+            ? formatCompetencia(anoEmAndamento.ateCompetencia)
+            : "agora"}{" "}
+          e por isso ele não é comparado com anos completos.
         </p>
       ) : null}
       <details>

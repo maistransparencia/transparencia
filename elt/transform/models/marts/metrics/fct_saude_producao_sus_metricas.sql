@@ -9,7 +9,7 @@
 -- uma linha por portal e ano. É a produção registrada e paga pelo SUS, não todo o atendimento da cidade.
 -- Cada ano soma as competências carregadas (a fonte tem defasagem de 1 a 2 meses e a carga é incremental):
 -- competencias_* diz quantos meses entraram e ano_completo_* só é verdadeiro com os 12. Competência sem
--- resposta não tem linha, então ano sem nenhuma competência fica nulo ("sem dado nesta fonte"), nunca zero.
+-- resposta ou com total ilegível não conta como competência (nem entra em ano_completo_*), então ano sem nenhuma competência fica nulo ("sem dado nesta fonte"), nunca zero.
 -- A população segue a regra do mart de leitos: do ano ou, sem ela, a do último ano anterior (populacao_estimada).
 
 with sia_por_ano as (
@@ -21,7 +21,7 @@ with sia_por_ano as (
         sum(total_procedimentos_ambulatoriais)::bigint as total_procedimentos_ambulatoriais,
         max(data_coleta) as data_coleta_ambulatorial
     from {{ ref('stg_saude_rede__sia_competencia') }}
-    where ano >= 2021
+    where ano >= {{ var('ano_inicial_historico', 2021) }} and total_procedimentos_ambulatoriais is not null
     group by portal_slug, ano
 ),
 
@@ -34,7 +34,7 @@ sih_por_ano as (
         sum(total_internacoes)::bigint as total_internacoes,
         max(data_coleta) as data_coleta_internacoes
     from {{ ref('stg_saude_rede__sih_competencia') }}
-    where ano >= 2021
+    where ano >= {{ var('ano_inicial_historico', 2021) }} and total_internacoes is not null
     group by portal_slug, ano
 ),
 

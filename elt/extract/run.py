@@ -215,7 +215,7 @@ def main() -> None:
         from elt.extract.saude_rede import SaudeRedeExtractor
 
         # Sem --years busca só o ano atual (cada ano de profissionais leva minutos); anos fechados: --years.
-        anos_saude = [ano for ano in (args.years or [date.today().year]) if ano >= 2021]
+        anos_saude = args.years or [date.today().year]
         logger.info(
             "Extracting rede de saúde for %s (cod_ibge: %s, anos %s)...", portal.slug, portal.cod_ibge, anos_saude
         )

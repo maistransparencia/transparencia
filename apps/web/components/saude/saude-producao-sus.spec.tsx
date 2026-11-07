@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type {
   SaudeProducaoSusAnoDTO,
   SaudeProducaoSusDTO,
+  SaudeProducaoSusReferenciaDTO,
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
 import { SaudeProducaoSus } from "./saude-producao-sus";
@@ -17,6 +18,7 @@ const ano = (
   totalInternacoes: 60,
   anoCompletoAmbulatorial: true,
   anoCompletoInternacoes: true,
+  anoIncompleto: false,
   populacaoResidente: 10000,
   anoPopulacaoReferencia: valores.ano,
   populacaoEstimada: false,
@@ -26,11 +28,31 @@ const ano = (
   ...valores,
 });
 
-const producao = (serie: SaudeProducaoSusAnoDTO[]): SaudeProducaoSusDTO => ({
+const referenciaCompleta = (
+  serie: SaudeProducaoSusAnoDTO[],
+): SaudeProducaoSusReferenciaDTO => {
+  const ultimo = serie[serie.length - 1];
+  return {
+    ano: ultimo.ano,
+    completo: true,
+    ultimaCompetencia: ultimo.ano * 100 + 12,
+    anoAnterior: serie.length > 1 ? serie[serie.length - 2].ano : null,
+  };
+};
+
+const producao = (
+  serie: SaudeProducaoSusAnoDTO[],
+  extra: Partial<SaudeProducaoSusDTO> = {},
+): SaudeProducaoSusDTO => ({
   portalSlug: "x",
   anoMin: serie[0].ano,
   anoMax: serie[serie.length - 1].ano,
+  referenciaAmbulatorial: referenciaCompleta(serie),
+  referenciaInternacoes: referenciaCompleta(serie),
+  anoEmAndamento: null,
+  semInternacoes: false,
   serie,
+  ...extra,
 });
 
 describe("SaudeProducaoSus", () => {
@@ -65,20 +87,38 @@ describe("SaudeProducaoSus", () => {
   it("não compara o ano em andamento com anos completos", () => {
     render(
       <SaudeProducaoSus
-        producao={producao([
-          ano({ ano: 2025 }),
-          ano({
-            ano: 2026,
-            competenciasAmbulatoriais: 6,
-            competenciasInternacoes: 6,
-            ultimaCompetenciaAmbulatorial: 202606,
-            ultimaCompetenciaInternacoes: 202606,
-            anoCompletoAmbulatorial: false,
-            anoCompletoInternacoes: false,
-            procedimentosAmbulatoriaisPorMilMoradores: 50,
-            internacoesPorMilMoradores: 3,
-          }),
-        ])}
+        producao={producao(
+          [
+            ano({ ano: 2025 }),
+            ano({
+              ano: 2026,
+              competenciasAmbulatoriais: 6,
+              competenciasInternacoes: 6,
+              ultimaCompetenciaAmbulatorial: 202606,
+              ultimaCompetenciaInternacoes: 202606,
+              anoCompletoAmbulatorial: false,
+              anoCompletoInternacoes: false,
+              anoIncompleto: true,
+              procedimentosAmbulatoriaisPorMilMoradores: 50,
+              internacoesPorMilMoradores: 3,
+            }),
+          ],
+          {
+            referenciaAmbulatorial: {
+              ano: 2025,
+              completo: true,
+              ultimaCompetencia: 202512,
+              anoAnterior: null,
+            },
+            referenciaInternacoes: {
+              ano: 2025,
+              completo: true,
+              ultimaCompetencia: 202512,
+              anoAnterior: null,
+            },
+            anoEmAndamento: { ano: 2026, ateCompetencia: 202606 },
+          },
+        )}
       />,
     );
     expect(screen.getAllByText("em 2025").length).toBe(2);
@@ -90,16 +130,22 @@ describe("SaudeProducaoSus", () => {
   it("mostra SIH sem retorno como sem dado e não como zero", () => {
     render(
       <SaudeProducaoSus
-        producao={producao([
-          ano({
-            ano: 2024,
-            competenciasInternacoes: null,
-            ultimaCompetenciaInternacoes: null,
-            totalInternacoes: null,
-            anoCompletoInternacoes: false,
-            internacoesPorMilMoradores: null,
-          }),
-        ])}
+        producao={producao(
+          [
+            ano({
+              ano: 2024,
+              competenciasInternacoes: null,
+              ultimaCompetenciaInternacoes: null,
+              totalInternacoes: null,
+              anoCompletoInternacoes: false,
+              internacoesPorMilMoradores: null,
+            }),
+          ],
+          {
+            referenciaInternacoes: null,
+            semInternacoes: true,
+          },
+        )}
       />,
     );
     expect(screen.getByText("sem dado nesta fonte")).toBeTruthy();
@@ -133,5 +179,27 @@ describe("SaudeProducaoSus", () => {
     expect(
       screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
     ).toBeTruthy();
+  });
+
+  it("não chama de em andamento o último ano fechado de município sem SIH", () => {
+    render(
+      <SaudeProducaoSus
+        producao={producao(
+          [
+            ano({
+              ano: 2024,
+              competenciasInternacoes: null,
+              ultimaCompetenciaInternacoes: null,
+              totalInternacoes: null,
+              anoCompletoInternacoes: false,
+              internacoesPorMilMoradores: null,
+            }),
+          ],
+          { referenciaInternacoes: null, semInternacoes: true },
+        )}
+      />,
+    );
+    expect(screen.queryByText(/está em andamento/)).toBeNull();
+    expect(screen.queryByText(/\(ano incompleto\)/)).toBeNull();
   });
 });
