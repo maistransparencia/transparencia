@@ -4,12 +4,15 @@ import json
 from datetime import date
 from unittest.mock import MagicMock, patch
 
+import pytest
+import requests
 from elt.extract.saude_rede import (
     SaudeRedeExtractor,
     agregar_leitos,
     agregar_populacao,
     agregar_profissionais,
     competencias_do_ano,
+    competencias_recentes,
 )
 
 
@@ -132,3 +135,114 @@ def test_vinculos_sem_nome_nao_viram_zero_profissionais():
     assert linha["total_vinculos"] == "2"
     assert linha["total_profissionais"] == ""
     assert linha["total_profissionais_sus"] == ""
+
+
+def _sessao_sia_sih(sia_por_competencia, sih_por_competencia):
+    """API falsa de SIA/SIH: 1 linha por página, páginas por `offset`."""
+    chamadas = []
+
+    def get(url, params=None, **_):
+        chamadas.append((url, dict(params)))
+        fonte = sia_por_competencia if "sia-procedimentos" in url else sih_por_competencia
+        chave = "sia_procedimentos_ambulatoriais" if "sia-procedimentos" in url else "sih_procedimentos_hospitalares"
+        linhas = fonte.get(params["nu_comp"], [])
+        return _resposta({chave: linhas[params["offset"] : params["offset"] + 1]})
+
+    sessao = MagicMock()
+    sessao.get.side_effect = get
+    return sessao, chamadas
+
+
+def test_extract_producao_soma_por_competencia_filtra_por_nu_comp_e_nao_usa_nu_ano():
+    sia = {202601: [{"qt_procedimento": 10}, {"qt_procedimento": 5}, {"qt_procedimento": 1}]}
+    sih = {202601: [{"qt_procedimento": 2}], 202602: [{"qt_procedimento": 3}]}
+    sessao, chamadas = _sessao_sia_sih(sia, sih)
+    extrator = SaudeRedeExtractor(min_interval_seconds=0)
+    with patch("elt.extract.saude_rede.requests.Session", return_value=sessao):
+        resultado = extrator.extract_producao("p", 3304102, [202601, 202602])
+
+    assert [
+        (linha["competencia"], linha["total_procedimentos_ambulatoriais"]) for linha in resultado["sia_competencia"]
+    ] == [("202601", "16")]
+    assert [(linha["competencia"], linha["total_internacoes"]) for linha in resultado["sih_competencia"]] == [
+        ("202601", "2"),
+        ("202602", "3"),
+    ]
+    for _, params in chamadas:
+        assert params["co_ibge"] == "330410" and "nu_comp" in params and "nu_ano" not in params
+
+
+def test_extract_producao_sih_sem_resposta_nao_gera_linha():
+    sessao, _ = _sessao_sia_sih({202601: [{"qt_procedimento": 4}]}, {})
+    extrator = SaudeRedeExtractor(min_interval_seconds=0)
+    with patch("elt.extract.saude_rede.requests.Session", return_value=sessao):
+        resultado = extrator.extract_producao("p", 3304102, [202601])
+    assert resultado["sih_competencia"] == []
+    assert resultado["sia_competencia"][0]["total_procedimentos_ambulatoriais"] == "4"
+
+
+def test_competencias_recentes_sao_as_fechadas_sem_o_mes_corrente():
+    assert competencias_recentes(4, date(2026, 11, 7)) == [202610, 202609, 202608, 202607]
+    assert competencias_recentes(3, date(2026, 2, 1)) == [202601, 202512, 202511]
+
+
+def test_paginas_aceita_linhas_identicas_em_paginas_vizinhas():
+    linha = {"qt_procedimento": 1}
+    sessao, _ = _sessao_sia_sih({202601: [linha, linha]}, {})
+    extrator = SaudeRedeExtractor(min_interval_seconds=0)
+    assert len(extrator._paginas("/sia-procedimentos", {"nu_comp": 202601}, sessao)) == 2
+
+
+def test_paginas_falha_quando_a_api_ignora_offset():
+    resposta = _resposta({"sia_procedimentos_ambulatoriais": [{"qt_procedimento": 1}]})
+    sessao = MagicMock()
+    sessao.get.return_value = resposta
+    extrator = SaudeRedeExtractor(min_interval_seconds=0)
+    with pytest.raises(RuntimeError, match="repetiu a mesma página"):
+        extrator._paginas("/sia-procedimentos", {"nu_comp": 202601}, sessao)
+
+
+def test_paginas_falha_ao_atingir_o_limite_de_paginas():
+    def get(url, params=None, **_):
+        return _resposta({"sia_procedimentos_ambulatoriais": [{"qt_procedimento": params["offset"]}]})
+
+    sessao = MagicMock()
+    sessao.get.side_effect = get
+    extrator = SaudeRedeExtractor(min_interval_seconds=0, maximo_paginas=5)
+    with pytest.raises(RuntimeError, match="Limite de 5 páginas"):
+        extrator._paginas("/sia-procedimentos", {"nu_comp": 202601}, sessao)
+
+
+def test_falha_no_meio_da_paginacao_propaga_e_nao_devolve_dado_parcial():
+    def get(url, params=None, **_):
+        if params["offset"] == 2:
+            raise requests.ConnectionError("queda")
+        return _resposta({"sia_procedimentos_ambulatoriais": [{"qt_procedimento": params["offset"]}]})
+
+    sessao = MagicMock()
+    sessao.get.side_effect = get
+    extrator = SaudeRedeExtractor(min_interval_seconds=0, max_retries=1)
+    with patch("elt.extract.farmacia_sus.time.sleep"), pytest.raises(requests.ConnectionError):
+        extrator._paginas("/sia-procedimentos", {"nu_comp": 202601}, sessao)
+
+
+def test_extract_entrega_o_acumulado_a_cada_ano_concluido():
+    leitos = {
+        202412: [{"tp_leito": "1 - X", "qt_existente": 4, "qt_sus": 4}],
+        202312: [{"tp_leito": "1 - X", "qt_existente": 3, "qt_sus": 3}],
+    }
+    profissionais = {202412: [{"no_profissional": "A"}], 202312: [{"no_profissional": "B"}]}
+    populacao = {2024: [{"pop": 10}], 2023: [{"pop": 9}]}
+    sessao, _ = _api(leitos, profissionais, populacao)
+    recebidos = []
+    extrator = SaudeRedeExtractor(min_interval_seconds=0)
+    with patch("elt.extract.saude_rede.requests.Session", return_value=sessao):
+        extrator.extract(
+            "p",
+            3304102,
+            anos=[2023, 2024],
+            ao_concluir_ano=lambda dados: recebidos.append({k: len(v) for k, v in dados.items()}),
+        )
+    assert [r["leitos_competencia"] for r in recebidos] == [1, 2]
+    assert [r["profissionais_competencia"] for r in recebidos] == [1, 2]
+    assert [r["populacao_residente"] for r in recebidos] == [1, 2]

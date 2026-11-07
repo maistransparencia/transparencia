@@ -1636,6 +1636,61 @@ export async function seedSaudeRede(
     .execute();
 }
 
+export interface SaudeProducaoSusAnoRow {
+  portalSlug: string;
+  ano: number;
+  competenciasAmbulatoriais?: number | null;
+  competenciasInternacoes?: number | null;
+  totalProcedimentosAmbulatoriais?: number | null;
+  totalInternacoes?: number | null;
+  anoCompletoAmbulatorial?: boolean;
+  anoCompletoInternacoes?: boolean;
+  populacaoResidente?: number | null;
+  populacaoEstimada?: boolean;
+  anoPopulacaoReferencia?: number | null;
+  procedimentosAmbulatoriaisPorMilMoradores?: number | null;
+  internacoesPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeProducaoSus(
+  row: SaudeProducaoSusAnoRow | SaudeProducaoSusAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_producao_sus_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencias_ambulatoriais: r.competenciasAmbulatoriais ?? null,
+        competencias_internacoes: r.competenciasInternacoes ?? null,
+        ultima_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null
+            ? null
+            : r.ano * 100 + r.competenciasAmbulatoriais,
+        ultima_competencia_internacoes:
+          r.competenciasInternacoes == null
+            ? null
+            : r.ano * 100 + r.competenciasInternacoes,
+        total_procedimentos_ambulatoriais:
+          r.totalProcedimentosAmbulatoriais ?? null,
+        total_internacoes: r.totalInternacoes ?? null,
+        ano_completo_ambulatorial: r.anoCompletoAmbulatorial ?? false,
+        ano_completo_internacoes: r.anoCompletoInternacoes ?? false,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        procedimentos_ambulatoriais_por_mil_moradores:
+          r.procedimentosAmbulatoriaisPorMilMoradores ?? null,
+        internacoes_por_mil_moradores: r.internacoesPorMilMoradores ?? null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -1656,6 +1711,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_saude_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_producao_sus_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

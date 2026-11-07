@@ -26,6 +26,8 @@ TABELAS: dict[str, list[str]] = {
     "leitos_competencia": ["portal_slug", "competencia", "tipo_leito"],
     "profissionais_competencia": ["portal_slug", "competencia"],
     "populacao_residente": ["portal_slug", "ano"],
+    "sia_competencia": ["portal_slug", "competencia"],
+    "sih_competencia": ["portal_slug", "competencia"],
 }
 
 
@@ -59,6 +61,22 @@ def ensure_saude_rede_tables(engine: Connectable, schema: str = SCHEMA_PADRAO) -
         "total_populacao" TEXT,
         "data_coleta" TEXT,
         PRIMARY KEY ("portal_slug", "ano")
+    );
+
+    CREATE TABLE IF NOT EXISTS "{schema}"."sia_competencia" (
+        "portal_slug" TEXT NOT NULL,
+        "competencia" TEXT NOT NULL,
+        "total_procedimentos_ambulatoriais" TEXT,
+        "data_coleta" TEXT,
+        PRIMARY KEY ("portal_slug", "competencia")
+    );
+
+    CREATE TABLE IF NOT EXISTS "{schema}"."sih_competencia" (
+        "portal_slug" TEXT NOT NULL,
+        "competencia" TEXT NOT NULL,
+        "total_internacoes" TEXT,
+        "data_coleta" TEXT,
+        PRIMARY KEY ("portal_slug", "competencia")
     );
     """
     if isinstance(engine, Engine):

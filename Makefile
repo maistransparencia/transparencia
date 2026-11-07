@@ -117,6 +117,16 @@ elt/saude-rede:
 	done
 	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_rede_por_mil_moradores_metricas
 
+# Produção do SUS (SIA/SIH) por competência. Uso: make elt/saude-producao [PORTAL=slug] [COMPETENCIAS="202601 202602"]
+# Sem COMPETENCIAS busca as 4 últimas fechadas. Backfill (2021 em diante) é manual, em partes e só no banco local.
+elt/saude-producao:
+	@for portal in $(if $(PORTAL),$(PORTAL),$$(ls elt/portals/*.yml | xargs -n1 basename | sed 's/\.yml$$//')); do \
+		echo "=== Produção SUS: $$portal ==="; \
+		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only saude_producao $(if $(COMPETENCIAS),--competencias $(COMPETENCIAS)) && \
+		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
+	done
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_producao_sus_metricas
+
 # CLOUDFLARE R2 DATA LAKE SYNC
 
 r2/pull:

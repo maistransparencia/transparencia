@@ -39,5 +39,6 @@ export * from "./queries/radar-digest";
 export * from "./queries/receitas-extra-metrics";
 export * from "./queries/saude-minimo-constitucional";
 export * from "./queries/saude-origem-recursos";
+export * from "./queries/saude-producao-sus";
 export * from "./queries/saude-rede-por-mil-moradores";
 export * from "./queries/siconfi-caixa-metrics";

@@ -30,6 +30,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Extract raw data from portal API")
     parser.add_argument("--portal", required=True, help="Portal slug (e.g. porciuncula_prefeitura)")
     parser.add_argument("--years", nargs="+", type=int, help="Years to extract (default: all since ano_inicial)")
+    parser.add_argument(
+        "--competencias",
+        nargs="+",
+        type=int,
+        help="Competências AAAAMM de SIA/SIH (default: as 4 últimas fechadas). Backfill manual, em partes.",
+    )
     parser.add_argument("--only", help="Extract only this listagem endpoint")
     args = parser.parse_args()
 
@@ -57,7 +63,7 @@ def main() -> None:
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     obrasgov_keys = {"obrasgov"}
     farmacia_sus_keys = {"farmacia_sus"}
-    saude_rede_keys = {"saude_rede"}
+    saude_rede_keys = {"saude_rede", "saude_producao"}
     if args.only:
         valid = (
             [e.listagem for e in endpoints]
@@ -203,26 +209,55 @@ def main() -> None:
             logger.warning("Failed: farmacia_sus / %s: %s", portal.slug, exc)
             _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc)
 
-    if not args.only or args.only in saude_rede_keys:
+    # saude_rede e saude_producao só rodam quando pedidas por --only: cada uma leva minutos por portal e a
+    # cadência delas é da Story 23.8. Assim a carga diária (sem --only) não as puxa.
+    if args.only == "saude_rede":
         from elt.extract.saude_rede import SaudeRedeExtractor
 
-        anos_saude = [ano for ano in years if ano >= 2021]
+        # Sem --years busca só o ano atual (cada ano de profissionais leva minutos); anos fechados: --years.
+        anos_saude = [ano for ano in (args.years or [date.today().year]) if ano >= 2021]
         logger.info(
             "Extracting rede de saúde for %s (cod_ibge: %s, anos %s)...", portal.slug, portal.cod_ibge, anos_saude
         )
+        saude_dir = run_dir / "saude_rede"
+        saude_dir.mkdir(parents=True, exist_ok=True)
+
+        def gravar_saude_rede(dados: dict[str, list[dict[str, Any]]]) -> None:
+            for key, rows in dados.items():
+                (saude_dir / f"{key}.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+
         try:
             saude_data = SaudeRedeExtractor().extract(
-                portal_slug=portal.slug, cod_ibge=portal.cod_ibge, anos=anos_saude
+                portal_slug=portal.slug,
+                cod_ibge=portal.cod_ibge,
+                anos=anos_saude,
+                ao_concluir_ano=gravar_saude_rede,
             )
-            saude_dir = run_dir / "saude_rede"
-            saude_dir.mkdir(parents=True, exist_ok=True)
+            gravar_saude_rede(saude_data)
             for key, rows in saude_data.items():
-                out = saude_dir / f"{key}.json"
-                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
                 logger.info("Extracted saude_rede / %s / %s → %d rows", portal.slug, key, len(rows))
         except Exception as exc:
             logger.warning("Failed: saude_rede / %s: %s", portal.slug, exc)
             _log_failed(run_dir, "saude_rede", portal.slug, years[-1] if years else 0, exc)
+
+    if args.only == "saude_producao":
+        from elt.extract.saude_rede import SaudeRedeExtractor, competencias_recentes
+
+        competencias_saude = args.competencias or competencias_recentes()
+        logger.info("Extracting produção SUS (SIA/SIH) for %s, competências %s...", portal.slug, competencias_saude)
+        try:
+            producao_data = SaudeRedeExtractor().extract_producao(
+                portal_slug=portal.slug, cod_ibge=portal.cod_ibge, competencias=competencias_saude
+            )
+            producao_dir = run_dir / "saude_rede"
+            producao_dir.mkdir(parents=True, exist_ok=True)
+            for key, rows in producao_data.items():
+                out = producao_dir / f"{key}.json"
+                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted saude_producao / %s / %s → %d rows", portal.slug, key, len(rows))
+        except Exception as exc:
+            logger.warning("Failed: saude_producao / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "saude_producao", portal.slug, years[-1] if years else 0, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 

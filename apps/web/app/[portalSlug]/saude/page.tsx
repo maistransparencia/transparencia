@@ -19,6 +19,7 @@ import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SaudeMinimoDestaque } from "@/components/saude/saude-minimo-destaque";
+import { SaudeProducaoSus } from "@/components/saude/saude-producao-sus";
 import { SaudeRedePorMilMoradores } from "@/components/saude/saude-rede-por-mil-moradores";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
@@ -66,6 +67,7 @@ export default async function SaudePage({
     partialPeriod,
     minimoSaude,
     redePorMilMoradores,
+    producaoSus,
     portalUrl,
     dataColeta,
     saude,
@@ -199,6 +201,8 @@ export default async function SaudePage({
       </section>
 
       <SaudeRedePorMilMoradores rede={redePorMilMoradores} />
+
+      <SaudeProducaoSus producao={producaoSus} />
 
       {/* Seção 4: Como o Fundo contrata (Novo) */}
       <SaudeContratacaoSection

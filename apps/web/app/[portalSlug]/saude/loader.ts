@@ -11,6 +11,7 @@ import {
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
   getSaudeMinimoConstitucional,
+  getSaudeProducaoSus,
   getSaudeRedePorMilMoradores,
   getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
@@ -104,7 +105,10 @@ async function fetchRawSaudeData(
     anoInicial: portalConfig?.anoInicial,
   });
 
-  const redePorMilMoradores = await getSaudeRedePorMilMoradores(tenantSlug);
+  const [redePorMilMoradores, producaoSus] = await Promise.all([
+    getSaudeRedePorMilMoradores(tenantSlug),
+    getSaudeProducaoSus(tenantSlug),
+  ]);
 
   const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
     ano: context.selectedYear,
@@ -167,6 +171,7 @@ async function fetchRawSaudeData(
     portalConfig,
     minimoSaude,
     redePorMilMoradores,
+    producaoSus,
     saude,
   };
 }

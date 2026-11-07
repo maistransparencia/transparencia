@@ -6,7 +6,13 @@ from elt.load.saude_rede import load_saude_rede_dir
 from sqlalchemy import text
 
 _SCHEMA = "raw_saude_rede"
-_TABELAS = ("leitos_competencia", "profissionais_competencia", "populacao_residente")
+_TABELAS = (
+    "leitos_competencia",
+    "profissionais_competencia",
+    "populacao_residente",
+    "sia_competencia",
+    "sih_competencia",
+)
 
 
 def _leito(portal, competencia, existentes="10"):
@@ -73,3 +79,53 @@ def test_carga_atualiza_linha_existente_e_isola_portais(engine, tmp_path):
 
     assert existentes == "12"
     assert totais == (1, 1)
+
+
+def test_carga_de_producao_acumula_competencias_e_atualiza_a_repetida(engine, tmp_path):
+    _escrever(
+        tmp_path,
+        "sia_competencia",
+        [
+            {
+                "portal_slug": "portal_a",
+                "competencia": "202610",
+                "total_procedimentos_ambulatoriais": "10",
+                "data_coleta": "d",
+            }
+        ],
+    )
+    _escrever(
+        tmp_path,
+        "sih_competencia",
+        [{"portal_slug": "portal_a", "competencia": "202610", "total_internacoes": "2", "data_coleta": "d"}],
+    )
+    load_saude_rede_dir(engine, tmp_path, "portal_a")
+    _escrever(
+        tmp_path,
+        "sia_competencia",
+        [
+            {
+                "portal_slug": "portal_a",
+                "competencia": "202610",
+                "total_procedimentos_ambulatoriais": "12",
+                "data_coleta": "d",
+            },
+            {
+                "portal_slug": "portal_a",
+                "competencia": "202611",
+                "total_procedimentos_ambulatoriais": "7",
+                "data_coleta": "d",
+            },
+        ],
+    )
+    load_saude_rede_dir(engine, tmp_path, "portal_a")
+    with engine.connect() as conn:
+        total_sia = conn.execute(
+            text(
+                f"SELECT sum(total_procedimentos_ambulatoriais::int) FROM {_SCHEMA}.sia_competencia WHERE portal_slug = 'portal_a'"
+            )
+        ).scalar()
+    linhas_sih = _contar(engine, "sih_competencia", "portal_a")
+    _limpar(engine, "portal_a")
+
+    assert (total_sia, linhas_sih) == (19, 1)

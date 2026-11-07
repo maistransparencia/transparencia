@@ -38,3 +38,23 @@ sources:
           - name: ano
           - name: total_populacao
           - name: data_coleta
+
+      - name: sia_competencia
+        description: "Procedimentos ambulatoriais pagos pelo SUS (SIA) por competência (AAAAMM), somados na extração; competência sem resposta não tem linha"
+        meta:
+          primary_key: [portal_slug, competencia]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: total_procedimentos_ambulatoriais
+          - name: data_coleta
+
+      - name: sih_competencia
+        description: "Internações (AIH) pagas pelo SUS (SIH) por competência (AAAAMM), somadas na extração; competência sem resposta não tem linha"
+        meta:
+          primary_key: [portal_slug, competencia]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: total_internacoes
+          - name: data_coleta

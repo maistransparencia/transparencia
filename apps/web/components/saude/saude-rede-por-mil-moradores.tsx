@@ -95,7 +95,7 @@ export function SaudeRedePorMilMoradores({
       />
       <IndicatorPanel columns={3}>
         <Indicator
-          label="Leitos hospitalares por mil moradores"
+          label="Leitos existentes por mil moradores"
           value={porMilOuTraco(leitos?.leitosExistentesPorMilMoradores ?? null)}
           note={
             leitos
@@ -111,7 +111,7 @@ export function SaudeRedePorMilMoradores({
           }
         />
         <Indicator
-          label="Leitos hospitalares do SUS por mil moradores"
+          label="Leitos do SUS por mil moradores"
           value={porMilOuTraco(leitosSus?.leitosSusPorMilMoradores ?? null)}
           note={
             leitosSus
@@ -183,10 +183,11 @@ export function SaudeRedePorMilMoradores({
         Cálculo do Portal: total de leitos (ou de profissionais) dividido pela
         população do município, vezes mil. Leitos e profissionais vêm do
         Cadastro Nacional de Estabelecimentos de Saúde (CNES)
-        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só.
-        O número não mede a qualidade do atendimento nem se os leitos estão
-        ocupados. O traço (—) indica que a fonte não trouxe o dado; não quer
-        dizer zero.
+        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só;
+        a contagem é aproximada, feita pelo nome, e pessoas com o mesmo nome
+        podem ser contadas como uma. O número não mede a qualidade do
+        atendimento nem se os leitos estão ocupados. O traço (—) indica que a
+        fonte não trouxe o dado; não quer dizer zero.
         {anoEstimado
           ? ` A população de ${anoEstimado.ano} ainda não foi divulgada: o cálculo usa a de ${anoEstimado.anoPopulacaoReferencia}, por isso o resultado é uma estimativa.`
           : ""}

@@ -12,6 +12,7 @@ export function buildSaudeViewModel(raw: SaudeRawData) {
     ),
     minimoSaude: raw.minimoSaude,
     redePorMilMoradores: raw.redePorMilMoradores,
+    producaoSus: raw.producaoSus,
     portalUrl: raw.portalConfig?.portalUrl ?? "",
     dataColeta: raw.portalConfig?.dataExtracao ?? "",
     saude: raw.saude,

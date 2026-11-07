@@ -106,9 +106,7 @@ describe("SaudeRedePorMilMoradores", () => {
         ])}
       />,
     );
-    expect(
-      screen.getByText("Leitos hospitalares do SUS por mil moradores"),
-    ).toBeTruthy();
+    expect(screen.getByText("Leitos do SUS por mil moradores")).toBeTruthy();
     expect(screen.getByText("em 2023. Em 2022 eram 1,2")).toBeTruthy();
   });
 
