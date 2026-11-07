@@ -10,9 +10,12 @@
 -- da natureza da receita, nunca do código da fonte STN: a fonte 1621 aparece tanto em naturezas da União (1713)
 -- quanto do Estado (1723). O detalhe usa as folhas do plano de contas; quando o total da categoria
 -- (171, 172, 241, 242) passa da soma das folhas, a diferença entra em sem_detalhe_<categoria> na mesma esfera.
+-- A hierarquia compara segmentos inteiros (1713.50.1.1.10.00 não é pai de 1713.50.1.1.11.00); só o primeiro
+-- segmento perde os zeros à direita (1710 -> 171).
 -- Plano de contas a partir de 2022: 171x e 241x União, 172x e 242x Estado.
 -- Em 2021 o portal ainda usa a tabela anterior: 1718 e 2418 União (SUS fundo a fundo e convênios), 1728 Estado;
--- os mesmos prefixos 171x/241x e 172x/242x cobrem os dois planos. Anos anteriores a 2021 não são tratados.
+-- os mesmos prefixos 171x/241x e 172x/242x cobrem os dois planos. Anos anteriores a 2021 ficam fora: a tabela
+-- antiga usa 1721 para a União e 1722 para o Estado, o oposto do prefixo 172x aplicado aqui.
 -- Rendimento de aplicação, devolução e demais naturezas ficam em outras_receitas.
 
 with orgaos_saude as (
@@ -32,12 +35,18 @@ receitas_saude as (
         o.orgao_nome,
         r.codigo,
         r.descricao,
-        coalesce(r.arrecadado, 0) as arrecadado
+        coalesce(r.arrecadado, 0) as arrecadado,
+        case
+            when position('.' in regexp_replace(r.codigo, '(\.0+)+$', '')) = 0
+                then rtrim(regexp_replace(r.codigo, '(\.0+)+$', ''), '0')
+            else regexp_replace(r.codigo, '(\.0+)+$', '') || '.'
+        end as prefixo_hierarquia
     from {{ ref('fct_receitas') }} r
     join orgaos_saude o
         on o.portal_slug = r.portal_slug
         and o.empresa_id = r.empresa_id
     where r.tipo_receita = 'orcamentaria'
+        and r.ano >= 2021
 ),
 
 folhas as (
@@ -50,8 +59,8 @@ folhas as (
           and t2.ano = t.ano
           and t2.empresa_id = t.empresa_id
           and t2.codigo != t.codigo
-          and t2.codigo like rtrim(t.codigo, '0.') || '%'
-          and length(rtrim(t2.codigo, '0.')) > length(rtrim(t.codigo, '0.'))
+          and t2.codigo like t.prefixo_hierarquia || '%'
+          and length(t2.prefixo_hierarquia) > length(t.prefixo_hierarquia)
     )
 ),
 
@@ -105,6 +114,7 @@ folhas_por_categoria as (
 
 -- Linhas "principal" do portal carregam valor próprio além das filhas, então a soma das folhas
 -- fica abaixo do total da categoria. A diferença continua na esfera da categoria, em linha própria.
+-- Diferença negativa (detalhe acima do total) é descartada; o teste assert_saude_origem_recursos_fecha_total avisa.
 sem_detalhe_categoria as (
     select
         c.portal_slug,
@@ -121,7 +131,7 @@ sem_detalhe_categoria as (
         and f.ano = c.ano
         and f.empresa_id = c.empresa_id
         and f.categoria = c.categoria
-    where abs(c.total_categoria - coalesce(f.total_folhas_categoria, 0)) > 0.01
+    where c.total_categoria - coalesce(f.total_folhas_categoria, 0) > 0.01
 ),
 
 folhas_agregadas as (

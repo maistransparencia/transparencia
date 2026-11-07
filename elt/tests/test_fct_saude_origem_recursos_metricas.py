@@ -212,3 +212,86 @@ def test_diferenca_da_categoria_fica_na_esfera_em_linha_propria(conn):
     assert [(r.grupo_fonte, r.codigo_natureza, r.arrecadado_receita) for r in sem_detalhe] == [
         ("uniao", "sem_detalhe_171", Decimal("600.00"))
     ]
+
+
+def test_segmento_com_zero_significativo_nao_vira_pai_do_vizinho(conn):
+    ano = _ANO - 3
+    linhas = [
+        ("1000.00.0.0.00.00", "300,00"),
+        ("1710.00.0.0.00.00", "300,00"),
+        ("1713.50.1.1.10.00", "100,00"),
+        ("1713.50.1.1.11.00", "100,00"),
+        ("1713.50.1.1.20.00", "100,00"),
+    ]
+
+    def limpar():
+        conn.execute(
+            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
+        )
+        conn.commit()
+
+    limpar()
+    try:
+        for codigo, valor in linhas:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
+                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    """
+                ),
+                {"ano": str(ano), "codigo": codigo, "valor": valor},
+            )
+        conn.commit()
+        detalhe = conn.execute(
+            text(
+                """
+                SELECT codigo_natureza
+                FROM analytics.fct_saude_origem_recursos_metricas
+                WHERE portal_slug = 'porciuncula_prefeitura' AND ano = :ano AND grupo_fonte = 'uniao'
+                ORDER BY codigo_natureza
+                """
+            ),
+            {"ano": ano},
+        ).fetchall()
+    finally:
+        limpar()
+
+    assert [r.codigo_natureza for r in detalhe] == ["1713.50.1.1.10.00", "1713.50.1.1.11.00", "1713.50.1.1.20.00"]
+
+
+def test_anos_anteriores_a_2021_ficam_fora_do_mart(conn):
+    ano = 2020
+
+    def limpar():
+        conn.execute(
+            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
+        )
+        conn.commit()
+
+    limpar()
+    try:
+        for codigo, valor in [("1000.00.0.0.00.00", "100,00"), ("1721.33.01.00.00.00", "100,00")]:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
+                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    """
+                ),
+                {"ano": str(ano), "codigo": codigo, "valor": valor},
+            )
+        conn.commit()
+        total = conn.execute(
+            text(
+                "SELECT count(*) FROM analytics.fct_saude_origem_recursos_metricas "
+                "WHERE portal_slug = 'porciuncula_prefeitura' AND ano = :ano"
+            ),
+            {"ano": ano},
+        ).scalar()
+    finally:
+        limpar()
+
+    assert total == 0
