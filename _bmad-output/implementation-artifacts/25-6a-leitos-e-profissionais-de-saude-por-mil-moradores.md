@@ -71,7 +71,7 @@ SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hem
 
 ### Teste de contrato (critério de aceite)
 
-- Roteiro: `elt/scripts/contrato_api_saude.py` (uma passada por endpoint e por portal, `--repeticoes` vezes, sem repetição automática, timeout 30 s, intervalo 0,5 s; mais uma caminhada de 60 páginas do CNES para o limite de taxa). Cobre também CNES estabelecimentos, SIA e SIH para a 25.6b. Workflow manual: `.github/workflows/contrato-api-saude.yml` (ubuntu-latest, mesmo ambiente da carga diária).
+- Roteiro: `elt/scripts/contrato_api_saude.py` (uma passada por endpoint e por portal, `--repeticoes` vezes, sem repetição automática, timeout 30 s, intervalo 0,5 s; mais uma caminhada de 60 páginas do CNES para o limite de taxa). Cobre também CNES estabelecimentos, SIA e SIH para a 25.6b. Medido em ubuntu-latest (mesmo ambiente da carga diária) por um workflow manual descartável, removido depois da medição; para repetir, recriar um workflow `workflow_dispatch` que rode o script com `PYTHONPATH=.` (Python 3.13, `uv sync --project elt --no-dev`).
 - Baseline local (1 repetição, 2 portais, 5 páginas): todas HTTP 200, 0,14 a 0,39 s, nenhum 429 ou timeout; SIH vazio em 1 dos 2 portais (já conhecido).
 - **Resultado no GitHub Actions (ubuntu-latest, run 42379424892, 2026-11-07, competência 202512, 2 portais, 3 passadas, intervalo 0,5 s, timeout 30 s, job de 1m29s):**
 
@@ -86,4 +86,4 @@ SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hem
 | caminhada de 60 páginas (cnes_profissionais, 0,5 s entre chamadas) | 60 | 60 | 0 | 0 | 0 | 0 | 0,31 | 0,36 |
 
 - Leitura: sem limite de taxa nem timeout a 0,5 s entre chamadas; cada página custa cerca de 0,3 s mais o intervalo, então uma competência de profissionais (300+ páginas) leva em torno de 4 a 5 minutos por portal. SIH vazio em 1 dos 2 portais nas 3 passadas (mesmo comportamento da spike): "sem dado nesta fonte", não zero. Vale para a 25.6b.
-- O workflow foi disparado por um gatilho temporário de `push` (o `workflow_dispatch` só existe depois que o arquivo está na `dev`); o gatilho foi removido depois da medição.
+- O workflow foi disparado por um gatilho temporário de `push` (o `workflow_dispatch` só existe depois que o arquivo está na `dev`) e, concluída a medição, o arquivo foi removido do repositório.

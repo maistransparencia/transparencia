@@ -3170,7 +3170,7 @@ So that we stop re-fetching unchanged data every business day and the SIOPE and 
 - **When** a cadência é definida
 - **Then** `saude_rede` entra no grupo **mensal** (o CNES publica uma competência por mês e a população residente, uma vez por ano) e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`; SIA e SIH entram no mesmo grupo quando a 25.6b os criar
 - **And** a carga **não rebusca anos fechados a cada execução**: a API do CNES devolve 1 linha por página (o `limit` é ignorado) e só os profissionais de uma cidade pequena passam de 298 páginas (mais de 250 s por competência, medido em 2026-11-07); o extrator hoje pega uma competência por ano e `--years` limita os anos, então o workflow mensal passa só o ano corrente (e o anterior até a competência de dezembro existir)
-- **And** o tempo do job `saude_rede` por portal é medido no primeiro run mensal e registrado, usando o resultado do teste de contrato da 25.6a (`.github/workflows/contrato-api-saude.yml`, manual) como linha de base; se o total por execução não couber no limite do job, divide-se por portal em matriz.
+- **And** o tempo do job `saude_rede` por portal é medido no primeiro run mensal e registrado, usando como linha de base o resultado do teste de contrato da 25.6a (registrado na story 25.6a; o roteiro `elt/scripts/contrato_api_saude.py` pode ser repetido no runner se a medição precisar ser refeita); se o total por execução não couber no limite do job, divide-se por portal em matriz.
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
