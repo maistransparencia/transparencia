@@ -112,18 +112,10 @@ models:
           - not_null
       - name: receita_uniao_saude
         data_type: numeric(15, 2)
-        constraints:
-          - type: not_null
-        description: "Total arrecadado em transferências da União para a Saúde (SUS)"
-        tests:
-          - not_null
+        description: "Total arrecadado em transferências da União para a Saúde (SUS); nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: receita_estado_saude
         data_type: numeric(15, 2)
-        constraints:
-          - type: not_null
-        description: "Total arrecadado em transferências do Estado para a Saúde"
-        tests:
-          - not_null
+        description: "Total arrecadado em transferências do Estado para a Saúde; nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: repasses_prefeitura_saude
         data_type: numeric(15, 2)
         constraints:
@@ -133,46 +125,22 @@ models:
           - not_null
       - name: percentual_uniao_sus
         data_type: integer
-        constraints:
-          - type: not_null
-        description: "Participação percentual das transferências da União (SUS) no total que entrou no fundo (0-100)"
-        tests:
-          - not_null
+        description: "Participação percentual das transferências da União (SUS) no total que entrou no fundo (0-100); nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: percentual_estado
         data_type: integer
-        constraints:
-          - type: not_null
-        description: "Participação percentual das transferências do Estado no total que entrou no fundo (0-100)"
-        tests:
-          - not_null
+        description: "Participação percentual das transferências do Estado no total que entrou no fundo (0-100); nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: percentual_propria
         data_type: integer
-        constraints:
-          - type: not_null
-        description: "Participação percentual do repasse da entidade pagadora (Prefeitura) no total que entrou no fundo (0-100)"
-        tests:
-          - not_null
+        description: "Participação percentual do repasse da entidade pagadora (Prefeitura) no total que entrou no fundo (0-100); nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: receita_outras_saude
         data_type: numeric(15, 2)
-        constraints:
-          - type: not_null
-        description: "Receita orçamentária do fundo que não vem da União nem do Estado (rendimentos de aplicação e outras)"
-        tests:
-          - not_null
+        description: "Receita orçamentária do fundo que não vem da União nem do Estado (rendimentos de aplicação e outras); nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: total_entrada_saude
         data_type: numeric(15, 2)
-        constraints:
-          - type: not_null
-        description: "Total que entrou no fundo: União + Estado + outras receitas + repasse da entidade pagadora"
-        tests:
-          - not_null
+        description: "Total que entrou no fundo: União + Estado + outras receitas + repasse da entidade pagadora; nulo quando o ano não tem dado no mart de origem dos recursos"
       - name: percentual_outras_receitas
         data_type: integer
-        constraints:
-          - type: not_null
-        description: "Participação percentual das outras receitas no total que entrou no fundo (0-100); fecha 100 com as demais"
-        tests:
-          - not_null
+        description: "Participação percentual das outras receitas no total que entrou no fundo (0-100); fecha 100 com as demais; nulo quando o ano não tem dado no mart de origem dos recursos"
 
 unit_tests:
   - name: test_historia_saude_metricas_calculos

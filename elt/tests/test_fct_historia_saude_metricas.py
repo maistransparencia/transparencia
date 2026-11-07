@@ -68,3 +68,40 @@ def test_receita_por_esfera_vem_da_natureza(conn):
     assert row.receita_uniao_saude == Decimal("700.00")
     assert row.receita_estado_saude == Decimal("100.00")
     assert row.receita_outras_saude == Decimal("50.00")
+
+
+def test_ano_sem_dado_de_origem_fica_nulo_e_nao_zero(conn):
+    ano = _ANO - 3
+
+    def limpar():
+        conn.execute(text("DELETE FROM raw_porciuncula_prefeitura.despesas_gerais WHERE ano = :ano"), {"ano": str(ano)})
+        conn.commit()
+
+    limpar()
+    try:
+        conn.execute(
+            text(
+                """
+                INSERT INTO raw_porciuncula_prefeitura.despesas_gerais
+                    (ano, empresa, numero, funcao, funcaonome, empenhado, pago)
+                VALUES (:ano, '2', 'historia-saude-sem-origem', '10', 'Saude', '100,00', '50,00')
+                """
+            ),
+            {"ano": str(ano)},
+        )
+        conn.commit()
+        row = conn.execute(
+            text(
+                """
+                SELECT receita_uniao_saude, receita_estado_saude, receita_outras_saude,
+                       total_entrada_saude, percentual_uniao_sus
+                FROM analytics.fct_historia_saude_metricas
+                WHERE portal_slug = 'porciuncula_prefeitura' AND ano = :ano
+                """
+            ),
+            {"ano": ano},
+        ).one()
+    finally:
+        limpar()
+
+    assert tuple(row) == (None, None, None, None, None)

@@ -84,7 +84,8 @@ receitas_orcamentarias_saude as (
 ),
 
 -- A esfera (União ou Estado) vem da natureza da receita no mart de origem dos recursos,
--- que cobre o plano de contas anterior a 2022 e as transferências especiais (1719).
+-- que cobre o plano de contas anterior a 2022 e as transferências especiais (1719). Ano sem linha nesse mart
+-- (antes de 2021) fica nulo, nunca zero.
 esferas_saude as (
     select
         portal_slug,
@@ -99,8 +100,8 @@ receitas_saude as (
     select
         o.portal_slug,
         o.ano,
-        coalesce(e.receita_uniao, 0) as receita_uniao,
-        coalesce(e.receita_estado, 0) as receita_estado,
+        e.receita_uniao,
+        e.receita_estado,
         o.receita_orcamentaria_total
     from receitas_orcamentarias_saude o
     left join esferas_saude e
@@ -198,24 +199,26 @@ select
     coalesce(ls.judicializacao_pago, 0)::numeric(15, 2) as judicializacao_pago,
     coalesce(es.emendas_saude_arrecadado, 0)::numeric(15, 2) as emendas_saude_arrecadado,
     coalesce(h.hhi_concentracao_fornecedores, 0) as hhi_concentracao_fornecedores,
-    coalesce(rs.receita_uniao, 0)::numeric(15, 2) as receita_uniao_saude,
-    coalesce(rs.receita_estado, 0)::numeric(15, 2) as receita_estado_saude,
+    rs.receita_uniao::numeric(15, 2) as receita_uniao_saude,
+    rs.receita_estado::numeric(15, 2) as receita_estado_saude,
     coalesce(rp.repasse_recebido, 0)::numeric(15, 2) as repasses_prefeitura_saude,
-    greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0))::numeric(15, 2) as receita_outras_saude,
+    case
+        when rs.receita_uniao is null then null
+        else greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - rs.receita_uniao - rs.receita_estado)
+    end::numeric(15, 2) as receita_outras_saude,
     entrada.total_entrada::numeric(15, 2) as total_entrada_saude,
-    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_uniao_sus,
-    case when entrada.total_entrada > 0 then round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_estado,
-    case when entrada.total_entrada > 0 then round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer else 0 end as percentual_propria,
+    case when entrada.total_entrada > 0 then round(rs.receita_uniao / entrada.total_entrada * 100)::integer end as percentual_uniao_sus,
+    case when entrada.total_entrada > 0 then round(rs.receita_estado / entrada.total_entrada * 100)::integer end as percentual_estado,
+    case when entrada.total_entrada > 0 then round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer end as percentual_propria,
     case
         when entrada.total_entrada > 0
         then greatest(
             0,
             100
-            - round(coalesce(rs.receita_uniao, 0) / entrada.total_entrada * 100)::integer
-            - round(coalesce(rs.receita_estado, 0) / entrada.total_entrada * 100)::integer
+            - round(rs.receita_uniao / entrada.total_entrada * 100)::integer
+            - round(rs.receita_estado / entrada.total_entrada * 100)::integer
             - round(coalesce(rp.repasse_recebido, 0) / entrada.total_entrada * 100)::integer
         )::integer
-        else 0
     end as percentual_outras_receitas
 from chaves_base cb
 left join dotacao_saude_orgao dso
@@ -232,8 +235,11 @@ left join repasses_saude rp
     and cb.ano = rp.ano
 cross join lateral (
     select
-        coalesce(rs.receita_uniao, 0) + coalesce(rs.receita_estado, 0) + coalesce(rp.repasse_recebido, 0)
-        + greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - coalesce(rs.receita_uniao, 0) - coalesce(rs.receita_estado, 0)) as total_entrada
+        case
+            when rs.receita_uniao is null then null
+            else rs.receita_uniao + rs.receita_estado + coalesce(rp.repasse_recebido, 0)
+                + greatest(0, coalesce(rs.receita_orcamentaria_total, 0) - rs.receita_uniao - rs.receita_estado)
+        end as total_entrada
 ) entrada
 left join emendas_saude es
     on cb.portal_slug = es.portal_slug
