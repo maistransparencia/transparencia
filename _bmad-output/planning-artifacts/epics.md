@@ -3665,7 +3665,7 @@ So that the page can answer "A Prefeitura aplica o mínimo exigido em saúde?" w
 
 **Fora do escopo:** estimativa de recursos próprios da Prefeitura; SIOPS 3.1 na tela; Fundo Nacional de Saúde (não verificado); emendas (25.5).
 
-**Pendências registradas:** (a) diferença entre o portal e o SIOPS 3.1 sem causa provada; (b) identificação do órgão por nome é heurística, risco para municípios com outro nome de órgão.
+**Pendências registradas:** (a) a diferença de 2023 entre o portal e o SIOPS 3.1 tinha causa no critério de folha do modelo antigo (corrigida); a de 2024 segue sem causa provada; (b) identificação do órgão por nome é heurística, risco para municípios com outro nome de órgão; (c) em Natividade, repasses com cara de estaduais (resoluções da SES, PREFAPS, PAHI, deliberações da CIB-RJ, fonte STN 1621 "SUS provenientes do Governo Estadual") estão lançados pela Prefeitura na natureza federal (1713), e a seção "Transferências do Estado" do próprio portal mostra R$ 0,00 de 2022 a 2025. A esfera segue a natureza, como o portal exibe; Porciúncula 2024 tem R$ 1,38 mi na mesma situação. Decisão do Julio (2026-11-06): sem aviso na tela; o link do portal fica na fonte para o cidadão conferir. Validar com o `contador-publico` se a fonte 1621 deve reclassificar para Estado; (d) o SUS (1713) de Natividade 2026 está R$ 1,34 mi abaixo do portal (coleta de 05/11), esperado na próxima coleta; (e) o ano mínimo é 2021; o plano de contas anterior só é tratado no que vale para 2021 (1718/2418, 1728).
 
 **Dependências:** Stories 25.1 e 25.3 (feitas).
 

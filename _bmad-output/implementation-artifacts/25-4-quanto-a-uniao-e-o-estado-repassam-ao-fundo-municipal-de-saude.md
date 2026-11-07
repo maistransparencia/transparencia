@@ -1,5 +1,6 @@
 ---
-status: ready-for-dev
+status: in-review
+baseline_commit: 06daca1628bdcb7accf104093dd383c04de455d1
 ---
 
 # Story 25.4: Quanto a União e o Estado Repassam ao Fundo Municipal de Saúde
@@ -36,3 +37,17 @@ Estimativa da parcela da Prefeitura; SIOPS 3.1 na tela; Fundo Nacional de Saúde
 - Regras 2, 9, 10, 20, 23, 25 e 27. Skills de apoio: `contador-publico` (naturezas e esferas), `jurista-fiscal` (base legal), `editor-cidadao` (textos).
 - Após alterar: `make test` e `make check` (dbt), `make test/ts` e `pnpm typecheck` (TypeScript).
 - Commits convencionais em minúsculas, sem referência a story (Regra 19). Não commitar sem pedir ao Julio.
+
+## Resultado
+
+- dbt: `fct_saude_origem_recursos_metricas` (esfera pelo prefixo da natureza e pelo total da categoria 171, 172, 241, 242; diferença das folhas em `sem_detalhe_<categoria>`; resíduo contra o total oficial em `nao_detalhado`). `fct_historia_saude_metricas` passou a ler União e Estado desse mart.
+- Query `getSaudeOrigemRecursos` (com `anoInicial`) e seed de teste; ainda sem uso na tela. A seção "O que entrou" de `/saude` ficou como bloco único, com a fonte e o link do portal da Prefeitura. O bloco separado da 25.4 saiu da página; a série por ano fica para a 25.10.
+- Conferido contra CSVs do portal: Porciúncula 2021 (R$ 8.454.710,76), Natividade 2021 (R$ 22.668.316,69), Natividade 2026 (1719 igual; 1713 R$ 1,34 mi abaixo por coleta anterior) e "Transferências do Estado" de Natividade 2022 a 2025 (zero, igual ao banco).
+
+## Pendências
+
+- Natividade lança como federal (1713) repasses com cara de estaduais (resoluções da SES, PREFAPS, PAHI, fonte 1621). Esfera segue a natureza, como o portal exibe; sem aviso na tela; o link do portal fica na fonte. Porciúncula 2024: R$ 1,38 mi na mesma situação. Validar com o `contador-publico`.
+- Diferença SIOPS 3.1 de 2024 sem causa provada (a de 2023 era do modelo antigo).
+- Identificação do órgão por nome é heurística.
+- Textos da tela ainda sem passagem do `editor-cidadao`.
+- 1713 de Natividade 2026 abaixo do portal até a próxima coleta.
