@@ -3166,15 +3166,17 @@ So that we stop re-fetching unchanged data every business day and the SIOPE and 
 - **Then** o seed entra na mesma cadência dos demais seeds do IDEB, isto é, no workflow `check-inep-ideb-updates.yml`, que passa a rodar também o `sync_ibge_ideb_brasil.py` junto do `sync_inep_ideb_seed.py`, na mesma verificação de novo ciclo bienal e no mesmo PR de atualização; a story confere se o `seed_inep_ideb_estados` também está coberto, já que hoje o workflow só chama o sync do seed municipal
 - **And** o registro de coletas da Story 23.1 lista os seeds do IDEB (municipal, estados e Brasil) como fontes com `frequencia_esperada` `mensal`, e um teste confere que nenhum seed do IDEB fica fora do workflow
 - **And** o deploy aplica `dbt seed` antes de publicar o código que lê a média nacional, porque `getEducacaoMediasNacionais` devolve vazio em silêncio se a tabela não existir e o marcador some da tela sem erro.
-- **Given** a fonte `saude_rede` (Story 25.6a: `elt/extract/saude_rede.py`, chave `saude_rede` em `elt/extract/run.py` e `elt/load/run.py`, schema `raw_saude_rede`, Makefile `elt/saude-rede`), que ainda **não está em nenhum workflow**, e a 25.6b (SIA e SIH), que reaproveita o mesmo esqueleto
+- **Given** as fontes de saúde da Epic 25: `saude_rede` (CNES leitos e profissionais e população residente, Story 25.6a) e `saude_producao` (SIA e SIH, Story 25.6b), hoje em `elt/extract/saude_rede.py` pela API de dados abertos, **fora da carga diária** (só rodam com `--only`), e a Story 25.6c, que troca CNES, SIA e SIH pelos arquivos mensais por estado do DATASUS (`elt/fontes/saude_datasus.yml`, uma entrada por UF)
 - **When** a cadência é definida
-- **Then** `saude_rede` entra no grupo **mensal** (o CNES publica uma competência por mês e a população residente, uma vez por ano) e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`; SIA e SIH entram no mesmo grupo quando a 25.6b os criar
-- **And** a carga **não rebusca anos fechados a cada execução**: a API do CNES devolve 1 linha por página (o `limit` é ignorado) e só os profissionais de uma cidade pequena passam de 298 páginas (mais de 250 s por competência, medido em 2026-11-07); o extrator hoje pega uma competência por ano e `--years` limita os anos, então o workflow mensal passa só o ano corrente (e o anterior até a competência de dezembro existir)
-- **And** o tempo do job `saude_rede` por portal é medido no primeiro run mensal e registrado, usando como linha de base o resultado do teste de contrato da 25.6a (registrado na story 25.6a; o roteiro `elt/scripts/contrato_api_saude.py` pode ser repetido no runner se a medição precisar ser refeita); se o total por execução não couber no limite do job, divide-se por portal em matriz.
+- **Then** as fontes de saúde entram no grupo **mensal** (o CNES, o SIA e o SIH publicam uma competência por mês; a população residente, uma vez por ano) e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`; o nome da fonte no grupo segue o da 25.6c quando ela for entregue
+- **And** a carga é **incremental por competência**: as 4 últimas competências fechadas (defasagem medida em 2026-11-07: CNES até 2026-09 e SIA até 2026-08); anos fechados nunca são rebuscados pelo job. O backfill de 2021 em diante é manual, em partes, só no banco local; em produção só com autorização explícita do Julio (Regra 15)
+- **And** o custo medido é o que decide o desenho do job: **pela API** (25.6a e 25.6b), 1 linha por página a ~0,5 s: profissionais de uma competência levam 4 a 5 min por portal (Natividade: 507 páginas, 263 s; Porciúncula: 695) e SIA ~300 páginas por mês (~4 min), logo a carga completa de 2021 a 2026 passa de 1 h por portal e cresce linearmente com o número de cidades (Brasil inteiro: ~16 dias de leitura contínua por ano de dados, inviável); **por arquivo em massa do DATASUS** (25.6c), o custo é por UF e não por cidade: SIA do mês do RJ ~271 MB baixados em ~1 min e ~2 a 3 min de leitura, CNES e SIH em segundos, e o disco temporário chega a ~3,4 GB (o job apaga os arquivos ao fim)
+- **And** o primeiro run mensal mede o tempo do job por UF no runner (ubuntu-latest), incluindo o acesso ao FTP, e registra o resultado; o resultado do teste de contrato da 25.6a (API) e o da 25.6c (FTP) são a linha de base. Se o total não couber no limite do job, divide-se por UF em matriz
+- **And** os dois grupos só entram no workflow mensal depois da 25.6c, para não fixar na pipeline o custo da API; até lá continuam manuais (`make elt/saude-rede` e `make elt/saude-producao`) e um teste confere que nenhuma fonte de saúde roda na carga diária por omissão.
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
-**Dependências:** Story 24.1 (extrator do SIOPE), Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta) e Story 25.6a (fonte `saude_rede` e teste de contrato; a 25.6a **não** depende desta); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+**Dependências:** Story 24.1 (extrator do SIOPE), Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta) Story 25.6a e 25.6b (fontes de saúde; **não** dependem desta) e Story 25.6c (fonte em massa; a 25.6c entrega a cadência desta história por UF); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
 
 ---
 
@@ -3792,6 +3794,49 @@ So that I can tell how much care is actually being produced.
 **Fora do escopo:** fila de espera, Previne Brasil, vacinação, transporte sanitário, hemodiálise.
 
 **Dependências:** Story 25.6a.
+
+---
+
+### Story 25.6c: Fonte em Massa do DATASUS para a Rede e a Produção de Saúde
+
+As a maintainer,  
+I want the health network and SUS production numbers to come from the Ministry's monthly state files instead of the page-by-page API,  
+So that loading a month costs minutes per state, not hours per city, and a new city of a known state costs nothing extra.
+
+**Origem:** pedido do Julio em 2026-11-07, depois da carga manual da 25.6a e 25.6b: a API devolve 1 linha por página (profissionais de uma cidade pequena: 300 a 500 páginas por competência, 4 a 5 min; SIA: ~300 páginas por mês), a carga completa leva horas por portal e para o Brasil inteiro seria impraticável (estimativa de ~16 dias de leitura contínua por ano de dados). Spike local (só leitura, sem banco) mostrou que os arquivos mensais por estado do DATASUS reproduzem exatamente os números da API.
+
+**Evidência do spike (2026-11-07, FTP anônimo `ftp.datasus.gov.br`, arquivos `.dbc` = DBF comprimido):**
+
+| Fonte | Arquivo (RJ) | Tamanho | Conferência contra a API |
+|---|---|---|---|
+| CNES leitos | `/dissemin/publicos/CNES/200508_/Dados/LT/LTRJ2605.dbc` | 46 KB | Porciúncula 2026-05: 28 existentes e 27 do SUS, igual à API |
+| CNES profissionais | `.../CNES/200508_/Dados/PF/PFRJ2605.dbc` | 29 MB | Porciúncula 2026-05: 695 vínculos, 548 pessoas, 438 no SUS, igual à API (nome e CNS dão o mesmo total) |
+| SIA | `/dissemin/publicos/SIASUS/200801_/Dados/PARJ2512a.dbc` e `b` (mês em partes a, b, c) | 151 MB + 120 MB | Natividade 2025-12: 18.282 procedimentos (`PA_QTDAPR`), igual à API (`PA_QTDPRO` dá 18.283) |
+| SIH | `/dissemin/publicos/SIHSUS/200801_/Dados/RDRJ2512.dbc` | 6 MB | Natividade 2025-12: 63 AIH (`MUNIC_MOV`), igual à API |
+
+Medições: download do SIA do mês (271 MB) em 62 s; leitura de 8,2 milhões de linhas de SIA em 136 s com `dbfread`; descompactado o SIA do mês ocupa ~3,4 GB (processar em fluxo e apagar). Uma listagem do FTP deu timeout (repetição é obrigatória). Defasagem em 2026-11-07: CNES até 2026-09, SIA até 2026-08. Municípios do arquivo: `CODUFMUN` (CNES), `PA_UFMUN` (SIA), `MUNIC_MOV` (SIH), todos com código IBGE de 6 dígitos.
+
+**Pergunta do cidadão (Regra 27):** não muda. É a mesma das Stories 25.6a e 25.6b; a tela, a query, o mart e o raw continuam iguais.
+
+**Acceptance Criteria:**
+- **Given** o `elt/fontes/saude_datasus.yml`, com uma entrada por UF (host, pasta de cada fonte, padrão de nome do arquivo e mapeamento de campos)
+- **When** o extrator roda para um portal
+- **Then** baixa o arquivo da UF do portal por competência, descompacta o `.dbc` em fluxo, filtra o município pelo código de 6 dígitos vindo do `cod_ibge` do portal, agrega e grava as **mesmas linhas** de `leitos_competencia`, `profissionais_competencia`, `sia_competencia` e `sih_competencia` do `raw_saude_rede`, sem literal de município, UF ou ano.
+- **And** os números reproduzem os do spike (tabela acima) em teste de conferência com amostra pequena; a diferença de `PA_QTDAPR` para `PA_QTDPRO` fica explícita no teste.
+- **And** profissionais são agregados na ingestão com o CNS como identificador de pessoa distinta (substitui a contagem por nome e dispensa a frase "contagem aproximada" na tela, que passa pelo `editor-cidadao`); nome, CPF e CNS nunca são gravados nem exibidos, e o arquivo baixado e o `.dbf` descompactado são apagados ao fim, inclusive em falha.
+- **And** **teste de cobertura por UF** no padrão da Regra 28 (`elt/tests/test_cobertura_fontes_saude_datasus.py`): toda UF de `elt/transform/seeds/seed_portais.csv` precisa estar em `fontes` ou em `ufs_sem_fonte` (com motivo); cadastrar cidade de UF nova sem isso quebra o teste. Sem `if` por UF no extrator.
+- **And** o FTP é tratado como instável: repetição com espera crescente, timeout, retomada por arquivo; competência sem arquivo ou sem linhas do município vira "sem dado" (sem linha), nunca zero; falha propaga e nada parcial é gravado como completo.
+- **And** o **teste de contrato a partir do ambiente da carga** (GitHub Actions, ubuntu-latest) mede o FTP (conexão de saída, tempo de download por arquivo, espaço em disco, repetição) e o resultado é registrado na story; esse resultado alimenta a Story 23.8.
+- **And** a API de dados abertos continua só para a população residente (1 página por ano); o `SaudeRedeExtractor` por páginas e as opções `--only saude_rede` e `saude_producao` são substituídos, sem deixar caminho morto.
+- **And** a dependência de leitura do `.dbc` (`datasus-dbc` no spike) entra em versão exata (Regra 7), com a velocidade de leitura medida (`dbfread` em Python puro: 136 s para 8,2 milhões de linhas) e alternativa mais rápida considerada se o backfill passar de poucas horas.
+- **And** o `jurista-fiscal` registra a decisão sobre o termo de uso dos arquivos do DATASUS (não verificado no spike) e a tela mantém a citação ao Ministério da Saúde e a data da competência.
+- **And** `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam, só contra o banco local (Regra 15).
+
+**Informação de cadência para a Story 23.8 (já refletida lá):** arquivos mensais por UF, grupo **mensal**; incremental (só as competências novas, as 4 últimas fechadas por padrão); backfill de 2021 em diante é manual, em partes, e só no banco local (em produção só com autorização do Julio); custo estimado do RJ por mês de 3 a 4 min no SIA e segundos no CNES e no SIH, para **todas** as cidades do estado de uma vez (o custo é por UF, não por cidade); o SIA do mês tem 2 a 3 partes de ~150 MB e o disco temporário chega a ~3,4 GB.
+
+**Fora do escopo:** fila de espera, Previne Brasil, vacinação, transporte sanitário e hemodiálise; execução em produção; mudar o raw, o mart, a query ou a tela (salvo o texto de contagem de profissionais); cadência de carga (Story 23.8).
+
+**Dependências:** Stories 25.6a e 25.6b (revisadas; o raw, o mart e a tela que esta história alimenta). Story 23.8 recebe a cadência. Substitui o caminho da API para CNES, SIA e SIH.
 
 ---
 
