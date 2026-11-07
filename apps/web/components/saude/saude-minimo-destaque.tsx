@@ -11,8 +11,8 @@ import {
   ThresholdMeter,
 } from "@transparencia/ui";
 import { useState } from "react";
-import { LeiLink, LinhaLeiEFonte } from "@/components/educacao/educacao-textos";
 import { VerDetalhesLink } from "@/components/educacao/ver-detalhes-link";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface SaudeMinimoDestaqueProps {

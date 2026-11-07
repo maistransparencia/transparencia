@@ -15,9 +15,9 @@ import {
 import type { Metadata } from "next";
 import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
-import { LeiLink, LinhaLeiEFonte } from "@/components/educacao/educacao-textos";
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SaudeMinimoDestaque } from "@/components/saude/saude-minimo-destaque";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";

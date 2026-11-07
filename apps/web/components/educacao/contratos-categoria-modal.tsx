@@ -3,8 +3,8 @@
 import type { EducacaoContratoDTO } from "@transparencia/db";
 import { ModalDialog } from "@transparencia/ui";
 import { useMemo } from "react";
+import { type LeiLinkProps, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { ContratosTabela } from "./contratos-tabela";
-import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
 
 export const LIMITE_CONTRATOS_PARA_BUSCA = 8;
 

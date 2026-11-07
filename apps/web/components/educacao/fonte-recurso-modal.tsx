@@ -2,7 +2,7 @@
 
 import type { EducacaoOrigemRecursoDTO } from "@transparencia/db";
 import { cn, fmtCurrency, ModalDialog } from "@transparencia/ui";
-import { LinhaLeiEFonte } from "./educacao-textos";
+import { LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import {
   BASE_LEGAL_FONTE_RECURSO,
   DESCRICAO_FONTE_RECURSO,

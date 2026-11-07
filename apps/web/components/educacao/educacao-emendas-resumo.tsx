@@ -5,8 +5,8 @@ import {
   SectionHeader,
   ThresholdMeter,
 } from "@transparencia/ui";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { urlLegislacao } from "@/lib/constants/legislacao";
-import { LeiLink, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoEmendasResumoProps {
   emendas: EducacaoFiscalizacaoResumoDTO["emendas"];
