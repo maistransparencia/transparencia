@@ -503,3 +503,10 @@ status: open
 ## Deferred from: code review of 25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude (2026-11-06)
 
 - Identificação do órgão de saúde por nome (`unaccent(lower(orgao_nome)) like '%saude%'`) em `fct_saude_origem_recursos_metricas` e `fct_historia_saude_metricas`: uma secretaria com "saúde" no nome entra na soma e um fundo sem "saúde" no nome fica de fora, sem aviso. Precisa de outra forma de definir o órgão (campo explícito por portal ou teste que falhe sem órgão). Revisitar antes de integrar um município novo.
+
+## Deferred from: code review of 25-6a-leitos-e-profissionais-de-saude-por-mil-moradores (2026-11-07)
+
+- `elt/extract/saude_rede.py` (`_paginas`): para em duas páginas consecutivas idênticas (pode subcontar leitos/vínculos) e `MAXIMO_PAGINAS = 5000` lança erro e perde o portal inteiro em município grande (1 linha por página, ~0,3 s por página). Severidade média, não verificada; medir num município maior antes da 25.6b.
+- Testes do extrator para página repetida, limite de páginas e falha no meio da extração (nenhum retorno parcial).
+
+- Textos da tela de leitos e profissionais da 25.6a (decisão do Julio: o editor-cidadao decide na 25.6b): (1) rótulo "Leitos hospitalares" e `llms.txt` ("leitos de internação") dizem mais que o dado, que soma todos os tipos de leito do CNES; (2) "quem trabalha em mais de um local conta uma vez só" deve dizer que a contagem é aproximada por nome.

@@ -87,3 +87,28 @@ SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hem
 
 - Leitura: sem limite de taxa nem timeout a 0,5 s entre chamadas; cada página custa cerca de 0,3 s mais o intervalo, então uma competência de profissionais (300+ páginas) leva em torno de 4 a 5 minutos por portal. SIH vazio em 1 dos 2 portais nas 3 passadas (mesmo comportamento da spike): "sem dado nesta fonte", não zero. Vale para a 25.6b.
 - O workflow foi disparado por um gatilho temporário de `push` (o `workflow_dispatch` só existe depois que o arquivo está na `dev`) e, concluída a medição, o arquivo foi removido do repositório.
+
+### Review Findings
+
+Revisão 2026-11-07 (`git diff d5078e7a..HEAD`, modo full, 4 camadas). Verificado no código: mart, staging, loader e extrator.
+
+- [x] [Review][Decision] (adiado para a 25.6b por decisão do Julio; o editor-cidadao decide) Rótulo "Leitos hospitalares" e `llms.txt` ("leitos de internação") dizem mais que o dado: a soma é de todos os tipos de leito do CNES, e a tela não avisa. Escolher o rótulo (ex.: "Leitos existentes") e alinhar tela, `llms.txt` e a nota; passar pelo editor-cidadao. [saude-rede-por-mil-moradores.tsx, apps/web/public/llms.txt:478]
+- [x] [Review][Decision] (adiado para a 25.6b por decisão do Julio; o editor-cidadao decide) A legenda diz "quem trabalha em mais de um local conta uma vez só" como fato, mas a contagem é por nome normalizado e homônimos se fundem. Regra 27: dizer que é contagem aproximada por nome. Definir o texto com o editor-cidadao. [saude-rede-por-mil-moradores.tsx]
+- [x] [Review][Patch] ALTA: recarga no mesmo ano acumula competências (carga `replace=False`, PK com `competencia`) e o mart soma leitos de todas as competências do ano e duplica a linha de profissionais, quebrando o índice único `(portal_slug, ano)`. Escolher a competência mais recente por `(portal_slug, ano)` nos dois CTEs e testar com duas competências no mesmo ano. [fct_saude_rede_por_mil_moradores_metricas.sql:15-37, elt/load/saude_rede.py:82]
+- [x] [Review][Patch] MÉDIA: "sem dado, nunca zero" não vale. O staging usa `coalesce(..., 0)` e o extrator mapeia valor ilegível e nomes ausentes para 0, então vira 0,0 por mil. Manter nulo. [stg_saude_rede__leitos_competencia.sql, stg_saude_rede__profissionais_competencia.sql, elt/extract/saude_rede.py (`_inteiro`, `agregar_profissionais`)]
+- [x] [Review][Patch] MÉDIA: ano com população e sem resposta do CNES não gera linha, contra a AC ("linha com nulo"). `anos` deve incluir os anos >= 2021 da população. [fct_saude_rede_por_mil_moradores_metricas.sql:39-43]
+- [x] [Review][Patch] MÉDIA: faltam testes: loader `saude_rede` (carga, idempotência, recarga parcial não apaga) e farmácia ainda garantindo suas tabelas após `garantir_tabelas`; mart com duas competências no mesmo ano; DTO com `leitos_sus`/`profissionais_sus` não nulos (o seed fixa null) e asserção do indicador SUS no componente. [elt/load/__tests__, elt/tests/test_fct_saude_rede_por_mil_moradores.py, packages/db/tests/fixtures/seed.ts]
+- [x] [Review][Patch] MÉDIA: legenda cita só `competenciaLeitos` (some quando só há profissionais; ignora `competenciaProfissionais`, que pode ser de outro ano) e diz "ano mais recente" sem checar. Indicar a competência por indicador. [saude-rede-por-mil-moradores.tsx]
+- [x] [Review][Patch] BAIXA: população estimada só aparece na legenda (primeiro ano marcado); marcar na linha da tabela e no indicador. Sem população, mostrar que falta a população, não o CNES. [saude-rede-por-mil-moradores.tsx, mart]
+- [x] [Review][Patch] BAIXA: `fct_saude_rede_por_mil_moradores_metricas` não tem `_models.yml` (contrato, tipos, testes); a nota da story fala em contrato. A `<table className="w-full text-sm">` fere o DESIGN.md ("elemento nu primeiro") e a tabela de anos, conteúdo de especialista, deveria ficar atrás de "Ver detalhes". [elt/transform/models/marts/metrics, saude-rede-por-mil-moradores.tsx:113]
+- [x] [Review][Defer] `_paginas` para em duas páginas consecutivas idênticas (pode subcontar se duas linhas forem idênticas) e `MAXIMO_PAGINAS = 5000` aborta o portal inteiro em município grande (1 linha por página, ~0,3 s por página) — deferred: não provado que o CNES repete linhas idênticas; medir num município maior antes da 25.6b. Média, não verificado.
+- [x] [Review][Defer] Testes do extrator para página repetida, limite de páginas e falha no meio da extração — deferred: ausência de teste, sem defeito demonstrado; baratos de somar junto aos testes acima.
+
+#### Rejected
+
+- `loader.ts` sem catch se a tabela do mart não existe (deploy antes do dbt): baixa; as demais seções de `/saude` têm a mesma dependência dos marts e o fix mudaria o padrão da página.
+- Colisão de `tipo_leito` ao tirar o prefixo numérico: o teste `unique_combination_of_columns` falharia alto; não foi mostrado par de tipos que colida.
+- Extração falha só em log e o `make` segue para a carga: mesmo padrão da farmácia; a carga usa o diretório da rodada e não carrega nada sem arquivos.
+- `contrato_api_saude.py` sem workflow, com constante da 25.6b e `str(p.cod_ibge)`: cosmético, ferramenta de medição já registrada na story.
+- `cod_ibge=None` quebra em `int(cod_ibge)` e falta isolamento por ano na extração: falham alto, e a falha é registrada por `_log_failed`; sem cenário real mostrado.
+- `profissionaisSusPorMilMoradores` calculado e não exibido: não é defeito (escolha de escopo da tela).
