@@ -91,3 +91,12 @@ Fila de espera, Previne Brasil, vacinação, transporte sanitário e hemodiális
 - Smoke real (só leitura da API, sem banco): Natividade, competência 202512: 18.282 procedimentos ambulatoriais e 63 internações, 63 s.
 - Gates: `make test` (383), `make check`, `pnpm typecheck`, `pnpm lint`; vitest de `packages/db` (411, banco 5545) e `apps/web` (1734). Nada rodou no 5544.
 - Pendência de ambiente: nenhuma carga real foi feita no banco local; o backfill é decisão do Julio.
+
+### Review Findings (revisão inline, 2026-11-07)
+
+- [x] [Review][Patch] MÉDIO: o mart contava como competência as linhas com total vazio ou ilegível, então 12 linhas com uma nula davam `ano_completo_* = true` e o total do ano saía subestimado como "completo". Corrigido: as CTEs `sia_por_ano` e `sih_por_ano` filtram total não nulo (contagem e última competência só de competências com número). Testes novos: 11 competências com total + 1 ilegível = incompleto; ano só com competências ilegíveis = sem dado.
+- [x] [Review][Patch] MÉDIO: `emAndamento` na tela pegava qualquer ano com alguma medida incompleta, então município sem SIH (ou ano passado com 11 competências de SIA) mostrava o último ano, mesmo fechado, como "em andamento". Corrigido: só o ano corrente, e só se uma medida com dado nele estiver incompleta; `descricaoAno` e o aviso usam o mesmo critério (`anoIncompleto`, que ignora medida sem dado). Testes novos na query e na tela (SIA com 12 competências e SIH ausente; ano passado com 11 competências).
+- [x] [Review][Patch] BAIXO (Regra 2): a seleção do ano de referência, da comparação com o ano anterior, do ano em andamento e de "sem internações" saiu da tela e vive em `getSaudeProducaoSus` (`referenciaAmbulatorial`, `referenciaInternacoes`, `anoEmAndamento`, `semInternacoes`, `anoIncompleto` por ano). A tela só renderiza.
+- [x] [Review][Defer] BAIXO: `_paginas` derruba a coleta com 3 páginas idênticas seguidas; com 1 linha por página, linhas legitimamente idênticas seguidas são possíveis. O efeito é falha ruidosa, nunca dado errado. Risco registrado; a Story 25.6c troca a fonte por arquivos em massa.
+- Gates após as correções: `make test` (386), `make check`, `pnpm typecheck`, `pnpm lint`, vitest de `packages/db` (416, banco 5545) e `apps/web` (1735). Na primeira rodada, `make test` falhou uma vez sem causa identificada e passou nas duas seguintes sem mudança de código; vale observar se volta.
+

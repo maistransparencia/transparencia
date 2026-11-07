@@ -47,6 +47,6 @@ Fila de espera, Previne Brasil, vacinação, transporte sanitário e hemodiális
 ## Regras que valem
 
 - Regra 15: só Docker local (`localhost:5544`). **Nunca** exportar `DATABASE_URL` do 5544 junto de `db/test/build` ou `pnpm test` (apaga o banco local); para os testes do `db` use `DATABASE_URL` do 5545 explícito. Nunca rodar `elt/extract` contra produção.
-- Regras 2, 7, 9, 10, 23, 25, 27 e 28. Anos antes de 2021 não importam.
+- Regras 2, 7, 9, 10, 23, 25, 27 e 28. O corte de ano vem da variável dbt `ano_inicial_historico` (`dbt_project.yml`), nunca de literal no SQL ou no Python; anos antes dele não importam.
 - Após alterar: `make test`, `make check`, `make test/ts` e `pnpm typecheck`.
 - Commits convencionais em minúsculas, sem referência a story (Regra 19). Não commitar sem pedir ao Julio.
