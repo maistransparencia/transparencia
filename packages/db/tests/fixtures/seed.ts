@@ -1585,6 +1585,54 @@ export async function seedHistoriaSaudeMetrica(
     .execute();
 }
 
+export interface SaudeRedeAnoRow {
+  portalSlug: string;
+  ano: number;
+  totalLeitosExistentes?: number | null;
+  totalLeitosSus?: number | null;
+  totalProfissionais?: number | null;
+  totalProfissionaisSus?: number | null;
+  populacaoResidente?: number | null;
+  anoPopulacaoReferencia?: number | null;
+  populacaoEstimada?: boolean;
+  leitosExistentesPorMilMoradores?: number | null;
+  profissionaisPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeRede(
+  row: SaudeRedeAnoRow | SaudeRedeAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_rede_por_mil_moradores_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencia_leitos:
+          r.totalLeitosExistentes == null ? null : r.ano * 100 + 12,
+        competencia_profissionais:
+          r.totalProfissionais == null ? null : r.ano * 100 + 12,
+        total_leitos_existentes: r.totalLeitosExistentes ?? null,
+        total_leitos_sus: r.totalLeitosSus ?? null,
+        total_profissionais: r.totalProfissionais ?? null,
+        total_profissionais_sus: r.totalProfissionaisSus ?? null,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        leitos_existentes_por_mil_moradores:
+          r.leitosExistentesPorMilMoradores ?? null,
+        leitos_sus_por_mil_moradores: null,
+        profissionais_por_mil_moradores: r.profissionaisPorMilMoradores ?? null,
+        profissionais_sus_por_mil_moradores: null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -1605,6 +1653,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_saude_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_rede_por_mil_moradores_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

@@ -11,6 +11,7 @@ export function buildSaudeViewModel(raw: SaudeRawData) {
       raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
     ),
     minimoSaude: raw.minimoSaude,
+    redePorMilMoradores: raw.redePorMilMoradores,
     portalUrl: raw.portalConfig?.portalUrl ?? "",
     dataColeta: raw.portalConfig?.dataExtracao ?? "",
     saude: raw.saude,

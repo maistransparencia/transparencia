@@ -1,0 +1,35 @@
+name: Contrato da API da Saúde
+
+# Mede a API de dados abertos da Saúde a partir do mesmo ambiente da carga diária (ubuntu-latest).
+# Só manual; não toca em banco nem em segredo.
+on:
+  workflow_dispatch:
+    inputs:
+      repeticoes:
+        description: "Passadas por endpoint"
+        required: false
+        default: "3"
+
+jobs:
+  contrato:
+    name: Contrato da API da Saúde
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv and sync dependencies
+        run: |
+          pip install uv
+          uv sync --project elt --no-dev
+
+      - name: Medir a API
+        env:
+          PYTHONPATH: .
+        run: uv run --project elt python elt/scripts/contrato_api_saude.py --repeticoes "${{ inputs.repeticoes }}"

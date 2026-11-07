@@ -109,6 +109,14 @@ elt/farmacia-sus:
 	uv run --project elt python elt/scripts/run_dbt.py seed --full-refresh --select seed_farmacia_medicamentos_sentinela
 	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque fct_farmacia_estoque_historico fct_farmacia_coletas_historico fct_farmacia_sentinela_disponibilidade
 
+elt/saude-rede:
+	@for portal in $(if $(PORTAL),$(PORTAL),$$(ls elt/portals/*.yml | xargs -n1 basename | sed 's/\.yml$$//')); do \
+		echo "=== Rede de saúde: $$portal ==="; \
+		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only saude_rede $(if $(YEARS),--years $(YEARS)) && \
+		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
+	done
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_rede_por_mil_moradores_metricas
+
 # CLOUDFLARE R2 DATA LAKE SYNC
 
 r2/pull:

@@ -25,6 +25,10 @@ export const FONTES_OFICIAIS = {
     nome: "SIOPE",
     url: "https://www.fnde.gov.br/siope/",
   },
+  dadosAbertosSaude: {
+    nome: "Ministério da Saúde (dados abertos)",
+    url: "https://apidadosabertos.saude.gov.br/",
+  },
   siops: {
     nome: "SIOPS",
     url: "https://siops.saude.gov.br/",

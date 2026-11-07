@@ -57,6 +57,7 @@ def main() -> None:
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     obrasgov_keys = {"obrasgov"}
     farmacia_sus_keys = {"farmacia_sus"}
+    saude_rede_keys = {"saude_rede"}
     if args.only:
         valid = (
             [e.listagem for e in endpoints]
@@ -64,6 +65,7 @@ def main() -> None:
             + list(pncp_keys)
             + list(obrasgov_keys)
             + list(farmacia_sus_keys)
+            + list(saude_rede_keys)
         )
         if args.only not in valid:
             raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
@@ -200,6 +202,27 @@ def main() -> None:
         except Exception as exc:
             logger.warning("Failed: farmacia_sus / %s: %s", portal.slug, exc)
             _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc)
+
+    if not args.only or args.only in saude_rede_keys:
+        from elt.extract.saude_rede import SaudeRedeExtractor
+
+        anos_saude = [ano for ano in years if ano >= 2021]
+        logger.info(
+            "Extracting rede de saúde for %s (cod_ibge: %s, anos %s)...", portal.slug, portal.cod_ibge, anos_saude
+        )
+        try:
+            saude_data = SaudeRedeExtractor().extract(
+                portal_slug=portal.slug, cod_ibge=portal.cod_ibge, anos=anos_saude
+            )
+            saude_dir = run_dir / "saude_rede"
+            saude_dir.mkdir(parents=True, exist_ok=True)
+            for key, rows in saude_data.items():
+                out = saude_dir / f"{key}.json"
+                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted saude_rede / %s / %s → %d rows", portal.slug, key, len(rows))
+        except Exception as exc:
+            logger.warning("Failed: saude_rede / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "saude_rede", portal.slug, years[-1] if years else 0, exc)
 
     logger.info("Extraction complete → %s", run_dir)
 

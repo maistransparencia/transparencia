@@ -11,6 +11,7 @@ import {
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
   getSaudeMinimoConstitucional,
+  getSaudeRedePorMilMoradores,
   getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
@@ -103,6 +104,8 @@ async function fetchRawSaudeData(
     anoInicial: portalConfig?.anoInicial,
   });
 
+  const redePorMilMoradores = await getSaudeRedePorMilMoradores(tenantSlug);
+
   const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
     ano: context.selectedYear,
     licitacoesNumeros: licitacoesEmAndamento
@@ -163,6 +166,7 @@ async function fetchRawSaudeData(
     context,
     portalConfig,
     minimoSaude,
+    redePorMilMoradores,
     saude,
   };
 }

@@ -19,6 +19,7 @@ import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SaudeMinimoDestaque } from "@/components/saude/saude-minimo-destaque";
+import { SaudeRedePorMilMoradores } from "@/components/saude/saude-rede-por-mil-moradores";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
@@ -64,6 +65,7 @@ export default async function SaudePage({
     isCurrentYear,
     partialPeriod,
     minimoSaude,
+    redePorMilMoradores,
     portalUrl,
     dataColeta,
     saude,
@@ -195,6 +197,8 @@ export default async function SaudePage({
           mensagemVazia="Sem execução da saúde registrada para comparar os anos."
         />
       </section>
+
+      <SaudeRedePorMilMoradores rede={redePorMilMoradores} />
 
       {/* Seção 4: Como o Fundo contrata (Novo) */}
       <SaudeContratacaoSection
