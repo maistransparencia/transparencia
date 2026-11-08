@@ -14,54 +14,30 @@ import {
 } from "@transparencia/ui";
 import { SaudeFarmaciaBotao } from "./saude-farmacia-botao";
 
-const POR_MIL_EXPLICACAO =
-  "Por mil moradores quer dizer: para cada 1.000 pessoas que moram no município.";
-const NOTA_POPULACAO_ESTIMADA =
-  "Estimativa: o total dividido pela população estimada, que não é a do censo.";
-
-const formatPorMil = new Intl.NumberFormat("pt-BR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-const formatPorMilInteiro = new Intl.NumberFormat("pt-BR", {
-  maximumFractionDigits: 0,
-});
-/** Passando de 100, a casa decimal é ruído: 19.298 em vez de 19.298,0. */
-const porMilOuTraco = (valor: number | null): string => {
-  if (valor === null) return "—";
-  return Math.abs(valor) >= 100
-    ? formatPorMilInteiro.format(valor)
-    : formatPorMil.format(valor);
-};
-
-const _formatCompetencia = (competencia: number): string =>
+const formatCompetencia = (competencia: number): string =>
   `${String(competencia % 100).padStart(2, "0")}/${Math.floor(competencia / 100)}`;
 
-/** Régua é o ano anterior: sem meta fixa, só "em AAAA eram X". */
-const notaComAnoAnterior = (
-  ano: number,
-  anterior: { ano: number; valor: number | null } | undefined,
-): string =>
-  anterior && anterior.valor !== null
-    ? `em ${ano}. Em ${anterior.ano} eram ${porMilOuTraco(anterior.valor)}`
-    : `em ${ano}`;
+const numeroOuTraco = (valor: number | null): string =>
+  valor === null ? "—" : fmtNumber(valor);
 
-type MetricaRede =
-  | "leitosSusPorMilMoradores"
-  | "profissionaisSusPorMilMoradores";
+type MetricaRede = "totalLeitosSus" | "totalProfissionaisSus";
 
-const referenciaRede = (serie: SaudeRedeAnoDTO[], metrica: MetricaRede) => {
+/** Régua é o ano anterior: sem meta fixa, só "Em AAAA eram X". */
+const referenciaRede = (
+  serie: SaudeRedeAnoDTO[],
+  metrica: MetricaRede,
+  cadastro: (ano: SaudeRedeAnoDTO) => string,
+) => {
   const comDado = serie.filter((ano) => ano[metrica] !== null);
   const atual = comDado.at(-1);
   const anterior = comDado.at(-2);
+  if (!atual) return { atual, nota: "sem dado da fonte" };
+  const base = cadastro(atual);
   return {
     atual,
-    nota: atual
-      ? notaComAnoAnterior(
-          atual.ano,
-          anterior && { ano: anterior.ano, valor: anterior[metrica] },
-        )
-      : "sem dado da fonte",
+    nota: anterior
+      ? `${base}. Em ${anterior.ano} eram ${numeroOuTraco(anterior[metrica])}`
+      : base,
   };
 };
 
@@ -120,14 +96,14 @@ export function SaudeDestaqueOrigem({
   );
 }
 
-/** "Quantos leitos e profissionais do SUS há por mil moradores?" */
+/** "Quantos leitos e profissionais o SUS tem na cidade?": números absolutos do cadastro mais recente do CNES. */
 export function SaudeDestaqueRede({
   rede,
 }: {
   rede: SaudeRedePorMilMoradoresDTO | null;
 }) {
-  const titulo = "Quantos leitos e profissionais do SUS há por mil moradores?";
-  const eyebrow = "Rede do SUS por mil moradores";
+  const titulo = "Quantos leitos e profissionais o SUS tem na cidade?";
+  const eyebrow = "Rede do SUS";
   if (!rede) {
     return (
       <section aria-label={titulo} className="space-y-3">
@@ -136,13 +112,19 @@ export function SaudeDestaqueRede({
       </section>
     );
   }
-  const leitos = referenciaRede(rede.serie, "leitosSusPorMilMoradores");
+  const competencia = (valor: number | null) =>
+    valor ? ` em ${formatCompetencia(valor)}` : "";
+  const leitos = referenciaRede(
+    rede.serie,
+    "totalLeitosSus",
+    (ano) =>
+      `${numeroOuTraco(ano.totalLeitosSus)} dos ${numeroOuTraco(ano.totalLeitosExistentes)} leitos da cidade. Cadastro do CNES${competencia(ano.competenciaLeitos)}`,
+  );
   const profissionais = referenciaRede(
     rede.serie,
-    "profissionaisSusPorMilMoradores",
-  );
-  const estimada = [leitos.atual, profissionais.atual].some(
-    (ano) => ano?.populacaoEstimada,
+    "totalProfissionaisSus",
+    (ano) =>
+      `${numeroOuTraco(ano.totalProfissionaisSus)} dos ${numeroOuTraco(ano.totalProfissionais)} profissionais da cidade. Cadastro do CNES${competencia(ano.competenciaProfissionais)}`,
   );
   return (
     <section
@@ -154,21 +136,20 @@ export function SaudeDestaqueRede({
       <IndicatorPanel columns={2}>
         <Indicator
           label="Leitos do SUS"
-          value={porMilOuTraco(leitos.atual?.leitosSusPorMilMoradores ?? null)}
+          value={numeroOuTraco(leitos.atual?.totalLeitosSus ?? null)}
           note={leitos.nota}
         />
         <Indicator
           label="Profissionais do SUS"
-          value={porMilOuTraco(
-            profissionais.atual?.profissionaisSusPorMilMoradores ?? null,
+          value={numeroOuTraco(
+            profissionais.atual?.totalProfissionaisSus ?? null,
           )}
           note={profissionais.nota}
         />
       </IndicatorPanel>
       <p className="caption">
-        {[POR_MIL_EXPLICACAO, estimada ? NOTA_POPULACAO_ESTIMADA : null]
-          .filter(Boolean)
-          .join(" ")}
+        Cadastro do Ministério da Saúde (CNES). Não mostra se os leitos estão
+        ocupados.
       </p>
     </section>
   );

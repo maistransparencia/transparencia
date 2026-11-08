@@ -77,29 +77,55 @@ describe("SaudeDestaqueOrigem", () => {
 });
 
 describe("SaudeDestaqueRede", () => {
-  it("compara com o ano anterior, sem meta fixa, e explica 'por mil moradores'", () => {
+  it("mostra números absolutos do cadastro mais recente e compara com o ano anterior", () => {
     render(
       <SaudeDestaqueRede
         rede={rede([
-          anoRede({ ano: 2017, leitosSusPorMilMoradores: 2 }),
-          anoRede({ ano: 2027 }),
+          anoRede({
+            ano: 2017,
+            totalLeitosSus: 20,
+            totalProfissionaisSus: 100,
+          }),
+          anoRede({
+            ano: 2027,
+            competenciaLeitos: 202709,
+            competenciaProfissionais: 202709,
+          }),
         ])}
       />,
     );
-    expect(screen.getByText("em 2027. Em 2017 eram 2,0")).toBeInTheDocument();
+    expect(screen.getByText("Leitos do SUS")).toBeInTheDocument();
+    expect(screen.getByText("30")).toBeInTheDocument();
+    expect(screen.getByText("150")).toBeInTheDocument();
     expect(
-      screen.getByText(/para cada 1\.000 pessoas que moram no município/),
+      screen.getByText(
+        "30 dos 40 leitos da cidade. Cadastro do CNES em 09/2027. Em 2017 eram 20",
+      ),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Estimativa:/)).toBeNull();
+    expect(
+      screen.getByText(
+        "150 dos 200 profissionais da cidade. Cadastro do CNES em 09/2027. Em 2017 eram 100",
+      ),
+    ).toBeInTheDocument();
   });
 
-  it("avisa que a população é estimada", () => {
-    render(
+  it("não usa por mil moradores nem estimativa de população no topo", () => {
+    const { container } = render(
       <SaudeDestaqueRede rede={rede([anoRede({ populacaoEstimada: true })])} />,
     );
-    expect(
-      screen.getByText(/população estimada, que não é a do censo/),
-    ).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/por mil|estimad/i);
+  });
+
+  it("sem dado da fonte mostra traço", () => {
+    render(
+      <SaudeDestaqueRede
+        rede={rede([
+          anoRede({ totalLeitosSus: null, totalProfissionaisSus: null }),
+        ])}
+      />,
+    );
+    expect(screen.getAllByText("—").length).toBe(2);
+    expect(screen.getAllByText("sem dado da fonte").length).toBe(2);
   });
 });
 

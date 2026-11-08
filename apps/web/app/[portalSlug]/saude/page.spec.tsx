@@ -122,7 +122,7 @@ describe("SaudePage", () => {
     [
       "Aplicação mínima exigida em saúde",
       "Origem do dinheiro da saúde",
-      "Rede do SUS por mil moradores",
+      "Rede do SUS",
       "Remédios na Farmácia SUS",
     ].forEach((rotulo) => {
       expect(screen.getByText(rotulo)).toBeInTheDocument();

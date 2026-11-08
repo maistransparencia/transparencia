@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type {
   SaudeProducaoSusAnoDTO,
   SaudeProducaoSusDTO,
@@ -77,7 +77,7 @@ describe("SaudeProducaoSus", () => {
     ];
     render(<SaudeProducaoSus producao={producao(serie)} />);
     expect(screen.queryByText(/de fevereiro a maio/)).toBeNull();
-    expect(screen.getByText(/até maio de 2026/i)).toBeTruthy();
+    expect(screen.getAllByText(/até maio de 2026/i).length).toBeGreaterThan(0);
   });
 
   it("abre com a frase em linguagem comum e o período de cada medida", () => {
@@ -102,6 +102,10 @@ describe("SaudeProducaoSus", () => {
         "De janeiro a julho de 2026, o SUS registrou 344 mil atendimentos e, de janeiro a fevereiro, 63 internações em unidades de saúde da cidade.",
       ),
     ).toBeTruthy();
+    expect(screen.getByText("Atendimentos por mês (média)")).toBeTruthy();
+    expect(screen.getByText("49 mil")).toBeTruthy();
+    expect(screen.getByText("32")).toBeTruthy();
+    expect(screen.getByText("média de janeiro a julho de 2026")).toBeTruthy();
     expect(
       screen.getByRole("heading", {
         name: "Quanto atendimento o SUS registra na cidade?",
@@ -145,8 +149,6 @@ describe("SaudeProducaoSus", () => {
       />,
     );
     expect(screen.getByText("2023–2024")).toBeTruthy();
-    expect(screen.getByText("em 2024. Em 2023 eram 100,0")).toBeTruthy();
-    expect(screen.getByText("em 2024. Em 2023 eram 6,0")).toBeTruthy();
     expect(screen.getAllByText(/Ministério da Saúde/).length).toBeGreaterThan(
       0,
     );
@@ -193,7 +195,6 @@ describe("SaudeProducaoSus", () => {
         )}
       />,
     );
-    expect(screen.getAllByText("em 2025").length).toBe(2);
     expect(
       screen.getByText(/ano de 2026 está em andamento.*até 06\/2026/),
     ).toBeTruthy();
@@ -220,11 +221,9 @@ describe("SaudeProducaoSus", () => {
         )}
       />,
     );
-    expect(screen.getByText("sem dado nesta fonte")).toBeTruthy();
     expect(
       screen.getByText(/não trouxe internações pagas pelo SUS/),
     ).toBeTruthy();
-    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
 
   it("nunca julga a rede nem cita faixa de referência", () => {
@@ -249,6 +248,7 @@ describe("SaudeProducaoSus", () => {
         ])}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.getByText(/O traço \(—\) indica/)).toBeTruthy();
     expect(
       screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
@@ -267,8 +267,10 @@ describe("SaudeProducaoSus", () => {
         ])}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.queryByText(/O traço \(—\) indica/)).toBeNull();
     expect(screen.queryByText(/ainda não foi divulgada/)).toBeNull();
+    expect(screen.getByText(/Por mil moradores quer dizer/)).toBeTruthy();
   });
 
   it("não chama de em andamento o último ano fechado de município sem SIH", () => {

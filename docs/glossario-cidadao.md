@@ -35,7 +35,8 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Posição de estoque | A lista de estoque de um dia específico | |
 | SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
 | Produção do SUS | Atendimentos e internações que as unidades registraram no SUS | |
-| Por mil moradores | Para cada 1.000 pessoas que moram no município. Serve para comparar com anos anteriores sem depender do tamanho da cidade | |
+| Por mil moradores | Para cada 1.000 pessoas que moram no município. Fica dentro do "Ver detalhes", para comparar anos; o topo mostra o número absoluto | |
+| Média por mês | Total de atendimentos (ou de internações) dividido pelos meses que a fonte já trouxe no ano, com o período dito na tela | |
 | Leito do SUS | Cama de hospital ou posto que atende pelo SUS, segundo o cadastro de estabelecimentos de saúde (CNES) | |
 | Internação | Entrada de uma pessoa no hospital para ficar mais de um dia, paga pelo SUS (a autorização se chama AIH) | |
 | Atendimentos e internações feitos na cidade | O que o SUS registrou e pagou em estabelecimentos da cidade. Quem mora aqui e se trata em outra cidade não entra na conta daqui, e cidades que atendem gente de fora aparecem com números maiores | |

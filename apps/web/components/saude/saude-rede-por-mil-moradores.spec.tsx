@@ -63,13 +63,15 @@ describe("SaudeRedePorMilMoradores", () => {
     render(
       <SaudeRedePorMilMoradores
         rede={rede([
-          ano({ ano: 2022, leitosExistentesPorMilMoradores: 3 }),
+          ano({ ano: 2022, totalLeitosExistentes: 12 }),
           ano({ ano: 2023 }),
         ])}
       />,
     );
     expect(screen.getByText("2022–2023")).toBeTruthy();
-    expect(screen.getByText("em 2023. Em 2022 eram 3,0")).toBeTruthy();
+    expect(
+      screen.getByText("cadastro do CNES em 12/2023. Em 2022 eram 12"),
+    ).toBeTruthy();
     expect(screen.getByText(/Ministério da Saúde/)).toBeTruthy();
     expect(screen.getByText(/Coletado em 07\/11\/2026/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
@@ -110,11 +112,13 @@ describe("SaudeRedePorMilMoradores", () => {
             ano: 2026,
             populacaoEstimada: true,
             anoPopulacaoReferencia: 2025,
+            totalProfissionais: null,
             profissionaisPorMilMoradores: null,
           }),
         ])}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.getByText(/O traço \(—\) indica/)).toBeTruthy();
     expect(
       screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
@@ -134,20 +138,22 @@ describe("SaudeRedePorMilMoradores", () => {
       />,
     );
     expect(screen.queryByText(/O traço \(—\) indica/)).toBeNull();
-    expect(screen.queryByText(/ainda não foi divulgada/)).toBeNull();
   });
 
   it("mostra o indicador do SUS com o valor do ano mais recente", () => {
     render(
       <SaudeRedePorMilMoradores
         rede={rede([
-          ano({ ano: 2022, leitosSusPorMilMoradores: 1.2 }),
-          ano({ ano: 2023, leitosSusPorMilMoradores: 1.6 }),
+          ano({ ano: 2022, totalLeitosSus: 7 }),
+          ano({ ano: 2023, totalLeitosSus: 8 }),
         ])}
       />,
     );
-    expect(screen.getByText("Leitos do SUS por mil moradores")).toBeTruthy();
-    expect(screen.getByText("em 2023. Em 2022 eram 1,2")).toBeTruthy();
+    expect(screen.getByText("Leitos do SUS")).toBeTruthy();
+    expect(screen.getByText("8")).toBeTruthy();
+    expect(
+      screen.getByText("cadastro do CNES em 12/2023. Em 2022 eram 7"),
+    ).toBeTruthy();
   });
 
   it("cita a competência de cada indicador e marca a população estimada na linha e na nota", () => {
@@ -164,13 +170,10 @@ describe("SaudeRedePorMilMoradores", () => {
         ])}
       />,
     );
+    expect(screen.getAllByText("cadastro do CNES em 10/2026").length).toBe(2);
+    expect(screen.getByText("cadastro do CNES em 09/2026")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
-    expect(
-      screen.getByText(
-        /leitos mostrados são de 10\/2026 e os profissionais, de 09\/2026/,
-      ),
-    ).toBeTruthy();
-    expect(screen.getAllByText(/população estimada/).length).toBeGreaterThan(1);
+    expect(screen.getAllByText(/população estimada/).length).toBeGreaterThan(0);
   });
 
   it("explica quando falta a população e não o dado do CNES", () => {
@@ -187,6 +190,7 @@ describe("SaudeRedePorMilMoradores", () => {
         ])}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.getByText(/Em 2024 não há população divulgada/)).toBeTruthy();
   });
 });
