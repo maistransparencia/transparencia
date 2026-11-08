@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type {
   SaudeRedeAnoDTO,
   SaudeRedePorMilMoradoresDTO,
@@ -39,6 +39,26 @@ describe("SaudeRedePorMilMoradores", () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it("com um único ano não repete o ano no eyebrow: ele entra na descrição e não há tabela por ano", () => {
+    render(<SaudeRedePorMilMoradores rede={rede([ano({ ano: 2026 })])} />);
+    expect(screen.queryByText("2026")).toBeNull();
+    expect(screen.queryByText("2026–2026")).toBeNull();
+    expect(
+      screen.getByText(/Dados de 2026\. Ainda não há outros anos/),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("usa o intervalo calculado dos dados, sem anos fixos", () => {
+    render(
+      <SaudeRedePorMilMoradores
+        rede={rede([ano({ ano: 2017 }), ano({ ano: 2027 })])}
+      />,
+    );
+    expect(screen.getByText("2017–2027")).toBeTruthy();
+  });
+
   it("compara com o ano anterior, usa o intervalo real e cita a fonte", () => {
     render(
       <SaudeRedePorMilMoradores
@@ -52,7 +72,9 @@ describe("SaudeRedePorMilMoradores", () => {
     expect(screen.getByText("em 2023. Em 2022 eram 3,0")).toBeTruthy();
     expect(screen.getByText(/Ministério da Saúde/)).toBeTruthy();
     expect(screen.getByText(/Coletado em 07\/11\/2026/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.getByText(/Cálculo do Portal/)).toBeTruthy();
+    expect(screen.getByRole("table")).toBeTruthy();
   });
 
   it("nunca julga a rede nem cita faixa de referência", () => {
@@ -80,7 +102,26 @@ describe("SaudeRedePorMilMoradores", () => {
     expect(screen.getByText("sem dado da fonte")).toBeTruthy();
   });
 
-  it("avisa que a população é estimativa quando o ano ainda não foi divulgado", () => {
+  it("com algum valor indisponível explica o traço e a população estimada", () => {
+    render(
+      <SaudeRedePorMilMoradores
+        rede={rede([
+          ano({
+            ano: 2026,
+            populacaoEstimada: true,
+            anoPopulacaoReferencia: 2025,
+            profissionaisPorMilMoradores: null,
+          }),
+        ])}
+      />,
+    );
+    expect(screen.getByText(/O traço \(—\) indica/)).toBeTruthy();
+    expect(
+      screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
+    ).toBeTruthy();
+  });
+
+  it("sem nenhum traço na tela não mostra a nota do traço nem da estimativa", () => {
     render(
       <SaudeRedePorMilMoradores
         rede={rede([
@@ -92,9 +133,8 @@ describe("SaudeRedePorMilMoradores", () => {
         ])}
       />,
     );
-    expect(
-      screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
-    ).toBeTruthy();
+    expect(screen.queryByText(/O traço \(—\) indica/)).toBeNull();
+    expect(screen.queryByText(/ainda não foi divulgada/)).toBeNull();
   });
 
   it("mostra o indicador do SUS com o valor do ano mais recente", () => {
@@ -124,6 +164,7 @@ describe("SaudeRedePorMilMoradores", () => {
         ])}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(
       screen.getByText(
         /leitos mostrados são de 10\/2026 e os profissionais, de 09\/2026/,

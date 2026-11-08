@@ -516,3 +516,7 @@ status: open
 - Números do spike não reproduzidos em teste (Porciúncula 28/27 leitos; 695/548/438 profissionais): o registro da story admite que não foram refeitos. Para resolver: `make elt/saude-datasus DRY_RUN=1` local para Porciúncula 2025-12 e comparar com o spike.
 - `main()` e a proteção do `--dry-run` (`engine is None` sem gravação) sem teste: baixo risco, a carga é manual e local (Regra 15). Um teste pequeno do guard basta se quiser cobrir.
 - SIA (`PA_UFMUN`) e SIH (`MUNIC_MOV`) usam o município do estabelecimento, e a tela divide por moradores; mês reprocessado retroativamente no DATASUS não é relido (padrão: 4 últimas competências). Decidir na Story 25.10, junto com a Regra 27 (rotular na tela o dado que não é do morador).
+
+## Deferred from: topo de /saude da Story 25.10 (2026-11-08)
+
+- Régua externa para a produção do SUS: mediana das cidades da UF, calculada dinamicamente (Regra 23), via extrator (os arquivos do DATASUS já trazem todas as cidades da UF), dbt e query. Sem ela, atendimentos e internações por mil moradores não dizem se é muito ou pouco, e por isso saíram do topo. Ressalva para a story: cidade polo atende gente de fora e distorce a comparação; o texto da comparação precisa dizer isso. Backfill de anos anteriores continua descartado (decisão do Julio).

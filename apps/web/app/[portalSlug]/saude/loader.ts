@@ -7,6 +7,7 @@ import {
   getSaudeContratosCountMetrics,
   getSaudeEmendasMetrics,
   getSaudeExecutionTrendMetrics,
+  getSaudeFarmaciaResumo,
   getSaudeFontesReceitaMetrics,
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
@@ -14,8 +15,17 @@ import {
   getSaudeProducaoSus,
   getSaudeRedePorMilMoradores,
   getTopFornecedoresExecucaoMetrics,
+  type SaudeFarmaciaResumoDTO,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+
+const FARMACIA_RESUMO_INDISPONIVEL: SaudeFarmaciaResumoDTO = {
+  status: "indisponivel",
+  dataPosicaoMaisRecente: null,
+  totalUnidadesAtivas: null,
+  essenciaisNoEstoque: null,
+  totalEssenciais: null,
+};
 
 export interface SaudeSearchParams {
   ano?: string;
@@ -105,9 +115,12 @@ async function fetchRawSaudeData(
     anoInicial: portalConfig?.anoInicial,
   });
 
-  const [redePorMilMoradores, producaoSus] = await Promise.all([
+  const [redePorMilMoradores, producaoSus, farmaciaResumo] = await Promise.all([
     getSaudeRedePorMilMoradores(tenantSlug),
     getSaudeProducaoSus(tenantSlug),
+    getSaudeFarmaciaResumo(tenantSlug).catch(
+      (): SaudeFarmaciaResumoDTO => FARMACIA_RESUMO_INDISPONIVEL,
+    ),
   ]);
 
   const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
@@ -172,6 +185,7 @@ async function fetchRawSaudeData(
     minimoSaude,
     redePorMilMoradores,
     producaoSus,
+    farmaciaResumo,
     saude,
   };
 }

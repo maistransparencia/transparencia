@@ -53,7 +53,7 @@ Regras 9, 23 (sem município, UF ou ano fixos; anos a partir dos dados), 25 (tok
 
 ## Fora do escopo
 
-Procedimentos de diagnóstico (decisão 5); conferência das emendas com a fonte federal (25.5); mudar cálculos do mínimo, da origem dos recursos ou da rede; novos dados ou indicadores; reabrir o texto interno de `EmendasSection`.
+Procedimentos de diagnóstico (decisão 5); conferência das emendas com a fonte federal (25.5); mudar cálculos do mínimo, da origem dos recursos ou da rede; novos dados ou indicadores; reabrir o texto interno de `EmendasSection`. Régua externa (mediana das cidades da UF) para a produção do SUS: registrada em `deferred-work.md`.
 
 ## Dependências
 

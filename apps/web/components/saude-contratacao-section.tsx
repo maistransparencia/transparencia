@@ -3,9 +3,11 @@ import type {
   LicitacaoEmAndamentoDTO,
   LicitacaoItemDTO,
 } from "@transparencia/db";
-import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
+import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import Link from "next/link";
+import type React from "react";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
+import { SectionWithHeader } from "@/components/section-with-header";
 
 export interface SaudeContratacaoLicitacoesProps {
   caminhos: CaminhoContratacaoSaudeDTO[];
@@ -24,6 +26,10 @@ export interface SaudeContratacaoSectionProps {
   licitacoesSaude: SaudeContratacaoLicitacoesProps;
   licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
+  /** Resumo numérico visível com a seção recolhida. */
+  resumo?: React.ReactNode;
+  /** Abre a seção quando a URL aponta para uma licitação (`?numero=`). */
+  defaultOpen?: boolean;
 }
 
 const CAMINHOS_CONTRATACAO = [
@@ -64,6 +70,8 @@ export function SaudeContratacaoSection({
   licitacoesSaude,
   licitacoesEmAndamento = [],
   itensByLicitacao,
+  resumo,
+  defaultOpen,
 }: SaudeContratacaoSectionProps) {
   const caminhos = CAMINHOS_CONTRATACAO.map((definicao) => {
     const encontrado = licitacoesSaude.caminhos.find(
@@ -77,19 +85,19 @@ export function SaudeContratacaoSection({
   });
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Como o Fundo contrata"
-        description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
-        action={
-          <Link
-            href={`/${portalSlug}/licitacoes`}
-            className="font-semibold text-brand-text hover:underline"
-          >
-            Ver todas as licitações &rarr;
-          </Link>
-        }
-      />
+    <SectionWithHeader
+      id="contratacao-saude"
+      title="Como o Fundo contrata"
+      description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
+      summary={resumo}
+      defaultOpen={defaultOpen}
+    >
+      <Link
+        href={`/${portalSlug}/licitacoes`}
+        className="font-semibold text-brand-text hover:underline"
+      >
+        Ver todas as licitações &rarr;
+      </Link>
 
       <ul className="space-y-6">
         {caminhos.map((caminho) => {
@@ -178,6 +186,6 @@ export function SaudeContratacaoSection({
           </div>
         )}
       </div>
-    </section>
+    </SectionWithHeader>
   );
 }

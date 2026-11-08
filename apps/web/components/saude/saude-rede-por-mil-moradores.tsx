@@ -3,6 +3,7 @@ import type {
   SaudeRedePorMilMoradoresDTO,
 } from "@transparencia/db";
 import {
+  AlertBox,
   fmtDate,
   Indicator,
   IndicatorPanel,
@@ -10,6 +11,9 @@ import {
 } from "@transparencia/ui";
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+
+import { rotuloPeriodoAnos } from "./periodo-anos";
+import { SaudeDetalhesModal } from "./saude-detalhes-modal";
 
 export interface SaudeRedePorMilMoradoresProps {
   rede: SaudeRedePorMilMoradoresDTO | null;
@@ -74,6 +78,11 @@ export function SaudeRedePorMilMoradores({
       ano.populacaoResidente === null &&
       (ano.totalLeitosExistentes !== null || ano.totalProfissionais !== null),
   );
+  const temTraco = [
+    leitos?.leitosExistentesPorMilMoradores,
+    leitosSus?.leitosSusPorMilMoradores,
+    profissionais?.profissionaisPorMilMoradores,
+  ].some((valor) => valor === null || valor === undefined);
   const textoCompetencias = (() => {
     if (leitosCompetencia && profissionaisCompetencia)
       return `; os leitos mostrados são de ${formatCompetencia(leitosCompetencia)} e os profissionais, de ${formatCompetencia(profissionaisCompetencia)}`;
@@ -90,8 +99,16 @@ export function SaudeRedePorMilMoradores({
     <section className="space-y-6">
       <SectionHeader
         title="Quantos leitos e profissionais de saúde há para cada mil moradores?"
-        eyebrow={`${rede.anoMin}–${rede.anoMax}`}
-        description="Mostra se a rede de saúde da cidade cresceu ou encolheu em relação aos anos anteriores. O Portal calcula esses números dividindo o total pela população e multiplicando por mil."
+        eyebrow={
+          rede.anoMin === rede.anoMax
+            ? undefined
+            : rotuloPeriodoAnos(rede.anoMin, rede.anoMax)
+        }
+        description={
+          rede.anoMin === rede.anoMax
+            ? `Dados de ${rede.anoMax}. Ainda não há outros anos para comparar.`
+            : "Mostra se a rede de saúde da cidade cresceu ou encolheu em relação aos anos anteriores."
+        }
       />
       <IndicatorPanel columns={3}>
         <Indicator
@@ -141,60 +158,67 @@ export function SaudeRedePorMilMoradores({
           }
         />
       </IndicatorPanel>
-      <details>
-        <summary>Ver detalhes por ano</summary>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Ano</th>
-              <th scope="col" className="numeric">
-                Leitos por mil
-              </th>
-              <th scope="col" className="numeric">
-                Leitos do SUS por mil
-              </th>
-              <th scope="col" className="numeric">
-                Profissionais por mil
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...serie].reverse().map((ano) => (
-              <tr key={ano.ano}>
-                <td>
-                  {ano.ano}
-                  {ano.populacaoEstimada ? " (população estimada)" : ""}
-                </td>
-                <td className="numeric">
-                  {porMilOuTraco(ano.leitosExistentesPorMilMoradores)}
-                </td>
-                <td className="numeric">
-                  {porMilOuTraco(ano.leitosSusPorMilMoradores)}
-                </td>
-                <td className="numeric">
-                  {porMilOuTraco(ano.profissionaisPorMilMoradores)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
-      <p className="caption">
-        Cálculo do Portal: total de leitos (ou de profissionais) dividido pela
-        população do município, vezes mil. Leitos e profissionais vêm do
-        Cadastro Nacional de Estabelecimentos de Saúde (CNES)
-        {textoCompetencias}. Quem trabalha em mais de um local conta uma vez só,
-        pelo número do Cartão Nacional de Saúde (CNS). Vínculo sem esse número
-        não entra na contagem de pessoas. O número não mede a qualidade do
-        atendimento nem se os leitos estão ocupados. O traço (—) indica que a
-        fonte não trouxe o dado; não quer dizer zero.
-        {anoEstimado
-          ? ` A população de ${anoEstimado.ano} ainda não foi divulgada: o cálculo usa a de ${anoEstimado.anoPopulacaoReferencia}, por isso o resultado é uma estimativa.`
-          : ""}
-        {anoSemPopulacao
-          ? ` Em ${anoSemPopulacao.ano} não há população divulgada para o município, por isso não foi possível calcular por mil moradores.`
-          : ""}
-      </p>
+      <SaudeDetalhesModal titulo="Detalhes de leitos e profissionais">
+        <div className="space-y-4">
+          <p className="caption">
+            Cálculo do Portal: total de leitos (ou de profissionais) dividido
+            pela população do município, vezes mil. Leitos e profissionais vêm
+            do Cadastro Nacional de Estabelecimentos de Saúde (CNES)
+            {textoCompetencias}. Quem trabalha em mais de um local conta uma vez
+            só, pelo número do Cartão Nacional de Saúde (CNS); vínculo sem esse
+            número não entra na contagem de pessoas. O número não mede a
+            qualidade do atendimento nem se os leitos estão ocupados.
+          </p>
+          {serie.length > 1 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Ano</th>
+                  <th scope="col" className="numeric">
+                    Leitos por mil
+                  </th>
+                  <th scope="col" className="numeric">
+                    Leitos do SUS por mil
+                  </th>
+                  <th scope="col" className="numeric">
+                    Profissionais por mil
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...serie].reverse().map((ano) => (
+                  <tr key={ano.ano}>
+                    <td>
+                      {ano.ano}
+                      {ano.populacaoEstimada ? " (população estimada)" : ""}
+                    </td>
+                    <td className="numeric">
+                      {porMilOuTraco(ano.leitosExistentesPorMilMoradores)}
+                    </td>
+                    <td className="numeric">
+                      {porMilOuTraco(ano.leitosSusPorMilMoradores)}
+                    </td>
+                    <td className="numeric">
+                      {porMilOuTraco(ano.profissionaisPorMilMoradores)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null}
+        </div>
+      </SaudeDetalhesModal>
+      {temTraco && (
+        <AlertBox type="info" title="Dado não disponível">
+          O traço (—) indica que a fonte não trouxe o dado; não quer dizer zero.
+          {anoEstimado
+            ? ` A população de ${anoEstimado.ano} ainda não foi divulgada: o cálculo usa a de ${anoEstimado.anoPopulacaoReferencia}, por isso o resultado é uma estimativa.`
+            : ""}
+          {anoSemPopulacao
+            ? ` Em ${anoSemPopulacao.ano} não há população divulgada para o município, por isso não foi possível calcular por mil moradores.`
+            : ""}
+        </AlertBox>
+      )}
       <LinhaLeiEFonte
         source={
           <LeiLink

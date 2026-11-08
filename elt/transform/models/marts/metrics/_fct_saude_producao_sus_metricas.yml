@@ -35,9 +35,15 @@ models:
       - name: competencias_internacoes
         data_type: integer
         description: "Quantas competências (meses) de SIH entraram no ano; nulo quando o SIH não trouxe nada no ano (estado sem dado nesta fonte)"
+      - name: primeira_competencia_ambulatorial
+        data_type: integer
+        description: "Competência (AAAAMM) mais antiga de SIA carregada no ano; com competencias_* mostra se os meses são seguidos"
       - name: ultima_competencia_ambulatorial
         data_type: integer
         description: "Competência (AAAAMM) mais recente de SIA carregada no ano"
+      - name: primeira_competencia_internacoes
+        data_type: integer
+        description: "Competência (AAAAMM) mais antiga de SIH carregada no ano; com competencias_* mostra se os meses são seguidos"
       - name: ultima_competencia_internacoes
         data_type: integer
         description: "Competência (AAAAMM) mais recente de SIH carregada no ano"

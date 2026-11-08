@@ -73,6 +73,7 @@ def test_ano_em_curso_fica_incompleto_e_diz_ate_onde_a_fonte_tem_dado(conn, port
     raw.populacao(portal, 2025, 1000)
     linha = _linhas(conn, portal)[2026]
     assert linha["competencias_ambulatoriais"] == 2
+    assert linha["primeira_competencia_ambulatorial"] == 202601
     assert linha["ultima_competencia_ambulatorial"] == 202602
     assert linha["ano_completo_ambulatorial"] is False
     assert linha["populacao_estimada"] is True
@@ -106,6 +107,20 @@ def test_sem_populacao_nao_calcula_taxa(conn, portal, raw):
     linha = _linhas(conn, portal)[2022]
     assert linha["procedimentos_ambulatoriais_por_mil_moradores"] is None
     assert linha["total_procedimentos_ambulatoriais"] == 10
+
+
+def test_mes_faltando_no_meio_aparece_na_primeira_e_na_ultima_competencia(conn, portal, raw):
+    raw.sia(portal, 202602, 50)
+    raw.sia(portal, 202603, 70)
+    raw.sia(portal, 202605, 30)
+    raw.sih(portal, 202604, 5)
+    raw.populacao(portal, 2025, 1000)
+    linha = _linhas(conn, portal)[2026]
+    assert linha["competencias_ambulatoriais"] == 3
+    assert linha["primeira_competencia_ambulatorial"] == 202602
+    assert linha["ultima_competencia_ambulatorial"] == 202605
+    assert linha["primeira_competencia_internacoes"] == 202604
+    assert linha["ultima_competencia_internacoes"] == 202604
 
 
 def test_competencia_com_total_ilegivel_nao_conta_para_ano_completo(conn, portal, raw):

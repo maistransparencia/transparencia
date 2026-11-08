@@ -6,6 +6,9 @@ export interface SaudeProducaoSusAnoDTO {
   competenciasAmbulatoriais: number | null;
   /** Quantos meses de SIH entraram no ano; nulo é "sem dado nesta fonte". */
   competenciasInternacoes: number | null;
+  /** Competência (AAAAMM) mais antiga de SIA/SIH carregada no ano. */
+  primeiraCompetenciaAmbulatorial: number | null;
+  primeiraCompetenciaInternacoes: number | null;
   /** Competência (AAAAMM) mais recente de SIA/SIH carregada no ano. */
   ultimaCompetenciaAmbulatorial: number | null;
   ultimaCompetenciaInternacoes: number | null;
@@ -118,12 +121,21 @@ export async function getSaudeProducaoSus(
   const cleanSlug = portalSlug?.trim();
   if (!cleanSlug) return null;
 
-  const rows = await db
+  const todasAsLinhas = await db
     .selectFrom("fct_saude_producao_sus_metricas")
     .selectAll()
     .where("portal_slug", "=", cleanSlug)
     .orderBy("ano", "asc")
     .execute();
+
+  // Ano em que a fonte não trouxe atendimentos nem internações não entra na série.
+  const rows = todasAsLinhas.filter(
+    (row) =>
+      row.competencias_ambulatoriais !== null ||
+      row.competencias_internacoes !== null ||
+      row.total_procedimentos_ambulatoriais !== null ||
+      row.total_internacoes !== null,
+  );
 
   if (rows.length === 0) return null;
 
@@ -131,6 +143,12 @@ export async function getSaudeProducaoSus(
     ano: Number(row.ano),
     competenciasAmbulatoriais: numberOrNull(row.competencias_ambulatoriais),
     competenciasInternacoes: numberOrNull(row.competencias_internacoes),
+    primeiraCompetenciaAmbulatorial: numberOrNull(
+      row.primeira_competencia_ambulatorial,
+    ),
+    primeiraCompetenciaInternacoes: numberOrNull(
+      row.primeira_competencia_internacoes,
+    ),
     ultimaCompetenciaAmbulatorial: numberOrNull(
       row.ultima_competencia_ambulatorial,
     ),

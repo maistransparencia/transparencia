@@ -34,6 +34,12 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Unidade ativa (farmácia SUS) | Posto ou unidade de saúde que enviou a lista de estoque recentemente | |
 | Posição de estoque | A lista de estoque de um dia específico | |
 | SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
+| Produção do SUS | Atendimentos e internações que as unidades registraram no SUS | |
+| Por mil moradores | Para cada 1.000 pessoas que moram no município. Serve para comparar com anos anteriores sem depender do tamanho da cidade | |
+| Leito do SUS | Cama de hospital ou posto que atende pelo SUS, segundo o cadastro de estabelecimentos de saúde (CNES) | |
+| Internação | Entrada de uma pessoa no hospital para ficar mais de um dia, paga pelo SUS (a autorização se chama AIH) | |
+| Atendimentos e internações feitos na cidade | O que o SUS registrou e pagou em estabelecimentos da cidade. Quem mora aqui e se trata em outra cidade não entra na conta daqui, e cidades que atendem gente de fora aparecem com números maiores | |
+| Para fiscalizar | Parte da página para quem quer conferir contrato por contrato, fornecedor por fornecedor e emenda por emenda; vem recolhida, com um resumo à vista | |
 | Lote (de remédio) | Remessa de um mesmo remédio com a mesma data de validade | "Lote irregular", "lote vencido" sem dizer que consta com saldo na lista |
 | Remédio só com lote vencido | "Na lista de estoque, todos os lotes dele estão com a validade vencida" | "Remédio vencido", "sem estoque", "irregular" |
 | IDEB | Nota de 0 a 10 que o governo federal dá às escolas, combinando o que os alunos aprendem nas provas e quantos são aprovados. É medida de dois em dois anos | "Ciclo oficial", "troféu cívico" |

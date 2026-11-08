@@ -43,7 +43,7 @@ const isoDate = (valor: unknown): string | null => {
 
 /**
  * Leitos e profissionais de saúde por mil moradores, ano a ano (CNES e população residente do
- * Ministério da Saúde). Retorna `null` quando o portal não tem nenhum ano no mart.
+ * Ministério da Saúde). Retorna `null` quando o portal não tem nenhum ano com dado no mart (anos sem leitos nem profissionais ficam fora).
  * O intervalo de anos vem dos dados reais; não há régua numérica de referência.
  */
 export async function getSaudeRedePorMilMoradores(
@@ -52,12 +52,21 @@ export async function getSaudeRedePorMilMoradores(
   const cleanSlug = portalSlug?.trim();
   if (!cleanSlug) return null;
 
-  const rows = await db
+  const todasAsLinhas = await db
     .selectFrom("fct_saude_rede_por_mil_moradores_metricas")
     .selectAll()
     .where("portal_slug", "=", cleanSlug)
     .orderBy("ano", "asc")
     .execute();
+
+  // Ano em que a fonte não trouxe leitos nem profissionais não entra na série.
+  const rows = todasAsLinhas.filter(
+    (row) =>
+      row.total_leitos_existentes !== null ||
+      row.total_leitos_sus !== null ||
+      row.total_profissionais !== null ||
+      row.total_profissionais_sus !== null,
+  );
 
   if (rows.length === 0) return null;
 

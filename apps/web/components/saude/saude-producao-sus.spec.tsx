@@ -12,6 +12,8 @@ const ano = (
 ): SaudeProducaoSusAnoDTO => ({
   competenciasAmbulatoriais: 12,
   competenciasInternacoes: 12,
+  primeiraCompetenciaAmbulatorial: valores.ano * 100 + 1,
+  primeiraCompetenciaInternacoes: valores.ano * 100 + 1,
   ultimaCompetenciaAmbulatorial: valores.ano * 100 + 12,
   ultimaCompetenciaInternacoes: valores.ano * 100 + 12,
   totalProcedimentosAmbulatoriais: 1200,
@@ -61,6 +63,74 @@ describe("SaudeProducaoSus", () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it("não afirma período contínuo quando falta mês no meio", () => {
+    const serie = [
+      ano({
+        ano: 2026,
+        competenciasAmbulatoriais: 3,
+        primeiraCompetenciaAmbulatorial: 202602,
+        ultimaCompetenciaAmbulatorial: 202605,
+        totalProcedimentosAmbulatoriais: 344122,
+        anoCompletoAmbulatorial: false,
+        anoIncompleto: true,
+      }),
+    ];
+    render(<SaudeProducaoSus producao={producao(serie)} />);
+    expect(screen.queryByText(/de fevereiro a maio/)).toBeNull();
+    expect(screen.getByText(/até maio de 2026/i)).toBeTruthy();
+  });
+
+  it("abre com a frase em linguagem comum e o período de cada medida", () => {
+    const serie = [
+      ano({
+        ano: 2026,
+        competenciasAmbulatoriais: 7,
+        ultimaCompetenciaAmbulatorial: 202607,
+        totalProcedimentosAmbulatoriais: 344122,
+        competenciasInternacoes: 2,
+        primeiraCompetenciaInternacoes: 202601,
+        ultimaCompetenciaInternacoes: 202602,
+        totalInternacoes: 63,
+        anoCompletoAmbulatorial: false,
+        anoCompletoInternacoes: false,
+        anoIncompleto: true,
+      }),
+    ];
+    render(<SaudeProducaoSus producao={producao(serie)} />);
+    expect(
+      screen.getByText(
+        "De janeiro a julho de 2026, o SUS registrou 344 mil atendimentos e, de janeiro a fevereiro, 63 internações em unidades de saúde da cidade.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: "Quanto atendimento o SUS registra na cidade?",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/Não mostra tempo de espera nem se faltou vaga/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/pagou/)).toBeNull();
+  });
+
+  it("com um único ano não mostra eyebrow de ano e avisa de quem se trata fora", () => {
+    render(<SaudeProducaoSus producao={producao([ano({ ano: 2026 })])} />);
+    expect(screen.queryByText("2026")).toBeNull();
+    expect(screen.queryByText("2026–2026")).toBeNull();
+    expect(
+      screen.getByText(/se trata em outra cidade não entra na conta daqui/),
+    ).toBeTruthy();
+  });
+
+  it("usa o intervalo calculado dos dados, sem anos fixos", () => {
+    render(
+      <SaudeProducaoSus
+        producao={producao([ano({ ano: 2017 }), ano({ ano: 2027 })])}
+      />,
+    );
+    expect(screen.getByText("2017–2027")).toBeTruthy();
+  });
+
   it("compara o ano completo mais recente com o anterior e cita a fonte", () => {
     render(
       <SaudeProducaoSus
@@ -81,7 +151,9 @@ describe("SaudeProducaoSus", () => {
       0,
     );
     expect(screen.getByText(/Coletado em 07\/11\/2026/)).toBeTruthy();
-    expect(screen.getByText(/Não é todo o atendimento da cidade/)).toBeTruthy();
+    expect(
+      screen.getByText(/Inclui pessoas de outras cidades atendidas aqui/),
+    ).toBeTruthy();
   });
 
   it("não compara o ano em andamento com anos completos", () => {
@@ -164,7 +236,26 @@ describe("SaudeProducaoSus", () => {
     );
   });
 
-  it("avisa que a população é estimativa quando o ano ainda não foi divulgado", () => {
+  it("com algum valor indisponível explica o traço e a população estimada", () => {
+    render(
+      <SaudeProducaoSus
+        producao={producao([
+          ano({
+            ano: 2026,
+            populacaoEstimada: true,
+            anoPopulacaoReferencia: 2025,
+            internacoesPorMilMoradores: null,
+          }),
+        ])}
+      />,
+    );
+    expect(screen.getByText(/O traço \(—\) indica/)).toBeTruthy();
+    expect(
+      screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
+    ).toBeTruthy();
+  });
+
+  it("sem nenhum traço na tela não mostra a nota do traço nem da estimativa", () => {
     render(
       <SaudeProducaoSus
         producao={producao([
@@ -176,9 +267,8 @@ describe("SaudeProducaoSus", () => {
         ])}
       />,
     );
-    expect(
-      screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
-    ).toBeTruthy();
+    expect(screen.queryByText(/O traço \(—\) indica/)).toBeNull();
+    expect(screen.queryByText(/ainda não foi divulgada/)).toBeNull();
   });
 
   it("não chama de em andamento o último ano fechado de município sem SIH", () => {
