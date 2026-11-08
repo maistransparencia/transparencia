@@ -270,7 +270,8 @@ development_status:
   25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude: done
   25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
   25-6a-leitos-e-profissionais-de-saude-por-mil-moradores: ready-for-dev
-  25-6b-atendimentos-e-internacoes-do-sus-na-cidade: backlog
+  25-6b-atendimentos-e-internacoes-do-sus-na-cidade: ready-for-dev
+  25-6c-fonte-em-massa-do-datasus-para-a-rede-e-a-producao-de-saude: ready-for-dev
   25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: backlog
   25-8-objeto-correto-das-emendas-na-saude-e-na-educacao: done
   25-9-emendas-estaduais-lista-oficial-e-conferencia-com-o-portal-municipal: done

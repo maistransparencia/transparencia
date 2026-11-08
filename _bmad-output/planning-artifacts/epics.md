@@ -3142,7 +3142,7 @@ As a maintainer,
 I want each source to be ingested at the pace its data actually changes,  
 So that we stop re-fetching unchanged data every business day and the SIOPE and other sources get a schedule of their own.
 
-**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). Acrescentado em 2026-11-05 durante o refinamento da página de educação: a média nacional do IDEB virou o seed `seed_inep_ideb_brasil.csv` e precisa seguir a mesma cadência dos outros seeds do IDEB.
+**Origem:** conversa de 2026-11-01 durante a Story 24.1. O `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). O extrator do SIOPE (Story 24.1) ainda não está no pipeline. Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI e SIOPE). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). Acrescentado em 2026-11-05 durante o refinamento da página de educação: a média nacional do IDEB virou o seed `seed_inep_ideb_brasil.csv` e precisa seguir a mesma cadência dos outros seeds do IDEB. Acrescentado em 2026-11-07 durante a Story 25.6a: a rede de saúde (`saude_rede`: CNES leitos, CNES profissionais e população residente) é fonte nova, com custo de extração alto (ver critério abaixo).
 
 **Acceptance Criteria:**
 - **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
@@ -3166,10 +3166,17 @@ So that we stop re-fetching unchanged data every business day and the SIOPE and 
 - **Then** o seed entra na mesma cadência dos demais seeds do IDEB, isto é, no workflow `check-inep-ideb-updates.yml`, que passa a rodar também o `sync_ibge_ideb_brasil.py` junto do `sync_inep_ideb_seed.py`, na mesma verificação de novo ciclo bienal e no mesmo PR de atualização; a story confere se o `seed_inep_ideb_estados` também está coberto, já que hoje o workflow só chama o sync do seed municipal
 - **And** o registro de coletas da Story 23.1 lista os seeds do IDEB (municipal, estados e Brasil) como fontes com `frequencia_esperada` `mensal`, e um teste confere que nenhum seed do IDEB fica fora do workflow
 - **And** o deploy aplica `dbt seed` antes de publicar o código que lê a média nacional, porque `getEducacaoMediasNacionais` devolve vazio em silêncio se a tabela não existir e o marcador some da tela sem erro.
+- **Given** as fontes de saúde da Epic 25: `saude_rede` (CNES leitos e profissionais e população residente, Story 25.6a) e `saude_producao` (SIA e SIH, Story 25.6b), hoje em `elt/extract/saude_rede.py` pela API de dados abertos, **fora da carga diária** (só rodam com `--only`), e a Story 25.6c, que troca CNES, SIA e SIH pelos arquivos mensais por estado do DATASUS (`elt/fontes/saude_datasus.yml`, uma entrada por UF)
+- **When** a cadência é definida
+- **Then** as fontes de saúde entram no grupo **mensal** (o CNES, o SIA e o SIH publicam uma competência por mês; a população residente, uma vez por ano) e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`; o nome da fonte no grupo segue o da 25.6c quando ela for entregue
+- **And** a carga é **incremental por competência**: as 4 últimas competências fechadas (defasagem medida em 2026-11-07: CNES até 2026-09 e SIA até 2026-08); anos fechados nunca são rebuscados pelo job. O backfill de 2021 em diante é manual, em partes, só no banco local; em produção só com autorização explícita do Julio (Regra 15)
+- **And** o custo medido é o que decide o desenho do job: **pela API** (25.6a e 25.6b), 1 linha por página a ~0,5 s: profissionais de uma competência levam 4 a 5 min por portal (Natividade: 507 páginas, 263 s; Porciúncula: 695) e SIA ~300 páginas por mês (~4 min), logo a carga completa de 2021 a 2026 passa de 1 h por portal e cresce linearmente com o número de cidades (Brasil inteiro: ~16 dias de leitura contínua por ano de dados, inviável); **por arquivo em massa do DATASUS** (25.6c), o custo é por UF e não por cidade: SIA do mês do RJ ~271 MB baixados em ~1 min e ~2 a 3 min de leitura, CNES e SIH em segundos, e o disco temporário chega a ~3,4 GB (o job apaga os arquivos ao fim)
+- **And** o primeiro run mensal mede o tempo do job por UF no runner (ubuntu-latest), incluindo o acesso ao FTP, e registra o resultado; o resultado do teste de contrato da 25.6a (API) e o da 25.6c (FTP) são a linha de base. Se o total não couber no limite do job, divide-se por UF em matriz
+- **And** os dois grupos só entram no workflow mensal depois da 25.6c, para não fixar na pipeline o custo da API; até lá continuam manuais (`make elt/saude-rede` e `make elt/saude-producao`) e um teste confere que nenhuma fonte de saúde roda na carga diária por omissão.
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
-**Dependências:** Story 24.1 (extrator do SIOPE) e Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
+**Dependências:** Story 24.1 (extrator do SIOPE), Story 25.2 (extrator do SIOPS; a 25.2 **não** depende desta) Story 25.6a e 25.6b (fontes de saúde; **não** dependem desta) e Story 25.6c (fonte em massa; a 25.6c entrega a cadência desta história por UF); alinhamento de valores com a Story 23.1. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
 
 ---
 
@@ -3790,6 +3797,49 @@ So that I can tell how much care is actually being produced.
 
 ---
 
+### Story 25.6c: Fonte em Massa do DATASUS para a Rede e a Produção de Saúde
+
+As a maintainer,  
+I want the health network and SUS production numbers to come from the Ministry's monthly state files instead of the page-by-page API,  
+So that loading a month costs minutes per state, not hours per city, and a new city of a known state costs nothing extra.
+
+**Origem:** pedido do Julio em 2026-11-07, depois da carga manual da 25.6a e 25.6b: a API devolve 1 linha por página (profissionais de uma cidade pequena: 300 a 500 páginas por competência, 4 a 5 min; SIA: ~300 páginas por mês), a carga completa leva horas por portal e para o Brasil inteiro seria impraticável (estimativa de ~16 dias de leitura contínua por ano de dados). Spike local (só leitura, sem banco) mostrou que os arquivos mensais por estado do DATASUS reproduzem exatamente os números da API.
+
+**Evidência do spike (2026-11-07, FTP anônimo `ftp.datasus.gov.br`, arquivos `.dbc` = DBF comprimido):**
+
+| Fonte | Arquivo (RJ) | Tamanho | Conferência contra a API |
+|---|---|---|---|
+| CNES leitos | `/dissemin/publicos/CNES/200508_/Dados/LT/LTRJ2605.dbc` | 46 KB | Porciúncula 2026-05: 28 existentes e 27 do SUS, igual à API |
+| CNES profissionais | `.../CNES/200508_/Dados/PF/PFRJ2605.dbc` | 29 MB | Porciúncula 2026-05: 695 vínculos, 548 pessoas, 438 no SUS, igual à API (nome e CNS dão o mesmo total) |
+| SIA | `/dissemin/publicos/SIASUS/200801_/Dados/PARJ2512a.dbc` e `b` (mês em partes a, b, c) | 151 MB + 120 MB | Natividade 2025-12: 18.282 procedimentos (`PA_QTDAPR`), igual à API (`PA_QTDPRO` dá 18.283) |
+| SIH | `/dissemin/publicos/SIHSUS/200801_/Dados/RDRJ2512.dbc` | 6 MB | Natividade 2025-12: 63 AIH (`MUNIC_MOV`), igual à API |
+
+Medições: download do SIA do mês (271 MB) em 62 s; leitura de 8,2 milhões de linhas de SIA em 136 s com `dbfread`; descompactado o SIA do mês ocupa ~3,4 GB (processar em fluxo e apagar). Uma listagem do FTP deu timeout (repetição é obrigatória). Defasagem em 2026-11-07: CNES até 2026-09, SIA até 2026-08. Municípios do arquivo: `CODUFMUN` (CNES), `PA_UFMUN` (SIA), `MUNIC_MOV` (SIH), todos com código IBGE de 6 dígitos.
+
+**Pergunta do cidadão (Regra 27):** não muda. É a mesma das Stories 25.6a e 25.6b; a tela, a query, o mart e o raw continuam iguais.
+
+**Acceptance Criteria:**
+- **Given** o `elt/fontes/saude_datasus.yml`, com uma entrada por UF (host, pasta de cada fonte, padrão de nome do arquivo e mapeamento de campos)
+- **When** o extrator roda para um portal
+- **Then** baixa o arquivo da UF do portal por competência, descompacta o `.dbc` em fluxo, filtra o município pelo código de 6 dígitos vindo do `cod_ibge` do portal, agrega e grava as **mesmas linhas** de `leitos_competencia`, `profissionais_competencia`, `sia_competencia` e `sih_competencia` do `raw_saude_rede`, sem literal de município, UF ou ano.
+- **And** os números reproduzem os do spike (tabela acima) em teste de conferência com amostra pequena; a diferença de `PA_QTDAPR` para `PA_QTDPRO` fica explícita no teste.
+- **And** profissionais são agregados na ingestão com o CNS como identificador de pessoa distinta (substitui a contagem por nome e dispensa a frase "contagem aproximada" na tela, que passa pelo `editor-cidadao`); nome, CPF e CNS nunca são gravados nem exibidos, e o arquivo baixado e o `.dbf` descompactado são apagados ao fim, inclusive em falha.
+- **And** **teste de cobertura por UF** no padrão da Regra 28 (`elt/tests/test_cobertura_fontes_saude_datasus.py`): toda UF de `elt/transform/seeds/seed_portais.csv` precisa estar em `fontes` ou em `ufs_sem_fonte` (com motivo); cadastrar cidade de UF nova sem isso quebra o teste. Sem `if` por UF no extrator.
+- **And** o FTP é tratado como instável: repetição com espera crescente, timeout, retomada por arquivo; competência sem arquivo ou sem linhas do município vira "sem dado" (sem linha), nunca zero; falha propaga e nada parcial é gravado como completo.
+- **And** o **teste de contrato a partir do ambiente da carga** (GitHub Actions, ubuntu-latest) mede o FTP (conexão de saída, tempo de download por arquivo, espaço em disco, repetição) e o resultado é registrado na story; esse resultado alimenta a Story 23.8.
+- **And** a API de dados abertos continua só para a população residente (1 página por ano); o `SaudeRedeExtractor` por páginas e as opções `--only saude_rede` e `saude_producao` são substituídos, sem deixar caminho morto.
+- **And** a dependência de leitura do `.dbc` (`datasus-dbc` no spike) entra em versão exata (Regra 7), com a velocidade de leitura medida (`dbfread` em Python puro: 136 s para 8,2 milhões de linhas) e alternativa mais rápida considerada se o backfill passar de poucas horas.
+- **And** o `jurista-fiscal` registra a decisão sobre o termo de uso dos arquivos do DATASUS (não verificado no spike) e a tela mantém a citação ao Ministério da Saúde e a data da competência.
+- **And** `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam, só contra o banco local (Regra 15).
+
+**Informação de cadência para a Story 23.8 (já refletida lá):** arquivos mensais por UF, grupo **mensal**; incremental (só as competências novas, as 4 últimas fechadas por padrão); backfill de 2021 em diante é manual, em partes, e só no banco local (em produção só com autorização do Julio); custo estimado do RJ por mês de 3 a 4 min no SIA e segundos no CNES e no SIH, para **todas** as cidades do estado de uma vez (o custo é por UF, não por cidade); o SIA do mês tem 2 a 3 partes de ~150 MB e o disco temporário chega a ~3,4 GB. **Medido no GitHub Actions (2026-11-07, RJ 2025-12):** ~15 min por UF por mês fechado (SIA domina), sem falha nem repetição, maior `.dbf` descompactado ~1,9 GB (uma parte por vez), 93 GB livres; o custo é por UF, não por cidade. **Nota da revisão de código:** o padrão de 4 competências relê o SIA já gravado a cada execução (~3,4 GB de `.dbf` por mês); na coleta recorrente, a Story 23.8 deve pular a competência já carregada ou reduzir a janela. A gravação é tabela por tabela, sem transação; uma falha de banco no meio deixa a competência parcial até a próxima execução (o upsert corrige).
+
+**Fora do escopo:** fila de espera, Previne Brasil, vacinação, transporte sanitário e hemodiálise; execução em produção; mudar o raw, o mart, a query ou a tela (salvo o texto de contagem de profissionais); cadência de carga (Story 23.8).
+
+**Dependências:** Stories 25.6a e 25.6b (revisadas; o raw, o mart e a tela que esta história alimenta). Story 23.8 recebe a cadência. Substitui o caminho da API para CNES, SIA e SIH.
+
+---
+
 ### Backlog da Epic 25 (sem story, com motivo)
 
 - **Fila de espera:** removida do escopo da Epic 25 em 2026-11-07 (decisão do Julio). Não há endpoint na API da Saúde (especificação 1.8.32). Só voltaria com resposta de pedido pela Lei de Acesso à Informação (Lei 12.527/2011), que é pontual, não recorrente.
@@ -3903,6 +3953,13 @@ So that I can follow the main answer without scrolling through tables made for j
 **Origem:** pedido do Julio em 2026-11-06, depois de aprovar o resultado das Stories 24.12 e 24.13 na página de educação. Nenhuma story anterior da Epic 25 reorganiza a página inteira: a 25.3 cobre só o equivalente da 24.12 (o topo), e as 25.4, 25.6a e 25.6b acrescentam blocos. Esta story é o equivalente da 24.13 e vem **depois** delas, para reorganizar uma vez só, com a página já completa.
 
 **Status:** esboço. Detalhar quando as Stories 25.3, 25.4, 25.6a e 25.6b fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6a e 25.6b), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
+
+**Candidatos a decidir aqui (vindos da 25.6c, carga só do ano atual):**
+- Anos anteriores ao início da carga: rótulo "não disponível" ou ocultar do seletor, igual nos blocos de rede e de produção. O rótulo atual é "sem dado da fonte"; revisar o texto com o `editor-cidadao`.
+- Produção do SUS usa só a população do mesmo ano e mostra traço; a rede usa a do ano anterior como estimativa. Alinhar os dois.
+- Eyebrow "2026–2026" quando há um único ano.
+- **Município do estabelecimento:** SIA (`PA_UFMUN`) e SIH (`MUNIC_MOV`) trazem o município do estabelecimento, não o de residência do paciente; a tela divide pelos moradores. Conferir se o texto diz que são atendimentos e internações **feitos na cidade**, e não de moradores.
+- **Procedimentos de diagnóstico ("exames"):** o arquivo mensal do SIA traz `PA_PROC_ID` (código SIGTAP, 10 dígitos); os 2 primeiros dígitos seriam o grupo, e o 02 seria "diagnóstico" (a confirmar na tabela oficial). Spike no SIA do Acre de 2026-08: grupo 02 = 790.833 de ~1,8 milhão de procedimentos aprovados (cerca de 40%). Hoje o raw guarda só o total mensal; separar exigiria agregar por grupo no extrator (em memória), coluna nova no raw, mart, tela e recarga do SIA (~15 a 20 min por mês e UF). O rótulo honesto é "procedimentos de diagnóstico", não "exames realizados" (mistura laboratório, imagem e outros métodos). Medido só em uma UF e um mês.
 
 **Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
 

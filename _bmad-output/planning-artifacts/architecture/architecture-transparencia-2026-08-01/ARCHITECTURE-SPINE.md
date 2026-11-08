@@ -255,3 +255,14 @@ transparencia/
 ### **Fase 4: Migração dos Demais Domínios & Limpeza Geral**
 1. Repetir o processo para `analise_despesas`, `fontes_receita`, `execucao_orcamentaria`, `historia_saude` e `historia_caprem`.
 2. Remover código legado de agregação e garantir aprovação de 100% no pipeline de testes (`make test` e `make test/ts`).
+
+---
+
+## 7. Questões em Aberto
+
+### QA-1: Carga nacional (todas as cidades, ~4 anos) e a materialização dos marts (AD-2)
+* **Origem:** Story 25.6c (fonte em massa do DATASUS para a rede e a produção de saúde) e issue #55 (marts leves como views, dimensões extraídas das fatos). Registrada em 2026-11-07. **Nenhum AD existente foi alterado**; o AD-2 continua valendo até a #55 decidir.
+* **Custo de carga não é custo de modelo.** A extração nacional cresce com UFs e meses (27 UFs × 4 anos; medido no GitHub Actions, RJ 2025-12: ~15 min por UF por mês fechado, dominado pelo SIA, independente do número de cidades). Isso é tratado pela cadência da Story 23.8 (um job por UF, incremental), não pelos modelos dbt.
+* **O raw de saúde é pequeno.** `raw_saude_rede` guarda linhas já agregadas por município e competência (chave primária começa por `portal_slug`), na ordem de centenas de milhares de linhas para o Brasil. Os marts de saúde (`fct_saude_rede_por_mil_moradores_metricas`, `fct_saude_producao_sus_metricas`) agregam por `(portal_slug, ano)` e a leitura sempre filtra por `portal_slug`, então são candidatos naturais a view com filter pushdown se a #55 revisar o AD-2.
+* **Chave nacional (decisão pendente, afeta o AD-5):** hoje o tenant é o portal (`portal_slug`, uma prefeitura cadastrada). Cobrir cidades que não são portais exige decidir se a chave vira `cod_ibge` ou se a carga segue só os portais cadastrados. Decidir na #55 ou na Story 23.8, antes de qualquer carga nacional.
+* **Regra enquanto isso:** não transformar marts em view dentro de stories de funcionalidade; a mudança é da #55.
