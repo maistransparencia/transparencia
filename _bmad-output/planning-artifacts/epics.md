@@ -3963,6 +3963,29 @@ So that I can follow the main answer without scrolling through tables made for j
 
 **Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
 
+### Story 25.11: Título sem ano e seletor só onde o dado é do exercício (esboço)
+
+As a citizen,  
+I want each theme page to say clearly which blocks show the current picture, which show a history, and which belong to a single year,  
+So that "Saúde 2026" never makes me think everything on the page is from 2026.
+
+**Origem:** observação do Julio em 2026-11-08: o título de `/saude` e `/educacao` leva o ano selecionado, mas boa parte dos blocos não é daquele ano (série histórica, rede, produção). Valia o mesmo para `/obras` e `/previdencia`. Análise da Mary na mesma data; decisões do Julio abaixo.
+
+**Decisões do Julio:**
+- Aceita a opção intermediária: título só com o tema, sem o ano; seletor de ano apenas nos blocos que são do exercício, com o ano dito no título de cada um.
+- O padrão do seletor continua sendo o **ano atual**, como está hoje, inclusive no mínimo constitucional (não trocar por "último ano fechado").
+
+**Modelo de classificação (a confirmar no levantamento):**
+- **Retrato atual** (estoque, sem ano): rede de leitos e profissionais, farmácia, obras em andamento, contratos vigentes. Sem seletor; mostra a data da coleta.
+- **Série histórica:** "Como mudou ao longo dos anos", rede por ano, produção do SUS. Sem seletor; o eyebrow diz o período, calculado dos dados (Regra 23).
+- **Exercício:** mínimo, de onde vem o dinheiro, fornecedores, emendas. Seletor dentro do bloco ou num grupo "Por exercício".
+
+**Primeiro passo (levantamento, antes de codar):** para `/saude`, `/educacao`, `/obras` e `/previdencia`, listar cada bloco, o tipo e se hoje depende do ano selecionado. Conferir se `/obras` e `/previdencia` já têm seletor. Medir o impacto em URL (`?ano=`), imagem de compartilhamento, `llms.txt`, `llms-full.txt` e links existentes.
+
+**Cuidados:** texto de títulos e rótulos pelo `editor-cidadao`; Regra 23 (sem ano fixo); Regra 25 (`DESIGN.md` e `EXPERIENCE.md` ganham o padrão de seletor por bloco); teste de que nenhum bloco sumiu, só mudou o escopo declarado.
+
+**Dependências:** Story 25.10 (reordenação de `/saude`); referência de padrão: Stories 24.12 e 24.13. Detalhar depois do levantamento e da 25.10.
+
 ---
 
 ## Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)
