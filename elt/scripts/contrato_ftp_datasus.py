@@ -55,7 +55,7 @@ def medir_uf(fonte: ds.FonteDatasus, competencia: int, repeticoes: int) -> None:
                     datasus_dbc.decompress(str(pasta / nome), str(dbf))
                     t_descompactar = time.monotonic() - t0
                     t0 = time.monotonic()
-                    linhas = sum(1 for _ in ds._linhas_dbf(dbf, fonte.codificacao))
+                    linhas = sum(1 for _ in ds._linhas_dbf(dbf, fonte.codificacao, arquivo.campos.values()))
                     t_leitura = time.monotonic() - t0
                     livre = shutil.disk_usage(pasta).free / 1e9
                     _registrar(f"| download {nome_fonte} | {nome} | {baixado:.1f} | | {t_download:.1f} | {livre:.1f} |")

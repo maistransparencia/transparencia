@@ -113,6 +113,8 @@ elt/farmacia-sus:
 # Uso: make elt/saude-datasus [PORTAL=slug] [COMPETENCIAS="202601 202602"] [YEARS="2025"] [DRY_RUN=1]
 # Sem COMPETENCIAS nem YEARS busca as 4 últimas fechadas. Backfill (ano_inicial_historico em diante) é manual,
 # em partes e só no banco local (Regra 15): o SIA do mês ocupa ~3,4 GB de disco temporário.
+# Toda execução sem DRY_RUN grava no DATABASE_URL do ambiente e roda o dbt nele: confira que é o banco local (5544)
+# antes de rodar, e nunca exporte esse DATABASE_URL junto de db/test/build, pnpm test ou make test/ts.
 elt/saude-datasus:
 	PYTHONPATH=. uv run --project elt python elt/extract/saude_datasus.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(COMPETENCIAS),--competencias $(COMPETENCIAS)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
 	$(if $(DRY_RUN),,uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_rede_por_mil_moradores_metricas fct_saude_producao_sus_metricas)

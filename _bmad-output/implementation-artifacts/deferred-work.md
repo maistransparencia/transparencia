@@ -510,3 +510,9 @@ status: open
 - Testes do extrator para página repetida, limite de páginas e falha no meio da extração (nenhum retorno parcial).
 
 - Textos da tela de leitos e profissionais da 25.6a (decisão do Julio: o editor-cidadao decide na 25.6b): (1) rótulo "Leitos hospitalares" e `llms.txt` ("leitos de internação") dizem mais que o dado, que soma todos os tipos de leito do CNES; (2) "quem trabalha em mais de um local conta uma vez só" deve dizer que a contagem é aproximada por nome.
+
+## Deferred from: code review of 25-6c-fonte-em-massa-do-datasus-para-a-rede-e-a-producao-de-saude (2026-11-08)
+
+- Números do spike não reproduzidos em teste (Porciúncula 28/27 leitos; 695/548/438 profissionais): o registro da story admite que não foram refeitos. Para resolver: `make elt/saude-datasus DRY_RUN=1` local para Porciúncula 2025-12 e comparar com o spike.
+- `main()` e a proteção do `--dry-run` (`engine is None` sem gravação) sem teste: baixo risco, a carga é manual e local (Regra 15). Um teste pequeno do guard basta se quiser cobrir.
+- SIA (`PA_UFMUN`) e SIH (`MUNIC_MOV`) usam o município do estabelecimento, e a tela divide por moradores; mês reprocessado retroativamente no DATASUS não é relido (padrão: 4 últimas competências). Decidir na Story 25.10, junto com a Regra 27 (rotular na tela o dado que não é do morador).

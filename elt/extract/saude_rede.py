@@ -3,7 +3,7 @@
 Leitos, profissionais, SIA e SIH vêm dos arquivos mensais do DATASUS (`elt/extract/saude_datasus.py`). A população
 continua na API de dados abertos da farmácia SUS, cujo cliente HTTP (limite de taxa, repetição, timeout) é reaproveitado.
 
-Comportamento da API que o código respeita (teste de contrato da Story 25.6a): sem `ano` a API devolve 2012; a
+Comportamento da API que o código respeita (conferido por teste de contrato): sem `ano` a API devolve 2012; a
 população residente usa o código IBGE de 7 dígitos; `limit` funciona e um ano de uma cidade cabe numa página.
 """
 

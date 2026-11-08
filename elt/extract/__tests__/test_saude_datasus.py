@@ -90,7 +90,7 @@ def test_profissionais_sem_nenhum_cns_ficam_sem_dado_e_nao_zero():
 
 
 def test_sia_soma_a_quantidade_aprovada_e_nao_a_produzida():
-    """Spike (Natividade 2025-12): `PA_QTDAPR` bate com a API (18.282); `PA_QTDPRO` daria 18.283."""
+    """Conferência de 2025-12: `PA_QTDAPR` bate com a API (18.282); `PA_QTDPRO` daria 18.283."""
     campos = carregar_fontes()[0].sia.campos
     assert campos["quantidade"] == "PA_QTDAPR"
     linhas = [
@@ -238,6 +238,72 @@ def test_competencia_sem_arquivo_e_sem_dado_e_nao_zero():
             "sih_competencia": [],
         }
     }
+
+
+def test_competencia_soma_as_partes_do_sia_e_leva_cada_fonte_para_a_sua_tabela(tmp_path, monkeypatch):
+    fonte = carregar_fontes()[0]
+    listagens = {
+        fonte.leitos.pasta: ["LTRJ2605.dbc"],
+        fonte.profissionais.pasta: ["PFRJ2605.dbc"],
+        fonte.sia.pasta: ["PARJ2605a.dbc", "PARJ2605b.dbc"],
+        fonte.sih.pasta: ["RDRJ2605.dbc"],
+    }
+    linhas_por_arquivo = {
+        "LTRJ2605.dbf": [
+            {"CODUFMUN": "330430", "COMPETEN": "202605", "TP_LEITO": "2", "QT_EXIST": 10, "QT_SUS": 8},
+        ],
+        "PFRJ2605.dbf": [
+            {"CODUFMUN": "330430", "COMPETEN": "202605", "CNS_PROF": "1", "PROF_SUS": "1"},
+            {"CODUFMUN": "330430", "COMPETEN": "202605", "CNS_PROF": "1", "PROF_SUS": "0"},
+            {"CODUFMUN": "330430", "COMPETEN": "202605", "CNS_PROF": "2", "PROF_SUS": "0"},
+        ],
+        "PARJ2605a.dbf": [{"PA_UFMUN": "330430", "PA_CMP": "202605", "PA_QTDAPR": 100}],
+        "PARJ2605b.dbf": [{"PA_UFMUN": "330430", "PA_CMP": "202605", "PA_QTDAPR": 20}],
+        "RDRJ2605.dbf": [{"MUNIC_MOV": "330430", "ANO_CMPT": 2026, "MES_CMPT": 5}] * 3,
+    }
+
+    cliente = MagicMock()
+    cliente.listar.side_effect = lambda pasta: listagens[pasta]
+    cliente.baixar.side_effect = lambda _pasta, _nome, destino: destino.write_bytes(b"dbc")
+
+    import datasus_dbc
+
+    monkeypatch.setattr(datasus_dbc, "decompress", lambda _origem, destino: Path(destino).write_bytes(b"dbf"))
+    monkeypatch.setattr(
+        modulo, "_linhas_dbf", lambda caminho, _cod, _colunas=(): iter(linhas_por_arquivo[caminho.name])
+    )
+
+    dados = modulo.extrair_competencia(cliente, fonte, 202605, MUNICIPIOS, carregar_tipos_leito(), "d")["portal_a"]
+
+    assert [
+        (i["tipo_leito"], i["total_leitos_existentes"], i["total_leitos_sus"]) for i in dados["leitos_competencia"]
+    ] == [("2 - ESPEC - CLINICO", "10", "8")]
+    [profissionais] = dados["profissionais_competencia"]
+    assert (
+        profissionais["total_vinculos"],
+        profissionais["total_profissionais"],
+        profissionais["total_profissionais_sus"],
+    ) == ("3", "2", "1")
+    assert [i["total_procedimentos_ambulatoriais"] for i in dados["sia_competencia"]] == ["120"]
+    assert [i["total_internacoes"] for i in dados["sih_competencia"]] == ["3"]
+
+
+def test_coluna_mapeada_ausente_no_arquivo_falha_em_vez_de_virar_sem_dado(tmp_path, monkeypatch):
+    class DbfFalso:
+        field_names = ["CODUFMUN", "COMPETEN"]
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def __iter__(self):
+            return iter([])
+
+    import dbfread
+
+    monkeypatch.setattr(dbfread, "DBF", DbfFalso)
+    with pytest.raises(SaudeDatasusError, match="CNS_PROF"):
+        modulo._linhas_dbf(tmp_path / "PFRJ2605.dbf", "latin-1", ["codufmun", "CNS_PROF"])
+    assert list(modulo._linhas_dbf(tmp_path / "PFRJ2605.dbf", "latin-1", ["codufmun"])) == []
 
 
 def test_populacao_inclui_o_ano_anterior_ao_primeiro_como_referencia():

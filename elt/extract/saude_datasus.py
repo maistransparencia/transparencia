@@ -28,7 +28,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 import yaml
 
@@ -315,10 +315,18 @@ def arquivos_da_competencia(listagem: list[str], arquivo: ArquivoFonte, uf: str,
     return sorted(nome for nome in listagem if padrao.fullmatch(nome))
 
 
-def _linhas_dbf(caminho_dbf: Path, codificacao: str) -> Iterator[dict[str, Any]]:
+def _linhas_dbf(caminho_dbf: Path, codificacao: str, colunas_esperadas: Iterable[str] = ()) -> Iterator[dict[str, Any]]:
+    """Linhas do `.dbf` em fluxo. Coluna mapeada que não existe no arquivo falha, em vez de virar "sem dado"."""
     from dbfread import DBF
 
-    return iter(DBF(str(caminho_dbf), encoding=codificacao, load=False, ignorecase=True, char_decode_errors="replace"))
+    tabela = DBF(str(caminho_dbf), encoding=codificacao, load=False, ignorecase=True, char_decode_errors="replace")
+    existentes = {nome.upper() for nome in tabela.field_names}
+    ausentes = sorted(coluna for coluna in colunas_esperadas if coluna.upper() not in existentes)
+    if ausentes:
+        raise SaudeDatasusError(
+            f"{caminho_dbf.name}: colunas ausentes ({', '.join(ausentes)}); conferir o mapeamento em saude_datasus.yml"
+        )
+    return iter(tabela)
 
 
 @contextmanager
@@ -339,7 +347,7 @@ def linhas_do_arquivo(
     cliente.baixar(arquivo.pasta, nome, dbc)
     datasus_dbc.decompress(str(dbc), str(dbf))
     dbc.unlink()
-    return _linhas_dbf(dbf, codificacao)
+    return _linhas_dbf(dbf, codificacao, arquivo.campos.values())
 
 
 def _competencia_da_linha(linha: dict[str, Any], campos: dict[str, str]) -> int | None:

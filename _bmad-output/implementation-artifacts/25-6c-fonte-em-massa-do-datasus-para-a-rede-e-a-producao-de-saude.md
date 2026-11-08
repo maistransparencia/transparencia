@@ -1,5 +1,5 @@
 ---
-status: review
+status: done
 ---
 
 # Story 25.6c: Fonte em Massa do DATASUS para a Rede e a Produção de Saúde
