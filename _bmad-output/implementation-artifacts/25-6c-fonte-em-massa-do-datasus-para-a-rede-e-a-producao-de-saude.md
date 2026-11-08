@@ -99,5 +99,6 @@ Roteiro: `elt/scripts/contrato_ftp_datasus.py` (workflow temporário disparado p
 Rodado `make elt/saude-datasus` sem argumentos: as 4 últimas fechadas (2026-07 a 2026-10). Upsert: nada foi apagado; 2026-07 sobrescreveu as linhas da API (mesma saída), 2026-08 e 2026-09 são novas. CNES de 2026-10 e SIA de 2026-09 e 2026-10 ainda não existem no FTP (sem linha, "sem dado"). Os marts foram reconstruídos (dbt 12/12). A população não foi rebuscada (2026 ainda sem dado na API; as linhas anteriores permanecem). Para levar a produção, a intenção do Julio é copiar as tabelas `raw_saude_rede` com todos os dados (execução em produção só com autorização, Regra 15); o backfill de 2021 em diante ainda não foi feito.
 
 ### Pendente
-- Backfill local de 2021 em diante (decisão do Julio: fazer antes de copiar as tabelas raw para produção?).
+- Backfill de anos anteriores: descartado (decisão do Julio). Só o ano atual, acumulando daí; anos anteriores aparecem como "sem dado da fonte".
+- Revisão de texto da tela (rótulo para anos anteriores, como "ainda não carregado pelo portal"): fica para depois da Story 25.10, com o `editor-cidadao`.
 - Revisão de código da 25.6c (os commits desta sessão: implementação, remoção do workflow temporário e esta atualização de documentos; os dois primeiros foram enviados, o de documentos não).
