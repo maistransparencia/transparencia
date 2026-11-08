@@ -1,5 +1,5 @@
 ---
-status: review
+status: done
 ---
 
 # Story 25.6a: Leitos e Profissionais de Saúde por Mil Moradores

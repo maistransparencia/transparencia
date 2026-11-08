@@ -1,5 +1,5 @@
 ---
-status: review
+status: done
 ---
 
 # Story 25.6b: Atendimentos e Internações do SUS na Cidade
