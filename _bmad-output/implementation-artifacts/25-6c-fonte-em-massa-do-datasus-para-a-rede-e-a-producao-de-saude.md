@@ -102,3 +102,4 @@ Rodado `make elt/saude-datasus` sem argumentos: as 4 últimas fechadas (2026-07 
 - Backfill de anos anteriores: descartado (decisão do Julio). Só o ano atual, acumulando daí; anos anteriores aparecem como "sem dado da fonte".
 - Revisão de texto da tela (rótulo para anos anteriores, como "ainda não carregado pelo portal"): fica para depois da Story 25.10, com o `editor-cidadao`.
 - Revisão de código da 25.6c (os commits desta sessão: implementação, remoção do workflow temporário e esta atualização de documentos; os dois primeiros foram enviados, o de documentos não).
+- Para decidir na 25.10 (vistos na tela com o backfill só de 2026): (1) anos anteriores ao início da carga: rótulo "não disponível" ou ocultar do seletor, igual nos dois blocos; (2) produção do SUS usa só a população do mesmo ano e mostra traço, enquanto a rede usa a do ano anterior como estimativa: alinhar; (3) rótulo "2026–2026" quando há um ano só.
