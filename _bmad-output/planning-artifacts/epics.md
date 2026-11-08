@@ -3954,6 +3954,12 @@ So that I can follow the main answer without scrolling through tables made for j
 
 **Status:** esboço. Detalhar quando as Stories 25.3, 25.4, 25.6a e 25.6b fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6a e 25.6b), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
 
+**Candidatos a decidir aqui (vindos da 25.6c, carga só do ano atual):**
+- Anos anteriores ao início da carga: rótulo "não disponível" ou ocultar do seletor, igual nos blocos de rede e de produção. O rótulo atual é "sem dado da fonte"; revisar o texto com o `editor-cidadao`.
+- Produção do SUS usa só a população do mesmo ano e mostra traço; a rede usa a do ano anterior como estimativa. Alinhar os dois.
+- Eyebrow "2026–2026" quando há um único ano.
+- **Procedimentos de diagnóstico ("exames"):** o arquivo mensal do SIA traz `PA_PROC_ID` (código SIGTAP, 10 dígitos); os 2 primeiros dígitos seriam o grupo, e o 02 seria "diagnóstico" (a confirmar na tabela oficial). Spike no SIA do Acre de 2026-08: grupo 02 = 790.833 de ~1,8 milhão de procedimentos aprovados (cerca de 40%). Hoje o raw guarda só o total mensal; separar exigiria agregar por grupo no extrator (em memória), coluna nova no raw, mart, tela e recarga do SIA (~15 a 20 min por mês e UF). O rótulo honesto é "procedimentos de diagnóstico", não "exames realizados" (mistura laboratório, imagem e outros métodos). Medido só em uma UF e um mês.
+
 **Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
 
 ---
