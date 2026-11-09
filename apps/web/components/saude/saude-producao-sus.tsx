@@ -1,7 +1,6 @@
 import type {
   SaudeProducaoSusAnoDTO,
   SaudeProducaoSusDTO,
-  SaudeProducaoSusReferenciaDTO,
 } from "@transparencia/db";
 import {
   AlertBox,
@@ -14,20 +13,11 @@ import {
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
-import { rotuloPeriodoAnos } from "./periodo-anos";
 import { SaudeDetalhesModal } from "./saude-detalhes-modal";
 
 export interface SaudeProducaoSusProps {
   producao: SaudeProducaoSusDTO | null;
 }
-
-const formatPorMil = new Intl.NumberFormat("pt-BR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-
-const porMilOuTraco = (valor: number | null): string =>
-  valor === null ? "—" : formatPorMil.format(valor);
 
 const totalOuTraco = (valor: number | null): string =>
   valor === null ? "—" : fmtNumber(valor);
@@ -37,21 +27,6 @@ const formatCompetencia = (competencia: number): string =>
 
 const maisRecentePrimeiro = (serie: SaudeProducaoSusAnoDTO[]) =>
   [...serie].reverse();
-
-function valorDaReferencia(
-  serie: SaudeProducaoSusAnoDTO[],
-  referencia: SaudeProducaoSusReferenciaDTO | null,
-  porMil: (ano: SaudeProducaoSusAnoDTO) => number | null,
-): number | null {
-  const doAno = serie.find((ano) => ano.ano === referencia?.ano);
-  return doAno ? porMil(doAno) : null;
-}
-
-const atendimentosPorMil = (ano: SaudeProducaoSusAnoDTO) =>
-  ano.procedimentosAmbulatoriaisPorMilMoradores;
-
-const internacoesPorMil = (ano: SaudeProducaoSusAnoDTO) =>
-  ano.internacoesPorMilMoradores;
 
 const MESES = [
   "janeiro",
@@ -72,7 +47,7 @@ const MESES = [
  * Período lido do dado: da primeira à última competência carregada. Se houver mês faltando no meio
  * (menos competências que o intervalo), não afirma um período contínuo e diz só o mês mais recente.
  */
-function descreverPeriodo({
+function describePeriod({
   ano,
   competencias,
   primeiraCompetencia,
@@ -95,22 +70,32 @@ function descreverPeriodo({
   return `de ${MESES[mesInicial - 1]} a ${MESES[mesFinal - 1]}${sufixo}`;
 }
 
+/** Média pequena não vira "0": com menos de 1 por mês diz isso em vez de arredondar para zero. */
+function formatInpatientAverage(media: number): string {
+  if (media > 0 && media < 1) return "menos de 1";
+  return fmtNumber(Math.round(media));
+}
+
 /** Atendimentos em milhares por extenso ("344 mil"); internações são poucas e saem exatas. */
-function totalPorExtenso(total: number): string {
-  if (total >= 1_000_000)
-    return `${(total / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} milhões`;
-  if (total >= 1000) return `${Math.round(total / 1000)} mil`;
+function spellOutTotal(total: number): string {
+  const milhares = Math.round(total / 1000);
+  if (milhares >= 1000) {
+    const milhoes = Math.round(total / 100_000) / 10;
+    const unidade = milhoes === 1 ? "milhão" : "milhões";
+    return `${milhoes.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${unidade}`;
+  }
+  if (total >= 1000) return `${milhares} mil`;
   return fmtNumber(total);
 }
 
 /** Frase em linguagem comum com o período de cada medida: internações podem ter menos meses que atendimentos. */
-function frasePrincipal(producao: SaudeProducaoSusDTO): string | null {
+function mainSentence(producao: SaudeProducaoSusDTO): string | null {
   const { serie, referenciaAmbulatorial, referenciaInternacoes } = producao;
   const atendimentos = serie.find((a) => a.ano === referenciaAmbulatorial?.ano);
   const internacoes = serie.find((a) => a.ano === referenciaInternacoes?.ano);
   const periodoAtendimentos =
     atendimentos?.totalProcedimentosAmbulatoriais != null
-      ? descreverPeriodo({
+      ? describePeriod({
           ano: atendimentos.ano,
           competencias: atendimentos.competenciasAmbulatoriais,
           primeiraCompetencia: atendimentos.primeiraCompetenciaAmbulatorial,
@@ -120,7 +105,7 @@ function frasePrincipal(producao: SaudeProducaoSusDTO): string | null {
       : null;
   const periodoInternacoes =
     internacoes?.totalInternacoes != null
-      ? descreverPeriodo({
+      ? describePeriod({
           ano: internacoes.ano,
           competencias: internacoes.competenciasInternacoes,
           primeiraCompetencia: internacoes.primeiraCompetenciaInternacoes,
@@ -131,22 +116,22 @@ function frasePrincipal(producao: SaudeProducaoSusDTO): string | null {
       : null;
   const textoAtendimentos =
     atendimentos?.totalProcedimentosAmbulatoriais != null && periodoAtendimentos
-      ? `${totalPorExtenso(atendimentos.totalProcedimentosAmbulatoriais)} atendimentos`
+      ? `${spellOutTotal(atendimentos.totalProcedimentosAmbulatoriais)} atendimentos`
       : null;
   const textoInternacoes =
     internacoes?.totalInternacoes != null && periodoInternacoes
       ? `${fmtNumber(internacoes.totalInternacoes)} ${internacoes.totalInternacoes === 1 ? "internação" : "internações"}`
       : null;
-  const maiuscula = (texto: string) =>
+  const capitalize = (texto: string) =>
     texto.charAt(0).toUpperCase() + texto.slice(1);
   if (textoAtendimentos && textoInternacoes) {
-    return `${maiuscula(periodoAtendimentos ?? "")}, o SUS registrou ${textoAtendimentos} e, ${periodoInternacoes}, ${textoInternacoes} em unidades de saúde da cidade.`;
+    return `${capitalize(periodoAtendimentos ?? "")}, o SUS registrou ${textoAtendimentos} e, ${periodoInternacoes}, ${textoInternacoes} em unidades de saúde da cidade.`;
   }
   if (textoAtendimentos) {
-    return `${maiuscula(periodoAtendimentos ?? "")}, o SUS registrou ${textoAtendimentos} em unidades de saúde da cidade.`;
+    return `${capitalize(periodoAtendimentos ?? "")}, o SUS registrou ${textoAtendimentos} em unidades de saúde da cidade.`;
   }
   if (textoInternacoes) {
-    return `${maiuscula(periodoInternacoes ?? "")}, o SUS registrou ${textoInternacoes} em unidades de saúde da cidade.`;
+    return `${capitalize(periodoInternacoes ?? "")}, o SUS registrou ${textoInternacoes} em unidades de saúde da cidade.`;
   }
   return null;
 }
@@ -157,7 +142,7 @@ interface MediaPorMes {
 }
 
 /** Média por mês dos meses carregados: dá escala ao total e não depende de o ano estar completo. */
-function mediasPorMes(producao: SaudeProducaoSusDTO): {
+function monthlyAverages(producao: SaudeProducaoSusDTO): {
   atendimentos: MediaPorMes | null;
   internacoes: MediaPorMes | null;
 } {
@@ -171,14 +156,14 @@ function mediasPorMes(producao: SaudeProducaoSusDTO): {
       atendimentos?.totalProcedimentosAmbulatoriais != null &&
       atendimentos.competenciasAmbulatoriais
         ? {
-            valor: totalPorExtenso(
+            valor: spellOutTotal(
               Math.round(
                 atendimentos.totalProcedimentosAmbulatoriais /
                   atendimentos.competenciasAmbulatoriais,
               ),
             ),
             nota: nota(
-              descreverPeriodo({
+              describePeriod({
                 ano: atendimentos.ano,
                 competencias: atendimentos.competenciasAmbulatoriais,
                 primeiraCompetencia:
@@ -193,14 +178,12 @@ function mediasPorMes(producao: SaudeProducaoSusDTO): {
       internacoes?.totalInternacoes != null &&
       internacoes.competenciasInternacoes
         ? {
-            valor: fmtNumber(
-              Math.round(
-                internacoes.totalInternacoes /
-                  internacoes.competenciasInternacoes,
-              ),
+            valor: formatInpatientAverage(
+              internacoes.totalInternacoes /
+                internacoes.competenciasInternacoes,
             ),
             nota: nota(
-              descreverPeriodo({
+              describePeriod({
                 ano: internacoes.ano,
                 competencias: internacoes.competenciasInternacoes,
                 primeiraCompetencia: internacoes.primeiraCompetenciaInternacoes,
@@ -213,63 +196,33 @@ function mediasPorMes(producao: SaudeProducaoSusDTO): {
   };
 }
 
-function descricaoAno(ano: SaudeProducaoSusAnoDTO): string {
+function describeYear(ano: SaudeProducaoSusAnoDTO): string {
   const incompleto = ano.anoIncompleto ? " (ano incompleto)" : "";
-  const estimada = ano.populacaoEstimada ? " (população estimada)" : "";
-  return `${ano.ano}${incompleto}${estimada}`;
+  return `${ano.ano}${incompleto}`;
 }
 
 export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
   if (!producao) return null;
 
-  const {
-    serie,
-    referenciaAmbulatorial,
-    referenciaInternacoes,
-    anoEmAndamento,
-    semInternacoes,
-  } = producao;
-  const temTraco = [
-    valorDaReferencia(serie, referenciaAmbulatorial, atendimentosPorMil),
-    valorDaReferencia(serie, referenciaInternacoes, internacoesPorMil),
-  ].some((valor) => valor === null || valor === undefined);
+  const { serie, anoEmAndamento, semInternacoes } = producao;
+  const temTraco = serie.some(
+    (ano) =>
+      ano.totalProcedimentosAmbulatoriais === null ||
+      ano.totalInternacoes === null,
+  );
   const dataColeta = serie
     .map((ano) => ano.dataColeta)
     .filter((data): data is string => data !== null)
     .sort()
     .at(-1);
-  const anoEstimado = serie.find(
-    (ano) => ano.populacaoEstimada && ano.anoPopulacaoReferencia !== null,
-  );
-  const anoSemPopulacao = serie.find(
-    (ano) =>
-      ano.populacaoResidente === null &&
-      (ano.totalProcedimentosAmbulatoriais !== null ||
-        ano.totalInternacoes !== null),
-  );
 
-  const medias = mediasPorMes(producao);
-  const referenciaPorMil = ["atendimentos", "internações"]
-    .map((rotulo, indice) => {
-      const valor = valorDaReferencia(
-        serie,
-        indice === 0 ? referenciaAmbulatorial : referenciaInternacoes,
-        indice === 0 ? atendimentosPorMil : internacoesPorMil,
-      );
-      return `${porMilOuTraco(valor)} ${rotulo}`;
-    })
-    .join(" e ");
+  const medias = monthlyAverages(producao);
 
   return (
     <section className="space-y-6">
       <SectionHeader
         title="Quanto atendimento o SUS registra na cidade?"
-        eyebrow={
-          producao.anoMin === producao.anoMax
-            ? undefined
-            : rotuloPeriodoAnos(producao.anoMin, producao.anoMax)
-        }
-        description={frasePrincipal(producao) ?? undefined}
+        description={mainSentence(producao) ?? undefined}
       />
       <IndicatorPanel columns={2}>
         <Indicator
@@ -309,29 +262,18 @@ export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
           ) : null}
           <SaudeDetalhesModal titulo="Detalhes de atendimentos e internações">
             <div className="space-y-4">
-              <p className="caption">
-                Por mil moradores quer dizer: para cada 1.000 pessoas que moram
-                no município.
-                {` Na referência mostrada: ${referenciaPorMil} por mil moradores.`}
-              </p>
               {temTraco ? (
                 <p className="caption">
                   O traço (—) indica que a fonte não trouxe o dado; não quer
                   dizer zero.
-                  {anoEstimado
-                    ? ` A população de ${anoEstimado.ano} ainda não foi divulgada: o cálculo usa a de ${anoEstimado.anoPopulacaoReferencia}, por isso o resultado é uma estimativa.`
-                    : ""}
-                  {anoSemPopulacao
-                    ? ` Em ${anoSemPopulacao.ano} não há população divulgada para o município, por isso não foi possível calcular por mil moradores.`
-                    : ""}
                 </p>
               ) : null}
               <p className="caption">
-                Cálculo do Portal: total de atendimentos (ou de internações)
-                dividido pela população do município, vezes mil. Atendimentos
-                sem internação são os procedimentos ambulatoriais pagos pelo SUS
+                Cálculo do Portal: a média por mês é o total do período dividido
+                pelo número de meses que a fonte trouxe. Atendimentos sem
+                internação são os procedimentos ambulatoriais pagos pelo SUS
                 (cada consulta, exame ou procedimento conta um); internações são
-                as AIH, autorizações de internação hospitalar, pagas pelo SUS.
+                as autorizações de internação hospitalar pagas pelo SUS.
                 Consultas e exames particulares ou de planos de saúde não
                 entram. Os números são os registrados pelo Ministério da Saúde,
                 com atraso de 1 a 2 meses.
@@ -345,33 +287,19 @@ export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
                         Atendimentos sem internação
                       </th>
                       <th scope="col" className="numeric">
-                        por mil moradores
-                      </th>
-                      <th scope="col" className="numeric">
                         Internações
-                      </th>
-                      <th scope="col" className="numeric">
-                        por mil moradores
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {maisRecentePrimeiro(serie).map((ano) => (
                       <tr key={ano.ano}>
-                        <td>{descricaoAno(ano)}</td>
+                        <td>{describeYear(ano)}</td>
                         <td className="numeric">
                           {totalOuTraco(ano.totalProcedimentosAmbulatoriais)}
                         </td>
                         <td className="numeric">
-                          {porMilOuTraco(
-                            ano.procedimentosAmbulatoriaisPorMilMoradores,
-                          )}
-                        </td>
-                        <td className="numeric">
                           {totalOuTraco(ano.totalInternacoes)}
-                        </td>
-                        <td className="numeric">
-                          {porMilOuTraco(ano.internacoesPorMilMoradores)}
                         </td>
                       </tr>
                     ))}

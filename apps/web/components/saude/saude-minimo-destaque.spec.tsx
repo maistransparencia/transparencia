@@ -43,7 +43,12 @@ describe("SaudeMinimoDestaque", () => {
   it("mostra o rótulo, o valor, a régua com o limite e a leitura do ano", () => {
     render(<SaudeMinimoDestaque minimoSaude={base} />);
 
-    expect(screen.getByText("Aplicação mínima exigida em saúde")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: "A Prefeitura aplica o mínimo em saúde?",
+      }),
+    ).toBeTruthy();
     expect(screen.getByText("Exigido por lei: 15%")).toBeTruthy();
     expect(
       screen.getByText(/Receita de impostos aplicada em saúde em 2024/),

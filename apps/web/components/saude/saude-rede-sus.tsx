@@ -13,10 +13,9 @@ import {
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
-import { rotuloPeriodoAnos } from "./periodo-anos";
 import { SaudeDetalhesModal } from "./saude-detalhes-modal";
 
-export interface SaudeRedePorMilMoradoresProps {
+export interface SaudeRedeSusProps {
   rede: SaudeRedePorMilMoradoresDTO | null;
 }
 
@@ -66,9 +65,7 @@ function notaComparacao({
   return `${base}. Em ${anterior.ano} eram ${numeroOuTraco(anterior[metrica])}`;
 }
 
-export function SaudeRedePorMilMoradores({
-  rede,
-}: SaudeRedePorMilMoradoresProps) {
+export function SaudeRedeSus({ rede }: SaudeRedeSusProps) {
   if (!rede) return null;
 
   const { serie } = rede;
@@ -105,11 +102,6 @@ export function SaudeRedePorMilMoradores({
     <section className="space-y-6">
       <SectionHeader
         title="Quantos leitos e profissionais de saúde a cidade tem?"
-        eyebrow={
-          rede.anoMin === rede.anoMax
-            ? undefined
-            : rotuloPeriodoAnos(rede.anoMin, rede.anoMax)
-        }
         description={
           rede.anoMin === rede.anoMax
             ? `Dados de ${rede.anoMax}. Ainda não há outros anos para comparar.`

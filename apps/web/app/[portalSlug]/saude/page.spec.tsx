@@ -120,12 +120,14 @@ describe("SaudePage", () => {
       screen.getByRole("heading", { level: 1, name: "Saúde em 2024" }),
     ).toBeInTheDocument();
     [
-      "Aplicação mínima exigida em saúde",
-      "Origem do dinheiro da saúde",
-      "Rede do SUS",
-      "Remédios na Farmácia SUS",
-    ].forEach((rotulo) => {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
+      "A Prefeitura aplica o mínimo em saúde?",
+      "De onde vem o dinheiro da saúde?",
+      "Quantos leitos e profissionais o SUS tem?",
+      "Tem o meu remédio na Farmácia SUS?",
+    ].forEach((pergunta) => {
+      expect(
+        screen.getByRole("heading", { level: 3, name: pergunta }),
+      ).toBeInTheDocument();
     });
     expect(screen.getAllByText("Origem").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
@@ -205,6 +207,59 @@ describe("SaudePage", () => {
 
     expect(screen.getByTestId("saude-minimo-destaque")).toBeInTheDocument();
     expect(screen.getByText(/Exigido por lei: 15%/)).toBeInTheDocument();
+  });
+
+  it("abre Como o Fundo contrata quando a URL aponta para uma licitação (?numero=)", async () => {
+    loadSaudeDataMock.mockResolvedValue(makeRaw());
+
+    const element = await SaudePage({
+      ...props,
+      searchParams: Promise.resolve({ numero: "12/2024" }),
+    });
+    const { container } = render(element);
+
+    expect(
+      container.querySelector<HTMLDetailsElement>("#contratacao-saude details")
+        ?.open,
+    ).toBe(true);
+    expect(
+      container.querySelector<HTMLDetailsElement>("#emendas-saude details")
+        ?.open,
+    ).toBe(false);
+  });
+
+  it("mostra no topo a lei, as fontes oficiais e a data de coleta", async () => {
+    const base = makeRaw();
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        portalConfig: {
+          portalUrl: "https://transparencia.exemplo.gov.br/",
+          dataExtracao: "2026-11-05",
+        },
+        minimoSaude: {
+          ...base.minimoSaude,
+          minimo: {
+            ...base.minimoSaude.minimo,
+            baseLegal: "Lei Complementar 141/2012",
+            urlBaseLegal:
+              "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm",
+          },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    const topo = screen.getByTestId("saude-resumo-destaque")
+      .parentElement as HTMLElement;
+    const links = Array.from(topo.querySelectorAll("a")).map((link) =>
+      link.getAttribute("href"),
+    );
+    expect(links).toContain("https://siops.saude.gov.br/");
+    expect(links).toContain("https://apidadosabertos.saude.gov.br/");
+    expect(topo.textContent).toMatch(/Lei Complementar 141/);
+    expect(topo.textContent).toMatch(/Coletado em/);
   });
 
   it("mantém todos os blocos e põe contratação, fornecedores e emendas em Para fiscalizar, recolhidos", async () => {

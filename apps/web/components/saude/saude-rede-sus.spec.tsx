@@ -4,7 +4,7 @@ import type {
   SaudeRedePorMilMoradoresDTO,
 } from "@transparencia/db";
 import { describe, expect, it } from "vitest";
-import { SaudeRedePorMilMoradores } from "./saude-rede-por-mil-moradores";
+import { SaudeRedeSus } from "./saude-rede-sus";
 
 const ano = (
   valores: Partial<SaudeRedeAnoDTO> & { ano: number },
@@ -33,16 +33,15 @@ const rede = (serie: SaudeRedeAnoDTO[]): SaudeRedePorMilMoradoresDTO => ({
   serie,
 });
 
-describe("SaudeRedePorMilMoradores", () => {
+describe("SaudeRedeSus", () => {
   it("não renderiza sem dados", () => {
-    const { container } = render(<SaudeRedePorMilMoradores rede={null} />);
+    const { container } = render(<SaudeRedeSus rede={null} />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("com um único ano não repete o ano no eyebrow: ele entra na descrição e não há tabela por ano", () => {
-    render(<SaudeRedePorMilMoradores rede={rede([ano({ ano: 2026 })])} />);
+  it("com um único ano não há tabela por ano", () => {
+    render(<SaudeRedeSus rede={rede([ano({ ano: 2026 })])} />);
     expect(screen.queryByText("2026")).toBeNull();
-    expect(screen.queryByText("2026–2026")).toBeNull();
     expect(
       screen.getByText(/Dados de 2026\. Ainda não há outros anos/),
     ).toBeTruthy();
@@ -50,25 +49,15 @@ describe("SaudeRedePorMilMoradores", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 
-  it("usa o intervalo calculado dos dados, sem anos fixos", () => {
-    render(
-      <SaudeRedePorMilMoradores
-        rede={rede([ano({ ano: 2017 }), ano({ ano: 2027 })])}
-      />,
-    );
-    expect(screen.getByText("2017–2027")).toBeTruthy();
-  });
-
   it("compara com o ano anterior, usa o intervalo real e cita a fonte", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({ ano: 2022, totalLeitosExistentes: 12 }),
           ano({ ano: 2023 }),
         ])}
       />,
     );
-    expect(screen.getByText("2022–2023")).toBeTruthy();
     expect(
       screen.getByText("cadastro do CNES em 12/2023. Em 2022 eram 12"),
     ).toBeTruthy();
@@ -81,7 +70,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("nunca julga a rede nem cita faixa de referência", () => {
     const { container } = render(
-      <SaudeRedePorMilMoradores rede={rede([ano({ ano: 2024 })])} />,
+      <SaudeRedeSus rede={rede([ano({ ano: 2024 })])} />,
     );
     expect(container.textContent).not.toMatch(
       /adequad|insuficient|abaixo do ideal|m[ií]nimo|2,5|Portaria/i,
@@ -90,7 +79,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("mostra traço quando a fonte não trouxe o dado, e não zero", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({
             ano: 2024,
@@ -106,7 +95,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("com algum valor indisponível explica o traço e a população estimada", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({
             ano: 2026,
@@ -127,7 +116,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("sem nenhum traço na tela não mostra a nota do traço nem da estimativa", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({
             ano: 2026,
@@ -142,7 +131,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("mostra o indicador do SUS com o valor do ano mais recente", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({ ano: 2022, totalLeitosSus: 7 }),
           ano({ ano: 2023, totalLeitosSus: 8 }),
@@ -158,7 +147,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("cita a competência de cada indicador e marca a população estimada na linha e na nota", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({
             ano: 2026,
@@ -178,7 +167,7 @@ describe("SaudeRedePorMilMoradores", () => {
 
   it("explica quando falta a população e não o dado do CNES", () => {
     render(
-      <SaudeRedePorMilMoradores
+      <SaudeRedeSus
         rede={rede([
           ano({
             ano: 2024,

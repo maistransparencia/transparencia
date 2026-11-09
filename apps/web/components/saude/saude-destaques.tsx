@@ -56,7 +56,7 @@ export function SaudeDestaqueOrigem({
       className="space-y-3"
       data-testid="saude-destaque-origem"
     >
-      <p className="eyebrow">Origem do dinheiro da saúde</p>
+      <h3>De onde vem o dinheiro da saúde?</h3>
       {temDados ? (
         <>
           <p className="flex flex-wrap items-baseline gap-x-3">
@@ -96,18 +96,17 @@ export function SaudeDestaqueOrigem({
   );
 }
 
-/** "Quantos leitos e profissionais o SUS tem na cidade?": números absolutos do cadastro mais recente do CNES. */
+/** "Quantos leitos e profissionais o SUS tem?": números absolutos do cadastro mais recente do CNES. */
 export function SaudeDestaqueRede({
   rede,
 }: {
   rede: SaudeRedePorMilMoradoresDTO | null;
 }) {
-  const titulo = "Quantos leitos e profissionais o SUS tem na cidade?";
-  const eyebrow = "Rede do SUS";
+  const titulo = "Quantos leitos e profissionais o SUS tem?";
   if (!rede) {
     return (
       <section aria-label={titulo} className="space-y-3">
-        <p className="eyebrow">{eyebrow}</p>
+        <h3>{titulo}</h3>
         <p className="caption">O portal ainda não tem esse dado.</p>
       </section>
     );
@@ -132,7 +131,7 @@ export function SaudeDestaqueRede({
       className="space-y-3"
       data-testid="saude-destaque-rede"
     >
-      <p className="eyebrow">{eyebrow}</p>
+      <h3>{titulo}</h3>
       <IndicatorPanel columns={2}>
         <Indicator
           label="Leitos do SUS"
@@ -163,8 +162,7 @@ export function SaudeDestaqueFarmacia({
   farmacia: SaudeFarmaciaResumoDTO;
   portalSlug: string;
 }) {
-  const titulo = "O remédio que eu preciso está na Farmácia SUS?";
-  const eyebrow = "Remédios na Farmácia SUS";
+  const titulo = "Tem o meu remédio na Farmácia SUS?";
   const data = farmacia.dataPosicaoMaisRecente
     ? ` (lista de ${fmtDate(farmacia.dataPosicaoMaisRecente)})`
     : "";
@@ -174,7 +172,7 @@ export function SaudeDestaqueFarmacia({
       className="space-y-3"
       data-testid="saude-destaque-farmacia"
     >
-      <p className="eyebrow">{eyebrow}</p>
+      <h3>{titulo}</h3>
       {farmacia.totalUnidadesAtivas !== null && (
         <IndicatorPanel columns={2}>
           <Indicator
@@ -191,6 +189,15 @@ export function SaudeDestaqueFarmacia({
               />
             )}
         </IndicatorPanel>
+      )}
+      {farmacia.status === "apagao" && (
+        <p className="caption">
+          A lista de estoque está desatualizada
+          {farmacia.dataPosicaoMaisRecente
+            ? ` (última de ${fmtDate(farmacia.dataPosicaoMaisRecente)})`
+            : ""}
+          ; por isso o portal não mostra os números de estoque.
+        </p>
       )}
       <p className="caption">
         A lista mostra o que cada unidade informou. Antes de ir, confirme com a

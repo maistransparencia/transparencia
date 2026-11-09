@@ -105,6 +105,9 @@ describe("SaudeProducaoSus", () => {
     expect(screen.getByText("Atendimentos por mês (média)")).toBeTruthy();
     expect(screen.getByText("49 mil")).toBeTruthy();
     expect(screen.getByText("32")).toBeTruthy();
+    expect(
+      screen.getByText("média de janeiro a fevereiro de 2026"),
+    ).toBeTruthy();
     expect(screen.getByText("média de janeiro a julho de 2026")).toBeTruthy();
     expect(
       screen.getByRole("heading", {
@@ -117,22 +120,33 @@ describe("SaudeProducaoSus", () => {
     expect(screen.queryByText(/pagou/)).toBeNull();
   });
 
-  it("com um único ano não mostra eyebrow de ano e avisa de quem se trata fora", () => {
+  it("escreve 1 milhão no singular e não arredonda para 1000 mil", () => {
+    const serie = (total: number) => [
+      ano({
+        ano: 2026,
+        competenciasAmbulatoriais: 12,
+        primeiraCompetenciaAmbulatorial: 202601,
+        ultimaCompetenciaAmbulatorial: 202612,
+        totalProcedimentosAmbulatoriais: total,
+      }),
+    ];
+    const { unmount } = render(
+      <SaudeProducaoSus producao={producao(serie(999_600))} />,
+    );
+    expect(
+      screen.getByText(/o SUS registrou 1 milhão atendimentos/),
+    ).toBeTruthy();
+    unmount();
+    render(<SaudeProducaoSus producao={producao(serie(2_400_000))} />);
+    expect(screen.getByText(/2,4 milhões atendimentos/)).toBeTruthy();
+  });
+
+  it("com um único ano avisa de quem se trata fora", () => {
     render(<SaudeProducaoSus producao={producao([ano({ ano: 2026 })])} />);
     expect(screen.queryByText("2026")).toBeNull();
-    expect(screen.queryByText("2026–2026")).toBeNull();
     expect(
       screen.getByText(/se trata em outra cidade não entra na conta daqui/),
     ).toBeTruthy();
-  });
-
-  it("usa o intervalo calculado dos dados, sem anos fixos", () => {
-    render(
-      <SaudeProducaoSus
-        producao={producao([ano({ ano: 2017 }), ano({ ano: 2027 })])}
-      />,
-    );
-    expect(screen.getByText("2017–2027")).toBeTruthy();
   });
 
   it("compara o ano completo mais recente com o anterior e cita a fonte", () => {
@@ -148,7 +162,6 @@ describe("SaudeProducaoSus", () => {
         ])}
       />,
     );
-    expect(screen.getByText("2023–2024")).toBeTruthy();
     expect(screen.getAllByText(/Ministério da Saúde/).length).toBeGreaterThan(
       0,
     );
@@ -235,27 +248,17 @@ describe("SaudeProducaoSus", () => {
     );
   });
 
-  it("com algum valor indisponível explica o traço e a população estimada", () => {
+  it("com algum valor indisponível explica o traço no detalhe", () => {
     render(
       <SaudeProducaoSus
-        producao={producao([
-          ano({
-            ano: 2026,
-            populacaoEstimada: true,
-            anoPopulacaoReferencia: 2025,
-            internacoesPorMilMoradores: null,
-          }),
-        ])}
+        producao={producao([ano({ ano: 2026, totalInternacoes: null })])}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.getByText(/O traço \(—\) indica/)).toBeTruthy();
-    expect(
-      screen.getByText(/população de 2026 ainda não foi divulgada.*de 2025/),
-    ).toBeTruthy();
   });
 
-  it("sem nenhum traço na tela não mostra a nota do traço nem da estimativa", () => {
+  it("não fala de população nem de por mil moradores no detalhe", () => {
     render(
       <SaudeProducaoSus
         producao={producao([
@@ -269,8 +272,11 @@ describe("SaudeProducaoSus", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /Ver detalhes/ }));
     expect(screen.queryByText(/O traço \(—\) indica/)).toBeNull();
-    expect(screen.queryByText(/ainda não foi divulgada/)).toBeNull();
-    expect(screen.getByText(/Por mil moradores quer dizer/)).toBeTruthy();
+    expect(screen.queryByText(/por mil moradores/i)).toBeNull();
+    expect(screen.queryByText(/população/i)).toBeNull();
+    expect(
+      screen.getByText(/a média por mês é o total do período/),
+    ).toBeTruthy();
   });
 
   it("não chama de em andamento o último ano fechado de município sem SIH", () => {

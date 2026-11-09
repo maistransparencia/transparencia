@@ -92,13 +92,6 @@ export function SaudeContratacaoSection({
       summary={resumo}
       defaultOpen={defaultOpen}
     >
-      <Link
-        href={`/${portalSlug}/licitacoes`}
-        className="font-semibold text-brand-text hover:underline"
-      >
-        Ver todas as licitações &rarr;
-      </Link>
-
       <ul className="space-y-6">
         {caminhos.map((caminho) => {
           const temEmpenho = caminho.valorEmpenhado > 0;
@@ -146,6 +139,12 @@ export function SaudeContratacaoSection({
           );
         })}
       </ul>
+
+      <p className="caption">
+        <Link href={`/${portalSlug}/licitacoes`}>
+          Ver todas as licitações &rarr;
+        </Link>
+      </p>
 
       {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
       <div className="space-y-4 border-line border-t pt-6">

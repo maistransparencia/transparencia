@@ -84,9 +84,9 @@ export function resumirFiscalizacaoSaude(
     fornecedores: {
       quantidade: entrada.topFornecedores.length,
       totalPago: totalPagoFornecedores,
-      percentualTotalPago: percentualDe(
-        totalPagoFornecedores,
-        entrada.totalPagoFundo,
+      percentualTotalPago: Math.min(
+        100,
+        percentualDe(totalPagoFornecedores, entrada.totalPagoFundo),
       ),
     },
   };

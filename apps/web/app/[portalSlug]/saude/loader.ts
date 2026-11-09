@@ -119,7 +119,11 @@ async function fetchRawSaudeData(
     getSaudeRedePorMilMoradores(tenantSlug),
     getSaudeProducaoSus(tenantSlug),
     getSaudeFarmaciaResumo(tenantSlug).catch(
-      (): SaudeFarmaciaResumoDTO => FARMACIA_RESUMO_INDISPONIVEL,
+      (erro: unknown): SaudeFarmaciaResumoDTO => {
+        // biome-ignore lint/suspicious/noConsole: log de falha da Farmácia SUS, que não derruba a página
+        console.error("Falha ao carregar o resumo da Farmácia SUS", erro);
+        return FARMACIA_RESUMO_INDISPONIVEL;
+      },
     ),
   ]);
 

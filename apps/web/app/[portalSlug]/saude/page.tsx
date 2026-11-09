@@ -20,7 +20,7 @@ import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SaudeProducaoSus } from "@/components/saude/saude-producao-sus";
-import { SaudeRedePorMilMoradores } from "@/components/saude/saude-rede-por-mil-moradores";
+import { SaudeRedeSus } from "@/components/saude/saude-rede-sus";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
@@ -98,7 +98,10 @@ export default async function SaudePage({
   );
 
   const resumo = resumirFiscalizacaoSaude({
-    emendas: saude.emendasStats,
+    emendas: {
+      ...saude.emendasStats,
+      totalAutorizado: saude.emendasTotal,
+    },
     caminhosContratacao: saude.licitacoesSaude.caminhos,
     quantidadeLicitacoesEmAndamento: saude.licitacoesEmAndamento?.length ?? 0,
     topFornecedores: saude.topFornecedores ?? [],
@@ -107,8 +110,11 @@ export default async function SaudePage({
   const pluralizar = (quantidade: number, singular: string, plural: string) =>
     `${quantidade} ${quantidade === 1 ? singular : plural}`;
   const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados${emendasEstaduais.emendas.length > 0 ? ` · ${emendasEstaduais.emendas.length} do Estado` : ""}`;
-  const resumoContratacao = `${pluralizar(resumo.contratacao.quantidadeLicitacoesProprias, "licitação própria", "licitações próprias")} · ${fmtCompact(resumo.contratacao.totalEmpenhadoLicitacoesProprias)} empenhados · ${resumo.contratacao.quantidadeLicitacoesEmAndamento} em andamento`;
-  const resumoFornecedores = `${pluralizar(resumo.fornecedores.quantidade, "fornecedor", "maiores fornecedores")} · ${fmtCompact(resumo.fornecedores.totalPago)} pagos (${fmtPercent(resumo.fornecedores.percentualTotalPago)} do total)`;
+  const resumoContratacao = `${pluralizar(resumo.contratacao.quantidadeLicitacoesProprias, "licitação própria", "licitações próprias")} · ${fmtCompact(resumo.contratacao.totalEmpenhadoLicitacoesProprias)} empenhados · ${pluralizar(resumo.contratacao.quantidadeLicitacoesEmAndamento, "licitação em andamento", "licitações em andamento")} · ${pluralizar(saude.orcamento.contratosVinculadosCount, "contrato vinculado", "contratos vinculados")}`;
+  const resumoFornecedores =
+    resumo.fornecedores.quantidade === 0
+      ? "Nenhum pagamento a fornecedores registrado"
+      : `${pluralizar(saude.orcamento.fornecedoresAtivosCount, "fornecedor ativo", "fornecedores ativos")} · os ${resumo.fornecedores.quantidade} maiores receberam ${fmtCompact(resumo.fornecedores.totalPago)} (${fmtPercent(resumo.fornecedores.percentualTotalPago)} do total pago)`;
 
   return (
     <div className="space-y-12 pb-12">
@@ -183,7 +189,7 @@ export default async function SaudePage({
         />
       </section>
 
-      <SaudeRedePorMilMoradores rede={redePorMilMoradores} />
+      <SaudeRedeSus rede={redePorMilMoradores} />
 
       <SaudeProducaoSus producao={producaoSus} />
 
