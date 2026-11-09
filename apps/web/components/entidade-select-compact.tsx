@@ -125,7 +125,7 @@ export function EntidadeSelectCompact({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-fit max-w-[200px] border-line border-b transition-colors focus-within:border-brand hover:border-mute3 sm:max-w-[260px]",
+        "w-fit max-w-[200px] border-line border-b transition-colors focus-within:border-ink hover:border-mute3 sm:relative sm:max-w-[260px]",
         className,
       )}
     >
@@ -137,7 +137,7 @@ export function EntidadeSelectCompact({
         aria-expanded={isOpen}
         aria-label={`${triggerLabel}, filtrar entidades públicas municipais`}
         className={cn(
-          "flex min-h-[24px] w-full cursor-pointer appearance-none items-center justify-between gap-1 px-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none",
+          "relative flex min-h-[24px] w-full cursor-pointer appearance-none items-center pr-5 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5",
           isBtnDisabled && "cursor-not-allowed opacity-60",
         )}
       >
@@ -153,7 +153,7 @@ export function EntidadeSelectCompact({
         <ChevronDown
           strokeWidth={1.6}
           className={cn(
-            "h-3 w-3 shrink-0 text-mute2 transition-transform duration-200",
+            "pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2 text-mute2 transition-transform duration-200",
             isOpen && "rotate-180",
           )}
         />
@@ -164,7 +164,7 @@ export function EntidadeSelectCompact({
           role="dialog"
           aria-modal="true"
           aria-label="Perímetro Institucional"
-          className="absolute top-full -left-16 z-50 mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-page p-2 shadow-lg sm:-left-20 sm:w-80"
+          className="absolute top-full right-4 left-4 z-50 mt-1.5 rounded-lg border border-line bg-page p-2 shadow-lg sm:right-auto sm:-left-20 sm:w-80"
         >
           {/* Cabeçalho do Popover com Resumo do Escopo Atual */}
           <div className="mb-1.5 flex items-center justify-between gap-2 border-line border-b pb-1.5">

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BrandLogo,
   cn,
   fmtDate,
   type PortalOption,
@@ -14,7 +15,6 @@ import { env } from "@/env";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { botaoPrimario } from "./botoes-acao";
-import { BrandLogo } from "./brand-logo";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";
@@ -113,7 +113,7 @@ export function GlobalFooter({
             : "pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:pb-0",
         )}
       >
-        <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 md:px-10">
           {/* Marca e fonte, neste dispositivo (só com conteúdo) e alertas */}
           <div
             className={cn(
@@ -135,8 +135,9 @@ export function GlobalFooter({
                 </p>
               )}
               <p className="text-mute2 text-xs leading-relaxed">
-                Plataforma cívica independente de controle social e auditoria
-                fiscal das contas públicas municipais.
+                Iniciativa livre e apartidária, sem vínculo com a administração
+                municipal. Reúne dados de fontes públicas oficiais para você
+                acompanhar o que a prefeitura faz pela cidade.
               </p>
             </div>
 

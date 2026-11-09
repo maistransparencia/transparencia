@@ -378,43 +378,6 @@ describe("Sidebar Component", () => {
     ).toBeTruthy();
   });
 
-  it("renderiza ícone cívico neutro sem brasão e sem img de brasão fixo", () => {
-    const { container } = render(
-      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
-    );
-    expect(
-      container.querySelector('img[src*="brasao-porciuncula"]'),
-    ).toBeNull();
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
-  });
-
-  it("renderiza img do brasao quando brasaoAsset e informado", () => {
-    const { container } = render(
-      <Sidebar
-        currentPathname="/porciuncula_prefeitura"
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    expect(container.querySelector("img")).not.toBeNull();
-  });
-
-  it("volta ao ícone cívico quando o brasão falha ao carregar", () => {
-    const { container } = render(
-      <Sidebar
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    const imagens = Array.from(container.querySelectorAll("img"));
-    expect(imagens.length).toBeGreaterThan(0);
-    fireEvent.error(imagens[0]);
-    expect(container.querySelector("img")).toBeNull();
-  });
-
   it("não marca nenhum item como ativo sem currentPathname", () => {
     render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });
@@ -431,5 +394,46 @@ describe("Sidebar Component", () => {
       "md:transition-none",
     );
     expect(aside).not.toHaveClass("motion-reduce:transition-none");
+  });
+
+  it("exibe o nome da marca no topo do sidebar e da topbar mobile", () => {
+    render(<Sidebar portalSlug="porciuncula_prefeitura" brandName="MarcaX" />);
+
+    expect(screen.getAllByText("MarcaX")).toHaveLength(2);
+  });
+
+  it("mostra o nome da cidade e o estado nas opções do seletor de municípios", () => {
+    render(
+      <Sidebar
+        portalSlug="porciuncula_prefeitura"
+        portalName="Porciúncula"
+        onPortalChange={vi.fn()}
+        portais={[
+          {
+            portalSlug: "porciuncula_prefeitura",
+            displayName: "Prefeitura Municipal de Porciúncula",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "sao_fidelis_prefeitura",
+            displayName: "Prefeitura de São Fidélis",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "natividade_prefeitura",
+            displayName: "Natividade",
+            uf: "RJ",
+          },
+        ]}
+      />,
+    );
+
+    const opcoes = screen
+      .getAllByRole("option")
+      .map((opcao) => opcao.textContent);
+    expect(opcoes).toContain("Porciúncula · RJ");
+    expect(opcoes).toContain("São Fidélis · RJ");
+    expect(opcoes).toContain("Natividade · RJ");
+    expect(opcoes.some((texto) => texto?.includes("Prefeitura"))).toBe(false);
   });
 });
