@@ -28,7 +28,6 @@ import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 import { scriptAntiFlashTema } from "@/lib/tema-script";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
-import { RibbonWrapper } from "./components/ribbon-wrapper";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
@@ -253,10 +252,6 @@ export default async function RootLayout({
                 />
               </Suspense>
               <div className="flex min-w-0 flex-1 flex-col">
-                <RibbonWrapper
-                  portais={portalOptions}
-                  portalName={portalConfig?.displayName}
-                />
                 <Suspense fallback={null}>
                   <NewsletterFeedbackBanner />
                 </Suspense>

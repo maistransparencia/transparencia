@@ -9,7 +9,6 @@ export * from "./components/indicator";
 export * from "./components/kpi-card";
 export * from "./components/modal-dialog";
 export * from "./components/multi-select";
-export * from "./components/ribbon";
 export * from "./components/section-header";
 export * from "./components/segmented-button";
 export * from "./components/share-button";

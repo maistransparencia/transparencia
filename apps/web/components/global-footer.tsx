@@ -135,8 +135,9 @@ export function GlobalFooter({
                 </p>
               )}
               <p className="text-mute2 text-xs leading-relaxed">
-                Plataforma cívica independente de controle social e auditoria
-                fiscal das contas públicas municipais.
+                Iniciativa livre e apartidária, sem vínculo com a administração
+                municipal. Reúne dados de fontes públicas oficiais para você
+                acompanhar o que a prefeitura faz pela cidade.
               </p>
             </div>
 

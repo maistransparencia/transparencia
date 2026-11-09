@@ -145,7 +145,7 @@ function YearSelect({
         id="exercice-select"
         value={selectedYear}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page px-3 py-2.5 font-medium text-ink text-sm shadow-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none sm:min-h-0 sm:py-2 sm:text-xs"
+        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page px-2.5 py-2 pr-8 font-medium text-ink text-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none sm:min-h-0"
       >
         {years.map((yr) => (
           <option
@@ -159,7 +159,7 @@ function YearSelect({
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
+        className="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-mute2"
       />
     </div>
   );
@@ -225,7 +225,7 @@ export function PortalSelect({
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
+        className="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-mute2"
       />
     </div>
   );
@@ -394,7 +394,7 @@ export function Sidebar({
       >
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-0.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md p-0.5">
               {!imgError && normalizedBrasao ? (
                 <img
                   src={normalizedBrasao}
@@ -472,7 +472,7 @@ export function Sidebar({
           <div className="border-line border-b p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md p-1">
                   {!imgError && normalizedBrasao ? (
                     <img
                       src={normalizedBrasao}
