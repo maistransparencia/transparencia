@@ -183,4 +183,34 @@ describe("getSaudeProducaoSus", () => {
       ateCompetencia: anoAtual * 100 + 3,
     });
   });
+
+  it("tira da série o ano em que a fonte não trouxe atendimentos nem internações", async () => {
+    await seedSaudeProducaoSus([
+      {
+        portalSlug: PORTAL_A,
+        ano: 2017,
+        competenciasAmbulatoriais: 12,
+        totalProcedimentosAmbulatoriais: 900,
+      },
+      { portalSlug: PORTAL_A, ano: 2020 },
+      {
+        portalSlug: PORTAL_A,
+        ano: 2027,
+        competenciasInternacoes: 12,
+        totalInternacoes: 30,
+      },
+    ]);
+
+    const resultado = await getSaudeProducaoSus(PORTAL_A);
+
+    expect(resultado?.serie.map((a) => a.ano)).toEqual([2017, 2027]);
+    expect(resultado?.anoMin).toBe(2017);
+    expect(resultado?.anoMax).toBe(2027);
+  });
+
+  it("devolve null quando nenhum ano trouxe dado", async () => {
+    await seedSaudeProducaoSus({ portalSlug: PORTAL_A, ano: 2024 });
+
+    expect(await getSaudeProducaoSus(PORTAL_A)).toBeNull();
+  });
 });

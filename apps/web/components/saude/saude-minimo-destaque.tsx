@@ -7,7 +7,6 @@ import {
   fmtDate,
   fmtPercent,
   ModalDialog,
-  SectionHeader,
   ThresholdMeter,
 } from "@transparencia/ui";
 import { useState } from "react";
@@ -74,28 +73,35 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
   const mensagem = descreverResultado(minimoSaude);
   const alerta = ALERTAS[resultado];
 
+  const comBarra =
+    percentualAplicado !== null &&
+    limite !== null &&
+    (comparavel || resultado === "parcial");
+  const periodoTexto =
+    resultado === "parcial" && atual && minimo.mesesCobertos
+      ? `até o ${atual.periodo}º bimestre de ${ano}`
+      : `em ${ano}`;
+
   return (
     <section
       aria-label="Mínimo constitucional da saúde"
       data-testid="saude-minimo-destaque"
-      className="space-y-4"
+      className="space-y-3"
     >
-      <SectionHeader title="A Prefeitura aplica o mínimo exigido em saúde?" />
-      <div className="space-y-3">
-        <p className="eyebrow">Aplicado em saúde em {ano}</p>
-        <p className="flex flex-wrap items-baseline gap-x-4">
-          <span
-            className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}
-          >
-            {temValor ? fmtPercent(percentualAplicado) : "—"}
-          </span>
-          {limite !== null && (
-            <span className="font-semibold text-sm">
-              A lei exige pelo menos {formatarLimite(limite)}
-            </span>
-          )}
-        </p>
-        {comparavel && limite !== null && percentualAplicado !== null && (
+      <h3>A Prefeitura aplica o mínimo em saúde?</h3>
+      <p className="flex flex-wrap items-baseline gap-x-4">
+        <span
+          className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}
+        >
+          {temValor ? fmtPercent(percentualAplicado) : "—"}
+        </span>
+      </p>
+      {comBarra && (
+        <div className="space-y-2">
+          <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+            <span>Aplicado: {fmtPercent(percentualAplicado)}</span>
+            <span>Exigido por lei: {formatarLimite(limite)}</span>
+          </p>
           <ThresholdMeter
             value={percentualAplicado}
             threshold={limite}
@@ -103,37 +109,29 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
             label="Aplicado em saúde"
             valueText={`${fmtPercent(percentualAplicado)} aplicado; mínimo de ${formatarLimite(limite)}`}
           />
-        )}
-        {mensagem && alerta && (
-          <AlertBox
-            type={alerta.tipo}
-            title={
-              resultado === "abaixo" && limite !== null
-                ? `Abaixo dos ${formatarLimite(limite)} exigidos`
-                : alerta.titulo
-            }
-          >
-            {mensagem}
-          </AlertBox>
-        )}
-        {mensagem && !alerta && <p className="caption">{mensagem}</p>}
+        </div>
+      )}
+      {temValor && (
         <p className="caption">
-          Calculado pelo SIOPS (Ministério da Saúde) com dados enviados pela
-          Prefeitura.
-          {atual?.coletadoEm
-            ? ` Dados consultados no SIOPS em ${fmtDate(atual.coletadoEm)}.`
+          Receita de impostos aplicada em saúde {periodoTexto}.
+          {limite !== null
+            ? ` A lei exige no mínimo ${formatarLimite(limite)}.`
             : ""}
         </p>
-      </div>
-      <LinhaLeiEFonte
-        laws={leis}
-        source={
-          <LeiLink
-            label={FONTES_OFICIAIS.siops.nome}
-            url={FONTES_OFICIAIS.siops.url}
-          />
-        }
-      />
+      )}
+      {mensagem && alerta && resultado !== "parcial" && (
+        <AlertBox
+          type={alerta.tipo}
+          title={
+            resultado === "abaixo" && limite !== null
+              ? `Abaixo dos ${formatarLimite(limite)} exigidos`
+              : alerta.titulo
+          }
+        >
+          {mensagem}
+        </AlertBox>
+      )}
+      {mensagem && !alerta && <p className="caption">{mensagem}</p>}
       {atual && (
         <VerDetalhesLink
           onClick={() => setDetalhesAbertos(true)}

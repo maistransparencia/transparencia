@@ -3952,7 +3952,7 @@ So that I can follow the main answer without scrolling through tables made for j
 
 **Origem:** pedido do Julio em 2026-11-06, depois de aprovar o resultado das Stories 24.12 e 24.13 na página de educação. Nenhuma story anterior da Epic 25 reorganiza a página inteira: a 25.3 cobre só o equivalente da 24.12 (o topo), e as 25.4, 25.6a e 25.6b acrescentam blocos. Esta story é o equivalente da 24.13 e vem **depois** delas, para reorganizar uma vez só, com a página já completa.
 
-**Status:** esboço. Detalhar quando as Stories 25.3, 25.4, 25.6a e 25.6b fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6a e 25.6b), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
+**Status:** detalhada em 2026-11-08; ver `implementation-artifacts/25-10-hierarquia-da-pagina-de-saude-para-entender-e-para-fiscalizar.md` (decisões do Julio e ACs). Texto original do esboço: detalhar quando as Stories 25.3, 25.4, 25.6a e 25.6b fecharem, com a página renderizada na mão. Princípio herdado da 24.13: nenhuma informação existente sai da página; muda só a posição e o peso (Regra 25 e Regra 27: seções para especialistas ficam no fim). Esperado: ordem "topo (25.3)", origem do dinheiro (25.4), produção da rede (25.6a e 25.6b), série histórica, e bloco **"Para fiscalizar"** com emendas (25.5 e 25.9), contratos e fornecedores, cada seção recolhida por padrão (`<details>`/`summary`) com resumo numérico visível calculado em `@transparencia/db` (Regra 23), mesmo padrão e componentes da educação, sem texto de município, UF ou ano fixo. Conferir `DESIGN.md` e `EXPERIENCE.md`, `editor-cidadao` nos textos e a regra de dado derivado (Regra 27).
 
 **Candidatos a decidir aqui (vindos da 25.6c, carga só do ano atual):**
 - Anos anteriores ao início da carga: rótulo "não disponível" ou ocultar do seletor, igual nos blocos de rede e de produção. O rótulo atual é "sem dado da fonte"; revisar o texto com o `editor-cidadao`.
@@ -3962,6 +3962,29 @@ So that I can follow the main answer without scrolling through tables made for j
 - **Procedimentos de diagnóstico ("exames"):** o arquivo mensal do SIA traz `PA_PROC_ID` (código SIGTAP, 10 dígitos); os 2 primeiros dígitos seriam o grupo, e o 02 seria "diagnóstico" (a confirmar na tabela oficial). Spike no SIA do Acre de 2026-08: grupo 02 = 790.833 de ~1,8 milhão de procedimentos aprovados (cerca de 40%). Hoje o raw guarda só o total mensal; separar exigiria agregar por grupo no extrator (em memória), coluna nova no raw, mart, tela e recarga do SIA (~15 a 20 min por mês e UF). O rótulo honesto é "procedimentos de diagnóstico", não "exames realizados" (mistura laboratório, imagem e outros métodos). Medido só em uma UF e um mês.
 
 **Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
+
+### Story 25.11: Título sem ano e seletor só onde o dado é do exercício (esboço)
+
+As a citizen,  
+I want each theme page to say clearly which blocks show the current picture, which show a history, and which belong to a single year,  
+So that "Saúde 2026" never makes me think everything on the page is from 2026.
+
+**Origem:** observação do Julio em 2026-11-08: o título de `/saude` e `/educacao` leva o ano selecionado, mas boa parte dos blocos não é daquele ano (série histórica, rede, produção). Valia o mesmo para `/obras` e `/previdencia`. Análise da Mary na mesma data; decisões do Julio abaixo.
+
+**Decisões do Julio:**
+- Aceita a opção intermediária: título só com o tema, sem o ano; seletor de ano apenas nos blocos que são do exercício, com o ano dito no título de cada um.
+- O padrão do seletor continua sendo o **ano atual**, como está hoje, inclusive no mínimo constitucional (não trocar por "último ano fechado").
+
+**Modelo de classificação (a confirmar no levantamento):**
+- **Retrato atual** (estoque, sem ano): rede de leitos e profissionais, farmácia, obras em andamento, contratos vigentes. Sem seletor; mostra a data da coleta.
+- **Série histórica:** "Como mudou ao longo dos anos", rede por ano, produção do SUS. Sem seletor; o eyebrow diz o período, calculado dos dados (Regra 23).
+- **Exercício:** mínimo, de onde vem o dinheiro, fornecedores, emendas. Seletor dentro do bloco ou num grupo "Por exercício".
+
+**Primeiro passo (levantamento, antes de codar):** para `/saude`, `/educacao`, `/obras` e `/previdencia`, listar cada bloco, o tipo e se hoje depende do ano selecionado. Conferir se `/obras` e `/previdencia` já têm seletor. Medir o impacto em URL (`?ano=`), imagem de compartilhamento, `llms.txt`, `llms-full.txt` e links existentes.
+
+**Cuidados:** texto de títulos e rótulos pelo `editor-cidadao`; Regra 23 (sem ano fixo); Regra 25 (`DESIGN.md` e `EXPERIENCE.md` ganham o padrão de seletor por bloco); teste de que nenhum bloco sumiu, só mudou o escopo declarado.
+
+**Dependências:** Story 25.10 (reordenação de `/saude`); referência de padrão: Stories 24.12 e 24.13. Detalhar depois do levantamento e da 25.10.
 
 ---
 

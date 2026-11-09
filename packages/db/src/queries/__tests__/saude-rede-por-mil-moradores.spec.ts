@@ -78,4 +78,44 @@ describe("getSaudeRedePorMilMoradores", () => {
     expect(ano.populacaoEstimada).toBe(true);
     expect(ano.anoPopulacaoReferencia).toBe(2022);
   });
+
+  it("tira da série o ano em que a fonte não trouxe leitos nem profissionais", async () => {
+    await seedSaudeRede([
+      { portalSlug: PORTAL_A, ano: 2017, totalLeitosExistentes: 20 },
+      { portalSlug: PORTAL_A, ano: 2020 },
+      { portalSlug: PORTAL_A, ano: 2027, totalProfissionais: 90 },
+    ]);
+
+    const resultado = await getSaudeRedePorMilMoradores(PORTAL_A);
+
+    expect(resultado?.serie.map((a) => a.ano)).toEqual([2017, 2027]);
+    expect(resultado?.anoMin).toBe(2017);
+    expect(resultado?.anoMax).toBe(2027);
+  });
+
+  it("devolve null quando nenhum ano trouxe dado", async () => {
+    await seedSaudeRede([{ portalSlug: PORTAL_A, ano: 2024 }]);
+
+    expect(await getSaudeRedePorMilMoradores(PORTAL_A)).toBeNull();
+  });
+
+  it("marca como estimada a população do último ano anterior", async () => {
+    await seedSaudeRede([
+      {
+        portalSlug: PORTAL_A,
+        ano: 2026,
+        totalLeitosExistentes: 40,
+        populacaoResidente: 10000,
+        anoPopulacaoReferencia: 2025,
+        populacaoEstimada: true,
+        leitosExistentesPorMilMoradores: 4,
+      },
+    ]);
+
+    const [ano] = (await getSaudeRedePorMilMoradores(PORTAL_A))?.serie ?? [];
+
+    expect(ano.populacaoEstimada).toBe(true);
+    expect(ano.anoPopulacaoReferencia).toBe(2025);
+    expect(ano.leitosExistentesPorMilMoradores).toBe(4);
+  });
 });

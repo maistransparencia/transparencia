@@ -1666,10 +1666,14 @@ export async function seedSaudeProducaoSus(
         ano: r.ano,
         competencias_ambulatoriais: r.competenciasAmbulatoriais ?? null,
         competencias_internacoes: r.competenciasInternacoes ?? null,
+        primeira_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null ? null : r.ano * 100 + 1,
         ultima_competencia_ambulatorial:
           r.competenciasAmbulatoriais == null
             ? null
             : r.ano * 100 + r.competenciasAmbulatoriais,
+        primeira_competencia_internacoes:
+          r.competenciasInternacoes == null ? null : r.ano * 100 + 1,
         ultima_competencia_internacoes:
           r.competenciasInternacoes == null
             ? null

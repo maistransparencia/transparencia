@@ -40,24 +40,23 @@ const base: SaudeMinimoConstitucionalDTO = {
 };
 
 describe("SaudeMinimoDestaque", () => {
-  it("mostra pergunta, valor, régua, rótulo do SIOPS, lei e fonte", () => {
+  it("mostra o rótulo, o valor, a régua com o limite e a leitura do ano", () => {
     render(<SaudeMinimoDestaque minimoSaude={base} />);
 
     expect(
-      screen.getByText("A Prefeitura aplica o mínimo exigido em saúde?"),
+      screen.getByRole("heading", {
+        level: 3,
+        name: "A Prefeitura aplica o mínimo em saúde?",
+      }),
     ).toBeTruthy();
-    expect(screen.getByText(/A lei exige pelo menos 15%/)).toBeTruthy();
+    expect(screen.getByText("Exigido por lei: 15%")).toBeTruthy();
     expect(
-      screen.getByText(/Calculado pelo SIOPS \(Ministério da Saúde\)/),
+      screen.getByText(/Receita de impostos aplicada em saúde em 2024/),
     ).toBeTruthy();
-    expect(screen.getByText(/Dados consultados no SIOPS em/)).toBeTruthy();
     expect(screen.getByRole("meter", { hidden: true })).toBeTruthy();
-    const lei = screen.getByRole("link", { name: /Lei Complementar 141/ });
-    expect(lei.getAttribute("target")).toBe("_blank");
-    expect(lei.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
-  it("ano parcial não ganha barra nem veredito", () => {
+  it("ano parcial ganha barra e leitura até o bimestre, sem veredito", () => {
     render(
       <SaudeMinimoDestaque
         minimoSaude={{
@@ -75,10 +74,10 @@ describe("SaudeMinimoDestaque", () => {
       />,
     );
 
-    expect(screen.queryByRole("meter", { hidden: true })).toBeNull();
+    expect(screen.getByRole("meter", { hidden: true })).toBeTruthy();
     expect(
       screen.getByText(
-        /Valor parcial de 2026, até o 3º bimestre \(6 primeiros meses\)/,
+        /Receita de impostos aplicada em saúde até o 3º bimestre de 2026/,
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/abaixo do mínimo/)).toBeNull();
@@ -168,9 +167,13 @@ describe("SaudeMinimoDestaque", () => {
       screen.getByText(/restos a pagar sem dinheiro em caixa/),
     ).toBeTruthy();
     expect(screen.getByText(/Anos fechados, 2017–2024/)).toBeTruthy();
-    expect(screen.getAllByText(/Dados consultados no SIOPS em/)).toHaveLength(
-      2,
-    );
+    expect(screen.getByText(/Dados consultados no SIOPS em/)).toBeTruthy();
+    screen
+      .getAllByRole("link", { name: /Lei Complementar 141/ })
+      .forEach((lei) => {
+        expect(lei.getAttribute("target")).toBe("_blank");
+        expect(lei.getAttribute("rel")).toBe("noopener noreferrer");
+      });
     const art24 = screen.getByRole("link", {
       name: /art\. 24 da Lei Complementar 141/,
     });

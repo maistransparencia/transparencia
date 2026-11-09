@@ -1,4 +1,19 @@
-import { fmtCompact, fmtPercent, Indicator } from "@transparencia/ui";
+import type {
+  FontesReceitaSaudeDTO,
+  SaudeFarmaciaResumoDTO,
+  SaudeMinimoConstitucionalDTO,
+  SaudeRedePorMilMoradoresDTO,
+} from "@transparencia/db";
+import { fmtDate } from "@transparencia/ui";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import {
+  SaudeDestaqueFarmacia,
+  SaudeDestaqueOrigem,
+  SaudeDestaqueRede,
+} from "./saude/saude-destaques";
+import { SaudeMemoriaCalculo } from "./saude/saude-memoria-calculo";
+import { SaudeMinimoDestaque } from "./saude/saude-minimo-destaque";
 
 export interface SaudeHeroOrcamentoProps {
   dotacao: number;
@@ -6,139 +21,116 @@ export interface SaudeHeroOrcamentoProps {
   liquidado: number;
   pago: number;
   taxaExecucao: number;
-  medicamentosInsumos: number;
-  contratosVinculadosCount: number;
-  fornecedoresAtivosCount: number;
 }
 
 export interface SaudeHeroSectionProps {
   ano: number;
   isCurrentYear: boolean;
   partialPeriod: string;
+  portalSlug: string;
   orcamento: SaudeHeroOrcamentoProps;
+  minimoSaude: SaudeMinimoConstitucionalDTO;
+  fontesReceita: FontesReceitaSaudeDTO;
+  redePorMilMoradores: SaudeRedePorMilMoradoresDTO | null;
+  farmacia: SaudeFarmaciaResumoDTO;
+  /** Portal de transparência da Prefeitura (do banco); sem ele a fonte fica sem link. */
+  portalUrl: string | null;
+  /** Data (AAAA-MM-DD) da coleta no portal da Prefeitura. */
+  dataColeta: string | null;
+  /** Resumo de "Para fiscalizar", calculado em `@transparencia/db`. */
+  resumoFiscalizacao: string[];
 }
 
+/** Topo: o mínimo exigido, de onde vem o dinheiro e o que a população encontra (atendimento, leitos e remédios). */
 export function SaudeHeroSection({
   ano,
   isCurrentYear,
   partialPeriod,
+  portalSlug,
   orcamento,
+  minimoSaude,
+  fontesReceita,
+  redePorMilMoradores,
+  farmacia,
+  portalUrl,
+  dataColeta,
+  resumoFiscalizacao,
 }: SaudeHeroSectionProps) {
-  const naoPago = Math.max(0, orcamento.empenhado - orcamento.pago);
-  const temDados = orcamento.empenhado > 0 || orcamento.pago > 0;
-
-  const empenhadoRatio =
-    orcamento.dotacao > 0
-      ? Math.min(
-          100,
-          Math.max(0, (orcamento.empenhado / orcamento.dotacao) * 100),
-        )
-      : 0;
-
-  const liquidadoRatio =
-    orcamento.empenhado > 0
-      ? Math.min(
-          100,
-          Math.max(0, (orcamento.liquidado / orcamento.empenhado) * 100),
-        )
-      : 0;
-
-  const pagoRatio =
-    orcamento.empenhado > 0
-      ? Math.min(100, Math.max(0, (orcamento.pago / orcamento.empenhado) * 100))
-      : 0;
+  const { baseLegal, urlBaseLegal } = minimoSaude.minimo;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-      <div className="space-y-4 lg:col-span-7">
+    <div className="space-y-8">
+      <div className="space-y-4">
         <p className="eyebrow text-brand-text!">
-          FUNDO MUNICIPAL DE SAÚDE · EXERCÍCIO {ano}
+          SAÚDE · EXERCÍCIO {ano}
           {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
         </p>
-
-        <h1>
-          {!temDados
-            ? `O portal não tem despesas de saúde registradas para ${ano}.`
-            : isCurrentYear
-              ? `O Fundo Municipal de Saúde já pagou ${fmtCompact(orcamento.pago)} dos ${fmtCompact(orcamento.empenhado)} que reservou em ${ano}.`
-              : `O Fundo Municipal de Saúde reservou ${fmtCompact(orcamento.empenhado)} em ${ano} e pagou ${fmtCompact(orcamento.pago)}.`}
-        </h1>
-
+        <h1>Saúde em {ano}</h1>
         <p className="lead">
-          {!temDados ? (
-            "Quando houver empenhos do Fundo Municipal de Saúde neste ano, o valor reservado e o valor pago aparecem aqui."
-          ) : isCurrentYear ? (
-            <>
-              Até agora, o Fundo reservou{" "}
-              <strong className="text-ink">
-                {fmtCompact(orcamento.empenhado)}
-              </strong>{" "}
-              para despesas da saúde (empenho). Isso é{" "}
-              {fmtPercent(orcamento.taxaExecucao * 100)} dos{" "}
-              {fmtCompact(orcamento.dotacao)} previstos para o ano. Reservar não
-              é pagar: veja no painel quanto já foi entregue e quanto já foi
-              pago.
-            </>
-          ) : (
-            <>
-              O valor reservado para despesas da saúde (empenho) é{" "}
-              {fmtPercent(orcamento.taxaExecucao * 100)} dos{" "}
-              {fmtCompact(orcamento.dotacao)} previstos para o ano.
-              {naoPago > 0
-                ? ` Ficaram ${fmtCompact(naoPago)} sem pagar dentro do ano: podem ser pagos depois ou cancelados.`
-                : ""}
-            </>
-          )}
+          Quanto a Prefeitura aplicou em saúde, de onde vem esse dinheiro e o
+          que a população encontra: atendimento, leitos e remédios.
         </p>
+        {isCurrentYear && (
+          <p
+            role="note"
+            className="caption border-brand-fill border-l-[3px] pl-3"
+          >
+            <strong className="font-semibold text-ink">
+              Ano em andamento:
+            </strong>{" "}
+            os números são parciais e não dá para compará-los com anos já
+            fechados.
+          </p>
+        )}
       </div>
 
-      <div className="panel panel-brand space-y-6 lg:col-span-5">
-        <dl>
-          <Indicator
-            size="md"
-            label={
-              isCurrentYear
-                ? "Reservado (empenhado) no ano até agora"
-                : "Reservado (empenhado) no ano"
-            }
-            value={fmtCompact(orcamento.empenhado)}
-            note={`${fmtPercent(orcamento.taxaExecucao * 100)} da verba prevista de ${fmtCompact(orcamento.dotacao)}`}
-          />
-        </dl>
-        <ProgressBar percent={empenhadoRatio} />
+      <section
+        aria-label="Resumo da saúde"
+        data-testid="saude-resumo-destaque"
+        className="grid grid-cols-1 gap-8 md:grid-cols-2"
+      >
+        <SaudeMinimoDestaque minimoSaude={minimoSaude} />
+        <SaudeDestaqueOrigem fontes={fontesReceita} ano={ano} />
+        <SaudeDestaqueRede rede={redePorMilMoradores} />
+        <SaudeDestaqueFarmacia farmacia={farmacia} portalSlug={portalSlug} />
+      </section>
 
-        <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Indicator
-              size="sm"
-              label="Serviço ou produto entregue (liquidado)"
-              value={fmtCompact(orcamento.liquidado)}
-              note={`${fmtPercent(liquidadoRatio)} do reservado`}
+      <LinhaLeiEFonte
+        laws={
+          baseLegal && urlBaseLegal
+            ? [{ label: baseLegal, url: urlBaseLegal }]
+            : []
+        }
+        source={
+          <>
+            <LeiLink
+              label={FONTES_OFICIAIS.siops.nome}
+              url={FONTES_OFICIAIS.siops.url}
             />
-            <ProgressBar percent={liquidadoRatio} />
-          </div>
-          <div className="space-y-2">
-            <Indicator
-              size="sm"
-              label="Dinheiro que saiu (pago)"
-              value={fmtCompact(orcamento.pago)}
-              note={`${fmtPercent(pagoRatio)} do reservado`}
+            {" · "}
+            <LeiLink
+              label={FONTES_OFICIAIS.dadosAbertosSaude.nome}
+              url={FONTES_OFICIAIS.dadosAbertosSaude.url}
             />
-            <ProgressBar percent={pagoRatio} />
-          </div>
-        </dl>
-      </div>
-    </div>
-  );
-}
-
-function ProgressBar({ percent }: { percent: number }) {
-  return (
-    <div className="h-3 w-full overflow-hidden bg-track">
-      <div
-        className="h-full bg-brand-fill transition-all duration-500"
-        style={{ width: `${percent}%` }}
+          </>
+        }
+        extra={dataColeta ? `Coletado em ${fmtDate(dataColeta)}` : undefined}
       />
+
+      <SaudeMemoriaCalculo
+        ano={ano}
+        isCurrentYear={isCurrentYear}
+        orcamento={orcamento}
+        portalUrl={portalUrl}
+      />
+
+      <p className="caption" data-testid="saude-resumo-fiscalizar">
+        <strong className="font-semibold text-ink">Para fiscalizar:</strong>{" "}
+        {resumoFiscalizacao.join(" · ")}{" "}
+        <a href="#para-fiscalizar" className="font-semibold">
+          Ver seção
+        </a>
+      </p>
     </div>
   );
 }
