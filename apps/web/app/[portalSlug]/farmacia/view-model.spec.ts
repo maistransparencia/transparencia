@@ -164,14 +164,13 @@ describe("buildFarmaciaViewModel indicadores", () => {
         diasDesdePosicaoMaisRecente: 5,
       }),
     );
-    const [unidades, essenciais, atualizacao] = vm.indicadores;
+    const [unidades, essenciais] = vm.indicadores;
     expect(unidades.valor).toBe("7");
     expect(essenciais.valor).toBe("2 de 4");
     expect(essenciais.nota).toBe(
       "1 não aparece na lista de estoque · 1 só em combinação",
     );
     expect(essenciais.notaAtencao).toBe(true);
-    expect(atualizacao.nota).toBeNull();
   });
 
   it("essenciais sem pendencia: nota neutra sem atencao", () => {
@@ -208,20 +207,13 @@ describe("buildFarmaciaViewModel indicadores", () => {
     ]);
   });
 
-  it("a lista mais recente mostra so a data, sem nota de dias", () => {
+  it("a data da lista mais recente nao e indicador, ja aparece no topo da pagina", () => {
     const vm = buildFarmaciaViewModel(
       makeRaw({
         dataPosicaoMaisRecente: "2026-10-19",
         diasDesdePosicaoMaisRecente: 5,
       }),
     );
-    expect(vm.indicadores[2].rotulo).toBe("Lista de estoque mais recente");
-    expect(vm.indicadores[2].valor).toBe("19/10/2026");
-    expect(vm.indicadores[2].nota).toBeNull();
-  });
-
-  it("sem data de atualizacao o cartao e omitido", () => {
-    const vm = buildFarmaciaViewModel(makeRaw({}));
     expect(vm.indicadores.map((i) => i.codigo)).not.toContain(
       "ultima_atualizacao",
     );

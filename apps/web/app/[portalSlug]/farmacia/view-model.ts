@@ -191,10 +191,7 @@ export interface FarmaciaIndicador {
   detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
-function buildIndicadoresEstoque(
-  raw: FarmaciaRawData,
-  dataAtualizacao: string | null,
-): FarmaciaIndicador[] {
+function buildIndicadoresEstoque(raw: FarmaciaRawData): FarmaciaIndicador[] {
   const { sentinelas } = raw;
   const { indicadores, totalUnidadesAtivas } = sentinelas;
   if (totalUnidadesAtivas === 0) return [];
@@ -229,15 +226,6 @@ function buildIndicadoresEstoque(
               ? partesNotaEssenciais.join(" · ")
               : "Todos aparecem na lista de estoque",
           notaAtencao: partesNotaEssenciais.length > 0,
-        }
-      : null,
-    dataAtualizacao
-      ? {
-          codigo: "ultima_atualizacao",
-          rotulo: "Lista de estoque mais recente",
-          valor: fmtDate(dataAtualizacao),
-          nota: null,
-          notaAtencao: false,
         }
       : null,
   ];
@@ -292,12 +280,9 @@ function buildIndicadorLotesAVencer(
   ];
 }
 
-function buildIndicadores(
-  raw: FarmaciaRawData,
-  dataAtualizacao: string | null,
-): FarmaciaIndicador[] {
+function buildIndicadores(raw: FarmaciaRawData): FarmaciaIndicador[] {
   return [
-    ...buildIndicadoresEstoque(raw, dataAtualizacao),
+    ...buildIndicadoresEstoque(raw),
     ...buildIndicadorLotesAVencer(raw.lotesAVencer),
   ];
 }
@@ -705,7 +690,7 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
         }),
       }),
     ),
-    indicadores: buildIndicadores(raw, dataAtualizacao),
+    indicadores: buildIndicadores(raw),
     resumoBusca: buildResumoBusca({
       totalApresentacoes: farmacia.totalApresentacoes,
       totalUnidades: farmacia.totalUnidades,
