@@ -134,9 +134,7 @@ describe("ObrasPage Component", () => {
     render(page);
 
     // Hero Header de Tema
-    expect(
-      screen.getByText(/OBRAS PÚBLICAS · EXERCÍCIO 2026/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dados de 2026/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /As obras da cidade estão andando/i,

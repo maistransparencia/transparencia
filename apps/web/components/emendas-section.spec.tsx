@@ -89,7 +89,7 @@ describe("EmendasSection", () => {
     );
 
     expect(
-      screen.getByText("Emendas parlamentares destinadas à Saúde"),
+      screen.getByText(/^Emendas parlamentares destinadas à Saúde em \d{4}$/),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Daniela Carneiro").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Daniel Soranz").length).toBeGreaterThan(0);
@@ -326,10 +326,12 @@ describe("EmendasSection", () => {
       />,
     );
     expect(
-      screen.getByText("Emendas parlamentares destinadas à Educação"),
+      screen.getByText(
+        /^Emendas parlamentares destinadas à Educação em \d{4}$/,
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText("Emendas parlamentares destinadas à Saúde"),
+      screen.queryByText(/^Emendas parlamentares destinadas à Saúde em \d{4}$/),
     ).not.toBeInTheDocument();
 
     const rodape = screen.getAllByRole("row").at(-1) as HTMLElement;

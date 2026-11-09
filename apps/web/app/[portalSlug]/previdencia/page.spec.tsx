@@ -167,12 +167,10 @@ describe("PrevidenciaPage", () => {
     });
     render(element);
 
+    expect(screen.getByText(/\(NATPREVI\)/)).toBeInTheDocument();
     expect(
-      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\) · EXERCÍCIO/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/NATPREVI\) · EXERCÍCIO/i),
+    ).not.toBeInTheDocument();
   });
 
   it("esconde a seção de composição contábil quando natureza está vazia", async () => {
@@ -209,7 +207,9 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText("Composição Contábil dos Repasses"),
+      screen.getByText(
+        /^Para onde foi o dinheiro repassado à previdência em \d{4}\?$/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -254,7 +254,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /disponibilidade em caixa e aplicações do rpps/i,
+        name: "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2024?",
       }),
     ).toBeInTheDocument();
     expect(
@@ -307,7 +307,7 @@ describe("PrevidenciaPage", () => {
     expect(container.querySelector("#patrimonio")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /evolução do patrimônio financeiro da previdência/i,
+        name: "Evolução do Patrimônio Financeiro da Previdência (2021–2026)",
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Pico Histórico").length).toBeGreaterThanOrEqual(
@@ -315,6 +315,73 @@ describe("PrevidenciaPage", () => {
     );
     expect(screen.getByText("R$ 60,4 mi")).toBeInTheDocument();
     expect(screen.getByText("Queima média anual")).toBeInTheDocument();
+  });
+
+  it("mantém o título do saldo em caixa com o ano ativo quando falta a remessa", async () => {
+    loadPrevidenciaDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        posicaoFinanceira: { previdencia: [] },
+      }),
+    );
+
+    render(await PrevidenciaPage(props));
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2030?",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("declara o escopo de cada bloco e não perde nenhum", async () => {
+    loadPrevidenciaDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        posicaoFinanceira: { previdencia: [] },
+        previdencia: {
+          natureza: [
+            {
+              elemento: "97",
+              descricao: "Aporte",
+              destino: "aporte_atuarial_caprem",
+              empenhado: 100,
+              pago: 90,
+            },
+          ],
+          actuarialTrend: [
+            {
+              ano: 2017,
+              patrimonioFinanceiroTotal: 100,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: null,
+              variacaoPatrimonioPct: null,
+            },
+            {
+              ano: 2027,
+              patrimonioFinanceiroTotal: 90,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: -10,
+              variacaoPatrimonioPct: -10,
+            },
+          ],
+        },
+      }),
+    );
+
+    render(await PrevidenciaPage(props));
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((titulo) => titulo.textContent);
+    expect(titulos).toEqual(
+      expect.arrayContaining([
+        "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2030?",
+        "Evolução do Patrimônio Financeiro da Previdência (2017–2027)",
+        "Quanto a Prefeitura pagou em 2030 de dívidas parceladas com o fundo de aposentadoria?",
+        "Para onde foi o dinheiro repassado à previdência em 2030?",
+      ]),
+    );
   });
 
   it("renderiza mensagem informativa quando portal sem RPPS (habilitado === false)", async () => {
@@ -370,7 +437,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /acordos de parcelamento e dívidas previdenciárias \(cadprev \/ ministério da previdência\)/i,
+        name: /dívidas parceladas com o fundo de aposentadoria/i,
       }),
     ).toBeInTheDocument();
     expect(

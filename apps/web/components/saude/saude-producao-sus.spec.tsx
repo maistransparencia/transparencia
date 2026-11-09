@@ -111,7 +111,7 @@ describe("SaudeProducaoSus", () => {
     expect(screen.getByText("média de janeiro a julho de 2026")).toBeTruthy();
     expect(
       screen.getByRole("heading", {
-        name: "Quanto atendimento o SUS registra na cidade?",
+        name: /^Quanto atendimento o SUS registra na cidade, (em \d{4}|de \d{4} a \d{4})\?$/,
       }),
     ).toBeTruthy();
     expect(

@@ -121,6 +121,23 @@ const renderizar = (props: Props = {}) => render(elemento(props));
 const destaqueMinimo = () => screen.getByTestId("destaque-minimo");
 const destaqueIdeb = () => screen.getByTestId("destaque-ideb-anosIniciais");
 
+describe("EducacaoHeroSection: escopo do exercício", () => {
+  it("rotula o grupo dos mínimos com o exercício, sem ano no título", () => {
+    renderizar();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Educação: quanto a Prefeitura investe e se as crianças aprendem",
+    );
+    expect(screen.getByText("Dados de 2024")).toBeInTheDocument();
+  });
+
+  it("ano em andamento traz o sufixo parcial no rótulo do exercício", () => {
+    renderizar({ isCurrentYear: true, partialPeriod: "janeiro a junho" });
+    expect(
+      screen.getByText("Dados de 2024 (parcial, janeiro a junho)"),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("EducacaoHeroSection: mínimo constitucional", () => {
   it("destaca o título e o percentual grande, com o selo Cumprido ao lado", () => {
     renderizar();

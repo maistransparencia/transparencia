@@ -8,6 +8,7 @@ import Link from "next/link";
 import type React from "react";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { SectionWithHeader } from "@/components/section-with-header";
+import { pickTense, tituloDoExercicio } from "@/lib/escopo-bloco";
 
 export interface SaudeContratacaoLicitacoesProps {
   caminhos: CaminhoContratacaoSaudeDTO[];
@@ -22,6 +23,7 @@ export interface SaudeContratacaoOrcamentoProps {
 export interface SaudeContratacaoSectionProps {
   portalSlug: string;
   ano?: number;
+  isCurrentYear?: boolean;
   orcamento: SaudeContratacaoOrcamentoProps;
   licitacoesSaude: SaudeContratacaoLicitacoesProps;
   licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
@@ -66,6 +68,7 @@ const percentualEntre0e100 = (valor: number, total: number) =>
 export function SaudeContratacaoSection({
   portalSlug,
   ano,
+  isCurrentYear = true,
   orcamento,
   licitacoesSaude,
   licitacoesEmAndamento = [],
@@ -87,7 +90,14 @@ export function SaudeContratacaoSection({
   return (
     <SectionWithHeader
       id="contratacao-saude"
-      title="Como o Fundo contrata"
+      title={tituloDoExercicio(
+        pickTense(
+          isCurrentYear,
+          "Como o Fundo contrata",
+          "Como o Fundo contratou",
+        ),
+        ano,
+      )}
       description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
       summary={resumo}
       defaultOpen={defaultOpen}

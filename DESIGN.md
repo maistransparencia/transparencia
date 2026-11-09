@@ -455,3 +455,4 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 - **Don't** escrever o subtítulo da seção como parágrafo solto: use a descrição do `section-header`.
 - **Don't** usar `h4` como título de `alert-box` nem passar de duas frases no corpo.
 - **Don't** crescer o `h1` para acomodar um valor grande: usar `stat-value-lg`.
+- **Do** manter o `h1` e o eyebrow das páginas de tema (`/saude`, `/educacao`, `/previdencia`) sem ano. O escopo vai no título de cada bloco: exercício ("O que entrou em {ano}"), série ("Como mudou ao longo dos anos ({anoMin}–{anoMax})", só o ano quando há um) ou retrato atual ("... hoje", com a data da coleta). O ano vem do parâmetro ou dos dados, nunca de literal.

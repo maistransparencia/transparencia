@@ -83,7 +83,7 @@ export function PrevidenciaEntidadesDonut({
     <div className={className}>
       <SectionHeader
         eyebrow={`Total repassado: ${fmtCurrency(totalPago)}`}
-        title={`De quais órgãos veio o dinheiro repassado ao ${previdenciaSigla}?`}
+        title={`De quais órgãos veio o dinheiro repassado ao ${previdenciaSigla} em ${ano}?`}
         description={`Valor pago ao fundo por cada órgão municipal · ${ano}`}
       />
 

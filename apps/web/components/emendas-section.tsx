@@ -29,6 +29,7 @@ import { EmendasEstaduaisBloco } from "@/components/emendas-estaduais-bloco";
 import { FontesEmendas } from "@/components/fontes-emendas";
 import { SectionWithHeader } from "@/components/section-with-header";
 import { TabelaTotaisRow } from "@/components/tabela-totais-row";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 
 export interface SaudeEmendaItem {
   id: string;
@@ -309,7 +310,7 @@ export function EmendasSection({
       id={id}
       summary={resumo}
       eyebrow={`${countEmendas} ${countEmendas === 1 ? "emenda" : "emendas"} · exercício ${ano}`}
-      title={titulo}
+      title={tituloDoExercicio(titulo, ano)}
       description={`${descricao} O que importa não é só quanto foi autorizado, mas se esse dinheiro chegou e foi usado.`}
     >
       {countEmendas > 0 && (

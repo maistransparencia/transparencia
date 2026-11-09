@@ -20,6 +20,11 @@ import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-or
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SectionWithHeader } from "@/components/section-with-header";
+import {
+  pickTense,
+  tituloDaSerie,
+  tituloDoExercicio,
+} from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -142,7 +147,10 @@ export default async function EducacaoPage({
 
       <section id="evolucao-educacao" className="space-y-6">
         <SectionHeader
-          title="Como mudou ao longo dos anos"
+          title={tituloDaSerie(
+            "Como mudou ao longo dos anos",
+            viewModel.serieAnual.map((ponto) => ponto.ano),
+          )}
           description="Reservado e pago em educação, ano a ano. A diferença é o que ainda não saiu do caixa."
         />
         <EvolucaoAnual
@@ -182,11 +190,19 @@ export default async function EducacaoPage({
           resumoContratos={resumoContratos}
           portalSlug={viewModel.portalSlug}
           ano={selectedYear}
+          isCurrentYear={isCurrentYear}
         />
 
         <SectionWithHeader
           id="fornecedores-educacao"
-          title="Quem recebe o dinheiro da educação"
+          title={tituloDoExercicio(
+            pickTense(
+              isCurrentYear,
+              "Quem recebe o dinheiro da educação",
+              "Quem recebeu o dinheiro da educação",
+            ),
+            selectedYear,
+          )}
           summary={
             fornecedoresLinhas.length > 0
               ? resumoFornecedores

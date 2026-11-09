@@ -20,7 +20,10 @@ describe("PrevidenciaHeroSection", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
       /guardado e repassado em dia/,
     );
-    expect(screen.getByText(/FUNPREV\) · EXERCÍCIO 2031/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Fundo de aposentadoria dos servidores: FUNPREV"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/^Dados de 2031/)).toBeInTheDocument();
     expect(screen.getByText("Valor reservado (empenhado)")).toBeInTheDocument();
   });
 
@@ -38,6 +41,21 @@ describe("PrevidenciaHeroSection", () => {
     expect(
       screen.getByText(/não tem repasses para o FUNPREV registrados em 2031/),
     ).toBeInTheDocument();
+  });
+
+  it("mantém o aviso de exercício parcial mesmo sem repasses", () => {
+    render(
+      <PrevidenciaHeroSection
+        {...base}
+        isCurrentYear
+        dataExtracao={new Date("2031-07-15T00:00:00")}
+        totalEmpenhado={0}
+        totalLiquidado={0}
+        totalPago={0}
+        taxaExecucao={0}
+      />,
+    );
+    expect(screen.getByText(/^Dados de 2031 \(parcial, /)).toBeInTheDocument();
   });
 
   it("avisa o repasse extra de equilíbrio sem tom de acusação", () => {

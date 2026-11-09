@@ -3963,28 +3963,62 @@ So that I can follow the main answer without scrolling through tables made for j
 
 **Dependências:** Stories 25.3, 25.4, 25.6a e 25.6b; referência de padrão: Stories 24.12 e 24.13.
 
-### Story 25.11: Título sem ano e seletor só onde o dado é do exercício (esboço)
+### Story 25.11: Título sem ano e escopo declarado em cada bloco (saúde, educação e previdência)
 
 As a citizen,  
-I want each theme page to say clearly which blocks show the current picture, which show a history, and which belong to a single year,  
+I want each theme page to say clearly which blocks show the chosen year, which show a history and which show today's picture,  
 So that "Saúde 2026" never makes me think everything on the page is from 2026.
 
-**Origem:** observação do Julio em 2026-11-08: o título de `/saude` e `/educacao` leva o ano selecionado, mas boa parte dos blocos não é daquele ano (série histórica, rede, produção). Valia o mesmo para `/obras` e `/previdencia`. Análise da Mary na mesma data; decisões do Julio abaixo.
+**Pergunta do cidadão (Regra 27):** "Isto que estou vendo é de que ano?"
 
-**Decisões do Julio:**
-- Aceita a opção intermediária: título só com o tema, sem o ano; seletor de ano apenas nos blocos que são do exercício, com o ano dito no título de cada um.
-- O padrão do seletor continua sendo o **ano atual**, como está hoje, inclusive no mínimo constitucional (não trocar por "último ano fechado").
+**Origem:** observação do Julio em 2026-11-08: o título de `/saude` e `/educacao` leva o ano selecionado, mas boa parte dos blocos não é daquele ano (série histórica, rede, produção). Análise da Mary na mesma data, com levantamento no código.
 
-**Modelo de classificação (a confirmar no levantamento):**
-- **Retrato atual** (estoque, sem ano): rede de leitos e profissionais, farmácia, obras em andamento, contratos vigentes. Sem seletor; mostra a data da coleta.
-- **Série histórica:** "Como mudou ao longo dos anos", rede por ano, produção do SUS. Sem seletor; o eyebrow diz o período, calculado dos dados (Regra 23).
-- **Exercício:** mínimo, de onde vem o dinheiro, fornecedores, emendas. Seletor dentro do bloco ou num grupo "Por exercício".
+**Decisões do Julio (2026-11-08):**
+- **Filtro global mantido.** O seletor de ano já existe no cabeçalho, vale para todas as rotas e sincroniza com `?ano=`. A story **não cria seletor nem muda o contrato de URL**; ela muda título e rótulos.
+- Título da página só com o tema, sem o ano.
+- Cada bloco declara o escopo **no próprio título**, nunca numa nota: o cidadão lê o título, não a nota.
+- O padrão do seletor continua sendo o **ano atual**, inclusive no mínimo constitucional (não trocar por "último ano fechado").
+- **`/obras` fica fora.** A obra é estoque e o `?ano=` ali funciona como filtro de lista; não há bloco declarado de outro escopo. `/previdencia` entra porque tem bloco de série.
 
-**Primeiro passo (levantamento, antes de codar):** para `/saude`, `/educacao`, `/obras` e `/previdencia`, listar cada bloco, o tipo e se hoje depende do ano selecionado. Conferir se `/obras` e `/previdencia` já têm seletor. Medir o impacto em URL (`?ano=`), imagem de compartilhamento, `llms.txt`, `llms-full.txt` e links existentes.
+**Levantamento (feito em 2026-11-08, por `page.tsx`; tipos inferidos pelas props, a confirmar ao codar):**
 
-**Cuidados:** texto de títulos e rótulos pelo `editor-cidadao`; Regra 23 (sem ano fixo); Regra 25 (`DESIGN.md` e `EXPERIENCE.md` ganham o padrão de seletor por bloco); teste de que nenhum bloco sumiu, só mudou o escopo declarado.
+| Rota | Do exercício (usam o ano) | Série histórica ou retrato (não usam o ano) |
+|---|---|---|
+| `/saude` | Hero (mínimo e orçamento), O que entrou, Contratação, Quem recebe, Emendas | Como mudou ao longo dos anos, Rede SUS, Produção SUS; no hero, rede por mil moradores e Farmácia (retrato atual) |
+| `/educacao` | Hero, Origem dos recursos, Emendas, Contratos (vigentes **no ano**, `educacao-metrics.ts:954`), Fornecedores | Aprendizado dos alunos, Como mudou ao longo dos anos |
+| `/previdencia` | Hero, Entidades, Saldo em caixa, Risco atuarial, Composição dos repasses | Patrimônio histórico |
 
-**Dependências:** Story 25.10 (reordenação de `/saude`); referência de padrão: Stories 24.12 e 24.13. Detalhar depois do levantamento e da 25.10.
+Os blocos de exercício são a maioria nas três rotas; por isso o filtro global é o desenho honesto, e os blocos que o ignoram é que precisam avisar.
+
+**Acceptance Criteria:**
+
+- **Given** `/saude`, `/educacao` ou `/previdencia`
+- **When** a página renderiza
+- **Then** o título da página mostra só o tema, sem o ano (nem em `<title>`, `h1` ou eyebrow), e o ano selecionado continua no seletor do cabeçalho
+- **And** todo bloco **do exercício** traz o ano no título, vindo do parâmetro ativo (por exemplo "O que entrou em 2026"), nunca de literal (Regra 23)
+- **And** todo bloco de **série histórica** diz o período no título, calculado dos pontos reais dos dados (`${anoMin}–${anoMax}`), e com um único ano diz só esse ano, nunca "2026–2026"
+- **And** todo bloco de **retrato atual** diz "hoje" ou "atual" no título e mostra a data da coleta (por exemplo, rede de leitos, Farmácia)
+- **And** o hero de `/saude` separa visualmente o que é do exercício (mínimo, orçamento) do que é retrato atual (rede por mil moradores, Farmácia), para o seletor não parecer controlar tudo
+- **And** a pergunta e o texto dos títulos e rótulos novos passam pelo `editor-cidadao` (sem jargão, sem tom de acusação)
+- **And** nenhum bloco some: um teste confere, por rota, que a lista de blocos antes e depois é a mesma, só com o escopo declarado
+- **And** um teste confere que todo bloco que **não** recebe `ano` declara período ou "hoje" no título.
+
+**Documentação e contrato:**
+- `apps/web/public/llms.txt` e `llms-full.txt` (Regra 12): descrever, por rota, quais blocos são do exercício e quais não; ajustar frases como "contra a verba prevista no ano" em `/saude`; o `?ano=` e o seletor no cabeçalho não mudam.
+- `DESIGN.md` e `EXPERIENCE.md` (Regra 25): registrar o padrão "título sem ano; escopo no título do bloco" (exercício, série, retrato).
+- Imagem de compartilhamento: sem mudança esperada (já usa o exercício padrão sem `?ano`); conferir o texto de `saude` e `educacao`.
+
+**Perguntas em aberto para o dev confirmar:**
+- ~~Onde nasce o ano no título~~ Resolvido: nos heroes de cada rota (`saude-hero-section.tsx`, `educacao-hero-section.tsx`, `previdencia-hero-section.tsx`), específicos da rota; `<title>` não leva o ano. Detalhes no arquivo da story.
+- ~~Rótulo do seletor~~ Resolvido: o seletor global (`packages/ui/src/components/sidebar.tsx`) já se chama "Exercício"; não renomear.
+
+**Herdado da 25.10:** revisão de texto de `/saude` pelo `editor-cidadao` e ano sem dado em rede e produção sem quebrar a tela.
+
+**Detalhes de execução:** `implementation-artifacts/25-11-titulo-sem-ano-e-escopo-declarado-em-cada-bloco.md`.
+
+**Fora de escopo:** `/obras`; criar seletor por bloco ou grupo "Por exercício"; trocar o ano padrão; mudar queries (a story é de apresentação, sem alterar `@transparencia/db`).
+
+**Dependências:** Story 25.10 (reordenação de `/saude`, concluída); referência de padrão: Stories 24.12 e 24.13.
 
 ---
 

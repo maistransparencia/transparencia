@@ -45,9 +45,11 @@ const referenciaRede = (
 export function SaudeDestaqueOrigem({
   fontes,
   ano,
+  isCurrentYear = true,
 }: {
   fontes: FontesReceitaSaudeDTO;
   ano: number;
+  isCurrentYear?: boolean;
 }) {
   const temDados = fontes.totalEntrada > 0;
   return (
@@ -56,7 +58,9 @@ export function SaudeDestaqueOrigem({
       className="space-y-3"
       data-testid="saude-destaque-origem"
     >
-      <h3>De onde vem o dinheiro da saúde?</h3>
+      <h3 className="md:min-h-[2lh]">
+        De onde {isCurrentYear ? "vem" : "veio"} o dinheiro da saúde em {ano}?
+      </h3>
       {temDados ? (
         <>
           <p className="flex flex-wrap items-baseline gap-x-3">
@@ -102,7 +106,7 @@ export function SaudeDestaqueRede({
 }: {
   rede: SaudeRedePorMilMoradoresDTO | null;
 }) {
-  const titulo = "Quantos leitos e profissionais o SUS tem?";
+  const titulo = "Quantos leitos e profissionais o SUS tem hoje?";
   if (!rede) {
     return (
       <section aria-label={titulo} className="space-y-3">
@@ -162,7 +166,7 @@ export function SaudeDestaqueFarmacia({
   farmacia: SaudeFarmaciaResumoDTO;
   portalSlug: string;
 }) {
-  const titulo = "Tem o meu remédio na Farmácia SUS?";
+  const titulo = "Tem o meu remédio na Farmácia SUS hoje?";
   const data = farmacia.dataPosicaoMaisRecente
     ? ` (lista de ${fmtDate(farmacia.dataPosicaoMaisRecente)})`
     : "";

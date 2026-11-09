@@ -71,13 +71,13 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByText(
-        /Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência \(CADPREV\)/i,
+        /Acordos em que a Prefeitura parcelou dívidas previdenciárias com o fundo de aposentadoria, registrados no CADPREV \(Ministério da Previdência\)/i,
       ),
     ).toBeInTheDocument();
   });
@@ -121,11 +121,13 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+      name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
     });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe("H2");
-    expect(screen.getAllByRole("heading", { name: /CADPREV/ })).toHaveLength(1);
+    expect(
+      screen.getAllByRole("heading", { name: /dívidas parceladas/ }),
+    ).toHaveLength(1);
 
     expect(screen.getByText("Registro CADPREV")).toBeInTheDocument();
     expect(screen.getByText("Objeto do parcelamento")).toBeInTheDocument();
@@ -155,13 +157,13 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByText(
-        "Nenhum termo de parcelamento ou confissão de dívida registrado no CADPREV para o exercício de 2024.",
+        "Nenhum termo de parcelamento ou confissão de dívida registrado no CADPREV em 2024.",
       ),
     ).toBeInTheDocument();
 
@@ -211,7 +213,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
   });

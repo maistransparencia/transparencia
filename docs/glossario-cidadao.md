@@ -24,9 +24,14 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Fracionamento | Dividir uma compra em partes para ficar abaixo do limite que exige licitação | "Fraude" |
 | Potencial alerta de fracionamento | Compras parecidas e frequentes que merecem conferência no processo | "Irregularidade" |
 | Aditivo contratual | Mudança em um contrato já assinado (prazo ou valor) | |
-| RPPS / CAPREM | Fundo de aposentadoria dos servidores do município | |
+| RPPS / CAPREM | Fundo de aposentadoria dos servidores do município. Em legenda ou título, escrever "fundo de aposentadoria dos servidores" e a sigla só como complemento ("Nome (SIGLA)") | RPPS sozinho no título |
 | Dívida ativa | Valores que pessoas e empresas devem ao município | |
 | Transferência constitucional | Parte de impostos federais e estaduais que a lei manda repassar ao município | "Ajuda" |
+| Exercício (no título de um bloco) | "em 2026": o bloco mostra só o ano escolhido no seletor | "Exercício 2026" no título da página |
+| Dados de 2026 (rótulo do grupo de blocos do ano) | "Dados de 2026", ou "Dados de 2026 (parcial, jan–nov)" no ano em andamento | "Exercício 2026" (jargão) |
+| Tempo verbal em título com ano | Presente no ano em andamento ("Quem recebe o dinheiro da saúde em 2026"); passado nos anos fechados ("Quem recebeu o dinheiro da saúde em 2025") | Presente em título de ano fechado |
+| Série histórica (no título de um bloco) | "(2017–2027)": o período dos dados mostrados; com um único ano, só o ano | Intervalo fixo no texto |
+| Retrato atual | "hoje", com a data em que o portal coletou o dado (rede de leitos e profissionais, Farmácia SUS) | Sugerir que é do ano escolhido |
 | Emenda parlamentar | Verba indicada por deputado ou senador para uma obra ou serviço local | |
 | Parecer / acórdão | Decisão ou opinião formal de órgão de controle (ex.: Tribunal de Contas) | |
 | Sem registro de estoque informado | "Não aparece na lista de estoque": ausência na última lista oficial, não prova de falta | "Esgotado", "zerado" |

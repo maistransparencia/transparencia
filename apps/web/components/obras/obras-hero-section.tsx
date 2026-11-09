@@ -56,13 +56,12 @@ export function ObrasHeroSection({
   return (
     <div className="space-y-8">
       <div className="max-w-3xl space-y-4">
-        <p className="eyebrow text-brand-text!">
-          OBRAS PÚBLICAS · EXERCÍCIO {ano}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
-
         <h1>As obras da cidade estão andando?</h1>
 
+        <p className="eyebrow">
+          Dados de {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
         <p className="lead">{leadText}</p>
       </div>
 

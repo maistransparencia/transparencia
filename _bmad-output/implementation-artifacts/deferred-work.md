@@ -525,3 +525,10 @@ status: open
 
 - Revisão de texto pelo `editor-cidadao` dos textos novos de /saude (perguntas do topo, frase de período, avisos, modal de detalhes): fica para a story 25.11.
 - "Por mil moradores" ainda existe no "Ver detalhes" da rede do SUS e no DTO/mart de produção (`SaudeProducaoSusAnoDTO`, `SaudeRedeAnoDTO`); a tela de produção já não usa. Decidir se remove do mart e das queries.
+
+## Deferred from: revisão contábil dos acordos de parcelamento da previdência, story 25.11 (2026-11-09)
+
+- `fct_previdencia_cadprev_metricas` identifica o fundo pelo nome do fornecedor com `ilike '%sigla%'` (além do CNPJ de `dim_portais` e de "rpps"): uma sigla curta (por exemplo "PREV") casaria fornecedor sem relação com o fundo. Hoje (NATPREVI e CAPREM) não há falso positivo. Para resolver: priorizar o CNPJ e deixar a sigla como último recurso, com teste de município novo. Severidade baixa; dbt só no banco local (Regra 15).
+- `toCadprevDTO` (`packages/db/src/queries/historia-previdencia-metrics.ts`) fixa `elemento: "71"` e o texto de fallback "Parcelamento de Dívida Previdenciária (Elemento 71)"; o código do elemento deveria vir do mart. Severidade baixa.
+- NÃO VERIFICADO: se o `pago` do mart inclui pagamentos de restos a pagar (empenho de anos anteriores pago no ano consultado). O título da tela diz "pagou em {ano}". Conferir em `fct_despesas` o ano usado para `pago`.
+- NÃO VERIFICADO: base legal dos parcelamentos (qual lei autoriza e em que condições), para `jurista-fiscal`. A tela não cita lei hoje.

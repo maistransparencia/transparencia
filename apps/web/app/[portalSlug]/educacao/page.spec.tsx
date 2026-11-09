@@ -338,11 +338,11 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-      "Educação em 2025",
+      "Educação: quanto a Prefeitura investe e se as crianças aprendem",
     );
 
     const destaque = screen.getByRole("region", {
-      name: "Mínimos constitucionais da educação",
+      name: /^Mínimos constitucionais da educação em \d{4}$/,
     });
     expect(
       within(destaque).getByText("Aplicação mínima exigida em ensino"),
@@ -369,12 +369,12 @@ describe("EducacaoPage (Server Component)", () => {
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual([
       "Quanto do que a Prefeitura reservou para a educação já foi pago?",
-      "Aprendizado dos alunos",
-      "Como mudou ao longo dos anos",
+      "Aprendizado dos alunos (2021–2025)",
+      "Como mudou ao longo dos anos (2024–2025)",
       "Para fiscalizar",
-      "Como o Fundo contrata",
+      "Como o Fundo contratou em 2025",
       "Ver todos os contratos",
-      "Quem recebe o dinheiro da educação",
+      "Quem recebeu o dinheiro da educação em 2025",
     ]);
 
     expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();
@@ -487,12 +487,12 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     const secao = screen.getByRole("region", {
-      name: "Aprendizado dos alunos",
+      name: /^Aprendizado dos alunos/,
     });
     const hero = screen.getByRole("heading", { level: 1 });
     const financeira = screen.getByRole("heading", {
       level: 2,
-      name: "Como mudou ao longo dos anos",
+      name: /^Como mudou ao longo dos anos/,
     });
     expect(
       hero.compareDocumentPosition(secao) & Node.DOCUMENT_POSITION_FOLLOWING,
@@ -721,10 +721,13 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(
-      screen.getByRole("heading", { level: 2, name: "Emendas na educação" }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: /^Emendas na educação em \d{4}$/,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText("Emendas parlamentares destinadas à Saúde"),
+      screen.queryByText(/^Emendas parlamentares destinadas à Saúde em \d{4}$/),
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("emendas-resumo-educacao")).toBeInTheDocument();
     const secaoEmendas = document.querySelector("section#emendas-educacao");
@@ -776,7 +779,10 @@ describe("EducacaoPage (Server Component)", () => {
       }),
     );
     expect(
-      screen.queryByRole("heading", { level: 2, name: "Emendas na educação" }),
+      screen.queryByRole("heading", {
+        level: 2,
+        name: /^Emendas na educação em \d{4}$/,
+      }),
     ).not.toBeInTheDocument();
   });
   it("exibe O que entrou antes de Como mudou ao longo dos anos", async () => {
@@ -820,14 +826,17 @@ describe("EducacaoPage (Server Component)", () => {
     });
     const evolucao = screen.getByRole("heading", {
       level: 2,
-      name: "Como mudou ao longo dos anos",
+      name: /^Como mudou ao longo dos anos/,
     });
     expect(
       origem.compareDocumentPosition(evolucao) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      within(origem).getByRole("heading", { level: 2, name: "O que entrou" }),
+      within(origem).getByRole("heading", {
+        level: 2,
+        name: /^O que entrou em \d{4}$/,
+      }),
     ).toBeInTheDocument();
   });
 
