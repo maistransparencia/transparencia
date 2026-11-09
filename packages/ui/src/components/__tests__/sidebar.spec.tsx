@@ -402,7 +402,7 @@ describe("Sidebar Component", () => {
     expect(screen.getAllByText("MarcaX")).toHaveLength(2);
   });
 
-  it("mostra apenas o nome da cidade nas opções do seletor de municípios", () => {
+  it("mostra o nome da cidade e o estado nas opções do seletor de municípios", () => {
     render(
       <Sidebar
         portalSlug="porciuncula_prefeitura"
@@ -431,9 +431,9 @@ describe("Sidebar Component", () => {
     const opcoes = screen
       .getAllByRole("option")
       .map((opcao) => opcao.textContent);
-    expect(opcoes).toContain("Porciúncula");
-    expect(opcoes).toContain("São Fidélis");
-    expect(opcoes).toContain("Natividade");
+    expect(opcoes).toContain("Porciúncula · RJ");
+    expect(opcoes).toContain("São Fidélis · RJ");
+    expect(opcoes).toContain("Natividade · RJ");
     expect(opcoes.some((texto) => texto?.includes("Prefeitura"))).toBe(false);
   });
 });

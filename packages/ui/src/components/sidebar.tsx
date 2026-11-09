@@ -100,8 +100,9 @@ export interface SidebarProps {
 
 const cityNamePrefix = /^Prefeitura( Municipal)? (de|do|da|dos|das)\s+/i;
 
-function toCityName(displayName: string) {
-  return displayName.replace(cityNamePrefix, "");
+function toCityLabel({ displayName, uf }: PortalOption) {
+  const cityName = displayName.replace(cityNamePrefix, "");
+  return uf ? `${cityName} · ${uf}` : cityName;
 }
 
 function YearSelect({
@@ -196,7 +197,7 @@ export function PortalSelect({
               value={p.portalSlug}
               className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
             >
-              {toCityName(p.displayName)}
+              {toCityLabel(p)}
             </option>
           ))}
         </select>
@@ -223,7 +224,7 @@ export function PortalSelect({
             value={p.portalSlug}
             className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
           >
-            {toCityName(p.displayName)}
+            {toCityLabel(p)}
           </option>
         ))}
       </select>
