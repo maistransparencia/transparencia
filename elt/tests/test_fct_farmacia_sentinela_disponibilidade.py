@@ -89,7 +89,7 @@ def test_casa_sal_acento_e_apresentacao_e_gera_linha_explicita_para_ausentes(con
     conn.commit()
 
     mapa = _por_sentinela(conn, portal, "1001")
-    assert len(mapa) == 21
+    assert len(mapa) == 23
     assert mapa["losartana"] == ("com_registro_estoque", 2)
     assert mapa["acido_acetilsalicilico"] == ("com_registro_estoque", 1)
     assert mapa["captopril"] == ("sem_registro_estoque", 0)
@@ -134,7 +134,7 @@ def test_dose_fixa_e_insulina_analoga_nao_casam(conn, raw, portais):
     conn.commit()
 
     mapa = _por_sentinela(conn, portal, "1001")
-    for codigo in ("amoxicilina", "paracetamol", "insulina", "losartana", "hidroclorotiazida"):
+    for codigo in ("amoxicilina", "paracetamol", "insulina_nph", "insulina_regular", "losartana", "hidroclorotiazida"):
         assert mapa[codigo] == ("sem_registro_estoque", 0)
 
 
@@ -162,14 +162,61 @@ def test_combinacao_nao_conta_mas_e_sinalizada(conn, raw, portais):
     assert mapa[("1001", "anlodipino")] == ("sem_registro_estoque", 0)
 
 
-def test_insulina_nph_e_regular_contam_para_o_mesmo_codigo(conn, raw, portais):
+def test_insulina_nph_e_regular_sao_sentinelas_distintos(conn, raw, portais):
     portal = portais[0]
     raw.coleta(portal)
     raw.estoque(portal, "a1", "1001", "Insulina Humana NPH 100 UI/mL", _dia(1))
-    raw.estoque(portal, "a2", "1001", "Insulina Humana Regular 100 UI/mL", _dia(1))
     conn.commit()
 
-    assert _por_sentinela(conn, portal, "1001")["insulina"] == ("com_registro_estoque", 2)
+    mapa = _por_sentinela(conn, portal, "1001")
+    assert mapa["insulina"] == ("com_registro_estoque", 1)
+    assert mapa["insulina_nph"] == ("com_registro_estoque", 1)
+    assert mapa["insulina_regular"] == ("sem_registro_estoque", 0)
+
+
+def _relacionado(conn, portal, cnes, codigo):
+    return conn.execute(
+        text(
+            "SELECT status_disponibilidade, possui_relacionado_lote_sem_validade, data_validade_relacionado_mais_tardia "
+            "FROM analytics.fct_farmacia_sentinela_disponibilidade "
+            "WHERE portal_slug = :p AND codigo_cnes = :c AND codigo_principio_ativo = :k"
+        ),
+        {"p": portal, "c": cnes, "k": codigo},
+    ).one()
+
+
+def test_insulina_analoga_e_levanlodipino_nao_contam_mas_expoem_validade_relacionada(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "a1", "1001", "Insulina Humana NPH 100 UI/mL", _dia(1), validade=_dia(90))
+    raw.estoque(portal, "a2", "1001", "INSULINA GLARGINA 100 UI/ML ELENCO ESTADUAL", _dia(1), validade=_dia(-90))
+    raw.estoque(portal, "a3", "1001", "Levanlodipino, Besilato 5,0 MG", _dia(1))
+    raw.estoque(portal, "a4", "1002", "Insulina Lispro 100 UI/mL", _dia(1), validade=_dia(90))
+    raw.estoque(portal, "a5", "1002", "Hidroclorotiazida 25 mg", _dia(1))
+    conn.commit()
+
+    nph = _relacionado(conn, portal, "1001", "insulina_nph")
+    assert nph == ("com_registro_estoque", False, date.fromisoformat(_dia(-90)))
+    assert _relacionado(conn, portal, "1001", "insulina_regular")[2] == date.fromisoformat(_dia(-90))
+    assert _por_sentinela(conn, portal, "1001")["anlodipino"] == ("sem_registro_estoque", 0)
+    assert _relacionado(conn, portal, "1001", "anlodipino")[1] is True
+    # relacionada vencida: validade exposta, a consulta decide que nao ha aviso
+    assert _relacionado(conn, portal, "1002", "insulina_nph") == (
+        "sem_registro_estoque",
+        False,
+        date.fromisoformat(_dia(90)),
+    )
+
+
+def test_mistura_nph_regular_nao_e_nph_nem_regular(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "a1", "1001", "INSULINA NPH + REGULAR 70% + 30% SOLUÇÃO INJETÁVEL 10 ML", _dia(1))
+    conn.commit()
+
+    mapa = _por_sentinela(conn, portal, "1001")
+    assert mapa["insulina_nph"] == ("sem_registro_estoque", 0)
+    assert mapa["insulina_regular"] == ("sem_registro_estoque", 0)
 
 
 def test_quantidade_zero_e_sem_registro(conn, raw, portais):
@@ -252,3 +299,17 @@ def test_destaque_card_inicial_exposto_e_restrito_aos_seis_remedios_comuns(conn,
         "omeprazol",
     }
     assert mapa["insulina"] is False
+    assert mapa["insulina_nph"] is False
+
+
+def test_insulina_generica_conta_qualquer_tipo_inclusive_analogas(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(portal, "a1", "1001", "INSULINA GLARGINA 100 UI/ML ELENCO ESTADUAL", _dia(1), validade=_dia(-90))
+    raw.estoque(portal, "a2", "1001", "AGULHA DESCARTÁVEL PARA CANETA APLICADORA DE INSULINA", _dia(1))
+    conn.commit()
+
+    mapa = _por_sentinela(conn, portal, "1001")
+    assert mapa["insulina"] == ("com_registro_estoque", 1)
+    assert mapa["insulina_nph"] == ("sem_registro_estoque", 0)
+    assert mapa["insulina_regular"] == ("sem_registro_estoque", 0)

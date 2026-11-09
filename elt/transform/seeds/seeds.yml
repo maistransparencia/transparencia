@@ -177,7 +177,7 @@ seeds:
             - etapa_ensino
 
   - name: seed_farmacia_medicamentos_sentinela
-    description: "Lista editorial de medicamentos-sentinela da Farmácia SUS (RENAME 2024, Anexo I, e PNAUM). Revisar a cada nova RENAME. Um código pode ter mais de um prefixo de nome."
+    description: "Lista editorial de medicamentos-sentinela da Farmácia SUS (RENAME 2024, Anexo I, e PNAUM). Revisar a cada nova RENAME. Um código pode ter mais de um prefixo de nome. `tipo_correspondencia` = `principal` (conta como o sentinela) ou `relacionado` (substância distinta que não conta, mas gera aviso quando tem lote válido)."
     config:
       column_types:
         codigo_principio_ativo: text
@@ -186,6 +186,7 @@ seeds:
         grupo_terapeutico: text
         ordem_exibicao: text
         destaque_card_inicial: text
+        tipo_correspondencia: text
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -216,6 +217,12 @@ seeds:
           - not_null
           - accepted_values:
               values: ['true', 'false']
+      - name: tipo_correspondencia
+        description: "'principal' conta como o sentinela; 'relacionado' é outra substância (ex.: levanlodipino, insulina glargina) que não conta, mas gera aviso quando há lote válido"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [principal, relacionado]
 
   - name: seed_saude_minimo_base_calculo
     description: "Base do cálculo próprio do mínimo de saúde (conferência do SIOPS): prefixos de código de receita e palavra-chave da fonte de recurso da despesa, por vigência. A base de receita inclui só linhas que existem nos portais; códigos sem ocorrência verificada (por exemplo IOF-ouro) e a inclusão do IBS pela LC 227/2026 ficam de fora (em 2026 o IBS não é repartido aos Municípios; de 2027 em diante NÃO VERIFICADO). As cotas extraordinárias do FPM ficam fora e a compensação do ICMS (LC 194/2022) entra: com essa base a receita bate ao centavo com a do SIOPS em 5 de 8 combinações de portal e ano testadas (2024 e 2025 nos dois portais, 2023 em Natividade). A fonte de recurso da despesa é texto livre do portal, pois a despesa não traz o código de fonte STN."

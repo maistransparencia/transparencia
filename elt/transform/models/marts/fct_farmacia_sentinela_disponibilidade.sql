@@ -21,6 +21,7 @@ sentinelas as (
         min(ordem_exibicao::integer) as ordem_exibicao,
         bool_or(destaque_card_inicial = 'true') as destaque_card_inicial
     from {{ ref('seed_farmacia_medicamentos_sentinela') }}
+    where tipo_correspondencia = 'principal'
     group by codigo_principio_ativo
 ),
 
@@ -29,6 +30,17 @@ prefixos as (
         codigo_principio_ativo,
         prefixo_nome_normalizado
     from {{ ref('seed_farmacia_medicamentos_sentinela') }}
+    where tipo_correspondencia = 'principal'
+),
+
+-- Substancias distintas que nao contam como o sentinela, mas explicam a falta dele
+-- (ex.: insulina glargina para a insulina NPH, levanlodipino para o anlodipino).
+prefixos_relacionados as (
+    select
+        codigo_principio_ativo,
+        prefixo_nome_normalizado
+    from {{ ref('seed_farmacia_medicamentos_sentinela') }}
+    where tipo_correspondencia = 'relacionado'
 ),
 
 itens_normalizados as (
@@ -88,6 +100,24 @@ apresentacoes_combinacao as (
         itens_normalizados.nome_normalizado
 ),
 
+apresentacoes_relacionadas as (
+    select
+        itens_normalizados.portal_slug,
+        itens_normalizados.codigo_cnes,
+        prefixos_relacionados.codigo_principio_ativo,
+        coalesce(bool_or(itens_normalizados.data_validade is null) filter (where itens_normalizados.quantidade_estoque > 0), false) as possui_lote_sem_validade,
+        max(itens_normalizados.data_validade) filter (where itens_normalizados.quantidade_estoque > 0) as data_validade_mais_tardia
+    from itens_normalizados
+    inner join prefixos_relacionados
+        on itens_normalizados.nome_normalizado ~ ('^' || prefixos_relacionados.prefixo_nome_normalizado || '([ ,(]|$)')
+    where itens_normalizados.nome_normalizado !~ '[+]'
+        and itens_normalizados.nome_normalizado !~ 'associad'
+    group by
+        itens_normalizados.portal_slug,
+        itens_normalizados.codigo_cnes,
+        prefixos_relacionados.codigo_principio_ativo
+),
+
 apresentacoes_combinacao_com_estoque as (
     select
         portal_slug,
@@ -128,6 +158,8 @@ select
     coalesce(apresentacoes_com_estoque.quantidade_apresentacoes_com_estoque, 0)::integer as quantidade_apresentacoes_com_estoque,
     coalesce(apresentacoes_com_estoque.possui_lote_sem_validade, false) as possui_lote_sem_validade,
     apresentacoes_com_estoque.data_validade_mais_tardia,
+    coalesce(apresentacoes_relacionadas.possui_lote_sem_validade, false) as possui_relacionado_lote_sem_validade,
+    apresentacoes_relacionadas.data_validade_mais_tardia as data_validade_relacionado_mais_tardia,
     coalesce(apresentacoes_combinacao_com_estoque.quantidade_apresentacoes_combinacao_com_estoque, 0)::integer as quantidade_apresentacoes_combinacao_com_estoque
 from unidades_ativas
 cross join sentinelas
@@ -139,3 +171,7 @@ left join apresentacoes_combinacao_com_estoque
     on unidades_ativas.portal_slug = apresentacoes_combinacao_com_estoque.portal_slug
     and unidades_ativas.codigo_cnes = apresentacoes_combinacao_com_estoque.codigo_cnes
     and sentinelas.codigo_principio_ativo = apresentacoes_combinacao_com_estoque.codigo_principio_ativo
+left join apresentacoes_relacionadas
+    on unidades_ativas.portal_slug = apresentacoes_relacionadas.portal_slug
+    and unidades_ativas.codigo_cnes = apresentacoes_relacionadas.codigo_cnes
+    and sentinelas.codigo_principio_ativo = apresentacoes_relacionadas.codigo_principio_ativo
