@@ -79,3 +79,19 @@ context: []
 
 **Manual checks (if no CLI):**
 - Rodar dbt só no Docker local (5544) e abrir `/farmacia` verificando NPH e Regular separadas.
+
+### Review Findings
+
+- [x] [Review][Decision] (resolvido: texto revisado pelo editor-cidadao, estilo `caption`) Aviso "Há remédio parecido com lote válido, mas não é o mesmo" sem revisão do `editor-cidadao` — a tarefa está marcada `[x]`, mas as Implementation Notes admitem que o texto não passou pela revisão (Always do spec). O texto é vago (não diz qual remédio nem o que fazer), pode sugerir equivalência clínica (glargina não substitui NPH) e o span usa `text-[11px] text-mute2`, fora do DESIGN.md. Decidir o texto final e o estilo (rodar `editor-cidadao`; opcionalmente apontar para a busca da substância relacionada).
+- [x] [Review][Patch] (aplicado) Cobertura dbt dos relacionados e da mistura 70/30 [elt/tests/test_fct_farmacia_sentinela_disponibilidade.py:508-528] — sem teste para esomeprazol e para asparte/glulisina/degludeca (prefixo errado no seed passaria sem falhar); sem teste de relacionado com saldo zero ou sem validade; o 70/30 só afirma NPH/Regular ausentes (não afirma a combinação nem o card `insulina`); o comentário "relacionada vencida" rotula um lote com `_dia(90)` (futuro).
+- [x] [Review][Defer] Prefixos exatos do seed (`insulina humana nph`) podem não casar nomes reais como "INSULINA NPH 100 UI" — deferred: maybe-false; conferir os nomes reais em `raw.estoque` no banco local (5544) e, se divergirem, o card genérico `insulina` mostra estoque enquanto NPH mostra "sem registro".
+- [x] [Review][Defer] Lista de relacionados pode estar incompleta (detemir, bifásicas) e sem fonte (RENAME/ANVISA) — deferred: precisa de validação de domínio (contador-publico/fonte oficial), não de código.
+
+#### Rejected
+- Spec contradiz o código (sentinela `insulina` mantida, contagens 21/22/23, deslocamento de ordem) — a correção seria editar a spec revisada. A renegociação está registrada nas Implementation Notes; vale alinhar o bloco congelado manualmente.
+- Assimetria: card `insulina` genérico sem aviso — false: o principal conta qualquer tipo, não há relacionado a avisar.
+- `IndicadoresLinha` alterado afeta saúde/educação — false: o único consumidor é `apps/web/components/farmacia/farmacia-indicadores.tsx`.
+- Mudanças fora do escopo da spec no mesmo branch — processo, sem defeito de código.
+- Teste "ocultar indicadores na busca" sem par positivo / interação com `q` curta — false: há caso positivo em `page.spec.tsx:98`, e `hasBusca` só vale com 2+ letras (`view-model.ts:596`).
+- Data do estoque some dos indicadores — false: `dataAtualizacao` segue passada ao cabeçalho (`page.tsx:58,121`) e `fmtDate` ainda é usado.
+- Guardas de integridade do seed (prefixo relacionado vs principal), teste cross-tenant do novo join, borda de validade no dia, `avisoRelacionado` com `somente_vencido`/`somente_combinacao`, redundância de colunas no seed, duplicação de estilo e ícone oculto no mobile nos formulários de busca, texto do aviso duplicado no spec, CHANGELOG sem o restilo — low, hipotéticos ou sem dano concreto; a correção adicionaria complexidade. (Rule 23 verificada pelo Acceptance Auditor: `portal_slug` presente nos joins e `GROUP BY`, sem literais de tenant.)
