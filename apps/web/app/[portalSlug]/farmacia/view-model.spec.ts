@@ -19,6 +19,7 @@ const {
   buildTextoWhatsAppPedido,
   LEI_FARMACIA_SUS_URL,
   LEI_ORGANICA_SAUDE_URL,
+  AVISO_RELACIONADO_VALIDO,
 } = await import("./view-model");
 
 function makeRaw(opts: {
@@ -251,6 +252,17 @@ describe("buildFarmaciaViewModel essenciais", () => {
     );
   });
 
+  it("avisa de remedio parecido com lote valido so quando o essencial nao esta no estoque", () => {
+    const raw = makeRaw({});
+    const [losartana, metformina] = raw.sentinelas.sentinelas;
+    losartana.unidadesComRelacionadoValido = 2;
+    metformina.unidadesComRelacionadoValido = 1;
+    const vm = buildFarmaciaViewModel(raw);
+    expect(vm.essenciais[0].avisoRelacionado).toBeNull();
+    expect(vm.essenciais[1].avisoRelacionado).toBe(AVISO_RELACIONADO_VALIDO);
+    expect(vm.essenciais[2].avisoRelacionado).toBeNull();
+  });
+
   it.each([
     "cardiovascular",
     "diabetes",
@@ -272,6 +284,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
         unidadesComRegistro: 1,
         unidadesSomenteCombinacao: 0,
         unidadesSomenteLoteVencido: 0,
+        unidadesComRelacionadoValido: 0,
       },
     ];
     const [essencial] = buildFarmaciaViewModel(raw).essenciais;
@@ -797,6 +810,7 @@ describe("remedio so com lote vencido", () => {
         unidadesComRegistro: 0,
         unidadesSomenteCombinacao: 0,
         unidadesSomenteLoteVencido: 2,
+        unidadesComRelacionadoValido: 0,
       },
     ];
     raw.sentinelas.indicadores = {

@@ -28,6 +28,8 @@ export interface FarmaciaSentinelaItem {
   rotuloSituacao?: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
+  /** Aviso de substância relacionada com lote válido; só quando o essencial não está no estoque. */
+  avisoRelacionado?: string | null;
   href: string;
   /** Pedido de esclarecimento; só existe para essencial sem registro de estoque. */
   pedido?: {
@@ -74,7 +76,12 @@ function RotuloDisponibilidade({
     );
   }
   return (
-    <span className="text-[11px] text-warn-text">{rotuloDoStatus(item)}</span>
+    <>
+      <span className="text-[11px] text-warn-text">{rotuloDoStatus(item)}</span>
+      {item.avisoRelacionado && (
+        <span className="text-[11px] text-mute2">{item.avisoRelacionado}</span>
+      )}
+    </>
   );
 }
 

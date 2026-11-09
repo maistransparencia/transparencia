@@ -82,6 +82,8 @@ export type StatusEssencial =
   | "sem_registro";
 
 export const ROTULO_SEM_LOTE_VALIDO = "Sem lote dentro da validade na lista";
+export const AVISO_RELACIONADO_VALIDO =
+  "Há remédio parecido com lote válido, mas não é o mesmo";
 
 export interface FarmaciaEssencialItem {
   codigoPrincipioAtivo: string;
@@ -93,6 +95,8 @@ export interface FarmaciaEssencialItem {
   rotuloSituacao: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
+  /** Aviso quando outra substância relacionada tem lote válido; nulo nos demais. */
+  avisoRelacionado: string | null;
   href: string;
   pedido: {
     texto: string;
@@ -147,6 +151,10 @@ function buildEssenciais(
         status === "somente_vencido" ? ROTULO_SEM_LOTE_VALIDO : null,
       unidadesComRegistro: item.unidadesComRegistro,
       unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
+      avisoRelacionado:
+        status !== "no_estoque" && item.unidadesComRelacionadoValido > 0
+          ? AVISO_RELACIONADO_VALIDO
+          : null,
       href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
       pedido:
         status === "sem_registro" || status === "somente_vencido"

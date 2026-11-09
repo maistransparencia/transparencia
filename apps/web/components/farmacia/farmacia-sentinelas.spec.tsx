@@ -87,6 +87,30 @@ describe("FarmaciaSentinelas", () => {
     expect(document.body.textContent).not.toMatch(/esgotad|zerad/i);
   });
 
+  it("mostra o aviso de remedio parecido com lote valido abaixo do rotulo de ausencia", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={[
+          item({
+            nomePrincipioAtivo: "Insulina NPH",
+            status: "sem_registro",
+            unidadesComRegistro: 0,
+            avisoRelacionado:
+              "Há remédio parecido com lote válido, mas não é o mesmo",
+          }),
+        ]}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    expect(screen.getByText("não aparece no estoque")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Há remédio parecido com lote válido, mas não é o mesmo",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("links levam para a busca e o filtro de categoria reduz a lista", () => {
     render(
       <FarmaciaSentinelas
