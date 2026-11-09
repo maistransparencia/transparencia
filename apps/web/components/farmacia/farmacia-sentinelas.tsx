@@ -79,7 +79,9 @@ function RotuloDisponibilidade({
     <>
       <span className="text-[11px] text-warn-text">{rotuloDoStatus(item)}</span>
       {item.avisoRelacionado && (
-        <span className="text-[11px] text-mute2">{item.avisoRelacionado}</span>
+        <span className="caption whitespace-nowrap">
+          {item.avisoRelacionado}
+        </span>
       )}
     </>
   );

@@ -82,8 +82,7 @@ export type StatusEssencial =
   | "sem_registro";
 
 export const ROTULO_SEM_LOTE_VALIDO = "Sem lote dentro da validade na lista";
-export const AVISO_RELACIONADO_VALIDO =
-  "Há remédio parecido com lote válido, mas não é o mesmo";
+export const AVISO_RELACIONADO_VALIDO = "Há um parecido com lote válido";
 
 export interface FarmaciaEssencialItem {
   codigoPrincipioAtivo: string;
