@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siope elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -85,11 +85,17 @@ ifndef PORTAL
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siope.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
 
+elt/siops:
+	PYTHONPATH=. uv run --project elt python elt/extract/siops.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+
 elt/inep-censo:
 ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/inep-censo PORTAL=porciuncula_prefeitura [YEARS="2023 2024"] [DRY_RUN=1])
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/inep_censo.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+
+elt/emendas-estaduais:
+	PYTHONPATH=. uv run --project elt python elt/extract/emendas_estaduais.py $(if $(FONTE),--fonte $(FONTE)) $(if $(DRY_RUN),--dry-run)
 
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py --with-db $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
@@ -102,6 +108,16 @@ elt/farmacia-sus:
 	done
 	uv run --project elt python elt/scripts/run_dbt.py seed --full-refresh --select seed_farmacia_medicamentos_sentinela
 	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque fct_farmacia_estoque_historico fct_farmacia_coletas_historico fct_farmacia_sentinela_disponibilidade
+
+# Rede e produção de saúde (CNES, SIA e SIH) dos arquivos mensais por UF do DATASUS; população pela API.
+# Uso: make elt/saude-datasus [PORTAL=slug] [COMPETENCIAS="202601 202602"] [YEARS="2025"] [DRY_RUN=1]
+# Sem COMPETENCIAS nem YEARS busca as 4 últimas fechadas. Backfill (ano_inicial_historico em diante) é manual,
+# em partes e só no banco local (Regra 15): o SIA do mês ocupa ~3,4 GB de disco temporário.
+# Toda execução sem DRY_RUN grava no DATABASE_URL do ambiente e roda o dbt nele: confira que é o banco local (5544)
+# antes de rodar, e nunca exporte esse DATABASE_URL junto de db/test/build, pnpm test ou make test/ts.
+elt/saude-datasus:
+	PYTHONPATH=. uv run --project elt python elt/extract/saude_datasus.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(COMPETENCIAS),--competencias $(COMPETENCIAS)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+	$(if $(DRY_RUN),,uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_rede_por_mil_moradores_metricas fct_saude_producao_sus_metricas)
 
 # CLOUDFLARE R2 DATA LAKE SYNC
 

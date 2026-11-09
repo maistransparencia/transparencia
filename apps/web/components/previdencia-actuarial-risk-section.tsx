@@ -95,8 +95,8 @@ export function PrevidenciaActuarialRiskSection({
   return (
     <section id="cadprev" className={`space-y-6 ${className || ""}`}>
       <SectionHeader
-        title="Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)"
-        description="Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência (CADPREV) e cumprimento histórico dos aportes atuariais."
+        title={`Quanto a Prefeitura pagou em ${ano} de dívidas parceladas com o fundo de aposentadoria?`}
+        description="Acordos em que a Prefeitura parcelou dívidas previdenciárias com o fundo de aposentadoria, registrados no CADPREV (Ministério da Previdência), e o cumprimento histórico dos aportes atuariais."
       />
 
       {/* Tabela de Acordos de Confissão e Parcelamento no CADPREV */}
@@ -111,7 +111,7 @@ export function PrevidenciaActuarialRiskSection({
         ) : (
           <div className="border-line border-y py-4 text-center text-mute text-xs">
             Nenhum termo de parcelamento ou confissão de dívida registrado no
-            CADPREV para o exercício de {ano}.
+            CADPREV em {ano}.
           </div>
         )}
         <p className="text-mute text-xs">

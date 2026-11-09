@@ -1,0 +1,73 @@
+version: 2
+
+sources:
+  - name: raw_emendas_estaduais
+    schema: raw_emendas_estaduais
+    description: "Dados brutos das emendas estaduais, por fonte oficial (codigo_fonte), já no modelo comum de colunas"
+    tables:
+      - name: arquivos_fonte
+        description: Um arquivo coletado da página oficial do Estado, com órgão, página, nome, data e fase
+        meta:
+          primary_key:
+          - codigo_fonte
+          - nome_arquivo
+        columns:
+        - name: codigo_fonte
+        - name: nome_arquivo
+        - name: uf
+        - name: orgao_publicador
+        - name: url_pagina
+        - name: url_arquivo
+        - name: tipo_arquivo
+        - name: ano
+          data_type: integer
+        - name: data_arquivo
+          data_type: date
+        - name: fase
+        - name: coletado_em
+          data_type: timestamptz
+      - name: emendas_detalhamento
+        description: Uma emenda de um arquivo de detalhamento; modalidade já em snake_case pelo mapa da fonte
+        meta:
+          primary_key:
+          - codigo_fonte
+          - nome_arquivo
+          - identificador
+        columns:
+        - name: codigo_fonte
+        - name: nome_arquivo
+        - name: identificador
+        - name: numero_emenda
+        - name: autor
+        - name: valor
+          data_type: numeric
+        - name: objeto
+        - name: beneficiario
+        - name: municipio
+        - name: funcao
+        - name: unidade_orcamentaria
+        - name: modalidade
+        - name: area
+      - name: execucao_emendas
+        description: Execução (dotação, empenhado, liquidado e pago) de uma emenda em um relatório do Estado, somada por identificador, com a posição (mês e ano) do relatório
+        meta:
+          primary_key:
+          - codigo_fonte
+          - nome_arquivo
+          - identificador
+        columns:
+        - name: codigo_fonte
+        - name: nome_arquivo
+        - name: identificador
+        - name: posicao_ano
+          data_type: integer
+        - name: posicao_mes
+          data_type: integer
+        - name: dotacao_inicial
+          data_type: numeric
+        - name: empenhado
+          data_type: numeric
+        - name: liquidado
+          data_type: numeric
+        - name: pago
+          data_type: numeric

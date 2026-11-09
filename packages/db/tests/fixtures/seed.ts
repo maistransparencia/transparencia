@@ -1360,6 +1360,40 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export interface SaudeOrigemRecursoRow {
+  portalSlug: string;
+  empresaId?: string;
+  ano: number;
+  orgaoNome?: string | null;
+  grupoFonte: string;
+  codigoNatureza: string;
+  descricaoNatureza?: string | null;
+  arrecadadoReceita: number;
+}
+
+export async function seedSaudeOrigemRecursos(
+  row: SaudeOrigemRecursoRow | SaudeOrigemRecursoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_origem_recursos_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empresa_id: r.empresaId ?? "1",
+        orgao_nome: r.orgaoNome ?? null,
+        grupo_fonte: r.grupoFonte,
+        codigo_natureza: r.codigoNatureza,
+        descricao_natureza: r.descricaoNatureza ?? null,
+        arrecadado_receita: r.arrecadadoReceita,
+      })),
+    )
+    .execute();
+}
+
 export interface EducacaoMatriculasRow {
   portalSlug: string;
   ano: number;
@@ -1423,6 +1457,47 @@ export async function seedEducacaoSiope(
         percentual_aplicado_mde: r.percentualAplicadoMde ?? null,
         percentual_aplicado_fundeb_profissionais:
           r.percentualAplicadoFundebProfissionais ?? null,
+      })),
+    )
+    .execute();
+}
+
+export interface SaudeMinimoRow {
+  portalSlug: string;
+  ano: number;
+  periodo?: number;
+  situacao?: "encerrado" | "parcial" | "sem_dado";
+  percentualAplicadoSaude?: number | null;
+  minimoAplicacaoSaudePercentual?: number | null;
+  cumpreMinimo?: boolean | null;
+  despesaSaudePorHabitante?: number | null;
+  divergenciaEntreVias?: boolean;
+  indicadoresDivergentes?: string | null;
+  coletadoEm?: string | null;
+}
+
+export async function seedSaudeMinimo(
+  row: SaudeMinimoRow | SaudeMinimoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_minimo_constitucional")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        periodo: r.periodo ?? 6,
+        situacao: r.situacao ?? "encerrado",
+        percentual_aplicado_saude: r.percentualAplicadoSaude ?? null,
+        minimo_aplicacao_saude_percentual:
+          r.minimoAplicacaoSaudePercentual ?? null,
+        cumpre_minimo: r.cumpreMinimo ?? null,
+        despesa_saude_por_habitante: r.despesaSaudePorHabitante ?? null,
+        divergencia_entre_vias: r.divergenciaEntreVias ?? false,
+        indicadores_divergentes: r.indicadoresDivergentes ?? null,
+        coletado_em: r.coletadoEm ?? null,
       })),
     )
     .execute();
@@ -1510,6 +1585,116 @@ export async function seedHistoriaSaudeMetrica(
     .execute();
 }
 
+export interface SaudeRedeAnoRow {
+  portalSlug: string;
+  ano: number;
+  totalLeitosExistentes?: number | null;
+  totalLeitosSus?: number | null;
+  totalProfissionais?: number | null;
+  totalProfissionaisSus?: number | null;
+  populacaoResidente?: number | null;
+  anoPopulacaoReferencia?: number | null;
+  populacaoEstimada?: boolean;
+  leitosExistentesPorMilMoradores?: number | null;
+  leitosSusPorMilMoradores?: number | null;
+  profissionaisPorMilMoradores?: number | null;
+  profissionaisSusPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeRede(
+  row: SaudeRedeAnoRow | SaudeRedeAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_rede_por_mil_moradores_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencia_leitos:
+          r.totalLeitosExistentes == null ? null : r.ano * 100 + 12,
+        competencia_profissionais:
+          r.totalProfissionais == null ? null : r.ano * 100 + 12,
+        total_leitos_existentes: r.totalLeitosExistentes ?? null,
+        total_leitos_sus: r.totalLeitosSus ?? null,
+        total_profissionais: r.totalProfissionais ?? null,
+        total_profissionais_sus: r.totalProfissionaisSus ?? null,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        leitos_existentes_por_mil_moradores:
+          r.leitosExistentesPorMilMoradores ?? null,
+        leitos_sus_por_mil_moradores: r.leitosSusPorMilMoradores ?? null,
+        profissionais_por_mil_moradores: r.profissionaisPorMilMoradores ?? null,
+        profissionais_sus_por_mil_moradores:
+          r.profissionaisSusPorMilMoradores ?? null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
+export interface SaudeProducaoSusAnoRow {
+  portalSlug: string;
+  ano: number;
+  competenciasAmbulatoriais?: number | null;
+  competenciasInternacoes?: number | null;
+  totalProcedimentosAmbulatoriais?: number | null;
+  totalInternacoes?: number | null;
+  anoCompletoAmbulatorial?: boolean;
+  anoCompletoInternacoes?: boolean;
+  populacaoResidente?: number | null;
+  populacaoEstimada?: boolean;
+  anoPopulacaoReferencia?: number | null;
+  procedimentosAmbulatoriaisPorMilMoradores?: number | null;
+  internacoesPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeProducaoSus(
+  row: SaudeProducaoSusAnoRow | SaudeProducaoSusAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_producao_sus_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencias_ambulatoriais: r.competenciasAmbulatoriais ?? null,
+        competencias_internacoes: r.competenciasInternacoes ?? null,
+        primeira_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null ? null : r.ano * 100 + 1,
+        ultima_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null
+            ? null
+            : r.ano * 100 + r.competenciasAmbulatoriais,
+        primeira_competencia_internacoes:
+          r.competenciasInternacoes == null ? null : r.ano * 100 + 1,
+        ultima_competencia_internacoes:
+          r.competenciasInternacoes == null
+            ? null
+            : r.ano * 100 + r.competenciasInternacoes,
+        total_procedimentos_ambulatoriais:
+          r.totalProcedimentosAmbulatoriais ?? null,
+        total_internacoes: r.totalInternacoes ?? null,
+        ano_completo_ambulatorial: r.anoCompletoAmbulatorial ?? false,
+        ano_completo_internacoes: r.anoCompletoInternacoes ?? false,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        procedimentos_ambulatoriais_por_mil_moradores:
+          r.procedimentosAmbulatoriaisPorMilMoradores ?? null,
+        internacoes_por_mil_moradores: r.internacoesPorMilMoradores ?? null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
   await db
@@ -1529,11 +1714,27 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
+    .deleteFrom("fct_saude_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_producao_sus_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_rede_por_mil_moradores_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
     .deleteFrom("fct_educacao_matriculas_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
     .deleteFrom("fct_educacao_siope_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_minimo_constitucional")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

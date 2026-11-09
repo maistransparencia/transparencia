@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy import MetaData, Table, delete, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -128,8 +128,9 @@ def _replace_portal_rows(
     rows: list[dict[str, Any]],
     key_cols: list[str],
     replace: bool,
+    garantir_tabelas: Callable[[Connectable, str], None] | None = None,
 ) -> int:
-    ensure_farmacia_sus_tables(engine, schema=schema)
+    (garantir_tabelas or ensure_farmacia_sus_tables)(engine, schema)
     tbl = Table(table_name, MetaData(), schema=schema, autoload_with=engine)
 
     deduped = list(

@@ -3,9 +3,12 @@ import type {
   LicitacaoEmAndamentoDTO,
   LicitacaoItemDTO,
 } from "@transparencia/db";
-import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
+import { fmtCompact, fmtPercent } from "@transparencia/ui";
 import Link from "next/link";
+import type React from "react";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
+import { SectionWithHeader } from "@/components/section-with-header";
+import { pickTense, tituloDoExercicio } from "@/lib/escopo-bloco";
 
 export interface SaudeContratacaoLicitacoesProps {
   caminhos: CaminhoContratacaoSaudeDTO[];
@@ -20,10 +23,15 @@ export interface SaudeContratacaoOrcamentoProps {
 export interface SaudeContratacaoSectionProps {
   portalSlug: string;
   ano?: number;
+  isCurrentYear?: boolean;
   orcamento: SaudeContratacaoOrcamentoProps;
   licitacoesSaude: SaudeContratacaoLicitacoesProps;
   licitacoesEmAndamento?: LicitacaoEmAndamentoDTO[];
   itensByLicitacao?: Record<string, LicitacaoItemDTO[]>;
+  /** Resumo numérico visível com a seção recolhida. */
+  resumo?: React.ReactNode;
+  /** Abre a seção quando a URL aponta para uma licitação (`?numero=`). */
+  defaultOpen?: boolean;
 }
 
 const CAMINHOS_CONTRATACAO = [
@@ -60,10 +68,13 @@ const percentualEntre0e100 = (valor: number, total: number) =>
 export function SaudeContratacaoSection({
   portalSlug,
   ano,
+  isCurrentYear = true,
   orcamento,
   licitacoesSaude,
   licitacoesEmAndamento = [],
   itensByLicitacao,
+  resumo,
+  defaultOpen,
 }: SaudeContratacaoSectionProps) {
   const caminhos = CAMINHOS_CONTRATACAO.map((definicao) => {
     const encontrado = licitacoesSaude.caminhos.find(
@@ -77,20 +88,20 @@ export function SaudeContratacaoSection({
   });
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Como o Fundo contrata"
-        description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
-        action={
-          <Link
-            href={`/${portalSlug}/licitacoes`}
-            className="font-semibold text-brand-text hover:underline"
-          >
-            Ver todas as licitações &rarr;
-          </Link>
-        }
-      />
-
+    <SectionWithHeader
+      id="contratacao-saude"
+      title={tituloDoExercicio(
+        pickTense(
+          isCurrentYear,
+          "Como o Fundo contrata",
+          "Como o Fundo contratou",
+        ),
+        ano,
+      )}
+      description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
+      summary={resumo}
+      defaultOpen={defaultOpen}
+    >
       <ul className="space-y-6">
         {caminhos.map((caminho) => {
           const temEmpenho = caminho.valorEmpenhado > 0;
@@ -139,6 +150,12 @@ export function SaudeContratacaoSection({
         })}
       </ul>
 
+      <p className="caption">
+        <Link href={`/${portalSlug}/licitacoes`}>
+          Ver todas as licitações &rarr;
+        </Link>
+      </p>
+
       {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
       <div className="space-y-4 border-line border-t pt-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -178,6 +195,6 @@ export function SaudeContratacaoSection({
           </div>
         )}
       </div>
-    </section>
+    </SectionWithHeader>
   );
 }

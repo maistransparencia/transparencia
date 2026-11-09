@@ -2,7 +2,7 @@
 
 import { fmtNumber, ModalDialog } from "@transparencia/ui";
 import type { AlunosRedeView } from "@/app/[portalSlug]/educacao/view-model";
-import { LinhaLeiEFonte } from "./educacao-textos";
+import { LinhaLeiEFonte } from "@/components/lei-e-fonte";
 
 export interface AlunosRedeModalProps {
   isOpen: boolean;

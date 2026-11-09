@@ -55,7 +55,7 @@ describe("EducacaoOrigemRecursosSection", () => {
       />,
     );
     expect(
-      screen.getByRole("heading", { level: 2, name: "O que entrou" }),
+      screen.getByRole("heading", { level: 2, name: "O que entrou em 2025" }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

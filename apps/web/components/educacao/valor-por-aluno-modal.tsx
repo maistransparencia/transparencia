@@ -2,14 +2,9 @@
 
 import { fmtCurrency, ModalDialog } from "@transparencia/ui";
 import type { ValorPorAlunoView } from "@/app/[portalSlug]/educacao/view-model";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
-import {
-  FONTE_SIOPE,
-  LeiLink,
-  LinhaLeiEFonte,
-  NOTA_DECLARACAO,
-  NOTA_INFLACAO,
-} from "./educacao-textos";
+import { FONTE_SIOPE, NOTA_DECLARACAO, NOTA_INFLACAO } from "./educacao-textos";
 
 export interface ValorPorAlunoModalProps {
   isOpen: boolean;

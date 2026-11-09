@@ -19,7 +19,7 @@ const fontes: FontesReceitaSaudeDTO = {
 describe("SaudeOrigemRecursos", () => {
   it("mostra as quatro origens com valor e percentual do que entrou", () => {
     render(<SaudeOrigemRecursos fontes={fontes} ano={2026} />);
-    expect(screen.getByText("Transferências da União (SUS)")).toBeTruthy();
+    expect(screen.getByText("Transferências da União")).toBeTruthy();
     expect(screen.getByText("Repasses da Prefeitura")).toBeTruthy();
     expect(screen.getByText("45% do que entrou")).toBeTruthy();
     expect(screen.getByRole("img").getAttribute("aria-label")).toContain(

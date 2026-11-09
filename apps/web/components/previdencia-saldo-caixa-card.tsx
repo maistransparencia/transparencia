@@ -3,11 +3,13 @@ import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, ShieldCheck } from "lucide-react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { pickTense } from "@/lib/escopo-bloco";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PrevidenciaSaldoCaixaCardProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
   ano: number;
+  isCurrentYear?: boolean;
   portalSlug?: string;
   className?: string;
   previdenciaSigla?: string;
@@ -64,10 +66,12 @@ const descricaoSiconfi = (
 export function PrevidenciaSaldoCaixaCard({
   posicaoFinanceira,
   ano,
+  isCurrentYear = true,
   portalSlug,
   className = "",
   previdenciaSigla = "RPPS",
 }: PrevidenciaSaldoCaixaCardProps) {
+  const tituloSaldo = `Quanto o fundo de aposentadoria ${pickTense(isCurrentYear, "tem", "tinha")} em caixa e aplicado em ${ano}?`;
   const previdenciaItems = posicaoFinanceira?.previdencia ?? [];
   const temDados = Boolean(posicaoFinanceira) && previdenciaItems.length > 0;
 
@@ -77,16 +81,13 @@ export function PrevidenciaSaldoCaixaCard({
         aria-label="Disponibilidade Financeira do RPPS"
         className={className}
       >
-        <SectionHeader
-          title="Disponibilidade em Caixa e Aplicações do RPPS"
-          description={descricaoSiconfi}
-        />
+        <SectionHeader title={tituloSaldo} description={descricaoSiconfi} />
 
         <div className="flex flex-col items-center justify-center border-line border-y py-4 text-center">
           <AlertCircle className="mb-2 h-6 w-6 text-mute/60" />
           <p className="font-medium text-ink text-sm">
             Aguardando homologação da remessa MSC pelo Tesouro Nacional para o
-            fundo previdenciário no exercício {ano}.
+            fundo previdenciário em {ano}.
           </p>
         </div>
       </section>
@@ -123,7 +124,7 @@ export function PrevidenciaSaldoCaixaCard({
     >
       <SectionHeader
         eyebrow={`Posição: ${mesExtenso}/${ano}`}
-        title="Disponibilidade em Caixa e Aplicações do RPPS"
+        title={tituloSaldo}
         description={descricaoSiconfi}
         action={
           portalSlug ? (

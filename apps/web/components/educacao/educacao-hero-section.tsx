@@ -5,6 +5,11 @@ import type {
   MinimosLegaisView,
   ValorPorAlunoView,
 } from "@/app/[portalSlug]/educacao/view-model";
+import {
+  LeiLink,
+  type LeiLinkProps,
+  LinhaLeiEFonte,
+} from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { DestaqueIdeb, DestaqueMinimo } from "./educacao-destaques";
 import {
@@ -13,12 +18,7 @@ import {
 } from "./educacao-emendas-resumo";
 import { EducacaoIndicadoresApoio } from "./educacao-indicadores-apoio";
 import { EducacaoMemoriaCalculo } from "./educacao-memoria-calculo";
-import {
-  FONTE_SIOPE,
-  LeiLink,
-  type LeiLinkProps,
-  LinhaLeiEFonte,
-} from "./educacao-textos";
+import { FONTE_SIOPE } from "./educacao-textos";
 
 export interface EducacaoHeroSectionProps {
   ano: number;
@@ -58,15 +58,7 @@ export function EducacaoHeroSection({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <p className="eyebrow text-brand-text!">
-          EDUCAÇÃO · EXERCÍCIO {ano}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
-        <h1>Educação em {ano}</h1>
-        <p className="lead">
-          Quanto a Prefeitura aplicou em ensino, quanto investe por aluno e se
-          as crianças estão aprendendo.
-        </p>
+        <h1>Educação: quanto a Prefeitura investe e se as crianças aprendem</h1>
         {isCurrentYear && (
           <p
             role="note"
@@ -82,12 +74,18 @@ export function EducacaoHeroSection({
       </div>
 
       <section
-        aria-label="Mínimos constitucionais da educação"
+        aria-label={`Mínimos constitucionais da educação em ${ano}`}
         data-testid="educacao-resumo-destaque"
-        className="grid grid-cols-1 gap-8 md:grid-cols-2"
+        className="space-y-4"
       >
-        <DestaqueMinimo view={minimosLegais} kind="mde" />
-        <DestaqueMinimo view={minimosLegais} kind="fundebProfissionais" />
+        <p className="eyebrow">
+          Dados de {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <DestaqueMinimo view={minimosLegais} kind="mde" />
+          <DestaqueMinimo view={minimosLegais} kind="fundebProfissionais" />
+        </div>
       </section>
 
       <EducacaoIndicadoresApoio

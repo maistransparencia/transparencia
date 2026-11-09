@@ -397,6 +397,33 @@ wheels = [
 ]
 
 [[package]]
+name = "datasus-dbc"
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/c6/184abf8c6d7717c65bbcec3c6c00fb644ab747b31c4a3b7d302190482f6e/datasus_dbc-0.1.3.tar.gz", hash = "sha256:5d463f16f8c896247463f22eb31b3c3f756837f7c1be5cecc868c5114df4df8c", size = 6405, upload-time = "2024-04-16T21:19:22.06Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/91/edbb8c7b11747d7a03b71c6d7c7f551a1377fb91b592b35be7f4b3c1072e/datasus_dbc-0.1.3-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:42bbe9c32f90e0603ab417502768db8c23ec8403b91b386b779e4a83065a66a4", size = 228437, upload-time = "2024-04-16T21:18:16.601Z" },
+    { url = "https://files.pythonhosted.org/packages/04/9d/dc095ebff0c5de55b1e3a3c2a4b52135cd7cf8387109452c3132b0c0486a/datasus_dbc-0.1.3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:5c0589c834f00c32e77a5b38aebd0f72eba13eb4e9867580c4f8653953748628", size = 228616, upload-time = "2024-04-16T21:18:18.392Z" },
+    { url = "https://files.pythonhosted.org/packages/11/70/2361f65cb6a3887daac019c54dc828f485c332959a0a0ad40a7469d79f6b/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:972217afcf96b2cbfe995c739ff4270a7e3ab607b683adf5e17a154b42f12c2d", size = 991458, upload-time = "2024-04-16T21:18:20.084Z" },
+    { url = "https://files.pythonhosted.org/packages/99/1c/5b1c1a04996f6cbdeed504660778755a57108d35e737ccb90727fd80aec6/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:c8ec3680df76c3f9f4911d24a209d4d8a00220f80975e08fd0c8c338119d7307", size = 1008229, upload-time = "2024-04-16T21:18:21.281Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/08/57833ae40e89a08f0c3bc67821610498a1ef53d492ec664e566ed08d03f0/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:3331eb4509e7995dfa7e389265b723eec6b8428dec3ec076e411bba69a3b69d9", size = 1112117, upload-time = "2024-04-16T21:18:22.544Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/7b/efaf0a648a9384600481f9c2fe14675482627eaf1ee98e7913689c5b7f4a/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:39d9cb7c588ba27f793d282058f19b9ed0ac8d4e2832b8432f235fb71d3d0fa1", size = 1117286, upload-time = "2024-04-16T21:18:24.207Z" },
+    { url = "https://files.pythonhosted.org/packages/02/3e/8807456ee3a7c2d455e5bd3669deed592272744318a629f7cae6457780ae/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ce505fbc026181d2be2655811eda8ce4e99ab98bacf56523155d1fbae10e2c08", size = 1004487, upload-time = "2024-04-16T21:18:25.475Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/97/d852861af9881c34e6d69d126d4f62f8773733c7125074c12beb8b9a0104/datasus_dbc-0.1.3-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:2c5160040f79f08257f9d5e2870772c6020d6ae3d12ae57c307f515d2b089170", size = 1022671, upload-time = "2024-04-16T21:18:26.775Z" },
+    { url = "https://files.pythonhosted.org/packages/73/34/e6b09dabb733665907c05c7104425c12e9edf16fdce0bf8be244ac50fccc/datasus_dbc-0.1.3-cp312-none-win32.whl", hash = "sha256:c1c81506881dc34517837a7f9154c8dc6982f0316b41de7932000f718899d589", size = 113938, upload-time = "2024-04-16T21:18:28.549Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/11/dfc023ee78bf1b96b69af7d9085e7cb53f5efb183f57cc6042d05af1c1d3/datasus_dbc-0.1.3-cp312-none-win_amd64.whl", hash = "sha256:17d0209663b40dc7541bbdc9379941411a866c00a4c89e3e279de566b9479be5", size = 117525, upload-time = "2024-04-16T21:18:29.791Z" },
+]
+
+[[package]]
+name = "dbfread"
+version = "2.0.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/ae/a5891681f5012724d062a4ca63ec2ff539c73d5804ba594e7e0e72099d3f/dbfread-2.0.7.tar.gz", hash = "sha256:07c8a9af06ffad3f6f03e8fe91ad7d2733e31a26d2b72c4dd4cfbae07ee3b73d", size = 33212, upload-time = "2016-11-25T11:25:01.408Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4c/94/51349e43503e30ed7b4ecfe68a8809cdb58f722c0feb79d18b1f1e36fe74/dbfread-2.0.7-py2.py3-none-any.whl", hash = "sha256:f604def58c59694fa0160d7be5d0b8d594467278d2bb6a47d46daf7162c84cec", size = 20018, upload-time = "2016-11-25T11:27:36.001Z" },
+]
+
+[[package]]
 name = "dbt-adapters"
 version = "1.24.5"
 source = { registry = "https://pypi.org/simple" }
@@ -2538,6 +2565,8 @@ name = "transparencia"
 version = "0.14.1"
 source = { virtual = "." }
 dependencies = [
+    { name = "datasus-dbc" },
+    { name = "dbfread" },
     { name = "dbt-core" },
     { name = "dbt-postgres" },
     { name = "fpdf2" },
@@ -2567,6 +2596,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "datasus-dbc", specifier = "==0.1.3" },
+    { name = "dbfread", specifier = "==2.0.7" },
     { name = "dbt-core", specifier = "==1.12.6" },
     { name = "dbt-postgres", specifier = "==1.11.0" },
     { name = "fpdf2", specifier = "==2.8.9" },

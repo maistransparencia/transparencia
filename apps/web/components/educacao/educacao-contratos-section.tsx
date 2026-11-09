@@ -9,8 +9,10 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
+import { type LeiLinkProps, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SectionWithHeader } from "@/components/section-with-header";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { pickTense, tituloDoExercicio } from "@/lib/escopo-bloco";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
 import { ContratosTabela } from "./contratos-tabela";
@@ -18,7 +20,6 @@ import {
   educacaoDtoToContratoServicoVigente,
   formatCategoriaLabel,
 } from "./educacao-contratos-utils";
-import { type LeiLinkProps, LinhaLeiEFonte } from "./educacao-textos";
 
 export interface EducacaoContratosSectionProps {
   contratos: EducacaoContratoDTO[];
@@ -32,6 +33,7 @@ export interface EducacaoContratosSectionProps {
   resumoContratos?: React.ReactNode;
   portalSlug: string;
   ano?: number;
+  isCurrentYear?: boolean;
 }
 
 const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
@@ -75,6 +77,7 @@ export function EducacaoContratosSection({
   resumoContratos,
   portalSlug,
   ano,
+  isCurrentYear = true,
 }: EducacaoContratosSectionProps) {
   const [categoriaAberta, setCategoriaAberta] =
     useState<EducacaoCategoriaContrato | null>(null);
@@ -173,7 +176,14 @@ export function EducacaoContratosSection({
       <SectionWithHeader
         id="contratos-educacao"
         ariaLabel="Como o Fundo contrata"
-        title="Como o Fundo contrata"
+        title={tituloDoExercicio(
+          pickTense(
+            isCurrentYear,
+            "Como o Fundo contrata",
+            "Como o Fundo contratou",
+          ),
+          ano,
+        )}
         summary={resumoCategorias}
         description={`Contratos vigentes em ${ano}: merenda, transporte escolar, locação de imóveis e manutenção das escolas.`}
       >

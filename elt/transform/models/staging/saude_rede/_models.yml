@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_saude_rede__leitos_competencia
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, competencia, tipo_leito]
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+
+  - name: stg_saude_rede__profissionais_competencia
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, competencia]
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+
+  - name: stg_saude_rede__populacao_residente
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+
+  - name: stg_saude_rede__sia_competencia
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, competencia]
+    columns:
+      - name: portal_slug
+        tests: [not_null]
+
+  - name: stg_saude_rede__sih_competencia
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [portal_slug, competencia]
+    columns:
+      - name: portal_slug
+        tests: [not_null]

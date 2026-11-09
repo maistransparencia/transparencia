@@ -481,3 +481,54 @@ status: open
 - Resumo de fornecedores usa `viewModel.topFornecedores` e o corpo usa `fornecedoresLinhas`: conferir que são o mesmo conjunto.
 - Fundeb em ano parcial mostra barra e marcador do mínimo: conferir `tomDoResultado` no ano em andamento.
 - `apps/storybook/scripts/dev.mjs` e a story do Storybook que copia o markup do `CollapsibleSection`: tratar erro/sinal e importar o componente real.
+
+## Deferred from: code review of story 25-9 (2026-11-05)
+
+- Pareceres do `jurista-fiscal` (base legal estadual), do `contador-publico` (alíneas 1729/2429 e modalidades fundo a fundo e finalidade definida) e do `editor-cidadao` (textos do bloco e do cartão da receita) não foram registrados.
+- `FONTE_EMENDAS_FEDERAIS` e a fonte municipal têm `dataArquivo: null`; a spec pede data em todas as fontes. A tela também não tem os dois blocos "Governo estadual" e "Prefeitura".
+- `educacao/page.tsx` só renderiza `EmendasSection` com emendas municipais ou `com_emendas`; Estado sem fonte ou `indisponivel` sem emenda municipal não mostra aviso. Mudar exige ajustar `educacao/page.spec.tsx`.
+- `consta_no_arquivo_mais_recente` vira falso se o arquivo não trouxer ano ou data (a emenda sai da comparação com a receita). Conferir se o extrator aceita arquivo sem ano.
+- Extrator `elt/extract/emendas_estaduais.py`: identificador repetido no mesmo CSV (upsert falha), posições de meses diferentes somadas, `_soma` parcial como total, mês fora de 1..12, `NaN` ou espaço não separável em `parse_valor`, gravações sem transação única, arquivo republicado com emenda removida, `main` que para na primeira fonte com erro.
+- Sem alerta de arquivo desatualizado do Estado; `coletado_em` de `fct_emendas_estaduais_fontes` não aparece na tela.
+- `make test/ts` e `pnpm test` perdem `DATABASE_URL` no turbo e caem na 5544 (onde o mart novo não existe); documentar `--env-mode=loose` ou passar a variável no `turbo.json`.
+
+## Deferred from: code review of story-25-2 (2026-11-06)
+
+- Regex `_RE_LINHA_CONSULTA` (`elt/extract/siops.py`) usa `.*?` com DOTALL: uma linha sem a célula de valor pode herdar o valor da linha seguinte sem erro. Severidade se confirmado: medium (não verificado). Para decidir: obter o HTML real de uma linha sem a célula `tdr caixa`.
+- `fct_saude_minimo_conferencia`: o join com o seed multiplicaria linhas se houver padrões ou vigências sobrepostos para o mesmo componente. Hoje o seed não sobrepõe; falta teste dbt de não sobreposição.
+- `fct_saude_minimo_conferencia` assume códigos de receita terminados em `.00.00` e `funcao = '10'`, documentado só para o município A. Verificar com um portal de outro estado antes da 25.3 usar a conferência.
+- Ano corrente sem nenhum bimestre transmitido não gera linha no mart (nem `sem_dado`); a 25.3 deve tratar a ausência de linha.
+- Despesa com recursos próprios de A em 2024 sem conciliar: SIOPS R$ 13,27 mi contra R$ 15,61 mi do cálculo próprio, que bate com a fonte `01-500` do portal municipal. O SIOPS declara despesa total maior (R$ 49,37 mi contra R$ 47,67 mi empenhados). Diferença de atribuição da fonte de recurso, causa não provada; falta o demonstrativo declarado ao SIOPS. Registrado em `25-2-minimo-constitucional-de-saude-no-dbt.md`.
+
+## Deferred from: code review of 25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude (2026-11-06)
+
+- Identificação do órgão de saúde por nome (`unaccent(lower(orgao_nome)) like '%saude%'`) em `fct_saude_origem_recursos_metricas` e `fct_historia_saude_metricas`: uma secretaria com "saúde" no nome entra na soma e um fundo sem "saúde" no nome fica de fora, sem aviso. Precisa de outra forma de definir o órgão (campo explícito por portal ou teste que falhe sem órgão). Revisitar antes de integrar um município novo.
+
+## Deferred from: code review of 25-6a-leitos-e-profissionais-de-saude-por-mil-moradores (2026-11-07)
+
+- `elt/extract/saude_rede.py` (`_paginas`): para em duas páginas consecutivas idênticas (pode subcontar leitos/vínculos) e `MAXIMO_PAGINAS = 5000` lança erro e perde o portal inteiro em município grande (1 linha por página, ~0,3 s por página). Severidade média, não verificada; medir num município maior antes da 25.6b.
+- Testes do extrator para página repetida, limite de páginas e falha no meio da extração (nenhum retorno parcial).
+
+- Textos da tela de leitos e profissionais da 25.6a (decisão do Julio: o editor-cidadao decide na 25.6b): (1) rótulo "Leitos hospitalares" e `llms.txt` ("leitos de internação") dizem mais que o dado, que soma todos os tipos de leito do CNES; (2) "quem trabalha em mais de um local conta uma vez só" deve dizer que a contagem é aproximada por nome.
+
+## Deferred from: code review of 25-6c-fonte-em-massa-do-datasus-para-a-rede-e-a-producao-de-saude (2026-11-08)
+
+- Números do spike não reproduzidos em teste (Porciúncula 28/27 leitos; 695/548/438 profissionais): o registro da story admite que não foram refeitos. Para resolver: `make elt/saude-datasus DRY_RUN=1` local para Porciúncula 2025-12 e comparar com o spike.
+- `main()` e a proteção do `--dry-run` (`engine is None` sem gravação) sem teste: baixo risco, a carga é manual e local (Regra 15). Um teste pequeno do guard basta se quiser cobrir.
+- SIA (`PA_UFMUN`) e SIH (`MUNIC_MOV`) usam o município do estabelecimento, e a tela divide por moradores; mês reprocessado retroativamente no DATASUS não é relido (padrão: 4 últimas competências). Decidir na Story 25.10, junto com a Regra 27 (rotular na tela o dado que não é do morador).
+
+## Deferred from: topo de /saude da Story 25.10 (2026-11-08)
+
+- Régua externa para a produção do SUS: mediana das cidades da UF, calculada dinamicamente (Regra 23), via extrator (os arquivos do DATASUS já trazem todas as cidades da UF), dbt e query. Sem ela, atendimentos e internações por mil moradores não dizem se é muito ou pouco, e por isso saíram do topo. Ressalva para a story: cidade polo atende gente de fora e distorce a comparação; o texto da comparação precisa dizer isso. Backfill de anos anteriores continua descartado (decisão do Julio).
+
+## Deferred from: code review da story 25.10 (2026-11-08)
+
+- Revisão de texto pelo `editor-cidadao` dos textos novos de /saude (perguntas do topo, frase de período, avisos, modal de detalhes): fica para a story 25.11.
+- "Por mil moradores" ainda existe no "Ver detalhes" da rede do SUS e no DTO/mart de produção (`SaudeProducaoSusAnoDTO`, `SaudeRedeAnoDTO`); a tela de produção já não usa. Decidir se remove do mart e das queries.
+
+## Deferred from: revisão contábil dos acordos de parcelamento da previdência, story 25.11 (2026-11-09)
+
+- `fct_previdencia_cadprev_metricas` identifica o fundo pelo nome do fornecedor com `ilike '%sigla%'` (além do CNPJ de `dim_portais` e de "rpps"): uma sigla curta (por exemplo "PREV") casaria fornecedor sem relação com o fundo. Hoje (NATPREVI e CAPREM) não há falso positivo. Para resolver: priorizar o CNPJ e deixar a sigla como último recurso, com teste de município novo. Severidade baixa; dbt só no banco local (Regra 15).
+- `toCadprevDTO` (`packages/db/src/queries/historia-previdencia-metrics.ts`) fixa `elemento: "71"` e o texto de fallback "Parcelamento de Dívida Previdenciária (Elemento 71)"; o código do elemento deveria vir do mart. Severidade baixa.
+- NÃO VERIFICADO: se o `pago` do mart inclui pagamentos de restos a pagar (empenho de anos anteriores pago no ano consultado). O título da tela diz "pagou em {ano}". Conferir em `fct_despesas` o ano usado para `pago`.
+- NÃO VERIFICADO: base legal dos parcelamentos (qual lei autoriza e em que condições), para `jurista-fiscal`. A tela não cita lei hoje.

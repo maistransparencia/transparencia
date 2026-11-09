@@ -51,7 +51,7 @@ describe("ObrasHeroSection", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(
       /obras da cidade estão andando\?/,
     );
-    expect(screen.getByText(/EXERCÍCIO 2031/)).toBeInTheDocument();
+    expect(screen.getByText(/Dados de 2031/)).toBeInTheDocument();
     expect(screen.getByText("Em execução")).toBeInTheDocument();
     expect(screen.getByText("Avanço físico médio")).toBeInTheDocument();
   });
@@ -121,6 +121,6 @@ describe("ObrasHeroSection", () => {
         kpis={kpis}
       />,
     );
-    expect(screen.getByText(/PARCIAL, jan a mar/)).toBeInTheDocument();
+    expect(screen.getByText(/parcial, jan a mar/)).toBeInTheDocument();
   });
 });

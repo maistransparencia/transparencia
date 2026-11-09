@@ -39,3 +39,8 @@ paths:
 - **Predicate Pushdown Pré-`unaccent`:** Funções textuais de normalização (`unaccent`, `lower`, `regex`) em grandes volumes são custosas e impedem otimizações de plano de execução. Aplique primeiro predicados estruturados e de particionamento (`ano >= 2021`, `categoria_regime IN (...)`) antes de invocar `unaccent()` em descrições e títulos.
 - **CTEs de Consumo Especializado (Anti-Monólito):** Não crie CTEs amplos que realizam joins pesados para alimentar múltiplos indicadores se apenas uma das métricas precisa daquele cruzamento. Isole projeções e joins caros estritamente no CTE que calcula o indicador específico.
 
+## 28. FONTES POR ESTADO (EMENDAS ESTADUAIS): CIDADE DE UF NOVA EXIGE DECISÃO
+
+- **Gatilho:** ao adicionar um município de UF nova em `seed_portais.csv`, `elt/fontes/emendas_estaduais.yml` deve ganhar uma entrada em `fontes` (órgão, página oficial, padrões de link, colunas, modalidades, áreas) ou em `ufs_sem_fonte` (com motivo). `elt/tests/test_cobertura_fontes_emendas_estaduais.py` falha enquanto isso não for feito.
+- **Sem `if` por UF:** o extrator, os modelos dbt e a tela não mudam; só a configuração.
+- **Verificar a fonte no ato:** nada de copiar o mapeamento de outro Estado. Baixar o arquivo real, conferir cabeçalho, codificação, decimal e unidades orçamentárias.

@@ -1,4 +1,8 @@
-import { resumirFiscalizacaoEducacao } from "@transparencia/db";
+import {
+  getEmendasEstaduais,
+  getFontesEmendas,
+  resumirFiscalizacaoEducacao,
+} from "@transparencia/db";
 import {
   fmtCompact,
   fmtPercent,
@@ -16,6 +20,11 @@ import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-or
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SectionWithHeader } from "@/components/section-with-header";
+import {
+  pickTense,
+  tituloDaSerie,
+  tituloDoExercicio,
+} from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -68,6 +77,16 @@ export default async function EducacaoPage({
     emendas,
     contratos,
   } = viewModel;
+  const emendasEstaduais = await getEmendasEstaduais(
+    portalSlug,
+    selectedYear,
+    "educacao",
+  );
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
   const fornecedoresLinhas = buildFornecedoresLinhas(
     viewModel.topFornecedores,
@@ -89,7 +108,7 @@ export default async function EducacaoPage({
   });
   const pluralizar = (quantidade: number, singular: string, plural: string) =>
     `${quantidade} ${quantidade === 1 ? singular : plural}`;
-  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados`;
+  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados${emendasEstaduais.emendas.length > 0 ? ` · ${emendasEstaduais.emendas.length} do Estado` : ""}`;
   const resumoCategorias =
     resumo.contratos.quantidade > 0
       ? `${pluralizar(resumo.contratos.quantidade, "contrato vigente", "contratos vigentes")} em ${pluralizar(resumo.contratos.quantidadeCategorias, "tipo de gasto", "tipos de gasto")} · ${fmtCompact(resumo.contratos.valorTotalContratos)} contratados`
@@ -128,7 +147,10 @@ export default async function EducacaoPage({
 
       <section id="evolucao-educacao" className="space-y-6">
         <SectionHeader
-          title="Como mudou ao longo dos anos"
+          title={tituloDaSerie(
+            "Como mudou ao longo dos anos",
+            viewModel.serieAnual.map((ponto) => ponto.ano),
+          )}
           description="Reservado e pago em educação, ano a ano. A diferença é o que ainda não saiu do caixa."
         />
         <EvolucaoAnual
@@ -145,7 +167,8 @@ export default async function EducacaoPage({
           description={`Para conferir ${emendas.lista.length > 0 ? "emenda por emenda, " : ""}contrato por contrato e fornecedor por fornecedor.`}
         />
 
-        {emendas.lista.length > 0 && (
+        {(emendas.lista.length > 0 ||
+          emendasEstaduais.situacao === "com_emendas") && (
           <EmendasSection
             id="emendas-educacao"
             resumo={resumoEmendas}
@@ -154,6 +177,8 @@ export default async function EducacaoPage({
             portalSlug={viewModel.portalSlug}
             titulo="Emendas na educação"
             descricao="Recursos que deputados e senadores destinaram à educação do município."
+            emendasEstaduais={emendasEstaduais}
+            fontes={fontesEmendas}
           />
         )}
 
@@ -165,11 +190,19 @@ export default async function EducacaoPage({
           resumoContratos={resumoContratos}
           portalSlug={viewModel.portalSlug}
           ano={selectedYear}
+          isCurrentYear={isCurrentYear}
         />
 
         <SectionWithHeader
           id="fornecedores-educacao"
-          title="Quem recebe o dinheiro da educação"
+          title={tituloDoExercicio(
+            pickTense(
+              isCurrentYear,
+              "Quem recebe o dinheiro da educação",
+              "Quem recebeu o dinheiro da educação",
+            ),
+            selectedYear,
+          )}
           summary={
             fornecedoresLinhas.length > 0
               ? resumoFornecedores
