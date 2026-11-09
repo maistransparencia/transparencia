@@ -14,5 +14,10 @@ export function FarmaciaIndicadores({
 }: {
   indicadores: FarmaciaIndicadorItem[];
 }) {
-  return <IndicadoresLinha indicadores={indicadores} />;
+  if (indicadores.length === 0) return null;
+  return (
+    <div className="panel">
+      <IndicadoresLinha indicadores={indicadores} />
+    </div>
+  );
 }
