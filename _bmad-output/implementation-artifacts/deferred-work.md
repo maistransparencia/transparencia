@@ -520,3 +520,8 @@ status: open
 ## Deferred from: topo de /saude da Story 25.10 (2026-11-08)
 
 - Régua externa para a produção do SUS: mediana das cidades da UF, calculada dinamicamente (Regra 23), via extrator (os arquivos do DATASUS já trazem todas as cidades da UF), dbt e query. Sem ela, atendimentos e internações por mil moradores não dizem se é muito ou pouco, e por isso saíram do topo. Ressalva para a story: cidade polo atende gente de fora e distorce a comparação; o texto da comparação precisa dizer isso. Backfill de anos anteriores continua descartado (decisão do Julio).
+
+## Deferred from: code review da story 25.10 (2026-11-08)
+
+- Revisão de texto pelo `editor-cidadao` dos textos novos de /saude (perguntas do topo, frase de período, avisos, modal de detalhes): fica para a story 25.11.
+- "Por mil moradores" ainda existe no "Ver detalhes" da rede do SUS e no DTO/mart de produção (`SaudeProducaoSusAnoDTO`, `SaudeRedeAnoDTO`); a tela de produção já não usa. Decidir se remove do mart e das queries.
