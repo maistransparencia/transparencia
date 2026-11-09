@@ -73,7 +73,6 @@ export interface SidebarProps {
   linkComponent?: LinkComponent;
   currentPathname?: string | null;
   portalName?: string;
-  stateUF?: string;
   portalTitle?: string;
   anoInicial?: number;
   entidades?: MultiSelectOption[];

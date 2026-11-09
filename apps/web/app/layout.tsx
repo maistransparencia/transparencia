@@ -190,7 +190,6 @@ export default async function RootLayout({
     displayName: p.displayName,
     uf: p.uf,
     portalUrl: p.portalUrl,
-    brasaoAsset: p.brasaoAsset,
     anoInicial: p.anoInicial,
     dataExtracao: p.dataExtracao,
     previdencia: p.previdencia,
@@ -233,7 +232,6 @@ export default async function RootLayout({
               <Suspense fallback={null}>
                 <SidebarWrapper
                   portalName={portalConfig?.displayName}
-                  stateUF={portalConfig?.uf}
                   portalTitle={
                     portalConfig
                       ? `Contas da ${portalConfig.displayName}`

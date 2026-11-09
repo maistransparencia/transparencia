@@ -395,4 +395,45 @@ describe("Sidebar Component", () => {
     );
     expect(aside).not.toHaveClass("motion-reduce:transition-none");
   });
+
+  it("exibe o nome da marca no topo do sidebar e da topbar mobile", () => {
+    render(<Sidebar portalSlug="porciuncula_prefeitura" brandName="MarcaX" />);
+
+    expect(screen.getAllByText("MarcaX")).toHaveLength(2);
+  });
+
+  it("mostra apenas o nome da cidade nas opções do seletor de municípios", () => {
+    render(
+      <Sidebar
+        portalSlug="porciuncula_prefeitura"
+        portalName="Porciúncula"
+        onPortalChange={vi.fn()}
+        portais={[
+          {
+            portalSlug: "porciuncula_prefeitura",
+            displayName: "Prefeitura Municipal de Porciúncula",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "sao_fidelis_prefeitura",
+            displayName: "Prefeitura de São Fidélis",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "natividade_prefeitura",
+            displayName: "Natividade",
+            uf: "RJ",
+          },
+        ]}
+      />,
+    );
+
+    const opcoes = screen
+      .getAllByRole("option")
+      .map((opcao) => opcao.textContent);
+    expect(opcoes).toContain("Porciúncula");
+    expect(opcoes).toContain("São Fidélis");
+    expect(opcoes).toContain("Natividade");
+    expect(opcoes.some((texto) => texto?.includes("Prefeitura"))).toBe(false);
+  });
 });

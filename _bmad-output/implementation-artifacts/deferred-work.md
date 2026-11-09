@@ -537,3 +537,8 @@ status: open
 
 - NÃO VERIFICADO (medium): os prefixos do seed `seed_farmacia_medicamentos_sentinela` (`insulina humana nph`, `insulina humana regular`) podem não casar nomes reais como "INSULINA NPH 100 UI". Conferir em `raw.estoque` no banco local; se divergirem, o card `insulina` mostra estoque e NPH mostra "sem registro".
 - A lista de substâncias relacionadas (sem detemir e bifásicas) não cita fonte (RENAME/ANVISA). Validar com fonte oficial antes de ampliar.
+
+## Deferred from: code review (2026-11-09) — feature/general-refinements (e6a57a3f..HEAD)
+
+- Rodapé perdeu a atribuição de fonte "Dados extraídos do Portal da Transparência oficial da {portalName}" (antes no ribbon, em todas as páginas). Será resolvido na story 23-8 (decisão do Julio). `apps/web/components/global-footer.tsx`.
+- Topbar mobile (linha 2: seletor de município + exercício + slot do Consolidado) pode estourar em 320–360px. Severidade medium, não verificada: conferir no navegador em 320, 360 e 390px com nome longo de cidade. `packages/ui/src/components/sidebar.tsx` (~397-430).

@@ -18,7 +18,6 @@ import { env } from "@/env";
 
 interface SidebarWrapperProps {
   portalName?: string;
-  stateUF?: string;
   portalTitle?: string;
   anoInicial?: number;
   lastExtractionDate?: string;
@@ -35,7 +34,6 @@ interface SidebarWrapperProps {
 
 export function SidebarWrapper({
   portalName,
-  stateUF,
   portalTitle,
   anoInicial,
   lastExtractionDate: _lastExtractionDate,
@@ -84,7 +82,6 @@ export function SidebarWrapper({
 
   const activePortal = portais?.find((p) => p.portalSlug === activePortalSlug);
   const effectivePortalName = activePortal?.displayName || portalName;
-  const effectiveStateUF = activePortal?.uf || stateUF;
   const effectiveAnoInicial = activePortal?.anoInicial ?? anoInicial;
   const effectivePrevidencia = activePortal?.previdencia ?? previdencia;
   const effectivePortalTitle = effectivePortalName
@@ -214,7 +211,6 @@ export function SidebarWrapper({
       currentPathname={pathname}
       brandName={env.NEXT_PUBLIC_PROJECT_NAME}
       portalName={effectivePortalName}
-      stateUF={effectiveStateUF}
       portalTitle={effectivePortalTitle}
       anoInicial={effectiveAnoInicial}
       entidades={effectiveEntidades}
