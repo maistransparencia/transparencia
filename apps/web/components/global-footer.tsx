@@ -113,7 +113,7 @@ export function GlobalFooter({
             : "pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:pb-0",
         )}
       >
-        <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 md:px-10">
           {/* Marca e fonte, neste dispositivo (só com conteúdo) e alertas */}
           <div
             className={cn(

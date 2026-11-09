@@ -51,7 +51,7 @@ export default async function FarmaciaPage({
   const conforme = viewModel.status === "conforme";
 
   return (
-    <div className="mx-auto flex max-w-[1040px] flex-col gap-9 pb-16 sm:gap-12">
+    <div className="mx-auto flex max-w-full flex-col gap-9 pb-16 sm:gap-12">
       <div className="space-y-5">
         <FarmaciaCabecalho
           conforme={conforme}
