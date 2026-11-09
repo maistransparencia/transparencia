@@ -117,11 +117,14 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Saúde" }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Saúde: quanto a Prefeitura aplica e o que a população encontra",
+      }),
     ).toBeInTheDocument();
     [
-      "A Prefeitura aplica o mínimo em saúde em 2024?",
-      "De onde vem o dinheiro da saúde em 2024?",
+      "A Prefeitura aplicou o mínimo em saúde em 2024?",
+      "De onde veio o dinheiro da saúde em 2024?",
       "Quantos leitos e profissionais o SUS tem hoje?",
       "Tem o meu remédio na Farmácia SUS hoje?",
     ].forEach((pergunta) => {
@@ -392,7 +395,7 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByText(/^Quem recebe o dinheiro da saúde em \d{4}$/),
+      screen.getByText(/^Quem (recebe|recebeu) o dinheiro da saúde em \d{4}$/),
     ).toBeInTheDocument();
     expect(screen.getByText("FORNECEDOR A")).toBeInTheDocument();
     expect(
@@ -471,8 +474,8 @@ describe("SaudePage", () => {
         "O que entrou em 2030",
         "Como mudou ao longo dos anos (2017–2027)",
         "Quantos leitos e profissionais de saúde a cidade tem hoje?",
-        "Quanto atendimento o SUS registra na cidade (2017–2027)",
-        "Quem recebe o dinheiro da saúde em 2030",
+        "Quanto atendimento o SUS registra na cidade, de 2017 a 2027?",
+        "Quem recebeu o dinheiro da saúde em 2030",
       ]),
     );
     const retrato = screen.getByTestId("saude-retrato-hoje");
@@ -496,7 +499,7 @@ describe("SaudePage", () => {
       within(exercicio).queryByTestId("saude-destaque-farmacia"),
     ).toBeNull();
     expect(within(retrato).queryByTestId("saude-destaque-origem")).toBeNull();
-    expect(within(exercicio).getByText("Exercício 2030")).toBeInTheDocument();
+    expect(within(exercicio).getByText("Dados de 2030")).toBeInTheDocument();
   });
 
   it("mostra a data de coleta no grupo Hoje e o aviso de parcial no grupo do exercício", async () => {
@@ -511,12 +514,12 @@ describe("SaudePage", () => {
 
     expect(
       within(screen.getByTestId("saude-retrato-hoje")).getByText(
-        /^Hoje, não depende do exercício · coletado em /,
+        /^Hoje, não muda com o ano escolhido · coletado em /,
       ),
     ).toBeInTheDocument();
     expect(
       within(screen.getByTestId("saude-resumo-destaque")).getByText(
-        /^Exercício 2026 \(parcial, .+\)$/,
+        /^Dados de 2026 \(parcial, .+\)$/,
       ),
     ).toBeInTheDocument();
   });

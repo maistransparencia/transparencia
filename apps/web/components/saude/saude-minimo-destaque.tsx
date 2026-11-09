@@ -16,6 +16,7 @@ import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 
 export interface SaudeMinimoDestaqueProps {
   minimoSaude: SaudeMinimoConstitucionalDTO;
+  isCurrentYear?: boolean;
 }
 
 const formatarLimite = (limite: number) =>
@@ -55,7 +56,10 @@ const ALERTAS: Partial<
 };
 
 /** Topo de /saude: o percentual do SIOPS frente ao mínimo, com lei, fonte e data em que o portal consultou o SIOPS. */
-export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
+export function SaudeMinimoDestaque({
+  minimoSaude,
+  isCurrentYear = true,
+}: SaudeMinimoDestaqueProps) {
   const [detalhesAbertos, setDetalhesAbertos] = useState(false);
   const { ano, atual, minimo, serie, anoInicial, anoFinal } = minimoSaude;
   const {
@@ -88,7 +92,10 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
       data-testid="saude-minimo-destaque"
       className="space-y-3"
     >
-      <h3>A Prefeitura aplica o mínimo em saúde em {ano}?</h3>
+      <h3 className="md:min-h-[2lh]">
+        A Prefeitura {isCurrentYear ? "aplica" : "aplicou"} o mínimo em saúde em{" "}
+        {ano}?
+      </h3>
       <p className="flex flex-wrap items-baseline gap-x-4">
         <span
           className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}

@@ -21,9 +21,9 @@ describe("PrevidenciaHeroSection", () => {
       /guardado e repassado em dia/,
     );
     expect(
-      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(FUNPREV\)$/),
+      screen.getByText("Fundo de aposentadoria dos servidores: FUNPREV"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/^Exercício 2031/)).toBeInTheDocument();
+    expect(screen.getByText(/^Dados de 2031/)).toBeInTheDocument();
     expect(screen.getByText("Valor reservado (empenhado)")).toBeInTheDocument();
   });
 
@@ -55,7 +55,7 @@ describe("PrevidenciaHeroSection", () => {
         taxaExecucao={0}
       />,
     );
-    expect(screen.getByText(/^Exercício 2031 \(parcial, /)).toBeInTheDocument();
+    expect(screen.getByText(/^Dados de 2031 \(parcial, /)).toBeInTheDocument();
   });
 
   it("avisa o repasse extra de equilíbrio sem tom de acusação", () => {

@@ -97,7 +97,7 @@ export function PrevidenciaActuarialRiskSection({
     <section id="cadprev" className={`space-y-6 ${className || ""}`}>
       <SectionHeader
         title={tituloDoExercicio(
-          "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+          "Dívidas do fundo de aposentadoria em parcelamento",
           ano,
         )}
         description="Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência (CADPREV) e cumprimento histórico dos aportes atuariais."

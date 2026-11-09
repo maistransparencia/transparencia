@@ -125,15 +125,15 @@ describe("EducacaoHeroSection: escopo do exercício", () => {
   it("rotula o grupo dos mínimos com o exercício, sem ano no título", () => {
     renderizar();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-      "Educação",
+      "Educação: quanto a Prefeitura investe e se as crianças aprendem",
     );
-    expect(screen.getByText("Exercício 2024")).toBeInTheDocument();
+    expect(screen.getByText("Dados de 2024")).toBeInTheDocument();
   });
 
   it("ano em andamento traz o sufixo parcial no rótulo do exercício", () => {
     renderizar({ isCurrentYear: true, partialPeriod: "janeiro a junho" });
     expect(
-      screen.getByText("Exercício 2024 (parcial, janeiro a junho)"),
+      screen.getByText("Dados de 2024 (parcial, janeiro a junho)"),
     ).toBeInTheDocument();
   });
 });

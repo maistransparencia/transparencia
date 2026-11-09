@@ -58,12 +58,7 @@ export function EducacaoHeroSection({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <p className="eyebrow text-brand-text!">EDUCAÇÃO</p>
-        <h1>Educação</h1>
-        <p className="lead">
-          Quanto a Prefeitura aplicou em ensino, quanto investe por aluno e se
-          as crianças estão aprendendo.
-        </p>
+        <h1>Educação: quanto a Prefeitura investe e se as crianças aprendem</h1>
         {isCurrentYear && (
           <p
             role="note"
@@ -84,7 +79,7 @@ export function EducacaoHeroSection({
         className="space-y-4"
       >
         <p className="eyebrow">
-          Exercício {ano}
+          Dados de {ano}
           {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
         </p>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">

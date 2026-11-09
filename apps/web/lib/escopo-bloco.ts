@@ -16,3 +16,23 @@ export const tituloDaSerie = (
   anos.length === 0
     ? titulo
     : `${titulo} (${periodoDaSerie(Math.min(...anos), Math.max(...anos))})`;
+
+/** Pergunta sobre uma série: "…, de 2024 a 2026?" ou "…, em 2026?" com um único ano. */
+export const perguntaDaSerie = (
+  pergunta: string,
+  anos: readonly number[],
+): string => {
+  if (anos.length === 0) return `${pergunta}?`;
+  const anoMin = Math.min(...anos);
+  const anoMax = Math.max(...anos);
+  return anoMin === anoMax
+    ? `${pergunta}, em ${anoMin}?`
+    : `${pergunta}, de ${anoMin} a ${anoMax}?`;
+};
+
+/** Verbo no tempo certo: presente no ano em andamento, passado nos anos fechados. */
+export const pickTense = (
+  isCurrentYear: boolean,
+  present: string,
+  past: string,
+): string => (isCurrentYear ? present : past);

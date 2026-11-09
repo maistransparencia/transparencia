@@ -7,7 +7,6 @@ import { PrevidenciaActuarialRiskSection } from "@/components/previdencia-actuar
 import { PrevidenciaHeroSection } from "@/components/previdencia-hero-section";
 import { PrevidenciaPatrimonioHistoricoSection } from "@/components/previdencia-patrimonio-historico-section";
 import { PrevidenciaSaldoCaixaCard } from "@/components/previdencia-saldo-caixa-card";
-import { tituloDoExercicio } from "@/lib/escopo-bloco";
 import { createPortalMetadata, getCachedPortalConfig } from "@/lib/metadata";
 import { loadPrevidenciaData } from "./loader";
 import { buildPrevidenciaViewModel } from "./view-model";
@@ -146,6 +145,7 @@ export default async function PrevidenciaPage({
       <PrevidenciaSaldoCaixaCard
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={selectedYear}
+        isCurrentYear={isCurrentYear}
         portalSlug={portalSlug}
         previdenciaSigla={previdenciaSigla}
       />
@@ -171,10 +171,7 @@ export default async function PrevidenciaPage({
       {previdencia.natureza.length > 0 && (
         <section className="space-y-6">
           <SectionHeader
-            title={tituloDoExercicio(
-              "Composição Contábil dos Repasses",
-              selectedYear,
-            )}
+            title={`Para onde foi o dinheiro repassado à previdência em ${selectedYear}?`}
             description="Detalhamento das obrigações por elemento de despesa (Contribuições patronais ordinárias, aportes de equilíbrio atuarial, amortização de dívidas e previdência)"
           />
 

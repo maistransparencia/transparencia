@@ -45,9 +45,11 @@ const referenciaRede = (
 export function SaudeDestaqueOrigem({
   fontes,
   ano,
+  isCurrentYear = true,
 }: {
   fontes: FontesReceitaSaudeDTO;
   ano: number;
+  isCurrentYear?: boolean;
 }) {
   const temDados = fontes.totalEntrada > 0;
   return (
@@ -56,7 +58,9 @@ export function SaudeDestaqueOrigem({
       className="space-y-3"
       data-testid="saude-destaque-origem"
     >
-      <h3>De onde vem o dinheiro da saúde em {ano}?</h3>
+      <h3 className="md:min-h-[2lh]">
+        De onde {isCurrentYear ? "vem" : "veio"} o dinheiro da saúde em {ano}?
+      </h3>
       {temDados ? (
         <>
           <p className="flex flex-wrap items-baseline gap-x-3">

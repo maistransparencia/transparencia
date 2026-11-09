@@ -25,7 +25,11 @@ import { SaudeContratacaoSection } from "@/components/saude-contratacao-section"
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { SectionWithHeader } from "@/components/section-with-header";
-import { tituloDaSerie, tituloDoExercicio } from "@/lib/escopo-bloco";
+import {
+  pickTense,
+  tituloDaSerie,
+  tituloDoExercicio,
+} from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
@@ -207,6 +211,7 @@ export default async function SaudePage({
         <SaudeContratacaoSection
           portalSlug={portalSlug}
           ano={selectedYear}
+          isCurrentYear={isCurrentYear}
           orcamento={saude.orcamento}
           licitacoesSaude={saude.licitacoesSaude}
           licitacoesEmAndamento={saude.licitacoesEmAndamento}
@@ -219,7 +224,11 @@ export default async function SaudePage({
         <SectionWithHeader
           id="fornecedores-saude"
           title={tituloDoExercicio(
-            "Quem recebe o dinheiro da saúde",
+            pickTense(
+              isCurrentYear,
+              "Quem recebe o dinheiro da saúde",
+              "Quem recebeu o dinheiro da saúde",
+            ),
             selectedYear,
           )}
           summary={

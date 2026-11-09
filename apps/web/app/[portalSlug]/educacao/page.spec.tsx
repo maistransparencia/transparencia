@@ -338,7 +338,7 @@ describe("EducacaoPage (Server Component)", () => {
     render(PageComponent);
 
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-      "Educação",
+      "Educação: quanto a Prefeitura investe e se as crianças aprendem",
     );
 
     const destaque = screen.getByRole("region", {
@@ -372,9 +372,9 @@ describe("EducacaoPage (Server Component)", () => {
       "Aprendizado dos alunos (2021–2025)",
       "Como mudou ao longo dos anos (2024–2025)",
       "Para fiscalizar",
-      "Como o Fundo contrata em 2025",
+      "Como o Fundo contratou em 2025",
       "Ver todos os contratos",
-      "Quem recebe o dinheiro da educação em 2025",
+      "Quem recebeu o dinheiro da educação em 2025",
     ]);
 
     expect(screen.queryByTestId("trofeu-civico-card")).not.toBeInTheDocument();

@@ -20,7 +20,11 @@ import { EducacaoOrigemRecursosSection } from "@/components/educacao/educacao-or
 import { EmendasSection } from "@/components/emendas-section";
 import { EvolucaoAnual } from "@/components/evolucao-anual";
 import { SectionWithHeader } from "@/components/section-with-header";
-import { tituloDaSerie, tituloDoExercicio } from "@/lib/escopo-bloco";
+import {
+  pickTense,
+  tituloDaSerie,
+  tituloDoExercicio,
+} from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadEducacaoData } from "./loader";
 import { buildEducacaoViewModel } from "./view-model";
@@ -186,12 +190,17 @@ export default async function EducacaoPage({
           resumoContratos={resumoContratos}
           portalSlug={viewModel.portalSlug}
           ano={selectedYear}
+          isCurrentYear={isCurrentYear}
         />
 
         <SectionWithHeader
           id="fornecedores-educacao"
           title={tituloDoExercicio(
-            "Quem recebe o dinheiro da educação",
+            pickTense(
+              isCurrentYear,
+              "Quem recebe o dinheiro da educação",
+              "Quem recebeu o dinheiro da educação",
+            ),
             selectedYear,
           )}
           summary={

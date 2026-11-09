@@ -167,9 +167,7 @@ describe("PrevidenciaPage", () => {
     });
     render(element);
 
-    expect(
-      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/\(NATPREVI\)/)).toBeInTheDocument();
     expect(
       screen.queryByText(/NATPREVI\) · EXERCÍCIO/i),
     ).not.toBeInTheDocument();
@@ -209,7 +207,9 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText(/^Composição Contábil dos Repasses em \d{4}$/),
+      screen.getByText(
+        /^Para onde foi o dinheiro repassado à previdência em \d{4}\?$/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -254,7 +254,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Disponibilidade em Caixa e Aplicações do RPPS em 2024",
+        name: "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2024?",
       }),
     ).toBeInTheDocument();
     expect(
@@ -329,7 +329,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Disponibilidade em Caixa e Aplicações do RPPS em 2030",
+        name: "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2030?",
       }),
     ).toBeInTheDocument();
   });
@@ -376,10 +376,10 @@ describe("PrevidenciaPage", () => {
       .map((titulo) => titulo.textContent);
     expect(titulos).toEqual(
       expect.arrayContaining([
-        "Disponibilidade em Caixa e Aplicações do RPPS em 2030",
+        "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2030?",
         "Evolução do Patrimônio Financeiro da Previdência (2017–2027)",
-        "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência) em 2030",
-        "Composição Contábil dos Repasses em 2030",
+        "Dívidas do fundo de aposentadoria em parcelamento em 2030",
+        "Para onde foi o dinheiro repassado à previdência em 2030?",
       ]),
     );
   });
@@ -437,7 +437,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /acordos de parcelamento e dívidas previdenciárias \(cadprev \/ ministério da previdência\)/i,
+        name: /dívidas do fundo de aposentadoria em parcelamento/i,
       }),
     ).toBeInTheDocument();
     expect(

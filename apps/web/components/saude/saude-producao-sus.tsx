@@ -12,7 +12,7 @@ import {
 } from "@transparencia/ui";
 import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
-import { tituloDaSerie } from "@/lib/escopo-bloco";
+import { perguntaDaSerie } from "@/lib/escopo-bloco";
 
 import { SaudeDetalhesModal } from "./saude-detalhes-modal";
 
@@ -222,7 +222,7 @@ export function SaudeProducaoSus({ producao }: SaudeProducaoSusProps) {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title={tituloDaSerie("Quanto atendimento o SUS registra na cidade", [
+        title={perguntaDaSerie("Quanto atendimento o SUS registra na cidade", [
           producao.anoMin,
           producao.anoMax,
         ])}

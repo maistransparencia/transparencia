@@ -92,22 +92,19 @@ export function PrevidenciaHeroSection({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <div className="space-y-1">
-          <p className="eyebrow text-brand-text!">
-            PREVIDÊNCIA MUNICIPAL ({previdenciaSigla})
-          </p>
-          {previdenciaNome ? (
-            <p className="caption">{previdenciaNome}</p>
-          ) : null}
-        </div>
-
         <h1>
           O dinheiro da aposentadoria dos servidores está sendo guardado e
           repassado em dia?
         </h1>
 
+        <p className="caption">
+          Fundo de aposentadoria dos servidores:{" "}
+          {previdenciaNome
+            ? `${previdenciaNome} (${previdenciaSigla})`
+            : previdenciaSigla}
+        </p>
         <p className="eyebrow">
-          Exercício {ano}
+          Dados de {ano}
           {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
         </p>
         <p className="lead max-w-none">

@@ -61,12 +61,7 @@ export function SaudeHeroSection({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <p className="eyebrow text-brand-text!">SAÚDE</p>
-        <h1>Saúde</h1>
-        <p className="lead">
-          Quanto a Prefeitura aplicou em saúde, de onde vem esse dinheiro e o
-          que a população encontra: atendimento, leitos e remédios.
-        </p>
+        <h1>Saúde: quanto a Prefeitura aplica e o que a população encontra</h1>
         {isCurrentYear && (
           <p
             role="note"
@@ -87,12 +82,19 @@ export function SaudeHeroSection({
         className="space-y-4"
       >
         <p className="eyebrow">
-          Exercício {ano}
+          Dados de {ano}
           {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
         </p>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <SaudeMinimoDestaque minimoSaude={minimoSaude} />
-          <SaudeDestaqueOrigem fontes={fontesReceita} ano={ano} />
+          <SaudeMinimoDestaque
+            minimoSaude={minimoSaude}
+            isCurrentYear={isCurrentYear}
+          />
+          <SaudeDestaqueOrigem
+            fontes={fontesReceita}
+            ano={ano}
+            isCurrentYear={isCurrentYear}
+          />
         </div>
       </section>
 
@@ -102,7 +104,7 @@ export function SaudeHeroSection({
         className="space-y-4"
       >
         <p className="eyebrow">
-          Hoje, não depende do exercício
+          Hoje, não muda com o ano escolhido
           {dataColeta ? ` · coletado em ${fmtDate(dataColeta)}` : ""}
         </p>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
