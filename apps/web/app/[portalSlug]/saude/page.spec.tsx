@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadSaudeData } from "./loader";
 
@@ -117,13 +117,13 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Saúde em 2024" }),
+      screen.getByRole("heading", { level: 1, name: "Saúde" }),
     ).toBeInTheDocument();
     [
-      "A Prefeitura aplica o mínimo em saúde?",
-      "De onde vem o dinheiro da saúde?",
-      "Quantos leitos e profissionais o SUS tem?",
-      "Tem o meu remédio na Farmácia SUS?",
+      "A Prefeitura aplica o mínimo em saúde em 2024?",
+      "De onde vem o dinheiro da saúde em 2024?",
+      "Quantos leitos e profissionais o SUS tem hoje?",
+      "Tem o meu remédio na Farmácia SUS hoje?",
     ].forEach((pergunta) => {
       expect(
         screen.getByRole("heading", { level: 3, name: pergunta }),
@@ -280,10 +280,12 @@ describe("SaudePage", () => {
       expect(fiscalizar?.contains(secao)).toBe(true);
       expect(secao?.querySelector("details")?.open).toBe(false);
     });
-    ["O que entrou", "Como mudou ao longo dos anos"].forEach((titulo) => {
-      const heading = screen.getByRole("heading", { name: titulo });
-      expect(fiscalizar?.contains(heading)).toBe(false);
-    });
+    [/^O que entrou em \d{4}$/, /^Como mudou ao longo dos anos/].forEach(
+      (titulo) => {
+        const heading = screen.getByRole("heading", { name: titulo });
+        expect(fiscalizar?.contains(heading)).toBe(false);
+      },
+    );
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {
@@ -390,7 +392,7 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByText("Quem recebe o dinheiro da saúde"),
+      screen.getByText(/^Quem recebe o dinheiro da saúde em \d{4}$/),
     ).toBeInTheDocument();
     expect(screen.getByText("FORNECEDOR A")).toBeInTheDocument();
     expect(
@@ -426,5 +428,96 @@ describe("SaudePage", () => {
     expect(container.textContent).toMatch(
       /O ano de 2026 está em andamento.*não deve ser comparado com anos completos/,
     );
+  });
+  it("declara o escopo de cada bloco e não quebra com ano sem dado em rede e produção", async () => {
+    const trend = [2017, 2027].map((ano) => ({ ano, empenhado: 10, pago: 5 }));
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        saude: { executionTrend: trend },
+        redePorMilMoradores: {
+          portalSlug: "x",
+          anoMin: 2017,
+          anoMax: 2027,
+          serie: [2017, 2027].map((ano) => ({
+            ano,
+            totalLeitosExistentes: null,
+            totalLeitosSus: null,
+            totalProfissionais: null,
+            totalProfissionaisSus: null,
+          })),
+        },
+        producaoSus: {
+          portalSlug: "x",
+          anoMin: 2017,
+          anoMax: 2027,
+          referenciaAmbulatorial: null,
+          referenciaInternacoes: null,
+          anoEmAndamento: null,
+          semInternacoes: false,
+          serie: [],
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((titulo) => titulo.textContent);
+    expect(titulos).toEqual(
+      expect.arrayContaining([
+        "O que entrou em 2030",
+        "Como mudou ao longo dos anos (2017–2027)",
+        "Quantos leitos e profissionais de saúde a cidade tem hoje?",
+        "Quanto atendimento o SUS registra na cidade (2017–2027)",
+        "Quem recebe o dinheiro da saúde em 2030",
+      ]),
+    );
+    const retrato = screen.getByTestId("saude-retrato-hoje");
+    const exercicio = screen.getByTestId("saude-resumo-destaque");
+    expect(
+      within(retrato).getByTestId("saude-destaque-farmacia"),
+    ).toBeInTheDocument();
+    expect(
+      within(retrato).getByRole("heading", {
+        level: 3,
+        name: "Quantos leitos e profissionais o SUS tem hoje?",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).getByTestId("saude-minimo-destaque"),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).getByTestId("saude-destaque-origem"),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).queryByTestId("saude-destaque-farmacia"),
+    ).toBeNull();
+    expect(within(retrato).queryByTestId("saude-destaque-origem")).toBeNull();
+    expect(within(exercicio).getByText("Exercício 2030")).toBeInTheDocument();
+  });
+
+  it("mostra a data de coleta no grupo Hoje e o aviso de parcial no grupo do exercício", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2026, isCurrentYear: true },
+        portalConfig: { dataExtracao: "2026-11-05" },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    expect(
+      within(screen.getByTestId("saude-retrato-hoje")).getByText(
+        /^Hoje, não depende do exercício · coletado em /,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("saude-resumo-destaque")).getByText(
+        /^Exercício 2026 \(parcial, .+\)$/,
+      ),
+    ).toBeInTheDocument();
   });
 });

@@ -101,7 +101,7 @@ export function SaudeRedeSus({ rede }: SaudeRedeSusProps) {
   return (
     <section className="space-y-6">
       <SectionHeader
-        title="Quantos leitos e profissionais de saúde a cidade tem?"
+        title="Quantos leitos e profissionais de saúde a cidade tem hoje?"
         description={
           rede.anoMin === rede.anoMax
             ? `Dados de ${rede.anoMax}. Ainda não há outros anos para comparar.`

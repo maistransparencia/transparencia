@@ -3,6 +3,7 @@ import { fmtCompact, fmtPercent, SectionHeader } from "@transparencia/ui";
 import { AlertCircle, ExternalLink, ShieldCheck } from "lucide-react";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 import { ShowYourWorkButton } from "./show-your-work-button";
 
 export interface PrevidenciaSaldoCaixaCardProps {
@@ -78,7 +79,10 @@ export function PrevidenciaSaldoCaixaCard({
         className={className}
       >
         <SectionHeader
-          title="Disponibilidade em Caixa e Aplicações do RPPS"
+          title={tituloDoExercicio(
+            "Disponibilidade em Caixa e Aplicações do RPPS",
+            ano,
+          )}
           description={descricaoSiconfi}
         />
 
@@ -123,7 +127,10 @@ export function PrevidenciaSaldoCaixaCard({
     >
       <SectionHeader
         eyebrow={`Posição: ${mesExtenso}/${ano}`}
-        title="Disponibilidade em Caixa e Aplicações do RPPS"
+        title={tituloDoExercicio(
+          "Disponibilidade em Caixa e Aplicações do RPPS",
+          ano,
+        )}
         description={descricaoSiconfi}
         action={
           portalSlug ? (

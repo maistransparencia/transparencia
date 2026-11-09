@@ -171,8 +171,8 @@ describe("PrevidenciaPage", () => {
       screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\)/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/PREVIDÊNCIA MUNICIPAL \(NATPREVI\) · EXERCÍCIO/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/NATPREVI\) · EXERCÍCIO/i),
+    ).not.toBeInTheDocument();
   });
 
   it("esconde a seção de composição contábil quando natureza está vazia", async () => {
@@ -209,7 +209,7 @@ describe("PrevidenciaPage", () => {
     render(element);
 
     expect(
-      screen.getByText("Composição Contábil dos Repasses"),
+      screen.getByText(/^Composição Contábil dos Repasses em \d{4}$/),
     ).toBeInTheDocument();
   });
 
@@ -254,7 +254,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /disponibilidade em caixa e aplicações do rpps/i,
+        name: "Disponibilidade em Caixa e Aplicações do RPPS em 2024",
       }),
     ).toBeInTheDocument();
     expect(
@@ -307,7 +307,7 @@ describe("PrevidenciaPage", () => {
     expect(container.querySelector("#patrimonio")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /evolução do patrimônio financeiro da previdência/i,
+        name: "Evolução do Patrimônio Financeiro da Previdência (2021–2026)",
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Pico Histórico").length).toBeGreaterThanOrEqual(
@@ -315,6 +315,73 @@ describe("PrevidenciaPage", () => {
     );
     expect(screen.getByText("R$ 60,4 mi")).toBeInTheDocument();
     expect(screen.getByText("Queima média anual")).toBeInTheDocument();
+  });
+
+  it("mantém o título do saldo em caixa com o ano ativo quando falta a remessa", async () => {
+    loadPrevidenciaDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        posicaoFinanceira: { previdencia: [] },
+      }),
+    );
+
+    render(await PrevidenciaPage(props));
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Disponibilidade em Caixa e Aplicações do RPPS em 2030",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("declara o escopo de cada bloco e não perde nenhum", async () => {
+    loadPrevidenciaDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        posicaoFinanceira: { previdencia: [] },
+        previdencia: {
+          natureza: [
+            {
+              elemento: "97",
+              descricao: "Aporte",
+              destino: "aporte_atuarial_caprem",
+              empenhado: 100,
+              pago: 90,
+            },
+          ],
+          actuarialTrend: [
+            {
+              ano: 2017,
+              patrimonioFinanceiroTotal: 100,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: null,
+              variacaoPatrimonioPct: null,
+            },
+            {
+              ano: 2027,
+              patrimonioFinanceiroTotal: 90,
+              inconsistenciaDeclaracaoFlag: false,
+              variacaoPatrimonioAbs: -10,
+              variacaoPatrimonioPct: -10,
+            },
+          ],
+        },
+      }),
+    );
+
+    render(await PrevidenciaPage(props));
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((titulo) => titulo.textContent);
+    expect(titulos).toEqual(
+      expect.arrayContaining([
+        "Disponibilidade em Caixa e Aplicações do RPPS em 2030",
+        "Evolução do Patrimônio Financeiro da Previdência (2017–2027)",
+        "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência) em 2030",
+        "Composição Contábil dos Repasses em 2030",
+      ]),
+    );
   });
 
   it("renderiza mensagem informativa quando portal sem RPPS (habilitado === false)", async () => {

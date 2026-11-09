@@ -61,11 +61,8 @@ export function SaudeHeroSection({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <p className="eyebrow text-brand-text!">
-          SAÚDE · EXERCÍCIO {ano}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
-        <h1>Saúde em {ano}</h1>
+        <p className="eyebrow text-brand-text!">SAÚDE</p>
+        <h1>Saúde</h1>
         <p className="lead">
           Quanto a Prefeitura aplicou em saúde, de onde vem esse dinheiro e o
           que a população encontra: atendimento, leitos e remédios.
@@ -85,14 +82,33 @@ export function SaudeHeroSection({
       </div>
 
       <section
-        aria-label="Resumo da saúde"
+        aria-label={`Resumo da saúde em ${ano}`}
         data-testid="saude-resumo-destaque"
-        className="grid grid-cols-1 gap-8 md:grid-cols-2"
+        className="space-y-4"
       >
-        <SaudeMinimoDestaque minimoSaude={minimoSaude} />
-        <SaudeDestaqueOrigem fontes={fontesReceita} ano={ano} />
-        <SaudeDestaqueRede rede={redePorMilMoradores} />
-        <SaudeDestaqueFarmacia farmacia={farmacia} portalSlug={portalSlug} />
+        <p className="eyebrow">
+          Exercício {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <SaudeMinimoDestaque minimoSaude={minimoSaude} />
+          <SaudeDestaqueOrigem fontes={fontesReceita} ano={ano} />
+        </div>
+      </section>
+
+      <section
+        aria-label="Retrato da saúde hoje"
+        data-testid="saude-retrato-hoje"
+        className="space-y-4"
+      >
+        <p className="eyebrow">
+          Hoje, não depende do exercício
+          {dataColeta ? ` · coletado em ${fmtDate(dataColeta)}` : ""}
+        </p>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <SaudeDestaqueRede rede={redePorMilMoradores} />
+          <SaudeDestaqueFarmacia farmacia={farmacia} portalSlug={portalSlug} />
+        </div>
       </section>
 
       <LinhaLeiEFonte

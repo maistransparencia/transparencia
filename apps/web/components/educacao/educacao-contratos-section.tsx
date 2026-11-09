@@ -12,6 +12,7 @@ import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
 import { type LeiLinkProps, LinhaLeiEFonte } from "@/components/lei-e-fonte";
 import { SectionWithHeader } from "@/components/section-with-header";
 import { urlLegislacao } from "@/lib/constants/legislacao";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
 import { ContratosTabela } from "./contratos-tabela";
@@ -173,7 +174,7 @@ export function EducacaoContratosSection({
       <SectionWithHeader
         id="contratos-educacao"
         ariaLabel="Como o Fundo contrata"
-        title="Como o Fundo contrata"
+        title={tituloDoExercicio("Como o Fundo contrata", ano)}
         summary={resumoCategorias}
         description={`Contratos vigentes em ${ano}: merenda, transporte escolar, locação de imóveis e manutenção das escolas.`}
       >

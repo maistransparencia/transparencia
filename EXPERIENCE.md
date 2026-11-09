@@ -59,6 +59,8 @@ A voz do portal continua a da regra 24: simples, direta, sem termos exóticos. N
 
 ## Component Patterns
 
+**Escopo temporal no título do bloco.** O seletor "Exercício" do cabeçalho é global e sincroniza `?ano=`; o título da página não leva o ano. Todo bloco declara no próprio título de que período é: do exercício (usa o ano ativo), série histórica (período calculado dos pontos reais) ou retrato atual ("hoje", com a data da coleta). Quando o topo mistura os dois, separa em grupos com eyebrow ("Exercício {ano}" e "Hoje"), para o seletor não parecer controlar tudo. Helpers em `apps/web/lib/escopo-bloco.ts`.
+
 Nomes iguais aos de `DESIGN.md > Components`.
 
 **`panel` / `indicator`.** Estrutura obrigatória `dl > div > dt + dd`. Um tamanho de valor por `panel`. Um `stat-value-lg` por página, no hero.

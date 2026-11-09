@@ -46,7 +46,7 @@ describe("SaudeMinimoDestaque", () => {
     expect(
       screen.getByRole("heading", {
         level: 3,
-        name: "A Prefeitura aplica o mínimo em saúde?",
+        name: /^A Prefeitura aplica o mínimo em saúde em \d{4}\?$/,
       }),
     ).toBeTruthy();
     expect(screen.getByText("Exigido por lei: 15%")).toBeTruthy();

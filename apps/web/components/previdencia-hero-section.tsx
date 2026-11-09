@@ -94,10 +94,7 @@ export function PrevidenciaHeroSection({
       <div className="space-y-4">
         <div className="space-y-1">
           <p className="eyebrow text-brand-text!">
-            PREVIDÊNCIA MUNICIPAL ({previdenciaSigla}) · EXERCÍCIO {ano}
-            {isCurrentYear && partialPeriod
-              ? ` (PARCIAL, ${partialPeriod})`
-              : ""}
+            PREVIDÊNCIA MUNICIPAL ({previdenciaSigla})
           </p>
           {previdenciaNome ? (
             <p className="caption">{previdenciaNome}</p>
@@ -109,6 +106,10 @@ export function PrevidenciaHeroSection({
           repassado em dia?
         </h1>
 
+        <p className="eyebrow">
+          Exercício {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
         <p className="lead max-w-none">
           {!temDados ? (
             `O portal não tem repasses para o ${previdenciaSigla} registrados em ${ano}.`

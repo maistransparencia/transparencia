@@ -25,6 +25,7 @@ import { SaudeContratacaoSection } from "@/components/saude-contratacao-section"
 import { SaudeHeroSection } from "@/components/saude-hero-section";
 import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
 import { SectionWithHeader } from "@/components/section-with-header";
+import { tituloDaSerie, tituloDoExercicio } from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
@@ -148,7 +149,7 @@ export default async function SaudePage({
       {/* Seção 2: O que entrou no Fundo (Existente) */}
       <section id="o-que-entrou" className="scroll-mt-20 space-y-6">
         <SectionHeader
-          title="O que entrou"
+          title={tituloDoExercicio("O que entrou", selectedYear)}
           description={
             saude.fontesReceita.totalEntrada > 0
               ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal. Veja de onde veio cada parte.`
@@ -174,7 +175,10 @@ export default async function SaudePage({
       {/* Seção 3: Empenhado no ano (Existente) */}
       <section className="space-y-6">
         <SectionHeader
-          title="Como mudou ao longo dos anos"
+          title={tituloDaSerie(
+            "Como mudou ao longo dos anos",
+            saude.executionTrend.map((ponto) => ponto.ano),
+          )}
           description={`Quanto o Fundo reservou (empenhado) e quanto já pagou em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
             isCurrentYear
               ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
@@ -214,7 +218,10 @@ export default async function SaudePage({
         {/* Seção 5: Quem recebe o dinheiro da saúde */}
         <SectionWithHeader
           id="fornecedores-saude"
-          title="Quem recebe o dinheiro da saúde"
+          title={tituloDoExercicio(
+            "Quem recebe o dinheiro da saúde",
+            selectedYear,
+          )}
           summary={
             fornecedoresLinhas.length > 0
               ? resumoFornecedores

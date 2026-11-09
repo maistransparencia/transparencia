@@ -2,7 +2,9 @@
 title: 'Título sem ano e escopo declarado em cada bloco (saúde, educação e previdência)'
 type: 'feature'
 created: '2026-11-08'
-status: 'ready-for-dev'
+status: 'done'
+followup_review_recommended: false
+baseline_revision: '018cc592a1bce4aa0fee3fdcc87b3112bd8bdc6c'
 epic: 25
 story: '25.11'
 source: '_bmad-output/planning-artifacts/epics.md (### Story 25.11)'
@@ -58,3 +60,29 @@ Regras 9, 23 (sem município, UF ou ano fixos), 25 (tokens de cor nos dois temas
 ## Segurança para o bmad-loop
 
 Pode rodar até a revisão. A parte visual e de texto precisa de revisão humana na página renderizada, nos dois temas.
+
+## Review Triage Log
+
+### 2026-11-09 — Review pass
+- verdicts: 33 findings — high 0, medium 4, low 6, false 0, maybe-false 0 (demais achados repetidos entre as lentes agrupados por causa raiz; linhas abaixo por causa)
+- findings:
+  - `[medium]` `patch` falta teste por rota de que nenhum bloco sumiu e de que blocos sem `ano` declaram período/"hoje" (educação e previdência) — testes adicionados nas páginas e no donut
+  - `[medium]` `patch` retrato "hoje" e grupos do hero de saúde só com `toBeInTheDocument`; eyebrow "Exercício {ano} (parcial…)" sem asserção — `within(...)` e testes de eyebrow/data adicionados
+  - `[medium]` `patch` eyebrow parcial da previdência dentro de `temDados` some sem dados — movido para fora do ramo, com teste
+  - `[low]` `patch` asserções negativas com texto exato antigo passavam por vacuidade — trocadas por regex
+  - `[low]` `reject` rede SUS com "hoje" mostrando série — a decisão da spec classifica a rede como retrato atual
+  - `[low]` `reject` título de produção usa `anoMin`/`anoMax` da cobertura com série vazia — limites reais do mart; correção exigiria nova guarda sem dano demonstrado
+  - `[low]` `reject` `NaN`/`null` em `tituloDoExercicio`/`tituloDaSerie` — tipos são `number`, sem caminho demonstrado
+  - `[low]` `reject` "Hoje" sem data quando `dataColeta` é nula — o rótulo permanece e a data é opcional por dado ausente
+  - `[low]` `reject` jargão "não depende do exercício", rótulos duplicados e formato do CHANGELOG — revisão de texto fica com o `editor-cidadao`/revisão humana
+  - `[low]` `reject` metadados e OG não tocados — `generateMetadata` não leva o ano (verificado na spec)
+
+## Auto Run Result
+
+Status: done
+
+- **Resumo:** `/saude`, `/educacao` e `/previdencia` sem ano no título; blocos do exercício com "em {ano}", séries com `(anoMin–anoMax)` calculado dos dados, retrato com "hoje" e data da coleta; hero de `/saude` separado em exercício e retrato. Só apresentação.
+- **Arquivos:** helper `apps/web/lib/escopo-bloco.ts`, heroes e seções das três rotas, specs, `llms.txt`, `llms-full.txt`, `DESIGN.md`, `EXPERIENCE.md`, `CHANGELOG.md`, `docs/glossario-cidadao.md`.
+- **Revisão:** 3 patches médios e 1 baixo aplicados; 6 baixos rejeitados com motivo no log; nada adiado.
+- **Verificação:** `tsc --noEmit` limpo; vitest em `apps/web` 1767 testes passando (sem `DATABASE_URL`).
+- **Riscos residuais:** revisão de texto pelo `editor-cidadao` e checagem visual nos dois temas pendentes (revisão humana); `make test/ts` na raiz não executado; indicadores "valor por aluno" e "alunos na rede" do hero de educação sem escopo próprio.

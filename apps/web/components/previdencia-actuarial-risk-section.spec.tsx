@@ -71,7 +71,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Acordos de Parcelamento e Dívidas Previdenciárias \(CADPREV \/ Ministério da Previdência\) em \d{4}$/,
       }),
     ).toBeInTheDocument();
 
@@ -121,7 +121,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+      name: /^Acordos de Parcelamento e Dívidas Previdenciárias \(CADPREV \/ Ministério da Previdência\) em \d{4}$/,
     });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe("H2");
@@ -155,7 +155,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Acordos de Parcelamento e Dívidas Previdenciárias \(CADPREV \/ Ministério da Previdência\) em \d{4}$/,
       }),
     ).toBeInTheDocument();
 
@@ -211,7 +211,7 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Acordos de Parcelamento e Dívidas Previdenciárias \(CADPREV \/ Ministério da Previdência\) em \d{4}$/,
       }),
     ).toBeInTheDocument();
   });

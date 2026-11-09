@@ -8,6 +8,7 @@ import Link from "next/link";
 import type React from "react";
 import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamento-section";
 import { SectionWithHeader } from "@/components/section-with-header";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 
 export interface SaudeContratacaoLicitacoesProps {
   caminhos: CaminhoContratacaoSaudeDTO[];
@@ -87,7 +88,7 @@ export function SaudeContratacaoSection({
   return (
     <SectionWithHeader
       id="contratacao-saude"
-      title="Como o Fundo contrata"
+      title={tituloDoExercicio("Como o Fundo contrata", ano)}
       description="Por qual caminho o Fundo comprou: licitou, aderiu a uma ata de registro de preços ou contratou sem licitação identificada. Os caminhos podem se sobrepor e não se somam."
       summary={resumo}
       defaultOpen={defaultOpen}

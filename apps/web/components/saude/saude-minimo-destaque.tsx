@@ -88,7 +88,7 @@ export function SaudeMinimoDestaque({ minimoSaude }: SaudeMinimoDestaqueProps) {
       data-testid="saude-minimo-destaque"
       className="space-y-3"
     >
-      <h3>A Prefeitura aplica o mínimo em saúde?</h3>
+      <h3>A Prefeitura aplica o mínimo em saúde em {ano}?</h3>
       <p className="flex flex-wrap items-baseline gap-x-4">
         <span
           className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}

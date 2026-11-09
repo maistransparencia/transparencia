@@ -1,6 +1,7 @@
 "use client";
 
 import { DenseTable, SectionHeader } from "@transparencia/ui";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 
 export interface AnnualActuarialTrend {
   ano: number;
@@ -95,7 +96,10 @@ export function PrevidenciaActuarialRiskSection({
   return (
     <section id="cadprev" className={`space-y-6 ${className || ""}`}>
       <SectionHeader
-        title="Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)"
+        title={tituloDoExercicio(
+          "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+          ano,
+        )}
         description="Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência (CADPREV) e cumprimento histórico dos aportes atuariais."
       />
 

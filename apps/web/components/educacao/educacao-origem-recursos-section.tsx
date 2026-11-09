@@ -12,6 +12,7 @@ import {
   SectionHeader,
 } from "@transparencia/ui";
 import { useState } from "react";
+import { tituloDoExercicio } from "@/lib/escopo-bloco";
 import { FonteRecursoModal } from "./fonte-recurso-modal";
 import {
   formatPercentualInteiro,
@@ -126,7 +127,10 @@ export function EducacaoOrigemRecursosSection({
       aria-label="O que entrou no Fundo Municipal de Educação"
       className="space-y-6"
     >
-      <SectionHeader title="O que entrou" description={description} />
+      <SectionHeader
+        title={tituloDoExercicio("O que entrou", ano)}
+        description={description}
+      />
 
       {semReceitas ? (
         <p className="border-line border-y py-4 text-mute">
