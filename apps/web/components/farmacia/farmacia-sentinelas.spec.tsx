@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AVISO_RELACIONADO_VALIDO } from "../../app/[portalSlug]/farmacia/view-model";
 import {
   type FarmaciaSentinelaItem,
   FarmaciaSentinelas,
@@ -85,6 +86,25 @@ describe("FarmaciaSentinelas", () => {
     expect(screen.getByText("não aparece no estoque")).toBeInTheDocument();
     expect(screen.getByText("só em combinação")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/esgotad|zerad/i);
+  });
+
+  it("mostra o aviso de remedio parecido com lote valido abaixo do rotulo de ausencia", () => {
+    render(
+      <FarmaciaSentinelas
+        essenciais={[
+          item({
+            nomePrincipioAtivo: "Insulina NPH",
+            status: "sem_registro",
+            unidadesComRegistro: 0,
+            avisoRelacionado: AVISO_RELACIONADO_VALIDO,
+          }),
+        ]}
+        categorias={categorias}
+        totalUnidadesAtivas={5}
+      />,
+    );
+    expect(screen.getByText("não aparece no estoque")).toBeInTheDocument();
+    expect(screen.getByText(AVISO_RELACIONADO_VALIDO)).toBeInTheDocument();
   });
 
   it("links levam para a busca e o filtro de categoria reduz a lista", () => {

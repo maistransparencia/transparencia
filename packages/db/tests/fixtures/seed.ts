@@ -1174,6 +1174,8 @@ export interface FarmaciaSentinelaRow {
   /** Padrão: lote sem validade informada, que conta como utilizável. */
   possuiLoteSemValidade?: boolean;
   dataValidadeMaisTardia?: string | null;
+  possuiRelacionadoLoteSemValidade?: boolean;
+  dataValidadeRelacionadoMaisTardia?: string | null;
 }
 
 export async function seedFarmaciaSentinela(
@@ -1198,6 +1200,10 @@ export async function seedFarmaciaSentinela(
         row.quantidadeApresentacoesCombinacaoComEstoque ?? 0,
       possui_lote_sem_validade: row.possuiLoteSemValidade ?? true,
       data_validade_mais_tardia: row.dataValidadeMaisTardia ?? null,
+      possui_relacionado_lote_sem_validade:
+        row.possuiRelacionadoLoteSemValidade ?? false,
+      data_validade_relacionado_mais_tardia:
+        row.dataValidadeRelacionadoMaisTardia ?? null,
     })
     .execute();
 }

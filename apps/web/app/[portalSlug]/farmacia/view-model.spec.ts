@@ -19,6 +19,7 @@ const {
   buildTextoWhatsAppPedido,
   LEI_FARMACIA_SUS_URL,
   LEI_ORGANICA_SAUDE_URL,
+  AVISO_RELACIONADO_VALIDO,
 } = await import("./view-model");
 
 function makeRaw(opts: {
@@ -163,14 +164,13 @@ describe("buildFarmaciaViewModel indicadores", () => {
         diasDesdePosicaoMaisRecente: 5,
       }),
     );
-    const [unidades, essenciais, atualizacao] = vm.indicadores;
+    const [unidades, essenciais] = vm.indicadores;
     expect(unidades.valor).toBe("7");
     expect(essenciais.valor).toBe("2 de 4");
     expect(essenciais.nota).toBe(
       "1 não aparece na lista de estoque · 1 só em combinação",
     );
     expect(essenciais.notaAtencao).toBe(true);
-    expect(atualizacao.nota).toBeNull();
   });
 
   it("essenciais sem pendencia: nota neutra sem atencao", () => {
@@ -207,20 +207,13 @@ describe("buildFarmaciaViewModel indicadores", () => {
     ]);
   });
 
-  it("a lista mais recente mostra so a data, sem nota de dias", () => {
+  it("a data da lista mais recente nao e indicador, ja aparece no topo da pagina", () => {
     const vm = buildFarmaciaViewModel(
       makeRaw({
         dataPosicaoMaisRecente: "2026-10-19",
         diasDesdePosicaoMaisRecente: 5,
       }),
     );
-    expect(vm.indicadores[2].rotulo).toBe("Lista de estoque mais recente");
-    expect(vm.indicadores[2].valor).toBe("19/10/2026");
-    expect(vm.indicadores[2].nota).toBeNull();
-  });
-
-  it("sem data de atualizacao o cartao e omitido", () => {
-    const vm = buildFarmaciaViewModel(makeRaw({}));
     expect(vm.indicadores.map((i) => i.codigo)).not.toContain(
       "ultima_atualizacao",
     );
@@ -251,6 +244,17 @@ describe("buildFarmaciaViewModel essenciais", () => {
     );
   });
 
+  it("avisa de remedio parecido com lote valido so quando o essencial nao esta no estoque", () => {
+    const raw = makeRaw({});
+    const [losartana, metformina] = raw.sentinelas.sentinelas;
+    losartana.unidadesComRelacionadoValido = 2;
+    metformina.unidadesComRelacionadoValido = 1;
+    const vm = buildFarmaciaViewModel(raw);
+    expect(vm.essenciais[0].avisoRelacionado).toBeNull();
+    expect(vm.essenciais[1].avisoRelacionado).toBe(AVISO_RELACIONADO_VALIDO);
+    expect(vm.essenciais[2].avisoRelacionado).toBeNull();
+  });
+
   it.each([
     "cardiovascular",
     "diabetes",
@@ -272,6 +276,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
         unidadesComRegistro: 1,
         unidadesSomenteCombinacao: 0,
         unidadesSomenteLoteVencido: 0,
+        unidadesComRelacionadoValido: 0,
       },
     ];
     const [essencial] = buildFarmaciaViewModel(raw).essenciais;
@@ -797,6 +802,7 @@ describe("remedio so com lote vencido", () => {
         unidadesComRegistro: 0,
         unidadesSomenteCombinacao: 0,
         unidadesSomenteLoteVencido: 2,
+        unidadesComRelacionadoValido: 0,
       },
     ];
     raw.sentinelas.indicadores = {

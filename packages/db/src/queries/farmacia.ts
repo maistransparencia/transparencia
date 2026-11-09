@@ -599,6 +599,11 @@ export interface FarmaciaSentinelaDTO {
   unidadesSomenteCombinacao: number;
   /** Unidades em que o princípio ativo só tem lotes vencidos. */
   unidadesSomenteLoteVencido: number;
+  /**
+   * Unidades sem lote utilizável do princípio ativo, mas com lote utilizável de
+   * substância relacionada (ex.: insulina glargina para a insulina NPH). Não conta como o sentinela.
+   */
+  unidadesComRelacionadoValido: number;
 }
 
 export interface FarmaciaIndicadoresDTO {
@@ -656,6 +661,8 @@ export function calcularIndicadoresFarmacia(
 // O mart só é reconstruído nos dias úteis; a validade é comparada com hoje na leitura.
 const SENTINELA_LOTE_UTILIZAVEL_SQL = sql<boolean>`(possui_lote_sem_validade or coalesce(data_validade_mais_tardia >= current_date, false))`;
 
+const SENTINELA_RELACIONADO_UTILIZAVEL_SQL = sql<boolean>`(possui_relacionado_lote_sem_validade or coalesce(data_validade_relacionado_mais_tardia >= current_date, false))`;
+
 /**
  * Disponibilidade dos medicamentos-sentinela (RENAME 2024) lida do mart
  * `fct_farmacia_sentinela_disponibilidade`: quantas das unidades ativas
@@ -684,6 +691,9 @@ export async function getFarmaciaSentinelas(
       sql<number>`count(*) filter (where status_disponibilidade = 'com_registro_estoque' and not ${SENTINELA_LOTE_UTILIZAVEL_SQL})`.as(
         "unidades_somente_lote_vencido",
       ),
+      sql<number>`count(*) filter (where not (status_disponibilidade = 'com_registro_estoque' and ${SENTINELA_LOTE_UTILIZAVEL_SQL}) and ${SENTINELA_RELACIONADO_UTILIZAVEL_SQL})`.as(
+        "unidades_com_relacionado_valido",
+      ),
     ])
     .where("portal_slug", "=", portalSlug.trim())
     .groupBy(["portal_slug", "codigo_principio_ativo"])
@@ -705,6 +715,8 @@ export async function getFarmaciaSentinelas(
         toNumberOrNull(l.unidades_somente_combinacao) ?? 0,
       unidadesSomenteLoteVencido:
         toNumberOrNull(l.unidades_somente_lote_vencido) ?? 0,
+      unidadesComRelacionadoValido:
+        toNumberOrNull(l.unidades_com_relacionado_valido) ?? 0,
     }),
   );
 

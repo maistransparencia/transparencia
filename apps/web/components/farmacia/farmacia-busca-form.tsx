@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Link from "next/link";
 
 export interface FarmaciaBuscaFormProps {
@@ -23,8 +23,12 @@ export function FarmaciaBuscaForm({
       method="get"
       action={action}
       aria-label="Busca de remédios"
-      className={`flex flex-col overflow-hidden rounded-md border border-ink focus-within:ring-2 focus-within:ring-brand/30 sm:flex-row ${className}`}
+      className={`flex flex-col gap-2 rounded-md border-2 border-ink bg-page p-2 focus-within:ring-2 focus-within:ring-brand/30 sm:flex-row sm:items-center sm:gap-2.5 sm:pl-[18px] ${className}`}
     >
+      <Search
+        className="hidden h-[18px] w-[18px] shrink-0 text-mute2 sm:block"
+        aria-hidden="true"
+      />
       <label htmlFor="farmacia-busca" className="sr-only">
         Qual remédio você procura?
       </label>
@@ -37,11 +41,11 @@ export function FarmaciaBuscaForm({
         defaultValue={defaultValue}
         placeholder="Qual remédio você procura?"
         autoComplete="off"
-        className="min-h-13 flex-1 rounded-none border-0 bg-page px-4 text-base text-ink placeholder:text-mute3 focus:outline-none sm:min-h-10 sm:text-sm"
+        className="min-h-13 min-w-0 flex-1 rounded-none border-0 bg-transparent px-2 text-base text-ink placeholder:text-mute3 focus:outline-none sm:min-h-10 sm:px-0 sm:text-sm [&::-webkit-search-cancel-button]:appearance-none"
       />
       <button
         type="submit"
-        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none border-ink border-t bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10 sm:border-t-0"
+        className="inline-flex min-h-13 items-center justify-center gap-2 rounded-md bg-ink px-5 font-semibold text-onink text-sm transition-colors hover:bg-ink/90 sm:min-h-10"
       >
         {rotuloBotaoMobile ? (
           <>
@@ -55,7 +59,7 @@ export function FarmaciaBuscaForm({
       {limparHref && (
         <Link
           href={limparHref}
-          className="inline-flex min-h-13 items-center justify-center gap-2 rounded-none border-line border-t bg-page px-5 font-semibold text-ink text-sm transition-colors hover:bg-line2/40 sm:min-h-10 sm:border-t-0 sm:border-l"
+          className="inline-flex min-h-13 items-center justify-center gap-2 rounded-md bg-page px-5 font-semibold text-ink text-sm transition-colors hover:bg-line2/40 sm:min-h-10"
         >
           <X className="h-4 w-4" aria-hidden="true" />
           Limpar busca

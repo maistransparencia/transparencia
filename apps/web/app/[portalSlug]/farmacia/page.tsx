@@ -65,7 +65,7 @@ export default async function FarmaciaPage({
             Digite pelo menos 2 letras para buscar.
           </p>
         )}
-        {conforme && (
+        {conforme && !viewModel.hasBusca && (
           <FarmaciaIndicadores indicadores={viewModel.indicadores} />
         )}
       </div>

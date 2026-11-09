@@ -532,3 +532,8 @@ status: open
 - `toCadprevDTO` (`packages/db/src/queries/historia-previdencia-metrics.ts`) fixa `elemento: "71"` e o texto de fallback "Parcelamento de Dívida Previdenciária (Elemento 71)"; o código do elemento deveria vir do mart. Severidade baixa.
 - NÃO VERIFICADO: se o `pago` do mart inclui pagamentos de restos a pagar (empenho de anos anteriores pago no ano consultado). O título da tela diz "pagou em {ano}". Conferir em `fct_despesas` o ano usado para `pago`.
 - NÃO VERIFICADO: base legal dos parcelamentos (qual lei autoriza e em que condições), para `jurista-fiscal`. A tela não cita lei hoje.
+
+## Deferred from: code review of spec-fix-farmacia-sentinela-insulina-nph-regular (2026-11-09)
+
+- NÃO VERIFICADO (medium): os prefixos do seed `seed_farmacia_medicamentos_sentinela` (`insulina humana nph`, `insulina humana regular`) podem não casar nomes reais como "INSULINA NPH 100 UI". Conferir em `raw.estoque` no banco local; se divergirem, o card `insulina` mostra estoque e NPH mostra "sem registro".
+- A lista de substâncias relacionadas (sem detemir e bifásicas) não cita fonte (RENAME/ANVISA). Validar com fonte oficial antes de ampliar.

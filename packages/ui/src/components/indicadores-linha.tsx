@@ -18,7 +18,7 @@ export function IndicadoresLinha({
   if (indicadores.length === 0) return null;
 
   return (
-    <dl className="flex flex-col divide-y divide-line border-line border-y sm:flex-row sm:divide-x sm:divide-y-0">
+    <dl className="flex flex-col sm:flex-row">
       {indicadores.map((indicador) => (
         <div
           key={indicador.codigo}
@@ -26,7 +26,7 @@ export function IndicadoresLinha({
         >
           <dt className="eyebrow">{indicador.rotulo}</dt>
           <dd
-            className={`font-bold font-sans text-[32px] ${indicador.destaque ? "text-brand" : "text-ink"}`}
+            className={`stat-value ${indicador.destaque ? "text-brand" : "text-ink"}`}
           >
             {indicador.valor}
           </dd>
