@@ -22,6 +22,7 @@
 #   - in-progress: Developer actively working on implementation
 #   - review: Ready for code review (via Dev's code-review workflow)
 #   - done: Story completed
+#   - not-planned: Story abandoned or postponed with no date; counts as closed, so it does not keep the epic open
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
@@ -41,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-10-31
+last_updated: 2026-11-07
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -203,7 +204,7 @@ development_status:
   epic-18-retrospective: optional
 
 
-  epic-19: in-progress
+  epic-19: done
   19-1-pipeline-elt-da-farmacia-sus-lei-14654-estoque-bnafar-horus-e-estabelecimentos-cnes: done
   19-2-pagina-da-farmacia-sus-camada-de-dados-e-card-resumo-na-home: done
   19-3-reorganizacao-da-arquitetura-da-homepage-dobra-de-sentinela-civica-e-trofeus-da-cidade: done
@@ -219,7 +220,7 @@ development_status:
   19-6-atalho-remedios-no-topbar-mobile: optional
   epic-19-retrospective: optional
 
-  epic-20: in-progress
+  epic-20: done
   20-1-tokens-tema-claro-escuro-e-guarda-de-arquitetura: done
   20-2-shell-sidebar-ribbon-footer-e-alternador-de-tema: done
   20-3-componentes-de-packages-ui-no-padrao-divisorias: done
@@ -244,13 +245,44 @@ development_status:
 
   epic-23: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
+  23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: backlog
+  23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: backlog
+  23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: backlog
 
-  epic-24: backlog
-  24-1-ingestao-do-relatorio-gerencial-do-siope: backlog
-  24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: backlog
-  24-3-contratos-de-dados-do-siope-em-transparencia-db: backlog
-  24-4-valor-por-aluno-na-pagina-de-educacao: backlog
-  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: backlog
-  24-6-total-de-alunos-com-fonte-verificada-inep: backlog
-  24-7-aprendizado-no-topo-da-pagina-de-educacao: backlog
+  epic-24: done
+  24-1-ingestao-do-relatorio-gerencial-do-siope: done
+  24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
+  24-3-contratos-de-dados-do-siope-em-transparencia-db: done
+  24-4-valor-por-aluno-na-pagina-de-educacao: done
+  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: done
+  24-6-total-de-alunos-com-fonte-verificada-inep: done
+  24-7-aprendizado-no-topo-da-pagina-de-educacao: done
+  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
+  24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
+  24-11-tres-respostas-no-topo-da-pagina-de-educacao: done
+  24-12-refino-visual-da-pagina-de-educacao-hero-com-barra-do-minimo-e-leis-e-fontes-em-destaque: done
+  24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: done
   epic-24-retrospective: optional
+
+  epic-25: done
+  25-1a-spike-de-emendas-fonte-federal-e-conferencia-com-o-portal-municipal: done
+  25-1c-spike-de-emendas-estaduais-fonte-oficial-e-conferencia-com-o-portal-municipal: done
+  25-1-spike-de-fontes-oficiais-dos-indicadores-de-saude: done
+  25-2-minimo-constitucional-de-saude-no-dbt: done
+  25-3-contratos-em-transparencia-db-e-bloco-do-minimo-no-topo-de-saude: done
+  25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude: done
+  25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
+  25-6a-leitos-e-profissionais-de-saude-por-mil-moradores: done
+  25-6b-atendimentos-e-internacoes-do-sus-na-cidade: done
+  25-6c-fonte-em-massa-do-datasus-para-a-rede-e-a-producao-de-saude: done
+  25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
+  25-8-objeto-correto-das-emendas-na-saude-e-na-educacao: done
+  25-9-emendas-estaduais-lista-oficial-e-conferencia-com-o-portal-municipal: done
+  25-10-hierarquia-da-pagina-de-saude-para-entender-e-para-fiscalizar: done
+  25-11-titulo-sem-ano-e-escopo-declarado-em-cada-bloco: done
+  epic-25-retrospective: optional
+
+  epic-26: backlog
+  26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
+  26-2-inventario-e-plano-de-migracao-do-legado: backlog
+  epic-26-retrospective: optional

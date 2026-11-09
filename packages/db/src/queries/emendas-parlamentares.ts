@@ -32,7 +32,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     return {
       id: `${String(r.autor ?? "")}-${String(r.resumo ?? "")}-${numero}-${index}`,
       numero,
-      objeto: String(r.resumo ?? ""),
+      objeto: String(r.objeto_emenda ?? ""),
       valorAutorizado,
       empenhado: empenhado > 0 ? empenhado : null,
       autor: String(r.autor ?? ""),

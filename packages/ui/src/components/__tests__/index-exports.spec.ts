@@ -10,7 +10,9 @@ describe("barrel de @transparencia/ui", () => {
     "SegmentedButton",
     "Badge",
     "ModalDialog",
+    "ThresholdMeter",
     "AlertBox",
+    "CollapsibleSection",
     "corDoGrafico",
     "coresDoGrafico",
   ])("exporta %s", (nome) => {

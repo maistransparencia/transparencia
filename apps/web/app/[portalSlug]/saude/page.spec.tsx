@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadSaudeData } from "./loader";
 
@@ -12,6 +12,10 @@ vi.mock("./loader", () => ({
   loadSaudeData: loadSaudeDataMock,
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 const { default: SaudePage } = await import("./page");
 
 function makeRaw(
@@ -22,6 +26,30 @@ function makeRaw(
   return {
     portalSlug: "porciuncula_prefeitura",
     context: { selectedYear: 2024, isCurrentYear: false },
+    farmaciaResumo: {
+      status: "indisponivel",
+      dataPosicaoMaisRecente: null,
+      totalUnidadesAtivas: null,
+      essenciaisNoEstoque: null,
+      totalEssenciais: null,
+    },
+    minimoSaude: {
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2024,
+      atual: null,
+      minimo: {
+        limite: null,
+        percentualAplicado: null,
+        resultado: "sem_dado",
+        comparavel: false,
+        mesesCobertos: null,
+        baseLegal: null,
+        urlBaseLegal: null,
+      },
+      serie: [],
+      anoInicial: null,
+      anoFinal: null,
+    },
     saude: {
       orcamento: {
         dotacao: 1000,
@@ -88,9 +116,179 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(screen.getByText("Emendas na saúde")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Saúde: quanto a Prefeitura aplica e o que a população encontra",
+      }),
+    ).toBeInTheDocument();
+    [
+      "A Prefeitura aplicou o mínimo em saúde em 2024?",
+      "De onde veio o dinheiro da saúde em 2024?",
+      "Quantos leitos e profissionais o SUS tem hoje?",
+      "Tem o meu remédio na Farmácia SUS hoje?",
+    ].forEach((pergunta) => {
+      expect(
+        screen.getByRole("heading", { level: 3, name: pergunta }),
+      ).toBeInTheDocument();
+    });
     expect(screen.getAllByText("Origem").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Federal").length).toBeGreaterThan(0);
+    // A produção do SUS saiu do topo (a seção de baixo é coberta no spec do componente).
+    expect(
+      screen.queryByText("Atendimento do SUS por mil moradores"),
+    ).toBeNull();
+    // O painel antigo de quatro indicadores saiu do topo.
+    expect(screen.queryByText("Contratos vinculados")).not.toBeInTheDocument();
+    expect(screen.queryByText("Fornecedores ativos")).not.toBeInTheDocument();
+  });
+
+  it("cita o portal da Prefeitura como fonte da origem das receitas", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        portalConfig: {
+          portalUrl: "https://transparencia.exemplo.gov.br/",
+          dataExtracao: "2026-11-05",
+        },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    const links = screen.getAllByRole("link", {
+      name: /Portal da Transparência da Prefeitura/,
+    });
+    expect(links.length).toBeGreaterThan(0);
+    links.forEach((link) => {
+      expect(link.getAttribute("href")).toBe(
+        "https://transparencia.exemplo.gov.br/",
+      );
+    });
+    expect(
+      screen.getAllByText(/Coletado em 05\/11\/2026/).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("mostra o bloco do mínimo de saúde no topo com o percentual do ano", async () => {
+    const anoEncerrado = {
+      ano: 2024,
+      periodo: 6,
+      situacao: "encerrado" as const,
+      percentualAplicadoSaude: 21.4,
+      despesaSaudePorHabitante: null,
+      percentualTransferenciasSaude: null,
+      receitaImpostosTransferenciasConstitucionais: null,
+      despesaRecursosProprios: null,
+      despesaTotalSaude: null,
+      divergenciaEntreVias: false,
+      indicadoresDivergentes: [],
+      coletadoEm: null,
+    };
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        minimoSaude: {
+          portalSlug: "porciuncula_prefeitura",
+          ano: 2024,
+          atual: anoEncerrado,
+          minimo: {
+            limite: 15,
+            percentualAplicado: 21.4,
+            resultado: "cumpriu",
+            comparavel: true,
+            mesesCobertos: null,
+            baseLegal: null,
+            urlBaseLegal: null,
+          },
+          serie: [anoEncerrado],
+          anoInicial: 2024,
+          anoFinal: 2024,
+        },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    expect(screen.getByTestId("saude-minimo-destaque")).toBeInTheDocument();
+    expect(screen.getByText(/Exigido por lei: 15%/)).toBeInTheDocument();
+  });
+
+  it("abre Como o Fundo contrata quando a URL aponta para uma licitação (?numero=)", async () => {
+    loadSaudeDataMock.mockResolvedValue(makeRaw());
+
+    const element = await SaudePage({
+      ...props,
+      searchParams: Promise.resolve({ numero: "12/2024" }),
+    });
+    const { container } = render(element);
+
+    expect(
+      container.querySelector<HTMLDetailsElement>("#contratacao-saude details")
+        ?.open,
+    ).toBe(true);
+    expect(
+      container.querySelector<HTMLDetailsElement>("#emendas-saude details")
+        ?.open,
+    ).toBe(false);
+  });
+
+  it("mostra no topo a lei, as fontes oficiais e a data de coleta", async () => {
+    const base = makeRaw();
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        portalConfig: {
+          portalUrl: "https://transparencia.exemplo.gov.br/",
+          dataExtracao: "2026-11-05",
+        },
+        minimoSaude: {
+          ...base.minimoSaude,
+          minimo: {
+            ...base.minimoSaude.minimo,
+            baseLegal: "Lei Complementar 141/2012",
+            urlBaseLegal:
+              "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm",
+          },
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    const topo = screen.getByTestId("saude-resumo-destaque")
+      .parentElement as HTMLElement;
+    const links = Array.from(topo.querySelectorAll("a")).map((link) =>
+      link.getAttribute("href"),
+    );
+    expect(links).toContain("https://siops.saude.gov.br/");
+    expect(links).toContain("https://apidadosabertos.saude.gov.br/");
+    expect(topo.textContent).toMatch(/Lei Complementar 141/);
+    expect(topo.textContent).toMatch(/Coletado em/);
+  });
+
+  it("mantém todos os blocos e põe contratação, fornecedores e emendas em Para fiscalizar, recolhidos", async () => {
+    loadSaudeDataMock.mockResolvedValue(makeRaw());
+
+    const element = await SaudePage(props);
+    const { container } = render(element);
+
+    const fiscalizar = container.querySelector("#para-fiscalizar");
+    expect(fiscalizar).not.toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "Para fiscalizar" }),
+    ).toBeInTheDocument();
+    const secoes = ["contratacao-saude", "fornecedores-saude", "emendas-saude"];
+    secoes.forEach((id) => {
+      const secao = container.querySelector(`#${id}`);
+      expect(secao).not.toBeNull();
+      expect(fiscalizar?.contains(secao)).toBe(true);
+      expect(secao?.querySelector("details")?.open).toBe(false);
+    });
+    [/^O que entrou em \d{4}$/, /^Como mudou ao longo dos anos/].forEach(
+      (titulo) => {
+        const heading = screen.getByRole("heading", { name: titulo });
+        expect(fiscalizar?.contains(heading)).toBe(false);
+      },
+    );
   });
 
   it("não exibe alerta de subexecução quando alertaSubExecucao é falso", async () => {
@@ -119,7 +317,7 @@ describe("SaudePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("exibe mensagem adequada quando não há emendas no exercício", async () => {
+  it("resume zero emendas em Para fiscalizar quando não há emendas no exercício", async () => {
     loadSaudeDataMock.mockResolvedValue(
       makeRaw({
         saude: {
@@ -139,12 +337,12 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(
-      screen.getByText("Nenhuma emenda destinada no exercício"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("saude-resumo-fiscalizar")).toHaveTextContent(
+      /0 emendas · .* autorizados/,
+    );
   });
 
-  it("exibe subtexto em linha única quando há emendas recebidas mas nenhuma empenhada", async () => {
+  it("resume as emendas autorizadas em Para fiscalizar mesmo sem emenda listada", async () => {
     loadSaudeDataMock.mockResolvedValue(
       makeRaw({
         saude: {
@@ -163,9 +361,9 @@ describe("SaudePage", () => {
     const element = await SaudePage(props);
     render(element);
 
-    expect(
-      screen.getByText("Empenho ainda não informado no cadastro de emendas"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("saude-resumo-fiscalizar")).toHaveTextContent(
+      /autorizados/,
+    );
   });
 
   it("mostra quem recebe o dinheiro da saúde com a parte dos maiores fornecedores", async () => {
@@ -197,7 +395,7 @@ describe("SaudePage", () => {
     render(element);
 
     expect(
-      screen.getByText("Quem recebe o dinheiro da saúde"),
+      screen.getByText(/^Quem (recebe|recebeu) o dinheiro da saúde em \d{4}$/),
     ).toBeInTheDocument();
     expect(screen.getByText("FORNECEDOR A")).toBeInTheDocument();
     expect(
@@ -233,5 +431,96 @@ describe("SaudePage", () => {
     expect(container.textContent).toMatch(
       /O ano de 2026 está em andamento.*não deve ser comparado com anos completos/,
     );
+  });
+  it("declara o escopo de cada bloco e não quebra com ano sem dado em rede e produção", async () => {
+    const trend = [2017, 2027].map((ano) => ({ ano, empenhado: 10, pago: 5 }));
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2030, isCurrentYear: false },
+        saude: { executionTrend: trend },
+        redePorMilMoradores: {
+          portalSlug: "x",
+          anoMin: 2017,
+          anoMax: 2027,
+          serie: [2017, 2027].map((ano) => ({
+            ano,
+            totalLeitosExistentes: null,
+            totalLeitosSus: null,
+            totalProfissionais: null,
+            totalProfissionaisSus: null,
+          })),
+        },
+        producaoSus: {
+          portalSlug: "x",
+          anoMin: 2017,
+          anoMax: 2027,
+          referenciaAmbulatorial: null,
+          referenciaInternacoes: null,
+          anoEmAndamento: null,
+          semInternacoes: false,
+          serie: [],
+        },
+      }),
+    );
+
+    const element = await SaudePage(props);
+    render(element);
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((titulo) => titulo.textContent);
+    expect(titulos).toEqual(
+      expect.arrayContaining([
+        "O que entrou em 2030",
+        "Como mudou ao longo dos anos (2017–2027)",
+        "Quantos leitos e profissionais de saúde a cidade tem hoje?",
+        "Quanto atendimento o SUS registra na cidade, de 2017 a 2027?",
+        "Quem recebeu o dinheiro da saúde em 2030",
+      ]),
+    );
+    const retrato = screen.getByTestId("saude-retrato-hoje");
+    const exercicio = screen.getByTestId("saude-resumo-destaque");
+    expect(
+      within(retrato).getByTestId("saude-destaque-farmacia"),
+    ).toBeInTheDocument();
+    expect(
+      within(retrato).getByRole("heading", {
+        level: 3,
+        name: "Quantos leitos e profissionais o SUS tem hoje?",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).getByTestId("saude-minimo-destaque"),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).getByTestId("saude-destaque-origem"),
+    ).toBeInTheDocument();
+    expect(
+      within(exercicio).queryByTestId("saude-destaque-farmacia"),
+    ).toBeNull();
+    expect(within(retrato).queryByTestId("saude-destaque-origem")).toBeNull();
+    expect(within(exercicio).getByText("Dados de 2030")).toBeInTheDocument();
+  });
+
+  it("mostra a data de coleta no grupo Hoje e o aviso de parcial no grupo do exercício", async () => {
+    loadSaudeDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2026, isCurrentYear: true },
+        portalConfig: { dataExtracao: "2026-11-05" },
+      }),
+    );
+
+    render(await SaudePage(props));
+
+    expect(
+      within(screen.getByTestId("saude-retrato-hoje")).getByText(
+        /^Hoje, não muda com o ano escolhido · coletado em /,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("saude-resumo-destaque")).getByText(
+        /^Dados de 2026 \(parcial, .+\)$/,
+      ),
+    ).toBeInTheDocument();
   });
 });

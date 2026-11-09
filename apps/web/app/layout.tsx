@@ -216,8 +216,14 @@ export default async function RootLayout({
     >
       <head>
         {/* Inline e síncrono: next/script beforeInteractive só executa depois do bootstrap do Next, o que causa flash do tema claro. */}
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema */}
-        <script dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }} />
+        {/* React 19 avisa de <script> renderizado no cliente: o HTML do servidor já traz o script, então o cliente não o renderiza de novo. */}
+        {typeof window === "undefined" ? (
+          <script
+            suppressHydrationWarning
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema
+            dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }}
+          />
+        ) : null}
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>

@@ -7,12 +7,25 @@ import {
   getSaudeContratosCountMetrics,
   getSaudeEmendasMetrics,
   getSaudeExecutionTrendMetrics,
+  getSaudeFarmaciaResumo,
   getSaudeFontesReceitaMetrics,
   getSaudeFornecedoresCountMetrics,
   getSaudeLicitacoesMetrics,
+  getSaudeMinimoConstitucional,
+  getSaudeProducaoSus,
+  getSaudeRedePorMilMoradores,
   getTopFornecedoresExecucaoMetrics,
+  type SaudeFarmaciaResumoDTO,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+
+const FARMACIA_RESUMO_INDISPONIVEL: SaudeFarmaciaResumoDTO = {
+  status: "indisponivel",
+  dataPosicaoMaisRecente: null,
+  totalUnidadesAtivas: null,
+  essenciaisNoEstoque: null,
+  totalEssenciais: null,
+};
 
 export interface SaudeSearchParams {
   ano?: string;
@@ -96,6 +109,24 @@ async function fetchRawSaudeData(
     getPortalConfig(tenantSlug),
   ]);
 
+  const minimoSaude = await getSaudeMinimoConstitucional({
+    portalSlug: tenantSlug,
+    ano: context.selectedYear,
+    anoInicial: portalConfig?.anoInicial,
+  });
+
+  const [redePorMilMoradores, producaoSus, farmaciaResumo] = await Promise.all([
+    getSaudeRedePorMilMoradores(tenantSlug),
+    getSaudeProducaoSus(tenantSlug),
+    getSaudeFarmaciaResumo(tenantSlug).catch(
+      (erro: unknown): SaudeFarmaciaResumoDTO => {
+        // biome-ignore lint/suspicious/noConsole: log de falha da Farmácia SUS, que não derruba a página
+        console.error("Falha ao carregar o resumo da Farmácia SUS", erro);
+        return FARMACIA_RESUMO_INDISPONIVEL;
+      },
+    ),
+  ]);
+
   const itensByLicitacao = await getLicitacaoItensBatch(tenantSlug, {
     ano: context.selectedYear,
     licitacoesNumeros: licitacoesEmAndamento
@@ -155,6 +186,10 @@ async function fetchRawSaudeData(
     portalSlug: tenantSlug,
     context,
     portalConfig,
+    minimoSaude,
+    redePorMilMoradores,
+    producaoSus,
+    farmaciaResumo,
     saude,
   };
 }

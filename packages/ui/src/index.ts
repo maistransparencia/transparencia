@@ -1,6 +1,7 @@
 export * from "./components/alert-box";
 export * from "./components/badge";
 export * from "./components/button";
+export * from "./components/collapsible-section";
 export * from "./components/dense-table";
 export * from "./components/external-link-pill";
 export * from "./components/indicadores-linha";
@@ -15,6 +16,7 @@ export * from "./components/share-button";
 export * from "./components/sidebar";
 export * from "./components/stat-row";
 export * from "./components/theme-toggle";
+export * from "./components/threshold-meter";
 export * from "./components/tooltip";
 export * from "./components/truncated-cell-with-modal";
 export * from "./tokens";

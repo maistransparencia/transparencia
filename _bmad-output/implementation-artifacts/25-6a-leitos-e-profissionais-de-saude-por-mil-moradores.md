@@ -1,0 +1,119 @@
+---
+status: done
+---
+
+# Story 25.6a: Leitos e Profissionais de Saúde por Mil Moradores
+
+Critérios de aceite completos: `planning-artifacts/epics.md`, Story 25.6a (Epic 25). Este arquivo guarda só o contexto de execução.
+
+## Pergunta do cidadão (Regra 27)
+
+"Quantos leitos e profissionais de saúde há para cada mil moradores, comparado a anos anteriores?" Sem régua numérica e sem "adequado" ou "insuficiente" (decisão do `jurista-fiscal`, registrada em `epics.md`). "Por mil moradores" é cálculo do portal (dado derivado) e a tela diz isso.
+
+## Padrão a seguir
+
+- Extrator: `elt/extract/farmacia_sus.py`, mesma API (`apidadosabertos.saude.gov.br`). Reaproveitar `_request` (limite de taxa, repetição com espera crescente, timeout), `_extrair_registros`, `codigo_ibge6` e `_competencia_cnes`. Não copiar: extrair o que for comum se a duplicação aparecer.
+- dbt: seguir a Story 25.4 (`elt/transform/models/marts/metrics/fct_educacao_origem_recursos_metricas.sql` e `.yml`, contrato enforced, `accepted_values`) e o schema por fonte com `portal_slug` na chave (Story 24.9).
+- Query: `packages/db/src/queries/` (DTOs camelCase, intervalo de anos real da série).
+- Tela: bloco de `/saude`; `DESIGN.md` e `EXPERIENCE.md` lidos antes (Regra 25). Posição final na página é da 25.10.
+- Skills: `dbt-transparencia`, `editor-cidadao`, `jurista-fiscal`.
+
+## Fontes (spike 25.1, seção 5)
+
+- `/assistencia-a-saude/cnes-leitos` (`co_ibge`, `nu_comp`): leitos existentes e SUS. Competência 2026-05 respondeu; 2026-09 veio vazia.
+- `/assistencia-a-saude/cnes-profissionais`: **traz nome de pessoa física**. Agregar na ingestão; o nome nunca é gravado nem exibido.
+- `/vigilancia-e-meio-ambiente/svsa-populacao-residente`: por ano, sexo e idade, com `cod_mun` de **7 dígitos** (com 6 vem vazio). Até 2025; 2026 vazio.
+- Código IBGE: 6 dígitos no CNES, 7 na população. Converter sempre a partir do `cod_ibge` do portal.
+- **Armadilha:** sem `nu_comp` ou `nu_ano` a API devolve 2008. Sempre filtrar.
+
+## Decisões jurídicas (resumo; texto completo em `epics.md`)
+
+- Sem régua numérica. Base: Portaria de Consolidação GM/MS 1/2017, arts. 102 a 106 (parâmetros indicativos, ajustáveis por município; valores não verificados).
+- Proibida a faixa de 2,5 a 3 leitos por mil (Portaria 1.101/2002, revogada).
+- Licença: tela cita Ministério da Saúde, API e data da competência; "por mil moradores" aparece como cálculo do portal. Risco aceito pelo Julio, sem advogado humano.
+
+## Para decidir na hora de implementar
+
+- Quais campos de cada endpoint entram no schema (a spike não os listou). Ler uma resposta real no ambiente local antes de desenhar a tabela.
+- Como tratar o ano em curso (competência mais recente sem resposta): mostrar até onde a fonte tem dado, com a data.
+- Se a população residente de anos futuros (2026 vazio) usa o último ano disponível. Se usar, a tela diz que é estimativa (Regra 27).
+- Teste de contrato no ambiente da carga diária: roteiro (uma passada por endpoint, com repetição e medição) e resultado registrados aqui; a 25.6b depende dele.
+
+## Fora do escopo
+
+SIA e SIH (25.6b); fila de espera, Previne Brasil, vacinação, transporte e hemodiálise (backlog); régua numérica; execução em produção; cadência de carga (Story 23.8).
+
+## Regras que valem
+
+- Regra 15: só Docker local (`localhost:5544`). **Nunca** exportar `DATABASE_URL` do 5544 junto de `db/test/build` ou `pnpm test` (apaga o banco local). Nunca rodar `elt/extract` contra produção.
+- Regras 2, 9, 10, 20, 23, 25 e 27. Anos antes de 2021 não importam (mart filtra `ano >= 2021`).
+- Após alterar: `make test` e `make check` (dbt), `make test/ts` e `pnpm typecheck` (TypeScript).
+- Commits convencionais em minúsculas, sem referência a story (Regra 19). Não commitar sem pedir ao Julio.
+
+## Registro da implementação (2026-11-07)
+
+### Comportamento real da API (verificado; vale para a 25.6b)
+
+- **`offset` é o número da página** (começa em 0), não a posição da linha. O `_extrair_paginado` da farmácia usa `offset=len(acumulado)` e para quando a página vem menor que `limit`: **não serve** para o CNES.
+- **Nos endpoints do CNES (leitos, profissionais) `limit` é ignorado: 1 linha por página.** Caminhar até a página vazia. Custo medido em cidade pequena: leitos ~5 páginas; **profissionais passa de 298 páginas (> 250 s por competência)**. Por isso o extrator pega **uma competência por ano** (a mais recente com resposta) e a carga diária não deveria repuxar anos fechados (decisão de cadência fica na 23.8).
+- População residente: filtro é **`ano`** (não `nu_ano`; `nu_ano` é ignorado e devolve 2012). `limit` funciona (162 linhas por ano em cidade pequena, uma página).
+- Competência vazia é rotina: o extrator sonda de dezembro para trás (1 chamada por mês) e usa a primeira com leitos.
+- Resposta: chave da lista = nome do endpoint (`cnes_leitos`, `cnes_profissionais`, `svsa_populacao_residente`). Campos usados: leitos `tp_leito`, `qt_existente`, `qt_sus`; profissionais `no_profissional` (só em memória), `st_atende_sus`; população `pop`.
+
+### Decisões
+
+- Agregação na extração: leitos por tipo de leito; profissionais viram 3 totais por competência (vínculos, pessoas distintas, pessoas em vínculo SUS). Pessoa distinta = nome normalizado (homônimos se fundem; é aproximação, a tela diz "cada pessoa conta uma vez").
+- Raw `raw_saude_rede` (3 tabelas, PK com `portal_slug`), staging `saude_rede`, mart `fct_saude_rede_por_mil_moradores_metricas` (contrato enforced). Ano sem resposta do CNES = linha com nulo, nunca zero.
+- Ano em curso: mostra até onde a fonte tem dado, com a competência na legenda.
+- População sem dado no ano (2026): usa o último ano anterior com dado e marca `populacao_estimada`; a tela avisa.
+- Rótulo "Leitos hospitalares" (leitos existentes somam todos os tipos do CNES, não só internação).
+- Tela: bloco "Quantos leitos e profissionais de saúde há para cada mil moradores?" em `/saude` (posição final é da 25.10). Texto revisado pelo `editor-cidadao`. Sem régua, sem "adequado".
+
+### Teste de contrato (critério de aceite)
+
+- Roteiro: `elt/scripts/contrato_api_saude.py` (uma passada por endpoint e por portal, `--repeticoes` vezes, sem repetição automática, timeout 30 s, intervalo 0,5 s; mais uma caminhada de 60 páginas do CNES para o limite de taxa). Cobre também CNES estabelecimentos, SIA e SIH para a 25.6b. Medido em ubuntu-latest (mesmo ambiente da carga diária) por um workflow manual descartável, removido depois da medição; para repetir, recriar um workflow `workflow_dispatch` que rode o script com `PYTHONPATH=.` (Python 3.13, `uv sync --project elt --no-dev`).
+- Baseline local (1 repetição, 2 portais, 5 páginas): todas HTTP 200, 0,14 a 0,39 s, nenhum 429 ou timeout; SIH vazio em 1 dos 2 portais (já conhecido).
+- **Resultado no GitHub Actions (ubuntu-latest, run 42379424892, 2026-11-07, competência 202512, 2 portais, 3 passadas, intervalo 0,5 s, timeout 30 s, job de 1m29s):**
+
+| Endpoint | Chamadas | 200 | 429 | Timeout | Outros erros | Vazias | Mediana (s) | Máximo (s) |
+|---|---|---|---|---|---|---|---|---|
+| cnes_leitos | 6 | 6 | 0 | 0 | 0 | 0 | 0,25 | 1,05 |
+| cnes_profissionais | 6 | 6 | 0 | 0 | 0 | 0 | 0,33 | 0,37 |
+| populacao_residente | 6 | 6 | 0 | 0 | 0 | 0 | 0,51 | 0,58 |
+| cnes_estabelecimentos | 6 | 6 | 0 | 0 | 0 | 0 | 0,27 | 0,28 |
+| sia_procedimentos | 6 | 6 | 0 | 0 | 0 | 0 | 0,29 | 0,30 |
+| sih_procedimentos | 6 | 6 | 0 | 0 | 0 | 3 | 0,26 | 0,26 |
+| caminhada de 60 páginas (cnes_profissionais, 0,5 s entre chamadas) | 60 | 60 | 0 | 0 | 0 | 0 | 0,31 | 0,36 |
+
+- Leitura: sem limite de taxa nem timeout a 0,5 s entre chamadas; cada página custa cerca de 0,3 s mais o intervalo, então uma competência de profissionais (300+ páginas) leva em torno de 4 a 5 minutos por portal. SIH vazio em 1 dos 2 portais nas 3 passadas (mesmo comportamento da spike): "sem dado nesta fonte", não zero. Vale para a 25.6b.
+- O workflow foi disparado por um gatilho temporário de `push` (o `workflow_dispatch` só existe depois que o arquivo está na `dev`) e, concluída a medição, o arquivo foi removido do repositório.
+
+### Review Findings
+
+Revisão 2026-11-07 (`git diff d5078e7a..HEAD`, modo full, 4 camadas). Verificado no código: mart, staging, loader e extrator.
+
+- [x] [Review][Decision] (adiado para a 25.6b por decisão do Julio; o editor-cidadao decide) Rótulo "Leitos hospitalares" e `llms.txt` ("leitos de internação") dizem mais que o dado: a soma é de todos os tipos de leito do CNES, e a tela não avisa. Escolher o rótulo (ex.: "Leitos existentes") e alinhar tela, `llms.txt` e a nota; passar pelo editor-cidadao. [saude-rede-por-mil-moradores.tsx, apps/web/public/llms.txt:478]
+- [x] [Review][Decision] (adiado para a 25.6b por decisão do Julio; o editor-cidadao decide) A legenda diz "quem trabalha em mais de um local conta uma vez só" como fato, mas a contagem é por nome normalizado e homônimos se fundem. Regra 27: dizer que é contagem aproximada por nome. Definir o texto com o editor-cidadao. [saude-rede-por-mil-moradores.tsx]
+- [x] [Review][Patch] ALTA: recarga no mesmo ano acumula competências (carga `replace=False`, PK com `competencia`) e o mart soma leitos de todas as competências do ano e duplica a linha de profissionais, quebrando o índice único `(portal_slug, ano)`. Escolher a competência mais recente por `(portal_slug, ano)` nos dois CTEs e testar com duas competências no mesmo ano. [fct_saude_rede_por_mil_moradores_metricas.sql:15-37, elt/load/saude_rede.py:82]
+- [x] [Review][Patch] MÉDIA: "sem dado, nunca zero" não vale. O staging usa `coalesce(..., 0)` e o extrator mapeia valor ilegível e nomes ausentes para 0, então vira 0,0 por mil. Manter nulo. [stg_saude_rede__leitos_competencia.sql, stg_saude_rede__profissionais_competencia.sql, elt/extract/saude_rede.py (`_inteiro`, `agregar_profissionais`)]
+- [x] [Review][Patch] MÉDIA: ano com população e sem resposta do CNES não gera linha, contra a AC ("linha com nulo"). `anos` deve incluir os anos >= 2021 da população. [fct_saude_rede_por_mil_moradores_metricas.sql:39-43]
+- [x] [Review][Patch] MÉDIA: faltam testes: loader `saude_rede` (carga, idempotência, recarga parcial não apaga) e farmácia ainda garantindo suas tabelas após `garantir_tabelas`; mart com duas competências no mesmo ano; DTO com `leitos_sus`/`profissionais_sus` não nulos (o seed fixa null) e asserção do indicador SUS no componente. [elt/load/__tests__, elt/tests/test_fct_saude_rede_por_mil_moradores.py, packages/db/tests/fixtures/seed.ts]
+- [x] [Review][Patch] MÉDIA: legenda cita só `competenciaLeitos` (some quando só há profissionais; ignora `competenciaProfissionais`, que pode ser de outro ano) e diz "ano mais recente" sem checar. Indicar a competência por indicador. [saude-rede-por-mil-moradores.tsx]
+- [x] [Review][Patch] BAIXA: população estimada só aparece na legenda (primeiro ano marcado); marcar na linha da tabela e no indicador. Sem população, mostrar que falta a população, não o CNES. [saude-rede-por-mil-moradores.tsx, mart]
+- [x] [Review][Patch] BAIXA: `fct_saude_rede_por_mil_moradores_metricas` não tem `_models.yml` (contrato, tipos, testes); a nota da story fala em contrato. A `<table className="w-full text-sm">` fere o DESIGN.md ("elemento nu primeiro") e a tabela de anos, conteúdo de especialista, deveria ficar atrás de "Ver detalhes". [elt/transform/models/marts/metrics, saude-rede-por-mil-moradores.tsx:113]
+- [x] [Review][Defer] `_paginas` para em duas páginas consecutivas idênticas (pode subcontar se duas linhas forem idênticas) e `MAXIMO_PAGINAS = 5000` aborta o portal inteiro em município grande (1 linha por página, ~0,3 s por página) — deferred: não provado que o CNES repete linhas idênticas; medir num município maior antes da 25.6b. Média, não verificado.
+- [x] [Review][Defer] Testes do extrator para página repetida, limite de páginas e falha no meio da extração — deferred: ausência de teste, sem defeito demonstrado; baratos de somar junto aos testes acima.
+
+#### Rejected
+
+- `loader.ts` sem catch se a tabela do mart não existe (deploy antes do dbt): baixa; as demais seções de `/saude` têm a mesma dependência dos marts e o fix mudaria o padrão da página.
+- Colisão de `tipo_leito` ao tirar o prefixo numérico: o teste `unique_combination_of_columns` falharia alto; não foi mostrado par de tipos que colida.
+- Extração falha só em log e o `make` segue para a carga: mesmo padrão da farmácia; a carga usa o diretório da rodada e não carrega nada sem arquivos.
+- `contrato_api_saude.py` sem workflow, com constante da 25.6b e `str(p.cod_ibge)`: cosmético, ferramenta de medição já registrada na story.
+- `cod_ibge=None` quebra em `int(cod_ibge)` e falta isolamento por ano na extração: falham alto, e a falha é registrada por `_log_failed`; sem cenário real mostrado.
+- `profissionaisSusPorMilMoradores` calculado e não exibido: não é defeito (escolha de escopo da tela).
+
+### Ajuste pós-carga manual (2026-11-07)
+
+- A primeira carga real (`make elt/saude-rede`, todos os anos) parecia travada: o extrator só gravava os JSON no fim e não logava nada, e cada ano de profissionais leva minutos. Agora ele loga por ano (competência, páginas de profissionais, segundos) e grava os JSON da rodada ao concluir cada ano (`ao_concluir_ano`). Se a execução cair ou for interrompida, os anos concluídos ficam em `data/raw_runs/<portal>/<rodada>/saude_rede/` e podem ser carregados com `PYTHONPATH=. uv run --project elt python elt/load/run.py --portal <slug>`. Pular anos já carregados continua em aberto (Story 23.8).
+

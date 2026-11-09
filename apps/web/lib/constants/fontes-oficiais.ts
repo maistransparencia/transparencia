@@ -21,6 +21,18 @@ export const FONTES_OFICIAIS = {
     nome: "BNAFAR/Hórus",
     url: "https://opendatasus.saude.gov.br/dataset/bnafar-posicao-de-estoque",
   },
+  siope: {
+    nome: "SIOPE",
+    url: "https://www.fnde.gov.br/siope/",
+  },
+  dadosAbertosSaude: {
+    nome: "Ministério da Saúde (dados abertos)",
+    url: "https://apidadosabertos.saude.gov.br/",
+  },
+  siops: {
+    nome: "SIOPS",
+    url: "https://siops.saude.gov.br/",
+  },
   pncp: {
     nome: "PNCP",
     url: "https://pncp.gov.br",

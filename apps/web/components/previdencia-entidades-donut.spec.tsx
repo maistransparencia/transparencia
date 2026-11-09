@@ -36,8 +36,8 @@ describe("PrevidenciaEntidadesDonut", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("heading", { level: 2 }).textContent).toContain(
-      "FUNPREV",
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toBe(
+      "De quais órgãos veio o dinheiro repassado ao FUNPREV em 2031?",
     );
     expect(screen.getAllByText(/Prefeitura|Camara/i).length).toBeGreaterThan(0);
     const cores = Array.from(

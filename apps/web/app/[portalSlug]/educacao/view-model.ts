@@ -2,13 +2,17 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
   EducacaoExecucaoAnualDTO,
+  EducacaoMatriculasDTO,
   EducacaoMediasEstaduais,
+  EducacaoMediasNacionais,
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
   EducacaoRankingEstadualDTO,
+  EducacaoSiopeDTO,
   EmendasEducacaoStatsDTO,
   EtapaEnsino,
   FornecedorExecucaoItemDTO,
+  MinimoLegalDTO,
 } from "@transparencia/db";
 import { emendasStatsVazio } from "@transparencia/db";
 import { getPartialYearPeriod } from "@transparencia/ui";
@@ -43,13 +47,12 @@ export function isDestaqueEvolucaoIdeb(
 export interface IdebHistoricoPonto {
   ano: number;
   notaIdeb: number | null;
-  metaMec: number | null;
   mediaEstadual: number | null;
+  mediaNacional: number | null;
   saebMatematica: number | null;
   saebLinguaPortuguesa: number | null;
   taxaAprovacao: number | null;
   crescimentoPontos: number | null;
-  atingiuMeta: boolean | null;
 }
 
 export interface IdebEtapaHistorico {
@@ -59,9 +62,7 @@ export interface IdebEtapaHistorico {
   pontoMaisRecente: IdebHistoricoPonto | null;
   periodoLabel: string;
   mediaEstadualLabel: string;
-  anosSemMeta: number[];
-  possuiMeta: boolean;
-  ultimoAnoComMeta: number | null;
+  mediaNacionalLabel: string;
 }
 
 export interface EducacaoExecucaoAnoView {
@@ -81,18 +82,81 @@ export interface AprendizadoEtapa {
   /** Última nota do IDEB até o ano selecionado, com o ano em que foi apurada. */
   notaIdeb: number | null;
   anoApuracao: number | null;
-  metaIdeb: number | null;
-  atingiuMeta: boolean | null;
+  /** Média da rede pública do estado no mesmo ano da nota, com o rótulo dinâmico. */
+  mediaEstadual: number | null;
+  mediaEstadualLabel: string;
+  /** Média nacional da rede pública no mesmo ano da nota. */
+  mediaNacional: number | null;
+  mediaNacionalLabel: string;
+  /** Quanto a média estadual mudou entre o ciclo anterior e o atual, em pontos. */
+  variacaoMediaEstadual: number | null;
   notaAnterior: number | null;
   anoAnterior: number | null;
   variacaoPontos: number | null;
-  classificacao: { posicao: number; total: number } | null;
+  classificacao: {
+    posicao: number;
+    total: number;
+    /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
+    variacaoPosicoes: number | null;
+    /** Redes avaliadas nos dois ciclos, base da variação (nulo quando não comparável). */
+    redesComparadas: number | null;
+    /** Total de redes do ciclo anterior, para dizer a base quando redes saíram. */
+    totalCicloAnterior: number | null;
+  } | null;
+}
+
+export interface ValorPorAlunoPonto {
+  ano: number;
+  valor: number;
+  parcial: boolean;
+  periodo: number;
+}
+
+export type ValorPorAlunoSemValorCausa =
+  | "sem_dado_siope"
+  | "nao_informado_ao_fnde";
+
+export interface ValorPorAlunoView {
+  ano: number;
+  /** Indicador 4.9 do ano selecionado, em R$ da época; nulo quando não há valor. */
+  valor: number | null;
+  parcial: boolean;
+  periodo: number | null;
+  semValorCausa: ValorPorAlunoSemValorCausa | null;
+  /** Ano fechado imediatamente anterior com valor, só quando o atual também é fechado. */
+  anoAnterior: number | null;
+  variacaoValor: number | null;
+  variacaoPercentual: number | null;
+  /** Série anual do próprio município, do mais antigo ao mais recente. */
+  serie: ValorPorAlunoPonto[];
+}
+
+/** Total de alunos da rede municipal no Censo Escolar (INEP). */
+export interface AlunosRedeView {
+  /** Educação infantil mais ensino fundamental na rede municipal. */
+  total: number;
+  educacaoInfantil: number;
+  ensinoFundamental: number;
+  /** Ano real do Censo, que pode ser anterior ao ano selecionado. */
+  anoCenso: number;
+}
+
+export interface MinimosLegaisView {
+  ano: number;
+  /** Ano em andamento: percentual acumulado, sem veredito. */
+  parcial: boolean;
+  periodo: number | null;
+  /** O SIOPE não tem linha para o ano selecionado. */
+  semDadoSiope: boolean;
+  mde: MinimoLegalDTO;
+  fundebProfissionais: MinimoLegalDTO;
 }
 
 export interface EducacaoViewModel {
   portalSlug: string;
   municipioNome: string;
   municipioUf: string;
+  portalUrl: string | null;
   selectedYear: number;
   isCurrentYear: boolean;
   partialPeriod: string;
@@ -111,6 +175,10 @@ export interface EducacaoViewModel {
   contratos: EducacaoContratoDTO[];
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
+  valorPorAluno: ValorPorAlunoView;
+  /** `null` sem Censo disponível: o indicador não aparece. */
+  alunosRede: AlunosRedeView | null;
+  minimosLegais: MinimosLegaisView;
   contratosResumo: {
     totalContratos: number;
     valorTotalContratos: number;
@@ -165,11 +233,14 @@ function buildTotaisPorCategoria(
   ) as Record<EducacaoCategoriaContrato, EducacaoContratosCategoriaTotais>;
 }
 
+const MEDIA_NACIONAL_LABEL = "Média da rede pública do Brasil";
+
 interface BuildEtapaHistoricoParams {
   etapa: EtapaEnsino;
   label: string;
   metrics: EducacaoMetricDTO[];
   mediasEstaduais?: Record<number, number>;
+  mediasNacionais?: Record<number, number>;
   municipioUf?: string;
 }
 
@@ -178,6 +249,7 @@ function buildEtapaHistorico({
   label,
   metrics,
   mediasEstaduais,
+  mediasNacionais,
   municipioUf,
 }: BuildEtapaHistoricoParams): IdebEtapaHistorico {
   const etapaMetrics = metrics
@@ -199,13 +271,12 @@ function buildEtapaHistorico({
     return {
       ano: m.ano,
       notaIdeb: m.notaIdeb,
-      metaMec: m.metaIdeb,
       mediaEstadual,
+      mediaNacional: mediasNacionais?.[m.ano] ?? null,
       saebMatematica: m.saebMatematica,
       saebLinguaPortuguesa: m.saebLinguaPortuguesa,
       taxaAprovacao,
       crescimentoPontos: m.crescimentoPontosIdeb,
-      atingiuMeta: m.atingiuMeta,
     };
   });
 
@@ -217,15 +288,6 @@ function buildEtapaHistorico({
     return `${pontos[0].ano}–${pontos[pontos.length - 1].ano}`;
   })();
 
-  const anosSemMeta = pontos
-    .filter((p) => p.metaMec === null)
-    .map((p) => p.ano);
-  const anosComMeta = pontos
-    .filter((p) => p.metaMec !== null)
-    .map((p) => p.ano);
-  const possuiMeta = anosComMeta.length > 0;
-  const ultimoAnoComMeta = possuiMeta ? Math.max(...anosComMeta) : null;
-
   return {
     etapaEnsino: etapa,
     label,
@@ -233,11 +295,17 @@ function buildEtapaHistorico({
     pontoMaisRecente,
     periodoLabel,
     mediaEstadualLabel,
-    anosSemMeta,
-    possuiMeta,
-    ultimoAnoComMeta,
+    mediaNacionalLabel: MEDIA_NACIONAL_LABEL,
   };
 }
+
+const variacaoEntre = (
+  anterior: number | null | undefined,
+  atual: number | null | undefined,
+): number | null =>
+  anterior == null || atual == null
+    ? null
+    : Math.round((atual - anterior) * 10) / 10;
 
 function buildAprendizadoEtapa({
   historico,
@@ -255,20 +323,42 @@ function buildAprendizadoEtapa({
   );
   const atual = apurados[apurados.length - 1] ?? null;
   const anterior = apurados[apurados.length - 2] ?? null;
+  // Nota e posição só se comparam quando falam do mesmo ciclo anterior.
+  const cicloAnteriorConfere =
+    ranking?.anoCicloAnterior != null &&
+    ranking.anoCicloAnterior === anterior?.ano;
 
   return {
     etapaEnsino: historico.etapaEnsino,
     titulo,
     notaIdeb: atual?.notaIdeb ?? null,
     anoApuracao: atual?.ano ?? null,
-    metaIdeb: atual?.metaMec ?? null,
-    atingiuMeta: atual?.atingiuMeta ?? null,
+    mediaEstadual: atual?.mediaEstadual ?? null,
+    mediaEstadualLabel: historico.mediaEstadualLabel,
+    mediaNacional: atual?.mediaNacional ?? null,
+    mediaNacionalLabel: historico.mediaNacionalLabel,
+    variacaoMediaEstadual: variacaoEntre(
+      anterior?.mediaEstadual,
+      atual?.mediaEstadual,
+    ),
     notaAnterior: anterior?.notaIdeb ?? null,
     anoAnterior: anterior?.ano ?? null,
     variacaoPontos: atual?.crescimentoPontos ?? null,
     classificacao:
       ranking?.posicaoRanking != null && ranking.totalMunicipios != null
-        ? { posicao: ranking.posicaoRanking, total: ranking.totalMunicipios }
+        ? {
+            posicao: ranking.posicaoRanking,
+            total: ranking.totalMunicipios,
+            variacaoPosicoes: cicloAnteriorConfere
+              ? ranking.variacaoPosicoes
+              : null,
+            redesComparadas: cicloAnteriorConfere
+              ? (ranking.redesComparadas ?? null)
+              : null,
+            totalCicloAnterior: cicloAnteriorConfere
+              ? ranking.totalMunicipiosCicloAnterior
+              : null,
+          }
         : null,
   };
 }
@@ -300,12 +390,100 @@ function buildExecucaoAno(
   };
 }
 
+export function buildValorPorAluno(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+): ValorPorAlunoView {
+  const serie: ValorPorAlunoPonto[] = (siope?.serie ?? []).flatMap((item) =>
+    item.investimentoPorAluno === null
+      ? []
+      : [
+          {
+            ano: item.ano,
+            valor: item.investimentoPorAluno,
+            parcial: item.situacao === "parcial",
+            periodo: item.periodo,
+          },
+        ],
+  );
+  const atual = siope?.atual ?? null;
+  const valor = atual?.investimentoPorAluno ?? null;
+  const parcial = atual?.situacao === "parcial";
+  const anterior =
+    valor !== null && !parcial
+      ? serie
+          .filter((ponto) => !ponto.parcial && ponto.ano < ano)
+          .reduce<ValorPorAlunoPonto | null>(
+            (maisRecente, ponto) =>
+              maisRecente === null || ponto.ano > maisRecente.ano
+                ? ponto
+                : maisRecente,
+            null,
+          )
+      : null;
+  const variacaoValor =
+    valor !== null && anterior !== null ? valor - anterior.valor : null;
+  const semValorCausa: ValorPorAlunoSemValorCausa | null = (() => {
+    if (valor !== null) return null;
+    return atual === null ? "sem_dado_siope" : "nao_informado_ao_fnde";
+  })();
+
+  return {
+    ano,
+    valor,
+    parcial,
+    periodo: atual?.periodo ?? null,
+    semValorCausa,
+    anoAnterior: anterior?.ano ?? null,
+    variacaoValor,
+    variacaoPercentual:
+      variacaoValor !== null && anterior !== null && anterior.valor !== 0
+        ? (variacaoValor / anterior.valor) * 100
+        : null,
+    serie,
+  };
+}
+
+export function buildMinimosLegais(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+): MinimosLegaisView {
+  const semMinimo: MinimoLegalDTO = {
+    limite: null,
+    percentualAplicado: null,
+    resultado: "sem_dado",
+    baseLegal: null,
+    urlBaseLegal: null,
+  };
+  return {
+    ano,
+    parcial: siope?.atual?.situacao === "parcial",
+    periodo: siope?.atual?.periodo ?? null,
+    semDadoSiope: !siope?.atual,
+    mde: siope?.minimos.mde ?? semMinimo,
+    fundebProfissionais: siope?.minimos.fundebProfissionais ?? semMinimo,
+  };
+}
+
+export function buildAlunosRede(
+  matriculas: EducacaoMatriculasDTO | null | undefined,
+): AlunosRedeView | null {
+  if (!matriculas) return null;
+  return {
+    total: matriculas.matriculasEducacaoBasica,
+    educacaoInfantil: matriculas.matriculasEducacaoInfantil,
+    ensinoFundamental: matriculas.matriculasEnsinoFundamental,
+    anoCenso: matriculas.anoCenso,
+  };
+}
+
 export function buildEducacaoViewModel(raw: {
   portalSlug: string;
   portalConfig?: {
     cidadeClean?: string;
     uf?: string;
     displayName?: string;
+    portalUrl?: string;
     dataExtracao?: string | Date | null;
     dataExtracaoDate?: string | Date | null;
   } | null;
@@ -313,7 +491,10 @@ export function buildEducacaoViewModel(raw: {
   contratos: EducacaoContratoDTO[];
   emendas?: EmendasEducacaoStatsDTO;
   origemRecursos?: EducacaoOrigemRecursosDTO | null;
+  siope?: EducacaoSiopeDTO | null;
+  matriculas?: EducacaoMatriculasDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
+  mediasNacionais?: EducacaoMediasNacionais;
   execucaoAnual?: EducacaoExecucaoAnualDTO[];
   topFornecedores?: FornecedorExecucaoItemDTO[];
   rankingAnosIniciais?: EducacaoRankingEstadualDTO | null;
@@ -345,6 +526,7 @@ export function buildEducacaoViewModel(raw: {
     label: "Anos Iniciais (1º ao 5º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosIniciais,
+    mediasNacionais: raw.mediasNacionais?.anosIniciais,
     municipioUf,
   });
   const historicoFinais = buildEtapaHistorico({
@@ -352,6 +534,7 @@ export function buildEducacaoViewModel(raw: {
     label: "Anos Finais (6º ao 9º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosFinais,
+    mediasNacionais: raw.mediasNacionais?.anosFinais,
     municipioUf,
   });
 
@@ -371,6 +554,7 @@ export function buildEducacaoViewModel(raw: {
     portalSlug: raw.portalSlug,
     municipioNome,
     municipioUf,
+    portalUrl: raw.portalConfig?.portalUrl || null,
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
     partialPeriod: getPartialYearPeriod(
@@ -405,6 +589,9 @@ export function buildEducacaoViewModel(raw: {
     contratos,
     emendas: raw.emendas ?? emendasStatsVazio,
     origemRecursos: raw.origemRecursos ?? null,
+    valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
+    alunosRede: buildAlunosRede(raw.matriculas),
+    minimosLegais: buildMinimosLegais(raw.siope, raw.context.selectedYear),
     contratosResumo: {
       totalContratos: contratos.length,
       valorTotalContratos: contratos.reduce(

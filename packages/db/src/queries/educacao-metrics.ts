@@ -106,9 +106,15 @@ export interface ResumoEducacaoDTO {
 }
 
 export interface EducacaoRankingEstadualDTO {
+  /** Redes avaliadas nos dois ciclos (base da variação); nulo quando não comparável. */
+  redesComparadas?: number | null;
   posicaoRanking: number | null;
   totalMunicipios: number | null;
+  /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
   variacaoPosicoes: number | null;
+  /** Ano do ciclo anterior com notas da etapa na UF; nulo se não houver. */
+  anoCicloAnterior: number | null;
+  totalMunicipiosCicloAnterior: number | null;
 }
 
 export type EducacaoMediasEstaduais = Record<
@@ -300,6 +306,83 @@ export async function getResumoEducacao(
   };
 }
 
+export interface ClassificacaoRedes {
+  posicao: number | null;
+  total: number;
+  codigosIbge: number[];
+}
+
+/**
+ * Classificação por competição: redes com a mesma nota dividem a posição
+ * (1 + quantas redes têm nota estritamente maior), então um empate nunca
+ * vira subida ou queda por desempate arbitrário.
+ */
+export function classificarRedes(
+  rows: ReadonlyArray<{
+    cod_ibge: number | string;
+    nota_ideb: number | string;
+  }>,
+  codIbge: number,
+): ClassificacaoRedes {
+  const notas = rows.map((row) => ({
+    codIbge: Number(row.cod_ibge),
+    nota: Number(row.nota_ideb),
+  }));
+  const propria = notas.find((rede) => rede.codIbge === codIbge);
+  return {
+    posicao:
+      propria === undefined
+        ? null
+        : 1 + notas.filter((rede) => rede.nota > propria.nota).length,
+    total: notas.length,
+    codigosIbge: notas.map((rede) => rede.codIbge),
+  };
+}
+
+export interface VariacaoPosicoes {
+  /** Posições ganhas (positivo) ou perdidas (negativo). */
+  variacaoPosicoes: number;
+  /** Redes avaliadas nos dois ciclos, base única da comparação. */
+  redesComparadas: number;
+}
+
+type NotaRede = { cod_ibge: number | string; nota_ideb: number | string };
+
+/**
+ * Compara a posição do município entre dois ciclos do IDEB usando só as redes
+ * presentes nos dois, para que entrada ou saída de redes não vire subida ou
+ * queda. Nulo quando o município não está nos dois ciclos.
+ */
+export function calcularVariacaoPosicoes({
+  codIbge,
+  atual,
+  anterior,
+}: {
+  codIbge: number;
+  atual: ReadonlyArray<NotaRede>;
+  anterior: ReadonlyArray<NotaRede> | null;
+}): VariacaoPosicoes | null {
+  if (anterior === null) return null;
+  const codigosAnteriores = new Set(anterior.map((r) => Number(r.cod_ibge)));
+  const comuns = new Set(
+    atual
+      .map((r) => Number(r.cod_ibge))
+      .filter((codigo) => codigosAnteriores.has(codigo)),
+  );
+  const restringir = (rows: ReadonlyArray<NotaRede>) =>
+    classificarRedes(
+      rows.filter((r) => comuns.has(Number(r.cod_ibge))),
+      codIbge,
+    );
+  const posicaoAtual = restringir(atual).posicao;
+  const posicaoAnterior = restringir(anterior).posicao;
+  if (posicaoAtual === null || posicaoAnterior === null) return null;
+  return {
+    variacaoPosicoes: posicaoAnterior - posicaoAtual,
+    redesComparadas: comuns.size,
+  };
+}
+
 /**
  * Calcula a classificação do município no ranking estadual do IDEB para a etapa solicitada
  * com base nos microdados de seed_inep_ideb, computando posição e evolução frente ao ciclo anterior.
@@ -417,48 +500,85 @@ export async function getEducacaoRankingEstadual(
       }
     }
 
-    const currentIdx = currentRows.findIndex(
-      (r) => Number(r.cod_ibge) === codIbge,
-    );
+    const atual = classificarRedes(currentRows, codIbge);
 
-    const totalMunicipios = currentRows.length;
-    const posicaoRanking = currentIdx !== -1 ? currentIdx + 1 : null;
+    const anoAnteriorRow = await db
+      .selectFrom("seed_inep_ideb")
+      .select("ano")
+      .where("rede", "=", "municipal")
+      .where("etapa_ensino", "=", dbEtapa)
+      .where("cod_ibge", ">=", ufMin)
+      .where("cod_ibge", "<", ufMax)
+      .where("nota_ideb", "is not", null)
+      .where("ano", "<", targetAno)
+      .orderBy("ano", "desc")
+      .limit(1)
+      .executeTakeFirst();
 
-    let variacaoPosicoes: number | null = null;
-    if (posicaoRanking !== null) {
-      const prevRows = await db
-        .selectFrom("seed_inep_ideb")
-        .select(["cod_ibge", "nota_ideb"])
-        .where("ano", "=", targetAno - 2)
-        .where("rede", "=", "municipal")
-        .where("etapa_ensino", "=", dbEtapa)
-        .where("cod_ibge", ">=", ufMin)
-        .where("cod_ibge", "<", ufMax)
-        .where("nota_ideb", "is not", null)
-        .orderBy("nota_ideb", "desc")
-        .orderBy("cod_ibge", "asc")
-        .execute();
+    const anoCicloAnterior =
+      anoAnteriorRow?.ano != null ? Number(anoAnteriorRow.ano) : null;
 
-      if (prevRows.length > 0) {
-        const prevIdx = prevRows.findIndex(
-          (r) => Number(r.cod_ibge) === codIbge,
-        );
-        if (prevIdx !== -1) {
-          const posicaoAnterior = prevIdx + 1;
-          variacaoPosicoes = posicaoAnterior - posicaoRanking;
-        }
-      }
-    }
+    const prevRows =
+      anoCicloAnterior === null
+        ? []
+        : await db
+            .selectFrom("seed_inep_ideb")
+            .select(["cod_ibge", "nota_ideb"])
+            .where("ano", "=", anoCicloAnterior)
+            .where("rede", "=", "municipal")
+            .where("etapa_ensino", "=", dbEtapa)
+            .where("cod_ibge", ">=", ufMin)
+            .where("cod_ibge", "<", ufMax)
+            .where("nota_ideb", "is not", null)
+            .orderBy("nota_ideb", "desc")
+            .orderBy("cod_ibge", "asc")
+            .execute();
+
+    const anterior =
+      prevRows.length > 0 ? classificarRedes(prevRows, codIbge) : null;
+    const comparacao = calcularVariacaoPosicoes({
+      codIbge,
+      atual: currentRows,
+      anterior: prevRows.length > 0 ? prevRows : null,
+    });
 
     return {
-      posicaoRanking,
-      totalMunicipios,
-      variacaoPosicoes,
+      posicaoRanking: atual.posicao,
+      totalMunicipios: atual.total,
+      variacaoPosicoes: comparacao?.variacaoPosicoes ?? null,
+      redesComparadas: comparacao?.redesComparadas ?? null,
+      anoCicloAnterior: anterior === null ? null : anoCicloAnterior,
+      totalMunicipiosCicloAnterior: anterior?.total ?? null,
     };
   } catch {
     return null;
   }
 }
+
+const agruparNotasPorEtapa = (
+  rows: Array<{ ano: unknown; etapa_ensino: unknown; nota_ideb: unknown }>,
+): EducacaoMediasEstaduais => {
+  const pontos = rows
+    .map((r) => ({
+      etapa: toEtapaEnsino(String(r.etapa_ensino)),
+      ano: Number(r.ano),
+      nota: toNumberOrNull(r.nota_ideb),
+    }))
+    .filter(
+      (ponto): ponto is typeof ponto & { nota: number } =>
+        ponto.nota !== null && !Number.isNaN(ponto.nota),
+    );
+
+  const porEtapa = (etapa: EtapaEnsino): Record<number, number> =>
+    Object.fromEntries(
+      pontos.filter((p) => p.etapa === etapa).map((p) => [p.ano, p.nota]),
+    );
+
+  return {
+    anosIniciais: porEtapa("anosIniciais"),
+    anosFinais: porEtapa("anosFinais"),
+  };
+};
 
 /**
  * Retorna as médias estaduais do IDEB para a UF correspondente ao município informado,
@@ -518,28 +638,28 @@ export async function getEducacaoMediasEstaduais(
       .where("nota_ideb", "is not", null)
       .execute();
 
-    const pontos = rows
-      .map((r) => ({
-        etapa: toEtapaEnsino(String(r.etapa_ensino)),
-        ano: Number(r.ano),
-        nota: toNumberOrNull(r.nota_ideb),
-      }))
-      .filter(
-        (ponto): ponto is typeof ponto & { nota: number } =>
-          ponto.nota !== null && !Number.isNaN(ponto.nota),
-      );
-
-    const porEtapa = (etapa: EtapaEnsino): Record<number, number> =>
-      Object.fromEntries(
-        pontos.filter((p) => p.etapa === etapa).map((p) => [p.ano, p.nota]),
-      );
-
-    return {
-      anosIniciais: porEtapa("anosIniciais"),
-      anosFinais: porEtapa("anosFinais"),
-    };
+    return agruparNotasPorEtapa(rows);
   } catch {
     return empty;
+  }
+}
+
+export type EducacaoMediasNacionais = EducacaoMediasEstaduais;
+
+/**
+ * Retorna a média nacional do IDEB da rede pública por etapa de ensino e ano (seed_inep_ideb_brasil).
+ */
+export async function getEducacaoMediasNacionais(): Promise<EducacaoMediasNacionais> {
+  try {
+    const rows = await db
+      .selectFrom("seed_inep_ideb_brasil")
+      .select(["ano", "etapa_ensino", "nota_ideb"])
+      .where("rede", "=", "publica")
+      .where("nota_ideb", "is not", null)
+      .execute();
+    return agruparNotasPorEtapa(rows);
+  } catch {
+    return { anosIniciais: {}, anosFinais: {} };
   }
 }
 

@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: fct_educacao_matriculas_metricas
+    description: "Matrículas da educação infantil e do ensino fundamental (1º ao 9º ano) na rede municipal (Censo Escolar do INEP, via API do IBGE) por portal e ano. Sem registro quando não há matrícula, nunca zero"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Ano do Censo Escolar (referência de maio)"
+        tests:
+          - not_null
+      - name: matriculas_educacao_infantil
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Matrículas de creche e pré-escola na rede municipal (API do IBGE, Censo Escolar do INEP)"
+        tests:
+          - not_null
+      - name: matriculas_ensino_fundamental
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Matrículas do 1º ao 9º ano do ensino fundamental na rede municipal"
+        tests:
+          - not_null
+      - name: matriculas_educacao_basica
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Educação infantil mais ensino fundamental na rede municipal (não inclui médio, EJA nem educação especial)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 5000000
+      - name: coletado_em
+        data_type: timestamp with time zone
+        description: "Momento da coleta na API do IBGE"

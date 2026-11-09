@@ -47,6 +47,8 @@ export interface IndicatorPanelProps {
   bare?: boolean;
   /** Número fixo de colunas; sem ele a grade se ajusta sozinha (`auto-fit`). */
   columns?: 2 | 3 | 4;
+  /** Com `columns` fixo, já começa em 2 colunas no celular (listas longas). */
+  twoColumnsOnMobile?: boolean;
   className?: string;
 }
 
@@ -57,6 +59,7 @@ export function IndicatorPanel({
   tone = "default",
   bare = false,
   columns,
+  twoColumnsOnMobile = false,
   className,
 }: IndicatorPanelProps) {
   return (
@@ -73,6 +76,7 @@ export function IndicatorPanel({
           columns
             ? COLUMNS_CLASS[columns]
             : "grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]",
+          columns && twoColumnsOnMobile && "grid-cols-2",
         )}
       >
         {Children.map(children, (child) =>
@@ -96,7 +100,10 @@ export interface IndicatorProps {
   size?: IndicatorSize;
   /** Variação com texto próprio; a cor nunca é o único sinal. */
   trend?: { value: string | number; isPositive?: boolean };
+  /** Ação logo abaixo da nota (ex.: "Ver detalhes"); fica dentro do `dd`. */
+  action?: React.ReactNode;
   className?: string;
+  "data-testid"?: string;
 }
 
 const temConteudo = (conteudo: React.ReactNode) =>
@@ -113,10 +120,12 @@ export function Indicator({
   tone = "default",
   size = "md",
   trend,
+  action,
   className,
+  "data-testid": testId,
 }: IndicatorProps) {
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("space-y-1", className)} data-testid={testId}>
       <dt className="eyebrow">{label}</dt>
       <dd className={cn(SIZE_CLASS[size], VALUE_TONE_CLASS[tone])}>{value}</dd>
       {temConteudo(note) || trend ? (
@@ -131,6 +140,7 @@ export function Indicator({
           ) : null}
         </dd>
       ) : null}
+      {temConteudo(action) ? <dd>{action}</dd> : null}
     </div>
   );
 }

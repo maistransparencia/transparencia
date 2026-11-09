@@ -84,4 +84,16 @@ describe("DespesasFornecedoresSection", () => {
       "/portal_teste/licitacoes?ano=2026&q=05422000000101",
     );
   });
+
+  it("usa a nota padrão por omissão e a omite com nota={null}", () => {
+    const props = {
+      portalSlug: "portal_teste",
+      ano: 2026,
+      fornecedores: [linha()],
+    };
+    const { rerender } = render(<DespesasFornecedoresSection {...props} />);
+    expect(screen.getByText(/não se o preço foi justo/)).toBeInTheDocument();
+    rerender(<DespesasFornecedoresSection {...props} nota={null} />);
+    expect(screen.queryByText(/não se o preço foi justo/)).toBeNull();
+  });
 });

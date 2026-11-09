@@ -12,9 +12,12 @@ vi.mock("@transparencia/db", () => ({
   getResumoEducacao: vi.fn(),
   getEducacaoContratos: vi.fn(),
   getEducacaoMediasEstaduais: vi.fn(),
+  getEducacaoMediasNacionais: vi.fn(),
   getEducacaoEmendasMetrics: vi.fn(),
   getEducacaoOrigemRecursos: vi.fn(),
   getEducacaoExecucaoAnual: vi.fn(),
+  getEducacaoSiope: vi.fn(),
+  getEducacaoMatriculas: vi.fn(),
   getTopFornecedoresEducacaoMetrics: vi.fn(),
   getEducacaoRankingEstadual: vi.fn(),
 }));
@@ -158,6 +161,10 @@ describe("educacao/loader", () => {
         anosIniciais: {},
         anosFinais: {},
       });
+      vi.mocked(dbModule.getEducacaoMediasNacionais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
       vi.mocked(dbModule.getEducacaoOrigemRecursos).mockResolvedValue({
         portalSlug: "porciuncula_prefeitura",
         ano: 2025,
@@ -186,6 +193,8 @@ describe("educacao/loader", () => {
         posicaoRanking: 46,
         totalMunicipios: 92,
         variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        totalMunicipiosCicloAnterior: 92,
       });
 
       const data = await loadEducacaoData("porciuncula_prefeitura", {
@@ -218,6 +227,14 @@ describe("educacao/loader", () => {
       expect(data.origemRecursos?.nomeOrgao).toBe(
         "Fundo Municipal de Educação",
       );
+      expect(dbModule.getEducacaoSiope).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
+      expect(dbModule.getEducacaoMatriculas).toHaveBeenCalledWith({
+        portalSlug: "porciuncula_prefeitura",
+        ano: 2025,
+      });
       expect(dbModule.getEducacaoOrigemRecursos).toHaveBeenCalledWith({
         portalSlug: "porciuncula_prefeitura",
         ano: 2025,
@@ -242,6 +259,7 @@ describe("educacao/loader", () => {
       expect(dbModule.getEducacaoMediasEstaduais).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
       );
+      expect(dbModule.getEducacaoMediasNacionais).toHaveBeenCalledTimes(1);
       expect(dbModule.getEducacaoEmendasMetrics).toHaveBeenCalledWith(
         "porciuncula_prefeitura",
         2025,
@@ -264,6 +282,10 @@ describe("educacao/loader", () => {
         lista: [],
       });
       vi.mocked(dbModule.getEducacaoMediasEstaduais).mockResolvedValue({
+        anosIniciais: {},
+        anosFinais: {},
+      });
+      vi.mocked(dbModule.getEducacaoMediasNacionais).mockResolvedValue({
         anosIniciais: {},
         anosFinais: {},
       });
