@@ -86,3 +86,12 @@ Status: done
 - **Revisão:** 3 patches médios e 1 baixo aplicados; 6 baixos rejeitados com motivo no log; nada adiado.
 - **Verificação:** `tsc --noEmit` limpo; vitest em `apps/web` 1767 testes passando (sem `DATABASE_URL`).
 - **Riscos residuais:** revisão de texto pelo `editor-cidadao` e checagem visual nos dois temas pendentes (revisão humana); `make test/ts` na raiz não executado; indicadores "valor por aluno" e "alunos na rede" do hero de educação sem escopo próprio.
+
+## Revisão humana (2026-11-09)
+
+- **Conferência visual do Julio** em `/saude`, `/educacao` e `/previdencia`: eyebrow duplicado removido (título agora resume o antigo lead, também em obras e previdência); desalinhamento dos dois destaques do topo de saúde corrigido (título com altura mínima de duas linhas em telas médias e maiores); títulos do topo de saúde no passado em anos fechados.
+- **`editor-cidadao`** (10 ajustes, todos aplicados): tempo verbal em "Como o Fundo contrata" e "Quem recebe…" (saúde e educação); série do SUS como pergunta; "Dados de {ano}" no lugar de "Exercício {ano}"; "Hoje, não muda com o ano escolhido"; sujeito explícito nos títulos de saúde e educação; três títulos de previdência reescritos; legenda "Fundo de aposentadoria dos servidores: Nome (SIGLA)". Três entradas novas em `docs/glossario-cidadao.md`. O formato "parcial, jan–nov" fica como está: `getPartialYearPeriod` é compartilhado por 12 arquivos de outras páginas.
+- **Erro corrigido na própria revisão:** o título "Dívidas do fundo de aposentadoria em parcelamento" invertia o devedor. Os dados (`fct_previdencia_cadprev_metricas`, banco local) mostram empenhos da Prefeitura pagos ao fundo (fornecedor NATPREVI e CAPREM); o título agora diz "Quanto a Prefeitura pagou em {ano} de dívidas parceladas com o fundo de aposentadoria?".
+- **`contador-publico`:** recorte da tabela OK (100% dos empenhos citam parcelamento, acordo ou confissão; sem soma de estágios; `portal_slug` no join e no `GROUP BY`). Quatro itens em `deferred-work.md` (sigla por trecho, literais no TS, restos a pagar no `pago`, base legal para o `jurista-fiscal`).
+- **Verificação:** `pnpm typecheck` limpo; vitest de `components`, `app/[portalSlug]` e `lib` com 1267 testes passando (sem `DATABASE_URL`).
+- **Pendente:** `make test/ts` na raiz (não executado).
