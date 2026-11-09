@@ -378,7 +378,7 @@ describe("PrevidenciaPage", () => {
       expect.arrayContaining([
         "Quanto o fundo de aposentadoria tinha em caixa e aplicado em 2030?",
         "Evolução do Patrimônio Financeiro da Previdência (2017–2027)",
-        "Dívidas do fundo de aposentadoria em parcelamento em 2030",
+        "Quanto a Prefeitura pagou em 2030 de dívidas parceladas com o fundo de aposentadoria?",
         "Para onde foi o dinheiro repassado à previdência em 2030?",
       ]),
     );
@@ -437,7 +437,7 @@ describe("PrevidenciaPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /dívidas do fundo de aposentadoria em parcelamento/i,
+        name: /dívidas parceladas com o fundo de aposentadoria/i,
       }),
     ).toBeInTheDocument();
     expect(
