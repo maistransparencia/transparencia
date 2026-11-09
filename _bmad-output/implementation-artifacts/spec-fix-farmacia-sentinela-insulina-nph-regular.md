@@ -2,7 +2,7 @@
 title: 'Farmácia: separar insulina NPH e Regular e avisar sobre substâncias relacionadas com estoque'
 type: 'bugfix'
 created: '2026-11-09'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 baseline_commit: '318905f24699e33e8d2105e683bb79a8d7935587'
@@ -58,16 +58,18 @@ context: []
 
 **Acceptance Criteria:**
 - Given unidade só com NPH vencida e glargina válida, when abre `/farmacia`, then o card "Insulina NPH" mostra lote vencido e o aviso de outra insulina com lote válido.
-- Given o seed, when consultado, then não existe sentinela `insulina`, e sim `insulina_nph` e `insulina_regular`.
+- Given o seed, when consultado, then existem os sentinelas `insulina_nph` e `insulina_regular`, além de `insulina` (qualquer tipo, inclusive análogas), conforme renegociado.
 - Given Levanlodipino válido e Anlodipino sem estoque, then Anlodipino continua sem registro, com aviso.
 - `make test`, `make check`, `make test/ts` e `pnpm typecheck` passam.
 
 ## Implementation Notes
 
-- Renegociado pelo Julio: `insulina` (qualquer tipo, inclusive análogas) voltou como sentinela, ao lado de `insulina_nph` e `insulina_regular`; sentinelas passam a 23.
-- Seed ganhou `tipo_correspondencia`; sentinelas passaram de 21 para 22; ordem de exibição deslocada em 1 a partir de dipirona.
+- Renegociado pelo Julio: `insulina` (qualquer tipo, inclusive análogas) voltou como sentinela, ao lado de `insulina_nph` e `insulina_regular`; sentinelas passaram de 21 para 23. O bloco congelado acima descreve o plano original (divisão pura); vale o que está aqui e nos critérios de aceite.
+- Seed ganhou `tipo_correspondencia`; ordem de exibição deslocada em 2 a partir de dipirona.
 - Mart expõe `possui_relacionado_lote_sem_validade` e `data_validade_relacionado_mais_tardia`; a consulta decide o aviso com a validade de hoje.
-- Aviso genérico ("Há remédio parecido com lote válido, mas não é o mesmo"), só quando o essencial não está no estoque. Texto não passou pelo `editor-cidadao`.
+- Aviso genérico ("Há um parecido com lote válido"), só quando o essencial não está no estoque. Texto revisado pelo `editor-cidadao` e encurtado para caber na linha do item (estilo `caption`, sem quebra).
+- Mistura 70/30 conta como combinação apenas no card `insulina`; NPH e Regular ficam com combinação 0.
+- Review (4 lentes) concluído: decisão do texto do aviso resolvida, testes dbt de cobertura aplicados; dois itens adiados em `deferred-work.md`.
 - `llms-full.txt` e `CHANGELOG.md` atualizados. Verificado: `make check`, `make test` (400), db (428) e web (1769) no banco 5545, `tsc`, biome.
 
 ## Verification
