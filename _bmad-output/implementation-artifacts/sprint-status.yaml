@@ -204,7 +204,7 @@ development_status:
   epic-18-retrospective: optional
 
 
-  epic-19: in-progress
+  epic-19: done
   19-1-pipeline-elt-da-farmacia-sus-lei-14654-estoque-bnafar-horus-e-estabelecimentos-cnes: done
   19-2-pagina-da-farmacia-sus-camada-de-dados-e-card-resumo-na-home: done
   19-3-reorganizacao-da-arquitetura-da-homepage-dobra-de-sentinela-civica-e-trofeus-da-cidade: done
@@ -220,7 +220,7 @@ development_status:
   19-6-atalho-remedios-no-topbar-mobile: optional
   epic-19-retrospective: optional
 
-  epic-20: in-progress
+  epic-20: done
   20-1-tokens-tema-claro-escuro-e-guarda-de-arquitetura: done
   20-2-shell-sidebar-ribbon-footer-e-alternador-de-tema: done
   20-3-componentes-de-packages-ui-no-padrao-divisorias: done
@@ -245,6 +245,7 @@ development_status:
 
   epic-23: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
+  23-8-cadencia-de-ingestao-por-fonte: backlog
 
   epic-24: done
   24-1-ingestao-do-relatorio-gerencial-do-siope: done
@@ -261,7 +262,7 @@ development_status:
   24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: done
   epic-24-retrospective: optional
 
-  epic-25: in-progress
+  epic-25: done
   25-1a-spike-de-emendas-fonte-federal-e-conferencia-com-o-portal-municipal: done
   25-1c-spike-de-emendas-estaduais-fonte-oficial-e-conferencia-com-o-portal-municipal: done
   25-1-spike-de-fontes-oficiais-dos-indicadores-de-saude: done
