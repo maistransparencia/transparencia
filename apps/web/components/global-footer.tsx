@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BrandLogo,
   cn,
   fmtDate,
   type PortalOption,
@@ -14,7 +15,6 @@ import { env } from "@/env";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { botaoPrimario } from "./botoes-acao";
-import { BrandLogo } from "./brand-logo";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";

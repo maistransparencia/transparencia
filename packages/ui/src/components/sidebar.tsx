@@ -3,7 +3,6 @@
 import {
   ChevronDown,
   FileText,
-  Landmark,
   LayoutDashboard,
   PieChart,
   Pill,
@@ -22,6 +21,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
+import { BrandLogo } from "./brand-logo";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 import { ShareButton } from "./share-button";
 import { ThemeToggle } from "./theme-toggle";
@@ -49,7 +49,6 @@ export interface PortalOption {
   displayName: string;
   uf?: string;
   portalUrl?: string;
-  brasaoAsset?: string;
   anoInicial?: number;
   dataExtracao?: string;
   previdencia?: PrevidenciaNavConfig;
@@ -80,7 +79,6 @@ export interface SidebarProps {
   entidades?: MultiSelectOption[];
   lastExtractionDate?: string;
   officialPortalUrl?: string;
-  brasaoAsset?: string;
   selectedExercice?: string;
   onExerciceChange?: (year: string) => void;
   selectedEntidades?: string[];
@@ -89,6 +87,7 @@ export interface SidebarProps {
   portais?: PortalOption[];
   onPortalChange?: (portalSlug: string) => void;
   onOpenNewsletter?: () => void;
+  brandName?: string;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
   mobileShareSlot?: React.ReactNode;
@@ -98,6 +97,12 @@ export interface SidebarProps {
   onMobileOpenChange?: (open: boolean) => void;
   radarAlertCount?: number;
   previdencia?: PrevidenciaNavConfig;
+}
+
+const cityNamePrefix = /^Prefeitura( Municipal)? (de|do|da|dos|das)\s+/i;
+
+function toCityName(displayName: string) {
+  return displayName.replace(cityNamePrefix, "");
 }
 
 function YearSelect({
@@ -192,7 +197,7 @@ export function PortalSelect({
               value={p.portalSlug}
               className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
             >
-              {p.displayName}
+              {toCityName(p.displayName)}
             </option>
           ))}
         </select>
@@ -219,7 +224,7 @@ export function PortalSelect({
             value={p.portalSlug}
             className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
           >
-            {p.displayName}
+            {toCityName(p.displayName)}
           </option>
         ))}
       </select>
@@ -233,11 +238,9 @@ export function PortalSelect({
 
 export function Sidebar({
   portalName,
-  stateUF,
   portalTitle,
   anoInicial,
   entidades = [],
-  brasaoAsset,
   selectedExercice,
   onExerciceChange,
   selectedEntidades,
@@ -245,6 +248,7 @@ export function Sidebar({
   portalSlug,
   portais,
   onPortalChange,
+  brandName,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
   mobileShareSlot,
@@ -260,7 +264,6 @@ export function Sidebar({
   const currentYear = new Date().getFullYear();
   const [internalExercice, setInternalExercice] = useState(String(currentYear));
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
-  const [imgError, setImgError] = useState(false);
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
   const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
@@ -317,11 +320,6 @@ export function Sidebar({
     { length: Math.max(1, maxYear - minYear + 1) },
     (_, i) => String(maxYear - i),
   );
-
-  const normalizedBrasao = (() => {
-    if (!brasaoAsset) return null;
-    return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
-  })();
 
   const visaoGeralHref = buildNavUrl({
     path: "/",
@@ -393,19 +391,20 @@ export function Sidebar({
         className="sticky top-0 z-30 w-full border-line border-b bg-page px-4 py-2 shadow-xs md:hidden"
       >
         <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md p-0.5">
-              {!imgError && normalizedBrasao ? (
-                <img
-                  src={normalizedBrasao}
-                  alt={`Brasão de ${portalName}`}
-                  className="h-full w-full object-contain"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <Landmark strokeWidth={1.6} className="h-4 w-4 text-mute" />
-              )}
-            </div>
+          <span className="flex min-w-0 items-center gap-2 font-bold font-serif text-ink text-sm leading-snug">
+            <BrandLogo variant="header" className="h-6 w-6 shrink-0" />
+            <span className="truncate">{brandName}</span>
+          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            {mobileHeaderActionSlot}
+            {mobileShareSlot ?? (
+              <ShareButton variant="compact" onShare={onShare} />
+            )}
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center gap-3 border-line border-t pt-1.5 text-mute text-xs">
+          <div className="flex min-w-0 items-center gap-2">
             {portais && portais.length > 0 && onPortalChange ? (
               <PortalSelect
                 portais={portais}
@@ -419,13 +418,7 @@ export function Sidebar({
               </span>
             )}
           </div>
-
-          {mobileHeaderActionSlot && (
-            <div className="shrink-0">{mobileHeaderActionSlot}</div>
-          )}
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2 border-line border-t pt-1.5 text-mute text-xs">
+          <span aria-hidden="true" className="h-4 w-px shrink-0 bg-line" />
           <div className="flex items-center gap-3">
             <YearSelect
               years={years}
@@ -434,11 +427,6 @@ export function Sidebar({
               variant="compact"
             />
             {mobileHeaderRightSlot}
-          </div>
-          <div className="shrink-0">
-            {mobileShareSlot ?? (
-              <ShareButton variant="compact" onShare={onShare} />
-            )}
           </div>
         </div>
       </div>
@@ -468,57 +456,36 @@ export function Sidebar({
         )}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* Marca Superior / Brasão Municipal */}
+          {/* Marca da plataforma */}
+          <div className="flex items-center justify-between gap-3 border-line border-b px-4 py-3">
+            <span className="flex min-w-0 items-center gap-2 font-bold font-serif text-base text-ink leading-snug">
+              <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
+              <span className="truncate">{brandName}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(false)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
+              aria-label="Fechar menu"
+            >
+              <X strokeWidth={2} className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Município */}
           <div className="border-line border-b p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md p-1">
-                  {!imgError && normalizedBrasao ? (
-                    <img
-                      src={normalizedBrasao}
-                      alt={`Brasão de ${portalName}`}
-                      className="h-full w-full object-contain"
-                      onError={() => setImgError(true)}
-                    />
-                  ) : (
-                    <Landmark strokeWidth={1.6} className="h-5 w-5 text-mute" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  {portais && portais.length > 0 && onPortalChange ? (
-                    <div className="space-y-1 md:space-y-0.5">
-                      <h1 className="sr-only">{displayTitle}</h1>
-                      <PortalSelect
-                        portais={portais}
-                        selectedSlug={
-                          portalSlug || (portais[0]?.portalSlug ?? "")
-                        }
-                        onChange={onPortalChange}
-                        variant="compact"
-                      />
-                      <p className="text-[11px] text-mute2">
-                        Orçamento municipal · {stateUF}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <h1>{displayTitle}</h1>
-                      <p className="text-[11px] text-mute2">
-                        Orçamento municipal · {stateUF}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMobileOpen(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
-                aria-label="Fechar menu"
-              >
-                <X strokeWidth={2} className="h-4 w-4" />
-              </button>
-            </div>
+            {portais && portais.length > 0 && onPortalChange ? (
+              <>
+                <h1 className="sr-only">{displayTitle}</h1>
+                <PortalSelect
+                  portais={portais}
+                  selectedSlug={portalSlug || (portais[0]?.portalSlug ?? "")}
+                  onChange={onPortalChange}
+                />
+              </>
+            ) : (
+              <h1>{displayTitle}</h1>
+            )}
           </div>
 
           {/* Seção de Filtros */}

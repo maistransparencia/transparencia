@@ -378,43 +378,6 @@ describe("Sidebar Component", () => {
     ).toBeTruthy();
   });
 
-  it("renderiza ícone cívico neutro sem brasão e sem img de brasão fixo", () => {
-    const { container } = render(
-      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
-    );
-    expect(
-      container.querySelector('img[src*="brasao-porciuncula"]'),
-    ).toBeNull();
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
-  });
-
-  it("renderiza img do brasao quando brasaoAsset e informado", () => {
-    const { container } = render(
-      <Sidebar
-        currentPathname="/porciuncula_prefeitura"
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    expect(container.querySelector("img")).not.toBeNull();
-  });
-
-  it("volta ao ícone cívico quando o brasão falha ao carregar", () => {
-    const { container } = render(
-      <Sidebar
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    const imagens = Array.from(container.querySelectorAll("img"));
-    expect(imagens.length).toBeGreaterThan(0);
-    fireEvent.error(imagens[0]);
-    expect(container.querySelector("img")).toBeNull();
-  });
-
   it("não marca nenhum item como ativo sem currentPathname", () => {
     render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });

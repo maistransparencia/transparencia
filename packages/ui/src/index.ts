@@ -1,5 +1,6 @@
 export * from "./components/alert-box";
 export * from "./components/badge";
+export * from "./components/brand-logo";
 export * from "./components/button";
 export * from "./components/collapsible-section";
 export * from "./components/dense-table";
