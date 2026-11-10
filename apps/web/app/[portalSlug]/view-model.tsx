@@ -505,6 +505,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
           )
         : [],
     educacaoDetailUrl: routeUrl("/educacao"),
+    saudeDetailUrl: routeUrl("/saude"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(
