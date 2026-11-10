@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
-import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
-import { FarmaciaResumoCard } from "@/components/farmacia/farmacia-resumo-card";
 import { HeroFiscalCard } from "@/components/hero-fiscal-card";
-import { ObrasResumoCard } from "@/components/obras-resumo-card";
 import { PipelineExecucao } from "@/components/pipeline-execucao";
 import { RadarCivicoFeed } from "@/components/radar-civico-feed";
 import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
-import { temEducacaoDestaque } from "@/lib/educacao-destaque";
+import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
 import { buildVisaoGeralViewModel } from "./view-model";
@@ -46,11 +43,6 @@ export default async function VisaoGeralPage({
   const rawData = await loadVisaoGeralData(portalSlug, resolvedSearchParams);
   const viewModel = buildVisaoGeralViewModel(rawData);
 
-  const temDestaques =
-    viewModel.farmaciaStatus !== "indisponivel" ||
-    temEducacaoDestaque(viewModel.educacaoResumo) ||
-    Boolean(viewModel.resumoObras);
-
   return (
     <div className="space-y-16 bg-page md:space-y-[104px]">
       <HeroFiscalCard
@@ -65,34 +57,24 @@ export default async function VisaoGeralPage({
         originBreakdown={viewModel.originBreakdown}
       />
 
-      {temDestaques && (
-        <section
-          aria-label="Em destaque"
-          className="space-y-16 md:space-y-[104px]"
-        >
-          <FarmaciaResumoCard
-            status={viewModel.farmaciaStatus}
-            detailUrl={viewModel.farmaciaDetailUrl}
-            requerimento={viewModel.farmaciaRequerimento}
-            textoWhatsApp={viewModel.farmaciaTextoWhatsApp}
-            exemplos={viewModel.farmaciaExemplos}
-          />
-          {viewModel.resumoObras && (
-            <ObrasResumoCard
-              resumo={viewModel.resumoObras}
-              detailUrl={viewModel.obrasDetailUrl}
-              markers={viewModel.obrasMiniMapMarkers}
-              center={viewModel.obrasMapCenter}
-            />
-          )}
-          {temEducacaoDestaque(viewModel.educacaoResumo) && (
-            <EducacaoResumoCard
-              resumo={viewModel.educacaoResumo}
-              detailUrl={viewModel.educacaoDetailUrl}
-            />
-          )}
-        </section>
-      )}
+      <SituacaoCidadeSection
+        situacao={viewModel.situacaoHome}
+        ano={viewModel.selectedYear}
+        farmaciaStatus={viewModel.farmaciaStatus}
+        minimoSaude={viewModel.minimoSaude}
+        resumoObras={viewModel.resumoObras}
+        educacaoResumo={viewModel.educacaoResumo}
+        minimoEducacao={viewModel.minimoEducacao}
+        saudeDetailUrl={viewModel.saudeDetailUrl}
+        obrasDetailUrl={viewModel.obrasDetailUrl}
+        educacaoDetailUrl={viewModel.educacaoDetailUrl}
+        farmaciaDetailUrl={viewModel.farmaciaDetailUrl}
+        farmaciaRequerimento={viewModel.farmaciaRequerimento}
+        farmaciaTextoWhatsApp={viewModel.farmaciaTextoWhatsApp}
+        farmaciaExemplos={viewModel.farmaciaExemplos}
+        obrasMarkers={viewModel.obrasMiniMapMarkers}
+        obrasCenter={viewModel.obrasMapCenter}
+      />
 
       <RadarCivicoFeed
         items={viewModel.radarCivicoFeedData}
