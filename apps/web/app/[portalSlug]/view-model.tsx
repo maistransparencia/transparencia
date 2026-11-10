@@ -137,6 +137,44 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
   };
 }
 
+/** Resumos dos atalhos de "Mais detalhes"; sem dado devolve `null` (vale a descrição genérica). */
+function buildResumoDespesas(
+  totalPago: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(totalPago > 0)) return null;
+  const valor = fmtCompact(totalPago);
+  return isCurrentYear
+    ? `${valor} pagos em ${year} até agora`
+    : `${valor} pagos em ${year}`;
+}
+
+function buildResumoContratacoes(
+  total: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "contratação" : "contratações"}`;
+  return isCurrentYear
+    ? `${quantidade} em ${year} até agora`
+    : `${quantidade} em ${year}`;
+}
+
+function buildResumoPessoal(
+  total: number,
+  mesReferencia: number,
+  year: number,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "servidor" : "servidores"}`;
+  const mes = getMesNome(mesReferencia);
+  return mes
+    ? `${quantidade} na folha de ${mes}/${year}`
+    : `${quantidade} na folha de ${year}`;
+}
+
 function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
   const obrasComCoordenadas = (obrasPreview ?? []).filter(
     (obra) =>
@@ -404,18 +442,36 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       label: "Despesas",
       title: "Em que a Prefeitura gastou",
       url: routeUrl("/despesas"),
+      summary: buildResumoDespesas(
+        execSummary.totalPago,
+        selectedYear,
+        isCurrentYear,
+      ),
     },
     {
       label: "Licitações e Contratos",
       title: "Compras e contratações",
       url: routeUrl("/licitacoes"),
+      summary: buildResumoContratacoes(
+        raw.totalContratacoes,
+        selectedYear,
+        isCurrentYear,
+      ),
     },
     {
       label: "Pessoal",
       title: "Servidores e folha de pagamento",
       url: routeUrl("/pessoal"),
+      summary: buildResumoPessoal(
+        raw.totalProfissionais,
+        raw.mesReferenciaPessoal,
+        selectedYear,
+      ),
     },
-  ];
+  ].map(({ summary, ...shortcut }) => ({
+    ...shortcut,
+    title: summary ?? shortcut.title,
+  }));
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";

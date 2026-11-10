@@ -181,11 +181,7 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByText(/saldo disponível nas contas da prefeitura/i),
     ).toBeInTheDocument();
-    [
-      "Em que a Prefeitura gastou",
-      "Compras e contratações",
-      "Servidores e folha de pagamento",
-    ].forEach((nome) => {
+    ["Despesas", "Licitações e Contratos", "Pessoal"].forEach((nome) => {
       expect(
         screen.getByRole("link", { name: new RegExp(nome) }),
       ).toBeInTheDocument();

@@ -56,7 +56,6 @@ export interface SituacaoCidadeCardModel {
   motivoAtencao: string | null;
   tom: TomCardSituacao;
   detailUrl: string;
-  textoCompartilhar: string;
 }
 
 export interface BuildSituacaoCidadeParams {
@@ -136,19 +135,6 @@ const tomDoCard = (
   return "neutro";
 };
 
-const montarTextoCompartilhar = ({
-  pergunta,
-  resposta,
-  ano,
-  fontes,
-}: {
-  pergunta: string;
-  resposta: string;
-  ano: number;
-  fontes: FonteOficial[];
-}): string =>
-  `${pergunta} ${resposta} Dados de ${ano}. Fonte: ${fontes.map((fonte) => fonte.nome).join(" e ")}.`;
-
 const FONTES_SAUDE: FonteOficial[] = [
   FONTES_OFICIAIS.bnafar,
   FONTES_OFICIAIS.siops,
@@ -176,7 +162,7 @@ const mancheteSaude = (status: StatusFarmaciaCard): string | null => {
 const montarCardSaude = (
   params: BuildSituacaoCidadeParams,
 ): SituacaoCidadeCardModel | null => {
-  const { situacao, ano, farmaciaStatus, minimoSaude, saudeDetailUrl } = params;
+  const { situacao, farmaciaStatus, minimoSaude, saudeDetailUrl } = params;
   const apoio = montarApoioMinimo(
     "A Prefeitura aplica o mínimo exigido em saúde?",
     situacao.saude,
@@ -185,7 +171,6 @@ const montarCardSaude = (
   const manchete = mancheteSaude(farmaciaStatus);
   if (!manchete && !apoio) return null;
   const motivoAtencao = textoMotivo(situacao.saude, 0);
-  const resposta = manchete ?? apoio?.texto ?? "";
   return {
     area: "saude",
     eyebrow: "Saúde",
@@ -200,12 +185,6 @@ const montarCardSaude = (
     tom:
       farmaciaStatus === "apagao" ? "neutro" : tomDoCard(motivoAtencao, apoio),
     detailUrl: saudeDetailUrl,
-    textoCompartilhar: montarTextoCompartilhar({
-      pergunta: PERGUNTA_SAUDE,
-      resposta: `${resposta}${resposta.endsWith(".") ? "" : "."}`,
-      ano,
-      fontes: FONTES_SAUDE,
-    }),
   };
 };
 
@@ -256,7 +235,7 @@ const mancheteObras = (
 const montarCardObras = (
   params: BuildSituacaoCidadeParams,
 ): SituacaoCidadeCardModel | null => {
-  const { situacao, ano, resumoObras, obrasDetailUrl } = params;
+  const { situacao, resumoObras, obrasDetailUrl } = params;
   if (!resumoObras || resumoObras.totalObras <= 0) return null;
   const { paralisadas } = resumoObras;
   const motivoAtencao = textoMotivo(situacao.obras, paralisadas);
@@ -264,7 +243,6 @@ const montarCardObras = (
     resumoObras,
     motivoAtencao !== null,
   );
-  const resposta = `${manchete}${complemento ? ` e ${complemento}` : ""}.`;
   return {
     area: "obras",
     eyebrow: "Obras",
@@ -278,12 +256,6 @@ const montarCardObras = (
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, null),
     detailUrl: obrasDetailUrl,
-    textoCompartilhar: montarTextoCompartilhar({
-      pergunta: PERGUNTA_OBRAS,
-      resposta: resposta,
-      ano,
-      fontes: FONTES_OBRAS,
-    }),
   };
 };
 
@@ -311,7 +283,7 @@ export const ROTULO_SENTIDO: Record<SentidoVariacao, string> = {
 const montarCardEducacao = (
   params: BuildSituacaoCidadeParams,
 ): SituacaoCidadeCardModel | null => {
-  const { situacao, ano, educacaoResumo, minimoEducacao, educacaoDetailUrl } =
+  const { situacao, educacaoResumo, minimoEducacao, educacaoDetailUrl } =
     params;
   if (!temEducacaoDestaque(educacaoResumo)) return null;
   const apoio = montarApoioMinimo(
@@ -323,10 +295,6 @@ const montarCardEducacao = (
   const manchete = `Ideb ${educacaoResumo.notaIdebTexto}`;
   const complemento = complementoIdeb(educacaoResumo);
   const sentidoComplemento = sentidoIdeb(educacaoResumo);
-  const prefixoSentido = sentidoComplemento
-    ? `${ROTULO_SENTIDO[sentidoComplemento]}, `
-    : "";
-  const resposta = `${manchete}${complemento ? ` (${prefixoSentido}${complemento})` : ""}.`;
   return {
     area: "educacao",
     eyebrow: "Educação",
@@ -342,12 +310,6 @@ const montarCardEducacao = (
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, apoio),
     detailUrl: educacaoDetailUrl,
-    textoCompartilhar: montarTextoCompartilhar({
-      pergunta: PERGUNTA_EDUCACAO,
-      resposta: resposta,
-      ano,
-      fontes: FONTES_EDUCACAO,
-    }),
   };
 };
 

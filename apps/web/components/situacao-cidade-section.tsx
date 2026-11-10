@@ -1,14 +1,13 @@
 "use client";
 
 import type { ResumoObrasDTO } from "@transparencia/db";
-import { ThresholdMeter } from "@transparencia/ui";
+import { ShareButton, ThresholdMeter } from "@transparencia/ui";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
   ArrowUpRight,
   MapPin,
-  Share2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -53,20 +52,6 @@ const CLASSE_BORDA_POR_TOM = {
 
 const CLASSE_LINK_LEI =
   "font-medium underline underline-offset-2 hover:text-ink";
-
-function compartilhar(card: SituacaoCidadeCardModel) {
-  try {
-    posthog.capture("situacao_card_compartilhado", { area: card.area });
-  } catch {
-    // Silencia erros de telemetria
-  }
-  const mensagem = `${card.textoCompartilhar} ${window.location.origin}${window.location.pathname}`;
-  window.open(
-    `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
-    "_blank",
-    "noopener,noreferrer",
-  );
-}
 
 function LinhaApoioMinimo({ apoio }: { apoio: ApoioMinimoModel }) {
   const tom = apoio.estado === "abaixo" ? "warn" : "brand";
@@ -269,12 +254,12 @@ function ExtrasSaude({
       <div className="space-y-2">
         <FarmaciaBuscaForm {...propsBusca} />
         {(props.farmaciaExemplos ?? []).length > 0 && (
-          <ul className="flex flex-wrap gap-x-3 gap-y-1">
+          <ul className="flex flex-wrap gap-2">
             {(props.farmaciaExemplos ?? []).map((exemplo) => (
               <li key={exemplo.codigoPrincipioAtivo}>
                 <Link
                   href={exemplo.href}
-                  className="caption inline-flex min-h-11 items-center text-brand hover:underline sm:min-h-0"
+                  className="caption inline-flex min-h-8 items-center rounded-md border border-line px-3 text-brand hover:border-mute3 hover:underline"
                 >
                   {exemplo.nomePrincipioAtivo}
                 </Link>
@@ -425,14 +410,21 @@ function SituacaoCard({
             <span>Ver detalhes</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <button
-            type="button"
-            onClick={() => compartilhar(card)}
-            className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 font-semibold text-mute text-sm hover:text-ink"
-          >
-            <Share2 className="h-4 w-4" aria-hidden="true" />
-            Compartilhar
-          </button>
+          <ShareButton
+            variant="inline"
+            url={card.detailUrl}
+            title={card.pergunta}
+            onShare={({ method }) => {
+              try {
+                posthog.capture("situacao_card_compartilhado", {
+                  area: card.area,
+                  method,
+                });
+              } catch {
+                // Silencia erros de telemetria
+              }
+            }}
+          />
         </div>
       </div>
     </article>

@@ -228,7 +228,7 @@ export function GlobalFooter({
                 onClick={() => setIsFeedbackOpen(true)}
                 className={`cursor-pointer ${linkClass}`}
               >
-                Reportar erro
+                Sugestão ou erro
               </button>
               <Link href="/termos" className={linkClass}>
                 Termos de uso

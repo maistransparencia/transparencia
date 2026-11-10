@@ -451,4 +451,48 @@ describe("SidebarWrapper Component", () => {
       );
     });
   });
+
+  it("recolhe a sidebar em faixa de ícones, sem filtros e sem rodapé, e expande de novo", () => {
+    mockUseQueryState.mockImplementation((() => [
+      null,
+      vi.fn(),
+    ]) as unknown as typeof useQueryState);
+    currentPathname = "/porciuncula_prefeitura/radar";
+
+    const { container } = render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+    const aside = container.querySelector("aside") as HTMLElement;
+    expect(aside.className).toContain("md:w-[266px]");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recolher menu lateral" }),
+    );
+
+    expect(aside.className).toContain("md:w-14");
+    const radar = screen.getByRole("link", { name: "Radar Cívico" });
+    expect(radar).toHaveAttribute("title", "Radar Cívico");
+    expect(radar.className).toContain("border-ink");
+    for (const nome of ["Visão geral", "Farmácia SUS"]) {
+      const link = screen.getByRole("link", { name: nome });
+      expect(link).toHaveAttribute("title", nome);
+    }
+    expect(screen.getByText("Filtros").closest("div")?.className).toContain(
+      "md:hidden",
+    );
+    expect(
+      screen.getByText("Compartilhar página").closest("div.space-y-2")
+        ?.className,
+    ).toContain("md:hidden");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Expandir menu lateral" }),
+    );
+    expect(aside.className).toContain("md:w-[266px]");
+  });
 });

@@ -123,16 +123,16 @@ describe("GlobalFooter", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza botão 'Reportar erro' e abre modal de feedback ao clicar", () => {
+  it("renderiza botão 'Sugestão ou erro' e abre modal de feedback ao clicar", () => {
     render(<GlobalFooter portalName="Porciúncula" />);
     const button = screen.getByRole("button", {
-      name: /reportar erro/i,
+      name: /sugestão ou erro/i,
     });
     expect(button).toBeInTheDocument();
 
     fireEvent.click(button);
     expect(
-      screen.getByRole("dialog", { name: /reportar inconsistência ou erro/i }),
+      screen.getByRole("dialog", { name: /sugestão ou erro/i }),
     ).toBeInTheDocument();
   });
 
