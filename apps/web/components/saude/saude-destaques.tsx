@@ -58,7 +58,7 @@ export function SaudeDestaqueOrigem({
       className="space-y-3"
       data-testid="saude-destaque-origem"
     >
-      <h3 className="md:min-h-[2lh]">
+      <h3 className="">
         De onde {isCurrentYear ? "vem" : "veio"} o dinheiro da saúde em {ano}?
       </h3>
       {temDados ? (

@@ -92,7 +92,7 @@ export function SaudeMinimoDestaque({
       data-testid="saude-minimo-destaque"
       className="space-y-3"
     >
-      <h3 className="md:min-h-[2lh]">
+      <h3 className="">
         A Prefeitura {isCurrentYear ? "aplica" : "aplicou"} o mínimo em saúde em{" "}
         {ano}?
       </h3>
