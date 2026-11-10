@@ -8,6 +8,7 @@ import {
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
 import { urlLegislacao } from "@/lib/constants/legislacao";
@@ -72,10 +73,10 @@ export default async function PessoalPage({
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-2">
-        <p className="eyebrow text-brand-text!">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Folha de Pagamento</h1>
         <p className="text-mute2 text-sm leading-relaxed">
           {headerDescription}

@@ -6,12 +6,17 @@ import type {
 } from "@transparencia/db";
 import { fmtNumber, fmtPercent } from "@transparencia/ui";
 import type { EducacaoResumoCardData } from "@/components/educacao-resumo-card";
+import {
+  FONTES_OFICIAIS,
+  type FonteOficial,
+} from "@/lib/constants/fontes-oficiais";
 import { temEducacaoDestaque } from "@/lib/educacao-destaque";
 
 export type AreaSituacao = "saude" | "obras" | "educacao";
 export type StatusFarmaciaCard = "conforme" | "apagao" | "indisponivel";
 export type TomCardSituacao = "neutro" | "atencao";
 export type EstadoApoioMinimo = "normal" | "parcial" | "abaixo";
+export type SentidoVariacao = "subiu" | "caiu";
 
 export interface MinimoLegalEntrada {
   limite: number | null;
@@ -39,9 +44,13 @@ export interface SituacaoCidadeCardModel {
   pergunta: string;
   /** Resposta curta em `stat-value`; `null` quando o card só tem a linha de apoio. */
   manchete: string | null;
-  /** Complemento da manchete (ex.: "▼ era 5,4"); `null` quando não há. */
+  /** Complemento da manchete (ex.: "era 5,4"); `null` quando não há. */
   complemento: string | null;
-  notaOrigem: string;
+  /** Sentido da variação, desenhado como seta ao lado do complemento. */
+  sentidoComplemento: SentidoVariacao | null;
+  fontes: FonteOficial[];
+  /** Observação depois das fontes (ex.: a meta do Ideb); `null` quando não há. */
+  notaOrigem: string | null;
   apoio: ApoioMinimoModel | null;
   /** Motivo escrito da etiqueta "Merece atenção"; `null` = sem etiqueta. */
   motivoAtencao: string | null;
@@ -131,17 +140,24 @@ const montarTextoCompartilhar = ({
   pergunta,
   resposta,
   ano,
-  fonte,
+  fontes,
 }: {
   pergunta: string;
   resposta: string;
   ano: number;
-  fonte: string;
-}): string => `${pergunta} ${resposta} Dados de ${ano}. Fonte: ${fonte}.`;
+  fontes: FonteOficial[];
+}): string =>
+  `${pergunta} ${resposta} Dados de ${ano}. Fonte: ${fontes.map((fonte) => fonte.nome).join(" e ")}.`;
 
-const FONTE_SAUDE = "BNAFAR e SIOPS, Ministério da Saúde";
-const FONTE_OBRAS = "ObrasGov.br";
-const FONTE_EDUCACAO = "Inep (Ideb) e SIOPE";
+const FONTES_SAUDE: FonteOficial[] = [
+  FONTES_OFICIAIS.bnafar,
+  FONTES_OFICIAIS.siops,
+];
+const FONTES_OBRAS: FonteOficial[] = [FONTES_OFICIAIS.obrasgov];
+const FONTES_EDUCACAO: FonteOficial[] = [
+  FONTES_OFICIAIS.ideb,
+  FONTES_OFICIAIS.siope,
+];
 
 const PERGUNTA_SAUDE = "Tem remédio no posto de saúde?";
 const PERGUNTA_OBRAS = "As obras da cidade estão andando?";
@@ -176,7 +192,9 @@ const montarCardSaude = (
     pergunta: manchete ? PERGUNTA_SAUDE : (apoio?.pergunta ?? PERGUNTA_SAUDE),
     manchete: manchete ?? apoio?.texto ?? null,
     complemento: null,
-    notaOrigem: `Fonte: ${FONTE_SAUDE}.`,
+    sentidoComplemento: null,
+    fontes: FONTES_SAUDE,
+    notaOrigem: null,
     apoio: manchete ? apoio : null,
     motivoAtencao,
     tom:
@@ -186,8 +204,52 @@ const montarCardSaude = (
       pergunta: PERGUNTA_SAUDE,
       resposta: `${resposta}${resposta.endsWith(".") ? "" : "."}`,
       ano,
-      fonte: FONTE_SAUDE,
+      fontes: FONTES_SAUDE,
     }),
+  };
+};
+
+const contagemObras = (
+  quantidade: number,
+  singular: string,
+  plural: string,
+): string =>
+  quantidade === 1 ? `1 ${singular}` : `${fmtNumber(quantidade)} ${plural}`;
+
+/**
+ * Manchete do card de obras. Com obra andando ou parada, a manchete é o que está
+ * em andamento; sem nenhuma das duas, mostra as não iniciadas (ou as concluídas)
+ * em vez de um "0 em andamento" vazio.
+ */
+const mancheteObras = (
+  resumo: ResumoObrasDTO,
+  temEtiqueta: boolean,
+): { manchete: string; complemento: string | null } => {
+  const { emExecucao, paralisadas, cadastradas, concluidas } = resumo;
+  if (emExecucao > 0 || paralisadas > 0) {
+    const paradas =
+      paralisadas === 0
+        ? "nenhuma parada"
+        : contagemObras(paralisadas, "parada", "paradas");
+    return {
+      manchete: `${fmtNumber(emExecucao)} em andamento`,
+      // Com a etiqueta, o motivo já diz quantas estão paradas; não repetir.
+      complemento: temEtiqueta ? null : paradas,
+    };
+  }
+  const concluidasTexto =
+    concluidas > 0
+      ? contagemObras(concluidas, "concluída", "concluídas")
+      : null;
+  if (cadastradas > 0) {
+    return {
+      manchete: contagemObras(cadastradas, "não iniciada", "não iniciadas"),
+      complemento: concluidasTexto,
+    };
+  }
+  return {
+    manchete: concluidasTexto ?? "Nenhuma obra em andamento",
+    complemento: null,
   };
 };
 
@@ -196,19 +258,22 @@ const montarCardObras = (
 ): SituacaoCidadeCardModel | null => {
   const { situacao, ano, resumoObras, obrasDetailUrl } = params;
   if (!resumoObras || resumoObras.totalObras <= 0) return null;
-  const { emExecucao, paralisadas } = resumoObras;
-  const andamento = `${fmtNumber(emExecucao)} em andamento`;
-  const paradas =
-    paralisadas === 1 ? "1 parada" : `${fmtNumber(paralisadas)} paradas`;
-  const resposta = `${andamento} e ${paradas}.`;
+  const { paralisadas } = resumoObras;
   const motivoAtencao = textoMotivo(situacao.obras, paralisadas);
+  const { manchete, complemento } = mancheteObras(
+    resumoObras,
+    motivoAtencao !== null,
+  );
+  const resposta = `${manchete}${complemento ? ` e ${complemento}` : ""}.`;
   return {
     area: "obras",
     eyebrow: "Obras",
     pergunta: PERGUNTA_OBRAS,
-    manchete: andamento,
-    complemento: paradas,
-    notaOrigem: `Fonte: ${FONTE_OBRAS}.`,
+    manchete,
+    complemento,
+    sentidoComplemento: null,
+    fontes: FONTES_OBRAS,
+    notaOrigem: null,
     apoio: null,
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, null),
@@ -217,7 +282,7 @@ const montarCardObras = (
       pergunta: PERGUNTA_OBRAS,
       resposta: resposta,
       ano,
-      fonte: FONTE_OBRAS,
+      fontes: FONTES_OBRAS,
     }),
   };
 };
@@ -225,9 +290,22 @@ const montarCardObras = (
 const complementoIdeb = (resumo: EducacaoResumoCardData): string | null => {
   const anterior = resumo.notaAnteriorValorTexto;
   if (!anterior) return null;
-  const seta = resumo.evolucaoTom === "atencao" ? "▼" : "▲";
   if (resumo.evolucaoTom === "neutro") return `Era ${anterior}`;
-  return `${seta} era ${anterior}`;
+  return `era ${anterior}`;
+};
+
+const sentidoIdeb = (
+  resumo: EducacaoResumoCardData,
+): SentidoVariacao | null => {
+  if (!resumo.notaAnteriorValorTexto) return null;
+  if (resumo.evolucaoTom === "atencao") return "caiu";
+  if (resumo.evolucaoTom === "destaque") return "subiu";
+  return null;
+};
+
+export const ROTULO_SENTIDO: Record<SentidoVariacao, string> = {
+  subiu: "subiu",
+  caiu: "caiu",
 };
 
 const montarCardEducacao = (
@@ -244,14 +322,22 @@ const montarCardEducacao = (
   const motivoAtencao = textoMotivo(situacao.educacao, 0);
   const manchete = `Ideb ${educacaoResumo.notaIdebTexto}`;
   const complemento = complementoIdeb(educacaoResumo);
-  const resposta = `${manchete}${complemento ? ` (${complemento})` : ""}.`;
+  const sentidoComplemento = sentidoIdeb(educacaoResumo);
+  const prefixoSentido = sentidoComplemento
+    ? `${ROTULO_SENTIDO[sentidoComplemento]}, `
+    : "";
+  const resposta = `${manchete}${complemento ? ` (${prefixoSentido}${complemento})` : ""}.`;
   return {
     area: "educacao",
     eyebrow: "Educação",
     pergunta: PERGUNTA_EDUCACAO,
     manchete,
     complemento,
-    notaOrigem: `Fonte: ${FONTE_EDUCACAO}.${educacaoResumo.metaTexto ? ` ${educacaoResumo.metaTexto}.` : ""}`,
+    sentidoComplemento,
+    fontes: FONTES_EDUCACAO,
+    notaOrigem: educacaoResumo.metaTexto
+      ? `${educacaoResumo.metaTexto}.`
+      : null,
     apoio,
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, apoio),
@@ -260,7 +346,7 @@ const montarCardEducacao = (
       pergunta: PERGUNTA_EDUCACAO,
       resposta: resposta,
       ano,
-      fonte: FONTE_EDUCACAO,
+      fontes: FONTES_EDUCACAO,
     }),
   };
 };
@@ -275,10 +361,3 @@ export function buildSituacaoCidadeCards(
     montarCardEducacao(params),
   ].filter((card): card is SituacaoCidadeCardModel => card !== null);
 }
-
-/** Colunas no desktop: 3 (3 cards) ou 2 (2 cards); nunca 2+1. */
-export const CLASSE_GRADE_POR_QUANTIDADE: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-1 lg:grid-cols-2",
-  3: "grid-cols-1 lg:grid-cols-3",
-};

@@ -9,6 +9,7 @@ import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import { DespesasAreasSection } from "@/components/despesas-areas-section";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
@@ -67,13 +68,13 @@ export default async function DespesasPage({
   return (
     <div className="space-y-10">
       {/* Header Principal */}
-      <div>
-        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
+      <div className="space-y-2">
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Despesas & Controle de Gastos</h1>
-        <p className="mt-1 text-mute2 text-sm leading-relaxed">
+        <p className="text-mute2 text-sm leading-relaxed">
           Para onde foi o dinheiro da prefeitura em {selectedYear}, quanto já
           saiu de verdade do caixa e quem recebeu.
         </p>

@@ -93,8 +93,8 @@ describe("DespesasPage", () => {
 
     render(await DespesasPage(props));
 
-    expect(screen.getByText(/EXERCÍCIO 2026/)).toBeInTheDocument();
-    expect(screen.getByText(/PARCIAL/)).toBeInTheDocument();
+    expect(screen.getByText(/Exercício 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/parcial/)).toBeInTheDocument();
   });
 
   it("esconde seções condicionais quando as listas vêm vazias", async () => {

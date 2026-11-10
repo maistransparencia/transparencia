@@ -2,6 +2,7 @@ import { fmtCompact, SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -64,10 +65,10 @@ export default async function ReceitasPage({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="eyebrow text-brand-text!">
-          ADMINISTRATIVO · ANO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Fontes de Receita</h1>
         <p className="text-mute2 text-sm leading-relaxed">
           Compara o que a prefeitura{" "}

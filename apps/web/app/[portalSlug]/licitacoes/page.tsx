@@ -14,6 +14,7 @@ import { LicitacoesEmAndamentoSection } from "@/components/licitacoes-em-andamen
 import { LicitacoesSearchBar } from "@/components/licitacoes-search-bar";
 import { LicitacoesTable } from "@/components/licitacoes-table";
 import { LicitacoesTempoNaPagina } from "@/components/licitacoes-tempo-na-pagina";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadLicitacoesData } from "./loader";
@@ -90,13 +91,13 @@ export default async function LicitacoesPage({
     <div className="space-y-8 pb-10">
       <LicitacoesTempoNaPagina />
       {/* Header & Subtitle */}
-      <div>
-        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
+      <div className="space-y-2">
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Licitações e Contratos</h1>
-        <p className="mt-2 max-w-4xl text-mute2 text-xs leading-relaxed sm:text-sm">
+        <p className="max-w-4xl text-mute2 text-xs leading-relaxed sm:text-sm">
           Contratos sem licitação são comuns e frequentemente legais — dispensas
           de baixo valor e inexigibilidades são permitidas por lei. O ponto de
           atenção são os contratos{" "}

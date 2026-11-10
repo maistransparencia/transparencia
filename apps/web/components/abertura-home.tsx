@@ -1,3 +1,5 @@
+import { PageEyebrow } from "./page-eyebrow";
+
 export interface AberturaHomeProps {
   title: string;
   periodLabel: string;
@@ -6,13 +8,13 @@ export interface AberturaHomeProps {
 /** Abertura da home: situação da cidade e período dos dados, sem número fiscal. */
 export function AberturaHome({ title, periodLabel }: AberturaHomeProps) {
   return (
-    <header className="space-y-3">
-      <p className="eyebrow">Situação da cidade</p>
+    <header className="space-y-2">
+      <PageEyebrow>Situação da cidade</PageEyebrow>
       <h1>{title}</h1>
-      <p className="lead">
-        Como a cidade está hoje e para onde vai o dinheiro público.
+      <p className="text-mute2">
+        Como a cidade está hoje e para onde vai o dinheiro público.{" "}
+        <span className="text-sm">{periodLabel}</span>
       </p>
-      <p className="caption">{periodLabel}</p>
     </header>
   );
 }
