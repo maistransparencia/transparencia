@@ -4174,17 +4174,17 @@ So that I can plan my sales for the weeks when that money reaches the city.
 **Por que só o 13º e por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. Folha e 13º não ganharam "pago em dd/mm" porque a data não está no dado. A tela diz isso.
 
 **Acceptance Criteria:**
-- **Given** um seed dbt (nome definido na story) com, **por município e por ano**, o início e o fim da janela de exibição do 13º, a `base_legal` e a `url_base_legal` (Regra 23: nenhuma data ou lei fixa em código; Regra 15: seed carregado só no banco local)
-- **When** o ano ativo é o ano corrente, a data de hoje está dentro da janela e há linha de config para o portal
-- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada, o prazo previsto **na lei do município** com link oficial (Regra 20) e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento."
-- **And** o loader da home passa a trazer `getExecucaoDecimoTerceiroMetrics` para o ano ativo e a config da janela; esta story é dona desse dado e **não depende da Story 27.1**.
-- **And** **sem linha de config ou fora da janela, a seção inteira some** (sem espaço reservado).
+- **Given** o ano ativo é o ano corrente e a data de hoje está dentro da **janela de exibição do 13º**, regra única do portal (novembro e dezembro) mantida na camada de dados (`@transparencia/db`), sem config por município e sem lei municipal (decisão de 2026-11-09: manter a lei de cada município não escala; Regra 23: nenhum ano fixo em código)
+- **When** a home carrega
+- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento." Sem prazo legal e sem citar lei.
+- **And** o loader da home passa a trazer `getExecucaoDecimoTerceiroMetrics` para o ano ativo e a decisão de exibir a janela vem da mesma camada; esta story é dona desse dado e **não depende da Story 27.1**.
+- **And** **fora da janela, ou sem dado do 13º para o portal, a seção inteira some** (sem espaço reservado).
 - **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
 - **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
-- **And** a janela de cada município e a lei municipal são validadas pelo `jurista-fiscal`; enquanto a base legal de um município estiver **NÃO VERIFICADA**, a linha de config não é cadastrada e o bloco não aparece para ele. Não se usa a Lei 4.090/1962 (regime privado) como se fosse o prazo do servidor municipal; a Constituição (art. 7º, VIII, e art. 39, §3º) garante o direito, mas o prazo vem da lei local.
-- **And** o texto "informados até dd/mm" só aparece se a **verificação inicial** desta story confirmar a fonte da data (candidata, **NÃO VERIFICADA**: a data de frescor dos dados da Epic 23). Se a fonte não trouxer data, o card mostra só "Dados de {ano}".
+- **And** como o card não traz prazo legal, ele não afirma atraso nem cumprimento de prazo; só mostra quanto já foi pago do previsto.
+- **And** o texto "informados até dd/mm" só aparece se a **verificação inicial** confirmar a fonte da data. Resultado (2026-11-09): a única data disponível é a de extração do portal (`portalConfig.dataExtracao`), que diz quando coletamos, não quando foi publicado; o card mostra só "Dados de {ano}, atualizados em {data}" como a home.
 - **And** o agregado é só da folha total, **sem dado individual de servidor** (LGPD).
-- **And** os textos passam pelo `editor-cidadao`; `pnpm typecheck` e `pnpm test` passam, com testes dentro da janela, fora da janela, sem config e `pago` zerado.
+- **And** os textos passam pelo `editor-cidadao`; `pnpm typecheck` e `pnpm test` passam, com testes dentro da janela, fora da janela, sem dado do 13º e `pago` zerado.
 
 **Fora do escopo:** salário do mês, previdência, data de pagamento por competência (exige alterar o mart e investigar a fonte; backlog).
 
