@@ -4097,11 +4097,10 @@ So that a card on the home never contradicts the page it links to.
 - **And** `parcial`, `sem_dado`, apagão da farmácia e queda do Ideb **nunca** geram `emAtencao`; há teste para cada um desses casos.
 - **And** o estado de cada área é expresso por um valor tipado (`normal`, `parcial`, `abaixo`, `sem_dado`, `indisponivel`), sem ternário aninhado (Regra 13) e sem tautologia (Regra 14).
 - **And** quando uma fonte falha ou não existe para o município, a área vem como `indisponivel` e o loader **não derruba a página** (mesma tolerância que `getResumoFarmaciaSus(...).catch` já tem).
-- **And** o loader também traz `getExecucaoDecimoTerceiroMetrics` para o ano ativo, para a Story 27.4 consumir; sem uso na tela nesta story.
 - **And** nenhum literal de município, UF ou ano (Regra 23); campos em `camelCase` (Regra 18).
 - **And** `make test/ts` (ou `pnpm test`) e `pnpm typecheck` passam, com testes novos no `loader.spec.ts` e no `view-model.spec.ts`.
 
-**Fora do escopo:** qualquer componente ou mudança visual; a janela do 13º (Story 27.4).
+**Fora do escopo:** qualquer componente ou mudança visual; o 13º e a janela do 13º (Story 27.4, que traz o próprio dado ao loader).
 
 **Dependências:** nenhuma. Pré-requisito da 27.2.
 
@@ -4178,6 +4177,7 @@ So that I can plan my sales for the weeks when that money reaches the city.
 - **Given** um seed dbt (nome definido na story) com, **por município e por ano**, o início e o fim da janela de exibição do 13º, a `base_legal` e a `url_base_legal` (Regra 23: nenhuma data ou lei fixa em código; Regra 15: seed carregado só no banco local)
 - **When** o ano ativo é o ano corrente, a data de hoje está dentro da janela e há linha de config para o portal
 - **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada, o prazo previsto **na lei do município** com link oficial (Regra 20) e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento."
+- **And** o loader da home passa a trazer `getExecucaoDecimoTerceiroMetrics` para o ano ativo e a config da janela; esta story é dona desse dado e **não depende da Story 27.1**.
 - **And** **sem linha de config ou fora da janela, a seção inteira some** (sem espaço reservado).
 - **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
 - **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
@@ -4188,7 +4188,7 @@ So that I can plan my sales for the weeks when that money reaches the city.
 
 **Fora do escopo:** salário do mês, previdência, data de pagamento por competência (exige alterar o mart e investigar a fonte; backlog).
 
-**Dependências:** Story 27.1 (o dado do 13º já vem no loader). O encaixe na página depende da Story 27.3.
+**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge.
 
 ---
 
