@@ -4057,9 +4057,9 @@ A página inicial deixa de abrir pela arrecadação e passa a abrir pela pergunt
 **Decisões fechadas em 2026-11-09:**
 - **Ordem fixa**, sem reordenar por dado: abertura (h1 com o município, período em texto), "Como está a cidade hoje" (Saúde, Obras, Educação), "Dinheiro que entra na cidade" (13º, sazonal), "Para onde vai o dinheiro público" (hero fiscal e saldo em caixa) e "Mais detalhes". O cidadão aprende onde fica cada coisa.
 - **Sem seletor de ano no conteúdo.** Ele já existe no sidebar (desktop) e no header (mobile). A home mostra o período só como texto.
-- **Etiqueta "Merece atenção" só com dois gatilhos, ambos fatos com régua:** `abaixo_minimo` (mínimo de saúde ou de educação com resultado `abaixo`, **só no ano fechado**) e `obra_paralisada` (qualquer obra paralisada, pelo menos uma). Toda etiqueta traz o **motivo escrito em uma linha** ("2 obras estão paradas."). **Não disparam:** mínimo `parcial` ou `sem_dado`, apagão da farmácia (não divulgar o estoque não é falta de remédio), Ideb em queda (nota que oscila a cada dois anos; a meta é parâmetro do portal, não limite legal; a queda já aparece no card com "▼ era X").
+- **Etiqueta "Merece atenção" só com dois gatilhos, ambos fatos com régua:** `abaixo_minimo` (mínimo de saúde ou de educação com resultado `abaixo`, **só no ano fechado**) e `obra_paralisada` (qualquer obra paralisada, pelo menos uma). Toda etiqueta traz o **motivo escrito em uma linha** ("2 obras estão paradas."). **Não disparam:** mínimo `parcial` ou `sem_dado`, apagão da farmácia (não divulgar o estoque não é falta de remédio), Ideb em queda (nota que oscila a cada dois anos; a meta é parâmetro do portal, não limite legal; a queda já aparece no card com a seta para baixo e "era X").
 - **Uma manchete por card**, a pergunta do uso (remédio, obra, escola). O mínimo legal entra como **linha de apoio**, menor, com barra e link da lei.
-- **Cidade sem dado não ganha card vazio:** o card some e os demais dividem a linha.
+- **Cidade sem dado não ganha card vazio:** o card some e os demais seguem empilhados, sem espaço reservado.
 
 **Estados de cada card (todos desenhados no canvas):** normal; mínimo `parcial` no ano em andamento ("Em andamento", sem "Sim" nem "Não"); `abaixo` ("Ainda não", em âmbar, sem vermelho e sem acusação); `sem_dado` (a linha da régua não aparece, e o card nunca mostra "sem dado" como se fosse resposta); farmácia em apagão; cidade sem obras.
 
@@ -4117,17 +4117,20 @@ So that I know how the city is doing before reading any table.
 **Acceptance Criteria:**
 - **Given** os dados da Story 27.1
 - **When** a home carrega
-- **Then** a seção "Como está a cidade hoje" (`h2`) mostra, na **ordem fixa** Saúde, Obras, Educação, um card por área com: `eyebrow` da área, pergunta em `h3` ("Tem remédio no posto de saúde?", "As obras da cidade estão andando?", "A educação da cidade está melhorando?"), resposta curta em `stat-value`, nota de origem em `caption`, "Ver detalhes" e "Compartilhar" (rótulos da Regra 24), no formato `panel` do `DESIGN.md`.
+- **Then** a seção "Como está a cidade hoje" (`h2`) mostra, na **ordem fixa** Saúde, Obras, Educação, um card por área com: `eyebrow` da área, pergunta em `h3` ("Tem remédio no posto de saúde?", "As obras da cidade estão andando?", "A educação da cidade está melhorando?"), resposta curta em `stat-value`, a linha "Fonte:" em `caption` com as fontes **com link** (`FONTES_OFICIAIS`, nova aba, `rel="noopener noreferrer"`, seta `ArrowUpRight` do Lucide), "Ver detalhes" e "Compartilhar" (rótulos da Regra 24), no formato `panel` do `DESIGN.md`.
 - **And** a **Saúde** tem como manchete o estado do estoque da farmácia e reaproveita a busca de remédio (`farmacia-busca-destaque`); o mínimo de saúde aparece como linha de apoio ("A Prefeitura aplica o mínimo exigido em saúde?"), com barra quadrada, traço do mínimo e a base legal vinda de `urlBaseLegal` (Regra 20, `target="_blank"` e `rel="noopener noreferrer"`).
-- **And** a **Educação** tem como manchete a nota do Ideb com "▲/▼ era X"; o mínimo de educação aparece como linha de apoio, no mesmo padrão. A meta do Ideb é exibida como contexto, sem tom de limite legal.
-- **And** **Obras** mostra "N em andamento" e "M paradas", a proporção por situação em barra quadrada com legenda e o mini mapa que já existe (`obras-resumo-card`), sem recalcular contagens na tela.
+- **And** a **Educação** tem como manchete a nota do Ideb com "era X" ao lado; quando a nota sobe ou cai, a seta `ArrowUp`/`ArrowDown` do Lucide vem antes do texto, e seta e texto ficam juntos em `ok-text` (subiu) ou `warn-text` (caiu); o leitor de tela ouve "subiu" ou "caiu", e o texto de compartilhar diz "(caiu, era X)"; o mínimo de educação aparece como linha de apoio, no mesmo padrão. A meta do Ideb é exibida como contexto, sem tom de limite legal.
+- **And** **Obras** mostra "N em andamento" como manchete e as paradas ao lado ("1 parada", "M paradas" ou "nenhuma parada"); com a etiqueta, o complemento das paradas **some**, porque o motivo já diz quantas estão paradas; sem nenhuma obra em andamento nem parada, a manchete passa a ser as não iniciadas ("15 não iniciadas"), com as concluídas ao lado, e, sem não iniciadas, as concluídas; nunca "0 em andamento" sozinho.
+- **And** a proporção por situação fica em barra quadrada segmentada (`h-3`, `gap-px` entre as partes, proporção por `flex-grow`), na ordem do ciclo da obra: concluídas (`ok-fill`), em andamento (`brand-fill`), paradas (`warn-fill`) e não iniciadas (`faint`), mais canceladas (`mute3`) só quando houver; o total da barra é a soma das partes desenhadas, então nenhum pedaço fica sem status na legenda; com legenda e o mini mapa que já existe, sem recalcular contagens na tela.
+- **And** as barras do mínimo legal usam o `ThresholdMeter` do `packages/ui` (marcador no mínimo, tom `warn` quando abaixo), nunca uma barra desenhada à mão.
 - **And** os **estados** seguem o canvas: `parcial` mostra "Em andamento: X% aplicados até agora" sem veredito; `abaixo` mostra "Ainda não:" em tom de atenção (âmbar, nunca vermelho) com `emAtencao`; `sem_dado` **omite** a linha da régua; cidade sem obras ou sem resumo de educação **não renderiza** o card e os demais dividem a linha.
 - **And** a etiqueta "Merece atenção" aparece **somente** quando `emAtencao` é verdadeiro e **sempre acompanhada do motivo escrito** em uma linha ("2 obras estão paradas.", "Aplicou menos que o mínimo exigido no ano."); a etiqueta nunca aparece sozinha.
 - **And** com a farmácia em **apagão** o card de saúde mostra "Sem informação de estoque" com o texto atual ("isso não quer dizer que falta remédio"), o link da Lei 14.654/2023, **mantém "Copiar requerimento" e "Compartilhar no WhatsApp"**, esconde a busca e **não leva etiqueta**; a borda é neutra.
 - **And** com a farmácia `indisponivel` o card de saúde tem comportamento **a decidir com o Julio no início da story** (proposta: o mínimo de saúde vira a manchete única do card; se também não houver mínimo, o card some).
 - **And** o conteúdo do botão "Compartilhar" carrega o **período e a fonte** do dado, para não perder o contexto fora da página (por exemplo "2 obras paradas" sem data pode ser lido como abandono).
 - **And** o componente fica em `apps/web/components/` (domínio, não em `packages/ui`), reusa `fmtPercent`, `fmtDate` e o `ModalDialog` onde couber, usa só os tokens do `DESIGN.md` (sem `slate-*`, sem `font-mono` fora de `table` e `numeric`) e os textos passam pelo `editor-cidadao`.
-- **And** a grade no desktop usa **3 colunas acima do breakpoint e 1 abaixo, nunca 2+1**; os cards da mesma linha têm a mesma altura e "Ver detalhes" e "Compartilhar" ficam ancorados no rodapé; quando um card some, os outros dois dividem a linha em 2 colunas, sem espaço reservado. No mobile, o respiro entre cards é uniforme, sem lacuna por altura fixa ou `min-height`.
+- **And** os cards ficam **empilhados**, um por linha, com 32px entre eles (`space-y-8`); dentro do card, a partir de `md`, a resposta fica à esquerda e o detalhe (busca de remédio, barra e mapa de obras, linha do mínimo) à direita, com "Ver detalhes" e "Compartilhar" embaixo da resposta; no celular tudo empilha na ordem de leitura e as ações fecham o card. "Compartilhar" é discreto (sem borda), com alvo de toque de 44px. Sem altura fixa nem `min-height`.
+- **Ajuste pós-implementação (2026-11-10):** a grade de 3 colunas da proposta original foi descartada na revisão visual com o Julio (colunas espremidas e espaço negativo demais); os critérios acima já refletem o layout aprovado na prancheta "E · Ajustes" do canvas.
 - **And** não há ternário aninhado (Regra 13); `pnpm typecheck` e `pnpm test` passam, com teste por estado de cada card e teste de guarda de tokens (Story 20-12).
 
 **Fora do escopo:** reordenação da página e remoção de blocos (Story 27.3); o 13º (Story 27.4).
@@ -4147,9 +4150,9 @@ So that I get the answer first and the technical detail only if I ask for it.
 **Acceptance Criteria:**
 - **Given** a home em `apps/web/app/[portalSlug]/page.tsx`
 - **When** a story termina
-- **Then** a página segue a ordem: abertura (`eyebrow` "Situação da cidade", `h1` com o nome do município vindo do portal, `lead`, período em texto "Dados de {ano}, atualizados em {data}"), "Como está a cidade hoje" (Story 27.2), espaço reservado ao bloco "Dinheiro que entra na cidade" (Story 27.4), "Para onde vai o dinheiro público" e "Mais detalhes".
+- **Then** a página segue a ordem: abertura compacta (`PageEyebrow` "Situação da cidade", `h1` com o nome do município vindo do portal e **uma linha** com a frase e o período em texto "Dados de {ano}, atualizados em {data}", a 32px da primeira seção; entre as demais seções, 48px no celular e 64px no desktop), "Como está a cidade hoje" (Story 27.2), espaço reservado ao bloco "Dinheiro que entra na cidade" (Story 27.4), "Para onde vai o dinheiro público" e "Mais detalhes".
 - **And** **não existe seletor de ano** no conteúdo da home (o do sidebar e o do header continuam).
-- **And** "Para onde vai o dinheiro público" traz o total arrecadado e o percentual da previsão em barra quadrada (o hero fiscal rebaixado) e o saldo em caixa com a frase "Saldo disponível nas contas da Prefeitura", mais "Ver detalhes" para a página de orçamento. O valor principal segue a regra de **um `stat-value-lg` por página** do `DESIGN.md` (a decisão de qual valor ganha o `stat-value-lg` é conferida com o Julio no início da story).
+- **And** "Para onde vai o dinheiro público" traz o total arrecadado e o percentual da previsão em barra quadrada (`ThresholdMeter`, o hero fiscal rebaixado) e o saldo em caixa com a frase "Saldo disponível nas contas da Prefeitura", mais "Ver detalhes" para a página de orçamento. O valor principal segue a regra de **um `stat-value-lg` por página** do `DESIGN.md` (a decisão de qual valor ganha o `stat-value-lg` é conferida com o Julio no início da story).
 - **And** o `RadarCivicoFeed` **sai da home** (componente e rota `/radar` permanecem) e o `PipelineExecucao` sai da home (continua na página de orçamento).
 - **And** "Mais detalhes" lista atalhos para Despesas ("Em que a Prefeitura gastou"), Licitações ("Compras e contratações") e Pessoal ("Servidores e folha de pagamento"), no padrão de lista do `DESIGN.md`. **Confirmar com o Julio no início da story** que esses atalhos substituem os `CardsSecundariosVisaoGeral` (os cards com números de despesas, licitações e pessoal saem da home).
 - **And** o `h1` é único, os níveis de título não se pulam e não há `h5` nem `h6` (`EXPERIENCE.md`).
@@ -4171,24 +4174,36 @@ So that I can plan my sales for the weeks when that money reaches the city.
 
 **Origem:** sessão de 2026-11-09. O 13º interessa ao comerciante, não ao servidor. **Tem relógio:** a janela é novembro e dezembro; perder dezembro significa esperar um ano. **Pode andar em paralelo** às Stories 27.2 e 27.3 (só o encaixe na página depende da 27.3). Entra no release se ficar pronta a tempo.
 
-**Por que só o 13º e por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. Folha e 13º não ganharam "pago em dd/mm" porque a data não está no dado. A tela diz isso.
+**Decisões de 2026-11-09/10 (Julio):** (1) sem lei municipal nem seed por município (manter a lei de cada cidade não escala): a janela é regra única do portal, novembro e dezembro do ano corrente; (2) o card mostra só o **valor pago acumulado no ano**, sem percentual nem barra, porque o dado é anual, o empenhado ainda é parcial em novembro e municípios como Natividade pagam a primeira parcela em junho (2026: R$ 1,2 mi pago de R$ 1,2 mi empenhado, 100%); (3) o filtro do 13º no mart é corrigido; (4) a "folha do mês" **não entra**: ver "Fora do escopo".
+
+**Por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. A fonte não traz data de pagamento em nenhum dos municípios. A tela diz isso.
 
 **Acceptance Criteria:**
-- **Given** o ano ativo é o ano corrente e a data de hoje está dentro da **janela de exibição do 13º**, regra única do portal (novembro e dezembro) mantida na camada de dados (`@transparencia/db`), sem config por município e sem lei municipal (decisão de 2026-11-09: manter a lei de cada município não escala; Regra 23: nenhum ano fixo em código)
-- **When** a home carrega
-- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento." Sem prazo legal e sem citar lei.
-- **And** o loader da home passa a trazer `getExecucaoDecimoTerceiroMetrics` para o ano ativo e a decisão de exibir a janela vem da mesma camada; esta story é dona desse dado e **não depende da Story 27.1**.
-- **And** **fora da janela, ou sem dado do 13º para o portal, a seção inteira some** (sem espaço reservado).
+
+*Correção do 13º no mart (`fct_pessoal_folha_metricas`):*
+- **Given** o `pago_13` e o `empenhado_13` de hoje somam encargos e falsos positivos (em 2025, elemento 13 = R$ 85 mil em Natividade e R$ 650 mil em Porciúncula, cerca de 12% do `pago_13` dela; "DFD Nº 213" casa com `%13%`)
+- **When** o mart é recalculado
+- **Then** o 13º conta só os elementos de despesa **01, 03, 04, 11, 16 e 96** e **exclui o elemento 13** (obrigações patronais, multa e juros); aposentados e pensionistas (01 e 03) **entram**; o padrão de texto deixa de ser `%13%` solto e passa a ser "13º", "décimo terceiro" e "13 salário" com `unaccent` (Regra 11), mantendo as exclusões já existentes (anulação e tipo `AN`).
+- **And** a mudança altera o `pago_13` também em `/pessoal`; os testes de paridade do mart e da página de pessoal são atualizados e o texto do `DecimoTerceiroCard` não promete "servidores" quando o valor inclui aposentados (Regra 15: dbt só no banco local; `make db/test/build` isolado, sem exportar a `DATABASE_URL` do banco local).
+
+*Bloco "Dinheiro que entra na cidade" (card do 13º):*
+- **Given** o ano ativo é o ano corrente e a data de hoje está em novembro ou dezembro (regra única do portal na camada de dados, sem seed, sem config por município e sem lei citada; Regra 23)
+- **When** há dado do 13º para o portal
+- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) entre "Como está a cidade hoje" e "Para onde vai o dinheiro público", com a pergunta "Quanto do 13º a Prefeitura já pagou este ano?", o valor pago acumulado em `stat-value` (sem percentual nem barra) e a frase "Valor pago acumulado no ano, inclusive parcelas pagas antes de novembro. Ainda não temos a data de cada pagamento." A descrição diz "servidores e aposentados".
+- **And** fora da janela, ou sem dado do 13º, **a seção inteira some** (sem espaço reservado).
 - **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
 - **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
-- **And** como o card não traz prazo legal, ele não afirma atraso nem cumprimento de prazo; só mostra quanto já foi pago do previsto.
-- **And** o texto "informados até dd/mm" só aparece se a **verificação inicial** confirmar a fonte da data. Resultado (2026-11-09): a única data disponível é a de extração do portal (`portalConfig.dataExtracao`), que diz quando coletamos, não quando foi publicado; o card mostra só "Dados de {ano}, atualizados em {data}" como a home.
+- **And** o loader da home passa a trazer o 13º para o ano ativo; esta story é dona desse dado e **não depende da Story 27.1**.
+- **And** o texto "informados até dd/mm" não aparece: a única data disponível é a de extração do portal, já exibida na abertura.
 - **And** o agregado é só da folha total, **sem dado individual de servidor** (LGPD).
-- **And** os textos passam pelo `editor-cidadao`; `pnpm typecheck` e `pnpm test` passam, com testes dentro da janela, fora da janela, sem dado do 13º e `pago` zerado.
+- **And** o `contador-publico` valida os elementos de despesa e os estágios; o `editor-cidadao` valida os textos; `llms.txt`, `llms-full.txt` e `CHANGELOG.md` são atualizados (Regra 12).
+- **And** `pnpm typecheck` e `pnpm test` passam, com testes: 13º dentro e fora da janela, sem dado, `pago` zerado; mart com e sem encargos (elemento 13) e com "DFD Nº 213".
 
-**Fora do escopo:** salário do mês, previdência, data de pagamento por competência (exige alterar o mart e investigar a fonte; backlog).
+**Fora do escopo:**
+- **Folha do mês (salário pago no mês atual, último mês pago integralmente):** descartada em 2026-11-10 por fragilidade do dado. A fonte não traz data de pagamento, só o mês do empenho e o pago acumulado. Natividade empenha, liquida e paga junto (empenhado de folha dos ativos ÷ holerite entre 0,94 e 1,01 em 19 de 21 meses), mas Porciúncula empenha a folha em lotes de vários meses (razão de 0,03 a 3,97) e o holerite do mês corrente ainda não existe. Só volta com fonte de data de pagamento ou com empenho mensal nos municípios.
+- Data de pagamento por competência, salário individual de servidor e previdência.
 
-**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge.
+**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge. Altera o `pago_13` de `/pessoal`.
 
 ---
 

@@ -151,6 +151,36 @@ describe("buildSituacaoCidadeCards", () => {
     expect(card(parametros(2), "obras")?.motivoAtencao).toBe(
       "2 obras estão paradas.",
     );
+    // O motivo já diz quantas estão paradas; o complemento não repete.
+    expect(card(parametros(1), "obras")?.complemento).toBeNull();
+  });
+
+  it("sem obra andando nem parada, a manchete mostra as não iniciadas", () => {
+    const obrasCard = card(
+      base({
+        resumoObras: obras({
+          emExecucao: 0,
+          paralisadas: 0,
+          cadastradas: 15,
+          concluidas: 2,
+        }),
+      }),
+      "obras",
+    );
+    expect(obrasCard?.manchete).toBe("15 não iniciadas");
+    expect(obrasCard?.complemento).toBe("2 concluídas");
+    expect(obrasCard?.textoCompartilhar).toContain(
+      "15 não iniciadas e 2 concluídas.",
+    );
+  });
+
+  it("obras em andamento sem nenhuma parada dizem isso por extenso", () => {
+    const obrasCard = card(
+      base({ resumoObras: obras({ emExecucao: 3, paralisadas: 0 }) }),
+      "obras",
+    );
+    expect(obrasCard?.manchete).toBe("3 em andamento");
+    expect(obrasCard?.complemento).toBe("nenhuma parada");
   });
 
   it("farmácia em apagão: sem etiqueta e com borda neutra", () => {
@@ -190,13 +220,20 @@ describe("buildSituacaoCidadeCards", () => {
     ).toBeUndefined();
   });
 
-  it("Ideb em queda mostra ▼ era X e nunca gera etiqueta", () => {
+  it("Ideb em queda mostra a seta para baixo com era X e nunca gera etiqueta", () => {
     const educacaoCard = card(
       base({ educacaoResumo: educacao({ evolucaoTom: "atencao" }) }),
       "educacao",
     );
-    expect(educacaoCard?.complemento).toBe("▼ era 5,4");
+    expect(educacaoCard?.complemento).toBe("era 5,4");
+    expect(educacaoCard?.sentidoComplemento).toBe("caiu");
+    expect(educacaoCard?.textoCompartilhar).toContain("(caiu, era 5,4)");
     expect(educacaoCard?.motivoAtencao).toBeNull();
+  });
+
+  it("as fontes do card apontam para os links oficiais", () => {
+    const obrasCard = card(base(), "obras");
+    expect(obrasCard?.fontes[0]?.url).toMatch(/^https:\/\//);
   });
 
   it("o texto de compartilhar leva período e fonte", () => {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AberturaHome } from "@/components/abertura-home";
 import { DinheiroPublicoSection } from "@/components/dinheiro-publico-section";
+import { DinheiroQueEntraSection } from "@/components/dinheiro-que-entra-section";
 import { MaisDetalhesSection } from "@/components/mais-detalhes-section";
 import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -42,30 +43,37 @@ export default async function VisaoGeralPage({
   const viewModel = buildVisaoGeralViewModel(rawData);
 
   return (
-    <div className="space-y-16 bg-page md:space-y-[104px]">
-      <AberturaHome
-        title={viewModel.openingTitle}
-        periodLabel={viewModel.periodLabel}
-      />
+    <div className="space-y-12 bg-page md:space-y-16">
+      {/* A abertura fica colada à primeira seção (32px), que é a resposta à pergunta do título. */}
+      <div className="space-y-8">
+        <AberturaHome
+          title={viewModel.openingTitle}
+          periodLabel={viewModel.periodLabel}
+        />
 
-      <SituacaoCidadeSection
-        situacao={viewModel.situacaoHome}
-        ano={viewModel.selectedYear}
-        farmaciaStatus={viewModel.farmaciaStatus}
-        minimoSaude={viewModel.minimoSaude}
-        resumoObras={viewModel.resumoObras}
-        educacaoResumo={viewModel.educacaoResumo}
-        minimoEducacao={viewModel.minimoEducacao}
-        saudeDetailUrl={viewModel.saudeDetailUrl}
-        obrasDetailUrl={viewModel.obrasDetailUrl}
-        educacaoDetailUrl={viewModel.educacaoDetailUrl}
-        farmaciaDetailUrl={viewModel.farmaciaDetailUrl}
-        farmaciaRequerimento={viewModel.farmaciaRequerimento}
-        farmaciaTextoWhatsApp={viewModel.farmaciaTextoWhatsApp}
-        farmaciaExemplos={viewModel.farmaciaExemplos}
-        obrasMarkers={viewModel.obrasMiniMapMarkers}
-        obrasCenter={viewModel.obrasMapCenter}
-      />
+        <SituacaoCidadeSection
+          situacao={viewModel.situacaoHome}
+          ano={viewModel.selectedYear}
+          farmaciaStatus={viewModel.farmaciaStatus}
+          minimoSaude={viewModel.minimoSaude}
+          resumoObras={viewModel.resumoObras}
+          educacaoResumo={viewModel.educacaoResumo}
+          minimoEducacao={viewModel.minimoEducacao}
+          saudeDetailUrl={viewModel.saudeDetailUrl}
+          obrasDetailUrl={viewModel.obrasDetailUrl}
+          educacaoDetailUrl={viewModel.educacaoDetailUrl}
+          farmaciaDetailUrl={viewModel.farmaciaDetailUrl}
+          farmaciaRequerimento={viewModel.farmaciaRequerimento}
+          farmaciaTextoWhatsApp={viewModel.farmaciaTextoWhatsApp}
+          farmaciaExemplos={viewModel.farmaciaExemplos}
+          obrasMarkers={viewModel.obrasMiniMapMarkers}
+          obrasCenter={viewModel.obrasMapCenter}
+        />
+      </div>
+
+      {viewModel.decimoTerceiroHome ? (
+        <DinheiroQueEntraSection {...viewModel.decimoTerceiroHome} />
+      ) : null}
 
       <DinheiroPublicoSection
         arrecadadoTitle={viewModel.arrecadadoTitle}

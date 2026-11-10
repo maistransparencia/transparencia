@@ -1,6 +1,7 @@
 import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadRadarData } from "./loader";
@@ -46,9 +47,7 @@ export default async function RadarPage({
     <div className="w-full space-y-6 pb-12">
       {/* Cabeçalho da Página */}
       <div className="flex flex-col gap-2">
-        <p className="eyebrow text-brand-text!">
-          Controle Social e Auditoria Fiscal
-        </p>
+        <PageEyebrow>Controle Social e Auditoria Fiscal</PageEyebrow>
 
         <h1>Radar Cívico Municipal</h1>
         <p className="lead max-w-none">

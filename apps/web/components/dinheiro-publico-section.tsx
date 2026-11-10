@@ -1,6 +1,8 @@
 import type { SiconfiPosicaoFinanceiraDTO } from "@transparencia/db";
-import { corDoGrafico, fmtCompact } from "@transparencia/ui";
+import { fmtCompact, ThresholdMeter } from "@transparencia/ui";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { CLASSE_ACAO_DESTAQUE } from "./destaque-linha";
 import { SaldoCaixaResumoCard } from "./saldo-caixa-resumo-card";
 import { SectionWithHeader } from "./section-with-header";
 
@@ -38,27 +40,19 @@ export function DinheiroPublicoSection({
         <div className="space-y-3">
           <p className="eyebrow">{arrecadadoTitle}</p>
           <p className="stat-value-lg">{fmtCompact(totalArrecadado)}</p>
-          <div
-            className="h-1.5 w-full overflow-hidden bg-track"
-            role="progressbar"
-            aria-valuenow={Math.round(larguraBarra)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`${percentualPrevisto}% da previsão de arrecadação`}
-          >
-            <div
-              className="h-full"
-              style={{
-                backgroundColor: corDoGrafico("brand"),
-                width: `${larguraBarra}%`,
-              }}
-            />
-          </div>
+          <ThresholdMeter
+            value={larguraBarra}
+            label="Arrecadado em relação à previsão do exercício"
+            valueText={`${percentualPrevisto}% da previsão de arrecadação`}
+          />
           <p className="caption">
             {percentualPrevisto}% da previsão de {fmtCompact(previstoTotal)}{" "}
             para o exercício.
           </p>
-          <Link href={orcamentoDetailUrl}>Ver detalhes</Link>
+          <Link href={orcamentoDetailUrl} className={CLASSE_ACAO_DESTAQUE}>
+            <span>Ver detalhes</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
 
         <SaldoCaixaResumoCard
