@@ -4171,24 +4171,36 @@ So that I can plan my sales for the weeks when that money reaches the city.
 
 **Origem:** sessão de 2026-11-09. O 13º interessa ao comerciante, não ao servidor. **Tem relógio:** a janela é novembro e dezembro; perder dezembro significa esperar um ano. **Pode andar em paralelo** às Stories 27.2 e 27.3 (só o encaixe na página depende da 27.3). Entra no release se ficar pronta a tempo.
 
-**Por que só o 13º e por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. Folha e 13º não ganharam "pago em dd/mm" porque a data não está no dado. A tela diz isso.
+**Decisões de 2026-11-09/10 (Julio):** (1) sem lei municipal nem seed por município (manter a lei de cada cidade não escala): a janela é regra única do portal, novembro e dezembro do ano corrente; (2) o card mostra só o **valor pago acumulado no ano**, sem percentual nem barra, porque o dado é anual, o empenhado ainda é parcial em novembro e municípios como Natividade pagam a primeira parcela em junho (2026: R$ 1,2 mi pago de R$ 1,2 mi empenhado, 100%); (3) o filtro do 13º no mart é corrigido; (4) a "folha do mês" **não entra**: ver "Fora do escopo".
+
+**Por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. A fonte não traz data de pagamento em nenhum dos municípios. A tela diz isso.
 
 **Acceptance Criteria:**
-- **Given** o ano ativo é o ano corrente e a data de hoje está dentro da **janela de exibição do 13º**, regra única do portal (novembro e dezembro) mantida na camada de dados (`@transparencia/db`), sem config por município e sem lei municipal (decisão de 2026-11-09: manter a lei de cada município não escala; Regra 23: nenhum ano fixo em código)
-- **When** a home carrega
-- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento." Sem prazo legal e sem citar lei.
-- **And** o loader da home passa a trazer `getExecucaoDecimoTerceiroMetrics` para o ano ativo e a decisão de exibir a janela vem da mesma camada; esta story é dona desse dado e **não depende da Story 27.1**.
-- **And** **fora da janela, ou sem dado do 13º para o portal, a seção inteira some** (sem espaço reservado).
+
+*Correção do 13º no mart (`fct_pessoal_folha_metricas`):*
+- **Given** o `pago_13` e o `empenhado_13` de hoje somam encargos e falsos positivos (em 2025, elemento 13 = R$ 85 mil em Natividade e R$ 650 mil em Porciúncula, cerca de 12% do `pago_13` dela; "DFD Nº 213" casa com `%13%`)
+- **When** o mart é recalculado
+- **Then** o 13º conta só os elementos de despesa **01, 03, 04, 11, 16 e 96** e **exclui o elemento 13** (obrigações patronais, multa e juros); aposentados e pensionistas (01 e 03) **entram**; o padrão de texto deixa de ser `%13%` solto e passa a ser "13º", "décimo terceiro" e "13 salário" com `unaccent` (Regra 11), mantendo as exclusões já existentes (anulação e tipo `AN`).
+- **And** a mudança altera o `pago_13` também em `/pessoal`; os testes de paridade do mart e da página de pessoal são atualizados e o texto do `DecimoTerceiroCard` não promete "servidores" quando o valor inclui aposentados (Regra 15: dbt só no banco local; `make db/test/build` isolado, sem exportar a `DATABASE_URL` do banco local).
+
+*Bloco "Dinheiro que entra na cidade" (card do 13º):*
+- **Given** o ano ativo é o ano corrente e a data de hoje está em novembro ou dezembro (regra única do portal na camada de dados, sem seed, sem config por município e sem lei citada; Regra 23)
+- **When** há dado do 13º para o portal
+- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) entre "Como está a cidade hoje" e "Para onde vai o dinheiro público", com a pergunta "Quanto do 13º a Prefeitura já pagou este ano?", o valor pago acumulado em `stat-value` (sem percentual nem barra) e a frase "Valor pago acumulado no ano, inclusive parcelas pagas antes de novembro. Ainda não temos a data de cada pagamento." A descrição diz "servidores e aposentados".
+- **And** fora da janela, ou sem dado do 13º, **a seção inteira some** (sem espaço reservado).
 - **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
 - **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
-- **And** como o card não traz prazo legal, ele não afirma atraso nem cumprimento de prazo; só mostra quanto já foi pago do previsto.
-- **And** o texto "informados até dd/mm" só aparece se a **verificação inicial** confirmar a fonte da data. Resultado (2026-11-09): a única data disponível é a de extração do portal (`portalConfig.dataExtracao`), que diz quando coletamos, não quando foi publicado; o card mostra só "Dados de {ano}, atualizados em {data}" como a home.
+- **And** o loader da home passa a trazer o 13º para o ano ativo; esta story é dona desse dado e **não depende da Story 27.1**.
+- **And** o texto "informados até dd/mm" não aparece: a única data disponível é a de extração do portal, já exibida na abertura.
 - **And** o agregado é só da folha total, **sem dado individual de servidor** (LGPD).
-- **And** os textos passam pelo `editor-cidadao`; `pnpm typecheck` e `pnpm test` passam, com testes dentro da janela, fora da janela, sem dado do 13º e `pago` zerado.
+- **And** o `contador-publico` valida os elementos de despesa e os estágios; o `editor-cidadao` valida os textos; `llms.txt`, `llms-full.txt` e `CHANGELOG.md` são atualizados (Regra 12).
+- **And** `pnpm typecheck` e `pnpm test` passam, com testes: 13º dentro e fora da janela, sem dado, `pago` zerado; mart com e sem encargos (elemento 13) e com "DFD Nº 213".
 
-**Fora do escopo:** salário do mês, previdência, data de pagamento por competência (exige alterar o mart e investigar a fonte; backlog).
+**Fora do escopo:**
+- **Folha do mês (salário pago no mês atual, último mês pago integralmente):** descartada em 2026-11-10 por fragilidade do dado. A fonte não traz data de pagamento, só o mês do empenho e o pago acumulado. Natividade empenha, liquida e paga junto (empenhado de folha dos ativos ÷ holerite entre 0,94 e 1,01 em 19 de 21 meses), mas Porciúncula empenha a folha em lotes de vários meses (razão de 0,03 a 3,97) e o holerite do mês corrente ainda não existe. Só volta com fonte de data de pagamento ou com empenho mensal nos municípios.
+- Data de pagamento por competência, salário individual de servidor e previdência.
 
-**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge.
+**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge. Altera o `pago_13` de `/pessoal`.
 
 ---
 

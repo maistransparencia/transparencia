@@ -5,6 +5,7 @@ import type {
 import {
   calcularSituacaoHome,
   getContratosServicosVigentes,
+  getDecimoTerceiroHome,
   getEducacaoSiope,
   getEntidades,
   getExecucaoOrcamentariaMetrics,
@@ -207,6 +208,7 @@ async function fetchRawVisaoGeralData(
     resumoFarmacia,
     minimoSaudeDto,
     siopeEducacao,
+    decimoTerceiro,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -243,6 +245,7 @@ async function fetchRawVisaoGeralData(
     getEducacaoSiope({ portalSlug: tenantSlug, ano: selectedYear }).catch(
       () => null,
     ),
+    getDecimoTerceiroHome(tenantSlug, selectedYear, { empresaIds }),
   ]);
 
   const minimoSaude = minimoSaudeDto?.minimo ?? null;
@@ -318,6 +321,7 @@ async function fetchRawVisaoGeralData(
     minimoSaude,
     minimoEducacao,
     situacaoHome,
+    decimoTerceiro,
   };
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AberturaHome } from "@/components/abertura-home";
 import { DinheiroPublicoSection } from "@/components/dinheiro-publico-section";
+import { DinheiroQueEntraSection } from "@/components/dinheiro-que-entra-section";
 import { MaisDetalhesSection } from "@/components/mais-detalhes-section";
 import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -42,7 +43,7 @@ export default async function VisaoGeralPage({
   const viewModel = buildVisaoGeralViewModel(rawData);
 
   return (
-    <div className="space-y-16 bg-page md:space-y-[104px]">
+    <div className="space-y-12 bg-page md:space-y-16">
       <AberturaHome
         title={viewModel.openingTitle}
         periodLabel={viewModel.periodLabel}
@@ -66,6 +67,10 @@ export default async function VisaoGeralPage({
         obrasMarkers={viewModel.obrasMiniMapMarkers}
         obrasCenter={viewModel.obrasMapCenter}
       />
+
+      {viewModel.decimoTerceiroHome ? (
+        <DinheiroQueEntraSection {...viewModel.decimoTerceiroHome} />
+      ) : null}
 
       <DinheiroPublicoSection
         arrecadadoTitle={viewModel.arrecadadoTitle}

@@ -11,6 +11,7 @@ const {
   getResumoObrasPorPortalMock,
   getSaudeMinimoConstitucionalMock,
   getEducacaoSiopeMock,
+  getDecimoTerceiroHomeMock,
   calcularSituacaoHomeMock,
   notFoundMock,
 } = vi.hoisted(() => ({
@@ -24,6 +25,7 @@ const {
   getResumoObrasPorPortalMock: vi.fn(),
   getSaudeMinimoConstitucionalMock: vi.fn().mockResolvedValue(null),
   getEducacaoSiopeMock: vi.fn().mockResolvedValue(null),
+  getDecimoTerceiroHomeMock: vi.fn().mockResolvedValue(null),
   calcularSituacaoHomeMock: vi.fn().mockReturnValue({ sentinela: true }),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -57,6 +59,7 @@ vi.mock("@transparencia/db", () => ({
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
   getSaudeMinimoConstitucional: getSaudeMinimoConstitucionalMock,
   getEducacaoSiope: getEducacaoSiopeMock,
+  getDecimoTerceiroHome: getDecimoTerceiroHomeMock,
   calcularSituacaoHome: calcularSituacaoHomeMock,
 }));
 
@@ -272,6 +275,23 @@ describe("loadVisaoGeralData", () => {
       baseLegal: "CF/88 Art. 212",
       urlBaseLegal: "https://example.test/cf212",
     };
+
+    it("traz o 13º da camada de dados para o ano ativo", async () => {
+      const decimoTerceiro = { pago: 10, percentual_pago: 0.5 };
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getDecimoTerceiroHomeMock.mockResolvedValue(decimoTerceiro);
+
+      const result = await loadVisaoGeralData("porciuncula", { ano: "2020" });
+
+      expect(getDecimoTerceiroHomeMock).toHaveBeenCalledWith(
+        "porciuncula",
+        2020,
+        { empresaIds: expect.anything() },
+      );
+      expect(result.decimoTerceiro).toBe(decimoTerceiro);
+      getDecimoTerceiroHomeMock.mockResolvedValue(null);
+    });
 
     it("traz os mínimos das mesmas queries das páginas internas, sem recalcular", async () => {
       getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);

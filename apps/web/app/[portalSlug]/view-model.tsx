@@ -400,9 +400,21 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       ? `Dados de ${selectedYear}`
       : `Dados de ${selectedYear}, atualizados em ${dataAtualizacao}`;
   const detailShortcuts = [
-    { title: "Em que a Prefeitura gastou", url: routeUrl("/despesas") },
-    { title: "Compras e contratações", url: routeUrl("/licitacoes") },
-    { title: "Servidores e folha de pagamento", url: routeUrl("/pessoal") },
+    {
+      label: "Despesas",
+      title: "Em que a Prefeitura gastou",
+      url: routeUrl("/despesas"),
+    },
+    {
+      label: "Licitações e Contratos",
+      title: "Compras e contratações",
+      url: routeUrl("/licitacoes"),
+    },
+    {
+      label: "Pessoal",
+      title: "Servidores e folha de pagamento",
+      url: routeUrl("/pessoal"),
+    },
   ];
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
@@ -494,6 +506,12 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     minimoSaude: raw.minimoSaude,
     minimoEducacao: raw.minimoEducacao,
     situacaoHome: raw.situacaoHome,
+    decimoTerceiroHome: raw.decimoTerceiro
+      ? {
+          pago: raw.decimoTerceiro.pago,
+          semPagamento: raw.decimoTerceiro.pago <= 0,
+        }
+      : null,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
     farmaciaRequerimento:
       raw.resumoFarmacia?.status === "apagao" && portalName

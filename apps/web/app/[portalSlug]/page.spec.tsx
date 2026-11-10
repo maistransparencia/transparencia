@@ -118,6 +118,14 @@ const props = {
   searchParams: Promise.resolve({}),
 };
 
+function blocoDecimoTerceiro(): HTMLElement {
+  const bloco = screen
+    .getByRole("heading", { name: "Dinheiro que entra na cidade" })
+    .closest("section");
+  if (!bloco) throw new Error("bloco do 13º não encontrado");
+  return bloco;
+}
+
 describe("VisaoGeralPage", () => {
   it("happy-path: abertura, situação da cidade, dinheiro público e mais detalhes, sem radar nem pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
@@ -178,9 +186,80 @@ describe("VisaoGeralPage", () => {
       "Compras e contratações",
       "Servidores e folha de pagamento",
     ].forEach((nome) => {
-      expect(screen.getByRole("link", { name: nome })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: new RegExp(nome) }),
+      ).toBeInTheDocument();
     });
     expect(screen.queryByRole("heading", { level: 5 })).toBeNull();
+  });
+
+  it("13º dentro da janela: bloco entre situação e dinheiro público, com o valor pago acumulado, sem barra nem percentual", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        decimoTerceiro: {
+          empenhado: 1_000_000,
+          empenhadoBruto: 1_000_000,
+          liquidado: 600_000,
+          pago: 400_000,
+          percentual_pago: 0.4,
+          pctPago: 0.4,
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((h) => h.textContent);
+    expect(titulos).toEqual([
+      "Como está a cidade hoje",
+      "Dinheiro que entra na cidade",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
+    ]);
+    expect(
+      screen.getByText("Quanto do 13º a Prefeitura já pagou este ano?"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s?400/)).toBeInTheDocument();
+    expect(within(blocoDecimoTerceiro()).queryByRole("progressbar")).toBeNull();
+    expect(
+      screen.getByText(/Ainda não temos a data de cada pagamento/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
+  });
+
+  it("13º com pago zerado: diz que não há informação, sem 'atrasado'", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        decimoTerceiro: {
+          empenhado: 1_000_000,
+          empenhadoBruto: 1_000_000,
+          liquidado: 0,
+          pago: 0,
+          percentual_pago: 0,
+          pctPago: 0,
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+
+    expect(
+      screen.getByText("Ainda sem informação de pagamento"),
+    ).toBeInTheDocument();
+    expect(within(blocoDecimoTerceiro()).queryByRole("progressbar")).toBeNull();
+    expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
+  });
+
+  it("fora da janela ou sem dado do 13º: o bloco não existe", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ decimoTerceiro: null }));
+    render(await VisaoGeralPage(props));
+
+    expect(
+      screen.queryByRole("heading", { name: "Dinheiro que entra na cidade" }),
+    ).toBeNull();
+    expect(
+      screen.queryByText("Quanto do 13º a Prefeitura já pagou este ano?"),
+    ).toBeNull();
   });
 
   it("município sem nome mostra Municípios Integrados", async () => {
@@ -403,7 +482,11 @@ describe("VisaoGeralPage", () => {
       makeRaw({ resumoFarmacia: { status: "apagao" } }),
     );
     const { container } = render(await VisaoGeralPage(props));
-    const titulos = ["Para onde vai o dinheiro público", "Mais detalhes"];
+    const titulos = [
+      "Como está a cidade hoje",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
+    ];
     titulos.forEach((titulo) => {
       const cabecalho = screen
         .getByRole("heading", { name: titulo })
@@ -411,7 +494,7 @@ describe("VisaoGeralPage", () => {
       expect(cabecalho).toHaveClass("border-t-2", "border-ink");
     });
     const raiz = container.firstElementChild;
-    expect(raiz).toHaveClass("space-y-16", "md:space-y-[104px]", "bg-page");
+    expect(raiz).toHaveClass("space-y-12", "md:space-y-16", "bg-page");
   });
 
   it("não usa caixas com sombra nem hex nos arquivos migrados", () => {
