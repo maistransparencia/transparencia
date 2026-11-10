@@ -475,6 +475,9 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    minimoSaude: raw.minimoSaude,
+    minimoEducacao: raw.minimoEducacao,
+    situacaoHome: raw.situacaoHome,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
     farmaciaRequerimento:
       raw.resumoFarmacia?.status === "apagao" && portalName
