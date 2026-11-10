@@ -3,7 +3,9 @@ import type {
   ResumoFarmaciaSusDTO,
 } from "@transparencia/db";
 import {
+  calcularSituacaoHome,
   getContratosServicosVigentes,
+  getEducacaoSiope,
   getEntidades,
   getExecucaoOrcamentariaMetrics,
   getFarmaciaSentinelas,
@@ -21,6 +23,7 @@ import {
   getResumoEducacao,
   getResumoFarmaciaSus,
   getResumoObrasPorPortal,
+  getSaudeMinimoConstitucional,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
 import { notFound } from "next/navigation";
@@ -202,6 +205,8 @@ async function fetchRawVisaoGeralData(
     obrasPreview,
     resumoEducacao,
     resumoFarmacia,
+    minimoSaudeDto,
+    siopeEducacao,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -229,7 +234,27 @@ async function fetchRawVisaoGeralData(
     getResumoFarmaciaSus(tenantSlug).catch(
       (): ResumoFarmaciaSusDTO => RESUMO_FARMACIA_INDISPONIVEL,
     ),
+    // Mesmas queries das páginas internas: o percentual da home nunca é recalculado.
+    // Fonte ausente ou com falha vira `null` (área `indisponivel`), sem derrubar a home.
+    getSaudeMinimoConstitucional({
+      portalSlug: tenantSlug,
+      ano: selectedYear,
+    }).catch(() => null),
+    getEducacaoSiope({ portalSlug: tenantSlug, ano: selectedYear }).catch(
+      () => null,
+    ),
   ]);
+
+  const minimoSaude = minimoSaudeDto?.minimo ?? null;
+  const minimoEducacao = siopeEducacao?.minimos.mde ?? null;
+  const situacaoHome = calcularSituacaoHome({
+    anoFechado: selectedYear < context.currentYear,
+    minimoSaude,
+    farmaciaStatus: resumoFarmacia?.status,
+    resumoObras: resumoObras ?? null,
+    minimoEducacao,
+    crescimentoPontosIdeb: resumoEducacao?.crescimentoPontosIdeb,
+  });
 
   const sentinelasFarmacia =
     resumoFarmacia?.status === "conforme"
@@ -290,6 +315,9 @@ async function fetchRawVisaoGeralData(
     resumoEducacao,
     resumoFarmacia,
     sentinelasFarmacia,
+    minimoSaude,
+    minimoEducacao,
+    situacaoHome,
   };
 }
 

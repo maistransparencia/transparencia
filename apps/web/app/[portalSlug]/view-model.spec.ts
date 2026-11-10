@@ -1009,3 +1009,35 @@ describe("buildVisaoGeralViewModel - cores das barras", () => {
     );
   });
 });
+
+describe("buildVisaoGeralViewModel - contrato de situação da home", () => {
+  it("propaga mínimos e situação por área vindos do loader, sem recalcular", () => {
+    const raw = makeRawVisaoGeral({
+      minimoSaude: {
+        limite: 15,
+        percentualAplicado: 12,
+        resultado: "abaixo",
+        comparavel: true,
+        mesesCobertos: null,
+        baseLegal: "LC 141/2012",
+        urlBaseLegal: "https://example.test/lc141",
+      },
+      minimoEducacao: null,
+      situacaoHome: {
+        saude: { estado: "abaixo", emAtencao: true, motivo: "abaixo_minimo" },
+        obras: {
+          estado: "normal",
+          emAtencao: true,
+          motivo: "obra_paralisada",
+        },
+        educacao: { estado: "indisponivel", emAtencao: false, motivo: null },
+      },
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.minimoSaude).toBe(raw.minimoSaude);
+    expect(vm.minimoEducacao).toBeNull();
+    expect(vm.situacaoHome).toBe(raw.situacaoHome);
+  });
+});
