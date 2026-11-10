@@ -98,6 +98,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
 - [Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?](#epic-25-saúde-a-prefeitura-aplica-o-mínimo-exigido)
 - [Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)](#epic-26-camada-raw-por-fonte-fim-do-schema-por-município-esboço)
+- [Epic 27: Home: a Situação da Cidade Primeiro](#epic-27-home-a-situação-da-cidade-primeiro)
 
 ---
 
@@ -4042,6 +4043,152 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
 
 **Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
+
+---
+
+## Epic 27: Home: a Situação da Cidade Primeiro
+
+A página inicial deixa de abrir pela arrecadação e passa a abrir pela pergunta "Como está a minha cidade hoje?". Os três temas que mais pesam em cidade pequena (saúde, obras e educação) viram cards de situação, cada um com a pergunta do cidadão, a resposta em uma frase e a régua que a sustenta. O dinheiro fica logo abaixo, em duas perguntas separadas: "Dinheiro que entra na cidade" (o 13º dos servidores, só na época) e "Para onde vai o dinheiro público" (o hero fiscal rebaixado). Origem: sessão de produto e UX de 2026-11-09 com mockups em `https://claude.ai/artifact/E27agKixrsAExv4Pgwb5ih` (canvas privado do Julio; a decisão final está neste texto, não no canvas). Depois das refatorações de Educação (Epic 24) e Saúde (Epic 25), a home é a última página que ainda abre como relatório contábil.
+
+**Público (informado pelo Julio em 2026-11-09):** hoje, pessoas com mais de 30 anos vindas do Facebook; a meta é alcançar a faixa anterior, vinda do Instagram. Quase todos leigos. Os municípios são pequenos e os próximos também serão. Daí: celular primeiro, uma resposta curta por card, botão "Compartilhar" em cada card e nada de jargão. O 13º interessa sobretudo ao **comerciante local** (o dinheiro da folha vira venda na cidade), não ao servidor.
+
+**Contexto e substituição do handoff:** `handoff-remodelagem-home-utilidade.md` (Epic 19) continua valendo como contexto. Nesta epic, **três pontos dele são substituídos**: (1) o Radar Cívico não sobe para a primeira dobra, **sai da home** (a rota `/radar` continua; os alertas ainda são técnicos demais para a vitrine e a versão "novidades em linguagem comum" fica no backlog); (2) o apagão da farmácia deixa de ser "Violação" e "Inconformidade Crítica" na home: o texto segue o que o card já diz ("não encontramos estoque divulgado... isso não quer dizer que falta remédio") e **não recebe a etiqueta "Merece atenção"**; (3) "Copiar requerimento" e "Compartilhar no WhatsApp" **ficam na home** (decisão do Julio, 2026-11-09), dentro do card de saúde no estado de apagão.
+
+**Decisões fechadas em 2026-11-09:**
+- **Ordem fixa**, sem reordenar por dado: abertura (h1 com o município, período em texto), "Como está a cidade hoje" (Saúde, Obras, Educação), "Dinheiro que entra na cidade" (13º, sazonal), "Para onde vai o dinheiro público" (hero fiscal e saldo em caixa) e "Mais detalhes". O cidadão aprende onde fica cada coisa.
+- **Sem seletor de ano no conteúdo.** Ele já existe no sidebar (desktop) e no header (mobile). A home mostra o período só como texto.
+- **Etiqueta "Merece atenção" só com dois gatilhos, ambos fatos com régua:** `abaixo_minimo` (mínimo de saúde ou de educação com resultado `abaixo`, **só no ano fechado**) e `obra_paralisada` (qualquer obra paralisada, pelo menos uma). Toda etiqueta traz o **motivo escrito em uma linha** ("2 obras estão paradas."). **Não disparam:** mínimo `parcial` ou `sem_dado`, apagão da farmácia (não divulgar o estoque não é falta de remédio), Ideb em queda (nota que oscila a cada dois anos; a meta é parâmetro do portal, não limite legal; a queda já aparece no card com "▼ era X").
+- **Uma manchete por card**, a pergunta do uso (remédio, obra, escola). O mínimo legal entra como **linha de apoio**, menor, com barra e link da lei.
+- **Cidade sem dado não ganha card vazio:** o card some e os demais dividem a linha.
+
+**Estados de cada card (todos desenhados no canvas):** normal; mínimo `parcial` no ano em andamento ("Em andamento", sem "Sim" nem "Não"); `abaixo` ("Ainda não", em âmbar, sem vermelho e sem acusação); `sem_dado` (a linha da régua não aparece, e o card nunca mostra "sem dado" como se fosse resposta); farmácia em apagão; cidade sem obras.
+
+**O que o levantamento de 2026-11-09 mostrou (verificado no código):** o loader da home hoje **não carrega** o mínimo de saúde (`getSaudeMinimoConstitucional`, usado só pela página de saúde) nem o mínimo de educação (`siope.minimos.mde`, usado só pela página de educação); `MinimoLegalDTO` já traz `limite`, `percentualAplicado`, `resultado` (`cumpriu`, `abaixo`, `parcial`, `sem_dado`), `baseLegal` e `urlBaseLegal`; o 13º existe em `getExecucaoDecimoTerceiroMetrics` (empenhado, liquidado, pago e percentual pago) **por ano, sem mês e sem data de pagamento**, porque o mart `fct_pessoal_folha_metricas` agrega por ano e empresa, embora o staging de pessoal tenha a coluna `mes`; `ResumoObrasDTO` traz `paralisadas` e `valorParalisadas`, **sem a duração da paralisação**; a busca de remédio já existe (`farmacia-busca-destaque`, `farmacia-busca-form`).
+
+**Restrições:** Regra 2 (camada de apresentação burra: o percentual da home sai da **mesma query** da página interna, nunca recalculado na tela), Regra 9 e 18 (nomes claros e `camelCase`), Regra 10 (códigos `abaixo_minimo`, `obra_paralisada` em snake_case; a UI traduz), Regra 12 (`llms.txt` e `llms-full.txt`), Regra 15 (seed e dbt só no banco local), Regra 20 (toda lei citada com link oficial), Regra 23 (sem município, UF ou ano fixos), Regra 24 e 25 (vocabulário, `DESIGN.md` e `EXPERIENCE.md`), Regra 27 (pergunta primeiro, dado derivado diz que é derivado), `jurista-fiscal` para a base legal, `contador-publico` para os estágios do 13º e `editor-cidadao` para todo texto ao cidadão.
+
+**Fora do escopo (backlog, com motivo):**
+- **Radar Cívico na home:** alertas técnicos demais para a vitrine. Evolução: feed de novidades em linguagem comum (outra fonte e outro produto).
+- **Assistência social:** ainda sem dado (Epic 21). Não se reserva espaço nem se mostra "em breve".
+- **Previdência em dia:** não interessa ao comerciante e não há fonte (a contribuição patronal é despesa, não situação de regularidade).
+- **Salário do mês pago:** exige competência (mês) no mart e data de pagamento, que não achamos nos models. Story de dados própria.
+- **Fornecedores locais pagos em dia:** produto novo.
+- **Duração da obra paralisada** como critério da etiqueta: só com dado confirmado.
+- **Ideb em queda como gatilho:** descartado nesta epic (ver acima).
+
+**Release:** as Stories 27.1 a 27.3 vão no release. A 27.4 entra se ficar pronta a tempo; senão vai logo depois.
+
+---
+
+### Story 27.1: Contrato de Dados da Home (Mínimos, Etiqueta com Motivo e Estados)
+
+As a citizen opening the portal,  
+I want the home to show the same numbers as the Saúde and Educação pages,  
+So that a card on the home never contradicts the page it links to.
+
+**Origem:** sessão de 2026-11-09. Base das Stories 27.2 e 27.3. **Sem mudança visual.**
+
+**Acceptance Criteria:**
+- **Given** o loader da home em `apps/web/app/[portalSlug]/loader.ts`
+- **When** a story termina
+- **Then** o loader passa a trazer o mínimo de saúde (a mesma query `getSaudeMinimoConstitucional` da página de saúde) e o mínimo de educação (a mesma fonte `siope.minimos.mde` da página de educação), cada um com `limite`, `percentualAplicado`, `resultado`, `baseLegal` e `urlBaseLegal`.
+- **And** o percentual exibido na home é **idêntico** ao da página interna no mesmo ano e portal; há teste de paridade entre as duas (Regra 2: nada é recalculado na tela).
+- **And** `@transparencia/db` devolve, por área (saúde, obras, educação), `emAtencao` (booleano) e `motivo` (código em snake_case, Regra 10): `abaixo_minimo` quando o resultado do mínimo é `abaixo` **e o ano está fechado**; `obra_paralisada` quando `ResumoObrasDTO.paralisadas` é maior que zero. A tradução em frase é da camada de apresentação.
+- **And** `parcial`, `sem_dado`, apagão da farmácia e queda do Ideb **nunca** geram `emAtencao`; há teste para cada um desses casos.
+- **And** o estado de cada área é expresso por um valor tipado (`normal`, `parcial`, `abaixo`, `sem_dado`, `indisponivel`), sem ternário aninhado (Regra 13) e sem tautologia (Regra 14).
+- **And** quando uma fonte falha ou não existe para o município, a área vem como `indisponivel` e o loader **não derruba a página** (mesma tolerância que `getResumoFarmaciaSus(...).catch` já tem).
+- **And** o loader também traz `getExecucaoDecimoTerceiroMetrics` para o ano ativo, para a Story 27.4 consumir; sem uso na tela nesta story.
+- **And** nenhum literal de município, UF ou ano (Regra 23); campos em `camelCase` (Regra 18).
+- **And** `make test/ts` (ou `pnpm test`) e `pnpm typecheck` passam, com testes novos no `loader.spec.ts` e no `view-model.spec.ts`.
+
+**Fora do escopo:** qualquer componente ou mudança visual; a janela do 13º (Story 27.4).
+
+**Dependências:** nenhuma. Pré-requisito da 27.2.
+
+---
+
+### Story 27.2: Card de Situação (Saúde, Obras e Educação)
+
+As a citizen with little time,  
+I want each city area to answer one question in a sentence, with the rule that backs it,  
+So that I know how the city is doing before reading any table.
+
+**Origem:** sessão de 2026-11-09 (mockup "Card de situação" e "D · Estados dos cards").
+
+**Acceptance Criteria:**
+- **Given** os dados da Story 27.1
+- **When** a home carrega
+- **Then** a seção "Como está a cidade hoje" (`h2`) mostra, na **ordem fixa** Saúde, Obras, Educação, um card por área com: `eyebrow` da área, pergunta em `h3` ("Tem remédio no posto de saúde?", "As obras da cidade estão andando?", "A educação da cidade está melhorando?"), resposta curta em `stat-value`, nota de origem em `caption`, "Ver detalhes" e "Compartilhar" (rótulos da Regra 24), no formato `panel` do `DESIGN.md`.
+- **And** a **Saúde** tem como manchete o estado do estoque da farmácia e reaproveita a busca de remédio (`farmacia-busca-destaque`); o mínimo de saúde aparece como linha de apoio ("A Prefeitura aplica o mínimo exigido em saúde?"), com barra quadrada, traço do mínimo e a base legal vinda de `urlBaseLegal` (Regra 20, `target="_blank"` e `rel="noopener noreferrer"`).
+- **And** a **Educação** tem como manchete a nota do Ideb com "▲/▼ era X"; o mínimo de educação aparece como linha de apoio, no mesmo padrão. A meta do Ideb é exibida como contexto, sem tom de limite legal.
+- **And** **Obras** mostra "N em andamento" e "M paradas", a proporção por situação em barra quadrada com legenda e o mini mapa que já existe (`obras-resumo-card`), sem recalcular contagens na tela.
+- **And** os **estados** seguem o canvas: `parcial` mostra "Em andamento: X% aplicados até agora" sem veredito; `abaixo` mostra "Ainda não:" em tom de atenção (âmbar, nunca vermelho) com `emAtencao`; `sem_dado` **omite** a linha da régua; cidade sem obras ou sem resumo de educação **não renderiza** o card e os demais dividem a linha.
+- **And** a etiqueta "Merece atenção" aparece **somente** quando `emAtencao` é verdadeiro e **sempre acompanhada do motivo escrito** em uma linha ("2 obras estão paradas.", "Aplicou menos que o mínimo exigido no ano."); a etiqueta nunca aparece sozinha.
+- **And** com a farmácia em **apagão** o card de saúde mostra "Sem informação de estoque" com o texto atual ("isso não quer dizer que falta remédio"), o link da Lei 14.654/2023, **mantém "Copiar requerimento" e "Compartilhar no WhatsApp"**, esconde a busca e **não leva etiqueta**; a borda é neutra.
+- **And** com a farmácia `indisponivel` o card de saúde tem comportamento **a decidir com o Julio no início da story** (proposta: o mínimo de saúde vira a manchete única do card; se também não houver mínimo, o card some).
+- **And** o conteúdo do botão "Compartilhar" carrega o **período e a fonte** do dado, para não perder o contexto fora da página (por exemplo "2 obras paradas" sem data pode ser lido como abandono).
+- **And** o componente fica em `apps/web/components/` (domínio, não em `packages/ui`), reusa `fmtPercent`, `fmtDate` e o `ModalDialog` onde couber, usa só os tokens do `DESIGN.md` (sem `slate-*`, sem `font-mono` fora de `table` e `numeric`) e os textos passam pelo `editor-cidadao`.
+- **And** a grade no desktop usa **3 colunas acima do breakpoint e 1 abaixo, nunca 2+1**; os cards da mesma linha têm a mesma altura e "Ver detalhes" e "Compartilhar" ficam ancorados no rodapé; quando um card some, os outros dois dividem a linha em 2 colunas, sem espaço reservado. No mobile, o respiro entre cards é uniforme, sem lacuna por altura fixa ou `min-height`.
+- **And** não há ternário aninhado (Regra 13); `pnpm typecheck` e `pnpm test` passam, com teste por estado de cada card e teste de guarda de tokens (Story 20-12).
+
+**Fora do escopo:** reordenação da página e remoção de blocos (Story 27.3); o 13º (Story 27.4).
+
+**Dependências:** Story 27.1.
+
+---
+
+### Story 27.3: Reorganização da Home (Nova Ordem, Hero Rebaixado e Radar Fora)
+
+As a citizen,  
+I want the home to open by how the city is doing and only then show the accounts,  
+So that I get the answer first and the technical detail only if I ask for it.
+
+**Origem:** sessão de 2026-11-09 (mockups A e C).
+
+**Acceptance Criteria:**
+- **Given** a home em `apps/web/app/[portalSlug]/page.tsx`
+- **When** a story termina
+- **Then** a página segue a ordem: abertura (`eyebrow` "Situação da cidade", `h1` com o nome do município vindo do portal, `lead`, período em texto "Dados de {ano}, atualizados em {data}"), "Como está a cidade hoje" (Story 27.2), espaço reservado ao bloco "Dinheiro que entra na cidade" (Story 27.4), "Para onde vai o dinheiro público" e "Mais detalhes".
+- **And** **não existe seletor de ano** no conteúdo da home (o do sidebar e o do header continuam).
+- **And** "Para onde vai o dinheiro público" traz o total arrecadado e o percentual da previsão em barra quadrada (o hero fiscal rebaixado) e o saldo em caixa com a frase "Saldo disponível nas contas da Prefeitura", mais "Ver detalhes" para a página de orçamento. O valor principal segue a regra de **um `stat-value-lg` por página** do `DESIGN.md` (a decisão de qual valor ganha o `stat-value-lg` é conferida com o Julio no início da story).
+- **And** o `RadarCivicoFeed` **sai da home** (componente e rota `/radar` permanecem) e o `PipelineExecucao` sai da home (continua na página de orçamento).
+- **And** "Mais detalhes" lista atalhos para Despesas ("Em que a Prefeitura gastou"), Licitações ("Compras e contratações") e Pessoal ("Servidores e folha de pagamento"), no padrão de lista do `DESIGN.md`. **Confirmar com o Julio no início da story** que esses atalhos substituem os `CardsSecundariosVisaoGeral` (os cards com números de despesas, licitações e pessoal saem da home).
+- **And** o `h1` é único, os níveis de título não se pulam e não há `h5` nem `h6` (`EXPERIENCE.md`).
+- **And** `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` descrevem a nova home e o que mudou (Regra 12), sem detalhe interno de código.
+- **And** `page.spec.tsx`, `view-model.spec.ts` e o `opengraph-image.tsx` da home continuam passando, sem município, UF ou ano fixos no texto (Regra 23: município vazio mostra "Municípios Integrados").
+- **And** `pnpm typecheck` e `pnpm test` passam; `CHANGELOG.md` registra a mudança.
+
+**Fora do escopo:** o bloco do 13º (27.4); feed de novidades; assistência social.
+
+**Dependências:** Story 27.2.
+
+---
+
+### Story 27.4: Dinheiro que Entra na Cidade (13º Salário, Sazonal)
+
+As a local shop owner,  
+I want to know whether the city hall has started paying the 13th salary,  
+So that I can plan my sales for the weeks when that money reaches the city.
+
+**Origem:** sessão de 2026-11-09. O 13º interessa ao comerciante, não ao servidor. **Tem relógio:** a janela é novembro e dezembro; perder dezembro significa esperar um ano. **Pode andar em paralelo** às Stories 27.2 e 27.3 (só o encaixe na página depende da 27.3). Entra no release se ficar pronta a tempo.
+
+**Por que só o 13º e por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. Folha e 13º não ganharam "pago em dd/mm" porque a data não está no dado. A tela diz isso.
+
+**Acceptance Criteria:**
+- **Given** um seed dbt (nome definido na story) com, **por município e por ano**, o início e o fim da janela de exibição do 13º, a `base_legal` e a `url_base_legal` (Regra 23: nenhuma data ou lei fixa em código; Regra 15: seed carregado só no banco local)
+- **When** o ano ativo é o ano corrente, a data de hoje está dentro da janela e há linha de config para o portal
+- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) com o card do 13º: pergunta "A Prefeitura já começou a pagar o 13º?", resposta em `stat-value`, percentual pago do valor previsto em barra quadrada, o prazo previsto **na lei do município** com link oficial (Regra 20) e a frase "Valor pago acumulado no ano. Ainda não temos a data de cada pagamento."
+- **And** **sem linha de config ou fora da janela, a seção inteira some** (sem espaço reservado).
+- **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
+- **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
+- **And** a janela de cada município e a lei municipal são validadas pelo `jurista-fiscal`; enquanto a base legal de um município estiver **NÃO VERIFICADA**, a linha de config não é cadastrada e o bloco não aparece para ele. Não se usa a Lei 4.090/1962 (regime privado) como se fosse o prazo do servidor municipal; a Constituição (art. 7º, VIII, e art. 39, §3º) garante o direito, mas o prazo vem da lei local.
+- **And** o texto "informados até dd/mm" só aparece se a **verificação inicial** desta story confirmar a fonte da data (candidata, **NÃO VERIFICADA**: a data de frescor dos dados da Epic 23). Se a fonte não trouxer data, o card mostra só "Dados de {ano}".
+- **And** o agregado é só da folha total, **sem dado individual de servidor** (LGPD).
+- **And** os textos passam pelo `editor-cidadao`; `pnpm typecheck` e `pnpm test` passam, com testes dentro da janela, fora da janela, sem config e `pago` zerado.
+
+**Fora do escopo:** salário do mês, previdência, data de pagamento por competência (exige alterar o mart e investigar a fonte; backlog).
+
+**Dependências:** Story 27.1 (o dado do 13º já vem no loader). O encaixe na página depende da Story 27.3.
 
 ---
 
