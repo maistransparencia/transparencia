@@ -167,7 +167,7 @@ export function SaldoCaixaResumoCard({
       className={className}
     >
       <CabecalhoDisponibilidade
-        description="Recursos em contas e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
+        description="Saldo disponível nas contas da Prefeitura, conforme o Tesouro Nacional (SICONFI MSC)"
         action={
           <ExternalLinkPill
             href={FONTES_OFICIAIS.siconfi.url}

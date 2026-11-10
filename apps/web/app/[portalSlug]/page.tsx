@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
-import { HeroFiscalCard } from "@/components/hero-fiscal-card";
-import { PipelineExecucao } from "@/components/pipeline-execucao";
-import { RadarCivicoFeed } from "@/components/radar-civico-feed";
-import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
+import { AberturaHome } from "@/components/abertura-home";
+import { DinheiroPublicoSection } from "@/components/dinheiro-publico-section";
+import { MaisDetalhesSection } from "@/components/mais-detalhes-section";
 import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
@@ -45,16 +43,9 @@ export default async function VisaoGeralPage({
 
   return (
     <div className="space-y-16 bg-page md:space-y-[104px]">
-      <HeroFiscalCard
-        portalName={viewModel.portalName}
-        periodText={viewModel.periodText}
-        headline={viewModel.heroHeadline}
-        summary={viewModel.heroSummary}
-        arrecadadoTitle={viewModel.arrecadadoTitle}
-        totalArrecadado={viewModel.totalArrecadado}
-        previstoTotal={viewModel.previstoTotal}
-        realizationPercent={viewModel.realizationPercent}
-        originBreakdown={viewModel.originBreakdown}
+      <AberturaHome
+        title={viewModel.openingTitle}
+        periodLabel={viewModel.periodLabel}
       />
 
       <SituacaoCidadeSection
@@ -76,32 +67,18 @@ export default async function VisaoGeralPage({
         obrasCenter={viewModel.obrasMapCenter}
       />
 
-      <RadarCivicoFeed
-        items={viewModel.radarCivicoFeedData}
-        portalName={viewModel.portalName}
-        portalSlug={portalSlug}
+      <DinheiroPublicoSection
+        arrecadadoTitle={viewModel.arrecadadoTitle}
+        totalArrecadado={viewModel.totalArrecadado}
+        previstoTotal={viewModel.previstoTotal}
+        percentualPrevisto={viewModel.realizationPercent}
+        posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={viewModel.selectedYear}
+        orcamentoDetailUrl={viewModel.orcamentoDetailUrl}
+        hasEntityFilter={viewModel.hasEntityFilter}
       />
 
-      <div className="space-y-8">
-        <PipelineExecucao
-          stages={viewModel.pipelineStages}
-          detailUrl={viewModel.orcamentoDetailUrl}
-        />
-
-        <SaldoCaixaResumoCard
-          posicaoFinanceira={viewModel.posicaoFinanceira}
-          ano={viewModel.selectedYear}
-          detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
-          hasEntityFilter={viewModel.hasEntityFilter}
-        />
-      </div>
-
-      <CardsSecundariosVisaoGeral
-        despesas={viewModel.despesasCardData}
-        licitacoes={viewModel.licitacoesCardData}
-        pessoal={viewModel.pessoalCardData}
-      />
+      <MaisDetalhesSection shortcuts={viewModel.detailShortcuts} />
     </div>
   );
 }

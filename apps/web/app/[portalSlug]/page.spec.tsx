@@ -119,13 +119,16 @@ const props = {
 };
 
 describe("VisaoGeralPage", () => {
-  it("happy-path: renderiza hero, radar cívico municipal, card resumo de saldo em caixa e pipeline de execução", async () => {
+  it("happy-path: abertura, situação da cidade, dinheiro público e mais detalhes, sem radar nem pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
 
     const element = await VisaoGeralPage(props);
     render(element);
 
-    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    expect(screen.queryByText(/Radar Cívico Municipal/)).toBeNull();
+    expect(
+      screen.queryByText("Do orçamento autorizado ao pagamento"),
+    ).toBeNull();
     expect(
       screen.getByRole("heading", {
         name: /disponibilidade em caixa e bancos/i,
@@ -145,37 +148,49 @@ describe("VisaoGeralPage", () => {
     expect(screen.getByRole("article", { name: "Obras" })).toBeInTheDocument();
   });
 
-  it("renderiza cards no radar cívico quando existirem anomalias no exercício", async () => {
-    loadVisaoGeralDataMock.mockResolvedValue(
-      makeRaw({
-        radarAlertas: [
-          {
-            anomaliaId: "anomalia-1",
-            portalSlug: "porciuncula_prefeitura",
-            ano: 2024,
-            tipoAnomalia: "explosao_comissionados",
-            dimensaoReferencia: "comissionados",
-            grauSeveridade: "critico",
-            desvioPercentual: 65,
-            valorObservado: 165,
-            valorEsperado: 100,
-            mesInicial: 1,
-            mesFinal: 12,
-            licitacaoNumero: null,
-            metodoDeteccao: "iqr_estoque",
-          },
-        ],
-      }),
-    );
+  it("segue a ordem: abertura, situação, dinheiro público, mais detalhes", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
+    render(await VisaoGeralPage(props));
 
-    const element = await VisaoGeralPage(props);
-    render(element);
-
-    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    const h1 = screen.getAllByRole("heading", { level: 1 });
+    expect(h1).toHaveLength(1);
+    expect(h1[0]).toHaveTextContent("Porciúncula");
+    expect(screen.getByText("Situação da cidade")).toBeInTheDocument();
     expect(
-      screen.getByText("Variação em Cargos Comissionados"),
+      screen.getByText(/Dados de 2024, atualizados em/),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("radar-linha")).toBeInTheDocument();
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((h) => h.textContent);
+    expect(titulos).toEqual([
+      "Como está a cidade hoje",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
+    ]);
+    expect(screen.queryByText(/Ano/i, { selector: "select" })).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(
+      screen.getByText(/saldo disponível nas contas da prefeitura/i),
+    ).toBeInTheDocument();
+    [
+      "Em que a Prefeitura gastou",
+      "Compras e contratações",
+      "Servidores e folha de pagamento",
+    ].forEach((nome) => {
+      expect(screen.getByRole("link", { name: nome })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("heading", { level: 5 })).toBeNull();
+  });
+
+  it("município sem nome mostra Municípios Integrados", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ portalConfig: { dataExtracao: "2024-12-31" } }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Municípios Integrados" }),
+    ).toBeInTheDocument();
   });
 
   it("renderiza fallback amigável quando posicaoFinanceira for nula", async () => {
@@ -320,9 +335,8 @@ describe("VisaoGeralPage", () => {
     const saude = screen.getByRole("article", { name: "Saúde" });
     const obras = screen.getByRole("article", { name: "Obras" });
     const educacao = screen.getByRole("article", { name: "Educação" });
-    const radar = screen.getByTestId("radar-civico-feed-section");
-    const pipeline = screen.getByRole("heading", {
-      name: "Do orçamento autorizado ao pagamento",
+    const dinheiro = screen.getByRole("heading", {
+      name: "Para onde vai o dinheiro público",
     });
     const precede = (anterior: Element, posterior: Element) =>
       Boolean(
@@ -331,8 +345,7 @@ describe("VisaoGeralPage", () => {
       );
     expect(precede(saude, obras)).toBe(true);
     expect(precede(obras, educacao)).toBe(true);
-    expect(precede(educacao, radar)).toBe(true);
-    expect(precede(radar, pipeline)).toBe(true);
+    expect(precede(educacao, dinheiro)).toBe(true);
   });
 
   it("sem nenhum dado a seção Como está a cidade hoje não existe", async () => {
@@ -390,10 +403,7 @@ describe("VisaoGeralPage", () => {
       makeRaw({ resumoFarmacia: { status: "apagao" } }),
     );
     const { container } = render(await VisaoGeralPage(props));
-    const titulos = [
-      "Radar Cívico Municipal (2024)",
-      "Do orçamento autorizado ao pagamento",
-    ];
+    const titulos = ["Para onde vai o dinheiro público", "Mais detalhes"];
     titulos.forEach((titulo) => {
       const cabecalho = screen
         .getByRole("heading", { name: titulo })
@@ -407,7 +417,9 @@ describe("VisaoGeralPage", () => {
   it("não usa caixas com sombra nem hex nos arquivos migrados", () => {
     const arquivos = [
       "app/[portalSlug]/page.tsx",
-      "components/hero-fiscal-card.tsx",
+      "components/abertura-home.tsx",
+      "components/dinheiro-publico-section.tsx",
+      "components/mais-detalhes-section.tsx",
       "components/situacao-cidade-section.tsx",
       "lib/situacao-cidade.ts",
       "components/radar-civico-feed.tsx",
@@ -450,9 +462,7 @@ describe("VisaoGeralPage", () => {
         searchParams: Promise.resolve({}),
       }),
     );
-    expect(
-      screen.getByRole("heading", { name: "Radar Cívico Municipal (2027)" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dados de 2027/)).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Porci[uú]ncula|Natividade/);
   });
 });
