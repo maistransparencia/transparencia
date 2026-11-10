@@ -3,6 +3,7 @@ import {
   buildNavUrl,
   fmtCompact,
   fmtCurrency,
+  fmtDate,
   fmtNumber,
   fmtPercent,
   getPartialYearPeriod,
@@ -391,6 +392,18 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
     isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
+  const dataAtualizacao = fmtDate(
+    raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+  );
+  const periodLabel =
+    dataAtualizacao === "N/D"
+      ? `Dados de ${selectedYear}`
+      : `Dados de ${selectedYear}, atualizados em ${dataAtualizacao}`;
+  const detailShortcuts = [
+    { title: "Em que a Prefeitura gastou", url: routeUrl("/despesas") },
+    { title: "Compras e contratações", url: routeUrl("/licitacoes") },
+    { title: "Servidores e folha de pagamento", url: routeUrl("/pessoal") },
+  ];
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
@@ -450,6 +463,9 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   return {
     portalName,
+    openingTitle: portalName || "Municípios Integrados",
+    periodLabel,
+    detailShortcuts,
     periodText,
     arrecadadoTitle,
     heroHeadline,

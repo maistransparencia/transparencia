@@ -51,9 +51,9 @@ Esta seção apresenta a situação financeira consolidada do município em cada
   - *Acesso ao Mapa e Fiscalização Territorial:* Atalho direto para o mapa georreferenciado e fiscalização detalhada de obras públicas (`/[portalSlug]/obras`).
 - *Nota sobre Credores:* O ranking detalhado de credores e fornecedores é centralizado na rota de Despesas (`/despesas`).
 
-### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais na Visão Geral)
+### 1.1.1. Radar Cívico Municipal (Feed de Anomalias Fiscais)
 
-Localizado no primeiro scroll da página inicial, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
+A página inicial abre com a **Situação da cidade** (município e período dos dados), "Como está a cidade hoje", "Para onde vai o dinheiro público" (total arrecadado, percentual da previsão e saldo disponível nas contas da Prefeitura) e "Mais detalhes" (atalhos para Despesas, Licitações e Pessoal); o radar e o pipeline de execução não aparecem mais nela. Disponível em `/[portalSlug]/radar`, o **Radar Cívico Municipal** atua como termômetro proativo de inteligência fiscal cidadã, expondo variações atípicas e anomalias contábeis identificadas automaticamente:
 
 - **Critérios de Detecção de Anomalias:** Regras contábeis e fiscais automatizadas que identificam pontos fora da curva em pessoal, compras, receitas, previdência e limites legais:
   - *Explosão de Cargos Comissionados (`explosao_comissionados`):* Monitora aumento desproporcional no headcount ativo de servidores comissionados em relação à série histórica.
