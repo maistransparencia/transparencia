@@ -153,7 +153,6 @@ function MiniMapaObras({
 }
 
 function BarraSituacaoObras({ resumo }: { resumo: ResumoObrasDTO }) {
-  const total = Math.max(resumo.totalObras, 1);
   // Ordem do ciclo da obra: pronta, andando, parada, sem começar.
   const partes = [
     {
@@ -180,7 +179,20 @@ function BarraSituacaoObras({ resumo }: { resumo: ResumoObrasDTO }) {
       valor: resumo.cadastradas,
       classe: "bg-faint",
     },
-  ];
+    {
+      chave: "canceladas",
+      rotulo: "Canceladas",
+      valor: resumo.canceladas,
+      classe: "bg-mute3",
+      // Só aparece quando existe: obra cancelada é exceção, não etapa do ciclo.
+      opcional: true,
+    },
+  ].filter((parte) => !parte.opcional || parte.valor > 0);
+  // A barra é a soma das partes desenhadas: nenhum pedaço fica sem status na legenda.
+  const total = Math.max(
+    partes.reduce((soma, parte) => soma + parte.valor, 0),
+    1,
+  );
   return (
     <div className="space-y-2">
       <div
