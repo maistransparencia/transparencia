@@ -338,6 +338,8 @@ O padrão inicial do `panel` é **sem arredondamento** (borda lateral). O raio e
 
 **Barras de progresso e comparação são quadradas**: trilho `bg-track` de `h-3` com preenchimento `bg-*-fill`, sem `rounded-*` no trilho nem no preenchimento. Barra é dado, não controle: o raio é reservado a controles e a camadas flutuantes. A ponta reta mostra com precisão onde o valor termina; com cantos arredondados, valores pequenos viram uma bolinha. Com marcador de mínimo ou meta, use `ThresholdMeter` (`packages/ui`). Referência: `decimo-terceiro-card.tsx` e o hero de saúde.
 
+**Barra segmentada** (proporção por situação, como as obras da home): `flex h-3 gap-px` sobre `bg-track`, cada parte com `bg-*-fill` e largura por `flex-grow`, para o `gap-px` não estourar a largura. O total é a **soma das partes desenhadas**: toda parte da barra tem item na legenda, nunca sobra trilho sem status. Partes em ordem de sentido (o ciclo da obra: concluídas, em andamento, paradas, não iniciadas), com `faint` para a parte neutra ("não iniciadas"). Referência: `situacao-cidade-section.tsx`.
+
 ## Components
 
 Nomes iguais ao `EXPERIENCE.md > Component Patterns` e ao código.
@@ -438,6 +440,8 @@ O detalhamento completo abre em `ModalDialog` do design system (regra 24). Este 
 | `section-header` | filete, título, descrição e ação | abertura de toda seção |
 | `button` | ação do cidadão | copiar, compartilhar, ativar |
 | `list-text` | lista com marcador em texto corrido | termos, privacidade |
+
+**Eyebrow de página:** o rótulo acima do `h1` usa sempre o componente `PageEyebrow` (`apps/web/components/page-eyebrow.tsx`): papel `eyebrow` em `{colors.brand-text}`, texto escrito em caixa normal (o papel põe em caixa alta) e o bloco do topo em `space-y-2` (eyebrow, `h1`, descrição). Nas páginas administrativas o texto é "Administrativo · Exercício {ano}", com "(parcial, {período})" no ano em andamento; nunca "Ano". Páginas temáticas (Saúde, Educação, Previdência, Obras, Farmácia) não têm eyebrow. Proibido montar o eyebrow com classes soltas (`text-xs uppercase tracking-wider`).
 
 ## Do's and Don'ts
 
