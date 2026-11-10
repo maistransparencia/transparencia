@@ -3089,7 +3089,7 @@ So that wrong numbers are corrected quickly.
 
 **Acceptance Criteria:**
 - **Given** o `feedback-modal` existente
-- **When** o usuário aciona "Reportar erro" em um indicador
+- **When** o usuário aciona "Sugestão ou erro" (rótulo definido na Story 27.5; antes "Reportar erro") em um indicador
 - **Then** o envio leva `portal_slug`, identificador do indicador e a descrição, e o rótulo é explícito e visível em cada bloco
 - **And** o texto segue linguagem cidadã e tom não acusatório.
 
@@ -4204,6 +4204,52 @@ So that I can plan my sales for the weeks when that money reaches the city.
 - Data de pagamento por competência, salário individual de servidor e previdência.
 
 **Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge. Altera o `pago_13` de `/pessoal`.
+
+---
+
+### Story 27.5: Ajustes da Home e do Layout (Resumo nos Atalhos, Compartilhar a Página, Sidebar Recolhível)
+
+As a citizen,  
+I want the home shortcuts to tell me what is behind each link, the card share to send the page itself, and the desktop sidebar to get out of the way,  
+So that I decide where to go without guessing, the person I share with sees the page preview, and the content has more room.
+
+**Origem:** pedidos do Julio em 2026-11-10, depois da revisão visual da home entregue nas Stories 27.2 a 27.4.
+
+**Acceptance Criteria:**
+
+*Resumo nos atalhos de "Mais detalhes"*
+- **Given** a seção "Mais detalhes" da home
+- **When** o cidadão a vê
+- **Then** cada atalho (Despesas, Licitações e Contratos, Pessoal) mostra, na linha de baixo (`caption`), um **resumo do ano ativo em uma frase com número**, no lugar da descrição genérica atual (ex.: "R$ 48,1 mi pagos em {ano}", "{N} contratações em {ano}", "{N} servidores na folha de {mês}"). Os textos finais passam pelo `editor-cidadao`.
+- **And** os números vêm das **mesmas queries** das páginas de destino em `@transparencia/db` (Regra 2), carregados no loader da home; nada é recalculado na tela.
+- **And** sem dado para um atalho, a linha volta à descrição genérica atual (nunca "R$ 0" ou "0 servidores" como se fosse fato); ano em andamento marca o valor como parcial no próprio texto.
+- **And** ano, mês e município são dinâmicos (Regra 23).
+
+*Exemplos de remédio no card de Saúde*
+- **And** os remédios de exemplo abaixo da busca viram **chips com borda** (`border-line`, raio de controle do `DESIGN.md`, altura de 32px, `gap-2`), no lugar dos links soltos de 44px que quebram linha com espaço sobrando. Alvo de toque de pelo menos 24px (WCAG 2.2 AA, 2.5.8). Decisão do Julio em 2026-11-10, entre linha corrida, chips e faixa com rolagem.
+
+*Compartilhar do card = compartilhar a página*
+- **And** o "Compartilhar" de cada card de situação usa o **mesmo comportamento do compartilhar global** (`ShareButton` do `packages/ui`: compartilhamento nativo do celular e, sem ele, cópia do link), passando a **URL da página de detalhe** do card (`/saude`, `/obras`, `/educacao`, com o ano ativo quando houver), para que quem recebe veja a imagem de prévia (open graph) daquela página.
+- **And** o envio direto para `wa.me` com texto montado sai; o `textoCompartilhar` do modelo é removido se não tiver outro uso; o evento `situacao_card_compartilhado` continua, com `area` e `method`.
+
+*Sidebar recolhível no desktop*
+- **Given** o desktop (a partir do breakpoint em que a sidebar é fixa)
+- **When** o cidadão aciona o botão de recolher a sidebar
+- **Then** ela vira uma **faixa só de ícones** da navegação (Visão geral, Radar, Farmácia, temas e administrativo), **sem os filtros** (município, exercício, entidade) nem os controles do rodapé da sidebar; cada ícone tem nome acessível e dica (tooltip) com o nome da página; o item ativo continua marcado.
+- **And** o conteúdo **e o rodapé global** passam a ocupar a largura liberada.
+- **And** o botão de expandir fica visível na faixa; o estado **não é lembrado** entre visitas (decisão do Julio em 2026-11-10): toda visita abre expandida.
+- **And** o celular não muda (header e menu atuais).
+
+*Rótulo de "Reportar erro"*
+- **And** o link "Reportar erro" do rodapé passa a deixar claro que serve **para sugestão ou erro** (proposta: "Sugestão ou erro"; texto final pelo `editor-cidadao`), e o título do `feedback-modal` acompanha.
+- **And** a Story 23.5 (Epic 23, backlog) é atualizada para usar o mesmo rótulo por indicador. Verificado em 2026-11-10: não existia story de renomear; a 23.5 trata de levar o botão a cada indicador.
+
+*Qualidade*
+- **And** `pnpm typecheck` e `pnpm test` passam, com testes: resumo com e sem dado; card compartilhando a URL da página; sidebar recolhida sem filtros e com rodapé em largura total; `CHANGELOG.md`, `llms.txt` e `llms-full.txt` atualizados no que muda para o cidadão (Regra 12).
+
+**Fora do escopo:** "Reportar erro" por indicador e "Direito de resposta" (Stories 23.5 e 23.6); lembrar a sidebar recolhida; mudanças no menu do celular.
+
+**Dependências:** Stories 27.2 e 27.3 (done).
 
 ---
 
