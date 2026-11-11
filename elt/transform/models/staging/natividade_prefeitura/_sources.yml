@@ -435,3 +435,20 @@ sources:
     - name: complemento_fonte
     - name: data_referencia
     - name: data_extracao
+  - name: siconfi_rgf
+    description: "RGF Anexo 01 (Demonstrativo da Despesa com Pessoal) do SICONFI/STN, Poder Executivo municipal, por período (quadrimestral ou semestral)"
+    meta:
+      primary_key: [ano, cod_ibge, periodicidade, periodo, anexo, cod_conta, coluna, rotulo]
+    columns:
+      - name: ano
+      - name: cod_ibge
+      - name: periodicidade
+      - name: periodo
+      - name: anexo
+      - name: cod_conta
+      - name: conta
+      - name: coluna
+      - name: rotulo
+      - name: valor
+      - name: populacao
+      - name: data_extracao
