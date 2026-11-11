@@ -3104,7 +3104,7 @@ So that the portal is accountable for what it shows.
 **Acceptance Criteria:**
 - **Given** o `jurista-fiscal` validou o fluxo e o texto do direito de resposta (peso jurídico; LAI, LGPD)
 - **When** o usuário acessa as páginas "Sobre", "Metodologia e fontes" e "Quem publica e quem não publica"
-- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Reportar erro"
+- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Sugestão ou erro"
 - **And** hoje as fontes só aparecem em termos e privacidade; essas páginas passam a ser a referência, com promessas negativas explícitas (não inventa dado, não junta registros só pelo nome, não expõe dados pessoais além do já público).
 
 ### Story 23.7: Origem das "Entradas Fora do Orçamento" em Receitas

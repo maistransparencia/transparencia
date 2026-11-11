@@ -6,6 +6,7 @@ import {
   calcularSituacaoHome,
   getContratosServicosVigentes,
   getDecimoTerceiroHome,
+  getDistribucaoModalidadesMetrics,
   getEducacaoSiope,
   getEntidades,
   getExecucaoOrcamentariaMetrics,
@@ -17,6 +18,7 @@ import {
   getLimiteMaximoLrfPessoal,
   getObrasPorPortal,
   getPercentualChefiasEfetivasMetrics,
+  getPessoalRegimeMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getPosicaoFiscalMetrics,
@@ -209,6 +211,8 @@ async function fetchRawVisaoGeralData(
     minimoSaudeDto,
     siopeEducacao,
     decimoTerceiro,
+    modalidades,
+    regimePessoal,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -246,6 +250,13 @@ async function fetchRawVisaoGeralData(
       () => null,
     ),
     getDecimoTerceiroHome(tenantSlug, selectedYear, { empresaIds }),
+    // Mesmas queries de /licitacoes e /pessoal: alimentam o resumo dos atalhos.
+    getDistribucaoModalidadesMetrics(
+      tenantSlug,
+      selectedYear,
+      empresaIds,
+    ).catch(() => []),
+    getPessoalRegimeMetrics(tenantSlug, selectedYear).catch(() => []),
   ]);
 
   const minimoSaude = minimoSaudeDto?.minimo ?? null;
@@ -322,6 +333,18 @@ async function fetchRawVisaoGeralData(
     minimoEducacao,
     situacaoHome,
     decimoTerceiro,
+    totalContratacoes: modalidades.reduce(
+      (acc, item) => acc + item.quantidade,
+      0,
+    ),
+    totalProfissionais: regimePessoal.reduce(
+      (acc, item) => acc + item.totalProfissionais,
+      0,
+    ),
+    mesReferenciaPessoal: regimePessoal.reduce(
+      (maximo, item) => Math.max(maximo, item.mesReferencia ?? 0),
+      0,
+    ),
   };
 }
 

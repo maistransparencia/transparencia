@@ -57,6 +57,13 @@ vi.mock("@transparencia/db", () => ({
   getFarmaciaSentinelas: getFarmaciaSentinelasMock,
   getResumoFarmaciaSus: getResumoFarmaciaSusMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
+  getDistribucaoModalidadesMetrics: vi
+    .fn()
+    .mockResolvedValue([{ quantidade: 4 }, { quantidade: 3 }]),
+  getPessoalRegimeMetrics: vi.fn().mockResolvedValue([
+    { totalProfissionais: 100, mesReferencia: 5 },
+    { totalProfissionais: 20, mesReferencia: 6 },
+  ]),
   getSaudeMinimoConstitucional: getSaudeMinimoConstitucionalMock,
   getEducacaoSiope: getEducacaoSiopeMock,
   getDecimoTerceiroHome: getDecimoTerceiroHomeMock,
@@ -256,6 +263,13 @@ describe("loadVisaoGeralData", () => {
       expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
       expect(result.resumoFarmacia).toEqual({ status: "conforme" });
     });
+  });
+
+  it("soma contratações e servidores das mesmas queries das páginas de destino", async () => {
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+    expect(result.totalContratacoes).toBe(7);
+    expect(result.totalProfissionais).toBe(120);
+    expect(result.mesReferenciaPessoal).toBe(6);
   });
 
   describe("contrato de situação da home", () => {

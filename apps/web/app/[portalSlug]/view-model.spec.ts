@@ -1041,3 +1041,60 @@ describe("buildVisaoGeralViewModel - contrato de situação da home", () => {
     expect(vm.situacaoHome).toBe(raw.situacaoHome);
   });
 });
+
+describe("buildVisaoGeralViewModel - detailShortcuts", () => {
+  const generico = [
+    "Em que a Prefeitura gastou",
+    "Compras e contratações",
+    "Servidores e folha de pagamento",
+  ];
+
+  it("resume cada atalho com número e ano quando há dado", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        totalContratacoes: 12,
+        totalProfissionais: 340,
+        mesReferenciaPessoal: 6,
+      }),
+    );
+    const [despesas, licitacoes, pessoal] = vm.detailShortcuts;
+    expect(despesas?.title).toContain("pagos em 2024");
+    expect(despesas?.title).not.toContain("até agora");
+    expect(licitacoes?.title).toBe("12 contratações em 2024");
+    expect(pessoal?.title).toBe("340 servidores na folha de Jun/2024");
+  });
+
+  it("marca o valor como parcial no ano em andamento", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        totalContratacoes: 1,
+      }),
+    );
+    expect(vm.detailShortcuts[0]?.title).toContain("até agora");
+    expect(vm.detailShortcuts[1]?.title).toBe(
+      "1 contratação em 2024 até agora",
+    );
+  });
+
+  it("sem dado volta à descrição genérica, nunca zero", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: {
+          totalDotacao: 0,
+          totalEmpenhado: 0,
+          totalLiquidado: 0,
+          totalPago: 0,
+        },
+        totalContratacoes: 0,
+        totalProfissionais: 0,
+        mesReferenciaPessoal: 0,
+      }),
+    );
+    expect(vm.detailShortcuts.map((atalho) => atalho.title)).toEqual(generico);
+  });
+});

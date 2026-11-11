@@ -169,9 +169,6 @@ describe("buildSituacaoCidadeCards", () => {
     );
     expect(obrasCard?.manchete).toBe("15 não iniciadas");
     expect(obrasCard?.complemento).toBe("2 concluídas");
-    expect(obrasCard?.textoCompartilhar).toContain(
-      "15 não iniciadas e 2 concluídas.",
-    );
   });
 
   it("obras em andamento sem nenhuma parada dizem isso por extenso", () => {
@@ -227,7 +224,6 @@ describe("buildSituacaoCidadeCards", () => {
     );
     expect(educacaoCard?.complemento).toBe("era 5,4");
     expect(educacaoCard?.sentidoComplemento).toBe("caiu");
-    expect(educacaoCard?.textoCompartilhar).toContain("(caiu, era 5,4)");
     expect(educacaoCard?.motivoAtencao).toBeNull();
   });
 
@@ -236,9 +232,9 @@ describe("buildSituacaoCidadeCards", () => {
     expect(obrasCard?.fontes[0]?.url).toMatch(/^https:\/\//);
   });
 
-  it("o texto de compartilhar leva período e fonte", () => {
+  it("o card compartilha a URL da página de detalhe", () => {
     const obrasCard = card(base(), "obras");
-    expect(obrasCard?.textoCompartilhar).toContain("Dados de 2024");
-    expect(obrasCard?.textoCompartilhar).toContain("Fonte: ObrasGov.br");
+    expect(obrasCard?.detailUrl).toBeTruthy();
+    expect(obrasCard).not.toHaveProperty("textoCompartilhar");
   });
 });

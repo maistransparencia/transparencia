@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 
 export interface ShareButtonProps {
-  variant?: "sidebar" | "compact";
+  variant?: "sidebar" | "compact" | "inline";
   className?: string;
   onShare?: (payload: { method: "native" | "clipboard"; url: string }) => void;
   title?: string;
@@ -109,6 +109,33 @@ export function ShareButton({
       isSharingRef.current = false;
     }
   };
+
+  if (variant === "inline") {
+    return (
+      <button
+        type="button"
+        onClick={handleShare}
+        className={cn(
+          "inline-flex min-h-11 cursor-pointer items-center gap-1.5 font-semibold text-mute text-sm hover:text-ink",
+          copied && "text-ok-text hover:text-ok-text",
+          className,
+        )}
+      >
+        {copied ? (
+          <Check className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <Share2 className="h-4 w-4" aria-hidden="true" />
+        )}
+        {copied ? (
+          <span role="status" aria-live="polite">
+            Link copiado!
+          </span>
+        ) : (
+          "Compartilhar"
+        )}
+      </button>
+    );
+  }
 
   if (variant === "compact") {
     return (
