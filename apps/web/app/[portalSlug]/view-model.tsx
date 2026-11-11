@@ -176,6 +176,8 @@ function buildResumoPessoal(
     : `${quantidade} na folha de ${year}`;
 }
 
+const RAIO_GRUPO_OBRAS_GRAUS = 0.01;
+
 function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
   const obrasComCoordenadas = (obrasPreview ?? []).filter(
     (obra) =>
@@ -196,14 +198,40 @@ function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
 
   const mediana = (valores: number[]) =>
     [...valores].sort((a, b) => a - b)[Math.floor(valores.length / 2)];
+  const media = (valores: number[]) =>
+    valores.reduce((soma, valor) => soma + valor, 0) / valores.length;
 
-  const obrasMapCenter: [number, number] | undefined =
-    obrasComCoordenadas.length === 0
-      ? undefined
-      : [
-          mediana(obrasComCoordenadas.map((obra) => obra.latitude as number)),
-          mediana(obrasComCoordenadas.map((obra) => obra.longitude as number)),
-        ];
+  const emAndamento = obrasMiniMapMarkers.filter(
+    (obra) => obra.situacao === "em_execucao",
+  );
+  // A altura do mini-mapa (zoom 13) cobre ~0,023°: um grupo de ±0,01° ao redor de
+  // uma obra em andamento cabe inteiro na imagem.
+  const vizinhas = (centro: (typeof emAndamento)[number]) =>
+    emAndamento.filter(
+      (obra) =>
+        Math.abs(obra.latitude - centro.latitude) <= RAIO_GRUPO_OBRAS_GRAUS &&
+        Math.abs(obra.longitude - centro.longitude) <= RAIO_GRUPO_OBRAS_GRAUS,
+    );
+  const maiorGrupo = emAndamento
+    .map(vizinhas)
+    .reduce<typeof emAndamento>(
+      (maior, grupo) => (grupo.length > maior.length ? grupo : maior),
+      [],
+    );
+
+  const obrasMapCenter = ((): [number, number] | undefined => {
+    if (maiorGrupo.length > 0) {
+      return [
+        media(maiorGrupo.map((obra) => obra.latitude)),
+        media(maiorGrupo.map((obra) => obra.longitude)),
+      ];
+    }
+    if (obrasMiniMapMarkers.length === 0) return undefined;
+    return [
+      mediana(obrasMiniMapMarkers.map((obra) => obra.latitude)),
+      mediana(obrasMiniMapMarkers.map((obra) => obra.longitude)),
+    ];
+  })();
 
   return { obrasMiniMapMarkers, obrasMapCenter };
 }

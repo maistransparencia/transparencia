@@ -22,7 +22,11 @@ import {
   type SentidoVariacao,
   type SituacaoCidadeCardModel,
 } from "@/lib/situacao-cidade";
-import { getTileCoordinates, projectCoordToTilePercent } from "@/lib/tile-calc";
+import {
+  offsetFromCenterPx,
+  TILE_SIZE_PX,
+  tilesAroundCenter,
+} from "@/lib/tile-calc";
 import { CLASSE_ACAO_DESTAQUE } from "./destaque-linha";
 import { FarmaciaAcoesCivicas } from "./farmacia/farmacia-acoes-civicas";
 import {
@@ -82,6 +86,11 @@ function LinhaApoioMinimo({ apoio }: { apoio: ApoioMinimoModel }) {
   );
 }
 
+// Zoom 13 tem ~18 m por pixel: ~9 km na largura do card e ~2,6 km na altura (h-36 = 144px).
+const ZOOM_MINI_MAPA = 13;
+// Cobre cards de até 800px de largura sem deixar faixa sem tile.
+const AREA_MINI_MAPA_PX = { halfWidthPx: 400, halfHeightPx: 72 };
+
 function MiniMapaObras({
   markers,
   center,
@@ -91,8 +100,8 @@ function MiniMapaObras({
   center: [number, number];
   detailUrl: string;
 }) {
-  const tileInfo = getTileCoordinates(center[0], center[1], 14);
-  if (!tileInfo) return null;
+  const tiles = tilesAroundCenter(center, ZOOM_MINI_MAPA, AREA_MINI_MAPA_PX);
+  // Ponto fora do recorte fica escondido pelo overflow: preso na borda ele mentiria o lugar.
   const pontos = markers
     .filter(
       (marker) =>
@@ -101,10 +110,13 @@ function MiniMapaObras({
         marker.latitude !== 0 &&
         marker.longitude !== 0,
     )
-    .slice(0, 15)
     .map((marker) => ({
       ...marker,
-      ...projectCoordToTilePercent(marker.latitude, marker.longitude, tileInfo),
+      ...offsetFromCenterPx(
+        [marker.latitude, marker.longitude],
+        center,
+        ZOOM_MINI_MAPA,
+      ),
     }));
   return (
     <Link
@@ -112,20 +124,30 @@ function MiniMapaObras({
       aria-label="Ver no mapa interativo de obras públicas"
       className="group bg-track relative block h-36 w-full overflow-hidden"
     >
-      <Image
-        src={tileInfo.url}
-        alt="Visão geral cartográfica das obras públicas"
-        fill
-        sizes="(max-width: 1024px) 100vw, 400px"
-        className="mapa-tema-imagem object-cover"
-        unoptimized
-      />
+      {tiles.map((tile, index) => (
+        <Image
+          key={tile.url}
+          src={tile.url}
+          alt={index === 0 ? "Visão geral cartográfica das obras públicas" : ""}
+          width={TILE_SIZE_PX}
+          height={TILE_SIZE_PX}
+          style={{
+            left: `calc(50% + ${tile.dx}px)`,
+            top: `calc(50% + ${tile.dy}px)`,
+          }}
+          className="mapa-tema-imagem absolute max-w-none"
+          unoptimized
+        />
+      ))}
       <div className="pointer-events-none absolute inset-0">
         {pontos.map((ponto) => (
           <span
             key={ponto.id}
-            style={{ left: `${ponto.xPercent}%`, top: `${ponto.yPercent}%` }}
-            className="bg-brand-fill ring-page absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2"
+            style={{
+              left: `calc(50% + ${ponto.dx}px)`,
+              top: `calc(50% + ${ponto.dy}px)`,
+            }}
+            className={`ring-page absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ${CLASSE_COR_SITUACAO_OBRA[ponto.situacao] ?? "bg-faint"}`}
           />
         ))}
       </div>
@@ -136,6 +158,15 @@ function MiniMapaObras({
     </Link>
   );
 }
+
+// Mesmas cores da barra de situação, para o ponto no mapa e a legenda dizerem a mesma coisa.
+const CLASSE_COR_SITUACAO_OBRA: Record<string, string> = {
+  concluida: "bg-ok-fill",
+  em_execucao: "bg-brand-fill",
+  paralisada: "bg-warn-fill",
+  cadastrada: "bg-faint",
+  cancelada: "bg-mute3",
+};
 
 function BarraSituacaoObras({ resumo }: { resumo: ResumoObrasDTO }) {
   // Ordem do ciclo da obra: pronta, andando, parada, sem começar.

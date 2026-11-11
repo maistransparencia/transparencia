@@ -797,6 +797,45 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
   });
 });
 
+describe("buildVisaoGeralViewModel - centro do mapa de obras", () => {
+  const obra = (
+    idProjeto: string,
+    situacao: string,
+    [latitude, longitude]: [number, number],
+  ) => ({ idProjeto, situacao, latitude, longitude });
+
+  it("centraliza no grupo com mais obras em andamento, não na mediana de todas", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "em_execucao", [-21.0, -42.0]),
+          obra("b", "em_execucao", [-21.002, -42.002]),
+          obra("c", "em_execucao", [-21.004, -42.004]),
+          obra("d", "em_execucao", [-21.3, -42.3]),
+          obra("e", "concluida", [-21.3, -42.3]),
+          obra("f", "concluida", [-21.3, -42.3]),
+          obra("g", "cadastrada", [-21.3, -42.3]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter?.[0]).toBeCloseTo(-21.002, 3);
+    expect(vm.obrasMapCenter?.[1]).toBeCloseTo(-42.002, 3);
+  });
+
+  it("sem obra em andamento, usa a mediana de todas as obras", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "concluida", [-21.0, -42.0]),
+          obra("b", "concluida", [-21.1, -42.1]),
+          obra("c", "cadastrada", [-21.2, -42.2]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter).toEqual([-21.1, -42.1]);
+  });
+});
+
 describe("buildVisaoGeralViewModel - educacaoResumo", () => {
   const resumoBase = {
     portalSlug: "porciuncula",
