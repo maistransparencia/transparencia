@@ -412,6 +412,11 @@ describe("buildMinimosLegais", () => {
     expect(view.mde.resultado).toBe("sem_dado");
     expect(view.fundebProfissionais.resultado).toBe("sem_dado");
   });
+
+  it("marca o ano em andamento mesmo sem dado do SIOPE", () => {
+    expect(buildMinimosLegais(null, 2024, true).anoEmAndamento).toBe(true);
+    expect(buildMinimosLegais(null, 2024, false).anoEmAndamento).toBe(false);
+  });
 });
 
 describe("buildAlunosRede", () => {

@@ -81,7 +81,7 @@ export function DestaqueMinimo({
   kind?: MinimoKind;
 }) {
   const minimo = view[kind];
-  const { ano, parcial, periodo } = view;
+  const { ano, parcial, anoEmAndamento, periodo } = view;
   const textos = MINIMO_TEXTS[kind];
   const { percentualAplicado, limite, resultado } = minimo;
   const periodoTexto =
@@ -92,7 +92,7 @@ export function DestaqueMinimo({
 
   return (
     <div className={CLASSE_LINHAS_ALINHADAS} data-testid={textos.testId}>
-      <h3>{textos.pergunta(ano, parcial)}</h3>
+      <h3>{textos.pergunta(ano, parcial || anoEmAndamento)}</h3>
       <p className="flex flex-wrap items-baseline gap-x-4">
         <span
           className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}

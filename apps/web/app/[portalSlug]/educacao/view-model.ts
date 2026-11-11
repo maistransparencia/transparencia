@@ -147,6 +147,8 @@ export interface MinimosLegaisView {
   ano: number;
   /** Ano em andamento: percentual acumulado, sem veredito. */
   parcial: boolean;
+  /** Ano selecionado ainda não terminou, com ou sem dado publicado. */
+  anoEmAndamento: boolean;
   periodo: number | null;
   /** O SIOPE não tem linha para o ano selecionado. */
   semDadoSiope: boolean;
@@ -455,6 +457,7 @@ export function buildValorPorAluno(
 export function buildMinimosLegais(
   siope: EducacaoSiopeDTO | null | undefined,
   ano: number,
+  anoEmAndamento = false,
 ): MinimosLegaisView {
   const semMinimo: MinimoLegalDTO = {
     limite: null,
@@ -466,6 +469,7 @@ export function buildMinimosLegais(
   return {
     ano,
     parcial: siope?.atual?.situacao === "parcial",
+    anoEmAndamento,
     periodo: siope?.atual?.periodo ?? null,
     semDadoSiope: !siope?.atual,
     mde: siope?.minimos.mde ?? semMinimo,
@@ -599,7 +603,11 @@ export function buildEducacaoViewModel(raw: {
     origemRecursos: raw.origemRecursos ?? null,
     valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
     alunosRede: buildAlunosRede(raw.matriculas),
-    minimosLegais: buildMinimosLegais(raw.siope, raw.context.selectedYear),
+    minimosLegais: buildMinimosLegais(
+      raw.siope,
+      raw.context.selectedYear,
+      raw.context.isCurrentYear,
+    ),
     contratosResumo: {
       totalContratos: contratos.length,
       valorTotalContratos: contratos.reduce(

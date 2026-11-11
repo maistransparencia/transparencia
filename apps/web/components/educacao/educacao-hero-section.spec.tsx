@@ -20,6 +20,7 @@ const semMinimo = {
 const minimosBase: MinimosLegaisView = {
   ano: 2024,
   parcial: false,
+  anoEmAndamento: false,
   periodo: 6,
   semDadoSiope: false,
   mde: {
@@ -169,6 +170,26 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
       area.querySelector("[data-testid='destaque-minimo'] .panel"),
     ).toBeNull();
     expect(area.innerHTML).not.toMatch(/bg-line|bg-page|rounded/);
+  });
+
+  it("no ano em andamento sem dado a pergunta fica no presente", () => {
+    renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        anoEmAndamento: true,
+        semDadoSiope: true,
+        mde: {
+          ...minimosBase.mde,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+        },
+      },
+    });
+    expect(
+      within(destaqueMinimo()).getByText(
+        "A Prefeitura aplica o mínimo em educação em 2024?",
+      ),
+    ).toBeTruthy();
   });
 
   it("mostra a barra com o marcador vindo do limite, nunca literal", () => {
