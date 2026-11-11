@@ -384,16 +384,31 @@ describe("Sidebar Component", () => {
     expect(visaoGeral).not.toHaveClass("border-ink");
   });
 
-  it("drawer móvel desliza (transform) sempre e não anima em md", () => {
+  it("drawer móvel desliza (transform) sempre e em md só anima a largura", () => {
     const { container } = render(
       <Sidebar portalName="Portal" portalSlug="portal_teste" />,
     );
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass(
       "transition-[translate,visibility]",
-      "md:transition-none",
+      "md:transition-[width]",
     );
     expect(aside).not.toHaveClass("motion-reduce:transition-none");
+  });
+
+  it("recolhido, mostra o tooltip do design system em vez do title nativo", async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recolher menu lateral" }),
+    );
+
+    // O layout só de ícones entra no fim da animação de largura.
+    const link = screen.getByRole("link", { name: "Visão geral" });
+    await waitFor(() => expect(link).toHaveAttribute("aria-label"));
+    expect(link).not.toHaveAttribute("title");
+    fireEvent.pointerOver(link);
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Visão geral");
   });
 
   it("exibe o nome da marca no topo do sidebar e da topbar mobile", () => {

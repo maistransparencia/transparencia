@@ -16,11 +16,14 @@ import {
 } from "lucide-react";
 import {
   type ComponentType,
+  type FocusEvent,
+  type PointerEvent,
   type ReactNode,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { BrandLogo } from "./brand-logo";
@@ -283,11 +286,56 @@ export function Sidebar({
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
   // Só no desktop e sem persistência: toda visita abre expandida.
+  // `isNarrow` anima a largura; `isCollapsed` troca o layout para só ícones. Com o layout completo,
+  // o conteúdo tem largura fixa e a sidebar o recorta: ao expandir, o layout completo entra logo e a
+  // largura o revela deslizando; ao recolher, ele vai sendo coberto e só no fim vira só ícones.
+  const [isNarrow, setIsNarrow] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [tooltip, setTooltip] = useState<{
+    text: string;
+    top: number;
+    left: number;
+  } | null>(null);
   const hideWhenCollapsed = isCollapsed ? "md:hidden" : "";
   const collapsedLinkClass = isCollapsed ? "md:justify-center md:px-0" : "";
   const collapsedLinkProps = (name: string) =>
-    isCollapsed ? { title: name, "aria-label": name } : {};
+    isCollapsed ? { "aria-label": name } : {};
+
+  const toggleCollapsed = () => {
+    setTooltip(null);
+    if (isNarrow) {
+      setIsCollapsed(false);
+      setIsNarrow(false);
+      return;
+    }
+    setIsNarrow(true);
+  };
+
+  useEffect(() => {
+    if (!isNarrow || isCollapsed) return;
+    const timer = window.setTimeout(() => setIsCollapsed(true), 200);
+    return () => window.clearTimeout(timer);
+  }, [isNarrow, isCollapsed]);
+
+  // Tooltip do design system no lugar do `title` nativo: ícones do menu recolhido e o botão de
+  // recolher. Vai para o body porque a área com rolagem cortaria o balão.
+  const showTooltip = (
+    event: PointerEvent<HTMLElement> | FocusEvent<HTMLElement>,
+  ) => {
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    const selector = isCollapsed
+      ? "a[aria-label], [data-sidebar-tooltip]"
+      : "[data-sidebar-tooltip]";
+    const target = (event.target as HTMLElement).closest<HTMLElement>(selector);
+    const text = target?.getAttribute("aria-label");
+    if (!target || !text) {
+      setTooltip(null);
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    setTooltip({ text, top: rect.top + rect.height / 2, left: rect.right + 8 });
+  };
+  const hideTooltip = () => setTooltip(null);
 
   const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
   const backdropMountedAt = useRef(0);
@@ -472,58 +520,65 @@ export function Sidebar({
         className={cn(
           "select-none border-line border-r bg-page md:bg-transparent",
           "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[translate,visibility] duration-300 ease-in-out",
-          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
-          isCollapsed ? "md:w-14" : "md:w-[266px]",
+          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:shrink-0 md:translate-x-0 md:shadow-none md:transition-[width] md:duration-200 md:ease-out md:motion-reduce:transition-none",
+          "md:overflow-hidden",
+          isNarrow ? "md:w-14" : "md:w-[266px]",
+          !isCollapsed && "md:*:w-[265px] md:*:shrink-0",
           isMobileOpen
             ? "pointer-events-auto visible translate-x-0 shadow-2xl"
             : "pointer-events-none invisible -translate-x-full shadow-none md:pointer-events-auto md:visible",
         )}
+        onPointerOver={showTooltip}
+        onPointerLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* Marca da plataforma */}
-          <div
+        {/* Marca da plataforma: fora da área com rolagem, para a barra de rolagem não estreitar o nome */}
+        <div
+          className={cn(
+            "flex shrink-0 items-center justify-between gap-2 border-line border-b px-4 py-3",
+            isCollapsed && "md:justify-center md:px-2",
+          )}
+        >
+          <span
             className={cn(
-              "flex items-center justify-between gap-3 border-line border-b px-4 py-3",
-              isCollapsed && "md:justify-center md:px-2",
+              "flex min-w-0 items-center gap-2 font-bold font-serif text-base text-ink leading-snug",
+              hideWhenCollapsed,
             )}
           >
-            <span
-              className={cn(
-                "flex min-w-0 items-center gap-2 font-bold font-serif text-base text-ink leading-snug",
-                hideWhenCollapsed,
-              )}
-            >
-              <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
-              <span className="truncate">{brandName}</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsCollapsed((previous) => !previous)}
-              className="hidden h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:flex"
-              aria-label={
-                isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"
-              }
-              aria-expanded={!isCollapsed}
-              title={
-                isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"
-              }
-            >
-              {isCollapsed ? (
-                <PanelLeftOpen strokeWidth={1.8} className="h-4 w-4" />
-              ) : (
-                <PanelLeftClose strokeWidth={1.8} className="h-4 w-4" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsMobileOpen(false)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
-              aria-label="Fechar menu"
-            >
-              <X strokeWidth={2} className="h-4 w-4" />
-            </button>
-          </div>
+            <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
+            <span className="truncate">{brandName}</span>
+          </span>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="-mr-1.5 hidden h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-mute2 transition-colors hover:bg-line2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:flex"
+            aria-label={
+              isNarrow ? "Expandir menu lateral" : "Recolher menu lateral"
+            }
+            aria-expanded={!isNarrow}
+            data-sidebar-tooltip
+          >
+            {isNarrow ? (
+              <PanelLeftOpen strokeWidth={1.8} className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose strokeWidth={1.8} className="h-4 w-4" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(false)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
+            aria-label="Fechar menu"
+          >
+            <X strokeWidth={2} className="h-4 w-4" />
+          </button>
+        </div>
 
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+          onScroll={hideTooltip}
+        >
           {/* Município */}
           {isCollapsed && (
             <h1 className="sr-only hidden md:block">{displayTitle}</h1>
@@ -760,6 +815,18 @@ export function Sidebar({
           <ThemeToggle />
         </div>
       </aside>
+
+      {tooltip &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="pointer-events-none fixed z-70 -translate-y-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 font-sans text-onink text-xs shadow-xl"
+            style={{ top: tooltip.top, left: tooltip.left }}
+          >
+            {tooltip.text}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
