@@ -4281,3 +4281,31 @@ So that infrastructure code is in English and domain terms stay in Portuguese ev
 
 **Dependências:** nenhuma. Recomenda-se rodar depois do fim da Epic 20 para a medição pegar o código já migrado.
 
+
+### Story TD.2: Gasto com Pessoal pelo Número Oficial do RGF (12 Meses)
+
+As a citizen checking whether the Prefeitura respects the personnel spending limit,  
+I want the percentage on `/pessoal` to be the official one from the Relatório de Gestão Fiscal (RGF),  
+So that the comparison with the LRF limits (teto, prudencial e alerta) is the same one the Tribunal de Contas makes.
+
+**Origem:** revisão do `contador-publico` em 2026-11-10, ao promover o "Gasto com Pessoal (LRF)" a destaque de `/pessoal`. Achados:
+1. O percentual (`packages/db/src/queries/pessoal-metrics.ts`) divide a despesa com pessoal acumulada no ano pela receita corrente líquida acumulada no ano. A LRF mede 12 meses corridos (mês de referência mais os 11 anteriores, art. 18 §2 e art. 19): em ano fechado as janelas coincidem; no ano em andamento, não.
+2. A receita corrente líquida vem de `fct_fontes_receita_metricas` e é estimada (descrição do mart), não a RCL publicada no RGF.
+3. Quando `despesa_total_pessoal_lrf` vem zerada, a query usa `total_folha` no lugar, sem aviso.
+4. `rclProxy` e `receitaCorrenteLiquida` são o mesmo valor com dois nomes.
+
+**Paliativo já feito (commit `e61b0782`):** no ano em andamento a página não compara com o ano anterior nem dá veredito de limite, e sempre diz que o número é cálculo do portal com a receita corrente líquida estimada.
+
+**Acceptance Criteria:**
+- **Given** o RGF do Poder Executivo publicado no SICONFI (Anexo 1, Demonstrativo da Despesa com Pessoal)
+- **When** o pipeline roda
+- **Then** a despesa total com pessoal e a RCL ajustada de 12 meses de cada período publicado (quadrimestre ou semestre) ficam num mart com `portal_slug`, ano e período, sem literal de município, UF ou ano (CLAUDE.md §23), seguindo o desenho de schema por fonte da Epic 26.
+- **And** `/pessoal` mostra o percentual oficial do último período publicado do ano selecionado, com o período e a data de publicação, e só ele recebe veredito contra os limites, que continuam vindo de `seed_constantes_fiscais`.
+- **And** quando o RGF do período ainda não saiu, a página mostra a estimativa atual com o aviso de estimativa, sem veredito.
+- **And** a troca de `despesa_total_pessoal_lrf` por `total_folha` ou deixa de existir ou aparece na tela como estimativa; `rclProxy` e `receitaCorrenteLiquida` viram um campo só, com nome que diga se é oficial ou estimado (regras 9 e 18).
+- **And** a comparação com o ano anterior usa o mesmo período do RGF dos dois anos (por exemplo, 2º quadrimestre contra 2º quadrimestre).
+- **And** os textos passam pelo `editor-cidadao` e a citação da LRF pelo `jurista-fiscal`, com link oficial (regra 20); `llms.txt` e `llms-full.txt` são atualizados.
+
+**Fora do escopo:** Poder Legislativo (a página não cita a Câmara por ora) e o limite consolidado do município (60%).
+
+**Dependências:** confirmar com o `jurista-fiscal` a redação da janela de 12 meses e qual periodicidade (quadrimestral ou semestral) vale para cada município; Epic 26 para o padrão de schema por fonte.
