@@ -57,6 +57,49 @@ def ensure_siconfi_table(engine: Connectable, schema: str) -> None:
         engine.execute(text(ddl))
 
 
+RGF_KEY_COLS = ["ano", "cod_ibge", "periodicidade", "periodo", "anexo", "cod_conta", "coluna", "rotulo"]
+
+
+def ensure_siconfi_rgf_table(engine: Connectable, schema: str) -> None:
+    """Garante a existência da tabela raw do RGF Anexo 01 (despesa com pessoal) no schema especificado."""
+    ddl = f"""
+    CREATE SCHEMA IF NOT EXISTS "{schema}";
+    CREATE TABLE IF NOT EXISTS "{schema}"."siconfi_rgf" (
+        ano INTEGER NOT NULL,
+        cod_ibge INTEGER NOT NULL,
+        periodicidade TEXT NOT NULL,
+        periodo INTEGER NOT NULL,
+        anexo TEXT NOT NULL,
+        cod_conta TEXT NOT NULL,
+        conta TEXT,
+        coluna TEXT NOT NULL,
+        rotulo TEXT NOT NULL,
+        valor NUMERIC,
+        populacao INTEGER,
+        data_extracao TEXT,
+        PRIMARY KEY (ano, cod_ibge, periodicidade, periodo, anexo, cod_conta, coluna, rotulo)
+    );
+    """
+    if isinstance(engine, Engine):
+        with engine.begin() as conn:
+            conn.execute(text(ddl))
+    elif isinstance(engine, Connection):
+        engine.execute(text(ddl))
+
+
+def load_siconfi_rgf(
+    db: Connectable,
+    rows: list[dict[str, Any]],
+    schema: str | None = None,
+) -> int:
+    """Insere ou atualiza os registros do RGF Anexo 01 na tabela raw_<portal>.siconfi_rgf."""
+    if not rows:
+        return 0
+    if schema:
+        return upsert(db, "siconfi_rgf", rows, RGF_KEY_COLS, schema=schema)
+    return upsert(db, "siconfi_rgf", rows, RGF_KEY_COLS)
+
+
 def load_siconfi_msc(
     db: Connectable,
     rows: list[dict[str, Any]],

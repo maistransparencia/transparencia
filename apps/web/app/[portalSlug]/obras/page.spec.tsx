@@ -123,7 +123,7 @@ describe("ObrasPage Component", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza o Hero no padrão visual de temas com narrativa, investimento e 4 KPIs", async () => {
+  it("renderiza o Hero no padrão visual de temas com narrativa, situação das obras e 4 KPIs", async () => {
     loadObrasDataMock.mockResolvedValue(makeRawObrasData());
 
     const page = await ObrasPage({
@@ -134,17 +134,15 @@ describe("ObrasPage Component", () => {
     render(page);
 
     // Hero Header de Tema
-    expect(
-      screen.getByText(/TEMAS · OBRAS PÚBLICAS · 2026/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dados de 2026/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /Do planejamento ao canteiro/i,
+        name: /As obras da cidade estão andando/i,
       }),
     ).toBeInTheDocument();
 
     // Card de Investimento Previsto
-    expect(screen.getByText("Investimento previsto")).toBeInTheDocument();
+    expect(screen.getByText("Avanço físico médio")).toBeInTheDocument();
 
     // 4 KPIs
     expect(screen.getAllByText("Em execução").length).toBeGreaterThan(0);
@@ -186,38 +184,6 @@ describe("ObrasPage Component", () => {
     expect(
       screen.getAllByText("Extensão da Rede de Iluminação Rural").length,
     ).toBeGreaterThan(0);
-  });
-
-  it("renderiza a seção dedicada de obras paralisadas com fundamentação legal oficial", async () => {
-    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
-
-    const page = await ObrasPage({
-      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
-      searchParams: Promise.resolve({}),
-    });
-
-    render(page);
-
-    // Seção de paralisadas
-    expect(
-      screen.getByRole("heading", { name: "Obras paralisadas" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Atenção especial")).toBeInTheDocument();
-    expect(
-      screen.getByText("Atraso no repasse do convênio estadual"),
-    ).toBeInTheDocument();
-
-    // Link oficial da Lei 14.133/2021 (Regra 20)
-    const legalLink = screen.getByRole("link", {
-      name: /Art\. 115, §6º da Lei nº 14\.133\/2021/i,
-    });
-    expect(legalLink).toBeInTheDocument();
-    expect(legalLink).toHaveAttribute(
-      "href",
-      "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6",
-    );
-    expect(legalLink).toHaveAttribute("target", "_blank");
-    expect(legalLink).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("permite filtrar obras por status clicando na pílula correspondente", async () => {
@@ -303,7 +269,9 @@ describe("ObrasPage Component", () => {
     expect(screen.getByText("Órgão Executor")).toBeInTheDocument();
     expect(screen.getByText("Previsão")).toBeInTheDocument();
     expect(screen.getAllByText("Última Medição").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Fonte: ObrasGov\.br/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: /ObrasGov\.br/ }).length,
+    ).toBeGreaterThan(0);
     const cipiLink = screen.getByRole("link", {
       name: /Ver no Cadastro de Obras/i,
     });
@@ -327,35 +295,6 @@ describe("ObrasPage Component", () => {
     ).toBeInTheDocument();
     expect(
       within(dialog).getByText("Execução Física Oficial"),
-    ).toBeInTheDocument();
-  });
-
-  it("abre o modal de detalhes ao acionar Ver detalhes na seção de obras paralisadas", async () => {
-    loadObrasDataMock.mockResolvedValue(makeRawObrasData());
-
-    const page = await ObrasPage({
-      params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
-      searchParams: Promise.resolve({}),
-    });
-
-    render(page);
-
-    const paralisadasSection = screen.getByRole("region", {
-      name: /Obras Paralisadas/i,
-    });
-    const verDetalhesParalisadaBtn = within(paralisadasSection).getByRole(
-      "button",
-      { name: /Ver detalhes/i },
-    );
-    fireEvent.click(verDetalhesParalisadaBtn);
-
-    const dialog = screen.getByRole("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("Atenção Cívica: Obra Paralisada"),
-    ).toBeInTheDocument();
-    expect(
-      within(dialog).getByText("Atraso no repasse do convênio estadual"),
     ).toBeInTheDocument();
   });
 

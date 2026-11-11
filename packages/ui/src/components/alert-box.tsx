@@ -16,30 +16,30 @@ export function AlertBox({
   className,
 }: AlertBoxProps) {
   const icons = {
-    warning: <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />,
-    danger: <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />,
-    info: <Info className="h-5 w-5 shrink-0 text-blue-600" />,
-    success: <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" />,
+    warning: <AlertTriangle className="h-4 w-4 shrink-0 text-warn-text" />,
+    danger: <AlertCircle className="h-4 w-4 shrink-0 text-danger-text" />,
+    info: <Info className="h-4 w-4 shrink-0 text-brand-text" />,
+    success: <CheckCircle className="h-4 w-4 shrink-0 text-ok-text" />,
   };
 
   const styles = {
-    warning: "bg-amber-50/80 border-amber-200 text-amber-900",
-    danger: "bg-rose-50/80 border-rose-200 text-rose-900",
-    info: "bg-blue-50/80 border-blue-200 text-blue-900",
-    success: "bg-emerald-50/80 border-emerald-200 text-emerald-900",
+    warning: "border-warn-fill bg-warn-fill/15",
+    danger: "border-danger-fill bg-danger-fill/15",
+    info: "border-brand-fill bg-brand-fill/15",
+    success: "border-ok-fill bg-ok-fill/15",
   };
 
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-xl border p-4 text-sm leading-relaxed",
+        "flex gap-3 border-l-[3px] px-4 py-3 text-ink text-sm leading-relaxed",
         styles[type],
         className,
       )}
     >
       {icons[type]}
       <div>
-        {title && <h4 className="mb-1 font-semibold">{title}</h4>}
+        {title && <p className="mb-1 font-semibold">{title}</p>}
         <div>{children}</div>
       </div>
     </div>

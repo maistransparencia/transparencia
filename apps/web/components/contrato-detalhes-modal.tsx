@@ -13,6 +13,7 @@ import {
 import { AlertCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ContratoDetalhesModalProps {
   contrato: ContratoServicoVigente | null;
@@ -133,7 +134,7 @@ export function ContratoDetalhesModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 text-xs transition-colors hover:bg-slate-50"
+            className="rounded-md border border-line bg-page px-4 py-2 font-medium text-ink text-xs transition-colors hover:bg-line2"
           >
             Fechar
           </button>
@@ -142,9 +143,9 @@ export function ContratoDetalhesModal({
     >
       <div className="space-y-6 py-2" data-testid="contrato-detalhes-modal">
         {contrato.ano && ano && contrato.ano !== ano && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-amber-900 text-xs shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn-text/30 bg-warn-fill/10 px-4 py-3 text-warn-text text-xs">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-warn-text" />
               <span>
                 Este contrato pertence ao exercício de{" "}
                 <strong className="font-semibold">{contrato.ano}</strong> (você
@@ -154,7 +155,7 @@ export function ContratoDetalhesModal({
             </div>
             <Link
               href={`/${portalSlug || "portal"}/licitacoes?ano=${contrato.ano}&contratoNumero=${encodeURIComponent(contrato.contratoNumero || contrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
-              className="inline-flex items-center gap-1 font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-950"
+              className="inline-flex items-center gap-1 font-semibold text-warn-text underline decoration-warn-text/40 underline-offset-2 transition-colors hover:text-ink"
             >
               <span>Mudar painel para {contrato.ano}</span>
             </Link>
@@ -162,24 +163,24 @@ export function ContratoDetalhesModal({
         )}
 
         {/* Bloco 1: Fornecedor, Órgão, Vigência, Licitação de Origem e Ano */}
-        <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-2 sm:gap-6">
+        <div className="grid grid-cols-1 gap-4 rounded-md border border-line bg-line2 p-4 sm:grid-cols-2 sm:gap-6">
           <div>
-            <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+            <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
               Fornecedor
             </span>
-            <p className="mt-0.5 font-semibold text-slate-900 text-sm">
+            <p className="mt-0.5 font-semibold text-ink text-sm">
               {contrato.fornecedorNome}
             </p>
-            <p className="text-slate-600 text-xs">
+            <p className="text-mute2 text-xs">
               CNPJ/CPF:{" "}
-              <span className="text-slate-800">
+              <span className="text-ink">
                 {fmtCpfCnpj(contrato.fornecedorCnpj) || "Não informado"}
               </span>
             </p>
             {contrato.orgaoNome && (
-              <p className="mt-1 text-slate-600 text-xs">
+              <p className="mt-1 text-mute2 text-xs">
                 Órgão Responsável:{" "}
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-ink">
                   {contrato.orgaoNome}
                 </span>
               </p>
@@ -187,27 +188,25 @@ export function ContratoDetalhesModal({
           </div>
 
           <div>
-            <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+            <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
               Vigência Contratual
             </span>
-            <p className="mt-0.5 font-medium text-slate-900 text-sm">
+            <p className="mt-0.5 font-medium text-ink text-sm">
               {vigenciaText}
             </p>
             {contrato.ano && (
-              <p className="text-slate-600 text-xs">
+              <p className="text-mute2 text-xs">
                 Exercício de referência:{" "}
-                <span className="font-semibold text-slate-800">
-                  {contrato.ano}
-                </span>
+                <span className="font-semibold text-ink">{contrato.ano}</span>
               </p>
             )}
             {contrato.licitacaoNumero && (
-              <div className="mt-1 flex items-center gap-1.5 text-slate-600 text-xs">
+              <div className="mt-1 flex items-center gap-1.5 text-mute2 text-xs">
                 <span>Processo Licitatório:</span>
                 <button
                   type="button"
                   onClick={handleLicitacaoClick}
-                  className="inline-flex cursor-pointer items-center gap-1 font-semibold text-blue-700 underline decoration-blue-300 hover:text-blue-900 hover:decoration-blue-500"
+                  className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand underline decoration-brand/40 hover:text-ink hover:decoration-ink/40"
                   title="Ver detalhes do processo licitatório vinculado"
                 >
                   <span>{contrato.licitacaoNumero}</span>
@@ -223,16 +222,16 @@ export function ContratoDetalhesModal({
           contrato.fontesRecursos ||
           contrato.programaNome ||
           contrato.projetoAtividadeNome) && (
-          <div className="rounded-xl border border-blue-200/80 bg-blue-50/50 p-4">
+          <div className="rounded-md border border-brand/30 bg-brand/10 p-4">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-blue-900 text-xs uppercase tracking-wider">
+              <span className="font-semibold text-brand text-xs uppercase tracking-wider">
                 Fonte de Recursos &amp; Destinação Orçamentária
               </span>
               <a
-                href="https://www.planalto.gov.br/ccivil_03/_ato2021-2024/2021/lei/l14133.htm#art92"
+                href={urlLegislacao("lei14133Ato20212024", "art92")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-blue-700 text-xs hover:underline"
+                className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
                 title="Art. 92, VIII da Lei 14.133/2021"
               >
                 <span>Art. 92 da Lei 14.133/21</span>
@@ -243,15 +242,15 @@ export function ContratoDetalhesModal({
             {/* Origem dos Recursos */}
             {(contrato.fontePrincipal || contrato.fontesRecursos) && (
               <div className="mt-2.5 space-y-1.5">
-                <span className="font-medium text-slate-600 text-xs">
+                <span className="font-medium text-mute2 text-xs">
                   Origem dos Recursos:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   {contrato.fontePrincipal && (
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-white px-2.5 py-1 font-semibold text-blue-950 text-xs shadow-2xs">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-brand/30 bg-page px-2.5 py-1 font-semibold text-brand text-xs">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-fill" />
                       {contrato.fontePrincipal}
-                      <span className="rounded bg-blue-100 px-1 py-0.5 font-normal text-[10px] text-blue-800">
+                      <span className="rounded bg-brand/10 px-1 py-0.5 font-normal text-[10px] text-brand">
                         Principal
                       </span>
                     </span>
@@ -268,7 +267,7 @@ export function ContratoDetalhesModal({
                     return allFontes.map((fonte) => (
                       <span
                         key={fonte}
-                        className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 font-normal text-slate-700 text-xs"
+                        className="inline-flex items-center rounded-md border border-line bg-page/80 px-2 py-0.5 font-normal text-ink text-xs"
                       >
                         {fonte}
                       </span>
@@ -280,23 +279,23 @@ export function ContratoDetalhesModal({
 
             {/* Destinação Orçamentária / Programática */}
             {(contrato.programaNome || contrato.projetoAtividadeNome) && (
-              <div className="mt-3.5 grid grid-cols-1 gap-2.5 border-blue-200/60 border-t pt-3 text-xs sm:grid-cols-2">
+              <div className="mt-3.5 grid grid-cols-1 gap-2.5 border-brand/30 border-t pt-3 text-xs sm:grid-cols-2">
                 {contrato.programaNome && (
                   <div>
-                    <span className="font-medium text-[10px] text-slate-500 uppercase tracking-wider">
+                    <span className="font-medium text-[10px] text-mute2 uppercase tracking-wider">
                       Programa Orçamentário
                     </span>
-                    <p className="mt-0.5 font-medium text-slate-800 leading-snug">
+                    <p className="mt-0.5 font-medium text-ink leading-snug">
                       {contrato.programaNome}
                     </p>
                   </div>
                 )}
                 {contrato.projetoAtividadeNome && (
                   <div>
-                    <span className="font-medium text-[10px] text-slate-500 uppercase tracking-wider">
+                    <span className="font-medium text-[10px] text-mute2 uppercase tracking-wider">
                       Ação / Projeto-Atividade
                     </span>
-                    <p className="mt-0.5 font-medium text-slate-800 leading-snug">
+                    <p className="mt-0.5 font-medium text-ink leading-snug">
                       {contrato.projetoAtividadeNome}
                     </p>
                   </div>
@@ -308,10 +307,10 @@ export function ContratoDetalhesModal({
 
         {/* Bloco 2: Objeto Integral */}
         <div className="min-w-0">
-          <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
+          <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
             Objeto Integral do Contrato
           </span>
-          <div className="mt-1.5 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3.5 text-slate-800 text-sm leading-relaxed shadow-2xs [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
+          <div className="mt-1.5 whitespace-pre-wrap break-words rounded-md border border-line bg-page p-3.5 text-ink text-sm leading-relaxed [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
             {contrato.objetoDescricao || "Objeto não informado."}
           </div>
         </div>
@@ -319,70 +318,64 @@ export function ContratoDetalhesModal({
         {/* Bloco 3: Grid de Métricas Fiscais e Execução Financeira */}
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold text-slate-900 text-sm">
-              Execução Financeira e Orçamentária
-            </h3>
+            <h3>Execução Financeira e Orçamentária</h3>
             {contrato.valorContrato !== undefined &&
               contrato.valorContrato > 0 && (
-                <div className="flex items-baseline gap-1.5 rounded-lg border border-blue-200/80 bg-blue-50/60 px-3 py-1 text-right">
-                  <span className="font-semibold text-[11px] text-blue-900 uppercase tracking-wider">
+                <div className="flex items-baseline gap-1.5 rounded-md border border-brand/30 bg-brand/10 px-3 py-1 text-right">
+                  <span className="font-semibold text-[11px] text-brand uppercase tracking-wider">
                     Valor Contratado:
                   </span>
-                  <span className="font-bold font-serif text-base text-blue-950 sm:text-lg">
+                  <span className="numeric text-left font-bold text-base text-brand tabular-nums sm:text-lg">
                     {fmtCurrency(contrato.valorContrato)}
                   </span>
                 </div>
               )}
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-              <span className="font-medium text-slate-500 text-xs">
-                Empenhado
-              </span>
-              <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+            <div className="rounded-md border border-line bg-page p-3.5">
+              <span className="font-medium text-mute2 text-xs">Empenhado</span>
+              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalEmpenhado)}
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-              <span className="font-medium text-slate-500 text-xs">
-                Liquidado
-              </span>
-              <p className="mt-1 font-semibold font-serif text-base text-slate-900 sm:text-lg">
+            <div className="rounded-md border border-line bg-page p-3.5">
+              <span className="font-medium text-mute2 text-xs">Liquidado</span>
+              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalLiquidado)}
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-              <span className="font-medium text-slate-500 text-xs">Pago</span>
-              <p className="mt-1 font-semibold font-serif text-base text-emerald-700 sm:text-lg">
+            <div className="rounded-md border border-line bg-page p-3.5">
+              <span className="font-medium text-mute2 text-xs">Pago</span>
+              <p className="numeric mt-1 text-left font-semibold text-base text-ok-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalPago)}
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-              <span className="font-medium text-slate-500 text-xs">
+            <div className="rounded-md border border-line bg-page p-3.5">
+              <span className="font-medium text-mute2 text-xs">
                 Saldo Pendente
               </span>
-              <p className="mt-1 font-semibold font-serif text-amber-700 text-base sm:text-lg">
+              <p className="numeric mt-1 text-left font-semibold text-base text-warn-text tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.saldoPendente)}
               </p>
             </div>
           </div>
 
           {/* Barra de Progresso e Percentual Pago */}
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="mt-4 rounded-md border border-line bg-line2 p-4">
             <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-ink">
                 Percentual Pago da Despesa
               </span>
-              <span className="font-semibold font-serif text-slate-900 text-sm">
+              <span className="numeric text-left font-semibold text-ink text-sm tabular-nums">
                 {fmtPercent(contrato.percentualPago)}
               </span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-line">
               <div
-                className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                className="h-full rounded-full bg-ok-fill transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.max(0, contrato.percentualPago || 0))}%`,
                 }}
@@ -390,9 +383,9 @@ export function ContratoDetalhesModal({
             </div>
             {contrato.valorAditado !== undefined &&
               contrato.valorAditado > 0 && (
-                <p className="mt-2.5 text-slate-600 text-xs">
+                <p className="mt-2.5 text-mute2 text-xs">
                   Valor Aditado:{" "}
-                  <strong className="font-semibold text-slate-800">
+                  <strong className="font-semibold text-ink">
                     {fmtCurrency(contrato.valorAditado)}
                   </strong>
                 </p>

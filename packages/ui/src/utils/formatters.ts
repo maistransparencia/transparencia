@@ -30,10 +30,13 @@ export function fmtCompact(value: number): string {
   }).format(value);
 }
 
-export function fmtPercent(value: number | null | undefined): string {
+export function fmtPercent(
+  value: number | null | undefined,
+  fractionDigits = 2,
+): string {
   if (value === null || value === undefined || Number.isNaN(value))
-    return "0,00%";
-  return `${value.toFixed(2)}%`;
+    return `${(0).toFixed(fractionDigits).replace(".", ",")}%`;
+  return `${value.toFixed(fractionDigits).replace(".", ",")}%`;
 }
 
 export function fmtNumber(value: number): string {
@@ -129,6 +132,28 @@ export function fmtLicitacaoSituacao(situacao?: string | null): string {
   if (s === "encerrada" || s === "encerrado") return "Encerrada";
   if (s === "classificada") return "Classificada";
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+const LICITACAO_SITUACAO_CODIGO_LABELS: Record<string, string> = {
+  homologada: "Homologada",
+  em_andamento: "Em andamento",
+  encerrada: "Encerrada",
+  deserta: "Deserta",
+  fracassada: "Fracassada",
+  cancelada: "Cancelada",
+  classificada: "Classificada",
+  nao_informada: "Não informada",
+};
+
+/** Rótulo da situação normalizada na camada de dados (situacao_codigo). */
+export function fmtLicitacaoSituacaoCodigo(
+  codigo?: string | null,
+  situacaoTexto?: string | null,
+): string {
+  if (codigo && LICITACAO_SITUACAO_CODIGO_LABELS[codigo]) {
+    return LICITACAO_SITUACAO_CODIGO_LABELS[codigo];
+  }
+  return fmtLicitacaoSituacao(situacaoTexto);
 }
 
 function parseReferenceDate(

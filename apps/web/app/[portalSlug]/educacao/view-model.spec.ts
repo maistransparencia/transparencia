@@ -1,600 +1,503 @@
+import type {
+  EducacaoContratoDTO,
+  EducacaoExecucaoAnualDTO,
+  EducacaoMetricDTO,
+} from "@transparencia/db";
 import { describe, expect, it } from "vitest";
-import { buildEducacaoViewModel } from "./view-model";
+import {
+  buildAlunosRede,
+  buildEducacaoViewModel,
+  buildMinimosLegais,
+  buildValorPorAluno,
+} from "./view-model";
+
+function metrica(
+  parcial: Partial<EducacaoMetricDTO> &
+    Pick<EducacaoMetricDTO, "ano" | "etapaEnsino">,
+): EducacaoMetricDTO {
+  return {
+    educacaoMetricaId: `${parcial.ano}-${parcial.etapaEnsino}`,
+    portalSlug: "portal_teste",
+    codIbge: 3304102,
+    rede: "municipal",
+    notaIdeb: null,
+    metaIdeb: null,
+    atingiuMeta: null,
+    saebMatematica: null,
+    saebLinguaPortuguesa: null,
+    indicadorFluxoAprovacao: null,
+    crescimentoPontosIdeb: null,
+    variacaoSaebMatematica: null,
+    variacaoSaebPortugues: null,
+    ...parcial,
+  };
+}
+
+function execucao(
+  parcial: Partial<EducacaoExecucaoAnualDTO> &
+    Pick<EducacaoExecucaoAnualDTO, "ano">,
+): EducacaoExecucaoAnualDTO {
+  return {
+    empenhado: 0,
+    liquidado: 0,
+    pago: 0,
+    pagoSemPessoal: 0,
+    ...parcial,
+  };
+}
+
+function contrato(
+  categoria: EducacaoContratoDTO["categoria"],
+  valorContrato: number,
+): EducacaoContratoDTO {
+  return {
+    contratoId: `ctr_${categoria}`,
+    portalSlug: "portal_teste",
+    ano: 2025,
+    empresaId: "1",
+    contratoNumero: `${categoria}/25`,
+    licitacaoNumero: null,
+    modalidade: null,
+    fornecedorNome: "FORNECEDOR",
+    fornecedorCpfCnpj: null,
+    objeto: "Objeto",
+    categoria,
+    valorContrato,
+    valorAditado: 0,
+    totalEmpenhado: valorContrato,
+    totalLiquidado: valorContrato / 2,
+    totalPago: valorContrato / 2,
+    saldoAPagar: valorContrato / 2,
+    fontePrincipal: null,
+    fontesRecursos: null,
+    orgaoNome: null,
+    principalFuncao: null,
+    principalPrograma: null,
+    principalAcao: null,
+    dataInicio: "2025-01-01",
+    vencimentoAtual: "2025-12-31",
+  };
+}
+
+const CONTEXTO_2025 = {
+  selectedYear: 2025,
+  isCurrentYear: false,
+  selectedEtapa: "anosIniciais" as const,
+};
 
 describe("educacao/view-model", () => {
-  it("consolida o Troféu Cívico do ciclo 2025 para Porciúncula com +1,4 ponto e ranking estadual", () => {
-    const raw = {
-      portalSlug: "porciuncula_prefeitura",
-      portalConfig: {
-        municipioNome: "Porciúncula",
-        uf: "RJ",
-        displayName: "Prefeitura de Porciúncula",
-      },
-      allMetrics: [
-        {
-          educacaoMetricaId: "1",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
-          ano: 2021,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 5.2,
-          metaIdeb: 6.4,
-          atingiuMeta: false,
-          saebMatematica: 210.79,
-          saebLinguaPortuguesa: 198.28,
-          indicadorFluxoAprovacao: 0.925,
-          crescimentoPontosIdeb: null,
-          variacaoSaebMatematica: null,
-          variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: 25000000,
-          totalMatriculasRedeMunicipal: 2300,
-          custoAnualPorAluno: 10869.56,
-        },
-        {
-          educacaoMetricaId: "2",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
-          ano: 2023,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 4.5,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: 202.1,
-          saebLinguaPortuguesa: 194.5,
-          indicadorFluxoAprovacao: 0.942,
-          crescimentoPontosIdeb: -0.7,
-          variacaoSaebMatematica: -8.69,
-          variacaoSaebPortugues: -3.78,
-          despesaLiquidadaEducacao: 29000000,
-          totalMatriculasRedeMunicipal: 2280,
-          custoAnualPorAluno: 12719.3,
-        },
-        {
-          educacaoMetricaId: "3",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
-          ano: 2025,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 5.9,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: 218.39,
-          saebLinguaPortuguesa: 210.91,
-          indicadorFluxoAprovacao: 0.985,
-          crescimentoPontosIdeb: 1.4,
-          variacaoSaebMatematica: 16.29,
-          variacaoSaebPortugues: 16.41,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14553.0,
-        },
-        {
-          educacaoMetricaId: "4",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
-          ano: 2025,
-          rede: "municipal",
-          etapaEnsino: "anosFinais" as const,
-          notaIdeb: 5.3,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: 250.0,
-          saebLinguaPortuguesa: 255.0,
-          indicadorFluxoAprovacao: 0.96,
-          crescimentoPontosIdeb: 0.4,
-          variacaoSaebMatematica: 5.0,
-          variacaoSaebPortugues: 6.0,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14553.0,
-        },
-      ],
-      resumo: {
-        ano: 2025,
-        notaIdeb: 5.9,
-        crescimentoPontosIdeb: 1.4,
-        despesaLiquidadaEducacao: 34291936.64,
-        totalMatriculasRedeMunicipal: 2290,
-        custoAnualPorAluno: 14553.0,
-        posicaoRanking: 46,
-        variacaoPosicoes: 43,
-        totalMunicipios: 92,
-        mdePercentual: 26.8,
-        fundebPercentual: 78.4,
-      },
-      contratos: [
-        {
-          contratoId: "ctr_1",
-          portalSlug: "porciuncula_prefeitura",
-          ano: 2025,
-          empresaId: "1",
-          contratoNumero: "0443/25",
-          licitacaoNumero: "012/2025",
-          modalidade: "pregao_eletronico",
-          fornecedorNome: "DISTRIBUIDORA ALIMENTAR",
-          fornecedorCpfCnpj: "00.000.000/0001-00",
-          objeto: "Aquisição de gêneros alimentícios para merenda PNAE",
-          categoria: "merenda_pnae" as const,
-          valorContrato: 450000,
-          valorAditado: 0,
-          totalEmpenhado: 450000,
-          totalLiquidado: 200000,
-          totalPago: 180000,
-          saldoAPagar: 270000,
-          fontePrincipal: "PNAE",
-          fontesRecursos: "PNAE",
-          orgaoNome: "Secretaria de Educação",
-          principalFuncao: "Educação",
-          principalPrograma: null,
-          principalAcao: null,
-          dataInicio: "2025-02-01",
-          vencimentoAtual: "2025-12-31",
-        },
-      ],
-      context: {
-        selectedYear: 2025,
-        isCurrentYear: false,
-        selectedEtapa: "anosIniciais" as const,
-      },
-    };
-
-    const vm = buildEducacaoViewModel(raw);
-
-    // Bloco 1: Troféu Cívico
-    expect(vm.trofeuCivico.anoBaseIdeb).toBe(2025);
-    expect(vm.trofeuCivico.eyebrowLabel).toBe(
-      "TEMAS · EDUCAÇÃO BÁSICA · 2025 (ANO-BASE IDEB)",
-    );
-    expect(vm.trofeuCivico.notaAtual).toBe(5.9);
-    expect(vm.trofeuCivico.notaAnterior).toBe(4.5);
-    expect(vm.trofeuCivico.crescimentoPontos).toBe(1.4);
-    expect(vm.trofeuCivico.isDestaqueEstadual).toBe(true);
-    expect(vm.trofeuCivico.destaqueBadgeTexto).toBe(
-      "Evolução de +1,4 ponto no IDEB da Rede Municipal",
-    );
-    expect(vm.trofeuCivico.rankingPosicaoLabel).toBe("46º lugar");
-    expect(vm.trofeuCivico.rankingSubtext).toBe("Entre 92 municípios (RJ)");
-    expect(vm.trofeuCivico.rankingTrend).toEqual({
-      value: "+43 posições",
-      isPositive: true,
-    });
-    expect(vm.trofeuCivico.rankingEstadualLabel).toContain(
-      "46º lugar estadual",
-    );
-    expect(vm.trofeuCivico.custoAnualPorAluno).toBe(14553.0);
-    expect(vm.trofeuCivico.totalMatriculas).toBe(2290);
-
-    // Bloco 2: Linha do tempo e Histórico
-    expect(vm.historico.anosIniciais.pontos).toHaveLength(3);
-    expect(vm.historico.anosIniciais.pontos[0].ano).toBe(2021);
-    expect(vm.historico.anosIniciais.pontos[0].notaIdeb).toBe(5.2);
-    expect(vm.historico.anosIniciais.pontos[2].ano).toBe(2025);
-    expect(vm.historico.anosIniciais.pontos[2].notaIdeb).toBe(5.9);
-    expect(vm.historico.anosIniciais.pontos[2].taxaAprovacao).toBe(98.5);
-
-    expect(vm.historico.anosFinais.pontos).toHaveLength(1);
-    expect(vm.historico.anosFinais.pontos[0].notaIdeb).toBe(5.3);
-
-    // Bloco 3: Painel Fiscal (MDE e FUNDEB)
-    expect(vm.fiscal.mde.minimoConstitucionalPct).toBe(25);
-    expect(vm.fiscal.mde.percentualAplicado).toBeGreaterThanOrEqual(25);
-    expect(vm.fiscal.mde.cumprido).toBe(true);
-    expect(vm.fiscal.mde.artigoUrl).toContain("#art212");
-
-    expect(vm.fiscal.fundeb.minimoConstitucionalPct).toBe(70);
-    expect(vm.fiscal.fundeb.percentualAplicado).toBeGreaterThanOrEqual(70);
-    expect(vm.fiscal.fundeb.cumprido).toBe(true);
-    expect(vm.fiscal.fundeb.artigoUrl).toContain("#art212a");
-
-    expect(vm.fiscal.correlacao).toHaveLength(3);
-    expect(vm.fiscal.correlacao[2].ano).toBe(2025);
-    expect(vm.fiscal.correlacao[2].despesaLiquidada).toBe(34291936.64);
-    expect(vm.fiscal.correlacao[2].notaIdebIniciais).toBe(5.9);
-
-    // Bloco 4: Contratos
-    expect(vm.contratosResumo.totalContratos).toBe(1);
-    expect(vm.contratosResumo.valorTotalContratos).toBe(450000);
-    expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(1);
-    expect(vm.contratosResumo.porCategoria.locacao_imoveis).toBe(0);
-    expect(vm.contratosResumo.porCategoria.outros).toBe(0);
-    expect(vm.contratosResumo.porCategoria.transporte_pnate).toBe(0);
-    expect(vm.contratosResumo.porCategoria.manutencao_geral).toBe(0);
-  });
-
-  it("agrega corretamente contratos em todas as categorias incluindo locacao_imoveis e outros", () => {
-    const raw = {
-      portalSlug: "porciuncula_prefeitura",
-      portalConfig: null,
+  it("monta a execução do exercício selecionado e a série anual a partir da função 12", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
       allMetrics: [],
-      resumo: null,
-      contratos: [
-        {
-          contratoId: "ctr_loc",
-          portalSlug: "porciuncula_prefeitura",
+      contratos: [],
+      execucaoAnual: [
+        execucao({ ano: 2024, empenhado: 900, pago: 800 }),
+        execucao({
           ano: 2025,
-          empresaId: "1",
-          contratoNumero: "0034/26",
-          licitacaoNumero: null,
-          modalidade: null,
-          fornecedorNome: "LOCADOR",
-          fornecedorCpfCnpj: null,
-          objeto: "Locação de imóvel para anexo",
-          categoria: "locacao_imoveis" as const,
-          valorContrato: 24000,
-          valorAditado: 0,
-          totalEmpenhado: 24000,
-          totalLiquidado: 12000,
-          totalPago: 12000,
-          saldoAPagar: 12000,
-          fontePrincipal: null,
-          fontesRecursos: null,
-          orgaoNome: null,
-          principalFuncao: null,
-          principalPrograma: null,
-          principalAcao: null,
-          dataInicio: "2025-01-01",
-          vencimentoAtual: "2025-12-31",
-        },
-        {
-          contratoId: "ctr_out",
-          portalSlug: "porciuncula_prefeitura",
-          ano: 2025,
-          empresaId: "1",
-          contratoNumero: "0453/25",
-          licitacaoNumero: null,
-          modalidade: null,
-          fornecedorNome: "ASSESSORIA",
-          fornecedorCpfCnpj: null,
-          objeto: "Assessoria técnica e alimentação do sistema PDDE",
-          categoria: "outros" as const,
-          valorContrato: 36000,
-          valorAditado: 0,
-          totalEmpenhado: 36000,
-          totalLiquidado: 36000,
-          totalPago: 36000,
-          saldoAPagar: 0,
-          fontePrincipal: null,
-          fontesRecursos: null,
-          orgaoNome: null,
-          principalFuncao: null,
-          principalPrograma: null,
-          principalAcao: null,
-          dataInicio: "2025-01-01",
-          vencimentoAtual: "2025-12-31",
-        },
+          empenhado: 1500,
+          liquidado: 1350,
+          pago: 1200,
+        }),
       ],
-      context: {
-        selectedYear: 2025,
-        isCurrentYear: false,
-        selectedEtapa: "anosIniciais" as const,
-      },
-    };
-
-    const vm = buildEducacaoViewModel(raw);
-    expect(vm.contratosResumo.totalContratos).toBe(2);
-    expect(vm.contratosResumo.valorTotalContratos).toBe(60000);
-    expect(vm.contratosResumo.porCategoria.locacao_imoveis).toBe(1);
-    expect(vm.contratosResumo.porCategoria.outros).toBe(1);
-    expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(0);
-    expect(
-      vm.contratosResumo.totaisPorCategoria.locacao_imoveis.quantidade,
-    ).toBe(1);
-    expect(vm.contratosResumo.totaisPorCategoria.merenda_pnae).toEqual({
-      quantidade: 0,
-      valorContrato: 0,
-      totalEmpenhado: 0,
-      totalPago: 0,
+      context: CONTEXTO_2025,
     });
-    expect(
-      Object.values(vm.contratosResumo.totaisPorCategoria).reduce(
-        (acc, t) => acc + t.valorContrato,
-        0,
-      ),
-    ).toBe(60000);
+
+    expect(vm.execucao).toMatchObject({
+      ano: 2025,
+      empenhado: 1500,
+      pago: 1200,
+      temDados: true,
+    });
+    expect(vm.serieAnual).toEqual([
+      { ano: 2024, empenhado: 900, pago: 800 },
+      { ano: 2025, empenhado: 1500, pago: 1200 },
+    ]);
   });
 
-  it("trata portal com apenas um ciclo cadastrado com fallback gracioso", () => {
-    const raw = {
-      portalSlug: "outro_municipio",
-      portalConfig: null,
-      allMetrics: [
-        {
-          educacaoMetricaId: "1",
-          portalSlug: "outro_municipio",
-          codIbge: 3300000,
-          ano: 2025,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 5.0,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: null,
-          saebLinguaPortuguesa: null,
-          indicadorFluxoAprovacao: null,
-          crescimentoPontosIdeb: null,
-          variacaoSaebMatematica: null,
-          variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: null,
-          totalMatriculasRedeMunicipal: null,
-          custoAnualPorAluno: null,
-        },
-      ],
-      resumo: {
-        ano: 2025,
-        notaIdeb: 5.0,
-        crescimentoPontosIdeb: null,
-        despesaLiquidadaEducacao: null,
-        totalMatriculasRedeMunicipal: null,
-        custoAnualPorAluno: null,
-      },
+  it("expõe alunosRede a partir das matrículas do Censo", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
+      allMetrics: [],
       contratos: [],
-      context: {
-        selectedYear: 2025,
-        isCurrentYear: false,
-        selectedEtapa: "anosIniciais" as const,
+      matriculas: {
+        portalSlug: "portal_teste",
+        anoCenso: 2024,
+        matriculasEducacaoInfantil: 668,
+        matriculasEnsinoFundamental: 1303,
+        matriculasEducacaoBasica: 1971,
       },
-    };
-
-    const vm = buildEducacaoViewModel(raw);
-    expect(vm.municipioNome).toBe("Município");
-    expect(vm.trofeuCivico.notaAtual).toBe(5.0);
-    expect(vm.trofeuCivico.notaAnterior).toBeNull();
-    expect(vm.trofeuCivico.crescimentoPontos).toBeNull();
-    expect(vm.trofeuCivico.isDestaqueEstadual).toBe(false);
-    expect(vm.trofeuCivico.destaqueBadgeTexto).not.toMatch(/[🏆📈]/u);
-    expect(vm.fiscal.mde.percentualAplicado).toBeNull();
-    expect(vm.fiscal.mde.cumprido).toBeNull();
-    expect(vm.fiscal.fundeb.percentualAplicado).toBeNull();
-    expect(vm.fiscal.fundeb.cumprido).toBeNull();
-    expect(vm.contratosResumo.totalContratos).toBe(0);
+      context: CONTEXTO_2025,
+    });
+    expect(vm.alunosRede).toEqual({
+      total: 1971,
+      educacaoInfantil: 668,
+      ensinoFundamental: 1303,
+      anoCenso: 2024,
+    });
   });
 
-  it("determina ano-base bienal e eyebrow para anos pares sem ciclo oficial (ex: 2026 -> 2025)", () => {
-    const raw = {
-      portalSlug: "porciuncula_prefeitura",
-      portalConfig: null,
-      allMetrics: [
-        {
-          educacaoMetricaId: "1",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
-          ano: 2025,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 5.9,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: null,
-          saebLinguaPortuguesa: null,
-          indicadorFluxoAprovacao: null,
-          crescimentoPontosIdeb: 1.4,
-          variacaoSaebMatematica: null,
-          variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: null,
-          totalMatriculasRedeMunicipal: null,
-          custoAnualPorAluno: null,
-        },
-      ],
-      resumo: {
-        ano: 2025,
-        notaIdeb: 5.9,
-        crescimentoPontosIdeb: 1.4,
-        despesaLiquidadaEducacao: null,
-        totalMatriculasRedeMunicipal: null,
-        custoAnualPorAluno: null,
-      },
+  it("marca ausência de dados quando o exercício não tem despesa da função 12", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
+      allMetrics: [],
       contratos: [],
-      context: {
-        selectedYear: 2026,
-        isCurrentYear: true,
-        selectedEtapa: "anosIniciais" as const,
-      },
-    };
+      execucaoAnual: [execucao({ ano: 2024, empenhado: 900, pago: 800 })],
+      context: CONTEXTO_2025,
+    });
 
-    const vm = buildEducacaoViewModel(raw);
-    expect(vm.selectedYear).toBe(2026);
-    expect(vm.trofeuCivico.anoBaseIdeb).toBe(2025);
-    expect(vm.trofeuCivico.eyebrowLabel).toBe(
-      "TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO 2026 (ANO-BASE IDEB 2025)",
-    );
+    expect(vm.execucao.temDados).toBe(false);
   });
 
-  it("ao selecionar exercício 2024, ancora indicadores no ciclo apurado correspondente (ano-base 2023)", () => {
-    const raw = {
-      portalSlug: "porciuncula_prefeitura",
-      portalConfig: {
-        municipioNome: "Porciúncula",
-        uf: "RJ",
-        displayName: "Prefeitura de Porciúncula",
-      },
+  it("monta o aprendizado por etapa com a última nota até o ano selecionado, ciclo anterior e classificação", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
       allMetrics: [
-        {
-          educacaoMetricaId: "1",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
+        metrica({
           ano: 2021,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
+          etapaEnsino: "anosIniciais",
           notaIdeb: 5.2,
           metaIdeb: 6.4,
           atingiuMeta: false,
-          saebMatematica: 210.79,
-          saebLinguaPortuguesa: 198.28,
-          indicadorFluxoAprovacao: 0.925,
-          crescimentoPontosIdeb: null,
-          variacaoSaebMatematica: null,
-          variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: 25000000,
-          totalMatriculasRedeMunicipal: 2300,
-          custoAnualPorAluno: 10869.56,
-        },
-        {
-          educacaoMetricaId: "2",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
+        }),
+        metrica({
           ano: 2023,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
+          etapaEnsino: "anosIniciais",
           notaIdeb: 4.5,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: 202.1,
-          saebLinguaPortuguesa: 194.5,
-          indicadorFluxoAprovacao: 0.942,
           crescimentoPontosIdeb: -0.7,
-          variacaoSaebMatematica: -8.69,
-          variacaoSaebPortugues: -3.78,
-          despesaLiquidadaEducacao: 29000000,
-          totalMatriculasRedeMunicipal: 2280,
-          custoAnualPorAluno: 12719.3,
-        },
-        {
-          educacaoMetricaId: "3",
-          portalSlug: "porciuncula_prefeitura",
-          codIbge: 3304102,
+        }),
+        metrica({
           ano: 2025,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
+          etapaEnsino: "anosIniciais",
           notaIdeb: 5.9,
-          metaIdeb: null,
-          atingiuMeta: null,
-          saebMatematica: 218.39,
-          saebLinguaPortuguesa: 210.91,
-          indicadorFluxoAprovacao: 0.985,
+          metaIdeb: 5.5,
+          atingiuMeta: true,
           crescimentoPontosIdeb: 1.4,
-          variacaoSaebMatematica: 16.29,
-          variacaoSaebPortugues: 16.41,
-          despesaLiquidadaEducacao: 34291936.64,
-          totalMatriculasRedeMunicipal: 2290,
-          custoAnualPorAluno: 14553.0,
-        },
+        }),
+        metrica({ ano: 2023, etapaEnsino: "anosFinais", notaIdeb: 4.8 }),
       ],
-      resumo: {
-        ano: 2023,
-        notaIdeb: 4.5,
-        crescimentoPontosIdeb: -0.7,
-        despesaLiquidadaEducacao: 29000000,
-        totalMatriculasRedeMunicipal: 2280,
-        custoAnualPorAluno: 12719.3,
-        posicaoRanking: 90,
-        variacaoPosicoes: -15,
-        totalMunicipios: 92,
-        mdePercentual: null,
-        fundebPercentual: null,
-      },
       contratos: [],
-      context: {
-        selectedYear: 2024,
-        isCurrentYear: false,
-        selectedEtapa: "anosIniciais" as const,
+      mediasEstaduais: {
+        anosIniciais: { 2023: 5.5, 2025: 5.8 },
+        anosFinais: {},
       },
-    };
+      mediasNacionais: {
+        anosIniciais: { 2025: 6.1 },
+        anosFinais: {},
+      },
+      rankingAnosIniciais: {
+        posicaoRanking: 46,
+        totalMunicipios: 92,
+        variacaoPosicoes: 3,
+        anoCicloAnterior: 2023,
+        redesComparadas: 92,
+        totalMunicipiosCicloAnterior: 92,
+      },
+      rankingAnosFinais: null,
+      context: { ...CONTEXTO_2025, selectedYear: 2026, isCurrentYear: true },
+    });
 
-    const vm = buildEducacaoViewModel(raw);
-    expect(vm.selectedYear).toBe(2024);
-    expect(vm.trofeuCivico.anoBaseIdeb).toBe(2023);
-    expect(vm.trofeuCivico.eyebrowLabel).toBe(
-      "TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO 2024 (ANO-BASE IDEB 2023)",
-    );
-    expect(vm.trofeuCivico.notaAtual).toBe(4.5);
-    expect(vm.trofeuCivico.crescimentoPontos).toBe(-0.7);
-    expect(vm.trofeuCivico.notaAnterior).toBe(5.2);
-    expect(vm.trofeuCivico.rankingPosicaoLabel).toBe("90º lugar");
-    expect(vm.trofeuCivico.destaqueBadgeTexto).toContain(
-      "Variação de -0,7 ponto no IDEB (2023)",
-    );
-    expect(vm.historico.anosIniciais.possuiMeta).toBe(true);
-    expect(vm.historico.anosIniciais.ultimoAnoComMeta).toBe(2021);
-    expect(vm.historico.anosIniciais.anosSemMeta).toEqual([2023, 2025]);
+    expect(vm.aprendizado.anosIniciais).toMatchObject({
+      notaIdeb: 5.9,
+      anoApuracao: 2025,
+      mediaNacional: 6.1,
+      variacaoMediaEstadual: 0.3,
+      notaAnterior: 4.5,
+      anoAnterior: 2023,
+      variacaoPontos: 1.4,
+      classificacao: {
+        posicao: 46,
+        total: 92,
+        variacaoPosicoes: 3,
+        redesComparadas: 92,
+        totalCicloAnterior: 92,
+      },
+    });
+    expect(
+      vm.historico.anosIniciais.pontos.map((ponto) => ponto.mediaNacional),
+    ).toEqual([null, null, 6.1]);
+    expect(vm.aprendizado.anosFinais).toMatchObject({
+      notaIdeb: 4.8,
+      anoApuracao: 2023,
+      mediaNacional: null,
+      variacaoMediaEstadual: null,
+      notaAnterior: null,
+      classificacao: null,
+    });
   });
 
-  it("garante isolamento multi-tenant (Regra 23): suporta municípios de outros estados (ex: MG) com médias dinâmicas", () => {
-    const raw = {
+  it.each([
+    ["ano do ciclo anterior diferente do da nota anterior", 2021],
+    ["ranking sem ano de ciclo anterior", null],
+  ])(
+    "descarta a variação de posição com %s",
+    (_descricao, anoCicloAnterior) => {
+      const vm = buildEducacaoViewModel({
+        portalSlug: "portal_teste",
+        allMetrics: [
+          metrica({ ano: 2023, etapaEnsino: "anosIniciais", notaIdeb: 4.5 }),
+          metrica({ ano: 2025, etapaEnsino: "anosIniciais", notaIdeb: 5.9 }),
+        ],
+        contratos: [],
+        rankingAnosIniciais: {
+          posicaoRanking: 46,
+          totalMunicipios: 92,
+          variacaoPosicoes: 3,
+          redesComparadas: 92,
+          anoCicloAnterior,
+          totalMunicipiosCicloAnterior: 92,
+        },
+        context: CONTEXTO_2025,
+      });
+
+      expect(vm.aprendizado.anosIniciais.anoAnterior).toBe(2023);
+      expect(vm.aprendizado.anosIniciais.classificacao).toEqual({
+        posicao: 46,
+        total: 92,
+        variacaoPosicoes: null,
+        redesComparadas: null,
+        totalCicloAnterior: null,
+      });
+    },
+  );
+
+  it("não usa notas de ciclos posteriores ao exercício selecionado", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
+      allMetrics: [
+        metrica({ ano: 2021, etapaEnsino: "anosIniciais", notaIdeb: 5.2 }),
+        metrica({ ano: 2025, etapaEnsino: "anosIniciais", notaIdeb: 5.9 }),
+      ],
+      contratos: [],
+      context: { ...CONTEXTO_2025, selectedYear: 2024 },
+    });
+
+    expect(vm.aprendizado.anosIniciais.notaIdeb).toBe(5.2);
+    expect(vm.aprendizado.anosIniciais.anoApuracao).toBe(2021);
+    expect(vm.aprendizado.anosIniciais.pergunta).toBe(
+      "Como vai o ensino do 1º ao 5º ano?",
+    );
+    expect(vm.aprendizado.anosFinais.pergunta).toBe(
+      "Como vai o ensino do 6º ao 9º ano?",
+    );
+  });
+
+  it("agrega contratos por categoria", () => {
+    const vm = buildEducacaoViewModel({
+      portalSlug: "portal_teste",
+      allMetrics: [],
+      contratos: [
+        contrato("merenda_pnae", 100),
+        contrato("merenda_pnae", 50),
+        contrato("locacao_imoveis", 24),
+      ],
+      context: CONTEXTO_2025,
+    });
+
+    expect(vm.contratosResumo.totalContratos).toBe(3);
+    expect(vm.contratosResumo.porCategoria.merenda_pnae).toBe(2);
+    expect(vm.contratosResumo.totaisPorCategoria.merenda_pnae).toMatchObject({
+      quantidade: 2,
+      valorContrato: 150,
+    });
+    expect(
+      vm.contratosResumo.totaisPorCategoria.locacao_imoveis.valorContrato,
+    ).toBe(24);
+    expect(
+      vm.contratosResumo.totaisPorCategoria.transporte_pnate.quantidade,
+    ).toBe(0);
+  });
+
+  it("portalUrl vazio ou ausente vira null", () => {
+    const base = {
+      portalSlug: "portal_teste",
+      allMetrics: [],
+      contratos: [],
+      context: { ...CONTEXTO_2025, selectedYear: 2025 },
+    };
+    expect(buildEducacaoViewModel(base).portalUrl).toBeNull();
+    expect(
+      buildEducacaoViewModel({
+        ...base,
+        portalConfig: { cidadeClean: "Barbacena", uf: "MG", portalUrl: "" },
+      }).portalUrl,
+    ).toBeNull();
+  });
+
+  it("usa UF e médias dinâmicas de outro estado, sem literais de tenant", () => {
+    const vm = buildEducacaoViewModel({
       portalSlug: "municipio_mg",
       portalConfig: {
         cidadeClean: "Barbacena",
         uf: "MG",
-        displayName: "Prefeitura Municipal de Barbacena",
+        portalUrl: "https://transparencia.exemplo.gov.br",
       },
       allMetrics: [
-        {
-          educacaoMetricaId: "1",
-          portalSlug: "municipio_mg",
-          codIbge: 3105608,
-          ano: 2021,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 6.1,
-          metaIdeb: 6.0,
-          atingiuMeta: true,
-          saebMatematica: 230.0,
-          saebLinguaPortuguesa: 225.0,
-          indicadorFluxoAprovacao: 0.98,
-          crescimentoPontosIdeb: 0.2,
-          variacaoSaebMatematica: null,
-          variacaoSaebPortugues: null,
-          despesaLiquidadaEducacao: 30000000,
-          totalMatriculasRedeMunicipal: 5000,
-          custoAnualPorAluno: 6000,
-        },
-        {
-          educacaoMetricaId: "2",
-          portalSlug: "municipio_mg",
-          codIbge: 3105608,
-          ano: 2023,
-          rede: "municipal",
-          etapaEnsino: "anosIniciais" as const,
-          notaIdeb: 6.4,
-          metaIdeb: 6.2,
-          atingiuMeta: true,
-          saebMatematica: 235.0,
-          saebLinguaPortuguesa: 230.0,
-          indicadorFluxoAprovacao: 0.99,
-          crescimentoPontosIdeb: 0.3,
-          variacaoSaebMatematica: 5.0,
-          variacaoSaebPortugues: 5.0,
-          despesaLiquidadaEducacao: 35000000,
-          totalMatriculasRedeMunicipal: 5100,
-          custoAnualPorAluno: 6862,
-        },
+        metrica({ ano: 2021, etapaEnsino: "anosIniciais", notaIdeb: 6.1 }),
+        metrica({ ano: 2023, etapaEnsino: "anosIniciais", notaIdeb: 6.4 }),
       ],
       mediasEstaduais: {
-        anosIniciais: {
-          2021: 5.8,
-          2023: 6.0,
-        },
+        anosIniciais: { 2021: 5.8, 2023: 6.0 },
         anosFinais: {},
       },
-      resumo: {
-        ano: 2023,
-        notaIdeb: 6.4,
-        crescimentoPontosIdeb: 0.3,
-        despesaLiquidadaEducacao: 35000000,
-        totalMatriculasRedeMunicipal: 5100,
-        custoAnualPorAluno: 6862,
-        posicaoRanking: 12,
-        totalMunicipios: 853,
-        variacaoPosicoes: 3,
-        mdePercentual: null,
-        fundebPercentual: null,
-      },
       contratos: [],
-      context: {
-        selectedYear: 2023,
-        isCurrentYear: false,
-        selectedEtapa: "anosIniciais" as const,
-      },
-    };
+      context: { ...CONTEXTO_2025, selectedYear: 2023 },
+    });
 
-    const vm = buildEducacaoViewModel(raw);
     expect(vm.municipioUf).toBe("MG");
-    expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe("Média MG");
+    expect(vm.portalUrl).toBe("https://transparencia.exemplo.gov.br");
+    expect(vm.aprendizado.anosIniciais.mediaEstadual).toBe(6.0);
+    expect(vm.aprendizado.anosIniciais.mediaEstadualLabel).toBe(
+      "Média da rede pública (MG)",
+    );
+    expect(vm.historico.anosIniciais.mediaEstadualLabel).toBe(
+      "Média da rede pública (MG)",
+    );
     expect(vm.historico.anosIniciais.periodoLabel).toBe("2021–2023");
-    expect(vm.historico.anosIniciais.pontos[0].mediaEstadual).toBe(5.8);
     expect(vm.historico.anosIniciais.pontos[1].mediaEstadual).toBe(6.0);
-    expect(vm.trofeuCivico.rankingSubtext).toBe("Entre 853 municípios (MG)");
+  });
+});
+
+const semMinimo = {
+  limite: null,
+  percentualAplicado: null,
+  resultado: "sem_dado" as const,
+  baseLegal: null,
+  urlBaseLegal: null,
+};
+
+describe("buildMinimosLegais", () => {
+  const minimoMde = {
+    limite: 25,
+    percentualAplicado: 27.5,
+    resultado: "cumpriu" as const,
+    baseLegal: "CF/88 Art. 212",
+    urlBaseLegal: "https://www.planalto.gov.br/x",
+  };
+  const siope = (situacao: "encerrado" | "parcial") => ({
+    portalSlug: "portal_teste",
+    ano: 2024,
+    atual: {
+      ano: 2024,
+      periodo: situacao === "parcial" ? 3 : 6,
+      situacao,
+      investimentoPorAluno: null,
+      investimentoPorAlunoBasica: null,
+      investimentoPorAlunoInfantil: null,
+      investimentoPorAlunoFundamental: null,
+      percentualAplicadoMde: 27.5,
+      percentualAplicadoFundebProfissionais: null,
+      coletadoEm: null,
+    },
+    minimos: { mde: minimoMde, fundebProfissionais: semMinimo },
+    serie: [],
+  });
+
+  it("repassa os mínimos do ano encerrado sem recalcular", () => {
+    const view = buildMinimosLegais(siope("encerrado"), 2024);
+    expect(view.parcial).toBe(false);
+    expect(view.semDadoSiope).toBe(false);
+    expect(view.mde).toEqual(minimoMde);
+  });
+
+  it("marca o ano em andamento como parcial com o período", () => {
+    const view = buildMinimosLegais(siope("parcial"), 2024);
+    expect(view.parcial).toBe(true);
+    expect(view.periodo).toBe(3);
+  });
+
+  it("sem SIOPE devolve sem dado, sem quebrar", () => {
+    const view = buildMinimosLegais(null, 2024);
+    expect(view.semDadoSiope).toBe(true);
+    expect(view.mde.resultado).toBe("sem_dado");
+    expect(view.fundebProfissionais.resultado).toBe("sem_dado");
+  });
+
+  it("marca o ano em andamento mesmo sem dado do SIOPE", () => {
+    expect(buildMinimosLegais(null, 2024, true).anoEmAndamento).toBe(true);
+    expect(buildMinimosLegais(null, 2024, false).anoEmAndamento).toBe(false);
+  });
+});
+
+describe("buildAlunosRede", () => {
+  it("expõe total e ano real do Censo", () => {
+    expect(
+      buildAlunosRede({
+        portalSlug: "portal_teste",
+        anoCenso: 2024,
+        matriculasEducacaoInfantil: 668,
+        matriculasEnsinoFundamental: 1303,
+        matriculasEducacaoBasica: 1971,
+      }),
+    ).toEqual({
+      total: 1971,
+      educacaoInfantil: 668,
+      ensinoFundamental: 1303,
+      anoCenso: 2024,
+    });
+  });
+
+  it("devolve null sem matrícula, nunca zero", () => {
+    expect(buildAlunosRede(null)).toBeNull();
+    expect(buildAlunosRede(undefined)).toBeNull();
+  });
+});
+
+describe("buildValorPorAluno", () => {
+  const ano = (
+    anoRef: number,
+    investimentoPorAluno: number | null,
+    situacao: "encerrado" | "parcial" = "encerrado",
+  ) => ({
+    ano: anoRef,
+    periodo: situacao === "parcial" ? 4 : 6,
+    situacao,
+    investimentoPorAluno,
+    investimentoPorAlunoBasica: null,
+    investimentoPorAlunoInfantil: null,
+    investimentoPorAlunoFundamental: null,
+    percentualAplicadoMde: null,
+    percentualAplicadoFundebProfissionais: null,
+    coletadoEm: null,
+  });
+  const dto = (serie: ReturnType<typeof ano>[], anoPedido: number) => ({
+    portalSlug: "portal_teste",
+    ano: anoPedido,
+    atual: serie.find((item) => item.ano === anoPedido) ?? null,
+    minimos: {
+      mde: semMinimo,
+      fundebProfissionais: semMinimo,
+    },
+    serie,
+  });
+
+  it("compara ano fechado com o ano fechado anterior", () => {
+    const view = buildValorPorAluno(
+      dto([ano(2023, 10000), ano(2024, 11000)], 2024),
+      2024,
+    );
+    expect(view.anoAnterior).toBe(2023);
+    expect(view.variacaoValor).toBe(1000);
+    expect(view.variacaoPercentual).toBeCloseTo(10);
+  });
+
+  it("não compara ano parcial", () => {
+    const view = buildValorPorAluno(
+      dto([ano(2024, 11000), ano(2025, 5000, "parcial")], 2025),
+      2025,
+    );
+    expect(view.parcial).toBe(true);
+    expect(view.variacaoValor).toBeNull();
+    expect(view.serie).toHaveLength(2);
+  });
+
+  it("explica a causa quando não há valor", () => {
+    expect(
+      buildValorPorAluno(dto([ano(2024, null)], 2024), 2024).semValorCausa,
+    ).toBe("nao_informado_ao_fnde");
+    expect(buildValorPorAluno(dto([], 2024), 2024).semValorCausa).toBe(
+      "sem_dado_siope",
+    );
+    expect(buildValorPorAluno(null, 2024).valor).toBeNull();
   });
 });

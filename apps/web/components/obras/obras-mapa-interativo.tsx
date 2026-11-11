@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import { cn } from "@transparencia/ui";
 import type { ObraMarkerItem } from "@/app/[portalSlug]/obras/view-model";
+import { MapaGestosAviso } from "@/components/mapa/mapa-gestos-aviso";
+import { useMapaGestos } from "@/hooks/use-mapa-gestos";
 
 export interface ObrasMapaInterativoProps {
   markers: ObraMarkerItem[];
@@ -45,212 +47,10 @@ export function ObrasMapaInterativo({
   );
   const selectedObraIdRef = useRef(selectedObraId);
   selectedObraIdRef.current = selectedObraId;
-  const [isMac, setIsMac] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [hintType, setHintType] = useState<"desktop" | "touch">("desktop");
-  const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showZoomHint = useCallback((type: "desktop" | "touch" = "desktop") => {
-    setHintType(type);
-    setShowHint(true);
-    if (hintTimeoutRef.current) {
-      clearTimeout(hintTimeoutRef.current);
-    }
-    hintTimeoutRef.current = setTimeout(() => {
-      setShowHint(false);
-    }, 1500);
-  }, []);
-
-  useEffect(() => {
-    if (typeof navigator !== "undefined") {
-      const platform =
-        (navigator as unknown as { userAgentData?: { platform?: string } })
-          .userAgentData?.platform ||
-        navigator.platform ||
-        navigator.userAgent ||
-        "";
-      setIsMac(/Mac|iPhone|iPod|iPad/i.test(platform));
-    }
-
-    const container = containerRef.current;
-    const handleMouseLeave = () => {
-      setShowHint(false);
-      if (hintTimeoutRef.current) {
-        clearTimeout(hintTimeoutRef.current);
-      }
-    };
-
-    let accumulatedDelta = 0;
-    let zoomDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastMousePoint: import("leaflet").Point | null = null;
-
-    const handleWheel = (e: WheelEvent) => {
-      const hasModifier = e.metaKey || e.ctrlKey;
-
-      if (!hasModifier) {
-        // Sem Cmd/Ctrl: o scroll da página continua normal, exibe aviso
-        showZoomHint("desktop");
-        return;
-      }
-
-      // Com Cmd/Ctrl: intercepta e aplica zoom no mapa Leaflet
-      e.preventDefault();
-      e.stopPropagation();
-      setShowHint(false);
-
-      const map = mapInstanceRef.current;
-      if (!map) return;
-
-      lastMousePoint = map.mouseEventToContainerPoint(e);
-      accumulatedDelta += e.deltaY;
-
-      // Executa imediatamente para deltas grandes (ex: clique da roda do mouse)
-      if (Math.abs(accumulatedDelta) >= 60) {
-        if (zoomDebounceTimer) {
-          clearTimeout(zoomDebounceTimer);
-          zoomDebounceTimer = null;
-        }
-        const zoomDelta = accumulatedDelta < 0 ? 1 : -1;
-        accumulatedDelta = 0;
-        const currentZoom = map.getZoom();
-        const nextZoom = Math.max(
-          map.getMinZoom(),
-          Math.min(map.getMaxZoom(), currentZoom + zoomDelta),
-        );
-        if (nextZoom !== currentZoom && lastMousePoint) {
-          map.setZoomAround(lastMousePoint, nextZoom, { animate: true });
-        }
-        return;
-      }
-
-      // Debounce para gestos contínuos de trackpad
-      if (zoomDebounceTimer) {
-        clearTimeout(zoomDebounceTimer);
-      }
-      zoomDebounceTimer = setTimeout(() => {
-        if (
-          Math.abs(accumulatedDelta) >= 20 &&
-          mapInstanceRef.current &&
-          lastMousePoint
-        ) {
-          const m = mapInstanceRef.current;
-          const zoomDelta = accumulatedDelta < 0 ? 1 : -1;
-          accumulatedDelta = 0;
-          const currentZoom = m.getZoom();
-          const nextZoom = Math.max(
-            m.getMinZoom(),
-            Math.min(m.getMaxZoom(), currentZoom + zoomDelta),
-          );
-          if (nextZoom !== currentZoom) {
-            m.setZoomAround(lastMousePoint, nextZoom, { animate: true });
-          }
-        } else {
-          accumulatedDelta = 0;
-        }
-      }, 60);
-    };
-
-    let touchStartPos: { x: number; y: number } | null = null;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      const map = mapInstanceRef.current;
-      if (!map) return;
-
-      const touchCount = e.targetTouches?.length ?? e.touches.length;
-
-      if (touchCount === 1) {
-        const touch = e.targetTouches?.[0] ?? e.touches[0];
-        touchStartPos = {
-          x: touch.clientX,
-          y: touch.clientY,
-        };
-        // Desativa arraste para 1 dedo para permitir rolagem nativa da página sem travar o usuário
-        if (map.dragging && typeof map.dragging.disable === "function") {
-          map.dragging.disable();
-        }
-      } else if (touchCount >= 2) {
-        touchStartPos = null;
-        setShowHint(false);
-        if (hintTimeoutRef.current) {
-          clearTimeout(hintTimeoutRef.current);
-        }
-        if (map.dragging && typeof map.dragging.enable === "function") {
-          map.dragging.enable();
-        }
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const touchCount = e.targetTouches?.length ?? e.touches.length;
-
-      if (touchCount === 1 && touchStartPos) {
-        const touch = e.targetTouches?.[0] ?? e.touches[0];
-        const dx = touch.clientX - touchStartPos.x;
-        const dy = touch.clientY - touchStartPos.y;
-        if (Math.hypot(dx, dy) > 10) {
-          showZoomHint("touch");
-        }
-      } else if (touchCount >= 2) {
-        setShowHint(false);
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      touchStartPos = null;
-      const touchCount = e.targetTouches?.length ?? e.touches.length;
-      if (touchCount <= 1) {
-        const map = mapInstanceRef.current;
-        if (map?.dragging && typeof map.dragging.disable === "function") {
-          map.dragging.disable();
-        }
-      }
-    };
-
-    const handleMouseDown = () => {
-      const map = mapInstanceRef.current;
-      if (
-        map?.dragging &&
-        typeof map.dragging.enabled === "function" &&
-        !map.dragging.enabled()
-      ) {
-        map.dragging.enable();
-      }
-    };
-
-    if (container) {
-      container.addEventListener("wheel", handleWheel, { passive: false });
-      container.addEventListener("mouseleave", handleMouseLeave);
-      container.addEventListener("touchstart", handleTouchStart, {
-        passive: true,
-      });
-      container.addEventListener("touchmove", handleTouchMove, {
-        passive: true,
-      });
-      container.addEventListener("touchend", handleTouchEnd, { passive: true });
-      container.addEventListener("touchcancel", handleTouchEnd, {
-        passive: true,
-      });
-      container.addEventListener("mousedown", handleMouseDown);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("wheel", handleWheel);
-        container.removeEventListener("mouseleave", handleMouseLeave);
-        container.removeEventListener("touchstart", handleTouchStart);
-        container.removeEventListener("touchmove", handleTouchMove);
-        container.removeEventListener("touchend", handleTouchEnd);
-        container.removeEventListener("touchcancel", handleTouchEnd);
-        container.removeEventListener("mousedown", handleMouseDown);
-      }
-      if (zoomDebounceTimer) {
-        clearTimeout(zoomDebounceTimer);
-      }
-      if (hintTimeoutRef.current) {
-        clearTimeout(hintTimeoutRef.current);
-      }
-    };
-  }, [showZoomHint]);
+  const { isMac, mostrarAviso, tipoAviso } = useMapaGestos(
+    containerRef,
+    mapInstanceRef,
+  );
 
   // Função para desenhar os marcadores redondos minimalistas
   const renderMarkers = useCallback(
@@ -265,16 +65,17 @@ export function ObrasMapaInterativo({
       markers.forEach((m) => {
         const isSelected = selectedObraId === m.idProjeto;
         const size = isSelected ? 20 : 14;
-        const border = isSelected ? "3px solid #ffffff" : "2px solid #ffffff";
-        const shadow = isSelected
-          ? "0 0 0 3px rgba(37,99,235,0.45), 0 2px 6px rgba(0,0,0,0.35)"
-          : "0 1px 4px rgba(0,0,0,0.35)";
+        // Borda na cor da página mantém o contraste do marcador nos dois temas.
+        const border = isSelected
+          ? "3px solid var(--page)"
+          : "2px solid var(--page)";
+        const shadow = isSelected ? "0 0 0 2px var(--ink)" : "none";
 
         const html = `
         <div style="
           width: ${size}px;
           height: ${size}px;
-          background-color: ${m.situacaoColorHex};
+          background-color: ${m.situacaoCorPreenchimento};
           border-radius: 50%;
           border: ${border};
           box-shadow: ${shadow};
@@ -303,17 +104,17 @@ export function ObrasMapaInterativo({
 
         const popupHtml = `
         <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 220px;">
-          <div style="font-weight: 700; margin-bottom: 3px; color: #0f172a;">${nomeObraEscaped}</div>
-          <div style="color: #64748b; font-size: 11px; margin-bottom: 6px;">${orgaoEscaped}</div>
+          <div style="font-weight: 700; margin-bottom: 3px; color: var(--ink);">${nomeObraEscaped}</div>
+          <div style="color: var(--mute); font-size: 11px; margin-bottom: 6px;">${orgaoEscaped}</div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-            <span style="color: #64748b;">Investimento:</span>
-            <span style="font-weight: 600; color: #0f172a;">${investimentoEscaped}</span>
+            <span style="color: var(--mute);">Investimento:</span>
+            <span style="font-weight: 600; color: var(--ink);">${investimentoEscaped}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-            <span style="color: #64748b;">Avanço:</span>
-            <span style="font-weight: 600; color: #2563eb;">${percentualEscaped}</span>
+            <span style="color: var(--mute);">Avanço:</span>
+            <span style="font-weight: 600; color: var(--brand-text);">${percentualEscaped}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: #64748b;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: var(--mute);">
             <span>Previsão:</span>
             <span>${dataFimEscaped}</span>
           </div>
@@ -351,7 +152,7 @@ export function ObrasMapaInterativo({
         scrollWheelZoom: false,
       });
 
-      // Tiles Esri World Light Gray Base (exatamente como no mockup Tiles © Esri)
+      // Tiles Esri World Light Gray Base; no tema escuro o filtro de `.mapa-tema` escurece a base
       L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         {
@@ -471,40 +272,21 @@ export function ObrasMapaInterativo({
     <div
       data-testid="obras-mapa-container"
       className={cn(
-        "relative z-9 h-full w-full overflow-hidden bg-[#e5e5e5]",
+        "mapa-tema relative z-9 h-full w-full overflow-hidden bg-line",
         className,
       )}
     >
       <div ref={containerRef} className="h-full min-h-[580px] w-full" />
-      {showHint && (
-        <div
-          data-testid="obras-mapa-zoom-hint"
-          role="status"
-          aria-live="polite"
-          className="pointer-events-none absolute inset-0 z-1000 flex items-center justify-center bg-black/45 backdrop-blur-[2px] transition-opacity duration-200"
-        >
-          <div className="rounded-xl border border-white/20 bg-slate-900/90 px-4 py-2.5 text-center font-medium text-sm text-white shadow-xl">
-            {hintType === "desktop" ? (
-              <>
-                Use{" "}
-                <span className="font-semibold text-amber-400">
-                  {isMac ? "⌘ (Command)" : "Ctrl"}
-                </span>{" "}
-                + scroll para aplicar zoom no mapa
-              </>
-            ) : (
-              <>
-                Use{" "}
-                <span className="font-semibold text-amber-400">dois dedos</span>{" "}
-                para mover o mapa
-              </>
-            )}
-          </div>
-        </div>
+      {mostrarAviso && (
+        <MapaGestosAviso
+          tipo={tipoAviso}
+          isMac={isMac}
+          testId="obras-mapa-zoom-hint"
+        />
       )}
       {markers.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/75 backdrop-blur-xs">
-          <p className="font-medium text-slate-500 text-sm">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-page/75 backdrop-blur-xs">
+          <p className="font-medium text-mute2 text-sm">
             Nenhuma obra com localização cadastrada para os filtros
             selecionados.
           </p>

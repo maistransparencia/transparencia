@@ -1,3 +1,5 @@
+import { SectionHeader } from "@transparencia/ui";
+
 export interface SalaryBinItem {
   faixa: string;
   min: number;
@@ -16,68 +18,50 @@ export function ProventosDistributionChart({
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6">
-      <span className="inline sm:hidden">
-        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-          Consolidado Municipal
-        </span>
-      </span>
-      <div className="mb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h4 className="font-bold text-lg text-slate-900">
-            Distribuição dos Proventos Brutos
-          </h4>
-          <span className="hidden sm:inline">
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-[11px] text-slate-600">
-              Consolidado Municipal
-            </span>
-          </span>
-        </div>
-        <p className="mt-1 text-slate-500 text-xs leading-relaxed">
-          Dados consolidados de todos os servidores do município (a folha
-          analítica individual não é segregada por entidade no portal de
-          origem). O gráfico utiliza os proventos (remuneração bruta) como
-          aproximação.
-        </p>
-      </div>
+    <section className="space-y-4">
+      <SectionHeader
+        title="Distribuição dos Proventos Brutos"
+        eyebrow="Consolidado Municipal"
+        description="Dados consolidados de todos os servidores do município (a folha analítica individual não é segregada por entidade no portal de origem). O gráfico utiliza os proventos (remuneração bruta) como aproximação."
+      />
 
       {totalServidores === 0 ? (
-        <div className="flex h-44 items-center justify-center rounded-lg border border-slate-200 border-dashed bg-slate-50 px-4 text-center text-slate-500 text-xs sm:text-sm">
+        <div className="flex h-44 items-center justify-center border-line border-y px-4 text-center text-mute2 text-xs sm:text-sm">
           Nenhum registro de proventos individuais disponível para os filtros
           selecionados.
         </div>
       ) : (
         <div className="relative overflow-x-auto overflow-y-hidden pt-2 pb-2">
           <div
-            className="grid min-w-175 items-end gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
+            className="grid min-w-175 items-start gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
             style={{
               gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
             }}
           >
             {data.map((item) => {
-              const heightPct = Math.min(100, (item.count / maxCount) * 100);
+              const heightPct = Math.max(
+                0,
+                Math.min(100, (item.count / maxCount) * 100),
+              );
               return (
                 <div
                   key={item.faixa}
                   className="group flex w-full min-w-0 flex-col items-center"
                 >
-                  {/* Count Label */}
-                  <span className="mb-1 font-bold text-slate-700 text-xs">
+                  <span className="mb-1 font-semibold text-ink text-xs">
                     {item.count}
                   </span>
 
-                  {/* Bar Container */}
-                  <div className="relative flex h-44 w-full items-end rounded-t-sm bg-slate-100">
+                  <div className="relative flex h-44 w-full items-end bg-track">
                     <div
-                      className="w-full rounded-t-sm bg-sky-600 transition-all duration-500 group-hover:bg-sky-700"
+                      className="w-full bg-brand-fill transition-all duration-500"
                       style={{ height: `${heightPct}%` }}
                       title={`${item.faixa}: ${item.count} servidores`}
                     />
                   </div>
 
-                  {/* Range Label */}
                   <span
-                    className="mt-2 w-full truncate text-center font-medium text-[10px] text-slate-500"
+                    className="caption mt-2 w-full text-balance text-center leading-tight"
                     title={item.faixa}
                   >
                     {item.faixa}
@@ -88,6 +72,6 @@ export function ProventosDistributionChart({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

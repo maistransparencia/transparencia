@@ -1,13 +1,21 @@
 import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
+  EducacaoExecucaoAnualDTO,
+  EducacaoMatriculasDTO,
   EducacaoMediasEstaduais,
+  EducacaoMediasNacionais,
   EducacaoMetricDTO,
   EducacaoOrigemRecursosDTO,
+  EducacaoRankingEstadualDTO,
+  EducacaoSiopeDTO,
   EmendasEducacaoStatsDTO,
   EtapaEnsino,
+  FornecedorExecucaoItemDTO,
+  MinimoLegalDTO,
 } from "@transparencia/db";
 import { emendasStatsVazio } from "@transparencia/db";
+import { getPartialYearPeriod } from "@transparencia/ui";
 
 export const LIMIAR_DESTAQUE_EVOLUCAO_IDEB = 1.0;
 
@@ -36,36 +44,15 @@ export function isDestaqueEvolucaoIdeb(
   );
 }
 
-export interface TrofeuCivicoKPIs {
-  anoBaseIdeb: number;
-  eyebrowLabel: string;
-  notaAtual: number | null;
-  notaAnterior: number | null;
-  crescimentoPontos: number | null;
-  rankingPosicaoLabel: string;
-  rankingSubtext: string;
-  rankingTrend?: {
-    value: string;
-    isPositive?: boolean;
-  };
-  rankingEstadualLabel: string;
-  custoAnualPorAluno: number | null;
-  totalMatriculas: number | null;
-  despesaTotalEducacao: number | null;
-  isDestaqueEstadual: boolean;
-  destaqueBadgeTexto: string;
-}
-
 export interface IdebHistoricoPonto {
   ano: number;
   notaIdeb: number | null;
-  metaMec: number | null;
   mediaEstadual: number | null;
+  mediaNacional: number | null;
   saebMatematica: number | null;
   saebLinguaPortuguesa: number | null;
   taxaAprovacao: number | null;
   crescimentoPontos: number | null;
-  atingiuMeta: boolean | null;
 }
 
 export interface IdebEtapaHistorico {
@@ -75,54 +62,127 @@ export interface IdebEtapaHistorico {
   pontoMaisRecente: IdebHistoricoPonto | null;
   periodoLabel: string;
   mediaEstadualLabel: string;
-  anosSemMeta: number[];
-  possuiMeta: boolean;
-  ultimoAnoComMeta: number | null;
+  mediaNacionalLabel: string;
 }
 
-export interface EducacaoFiscalTermometro {
-  nome: string;
-  artigoLegal: string;
-  artigoUrl: string;
-  minimoConstitucionalPct: number;
-  percentualAplicado: number | null;
-  cumprido: boolean | null;
-  descricao: string;
-}
-
-export interface CustoIdebCorrelacaoPonto {
+export interface EducacaoExecucaoAnoView {
   ano: number;
-  despesaLiquidada: number | null;
-  custoPorAluno?: number | null;
-  notaIdebIniciais: number | null;
-  notaIdebFinais: number | null;
+  empenhado: number;
+  liquidado: number;
+  pago: number;
+  /** Pago sem despesa de pessoal: base da parte paga aos maiores fornecedores. */
+  pagoSemPessoal: number;
+  /** Falso quando não há despesa da função 12 registrada no ano. */
+  temDados: boolean;
 }
 
-export interface EducacaoFiscalPainel {
-  despesaTotalEducacao: number | null;
-  custoAlunoAtual: number | null;
-  totalMatriculas: number | null;
-  mde: EducacaoFiscalTermometro;
-  fundeb: EducacaoFiscalTermometro;
-  correlacao: CustoIdebCorrelacaoPonto[];
+export interface AprendizadoEtapa {
+  etapaEnsino: EtapaEnsino;
+  titulo: string;
+  /** Pergunta do cidadão que abre o bloco do IDEB da etapa. */
+  pergunta: string;
+  /** Última nota do IDEB até o ano selecionado, com o ano em que foi apurada. */
+  notaIdeb: number | null;
+  anoApuracao: number | null;
+  /** Média da rede pública do estado no mesmo ano da nota, com o rótulo dinâmico. */
+  mediaEstadual: number | null;
+  mediaEstadualLabel: string;
+  /** Média nacional da rede pública no mesmo ano da nota. */
+  mediaNacional: number | null;
+  mediaNacionalLabel: string;
+  /** Quanto a média estadual mudou entre o ciclo anterior e o atual, em pontos. */
+  variacaoMediaEstadual: number | null;
+  notaAnterior: number | null;
+  anoAnterior: number | null;
+  variacaoPontos: number | null;
+  classificacao: {
+    posicao: number;
+    total: number;
+    /** Posições ganhas (positivo) ou perdidas (negativo); nulo quando não comparável. */
+    variacaoPosicoes: number | null;
+    /** Redes avaliadas nos dois ciclos, base da variação (nulo quando não comparável). */
+    redesComparadas: number | null;
+    /** Total de redes do ciclo anterior, para dizer a base quando redes saíram. */
+    totalCicloAnterior: number | null;
+  } | null;
+}
+
+export interface ValorPorAlunoPonto {
+  ano: number;
+  valor: number;
+  parcial: boolean;
+  periodo: number;
+}
+
+export type ValorPorAlunoSemValorCausa =
+  | "sem_dado_siope"
+  | "nao_informado_ao_fnde";
+
+export interface ValorPorAlunoView {
+  ano: number;
+  /** Indicador 4.9 do ano selecionado, em R$ da época; nulo quando não há valor. */
+  valor: number | null;
+  parcial: boolean;
+  periodo: number | null;
+  semValorCausa: ValorPorAlunoSemValorCausa | null;
+  /** Ano fechado imediatamente anterior com valor, só quando o atual também é fechado. */
+  anoAnterior: number | null;
+  variacaoValor: number | null;
+  variacaoPercentual: number | null;
+  /** Série anual do próprio município, do mais antigo ao mais recente. */
+  serie: ValorPorAlunoPonto[];
+}
+
+/** Total de alunos da rede municipal no Censo Escolar (INEP). */
+export interface AlunosRedeView {
+  /** Educação infantil mais ensino fundamental na rede municipal. */
+  total: number;
+  educacaoInfantil: number;
+  ensinoFundamental: number;
+  /** Ano real do Censo, que pode ser anterior ao ano selecionado. */
+  anoCenso: number;
+}
+
+export interface MinimosLegaisView {
+  ano: number;
+  /** Ano em andamento: percentual acumulado, sem veredito. */
+  parcial: boolean;
+  /** Ano selecionado ainda não terminou, com ou sem dado publicado. */
+  anoEmAndamento: boolean;
+  periodo: number | null;
+  /** O SIOPE não tem linha para o ano selecionado. */
+  semDadoSiope: boolean;
+  mde: MinimoLegalDTO;
+  fundebProfissionais: MinimoLegalDTO;
 }
 
 export interface EducacaoViewModel {
   portalSlug: string;
   municipioNome: string;
   municipioUf: string;
+  portalUrl: string | null;
   selectedYear: number;
   isCurrentYear: boolean;
+  partialPeriod: string;
   selectedEtapa: EtapaEnsino;
-  trofeuCivico: TrofeuCivicoKPIs;
+  execucao: EducacaoExecucaoAnoView;
+  serieAnual: Array<{ ano: number; empenhado: number; pago: number }>;
+  topFornecedores: FornecedorExecucaoItemDTO[];
+  aprendizado: {
+    anosIniciais: AprendizadoEtapa;
+    anosFinais: AprendizadoEtapa;
+  };
   historico: {
     anosIniciais: IdebEtapaHistorico;
     anosFinais: IdebEtapaHistorico;
   };
-  fiscal: EducacaoFiscalPainel;
   contratos: EducacaoContratoDTO[];
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
+  valorPorAluno: ValorPorAlunoView;
+  /** `null` sem Censo disponível: o indicador não aparece. */
+  alunosRede: AlunosRedeView | null;
+  minimosLegais: MinimosLegaisView;
   contratosResumo: {
     totalContratos: number;
     valorTotalContratos: number;
@@ -177,11 +237,14 @@ function buildTotaisPorCategoria(
   ) as Record<EducacaoCategoriaContrato, EducacaoContratosCategoriaTotais>;
 }
 
+const MEDIA_NACIONAL_LABEL = "Média da rede pública do Brasil";
+
 interface BuildEtapaHistoricoParams {
   etapa: EtapaEnsino;
   label: string;
   metrics: EducacaoMetricDTO[];
   mediasEstaduais?: Record<number, number>;
+  mediasNacionais?: Record<number, number>;
   municipioUf?: string;
 }
 
@@ -190,6 +253,7 @@ function buildEtapaHistorico({
   label,
   metrics,
   mediasEstaduais,
+  mediasNacionais,
   municipioUf,
 }: BuildEtapaHistoricoParams): IdebEtapaHistorico {
   const etapaMetrics = metrics
@@ -198,8 +262,8 @@ function buildEtapaHistorico({
 
   const mediaEstadualLabel =
     municipioUf && municipioUf.trim() !== ""
-      ? `Média ${municipioUf.trim()}`
-      : "Média Estadual";
+      ? `Média da rede pública (${municipioUf.trim()})`
+      : "Média da rede pública do estado";
 
   const pontos: IdebHistoricoPonto[] = etapaMetrics.map((m) => {
     const mediaEstadual = mediasEstaduais?.[m.ano] ?? null;
@@ -211,13 +275,12 @@ function buildEtapaHistorico({
     return {
       ano: m.ano,
       notaIdeb: m.notaIdeb,
-      metaMec: m.metaIdeb,
       mediaEstadual,
+      mediaNacional: mediasNacionais?.[m.ano] ?? null,
       saebMatematica: m.saebMatematica,
       saebLinguaPortuguesa: m.saebLinguaPortuguesa,
       taxaAprovacao,
       crescimentoPontos: m.crescimentoPontosIdeb,
-      atingiuMeta: m.atingiuMeta,
     };
   });
 
@@ -229,15 +292,6 @@ function buildEtapaHistorico({
     return `${pontos[0].ano}–${pontos[pontos.length - 1].ano}`;
   })();
 
-  const anosSemMeta = pontos
-    .filter((p) => p.metaMec === null)
-    .map((p) => p.ano);
-  const anosComMeta = pontos
-    .filter((p) => p.metaMec !== null)
-    .map((p) => p.ano);
-  const possuiMeta = anosComMeta.length > 0;
-  const ultimoAnoComMeta = possuiMeta ? Math.max(...anosComMeta) : null;
-
   return {
     etapaEnsino: etapa,
     label,
@@ -245,9 +299,193 @@ function buildEtapaHistorico({
     pontoMaisRecente,
     periodoLabel,
     mediaEstadualLabel,
-    anosSemMeta,
-    possuiMeta,
-    ultimoAnoComMeta,
+    mediaNacionalLabel: MEDIA_NACIONAL_LABEL,
+  };
+}
+
+const variacaoEntre = (
+  anterior: number | null | undefined,
+  atual: number | null | undefined,
+): number | null =>
+  anterior == null || atual == null
+    ? null
+    : Math.round((atual - anterior) * 10) / 10;
+
+const PERGUNTA_IDEB_POR_ETAPA: Record<EtapaEnsino, string> = {
+  anosIniciais: "Como vai o ensino do 1º ao 5º ano?",
+  anosFinais: "Como vai o ensino do 6º ao 9º ano?",
+};
+
+function buildAprendizadoEtapa({
+  historico,
+  anoSelecionado,
+  titulo,
+  ranking,
+}: {
+  historico: IdebEtapaHistorico;
+  anoSelecionado: number;
+  titulo: string;
+  ranking: EducacaoRankingEstadualDTO | null;
+}): AprendizadoEtapa {
+  const apurados = historico.pontos.filter(
+    (ponto) => ponto.ano <= anoSelecionado && ponto.notaIdeb !== null,
+  );
+  const atual = apurados[apurados.length - 1] ?? null;
+  const anterior = apurados[apurados.length - 2] ?? null;
+  // Nota e posição só se comparam quando falam do mesmo ciclo anterior.
+  const cicloAnteriorConfere =
+    ranking?.anoCicloAnterior != null &&
+    ranking.anoCicloAnterior === anterior?.ano;
+
+  return {
+    etapaEnsino: historico.etapaEnsino,
+    titulo,
+    pergunta: PERGUNTA_IDEB_POR_ETAPA[historico.etapaEnsino],
+    notaIdeb: atual?.notaIdeb ?? null,
+    anoApuracao: atual?.ano ?? null,
+    mediaEstadual: atual?.mediaEstadual ?? null,
+    mediaEstadualLabel: historico.mediaEstadualLabel,
+    mediaNacional: atual?.mediaNacional ?? null,
+    mediaNacionalLabel: historico.mediaNacionalLabel,
+    variacaoMediaEstadual: variacaoEntre(
+      anterior?.mediaEstadual,
+      atual?.mediaEstadual,
+    ),
+    notaAnterior: anterior?.notaIdeb ?? null,
+    anoAnterior: anterior?.ano ?? null,
+    variacaoPontos: atual?.crescimentoPontos ?? null,
+    classificacao:
+      ranking?.posicaoRanking != null && ranking.totalMunicipios != null
+        ? {
+            posicao: ranking.posicaoRanking,
+            total: ranking.totalMunicipios,
+            variacaoPosicoes: cicloAnteriorConfere
+              ? ranking.variacaoPosicoes
+              : null,
+            redesComparadas: cicloAnteriorConfere
+              ? (ranking.redesComparadas ?? null)
+              : null,
+            totalCicloAnterior: cicloAnteriorConfere
+              ? ranking.totalMunicipiosCicloAnterior
+              : null,
+          }
+        : null,
+  };
+}
+
+const execucaoVazia = (ano: number): EducacaoExecucaoAnoView => ({
+  ano,
+  empenhado: 0,
+  liquidado: 0,
+  pago: 0,
+  pagoSemPessoal: 0,
+  temDados: false,
+});
+
+function buildExecucaoAno(
+  execucaoAnual: EducacaoExecucaoAnualDTO[],
+  ano: number,
+): EducacaoExecucaoAnoView {
+  const linha = execucaoAnual.find((item) => item.ano === ano);
+  if (!linha) {
+    return execucaoVazia(ano);
+  }
+  return {
+    ano,
+    empenhado: linha.empenhado,
+    liquidado: linha.liquidado,
+    pago: linha.pago,
+    pagoSemPessoal: linha.pagoSemPessoal,
+    temDados: linha.empenhado > 0 || linha.pago > 0,
+  };
+}
+
+export function buildValorPorAluno(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+): ValorPorAlunoView {
+  const serie: ValorPorAlunoPonto[] = (siope?.serie ?? []).flatMap((item) =>
+    item.investimentoPorAluno === null
+      ? []
+      : [
+          {
+            ano: item.ano,
+            valor: item.investimentoPorAluno,
+            parcial: item.situacao === "parcial",
+            periodo: item.periodo,
+          },
+        ],
+  );
+  const atual = siope?.atual ?? null;
+  const valor = atual?.investimentoPorAluno ?? null;
+  const parcial = atual?.situacao === "parcial";
+  const anterior =
+    valor !== null && !parcial
+      ? serie
+          .filter((ponto) => !ponto.parcial && ponto.ano < ano)
+          .reduce<ValorPorAlunoPonto | null>(
+            (maisRecente, ponto) =>
+              maisRecente === null || ponto.ano > maisRecente.ano
+                ? ponto
+                : maisRecente,
+            null,
+          )
+      : null;
+  const variacaoValor =
+    valor !== null && anterior !== null ? valor - anterior.valor : null;
+  const semValorCausa: ValorPorAlunoSemValorCausa | null = (() => {
+    if (valor !== null) return null;
+    return atual === null ? "sem_dado_siope" : "nao_informado_ao_fnde";
+  })();
+
+  return {
+    ano,
+    valor,
+    parcial,
+    periodo: atual?.periodo ?? null,
+    semValorCausa,
+    anoAnterior: anterior?.ano ?? null,
+    variacaoValor,
+    variacaoPercentual:
+      variacaoValor !== null && anterior !== null && anterior.valor !== 0
+        ? (variacaoValor / anterior.valor) * 100
+        : null,
+    serie,
+  };
+}
+
+export function buildMinimosLegais(
+  siope: EducacaoSiopeDTO | null | undefined,
+  ano: number,
+  anoEmAndamento = false,
+): MinimosLegaisView {
+  const semMinimo: MinimoLegalDTO = {
+    limite: null,
+    percentualAplicado: null,
+    resultado: "sem_dado",
+    baseLegal: null,
+    urlBaseLegal: null,
+  };
+  return {
+    ano,
+    parcial: siope?.atual?.situacao === "parcial",
+    anoEmAndamento,
+    periodo: siope?.atual?.periodo ?? null,
+    semDadoSiope: !siope?.atual,
+    mde: siope?.minimos.mde ?? semMinimo,
+    fundebProfissionais: siope?.minimos.fundebProfissionais ?? semMinimo,
+  };
+}
+
+export function buildAlunosRede(
+  matriculas: EducacaoMatriculasDTO | null | undefined,
+): AlunosRedeView | null {
+  if (!matriculas) return null;
+  return {
+    total: matriculas.matriculasEducacaoBasica,
+    educacaoInfantil: matriculas.matriculasEducacaoInfantil,
+    ensinoFundamental: matriculas.matriculasEnsinoFundamental,
+    anoCenso: matriculas.anoCenso,
   };
 }
 
@@ -257,27 +495,22 @@ export function buildEducacaoViewModel(raw: {
     cidadeClean?: string;
     uf?: string;
     displayName?: string;
+    portalUrl?: string;
+    dataExtracao?: string | Date | null;
+    dataExtracaoDate?: string | Date | null;
   } | null;
   allMetrics: EducacaoMetricDTO[];
-  resumo?: {
-    ano: number;
-    notaIdeb: number | null;
-    crescimentoPontosIdeb: number | null;
-    despesaLiquidadaEducacao: number | null;
-    totalMatriculasRedeMunicipal: number | null;
-    custoAnualPorAluno: number | null;
-    posicaoRanking?: number | null;
-    totalMunicipios?: number | null;
-    variacaoPosicoes?: number | null;
-    mdePercentual?: number | null;
-    fundebPercentual?: number | null;
-    anosIniciais?: EducacaoMetricDTO | null;
-    anosFinais?: EducacaoMetricDTO | null;
-  } | null;
   contratos: EducacaoContratoDTO[];
   emendas?: EmendasEducacaoStatsDTO;
   origemRecursos?: EducacaoOrigemRecursosDTO | null;
+  siope?: EducacaoSiopeDTO | null;
+  matriculas?: EducacaoMatriculasDTO | null;
   mediasEstaduais?: EducacaoMediasEstaduais;
+  mediasNacionais?: EducacaoMediasNacionais;
+  execucaoAnual?: EducacaoExecucaoAnualDTO[];
+  topFornecedores?: FornecedorExecucaoItemDTO[];
+  rankingAnosIniciais?: EducacaoRankingEstadualDTO | null;
+  rankingAnosFinais?: EducacaoRankingEstadualDTO | null;
   context: {
     selectedYear: number;
     isCurrentYear: boolean;
@@ -298,12 +531,14 @@ export function buildEducacaoViewModel(raw: {
   })();
 
   const municipioUf = raw.portalConfig?.uf ?? "";
+  const execucaoAnual = raw.execucaoAnual ?? [];
 
   const historicoIniciais = buildEtapaHistorico({
     etapa: "anosIniciais",
     label: "Anos Iniciais (1º ao 5º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosIniciais,
+    mediasNacionais: raw.mediasNacionais?.anosIniciais,
     municipioUf,
   });
   const historicoFinais = buildEtapaHistorico({
@@ -311,274 +546,11 @@ export function buildEducacaoViewModel(raw: {
     label: "Anos Finais (6º ao 9º ano)",
     metrics: raw.allMetrics,
     mediasEstaduais: raw.mediasEstaduais?.anosFinais,
+    mediasNacionais: raw.mediasNacionais?.anosFinais,
     municipioUf,
   });
 
-  const anoBaseIdeb = (() => {
-    if (raw.resumo?.ano && raw.resumo.ano <= raw.context.selectedYear) {
-      return raw.resumo.ano;
-    }
-    const metricRecent = raw.allMetrics
-      .filter((m) => m.ano <= raw.context.selectedYear && m.notaIdeb != null)
-      .sort((a, b) => b.ano - a.ano)[0];
-    if (metricRecent?.ano) {
-      return metricRecent.ano;
-    }
-    if (raw.context.selectedYear % 2 === 0) {
-      return raw.context.selectedYear - 1;
-    }
-    return raw.context.selectedYear;
-  })();
-
-  const eyebrowLabel = (() => {
-    if (raw.context.selectedYear !== anoBaseIdeb) {
-      return `TEMAS · EDUCAÇÃO BÁSICA · EXERCÍCIO ${raw.context.selectedYear} (ANO-BASE IDEB ${anoBaseIdeb})`;
-    }
-    return `TEMAS · EDUCAÇÃO BÁSICA · ${raw.context.selectedYear} (ANO-BASE IDEB)`;
-  })();
-
-  const pontoCicloBaseIniciais =
-    historicoIniciais.pontos.find((p) => p.ano === anoBaseIdeb) ??
-    historicoIniciais.pontos
-      .filter((p) => p.ano <= raw.context.selectedYear)
-      .sort((a, b) => b.ano - a.ano)[0] ??
-    historicoIniciais.pontoMaisRecente;
-
-  const notaAtual = (() => {
-    if (pontoCicloBaseIniciais?.notaIdeb != null) {
-      return pontoCicloBaseIniciais.notaIdeb;
-    }
-    if (raw.resumo?.notaIdeb != null) {
-      return raw.resumo.notaIdeb;
-    }
-    return null;
-  })();
-
-  const crescimentoPontos = (() => {
-    if (pontoCicloBaseIniciais?.crescimentoPontos != null) {
-      return pontoCicloBaseIniciais.crescimentoPontos;
-    }
-    if (raw.resumo?.crescimentoPontosIdeb != null) {
-      return raw.resumo.crescimentoPontosIdeb;
-    }
-    return null;
-  })();
-
-  const notaAnterior = (() => {
-    const pontosAteCiclo = historicoIniciais.pontos.filter(
-      (p) => p.ano <= anoBaseIdeb && p.notaIdeb !== null,
-    );
-    if (pontosAteCiclo.length >= 2) {
-      return pontosAteCiclo[pontosAteCiclo.length - 2].notaIdeb;
-    }
-    if (notaAtual !== null && crescimentoPontos !== null) {
-      return Number((notaAtual - crescimentoPontos).toFixed(1));
-    }
-    return null;
-  })();
-
-  const isDestaqueEstadual = isDestaqueEvolucaoIdeb(crescimentoPontos);
-
-  const destaqueBadgeTexto = (() => {
-    if (crescimentoPontos !== null && crescimentoPontos > 0) {
-      const pontosFmt = crescimentoPontos.toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-      });
-      return `Evolução de +${pontosFmt} ponto no IDEB da Rede Municipal`;
-    }
-    if (crescimentoPontos !== null && crescimentoPontos < 0) {
-      const pontosFmt = Math.abs(crescimentoPontos).toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-      });
-      return `Variação de -${pontosFmt} ponto no IDEB (${anoBaseIdeb})`;
-    }
-    if (notaAtual !== null) {
-      const notaFmt = notaAtual.toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-      });
-      return `Nota ${notaFmt} no IDEB — Anos Iniciais da Rede Municipal (${anoBaseIdeb})`;
-    }
-    return "Educação Básica Municipal — Monitoramento Oficial INEP/MEC";
-  })();
-
-  const rankingPos = raw.resumo?.posicaoRanking ?? null;
-  const rankingTotalMun = raw.resumo?.totalMunicipios ?? null;
-  const rankingVarPos = raw.resumo?.variacaoPosicoes ?? null;
-
-  const rankingPosicaoLabel = (() => {
-    if (rankingPos !== null) {
-      return `${rankingPos}º lugar`;
-    }
-    if (isDestaqueEstadual) {
-      return "Destaque";
-    }
-    return "Em apuração";
-  })();
-
-  const rankingSubtext = (() => {
-    if (rankingTotalMun !== null) {
-      return `Entre ${rankingTotalMun} municípios (${municipioUf})`;
-    }
-    return `Rede Municipal (${municipioUf})`;
-  })();
-
-  const rankingTrend = buildRankingTrend(rankingVarPos);
-
-  const rankingEstadualLabel = (() => {
-    if (rankingPos !== null) {
-      if (rankingVarPos !== null && rankingVarPos > 0) {
-        return `${rankingPos}º lugar estadual (+${rankingVarPos} posições)`;
-      }
-      if (rankingVarPos !== null && rankingVarPos < 0) {
-        return `${rankingPos}º lugar estadual (${rankingVarPos} posições)`;
-      }
-      if (rankingTotalMun !== null) {
-        return `${rankingPos}º lugar estadual (${rankingTotalMun} municípios)`;
-      }
-      return `${rankingPos}º lugar estadual`;
-    }
-    if (isDestaqueEstadual) {
-      return "Destaque no ranking estadual";
-    }
-    return "Classificação em consolidação";
-  })();
-
-  const custoAnualPorAluno = (() => {
-    if (raw.resumo?.custoAnualPorAluno != null) {
-      return raw.resumo.custoAnualPorAluno;
-    }
-    const metricWithCost = raw.allMetrics.find(
-      (m) => m.custoAnualPorAluno != null && m.custoAnualPorAluno > 0,
-    );
-    if (metricWithCost?.custoAnualPorAluno != null) {
-      return metricWithCost.custoAnualPorAluno;
-    }
-    return null;
-  })();
-
-  const totalMatriculas = (() => {
-    if (raw.resumo?.totalMatriculasRedeMunicipal != null) {
-      return raw.resumo.totalMatriculasRedeMunicipal;
-    }
-    const metricWithMatriculas = raw.allMetrics.find(
-      (m) =>
-        m.totalMatriculasRedeMunicipal != null &&
-        m.totalMatriculasRedeMunicipal > 0,
-    );
-    if (metricWithMatriculas?.totalMatriculasRedeMunicipal != null) {
-      return metricWithMatriculas.totalMatriculasRedeMunicipal;
-    }
-    return null;
-  })();
-
-  const despesaTotalEducacao = (() => {
-    if (raw.resumo?.despesaLiquidadaEducacao != null) {
-      return raw.resumo.despesaLiquidadaEducacao;
-    }
-    const metricWithDespesa = raw.allMetrics.find(
-      (m) =>
-        m.despesaLiquidadaEducacao != null && m.despesaLiquidadaEducacao > 0,
-    );
-    if (metricWithDespesa?.despesaLiquidadaEducacao != null) {
-      return metricWithDespesa.despesaLiquidadaEducacao;
-    }
-    return null;
-  })();
-
-  const trofeuCivico: TrofeuCivicoKPIs = {
-    anoBaseIdeb,
-    eyebrowLabel,
-    notaAtual,
-    notaAnterior,
-    crescimentoPontos,
-    rankingPosicaoLabel,
-    rankingSubtext,
-    rankingTrend,
-    rankingEstadualLabel,
-    custoAnualPorAluno,
-    totalMatriculas,
-    despesaTotalEducacao,
-    isDestaqueEstadual,
-    destaqueBadgeTexto,
-  };
-
-  // Bloco 3: Painel Fiscal (MDE 25% e FUNDEB 70%)
-  const mdePercentual = raw.resumo?.mdePercentual ?? null;
-  const fundebPercentual = raw.resumo?.fundebPercentual ?? null;
-
-  const mde: EducacaoFiscalTermometro = {
-    nome: "Aplicação em MDE (Mínimo Constitucional)",
-    artigoLegal: "Art. 212 da CF/88",
-    artigoUrl:
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212",
-    minimoConstitucionalPct: 25,
-    percentualAplicado: mdePercentual,
-    cumprido: mdePercentual !== null ? mdePercentual >= 25 : null,
-    descricao:
-      "A receita de impostos é vinculada prioritariamente à Manutenção e Desenvolvimento do Ensino (MDE), com aplicação mínima de 25%.",
-  };
-
-  const fundeb: EducacaoFiscalTermometro = {
-    nome: "Aplicação do FUNDEB (Profissionais da Educação)",
-    artigoLegal: "Art. 212-A da CF/88",
-    artigoUrl:
-      "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art212a",
-    minimoConstitucionalPct: 70,
-    percentualAplicado: fundebPercentual,
-    cumprido: fundebPercentual !== null ? fundebPercentual >= 70 : null,
-    descricao:
-      "Pelo menos 70% dos recursos do FUNDEB devem ser destinados à remuneração dos profissionais da educação básica em efetivo exercício.",
-  };
-
-  // Correlação Custo por Aluno vs IDEB por ciclo
-  const anosDisponiveis = Array.from(
-    new Set(raw.allMetrics.map((m) => m.ano)),
-  ).sort((a, b) => a - b);
-
-  const correlacao: CustoIdebCorrelacaoPonto[] = anosDisponiveis.map((ano) => {
-    const mIniciais = raw.allMetrics.find(
-      (m) => m.ano === ano && m.etapaEnsino === "anosIniciais",
-    );
-    const mFinais = raw.allMetrics.find(
-      (m) => m.ano === ano && m.etapaEnsino === "anosFinais",
-    );
-    const despesaLiquidada =
-      mIniciais?.despesaLiquidadaEducacao ??
-      mFinais?.despesaLiquidadaEducacao ??
-      null;
-    const custo =
-      mIniciais?.custoAnualPorAluno ?? mFinais?.custoAnualPorAluno ?? null;
-
-    return {
-      ano,
-      despesaLiquidada,
-      custoPorAluno: custo,
-      notaIdebIniciais: mIniciais?.notaIdeb ?? null,
-      notaIdebFinais: mFinais?.notaIdeb ?? null,
-    };
-  });
-
-  const fiscal: EducacaoFiscalPainel = {
-    despesaTotalEducacao,
-    custoAlunoAtual: custoAnualPorAluno,
-    totalMatriculas,
-    mde,
-    fundeb,
-    correlacao,
-  };
-
-  // Bloco 4: Resumo dos Contratos
   const contratos = raw.contratos;
-  const valorTotalContratos = contratos.reduce(
-    (acc, c) => acc + (c.valorContrato || 0),
-    0,
-  );
-  const totalEmpenhado = contratos.reduce(
-    (acc, c) => acc + (c.totalEmpenhado || 0),
-    0,
-  );
-  const totalPago = contratos.reduce((acc, c) => acc + (c.totalPago || 0), 0);
-
   const porCategoria: Record<EducacaoCategoriaContrato, number> = {
     merenda_pnae: 0,
     transporte_pnate: 0,
@@ -586,7 +558,6 @@ export function buildEducacaoViewModel(raw: {
     locacao_imoveis: 0,
     outros: 0,
   };
-
   contratos.forEach((c) => {
     porCategoria[c.categoria] = (porCategoria[c.categoria] || 0) + 1;
   });
@@ -595,23 +566,59 @@ export function buildEducacaoViewModel(raw: {
     portalSlug: raw.portalSlug,
     municipioNome,
     municipioUf,
+    portalUrl: raw.portalConfig?.portalUrl || null,
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
+    partialPeriod: getPartialYearPeriod(
+      raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+    ),
     selectedEtapa: raw.context.selectedEtapa,
-    trofeuCivico,
+    execucao: buildExecucaoAno(execucaoAnual, raw.context.selectedYear),
+    serieAnual: execucaoAnual.map(({ ano, empenhado, pago }) => ({
+      ano,
+      empenhado,
+      pago,
+    })),
+    topFornecedores: raw.topFornecedores ?? [],
+    aprendizado: {
+      anosIniciais: buildAprendizadoEtapa({
+        historico: historicoIniciais,
+        anoSelecionado: raw.context.selectedYear,
+        titulo: historicoIniciais.label,
+        ranking: raw.rankingAnosIniciais ?? null,
+      }),
+      anosFinais: buildAprendizadoEtapa({
+        historico: historicoFinais,
+        anoSelecionado: raw.context.selectedYear,
+        titulo: historicoFinais.label,
+        ranking: raw.rankingAnosFinais ?? null,
+      }),
+    },
     historico: {
       anosIniciais: historicoIniciais,
       anosFinais: historicoFinais,
     },
-    fiscal,
     contratos,
     emendas: raw.emendas ?? emendasStatsVazio,
     origemRecursos: raw.origemRecursos ?? null,
+    valorPorAluno: buildValorPorAluno(raw.siope, raw.context.selectedYear),
+    alunosRede: buildAlunosRede(raw.matriculas),
+    minimosLegais: buildMinimosLegais(
+      raw.siope,
+      raw.context.selectedYear,
+      raw.context.isCurrentYear,
+    ),
     contratosResumo: {
       totalContratos: contratos.length,
-      valorTotalContratos,
-      totalEmpenhado,
-      totalPago,
+      valorTotalContratos: contratos.reduce(
+        (acc, c) => acc + (c.valorContrato || 0),
+        0,
+      ),
+      totalEmpenhado: contratos.reduce(
+        (acc, c) => acc + (c.totalEmpenhado || 0),
+        0,
+      ),
+      totalPago: contratos.reduce((acc, c) => acc + (c.totalPago || 0), 0),
       porCategoria,
       totaisPorCategoria: buildTotaisPorCategoria(contratos),
     },

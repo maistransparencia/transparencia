@@ -92,7 +92,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     ],
   };
 
-  it("renderiza título, subtítulo e badge oficial do SICONFI/STN", () => {
+  it("renderiza título, subtítulo e link oficial do SICONFI", () => {
     render(
       <SaldoCaixaEntidadesSection
         posicaoFinanceira={samplePosicao}
@@ -102,14 +102,12 @@ describe("SaldoCaixaEntidadesSection Component", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /disponibilidade financeira em caixa e bancos/i,
+        name: /dinheiro em caixa e nos bancos/i,
       }),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(
-        /contas bancárias ativas e aplicações de liquidez imediata declaradas mensalmente ao tesouro nacional/i,
-      ),
+      screen.getByText(/enviado todo mês ao tesouro nacional/i),
     ).toBeInTheDocument();
 
     expect(screen.getByText("SICONFI")).toBeInTheDocument();
@@ -123,7 +121,9 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       />,
     );
 
-    expect(screen.getByText(/posição:\s*dezembro\/2024/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/posição em dezembro de 2024/i),
+    ).toBeInTheDocument();
   });
 
   it("exibe o callout didático prevenindo equívocos de desinformação", () => {
@@ -135,7 +135,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     );
 
     expect(
-      screen.getByText(/saldo em caixa não é dinheiro "sobrando"/i),
+      screen.getByText(/dinheiro em caixa não é dinheiro sobrando/i),
     ).toBeInTheDocument();
   });
 
@@ -160,9 +160,7 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     render(<SaldoCaixaEntidadesSection posicaoFinanceira={null} ano={2025} />);
 
     expect(
-      screen.getByText(
-        /aguardando homologação da remessa msc pelo tesouro nacional para o exercício/i,
-      ),
+      screen.getByText(/ainda não há dados de caixa de 2025/i),
     ).toBeInTheDocument();
   });
 
@@ -241,15 +239,9 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     );
 
     expect(
-      screen.getByText(
-        /disponibilidade contábil exibida na visão consolidada municipal/i,
-      ),
+      screen.getByText(/este saldo é do município todo/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /desmarque os filtros de órgãos específicos e selecione/i,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Todas as entidades")).toBeInTheDocument();
     expect(screen.queryByText("Prefeitura Municipal")).not.toBeInTheDocument();
   });
 
@@ -283,12 +275,10 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     );
 
     expect(
-      screen.getByText(/atenção técnica: ocorrência de saldo a descoberto/i),
+      screen.getByText(/pagamentos superaram o que foi arrecadado até o mês/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("Saldo a Descoberto")).toBeInTheDocument();
-    expect(
-      screen.getByText(/insuficiência financeira na competência/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Saldo negativo")).toBeInTheDocument();
+    expect(screen.getByText(/saldo negativo neste mês/i)).toBeInTheDocument();
   });
 
   it("exibe indicativo de variação anual em relação ao ano anterior", () => {
@@ -299,9 +289,9 @@ describe("SaldoCaixaEntidadesSection Component", () => {
       />,
     );
 
-    expect(screen.getByText("+15.2% vs. 2023")).toBeInTheDocument();
-    expect(screen.getByText("+10.5% vs. 2023")).toBeInTheDocument();
-    expect(screen.getByText("-5% vs. 2023")).toBeInTheDocument();
+    expect(screen.getByText("15,2% a mais que em 2023")).toBeInTheDocument();
+    expect(screen.getByText("10,5% a mais que em 2023")).toBeInTheDocument();
+    expect(screen.getByText("5% a menos que em 2023")).toBeInTheDocument();
   });
 
   it("renderiza a seção de evolução mensal, KPIs de média, piso e queima quando evolucaoMensal for fornecido", () => {
@@ -344,17 +334,17 @@ describe("SaldoCaixaEntidadesSection Component", () => {
     );
 
     expect(
-      screen.getByText("Evolução Mensal e Queima de Caixa no Exercício"),
+      screen.getByText("Como o caixa mudou mês a mês"),
     ).toBeInTheDocument();
-    expect(screen.getByText("2 competências apuradas")).toBeInTheDocument();
     expect(
-      screen.getByText("Média Mensal (Recursos Livres)"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Piso Operacional no Ano")).toBeInTheDocument();
-    expect(screen.getByText("Mínima em Dezembro")).toBeInTheDocument();
-    expect(screen.getByText("Queima Intra-anual de Caixa")).toBeInTheDocument();
+      screen.queryByText("2 competências apuradas"),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByText("-87.5% (Abertura → Fechamento)"),
+      screen.getByText("Média mensal dos recursos livres"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Menor saldo do ano")).toBeInTheDocument();
+    expect(screen.getByText("em dezembro")).toBeInTheDocument();
+    expect(screen.getByText("Queda desde o maior saldo")).toBeInTheDocument();
+    expect(screen.queryByText(/abertura/i)).not.toBeInTheDocument();
   });
 });

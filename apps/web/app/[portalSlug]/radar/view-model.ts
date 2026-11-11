@@ -18,7 +18,6 @@ export interface RadarHistoricoViewModel {
   portalSlug: string;
   portalName: string;
   stateUF?: string;
-  totalAlertasGeral: number;
   anosDisponiveis: number[];
   secoes: RadarAnoSection[];
   hasAlertas: boolean;
@@ -61,7 +60,6 @@ export function buildRadarHistoricoViewModel(
       portalSlug,
       portalName,
       stateUF,
-      totalAlertasGeral: 0,
       anosDisponiveis: [],
       secoes: [],
       hasAlertas: false,
@@ -115,13 +113,10 @@ export function buildRadarHistoricoViewModel(
     })
     .filter((sec) => sec.totalAlertas > 0);
 
-  const totalAlertasGeral = secoes.reduce((acc, s) => acc + s.totalAlertas, 0);
-
   return {
     portalSlug,
     portalName,
     stateUF,
-    totalAlertasGeral,
     anosDisponiveis: secoes.map((s) => s.ano),
     secoes,
     hasAlertas: secoes.length > 0,

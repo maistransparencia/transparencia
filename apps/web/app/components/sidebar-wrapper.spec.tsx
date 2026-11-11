@@ -17,6 +17,18 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => currentSearchParams,
 }));
 
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    ...resto
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+    <a href={href} data-next-link="true" {...resto}>
+      {children}
+    </a>
+  ),
+}));
+
 const mockBProgressStart = vi.fn();
 vi.mock("@bprogress/core", () => ({
   BProgress: {
@@ -58,6 +70,30 @@ describe("SidebarWrapper Component", () => {
       writable: true,
       configurable: true,
     });
+  });
+
+  it("renderiza itens de navegacao e marca a rota ativa conforme o pathname", () => {
+    mockUseQueryState.mockImplementation((() => [
+      null,
+      vi.fn(),
+    ]) as unknown as typeof useQueryState);
+    currentPathname = "/porciuncula_prefeitura/radar";
+
+    render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+
+    const radar = screen.getByRole("link", { name: /Radar Cívico/ });
+    expect(radar).toHaveAttribute("href");
+    expect(radar).toHaveAttribute("data-next-link", "true");
+    expect(radar.className).toContain("border-ink");
+    const visaoGeral = screen.getByRole("link", { name: /Visão geral/ });
+    expect(visaoGeral.className).toContain("border-transparent");
   });
 
   it("deve repassar radarAlertCount correspondente ao ano selecionado a partir de radarAlertsCountByYear", () => {
@@ -414,5 +450,55 @@ describe("SidebarWrapper Component", () => {
         }),
       );
     });
+  });
+
+  it("recolhe a sidebar em faixa de ícones, sem filtros e sem rodapé, e expande de novo", async () => {
+    mockUseQueryState.mockImplementation((() => [
+      null,
+      vi.fn(),
+    ]) as unknown as typeof useQueryState);
+    currentPathname = "/porciuncula_prefeitura/radar";
+
+    const { container } = render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+    const aside = container.querySelector("aside") as HTMLElement;
+    expect(aside.className).toContain("md:w-[266px]");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recolher menu lateral" }),
+    );
+
+    expect(aside.className).toContain("md:w-14");
+    // O layout só de ícones entra no fim da animação de largura; o nome vai para
+    // o aria-label e o tooltip do design system substitui o title nativo.
+    const radar = screen.getByRole("link", { name: "Radar Cívico" });
+    await waitFor(() =>
+      expect(radar).toHaveAttribute("aria-label", "Radar Cívico"),
+    );
+    expect(radar).not.toHaveAttribute("title");
+    expect(radar.className).toContain("border-ink");
+    for (const nome of ["Visão geral", "Farmácia SUS"]) {
+      const link = screen.getByRole("link", { name: nome });
+      expect(link).toHaveAttribute("aria-label", nome);
+      expect(link).not.toHaveAttribute("title");
+    }
+    expect(screen.getByText("Filtros").closest("div")?.className).toContain(
+      "md:hidden",
+    );
+    expect(
+      screen.getByText("Compartilhar página").closest("div.space-y-2")
+        ?.className,
+    ).toContain("md:hidden");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Expandir menu lateral" }),
+    );
+    expect(aside.className).toContain("md:w-[266px]");
   });
 });

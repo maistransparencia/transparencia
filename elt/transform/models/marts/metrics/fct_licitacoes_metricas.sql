@@ -233,12 +233,28 @@ com_limites as (
              or u.objeto_clean like '%reforma%'
              or u.objeto_clean like '%construcao%'
            then 'limite_dispensa_obras_engenharia'
-           when u.objeto_clean like '%veiculo%'
-             or u.objeto_clean like '%automovel%'
-             or u.objeto_clean like '%motocicleta%'
-             or u.objeto_clean like '%caminhao%'
-             or u.objeto_clean like '%onibus%'
-             or u.objeto_clean like '%frota%'
+           when (
+               u.objeto_clean like '%veiculo%'
+               or u.objeto_clean like '%automovel%'
+               or u.objeto_clean like '%motocicleta%'
+               or u.objeto_clean like '%caminhao%'
+               or u.objeto_clean like '%onibus%'
+               or u.objeto_clean like '%frota%'
+             )
+             and (
+               u.objeto_clean like '%manutencao%'
+               or u.objeto_clean like '%conserto%'
+               or u.objeto_clean like '%reparo%'
+               or u.objeto_clean like '%peca%'
+               or (
+                 u.objeto_clean like '%revisao%'
+                 and u.objeto_clean not like '%aquisicao%'
+                 and u.objeto_clean not like '%compra%'
+                 and u.objeto_clean not like '%adquir%'
+                 and u.objeto_clean not like '%zero quilometro%'
+                 and u.objeto_clean not like '%0km%'
+               )
+             )
            then 'limite_dispensa_veiculos'
            else 'limite_dispensa_compras_servicos'
        end

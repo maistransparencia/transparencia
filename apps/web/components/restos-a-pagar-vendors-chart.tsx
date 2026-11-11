@@ -1,7 +1,10 @@
 import { fmtCompact, toTitleCase } from "@transparencia/ui";
+import { ChevronDown } from "lucide-react";
+import { FornecedorDocumentoDetalhe } from "./fornecedor-documento-detalhe";
 
 export interface RestosAPagarVendorItem {
   fornecedor: string;
+  fornecedorDocumento?: string | null;
   valorTotal?: number;
   liquidado?: number;
   empenhadoALiquidar?: number;
@@ -10,13 +13,17 @@ export interface RestosAPagarVendorItem {
 
 export interface RestosAPagarVendorsChartProps {
   items: RestosAPagarVendorItem[];
+  portalSlug: string;
+  ano: number;
   title?: string;
   className?: string;
 }
 
 export function RestosAPagarVendorsChart({
   items,
-  title = "Fornecedores com maior pendência de restos a pagar",
+  portalSlug,
+  ano,
+  title = "Quem mais espera receber",
   className = "",
 }: RestosAPagarVendorsChartProps) {
   if (!items || items.length === 0) return null;
@@ -25,97 +32,78 @@ export function RestosAPagarVendorsChart({
   const maxVal = Math.max(...items.map(getVal), 1);
 
   return (
-    <div
-      className={`space-y-4 rounded-2xl border border-borderLine bg-white p-6 ${className}`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {title && <h4 className="font-bold text-base text-ink">{title}</h4>}
+    <div className={`space-y-4 ${className}`} data-testid="restos-fornecedores">
+      <div className="space-y-2">
+        {title && <h4>{title}</h4>}
 
-        {/* Legenda Stacked */}
-        <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-600" />
-            <span className="font-medium text-ink/70">
-              Liquidado (Dívida Real)
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-            <span className="font-medium text-ink/70">
-              Empenhado (Não Processado)
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-mute2 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 bg-warn-fill" aria-hidden="true" />
+            Já entregue, falta pagar
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 bg-brand-fill" aria-hidden="true" />
+            Ainda em andamento
+          </span>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div>
         {items.map((item) => {
           const total = getVal(item);
-          const liq = item.liquidado ?? 0;
-          const naoProc = Math.max(0, total - liq);
-          const barWidthPct = Math.max(
-            Math.min((total / maxVal) * 100, 100),
-            5,
-          );
-
-          const liqPct =
-            total > 0 ? Math.min(100, Math.max(0, (liq / total) * 100)) : 0;
-          const naoProcPct =
-            total > 0 ? Math.min(100, Math.max(0, (naoProc / total) * 100)) : 0;
+          const entregue = Math.min(item.liquidado ?? 0, total);
+          const emAndamento = Math.max(0, total - entregue);
+          const larguraBarra = Math.min((total / maxVal) * 100, 100);
+          const larguraEntregue = total > 0 ? (entregue / total) * 100 : 0;
 
           return (
-            <div key={item.fornecedor} className="space-y-1.5">
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <div className="w-2/3 truncate font-medium text-ink">
+            <details
+              key={`${item.fornecedor}-${item.fornecedorDocumento ?? ""}`}
+              className="group"
+            >
+              <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
+                <span className="font-medium text-ink text-sm">
                   {toTitleCase(item.fornecedor)}
-                </div>
-                <div className="shrink-0 text-right font-bold text-ink">
+                </span>
+                <span className="flex items-center gap-2 text-right text-ink text-sm tabular-nums">
                   {fmtCompact(total)}
-                </div>
-              </div>
-
-              {/* Stacked Bar sem fundo cinza total para evitar falsa ideia de progresso */}
-              <div className="flex h-3.5 w-full items-center">
-                <div
-                  className="flex h-full overflow-hidden rounded-full transition-all duration-300"
-                  style={{ width: `${barWidthPct}%` }}
-                >
-                  {liq > 0 && (
-                    <div
-                      className="h-full bg-amber-600"
-                      style={{ width: `${liqPct}%` }}
-                      title={`Liquidado (Dívida Real): ${fmtCompact(liq)}`}
-                    />
-                  )}
-                  {naoProc > 0 && (
-                    <div
-                      className="h-full bg-amber-300"
-                      style={{ width: `${naoProcPct}%` }}
-                      title={`Empenhado (Não Processado): ${fmtCompact(naoProc)}`}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between text-[11px] text-ink/60">
-                {total === 0 ? (
-                  <span>Sem pendências</span>
-                ) : (
-                  <>
-                    <span>
-                      {liq > 0
-                        ? `${fmtCompact(liq)} liquidado (dívida real)`
-                        : "100% não processado (empenhado)"}
-                    </span>
-                    <span>
-                      {naoProc > 0
-                        ? `${fmtCompact(naoProc)} empenhado (não processado)`
-                        : "Totalmente liquidado"}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
+                  <ChevronDown
+                    className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
+                  <span
+                    className="flex h-full"
+                    style={{ width: `${larguraBarra}%` }}
+                  >
+                    {entregue > 0 && (
+                      <span
+                        className="block h-full bg-warn-fill"
+                        style={{ width: `${larguraEntregue}%` }}
+                      />
+                    )}
+                    {emAndamento > 0 && (
+                      <span className="block h-full flex-1 bg-brand-fill" />
+                    )}
+                  </span>
+                </span>
+                <span className="col-span-full text-mute2 text-xs">
+                  {[
+                    entregue > 0 && `${fmtCompact(entregue)} já entregue`,
+                    emAndamento > 0 &&
+                      `${fmtCompact(emAndamento)} em andamento`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              </summary>
+              <FornecedorDocumentoDetalhe
+                documento={item.fornecedorDocumento ?? null}
+                portalSlug={portalSlug}
+                ano={ano}
+              />
+            </details>
           );
         })}
       </div>

@@ -1,3 +1,4 @@
+import { corDoGrafico } from "@transparencia/ui";
 import type { loadPrevidenciaData } from "./loader";
 
 export type PrevidenciaRawData = Awaited<
@@ -79,35 +80,35 @@ export function resolveDestinoColor(rawDestino: string, label: string): string {
     rawDestino === "rpps_caprem" ||
     label.endsWith("(Contribuição Patronal)")
   ) {
-    return "oklch(0.55 0.14 250)";
+    return corDoGrafico("brand");
   }
   if (
     rawDestino === "aporte_atuarial_rpps" ||
     rawDestino === "aporte_atuarial_caprem" ||
     label.startsWith("Aporte Atuarial")
   ) {
-    return "oklch(0.60 0.18 30)";
+    return corDoGrafico("danger");
   }
   if (
     rawDestino === "amortizacao_divida_rpps" ||
     rawDestino === "amortizacao_divida_caprem" ||
     label.startsWith("Amortização Dívida")
   ) {
-    return "oklch(0.55 0.15 45)";
+    return corDoGrafico("warn");
   }
   if (rawDestino === "inss_rgps" || label === "INSS (RGPS)") {
-    return "oklch(0.65 0.12 180)";
+    return corDoGrafico("ok");
   }
   if (rawDestino === "plano_saude_casp" || label === "Plano de Saúde (CASP)") {
-    return "oklch(0.60 0.12 210)";
+    return corDoGrafico("mute");
   }
   if (
     rawDestino === "encargo_patronal_geral" ||
     label === "Encargo Patronal Geral"
   ) {
-    return "oklch(0.50 0.05 240)";
+    return corDoGrafico("mute3");
   }
-  return "oklch(0.55 0.11 250)";
+  return corDoGrafico("brand");
 }
 
 export function buildPrevidenciaViewModel(raw: PrevidenciaRawData) {
@@ -144,15 +145,15 @@ export function buildPrevidenciaViewModel(raw: PrevidenciaRawData) {
 
   const naturezaCols = [
     {
-      header: "Data do Lançamento",
+      header: "Data",
       accessorKey: "dataEmpenho" as const,
       format: "date" as const,
     },
-    { header: "Regime / Destino", accessorKey: "destino" as const },
+    { header: "Destino", accessorKey: "destino" as const },
     {
-      header: "Elemento / Descrição da Natureza",
+      header: "Elemento / Descrição",
       accessorKey: "descricao" as const,
-      className: "max-w-sm",
+      className: "max-w-xs truncate",
     },
     {
       header: "Empenhado",

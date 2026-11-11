@@ -9,7 +9,7 @@ import {
 } from "@/lib/vapid";
 
 export interface UsePushNotificationsOptions {
-  portalSlug?: string;
+  portalSlug: string;
 }
 
 export interface UsePushNotificationsReturn {
@@ -29,6 +29,14 @@ export interface PushStoreState {
   isLoading: boolean;
   error: string | null;
 }
+
+/** Mensagens ao cidadão; detalhes técnicos ficam só na telemetria. */
+const MENSAGEM_ERRO_PUSH = {
+  ativar: "Não foi possível ativar as notificações. Tente novamente.",
+  desativar: "Não foi possível desativar. Tente novamente.",
+  consultar: "Não foi possível verificar suas notificações. Tente novamente.",
+  naoSuportado: "Este navegador não permite receber notificações.",
+} as const;
 
 const PUSH_SUBSCRIPTION_CHANGED_EVENT =
   "transparencia:push-subscription-changed";
@@ -143,13 +151,10 @@ export async function refreshPushSubscription(): Promise<void> {
       isSubscribed: Boolean(sub),
       isLoading: false,
     });
-  } catch (err: unknown) {
+  } catch {
     updatePushStore({
       isLoading: false,
-      error:
-        err instanceof Error
-          ? err.message
-          : "Erro ao consultar subscrição existente",
+      error: MENSAGEM_ERRO_PUSH.consultar,
     });
   }
 }
@@ -218,9 +223,9 @@ async function getActiveServiceWorkerRegistration(
 }
 
 export function usePushNotifications(
-  options?: UsePushNotificationsOptions,
+  options: UsePushNotificationsOptions,
 ): UsePushNotificationsReturn {
-  const portalSlug = options?.portalSlug ?? "porciuncula_prefeitura";
+  const { portalSlug } = options;
   const state = useSyncExternalStore(
     subscribeToStore,
     getStoreSnapshot,
@@ -271,7 +276,7 @@ export function usePushNotifications(
 
       if (!isPushNotificationSupported()) {
         updatePushStore({
-          error: "Notificações Web Push não suportadas neste navegador.",
+          error: MENSAGEM_ERRO_PUSH.naoSuportado,
           isLoading: false,
         });
         return false;
@@ -280,7 +285,7 @@ export function usePushNotifications(
       const vapidKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidKey) {
         updatePushStore({
-          error: "Chave pública VAPID não configurada no ambiente.",
+          error: MENSAGEM_ERRO_PUSH.ativar,
           isLoading: false,
         });
         posthog.capture("push_subscribed_failure", {
@@ -348,10 +353,7 @@ export function usePushNotifications(
         if (!res.ok) {
           await sub.unsubscribe().catch(() => null);
           createdSub = null;
-          const body = await res.json().catch(() => ({}));
-          const errMsg =
-            body.error ?? `Falha ao registrar subscrição (HTTP ${res.status})`;
-          throw new Error(errMsg);
+          throw new Error(`Falha ao registrar subscrição (HTTP ${res.status})`);
         }
 
         updatePushStore({
@@ -372,12 +374,10 @@ export function usePushNotifications(
           await createdSub.unsubscribe().catch(() => null);
         }
         const errorMsg =
-          err instanceof Error
-            ? err.message
-            : "Erro inesperado ao ativar notificações";
+          err instanceof Error ? err.message : "erro_desconhecido";
         updatePushStore({
           isSubscribed: false,
-          error: errorMsg,
+          error: MENSAGEM_ERRO_PUSH.ativar,
           isLoading: false,
         });
         posthog.capture("push_subscribed_failure", {
@@ -394,7 +394,10 @@ export function usePushNotifications(
     updatePushStore({ error: null, isLoading: true });
 
     if (!isPushNotificationSupported()) {
-      updatePushStore({ isLoading: false });
+      updatePushStore({
+        error: MENSAGEM_ERRO_PUSH.desativar,
+        isLoading: false,
+      });
       return false;
     }
 
@@ -407,7 +410,10 @@ export function usePushNotifications(
 
         if (sub) {
           const endpoint = sub.endpoint;
-          await sub.unsubscribe();
+          const wasUnsubscribed = await sub.unsubscribe();
+          if (!wasUnsubscribed) {
+            throw new Error("unsubscribe_returned_false");
+          }
 
           await fetch("/api/push/unsubscribe", {
             method: "POST",
@@ -436,13 +442,9 @@ export function usePushNotifications(
       });
 
       return true;
-    } catch (err: unknown) {
-      const errorMsg =
-        err instanceof Error
-          ? err.message
-          : "Erro inesperado ao cancelar notificações";
+    } catch {
       updatePushStore({
-        error: errorMsg,
+        error: MENSAGEM_ERRO_PUSH.desativar,
         isLoading: false,
       });
       return false;

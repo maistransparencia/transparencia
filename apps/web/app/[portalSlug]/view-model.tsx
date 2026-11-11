@@ -1,8 +1,10 @@
 import type { GrauSeveridade, RadarCivicoAlertaDTO } from "@transparencia/db";
 import {
+  type BadgeVariant,
   buildNavUrl,
   fmtCompact,
   fmtCurrency,
+  fmtDate,
   fmtNumber,
   fmtPercent,
   getPartialYearPeriod,
@@ -13,6 +15,11 @@ import {
   buildRankingTrend,
   isDestaqueEvolucaoIdeb,
 } from "./educacao/view-model";
+import {
+  buildExemplosFarmacia,
+  buildRequerimentoFiscalizacao,
+  buildTextoWhatsApp,
+} from "./farmacia/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
 export { buildAlertaUrl } from "@/lib/radar-url";
@@ -98,6 +105,8 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
         ? null
         : `${crescimentoPontos === 0 ? "" : sinalEvolucao}${fmtDecimalUmaCasa(Math.abs(crescimentoPontos))} ponto`,
     evolucaoTom,
+    notaAnteriorValorTexto:
+      notaAnterior === null ? null : fmtDecimalUmaCasa(notaAnterior),
     notaAnteriorTexto:
       notaAnterior === null
         ? null
@@ -127,6 +136,76 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
         ? null
         : fmtCurrency(resumo.despesaLiquidadaEducacao),
   };
+}
+
+/** Resumos dos atalhos de "Mais detalhes"; sem dado devolve `null` (vale a descrição genérica). */
+function buildResumoDespesas(
+  totalPago: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(totalPago > 0)) return null;
+  const valor = fmtCompact(totalPago);
+  return isCurrentYear
+    ? `${valor} pagos em ${year} até agora`
+    : `${valor} pagos em ${year}`;
+}
+
+function buildResumoContratacoes(
+  total: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "contratação" : "contratações"}`;
+  return isCurrentYear
+    ? `${quantidade} em ${year} até agora`
+    : `${quantidade} em ${year}`;
+}
+
+function buildResumoPessoal(
+  total: number,
+  mesReferencia: number,
+  year: number,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "servidor" : "servidores"}`;
+  const mes = getMesNome(mesReferencia);
+  return mes
+    ? `${quantidade} na folha de ${mes}/${year}`
+    : `${quantidade} na folha de ${year}`;
+}
+
+function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
+  const obrasComCoordenadas = (obrasPreview ?? []).filter(
+    (obra) =>
+      obra.latitude != null &&
+      obra.longitude != null &&
+      Number.isFinite(obra.latitude) &&
+      Number.isFinite(obra.longitude) &&
+      obra.latitude !== 0 &&
+      obra.longitude !== 0,
+  );
+
+  const obrasMiniMapMarkers = obrasComCoordenadas.map((obra) => ({
+    id: obra.idProjeto,
+    situacao: obra.situacao,
+    latitude: obra.latitude as number,
+    longitude: obra.longitude as number,
+  }));
+
+  const mediana = (valores: number[]) =>
+    [...valores].sort((a, b) => a - b)[Math.floor(valores.length / 2)];
+
+  const obrasMapCenter: [number, number] | undefined =
+    obrasComCoordenadas.length === 0
+      ? undefined
+      : [
+          mediana(obrasComCoordenadas.map((obra) => obra.latitude as number)),
+          mediana(obrasComCoordenadas.map((obra) => obra.longitude as number)),
+        ];
+
+  return { obrasMiniMapMarkers, obrasMapCenter };
 }
 
 export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
@@ -175,19 +254,16 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       label: "Transferências da União",
       amountPerReal: `R$ ${(uniaoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: uniaoPct,
-      colorClass: "bg-blue-600",
     },
     {
       label: "Transferências do Estado",
       amountPerReal: `R$ ${(estadoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: estadoPct,
-      colorClass: "bg-sky-500",
     },
     {
       label: "Receita Própria",
       amountPerReal: `R$ ${(propriaArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
       percentage: propriaPct,
-      colorClass: "bg-emerald-600",
     },
   ];
 
@@ -208,28 +284,24 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       formattedValue: fmtCompact(totalDotacao),
       percentage: 100,
       label: "100% autorizado",
-      color: "bg-blue-600",
     },
     {
       name: "Empenhado",
       formattedValue: fmtCompact(totalEmpenhado),
       percentage: Number(empPctDotacao.toFixed(1)),
       label: `${fmtPercent(empPctDotacao)} da dotação`,
-      color: "bg-indigo-600",
     },
     {
       name: "Liquidado",
       formattedValue: fmtCompact(totalLiquidado),
       percentage: Number(liqPctDotacao.toFixed(1)),
       label: `${fmtPercent(liqPctDotacao)} da dotação`,
-      color: "bg-sky-600",
     },
     {
       name: "Pago",
       formattedValue: fmtCompact(totalPago),
       percentage: Number(pagPctDotacao.toFixed(1)),
       label: `${fmtPercent(pagPctDotacao)} da dotação`,
-      color: "bg-emerald-600",
     },
   ];
 
@@ -359,6 +431,48 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
     isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
+  const dataAtualizacao = fmtDate(
+    raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+  );
+  const periodLabel =
+    dataAtualizacao === "N/D"
+      ? `Dados de ${selectedYear}`
+      : `Dados de ${selectedYear}, atualizados em ${dataAtualizacao}`;
+  const detailShortcuts = [
+    {
+      label: "Despesas",
+      title: "Em que a Prefeitura gastou",
+      url: routeUrl("/despesas"),
+      summary: buildResumoDespesas(
+        execSummary.totalPago,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Licitações e Contratos",
+      title: "Compras e contratações",
+      url: routeUrl("/licitacoes"),
+      summary: buildResumoContratacoes(
+        raw.totalContratacoes,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Pessoal",
+      title: "Servidores e folha de pagamento",
+      url: routeUrl("/pessoal"),
+      summary: buildResumoPessoal(
+        raw.totalProfissionais,
+        raw.mesReferenciaPessoal,
+        selectedYear,
+      ),
+    },
+  ].map(({ summary, ...shortcut }) => ({
+    ...shortcut,
+    title: summary ?? shortcut.title,
+  }));
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
@@ -366,8 +480,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const heroHeadline = (
     <>
       De cada R$ 100 que entram no caixa,{" "}
-      <span className="text-[oklch(0.55_0.11_250)]">R$ {propriaPct}</span> a
-      cidade arrecada sozinha.
+      <span className="text-brand-text">R$ {propriaPct}</span> a cidade arrecada
+      sozinha.
     </>
   );
 
@@ -409,8 +523,18 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     },
   };
 
+  const farmaciaDetailUrl = buildNavUrl({
+    path: "/farmacia",
+    slug: portalSlug,
+    exercice: undefined,
+    entidades: undefined,
+  });
+
   return {
     portalName,
+    openingTitle: portalName || "Municípios Integrados",
+    periodLabel,
+    detailShortcuts,
     periodText,
     arrecadadoTitle,
     heroHeadline,
@@ -436,45 +560,45 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
-    educacaoDetailUrl: routeUrl("/educacao"),
-    educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
-    ...(() => {
-      const validObrasWithCoords = (raw.obrasPreview ?? []).filter(
-        (o) =>
-          o.latitude != null &&
-          o.longitude != null &&
-          Number.isFinite(o.latitude) &&
-          Number.isFinite(o.longitude) &&
-          o.latitude !== 0 &&
-          o.longitude !== 0,
-      );
-
-      const obrasMiniMapMarkers = validObrasWithCoords.map((o) => ({
-        id: o.idProjeto,
-        situacao: o.situacao,
-        latitude: o.latitude as number,
-        longitude: o.longitude as number,
-      }));
-
-      const obrasMapCenter: [number, number] = (() => {
-        if (validObrasWithCoords.length === 0) {
-          return [-20.9634, -42.0408];
+    minimoSaude: raw.minimoSaude,
+    minimoEducacao: raw.minimoEducacao,
+    situacaoHome: raw.situacaoHome,
+    decimoTerceiroHome: raw.decimoTerceiro
+      ? {
+          pago: raw.decimoTerceiro.pago,
+          semPagamento: raw.decimoTerceiro.pago <= 0,
         }
-        const lats = validObrasWithCoords
-          .map((v) => v.latitude as number)
-          .sort((a, b) => a - b);
-        const lngs = validObrasWithCoords
-          .map((v) => v.longitude as number)
-          .sort((a, b) => a - b);
-        const mid = Math.floor(validObrasWithCoords.length / 2);
-        return [lats[mid], lngs[mid]];
-      })();
-
-      return {
-        obrasMiniMapMarkers,
-        obrasMapCenter,
-      };
-    })(),
+      : null,
+    farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaRequerimento:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildRequerimentoFiscalizacao({
+            portalName,
+            dataPosicaoMaisRecente: raw.resumoFarmacia.dataPosicaoMaisRecente,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
+    farmaciaTextoWhatsApp:
+      raw.resumoFarmacia?.status === "apagao" && portalName
+        ? buildTextoWhatsApp({
+            portalName,
+            diasDesdePosicaoMaisRecente:
+              raw.resumoFarmacia.diasDesdePosicaoMaisRecente,
+          })
+        : undefined,
+    farmaciaDetailUrl,
+    farmaciaExemplos:
+      raw.resumoFarmacia?.status === "conforme"
+        ? buildExemplosFarmacia(
+            raw.sentinelasFarmacia?.sentinelas ?? [],
+            farmaciaDetailUrl,
+          )
+        : [],
+    educacaoDetailUrl: routeUrl("/educacao"),
+    saudeDetailUrl: routeUrl("/saude"),
+    educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
+    ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(
       raw.context.entidadesIds && raw.context.entidadesIds.length > 0,
     ),
@@ -491,7 +615,7 @@ export interface RadarCivicoCardItem {
   badgeSeveridade?: {
     label: string;
     variant: GrauSeveridade;
-    colorClass: string;
+    badgeVariant: BadgeVariant;
   };
   metodologiaBadge: string;
   badgeMetodologia?: string;
@@ -544,6 +668,7 @@ export {
   MESES_ABREV,
 } from "@/lib/radar-civico-narrative";
 
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import {
   formatarDimensao,
   formatDesvioPercentual,
@@ -559,7 +684,7 @@ export function getBadgeSeveridade(
 ): {
   label: string;
   variant: GrauSeveridade;
-  colorClass: string;
+  badgeVariant: BadgeVariant;
 } {
   if (
     alerta?.tipoAnomalia === "pico_despesa_homologa" &&
@@ -568,7 +693,7 @@ export function getBadgeSeveridade(
     return {
       label: "Aporte Relevante",
       variant: "alto",
-      colorClass: "bg-blue-50 text-blue-900 border-blue-200",
+      badgeVariant: "accent",
     };
   }
 
@@ -576,20 +701,20 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass: "bg-rose-50 text-rose-900 border-rose-200",
+      badgeVariant: "danger",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass: "bg-amber-50 text-amber-950 border-amber-300",
+      badgeVariant: "warning",
     };
   }
   return {
     label: "Acompanhamento",
     variant: "moderado",
-    colorClass: "bg-slate-100 text-slate-800 border-slate-200",
+    badgeVariant: "default",
   };
 }
 
@@ -887,37 +1012,37 @@ export function buildRadarCivicoCards(
       if (alerta.tipoAnomalia === "inadimplencia_aporte_rpps") {
         return {
           label: "Lei nº 9.717/1998",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm#art1",
+          url: urlLegislacao("lei9717", "art1"),
         };
       }
       if (alerta.tipoAnomalia === "retencao_patronal_rpps") {
         return {
           label: "Art. 40 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art40",
+          url: urlLegislacao("constituicao", "art40"),
         };
       }
       if (alerta.tipoAnomalia === "desconto_nulo_pregao") {
         return {
           label: "Art. 5º da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art5",
+          url: urlLegislacao("lei14133", "art5"),
         };
       }
       if (alerta.tipoAnomalia === "desagio_extremo_inexequibilidade") {
         return {
           label: "Art. 59, III da Lei nº 14.133/2021",
-          url: "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art59",
+          url: urlLegislacao("lei14133", "art59"),
         };
       }
       if (alerta.tipoAnomalia === "inconsistencia_vinculo_pessoal") {
         return {
           label: "Art. 37 da CF/88",
-          url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm#art37",
+          url: urlLegislacao("constituicao", "art37"),
         };
       }
       if (alerta.tipoAnomalia === "dependencia_transferencias") {
         return {
           label: "Art. 11 da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art11",
+          url: urlLegislacao("lrf", "art11"),
         };
       }
       if (alerta.tipoAnomalia === "desidratacao_patrimonio_rpps") {
@@ -928,14 +1053,14 @@ export function buildRadarCivicoCards(
           },
           {
             label: "Lei nº 9.717/1998",
-            url: "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm",
+            url: urlLegislacao("lei9717"),
           },
         ];
       }
       if (alerta.tipoAnomalia === "despesa_pessoal_limite_lrf") {
         return {
           label: "Art. 20, III, b da LRF",
-          url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
+          url: urlLegislacao("lrf", "art20"),
         };
       }
       return undefined;

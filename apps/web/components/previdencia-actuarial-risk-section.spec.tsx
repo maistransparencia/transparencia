@@ -71,13 +71,13 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos de Parcelamento e Dívidas Previdenciárias (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByText(
-        /Monitoramento dos acordos formais de confissão e parcelamento de dívidas previdenciárias firmados junto ao Ministério da Previdência \(CADPREV\)/i,
+        /Acordos em que a Prefeitura parcelou dívidas previdenciárias com o fundo de aposentadoria, registrados no CADPREV \(Ministério da Previdência\)/i,
       ),
     ).toBeInTheDocument();
   });
@@ -121,17 +121,16 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+      name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
     });
     expect(heading).toBeInTheDocument();
-    expect(heading.tagName).toBe("H3");
+    expect(heading.tagName).toBe("H2");
+    expect(
+      screen.getAllByRole("heading", { name: /dívidas parceladas/ }),
+    ).toHaveLength(1);
 
-    expect(
-      screen.getByText("Registro CADPREV / Ministério da Previdência"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Objeto do Termo de Parcelamento"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Registro CADPREV")).toBeInTheDocument();
+    expect(screen.getByText("Objeto do parcelamento")).toBeInTheDocument();
     expect(screen.getByText("00123/2023")).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -158,19 +157,17 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByText(
-        "Nenhum termo de parcelamento ou confissão de dívida registrado no CADPREV para o exercício de 2024.",
+        "Nenhum termo de parcelamento ou confissão de dívida registrado no CADPREV em 2024.",
       ),
     ).toBeInTheDocument();
 
-    expect(
-      screen.queryByText("Registro CADPREV / Ministério da Previdência"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Registro CADPREV")).not.toBeInTheDocument();
 
     expect(
       screen.getByText(
@@ -189,18 +186,16 @@ describe("PrevidenciaActuarialRiskSection", () => {
     );
 
     const heading = screen.getByRole("heading", {
-      name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2026)",
+      name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2024)",
     });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe("H3");
 
-    expect(screen.getByText("Exercício / Ano")).toBeInTheDocument();
-    expect(screen.getByText("Aporte Atuarial Exigido")).toBeInTheDocument();
-    expect(screen.getByText("Aporte Efetuado / Quitado")).toBeInTheDocument();
-    expect(screen.getByText("Índice de Adimplência")).toBeInTheDocument();
-    expect(
-      screen.getByText("Amortização de Dívida / Parcelamento"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Exercício")).toBeInTheDocument();
+    expect(screen.getByText("Aporte exigido")).toBeInTheDocument();
+    expect(screen.getByText("Aporte pago")).toBeInTheDocument();
+    expect(screen.getByText("Adimplência")).toBeInTheDocument();
+    expect(screen.getByText("Dívida amortizada")).toBeInTheDocument();
     expect(screen.getByText("2021")).toBeInTheDocument();
     expect(screen.getByText("2024")).toBeInTheDocument();
   });
@@ -212,13 +207,13 @@ describe("PrevidenciaActuarialRiskSection", () => {
 
     expect(
       screen.queryByRole("heading", {
-        name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2026)",
+        name: "Evolução Histórica da Cobertura Atuarial e Resgate de Dívidas (2021–2024)",
       }),
     ).not.toBeInTheDocument();
 
     expect(
       screen.getByRole("heading", {
-        name: "Acordos Oficiais de Confissão e Parcelamento de Dívidas (CADPREV / Ministério da Previdência)",
+        name: /^Quanto a Prefeitura pagou em \d{4} de dívidas parceladas com o fundo de aposentadoria\?$/,
       }),
     ).toBeInTheDocument();
   });

@@ -167,6 +167,7 @@ def main() -> None:
 
     engine = get_engine()
 
+    farmacia_dirs_carregados: set[Path] = set()
     for json_file in sorted(run_dir.rglob("*.json")):
         table = json_file.parent.name
         config = next((c for c in endpoint_configs if c.table == table), None)
@@ -183,6 +184,14 @@ def main() -> None:
                     count,
                     schema,
                 )
+                continue
+            if table == "siconfi_rgf":
+                from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
+
+                ensure_siconfi_rgf_table(engine, schema)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = load_siconfi_rgf(engine, rows, schema=schema)
+                logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
                 continue
             if table == "pncp":
                 from elt.load.pncp import (
@@ -239,6 +248,14 @@ def main() -> None:
                         "Loaded obrasgov/empenhos.json → %d rows into raw_obrasgov.empenhos",
                         count,
                     )
+                continue
+            if table == "farmacia_sus":
+                if json_file.parent not in farmacia_dirs_carregados:
+                    from elt.load.farmacia_sus import load_farmacia_sus_dir
+
+                    farmacia_dirs_carregados.add(json_file.parent)
+                    count = load_farmacia_sus_dir(engine, json_file.parent, portal.slug)
+                    logger.info("Loaded farmacia_sus (%s) → %d rows into raw_farmacia_sus", json_file.parent, count)
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue

@@ -2,19 +2,13 @@
 
 import {
   buildNavUrl,
+  buildTemasNavItems,
   cn,
   type MultiSelectOption,
   type PortalOption,
   resolvePortalSlug,
 } from "@transparencia/ui";
-import {
-  FileText,
-  LayoutDashboard,
-  Menu,
-  Receipt,
-  TrendingUp,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -32,6 +26,8 @@ export interface PortalTabItem {
   }>;
 }
 
+const TEMAS_PRIMARIOS_IDS = ["saude", "educacao", "obras"];
+
 export const PRIMARY_NAV_TABS: readonly PortalTabItem[] = [
   {
     id: "visao-geral",
@@ -40,28 +36,16 @@ export const PRIMARY_NAV_TABS: readonly PortalTabItem[] = [
     shortLabel: "Início",
     icon: LayoutDashboard,
   },
-  {
-    id: "receitas",
-    path: "/receitas",
-    label: "Receitas",
-    shortLabel: "Receitas",
-    icon: TrendingUp,
-  },
-  {
-    id: "despesas",
-    path: "/despesas",
-    label: "Despesas Detalhadas",
-    shortLabel: "Despesas",
-    icon: Receipt,
-  },
-  {
-    id: "licitacoes",
-    path: "/licitacoes",
-    label: "Licitações e Contratos",
-    shortLabel: "Licitações",
-    icon: FileText,
-  },
-] as const;
+  ...buildTemasNavItems({ previdencia: { habilitado: false } })
+    .filter((tema) => TEMAS_PRIMARIOS_IDS.includes(tema.id))
+    .map((tema) => ({
+      id: tema.id,
+      path: tema.href,
+      label: tema.name,
+      shortLabel: tema.shortName,
+      icon: tema.icon,
+    })),
+];
 
 export function isTabActive(
   pathname: string | null,
@@ -72,8 +56,7 @@ export function isTabActive(
     return tabPath === "/";
   }
 
-  const effectiveSlug = portalSlug ?? "porciuncula_prefeitura";
-  const slugPrefix = `/${effectiveSlug}`;
+  const slugPrefix = portalSlug ? `/${portalSlug}` : "";
 
   const cleanPath =
     pathname.length > 1 && pathname.endsWith("/")
@@ -81,7 +64,7 @@ export function isTabActive(
       : pathname;
 
   if (tabPath === "/") {
-    return cleanPath === "/" || cleanPath === slugPrefix;
+    return cleanPath === "/" || (slugPrefix !== "" && cleanPath === slugPrefix);
   }
 
   const fullTabPath = `${slugPrefix}${tabPath}`;
@@ -107,7 +90,7 @@ export function resolveActiveTabIndex(
     }
   }
 
-  // Se a rota ativa não pertencer às 4 abas primárias, retorna 4 ("Mais")
+  // Se a rota ativa não pertencer às abas primárias, retorna 4 ("Mais")
   return PRIMARY_NAV_TABS.length;
 }
 
@@ -127,7 +110,7 @@ export interface MobileBottomNavProps {
 }
 
 export function MobileBottomNav({
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
   radarAlertCount,
   radarAlertsCountByYear,
   radarAlertsByPortal,
@@ -162,12 +145,14 @@ export function MobileBottomNav({
       );
       if (match) return match.portalSlug;
     }
-    return portalSlug || "porciuncula_prefeitura";
+    return portalSlug;
   })();
 
   const activeAlertCount = (() => {
     const alertsMap =
-      radarAlertsByPortal?.[activePortalSlug] ?? radarAlertsCountByYear;
+      (activePortalSlug
+        ? radarAlertsByPortal?.[activePortalSlug]
+        : undefined) ?? radarAlertsCountByYear;
     if (alertsMap) {
       const yearNum = Number.parseInt(ano, 10);
       if (Number.isFinite(yearNum) && alertsMap[yearNum] !== undefined) {
@@ -189,7 +174,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label="Navegação móvel"
-      className="fixed right-0 bottom-0 left-0 z-30 border-borderLine border-t bg-white/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      className="fixed right-0 bottom-0 left-0 z-30 border-line border-t bg-page/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
         {PRIMARY_NAV_TABS.map((tab, index) => {
@@ -209,16 +194,16 @@ export function MobileBottomNav({
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex min-h-[48px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
+                "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
                 isActive
-                  ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
-                  : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+                  ? "bg-brand/10 font-bold text-brand-text"
+                  : "font-medium text-mute2 hover:text-ink active:bg-line2",
               )}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                  isActive && "scale-110 text-brand-text",
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
@@ -241,23 +226,23 @@ export function MobileBottomNav({
           }
           aria-expanded={isMenuOpen}
           className={cn(
-            "flex min-h-[48px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
+            "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
             isMoreActive
-              ? "bg-[oklch(0.55_0.11_250)]/10 font-bold text-[oklch(0.55_0.11_250)]"
-              : "font-medium text-mutedText hover:text-ink active:bg-gray-100",
+              ? "bg-brand/10 font-bold text-brand-text"
+              : "font-medium text-mute2 hover:text-ink active:bg-line2",
           )}
         >
           <div className="relative inline-flex items-center justify-center">
             {isMenuOpen ? (
               <X
-                className="h-5 w-5 shrink-0 scale-110 text-[oklch(0.55_0.11_250)] transition-transform"
+                className="h-5 w-5 shrink-0 scale-110 text-brand-text transition-transform"
                 strokeWidth={2.2}
               />
             ) : (
               <Menu
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isMoreActive && "scale-110 text-[oklch(0.55_0.11_250)]",
+                  isMoreActive && "scale-110 text-brand-text",
                 )}
                 strokeWidth={isMoreActive ? 2.2 : 1.8}
               />
@@ -269,8 +254,8 @@ export function MobileBottomNav({
                 className="absolute -top-0.5 -right-0.5 flex h-2 w-2"
                 aria-label={`${activeAlertCount} alertas críticos no Radar`}
               >
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600 motion-safe:animate-pulse motion-reduce:animate-none" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-danger-fill opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-danger-fill motion-safe:animate-pulse motion-reduce:animate-none" />
               </span>
             )}
           </div>
