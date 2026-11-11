@@ -163,7 +163,7 @@ describe("VisaoGeralPage", () => {
     const h1 = screen.getAllByRole("heading", { level: 1 });
     expect(h1).toHaveLength(1);
     expect(h1[0]).toHaveTextContent("Porciúncula");
-    expect(screen.getByText("Situação da cidade")).toBeInTheDocument();
+    expect(screen.queryByText("Situação da cidade")).not.toBeInTheDocument();
     expect(
       screen.getByText(/Dados de 2024, atualizados em/),
     ).toBeInTheDocument();
