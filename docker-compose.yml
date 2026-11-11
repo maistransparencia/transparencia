@@ -27,7 +27,7 @@ services:
   # O build (dbt) só cria o schema (tabelas vazias); os dados vêm das fixtures
   # programáticas em packages/db/tests/fixtures/seed.ts.
   # Uso: docker compose up -d postgres_test && make db/test/build && \
-  #      DATABASE_URL=postgresql://postgres:postgres@localhost:5545/postgres pnpm --filter @transparencia/db test
+  #      make test/ts   (os testes leem TEST_DATABASE_URL, padrão localhost:5545)
   postgres_test:
     image: postgres:17.6-alpine
     container_name: transparencia_postgres_test

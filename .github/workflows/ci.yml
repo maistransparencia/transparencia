@@ -49,7 +49,7 @@ jobs:
       postgres:
         image: postgres:17.6-alpine
         ports:
-          - 5544:5432
+          - 5545:5432
         env:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
@@ -87,12 +87,12 @@ jobs:
       - name: Build packages/db test database (dbt)
         run: make db/test/build
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5545/postgres
 
       - name: Run tests
         run: make test/ts
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5545/postgres
 
   migrate:
     needs: [elt, web]
