@@ -87,6 +87,15 @@ describe("buildSituacaoCidadeCards", () => {
     expect(saude?.tom).toBe("neutro");
   });
 
+  it("a barra do mínimo usa escala de 0 a 100%, não relativa ao limite", () => {
+    const saude = card(base({ minimoSaude: minimo(30.8, 15) }), "saude");
+    expect(saude?.apoio?.barraPercentual).toBe(30.8);
+    expect(saude?.apoio?.tracoMinimoPercentual).toBe(15);
+
+    const estourado = card(base({ minimoSaude: minimo(120, 15) }), "saude");
+    expect(estourado?.apoio?.barraPercentual).toBe(100);
+  });
+
   it("parcial: 'Em andamento' sem veredito", () => {
     const saude = card(
       base({

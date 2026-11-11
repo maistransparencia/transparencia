@@ -30,9 +30,9 @@ export interface ApoioMinimoModel {
   pergunta: string;
   estado: EstadoApoioMinimo;
   texto: string;
-  /** Largura da barra aplicada, em % da escala visual. */
+  /** Largura da barra aplicada, em escala de 0 a 100%. */
   barraPercentual: number;
-  /** Posição do traço do mínimo, em % da escala visual. */
+  /** Posição do traço do mínimo, em escala de 0 a 100%. */
   tracoMinimoPercentual: number;
   baseLegal: string | null;
   urlBaseLegal: string | null;
@@ -94,8 +94,6 @@ const textoMotivo = (
   return MOTIVO_TEXTO_FIXO[situacao.motivo];
 };
 
-const ESCALA_BARRA_FOLGA = 1.25;
-
 const montarApoioMinimo = (
   pergunta: string,
   situacao: SituacaoAreaDTO,
@@ -115,13 +113,12 @@ const montarApoioMinimo = (
     parcial: `Em andamento: ${aplicadoTexto} aplicados até agora (mínimo de ${limiteTexto} no ano).`,
     abaixo: `Ainda não: ${aplicadoTexto} aplicados (mínimo de ${limiteTexto}).`,
   };
-  const escala = Math.max(aplicado, limite, 1) * ESCALA_BARRA_FOLGA;
   return {
     pergunta,
     estado,
     texto: textos[estado],
-    barraPercentual: Math.min((aplicado / escala) * 100, 100),
-    tracoMinimoPercentual: Math.min((limite / escala) * 100, 100),
+    barraPercentual: Math.min(Math.max(aplicado, 0), 100),
+    tracoMinimoPercentual: Math.min(Math.max(limite, 0), 100),
     baseLegal: minimo.baseLegal,
     urlBaseLegal: minimo.urlBaseLegal,
   };
