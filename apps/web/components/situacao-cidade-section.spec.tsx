@@ -80,10 +80,11 @@ describe("SituacaoCidadeSection compartilhar", () => {
     );
   });
 
-  it("remédios de exemplo viram chips com borda", () => {
+  it("remédios de exemplo viram links depois de 'Mais procurados:'", () => {
     render(<SituacaoCidadeSection {...propsBase} />);
-    expect(screen.getByRole("link", { name: "Dipirona" }).className).toContain(
-      "border-line",
-    );
+    expect(screen.getByText("Mais procurados:")).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: "Dipirona" });
+    expect(link.className).not.toContain("border");
+    expect(link.className).toContain("underline");
   });
 });

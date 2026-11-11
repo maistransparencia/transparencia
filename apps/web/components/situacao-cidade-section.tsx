@@ -254,18 +254,21 @@ function ExtrasSaude({
       <div className="space-y-2">
         <FarmaciaBuscaForm {...propsBusca} />
         {(props.farmaciaExemplos ?? []).length > 0 && (
-          <ul className="flex flex-wrap gap-2">
-            {(props.farmaciaExemplos ?? []).map((exemplo) => (
-              <li key={exemplo.codigoPrincipioAtivo}>
-                <Link
-                  href={exemplo.href}
-                  className="caption inline-flex min-h-8 items-center rounded-md border border-line px-3 text-brand hover:border-mute3 hover:underline"
-                >
-                  {exemplo.nomePrincipioAtivo}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="caption flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-mute2">Mais procurados:</span>
+            <ul className="contents">
+              {(props.farmaciaExemplos ?? []).map((exemplo) => (
+                <li key={exemplo.codigoPrincipioAtivo}>
+                  <Link
+                    href={exemplo.href}
+                    className="inline-flex min-h-8 items-center text-brand-text underline underline-offset-2"
+                  >
+                    {exemplo.nomePrincipioAtivo}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     );
