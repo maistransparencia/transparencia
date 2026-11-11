@@ -108,6 +108,12 @@ export default async function LicitacoesPage({
         </p>
       </div>
 
+      <LicitacoesSearchBar
+        portalSlug={portalSlug}
+        ano={selectedYear}
+        termoInicial={termoInicial}
+      />
+
       <section className="space-y-6" data-testid="licitacoes-destaque">
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2" data-testid="licitacoes-destaque-ativas">
@@ -175,12 +181,6 @@ export default async function LicitacoesPage({
           />
         </IndicatorPanel>
       </section>
-
-      <LicitacoesSearchBar
-        portalSlug={portalSlug}
-        ano={selectedYear}
-        termoInicial={termoInicial}
-      />
 
       {hasAnomaliaDispensa && (
         <div className="space-y-3">
