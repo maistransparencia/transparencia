@@ -151,7 +151,7 @@ export function FeedbackModal({
     <ModalDialog
       isOpen={isOpen}
       onClose={handleClose}
-      title="Reportar inconsistência ou erro"
+      title="Sugestão ou erro"
       subtitle={
         municipioNome
           ? `Ajude a aprimorar a transparência em ${municipioNome}`

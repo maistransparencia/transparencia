@@ -15,6 +15,7 @@ export interface EducacaoResumoCardData {
   evolucaoTexto: string | null;
   evolucaoTom: EducacaoResumoTom;
   notaAnteriorTexto: string | null;
+  notaAnteriorValorTexto?: string | null;
   metaTexto: string | null;
   metaTom: EducacaoResumoTom;
   rankingTexto: string | null;

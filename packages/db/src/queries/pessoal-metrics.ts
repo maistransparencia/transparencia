@@ -250,6 +250,36 @@ export async function getExecucaoDecimoTerceiroMetrics(
   };
 }
 
+/** Primeiro mês (1-12) em que a home passa a mostrar o 13º; vai até dezembro. */
+const DECIMO_TERCEIRO_WINDOW_START_MONTH = 11;
+
+/**
+ * Janela sazonal do 13º na home: novembro e dezembro do ano corrente.
+ * Regra única do portal; o prazo legal de cada município não entra aqui.
+ */
+export function isDecimoTerceiroWindowOpen(
+  hoje: Date,
+  anoAtivo: number,
+): boolean {
+  return (
+    hoje.getFullYear() === anoAtivo &&
+    hoje.getMonth() + 1 >= DECIMO_TERCEIRO_WINDOW_START_MONTH
+  );
+}
+
+/**
+ * 13º para a home: só dentro da janela sazonal; fora dela (ou sem dado) devolve `null`.
+ */
+export async function getDecimoTerceiroHome(
+  portalSlug: string,
+  year: number,
+  options: { empresaIds?: string[] | null; hoje?: Date } = {},
+): Promise<DecimoTerceiroExecucaoMetricsDTO | null> {
+  const { empresaIds, hoje = new Date() } = options;
+  if (!isDecimoTerceiroWindowOpen(hoje, year)) return null;
+  return getExecucaoDecimoTerceiroMetrics(portalSlug, year, empresaIds);
+}
+
 /**
  * Retorna o percentual de chefias ocupadas por servidores efetivos a partir de `fct_pessoal_folha_metricas`.
  */

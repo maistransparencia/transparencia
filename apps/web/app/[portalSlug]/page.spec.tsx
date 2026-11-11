@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadVisaoGeralData } from "./loader";
 
@@ -87,6 +87,13 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
     },
     radarAlertas: [],
     resumoFarmacia: { status: "conforme" },
+    minimoSaude: null,
+    minimoEducacao: null,
+    situacaoHome: {
+      saude: { estado: "indisponivel", emAtencao: false, motivo: null },
+      obras: { estado: "normal", emAtencao: false, motivo: null },
+      educacao: { estado: "indisponivel", emAtencao: false, motivo: null },
+    },
     resumoObras: {
       totalObras: 5,
       emExecucao: 2,
@@ -111,14 +118,25 @@ const props = {
   searchParams: Promise.resolve({}),
 };
 
+function blocoDecimoTerceiro(): HTMLElement {
+  const bloco = screen
+    .getByRole("heading", { name: "Dinheiro que entra na cidade" })
+    .closest("section");
+  if (!bloco) throw new Error("bloco do 13º não encontrado");
+  return bloco;
+}
+
 describe("VisaoGeralPage", () => {
-  it("happy-path: renderiza hero, radar cívico municipal, card resumo de saldo em caixa e pipeline de execução", async () => {
+  it("happy-path: abertura, situação da cidade, dinheiro público e mais detalhes, sem radar nem pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
 
     const element = await VisaoGeralPage(props);
     render(element);
 
-    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    expect(screen.queryByText(/Radar Cívico Municipal/)).toBeNull();
+    expect(
+      screen.queryByText("Do orçamento autorizado ao pagamento"),
+    ).toBeNull();
     expect(
       screen.getByRole("heading", {
         name: /disponibilidade em caixa e bancos/i,
@@ -133,44 +151,121 @@ describe("VisaoGeralPage", () => {
     expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
     expect(screen.queryByText(/Sentinela cívica/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("region", {
-        name: "Obras Públicas",
-      }),
+      screen.getByRole("heading", { name: "Como está a cidade hoje" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Obras Públicas")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Obras" })).toBeInTheDocument();
   });
 
-  it("renderiza cards no radar cívico quando existirem anomalias no exercício", async () => {
+  it("segue a ordem: abertura, situação, dinheiro público, mais detalhes", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(makeRaw());
+    render(await VisaoGeralPage(props));
+
+    const h1 = screen.getAllByRole("heading", { level: 1 });
+    expect(h1).toHaveLength(1);
+    expect(h1[0]).toHaveTextContent("Porciúncula");
+    expect(screen.getByText("Situação da cidade")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Dados de 2024, atualizados em/),
+    ).toBeInTheDocument();
+
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((h) => h.textContent);
+    expect(titulos).toEqual([
+      "Como está a cidade hoje",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
+    ]);
+    expect(screen.queryByText(/Ano/i, { selector: "select" })).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(
+      screen.getByText(/saldo disponível nas contas da prefeitura/i),
+    ).toBeInTheDocument();
+    ["Despesas", "Licitações e Contratos", "Pessoal"].forEach((nome) => {
+      expect(
+        screen.getByRole("link", { name: new RegExp(nome) }),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("heading", { level: 5 })).toBeNull();
+  });
+
+  it("13º dentro da janela: bloco entre situação e dinheiro público, com o valor pago acumulado, sem barra nem percentual", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
-        radarAlertas: [
-          {
-            anomaliaId: "anomalia-1",
-            portalSlug: "porciuncula_prefeitura",
-            ano: 2024,
-            tipoAnomalia: "explosao_comissionados",
-            dimensaoReferencia: "comissionados",
-            grauSeveridade: "critico",
-            desvioPercentual: 65,
-            valorObservado: 165,
-            valorEsperado: 100,
-            mesInicial: 1,
-            mesFinal: 12,
-            licitacaoNumero: null,
-            metodoDeteccao: "iqr_estoque",
-          },
-        ],
+        decimoTerceiro: {
+          empenhado: 1_000_000,
+          empenhadoBruto: 1_000_000,
+          liquidado: 600_000,
+          pago: 400_000,
+          percentual_pago: 0.4,
+          pctPago: 0.4,
+        },
       }),
     );
+    render(await VisaoGeralPage(props));
 
-    const element = await VisaoGeralPage(props);
-    render(element);
-
-    expect(screen.getByText(/Radar Cívico Municipal/)).toBeInTheDocument();
+    const titulos = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((h) => h.textContent);
+    expect(titulos).toEqual([
+      "Como está a cidade hoje",
+      "Dinheiro que entra na cidade",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
+    ]);
     expect(
-      screen.getByText("Variação em Cargos Comissionados"),
+      screen.getByText("Quanto do 13º a Prefeitura já pagou este ano?"),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("radar-linha")).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s?400/)).toBeInTheDocument();
+    expect(within(blocoDecimoTerceiro()).queryByRole("progressbar")).toBeNull();
+    expect(
+      screen.getByText(/Ainda não temos a data de cada pagamento/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
+  });
+
+  it("13º com pago zerado: diz que não há informação, sem 'atrasado'", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        decimoTerceiro: {
+          empenhado: 1_000_000,
+          empenhadoBruto: 1_000_000,
+          liquidado: 0,
+          pago: 0,
+          percentual_pago: 0,
+          pctPago: 0,
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+
+    expect(
+      screen.getByText("Ainda sem informação de pagamento"),
+    ).toBeInTheDocument();
+    expect(within(blocoDecimoTerceiro()).queryByRole("progressbar")).toBeNull();
+    expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
+  });
+
+  it("fora da janela ou sem dado do 13º: o bloco não existe", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ decimoTerceiro: null }));
+    render(await VisaoGeralPage(props));
+
+    expect(
+      screen.queryByRole("heading", { name: "Dinheiro que entra na cidade" }),
+    ).toBeNull();
+    expect(
+      screen.queryByText("Quanto do 13º a Prefeitura já pagou este ano?"),
+    ).toBeNull();
+  });
+
+  it("município sem nome mostra Municípios Integrados", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({ portalConfig: { dataExtracao: "2024-12-31" } }),
+    );
+    render(await VisaoGeralPage(props));
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Municípios Integrados" }),
+    ).toBeInTheDocument();
   });
 
   it("renderiza fallback amigável quando posicaoFinanceira for nula", async () => {
@@ -191,14 +286,10 @@ describe("VisaoGeralPage", () => {
   it("obras nulo: o card de obras nao renderiza", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(makeRaw({ resumoObras: null }));
     render(await VisaoGeralPage(props));
-    expect(
-      screen.queryByRole("region", {
-        name: "Obras Públicas",
-      }),
-    ).toBeNull();
+    expect(screen.queryByRole("article", { name: "Obras" })).toBeNull();
   });
 
-  it("renderiza o card de educacao com link para a rota de educacao", async () => {
+  it("renderiza o card de educacao com Ideb e link para a rota de educacao", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoEducacao: {
@@ -217,25 +308,28 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
+    const card = screen.getByRole("article", { name: "Educação" });
+    expect(card).toHaveTextContent("Ideb 5,9");
     expect(
-      screen.getByText("Educação Básica e Desempenho Escolar"),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/IDEB 2023/)).toBeInTheDocument();
-    const link = screen
-      .getAllByRole("link")
-      .find((a) => a.getAttribute("href")?.includes("/educacao"));
-    expect(link).toBeDefined();
+      within(card).getByRole("link", { name: /Ver detalhes/ }),
+    ).toHaveAttribute("href", expect.stringContaining("/educacao"));
   });
 
-  it("apagao da farmacia mostra faixa com Ver detalhes para a rota da farmacia", async () => {
+  it("apagao da farmacia mostra Sem informação de estoque, sem etiqueta e com Ver detalhes", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({ resumoFarmacia: { status: "apagao" } }),
     );
     render(await VisaoGeralPage(props));
-    const hrefs = screen
-      .getAllByRole("link", { name: /Ver detalhes/ })
-      .map((link) => link.getAttribute("href") ?? "");
-    expect(hrefs.some((href) => href.endsWith("/farmacia"))).toBe(true);
+    const card = screen.getByRole("article", { name: "Saúde" });
+    expect(card).toHaveTextContent("Sem informação de estoque");
+    expect(card).toHaveTextContent(/não quer dizer que falta remédio/);
+    expect(within(card).queryByText("Merece atenção")).toBeNull();
+    expect(
+      screen.queryByPlaceholderText("Qual remédio você procura?"),
+    ).toBeNull();
+    expect(
+      within(card).getByRole("link", { name: /Ver detalhes/ }),
+    ).toHaveAttribute("href", expect.stringContaining("/saude"));
   });
 
   it("conforme da farmacia mostra o campo de busca", async () => {
@@ -248,7 +342,7 @@ describe("VisaoGeralPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("conforme da farmacia mostra os exemplos de busca das sentinelas em destaque", async () => {
+  it("conforme da farmacia mostra os exemplos de busca das sentinelas", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoFarmacia: { status: "conforme" },
@@ -269,12 +363,31 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.getByText("Exemplos:")).toBeInTheDocument();
     const pilula = screen.getByRole("link", { name: "Dipirona" });
     expect(pilula.getAttribute("href")).toContain("/farmacia?q=Dipirona");
   });
 
-  it("ordena Em destaque (farmacia, obras, educacao), radar e pipeline", async () => {
+  it("obra paralisada mostra Merece atenção sempre com o motivo escrito", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        situacaoHome: {
+          saude: { estado: "indisponivel", emAtencao: false, motivo: null },
+          obras: {
+            estado: "normal",
+            emAtencao: true,
+            motivo: "obra_paralisada",
+          },
+          educacao: { estado: "indisponivel", emAtencao: false, motivo: null },
+        },
+      }),
+    );
+    render(await VisaoGeralPage(props));
+    const card = screen.getByRole("article", { name: "Obras" });
+    expect(card).toHaveTextContent("Merece atenção");
+    expect(card).toHaveTextContent("1 obra está parada.");
+  });
+
+  it("ordena Saúde, Obras e Educação antes do radar e do pipeline", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoFarmacia: { status: "apagao" },
@@ -294,31 +407,23 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.queryByText("Indicadores Sociais")).not.toBeInTheDocument();
-    const farmacia = screen.getByRole("region", { name: "Farmácia SUS" });
-    const educacao = screen.getByRole("region", {
-      name: "Educação Básica e Desempenho Escolar",
-    });
-    const obras = screen.getByRole("region", {
-      name: "Obras Públicas",
-    });
-    const radar = screen.getByTestId("radar-civico-feed-section");
-    const pipeline = screen.getByRole("heading", {
-      name: "Do orçamento autorizado ao pagamento",
+    const saude = screen.getByRole("article", { name: "Saúde" });
+    const obras = screen.getByRole("article", { name: "Obras" });
+    const educacao = screen.getByRole("article", { name: "Educação" });
+    const dinheiro = screen.getByRole("heading", {
+      name: "Para onde vai o dinheiro público",
     });
     const precede = (anterior: Element, posterior: Element) =>
       Boolean(
         anterior.compareDocumentPosition(posterior) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       );
-    expect(screen.getAllByTestId("destaque-linha")).toHaveLength(1);
-    expect(precede(farmacia, obras)).toBe(true);
+    expect(precede(saude, obras)).toBe(true);
     expect(precede(obras, educacao)).toBe(true);
-    expect(precede(educacao, radar)).toBe(true);
-    expect(precede(radar, pipeline)).toBe(true);
+    expect(precede(educacao, dinheiro)).toBe(true);
   });
 
-  it("sem nenhuma linha a secao Em destaque nao existe", async () => {
+  it("sem nenhum dado a seção Como está a cidade hoje não existe", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoObras: null,
@@ -327,11 +432,12 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
-    expect(screen.queryByTestId("destaque-linha")).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "Como está a cidade hoje" }),
+    ).toBeNull();
   });
 
-  it("farmacia indisponivel com obras presente mostra so o card de obras", async () => {
+  it("farmacia indisponivel com obras presente mostra só o card de obras", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoFarmacia: { status: "indisponivel" },
@@ -339,17 +445,11 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
-    expect(screen.queryByTestId("destaque-linha")).toBeNull();
-    expect(
-      screen.getByRole("region", {
-        name: "Obras Públicas",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Farmácia SUS" })).toBeNull();
+    expect(screen.getByRole("article", { name: "Obras" })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "Saúde" })).toBeNull();
   });
 
-  it("educacao com nota indisponivel oculta a linha e a secao", async () => {
+  it("educacao com nota indisponivel oculta o card", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         resumoObras: null,
@@ -370,12 +470,7 @@ describe("VisaoGeralPage", () => {
       }),
     );
     render(await VisaoGeralPage(props));
-    expect(screen.queryByRole("heading", { name: "Em destaque" })).toBeNull();
-    expect(
-      screen.queryByRole("region", {
-        name: "Educação Básica e Desempenho Escolar",
-      }),
-    ).toBeNull();
+    expect(screen.queryByRole("article", { name: "Educação" })).toBeNull();
   });
 
   it("cada seção abre com SectionHeader (filete de 2px) e espaçamento responsivo", async () => {
@@ -384,8 +479,9 @@ describe("VisaoGeralPage", () => {
     );
     const { container } = render(await VisaoGeralPage(props));
     const titulos = [
-      "Radar Cívico Municipal (2024)",
-      "Do orçamento autorizado ao pagamento",
+      "Como está a cidade hoje",
+      "Para onde vai o dinheiro público",
+      "Mais detalhes",
     ];
     titulos.forEach((titulo) => {
       const cabecalho = screen
@@ -394,14 +490,17 @@ describe("VisaoGeralPage", () => {
       expect(cabecalho).toHaveClass("border-t-2", "border-ink");
     });
     const raiz = container.firstElementChild;
-    expect(raiz).toHaveClass("space-y-16", "md:space-y-[104px]", "bg-page");
+    expect(raiz).toHaveClass("space-y-12", "md:space-y-16", "bg-page");
   });
 
   it("não usa caixas com sombra nem hex nos arquivos migrados", () => {
     const arquivos = [
       "app/[portalSlug]/page.tsx",
-      "components/hero-fiscal-card.tsx",
-      "components/destaque-linha.tsx",
+      "components/abertura-home.tsx",
+      "components/dinheiro-publico-section.tsx",
+      "components/mais-detalhes-section.tsx",
+      "components/situacao-cidade-section.tsx",
+      "lib/situacao-cidade.ts",
       "components/radar-civico-feed.tsx",
       "components/pipeline-execucao.tsx",
       "components/saldo-caixa-resumo-card.tsx",
@@ -442,9 +541,7 @@ describe("VisaoGeralPage", () => {
         searchParams: Promise.resolve({}),
       }),
     );
-    expect(
-      screen.getByRole("heading", { name: "Radar Cívico Municipal (2027)" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dados de 2027/)).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Porci[uú]ncula|Natividade/);
   });
 });

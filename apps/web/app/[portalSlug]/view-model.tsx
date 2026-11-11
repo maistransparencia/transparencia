@@ -3,6 +3,7 @@ import {
   buildNavUrl,
   fmtCompact,
   fmtCurrency,
+  fmtDate,
   fmtNumber,
   fmtPercent,
   getPartialYearPeriod,
@@ -134,6 +135,44 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
         ? null
         : fmtCurrency(resumo.despesaLiquidadaEducacao),
   };
+}
+
+/** Resumos dos atalhos de "Mais detalhes"; sem dado devolve `null` (vale a descrição genérica). */
+function buildResumoDespesas(
+  totalPago: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(totalPago > 0)) return null;
+  const valor = fmtCompact(totalPago);
+  return isCurrentYear
+    ? `${valor} pagos em ${year} até agora`
+    : `${valor} pagos em ${year}`;
+}
+
+function buildResumoContratacoes(
+  total: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "contratação" : "contratações"}`;
+  return isCurrentYear
+    ? `${quantidade} em ${year} até agora`
+    : `${quantidade} em ${year}`;
+}
+
+function buildResumoPessoal(
+  total: number,
+  mesReferencia: number,
+  year: number,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "servidor" : "servidores"}`;
+  const mes = getMesNome(mesReferencia);
+  return mes
+    ? `${quantidade} na folha de ${mes}/${year}`
+    : `${quantidade} na folha de ${year}`;
 }
 
 function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
@@ -391,6 +430,48 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
     isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
+  const dataAtualizacao = fmtDate(
+    raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+  );
+  const periodLabel =
+    dataAtualizacao === "N/D"
+      ? `Dados de ${selectedYear}`
+      : `Dados de ${selectedYear}, atualizados em ${dataAtualizacao}`;
+  const detailShortcuts = [
+    {
+      label: "Despesas",
+      title: "Em que a Prefeitura gastou",
+      url: routeUrl("/despesas"),
+      summary: buildResumoDespesas(
+        execSummary.totalPago,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Licitações e Contratos",
+      title: "Compras e contratações",
+      url: routeUrl("/licitacoes"),
+      summary: buildResumoContratacoes(
+        raw.totalContratacoes,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Pessoal",
+      title: "Servidores e folha de pagamento",
+      url: routeUrl("/pessoal"),
+      summary: buildResumoPessoal(
+        raw.totalProfissionais,
+        raw.mesReferenciaPessoal,
+        selectedYear,
+      ),
+    },
+  ].map(({ summary, ...shortcut }) => ({
+    ...shortcut,
+    title: summary ?? shortcut.title,
+  }));
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
@@ -450,6 +531,9 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   return {
     portalName,
+    openingTitle: portalName || "Municípios Integrados",
+    periodLabel,
+    detailShortcuts,
     periodText,
     arrecadadoTitle,
     heroHeadline,
@@ -475,6 +559,15 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    minimoSaude: raw.minimoSaude,
+    minimoEducacao: raw.minimoEducacao,
+    situacaoHome: raw.situacaoHome,
+    decimoTerceiroHome: raw.decimoTerceiro
+      ? {
+          pago: raw.decimoTerceiro.pago,
+          semPagamento: raw.decimoTerceiro.pago <= 0,
+        }
+      : null,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
     farmaciaRequerimento:
       raw.resumoFarmacia?.status === "apagao" && portalName
@@ -502,6 +595,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
           )
         : [],
     educacaoDetailUrl: routeUrl("/educacao"),
+    saudeDetailUrl: routeUrl("/saude"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(

@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-07
+last_updated: 2026-11-09
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -284,3 +284,11 @@ development_status:
   26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
   26-2-inventario-e-plano-de-migracao-do-legado: backlog
   epic-26-retrospective: optional
+
+  epic-27: in-progress
+  27-1-contrato-de-dados-da-home-minimos-etiqueta-com-motivo-e-estados: done
+  27-2-card-de-situacao-saude-obras-e-educacao: done
+  27-3-reorganizacao-da-home-nova-ordem-hero-rebaixado-e-radar-fora: done
+  27-4-dinheiro-que-entra-na-cidade-13o-salario-sazonal: done
+  27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel: done
+  epic-27-retrospective: optional

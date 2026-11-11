@@ -4,6 +4,8 @@ import {
   ChevronDown,
   FileText,
   LayoutDashboard,
+  PanelLeftClose,
+  PanelLeftOpen,
   PieChart,
   Pill,
   Receipt,
@@ -14,11 +16,14 @@ import {
 } from "lucide-react";
 import {
   type ComponentType,
+  type FocusEvent,
+  type PointerEvent,
   type ReactNode,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
 import { BrandLogo } from "./brand-logo";
@@ -59,12 +64,27 @@ export interface LinkComponentProps {
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
+  title?: string;
+  "aria-label"?: string;
 }
 
 export type LinkComponent = ComponentType<LinkComponentProps>;
 
-const DefaultLink: LinkComponent = ({ href, onClick, className, children }) => (
-  <a href={href} onClick={onClick} className={className}>
+const DefaultLink: LinkComponent = ({
+  href,
+  onClick,
+  className,
+  children,
+  title,
+  "aria-label": ariaLabel,
+}) => (
+  <a
+    href={href}
+    onClick={onClick}
+    className={className}
+    title={title}
+    aria-label={ariaLabel}
+  >
     {children}
   </a>
 );
@@ -265,6 +285,57 @@ export function Sidebar({
   const [internalExercice, setInternalExercice] = useState(String(currentYear));
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  // Só no desktop e sem persistência: toda visita abre expandida.
+  // `isNarrow` anima a largura; `isCollapsed` troca o layout para só ícones. Com o layout completo,
+  // o conteúdo tem largura fixa e a sidebar o recorta: ao expandir, o layout completo entra logo e a
+  // largura o revela deslizando; ao recolher, ele vai sendo coberto e só no fim vira só ícones.
+  const [isNarrow, setIsNarrow] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [tooltip, setTooltip] = useState<{
+    text: string;
+    top: number;
+    left: number;
+  } | null>(null);
+  const hideWhenCollapsed = isCollapsed ? "md:hidden" : "";
+  const collapsedLinkClass = isCollapsed ? "md:justify-center md:px-0" : "";
+  const collapsedLinkProps = (name: string) =>
+    isCollapsed ? { "aria-label": name } : {};
+
+  const toggleCollapsed = () => {
+    setTooltip(null);
+    if (isNarrow) {
+      setIsCollapsed(false);
+      setIsNarrow(false);
+      return;
+    }
+    setIsNarrow(true);
+  };
+
+  useEffect(() => {
+    if (!isNarrow || isCollapsed) return;
+    const timer = window.setTimeout(() => setIsCollapsed(true), 200);
+    return () => window.clearTimeout(timer);
+  }, [isNarrow, isCollapsed]);
+
+  // Tooltip do design system no lugar do `title` nativo: ícones do menu recolhido e o botão de
+  // recolher. Vai para o body porque a área com rolagem cortaria o balão.
+  const showTooltip = (
+    event: PointerEvent<HTMLElement> | FocusEvent<HTMLElement>,
+  ) => {
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    const selector = isCollapsed
+      ? "a[aria-label], [data-sidebar-tooltip]"
+      : "[data-sidebar-tooltip]";
+    const target = (event.target as HTMLElement).closest<HTMLElement>(selector);
+    const text = target?.getAttribute("aria-label");
+    if (!target || !text) {
+      setTooltip(null);
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    setTooltip({ text, top: rect.top + rect.height / 2, left: rect.right + 8 });
+  };
+  const hideTooltip = () => setTooltip(null);
 
   const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
   const backdropMountedAt = useRef(0);
@@ -449,31 +520,70 @@ export function Sidebar({
         className={cn(
           "select-none border-line border-r bg-page md:bg-transparent",
           "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[translate,visibility] duration-300 ease-in-out",
-          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
+          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:shrink-0 md:translate-x-0 md:shadow-none md:transition-[width] md:duration-200 md:ease-out md:motion-reduce:transition-none",
+          "md:overflow-hidden",
+          isNarrow ? "md:w-14" : "md:w-[266px]",
+          !isCollapsed && "md:*:w-[265px] md:*:shrink-0",
           isMobileOpen
             ? "pointer-events-auto visible translate-x-0 shadow-2xl"
             : "pointer-events-none invisible -translate-x-full shadow-none md:pointer-events-auto md:visible",
         )}
+        onPointerOver={showTooltip}
+        onPointerLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* Marca da plataforma */}
-          <div className="flex items-center justify-between gap-3 border-line border-b px-4 py-3">
-            <span className="flex min-w-0 items-center gap-2 font-bold font-serif text-base text-ink leading-snug">
-              <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
-              <span className="truncate">{brandName}</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsMobileOpen(false)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
-              aria-label="Fechar menu"
-            >
-              <X strokeWidth={2} className="h-4 w-4" />
-            </button>
-          </div>
+        {/* Marca da plataforma: fora da área com rolagem, para a barra de rolagem não estreitar o nome */}
+        <div
+          className={cn(
+            "flex shrink-0 items-center justify-between gap-2 border-line border-b px-4 py-3",
+            isCollapsed && "md:justify-center md:px-2",
+          )}
+        >
+          <span
+            className={cn(
+              "flex min-w-0 items-center gap-2 font-bold font-serif text-base text-ink leading-snug",
+              hideWhenCollapsed,
+            )}
+          >
+            <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
+            <span className="truncate">{brandName}</span>
+          </span>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="-mr-1.5 hidden h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-mute2 transition-colors hover:bg-line2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:flex"
+            aria-label={
+              isNarrow ? "Expandir menu lateral" : "Recolher menu lateral"
+            }
+            aria-expanded={!isNarrow}
+            data-sidebar-tooltip
+          >
+            {isNarrow ? (
+              <PanelLeftOpen strokeWidth={1.8} className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose strokeWidth={1.8} className="h-4 w-4" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(false)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
+            aria-label="Fechar menu"
+          >
+            <X strokeWidth={2} className="h-4 w-4" />
+          </button>
+        </div>
 
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+          onScroll={hideTooltip}
+        >
           {/* Município */}
-          <div className="border-line border-b p-4">
+          {isCollapsed && (
+            <h1 className="sr-only hidden md:block">{displayTitle}</h1>
+          )}
+          <div className={cn("border-line border-b p-4", hideWhenCollapsed)}>
             {portais && portais.length > 0 && onPortalChange ? (
               <>
                 <h1 className="sr-only">{displayTitle}</h1>
@@ -489,7 +599,12 @@ export function Sidebar({
           </div>
 
           {/* Seção de Filtros */}
-          <div className="space-y-2.5 border-line border-b px-4 py-3.5">
+          <div
+            className={cn(
+              "space-y-2.5 border-line border-b px-4 py-3.5",
+              hideWhenCollapsed,
+            )}
+          >
             <p className="font-semibold text-[11px] text-mute2">Filtros</p>
             <div className="space-y-2">
               <div>
@@ -519,14 +634,16 @@ export function Sidebar({
           </div>
 
           {/* Navegação Principal */}
-          <nav className="space-y-3 p-4">
+          <nav className={cn("space-y-3 p-4", isCollapsed && "md:p-2")}>
             {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
             <div className="space-y-2">
               <Link
                 href={visaoGeralHref}
+                {...collapsedLinkProps("Visão geral")}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
                   "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isVisaoGeralActive
                     ? "border-ink font-semibold text-ink"
                     : "border-transparent text-mute hover:text-ink",
@@ -539,14 +656,20 @@ export function Sidebar({
                     isVisaoGeralActive ? "text-ink" : "text-mute2",
                   )}
                 />
-                <span>Visão geral</span>
+                <span className={hideWhenCollapsed}>Visão geral</span>
               </Link>
 
               <Link
                 href={radarHref}
+                {...collapsedLinkProps(
+                  typeof radarAlertCount === "number" && radarAlertCount > 0
+                    ? `Radar Cívico, ${radarAlertCount} alertas críticos`
+                    : "Radar Cívico",
+                )}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
                   "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isRadarActive
                     ? "border-ink font-semibold text-ink"
                     : "border-transparent text-mute hover:text-ink",
@@ -560,12 +683,17 @@ export function Sidebar({
                       isRadarActive ? "text-ink" : "text-mute2",
                     )}
                   />
-                  <span className="truncate">Radar Cívico</span>
+                  <span className={cn("truncate", hideWhenCollapsed)}>
+                    Radar Cívico
+                  </span>
                 </div>
                 {typeof radarAlertCount === "number" && radarAlertCount > 0 && (
                   <span
                     role="status"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger-text bg-page px-2 py-0.5 font-semibold text-[11px] text-danger-text"
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger-text bg-page px-2 py-0.5 font-semibold text-[11px] text-danger-text",
+                      hideWhenCollapsed,
+                    )}
                     aria-label={`${radarAlertCount} alertas críticos apurados`}
                   >
                     <span
@@ -579,9 +707,11 @@ export function Sidebar({
 
               <Link
                 href={farmaciaHref}
+                {...collapsedLinkProps("Farmácia SUS")}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
                   "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isFarmaciaActive
                     ? "border-ink font-semibold text-ink"
                     : "border-transparent text-mute hover:text-ink",
@@ -594,14 +724,19 @@ export function Sidebar({
                     isFarmaciaActive ? "text-ink" : "text-mute2",
                   )}
                 />
-                <span>Farmácia SUS</span>
+                <span className={hideWhenCollapsed}>Farmácia SUS</span>
               </Link>
             </div>
 
             {/* Demais Grupos de Navegação */}
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-2">
-                <p className="mb-1.5 px-3 font-semibold text-[11px] text-mute2">
+                <p
+                  className={cn(
+                    "mb-1.5 px-3 font-semibold text-[11px] text-mute2",
+                    hideWhenCollapsed,
+                  )}
+                >
                   {group.label}
                 </p>
                 {group.items.map((item) => {
@@ -635,9 +770,11 @@ export function Sidebar({
                     <Link
                       key={item.href}
                       href={itemHref}
+                      {...collapsedLinkProps(item.name)}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
                         "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                        collapsedLinkClass,
                         isActive
                           ? "border-ink font-semibold text-ink"
                           : "border-transparent text-mute hover:text-ink",
@@ -651,7 +788,9 @@ export function Sidebar({
                             isActive ? "text-ink" : "text-mute2",
                           )}
                         />
-                        <span className="truncate">{item.name}</span>
+                        <span className={cn("truncate", hideWhenCollapsed)}>
+                          {item.name}
+                        </span>
                       </div>
                     </Link>
                   );
@@ -662,7 +801,12 @@ export function Sidebar({
         </div>
 
         {/* Rodapé: compartilhar e alternador de tema */}
-        <div className="space-y-2 border-line border-t p-4 md:p-3">
+        <div
+          className={cn(
+            "space-y-2 border-line border-t p-4 md:p-3",
+            hideWhenCollapsed,
+          )}
+        >
           <div className="hidden md:block">
             {desktopShareSlot ?? (
               <ShareButton variant="sidebar" onShare={onShare} />
@@ -671,6 +815,18 @@ export function Sidebar({
           <ThemeToggle />
         </div>
       </aside>
+
+      {tooltip &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="pointer-events-none fixed z-70 -translate-y-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 font-sans text-onink text-xs shadow-xl"
+            style={{ top: tooltip.top, left: tooltip.left }}
+          >
+            {tooltip.text}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
