@@ -51,6 +51,15 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
         alert: false,
       };
     }
+    // A LRF mede 12 meses corridos; o acumulado de um ano parcial não serve para julgar o limite.
+    if (raw.context.isCurrentYear) {
+      return {
+        title: "Gasto com Pessoal (LRF)",
+        subtext:
+          "Ano em andamento: estimativa com os meses até agora. A LRF mede 12 meses, então ainda não dá para julgar o limite.",
+        alert: false,
+      };
+    }
     if (statusLrf === "excedido") {
       return {
         title: "Gasto com Pessoal (LRF)",
@@ -96,7 +105,11 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
   })();
 
   const folhaTrend = (() => {
-    if (!previousYearRow || previousYearRow.totalFolha === 0) {
+    if (
+      raw.context.isCurrentYear ||
+      !previousYearRow ||
+      previousYearRow.totalFolha === 0
+    ) {
       return undefined;
     }
     const diff = Number(
@@ -235,6 +248,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     folhaKpi,
     folhaTrend,
     barraLimitesLrf,
+    notaEstimativaLrf:
+      "Cálculo do portal com a receita corrente líquida estimada; o número oficial sai no Relatório de Gestão Fiscal.",
     chefiasTrend,
     totalFolhaTrend,
     partialPeriod: getPartialYearPeriod(

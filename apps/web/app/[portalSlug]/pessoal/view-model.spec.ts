@@ -243,6 +243,49 @@ describe("buildPessoalViewModel", () => {
     });
   });
 
+  it("no ano em andamento não compara com o ano anterior nem julga o limite da LRF", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1100,
+            totalPago: 1000,
+            rclProxy: 2000,
+            percentualFolha: 52,
+            statusLrf: "prudencial",
+            limitesLrf: LIMITES_LRF,
+          },
+          {
+            ano: 2023,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 60,
+          },
+        ],
+      }),
+    );
+
+    expect(vm.folhaTrend).toBeUndefined();
+    expect(vm.folhaKpi.alert).toBe(false);
+    expect(vm.folhaKpi.subtext).toBe(
+      "Ano em andamento: estimativa com os meses até agora. A LRF mede 12 meses, então ainda não dá para julgar o limite.",
+    );
+  });
+
+  it("avisa que o percentual é cálculo do portal com a receita corrente líquida estimada", () => {
+    const vm = buildPessoalViewModel(makeRaw());
+    expect(vm.notaEstimativaLrf).toBe(
+      "Cálculo do portal com a receita corrente líquida estimada; o número oficial sai no Relatório de Gestão Fiscal.",
+    );
+  });
+
   it("retorna trends como undefined quando nao ha ano anterior para comparar", () => {
     const vm = buildPessoalViewModel(
       makeRaw({

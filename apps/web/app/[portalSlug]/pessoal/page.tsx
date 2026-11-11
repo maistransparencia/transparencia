@@ -68,6 +68,7 @@ export default async function PessoalPage({
     folhaKpi,
     folhaTrend,
     barraLimitesLrf,
+    notaEstimativaLrf,
     chefiasTrend,
     totalFolhaTrend,
   } = viewModel;
@@ -169,6 +170,7 @@ export default async function PessoalPage({
                 </span>
               )}
             </span>
+            <span className="block">{notaEstimativaLrf}</span>
           </p>
         </section>
       </div>

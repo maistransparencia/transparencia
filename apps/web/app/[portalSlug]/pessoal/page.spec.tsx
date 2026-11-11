@@ -159,6 +159,9 @@ describe("PessoalPage", () => {
     expect(destaque).toHaveTextContent("Gasto: 47,16%");
     expect(destaque).toHaveTextContent("Teto da LRF: 54%");
     expect(destaque).toHaveTextContent("Limite prudencial: 51,3%");
+    expect(destaque).toHaveTextContent(
+      "Cálculo do portal com a receita corrente líquida estimada",
+    );
     const barra = screen.getByRole("meter", {
       name: "Gasto com pessoal sobre a receita corrente líquida",
     });
