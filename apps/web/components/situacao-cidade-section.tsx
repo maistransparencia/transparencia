@@ -57,7 +57,7 @@ function LinhaApoioMinimo({ apoio }: { apoio: ApoioMinimoModel }) {
   const tom = apoio.estado === "abaixo" ? "warn" : "brand";
   const classeTexto = apoio.estado === "abaixo" ? "text-warn-text" : "text-ink";
   return (
-    <div className="space-y-1.5 border-line border-t pt-3 md:first:border-t-0 md:first:pt-0">
+    <div className="border-line space-y-1.5 border-t pt-3 md:first:border-t-0 md:first:pt-0">
       <p className="eyebrow">{apoio.pergunta}</p>
       <p className={`text-sm ${classeTexto}`}>{apoio.texto}</p>
       <ThresholdMeter
@@ -110,7 +110,7 @@ function MiniMapaObras({
     <Link
       href={detailUrl}
       aria-label="Ver no mapa interativo de obras públicas"
-      className="group relative block h-36 w-full overflow-hidden bg-track"
+      className="group bg-track relative block h-36 w-full overflow-hidden"
     >
       <Image
         src={tileInfo.url}
@@ -125,11 +125,11 @@ function MiniMapaObras({
           <span
             key={ponto.id}
             style={{ left: `${ponto.xPercent}%`, top: `${ponto.yPercent}%` }}
-            className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-fill ring-2 ring-page"
+            className="bg-brand-fill ring-page absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2"
           />
         ))}
       </div>
-      <span className="absolute right-2 bottom-2 inline-flex items-center gap-1 bg-page/95 px-2 py-1 font-medium text-ink text-xs">
+      <span className="bg-page/95 text-ink absolute right-2 bottom-2 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium">
         <MapPin className="h-3 w-3" aria-hidden="true" />
         Ver no mapa
       </span>
@@ -181,7 +181,7 @@ function BarraSituacaoObras({ resumo }: { resumo: ResumoObrasDTO }) {
   return (
     <div className="space-y-2">
       <div
-        className="flex h-3 w-full gap-px bg-track"
+        className="bg-track flex h-3 w-full gap-px"
         role="img"
         aria-label={partes.map((p) => `${p.rotulo}: ${p.valor}`).join(", ")}
       >
@@ -262,7 +262,7 @@ function ExtrasSaude({
                 <li key={exemplo.codigoPrincipioAtivo}>
                   <Link
                     href={exemplo.href}
-                    className="inline-flex min-h-8 items-center text-brand-text underline underline-offset-2"
+                    className="text-brand-text inline-flex min-h-8 items-center underline underline-offset-2"
                   >
                     {exemplo.nomePrincipioAtivo}
                   </Link>
@@ -300,7 +300,7 @@ function Complemento({
   const classeCor = sentido ? CLASSE_COR_SENTIDO[sentido] : "";
   return (
     <span
-      className={`caption ml-2 inline-flex items-center gap-0.5 whitespace-nowrap font-normal font-sans ${classeCor}`}
+      className={`caption ml-2 inline-flex items-center gap-0.5 font-sans font-normal whitespace-nowrap ${classeCor}`}
     >
       {Icone && sentido && (
         <>
@@ -396,7 +396,7 @@ function SituacaoCard({
             </p>
           )}
           {card.motivoAtencao && (
-            <p className="mt-1 text-sm text-warn-text">{card.motivoAtencao}</p>
+            <p className="text-warn-text mt-1 text-sm">{card.motivoAtencao}</p>
           )}
           <LinhaFontes fontes={card.fontes} nota={card.notaOrigem} />
         </div>

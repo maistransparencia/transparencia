@@ -82,11 +82,11 @@ export function LicitacoesTable({
           const fracCount = fracionamentoVendors[row.fornecedor] || 0;
           return (
             <div className="align-top">
-              <div className="font-bold text-ink leading-snug">
+              <div className="text-ink leading-snug font-bold">
                 {row.fornecedor}
               </div>
               {fracCount >= 3 && (
-                <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-warn-text px-2 py-0.5 font-medium text-[11px] text-warn-text">
+                <div className="border-warn-text text-warn-text mt-1 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">
                   <span>⚠️</span> {fracCount} contratos próximos ao teto
                 </div>
               )}
@@ -184,21 +184,21 @@ export function LicitacoesTable({
           id={`contrato-card-${row.numero}`}
           className={cn(
             "space-y-0.5",
-            isHighlighted && "animate-pulse ring-2 ring-brand ring-offset-2",
+            isHighlighted && "ring-brand animate-pulse ring-2 ring-offset-2",
           )}
         >
           <div className="flex items-baseline justify-between gap-3">
-            <span className="font-bold text-ink text-sm">
+            <span className="text-ink text-sm font-bold">
               Contrato {row.numero}
             </span>
-            <span className="shrink-0 font-bold font-serif text-ink text-sm">
+            <span className="text-ink shrink-0 font-serif text-sm font-bold">
               {fmtCurrency(valNum)}
             </span>
           </div>
-          <p className="line-clamp-2 text-ink text-xs leading-snug">
+          <p className="text-ink line-clamp-2 text-xs leading-snug">
             {row.objeto}
           </p>
-          <div className="flex items-baseline justify-between gap-3 text-[11px] text-mute2">
+          <div className="text-mute2 flex items-baseline justify-between gap-3 text-[11px]">
             <span>{row.modalidade || "Dispensa"}</span>
             <span>{row.periodo || "—"}</span>
           </div>
@@ -207,11 +207,11 @@ export function LicitacoesTable({
       detalhes: (
         <div className="space-y-2.5">
           <div>
-            <span className="block text-[11px] text-mute2">Fornecedor</span>
-            <span className="font-medium text-ink">{row.fornecedor}</span>
+            <span className="text-mute2 block text-[11px]">Fornecedor</span>
+            <span className="text-ink font-medium">{row.fornecedor}</span>
           </div>
           {fracCount >= 3 && (
-            <div className="inline-flex items-center gap-1 rounded-md border border-warn-text px-2 py-0.5 font-medium text-[11px] text-warn-text">
+            <div className="border-warn-text text-warn-text inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">
               <span>⚠️</span> {fracCount} contratos próximos ao teto
             </div>
           )}

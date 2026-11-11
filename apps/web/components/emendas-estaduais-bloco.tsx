@@ -83,11 +83,11 @@ function Detalhes({
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <dt className="eyebrow">Como o dinheiro chega</dt>
-          <dd className="mt-1 text-ink">{emenda.modalidadeExplicacao}</dd>
+          <dd className="text-ink mt-1">{emenda.modalidadeExplicacao}</dd>
         </div>
         <div>
           <dt className="eyebrow">Quem recebe</dt>
-          <dd className="mt-1 text-ink">
+          <dd className="text-ink mt-1">
             {emenda.beneficiario
               ? toTitleCase(emenda.beneficiario)
               : "Não informado."}
@@ -95,18 +95,18 @@ function Detalhes({
         </div>
         <div>
           <dt className="eyebrow">Número da emenda no Estado</dt>
-          <dd className="mt-1 text-ink">{emenda.numero}</dd>
+          <dd className="text-ink mt-1">{emenda.numero}</dd>
         </div>
         {emenda.destino === "chega_prefeitura" && (
           <div>
             <dt className="eyebrow">Na Prefeitura</dt>
-            <dd className="mt-1 text-ink">{textoCadastro(emenda)}</dd>
+            <dd className="text-ink mt-1">{textoCadastro(emenda)}</dd>
           </div>
         )}
         {fonte && (
           <div>
             <dt className="eyebrow">Fonte no Estado</dt>
-            <dd className="mt-1 text-ink">
+            <dd className="text-ink mt-1">
               <a href={fonte.url} target="_blank" rel="noopener noreferrer">
                 {fonte.orgao}
               </a>
@@ -119,7 +119,7 @@ function Detalhes({
         {posicaoExecucao && (
           <div>
             <dt className="eyebrow">Execução pelo Estado</dt>
-            <dd className="mt-1 text-ink">
+            <dd className="text-ink mt-1">
               {textoExecucao(emenda, posicaoExecucao)}
             </dd>
           </div>

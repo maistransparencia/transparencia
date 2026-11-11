@@ -22,7 +22,7 @@ export function FarmaciaCabecalho({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
           <h1>Farmácia SUS</h1>
-          <p className="text-[15px] text-mute leading-relaxed">
+          <p className="text-mute text-[15px] leading-relaxed">
             Consulte em qual unidade de saúde do município o remédio está
             disponível.
           </p>

@@ -102,11 +102,11 @@ function ValorHomologadoCelula({
   }
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      <span className="numeric text-left font-bold text-ok-text tabular-nums">
+      <span className="numeric text-ok-text text-left font-bold tabular-nums">
         {fmtCurrency(valorHomologado)}
       </span>
       {economia !== null && (
-        <span className="inline-block rounded-sm bg-ok-fill/10 px-1 py-0.5 font-semibold text-[10px] text-ok-text">
+        <span className="bg-ok-fill/10 text-ok-text inline-block rounded-sm px-1 py-0.5 text-[10px] font-semibold">
           -{Math.round(economia)}%
         </span>
       )}
@@ -540,7 +540,7 @@ export function LicitacoesEmAndamentoSection({
         <button
           type="button"
           onClick={() => handleOpenRowDetails(row)}
-          className="numeric cursor-pointer text-left font-bold text-ink hover:text-brand hover:underline"
+          className="numeric text-ink hover:text-brand cursor-pointer text-left font-bold hover:underline"
           title="Ver detalhes da licitação"
         >
           {row.licitacaoNumero || "S/N"}
@@ -554,7 +554,7 @@ export function LicitacoesEmAndamentoSection({
       className: "min-w-[160px] max-w-[240px] text-ink",
       renderCell: (row) => (
         <p
-          className="line-clamp-2 text-ink text-xs leading-relaxed"
+          className="text-ink line-clamp-2 text-xs leading-relaxed"
           title={row.objeto}
         >
           {row.objeto || "—"}
@@ -584,7 +584,7 @@ export function LicitacoesEmAndamentoSection({
       renderCell: (row) => {
         if (typeof row.valorFinal === "number" && row.valorFinal > 0) {
           return (
-            <span className="numeric text-left font-bold text-ink tabular-nums">
+            <span className="numeric text-ink text-left font-bold tabular-nums">
               {fmtCurrency(row.valorFinal)}
             </span>
           );
@@ -621,11 +621,11 @@ export function LicitacoesEmAndamentoSection({
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <dt className="eyebrow">Modalidade</dt>
-            <dd className="mt-1 text-ink">{row.modalidadeFormatada}</dd>
+            <dd className="text-ink mt-1">{row.modalidadeFormatada}</dd>
           </div>
           <div>
             <dt className="eyebrow">Abertura</dt>
-            <dd className="numeric mt-1 text-left text-ink tabular-nums">
+            <dd className="numeric text-ink mt-1 text-left tabular-nums">
               {row.dataAbertura ? fmtDate(row.dataAbertura) : "Não informada"}
             </dd>
           </div>
@@ -657,7 +657,7 @@ export function LicitacoesEmAndamentoSection({
           <button
             type="button"
             onClick={() => handleOpenRowDetails(row)}
-            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+            className="text-brand-text inline-flex min-h-11 cursor-pointer items-center underline underline-offset-2"
             title="Visualizar detalhes da licitação"
           >
             Ver detalhes
@@ -667,7 +667,7 @@ export function LicitacoesEmAndamentoSection({
               href={row.linkSistemaOrigem}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-1 text-brand-text underline underline-offset-2"
+              className="text-brand-text inline-flex min-h-11 items-center gap-1 underline underline-offset-2"
             >
               Sala de Disputa
               <ExternalLink
@@ -694,26 +694,26 @@ export function LicitacoesEmAndamentoSection({
           id={`licitacao-card-${row.licitacaoNumero || row.licitacaoId}`}
           className={cn(
             "space-y-1",
-            isHighlighted && "animate-pulse ring-2 ring-brand ring-offset-2",
+            isHighlighted && "ring-brand animate-pulse ring-2 ring-offset-2",
           )}
         >
           <div className="flex items-baseline justify-between gap-3">
             <button
               type="button"
               onClick={() => handleOpenRowDetails(row)}
-              className="numeric cursor-pointer text-left font-bold text-ink text-sm hover:text-brand hover:underline"
+              className="numeric text-ink hover:text-brand cursor-pointer text-left text-sm font-bold hover:underline"
               title="Ver detalhes da licitação"
             >
               {row.licitacaoNumero || "S/N"}
             </button>
-            <span className="numeric shrink-0 text-left font-bold text-ink text-sm tabular-nums">
+            <span className="numeric text-ink shrink-0 text-left text-sm font-bold tabular-nums">
               {valorEst ? fmtCurrency(valorEst) : "Não divulgado"}
             </span>
           </div>
-          <p className="line-clamp-2 text-ink text-xs leading-snug">
+          <p className="text-ink line-clamp-2 text-xs leading-snug">
             {row.objeto}
           </p>
-          <div className="flex items-center justify-between gap-3 text-[11px] text-mute2">
+          <div className="text-mute2 flex items-center justify-between gap-3 text-[11px]">
             <span className="flex flex-wrap items-center gap-1.5">
               <Badge variant={situacaoBadgeVariant(row.situacaoCodigo)}>
                 {row.situacaoFormatada}
@@ -750,14 +750,14 @@ export function LicitacoesEmAndamentoSection({
       className={cn("scroll-mt-6 space-y-6", className)}
     >
       {hideHeader ? null : (
-        <div className="flex flex-col justify-between gap-2 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
+        <div className="border-ink flex flex-col justify-between gap-2 border-t-2 pt-8 sm:flex-row sm:items-baseline">
           <div>
             <div className="flex items-center gap-2">
               <h2 id="licitacoes-em-andamento-heading">
                 Licitações Abertas e em Andamento
               </h2>
             </div>
-            <p className="mt-1 max-w-3xl text-mute2 text-xs leading-relaxed sm:text-sm">
+            <p className="text-mute2 mt-1 max-w-3xl text-xs leading-relaxed sm:text-sm">
               Audite preventivamente as compras públicas em andamento antes da
               adjudicação e homologação de contratos pelo município. Descrições
               e itens são enriquecidos e integrados diretamente com o{" "}
@@ -765,7 +765,7 @@ export function LicitacoesEmAndamentoSection({
                 href={FONTES_OFICIAIS.pncp.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-brand-text hover:underline"
+                className="text-brand-text inline-flex items-center gap-0.5 font-medium hover:underline"
               >
                 PNCP (Portal Nacional de Contratações Públicas)
                 <ExternalLink className="inline h-3 w-3" />
@@ -775,7 +775,7 @@ export function LicitacoesEmAndamentoSection({
                 href={urlLegislacao("lei14133", "art174")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-brand-text hover:underline"
+                className="text-brand-text inline-flex items-center gap-0.5 font-medium hover:underline"
               >
                 Art. 174 da Lei 14.133/2021
                 <ExternalLink className="inline h-3 w-3" />
@@ -785,7 +785,7 @@ export function LicitacoesEmAndamentoSection({
             </p>
           </div>
           <span
-            className="shrink-0 font-medium text-mute2 text-xs"
+            className="text-mute2 shrink-0 text-xs font-medium"
             aria-live="polite"
           >
             {totalProcessos}{" "}
@@ -797,12 +797,12 @@ export function LicitacoesEmAndamentoSection({
       )}
 
       {totalProcessos === 0 ? (
-        <div className="rounded-md border border-line bg-page p-8 text-center">
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line bg-page rounded-md border p-8 text-center">
+          <p className="text-ink text-sm font-medium">
             Nenhuma licitação em andamento ou aberta encontrada para este
             exercício.
           </p>
-          <p className="mt-1 text-mute3 text-xs">
+          <p className="text-mute3 mt-1 text-xs">
             Novos editais e processos de contratação publicados pelos órgãos
             municipais aparecerão aqui automaticamente.
           </p>
@@ -893,7 +893,7 @@ export function LicitacoesEmAndamentoSection({
                   href={selectedLicitacaoForItens.linkSistemaOrigem}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-ink hover:underline"
+                  className="text-brand hover:text-ink inline-flex items-center gap-1 font-medium hover:underline"
                 >
                   <span>Abrir Sala de Disputa no PNCP</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -917,9 +917,9 @@ export function LicitacoesEmAndamentoSection({
                 {selectedLicitacaoForItens.ano &&
                   ano &&
                   selectedLicitacaoForItens.ano !== ano && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn-text/30 bg-warn-fill/10 px-4 py-3 text-warn-text text-xs">
+                    <div className="border-warn-text/30 bg-warn-fill/10 text-warn-text flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-warn-text" />
+                        <AlertCircle className="text-warn-text h-4 w-4 shrink-0" />
                         <span>
                           Este processo pertence ao exercício de{" "}
                           <strong className="font-semibold">
@@ -931,7 +931,7 @@ export function LicitacoesEmAndamentoSection({
                       </div>
                       <Link
                         href={`/${portalSlug || "portal"}/licitacoes?ano=${selectedLicitacaoForItens.ano}&numero=${encodeURIComponent(selectedLicitacaoForItens.licitacaoNumero || "")}#licitacoes-em-andamento`}
-                        className="inline-flex items-center gap-1 font-semibold text-warn-text underline decoration-warn-text/40 underline-offset-2 transition-colors hover:text-ink"
+                        className="text-warn-text decoration-warn-text/40 hover:text-ink inline-flex items-center gap-1 font-semibold underline underline-offset-2 transition-colors"
                       >
                         <span>
                           Mudar painel para {selectedLicitacaoForItens.ano}
@@ -941,22 +941,22 @@ export function LicitacoesEmAndamentoSection({
                   )}
 
                 {/* Bloco 1: Órgão, Modalidade, Abertura e Ano */}
-                <div className="grid grid-cols-1 gap-4 rounded-md border border-line bg-line2 p-3.5 sm:grid-cols-2 sm:gap-6 sm:p-4 lg:grid-cols-4">
+                <div className="border-line bg-line2 grid grid-cols-1 gap-4 rounded-md border p-3.5 sm:grid-cols-2 sm:gap-6 sm:p-4 lg:grid-cols-4">
                   <div className="min-w-0">
-                    <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                    <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                       Órgão Licitante
                     </span>
-                    <p className="mt-0.5 break-words font-semibold text-ink text-sm [overflow-wrap:anywhere] [word-break:break-word]">
+                    <p className="text-ink mt-0.5 text-sm font-semibold [overflow-wrap:anywhere] break-words [word-break:break-word]">
                       {selectedLicitacaoForItens.entidadeNome ||
                         "Não informado"}
                     </p>
                   </div>
 
                   <div className="min-w-0">
-                    <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                    <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                       Modalidade
                     </span>
-                    <p className="mt-0.5 break-words font-medium text-ink text-sm [overflow-wrap:anywhere] [word-break:break-word]">
+                    <p className="text-ink mt-0.5 text-sm font-medium [overflow-wrap:anywhere] break-words [word-break:break-word]">
                       {selectedLicitacaoForItens.modalidadeFormatada ||
                         fmtLicitacaoModalidade(
                           selectedLicitacaoForItens.modalidade,
@@ -965,10 +965,10 @@ export function LicitacoesEmAndamentoSection({
                   </div>
 
                   <div className="min-w-0">
-                    <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                    <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                       Data de Abertura
                     </span>
-                    <p className="mt-0.5 font-medium text-ink text-sm">
+                    <p className="text-ink mt-0.5 text-sm font-medium">
                       {selectedLicitacaoForItens.dataAbertura
                         ? fmtDate(selectedLicitacaoForItens.dataAbertura)
                         : "Não informada"}
@@ -976,10 +976,10 @@ export function LicitacoesEmAndamentoSection({
                   </div>
 
                   <div className="min-w-0">
-                    <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                    <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                       Exercício
                     </span>
-                    <p className="mt-0.5 font-medium text-ink text-sm">
+                    <p className="text-ink mt-0.5 text-sm font-medium">
                       {selectedLicitacaoForItens.ano || "—"}
                     </p>
                   </div>
@@ -987,16 +987,16 @@ export function LicitacoesEmAndamentoSection({
 
                 {/* Bloco de Rastreabilidade Orçamentária e Fonte de Recursos */}
                 {selectedLicitacaoForItens.fontesRecursos && (
-                  <div className="rounded-md border border-brand/30 bg-brand/10 p-3.5 sm:p-4">
+                  <div className="border-brand/30 bg-brand/10 rounded-md border p-3.5 sm:p-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-brand text-xs uppercase tracking-wider">
+                      <span className="text-brand text-xs font-semibold tracking-wider uppercase">
                         Fonte de Recursos / Destinação Orçamentária
                       </span>
                       <a
                         href={urlLegislacao("lei14133Ato20212024", "art18")}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+                        className="text-brand inline-flex items-center gap-1 text-xs font-medium hover:underline"
                         title="Art. 18, VIII da Lei 14.133/2021"
                       >
                         <span>Art. 18 da Lei 14.133/21</span>
@@ -1011,7 +1011,7 @@ export function LicitacoesEmAndamentoSection({
                         .map((cleanFonte) => (
                           <span
                             key={cleanFonte}
-                            className="inline-flex items-center rounded-md border border-brand/30 bg-page px-2.5 py-1 font-medium text-brand text-xs"
+                            className="border-brand/30 bg-page text-brand inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium"
                           >
                             {cleanFonte}
                           </span>
@@ -1022,18 +1022,18 @@ export function LicitacoesEmAndamentoSection({
 
                 {/* Bloco 2: Objeto Integral da Licitação */}
                 <div className="min-w-0">
-                  <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                  <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                     Objeto Integral da Licitação
                   </span>
-                  <div className="mt-1.5 whitespace-pre-wrap break-words rounded-md border border-line bg-page p-3.5 text-ink text-sm leading-relaxed [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
+                  <div className="border-line bg-page text-ink mt-1.5 rounded-md border p-3.5 text-sm leading-relaxed [overflow-wrap:anywhere] break-words [word-break:break-word] whitespace-pre-wrap sm:p-4">
                     {selectedLicitacaoForItens.objeto ||
                       "Objeto não informado."}
                   </div>
                   {selectedLicitacaoForItens.discriminacao &&
                     selectedLicitacaoForItens.discriminacao !==
                       selectedLicitacaoForItens.objeto && (
-                      <div className="mt-2 break-words text-mute2 text-xs [overflow-wrap:anywhere] [word-break:break-word]">
-                        <span className="font-semibold text-mute2">
+                      <div className="text-mute2 mt-2 text-xs [overflow-wrap:anywhere] break-words [word-break:break-word]">
+                        <span className="text-mute2 font-semibold">
                           Detalhamento complementar:{" "}
                         </span>
                         <span>{selectedLicitacaoForItens.discriminacao}</span>
@@ -1043,11 +1043,11 @@ export function LicitacoesEmAndamentoSection({
 
                 {/* Bloco 3: Grid de Valores Financeiros */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-                  <div className="min-w-0 rounded-md border border-line bg-page p-3.5">
-                    <span className="font-medium text-mute2 text-xs">
+                  <div className="border-line bg-page min-w-0 rounded-md border p-3.5">
+                    <span className="text-mute2 text-xs font-medium">
                       Valor Estimado
                     </span>
-                    <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
+                    <p className="numeric text-ink mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorFinal
                         ? fmtCurrency(selectedLicitacaoForItens.valorFinal)
                         : selectedLicitacaoForItens.valorEstimado
@@ -1058,11 +1058,11 @@ export function LicitacoesEmAndamentoSection({
                     </p>
                   </div>
 
-                  <div className="rounded-md border border-line bg-page p-3.5">
-                    <span className="font-medium text-mute2 text-xs">
+                  <div className="border-line bg-page rounded-md border p-3.5">
+                    <span className="text-mute2 text-xs font-medium">
                       Valor Homologado
                     </span>
-                    <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
+                    <p className="numeric text-ink mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                       {selectedLicitacaoForItens.valorHomologado
                         ? fmtCurrency(selectedLicitacaoForItens.valorHomologado)
                         : textoSemValorHomologado(
@@ -1071,8 +1071,8 @@ export function LicitacoesEmAndamentoSection({
                     </p>
                   </div>
 
-                  <div className="rounded-md border border-line bg-page p-3.5">
-                    <span className="font-medium text-mute2 text-xs">
+                  <div className="border-line bg-page rounded-md border p-3.5">
+                    <span className="text-mute2 text-xs font-medium">
                       Economia Obtida
                     </span>
                     {(() => {
@@ -1085,7 +1085,7 @@ export function LicitacoesEmAndamentoSection({
                         const diff = est - hom;
                         const pct = (diff / est) * 100;
                         return (
-                          <p className="numeric mt-1 text-left font-semibold text-base text-ok-text tabular-nums sm:text-lg">
+                          <p className="numeric text-ok-text mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                             {fmtCurrency(diff)}{" "}
                             <span className="font-sans text-xs">
                               (-{pct.toFixed(1)}%)
@@ -1094,7 +1094,7 @@ export function LicitacoesEmAndamentoSection({
                         );
                       }
                       return (
-                        <p className="mt-1 font-semibold text-mute3 text-sm">
+                        <p className="text-mute3 mt-1 text-sm font-semibold">
                           —
                         </p>
                       );
@@ -1108,17 +1108,17 @@ export function LicitacoesEmAndamentoSection({
                   {(() => {
                     if (itens.length === 0) {
                       return (
-                        <div className="rounded-md border border-line bg-page py-10 text-center">
+                        <div className="border-line bg-page rounded-md border py-10 text-center">
                           <Package
-                            className="mx-auto h-9 w-9 text-mute3"
+                            className="text-mute3 mx-auto h-9 w-9"
                             aria-hidden="true"
                           />
-                          <p className="mt-2.5 font-medium text-ink text-sm">
+                          <p className="text-ink mt-2.5 text-sm font-medium">
                             {loadingDetails
                               ? "Carregando detalhes e itens da contratação..."
                               : "Nenhum item individual cadastrado para este processo."}
                           </p>
-                          <p className="mt-1 text-mute3 text-xs">
+                          <p className="text-mute3 mt-1 text-xs">
                             Os detalhes da contratação podem ser consultados no
                             edital completo ou na sala de disputa pública.
                           </p>
@@ -1130,7 +1130,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-1.5 font-semibold text-onink text-xs transition-colors hover:opacity-90"
+                                className="bg-ink text-onink inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors hover:opacity-90"
                               >
                                 <span>Acessar Sala de Disputa no PNCP</span>
                                 <ExternalLink
@@ -1146,15 +1146,15 @@ export function LicitacoesEmAndamentoSection({
 
                     return (
                       <div className="space-y-2.5">
-                        <div className="flex items-center justify-between text-mute2 text-xs">
-                          <span className="font-medium text-mute2">
+                        <div className="text-mute2 flex items-center justify-between text-xs">
+                          <span className="text-mute2 font-medium">
                             {itens.length}{" "}
                             {itens.length === 1
                               ? "item listado"
                               : "itens listados"}
                           </span>
                           <div className="flex items-center gap-1.5">
-                            <span className="hidden font-medium text-[11px] text-mute3 sm:inline">
+                            <span className="text-mute3 hidden text-[11px] font-medium sm:inline">
                               Navegar colunas:
                             </span>
                             <button
@@ -1172,7 +1172,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                               }}
                               aria-label="Rolar tabela para a esquerda"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
+                              className="border-line bg-page text-mute2 hover:bg-line2 hover:text-ink active:bg-line2 inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
                             >
                               <ChevronLeft className="h-4 w-4" />
                             </button>
@@ -1191,7 +1191,7 @@ export function LicitacoesEmAndamentoSection({
                                 }
                               }}
                               aria-label="Rolar tabela para a direita"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:bg-line2 hover:text-ink active:bg-line2"
+                              className="border-line bg-page text-mute2 hover:bg-line2 hover:text-ink active:bg-line2 inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
                             >
                               <ChevronRight className="h-4 w-4" />
                             </button>
@@ -1200,10 +1200,10 @@ export function LicitacoesEmAndamentoSection({
 
                         <div
                           ref={tableScrollRef}
-                          className="overflow-x-auto rounded-md border border-line bg-page"
+                          className="border-line bg-page overflow-x-auto rounded-md border"
                         >
-                          <table className="w-full min-w-[780px] text-left text-mute2 text-xs">
-                            <thead className="border-line border-b bg-line2 font-semibold text-ink uppercase tracking-wider">
+                          <table className="text-mute2 w-full min-w-[780px] text-left text-xs">
+                            <thead className="border-line bg-line2 text-ink border-b font-semibold tracking-wider uppercase">
                               <tr>
                                 <th className="px-3 py-2 text-center">Item</th>
                                 <th className="px-3 py-2">Descrição</th>
@@ -1224,22 +1224,22 @@ export function LicitacoesEmAndamentoSection({
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-line">
+                            <tbody className="divide-line divide-y">
                               {itens.map((it) => (
                                 <tr key={it.itemId} className="hover:bg-line2">
-                                  <td className="px-3 py-2.5 text-center font-bold text-ink">
+                                  <td className="text-ink px-3 py-2.5 text-center font-bold">
                                     {it.numeroItem}
                                   </td>
-                                  <td className="min-w-[200px] px-3 py-2.5 font-medium text-ink">
+                                  <td className="text-ink min-w-[200px] px-3 py-2.5 font-medium">
                                     {it.descricao || "—"}
                                   </td>
-                                  <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                                  <td className="px-3 py-2.5 text-center whitespace-nowrap">
                                     {it.quantidade != null
                                       ? it.quantidade
                                       : "—"}{" "}
                                     {it.unidadeMedida || ""}
                                   </td>
-                                  <td className="whitespace-nowrap px-3 py-2.5 text-right font-serif">
+                                  <td className="px-3 py-2.5 text-right font-serif whitespace-nowrap">
                                     {(() => {
                                       const valorExibicao =
                                         it.valorTotalEstimado ??
@@ -1258,7 +1258,7 @@ export function LicitacoesEmAndamentoSection({
                                               it.quantidade > 1 &&
                                               it.valorUnitarioEstimado !=
                                                 null && (
-                                                <span className="block font-sans text-[10px] text-mute3">
+                                                <span className="text-mute3 block font-sans text-[10px]">
                                                   {fmtCurrency(
                                                     it.valorUnitarioEstimado,
                                                   )}{" "}
@@ -1271,7 +1271,7 @@ export function LicitacoesEmAndamentoSection({
                                       return "—";
                                     })()}
                                   </td>
-                                  <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold font-serif text-ink">
+                                  <td className="text-ink px-3 py-2.5 text-right font-serif font-bold whitespace-nowrap">
                                     {(() => {
                                       const valorExibicao =
                                         it.valorTotalHomologado ??
@@ -1290,7 +1290,7 @@ export function LicitacoesEmAndamentoSection({
                                               it.quantidade > 1 &&
                                               it.valorUnitarioHomologado !=
                                                 null && (
-                                                <span className="block font-normal font-sans text-[10px] text-mute3">
+                                                <span className="text-mute3 block font-sans text-[10px] font-normal">
                                                   {fmtCurrency(
                                                     it.valorUnitarioHomologado,
                                                   )}{" "}
@@ -1303,9 +1303,9 @@ export function LicitacoesEmAndamentoSection({
                                       return "—";
                                     })()}
                                   </td>
-                                  <td className="whitespace-nowrap px-3 py-2.5 text-center">
+                                  <td className="px-3 py-2.5 text-center whitespace-nowrap">
                                     {it.percentualDesconto != null ? (
-                                      <span className="font-semibold text-ok-text">
+                                      <span className="text-ok-text font-semibold">
                                         {it.percentualDesconto}%
                                       </span>
                                     ) : (
@@ -1315,11 +1315,11 @@ export function LicitacoesEmAndamentoSection({
                                   <td className="min-w-[150px] px-3 py-2.5">
                                     {it.fornecedorNome ? (
                                       <div>
-                                        <span className="font-medium text-ink">
+                                        <span className="text-ink font-medium">
                                           {it.fornecedorNome}
                                         </span>
                                         {it.fornecedorCpfCnpj && (
-                                          <span className="block text-[10px] text-mute3">
+                                          <span className="text-mute3 block text-[10px]">
                                             {it.fornecedorCpfCnpj}
                                           </span>
                                         )}

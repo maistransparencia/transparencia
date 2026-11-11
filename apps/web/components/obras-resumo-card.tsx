@@ -61,9 +61,9 @@ export function ObrasResumoCard({
           </ExternalLinkPill>
         </div>
 
-        <div className="mt-4 flex flex-col items-center justify-center border-line border-y p-6 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute3" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line mt-4 flex flex-col items-center justify-center border-y p-6 text-center">
+          <AlertCircle className="text-mute3 mb-2 h-6 w-6" />
+          <p className="text-ink text-sm font-medium">
             Nenhuma obra ou intervenção pública registrada no ObrasGov.br para o
             período.
           </p>
@@ -84,7 +84,7 @@ export function ObrasResumoCard({
                   // Silencia erros de telemetria
                 }
               }}
-              className="inline-flex items-center gap-1 font-semibold text-brand text-xs hover:underline"
+              className="text-brand inline-flex items-center gap-1 text-xs font-semibold hover:underline"
             >
               <span>Ver mapa e detalhes das obras</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -243,14 +243,14 @@ export function ObrasResumoCard({
               // Silencia erros de telemetria
             }
           }}
-          className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+          className="text-brand inline-flex items-center gap-1 text-xs font-medium hover:underline"
         >
           <span>Ver mapa e detalhes das obras</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      <p className="mt-1 text-mute2 text-xs">
+      <p className="text-mute2 mt-1 text-xs">
         Painel de obras públicas e investimentos urbanos.
       </p>
 
@@ -259,11 +259,11 @@ export function ObrasResumoCard({
         {/* Bloco de Métricas Consolidadas */}
         <div className="flex-1 space-y-4">
           <div>
-            <span className="font-medium text-mute2 text-xs uppercase tracking-widest">
+            <span className="text-mute2 text-xs font-medium tracking-widest uppercase">
               Total de Investimento Previsto
             </span>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="font-bold font-sans text-3xl text-ink tracking-tight">
+              <p className="text-ink font-sans text-3xl font-bold tracking-tight">
                 {fmtCompact(valorTotalInvestimento)}
               </p>
               <span className="text-mute2 text-xs">
@@ -275,7 +275,7 @@ export function ObrasResumoCard({
           <div className="space-y-2">
             {/* Barra Proporcional Empilhada */}
             <div
-              className="flex h-1.5 w-full overflow-hidden bg-track"
+              className="bg-track flex h-1.5 w-full overflow-hidden"
               role="progressbar"
               aria-valuenow={Math.round(pctConcluidas)}
               aria-valuemin={0}
@@ -330,7 +330,7 @@ export function ObrasResumoCard({
                   />
                   <span className="text-mute2">Em execução:</span>
                 </div>
-                <span className="ml-3.5 font-semibold text-ink">
+                <span className="text-ink ml-3.5 font-semibold">
                   {fmtNumber(emExecucao)} ({fmtCompact(valorEmExecucao)})
                 </span>
               </div>
@@ -343,7 +343,7 @@ export function ObrasResumoCard({
                   />
                   <span className="text-mute2">Concluídas:</span>
                 </div>
-                <span className="ml-3.5 font-semibold text-ink">
+                <span className="text-ink ml-3.5 font-semibold">
                   {fmtNumber(concluidas)} ({fmtCompact(valorConcluidas)})
                 </span>
               </div>
@@ -356,7 +356,7 @@ export function ObrasResumoCard({
                   />
                   <span className="text-mute2">Não iniciadas:</span>
                 </div>
-                <span className="ml-3.5 font-semibold text-ink">
+                <span className="text-ink ml-3.5 font-semibold">
                   {fmtNumber(cadastradas)} ({fmtCompact(valorCadastradas)})
                 </span>
               </div>
@@ -369,7 +369,7 @@ export function ObrasResumoCard({
                   />
                   <span className="text-mute2">Paralisadas:</span>
                 </div>
-                <span className="ml-3.5 font-semibold text-ink">
+                <span className="text-ink ml-3.5 font-semibold">
                   {fmtNumber(paralisadas)} ({fmtCompact(valorParalisadas)})
                 </span>
               </div>
@@ -401,7 +401,7 @@ export function ObrasResumoCard({
               }
             }}
             aria-label="Ver no mapa interativo de obras públicas"
-            className="group relative h-28 w-full shrink-0 overflow-hidden bg-track transition-colors duration-200 lg:h-auto lg:w-56"
+            className="group bg-track relative h-28 w-full shrink-0 overflow-hidden transition-colors duration-200 lg:h-auto lg:w-56"
           >
             <Image
               src={tileInfo.url}
@@ -427,7 +427,7 @@ export function ObrasResumoCard({
             </div>
 
             {/* Affordance Badge Flutuante */}
-            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 bg-page/95 px-2 py-1 font-medium text-ink text-xs uppercase tracking-wider backdrop-blur-xs transition-colors group-hover:bg-ink group-hover:text-onink">
+            <div className="bg-page/95 text-ink group-hover:bg-ink group-hover:text-onink absolute right-2 bottom-2 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium tracking-wider uppercase backdrop-blur-xs transition-colors">
               <MapPin className="h-3 w-3" />
               <span>Mapa · Ver no mapa</span>
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
@@ -436,7 +436,7 @@ export function ObrasResumoCard({
         )}
       </div>
 
-      <p className="mt-4 flex items-center gap-1.5 text-mute2 text-xs">
+      <p className="text-mute2 mt-4 flex items-center gap-1.5 text-xs">
         <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
           Painel consolidado de intervenções e investimentos públicos via

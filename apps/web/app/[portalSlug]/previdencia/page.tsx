@@ -17,7 +17,7 @@ const PrevidenciaEntidadesDonut = nextDynamic(
       (mod) => mod.PrevidenciaEntidadesDonut,
     ),
   {
-    loading: () => <div className="h-[280px] w-full animate-pulse bg-line2" />,
+    loading: () => <div className="bg-line2 h-[280px] w-full animate-pulse" />,
   },
 );
 
@@ -92,14 +92,14 @@ export default async function PrevidenciaPage({
         />
         <div className="border-line border-y py-8 text-center">
           <Landmark
-            className="mx-auto h-10 w-10 text-mute"
+            className="text-mute mx-auto h-10 w-10"
             strokeWidth={1.5}
             aria-hidden="true"
           />
           <h3 className="mt-4">
             Este município não tem fundo próprio de aposentadoria dos servidores
           </h3>
-          <p className="mx-auto mt-2 max-w-lg text-mute">
+          <p className="text-mute mx-auto mt-2 max-w-lg">
             Os servidores contribuem para o INSS (Regime Geral de Previdência
             Social), que é federal. Por isso não há um fundo municipal para
             acompanhar nesta página.

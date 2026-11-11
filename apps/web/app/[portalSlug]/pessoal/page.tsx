@@ -95,7 +95,7 @@ export default async function PessoalPage({
                 href={urlLegislacao("lrf", "art20")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+                className="text-brand-text inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
               >
                 <span>Lei de Responsabilidade Fiscal</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -140,14 +140,14 @@ export default async function PessoalPage({
                 <span className="flex items-center gap-x-2">
                   <span
                     aria-hidden="true"
-                    className="inline-block h-3 w-0.5 bg-ink"
+                    className="bg-ink inline-block h-3 w-0.5"
                   />
                   Teto: {barraLimitesLrf.tetoTexto}
                 </span>
                 <span className="flex items-center gap-x-2">
                   <span
                     aria-hidden="true"
-                    className="inline-block h-3 w-0.5 bg-warn-fill"
+                    className="bg-warn-fill inline-block h-3 w-0.5"
                   />
                   Limite prudencial: {barraLimitesLrf.prudencialTexto}
                 </span>
@@ -183,7 +183,7 @@ export default async function PessoalPage({
           </p>
           {rgf ? (
             <details className="group" data-testid="pessoal-lrf-detalhes">
-              <summary className="flex min-h-11 cursor-pointer select-none items-center gap-1 font-medium text-mute2 text-xs hover:text-ink">
+              <summary className="text-mute2 hover:text-ink flex min-h-11 cursor-pointer items-center gap-1 text-xs font-medium select-none">
                 Ver detalhes
                 <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
               </summary>
@@ -279,7 +279,7 @@ export default async function PessoalPage({
           pctPago={decimo13.pctPago}
         />
       ) : (
-        <div className="border-line border-y py-6 text-center text-mute2 text-sm">
+        <div className="border-line text-mute2 border-y py-6 text-center text-sm">
           Sem dados de 13º salário para {selectedYear}.
         </div>
       )}

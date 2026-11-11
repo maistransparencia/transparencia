@@ -28,13 +28,13 @@ interface LinhaBarraProps {
 function LinhaBarra({ valor, maior, corClasse }: LinhaBarraProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="h-3 flex-1 bg-track">
+      <div className="bg-track h-3 flex-1">
         <div
           className={cn("h-full", corClasse)}
           style={{ width: `${percentualDaMaior(valor, maior)}%` }}
         />
       </div>
-      <span className="w-24 shrink-0 text-right font-medium text-ink text-sm tabular-nums">
+      <span className="text-ink w-24 shrink-0 text-right text-sm font-medium tabular-nums">
         {fmtCompact(valor)}
       </span>
     </div>
@@ -50,7 +50,7 @@ export function EvolucaoAnual({
 }: EvolucaoAnualProps) {
   if (data.length === 0) {
     return (
-      <p className={cn("border-line border-y py-4 text-mute", className)}>
+      <p className={cn("border-line text-mute border-y py-4", className)}>
         {mensagemVazia}
       </p>
     );
@@ -65,11 +65,11 @@ export function EvolucaoAnual({
     <div className={cn("space-y-6", className)}>
       <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm" aria-hidden="true">
         <li className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 bg-brand-fill" />
+          <span className="bg-brand-fill inline-block h-2.5 w-2.5" />
           Reservado (empenhado)
         </li>
         <li className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 bg-ok-fill" />
+          <span className="bg-ok-fill inline-block h-2.5 w-2.5" />
           Pago
         </li>
       </ul>

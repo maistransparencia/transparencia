@@ -12,12 +12,12 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
   const maxPercent = 60; // Max scale for chart height
 
   return (
-    <div className="rounded-lg border border-line bg-page p-6 shadow-sm">
+    <div className="border-line bg-page rounded-lg border p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3>Folha como % da receita, ano a ano</h3>
         </div>
-        <span className="font-medium text-mute2 text-xs">
+        <span className="text-mute2 text-xs font-medium">
           com os limites da LRF
         </span>
       </div>
@@ -26,22 +26,22 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
         {/* Horizontal Threshold Lines */}
         <div className="pointer-events-none absolute inset-x-0 top-8 bottom-12 flex flex-col justify-between">
           {/* Legal 54% */}
-          <div className="relative w-full border-danger-fill border-t border-solid">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-danger-text">
+          <div className="border-danger-fill relative w-full border-t border-solid">
+            <span className="bg-page text-danger-text absolute -top-2.5 right-0 px-1 text-[11px] font-semibold">
               legal 54%
             </span>
           </div>
 
           {/* Prudencial 51.3% */}
-          <div className="relative w-full border-warn-fill border-t border-dashed">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-warn-text">
+          <div className="border-warn-fill relative w-full border-t border-dashed">
+            <span className="bg-page text-warn-text absolute -top-2.5 right-0 px-1 text-[11px] font-semibold">
               prudencial 51,3%
             </span>
           </div>
 
           {/* Alerta 48.6% */}
-          <div className="relative w-full border-warn-fill border-t border-dotted">
-            <span className="absolute -top-2.5 right-0 bg-page px-1 font-semibold text-[11px] text-warn-text">
+          <div className="border-warn-fill relative w-full border-t border-dotted">
+            <span className="bg-page text-warn-text absolute -top-2.5 right-0 px-1 text-[11px] font-semibold">
               alerta 48,6%
             </span>
           </div>
@@ -60,12 +60,12 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
                 className="group flex w-16 flex-col items-center"
               >
                 {/* Bar Label */}
-                <span className="mb-2 font-bold text-ink text-xs">
+                <span className="text-ink mb-2 text-xs font-bold">
                   {item.percentualFolha.toFixed(1).replace(".", ",")}%
                 </span>
 
                 {/* Bar */}
-                <div className="relative flex h-44 w-12 items-end rounded-t-md bg-line2">
+                <div className="bg-line2 relative flex h-44 w-12 items-end rounded-t-md">
                   <div
                     className={`w-full rounded-t-md transition-all duration-500 ${
                       item.percentualFolha > 54
@@ -79,7 +79,7 @@ export function FolhaLrfHistoryChart({ data }: FolhaLrfHistoryChartProps) {
                 </div>
 
                 {/* Year Label */}
-                <span className="mt-3 font-medium text-mute2 text-xs">
+                <span className="text-mute2 mt-3 text-xs font-medium">
                   {item.ano}
                   {item.isCurrentYear ? "*" : ""}
                 </span>

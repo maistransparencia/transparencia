@@ -30,22 +30,22 @@ export function DespesasFornecedoresSection({
               className="group"
             >
               <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
-                <span className="font-medium text-ink text-sm">
+                <span className="text-ink text-sm font-medium">
                   {fornecedor.nome}
                   <span className="caption ml-2 tabular-nums">
                     {fmtPercent(fornecedor.percentualTotalPago)}
                   </span>
                 </span>
-                <span className="flex items-center gap-2 text-right text-ink text-sm tabular-nums">
+                <span className="text-ink flex items-center gap-2 text-right text-sm tabular-nums">
                   {fmtCompact(fornecedor.valorPago)}
                   <ChevronDown
-                    className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180"
+                    className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
                     aria-hidden="true"
                   />
                 </span>
-                <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
+                <span className="bg-track col-span-full block h-1.5 w-full overflow-hidden">
                   <span
-                    className="block h-full bg-brand-fill"
+                    className="bg-brand-fill block h-full"
                     style={{ width: `${fornecedor.larguraBarra}%` }}
                   />
                 </span>

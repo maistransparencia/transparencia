@@ -115,7 +115,7 @@ export function FarmaciaIndiceChips({ chips }: FarmaciaIndiceChipsProps) {
   return (
     <div
       ref={containerRef}
-      className="sticky z-20 -mx-4 border-line border-b bg-page px-4 py-2 sm:-mx-6 sm:px-6 md:static md:mx-0 md:border-b-0 md:px-0 md:py-0"
+      className="border-line bg-page sticky z-20 -mx-4 border-b px-4 py-2 sm:-mx-6 sm:px-6 md:static md:mx-0 md:border-b-0 md:px-0 md:py-0"
       style={{ top: topo }}
     >
       <div className="relative">
@@ -132,7 +132,7 @@ export function FarmaciaIndiceChips({ chips }: FarmaciaIndiceChipsProps) {
         <div
           ref={faixaRef}
           onScroll={atualizarSetas}
-          className="relative overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
+          className="relative [scrollbar-width:none] overflow-x-auto scroll-smooth motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
         >
           <nav
             aria-label="Índice alfabético"

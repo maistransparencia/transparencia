@@ -105,7 +105,7 @@ export function SaudeMinimoDestaque({
       </p>
       {comBarra && (
         <div className="space-y-2">
-          <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+          <p className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm font-semibold tabular-nums">
             <span>Aplicado: {fmtPercent(percentualAplicado)}</span>
             <span>Exigido por lei: {formatarLimite(limite)}</span>
           </p>
@@ -252,7 +252,7 @@ function LinhaDetalhe({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4">
       <dt>{rotulo}</dt>
-      <dd className="font-semibold text-sm tabular-nums">{valor}</dd>
+      <dd className="text-sm font-semibold tabular-nums">{valor}</dd>
     </div>
   );
 }

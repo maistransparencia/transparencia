@@ -30,11 +30,11 @@ const Secao = ({
 }) => (
   <section id={id} className="scroll-mt-20">
     <details open={aberta} className="group border-ink border-t-2">
-      <summary className="flex min-h-11 cursor-pointer list-none items-start gap-3 py-4 focus-visible:outline-2 focus-visible:outline-focus-ring [&::-webkit-details-marker]:hidden">
+      <summary className="focus-visible:outline-focus-ring flex min-h-11 cursor-pointer list-none items-start gap-3 py-4 focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
         <Chevron />
         <span className="min-w-0">
           <h2>{titulo}</h2>
-          <span className="mt-1.5 block text-mute text-sm leading-relaxed">
+          <span className="text-mute mt-1.5 block text-sm leading-relaxed">
             {resumo}
           </span>
         </span>
@@ -72,7 +72,7 @@ export const BlocoParaFiscalizar: Story = {
     <div className="space-y-2">
       <header className="border-ink border-t-2 pt-4 pb-5">
         <h2>Para fiscalizar</h2>
-        <p className="mt-1.5 text-mute text-sm leading-relaxed">
+        <p className="text-mute mt-1.5 text-sm leading-relaxed">
           Para quem quer conferir emenda por emenda e contrato por contrato.
         </p>
       </header>

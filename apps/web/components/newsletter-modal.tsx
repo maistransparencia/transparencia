@@ -156,7 +156,7 @@ export function NewsletterModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="newsletter-modal-title"
-        className="relative w-full max-w-md rounded-lg border border-line bg-page p-6 shadow-2xl transition-all"
+        className="border-line bg-page relative w-full max-w-md rounded-lg border p-6 shadow-2xl transition-all"
       >
         {/* Botão Fechar */}
         <button
@@ -164,7 +164,7 @@ export function NewsletterModal({
           onClick={handleClose}
           disabled={status === "loading"}
           aria-label="Fechar modal"
-          className="absolute top-4 right-4 rounded-lg p-1.5 text-mute2 transition-colors hover:bg-line2 hover:text-ink disabled:opacity-50"
+          className="text-mute2 hover:bg-line2 hover:text-ink absolute top-4 right-4 rounded-lg p-1.5 transition-colors disabled:opacity-50"
         >
           <X className="h-4 w-4" />
         </button>
@@ -172,11 +172,11 @@ export function NewsletterModal({
         {/* Estado de Sucesso */}
         {status === "success" ? (
           <div className="py-4 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
+            <div className="bg-ok-fill/10 text-ok-text mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <h3>Confirme sua inscrição!</h3>
-            <p className="mt-2 text-mute text-sm leading-relaxed">
+            <p className="text-mute mt-2 text-sm leading-relaxed">
               Enviamos um link de confirmação para <strong>{email}</strong>.
               Acesse seu e-mail e clique no botão para começar a receber resumos
               e alertas de <strong>{municipioNome}</strong>.
@@ -185,7 +185,7 @@ export function NewsletterModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-onink text-sm shadow-xs transition-colors hover:bg-brand-fill/90"
+                className="bg-brand-fill text-onink hover:bg-brand-fill/90 w-full rounded-lg px-4 py-2.5 text-sm font-medium shadow-xs transition-colors"
               >
                 Entendido
               </button>
@@ -195,23 +195,23 @@ export function NewsletterModal({
           <div>
             {/* Header com Badge */}
             <div className="mb-4 flex items-center gap-2">
-              <span className="inline-flex items-center rounded-md bg-brand/10 px-2 py-0.5 font-medium text-[11px] text-brand-text">
+              <span className="bg-brand/10 text-brand-text inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium">
                 {municipioNome} - {stateUF}
               </span>
-              <span className="flex items-center gap-1 font-medium text-[11px] text-mute2">
-                <ShieldCheck className="h-3 w-3 text-ok-text" />
+              <span className="text-mute2 flex items-center gap-1 text-[11px] font-medium">
+                <ShieldCheck className="text-ok-text h-3 w-3" />
                 LGPD & RFC 8058
               </span>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand-text">
+              <div className="bg-brand/10 text-brand-text flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
                 <Mail className="h-4 w-4" />
               </div>
               <h2 id="newsletter-modal-title">Boletim Cívico Municipal</h2>
             </div>
 
-            <p className="mt-2.5 text-mute text-xs leading-relaxed">
+            <p className="text-mute mt-2.5 text-xs leading-relaxed">
               Receba alertas fiscais, resumos de licitações e atualizações dos
               gastos públicos de {municipioNome} direto no seu e-mail. Sem spam.
             </p>
@@ -232,7 +232,7 @@ export function NewsletterModal({
               <div>
                 <label
                   htmlFor="newsletter-email-input"
-                  className="mb-1 block font-medium text-mute text-xs"
+                  className="text-mute mb-1 block text-xs font-medium"
                 >
                   Seu e-mail
                 </label>
@@ -246,15 +246,15 @@ export function NewsletterModal({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={status === "loading"}
-                    className="w-full rounded-lg border border-line px-3 py-2 text-ink text-xs placeholder:text-mute3 focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand disabled:bg-line2"
+                    className="border-line text-ink placeholder:text-mute3 focus:border-brand focus:ring-brand disabled:bg-line2 w-full rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Mensagem de Erro */}
               {status === "error" && (
-                <div className="flex items-start gap-2 rounded-lg bg-danger-fill/10 p-2.5 text-danger-text text-xs">
-                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger-text" />
+                <div className="bg-danger-fill/10 text-danger-text flex items-start gap-2 rounded-lg p-2.5 text-xs">
+                  <AlertCircle className="text-danger-text mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
@@ -262,7 +262,7 @@ export function NewsletterModal({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 py-2.5 font-medium text-onink text-xs shadow-xs transition-colors hover:bg-brand-fill/90 disabled:opacity-60"
+                className="bg-brand-fill text-onink hover:bg-brand-fill/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-medium shadow-xs transition-colors disabled:opacity-60"
               >
                 {status === "loading" ? (
                   <>
@@ -275,7 +275,7 @@ export function NewsletterModal({
               </button>
             </form>
 
-            <p className="mt-3 text-center text-[10px] text-mute2">
+            <p className="text-mute2 mt-3 text-center text-[10px]">
               Você pode cancelar a inscrição a qualquer momento com 1 clique no
               rodapé das mensagens.
             </p>

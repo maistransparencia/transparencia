@@ -62,11 +62,11 @@ function LinhaSemLoteValido({
 }) {
   return (
     <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-3 text-left">
-      <span className="block min-w-0 font-semibold text-ink text-sm">
+      <span className="text-ink block min-w-0 text-sm font-semibold">
         {medicamento.nomeMedicamento}
       </span>
       <span className="flex flex-col items-end gap-0.5">
-        <span className="text-[11px] text-warn-text">
+        <span className="text-warn-text text-[11px]">
           {semLoteValido.rotulo}
         </span>
         <PedidoEsclarecimento
@@ -104,9 +104,9 @@ function LinhaMedicamento({
     <li className="border-line border-b">
       <Link
         href={medicamento.href ?? "#"}
-        className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-line2"
+        className="hover:bg-line2 grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left"
       >
-        <span className="block min-w-0 font-semibold text-ink text-sm">
+        <span className="text-ink block min-w-0 text-sm font-semibold">
           {medicamento.nomeMedicamento}
         </span>
         <span className="flex flex-col items-end gap-1">
@@ -132,7 +132,7 @@ function GrupoLetra({
       aria-label={`Remédios com ${grupo.rotuloLetra}`}
       className="flex min-w-0 flex-col"
     >
-      <div className="flex items-baseline justify-between gap-2 border-ink border-b-2 pt-3 pb-2">
+      <div className="border-ink flex items-baseline justify-between gap-2 border-b-2 pt-3 pb-2">
         <h3 className="stat-value">{grupo.rotuloLetra}</h3>
         <span className="text-mute2 text-xs">{grupo.rotuloTotal}</span>
       </div>
@@ -157,15 +157,15 @@ function Corpo({ indice }: { indice: FarmaciaIndiceViewModel }) {
 
   if (indice.modo === "letra" && indice.grupos.length === 0) {
     return (
-      <div className="border-line border-y py-6 text-center text-mute text-sm">
-        <p className="font-semibold text-ink">
+      <div className="border-line text-mute border-y py-6 text-center text-sm">
+        <p className="text-ink font-semibold">
           Nenhum remédio começa com {indice.rotuloLetraSelecionada}.
         </p>
         <p>
           Escolha outra letra ou{" "}
           <Link
             href={indice.hrefResumo}
-            className="font-semibold text-brand underline"
+            className="text-brand font-semibold underline"
           >
             Limpar filtros
           </Link>
@@ -186,7 +186,7 @@ function Corpo({ indice }: { indice: FarmaciaIndiceViewModel }) {
               {indice.rotuloTotalLetra}
             </span>
           </div>
-          <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 border-line border-y">
+          <ul className="border-line grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 border-y">
             {letra.medicamentos.map((medicamento) => (
               <LinhaMedicamento
                 key={medicamento.nomeMedicamento}
@@ -216,7 +216,7 @@ function Corpo({ indice }: { indice: FarmaciaIndiceViewModel }) {
             <Link
               href={indice.hrefMais}
               scroll={false}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-ink bg-page px-6 font-semibold text-ink text-sm hover:bg-line2 sm:w-auto"
+              className="border-ink bg-page text-ink hover:bg-line2 inline-flex min-h-12 w-full items-center justify-center rounded-md border px-6 text-sm font-semibold sm:w-auto"
             >
               {indice.rotuloMais}
             </Link>
@@ -241,7 +241,7 @@ export function FarmaciaIndiceAz({ indice, idSecao }: FarmaciaIndiceAzProps) {
     >
       <div className="space-y-1">
         <h2 id={`${idSecao}-titulo`}>Procurar por letra</h2>
-        <p className="text-[13px] text-mute2">
+        <p className="text-mute2 text-[13px]">
           Escolha a inicial do remédio. Os quadradinhos mostram em quantas
           unidades ele consta na lista de estoque.
         </p>

@@ -47,8 +47,8 @@ function TooltipEntidade({ active, payload }: TooltipEntidadeProps) {
   const ponto = payload?.[0]?.payload;
   if (!active || !ponto) return null;
   return (
-    <div className="pointer-events-none space-y-1 border border-line bg-page p-2.5 text-xs">
-      <p className="font-semibold text-ink">{toTitleCase(ponto.name)}</p>
+    <div className="border-line bg-page pointer-events-none space-y-1 border p-2.5 text-xs">
+      <p className="text-ink font-semibold">{toTitleCase(ponto.name)}</p>
       <p className="text-mute tabular-nums">
         {fmtCurrency(ponto.value)} ({fmtPercent(ponto.percentual)})
       </p>
@@ -116,15 +116,15 @@ export function PrevidenciaEntidadesDonut({
               />
               <div className="flex flex-1 items-center justify-between text-xs">
                 <span
-                  className="max-w-[400px] truncate font-medium text-mute"
+                  className="text-mute max-w-[400px] truncate font-medium"
                   title={toTitleCase(item.name)}
                 >
                   {toTitleCase(item.name)}
                 </span>
-                <span className="ml-2 hidden shrink-0 font-bold font-serif text-ink lg:block">
+                <span className="text-ink ml-2 hidden shrink-0 font-serif font-bold lg:block">
                   {fmtCurrency(item.value)}
                 </span>
-                <span className="ml-2 shrink-0 font-bold font-serif text-ink lg:hidden">
+                <span className="text-ink ml-2 shrink-0 font-serif font-bold lg:hidden">
                   {fmtCompact(item.value)}
                 </span>
               </div>

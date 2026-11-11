@@ -65,7 +65,7 @@ function BarLabels({
   direita?: string;
 }) {
   return (
-    <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+    <p className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm font-semibold tabular-nums">
       <span>{esquerda}</span>
       {direita && <span>{direita}</span>}
     </p>
@@ -100,7 +100,7 @@ export function DestaqueMinimo({
           {percentualAplicado === null ? "—" : fmtPercent(percentualAplicado)}
         </span>
         {resultado === "cumpriu" && (
-          <span className="inline-flex items-center gap-1 font-semibold text-ok-text">
+          <span className="text-ok-text inline-flex items-center gap-1 font-semibold">
             <CheckCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             Cumprido
           </span>
@@ -203,7 +203,7 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
               <span className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
-                  className="inline-block h-3 w-0.5 bg-ink"
+                  className="bg-ink inline-block h-3 w-0.5"
                 />
                 {etapa.mediaEstadualLabel}: {formatarNota(mediaEstadual)}
               </span>
@@ -212,7 +212,7 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
               <span className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
-                  className="inline-block h-3 w-0.5 bg-warn-fill"
+                  className="bg-warn-fill inline-block h-3 w-0.5"
                 />
                 {etapa.mediaNacionalLabel}: {formatarNota(mediaNacional)}
               </span>

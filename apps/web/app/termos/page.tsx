@@ -88,10 +88,10 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-24 border-line border-t pt-10 first:border-t-0 first:pt-0"
+      className="border-line scroll-mt-24 border-t pt-10 first:border-t-0 first:pt-0"
     >
       <h2 id={`${id}-title`} className="flex items-baseline gap-3">
-        <span className="font-medium text-base text-brand-text tabular-nums">
+        <span className="text-brand-text text-base font-medium tabular-nums">
           {index + 1}.
         </span>
         {title}
@@ -107,7 +107,7 @@ function CheckIcon() {
       aria-hidden="true"
       viewBox="0 0 20 20"
       fill="currentColor"
-      className="mt-0.5 h-5 w-5 flex-none text-brand-text"
+      className="text-brand-text mt-0.5 h-5 w-5 flex-none"
     >
       <path
         fillRule="evenodd"
@@ -124,12 +124,12 @@ export default function TermosPage() {
       {/* Cabeçalho */}
       <header className="max-w-3xl">
         <h1>Termos de Uso</h1>
-        <p className="mt-4 text-mute2 text-sm">
+        <p className="text-mute2 mt-4 text-sm">
           Última atualização: <time dateTime="2026-09">setembro de 2026</time>
         </p>
-        <p className="mt-6 text-lg text-mute leading-8">
+        <p className="text-mute mt-6 text-lg leading-8">
           Bem-vindo ao{" "}
-          <strong className="font-semibold text-ink">MaisTransparencia</strong>.
+          <strong className="text-ink font-semibold">MaisTransparencia</strong>.
           Ao utilizar esta plataforma, você concorda com os termos descritos
           abaixo. Leia-os com atenção.
         </p>
@@ -143,7 +143,7 @@ export default function TermosPage() {
         <h2 id="resumo-title">Em resumo</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
-            <li key={item} className="flex gap-3 text-ink text-sm leading-6">
+            <li key={item} className="text-ink flex gap-3 text-sm leading-6">
               <CheckIcon />
               {item}
             </li>
@@ -155,13 +155,13 @@ export default function TermosPage() {
         {/* Sumário */}
         <nav aria-label="Seções destes termos" className="hidden lg:block">
           <div className="sticky top-24">
-            <p className="font-semibold text-ink text-sm">Nesta página</p>
-            <ol className="mt-4 space-y-1 border-line border-l">
+            <p className="text-ink text-sm font-semibold">Nesta página</p>
+            <ol className="border-line mt-4 space-y-1 border-l">
               {sections.map((s, i) => (
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-brand hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                    className="text-mute hover:border-brand hover:text-ink focus-visible:ring-focus-ring -ml-px flex gap-2 border-l border-transparent py-1.5 pl-4 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
                   >
                     <span className="text-mute3 tabular-nums">{i + 1}.</span>
                     {s.title}
@@ -200,19 +200,19 @@ export default function TermosPage() {
               fundamental de acesso à informação garantido pela Constituição
               Federal de 1988 (Art. 5.º, XXXIII) e pelas seguintes normas:
             </p>
-            <dl className="mt-6 divide-y divide-line border-line border-y">
+            <dl className="divide-line border-line mt-6 divide-y border-y">
               {legalBases.map((law) => (
                 <div
                   key={law.name}
                   className="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6"
                 >
-                  <dt className="font-semibold text-ink text-sm">
+                  <dt className="text-ink text-sm font-semibold">
                     {law.href ? (
                       <a
                         href={law.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-text underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+                        className="text-brand-text decoration-brand/40 hover:decoration-brand underline underline-offset-4"
                       >
                         {law.name}
                         <span className="sr-only"> (abre em nova aba)</span>
@@ -221,7 +221,7 @@ export default function TermosPage() {
                       law.name
                     )}
                     {law.detail && (
-                      <span className="block font-normal text-mute2">
+                      <span className="text-mute2 block font-normal">
                         {law.detail}
                       </span>
                     )}

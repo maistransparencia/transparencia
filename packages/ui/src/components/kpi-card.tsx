@@ -54,7 +54,7 @@ function KPICardRodape({
       {trend && (
         <span
           className={cn(
-            "shrink-0 whitespace-nowrap font-semibold",
+            "shrink-0 font-semibold whitespace-nowrap",
             tendenciaBoa ? trendPositiveClassName : trendNegativeClassName,
           )}
         >
@@ -81,7 +81,7 @@ export function KPICard({
         <p className="eyebrow mb-1.5">{title}</p>
         <p
           className={cn(
-            "font-semibold text-[26px] leading-tight",
+            "text-[26px] leading-tight font-semibold",
             accent ? "text-brand" : alert ? "text-warn-text" : "text-ink",
           )}
         >
@@ -92,7 +92,7 @@ export function KPICard({
         subtext={subtext}
         trend={trend}
         invertTrend={invertTrend}
-        className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs"
+        className="text-mute2 mt-2 flex items-center justify-between gap-2 text-xs"
         trendPositiveClassName="text-ok-text"
         trendNegativeClassName="text-danger-text"
       />

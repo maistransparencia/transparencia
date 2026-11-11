@@ -225,7 +225,7 @@ export default async function RootLayout({
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>
-      <body className="flex min-h-screen flex-col bg-page font-sans text-ink antialiased md:flex-row">
+      <body className="bg-page text-ink flex min-h-screen flex-col font-sans antialiased md:flex-row">
         <ProgressProvider>
           <NuqsAdapter>
             <MobileNavProvider>

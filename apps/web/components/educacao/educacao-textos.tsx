@@ -126,7 +126,7 @@ export function VariacaoAoLado({
   return (
     <span
       aria-hidden="true"
-      className={`ml-2 inline-flex items-center gap-1 font-semibold text-base ${
+      className={`ml-2 inline-flex items-center gap-1 text-base font-semibold ${
         subiu ? "text-ok-text" : "text-danger-text"
       }`}
     >
@@ -145,7 +145,7 @@ export function LinhaDl({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-line2 border-t py-2.5">
+    <div className="border-line2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t py-2.5">
       <dt className="eyebrow">{label}</dt>
       <dd className="font-semibold tabular-nums">{children}</dd>
     </div>

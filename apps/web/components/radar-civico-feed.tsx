@@ -57,11 +57,11 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
         onClick={() => registrarClique(card)}
         data-testid="radar-linha"
         data-card-id={card.anomaliaId}
-        className="flex min-h-11 flex-col gap-2 px-1 py-4 transition-colors hover:bg-line2/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:flex-row sm:items-start sm:gap-4 sm:px-3"
+        className="hover:bg-line2/40 focus-visible:ring-brand flex min-h-11 flex-col gap-2 px-1 py-4 transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset sm:flex-row sm:items-start sm:gap-4 sm:px-3"
       >
         <span
           data-testid="radar-severidade-badge"
-          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 font-medium text-xs uppercase tracking-wider sm:w-24 ${severidade.classe}`}
+          className={`inline-flex h-5 w-fit shrink-0 items-center gap-1.5 text-xs font-medium tracking-wider uppercase sm:w-24 ${severidade.classe}`}
         >
           <span aria-hidden="true" className="text-xs">
             ■
@@ -69,14 +69,14 @@ function RadarLinha({ card }: { card: RadarCivicoCardItem }) {
           {severidade.label}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-bold font-sans text-ink text-sm leading-5 tracking-tight">
+          <span className="text-ink block font-sans text-sm leading-5 font-bold tracking-tight">
             {card.titulo}
           </span>
-          <span className="mt-1 block text-mute2 text-xs leading-snug">
+          <span className="text-mute2 mt-1 block text-xs leading-snug">
             {card.textoFactual || card.resumoFactual}
           </span>
         </span>
-        <span className="inline-flex h-5 shrink-0 items-center font-medium text-brand text-xs">
+        <span className="text-brand inline-flex h-5 shrink-0 items-center text-xs font-medium">
           Entender →
         </span>
       </Link>
@@ -110,7 +110,7 @@ export function RadarCivicoFeed({
         action={
           <Link
             href={`/${portalSlug}/radar`}
-            className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand text-xs hover:underline"
+            className="text-brand inline-flex shrink-0 items-center gap-1 text-xs font-semibold hover:underline"
           >
             Ver todos os anos →
           </Link>
@@ -121,9 +121,9 @@ export function RadarCivicoFeed({
       {!hasAlertas ? (
         <div
           data-testid="radar-empty-state"
-          className="flex items-start gap-4 border-line border-y py-6"
+          className="border-line flex items-start gap-4 border-y py-6"
         >
-          <div className="shrink-0 text-ok-text">
+          <div className="text-ok-text shrink-0">
             <ShieldCheck className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
@@ -131,7 +131,7 @@ export function RadarCivicoFeed({
               {radar?.emptyState?.title ??
                 "Contas e Indicadores em Conformidade Histórica"}
             </h3>
-            <p className="mt-1 text-mute2 text-sm leading-relaxed">
+            <p className="text-mute2 mt-1 text-sm leading-relaxed">
               {radar?.emptyState?.message ??
                 `Para o exercício de ${anoExercicio}${portalName ? ` em ${portalName}` : ""}, as despesas por função, contratações diretas e o quadro de cargos comissionados encontram-se dentro dos parâmetros históricos esperados, sem desvios estatísticos atípicos apurados. Nenhuma anomalia fiscal ou desvio atípico foi identificado.`}
             </p>
@@ -141,12 +141,12 @@ export function RadarCivicoFeed({
         <>
           <div
             aria-hidden="true"
-            className="hidden gap-4 px-3 pb-2 text-mute2 text-xs uppercase tracking-widest sm:flex"
+            className="text-mute2 hidden gap-4 px-3 pb-2 text-xs tracking-widest uppercase sm:flex"
           >
             <span className="w-16 shrink-0">Nível</span>
             <span>Ocorrência</span>
           </div>
-          <ul className="divide-y divide-line border-line border-y">
+          <ul className="divide-line border-line divide-y border-y">
             {cards.map((card, index) => (
               <RadarLinha
                 key={

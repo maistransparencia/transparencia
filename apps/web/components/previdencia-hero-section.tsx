@@ -136,17 +136,17 @@ export function PrevidenciaHeroSection({
             ))}
           </dl>
 
-          <div className="space-y-3 border-line border-t pt-4">
+          <div className="border-line space-y-3 border-t pt-4">
             <p className="eyebrow">Etapas do repasse</p>
             {etapas.map((etapa) => (
               <div key={etapa.rotulo} className="space-y-1">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="font-medium text-ink">{etapa.rotulo}</span>
-                  <span className="font-semibold text-ink tabular-nums">
+                  <span className="text-ink font-medium">{etapa.rotulo}</span>
+                  <span className="text-ink font-semibold tabular-nums">
                     {fmtCompact(etapa.valor)}
                   </span>
                 </div>
-                <div className="h-3 w-full bg-track">
+                <div className="bg-track h-3 w-full">
                   <div
                     className={`h-full ${etapa.classeCor} transition-all duration-500`}
                     style={{ width: `${etapa.percentual}%` }}

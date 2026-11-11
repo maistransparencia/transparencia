@@ -174,7 +174,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label="Navegação móvel"
-      className="fixed right-0 bottom-0 left-0 z-30 border-line border-t bg-page/95 px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
+      className="border-line bg-page/95 fixed right-0 bottom-0 left-0 z-30 border-t px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md md:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-1">
         {PRIMARY_NAV_TABS.map((tab, index) => {
@@ -196,18 +196,18 @@ export function MobileBottomNav({
               className={cn(
                 "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
                 isActive
-                  ? "bg-brand/10 font-bold text-brand-text"
-                  : "font-medium text-mute2 hover:text-ink active:bg-line2",
+                  ? "bg-brand/10 text-brand-text font-bold"
+                  : "text-mute2 hover:text-ink active:bg-line2 font-medium",
               )}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isActive && "scale-110 text-brand-text",
+                  isActive && "text-brand-text scale-110",
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
-              <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
+              <span className="mt-0.5 block truncate text-[10px] leading-tight font-medium">
                 {tab.shortLabel}
               </span>
             </Link>
@@ -228,21 +228,21 @@ export function MobileBottomNav({
           className={cn(
             "flex min-h-[44px] flex-1 touch-manipulation flex-col items-center justify-center rounded-lg px-1 py-1 text-center transition-colors",
             isMoreActive
-              ? "bg-brand/10 font-bold text-brand-text"
-              : "font-medium text-mute2 hover:text-ink active:bg-line2",
+              ? "bg-brand/10 text-brand-text font-bold"
+              : "text-mute2 hover:text-ink active:bg-line2 font-medium",
           )}
         >
           <div className="relative inline-flex items-center justify-center">
             {isMenuOpen ? (
               <X
-                className="h-5 w-5 shrink-0 scale-110 text-brand-text transition-transform"
+                className="text-brand-text h-5 w-5 shrink-0 scale-110 transition-transform"
                 strokeWidth={2.2}
               />
             ) : (
               <Menu
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform",
-                  isMoreActive && "scale-110 text-brand-text",
+                  isMoreActive && "text-brand-text scale-110",
                 )}
                 strokeWidth={isMoreActive ? 2.2 : 1.8}
               />
@@ -254,12 +254,12 @@ export function MobileBottomNav({
                 className="absolute -top-0.5 -right-0.5 flex h-2 w-2"
                 aria-label={`${activeAlertCount} alertas críticos no Radar`}
               >
-                <span className="absolute inline-flex h-full w-full rounded-full bg-danger-fill opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-danger-fill motion-safe:animate-pulse motion-reduce:animate-none" />
+                <span className="bg-danger-fill absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
+                <span className="bg-danger-fill relative inline-flex h-2 w-2 rounded-full motion-safe:animate-pulse motion-reduce:animate-none" />
               </span>
             )}
           </div>
-          <span className="mt-0.5 block truncate font-medium text-[10px] leading-tight">
+          <span className="mt-0.5 block truncate text-[10px] leading-tight font-medium">
             {isMenuOpen ? "Fechar" : "Mais"}
           </span>
         </button>

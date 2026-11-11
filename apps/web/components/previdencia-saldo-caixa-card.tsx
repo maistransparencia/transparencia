@@ -83,9 +83,9 @@ export function PrevidenciaSaldoCaixaCard({
       >
         <SectionHeader title={tituloSaldo} description={descricaoSiconfi} />
 
-        <div className="flex flex-col items-center justify-center border-line border-y py-4 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute/60" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line flex flex-col items-center justify-center border-y py-4 text-center">
+          <AlertCircle className="text-mute/60 mb-2 h-6 w-6" />
+          <p className="text-ink text-sm font-medium">
             Aguardando homologação da remessa MSC pelo Tesouro Nacional para o
             fundo previdenciário em {ano}.
           </p>
@@ -141,10 +141,10 @@ export function PrevidenciaSaldoCaixaCard({
 
       {/* Alerta de Saldo a Descoberto se houver */}
       {saldoDescobertoFlag && (
-        <div className="flex items-start gap-3 border-danger-fill border-l-[3px] bg-danger-fill/15 px-4 py-3 text-ink text-xs">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
+        <div className="border-danger-fill bg-danger-fill/15 text-ink flex items-start gap-3 border-l-[3px] px-4 py-3 text-xs">
+          <AlertCircle className="text-danger-text mt-0.5 h-4 w-4 shrink-0" />
           <div className="leading-relaxed">
-            <span className="font-semibold text-danger-text">
+            <span className="text-danger-text font-semibold">
               Aviso de Insuficiência Financeira no RPPS:
             </span>{" "}
             Identificou-se saldo a descoberto em contas bancárias da previdência
@@ -158,7 +158,7 @@ export function PrevidenciaSaldoCaixaCard({
       {/* Métricas Principais Consolidadas (Layout Horizontal Estilo Visão Geral) */}
       <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[auto_1fr] md:gap-8">
         <div>
-          <span className="font-medium text-mute text-xs uppercase tracking-wider">
+          <span className="text-mute text-xs font-medium tracking-wider uppercase">
             Total em Caixa e Aplicações
           </span>
           <div className="mt-1 flex items-center gap-2">
@@ -166,7 +166,7 @@ export function PrevidenciaSaldoCaixaCard({
             {variacaoAnualPercentual !== undefined &&
               variacaoAnualPercentual !== null && (
                 <span
-                  className={`inline-flex items-center rounded-sm px-1.5 py-0.5 font-medium text-xs ${getVariacaoBadgeClass(
+                  className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium ${getVariacaoBadgeClass(
                     variacaoAnualPercentual,
                   )}`}
                 >
@@ -182,7 +182,7 @@ export function PrevidenciaSaldoCaixaCard({
         <div className="space-y-2">
           {/* Mini-Barra Proporcional */}
           <div
-            className="flex h-2.5 w-full overflow-hidden bg-line2"
+            className="bg-line2 flex h-2.5 w-full overflow-hidden"
             role="progressbar"
             aria-valuenow={Math.round(percentualLivres)}
             aria-valuemin={0}
@@ -202,18 +202,18 @@ export function PrevidenciaSaldoCaixaCard({
           {/* Legenda de Recursos Livres e Vinculados */}
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 bg-brand-fill" aria-hidden="true" />
+              <span className="bg-brand-fill h-2.5 w-2.5" aria-hidden="true" />
               <span className="text-mute">Recursos Vinculados (RPPS):</span>
-              <span className="font-semibold text-ink">
+              <span className="text-ink font-semibold">
                 {fmtCompact(saldoVinculado)} ({fmtPercent(percentualVinculados)}
                 )
               </span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 bg-ok-fill" aria-hidden="true" />
+              <span className="bg-ok-fill h-2.5 w-2.5" aria-hidden="true" />
               <span className="text-mute">Recursos Ordinários / Livres:</span>
-              <span className="font-semibold text-ink">
+              <span className="text-ink font-semibold">
                 {fmtCompact(saldoLivre)} ({fmtPercent(percentualLivres)})
               </span>
             </div>
@@ -222,9 +222,9 @@ export function PrevidenciaSaldoCaixaCard({
       </div>
 
       {/* Rodapé com Nota Constitucional e Botão Show Your Work */}
-      <div className="flex flex-col gap-3 border-line border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1.5 text-mute text-xs">
-          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand-text" />
+      <div className="border-line flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-mute flex items-center gap-1.5 text-xs">
+          <ShieldCheck className="text-brand-text h-3.5 w-3.5 shrink-0" />
           <span>
             Patrimônio financeiro exclusivo da previdência própria, segregado do
             caixa geral do município (

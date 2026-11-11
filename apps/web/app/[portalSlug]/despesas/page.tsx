@@ -117,13 +117,13 @@ export default async function DespesasPage({
         </IndicatorPanel>
 
         <details className="group">
-          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
             <span>
               Como ler estes números: reservado, entregue e pago não se somam
             </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
             <p>
               Uma compra pública tem três passos: a prefeitura{" "}
               <strong>reserva</strong> o valor (empenho),{" "}
@@ -232,11 +232,11 @@ export default async function DespesasPage({
         )}
 
         <details className="group">
-          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
             <span>O que são restos a pagar?</span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
             <p>
               É a conta que sobra de um ano para o outro. Isso é comum:
               contratos assinados no fim do ano podem ser pagos no começo do

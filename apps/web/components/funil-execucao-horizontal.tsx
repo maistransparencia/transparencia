@@ -39,16 +39,16 @@ export function FunnelExecucaoHorizontal({
           <div key={stage.name} className="space-y-2">
             <div className="flex items-baseline justify-between gap-4">
               <div className="min-w-0">
-                <p className="font-semibold text-ink text-sm">{stage.name}</p>
+                <p className="text-ink text-sm font-semibold">{stage.name}</p>
                 {stage.description ? (
                   <p className="caption">{stage.description}</p>
                 ) : null}
               </div>
-              <p className="shrink-0 whitespace-nowrap font-semibold text-ink text-sm tabular-nums">
+              <p className="text-ink shrink-0 text-sm font-semibold whitespace-nowrap tabular-nums">
                 {valText}
               </p>
             </div>
-            <div className="h-3 overflow-hidden bg-track">
+            <div className="bg-track h-3 overflow-hidden">
               <div
                 className={cn("h-full transition-all duration-500", color)}
                 style={{ width: `${widthPct}%` }}

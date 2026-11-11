@@ -33,7 +33,7 @@ export function ObrasGraficoAvancoDuplo({
   return (
     <div
       data-testid="grafico-avanco-duplo"
-      className="space-y-6 border-line border-t pt-6"
+      className="border-line space-y-6 border-t pt-6"
     >
       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
         <div>
@@ -51,11 +51,11 @@ export function ObrasGraficoAvancoDuplo({
       {alertaDescompasso?.temDescompasso && (
         <div
           data-testid="alerta-descompasso"
-          className="flex items-start gap-3 border-warn-fill border-l-[3px] bg-warn-fill/15 px-4 py-3 text-ink"
+          className="border-warn-fill bg-warn-fill/15 text-ink flex items-start gap-3 border-l-[3px] px-4 py-3"
         >
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn-text" />
+          <AlertTriangle className="text-warn-text mt-0.5 h-5 w-5 shrink-0" />
           <div className="space-y-1 text-sm">
-            <span className="font-semibold text-ink">
+            <span className="text-ink font-semibold">
               Descompasso Físico-Financeiro Identificado
             </span>
             <p className="leading-relaxed">{alertaDescompasso.mensagem}</p>
@@ -69,19 +69,19 @@ export function ObrasGraficoAvancoDuplo({
         <div data-testid="barra-execucao-fisica" className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm bg-ok-fill" />
-              <span className="font-semibold text-ink">
+              <span className="bg-ok-fill h-3 w-3 rounded-sm" />
+              <span className="text-ink font-semibold">
                 Execução Física Oficial
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-ink tabular-nums">
+              <span className="text-ink font-bold tabular-nums">
                 {percentualFisicoFormatado}
               </span>
             </div>
           </div>
 
-          <div className="h-3 w-full overflow-hidden bg-line2">
+          <div className="bg-line2 h-3 w-full overflow-hidden">
             <div
               role="progressbar"
               aria-valuenow={
@@ -111,19 +111,19 @@ export function ObrasGraficoAvancoDuplo({
         <div data-testid="barra-execucao-financeira" className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm bg-brand-fill" />
-              <span className="font-semibold text-ink">
+              <span className="bg-brand-fill h-3 w-3 rounded-sm" />
+              <span className="text-ink font-semibold">
                 Execução Financeira
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-ink tabular-nums">
+              <span className="text-ink font-bold tabular-nums">
                 {percentualFinanceiroFormatado}
               </span>
             </div>
           </div>
 
-          <div className="h-3 w-full overflow-hidden bg-line2">
+          <div className="bg-line2 h-3 w-full overflow-hidden">
             <div
               role="progressbar"
               aria-valuenow={

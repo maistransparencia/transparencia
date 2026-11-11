@@ -109,7 +109,7 @@ export function PrevidenciaActuarialRiskSection({
             exportFilename={`cadprev-parcelamentos-${ano}.csv`}
           />
         ) : (
-          <div className="border-line border-y py-4 text-center text-mute text-xs">
+          <div className="border-line text-mute border-y py-4 text-center text-xs">
             Nenhum termo de parcelamento ou confissão de dívida registrado no
             CADPREV em {ano}.
           </div>

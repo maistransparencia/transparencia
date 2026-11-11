@@ -165,18 +165,18 @@ export function ExtractionNotificationBanner({
   return (
     <aside
       aria-label="Aviso de novos dados disponíveis"
-      className="fixed right-4 bottom-20 left-4 z-50 max-w-md rounded-lg border border-brand/30 bg-brand/10 p-3.5 text-ink text-xs shadow-lg backdrop-blur-xs transition-all sm:right-4 sm:bottom-4 sm:left-auto sm:text-sm"
+      className="border-brand/30 bg-brand/10 text-ink fixed right-4 bottom-20 left-4 z-50 max-w-md rounded-lg border p-3.5 text-xs shadow-lg backdrop-blur-xs transition-all sm:right-4 sm:bottom-4 sm:left-auto sm:text-sm"
     >
       <div className="flex items-start gap-2.5">
         <Megaphone
           aria-hidden="true"
-          className="mt-0.5 size-4 shrink-0 text-brand-text"
+          className="text-brand-text mt-0.5 size-4 shrink-0"
         />
         <div className="flex-1 space-y-2">
           <p className="leading-snug">
             <strong>Novos dados disponíveis!</strong> A última extração de
             contas públicas de{" "}
-            <span className="font-semibold text-brand-text">
+            <span className="text-brand-text font-semibold">
               {effectivePortalName}
             </span>{" "}
             foi atualizada ({formattedDate}).
@@ -185,7 +185,7 @@ export function ExtractionNotificationBanner({
             <button
               type="button"
               onClick={handleDismiss}
-              className="rounded bg-brand-fill px-3 py-1 font-semibold text-onink text-xs shadow-xs transition-colors hover:opacity-90 focus:outline-hidden focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
+              className="bg-brand-fill text-onink focus:ring-focus-ring rounded px-3 py-1 text-xs font-semibold shadow-xs transition-colors hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:outline-hidden"
             >
               Entendido
             </button>

@@ -344,19 +344,19 @@ export function LicitacoesSpotlightModal({
     >
       {/* Backdrop com desfoque */}
       <div
-        className="fixed inset-0 bg-ink/40 backdrop-blur-xs transition-opacity"
+        className="bg-ink/40 fixed inset-0 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Caixa do modal (Bottom-sheet em mobile, card centralizado em desktop) */}
-      <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-md border border-line bg-page transition-all sm:max-h-[85vh] sm:rounded-md">
+      <div className="border-line bg-page relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-md border transition-all sm:max-h-[85vh] sm:rounded-md">
         {/* Barra superior de arrasto / indicador visual em mobile */}
-        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" />
+        <div className="bg-line mx-auto mt-2 h-1 w-10 rounded-full sm:hidden" />
 
         {/* Input Header */}
-        <div className="flex items-center gap-3 border-line border-b px-4 py-3.5 sm:px-5">
-          <Search className="h-5 w-5 shrink-0 text-mute3" aria-hidden="true" />
+        <div className="border-line flex items-center gap-3 border-b px-4 py-3.5 sm:px-5">
+          <Search className="text-mute3 h-5 w-5 shrink-0" aria-hidden="true" />
           <input
             ref={inputRef}
             type="text"
@@ -372,12 +372,12 @@ export function LicitacoesSpotlightModal({
             placeholder="Buscar por objeto, número (ex: 0043/24), fornecedor ou recurso..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-transparent text-ink text-sm outline-hidden placeholder:text-mute3 sm:text-base"
+            className="text-ink placeholder:text-mute3 w-full bg-transparent text-sm outline-hidden sm:text-base"
           />
 
           {loading && (
             <Loader2
-              className="h-4 w-4 shrink-0 animate-spin text-brand-text"
+              className="text-brand-text h-4 w-4 shrink-0 animate-spin"
               aria-label="Carregando resultados"
             />
           )}
@@ -390,7 +390,7 @@ export function LicitacoesSpotlightModal({
                 setErrorMessage(null);
                 inputRef.current?.focus();
               }}
-              className="rounded-full bg-line p-1 text-mute2 transition-colors hover:bg-mute3 hover:text-ink"
+              className="bg-line text-mute2 hover:bg-mute3 hover:text-ink rounded-full p-1 transition-colors"
               aria-label="Limpar termo de busca"
             >
               <X className="h-3.5 w-3.5" />
@@ -401,30 +401,30 @@ export function LicitacoesSpotlightModal({
           <button
             type="button"
             onClick={onClose}
-            className="font-medium text-mute2 text-sm transition-colors hover:text-ink sm:hidden"
+            className="text-mute2 hover:text-ink text-sm font-medium transition-colors sm:hidden"
           >
             Cancelar
           </button>
 
-          <kbd className="hidden rounded-md border border-line bg-line2 px-2 py-0.5 font-medium text-[10px] text-mute3 sm:inline-block">
+          <kbd className="border-line bg-line2 text-mute3 hidden rounded-md border px-2 py-0.5 text-[10px] font-medium sm:inline-block">
             ESC
           </kbd>
         </div>
 
         {/* Seletor de Escopo de Exercício */}
         {ano && (
-          <div className="flex items-center gap-2 border-line border-b bg-line2 px-4 py-2 text-xs">
-            <span className="font-medium text-[11px] text-mute2">Escopo:</span>
+          <div className="border-line bg-line2 flex items-center gap-2 border-b px-4 py-2 text-xs">
+            <span className="text-mute2 text-[11px] font-medium">Escopo:</span>
             <div
               role="radiogroup"
               aria-label="Escopo da busca"
-              className="inline-flex rounded-md bg-line p-0.5 text-xs"
+              className="bg-line inline-flex rounded-md p-0.5 text-xs"
             >
               <button
                 type="button"
                 onClick={() => handleScopeChange("todos")}
                 className={cn(
-                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  "rounded-md px-2.5 py-1 text-[11px] font-medium transition-all",
                   scope === "todos"
                     ? "bg-page text-ink"
                     : "text-mute2 hover:text-ink",
@@ -437,7 +437,7 @@ export function LicitacoesSpotlightModal({
                 type="button"
                 onClick={() => handleScopeChange("ano_atual")}
                 className={cn(
-                  "rounded-md px-2.5 py-1 font-medium text-[11px] transition-all",
+                  "rounded-md px-2.5 py-1 text-[11px] font-medium transition-all",
                   scope === "ano_atual"
                     ? "bg-page text-ink"
                     : "text-mute2 hover:text-ink",
@@ -454,9 +454,9 @@ export function LicitacoesSpotlightModal({
         {errorMessage && (
           <div
             role="alert"
-            className="mx-3 mt-3 flex items-start gap-2.5 rounded-md border border-danger-text/30 bg-danger-fill/10 p-3 text-danger-text text-xs"
+            className="border-danger-text/30 bg-danger-fill/10 text-danger-text mx-3 mt-3 flex items-start gap-2.5 rounded-md border p-3 text-xs"
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-text" />
+            <AlertCircle className="text-danger-text mt-0.5 h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -485,7 +485,7 @@ export function LicitacoesSpotlightModal({
                       setSearchTerm(sug);
                       inputRef.current?.focus();
                     }}
-                    className="rounded-md border border-line bg-line2 px-2.5 py-1 text-mute2 text-xs hover:border-brand hover:bg-brand/5 hover:text-brand-text"
+                    className="border-line bg-line2 text-mute2 hover:border-brand hover:bg-brand/5 hover:text-brand-text rounded-md border px-2.5 py-1 text-xs"
                   >
                     {sug}
                   </button>
@@ -500,11 +500,11 @@ export function LicitacoesSpotlightModal({
             !errorMessage &&
             results.total === 0 && (
               <div className="px-4 py-10 text-center">
-                <p className="font-medium text-ink text-sm">
+                <p className="text-ink text-sm font-medium">
                   Nenhum processo ou contrato encontrado para &ldquo;
                   {searchTerm}&rdquo;.
                 </p>
-                <p className="mt-1 text-mute3 text-xs">
+                <p className="text-mute3 mt-1 text-xs">
                   Tente buscar por termos mais genéricos, objeto ou número de
                   processo (ex: 0043/24).
                 </p>
@@ -514,7 +514,7 @@ export function LicitacoesSpotlightModal({
           {/* Seção 1: Licitações Encontradas */}
           {results.licitacoes.length > 0 && (
             <div className="mb-3">
-              <div className="px-3 py-1.5 font-semibold text-[11px] text-mute3 uppercase tracking-wider">
+              <div className="text-mute3 px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase">
                 Licitações Encontradas ({results.licitacoes.length})
               </div>
               <div className="space-y-1">
@@ -537,7 +537,7 @@ export function LicitacoesSpotlightModal({
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-md p-3 text-left transition-colors",
                         isLoadingItem
-                          ? "cursor-wait bg-brand/15 text-ink ring-1 ring-brand/30"
+                          ? "bg-brand/15 text-ink ring-brand/30 cursor-wait ring-1"
                           : isSelected
                             ? "bg-brand/10 text-ink"
                             : "text-ink hover:bg-line2",
@@ -549,7 +549,7 @@ export function LicitacoesSpotlightModal({
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         {isLoadingItem ? (
                           <Loader2
-                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-text"
+                            className="text-brand-text mt-0.5 h-4 w-4 shrink-0 animate-spin"
                             aria-hidden="true"
                           />
                         ) : (
@@ -563,7 +563,7 @@ export function LicitacoesSpotlightModal({
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-semibold text-ink text-xs sm:text-sm">
+                            <span className="text-ink text-xs font-semibold sm:text-sm">
                               {item.numero || "S/N"}
                             </span>
                             <Badge variant="accent">
@@ -572,7 +572,7 @@ export function LicitacoesSpotlightModal({
                                 : "Licitação"}
                             </Badge>
                             {item.status && (
-                              <span className="rounded bg-line2 px-1.5 py-0.5 text-[10px] text-mute2">
+                              <span className="bg-line2 text-mute2 rounded px-1.5 py-0.5 text-[10px]">
                                 {item.status}
                               </span>
                             )}
@@ -581,18 +581,18 @@ export function LicitacoesSpotlightModal({
                                 Exercício {item.ano}
                               </Badge>
                             ) : (
-                              <span className="text-[11px] text-mute3">
+                              <span className="text-mute3 text-[11px]">
                                 · {item.ano}
                               </span>
                             )}
                             {item.programaNome && (
-                              <span className="rounded bg-brand/10 px-1.5 py-0.5 font-medium text-[10px] text-brand">
+                              <span className="bg-brand/10 text-brand rounded px-1.5 py-0.5 text-[10px] font-medium">
                                 {item.programaNome}
                               </span>
                             )}
                           </div>
                           {item.fornecedorNome && (
-                            <p className="mt-0.5 line-clamp-2 break-words font-medium text-ink text-xs">
+                            <p className="text-ink mt-0.5 line-clamp-2 text-xs font-medium break-words">
                               {item.fornecedorNome.includes(";")
                                 ? "Fornecedores homologados:"
                                 : "Fornecedor:"}{" "}
@@ -600,29 +600,29 @@ export function LicitacoesSpotlightModal({
                             </p>
                           )}
                           {(item.orgaoNome || item.fontePrincipal) && (
-                            <p className="mt-0.5 line-clamp-1 break-words text-[11px] text-mute2">
+                            <p className="text-mute2 mt-0.5 line-clamp-1 text-[11px] break-words">
                               {[item.orgaoNome, item.fontePrincipal]
                                 .filter(Boolean)
                                 .join(" · ")}
                             </p>
                           )}
-                          <p className="mt-1 line-clamp-2 break-words text-mute2 text-xs leading-relaxed">
+                          <p className="text-mute2 mt-1 line-clamp-2 text-xs leading-relaxed break-words">
                             {item.objeto}
                           </p>
                         </div>
                       </div>
 
                       <div className="ml-2 shrink-0 text-right">
-                        <span className="numeric whitespace-nowrap text-left font-medium text-ink text-xs tabular-nums sm:text-sm">
+                        <span className="numeric text-ink text-left text-xs font-medium whitespace-nowrap tabular-nums sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (
-                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-brand-text">
+                          <div className="text-brand-text mt-1 flex items-center justify-end gap-1 text-[10px] font-medium">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span>Abrindo...</span>
                           </div>
                         ) : isSelected ? (
-                          <div className="mt-1 flex items-center justify-end text-[10px] text-brand-text">
+                          <div className="text-brand-text mt-1 flex items-center justify-end text-[10px]">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
                         ) : null}
@@ -637,7 +637,7 @@ export function LicitacoesSpotlightModal({
           {/* Seção 2: Contratos */}
           {results.contratos.length > 0 && (
             <div>
-              <div className="px-3 py-1.5 font-semibold text-[11px] text-mute3 uppercase tracking-wider">
+              <div className="text-mute3 px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase">
                 Contratos ({results.contratos.length})
               </div>
               <div className="space-y-1">
@@ -667,7 +667,7 @@ export function LicitacoesSpotlightModal({
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 overflow-hidden rounded-md p-3 text-left transition-colors",
                         isLoadingItem
-                          ? "cursor-wait bg-brand/15 text-ink ring-1 ring-brand/30"
+                          ? "bg-brand/15 text-ink ring-brand/30 cursor-wait ring-1"
                           : isSelected
                             ? "bg-brand/10 text-ink"
                             : "text-ink hover:bg-line2",
@@ -679,7 +679,7 @@ export function LicitacoesSpotlightModal({
                       <div className="flex min-w-0 flex-1 items-start gap-2.5">
                         {isLoadingItem ? (
                           <Loader2
-                            className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-text"
+                            className="text-brand-text mt-0.5 h-4 w-4 shrink-0 animate-spin"
                             aria-hidden="true"
                           />
                         ) : (
@@ -693,7 +693,7 @@ export function LicitacoesSpotlightModal({
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-semibold text-ink text-xs sm:text-sm">
+                            <span className="text-ink text-xs font-semibold sm:text-sm">
                               Contrato {item.numero || "S/N"}
                             </span>
                             <Badge variant="default">
@@ -730,24 +730,24 @@ export function LicitacoesSpotlightModal({
                                 );
                               }
                               return (
-                                <span className="text-[11px] text-mute3">
+                                <span className="text-mute3 text-[11px]">
                                   · {item.ano}
                                 </span>
                               );
                             })()}
                             {item.programaNome && (
-                              <span className="rounded bg-brand/10 px-1.5 py-0.5 font-medium text-[10px] text-brand">
+                              <span className="bg-brand/10 text-brand rounded px-1.5 py-0.5 text-[10px] font-medium">
                                 {item.programaNome}
                               </span>
                             )}
                           </div>
                           {item.fornecedorNome && (
-                            <p className="mt-0.5 break-words font-medium text-ink text-xs">
+                            <p className="text-ink mt-0.5 text-xs font-medium break-words">
                               Fornecedor: {item.fornecedorNome}
                             </p>
                           )}
                           {(item.orgaoNome || item.fontePrincipal) && (
-                            <p className="mt-0.5 line-clamp-1 break-words text-[11px] text-mute2">
+                            <p className="text-mute2 mt-0.5 line-clamp-1 text-[11px] break-words">
                               {[item.orgaoNome, item.fontePrincipal]
                                 .filter(Boolean)
                                 .join(" · ")}
@@ -755,7 +755,7 @@ export function LicitacoesSpotlightModal({
                           )}
                           {isContratoVigenteAnoAnterior &&
                             (item.dataInicio || item.vencimentoAtual) && (
-                              <p className="mt-0.5 font-medium text-warn-text text-xs">
+                              <p className="text-warn-text mt-0.5 text-xs font-medium">
                                 {(() => {
                                   if (item.dataInicio && item.vencimentoAtual) {
                                     return `Vigência: ${fmtDate(item.dataInicio)} a ${fmtDate(item.vencimentoAtual)}`;
@@ -767,23 +767,23 @@ export function LicitacoesSpotlightModal({
                                 })()}
                               </p>
                             )}
-                          <p className="mt-1 line-clamp-2 break-words text-mute2 text-xs leading-relaxed">
+                          <p className="text-mute2 mt-1 line-clamp-2 text-xs leading-relaxed break-words">
                             {item.objeto}
                           </p>
                         </div>
                       </div>
 
                       <div className="ml-2 shrink-0 text-right">
-                        <span className="numeric whitespace-nowrap text-left font-medium text-ink text-xs tabular-nums sm:text-sm">
+                        <span className="numeric text-ink text-left text-xs font-medium whitespace-nowrap tabular-nums sm:text-sm">
                           {item.valor > 0 ? fmtCurrency(item.valor) : "—"}
                         </span>
                         {isLoadingItem ? (
-                          <div className="mt-1 flex items-center justify-end gap-1 font-medium text-[10px] text-brand-text">
+                          <div className="text-brand-text mt-1 flex items-center justify-end gap-1 text-[10px] font-medium">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span>Abrindo...</span>
                           </div>
                         ) : isSelected ? (
-                          <div className="mt-1 flex items-center justify-end text-[10px] text-brand-text">
+                          <div className="text-brand-text mt-1 flex items-center justify-end text-[10px]">
                             <CornerDownLeft className="h-3 w-3" />
                           </div>
                         ) : null}
@@ -797,19 +797,19 @@ export function LicitacoesSpotlightModal({
         </div>
 
         {/* Rodapé com atalhos e contagem amigável (sem ternários aninhados) */}
-        <div className="flex items-center justify-center border-line border-t bg-line2 px-4 py-2.5 text-[11px] text-mute2 sm:justify-between">
+        <div className="border-line bg-line2 text-mute2 flex items-center justify-center border-t px-4 py-2.5 text-[11px] sm:justify-between">
           <div className="hidden items-center gap-3 sm:flex">
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-line bg-page px-1.5 py-0.5 text-[10px]">
+              <kbd className="border-line bg-page rounded border px-1.5 py-0.5 text-[10px]">
                 ↑
               </kbd>
-              <kbd className="rounded border border-line bg-page px-1.5 py-0.5 text-[10px]">
+              <kbd className="border-line bg-page rounded border px-1.5 py-0.5 text-[10px]">
                 ↓
               </kbd>{" "}
               para navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-line bg-page px-1.5 py-0.5 text-[10px]">
+              <kbd className="border-line bg-page rounded border px-1.5 py-0.5 text-[10px]">
                 ↵
               </kbd>{" "}
               para selecionar

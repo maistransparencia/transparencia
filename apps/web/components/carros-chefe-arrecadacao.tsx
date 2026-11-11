@@ -56,11 +56,11 @@ export function CarrosChefeArrecadacao({
           return (
             <div key={item.nome} className="space-y-1.5">
               <div>
-                <p className="font-semibold text-ink text-sm">{item.nome}</p>
+                <p className="text-ink text-sm font-semibold">{item.nome}</p>
                 <p className="caption">{item.descricao}</p>
               </div>
 
-              <div className="h-3 w-full overflow-hidden bg-track">
+              <div className="bg-track h-3 w-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full transition-all duration-500 ease-out",
@@ -73,7 +73,7 @@ export function CarrosChefeArrecadacao({
               </div>
 
               <p className="caption">
-                <span className="numeric font-semibold text-ink">
+                <span className="numeric text-ink font-semibold">
                   {fmtCompact(item.value)}
                 </span>{" "}
                 · {pctOfTotal.toFixed(1).replace(".", ",")}% de tudo que entrou
