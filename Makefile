@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build db/backup db/restore-raw docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -158,6 +158,20 @@ docker/elt/run:
 db/init-roles:
 	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f docker/init/01-init-roles.sql
 
+# Backup dos dados raw do banco de desenvolvimento (contêiner transparencia_postgres). Recarregar
+# o raw de todos os anos leva horas; restaurar o dump leva minutos. Guarda os 5 mais recentes.
+db/backup:
+	mkdir -p docker/backups
+	docker exec transparencia_postgres pg_dump -U postgres -Fc -n 'raw*' postgres \
+		> docker/backups/raw-$$(date +%Y%m%d-%H%M%S).dump
+	ls -1t docker/backups/raw-*.dump | tail -n +6 | xargs rm -f
+	ls -lh docker/backups
+
+# Restaura um backup do raw por cima do atual. Uso: make db/restore-raw ARQUIVO=docker/backups/raw-....dump
+db/restore-raw:
+	test -n "$(ARQUIVO)"
+	docker exec -i transparencia_postgres pg_restore -U postgres -d postgres --clean --if-exists < "$(ARQUIVO)"
+
 migrate/grant:
 	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f elt/migrations/grant_readonly.sql
 
@@ -222,6 +236,7 @@ push/dry-run:
 # a partir dos _sources.yml. Local e CI usam exatamente este mesmo alvo; não há fixture
 # versionado para manter. Dados transacionais de teste são semeados via seed.ts.
 # Uso local: docker compose up -d postgres_test && make db/test/build && make test/ts
+# Lê só TEST_DATABASE_URL (padrão localhost:5545), nunca DATABASE_URL: o script recusa outro host,
+# outra porta ou banco com dados raw.
 db/test/build:
-	DATABASE_URL="$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" \
-		uv run --project elt python elt/scripts/build_test_db.py
+	uv run --project elt python elt/scripts/build_test_db.py
