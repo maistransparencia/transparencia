@@ -256,7 +256,8 @@ function ExtrasSaude({
         {(props.farmaciaExemplos ?? []).length > 0 && (
           <div className="caption flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="text-mute2">Remédios comuns:</span>
-            <ul className="contents">
+            {/* biome-ignore lint/a11y/noRedundantRoles: display: contents apaga a semântica de lista no Safari; o role explícito a devolve */}
+            <ul role="list" className="contents">
               {(props.farmaciaExemplos ?? []).map((exemplo) => (
                 <li key={exemplo.codigoPrincipioAtivo}>
                   <Link

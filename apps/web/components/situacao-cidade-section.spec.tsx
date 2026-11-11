@@ -84,6 +84,8 @@ describe("SituacaoCidadeSection compartilhar", () => {
     render(<SituacaoCidadeSection {...propsBase} />);
     expect(screen.getByText("Remédios comuns:")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Dipirona" });
+    // display: contents apaga a semântica de lista no Safari; o role explícito a devolve.
+    expect(link.closest("ul")?.getAttribute("role")).toBe("list");
     expect(link.className).not.toContain("border");
     expect(link.className).toContain("underline");
   });
