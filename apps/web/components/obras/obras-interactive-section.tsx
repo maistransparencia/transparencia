@@ -405,7 +405,10 @@ export function ObrasInteractiveSection({
   })();
 
   return (
-    <section id="secao-mapa-obras" className="space-y-4">
+    <section
+      id="secao-mapa-obras"
+      className="scroll-mt-20 space-y-4 lg:scroll-mt-4"
+    >
       <SectionHeader
         title="Onde estão as obras"
         description={subtextoTerritorio}
@@ -724,7 +727,7 @@ export function ObrasInteractiveSection({
             }`}
           >
             {/* Container do Mapa Leaflet */}
-            <div className="relative h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
+            <div className="relative h-[65svh] min-h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
               {/* Botão flutuante toggle no mapa (visível no mobile para alternar área urbana / território) */}
               <div className="absolute top-3 left-15 z-10 lg:hidden">
                 <button
