@@ -119,7 +119,7 @@ export default async function ReceitasPage({
           </p>
         </div>
 
-        {totalPrev > 0 && (
+        {totalPrev > 0 ? (
           <div className="space-y-2">
             <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
               <span>
@@ -139,6 +139,8 @@ export default async function ReceitasPage({
               de {selectedYear}.
             </p>
           </div>
+        ) : (
+          <p className="caption">Previsão do ano não informada.</p>
         )}
       </section>
 

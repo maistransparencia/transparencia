@@ -85,6 +85,17 @@ describe("ReceitasPage", () => {
     expect(destaque.querySelector("dl")).toBeNull();
   });
 
+  it("sem previsão informada mostra uma linha neutra no lugar da barra", async () => {
+    loadReceitasDataMock.mockResolvedValue(
+      makeRaw({ fonte: makeFonte({ totalPrevisto: 0 }) }),
+    );
+    render(await ReceitasPage(props));
+    expect(screen.getByTestId("receitas-destaque")).toHaveTextContent(
+      "Previsão do ano não informada.",
+    );
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+  });
+
   it("quando arrecada mais que o previsto, diz que ficou acima da previsão", async () => {
     loadReceitasDataMock.mockResolvedValue(
       makeRaw({
