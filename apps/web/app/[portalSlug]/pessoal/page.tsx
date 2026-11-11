@@ -6,12 +6,13 @@ import {
   IndicatorPanel,
   ThresholdMeter,
 } from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { DecimoTerceiroCard } from "@/components/decimo-terceiro-card";
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { PessoalRegimeSection } from "@/components/pessoal-regime-section";
 import { ProventosDistributionChart } from "@/components/proventos-distribution-chart";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadPessoalData } from "./loader";
@@ -68,7 +69,10 @@ export default async function PessoalPage({
     folhaKpi,
     folhaTrend,
     barraLimitesLrf,
-    notaEstimativaLrf,
+    notaFonteLrf,
+    percentualExibido,
+    rgf,
+    periodoRgfRotulo,
     chefiasTrend,
     totalFolhaTrend,
   } = viewModel;
@@ -102,34 +106,20 @@ export default async function PessoalPage({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <section className="space-y-3" data-testid="pessoal-destaque">
-          <p className="eyebrow">Total pago em folha</p>
-          <p className="stat-value-lg text-brand-text">
-            {fmtCompact(currentYearRow.totalFolha)}
-          </p>
-          <p className="caption flex flex-wrap gap-x-3">
-            <span>
-              {isCurrentYear
-                ? `proventos brutos no período (${partialPeriod || "até agora"})`
-                : `proventos brutos, ${selectedYear}`}
-            </span>
-            {!isCurrentYear && totalFolhaTrend && (
-              <span>{totalFolhaTrend.value}</span>
-            )}
-          </p>
-        </section>
-
-        <section className="space-y-3" data-testid="pessoal-lrf-destaque">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <section
+          className="space-y-3 md:col-span-2"
+          data-testid="pessoal-lrf-destaque"
+        >
           <p className="eyebrow">{folhaKpi.title}</p>
           <p
             className={`stat-value-lg ${folhaKpi.alert ? "text-warn-text" : "text-brand-text"}`}
           >
-            {fmtPercent(currentYearRow.percentualFolha)}
+            {fmtPercent(percentualExibido)}
           </p>
           {barraLimitesLrf && (
             <ThresholdMeter
-              value={currentYearRow.percentualFolha}
+              value={percentualExibido}
               threshold={
                 barraLimitesLrf.exibirMarcadores
                   ? barraLimitesLrf.teto
@@ -141,7 +131,7 @@ export default async function PessoalPage({
                   : undefined
               }
               label="Gasto com pessoal sobre a receita"
-              valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita${barraLimitesLrf.exibirMarcadores ? `; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}` : ""}`}
+              valueText={`${fmtPercent(percentualExibido)} da receita${barraLimitesLrf.exibirMarcadores ? `; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}` : ""}`}
             />
           )}
           <p className="caption space-y-0.5">
@@ -175,8 +165,76 @@ export default async function PessoalPage({
                 )}
               </span>
             )}
-            <span className="block">{notaEstimativaLrf}</span>
+            <span className="block">{notaFonteLrf}</span>
+            {rgf ? (
+              <span className="block">
+                Fonte:{" "}
+                <a
+                  href={FONTES_OFICIAIS.siconfi.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {FONTES_OFICIAIS.siconfi.nome} (Tesouro Nacional)
+                </a>
+                , Relatório de Gestão Fiscal. Os números de &ldquo;Ver
+                detalhes&rdquo; vêm do mesmo relatório.
+              </span>
+            ) : null}
           </p>
+          {rgf ? (
+            <details className="group" data-testid="pessoal-lrf-detalhes">
+              <summary className="flex min-h-11 cursor-pointer select-none items-center gap-1 font-medium text-mute2 text-xs hover:text-ink">
+                Ver detalhes
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <dl className="grid gap-4 pt-2 sm:grid-cols-2">
+                <div>
+                  <dt className="eyebrow">
+                    Gasto com pessoal em 12 meses ({periodoRgfRotulo})
+                  </dt>
+                  <dd>{fmtCompact(rgf.despesaPessoal12Meses)}</dd>
+                </div>
+                <div>
+                  <dt className="eyebrow">
+                    Receita-base do limite (receita corrente líquida ajustada)
+                  </dt>
+                  <dd>{fmtCompact(rgf.receitaCorrenteLiquidaAjustada)}</dd>
+                </div>
+              </dl>
+            </details>
+          ) : null}
+        </section>
+        <section
+          className="panel panel-top space-y-2 self-start"
+          data-testid="pessoal-destaque"
+        >
+          <p className="eyebrow">Total pago em folha em {selectedYear}</p>
+          <p className="stat-value">{fmtCompact(currentYearRow.totalFolha)}</p>
+          <p className="caption flex flex-wrap gap-x-3">
+            <span>
+              {isCurrentYear
+                ? `Soma dos proventos brutos da folha de pagamento da Prefeitura no período (${partialPeriod || "até agora"}).`
+                : "Soma dos proventos brutos da folha de pagamento da Prefeitura no ano."}
+            </span>
+            {!isCurrentYear && totalFolhaTrend && (
+              <span>{totalFolhaTrend.value}</span>
+            )}
+          </p>
+          {rgf ? (
+            <p className="caption">
+              Serve para acompanhar o que sai a cada mês. O limite da lei usa
+              outra conta (12 meses, com encargos do empregador), por isso o
+              valor é diferente.{" "}
+              <a
+                href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art18"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Lei de Responsabilidade Fiscal, art. 18
+                <ExternalLink className="ml-1 inline h-3 w-3 shrink-0" />
+              </a>
+            </p>
+          ) : null}
         </section>
       </div>
 

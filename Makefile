@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build db/backup db/restore-raw docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siconfi-rgf elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build db/backup db/restore-raw docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -78,6 +78,13 @@ ifndef PORTAL
 	$(error PORTAL is required. Usage: make elt/siconfi PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --with-db --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
+
+elt/siconfi-rgf:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/siconfi-rgf PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) --only siconfi_rgf
+	PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $(PORTAL)
 
 elt/siope:
 ifndef PORTAL

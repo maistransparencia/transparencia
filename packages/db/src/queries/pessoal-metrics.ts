@@ -1,16 +1,48 @@
 import { db } from "../client";
 
+export type StatusLrfPessoal = "normal" | "alerta" | "prudencial" | "excedido";
+
+/**
+ * Número oficial do RGF Anexo 01 (SICONFI): despesa de 12 meses, RCL ajustada e percentual
+ * saem todos do mesmo período publicado. Só este bloco recebe veredito.
+ */
+export interface PessoalRgfDTO {
+  periodicidade: "quadrimestral" | "semestral";
+  periodo: number;
+  despesaPessoal12Meses: number;
+  receitaCorrenteLiquidaAjustada: number;
+  percentualDespesaPessoal: number;
+  /** Comparação com os limites do seed; `null` quando o ano não tem os três limites cadastrados. */
+  statusLrf: StatusLrfPessoal | null;
+}
+
 export interface FolhaVsServicosMetricsDTO {
   ano: number;
+  /** Estimativa do portal (folha acumulada no ano); nunca recebe veredito. */
   totalFolha: number;
   totalPago: number;
   despesaPessoalLrf: number;
-  rclProxy: number;
   receitaCorrenteLiquida: number;
+  /** Percentual estimado do portal (`despesaPessoalLrf` / RCL estimada do portal), sem veredito. */
   percentualFolha: number;
-  statusLrf: "normal" | "alerta" | "prudencial" | "excedido";
+  /** Último período do RGF publicado no ano; `null` quando o ente não publicou. */
+  rgf: PessoalRgfDTO | null;
+  /** RGF do mesmo período (e periodicidade) do ano anterior, para comparação; `null` sem par. */
+  rgfAnoAnteriorMesmoPeriodo: PessoalRgfDTO | null;
   /** Limites vigentes no ano (seed_constantes_fiscais); `null` quando não cadastrados. */
   limitesLrf: LimitesLrfPessoal | null;
+}
+
+/** Compara com os limites da lei: igual ao limite não é excesso (LRF art. 20 III b, art. 22 p. único, art. 59 §1º II). */
+export function classificarStatusLrfPessoal(
+  percentual: number,
+  limites: LimitesLrfPessoal | null,
+): StatusLrfPessoal | null {
+  if (!limites) return null;
+  if (percentual > limites.maximo) return "excedido";
+  if (percentual > limites.prudencial) return "prudencial";
+  if (percentual > limites.alerta) return "alerta";
+  return "normal";
 }
 
 export interface DecimoTerceiroExecucaoMetricsDTO {
@@ -121,7 +153,9 @@ export async function getFolhaVsServicosMetrics({
     query = query.where("empresa_id", "in", empresaIds);
   }
 
-  const [rows, rclRows, limitesPorAno] = await Promise.all([
+  const anosRgf = [...new Set(validYears.flatMap((y) => [y, y - 1]))];
+
+  const [rows, rclRows, limitesPorAno, rgfRows] = await Promise.all([
     query.groupBy("ano").execute(),
     db
       .selectFrom("fct_fontes_receita_metricas")
@@ -136,7 +170,20 @@ export async function getFolhaVsServicosMetrics({
       .where("ano", "in", validYears)
       .groupBy("ano")
       .execute(),
-    getLimitesLrfPessoalPorAno(validYears),
+    getLimitesLrfPessoalPorAno(anosRgf),
+    db
+      .selectFrom("fct_pessoal_rgf_metricas")
+      .select([
+        "ano",
+        "periodicidade",
+        "periodo",
+        "despesa_pessoal_12_meses",
+        "receita_corrente_liquida_ajustada",
+        "percentual_despesa_pessoal",
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "in", anosRgf)
+      .execute(),
   ]);
 
   const folhaMap = new Map(
@@ -144,10 +191,7 @@ export async function getFolhaVsServicosMetrics({
       Number(r.ano),
       {
         totalFolha: parseFloat(r.total_folha ?? "0") || 0,
-        despesaPessoalLrf:
-          parseFloat(r.despesa_total_pessoal_lrf ?? "0") ||
-          parseFloat(r.total_folha ?? "0") ||
-          0,
+        despesaPessoalLrf: parseFloat(r.despesa_total_pessoal_lrf ?? "0") || 0,
         totalPago: parseFloat(r.total_pago ?? "0") || 0,
       },
     ]),
@@ -159,6 +203,45 @@ export async function getFolhaVsServicosMetrics({
       parseFloat(r.receita_corrente_liquida ?? "0") || 0,
     ]),
   );
+
+  const periodosPorPeriodicidade = { quadrimestral: 3, semestral: 2 } as const;
+  const andamentoDoAno = (r: {
+    periodicidade: string;
+    periodo: number | string;
+  }) =>
+    Number(r.periodo) /
+    (periodosPorPeriodicidade[
+      r.periodicidade as keyof typeof periodosPorPeriodicidade
+    ] ?? Number.POSITIVE_INFINITY);
+
+  const paraRgfDto = (
+    r: (typeof rgfRows)[number],
+    limites: LimitesLrfPessoal | null,
+  ): PessoalRgfDTO => {
+    const percentualDespesaPessoal = parseFloat(r.percentual_despesa_pessoal);
+    return {
+      periodicidade: r.periodicidade as PessoalRgfDTO["periodicidade"],
+      periodo: Number(r.periodo),
+      despesaPessoal12Meses: parseFloat(r.despesa_pessoal_12_meses),
+      receitaCorrenteLiquidaAjustada: parseFloat(
+        r.receita_corrente_liquida_ajustada,
+      ),
+      percentualDespesaPessoal,
+      statusLrf: classificarStatusLrfPessoal(percentualDespesaPessoal, limites),
+    };
+  };
+
+  // O ente publica em uma só periodicidade por ano; Q3 e S2 empatariam em 1,0, então a ordem só importa se ele trocar no meio do ano.
+  const ultimoRgfDoAno = (ano: number) =>
+    rgfRows
+      .filter((r) => Number(r.ano) === ano)
+      .reduce<(typeof rgfRows)[number] | null>(
+        (maisRecente, r) =>
+          !maisRecente || andamentoDoAno(r) > andamentoDoAno(maisRecente)
+            ? r
+            : maisRecente,
+        null,
+      );
 
   return validYears.map((year) => {
     const data = folhaMap.get(year) ?? {
@@ -176,25 +259,29 @@ export async function getFolhaVsServicosMetrics({
           )
         : 0;
 
-    const limites = limitesPorAno.get(year);
-    const statusLrf: "normal" | "alerta" | "prudencial" | "excedido" = (() => {
-      if (!limites) return "normal";
-      if (percentualFolha > limites.maximo) return "excedido";
-      if (percentualFolha >= limites.prudencial) return "prudencial";
-      if (percentualFolha >= limites.alerta) return "alerta";
-      return "normal";
-    })();
+    const limites = limitesPorAno.get(year) ?? null;
+    const rgfDoAno = ultimoRgfDoAno(year);
+    const rgfAnterior = rgfDoAno
+      ? rgfRows.find(
+          (r) =>
+            Number(r.ano) === year - 1 &&
+            r.periodicidade === rgfDoAno.periodicidade &&
+            Number(r.periodo) === Number(rgfDoAno.periodo),
+        )
+      : undefined;
 
     return {
       ano: year,
       totalFolha: data.totalFolha,
       totalPago: data.totalPago,
       despesaPessoalLrf: data.despesaPessoalLrf,
-      rclProxy: receitaCorrenteLiquida,
       receitaCorrenteLiquida,
       percentualFolha,
-      statusLrf,
-      limitesLrf: limites ?? null,
+      rgf: rgfDoAno ? paraRgfDto(rgfDoAno, limites) : null,
+      rgfAnoAnteriorMesmoPeriodo: rgfAnterior
+        ? paraRgfDto(rgfAnterior, limitesPorAno.get(year - 1) ?? null)
+        : null,
+      limitesLrf: limites,
     };
   });
 }

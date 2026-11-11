@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-09
+last_updated: 2026-11-11
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -292,3 +292,6 @@ development_status:
   27-4-dinheiro-que-entra-na-cidade-13o-salario-sazonal: done
   27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel: done
   epic-27-retrospective: optional
+
+  td-backlog: in-progress
+  td-2-gasto-com-pessoal-pelo-numero-oficial-do-rgf: review
