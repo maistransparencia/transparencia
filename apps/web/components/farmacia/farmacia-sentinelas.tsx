@@ -6,7 +6,7 @@ import {
   ModalDialog,
   SegmentedButton,
 } from "@transparencia/ui";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronDown, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { useId, useRef, useState } from "react";
@@ -296,9 +296,10 @@ export function FarmaciaSentinelas({
         </p>
       </div>
 
-      <details className="border-line border-y px-1 py-3">
-        <summary className="cursor-pointer font-semibold text-[13px] text-ink">
-          Como ler esta lista
+      <details className="group border-line border-y px-1 py-3">
+        <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-2 font-semibold text-[13px] text-ink [&::-webkit-details-marker]:hidden">
+          <span>Como ler esta lista</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
         </summary>
         <p className="mt-2.5 text-[13px] text-mute leading-[1.65]">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
