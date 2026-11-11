@@ -74,7 +74,9 @@ describe("ReceitasPage", () => {
 
     const destaque = screen.getByTestId("receitas-destaque");
     expect(destaque).toHaveTextContent("Previsto para o ano:");
-    expect(destaque).toHaveTextContent("Arrecadou 5,0% a mais que em 2023.");
+    expect(destaque).toHaveTextContent(
+      "A Prefeitura arrecadou 5,0% a mais que em 2023, sem descontar a inflação.",
+    );
     expect(
       screen.getByRole("meter", {
         name: "Quanto da previsão já foi arrecadado",

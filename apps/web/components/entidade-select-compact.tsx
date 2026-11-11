@@ -188,7 +188,7 @@ export function EntidadeSelectCompact({
                   : "text-mute2 hover:text-ink",
               )}
             >
-              Ver todos
+              Marcar todos
             </button>
           </div>
 

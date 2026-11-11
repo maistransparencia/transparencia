@@ -197,7 +197,7 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
           />
           <p className="caption space-y-0.5">
             <span className="block">
-              Nota do Ideb {anoApuracao}, de 0 a 10.
+              Nota do IDEB {anoApuracao}, de 0 a 10.
             </span>
             {mediaEstadual !== null && (
               <span className="flex items-center gap-x-2">

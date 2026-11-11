@@ -86,7 +86,11 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     texto: string;
   } | null => {
     if (raw.context.isCurrentYear) {
-      return { direcao: null, texto: "Ano em andamento, sem comparação." };
+      return {
+        direcao: null,
+        texto:
+          "Ano em andamento: ainda não dá para comparar com o ano anterior inteiro.",
+      };
     }
     if (rec.totalPctChange === null) return null;
     const percentual = Math.abs(rec.totalPctChange)
@@ -96,12 +100,12 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     if (rec.totalPctChange >= 0) {
       return {
         direcao: "alta",
-        texto: `Arrecadou ${percentual}% a mais que em ${anoAnterior}.`,
+        texto: `A Prefeitura arrecadou ${percentual}% a mais que em ${anoAnterior}, sem descontar a inflação.`,
       };
     }
     return {
       direcao: "queda",
-      texto: `Arrecadou ${percentual}% a menos que em ${anoAnterior}.`,
+      texto: `A Prefeitura arrecadou ${percentual}% a menos que em ${anoAnterior}, sem descontar a inflação.`,
     };
   })();
 

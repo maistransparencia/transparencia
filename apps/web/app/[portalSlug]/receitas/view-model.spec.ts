@@ -57,7 +57,8 @@ describe("buildReceitasViewModel", () => {
     );
     expect(vm.comparacaoArrecadacao).toEqual({
       direcao: "alta",
-      texto: "Arrecadou 12,3% a mais que em 2023.",
+      texto:
+        "A Prefeitura arrecadou 12,3% a mais que em 2023, sem descontar a inflação.",
     });
   });
 
@@ -67,7 +68,8 @@ describe("buildReceitasViewModel", () => {
     );
     expect(vm.comparacaoArrecadacao).toEqual({
       direcao: "queda",
-      texto: "Arrecadou 8,0% a menos que em 2023.",
+      texto:
+        "A Prefeitura arrecadou 8,0% a menos que em 2023, sem descontar a inflação.",
     });
   });
 
@@ -91,7 +93,8 @@ describe("buildReceitasViewModel", () => {
     );
     expect(vm.comparacaoArrecadacao).toEqual({
       direcao: null,
-      texto: "Ano em andamento, sem comparação.",
+      texto:
+        "Ano em andamento: ainda não dá para comparar com o ano anterior inteiro.",
     });
   });
 

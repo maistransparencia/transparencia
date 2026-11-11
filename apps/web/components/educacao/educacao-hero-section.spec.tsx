@@ -263,7 +263,7 @@ describe("EducacaoHeroSection: IDEB", () => {
       within(bloco).getByText("Como vai o ensino do 1º ao 5º ano?"),
     ).toBeTruthy();
     expect(
-      within(bloco).getByText("Nota do Ideb 2023, de 0 a 10."),
+      within(bloco).getByText("Nota do IDEB 2023, de 0 a 10."),
     ).toBeTruthy();
     expect(
       within(bloco).getByText(

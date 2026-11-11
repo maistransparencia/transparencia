@@ -122,7 +122,9 @@ export default async function ReceitasPage({
         {totalPrev > 0 && (
           <div className="space-y-2">
             <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
-              <span>Arrecadado: {fmtPercent(pctArrecadadoAnual)}</span>
+              <span>
+                Já arrecadado: {fmtPercent(pctArrecadadoAnual)} do previsto
+              </span>
               <span>Previsto para o ano: {fmtCompact(totalPrev)}</span>
             </p>
             <ThresholdMeter

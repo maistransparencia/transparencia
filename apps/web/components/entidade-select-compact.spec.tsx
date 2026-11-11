@@ -87,7 +87,7 @@ describe("EntidadeSelectCompact Component", () => {
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("Órgãos do município")).toBeDefined();
-    expect(screen.getByRole("button", { name: "Ver todos" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Marcar todos" })).toBeDefined();
   });
 
   it("deve fechar o popover ao pressionar Escape", () => {
@@ -130,7 +130,7 @@ describe("EntidadeSelectCompact Component", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("deve acionar onChange com array vazio ao clicar em Ver todos", () => {
+  it("deve acionar onChange com array vazio ao clicar em Marcar todos", () => {
     const handleChange = vi.fn();
     render(
       <EntidadeSelectCompact
@@ -146,7 +146,7 @@ describe("EntidadeSelectCompact Component", () => {
     fireEvent.click(trigger);
 
     const consolidadoBtn = screen.getByRole("button", {
-      name: "Ver todos",
+      name: "Marcar todos",
     });
     fireEvent.click(consolidadoBtn);
 
