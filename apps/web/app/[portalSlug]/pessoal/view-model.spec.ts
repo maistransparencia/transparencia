@@ -293,9 +293,27 @@ describe("buildPessoalViewModel", () => {
     expect(vm.folhaTrend).toBeUndefined();
     expect(vm.folhaKpi.alert).toBe(false);
     expect(vm.folhaKpi.subtext).toBe("");
+    expect(vm.barraLimitesLrf?.exibirMarcadores).toBe(false);
     expect(vm.notaEstimativaLrf).toBe(
       "Conta parcial do portal; a lei mede 12 meses. O número oficial sai no Relatório de Gestão Fiscal.",
     );
+  });
+
+  it("em ano fechado a barra mostra os marcadores de teto e prudencial", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 45,
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+    expect(vm.barraLimitesLrf?.exibirMarcadores).toBe(true);
   });
 
   it("avisa que o percentual é conta do portal e aponta o número oficial", () => {

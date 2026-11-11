@@ -167,6 +167,39 @@ describe("PessoalPage", () => {
     expect(barra.getAttribute("aria-valuenow")).toBe("47.16");
   });
 
+  it("no ano em andamento a barra aparece sem os marcadores e sem a legenda de limites", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 52,
+            statusLrf: "prudencial",
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    const destaque = screen.getByTestId("pessoal-lrf-destaque");
+    expect(destaque).not.toHaveTextContent("Teto:");
+    expect(destaque).not.toHaveTextContent("Limite prudencial");
+    expect(
+      screen
+        .getByRole("meter", { name: "Gasto com pessoal sobre a receita" })
+        .getAttribute("aria-valuetext"),
+    ).toBe("52,00% da receita");
+  });
+
   it("com órgão filtrado não desenha a barra de limites", async () => {
     loadPessoalDataMock.mockResolvedValue(
       makeRaw({

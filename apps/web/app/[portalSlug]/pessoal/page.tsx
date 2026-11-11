@@ -130,14 +130,22 @@ export default async function PessoalPage({
           {barraLimitesLrf && (
             <ThresholdMeter
               value={currentYearRow.percentualFolha}
-              threshold={barraLimitesLrf.teto}
-              secondaryThreshold={barraLimitesLrf.prudencial}
+              threshold={
+                barraLimitesLrf.exibirMarcadores
+                  ? barraLimitesLrf.teto
+                  : undefined
+              }
+              secondaryThreshold={
+                barraLimitesLrf.exibirMarcadores
+                  ? barraLimitesLrf.prudencial
+                  : undefined
+              }
               label="Gasto com pessoal sobre a receita"
-              valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}`}
+              valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita${barraLimitesLrf.exibirMarcadores ? `; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}` : ""}`}
             />
           )}
           <p className="caption space-y-0.5">
-            {barraLimitesLrf && (
+            {barraLimitesLrf?.exibirMarcadores && (
               <span className="flex flex-wrap items-center gap-x-4">
                 <span className="flex items-center gap-x-2">
                   <span

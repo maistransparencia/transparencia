@@ -221,6 +221,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
           prudencial: limites.prudencial,
           tetoTexto: fmtLimite(limites.maximo),
           prudencialTexto: fmtLimite(limites.prudencial),
+          // Sem veredito no ano parcial: os marcadores sugeririam comparar a estimativa com o limite.
+          exibirMarcadores: !raw.context.isCurrentYear,
         };
 
   return {
