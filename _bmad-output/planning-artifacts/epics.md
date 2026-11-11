@@ -4310,4 +4310,6 @@ So that the comparison with the LRF limits (teto, prudencial e alerta) is the sa
 
 **Fora do escopo:** Poder Legislativo (a página não cita a Câmara por ora) e o limite consolidado do município (60%).
 
+**Implementação (2026-11-11):** extrator `elt/extract/siconfi_rgf.py` (RGF Anexo 01, Executivo municipal; periodicidade e período vêm da resposta da API), tabela `siconfi_rgf` no schema raw do portal, `fct_pessoal_rgf_metricas` (despesa de 12 meses, RCL ajustada e percentual do mesmo período), `getFolhaVsServicosMetrics` com `rgf` e `rgfAnoAnteriorMesmoPeriodo` (`rclProxy` removido, sem fallback para `total_folha`, comparadores `>`). Pendente: carga e conferência com dados reais (Porciúncula 2024, 3º quadrimestre: 53,46% sobre RCL ajustada de R$ 132,2 mi); confirmar com a API se Natividade 2024 realmente não tem RGF; revisão de texto pelo `editor-cidadao` e da citação pelo `jurista-fiscal`; migração para `raw_siconfi` na Story 26.5.
+
 **Dependências:** confirmar com o `jurista-fiscal` a redação da janela de 12 meses e qual periodicidade (quadrimestral ou semestral) vale para cada município; Epic 26 para o padrão de schema por fonte.

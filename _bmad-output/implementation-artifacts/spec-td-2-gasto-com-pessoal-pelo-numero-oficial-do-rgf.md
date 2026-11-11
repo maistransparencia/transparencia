@@ -2,7 +2,8 @@
 title: 'Gasto com Pessoal pelo Número Oficial do RGF (12 Meses)'
 type: 'feature'
 created: '2026-11-11'
-status: 'ready-for-dev'
+status: 'in-review'
+baseline_commit: '37bbc40359b809b7791d65032d7d71e9faf665b6'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
