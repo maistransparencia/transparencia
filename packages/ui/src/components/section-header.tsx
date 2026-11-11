@@ -38,7 +38,7 @@ export function SectionHeader({
           !temConteudo(eyebrow) && "flex-wrap",
         )}
       >
-        <Titulo className="min-w-0 font-semibold font-serif text-ink text-xl sm:text-2xl">
+        <Titulo className="text-ink min-w-0 font-serif text-xl font-semibold sm:text-2xl">
           {title}
         </Titulo>
         {temConteudo(action) && (
@@ -46,7 +46,7 @@ export function SectionHeader({
         )}
       </div>
       {temConteudo(description) && (
-        <p className="mt-1.5 text-mute text-sm leading-relaxed">
+        <p className="text-mute mt-1.5 text-sm leading-relaxed">
           {description}
         </p>
       )}

@@ -108,16 +108,16 @@ export function SaudeContratacaoSection({
           return (
             <li key={caminho.tipoContratacao} className="space-y-2">
               <div className="flex items-baseline justify-between gap-4">
-                <span className="font-semibold text-ink">{caminho.nome}</span>
+                <span className="text-ink font-semibold">{caminho.nome}</span>
                 <span className="caption shrink-0">
                   {caminho.quantidade} {caminho.unidade}
                 </span>
               </div>
               {temEmpenho ? (
                 <>
-                  <div className="h-3 w-full bg-track">
+                  <div className="bg-track h-3 w-full">
                     <div
-                      className="h-full bg-brand-fill"
+                      className="bg-brand-fill h-full"
                       style={{
                         width: `${percentualEntre0e100(caminho.valorEmpenhado, orcamento.empenhado)}%`,
                       }}
@@ -157,12 +157,12 @@ export function SaudeContratacaoSection({
       </p>
 
       {/* Bloco Dedicado: Compras e Licitações da Saúde em Andamento */}
-      <div className="space-y-4 border-line border-t pt-6">
+      <div className="border-line space-y-4 border-t pt-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="eyebrow mb-1.5 text-brand-text!">Em aberto</p>
+            <p className="eyebrow text-brand-text! mb-1.5">Em aberto</p>
             <h3>Compras e Licitações da Saúde em Andamento</h3>
-            <p className="mt-0.5 text-mute text-xs leading-relaxed">
+            <p className="text-mute mt-0.5 text-xs leading-relaxed">
               Processos licitatórios abertos da pasta de saúde (medicamentos,
               insumos hospitalares e equipamentos).
             </p>
@@ -173,7 +173,7 @@ export function SaudeContratacaoSection({
                 ? `/${portalSlug}/licitacoes?ano=${ano}#licitacoes-em-andamento`
                 : `/${portalSlug}/licitacoes#licitacoes-em-andamento`
             }
-            className="inline-flex items-center gap-1 font-semibold text-brand-text text-xs hover:underline"
+            className="text-brand-text inline-flex items-center gap-1 text-xs font-semibold hover:underline"
           >
             Ver radar geral &rarr;
           </Link>
@@ -189,7 +189,7 @@ export function SaudeContratacaoSection({
             hideSearch={false}
           />
         ) : (
-          <div className="border-line border-y bg-line2 p-4 text-center text-mute text-xs">
+          <div className="border-line bg-line2 text-mute border-y p-4 text-center text-xs">
             Nenhuma licitação da Saúde em andamento ou aberta no momento para
             este exercício.
           </div>

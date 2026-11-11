@@ -74,7 +74,7 @@ export function ObrasCivicDisclaimer({
               href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
+              className="text-brand-text inline-flex items-center gap-0.5 underline underline-offset-2"
             >
               <span>ObrasGov.br</span>
               <ExternalLink className="inline h-3.5 w-3.5" aria-hidden="true" />
@@ -93,7 +93,7 @@ export function ObrasCivicDisclaimer({
               href={urlLegislacao("lai")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
+              className="text-brand-text inline-flex items-center gap-0.5 underline underline-offset-2"
             >
               <span>Lei nº 12.527/2011 (LAI)</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
@@ -103,7 +103,7 @@ export function ObrasCivicDisclaimer({
               href={urlLegislacao("lei14133")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
+              className="text-brand-text inline-flex items-center gap-0.5 underline underline-offset-2"
             >
               <span>Lei nº 14.133/2021</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
@@ -120,7 +120,7 @@ export function ObrasCivicDisclaimer({
           >
             {copied ? (
               <>
-                <Check className="h-4 w-4 text-ok-text" aria-hidden="true" />
+                <Check className="text-ok-text h-4 w-4" aria-hidden="true" />
                 <span>Mensagem copiada!</span>
               </>
             ) : (
@@ -135,12 +135,12 @@ export function ObrasCivicDisclaimer({
             href={FONTES_OFICIAIS.obrasgov.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-page px-4 py-2 font-medium text-ink text-sm no-underline transition-colors hover:bg-line2 focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
+            className="border-line bg-page text-ink hover:bg-line2 focus-visible:outline-focus-ring inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
           >
-            <MessageSquare className="h-4 w-4 text-mute2" aria-hidden="true" />
+            <MessageSquare className="text-mute2 h-4 w-4" aria-hidden="true" />
             <span>Conhecer o ObrasGov.br</span>
             <ExternalLink
-              className="h-3.5 w-3.5 text-mute2"
+              className="text-mute2 h-3.5 w-3.5"
               aria-hidden="true"
             />
           </a>
@@ -151,7 +151,7 @@ export function ObrasCivicDisclaimer({
         <div
           role="status"
           aria-live="polite"
-          className="mt-4 border-ok-fill border-l-[3px] bg-ok-fill/15 px-3 py-2 text-ink text-xs"
+          className="border-ok-fill bg-ok-fill/15 text-ink mt-4 border-l-[3px] px-3 py-2 text-xs"
         >
           Texto formal copiado com sucesso! Você pode colar em um e-mail,
           mensagem de WhatsApp ou canal de ouvidoria para enviar ao seu vereador

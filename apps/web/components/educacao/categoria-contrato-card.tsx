@@ -48,10 +48,10 @@ export function CategoriaContratoCard({
             aria-valuenow={percentualPago}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="block h-3 w-full overflow-hidden bg-track"
+            className="bg-track block h-3 w-full overflow-hidden"
           >
             <span
-              className="block h-full bg-brand-fill"
+              className="bg-brand-fill block h-full"
               style={{ width: `${percentualPago}%` }}
             />
           </span>

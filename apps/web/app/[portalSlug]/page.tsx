@@ -43,7 +43,7 @@ export default async function VisaoGeralPage({
   const viewModel = buildVisaoGeralViewModel(rawData);
 
   return (
-    <div className="space-y-12 bg-page md:space-y-16">
+    <div className="bg-page space-y-12 md:space-y-16">
       {/* A abertura fica colada à primeira seção (32px), que é a resposta à pergunta do título. */}
       <div className="space-y-8">
         <AberturaHome

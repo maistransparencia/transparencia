@@ -110,14 +110,14 @@ export function FarmaciaAcoesCivicas({
         <p
           role="status"
           className={
-            variante === "pedido" ? "sr-only" : "mt-2 font-medium text-xs"
+            variante === "pedido" ? "sr-only" : "mt-2 text-xs font-medium"
           }
         >
           {mensagemCopiado}
         </p>
       )}
       {feedback === "erro" && (
-        <p role="alert" className="mt-2 font-medium text-xs">
+        <p role="alert" className="mt-2 text-xs font-medium">
           {mensagemErro}
         </p>
       )}

@@ -28,12 +28,12 @@ export function FornecedorDocumentoDetalhe({
   const cnpj = cnpjParaBusca(exibivel);
 
   return (
-    <div className="space-y-1.5 pb-4 text-mute text-sm">
+    <div className="text-mute space-y-1.5 pb-4 text-sm">
       <p>{exibivel ? `Documento: ${exibivel}` : "Documento não informado"}</p>
       {cnpj && (
         <Link
           href={`/${portalSlug}/licitacoes?ano=${ano}&q=${cnpj}`}
-          className="inline-flex items-center gap-1 font-medium text-ink underline underline-offset-2 hover:text-brand"
+          className="text-ink hover:text-brand inline-flex items-center gap-1 font-medium underline underline-offset-2"
         >
           Ver licitações e contratos
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

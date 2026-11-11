@@ -24,16 +24,16 @@ export function MaisDetalhesSection({ shortcuts }: MaisDetalhesSectionProps) {
           >
             <Link
               href={shortcut.url}
-              className="group flex min-h-16 items-center justify-between gap-3 py-3 text-ink no-underline"
+              className="group text-ink flex min-h-16 items-center justify-between gap-3 py-3 no-underline"
             >
               <span className="flex min-w-0 flex-col">
-                <span className="font-semibold group-hover:text-brand group-hover:underline">
+                <span className="group-hover:text-brand font-semibold group-hover:underline">
                   {shortcut.label}
                 </span>
                 <span className="caption">{shortcut.title}</span>
               </span>
               <ChevronRight
-                className="h-4 w-4 shrink-0 text-mute"
+                className="text-mute h-4 w-4 shrink-0"
                 aria-hidden="true"
               />
             </Link>

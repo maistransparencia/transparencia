@@ -386,7 +386,7 @@ export function ContratosServicosVigentesSection({
         <button
           type="button"
           onClick={() => handleOpenContratoDetails(row)}
-          className="cursor-pointer text-left font-semibold text-ink hover:text-brand hover:underline"
+          className="text-ink hover:text-brand cursor-pointer text-left font-semibold hover:underline"
           title="Ver detalhes do contrato"
         >
           {row.fornecedorNome}
@@ -400,7 +400,7 @@ export function ContratosServicosVigentesSection({
       className: "min-w-[220px] max-w-[360px] text-ink",
       renderCell: (row) => (
         <p
-          className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
+          className="text-ink line-clamp-2 text-xs leading-relaxed font-normal"
           title={row.objetoDescricao}
         >
           {row.objetoDescricao || "—"}
@@ -467,26 +467,26 @@ export function ContratosServicosVigentesSection({
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <dt className="eyebrow">Contrato</dt>
-            <dd className="numeric mt-1 text-left text-ink tabular-nums">
+            <dd className="numeric text-ink mt-1 text-left tabular-nums">
               {row.contratoNumero || "S/N"}
             </dd>
           </div>
           <div>
             <dt className="eyebrow">Vigência</dt>
-            <dd className="numeric mt-1 text-left text-ink tabular-nums">
+            <dd className="numeric text-ink mt-1 text-left tabular-nums">
               {row.vigenciaFormatada || "—"}
             </dd>
           </div>
           <div>
             <dt className="eyebrow">Pago</dt>
-            <dd className="mt-1 font-bold text-ink tabular-nums">
+            <dd className="text-ink mt-1 font-bold tabular-nums">
               {fmtCurrency(row.totalPago)}
             </dd>
           </div>
           {!inexecutado && (
             <div>
               <dt className="eyebrow">Saldo</dt>
-              <dd className="mt-1 font-bold text-warn-text tabular-nums">
+              <dd className="text-warn-text mt-1 font-bold tabular-nums">
                 {fmtCurrency(row.saldoPendente)}
               </dd>
             </div>
@@ -495,7 +495,7 @@ export function ContratosServicosVigentesSection({
         {!inexecutado && (
           <div className="space-y-1.5">
             <div
-              className="h-1 w-full overflow-hidden rounded-full bg-line"
+              className="bg-line h-1 w-full overflow-hidden rounded-full"
               role="progressbar"
               aria-label="Percentual do empenhado já pago"
               aria-valuemin={0}
@@ -503,7 +503,7 @@ export function ContratosServicosVigentesSection({
               aria-valuenow={percentualPago}
             >
               <div
-                className="h-full bg-brand-fill"
+                className="bg-brand-fill h-full"
                 style={{
                   width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
                 }}
@@ -518,7 +518,7 @@ export function ContratosServicosVigentesSection({
           <button
             type="button"
             onClick={() => handleOpenContratoDetails(row)}
-            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+            className="text-brand-text inline-flex min-h-11 cursor-pointer items-center underline underline-offset-2"
             title="Abrir detalhes completos do contrato"
           >
             Ver detalhes
@@ -531,7 +531,7 @@ export function ContratosServicosVigentesSection({
   return (
     <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col justify-between gap-1 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
+      <div className="border-ink flex flex-col justify-between gap-1 border-t-2 pt-8 sm:flex-row sm:items-baseline">
         <div>
           <h2>Contratos de Serviços Vigentes</h2>
           <p className="text-mute2 text-xs leading-relaxed sm:text-sm">
@@ -540,15 +540,15 @@ export function ContratosServicosVigentesSection({
             potenciais exposições fiscais.
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-line px-2.5 py-1 font-medium text-mute2 text-xs">
+        <span className="border-line text-mute2 shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium">
           {filteredContratos.length} de {contratos.length}{" "}
           {contratos.length === 1 ? "contrato" : "contratos"}
         </span>
       </div>
 
       {/* Segmented Filter Pills */}
-      <div className="flex flex-wrap items-center gap-2 border-line border-b pb-3">
-        <span className="font-semibold text-ink text-xs">
+      <div className="border-line flex flex-wrap items-center gap-2 border-b pb-3">
+        <span className="text-ink text-xs font-semibold">
           Status de Execução:
         </span>
         <SegmentedButton
@@ -582,7 +582,7 @@ export function ContratosServicosVigentesSection({
       </div>
 
       {filteredContratos.length === 0 && (
-        <div className="rounded-md border border-line border-dashed p-6 text-center text-mute2 text-sm">
+        <div className="border-line text-mute2 rounded-md border border-dashed p-6 text-center text-sm">
           Nenhum contrato encontrado para a visão "{statusFilter}".
         </div>
       )}
@@ -602,29 +602,29 @@ export function ContratosServicosVigentesSection({
               <div
                 className={cn(
                   "space-y-1",
-                  isMatch && "ring-2 ring-brand ring-offset-2",
+                  isMatch && "ring-brand ring-2 ring-offset-2",
                 )}
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => handleOpenContratoDetails(row)}
-                    className="min-w-0 cursor-pointer truncate text-left font-bold text-ink text-sm hover:text-brand hover:underline"
+                    className="text-ink hover:text-brand min-w-0 cursor-pointer truncate text-left text-sm font-bold hover:underline"
                     title="Ver detalhes do contrato"
                   >
                     {row.fornecedorNome}
                   </button>
                   <span className="shrink-0 text-right">
                     <span className="eyebrow block">Empenhado</span>
-                    <span className="numeric text-left font-bold text-ink text-sm tabular-nums">
+                    <span className="numeric text-ink text-left text-sm font-bold tabular-nums">
                       {fmtCurrency(row.totalEmpenhado)}
                     </span>
                   </span>
                 </div>
-                <p className="line-clamp-2 text-ink text-xs leading-snug">
+                <p className="text-ink line-clamp-2 text-xs leading-snug">
                   {row.objetoDescricao || "—"}
                 </p>
-                <div className="flex items-center justify-between gap-3 text-[11px] text-mute2 tabular-nums">
+                <div className="text-mute2 flex items-center justify-between gap-3 text-[11px] tabular-nums">
                   <Badge variant={statusBadgeVariant(row.statusExecucao)}>
                     {row.statusLabel}
                   </Badge>

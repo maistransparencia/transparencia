@@ -56,7 +56,7 @@ export function DestaqueLinha({
       aria-label={ariaLabel}
       data-testid="destaque-linha"
       data-tom={tom}
-      className={`flex flex-col gap-3 border-line border-t py-4 sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 ${className}`}
+      className={`border-line flex flex-col gap-3 border-t py-4 sm:min-h-[72px] sm:flex-row sm:items-center sm:gap-4 ${className}`}
     >
       <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center">
         <span
@@ -75,7 +75,7 @@ export function DestaqueLinha({
               {badgeTexto}
             </Badge>
           </div>
-          <p className="mt-0.5 text-mute2 text-xs leading-snug sm:text-sm">
+          <p className="text-mute2 mt-0.5 text-xs leading-snug sm:text-sm">
             {contexto}
             {fonte && (
               <>
@@ -85,7 +85,7 @@ export function DestaqueLinha({
                   href={fonte.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium underline underline-offset-2 hover:text-ink"
+                  className="hover:text-ink font-medium underline underline-offset-2"
                 >
                   {fonte.nome}
                 </a>

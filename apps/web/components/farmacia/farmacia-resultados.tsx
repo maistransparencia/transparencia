@@ -78,13 +78,13 @@ function RemediosSemLoteValido({
       {remedios.map((remedio) => (
         <li
           key={remedio.nomeMedicamento}
-          className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 border-line border-b px-4 py-3"
+          className="border-line grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 border-b px-4 py-3"
         >
-          <span className="font-semibold text-ink text-sm">
+          <span className="text-ink text-sm font-semibold">
             {remedio.nomeMedicamento}
           </span>
           <span className="flex flex-col items-end gap-0.5">
-            <span className="text-[11px] text-warn-text">{remedio.rotulo}</span>
+            <span className="text-warn-text text-[11px]">{remedio.rotulo}</span>
             <PedidoEsclarecimento
               item={{
                 codigoPrincipioAtivo: remedio.nomeMedicamento,
@@ -123,7 +123,7 @@ function NumeroUnidade({
 }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full bg-brand font-semibold text-onink tabular-nums ${tamanho}`}
+      className={`bg-brand text-onink flex shrink-0 items-center justify-center rounded-full font-semibold tabular-nums ${tamanho}`}
       aria-hidden="true"
     >
       {numero}
@@ -147,13 +147,13 @@ export function FarmaciaResultados({
       <section
         id="resultados"
         aria-labelledby="farmacia-resultados-titulo"
-        className="flex scroll-mt-20 flex-col gap-5 border-ink border-t-2 pt-7 lg:scroll-mt-4"
+        className="border-ink flex scroll-mt-20 flex-col gap-5 border-t-2 pt-7 lg:scroll-mt-4"
       >
         <h2 id="farmacia-resultados-titulo">Onde encontrar “{busca}”</h2>
         <RemediosSemLoteValido remedios={semLoteValido} />
         {semLoteValido.length === 0 && (
-          <div className="flex flex-col gap-1.5 border-line border-y px-4 py-8">
-            <p className="font-semibold text-base text-ink">
+          <div className="border-line flex flex-col gap-1.5 border-y px-4 py-8">
+            <p className="text-ink text-base font-semibold">
               “{busca}” não aparece na lista de estoque
             </p>
             <p className="text-mute text-sm">
@@ -181,12 +181,12 @@ export function FarmaciaResultados({
     <section
       id="resultados"
       aria-labelledby="farmacia-resultados-titulo"
-      className="flex scroll-mt-20 flex-col gap-5 border-ink border-t-2 pt-7 lg:scroll-mt-4"
+      className="border-ink flex scroll-mt-20 flex-col gap-5 border-t-2 pt-7 lg:scroll-mt-4"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="farmacia-resultados-titulo">Onde encontrar “{busca}”</h2>
-          <p className="text-[13px] text-mute2">{resumo}</p>
+          <p className="text-mute2 text-[13px]">{resumo}</p>
         </div>
         <fieldset
           aria-label="Forma de visualização"
@@ -211,7 +211,7 @@ export function FarmaciaResultados({
       <RemediosSemLoteValido remedios={semLoteValido} />
 
       <div className="flex flex-col-reverse gap-5 lg:flex-row">
-        <ul className="flex min-w-0 flex-1 flex-col divide-y divide-line border-line border-y">
+        <ul className="divide-line border-line flex min-w-0 flex-1 flex-col divide-y border-y">
           {modo === "unidade" &&
             unidades.map((unidade) => (
               <li
@@ -229,12 +229,12 @@ export function FarmaciaResultados({
                       tamanho="h-6 w-6 text-xs"
                     />
                     <h3 className="min-w-0 flex-1">{unidade.nomeUnidade}</h3>
-                    <span className="shrink-0 text-mute text-xs tabular-nums">
+                    <span className="text-mute shrink-0 text-xs tabular-nums">
                       {fmtNumber(unidade.totalQuantidadeEstoque)} em estoque
                     </span>
                   </div>
                   {(unidade.enderecoUnidade || unidade.telefoneUnidade) && (
-                    <p className="ml-9 text-[13px] text-mute2">
+                    <p className="text-mute2 ml-9 text-[13px]">
                       {unidade.enderecoUnidade}
                       {unidade.enderecoUnidade && unidade.telefoneUnidade
                         ? " · "
@@ -242,7 +242,7 @@ export function FarmaciaResultados({
                       {unidade.telefoneUnidade && unidade.telefoneHref && (
                         <a
                           href={unidade.telefoneHref}
-                          className="underline hover:text-ink"
+                          className="hover:text-ink underline"
                         >
                           {unidade.telefoneUnidade}
                         </a>
@@ -255,14 +255,14 @@ export function FarmaciaResultados({
                     <li
                       // biome-ignore lint/suspicious/noArrayIndexKey: lista estática; o nome pode repetir na mesma unidade
                       key={`${medicamento.nomeMedicamento}-${indice}`}
-                      className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 border-line border-t py-[9px]"
+                      className="border-line grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 border-t py-[9px]"
                     >
-                      <span className="font-semibold text-ink text-sm">
+                      <span className="text-ink text-sm font-semibold">
                         {medicamento.nomeMedicamento}
                       </span>
-                      <span className="text-right font-semibold text-sm tabular-nums">
+                      <span className="text-right text-sm font-semibold tabular-nums">
                         {fmtNumber(medicamento.quantidadeEstoque)}{" "}
-                        <span className="font-normal text-mute2 text-xs">
+                        <span className="text-mute2 text-xs font-normal">
                           em estoque
                         </span>
                       </span>
@@ -295,7 +295,7 @@ export function FarmaciaResultados({
                       // biome-ignore lint/a11y/noNoninteractiveTabindex: linha focável para destacar a unidade no mapa
                       tabIndex={0}
                       {...destacar(item.idUnidade)}
-                      className={`grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-x-3 border-line border-t py-2 focus-visible:outline-2 focus-visible:outline-brand ${item.idUnidade === idDestacado ? "bg-line2" : ""}`}
+                      className={`border-line focus-visible:outline-brand grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-x-3 border-t py-2 focus-visible:outline-2 ${item.idUnidade === idDestacado ? "bg-line2" : ""}`}
                     >
                       <NumeroUnidade
                         numero={item.numero}
@@ -304,18 +304,18 @@ export function FarmaciaResultados({
                       <div className="min-w-0 space-y-1">
                         <p className="text-ink text-sm">{item.nomeUnidade}</p>
                         <div
-                          className="h-1 overflow-hidden rounded-sm bg-line2"
+                          className="bg-line2 h-1 overflow-hidden rounded-sm"
                           aria-hidden="true"
                         >
                           <div
-                            className="h-full rounded-sm bg-brand-fill"
+                            className="bg-brand-fill h-full rounded-sm"
                             style={{ width: `${item.percentualBarra}%` }}
                           />
                         </div>
                       </div>
-                      <span className="text-right font-semibold text-sm tabular-nums">
+                      <span className="text-right text-sm font-semibold tabular-nums">
                         {fmtNumber(item.quantidadeEstoque)}{" "}
-                        <span className="font-normal text-mute2 text-xs">
+                        <span className="text-mute2 text-xs font-normal">
                           em estoque
                         </span>
                       </span>
@@ -327,7 +327,7 @@ export function FarmaciaResultados({
         </ul>
         {marcadores.length > 0 && (
           <aside className="lg:sticky lg:top-4 lg:w-[340px] lg:shrink-0 lg:self-start">
-            <div className="isolate h-60 overflow-hidden border-line border-y bg-line2 lg:h-[520px]">
+            <div className="border-line bg-line2 isolate h-60 overflow-hidden border-y lg:h-[520px]">
               <FarmaciaMapa
                 marcadores={marcadores}
                 idDestacado={idDestacado}
@@ -335,9 +335,9 @@ export function FarmaciaResultados({
                 onSelecionar={rolarAteUnidade}
               />
             </div>
-            <p className="mt-2 flex items-center gap-2 text-mute2 text-xs">
+            <p className="text-mute2 mt-2 flex items-center gap-2 text-xs">
               <span
-                className="h-2.5 w-2.5 rounded-full bg-brand-fill"
+                className="bg-brand-fill h-2.5 w-2.5 rounded-full"
                 aria-hidden="true"
               />
               Tem o remédio

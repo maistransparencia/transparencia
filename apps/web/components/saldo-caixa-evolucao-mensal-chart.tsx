@@ -38,35 +38,35 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="pointer-events-none w-[230px] space-y-1.5 border border-line bg-page p-3 text-xs">
-      <div className="border-line border-b pb-1 font-semibold text-ink">
+    <div className="border-line bg-page pointer-events-none w-[230px] space-y-1.5 border p-3 text-xs">
+      <div className="border-line text-ink border-b pb-1 font-semibold">
         <span>{ponto.mesNome}</span>
       </div>
       <div className="space-y-1 pt-0.5">
         <div className="flex items-baseline justify-between">
-          <span className="flex items-center gap-1.5 text-mute text-xs">
-            <span className="inline-block h-2 w-2 bg-ok-fill" />
+          <span className="text-mute flex items-center gap-1.5 text-xs">
+            <span className="bg-ok-fill inline-block h-2 w-2" />
             Recursos livres
           </span>
-          <span className="font-semibold text-ink tabular-nums">
+          <span className="text-ink font-semibold tabular-nums">
             {fmtCurrency(ponto.saldoRecursosLivres)}
           </span>
         </div>
         <div className="flex items-baseline justify-between">
-          <span className="flex items-center gap-1.5 text-mute text-xs">
-            <span className="inline-block h-2 w-2 bg-warn-fill" />
+          <span className="text-mute flex items-center gap-1.5 text-xs">
+            <span className="bg-warn-fill inline-block h-2 w-2" />
             Recursos vinculados
           </span>
-          <span className="font-semibold text-ink tabular-nums">
+          <span className="text-ink font-semibold tabular-nums">
             {fmtCurrency(ponto.saldoRecursosVinculados)}
           </span>
         </div>
-        <div className="flex items-baseline justify-between border-line border-t pt-1">
-          <span className="flex items-center gap-1.5 text-mute text-xs">
-            <span className="inline-block h-2 w-2 bg-mute" />
+        <div className="border-line flex items-baseline justify-between border-t pt-1">
+          <span className="text-mute flex items-center gap-1.5 text-xs">
+            <span className="bg-mute inline-block h-2 w-2" />
             Total em caixa
           </span>
-          <span className="font-semibold text-ink tabular-nums">
+          <span className="text-ink font-semibold tabular-nums">
             {fmtCurrency(ponto.saldoCaixaBancos)}
           </span>
         </div>
@@ -116,13 +116,13 @@ export function SaldoCaixaEvolucaoMensalChart({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-mute text-xs">
+      <div className="text-mute flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 bg-ok-fill" />
+          <span className="bg-ok-fill inline-block h-2.5 w-2.5" />
           Recursos livres
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0 w-4 border-mute border-t-2 border-dashed" />
+          <span className="border-mute inline-block h-0 w-4 border-t-2 border-dashed" />
           Total em caixa
         </span>
         <span className="text-mute2">Valores em reais</span>

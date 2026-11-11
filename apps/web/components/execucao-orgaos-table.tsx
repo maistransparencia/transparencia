@@ -81,7 +81,7 @@ export function ExecucaoOrgaosTable({ items }: ExecucaoOrgaosTableProps) {
         renderMobileRow={(row) => ({
           resumo: (
             <div className="space-y-1.5">
-              <p className="font-medium text-ink text-sm">{row.descricao}</p>
+              <p className="text-ink text-sm font-medium">{row.descricao}</p>
               <div className="flex items-baseline justify-between gap-3 text-xs">
                 <span className="text-mute2">Pago do autorizado</span>
                 <span className="numeric text-ink">

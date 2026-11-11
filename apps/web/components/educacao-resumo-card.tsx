@@ -103,14 +103,14 @@ export function EducacaoResumoCard({
               { ano: resumo?.ano ?? null },
             )
           }
-          className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+          className="text-brand inline-flex items-center gap-1 text-xs font-medium hover:underline"
         >
           <span>Ver indicadores pedagógicos e despesas detalhadas</span>
           <ArrowRight className="h-3.5 w-3.5 shrink-0" />
         </Link>
       </div>
 
-      <p className="mt-1 text-mute2 text-xs">
+      <p className="text-mute2 mt-1 text-xs">
         {resumo
           ? `IDEB ${resumo.ano} e indicadores da rede municipal.`
           : "IDEB e indicadores da rede municipal."}
@@ -121,21 +121,21 @@ export function EducacaoResumoCard({
           {resumo.enfaseTitulo && (
             <p
               data-tom={resumo.enfaseTom}
-              className={`mt-4 px-3 py-2 font-semibold text-xs sm:text-sm ${CLASSES_FAIXA_POR_TOM[resumo.enfaseTom]}`}
+              className={`mt-4 px-3 py-2 text-xs font-semibold sm:text-sm ${CLASSES_FAIXA_POR_TOM[resumo.enfaseTom]}`}
             >
               {resumo.enfaseTitulo}
             </p>
           )}
-          <div className="mt-5 grid grid-cols-2 items-stretch gap-x-3 gap-y-5 sm:mt-5 sm:grid-cols-3 sm:gap-y-0 sm:divide-x sm:divide-line">
-            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+          <div className="sm:divide-line mt-5 grid grid-cols-2 items-stretch gap-x-3 gap-y-5 sm:mt-5 sm:grid-cols-3 sm:gap-y-0 sm:divide-x">
+            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:first:pl-0 sm:last:pr-0">
               <span className={CLASSE_ROTULO}>Nota do IDEB (1º ao 5º ano)</span>
               <div className={CLASSE_VALOR_LINHA}>
-                <p className="font-bold font-sans text-2xl text-ink leading-none tracking-tight">
+                <p className="text-ink font-sans text-2xl leading-none font-bold tracking-tight">
                   {resumo.notaIdebTexto}
                 </p>
                 {resumo.evolucaoTexto && (
                   <span
-                    className={`font-medium text-xs ${CLASSES_TEXTO_POR_TOM[resumo.evolucaoTom]}`}
+                    className={`text-xs font-medium ${CLASSES_TEXTO_POR_TOM[resumo.evolucaoTom]}`}
                   >
                     {resumo.evolucaoTexto}
                   </span>
@@ -146,10 +146,10 @@ export function EducacaoResumoCard({
               )}
             </div>
 
-            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:first:pl-0 sm:last:pr-0">
               <span className={CLASSE_ROTULO}>Classificação estadual</span>
               <div className={CLASSE_VALOR_LINHA}>
-                <p className="font-bold text-ink text-lg leading-tight tracking-tight">
+                <p className="text-ink text-lg leading-tight font-bold tracking-tight">
                   {resumo.rankingTexto ?? "—"}
                 </p>
               </div>
@@ -171,7 +171,7 @@ export function EducacaoResumoCard({
                 )}
                 {resumo.metaTexto && (
                   <span
-                    className={`font-medium text-xs ${CLASSES_TEXTO_POR_TOM[resumo.metaTom]}`}
+                    className={`text-xs font-medium ${CLASSES_TEXTO_POR_TOM[resumo.metaTom]}`}
                   >
                     {resumo.metaTexto}
                   </span>
@@ -179,13 +179,13 @@ export function EducacaoResumoCard({
               </div>
             </div>
 
-            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+            <div className="col-span-2 flex flex-col sm:col-span-1 sm:px-6 sm:first:pl-0 sm:last:pr-0">
               <span className={CLASSE_ROTULO}>
                 Despesa liquidada em Educação
               </span>
               <div className={CLASSE_VALOR_LINHA}>
                 <p
-                  className="font-bold text-ink text-lg leading-tight tracking-tight"
+                  className="text-ink text-lg leading-tight font-bold tracking-tight"
                   title={resumo.despesaLiquidadaEducacaoCompleta ?? undefined}
                 >
                   {resumo.despesaLiquidadaEducacaoTexto ?? "—"}
@@ -198,15 +198,15 @@ export function EducacaoResumoCard({
           </div>
         </>
       ) : (
-        <div className="mt-3 flex flex-col items-center justify-center border-line border-y p-4 text-center sm:p-6">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute3" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line mt-3 flex flex-col items-center justify-center border-y p-4 text-center sm:p-6">
+          <AlertCircle className="text-mute3 mb-2 h-6 w-6" />
+          <p className="text-ink text-sm font-medium">
             Indicadores educacionais ainda não disponíveis para este município.
           </p>
         </div>
       )}
 
-      <p className="mt-4 flex items-center gap-1.5 text-mute2 text-xs">
+      <p className="text-mute2 mt-4 flex items-center gap-1.5 text-xs">
         <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>Indicadores oficiais do IDEB apurados pelo INEP/MEC.</span>
       </p>

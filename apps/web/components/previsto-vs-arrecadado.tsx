@@ -55,7 +55,7 @@ export function PrevistoVsArrecadadoOrigem({
         return (
           <div key={`previsto-vs-arrecadado-${item.fonte}`}>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-semibold text-ink">{item.fonte}</span>
+              <span className="text-ink font-semibold">{item.fonte}</span>
               <span className="caption font-medium">
                 {fmtCompact(item.arrecadado)} / {fmtCompact(item.previsto)}
               </span>
@@ -63,7 +63,7 @@ export function PrevistoVsArrecadadoOrigem({
 
             <div className="w-full">
               <div
-                className="h-5 overflow-hidden bg-track"
+                className="bg-track h-5 overflow-hidden"
                 style={{ width: `${trackWidthPct}%` }}
               >
                 <div

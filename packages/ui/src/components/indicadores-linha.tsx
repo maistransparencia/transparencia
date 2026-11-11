@@ -40,7 +40,7 @@ export function IndicadoresLinha({
           {indicador.detalhe && (
             <dd>
               <details className="text-mute2 text-xs">
-                <summary className="cursor-pointer font-medium text-warn-text underline underline-offset-4">
+                <summary className="text-warn-text cursor-pointer font-medium underline underline-offset-4">
                   {indicador.detalhe.resumo}
                 </summary>
                 {indicador.detalhe.paragrafos.map((paragrafo) => (

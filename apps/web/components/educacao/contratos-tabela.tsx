@@ -84,7 +84,7 @@ export function ContratosTabela({
       className: "min-w-[180px] max-w-[260px]",
       renderCell: (row) => (
         <div data-testid={`contrato-row-${row.contratoNumero}`}>
-          <p className="font-medium text-ink">{row.fornecedorNome}</p>
+          <p className="text-ink font-medium">{row.fornecedorNome}</p>
           <p className="caption">Contrato nº {row.contratoNumero}</p>
         </div>
       ),
@@ -95,7 +95,7 @@ export function ContratosTabela({
       sortable: true,
       className: "min-w-[220px] max-w-[320px]",
       renderCell: (row) => (
-        <p className="line-clamp-2 text-ink" title={row.objetoDescricao}>
+        <p className="text-ink line-clamp-2" title={row.objetoDescricao}>
           {row.objetoDescricao || "—"}
         </p>
       ),
@@ -169,8 +169,8 @@ export function ContratosTabela({
             {fmtCurrency(row.valorContrato ?? 0)}
           </span>
         </div>
-        <p className="font-medium text-ink">{row.fornecedorNome}</p>
-        <p className="line-clamp-2 text-mute text-sm">
+        <p className="text-ink font-medium">{row.fornecedorNome}</p>
+        <p className="text-mute line-clamp-2 text-sm">
           {row.objetoDescricao || "—"}
         </p>
         <p className="caption">{row.statusLabel}</p>

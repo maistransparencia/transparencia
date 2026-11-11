@@ -34,7 +34,7 @@ export default function RouteError({
       <button
         type="button"
         onClick={reset}
-        className="rounded bg-ink px-4 py-2 font-medium text-onink text-sm transition-opacity hover:opacity-90"
+        className="bg-ink text-onink rounded px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
       >
         Tentar novamente
       </button>

@@ -73,7 +73,7 @@ function CabecalhoColuna({
       {linkHref && (
         <Link
           href={linkHref}
-          className="shrink-0 text-brand text-xs transition-colors hover:underline"
+          className="text-brand shrink-0 text-xs transition-colors hover:underline"
         >
           {linkText}
         </Link>
@@ -118,12 +118,12 @@ export function CardsSecundariosVisaoGeral({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 divide-y divide-line border-ink border-t-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
+        "divide-line border-ink grid grid-cols-1 divide-y border-t-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
         className,
       )}
     >
       {/* Card 1: Despesas */}
-      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:first:pl-0 sm:last:pr-0">
         <div>
           {/* Cabeçalho */}
           <CabecalhoColuna
@@ -136,11 +136,11 @@ export function CardsSecundariosVisaoGeral({
           <div className="mb-4">
             {totalEmpenhado ? (
               <div>
-                <div className="font-bold font-sans text-2xl text-danger-text leading-none tracking-tight sm:text-3xl">
+                <div className="text-danger-text font-sans text-2xl leading-none font-bold tracking-tight sm:text-3xl">
                   {totalEmpenhado}
                 </div>
                 {totalLiquidado && (
-                  <div className="mt-3 text-mute2 text-xs">
+                  <div className="text-mute2 mt-3 text-xs">
                     {totalLiquidado} liquidados
                     {despesasSubtext ? ` · ${despesasSubtext}` : ""}
                   </div>
@@ -152,7 +152,7 @@ export function CardsSecundariosVisaoGeral({
               </div>
             )}
             {despesasSubtext && !(totalEmpenhado && totalLiquidado) && (
-              <div className="mt-3 text-mute2 text-xs">{despesasSubtext}</div>
+              <div className="text-mute2 mt-3 text-xs">{despesasSubtext}</div>
             )}
           </div>
 
@@ -192,7 +192,7 @@ export function CardsSecundariosVisaoGeral({
                           backgroundColor: fallbackColor,
                         }}
                       />
-                      <span className="numeric mt-1 text-left text-[9px] text-mute2">
+                      <span className="numeric text-mute2 mt-1 text-left text-[9px]">
                         {bar.year}
                       </span>
                     </div>
@@ -243,7 +243,7 @@ export function CardsSecundariosVisaoGeral({
                         />
                       )}
                     </div>
-                    <span className="numeric mt-1 text-left text-[9px] text-mute2">
+                    <span className="numeric text-mute2 mt-1 text-left text-[9px]">
                       {bar.year}
                     </span>
                   </div>
@@ -255,12 +255,12 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {despesasFooter && (
-          <div className="mt-4 text-mute2 text-xs">{despesasFooter}</div>
+          <div className="text-mute2 mt-4 text-xs">{despesasFooter}</div>
         )}
       </div>
 
       {/* Card 2: Licitações */}
-      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:first:pl-0 sm:last:pr-0">
         <div>
           {/* Cabeçalho */}
           <CabecalhoColuna
@@ -270,7 +270,7 @@ export function CardsSecundariosVisaoGeral({
           />
 
           {/* Lista de Itens */}
-          <div className="divide-y divide-line">
+          <div className="divide-line divide-y">
             {licitacoesItems.length > 0 ? (
               licitacoesItems.map((item) => (
                 <div
@@ -279,19 +279,19 @@ export function CardsSecundariosVisaoGeral({
                 >
                   <strong
                     className={cn(
-                      "w-9 shrink-0 font-bold font-sans text-base",
+                      "w-9 shrink-0 font-sans text-base font-bold",
                       item.isAlert ? "text-danger-text" : "text-ink",
                     )}
                   >
                     {item.count}
                   </strong>
-                  <span className="flex-1 truncate text-mute2">
+                  <span className="text-mute2 flex-1 truncate">
                     {item.label}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="py-4 text-center text-mute2 text-xs italic">
+              <div className="text-mute2 py-4 text-center text-xs italic">
                 Nenhum indicador registrado
               </div>
             )}
@@ -300,7 +300,7 @@ export function CardsSecundariosVisaoGeral({
       </div>
 
       {/* Card 3: Pessoal */}
-      <div className="flex flex-col justify-between py-5 sm:px-6 sm:last:pr-0 sm:first:pl-0">
+      <div className="flex flex-col justify-between py-5 sm:px-6 sm:first:pl-0 sm:last:pr-0">
         <div>
           {/* Cabeçalho */}
           <CabecalhoColuna
@@ -312,7 +312,7 @@ export function CardsSecundariosVisaoGeral({
           {/* Destaque Numérico */}
           <div className="mb-4">
             {pessoalPercentFormatted ? (
-              <div className="font-bold font-sans text-2xl text-ink leading-none tracking-tight sm:text-3xl">
+              <div className="text-ink font-sans text-2xl leading-none font-bold tracking-tight sm:text-3xl">
                 {pessoalPercentFormatted}
               </div>
             ) : (
@@ -321,14 +321,14 @@ export function CardsSecundariosVisaoGeral({
               </div>
             )}
             {pessoalSubtext && (
-              <div className="mt-3 text-mute2 text-xs">{pessoalSubtext}</div>
+              <div className="text-mute2 mt-3 text-xs">{pessoalSubtext}</div>
             )}
           </div>
 
           {/* Barra de Progresso + Marcador LRF */}
           {pessoalPercentFormatted && (
             <div className="my-3 space-y-1.5">
-              <div className="relative h-2 w-full overflow-visible bg-track">
+              <div className="bg-track relative h-2 w-full overflow-visible">
                 {/* Progresso da Folha */}
                 <div
                   className="h-full transition-all duration-500"
@@ -339,14 +339,14 @@ export function CardsSecundariosVisaoGeral({
                 />
                 {/* Linha Vermelha de Limite LRF */}
                 <div
-                  className="absolute top-[-3px] z-10 h-3.5 w-0.5 bg-danger-fill"
+                  className="bg-danger-fill absolute top-[-3px] z-10 h-3.5 w-0.5"
                   style={{
                     left: `${Math.min(100, Math.max(0, lrfLimitVal))}%`,
                   }}
                   title={`Limite LRF: ${lrfLimitFormatted}`}
                 />
               </div>
-              <div className="numeric flex items-center justify-between text-left text-[10.5px] text-mute2">
+              <div className="numeric text-mute2 flex items-center justify-between text-left text-[10.5px]">
                 <span>{pessoalPercentVal}% atual</span>
                 <span className="text-danger-text">
                   limite LRF: {lrfLimitFormatted}
@@ -358,7 +358,7 @@ export function CardsSecundariosVisaoGeral({
 
         {/* Rodapé */}
         {pessoalFooter && (
-          <div className="mt-4 text-mute2 text-xs">{pessoalFooter}</div>
+          <div className="text-mute2 mt-4 text-xs">{pessoalFooter}</div>
         )}
       </div>
     </div>

@@ -61,7 +61,7 @@ export function HeroFiscalCard({
       {/* Coluna Esquerda: Narrativa */}
       <div className="space-y-4 lg:col-span-7">
         {periodText && (
-          <span className="inline-block font-semibold text-brand text-xs uppercase tracking-normal">
+          <span className="text-brand inline-block text-xs font-semibold tracking-normal uppercase">
             {periodText}
           </span>
         )}
@@ -69,7 +69,7 @@ export function HeroFiscalCard({
         {headline && <h1>{headline}</h1>}
 
         {summary && (
-          <div className="space-y-3 text-mute2 text-sm leading-relaxed sm:text-base">
+          <div className="text-mute2 space-y-3 text-sm leading-relaxed sm:text-base">
             {summary}
           </div>
         )}
@@ -83,28 +83,28 @@ export function HeroFiscalCard({
               `Arrecadado no ano até agora ${portalName ? `· ${portalName}` : ""}`}
           </span>
           {statusBadgeText && (
-            <span className="inline-flex shrink-0 items-center rounded-md border border-warn-text/40 bg-warn-fill/10 px-2.5 py-0.5 font-medium text-[11px] text-warn-text">
+            <span className="border-warn-text/40 bg-warn-fill/10 text-warn-text inline-flex shrink-0 items-center rounded-md border px-2.5 py-0.5 text-[11px] font-medium">
               {statusBadgeText}
             </span>
           )}
         </div>
 
-        <div className="mb-2 font-bold font-sans text-3xl text-ink tracking-tight sm:text-4xl">
+        <div className="text-ink mb-2 font-sans text-3xl font-bold tracking-tight sm:text-4xl">
           {formattedTotal}
         </div>
 
         <div className="mb-4 space-y-1.5">
-          <div className="flex items-center justify-between font-medium text-mute2 text-xs">
+          <div className="text-mute2 flex items-center justify-between text-xs font-medium">
             <span>
               Previsto:{" "}
               <strong className="text-ink">{formattedPrevisto}</strong>
             </span>
-            <span className="font-semibold text-brand">
+            <span className="text-brand font-semibold">
               {realizationPercent}% executado
             </span>
           </div>
 
-          <div className="h-1.5 w-full overflow-hidden bg-track">
+          <div className="bg-track h-1.5 w-full overflow-hidden">
             <div
               className="h-full transition-all duration-500 ease-out"
               style={{
@@ -116,20 +116,20 @@ export function HeroFiscalCard({
         </div>
 
         {originBreakdown && originBreakdown.length > 0 && (
-          <div className="mt-4 border-line border-t pt-4">
+          <div className="border-line mt-4 border-t pt-4">
             <h2 className="mb-3">De onde vem cada R$ 1,00</h2>
             <div className="space-y-3">
               {originBreakdown.map((item) => {
                 return (
                   <div key={item.label} className="space-y-1 text-xs">
-                    <div className="flex items-center justify-between text-mute2">
-                      <span className="font-medium text-ink">{item.label}</span>
-                      <span className="font-semibold text-ink">
+                    <div className="text-mute2 flex items-center justify-between">
+                      <span className="text-ink font-medium">{item.label}</span>
+                      <span className="text-ink font-semibold">
                         {item.amountPerReal ? `${item.amountPerReal} ` : ""}(
                         {item.percentage}%)
                       </span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden bg-track">
+                    <div className="bg-track h-1.5 w-full overflow-hidden">
                       <div
                         className="h-full transition-all duration-500"
                         style={{

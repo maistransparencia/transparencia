@@ -259,7 +259,7 @@ export default async function SaudePage({
               />
             </>
           ) : (
-            <p className="border-line border-y py-4 text-mute">
+            <p className="border-line text-mute border-y py-4">
               Sem pagamentos a fornecedores registrados para a saúde em{" "}
               {selectedYear}.
             </p>

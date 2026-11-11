@@ -21,7 +21,7 @@ export function FarmaciaDisponibilidadeUnidades({
           />
         ))}
       </span>
-      <span className="text-[11px] text-mute tabular-nums">
+      <span className="text-mute text-[11px] tabular-nums">
         {fmtNumber(unidadesComRegistro)} de {fmtNumber(totalUnidadesAtivas)}{" "}
         unidades
       </span>

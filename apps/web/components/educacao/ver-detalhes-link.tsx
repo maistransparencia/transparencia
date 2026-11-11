@@ -26,7 +26,7 @@ export function VerDetalhesLink({
       data-testid={testId}
       onClick={onClick}
       className={cn(
-        "relative block w-fit cursor-pointer text-left font-medium text-brand-text text-sm underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']",
+        "text-brand-text relative block w-fit cursor-pointer text-left text-sm font-medium underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']",
         className,
       )}
     >

@@ -58,7 +58,7 @@ function errorTypeFor(status: number): string {
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} className="mt-1 text-danger-text text-xs">
+    <p id={id} className="text-danger-text mt-1 text-xs">
       {message}
     </p>
   );
@@ -187,18 +187,18 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
     >
       {status === "success" ? (
         <div role="status" className="py-2 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ok-fill/10 text-ok-text">
+          <div className="bg-ok-fill/10 text-ok-text mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
           <h3>Pronto, avisaremos você</h3>
-          <p className="mt-2 text-mute text-sm leading-relaxed">
+          <p className="text-mute mt-2 text-sm leading-relaxed">
             Anotamos {savedCity.cidade} ({savedCity.uf}). Quando ela entrar no
             portal, você recebe um e-mail.
           </p>
           <button
             type="button"
             onClick={handleClose}
-            className="mt-6 min-h-11 w-full rounded-lg bg-brand-fill px-4 font-semibold text-onink text-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            className="bg-brand-fill text-onink focus-visible:ring-brand mt-6 min-h-11 w-full rounded-lg px-4 text-sm font-semibold transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Voltar para a lista de cidades
           </button>
@@ -219,7 +219,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <div>
             <label
               htmlFor="city-interest-cidade"
-              className="mb-1 block font-medium text-ink text-sm"
+              className="text-ink mb-1 block text-sm font-medium"
             >
               Cidade
             </label>
@@ -245,7 +245,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <div>
             <label
               htmlFor="city-interest-uf"
-              className="mb-1 block font-medium text-ink text-sm"
+              className="text-ink mb-1 block text-sm font-medium"
             >
               Estado
             </label>
@@ -274,7 +274,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <div>
             <label
               htmlFor="city-interest-email"
-              className="mb-1 block font-medium text-ink text-sm"
+              className="text-ink mb-1 block text-sm font-medium"
             >
               E-mail
             </label>
@@ -308,11 +308,11 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
                 }}
                 aria-invalid={errors.consentimento ? true : undefined}
                 aria-describedby={describedBy("consentimento")}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-brand focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+                className="accent-brand focus-visible:outline-brand mt-0.5 h-5 w-5 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2"
               />
               <label
                 htmlFor="city-interest-consentimento"
-                className="min-h-6 text-mute text-sm leading-snug"
+                className="text-mute min-h-6 text-sm leading-snug"
               >
                 Concordo em receber este aviso por e-mail. Meus dados são usados
                 só para isso, conforme a{" "}
@@ -320,7 +320,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
                   href="/privacidade"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-brand-text underline underline-offset-2"
+                  className="text-brand-text font-medium underline underline-offset-2"
                 >
                   Política de Privacidade
                 </Link>
@@ -335,7 +335,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           {formError && (
             <p
               role="alert"
-              className="rounded-lg bg-danger-fill/10 p-3 text-danger-text text-sm"
+              className="bg-danger-fill/10 text-danger-text rounded-lg p-3 text-sm"
             >
               {formError}
             </p>
@@ -344,7 +344,7 @@ export function CityInterestModal({ isOpen, onClose }: CityInterestModalProps) {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-fill px-4 font-semibold text-onink text-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
+            className="bg-brand-fill text-onink focus-visible:ring-brand flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-60"
           >
             {status === "loading" ? (
               <>

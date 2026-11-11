@@ -39,7 +39,7 @@ export function PipelineExecucao({
           detailUrl ? (
             <Link
               href={detailUrl}
-              className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand text-xs hover:underline"
+              className="text-brand inline-flex shrink-0 items-center gap-1 text-xs font-semibold hover:underline"
             >
               Ver detalhes →
             </Link>
@@ -50,14 +50,14 @@ export function PipelineExecucao({
       {/* Container Principal */}
       <div>
         {hasStages ? (
-          <div className="flex flex-col items-stretch justify-between divide-y divide-line sm:flex-row sm:divide-x sm:divide-y-0">
+          <div className="divide-line flex flex-col items-stretch justify-between divide-y sm:flex-row sm:divide-x sm:divide-y-0">
             {stages.map((stage) => (
               <div
                 key={stage.name}
-                className="flex min-w-0 flex-1 flex-col py-5 sm:px-5 sm:last:pr-0 sm:first:pl-0"
+                className="flex min-w-0 flex-1 flex-col py-5 sm:px-5 sm:first:pl-0 sm:last:pr-0"
               >
                 <div className="eyebrow mb-2">{stage.name}</div>
-                <div className="mb-4 h-1.5 w-full overflow-hidden bg-track">
+                <div className="bg-track mb-4 h-1.5 w-full overflow-hidden">
                   <div
                     className="h-full transition-all duration-500"
                     style={{
@@ -66,20 +66,20 @@ export function PipelineExecucao({
                     }}
                   />
                 </div>
-                <div className="font-bold font-sans text-ink text-xl tracking-tight">
+                <div className="text-ink font-sans text-xl font-bold tracking-tight">
                   {stage.formattedValue}
                 </div>
-                <div className="mt-1 text-mute2 text-xs">{stage.label}</div>
+                <div className="text-mute2 mt-1 text-xs">{stage.label}</div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="py-6 text-center text-mute2 text-xs">
+          <div className="text-mute2 py-6 text-center text-xs">
             Nenhuma etapa de execução orçamentária disponível.
           </div>
         )}
         {hasStages && (
-          <div aria-hidden="true" className="mt-6 border-line border-t" />
+          <div aria-hidden="true" className="border-line mt-6 border-t" />
         )}
       </div>
     </div>

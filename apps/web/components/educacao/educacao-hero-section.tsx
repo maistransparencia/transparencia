@@ -64,7 +64,7 @@ export function EducacaoHeroSection({
             role="note"
             className="caption border-brand-fill border-l-[3px] pl-3"
           >
-            <strong className="font-semibold text-ink">
+            <strong className="text-ink font-semibold">
               Ano em andamento:
             </strong>{" "}
             os números são parciais e não dá para compará-los com anos já

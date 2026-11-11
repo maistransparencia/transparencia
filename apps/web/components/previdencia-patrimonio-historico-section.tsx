@@ -47,7 +47,7 @@ interface CustomTooltipProps {
 function formatVariacaoTooltip(ponto: PrevidenciaPatrimonioHistoricoPonto) {
   if (ponto.quebraSerieFlag) {
     return (
-      <span className="font-semibold text-mute">N/D (Quebra de Série)</span>
+      <span className="text-mute font-semibold">N/D (Quebra de Série)</span>
     );
   }
   if (ponto.variacaoPatrimonioPct !== null) {
@@ -56,8 +56,8 @@ function formatVariacaoTooltip(ponto: PrevidenciaPatrimonioHistoricoPonto) {
       <span
         className={
           isPositive
-            ? "font-semibold text-ok-text"
-            : "font-semibold text-danger-text"
+            ? "text-ok-text font-semibold"
+            : "text-danger-text font-semibold"
         }
       >
         {isPositive
@@ -84,13 +84,13 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
       : "Não informado";
 
   return (
-    <div className="pointer-events-none w-[220px] space-y-1 border border-line bg-page/95 p-2.5 text-xs backdrop-blur-xs sm:w-[250px]">
-      <div className="flex items-center justify-between border-line border-b pb-1 font-semibold text-ink">
+    <div className="border-line bg-page/95 pointer-events-none w-[220px] space-y-1 border p-2.5 text-xs backdrop-blur-xs sm:w-[250px]">
+      <div className="border-line text-ink flex items-center justify-between border-b pb-1 font-semibold">
         <span>Exercício {ponto.ano}</span>
         {ponto.inconsistenciaDeclaracaoFlag && (
           <Badge
             variant="warning"
-            className="shrink-0 whitespace-nowrap px-1.5 py-0 text-xs"
+            className="shrink-0 px-1.5 py-0 text-xs whitespace-nowrap"
           >
             Inconsistência MSC
           </Badge>
@@ -98,7 +98,7 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
       </div>
       <div className="flex items-baseline justify-between pt-0.5">
         <span className="text-mute2 text-xs">Patrimônio:</span>
-        <span className="font-bold text-ink text-xs tabular-nums">
+        <span className="text-ink text-xs font-bold tabular-nums">
           {patrimonioStr}
         </span>
       </div>
@@ -109,13 +109,13 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
         </span>
       </div>
       {ponto.inconsistenciaDeclaracaoFlag && (
-        <p className="mt-1 rounded bg-warn-fill/15 p-1.5 text-warn-text text-xs leading-tight">
+        <p className="bg-warn-fill/15 text-warn-text mt-1 rounded p-1.5 text-xs leading-tight">
           Aplicações financeiras omitidas pelo ente na remessa da MSC ao
           SICONFI.
         </p>
       )}
       {ponto.quebraSerieFlag && (
-        <p className="mt-1 rounded bg-line2 p-1.5 text-mute text-xs leading-tight">
+        <p className="bg-line2 text-mute mt-1 rounded p-1.5 text-xs leading-tight">
           {ponto.anoInconsistenciaAnterior
             ? `Série normalizada após omissão contábil de ${ponto.anoInconsistenciaAnterior}.`
             : "Série normalizada após omissão contábil anterior."}
@@ -127,20 +127,20 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
 
 function renderVariacaoTabela(p: PrevidenciaPatrimonioHistoricoPonto) {
   if (p.quebraSerieFlag) {
-    return <span className="font-semibold text-mute">N/D</span>;
+    return <span className="text-mute font-semibold">N/D</span>;
   }
   if (p.variacaoPatrimonioPct === null) {
     return <span className="text-mute2">--</span>;
   }
   if (p.variacaoPatrimonioPct >= 0) {
     return (
-      <span className="whitespace-nowrap font-medium text-ok-text">
+      <span className="text-ok-text font-medium whitespace-nowrap">
         +{fmtPercent(p.variacaoPatrimonioPct)}
       </span>
     );
   }
   return (
-    <span className="whitespace-nowrap font-medium text-danger-text">
+    <span className="text-danger-text font-medium whitespace-nowrap">
       {fmtPercent(p.variacaoPatrimonioPct)}
     </span>
   );
@@ -152,7 +152,7 @@ function renderNotaMetodologica(p: PrevidenciaPatrimonioHistoricoPonto) {
       <div className="flex flex-col items-start gap-1 py-0.5">
         <Badge
           variant="warning"
-          className="shrink-0 whitespace-nowrap px-2 py-0.5 text-xs"
+          className="shrink-0 px-2 py-0.5 text-xs whitespace-nowrap"
         >
           Inconsistência de Declaração na MSC
         </Badge>
@@ -170,7 +170,7 @@ function renderNotaMetodologica(p: PrevidenciaPatrimonioHistoricoPonto) {
       <div className="flex flex-col items-start gap-1 py-0.5">
         <Badge
           variant="warning"
-          className="shrink-0 whitespace-nowrap px-2 py-0.5 text-xs"
+          className="shrink-0 px-2 py-0.5 text-xs whitespace-nowrap"
         >
           Quebra de Série Metodológica
         </Badge>
@@ -308,8 +308,8 @@ export function PrevidenciaPatrimonioHistoricoSection({
                 <span
                   className={
                     resumo.variacaoPicoPct >= 0
-                      ? "font-semibold text-ok-text"
-                      : "font-semibold text-danger-text"
+                      ? "text-ok-text font-semibold"
+                      : "text-danger-text font-semibold"
                   }
                 >
                   {fmtPercent(resumo.variacaoPicoPct)}
@@ -332,7 +332,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
       </dl>
 
       {/* Gráfico de Área Interativo (Recharts) */}
-      <div className="space-y-4 border-line border-t pt-4 sm:space-y-5">
+      <div className="border-line space-y-4 border-t pt-4 sm:space-y-5">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h4 className="font-bold">
@@ -344,9 +344,9 @@ export function PrevidenciaPatrimonioHistoricoSection({
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="flex items-center gap-1 font-medium text-mute">
+            <span className="text-mute flex items-center gap-1 font-medium">
               <span
-                className="inline-block h-2.5 w-2.5 bg-brand-fill"
+                className="bg-brand-fill inline-block h-2.5 w-2.5"
                 aria-hidden="true"
               />
               Patrimônio Total
@@ -431,7 +431,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
           renderMobileRow={(ponto) => ({
             resumo: (
               <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 font-semibold text-ink">
+                <span className="text-ink flex items-center gap-1.5 font-semibold">
                   {ponto.ano}
                   {ponto.ano === resumo.anoPico && (
                     <Badge variant="accent" className="px-1.5 py-0">
@@ -459,13 +459,13 @@ export function PrevidenciaPatrimonioHistoricoSection({
 
         {/* Mini-Banner Informativo de Transparência Metodológica */}
         {temInconsistenciaNaSerie && (
-          <div className="flex items-start gap-3 border-brand-fill border-l-[3px] bg-brand-fill/15 px-4 py-3 text-ink text-xs">
+          <div className="border-brand-fill bg-brand-fill/15 text-ink flex items-start gap-3 border-l-[3px] px-4 py-3 text-xs">
             <Info
-              className="mt-0.5 h-4 w-4 shrink-0 text-brand-text"
+              className="text-brand-text mt-0.5 h-4 w-4 shrink-0"
               aria-hidden="true"
             />
             <div className="space-y-1">
-              <p className="font-semibold text-ink">
+              <p className="text-ink font-semibold">
                 Transparência Metodológica e Integridade da Matriz de Saldos
                 Contábeis (SICONFI / STN)
               </p>
@@ -485,7 +485,7 @@ export function PrevidenciaPatrimonioHistoricoSection({
                   href={FONTES_OFICIAIS.siconfi.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-brand-text underline"
+                  className="text-brand-text inline-flex items-center gap-1 font-medium underline"
                 >
                   <span>
                     Acessar portal SICONFI / Secretaria do Tesouro Nacional
@@ -537,27 +537,27 @@ export function PrevidenciaPatrimonioHistoricoSection({
                 futuros.
               </p>
 
-              <div className="space-y-1.5 border border-line bg-line2 p-3 text-xs">
+              <div className="border-line bg-line2 space-y-1.5 border p-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-mute2">Aporte Exigido:</span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {fmtCurrency(diagnostico.totalAporteExigido)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mute2">Aporte Quitado:</span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {fmtCurrency(diagnostico.totalAporteQuitado)}
                   </span>
                 </div>
-                <div className="flex justify-between border-line border-t pt-1.5">
+                <div className="border-line flex justify-between border-t pt-1.5">
                   <span className="text-mute2">Adimplência:</span>
-                  <span className="font-semibold text-ink">
+                  <span className="text-ink font-semibold">
                     {fmtPercent(diagnostico.taxaAdimplenciaAporte)}
                   </span>
                 </div>
                 {diagnostico.hasDeficitAporte && (
-                  <div className="flex justify-between pt-1 font-semibold text-danger-text">
+                  <div className="text-danger-text flex justify-between pt-1 font-semibold">
                     <span>Aporte Pendente:</span>
                     <span>
                       {fmtCurrency(diagnostico.romboAporteNaoRepassado)}
@@ -567,12 +567,12 @@ export function PrevidenciaPatrimonioHistoricoSection({
               </div>
             </div>
 
-            <div className="mt-4 border-line border-t pt-3">
+            <div className="border-line mt-4 border-t pt-3">
               <a
                 href={urlLegislacao("lei9717")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-brand-text text-xs underline"
+                className="text-brand-text inline-flex items-center gap-1 text-xs font-medium underline"
               >
                 <span>Lei nº 9.717/1998</span>
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -605,36 +605,36 @@ export function PrevidenciaPatrimonioHistoricoSection({
                 investimentos.
               </p>
 
-              <div className="space-y-1.5 border border-line bg-line2 p-3 text-xs">
+              <div className="border-line bg-line2 space-y-1.5 border p-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-mute2">Patronal Liquidado:</span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {fmtCurrency(diagnostico.totalLiquidadoPatronal)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mute2">Patronal Quitado:</span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {fmtCurrency(diagnostico.totalPagoPatronal)}
                   </span>
                 </div>
                 {diagnostico.hasRetencaoPatronal ? (
                   <>
-                    <div className="flex justify-between border-line border-t pt-1.5 font-semibold text-danger-text">
+                    <div className="border-line text-danger-text flex justify-between border-t pt-1.5 font-semibold">
                       <span>Retenção Acumulada:</span>
                       <span>
                         {fmtCurrency(diagnostico.romboPatronalNaoRepassado)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-mute2 text-xs">
+                    <div className="text-mute2 flex justify-between text-xs">
                       <span>Déficit Médio Mensal:</span>
-                      <span className="font-medium text-mute">
+                      <span className="text-mute font-medium">
                         {fmtCurrency(diagnostico.deficitMedioMensal)}/mês
                       </span>
                     </div>
                   </>
                 ) : (
-                  <div className="border-line border-t pt-1.5 font-medium text-ok-text text-xs">
+                  <div className="border-line text-ok-text border-t pt-1.5 text-xs font-medium">
                     Cotas patronais do exercício integralmente repassadas ao
                     fundo.
                   </div>
@@ -642,12 +642,12 @@ export function PrevidenciaPatrimonioHistoricoSection({
               </div>
             </div>
 
-            <div className="mt-4 border-line border-t pt-3">
+            <div className="border-line mt-4 border-t pt-3">
               <a
                 href={urlLegislacao("constituicao", "art40")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-brand-text text-xs underline"
+                className="text-brand-text inline-flex items-center gap-1 text-xs font-medium underline"
               >
                 <span>Art. 40 da CF/88</span>
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -673,12 +673,12 @@ export function PrevidenciaPatrimonioHistoricoSection({
                 benefícios do {previdenciaSigla}.
               </p>
 
-              <div className="space-y-1.5 border border-line bg-line2 p-3 text-xs">
+              <div className="border-line bg-line2 space-y-1.5 border p-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-mute2">
                     Servidores Efetivos (RPPS):
                   </span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {diagnostico.servidoresEfetivos}
                   </span>
                 </div>
@@ -686,27 +686,27 @@ export function PrevidenciaPatrimonioHistoricoSection({
                   <span className="text-mute2">
                     Temporários / Comissionados:
                   </span>
-                  <span className="font-medium text-ink">
+                  <span className="text-ink font-medium">
                     {diagnostico.servidoresTemporariosComissionados}
                   </span>
                 </div>
-                <div className="flex justify-between border-line border-t pt-1.5">
+                <div className="border-line flex justify-between border-t pt-1.5">
                   <span className="text-mute2">
                     Razão Temporários / Efetivos:
                   </span>
-                  <span className="font-semibold text-ink">
+                  <span className="text-ink font-semibold">
                     {fmtPercent(diagnostico.razaoTemporariosEfetivosPct)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 border-line border-t pt-3">
+            <div className="border-line mt-4 border-t pt-3">
               <a
                 href={urlLegislacao("constituicao", "art40")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-brand-text text-xs underline"
+                className="text-brand-text inline-flex items-center gap-1 text-xs font-medium underline"
               >
                 <span>Art. 40 da CF/88</span>
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />

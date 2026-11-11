@@ -24,7 +24,7 @@ export function ObrasHeroSection({
       href={FONTES_OFICIAIS.obrasgov.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-brand-text underline underline-offset-2"
+      className="text-brand-text inline-flex items-center gap-1 underline underline-offset-2"
     >
       ObrasGov.br
       <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

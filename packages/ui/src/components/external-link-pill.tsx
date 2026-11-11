@@ -36,7 +36,7 @@ export function ExternalLinkPill({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-pill px-3 py-1 text-ink text-xs transition-colors hover:border-mute3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        "border-pill text-ink hover:border-mute3 focus-visible:ring-brand inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors focus:outline-none focus-visible:ring-2",
         className,
       )}
     >

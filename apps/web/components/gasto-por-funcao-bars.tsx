@@ -25,14 +25,14 @@ export function GastoPorFuncaoBars({ items, maxVal }: GastoPorFuncaoBarsProps) {
         return (
           <div key={item.funcao} className="space-y-1.5">
             <div className="flex items-baseline justify-between gap-4">
-              <p className="min-w-0 font-semibold text-ink text-sm">
+              <p className="text-ink min-w-0 text-sm font-semibold">
                 {item.funcao}
               </p>
-              <p className="shrink-0 whitespace-nowrap font-semibold text-ink text-sm tabular-nums">
+              <p className="text-ink shrink-0 text-sm font-semibold whitespace-nowrap tabular-nums">
                 {formattedVal}
               </p>
             </div>
-            <div className="h-3 overflow-hidden bg-track">
+            <div className="bg-track h-3 overflow-hidden">
               <div
                 className={cn("h-full transition-all duration-500", color)}
                 style={{ width: `${widthPct}%` }}

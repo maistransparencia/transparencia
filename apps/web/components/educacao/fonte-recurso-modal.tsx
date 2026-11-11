@@ -88,14 +88,14 @@ export function FonteRecursoModal({
                     key={ponto.ano}
                     aria-current={selecionado ? "true" : undefined}
                     className={cn(
-                      "grid grid-cols-[3.5rem_1fr_9.5rem] items-center gap-3 border-line2 border-b px-3 py-2 last:border-b-0",
+                      "border-line2 grid grid-cols-[3.5rem_1fr_9.5rem] items-center gap-3 border-b px-3 py-2 last:border-b-0",
                       selecionado && "bg-line2",
                     )}
                   >
                     <span
                       className={cn(
                         "text-mute text-sm",
-                        selecionado && "font-semibold text-ink",
+                        selecionado && "text-ink font-semibold",
                       )}
                     >
                       {ponto.ano}
@@ -110,7 +110,7 @@ export function FonteRecursoModal({
                       )}
                     >
                       <span
-                        className="block h-full bg-brand-fill"
+                        className="bg-brand-fill block h-full"
                         style={{
                           width: `${maiorValorHistorico > 0 ? Math.max(0, (ponto.totalArrecadado / maiorValorHistorico) * 100) : 0}%`,
                         }}
@@ -118,7 +118,7 @@ export function FonteRecursoModal({
                     </span>
                     <span
                       className={cn(
-                        "numeric whitespace-nowrap text-sm",
+                        "numeric text-sm whitespace-nowrap",
                         selecionado && "font-semibold",
                       )}
                     >

@@ -71,9 +71,9 @@ export default async function FarmaciaPage({
       </div>
 
       {viewModel.status === "indisponivel" && (
-        <div className="flex flex-col items-center border-line border-y px-4 py-8 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute3" aria-hidden="true" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line flex flex-col items-center border-y px-4 py-8 text-center">
+          <AlertCircle className="text-mute3 mb-2 h-6 w-6" aria-hidden="true" />
+          <p className="text-ink text-sm font-medium">
             As informações sobre o estoque de medicamentos não estão disponíveis
             no momento.
           </p>

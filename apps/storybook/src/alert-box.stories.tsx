@@ -17,9 +17,9 @@ export const Tipos: Story = {
       {tipos.map((tipo) => (
         <div
           key={tipo.nome}
-          className={`flex gap-3 border-l-[3px] px-4 py-3 text-ink text-sm leading-relaxed ${tipo.borda}`}
+          className={`text-ink flex gap-3 border-l-[3px] px-4 py-3 text-sm leading-relaxed ${tipo.borda}`}
         >
-          <span aria-hidden="true" className="shrink-0 text-ink">
+          <span aria-hidden="true" className="text-ink shrink-0">
             ●
           </span>
           <div>

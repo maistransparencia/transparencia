@@ -90,7 +90,7 @@ export function EducacaoIndicadoresApoio({
               value={
                 <>
                   {fmtNumber(alunosRede.total)}{" "}
-                  <span className="font-normal text-base">matriculados</span>
+                  <span className="text-base font-normal">matriculados</span>
                 </>
               }
               note={
@@ -112,7 +112,7 @@ export function EducacaoIndicadoresApoio({
                     <span>
                       <span
                         aria-hidden="true"
-                        className="mr-1.5 inline-block size-2.5 bg-brand-fill"
+                        className="bg-brand-fill mr-1.5 inline-block size-2.5"
                       />
                       {fmtNumber(alunosRede.educacaoInfantil)} Infantil (
                       {
@@ -126,7 +126,7 @@ export function EducacaoIndicadoresApoio({
                     <span>
                       <span
                         aria-hidden="true"
-                        className="mr-1.5 inline-block size-2.5 bg-ink"
+                        className="bg-ink mr-1.5 inline-block size-2.5"
                       />
                       {fmtNumber(alunosRede.ensinoFundamental)} Fundamental (
                       {

@@ -78,9 +78,9 @@ export default async function ReceitasPage({
         <h1>Fontes de Receita</h1>
         <p className="text-mute2 text-sm leading-relaxed">
           Compara o que a prefeitura{" "}
-          <strong className="font-semibold text-ink">planejou arrecadar</strong>{" "}
+          <strong className="text-ink font-semibold">planejou arrecadar</strong>{" "}
           no ano (previsão da Lei Orçamentária Anual, a LOA) com o que{" "}
-          <strong className="font-semibold text-ink">de fato entrou</strong> no
+          <strong className="text-ink font-semibold">de fato entrou</strong> no
           caixa, por origem do dinheiro. Valores que a prefeitura apenas retém e
           repassa a terceiros, como descontos em folha, aparecem à parte e não
           entram no total.
@@ -121,7 +121,7 @@ export default async function ReceitasPage({
 
         {totalPrev > 0 ? (
           <div className="space-y-2">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm font-semibold tabular-nums">
               <span>
                 Já arrecadado: {fmtPercent(pctArrecadadoAnual)} do previsto
               </span>
@@ -160,10 +160,10 @@ export default async function ReceitasPage({
           action={
             <div className="caption flex items-center gap-4 font-medium">
               <span className="flex items-center gap-1.5">
-                <span className="h-3 w-3 bg-brand-fill" /> Arrecadado
+                <span className="bg-brand-fill h-3 w-3" /> Arrecadado
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-3 w-3 border border-line bg-track" />{" "}
+                <span className="border-line bg-track h-3 w-3 border" />{" "}
                 Previsto (meta LOA)
               </span>
             </div>

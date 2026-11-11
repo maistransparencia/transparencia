@@ -83,10 +83,10 @@ export function DistribucaoModalidadesChart({
         return (
           <div
             key={`modalidade-${item.modalidade}`}
-            className="flex items-center gap-4 font-medium text-mute text-xs"
+            className="text-mute flex items-center gap-4 text-xs font-medium"
           >
             {/* Left label */}
-            <span className="w-24 shrink-0 truncate font-medium text-mute md:w-36">
+            <span className="text-mute w-24 shrink-0 truncate font-medium md:w-36">
               {fmtLicitacaoModalidade(item.modalidade)}
             </span>
 
@@ -102,10 +102,10 @@ export function DistribucaoModalidadesChart({
             </div>
 
             {/* Right value */}
-            <div className="w-24 shrink-0 text-right font-normal text-mute2 md:w-36">
+            <div className="text-mute2 w-24 shrink-0 text-right font-normal md:w-36">
               <span>{fmtCompactMi(item.valorTotal)}</span>
-              <span className="mx-1 text-mute3">·</span>
-              <span className="font-bold text-ink">{item.quantidade}</span>
+              <span className="text-mute3 mx-1">·</span>
+              <span className="text-ink font-bold">{item.quantidade}</span>
             </div>
           </div>
         );

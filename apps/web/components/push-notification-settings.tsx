@@ -62,9 +62,9 @@ export function PushNotificationSettings({
   if (permission === "denied") {
     return (
       <div className="space-y-1">
-        <p className={`${linhaStatusClass} font-medium text-ink`}>
+        <p className={`${linhaStatusClass} text-ink font-medium`}>
           <AlertCircle
-            className="h-4 w-4 shrink-0 text-warn-text"
+            className="text-warn-text h-4 w-4 shrink-0"
             aria-hidden="true"
           />
           Notificações bloqueadas
@@ -74,12 +74,12 @@ export function PushNotificationSettings({
           aria-expanded={areStepsOpen}
           aria-controls={stepsId}
           onClick={() => setAreStepsOpen((previous) => !previous)}
-          className="min-h-11 cursor-pointer text-mute2 text-xs underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2 sm:min-h-0"
+          className="text-mute2 hover:text-ink focus-visible:outline-ink min-h-11 cursor-pointer text-xs underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 sm:min-h-0"
         >
           Como desbloquear
         </button>
         <div id={stepsId} hidden={!areStepsOpen}>
-          <ol className="list-decimal space-y-1 pl-4 text-mute2 text-xs leading-relaxed">
+          <ol className="text-mute2 list-decimal space-y-1 pl-4 text-xs leading-relaxed">
             <li>Toque ou clique no ícone de cadeado na barra de endereços.</li>
             <li>Abra as configurações do site.</li>
             <li>Em Notificações, mude a permissão para Permitir.</li>
@@ -113,10 +113,10 @@ export function PushNotificationSettings({
         <div className="flex items-center justify-between gap-3">
           <p
             role="status"
-            className={`${linhaStatusClass} font-medium text-ink`}
+            className={`${linhaStatusClass} text-ink font-medium`}
           >
             <BellRing
-              className="h-4 w-4 shrink-0 text-mute2"
+              className="text-mute2 h-4 w-4 shrink-0"
               aria-hidden="true"
             />
             Notificações ativas
@@ -125,7 +125,7 @@ export function PushNotificationSettings({
             type="button"
             onClick={() => runAction(unsubscribe)}
             disabled={isBusy}
-            className="cursor-pointer text-mute2 text-xs underline hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
+            className="text-mute2 hover:text-ink cursor-pointer text-xs underline disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isActionLoading ? "Aguarde..." : "Desativar"}
           </button>
@@ -139,15 +139,15 @@ export function PushNotificationSettings({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <p role="status" className={`${linhaStatusClass} font-medium text-ink`}>
-          <Bell className="h-4 w-4 shrink-0 text-mute2" aria-hidden="true" />
+        <p role="status" className={`${linhaStatusClass} text-ink font-medium`}>
+          <Bell className="text-mute2 h-4 w-4 shrink-0" aria-hidden="true" />
           Notificações desativadas
         </p>
         <button
           type="button"
           onClick={() => runAction(subscribe, onSubscribeSuccess)}
           disabled={isBusy}
-          className="cursor-pointer text-mute2 text-xs underline hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
+          className="text-mute2 hover:text-ink cursor-pointer text-xs underline disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isActionLoading ? "Ativando..." : "Ativar"}
         </button>
